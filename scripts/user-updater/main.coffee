@@ -22,10 +22,30 @@ koding.once 'dbClientReady', ->
 
   JAccount = rekuire 'account.coffee'
   JReward  = rekuire 'rewards/index.coffee'
+  JUser    = rekuire 'user/index.coffee'
 
-  fetchUser = (acc, callback)->
-    JUser   = rekuire 'user/index.coffee'
+  # Config
+  # ------
 
+  query = type: 'registered'
+  skip  = 0
+
+  # Helpers
+  # -------
+
+  iterate = (cursor, func, index, callback)->
+    cursor.nextObject (err, obj)->
+      if err
+        callback err, index
+      else if obj?
+        func obj, index, (err)->
+          index++
+          iterate cursor, func, index, callback
+      else
+        callback null, index
+
+
+  fetchUser  = (acc, callback)->
     selector = { targetId: acc._id, as: 'owner', sourceName: 'JUser' }
     Relationship.one selector, (err, rel) ->
       return callback err   if err
@@ -33,70 +53,82 @@ koding.once 'dbClientReady', ->
       JUser.one {_id: rel.sourceId}, callback
 
 
-  gskip = 0
+  addMissingRewards = (account, index, callback)->
 
-  JAccount.count {type:'registered'}, (err, total)->
-    return console.warn err  if err?
+    referrerUsername = account.profile.nickname
 
-    limit = 100
+    console.log "##{index} working on", referrerUsername
 
-    console.log "Total #{total} users found, updating..."
+    query = { referrerUsername }
 
-    fetcher = (skip)->
+    originId         = account._id
+    type             = "disk"
+    unit             = "MB"
+    amount           = 500
+    sourceCampaign   = "oldkoding"
 
-      dindex = 0
-      index  = skip
+    JAccount.someData query, {_id:1, profile:1}, {skip}, (err, cursor)->
 
-      JAccount.each { type:'registered' }, {}, {skip, limit}, (err, account)->
+      return console.log "ERROR: ", err  if err?
 
-        return console.warn err  if err?
-        return  unless account?
+      iterate cursor, (referrer, index, callback)->
 
-        index++
-        console.log "Working on #{index}. user"  if index % 10 is 0
+        fetchUser referrer, (err, user)->
 
-        originId         = account._id
-        referrerUsername = account.profile.nickname
-        type             = "disk"
-        unit             = "MB"
-        amount           = 500
-        sourceCampaign   = "register"
+          if err?
+            {nickname} = referrer.profile
+            console.log "Failed to fetch JUser for #{nickname}, skipping."
+            console.log err
+            return callback null
 
-        JAccount.each { referrerUsername }, {}, { limit: 40 }, (err, referrer)->
-
-          console.warn err  if err?
-
-          unless referrer
-            options = { unit, type, originId }
-            console.log "updating rewards for #{referrerUsername}"
-            JReward.calculateAndUpdateEarnedAmount options, (err)->
-              console.log "rewards updated for #{referrerUsername}", err
-            return
+          unless user.status is 'confirmed'
+            console.log "Referral #{user.username} is not confirmed, skipping."
+            return callback null
+          else
+            console.log "Referral #{user.username} valid, creating reward..."
 
           providedBy = referrer._id
 
-          fetchUser referrer, (err, user)->
+          reward = new JReward {
+            type, unit, amount, sourceCampaign, providedBy, originId
+          }
 
-            console.log "Found user:", user.username, user.status
-            return  unless user.status is 'confirmed'
+          reward.save (err)->
 
-            reward = new JReward {
-              type, unit, amount, sourceCampaign, providedBy, originId
-            }
-
-            reward.save (err)->
+            if err?.code is 11000
+              console.log "
+                Reward for #{referrerUsername} from #{user.username}
+                was already exists, skipping
+              "
+            else
               console.warn err  if err?
 
-          dindex++
+            options = { unit, type, originId }
 
-          if dindex is limit
-            console.log "#{index} users updated."
-            console.log "Moving to next batch."
-            fetcher skip + limit
+            JReward.calculateAndUpdateEarnedAmount options, (err)->
+              console.warn err  if err?
+              callback null
 
-          else if skip >= total
-            console.log "ALL DONE"
-            process.exit 0
+      , 0, (err, total)->
+
+        if total > 0
+          console.log "Processed #{total} referral for #{referrerUsername}"
+
+        callback null
 
 
-    fetcher gskip
+  # Main updater
+  # ------------
+
+  JAccount.count query, (err, userCount)->
+
+    console.log "Total #{userCount - skip} accounts found, starting..."
+
+    JAccount.someData query, {_id:1, profile:1}, {skip}, (err, cursor)->
+
+      return console.log "ERROR: ", err  if err?
+
+      iterate cursor, addMissingRewards, skip, (err, total)->
+
+        console.log "FINAL #{total}"
+        process.exit 0
