@@ -168,8 +168,10 @@ module.exports.create = (KONFIG, environment)->
   # start http
   http {
 
+    access_log off;
+
     # log how long requests take
-    log_format timed_combined '$request $request_time $upstream_response_time $pipe';
+    log_format timed_combined 'RA: $remote_addr H: $host R: "$request" S: $status RS: $body_bytes_sent R: "$http_referer" UA: "$http_user_agent" RT: $request_time URT: $upstream_response_time';
     #{if environment is 'dev' then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
 
     # batch response body
@@ -219,11 +221,11 @@ module.exports.create = (KONFIG, environment)->
 
     # start server
     server {
-      
+
       # close alive connections after 20 seconds
       # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout
       keepalive_timeout 20s;
-      
+
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
       # root /usr/share/nginx/html;
