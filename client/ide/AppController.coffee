@@ -885,9 +885,8 @@ class IDEAppController extends AppController
       return unless pane.serialize
 
       if pane.options.paneType is 'editor'
-        unless pane.file.path is 'localfile:/Untitled.txt'
-          data = pane.serialize()
-          panes[data.hash] = data
+        data = pane.serialize()
+        panes[data.hash] = data
       else
         data = pane.serialize()
         panes[data.hash] = data
@@ -1051,9 +1050,7 @@ class IDEAppController extends AppController
         {path}  = context.file
         file    = FSHelper.createFileInstance path
 
-        content = if path.indexOf('localfile:/') is -1
-        then @rtm.getFromModel(path).getText()
-        else ''
+        content = @rtm.getFromModel(path)?.getText() or ''
 
         @openFile file, content, noop, no
 

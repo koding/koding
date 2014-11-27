@@ -218,10 +218,7 @@ class IDE.EditorPane extends IDE.Pane
   listenCollaborativeStringChanges: ->
 
     filePath = @getFile().path
-
-    return if filePath.indexOf('localfile:/') > -1
-
-    string = @rtm.getFromModel filePath
+    string   = @rtm.getFromModel filePath
 
     return unless string
 
