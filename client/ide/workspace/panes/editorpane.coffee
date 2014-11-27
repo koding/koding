@@ -56,8 +56,7 @@ class IDE.EditorPane extends IDE.Pane
 
 
   save: ->
-
-    ace.emit 'ace.requests.save', @getContent()
+    @getAce().emit 'ace.requests.save', @getContent()
 
 
   getAce: ->
