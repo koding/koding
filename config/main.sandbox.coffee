@@ -326,6 +326,8 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapiProxy.port}"
       healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
+      nginx             :
+        locations       : [ "= /payments/stripe/webhook" ]
 
     dailyemailnotifier  :
       group             : "socialapi"

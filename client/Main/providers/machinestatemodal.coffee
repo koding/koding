@@ -135,6 +135,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if currentState is NotInitialized
         @buildViews State: currentState
+        KD.utils.defer => @turnOnMachine()
         return
 
       @triggerEventTimer 0
@@ -287,7 +288,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         if plan is "free"
           message = "
             Your VM was automatically turned off after 60 minutes
-            of inactivity as you are in <strong>Free</strong> plan."
+            of inactivity as you are on the free plan."
           upgradeMessage = """
             <a href="/Pricing" class="upgrade-link">
               Upgrade to make your VMs always-on.

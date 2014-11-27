@@ -11,14 +11,15 @@ import (
 	"koding/kites/klient/protocol"
 	"koding/kites/klient/usage"
 	"log"
+	"net"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	kiteprotocol "github.com/koding/kite/protocol"
 )
 
 var (
@@ -64,6 +65,25 @@ func main() {
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
 	k.Config.Region = *flagRegion
+
+	// FIXME: It's ugly I know. It's a fix for Koding local development and is
+	// needed
+	if !strings.Contains(k.Config.KontrolURL, "ngrok") {
+		// override current kontrolURL so it talks to port 3000, this is needed
+		// because ELB can forward requests based on ports. The port 80 and 443 are
+		// HTTP/HTTPS only so our kite can't connect it (we use websocket). However
+		// We have a TCP proxy at 3000 which allows us to connect via WebSocket.
+		u, _ := url.Parse(k.Config.KontrolURL)
+
+		host := u.Host
+		if HasPort(u.Host) {
+			host, _, _ = net.SplitHostPort(u.Host)
+		}
+
+		u.Host = AddPort(host, "3000")
+		u.Scheme = "http"
+		k.Config.KontrolURL = u.String()
+	}
 
 	klog = k.Log
 
@@ -205,23 +225,24 @@ func main() {
 	}
 
 	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	if *flagProxy {
-		// Koding proxies in production only
-		proxyQuery := &kiteprotocol.KontrolQuery{
-			Username:    "koding",
-			Environment: "production",
-			Name:        "proxy",
-		}
-
-		k.Log.Info("Seaching proxy: %#v", proxyQuery)
-		go k.RegisterToProxy(registerURL, proxyQuery)
-	} else {
-		if err := k.RegisterForever(registerURL); err != nil {
-			log.Panic(err)
-		}
+	if err := k.RegisterForever(registerURL); err != nil {
+		log.Panic(err)
 	}
 
 	k.Log.Info("Running as version %s", VERSION)
 
 	k.Run()
+}
+
+// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
+// return true if the string includes a port.
+func HasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
+
+// Given a string of the form "host", "port", returns "host:port"
+func AddPort(host, port string) string {
+	if ok := HasPort(host); ok {
+		return host
+	}
+
+	return host + ":" + port
 }

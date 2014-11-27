@@ -1,9 +1,12 @@
 package main
 
 import (
+	_ "expvar"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/http"
+	_ "net/http/pprof"
 	"net/url"
 	"os"
 	"time"
@@ -127,6 +130,12 @@ func main() {
 		}
 	}
 
+	go func() {
+		// TODO ~ parameterize this
+		err := http.ListenAndServe("0.0.0.0:6060", nil)
+		k.Log.Error(err.Error())
+	}()
+
 	k.Run()
 }
 
@@ -164,8 +173,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
-		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
-		SecretKey: "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",
+		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey: "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",
 	}
 
 	stats, err := metrics.NewDogStatsD("kloud.aws")
@@ -205,6 +214,12 @@ func newKite(conf *Config) *kite.Kite {
 			return nil, err
 		}
 
+		// check current plan
+		plan, err := kodingProvider.Fetcher(conf.PlanEndpoint, m)
+		if err != nil {
+			return nil, err
+		}
+
 		return &koding.PlanChecker{
 			Api:      a,
 			Provider: kodingProvider,
@@ -213,11 +228,8 @@ func newKite(conf *Config) *kite.Kite {
 			Log:      kodingProvider.Log,
 			Username: m.Username,
 			Machine:  m,
+			Plan:     plan,
 		}, nil
-	}
-
-	kodingProvider.PlanFetcher = func(m *kloudprotocol.Machine) (koding.Plan, error) {
-		return kodingProvider.Fetcher(conf.PlanEndpoint, m)
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

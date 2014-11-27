@@ -136,31 +136,6 @@ func bodyLenCheck(body string) error {
 	return nil
 }
 
-// todo create a new message while updating the channel_message and delete other
-// cases, since deletion is a soft delete, old instances will still be there
-
-// CreateRaw creates a new channel message without effected by auto generated createdAt
-// and updatedAt values
-func (c *ChannelMessage) CreateRaw() error {
-	insertSql := "INSERT INTO " +
-		c.BongoName() +
-		` ("body","slug","type_constant","account_id","initial_channel_id",` +
-		`"created_at","updated_at","deleted_at","payload") ` +
-		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
-		"RETURNING ID"
-
-	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Body, c.Slug, c.TypeConstant, c.AccountId, c.InitialChannelId,
-		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
-}
-
-// UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
-// timestamps
-func (c *ChannelMessage) UpdateBodyRaw() error {
-	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.BongoName())
-
-	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
-}
-
 type messageResponseStruct struct {
 	Index   int
 	Message *ChannelMessageContainer
@@ -398,35 +373,53 @@ func (c *ChannelMessage) BySlug(query *request.Query) error {
 		return err
 	}
 
-	// fetch channel by group name
-	query.Name = query.GroupName
-	if query.GroupName == "koding" {
-		query.Name = "public"
-	}
 	query.Type = Channel_TYPE_GROUP
-	ch := NewChannel()
-	channel, err := ch.ByName(query)
+	res, err := c.isInChannel(query, "public")
 	if err != nil {
 		return err
 	}
 
-	if channel.Id == 0 {
-		return ErrChannelIsNotSet
+	if res {
+		return nil
 	}
 
-	// check if message is in the channel
-	cml := NewChannelMessageList()
-	res, err := cml.IsInChannel(c.Id, channel.Id)
+	query.Type = Channel_TYPE_ANNOUNCEMENT
+	res, err = c.isInChannel(query, "changelog")
 	if err != nil {
 		return err
 	}
 
-	// if message is not in the channel
 	if !res {
 		return bongo.RecordNotFound
 	}
 
 	return nil
+}
+
+func (c *ChannelMessage) isInChannel(query *request.Query, channelName string) (bool, error) {
+	if c.Id == 0 {
+		return false, ErrChannelMessageIdIsNotSet
+	}
+	// fetch channel by group name
+	query.Name = query.GroupName
+	if query.GroupName == "koding" {
+		query.Name = channelName
+	}
+
+	ch := NewChannel()
+	channel, err := ch.ByName(query)
+	if err != nil {
+		return false, err
+	}
+
+	if channel.Id == 0 {
+		return false, ErrChannelIsNotSet
+	}
+
+	// check if message is in the channel
+	cml := NewChannelMessageList()
+
+	return cml.IsInChannel(c.Id, channel.Id)
 }
 
 // DeleteMessageDependencies deletes all records from the database that are

@@ -38,9 +38,9 @@ module.exports = class Koding extends ProviderInterface
       storage          : 100
       allowedInstances : ['t2.micro']
     koding             :
-      total            : 100
-      alwaysOn         : 100
-      storage          : 1000
+      total            : 20
+      alwaysOn         : 20
+      storage          : 200
       allowedInstances : ['t2.micro', 't2.small', 't2.medium']
     betatester         :
       total            : 1

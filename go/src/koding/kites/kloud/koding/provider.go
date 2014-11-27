@@ -11,6 +11,7 @@ import (
 	amazonClient "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/protocol"
@@ -72,7 +73,6 @@ type Provider struct {
 	InactiveMachinesMu sync.Mutex
 
 	PlanChecker func(*protocol.Machine) (Checker, error)
-	PlanFetcher func(*protocol.Machine) (Plan, error)
 
 	Stats *metrics.DogStatsD
 }
@@ -81,7 +81,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	a := &amazon.AmazonClient{
 		Log: p.Log,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Info("[%s] %s (username: %s)", m.Id, msg, m.Username)
+			p.Log.Debug("[%s] %s (username: %s)", m.Id, msg, m.Username)
 
 			m.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -146,8 +146,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	// were created because there were no capacity for their specific instance
 	// type.
 	if infoResp.InstanceType != a.Builder.InstanceType {
-		a.Log.Warning("[%s] instance is using '%s'. Changing back to t2.micro.",
-			m.Id, a.Builder.InstanceType)
+		a.Log.Warning("[%s] instance is using '%s'. Changing back to '%s'",
+			m.Id, infoResp.InstanceType, a.Builder.InstanceType)
 
 		opts := &ec2.ModifyInstance{InstanceType: instances[a.Builder.InstanceType].String()}
 
@@ -224,20 +224,20 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 		a.Push("Initializing domain instance", 65, machinestate.Starting)
 		if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-			return nil, err
+			p.Log.Error("[%s] updating domains for starting err: %s", m.Id, err.Error())
 		}
 
-		a.Log.Info("[%s] Updating user domain tag '%s' of instance '%s'",
+		a.Log.Debug("[%s] Updating user domain tag '%s' of instance '%s'",
 			m.Id, m.Domain.Name, artifact.InstanceId)
 		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-			return nil, err
+			p.Log.Error("[%s] couldn't update tags domains for starting err: %s", m.Id, err.Error())
 		}
 
 		// also get all domain aliases that belongs to this machine and unset
 		a.Push("Updating domain aliases", 80, machinestate.Starting)
 		domains, err := p.DomainStorage.GetByMachine(m.Id)
 		if err != nil {
-			p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+			p.Log.Error("[%s] fetching domains for starting err: %s", m.Id, err.Error())
 		}
 
 		for _, domain := range domains {
@@ -255,7 +255,7 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
 	if p.IsKlientReady(m.QueryString) {
-		p.Log.Info("[%s] klient is ready.", m.Id)
+		p.Log.Debug("[%s] klient is ready.", m.Id)
 	} else {
 		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
 	}
@@ -269,6 +269,10 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 		return err
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	err = a.Stop(true)
 	if err != nil {
 		return err
@@ -281,7 +285,7 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 
 	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		return err
+		p.Log.Warning("[%s] couldn't delete domain %s", err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
@@ -295,10 +299,6 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
 		}
 	}
-
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
 
 	return nil
 }
@@ -322,26 +322,34 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
-	artifact, err := p.build(a, m, &pushValues{Start: 40, Finish: 90})
-	if err != nil {
-		return nil, err
+	// clean up old data, so if build fails below at least we give the chance to build it again
+	p.Update(m.Id, &kloud.StorageData{
+		Type: "building",
+		Data: map[string]interface{}{
+			"instanceId":   "",
+			"ipAddress":    "",
+			"instanceName": "",
+			"queryString":  "",
+		},
+	})
+	p.UpdateState(m.Id, "Reinit cleanup", machinestate.NotInitialized)
+
+	// cleanup this too so "build" can continue with a clean setup
+	a.Builder.InstanceId = ""
+	m.QueryString = ""
+	m.IpAddress = ""
+
+	b := &Build{
+		amazon:   a,
+		machine:  m,
+		provider: p,
+		start:    40,
+		finish:   90,
+		log:      p.Log,
 	}
 
-	// also get all domain aliases that belongs to this machine and udpate them
-	// according to the new IP
-	a.Push("Updating domain aliases", 95, machinestate.Building)
-	domains, err := p.DomainStorage.GetByMachine(m.Id)
-	if err != nil {
-		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
-	}
-
-	for _, domain := range domains {
-		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
-			p.Log.Error("[%s] couldn't update machine domain: %s", m.Id, err.Error())
-		}
-	}
-
-	return artifact, nil
+	// this updates/creates domain
+	return b.run()
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {
@@ -350,7 +358,7 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 90}); err != nil {
+	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 80}); err != nil {
 		return err
 	}
 
@@ -359,6 +367,14 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
+	a.Push("Deleting base domain", 85, machinestate.Terminating)
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
+		// if it's already deleted, for example because of a STOP, than we just
+		// log it here instead of returning the error
+		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
+	}
+
+	a.Push("Deleting custom domain", 90, machinestate.Terminating)
 	for _, domain := range domains {
 		if err := p.DNS.Delete(domain.Name, m.IpAddress); err != nil {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
@@ -373,37 +389,14 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 }
 
 func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
-	// means if final is 40 our destroy method below will be push at most up to
-	// 32.
-
-	middleVal := float64(v.Finish) * (8.0 / 10.0)
-
-	err := a.Destroy(v.Start, int(middleVal))
-	if err != nil {
-		return err
-	}
-
 	// stop the timer and remove it from the list of inactive machines so it
 	// doesn't get called later again.
 	p.stopTimer(m)
 
-	// increase one tick but still don't let it reach the final value
-	lastVal := float64(v.Finish) * (9.0 / 10.0)
-
-	// Check if the record exist, it can be deleted via stop, therefore just
-	// return lazily
-	a.Push("Checking domains", int(lastVal), machinestate.Terminating)
-	_, err = p.DNS.Get(m.Domain.Name)
-	if err == ErrNoRecord {
-		return nil
-	}
-
-	a.Push("Deleting domain", v.Finish, machinestate.Terminating)
-	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
-	}
-
-	return nil
+	// means if final is 40 our destroy method below will be push at most up to
+	// 32.
+	middleVal := float64(v.Finish) * (8.0 / 10.0)
+	return a.Destroy(v.Start, int(middleVal))
 }
 
 // stopTimer stops the inactive timeout timer for the given queryString
@@ -482,13 +475,9 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		if infoResp.State == machinestate.Running {
 			err := klient.Exists(p.Kite, m.QueryString)
 			if err == nil {
-				p.Log.Info("[%s] stop timer aborting. Machine is already running (username: %s)",
+				p.Log.Info("[%s] stop timer aborting. Klient is already running (username: %s)",
 					m.Id, m.Username)
 				return errors.New("we have a klient connection")
-			}
-
-			if err != kite.ErrNoKitesAvailable {
-				return err
 			}
 		}
 

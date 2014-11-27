@@ -2,7 +2,6 @@ package amazon
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	aws "koding/kites/kloud/api/amazon"
@@ -25,14 +24,9 @@ type AmazonClient struct {
 	Metrics *metrics.DogStatsD
 }
 
-func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, error) {
-	infoLog := func(format string, args ...interface{}) {
-		a.Log.Info(format, args...)
-	}
-
-	// Check wether a new infoLog was passed, and use it
-	if a.InfoLog != nil {
-		infoLog = a.InfoLog
+func (a *AmazonClient) BuildWithCheck(buildData *ec2.RunInstances, start, finish int) (*protocol.Artifact, error) {
+	debugLog := func(format string, args ...interface{}) {
+		a.Log.Debug(format, args...)
 	}
 
 	// Don't build anything without this, otherwise ec2 complains about it as a
@@ -42,7 +36,7 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	}
 
 	// Make sure AMI exists
-	infoLog("Checking if image '%s' exists", a.Builder.SourceAmi)
+	debugLog("Checking if image '%s' exists", a.Builder.SourceAmi)
 	if _, err := a.Image(a.Builder.SourceAmi); err != nil {
 		if err != nil {
 			return nil, err
@@ -52,7 +46,7 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	// Get the necessary keynames that we are going to provide with Amazon. If
 	// it doesn't exist a new one will be created.  check if the key exist, if
 	// yes return the keyname
-	infoLog("Checking if keypair '%s' does exist", a.Builder.KeyPair)
+	debugLog("Checking if keypair '%s' does exist", a.Builder.KeyPair)
 	keyName, err := a.DeployKey()
 	if err != nil {
 		return nil, err
@@ -61,59 +55,16 @@ func (a *AmazonClient) BuildWithCheck(start, finish int) (*protocol.Artifact, er
 	// Create instance with this keypair
 	a.Builder.KeyPair = keyName
 
-	infoLog("Creating instance with type: '%s' based on AMI: '%s'",
+	debugLog("Creating instance with type: '%s' based on AMI: '%s'",
 		a.Builder.InstanceType, a.Builder.SourceAmi)
 
-	return a.Build(true, start, finish)
-}
-
-func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *protocol.Artifact, errResp error) {
-	resp, err := a.CreateInstance()
+	instanceId, err := a.Build(buildData)
 	if err != nil {
 		return nil, err
 	}
 
-	// we do not check intentionally, because CreateInstance() is designed to
-	// create only one instance. If it creates something else we catch it here
-	// by panicing
-	instance := resp.Instances[0]
-
-	// cleanup build if something goes wrong here
-	defer func() {
-		if errResp != nil {
-			a.Log.Warning("Cleaning up instance by terminating instance: %s. Error was: %s",
-				instance.InstanceId, err)
-
-			if _, err := a.Client.TerminateInstances([]string{instance.InstanceId}); err != nil {
-				a.Log.Warning("Cleaning up instance '%s' failed: %v", instance.InstanceId, err)
-			}
-		}
-	}()
-
-	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		a.track(instance.InstanceId, "Build")
-
-		instance, err = a.Instance(instance.InstanceId)
-		if err != nil {
-			return 0, err
-		}
-
-		if withPush {
-			a.Push(fmt.Sprintf("Launching instance '%s'. Current state: %s",
-				instance.InstanceId, instance.State.Name),
-				currentPercentage, machinestate.Building)
-		}
-
-		return statusToState(instance.State.Name), nil
-	}
-
-	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Running,
-		Start:        start,
-		Finish:       finish,
-	}
-	if err := ws.Wait(); err != nil {
+	instance, err := a.CheckBuild(instanceId, start, finish)
+	if err != nil {
 		return nil, err
 	}
 
@@ -122,6 +73,52 @@ func (a *AmazonClient) Build(withPush bool, start, finish int) (artifactResp *pr
 		InstanceId:   instance.InstanceId,
 		InstanceType: a.Builder.InstanceType,
 	}, nil
+}
+
+func (a *AmazonClient) Build(buildData *ec2.RunInstances) (string, error) {
+	resp, err := a.Client.RunInstances(buildData)
+	if err != nil {
+		return "", err
+	}
+
+	// we do not check intentionally, because CreateInstance() is designed to
+	// create only one instance. If it creates something else we catch it here
+	// by panicing
+	instance := resp.Instances[0]
+
+	a.Log.Debug("EC2 Build instance response: %#v", instance)
+
+	return instance.InstanceId, nil
+}
+
+func (a *AmazonClient) CheckBuild(instanceId string, start, finish int) (ec2.Instance, error) {
+	var instance ec2.Instance
+	var err error
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		a.track(instanceId, "Build")
+
+		instance, err = a.Instance(instanceId)
+		if err != nil {
+			a.Log.Warning("getting build creating status failed, trying again. Err: '%s'", err)
+			return 0, err
+		}
+
+		return statusToState(instance.State.Name), nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "build",
+		Start:     start,
+		Finish:    finish,
+	}
+
+	if err := ws.Wait(); err != nil {
+		return ec2.Instance{}, err
+	}
+
+	return instance, nil
 }
 
 func (a *AmazonClient) DeployKey() (string, error) {
@@ -196,20 +193,15 @@ func (a *AmazonClient) Start(withPush bool) (*protocol.Artifact, error) {
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Starting instance '%s'. Current state: %s",
-				a.Builder.InstanceName, instance.State.Name),
-				currentPercentage, machinestate.Starting)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Running,
-		Start:        25,
-		Finish:       60,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "start",
+		Start:     25,
+		Finish:    60,
 	}
 
 	if err := ws.Wait(); err != nil {
@@ -241,20 +233,15 @@ func (a *AmazonClient) Stop(withPush bool) error {
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Stopping instance '%s'. Current state: %s",
-				a.Builder.InstanceName, instance.State.Name),
-				currentPercentage, machinestate.Stopping)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Stopped,
-		Start:        25,
-		Finish:       60,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "stop",
+		Start:     25,
+		Finish:    60,
 	}
 
 	return ws.Wait()
@@ -278,20 +265,15 @@ func (a *AmazonClient) Restart(withPush bool) error {
 			return 0, err
 		}
 
-		if withPush {
-			a.Push(fmt.Sprintf("Rebooting instance '%s'. Current state: %s",
-				a.Builder.InstanceName, instance.State.Name),
-				currentPercentage, machinestate.Rebooting)
-		}
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Running,
-		Start:        25,
-		Finish:       60,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "restart",
+		Start:     25,
+		Finish:    60,
 	}
 
 	return ws.Wait()
@@ -316,18 +298,15 @@ func (a *AmazonClient) Destroy(start, finish int) error {
 			return 0, err
 		}
 
-		a.Push(fmt.Sprintf("Terminating instance '%s'. Current state: %s",
-			a.Builder.InstanceName, instance.State.Name),
-			currentPercentage, machinestate.Terminating)
-
 		return statusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    stateFunc,
-		DesiredState: machinestate.Terminated,
-		Start:        start,
-		Finish:       finish,
+		StateFunc: stateFunc,
+		PushFunc:  a.Push,
+		Action:    "destroy",
+		Start:     start,
+		Finish:    finish,
 	}
 
 	return ws.Wait()

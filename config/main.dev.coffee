@@ -8,7 +8,7 @@ Configuration = (options={}) ->
   boot2dockerbox      = if os.type() is "Darwin" then "192.168.59.103" else "localhost"
 
   publicPort          = options.publicPort     or "8090"
-  hostname            = options.hostname       or "lvh.me#{if publicPort is "80" then "" else ":"+publicPort}"
+  hostname            = options.hostname       or "lvh.me"
   protocol            = options.protocol       or "http:"
   publicHostname      = options.publicHostname or "http://#{options.hostname}"
   region              = options.region         or "dev"
@@ -27,8 +27,15 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
 
-  host                = options.host or "koding-#{process.env.USER}.ngrok.com"
-  customDomain        = { public: "http://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+  if options.ngrok
+    scheme = 'https'
+    host   = "koding-#{process.env.USER}.ngrok.com"
+  else
+    scheme = 'http'
+    _port  = if publicPort is '80' then '' else publicPort
+    host   = options.host or "#{options.hostname}:#{_port}"
+
+  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
 
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"    }
@@ -58,7 +65,7 @@ Configuration = (options={}) ->
     mongo             : mongo
     environment       : environment
     region            : region
-    hostname          : hostname
+    hostname          : host
     protocol          : protocol
     email             : email
     sitemap           : { redisDB: 0 }
@@ -80,7 +87,7 @@ Configuration = (options={}) ->
     environment                    : environment
     regions                        : regions
     region                         : region
-    hostname                       : hostname
+    hostname                       : host
     protocol                       : protocol
     publicPort                     : publicPort
     publicHostname                 : publicHostname
@@ -111,8 +118,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
-
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite"                , registerUrl : "#{customDomain.public}/kloud/kite"}
+    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -167,7 +173,7 @@ Configuration = (options={}) ->
     socialApiUri      : "/xhr"
     apiUri            : null
     sourceMapsUri     : "/sourcemaps"
-    mainUri           : "https://koding-#{process.env.USER}.ngrok.com"
+    mainUri           : null
     broker            : uri  : "/subscribe"
     appsUri           : "/appsproxy"
     uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
@@ -328,7 +334,7 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
       nginx             :
-        locations       : ["= /payments/stripe/webhook"]
+        locations       : [ "= /payments/stripe/webhook" ]
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#

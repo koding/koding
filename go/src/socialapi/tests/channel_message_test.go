@@ -439,5 +439,17 @@ func TestChannelMessage(t *testing.T) {
 			So(*(post.Payload["key3"]), ShouldEqual, "true")
 			So(*(post.Payload["key4"]), ShouldEqual, "3.4")
 		})
+
+		// TODO before enabling this topic feed must be added to wercker
+		// Convey("message should be fetched from all public channels with given slug", func() {
+		// 	post, err := rest.CreatePost(groupChannel.Id, account.Id)
+		// 	So(err, ShouldBeNil)
+		// 	So(post, ShouldNotBeNil)
+
+		// 	cmc, err := rest.GetPostBySlug(post.Slug, account.Id)
+		// 	So(err, ShouldBeNil)
+		// 	So(cmc.Message.Slug, ShouldEqual, post.Slug)
+
+		// })
 	})
 }

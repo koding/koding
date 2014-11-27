@@ -6,7 +6,7 @@ class WelcomeModal extends KDModalView
     options.overlay       = yes
     options.overlayClick  = no
     options.width         = 766
-    options.height        = 450
+    options.height        = 519
 
     super options, data
 
@@ -33,14 +33,6 @@ class WelcomeModal extends KDModalView
         experience a whole new Koding and you will fall in love all
         over again.
       "
-
-    content.addSubView new CustomLinkView
-      cssClass    : 'welcome-btn'
-      title       : 'Learn how to migrate data from your old VM(s)'
-      href        : 'http://learn.koding.com/migrate'
-      click       : =>
-        window.open 'http://learn.koding.com/migrate', '_blank'
-        @destroy()
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
