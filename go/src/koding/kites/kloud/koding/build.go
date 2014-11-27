@@ -274,9 +274,8 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 				// validate the public keys
 				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
 				if err != nil {
-					b.log.Error(`User (%s) has an invalid public SSH key.
-							Not adding it to the authorized keys.
-							Key: %s. Err: %v`, b.machine.Username, key, err)
+					b.log.Error(`User (%s) has an invalid public SSH key. Not adding it to the authorized keys. Key: %s. Err: %v`,
+					b.machine.Username, key, err)
 					continue
 				}
 				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
