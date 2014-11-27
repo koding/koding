@@ -102,7 +102,7 @@ func buildHandlerWithTimeTracking(handler http.Handler, r Request) http.Handler 
 	)
 }
 
-func BuildHandlerWithContext(handler http.Handler, r Request) http.Handler {
+func BuildHandlerWithContext(handler http.Handler) http.Handler {
 	// add context
 	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
