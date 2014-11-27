@@ -29,8 +29,9 @@ class WebTerm.Terminal extends KDObject
       for keyHandler in ['keyDown', 'keyPress', 'keyUp', 'paste']
         @[keyHandler] = noop
 
-    localStorage?["WebTerm.logRawOutput"] ?= "false"
-    localStorage?["WebTerm.slowDrawing"]  ?= "false"
+    try
+      localStorage?["WebTerm.logRawOutput"] ?= "false"
+      localStorage?["WebTerm.slowDrawing"]  ?= "false"
 
     @parent               = containerView
     @container            = containerView.$()
