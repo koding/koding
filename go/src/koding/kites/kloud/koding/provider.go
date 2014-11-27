@@ -358,7 +358,7 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		return err
 	}
 
-	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 90}); err != nil {
+	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 80}); err != nil {
 		return err
 	}
 
@@ -367,6 +367,14 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
 	}
 
+	a.Push("Deleting base domain", 85, machinestate.Terminating)
+	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
+		// if it's already deleted, for example because of a STOP, than we just
+		// log it here instead of returning the error
+		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
+	}
+
+	a.Push("Deleting custom domain", 90, machinestate.Terminating)
 	for _, domain := range domains {
 		if err := p.DNS.Delete(domain.Name, m.IpAddress); err != nil {
 			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
@@ -375,16 +383,6 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		if err := p.DomainStorage.UpdateMachine(domain.Name, ""); err != nil {
 			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
 		}
-	}
-
-	_, err = p.DNS.Get(m.Domain.Name)
-	if err == ErrNoRecord {
-		return nil
-	}
-
-	a.Push("Deleting domain", 90, machinestate.Terminating)
-	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
 	}
 
 	return nil
