@@ -175,10 +175,10 @@ module.exports = class JMachine extends Module
     return newUsers
 
 
-  addUser = (users, user, owner)->
+  addUser = (users, user, asOwner)->
 
-    newUsers.push { id: user.getId(), owner }
     newUsers = excludeUser users, user
+    newUsers.push { id: user.getId(), owner: asOwner }
 
     return newUsers
 
@@ -247,12 +247,12 @@ module.exports = class JMachine extends Module
 
   # Instance Methods
 
-  addUsers: (usersToAdd, owner, callback)->
+  addUsers: (usersToAdd, asOwner, callback)->
 
     users = @users.splice 0
 
     for user in usersToAdd
-      users = addUser users, user, owner
+      users = addUser users, user, asOwner
 
     if users.length > 10
       callback new KodingError \
@@ -273,9 +273,9 @@ module.exports = class JMachine extends Module
 
   shareWith: (options, callback)->
 
-    { target, user, owner } = options
-    user  ?= yes
-    owner ?= no
+    { target, asUser, asOwner } = options
+    asUser  ?= yes
+    asOwner ?= no
 
     unless target?
       return callback new KodingError "Target required."
@@ -294,8 +294,8 @@ module.exports = class JMachine extends Module
 
       if target instanceof JUser
 
-        if user
-        then @addUsers targets, owner, callback
+        if asUser
+        then @addUsers targets, asOwner, callback
         else @removeUsers targets, callback
 
       else
@@ -443,9 +443,9 @@ module.exports = class JMachine extends Module
   # .shareWith can be used like this:
   #
   # JMachineInstance.shareWith {
-  #   user: yes, owner: no, target: ["gokmen", "dicle"]}, cb
+  #   asUser: yes, asOwner: no, target: ["gokmen", "dicle"]}, cb
   # }
-  #                    user slugs ->  ^^^^^^ ,  ^^^^^
+  #                        user slugs ->  ^^^^^^ ,  ^^^^^
 
   shareWith$: permit 'populate users',
 
@@ -481,17 +481,17 @@ module.exports = class JMachine extends Module
 
 
   share: secure (client, users, callback)->
-    options = target: users, user: yes
+    options = target: users, asUser: yes
     JMachine::shareWith$.call this, client, options, callback
 
   unshare: secure (client, users, callback)->
-    options = target: users, user: no
+    options = target: users, asUser: no
     JMachine::shareWith$.call this, client, options, callback
 
   setAsOwner: secure (client, users, callback)->
-    options = target: users, user: yes, owner: yes
+    options = target: users, asUser: yes, asOwner: yes
     JMachine::shareWith$.call this, client, options, callback
 
   unsetAsOwner: secure (client, users, callback)->
-    options = target: users, user: yes, owner: no
+    options = target: users, asUser: yes, asOwner: no
     JMachine::shareWith$.call this, client, options, callback
