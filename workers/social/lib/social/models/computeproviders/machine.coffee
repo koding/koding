@@ -164,7 +164,7 @@ module.exports = class JMachine extends Module
     return owner
 
 
-  removeUser = (users, user)->
+  excludeUser = (users, user)->
 
     userId   = user.getId()
     newUsers = []
@@ -177,8 +177,8 @@ module.exports = class JMachine extends Module
 
   addUser = (users, user, owner)->
 
-    newUsers = removeUser users, user
     newUsers.push { id: user.getId(), owner }
+    newUsers = excludeUser users, user
 
     return newUsers
 
@@ -266,7 +266,7 @@ module.exports = class JMachine extends Module
     users = @users.splice 0
 
     for user in usersToRemove
-      users = removeUser users, user
+      users = excludeUser users, user
 
     @update $set: { users }, callback
 
