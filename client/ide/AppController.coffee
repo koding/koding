@@ -135,12 +135,14 @@ class IDEAppController extends AppController
 
 
   bindRouteHandler: ->
+
     {router, mainView} = KD.singletons
 
     router.on 'RouteInfoHandled', (routeInfo) =>
       if routeInfo.path.indexOf('/IDE') is -1
         if mainView.isSidebarCollapsed
           mainView.toggleSidebar()
+
 
   bindCollapseEvents: ->
 
@@ -159,17 +161,23 @@ class IDEAppController extends AppController
     baseSplit = panel.layout.getSplitViewByName 'BaseSplit'
     baseSplit.resizer.on 'dblclick', @bound 'toggleSidebar'
 
+
   setActiveTabView: (tabView) ->
+
     return  if tabView is @activeTabView
     @setActivePaneFocus off
     @activeTabView = tabView
     @setActivePaneFocus on
 
+
   setActivePaneFocus: (state) ->
+
     return  unless pane = @getActivePaneView()
     KD.utils.defer -> pane.setFocus? state
 
+
   splitTabView: (type = 'vertical', ideViewOptions) ->
+
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
     newIDEView     = new IDE.IDEView ideViewOptions
@@ -193,7 +201,9 @@ class IDEAppController extends AppController
 
     splitView.on 'ResizeDidStop', KD.utils.throttle 500, @bound 'doResize'
 
+
   mergeSplitView: ->
+
     panel     = @activeTabView.parent.parent
     splitView = panel.parent
     {parent}  = splitView
@@ -214,7 +224,9 @@ class IDEAppController extends AppController
 
     splitView.merge()
 
+
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
+
     ideView = new IDE.IDEView createNewEditor: no
     panes   = []
 
@@ -239,16 +251,24 @@ class IDEAppController extends AppController
       parentSplitView.options.views[panelIndexInParent] = ideView
       parentSplitView.panels[panelIndexInParent]        = ideView.parent
 
+
   openFile: (file, contents, callback = noop, emitChange) ->
+
     @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
 
+
   openMachineTerminal: (machineData) ->
+
     @activeTabView.emit 'MachineTerminalRequested', machineData
 
+
   openMachineWebPage: (machineData) ->
+
     @activeTabView.emit 'MachineWebPageRequested', machineData
 
+
   mountMachine: (machineData) ->
+
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
     {credential} = machineData.jMachine
@@ -260,12 +280,16 @@ class IDEAppController extends AppController
 
     filesPane.emit 'MachineMountRequested', machineData, rootPath
 
+
   unmountMachine: (machineData) ->
+
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
     filesPane.emit 'MachineUnmountRequested', machineData
 
+
   createInitialView: ->
+
     KD.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
@@ -288,7 +312,9 @@ class IDEAppController extends AppController
           @createNewTerminal machine
           @setActiveTabView @ideViews.first.tabView
 
+
   getMountedMachine: (callback = noop) ->
+
     KD.getSingleton('computeController').fetchMachines (err, machines) =>
       if err
         KD.showError "Couldn't fetch your VMs"
@@ -299,7 +325,9 @@ class IDEAppController extends AppController
 
         callback null, @mountedMachine
 
+
   mountMachineByMachineUId: (machineUId) ->
+
     computeController = KD.getSingleton 'computeController'
     container         = @getView()
 
@@ -358,7 +386,9 @@ class IDEAppController extends AppController
 
         callback()
 
+
   createMachineStateModal: (options = {}) ->
+
     { state, container, machineItem, initial } = options
     modalOptions = { state, container, initial }
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
@@ -366,7 +396,9 @@ class IDEAppController extends AppController
     @machineStateModal.once 'KDObjectWillBeDestroyed', => @machineStateModal = null
     @machineStateModal.once 'IDEBecameReady',          => @handleIDEBecameReady machineItem
 
+
   collapseSidebar: ->
+
     panel        = @workspace.getView()
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'
     floatedPanel = splitView.panels.first
@@ -408,7 +440,9 @@ class IDEAppController extends AppController
     #     splitView.setFloatingPanel 0, 39
     #     tabView.showPaneByName 'Dummy'
 
+
   expandSidebar: ->
+
     panel        = @workspace.getView()
     splitView    = panel.layout.getSplitViewByName 'BaseSplit'
     floatedPanel = splitView.panels.first
@@ -427,13 +461,19 @@ class IDEAppController extends AppController
     # @getView().unsetClass 'sidebar-collapsed'
     # @isSidebarCollapsed = no
 
+
   toggleSidebar: ->
+
     if @isSidebarCollapsed then @expandSidebar() else @collapseSidebar()
 
+
   splitVertically: ->
+
     @splitTabView 'vertical'
 
+
   splitHorizontally: ->
+
     @splitTabView 'horizontal'
 
   createNewFile: do ->
@@ -446,7 +486,9 @@ class IDEAppController extends AppController
 
       @openFile file, contents
 
+
   createNewTerminal: (machine, path, session, joinUser) ->
+
     machine = null  unless machine instanceof Machine
 
     if @workspaceData
@@ -457,29 +499,39 @@ class IDEAppController extends AppController
 
     @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser
 
+
   createNewBrowser: (url) ->
+
     url = ''  unless typeof url is 'string'
 
     @activeTabView.emit 'PreviewPaneRequested', url
 
+
   createNewDrawing: (paneHash) ->
+
     paneHash = null unless typeof paneHash is 'string'
 
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
+
   goToLeftTab: ->
+
     index = @activeTabView.getActivePaneIndex()
     return if index is 0
 
     @activeTabView.showPaneByIndex index - 1
 
+
   goToRightTab: ->
+
     index = @activeTabView.getActivePaneIndex()
     return if index is @activeTabView.length - 1
 
     @activeTabView.showPaneByIndex index + 1
 
+
   goToTabNumber: (keyEvent) ->
+
     keyEvent.preventDefault()
     keyEvent.stopPropagation()
 
@@ -488,13 +540,19 @@ class IDEAppController extends AppController
 
     @activeTabView.showPaneByIndex requiredIndex
 
+
   goToLine: ->
+
     @activeTabView.emit 'GoToLineRequested'
 
+
   closeTab: ->
+
     @activeTabView.removePane @activeTabView.getActivePane()
 
+
   registerIDEView: (ideView) ->
+
     @ideViews.push ideView
 
     ideView.on 'PaneRemoved', (pane) =>
@@ -510,7 +568,9 @@ class IDEAppController extends AppController
     ideView.on 'ChangeHappened', (change) =>
       @syncChange change
 
+
   registerPane: (pane) ->
+
     {view} = pane
     unless view?.hash?
       return warn 'view.hash not found, returning'
@@ -521,7 +581,9 @@ class IDEAppController extends AppController
     view.on 'ChangeHappened', (change) =>
       @syncChange change
 
+
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
+
     if typeof callback is 'string'
       [paneType, callback] = [callback, paneType]
 
@@ -534,7 +596,9 @@ class IDEAppController extends AppController
         else
           callback view
 
+
   updateSettings: (component, key, value) ->
+
     # TODO: Refactor this method by passing component type to helper method.
     Class  = if component is 'editor' then IDE.EditorPane else IDE.TerminalPane
     method = "set#{key.capitalize()}"
@@ -546,19 +610,29 @@ class IDEAppController extends AppController
         else
           view.webtermView.updateSettings()
 
+
   showShortcutsView: ->
+
     @activeTabView.emit 'ShortcutsViewRequested'
 
+
   getActivePaneView: ->
+
     return @activeTabView?.getActivePane()?.getSubViews().first
 
+
   saveFile: ->
+
     @getActivePaneView().emit 'SaveRequested'
 
+
   saveAs: ->
+
     @getActivePaneView().aceView.ace.requestSaveAs()
 
+
   saveAllFiles: ->
+
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       {ace} = editorPane.aceView
       ace.once 'FileContentSynced', ->
@@ -566,7 +640,9 @@ class IDEAppController extends AppController
 
       editorPane.emit 'SaveRequested'
 
+
   previewFile: ->
+
     view   = @getActivePaneView()
     {file} = view.getOptions()
     return unless file
@@ -579,7 +655,9 @@ class IDEAppController extends AppController
     else
       @notify 'File needs to be under ~/Web folder to preview.', 'error'
 
+
   updateStatusBar: (component, data) ->
+
     {status} = @statusBar
 
     text = if component is 'editor'
@@ -600,7 +678,9 @@ class IDEAppController extends AppController
 
     status.updatePartial text
 
+
   showStatusBarMenu: (ideView, button) ->
+
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
     delegate = button
@@ -617,13 +697,17 @@ class IDEAppController extends AppController
         syntaxSelector.on 'SelectionMade', (value) =>
           ace.setSyntax value
 
+
   showFileFinder: ->
+
     return @fileFinder.input.setFocus()  if @fileFinder
 
     @fileFinder = new IDE.FileFinder
     @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
 
+
   showContentSearch: ->
+
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
     @contentSearch = new IDE.ContentSearch
@@ -631,38 +715,54 @@ class IDEAppController extends AppController
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
 
+
   createStatusBar: (splitViewPanel) ->
+
     splitViewPanel.addSubView @statusBar = new IDE.StatusBar
 
+
   createFindAndReplaceView: (splitViewPanel) ->
+
     splitViewPanel.addSubView @findAndReplaceView = new AceFindAndReplaceView
     @findAndReplaceView.hide()
     @findAndReplaceView.on 'FindAndReplaceViewClosed', =>
       @getActivePaneView().aceView?.ace.focus()
       @isFindAndReplaceViewVisible = no
 
+
   showFindReplaceView: (withReplaceMode) ->
+
     view = @findAndReplaceView
     @setFindAndReplaceViewDelegate()
     @isFindAndReplaceViewVisible = yes
     view.setViewHeight withReplaceMode
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
 
+
   hideFindAndReplaceView: ->
+
     @findAndReplaceView.close no
 
+
   setFindAndReplaceViewDelegate: ->
+
     @findAndReplaceView.setDelegate @getActivePaneView()?.aceView or null
 
+
   showFindAndReplaceViewIfNecessary: ->
+
     if @isFindAndReplaceViewVisible
       @showFindReplaceView @findAndReplaceView.mode is 'replace'
 
+
   handleFileDeleted: (file) ->
+
     for ideView in @ideViews
       ideView.tabView.emit 'TabNeedsToBeClosed', file
 
+
   handleIDEBecameReady: (machine) ->
+
     {finderController} = @finderPane
     if @workspaceData
       finderController.updateMachineRoot @mountedMachine.uid, @workspaceData.rootPath
@@ -679,10 +779,14 @@ class IDEAppController extends AppController
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
 
+
   toggleFullscreenIDEView: ->
+
     @activeTabView.parent.toggleFullscreen()
 
+
   doResize: ->
+
     @forEachSubViewInIDEViews_ (pane) ->
       {paneType} = pane.options
       switch paneType
@@ -698,20 +802,23 @@ class IDEAppController extends AppController
             ace.editor.resize()
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
+
     return unless title
     new KDNotificationView { title, cssClass, type, duration }
 
 
   loadCollaborationFile: (fileId) ->
+
     return unless fileId
 
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
       @rtm.setRealtimeDoc doc
-      nickname      = KD.nick()
-      @participants = @rtm.getFromModel 'participants'
-      @changes      = @rtm.getFromModel 'changes'
+      nickname           = KD.nick()
+      @participants      = @rtm.getFromModel 'participants'
+      @changes           = @rtm.getFromModel 'changes'
+      @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
 
       unless @participants
         @participants = @rtm.create 'list', 'participants', []
@@ -719,19 +826,16 @@ class IDEAppController extends AppController
       unless @changes
         @changes = @rtm.create 'list', 'changes', []
 
+      unless @broadcastMessages
+        @broadcastMessages = @rtm.create 'list', 'broadcastMessages', []
+
       isInList = no
 
       @participants.asArray().forEach (participant) =>
         isInList = yes  if participant.nickname is nickname
 
       if not isInList
-        log 'acetz: I am not in the participants list, adding myself'
         @addParticipant KD.whoami(), no
-      else
-        log 'acetz: I am already in participants lists'
-
-      log 'acetz: participants:', @participants.asArray()
-
 
       @rtm.on 'CollaboratorJoined', (doc, participant) =>
         @handleParticipantAction 'join', participant
@@ -748,6 +852,7 @@ class IDEAppController extends AppController
 
 
   registerParticipantSessionId: ->
+
     collaborators = @rtm.getCollaborators()
 
     for collaborator in collaborators when collaborator.isMe
@@ -760,16 +865,16 @@ class IDEAppController extends AppController
 
 
   addParticipant: (account) ->
+
     {hash, nickname} = account.profile
 
     @participants.push { nickname, hash }
 
     @rtm.create 'map', "#{nickname}Snapshot", @createWorkspaceSnapshot()
 
-    log 'acetz: participant added:', nickname
-
 
   createWorkspaceSnapshot: ->
+
     panes = {}
 
     @forEachSubViewInIDEViews_ (pane) ->
@@ -787,6 +892,7 @@ class IDEAppController extends AppController
 
 
   syncChange: (change) ->
+
     {context} = change
 
     return  if not @rtm or not @rtm.isReady or not context
@@ -832,6 +938,7 @@ class IDEAppController extends AppController
 
 
   watchParticipant: (targetParticipant) ->
+
     # TODO: Add presence check before watching user.
     target   = targetParticipant.nickname
     nickname = KD.nick()
@@ -850,27 +957,35 @@ class IDEAppController extends AppController
 
 
   listenChangeEvents: ->
-    @changes = @rtm.getFromModel 'changes'
-    @changes?.clear()  if @amIHost
 
     @rtm.bindRealtimeListeners @changes, 'list'
+    @rtm.bindRealtimeListeners @broadcastMessages, 'list'
 
-    @rtm.on 'ValuesAddedToList', (list, value) =>
-      @handleChange value.values[0]  if list is @changes
+    @rtm.on 'ValuesAddedToList', (list, event) =>
 
-    @rtm.on 'ValuesRemovedFromList', (list, value) =>
-      @handleChange value.values[0]  if list is @changes
+      [value] = event.values
+
+      switch list
+
+        when @changes
+          @handleChange value
+
+        when @broadcastMessages
+          @handleBroadcastMessage value
+
+    @rtm.on 'ValuesRemovedFromList', (list, event) =>
+
+      @handleChange event.values[0]  if list is @changes
 
 
   handleChange: (change) ->
+
     {context, origin, type} = change
     myWatchMap = @rtm.getFromModel "#{KD.nick()}WatchMap"
 
     return if not context or not origin or origin is KD.nick()
 
     amIWatchingChangeOwner = not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
-
-    log 'change arrived', type
 
     if amIWatchingChangeOwner
       targetPane = @getPaneByChange change
@@ -899,6 +1014,7 @@ class IDEAppController extends AppController
 
 
   getPaneByChange: (change) ->
+
     return unless change.context
 
     targetPane = null
@@ -916,6 +1032,7 @@ class IDEAppController extends AppController
 
 
   createPaneFromChange: (change) ->
+
     {context} = change
     return unless context
 
@@ -938,6 +1055,7 @@ class IDEAppController extends AppController
 
 
   handleParticipantAction: (actionType, changeData) ->
+
     KD.utils.wait 2000, =>
       participants  = @participants.asArray()
       {sessionId}   = changeData.collaborator
@@ -1051,7 +1169,6 @@ class IDEAppController extends AppController
     return if @workspaceData.isDummy
       @createWorkspace()
         .then (workspace) =>
-          log 'ws created'
           @workspaceData = workspace
           @initPrivateMessage callback
         .error callback
@@ -1071,7 +1188,6 @@ class IDEAppController extends AppController
             return @continuePrivateMessage callback
 
           @statusBar.share.show()
-          log 'collaboration is not initialized'
           @chat.emit 'CollaborationNotInitialized'
 
     else
@@ -1088,14 +1204,10 @@ class IDEAppController extends AppController
 
     hostName = if @amIHost then KD.nick() else @collaborationHost
 
-    log 'filename is', "#{hostName}.#{id}"
-
     return "#{hostName}.#{id}"
 
 
   continuePrivateMessage: (callback) ->
-
-    log 'continuePrivateMessage'
 
     @on 'RTMIsReady', =>
       @chat.emit 'CollaborationStarted'
@@ -1111,13 +1223,9 @@ class IDEAppController extends AppController
     @rtm.once 'FileQueryFinished', (file) =>
 
       if file.result.items.length > 0
-        log 'file found'
         callback yes, file
       else
-        log 'file not found'
         callback no
-
-    log 'trying to fetch file', @getRealTimeFileName id
 
     @rtm.fetchFileByTitle @getRealTimeFileName id
 
@@ -1135,8 +1243,6 @@ class IDEAppController extends AppController
         'system-message' : 'initiate'
         collaboration    : yes
     , (err, channels) =>
-
-      log 'private message initialized'
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
@@ -1197,8 +1303,6 @@ class IDEAppController extends AppController
     , callback
 
     @rtm.once 'FileCreated', (file) =>
-      log 'file created', file
-
       @loadCollaborationFile file.id
 
     @rtm.createFile @getRealTimeFileName()
@@ -1207,28 +1311,37 @@ class IDEAppController extends AppController
 
 
   stopCollaborationSession: (callback) ->
+    modalOptions =
+      title      : 'Are you sure?'
+      content    : 'This will end your session and all participants will be removed from this session.'
 
-    return callback msg : 'no social channel'  unless @socialChannel
+    @showModal modalOptions, =>
 
-    {message} = KD.singletons.socialapi
-    nick      = KD.nick()
+      @chat.settingsPane.endSession.disable()
 
-    message.sendPrivateMessage
-      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
-      channelId  : @socialChannel.id
-      payload    :
-         'system-message' : 'stop'
-         collaboration    : yes
-    , callback
+      return callback msg : 'no social channel'  unless @socialChannel
 
-    @rtm.deleteFile @getRealTimeFileName()
+      {message} = KD.singletons.socialapi
+      nick      = KD.nick()
 
-    @rtm.once 'FileDeleted', =>
-      log 'file deleted'
-      @statusBar.emit 'CollaborationEnded'
-      @chat.emit 'CollaborationEnded'
+      message.sendPrivateMessage
+        body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
+        channelId  : @socialChannel.id
+        payload    :
+           'system-message' : 'stop'
+           collaboration    : yes
+      , callback
 
-    @setMachineSharingStatus off
+      @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
+
+      @rtm.once 'FileDeleted', =>
+        @statusBar.emit 'CollaborationEnded'
+        @chat.emit 'CollaborationEnded'
+        @modal.destroy()
+
+      @rtm.deleteFile @getRealTimeFileName()
+
+      @setMachineSharingStatus off
 
 
   setMachineSharingStatus: (status) ->
@@ -1257,3 +1370,79 @@ class IDEAppController extends AppController
       if share
       then kite.klientShare {username}, callback
       else kite.klientUnshare {username}, callback
+
+
+  showModal: (modalOptions = {}, callback = noop) ->
+    return  if @modal
+
+    modalOptions.overlay  ?= yes
+    modalOptions.blocking ?= no
+    modalOptions.buttons or=
+      Yes        :
+        cssClass : 'modal-clean-green'
+        callback : callback
+      No         :
+        cssClass : 'modal-cancel'
+        callback : => @modal.destroy()
+
+    ModalClass = if modalOptions.blocking then KDBlockingModalView else KDModalView
+
+    @modal = new ModalClass modalOptions
+    @modal.once 'KDObjectWillBeDestroyed', =>
+      delete @modal
+
+
+  handleBroadcastMessage: (data) ->
+    {origin, type} = data
+
+    return  if origin is KD.nick()
+
+    switch type
+
+      when 'SessionEnded'
+
+        @showSessionEndedModal()
+
+      when 'ParticipantWantsToLeave'
+
+        if @amIHost
+          @listChatParticipants (accounts) =>
+            for account in accounts when account.profile.nickname is data.origin
+              target = account
+
+            @setMachineUser target, no  if target
+
+
+  showSessionEndedModal: ->
+
+    options        =
+      title        : 'Session Ended'
+      content      : "This session ended by session owner. You won't be able to access it anymore"
+      blocking     : yes
+      buttons      :
+        quit       :
+          title    : 'LEAVE'
+          callback : =>
+            @modal.destroy()
+            KD.singletons.router.handleRoute '/IDE'
+
+    @showModal options
+    @removeMachineNode()
+
+
+  handleParticipantLeaveAction: ->
+
+    options   =
+      title   : 'Are you sure'
+      content : "If you leave this session you won't be able to return this session."
+
+    @showModal options, =>
+      @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
+      @removeMachineNode()
+      @modal.destroy()
+      KD.singletons.router.handleRoute '/IDE'
+
+
+  removeMachineNode: ->
+
+    KD.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
