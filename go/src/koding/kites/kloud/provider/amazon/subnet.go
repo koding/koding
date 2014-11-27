@@ -8,6 +8,8 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+const KloudSubnetValue = "kloud-subnet-*"
+
 type Subnets []ec2.Subnet
 
 func (s Subnets) Len() int      { return len(s) }
@@ -32,10 +34,18 @@ func (s Subnets) AvailabilityZone(zone string) (ec2.Subnet, error) {
 
 	return ec2.Subnet{}, errors.New("subnet not found")
 }
+func (a *AmazonClient) Subnets() (Subnets, error) {
+	resp, err := a.SubnetsWithTag(KloudSubnetValue)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("resp %+v\n", resp)
+	return resp, nil
+}
 
 func (a *AmazonClient) SubnetsWithTag(tag string) (Subnets, error) {
 	filter := ec2.NewFilter()
-	filter.Add("tag-key", tag)
+	filter.Add("tag-value", KloudSubnetValue)
 
 	resp, err := a.Client.DescribeSubnets([]string{}, filter)
 	if err != nil {
