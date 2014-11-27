@@ -129,7 +129,7 @@ do ->
           KD.userWorkspaces = workspaces
           KD.singletons.mainView.activitySidebar.updateMachineTree()
 
-          try
+          if workspaces.length
             workspaces.forEach (workspace) =>
 
               return  unless workspace.channelId is channel.id
@@ -144,7 +144,8 @@ do ->
                 channelId = channel.id
                 return loadIDE { machine, workspace, username, channelId }
 
-          catch e
+          else
+            KD.showError 'Invalid session id'
             return routeToLatestWorkspace()
 
         .error (err) ->
