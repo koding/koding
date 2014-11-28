@@ -1,4 +1,5 @@
 box: koding/base@0.0.14
+no-response-timeout: 10
 services:
   - wercker/postgresql@0.0.4
   - wercker/rabbitmq@1.0.1
