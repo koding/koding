@@ -4,11 +4,24 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
+	"time"
 
 	"github.com/mitchellh/goamz/ec2"
 )
 
-const KloudSubnetValue = "kloud-subnet-*"
+const (
+	KloudSubnetValue           = "kloud-subnet-*"
+	CacheInvalidationThreshold = 10 * time.Minute
+)
+
+// subnetCache is a simple caching layer in-front of the
+// DescribeSubnets AWS call.
+var subnetCache struct {
+	lastUpdated time.Time
+	subnets     Subnets
+	sync.Mutex
+}
 
 type Subnets []ec2.Subnet
 
@@ -34,13 +47,27 @@ func (s Subnets) AvailabilityZone(zone string) (ec2.Subnet, error) {
 
 	return ec2.Subnet{}, errors.New("subnet not found")
 }
+
+// Subnets is a basic wrapper around SubnetsWithTag and includes an in-memory
+// cache.
 func (a *AmazonClient) Subnets() (Subnets, error) {
-	resp, err := a.SubnetsWithTag(KloudSubnetValue)
-	if err != nil {
-		return nil, err
+	// fill/update subnet list and cache it
+	if subnetCache.subnets == nil || time.Since(subnetCache.lastUpdated) > CacheInvalidationThreshold {
+
+		subnetCache.Lock()
+		defer subnetCache.Unlock()
+
+		resp, err := a.SubnetsWithTag(KloudSubnetValue)
+		if err != nil {
+			return nil, err
+		}
+		subnetCache.lastUpdated = time.Now()
+		subnetCache.subnets = resp
+
+		return subnetCache.subnets, nil
 	}
-	fmt.Printf("resp %+v\n", resp)
-	return resp, nil
+
+	return subnetCache.subnets, nil
 }
 
 func (a *AmazonClient) SubnetsWithTag(tag string) (Subnets, error) {
