@@ -13,7 +13,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:        h.Authenticate,
 			Name:           "channel-authenticate",
 			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/authenticate",
+			Endpoint:       "/channel/{name}/authenticate",
 			CollectMetrics: true,
 		})
 
@@ -23,7 +23,7 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Handler:        h.Push,
 			Name:           "channel-push",
 			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/push",
+			Endpoint:       "/channel/{name}/push",
 			CollectMetrics: true,
 		})
 }

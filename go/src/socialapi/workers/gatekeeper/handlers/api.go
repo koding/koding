@@ -42,8 +42,10 @@ func (h *Handler) Authenticate(u *url.URL, header http.Header, req *models.Chann
 }
 
 func (h *Handler) Push(u *url.URL, _ http.Header, req *models.MessageRequest) (int, http.Header, interface{}, error) {
+	name := u.Query().Get("name")
+	req.Name = name
 	if ok := isRequestValid(req.Request); !ok {
-		return response.NewBadRequest(ErrInvalidRequest)
+		return response.NewBadRequest(nil)
 	}
 
 	if err := h.Realtime.Push(req); err != nil {
