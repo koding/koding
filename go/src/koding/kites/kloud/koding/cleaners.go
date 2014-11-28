@@ -199,11 +199,11 @@ func (p *Provider) CleanStates(timeout time.Duration) error {
 	var wg sync.WaitGroup
 	for _, state := range progressModes {
 		wg.Add(1)
-		go func() {
+		go func(bad, good string) {
 			defer wg.Done()
-			err := cleanstateFunc(state.bad, state.good)
+			err := cleanstateFunc(bad, good)
 			errs.Add(err)
-		}()
+		}(state.bad, state.good)
 	}
 
 	wg.Wait()
