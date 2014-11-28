@@ -201,6 +201,7 @@ Configuration = (options={}) ->
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
     paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
+    pubnub            : { subscribekey: pubnub.subscribekey }
 
 
       # END: PROPERTIES SHARED WITH BROWSER #
