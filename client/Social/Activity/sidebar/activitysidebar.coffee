@@ -403,14 +403,17 @@ class ActivitySidebar extends KDCustomHTMLView
   workspacesFetched  = no
   fetchingWorkspaces = no
 
-  fetchWorkspaces: (callback = noop) ->
+  fetchWorkspaces: do (callbackQueue = []) -> (callback) ->
 
     activitySidebar = this
 
     return callback null, KD.userWorkspaces  if workspacesFetched
-    return  if fetchingWorkspaces
+    return callbackQueue.push callback       if fetchingWorkspaces
 
     fetchingWorkspaces = yes
+
+    # put first callback to queue as well.
+    callbackQueue.push callback
 
     KD.remote.api.JWorkspace.fetchByMachines()
 
@@ -445,11 +448,14 @@ class ActivitySidebar extends KDCustomHTMLView
           KD.userWorkspaces     = userWorkspaces
           workspacesFetched     = yes
           activitySidebar.updateMachineTree()
-          callback null, userWorkspaces
+
+          callbackQueue.forEach (fn) -> fn null, userWorkspaces
+          callbackQueue = []
 
       .error (rest...) ->
         fetchingWorkspaces = no
-        callback rest...
+        callbackQueue.forEach (fn) -> fn rest...
+        callbackQueue = []
 
 
 
