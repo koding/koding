@@ -25,9 +25,10 @@ import (
 )
 
 const (
-	DefaultKloudKeyName = "Kloud"
-	DefaultApachePort   = 80
-	DefaultKitePort     = 3000
+	DefaultKloudSubnetValue = "kloud-subnet-*"
+	DefaultKloudKeyName     = "Kloud"
+	DefaultApachePort       = 80
+	DefaultKitePort         = 3000
 )
 
 var (
@@ -161,7 +162,7 @@ func (b *Build) buildData() (*BuildData, error) {
 	// get all subnets belonging to Kloud
 	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
 		b.machine.Id)
-	subnets, err := b.amazon.Subnets()
+	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
 	if err != nil {
 		return nil, err
 	}
@@ -277,7 +278,7 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
 				if err != nil {
 					b.log.Error(`User (%s) has an invalid public SSH key. Not adding it to the authorized keys. Key: %s. Err: %v`,
-					b.machine.Username, key, err)
+						b.machine.Username, key, err)
 					continue
 				}
 				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
@@ -366,7 +367,7 @@ func (b *Build) create(buildData *BuildData) (string, error) {
 		return "", err
 	}
 
-	subnets, err := b.amazon.Subnets()
+	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
 	if err != nil {
 		return "", err
 	}
