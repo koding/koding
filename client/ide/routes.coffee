@@ -120,48 +120,46 @@ do ->
 
     KD.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
 
-      return routeToLatestWorkspace() if err
+      return routeToLatestWorkspace()  if err
 
-      KD.remote.api.JWorkspace.fetchByMachines()
+      try
+        workspaces.forEach (workspace) =>
 
-        .then (workspaces) ->
+          return  unless workspace.channelId is channel.id
 
-          KD.userWorkspaces = workspaces
-          KD.singletons.mainView.activitySidebar.updateMachineTree()
+          machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+          query   = socialApiId: channel.creatorId
 
-          if workspaces.length
-            workspaces.forEach (workspace) =>
+          KD.remote.api.JAccount.some query, {}, (err, account) =>
 
-              return  unless workspace.channelId is channel.id
+            return throw new Error err  if err
 
-              machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+            username  = account.first.profile.nickname
+            channelId = channel.id
 
-              query  = socialApiId: channel.creatorId
-              KD.remote.api.JAccount.some query, {}, (err, account) =>
-                return throw new Error err  if err
+            return loadIDE { machine, workspace, username, channelId }
 
-                username  = account.first.profile.nickname
-                channelId = channel.id
-                return loadIDE { machine, workspace, username, channelId }
+      catch e
 
-          else
-            KD.showError 'Invalid session id'
-            return routeToLatestWorkspace()
+        return routeToLatestWorkspace()
 
-        .error (err) ->
+  refreshWorkspaces = (callback) ->
 
-          console.error err
-          routeToLatestWorkspace()
+    KD.singletons.mainView.activitySidebar.fetchWorkspaces callback
 
 
   KD.registerRoutes 'IDE',
 
-    '/:name?/IDE': routeToLatestWorkspace
+    '/:name?/IDE': (rest...) ->
+      refreshWorkspaces -> routeToLatestWorkspace rest...
 
-    '/:name?/IDE/:machineLabel': routeToLatestWorkspace
+    '/:name?/IDE/:machineLabel': (rest...) ->
+      refreshWorkspaces -> routeToLatestWorkspace rest...
 
-    '/:name?/IDE/:machineLabel/:workspaceSlug': (data) ->
+    '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
-      { machineLabel, workspaceSlug } = data.params
+      refreshWorkspaces ->
 
-      loadWorkspace machineLabel, workspaceSlug
+        { machineLabel, workspaceSlug } = routeInfo.params
+
+        loadWorkspace machineLabel, workspaceSlug
