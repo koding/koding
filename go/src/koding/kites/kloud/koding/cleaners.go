@@ -189,9 +189,18 @@ func (p *Provider) CleanStates(timeout time.Duration) error {
 		bad  string
 		good string
 	}{
+		// our "build" method can continue with the leftover data that was
+		// updated to MongoDB during the "build" process. So setting the state
+		// to NotInitialized will make it to continue from where it was left.
 		{machinestate.Building.String(), machinestate.NotInitialized.String()},
 		{machinestate.Terminating.String(), machinestate.Terminated.String()},
+		// once stopped, always stopped.
 		{machinestate.Stopping.String(), machinestate.Stopped.String()},
+		// the final state is  "stopped" because we don't know the if the
+		// domains are updated or if the machien was really started. If the
+		// machine is alrady started, the "start" method won't start it again,
+		// so setting it to "stopped" will at least make it updating the
+		// domains.
 		{machinestate.Starting.String(), machinestate.Stopped.String()},
 	}
 

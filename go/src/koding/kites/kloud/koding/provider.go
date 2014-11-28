@@ -139,6 +139,10 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		InstanceId: a.Builder.InstanceId,
 	}
 
+	// stop the timer and remove it from the list of inactive machines so it
+	// doesn't get called later again.
+	p.stopTimer(m)
+
 	a.Push("Starting machine", 10, machinestate.Starting)
 
 	// check if the user has something else than their current instance type
@@ -156,24 +160,18 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 				m.Id, a.Builder.InstanceType, err)
 		}
 
-		// wait for AWS eventually consistency state, so we wait to get the
-		// correct answer.
+		// Because of AWS's eventually consistency state, we wait to get the
+		// final and correct answer.
 		time.Sleep(time.Second * 2)
 	}
 
-	// if the current db state is stopped but the machine is actually running,
-	// that means klient is not running. For this case we restart the machine
-	if infoResp.State == machinestate.Running && m.State == machinestate.Stopped {
-		// ip doesn't change when we do a reboot
-		a.Log.Warning("[%s] machine is running but klient is not functional. Rebooting the machine instead of starting it.",
-			m.Id)
-
-		a.Push("Restarting machine", 30, machinestate.Starting)
-		err = a.Restart(false)
-		if err != nil {
-			return nil, err
+	// only start if the machine is stopped, stopping
+	if infoResp.State.In(machinestate.Stopped, machinestate.Stopping) {
+		// Give time until it's being stopped
+		if infoResp.State == machinestate.Stopping {
+			time.Sleep(time.Second * 20)
 		}
-	} else {
+
 		startFunc := func() error {
 			artifact, err = a.Start(true)
 			if err == nil {
@@ -221,35 +219,33 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		if err := startFunc(); err != nil {
 			return nil, err
 		}
-
-		a.Push("Initializing domain instance", 65, machinestate.Starting)
-		if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-			p.Log.Error("[%s] updating domains for starting err: %s", m.Id, err.Error())
-		}
-
-		a.Log.Debug("[%s] Updating user domain tag '%s' of instance '%s'",
-			m.Id, m.Domain.Name, artifact.InstanceId)
-		if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-			p.Log.Error("[%s] couldn't update tags domains for starting err: %s", m.Id, err.Error())
-		}
-
-		// also get all domain aliases that belongs to this machine and unset
-		a.Push("Updating domain aliases", 80, machinestate.Starting)
-		domains, err := p.DomainStorage.GetByMachine(m.Id)
-		if err != nil {
-			p.Log.Error("[%s] fetching domains for starting err: %s", m.Id, err.Error())
-		}
-
-		for _, domain := range domains {
-			if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
-				p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
-			}
-		}
 	}
 
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
+	// update the intermediate information
+	p.Update(m.Id, &kloud.StorageData{
+		Type: "starting",
+		Data: map[string]interface{}{
+			"ipAddress": artifact.IpAddress,
+		},
+	})
+
+	a.Push("Initializing domain instance", 65, machinestate.Starting)
+	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
+		p.Log.Error("[%s] updating domains for starting err: %s", m.Id, err.Error())
+	}
+
+	// also get all domain aliases that belongs to this machine and unset
+	a.Push("Updating domain aliases", 80, machinestate.Starting)
+	domains, err := p.DomainStorage.GetByMachine(m.Id)
+	if err != nil {
+		p.Log.Error("[%s] fetching domains for starting err: %s", m.Id, err.Error())
+	}
+
+	for _, domain := range domains {
+		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
+			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
+		}
+	}
 
 	artifact.DomainName = m.Domain.Name
 
