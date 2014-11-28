@@ -35,6 +35,13 @@ class PrivateMessagePane extends MessagePane
 
     @input.input.on 'InputHeightChanged', @bound 'handleAutoGrow'
 
+    @input.input.on 'focus', =>
+      @scrollView.wrapper.emit 'MutationHappened'
+      # sometimes el.scrollHeight gives false values
+      # thus this terrible hack to reflow and get the correct values - SY
+      @scrollView.wrapper.addSubView v = new KDCustomHTMLView
+      KD.utils.defer -> v.destroy()
+
     @input.input.on 'blur', => @setCss 'height', 'none'
 
     @listenWindowResize()
@@ -45,7 +52,14 @@ class PrivateMessagePane extends MessagePane
     headerHeight = @participantsView.getHeight()
     inputHeight  = @input.getHeight()
     paneHeight   = @getHeight()
-    @scrollView.setHeight paneHeight - inputHeight - headerHeight
+
+    # 50 smaller than two lines
+    # bigger than a single line
+    # eventually needs an initial height - SY
+    if inputHeight > 50
+    then @scrollView.setHeight paneHeight - inputHeight - headerHeight
+    else @scrollView.setAttribute 'style', ''
+
     @scrollDown()
     @_windowDidResize()
 
@@ -88,6 +102,12 @@ class PrivateMessagePane extends MessagePane
 
 
   addMessageDeferred: (item, i, total) ->
+
+    # temp.
+    # until we have a separate message type for collaboration messages
+    # we need to do this to be able to distinguish them - SY
+    if item.payload?.collaboration then @setOption 'collaboration', yes
+
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
