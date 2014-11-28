@@ -35,6 +35,13 @@ class PrivateMessagePane extends MessagePane
 
     @input.input.on 'InputHeightChanged', @bound 'handleAutoGrow'
 
+    @input.input.on 'focus', =>
+      @scrollView.wrapper.emit 'MutationHappened'
+      # sometimes el.scrollHeight gives false values
+      # thus this terrible hack to reflow and get the correct values - SY
+      @scrollView.wrapper.addSubView v = new KDCustomHTMLView
+      KD.utils.defer -> v.destroy()
+
     @input.input.on 'blur', => @setCss 'height', 'none'
 
     @listenWindowResize()
