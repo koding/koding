@@ -8,7 +8,7 @@ KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class JMachine extends Module
 
-  { ObjectId, signature, daisy } = require 'bongo'
+  { ObjectId, signature, daisy, secure } = require 'bongo'
 
   @trait __dirname, '../../traits/protected'
 
@@ -45,6 +45,14 @@ module.exports = class JMachine extends Module
           (signature String, Function)
         setLabel        :
           (signature String, Function)
+        share           :
+          (signature Object, Function)
+        unshare         :
+          (signature Object, Function)
+        setAsOwner      :
+          (signature Object, Function)
+        unsetAsOwner    :
+          (signature Object, Function)
 
     permissions         :
       'list machines'   : ['member']
@@ -122,6 +130,64 @@ module.exports = class JMachine extends Module
         assignedAt      : Date
 
 
+  # Helpers
+  # -------
+
+  generateSlugFromLabel = ({user, group, label, index}, callback)->
+
+    slug = if index? then "#{label}-#{index}" else label
+    slug = slugify slug
+
+    JMachine.count {
+      users : $elemMatch: id: user.getId()
+      groups: $elemMatch: id: group.getId()
+      slug
+    }, (err, count)->
+
+      return callback err  if err?
+
+      if count is 0
+        callback null, slug
+      else
+        index ?= 0
+        index += 1
+        generateSlugFromLabel {user, group, label, index}, callback
+
+
+  isOwner  = (user, machine) ->
+
+    userId = user.getId()
+
+    owner  = no
+    owner |= u.owner and u.id.equals userId  for u, i in machine.users
+
+    return owner
+
+
+  excludeUser = (users, user)->
+
+    userId   = user.getId()
+    newUsers = []
+
+    for u in users
+      newUsers.push u  unless userId.equals u.id
+
+    return newUsers
+
+
+  addUser = (users, user, asOwner)->
+
+    newUsers = excludeUser users, user
+    newUsers.push { id: user.getId(), owner: asOwner }
+
+    return newUsers
+
+
+  # Private Methods
+  # ---------------
+
+  # Static Methods
+
   @create = (data, callback)->
 
     # JMachine.uid is a unique id which is generated from:
@@ -179,29 +245,70 @@ module.exports = class JMachine extends Module
           callback null, machine
 
 
-  generateSlugFromLabel = ({user, group, label, index}, callback)->
+  # Instance Methods
 
-    slug = if index? then "#{label}-#{index}" else label
-    slug = slugify slug
+  addUsers: (usersToAdd, asOwner, callback)->
 
-    JMachine.count {
-      users : $elemMatch: id: user.getId()
-      groups: $elemMatch: id: group.getId()
-      slug
-    }, (err, count)->
+    users = @users.splice 0
 
-      return callback err  if err?
+    for user in usersToAdd
+      users = addUser users, user, asOwner
 
-      if count is 0
-        callback null, slug
+    if users.length > 10
+      callback new KodingError \
+        "Machine sharing is limited up to 10 users."
+    else
+      @update $set: { users }, callback
+
+
+  removeUsers: (usersToRemove, callback)->
+
+    users = @users.splice 0
+
+    for user in usersToRemove
+      users = excludeUser users, user
+
+    @update $set: { users }, callback
+
+
+  shareWith: (options, callback)->
+
+    { target, asUser, asOwner } = options
+    asUser  ?= yes
+    asOwner ?= no
+
+    unless target?
+      return callback new KodingError "Target required."
+
+    JUser = require '../user'
+    JName = require '../name'
+
+    JName.fetchModels target, (err, result)=>
+
+      if err or not result?
+        return callback new KodingError "Target not found."
+
+      targets = (target.models[0]  for target in result)
+
+      [ target ] = targets
+
+      if target instanceof JUser
+
+        if asUser
+        then @addUsers targets, asOwner, callback
+        else @removeUsers targets, callback
+
       else
-        index ?= 0
-        index += 1
-        generateSlugFromLabel {user, group, label, index}, callback
+        callback new KodingError "Target does not support machines."
 
 
 
-  @one$: permit 'list machines',
+  # Shared Methods
+  # --------------
+
+  # Static Methods
+
+  @one$ = permit 'list machines',
 
     success: revive
 
@@ -224,7 +331,7 @@ module.exports = class JMachine extends Module
         callback err, machine
 
 
-  @some$: permit 'list machines',
+  @some$ = permit 'list machines',
 
     success: revive
 
@@ -242,16 +349,7 @@ module.exports = class JMachine extends Module
         callback err, machines
 
 
-
-  isOwner  = (user, machine) ->
-
-    userId = user.getId()
-
-    owner  = no
-    owner |= u.owner and u.id.equals userId  for u, i in machine.users
-
-    return owner
-
+  # Instance Methods
 
   setProvisioner: permit 'set provisioner',
 
@@ -310,40 +408,7 @@ module.exports = class JMachine extends Module
       daisy queue
 
 
-  setDomain: permit 'set domain',
-
-    success: revive
-
-      shouldReviveClient   : yes
-      shouldReviveProvider : no
-
-    , (client, domain, callback)->
-
-      { r: { user } } = client
-
-      unless isOwner user, this
-        return callback new KodingError 'Access denied'
-
-      { nickname } = client.connection.delegate.profile
-      { userSitesDomain } = KONFIG
-
-      suffix  = "#{nickname}.#{userSitesDomain}"
-      _suffix = suffix.replace ".", "\\."
-
-      unless ///(^|\.)#{_suffix}$///.test domain
-        return callback new KodingError \
-          "Domain is invalid, it needs to be end with #{suffix}", "INVALIDDOMAIN"
-
-      JMachine.count {domain}, (err, count)=>
-
-        if err or count > 0
-          return callback new KodingError \
-            "The domain #{domain} already exists", "DUPLICATEDOMAIN"
-
-        @update $set: { domain }, (err)-> callback err
-
-
-  setLabel: permit 'set domain',
+  setLabel: permit 'set label',
 
     success: revive
 
@@ -375,67 +440,16 @@ module.exports = class JMachine extends Module
         @update $set: { label }, (err)-> kallback err, slug
 
 
-  addUser: (user, owner, callback)->
-
-    userId = user.getId()
-    users  = []
-
-    for u in @users
-      users.push u  unless userId.equals u.id
-
-    users.push { id: userId, owner }
-
-    @update $set: { users }, callback
-
-
-  removeUser: (user, callback)->
-
-    userId = user.getId()
-    users  = []
-
-    for u in @users
-      users.push u  unless userId.equals u.id
-
-    @update $set: { users }, callback
-
-
-  shareWith: (options, callback)->
-
-    { target, user, owner } = options
-    user  ?= yes
-    owner ?= no
-
-    unless target?
-      return callback new KodingError "Target required."
-
-    JUser = require '../user'
-    JName = require '../name'
-
-    JName.fetchModels target, (err, result)=>
-
-      if err or not result?
-        return callback new KodingError "Target not found."
-
-      [ target ] = result.models
-
-      if target instanceof JUser
-
-        if user
-        then @addUser target, owner, callback
-        else @removeUser target, callback
-
-      else
-        callback new KodingError "Target does not support machines."
-
-
-  # .share can be used like this:
+  # .shareWith can be used like this:
   #
-  # JMachineInstance.shareWith { user: yes, owner: no, target: "gokmen"}, cb
-  #                                                user slug -> ^^^^^^
+  # JMachineInstance.shareWith {
+  #   asUser: yes, asOwner: no, target: ["gokmen", "dicle"]}, cb
+  # }
+  #                        user slugs ->  ^^^^^^ ,  ^^^^^
 
   shareWith$: permit 'populate users',
 
-    success: revive
+    success : revive
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
@@ -449,10 +463,35 @@ module.exports = class JMachine extends Module
 
       { target } = options
 
+      if target.length > 9
+        return callback new KodingError \
+          "It is not allowed to change more than 9 state at once."
+
       # Owners cannot unassign them from a machine
       # Only another owner can unassign any other owner
-      if user.username is target
+      if user.username in target
         return callback \
-          new KodingError "It's not allowed to change owner's state!"
+          new KodingError "You are not allowed to change your own state!"
+
+      if @provider is 'koding' and @credential in target
+        return callback \
+          new KodingError "It is not allowed to change owner state!"
 
       JMachine::shareWith.call this, options, callback
+
+
+  share: secure (client, users, callback)->
+    options = target: users, asUser: yes
+    JMachine::shareWith$.call this, client, options, callback
+
+  unshare: secure (client, users, callback)->
+    options = target: users, asUser: no
+    JMachine::shareWith$.call this, client, options, callback
+
+  setAsOwner: secure (client, users, callback)->
+    options = target: users, asUser: yes, asOwner: yes
+    JMachine::shareWith$.call this, client, options, callback
+
+  unsetAsOwner: secure (client, users, callback)->
+    options = target: users, asUser: yes, asOwner: no
+    JMachine::shareWith$.call this, client, options, callback

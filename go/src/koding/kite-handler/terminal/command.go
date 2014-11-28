@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/koding/passwd"
@@ -13,6 +14,7 @@ import (
 
 const (
 	sessionPrefix     = "koding"
+	defaultShell      = "/bin/bash"
 	defaultScreenPath = "/usr/bin/screen"
 )
 
@@ -52,12 +54,14 @@ func getUserEntry(username string) (*passwd.Entry, error) {
 }
 
 func getDefaultShell(username string) string {
-	fallbackShell := "/bin/bash"
+	if runtime.GOOS == "darwin" {
+		return defaultShell
+	}
 
 	entry, err := getUserEntry(username)
 	if err != nil {
 		log.Println("terminal: couldn't get default shell ", err)
-		return fallbackShell
+		return defaultShell
 	}
 
 	return entry.Shell
