@@ -30,9 +30,6 @@ module.exports = class MainViewController extends KDViewController
           logViewByElement event.target
       , yes
 
-    # Get once to make it cached
-    KD.utils.getLocationInfo()
-
 
   setBodyClass: do ->
 
