@@ -90,6 +90,13 @@ class KodingKite_KlientKite extends KodingKite
 
   fetchTerminalSessions: ->
 
-    @webtermGetSessions().then (sessions)=>
+    @webtermGetSessions()
+
+    .then (sessions)=>
+
       info "[#{@getOption 'correlationName'}] Sessions fetched."
       @terminalSessions = sessions
+
+    .catch (err)->
+      # Reset current sessions if fails
+      @terminalSessions = []
