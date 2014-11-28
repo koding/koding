@@ -173,13 +173,15 @@ deploy:
         code: |
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "deployed the files to s3 s3://$S3_EB_DEPLOY/$ARCHIVE" "deploying" 75
 
-    - koding/eb-deploy@0.0.5:
+    - koding/eb-deploy@0.0.6:
         access-key: $S3_KEY_ID
         secret-key: $S3_KEY_SECRET
         app-name: koding
         env-name: $EB_ENV_NAME
-        app-location: $S3_EB_DEPLOY/$ARCHIVE
         version-label: $ARCHIVE
+        region: $EB_ENV_REGION
+        s3-bucket: $S3_EB_DEPLOY-$EB_ENV_REGION
+        s3-key: $ARCHIVE
     - script:
         name: notify-cebeci with eb trigger
         code: |
