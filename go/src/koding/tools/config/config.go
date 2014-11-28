@@ -269,6 +269,7 @@ type RuntimeOptions struct {
 	} `json:"paypal"`
 	Pubnub struct {
 		SubscribeKey string
+		Enabled      bool
 	} `json:"pubnub"`
 }
 
