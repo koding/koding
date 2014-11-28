@@ -164,7 +164,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
   pistachio: ->
 
     """
-    <header>
+    <header class='chat-settings'>
     {{> @back}}
     <div class='buttons'>
       {{> @startSession}} {{> @endSession}}
