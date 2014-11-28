@@ -87,17 +87,6 @@ class NavigationMachineItem extends JView
       KD.utils.wait 1000, @progress.bound 'hide'
 
 
-  click: (event) ->
-
-    machineOwner = @getData().credential
-    isMyMachine  = machineOwner is KD.nick()
-
-    unless isMyMachine
-      KD.utils.stopDOMEvent event
-      return no
-
-
-
   pistachio:->
 
     return """
