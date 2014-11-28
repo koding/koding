@@ -383,6 +383,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
+    @fetchWorkspaces()
+
 
   initiateFakeCounter: ->
 
@@ -396,6 +398,58 @@ class ActivitySidebar extends KDCustomHTMLView
         KD.utils.wait 177, ->
           publicLink.unsetClass 'unread'
           publicLink.unreadCount.hide()
+
+
+  workspacesFetched  = no
+  fetchingWorkspaces = no
+
+  fetchWorkspaces: (callback = noop) ->
+
+    activitySidebar = this
+
+    return callback null, KD.userWorkspaces  if workspacesFetched
+    return  if fetchingWorkspaces
+
+    fetchingWorkspaces = yes
+
+    KD.remote.api.JWorkspace.fetchByMachines()
+
+      .then (workspaces) ->
+        fetchingWorkspaces = no
+
+        nick        = KD.nick()
+        {socialapi} = KD.singletons
+
+        otherMachineUIds = []
+        myMachineUIds    = []
+
+        KD.userMachines.forEach (m) ->
+          if m.credential is nick
+          then myMachineUIds.push m.uid
+          else otherMachineUIds.push m.uid
+
+        otherWorkspaces  = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in otherMachineUIds
+        myWorkspaces     = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in myMachineUIds
+
+        myChannels = []
+        queue      = []
+        workspaces.forEach (ws) ->
+          queue.push ->
+            socialapi.channel.byId id : ws.channelId, (err, channel) ->
+              myChannels.push channel.id  if channel
+              queue.fin()
+
+        Bongo.dash queue, ->
+          workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
+          userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
+          KD.userWorkspaces     = userWorkspaces
+          workspacesFetched     = yes
+          activitySidebar.updateMachineTree()
+          callback null, userWorkspaces
+
+      .error (rest...) ->
+        fetchingWorkspaces = no
+        callback rest...
 
 
 
