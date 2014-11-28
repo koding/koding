@@ -403,7 +403,7 @@ class ActivitySidebar extends KDCustomHTMLView
   workspacesFetched  = no
   fetchingWorkspaces = no
 
-  fetchWorkspaces: do (callbackQueue = []) -> (callback) ->
+  fetchWorkspaces: do (callbackQueue = []) -> (callback = noop) ->
 
     activitySidebar = this
 
