@@ -95,6 +95,12 @@ class PrivateMessagePane extends MessagePane
 
 
   addMessageDeferred: (item, i, total) ->
+
+    # temp.
+    # until we have a separate message type for collaboration messages
+    # we need to do this to be able to distinguish them - SY
+    if item.payload?.collaboration then @setOption 'collaboration', yes
+
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
