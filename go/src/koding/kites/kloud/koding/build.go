@@ -159,9 +159,9 @@ func (b *Build) run() (*protocol.Artifact, error) {
 // buildData returns all necessary data that is needed to build a machine.
 func (b *Build) buildData() (*BuildData, error) {
 	// get all subnets belonging to Kloud
-	b.log.Debug("[%s] Searching for subnet that are tagged with '%s'",
-		b.machine.Id, DefaultKloudKeyName)
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
+	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
+		b.machine.Id)
+	subnets, err := b.amazon.Subnets()
 	if err != nil {
 		return nil, err
 	}
@@ -274,9 +274,8 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 				// validate the public keys
 				_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
 				if err != nil {
-					b.log.Error(`User (%s) has an invalid public SSH key.
-							Not adding it to the authorized keys.
-							Key: %s. Err: %v`, b.machine.Username, key, err)
+					b.log.Error(`User (%s) has an invalid public SSH key. Not adding it to the authorized keys. Key: %s. Err: %v`,
+					b.machine.Username, key, err)
 					continue
 				}
 				cloudInitConfig.UserSSHKeys = append(cloudInitConfig.UserSSHKeys, key)
@@ -365,7 +364,7 @@ func (b *Build) create(buildData *BuildData) (string, error) {
 		return "", err
 	}
 
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
+	subnets, err := b.amazon.Subnets()
 	if err != nil {
 		return "", err
 	}
