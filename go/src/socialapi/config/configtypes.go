@@ -46,6 +46,9 @@ type (
 
 		Paypal Paypal
 
+		// Holds access information for realtime message authenticator
+		GateKeeper GateKeeper
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
@@ -129,5 +132,17 @@ type (
 		ReturnUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_RETURNURL"`
 		CancelUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_CANCELURL"`
 		IsSandbox bool   `env:"key=KONFIG_SOCIALAPI_PAYPAL_ISANDBOX"`
+	}
+
+	GateKeeper struct {
+		Host   string `env:"key=KONFIG_GATEKEEPER_HOST"`
+		Port   int    `env:"key=KONFIG_GATEKEEPER_PORT"`
+		Pubnub Pubnub
+	}
+
+	Pubnub struct {
+		PublishKey   string `env:"key=KONFIG_GATEKEEPER_PUBNUB_PUBLISHKEY"`
+		SubscribeKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
+		SecretKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
 	}
 )
