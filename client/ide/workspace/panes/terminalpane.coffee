@@ -37,6 +37,8 @@ class IDE.TerminalPane extends IDE.Pane
 
     @webtermView.once "WebTerm.terminated", =>
 
+      return  unless @parent
+
       paneView = @parent
       tabView  = paneView.parent
 

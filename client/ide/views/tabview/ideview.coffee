@@ -226,29 +226,31 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     {appManager} = KD.singletons
 
-    machine = appManager.getFrontApp().mountedMachine
+    frontApp = appManager.getFrontApp()
+    machine  = frontApp.mountedMachine
+
+    sessions = machine?.getBaseKite().terminalSessions or []
 
     terminalSessions =
       "New Session"  :
         callback     : => @createTerminal machine
-        separator    : yes
-      "Existing Sessions":
-        disabled     : yes
+        separator    : sessions.length > 0
 
-    sessions = machine?.getBaseKite().terminalSessions or []
-
-    unless sessions.length
-      delete terminalSessions["Existing Sessions"]
+    activeSessions = []
+    frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
+      if pane.remote?
+        activeSessions.push pane.remote.session
 
     sessions.forEach (session, i) =>
-      terminalSessions["Session #{session}"] =
-        children :
+      isActive = session in activeSessions
+      terminalSessions["Session (#{session[0..5]}) &nbsp"] =
+        disabled          : isActive
+        children          :
           'Open'          :
+            disabled      : isActive
             callback      : => @createTerminal machine, null, session
           'Terminate'     :
-            callback      : => alert session
-          'Rename'        :
-            callback      : => alert "rename", session
+            callback      : => @terminateSession machine, session
 
     items =
       'New File'          : callback : => @createEditor()
@@ -311,3 +313,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     if ideApp.workspaceData?.rootPath
       return ideApp.workspaceData.rootPath
+
+
+  terminateSession: (machine, session)->
+
+    machine.getBaseKite().webtermKillSession {session}
+
+    .catch (err)->
+      warn "Failed to terminate session, possibly it's already dead.", err
