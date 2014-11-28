@@ -144,5 +144,6 @@ type (
 		PublishKey   string `env:"key=KONFIG_GATEKEEPER_PUBNUB_PUBLISHKEY"`
 		SubscribeKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
 		SecretKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
+		Enabled      bool   `env:"key=KONFIG_GATEKEEPER_PUBNUB_ENABLED"`
 	}
 )
