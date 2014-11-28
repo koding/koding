@@ -2,7 +2,10 @@ package koding
 
 import (
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/multierrors"
 	"koding/kites/kloud/protocol"
+	"sync"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -19,13 +22,17 @@ var (
 // up/resets machine documents and VM leftovers.
 func (p *Provider) RunCleaners(interval time.Duration) {
 	cleaners := func() {
-		// run for the first
+		// run for the first time
 		if err := p.CleanLocks(CleanUpTimeout); err != nil {
 			p.Log.Warning("Cleaning locks: %s", err)
 		}
 
 		if err := p.CleanDeletedVMs(); err != nil {
 			p.Log.Warning("Cleaning deleted vms: %s", err)
+		}
+
+		if err := p.CleanStates(CleanUpTimeout); err != nil {
+			p.Log.Warning("Cleaning states vms: %s", err)
 		}
 	}
 
@@ -141,4 +148,68 @@ func (p *Provider) CleanLocks(timeout time.Duration) error {
 	}
 
 	return p.Session.Run("jMachines", query)
+}
+
+// CleanStates resets documents that has machine states in progress mode
+// (building, stopping, etc..) which weren't updated since 10 minutes. This
+// could be caused because of Kloud restarts or panics.
+func (p *Provider) CleanStates(timeout time.Duration) error {
+	cleanstateFunc := func(badstate, goodstate string) error {
+		return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+			// machines that can't be updated because they seems to be in progress
+			badstateMachines := bson.M{
+				"status.state":      badstate,
+				"status.modifiedAt": bson.M{"$lt": time.Now().UTC().Add(-timeout)},
+			}
+
+			cleanMachines := bson.M{
+				"status.state":      goodstate,
+				"status.modifiedAt": time.Now().UTC(),
+			}
+
+			// reset all machines
+			info, err := c.UpdateAll(badstateMachines, bson.M{"$set": cleanMachines})
+			if err != nil {
+				return err
+			}
+
+			// only show if there is something, that will prevent spamming the
+			// output with the same content over and over
+			if info.Updated != 0 {
+				p.Log.Info("[checker] cleaned up %d documents", info.Updated)
+			}
+
+			return nil
+		})
+	}
+
+	progressModes := []struct {
+		bad  string
+		good string
+	}{
+		{machinestate.Building.String(), machinestate.NotInitialized.String()},
+		{machinestate.Terminating.String(), machinestate.Terminated.String()},
+		{machinestate.Stopping.String(), machinestate.Stopped.String()},
+		{machinestate.Starting.String(), machinestate.Stopped.String()},
+	}
+
+	errs := multierrors.Errors{}
+
+	var wg sync.WaitGroup
+	for _, state := range progressModes {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			err := cleanstateFunc(state.bad, state.good)
+			errs.Add(err)
+		}()
+	}
+
+	wg.Wait()
+
+	// if there is no errors just return a nil
+	if errs.Len() == 0 {
+		return nil
+	}
+	return errs
 }
