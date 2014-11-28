@@ -383,6 +383,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @addConversations()
     @addMessages()
 
+    @fetchWorkspaces()
+
 
   initiateFakeCounter: ->
 
@@ -398,13 +400,22 @@ class ActivitySidebar extends KDCustomHTMLView
           publicLink.unreadCount.hide()
 
 
-  fetchWorkspaces: (callback) ->
+  workspacesFetched  = no
+  fetchingWorkspaces = no
+
+  fetchWorkspaces: (callback = noop) ->
 
     activitySidebar = this
+
+    return callback null, KD.userWorkspaces  if workspacesFetched
+    return  if fetchingWorkspaces
+
+    fetchingWorkspaces = yes
 
     KD.remote.api.JWorkspace.fetchByMachines()
 
       .then (workspaces) ->
+        fetchingWorkspaces = no
 
         nick        = KD.nick()
         {socialapi} = KD.singletons
@@ -432,10 +443,13 @@ class ActivitySidebar extends KDCustomHTMLView
           workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
           userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
           KD.userWorkspaces     = userWorkspaces
+          workspacesFetched     = yes
           activitySidebar.updateMachineTree()
           callback null, userWorkspaces
 
-      .error callback
+      .error (rest...) ->
+        fetchingWorkspaces = no
+        callback rest...
 
 
 
