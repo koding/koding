@@ -5,7 +5,7 @@ class EmbedBoxWidget extends KDView
   JView.mixin @prototype
 
   constructor: (options={}, data={}) ->
-    options.cssClass = KD.utils.curry 'link-embed-box', options.cssClass
+    options.cssClass = KD.utils.curry 'link-embed-box clearfix', options.cssClass
 
     super options, data
 
