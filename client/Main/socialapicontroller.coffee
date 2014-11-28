@@ -269,24 +269,30 @@ class SocialApiController extends KDController
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
+        {name, typeConstant} = socialApiChannel
+
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
-          channelType: socialApiChannel.typeConstant
-          channelName: socialApiChannel.name
+          channelType: typeConstant
+          channelName: name
           isExclusive: yes
           connectDirectly: yes
 
-        # do not use callbacks while subscribing, KD.remote.subscribe already
-        # returns the required channel object. Use it. Callbacks are called
-        # twice in the subscribe function
-        brokerChannel = KD.remote.subscribe channelName, subscriptionData
+        if KD.isPubnubEnabled()
+          KD.singletons.realtime.subscribe {channelName: name, typeConstant, group: group.slug}
+          realtimeChannel = KD.singletons.realtime
+        else
+          # do not use callbacks while subscribing, KD.remote.subscribe already
+          # returns the required channel object. Use it. Callbacks are called
+          # twice in the subscribe function
+          realtimeChannel = KD.remote.subscribe channelName, subscriptionData
 
         # add opened channel to the openedChannels list, for later use
-        socialapi.openedChannels[channelName] = {delegate: brokerChannel, channel: socialApiChannel}
+        socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
 
         # start forwarding private channel evetns to the original social channel
-        forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+        forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
 
         # notify listener
         socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
