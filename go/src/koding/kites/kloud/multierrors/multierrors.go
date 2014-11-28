@@ -4,22 +4,30 @@ package multierrors
 
 import "fmt"
 
-type Errors []error
-
-func (e Errors) Add(err error) {
-	e = append(e, err)
+type Errors struct {
+	errs []error
 }
 
-func (e Errors) Len() int {
-	return len(e)
+func New() *Errors {
+	return &Errors{
+		errs: make([]error, 0),
+	}
 }
 
-func (e Errors) Error() string {
-	errorMsg := fmt.Sprintf("[%d errors] ", len(e))
-	for i, err := range e {
-		if err != nil {
-			errorMsg += fmt.Sprintf("[%d] %s", i, err.Error())
-		}
+func (e *Errors) Add(err error) {
+	if err != nil {
+		e.errs = append(e.errs, err)
+	}
+}
+
+func (e *Errors) Len() int {
+	return len(e.errs)
+}
+
+func (e *Errors) Error() string {
+	errorMsg := fmt.Sprintf("[%d errors] ", len(e.errs))
+	for _, err := range e.errs {
+		errorMsg += fmt.Sprintf("[%s]", err.Error())
 	}
 
 	return errorMsg

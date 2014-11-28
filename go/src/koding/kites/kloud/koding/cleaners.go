@@ -176,7 +176,8 @@ func (p *Provider) CleanStates(timeout time.Duration) error {
 			// only show if there is something, that will prevent spamming the
 			// output with the same content over and over
 			if info.Updated != 0 {
-				p.Log.Info("[checker] cleaned up %d documents", info.Updated)
+				p.Log.Info("[state cleaner] fixed %d documents from '%s' to '%s'",
+					info.Updated, badstate, goodstate)
 			}
 
 			return nil
@@ -193,7 +194,7 @@ func (p *Provider) CleanStates(timeout time.Duration) error {
 		{machinestate.Starting.String(), machinestate.Stopped.String()},
 	}
 
-	errs := multierrors.Errors{}
+	errs := multierrors.New()
 
 	var wg sync.WaitGroup
 	for _, state := range progressModes {
@@ -211,5 +212,6 @@ func (p *Provider) CleanStates(timeout time.Duration) error {
 	if errs.Len() == 0 {
 		return nil
 	}
+
 	return errs
 }
