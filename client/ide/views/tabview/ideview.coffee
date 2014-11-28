@@ -94,8 +94,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     {appManager} = KD.singletons
 
-    machine ?= appManager.getFrontApp().mountedMachine
-    path    ?= @getCurrentWorkspacePath()
+    frontApp = appManager.getFrontApp()
+    machine ?= frontApp.mountedMachine
+    path    ?= frontApp.workspaceData?.rootPath
 
     terminalPane = new IDE.TerminalPane { machine, path, session }
     @createPane_ terminalPane, { name: 'Terminal' }
@@ -307,12 +308,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
 
 
-  getCurrentWorkspacePath:->
-
-    ideApp = KD.singletons.appManager.getFrontApp()
-
-    if ideApp.workspaceData?.rootPath
-      return ideApp.workspaceData.rootPath
 
 
   terminateSession: (machine, session)->
