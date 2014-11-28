@@ -41,7 +41,8 @@ func (p *Pubnub) Push(req *MessageRequest) error {
 	channelName := prepareChannelName(req)
 
 	go p.handleResponse()
-	go p.pub.Publish(channelName, req.Body, p.successCh, p.errorCh)
+
+	go p.pub.Publish(channelName, req, p.successCh, p.errorCh)
 
 	return <-p.done
 }
