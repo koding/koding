@@ -637,7 +637,7 @@ class ActivitySidebar extends KDCustomHTMLView
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
     if KD.userMachines.length
-    then @listMachines KD.userMachines
+    then @listMachines (KD.remote.revive machine for machine in KD.userMachines)
     else @fetchMachines @bound 'listMachines'
 
 
