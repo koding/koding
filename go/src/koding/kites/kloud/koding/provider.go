@@ -281,7 +281,7 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 
 	a.Push("Deleting domain", 85, machinestate.Stopping)
 	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		p.Log.Warning("[%s] couldn't delete domain %s", err)
+		p.Log.Warning("[%s] couldn't delete domain %s", m.Id, err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
