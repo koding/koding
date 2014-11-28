@@ -31,6 +31,7 @@ module.exports = [
   "activitycontroller.coffee",
   "messageeventmanager.coffee",
   "socialapicontroller.coffee",
+  "realtimecontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
   "widgetcontroller.coffee",

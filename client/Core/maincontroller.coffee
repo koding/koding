@@ -93,6 +93,7 @@ class MainController extends KDController
     KD.registerSingleton 'kodingAppsController',      new KodingAppsController
     KD.registerSingleton 'socialapi',                 new SocialApiController
     KD.registerSingleton 'search',                    new SearchController
+    KD.registerSingleton 'realtime',                  new RealtimeController
 
     router.listen()
     @mainViewController = mvc
