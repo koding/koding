@@ -21,11 +21,11 @@ class KodingKite_KlientKite extends KodingKite
     fsCreateDirectory  : 'fs.createDirectory'
 
     webtermGetSessions : 'webterm.getSessions'
-    # webtermConnect     : 'webterm.connect'
-    webtermKillSession : 'webterm.killSession'
     webtermPing        : 'webterm.ping'
 
+
   constructor:->
+
     super
 
     @terminalSessions = []
@@ -86,6 +86,20 @@ class KodingKite_KlientKite extends KodingKite
           @terminalSessions.push remote.session
 
         return remote
+
+
+  webtermKillSession: (options)->
+
+    {session} = options
+
+    @tell 'webterm.killSession', options
+
+      .then (state) =>
+
+        @terminalSessions = @terminalSessions.filter (currentSession)->
+          session isnt currentSession
+
+        return state
 
 
   fetchTerminalSessions: ->
