@@ -267,6 +267,9 @@ type RuntimeOptions struct {
 	Paypal      struct {
 		FormUrl string `json:"formUrl"`
 	} `json:"paypal"`
+	Pubnub struct {
+		SubscribeKey string
+	} `json:"pubnub"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN
