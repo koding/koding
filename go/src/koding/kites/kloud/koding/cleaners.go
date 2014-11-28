@@ -158,8 +158,9 @@ func (p *Provider) CleanStates(timeout time.Duration) error {
 		return p.Session.Run("jMachines", func(c *mgo.Collection) error {
 			// machines that can't be updated because they seems to be in progress
 			badstateMachines := bson.M{
-				"status.state":      badstate,
-				"status.modifiedAt": bson.M{"$lt": time.Now().UTC().Add(-timeout)},
+				"assignee.inProgress": false, // never update during a onging process :)
+				"status.state":        badstate,
+				"status.modifiedAt":   bson.M{"$lt": time.Now().UTC().Add(-timeout)},
 			}
 
 			cleanMachines := bson.M{
