@@ -169,13 +169,15 @@ func (b *Build) buildData() (*BuildData, error) {
 	// sort and get the lowest
 	subnet := subnets.WithMostIps()
 
-	b.log.Debug("[%s] Searching for security group for vpc id '%s'", b.machine.Id, subnet.VpcId)
+	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
+		b.machine.Id, subnet.VpcId)
 	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
 	if err != nil {
 		return nil, err
 	}
 
-	b.log.Debug("[%s] Fetching image which is tagged with '%s'", b.machine.Id, DefaultCustomAMITag)
+	b.log.Debug("[%s] Fetching image which is tagged with '%s'",
+		b.machine.Id, DefaultCustomAMITag)
 	image, err := b.amazon.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
 		return nil, err

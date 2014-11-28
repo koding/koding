@@ -9,7 +9,7 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class Koding extends ProviderInterface
 
-  SUPPORTED_REGIONS    = ['ap-southeast-1', 'us-east-1']
+  SUPPORTED_REGIONS    = ['ap-southeast-1', 'us-east-1', 'us-west-2', 'eu-west-1']
 
   PLANS                =
     free               :
