@@ -160,6 +160,6 @@ do ->
 
       refreshWorkspaces ->
 
-        { machineLabel, workspaceSlug } = data.params
+        { machineLabel, workspaceSlug } = routeInfo.params
 
         loadWorkspace machineLabel, workspaceSlug
