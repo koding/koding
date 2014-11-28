@@ -827,10 +827,8 @@ class IDEAppController extends AppController
       unless @participants
         @participants = @rtm.create 'list', 'participants', []
 
-      unless @changes
+      if @amIHost
         @changes = @rtm.create 'list', 'changes', []
-
-      unless @broadcastMessages
         @broadcastMessages = @rtm.create 'list', 'broadcastMessages', []
 
       isInList = no
