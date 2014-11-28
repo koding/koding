@@ -159,9 +159,9 @@ func (b *Build) run() (*protocol.Artifact, error) {
 // buildData returns all necessary data that is needed to build a machine.
 func (b *Build) buildData() (*BuildData, error) {
 	// get all subnets belonging to Kloud
-	b.log.Debug("[%s] Searching for subnet that are tagged with '%s'",
-		b.machine.Id, DefaultKloudKeyName)
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
+	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
+		b.machine.Id)
+	subnets, err := b.amazon.Subnets()
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +364,7 @@ func (b *Build) create(buildData *BuildData) (string, error) {
 		return "", err
 	}
 
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudKeyName)
+	subnets, err := b.amazon.Subnets()
 	if err != nil {
 		return "", err
 	}
