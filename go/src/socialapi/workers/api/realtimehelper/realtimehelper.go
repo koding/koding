@@ -59,7 +59,8 @@ func pushMessage(c *models.Channel, cmc *models.ChannelMessageContainer, eventNa
 
 	buf := bytes.NewBuffer(payload)
 	client := &http.Client{}
-	endpoint := fmt.Sprintf("http://localhost:7200/channel/%s/push", c.Name)
+
+	endpoint := fmt.Sprintf("%s/api/gatekeeper/channel/%s/push", config.MustGet().CustomDomain.Public, c.Name)
 	res, err := client.Post(endpoint, "application/json", buf)
 	if err != nil {
 		return err
