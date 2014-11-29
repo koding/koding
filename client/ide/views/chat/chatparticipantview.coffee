@@ -6,9 +6,9 @@ class IDE.ChatParticipantView extends JView
 
     super options, data
 
-    account          = @getData()
-    {nickname}       = account.profile
-    {isOnline, isMe} = @getOptions()
+    { account, channel } = @getData()
+    { nickname }         = account.profile
+    { isOnline, isMe }   = @getOptions()
 
     if isOnline then @setClass 'online' else @setClass 'offline'
     @setClass 'me'  if isMe
