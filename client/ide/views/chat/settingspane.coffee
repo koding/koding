@@ -24,6 +24,17 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @on 'CollaborationStarted', =>
       @toggleButtons 'started'
 
+    @bindChannelEvents()
+
+
+  bindChannelEvents: ->
+
+    channel = @getData()
+
+    channel
+      .on 'RemovedFromChannel', (acc) => @removeParticipant acc.profile.nickname
+      .on 'AddedToChannel',     (acc) => @addParticipant acc.profile.nickname
+
 
   createElements: ->
 
