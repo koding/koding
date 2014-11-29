@@ -6,6 +6,11 @@ class IDE.ChatParticipantView extends JView
 
     super options, data
 
+    @createElements()
+
+
+  createElements: ->
+
     { account, channel } = @getData()
     { nickname }         = account.profile
     { isOnline, isMe }   = @getOptions()
@@ -22,9 +27,15 @@ class IDE.ChatParticipantView extends JView
       partial  : nickname
 
     if isMe
+      @kickButton  = new KDCustomHTMLView cssClass: 'hidden'
       @watchButton = new KDCustomHTMLView cssClass: 'hidden'
       @settings    = new KDCustomHTMLView cssClass: 'hidden'
     else
+      @kickButton  = new KDButtonView
+        title    : 'KICK'
+        cssClass : 'kick-button'
+        callback : @bound 'kickParticipant'
+
       @watchButton = new KDButtonView
         iconOnly : 'yes'
         cssClass : 'watch-button'
@@ -40,11 +51,27 @@ class IDE.ChatParticipantView extends JView
         ]
 
 
+  kickParticipant: ->
+
+    { account, channel } = @getData()
+
+    { kickParticipants } = KD.singletons.socialapi.channel
+
+    options = { channelId: channel.id, accountIds: [account.socialApiId] }
+
+    kickParticipants options, (err, result) =>
+
+      return KD.showError err  if err
+
+      channel.emit 'RemovedFromChannel', account
+
+
   pistachio: ->
     return """
       {{> @avatar}}
       {{> @name}}
       <div class="settings">
+        {{> @kickButton}}
         {{> @watchButton}}
         {{> @settings}}
       <div>
