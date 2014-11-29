@@ -268,8 +268,8 @@ type RuntimeOptions struct {
 		FormUrl string `json:"formUrl"`
 	} `json:"paypal"`
 	Pubnub struct {
-		SubscribeKey string
-		Enabled      bool
+		SubscribeKey string `json:"subscribekey"`
+		Enabled      bool   `json:"enabled"`
 	} `json:"pubnub"`
 }
 

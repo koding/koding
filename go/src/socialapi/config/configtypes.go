@@ -57,6 +57,8 @@ type (
 		// just a temp hack
 		Host string
 		Port string
+
+		CustomDomain CustomDomain
 	}
 
 	// Postgres holds Postgresql database related configuration
@@ -145,5 +147,9 @@ type (
 		SubscribeKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
 		SecretKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
 		Enabled      bool   `env:"key=KONFIG_GATEKEEPER_PUBNUB_ENABLED"`
+	}
+
+	CustomDomain struct {
+		Public string `env:"key=KONFIG_CUSTOMDOMAIN_PUBLIC"`
 	}
 )
