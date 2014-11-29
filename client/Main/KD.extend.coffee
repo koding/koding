@@ -270,12 +270,12 @@ KD.extend
       callback null, owner
 
   togglePubnub: ->
-    isPubnubEnabled = localStorage.isPubnubEnabled or KD.config.pubnub.enabled
+    isPubnubEnabled = localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
     localStorage.isPubnubEnabled = !isPubnubEnabled
     location.reload()
 
   isPubnubEnabled: ->
-    localStorage.isPubnubEnabled or KD.config.pubnub.enabled
+    localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
 
 
 Object.defineProperty KD, "defaultSlug",
