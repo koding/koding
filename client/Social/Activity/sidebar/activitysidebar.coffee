@@ -485,7 +485,7 @@ class ActivitySidebar extends KDCustomHTMLView
       machineOwner = machine.credential
       isMyMachine  = machineOwner is KD.nick()
       ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
-      hasWorkspace = (KD.userWorkspaces.filter ({name}) -> return name is 'My Workspace').length > 0
+      hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
       unless hasWorkspace
         treeData.push
