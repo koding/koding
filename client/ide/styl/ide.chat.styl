@@ -281,6 +281,9 @@ pmLinkColor   = #B6B6B6
     .kick-button
       hidden()
 
+      &:focus
+        box-shadow          none
+
     .settings
       abs()
       right                 0
@@ -326,6 +329,11 @@ pmLinkColor   = #B6B6B6
       .label
         color               #6a6a6a
         font-size           13px
+
+    .name
+      width                 80px
+      vertical-align        top
+      ellipsis()
 
   header.chat-settings
     button
