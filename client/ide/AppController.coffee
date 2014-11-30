@@ -1349,29 +1349,33 @@ class IDEAppController extends AppController
   setMachineSharingStatus: (status) ->
 
     @listChatParticipants (accounts) =>
-      for account in accounts
-        @setMachineUser account, status
+      @setMachineUser accounts, status
 
 
-  setMachineUser: (account, share = yes, callback = noop) ->
+  setMachineUser: (accounts, share = yes, callback = noop) ->
 
     return  unless @mountedMachine.jMachine.credential is KD.nick()
 
-    username = account.profile.nickname
+    usernames = accounts.map (account) -> account.profile.nickname
+    usernames = usernames.filter (username) -> username isnt KD.nick()
 
-    return  if username is KD.nick()
+    return  unless usernames.length
 
-    options  = target: username, user: share
     jMachine = @mountedMachine.getData()
-    jMachine.shareWith options, (err, shared) =>
+    method   = if share then 'share' else 'unshare'
+    jMachine[method] usernames, (err) =>
 
       return KD.showError err  if err
 
-      kite = @mountedMachine.getBaseKite()
+      kite   = @mountedMachine.getBaseKite()
+      method = if share then 'klientShare' else 'klientUnshare'
 
-      if share
-      then kite.klientShare {username}, callback
-      else kite.klientUnshare {username}, callback
+      queue = usernames.map (username) ->
+        ->
+          kite[method] {username}, ->
+            queue.fin()
+
+      Bongo.dash queue, callback
 
 
   showModal: (modalOptions = {}, callback = noop) ->
