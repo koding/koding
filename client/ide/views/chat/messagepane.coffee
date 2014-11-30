@@ -78,4 +78,4 @@ class IDE.ChatMessagePane extends PrivateMessagePane
   participantAdded: (participant) ->
 
     appManager = KD.getSingleton 'appManager'
-    appManager.tell 'IDE', 'setMachineUser', participant
+    appManager.tell 'IDE', 'setMachineUser', [participant]

@@ -123,7 +123,7 @@ do ->
       return routeToLatestWorkspace()  if err
 
       try
-        workspaces.forEach (workspace) =>
+        KD.userWorkspaces.forEach (workspace) =>
 
           return  unless workspace.channelId is channel.id
 
@@ -141,7 +141,9 @@ do ->
 
       catch e
 
+        console.error e
         return routeToLatestWorkspace()
+
 
   refreshWorkspaces = (callback) ->
 
