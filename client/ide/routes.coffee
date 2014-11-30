@@ -141,7 +141,9 @@ do ->
 
       catch e
 
+        console.error e
         return routeToLatestWorkspace()
+
 
   refreshWorkspaces = (callback) ->
 
