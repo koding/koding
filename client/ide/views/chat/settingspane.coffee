@@ -24,6 +24,17 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @on 'CollaborationStarted', =>
       @toggleButtons 'started'
 
+    @bindChannelEvents()
+
+
+  bindChannelEvents: ->
+
+    channel = @getData()
+
+    channel
+      .on 'RemovedFromChannel', (acc) => @removeParticipant acc.profile.nickname
+      .on 'AddedToChannel',     (acc) => @addParticipant acc.profile.nickname
+
 
   createElements: ->
 
@@ -58,7 +69,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       isOnline : yes
       isMe     : yes
       cssClass : 'myself'
-    , KD.whoami()
+    , { account: KD.whoami(), channel }
 
     @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
@@ -137,7 +148,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   createParticipantView: (account, isOnline) =>
 
-    view = new IDE.ChatParticipantView { isOnline }, account
+    channel = @getData()
+    view = new IDE.ChatParticipantView { isOnline }, { account, channel }
     @participantViews[account.profile.nickname] = view
     @everyone.addSubView view, null, isOnline
 

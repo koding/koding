@@ -251,6 +251,14 @@ pmLinkColor   = #B6B6B6
   .participant-view
     margin-bottom           5px
 
+    &:hover .kick-button
+      display               inline-block
+      visibility            visible
+      color                 #F56778
+      background            transparent
+      border                none
+      height                24px
+
     &.offline
       .avatarview
         opacity             .5
@@ -269,6 +277,12 @@ pmLinkColor   = #B6B6B6
       font-size             13px
       line-height           32px
       height                32px
+
+    .kick-button
+      hidden()
+
+      &:focus
+        box-shadow          none
 
     .settings
       abs()
@@ -315,6 +329,11 @@ pmLinkColor   = #B6B6B6
       .label
         color               #6a6a6a
         font-size           13px
+
+    .name
+      width                 80px
+      vertical-align        top
+      ellipsis()
 
   header.chat-settings
     button
