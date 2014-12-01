@@ -63,15 +63,15 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       itemChildClass : ActivityItemMenuItem
       delegate       : this
       menu           : @bound 'settingsMenu'
-      style          : 'resurrection'
+      style          : 'resurrection chat-dropdown'
       callback       : (event) -> @contextMenu event
 
 
   settingsMenu: ->
 
-    'Search'   : { callback: noop }
+    'Search'   : { cssClass: 'disabled', callback: noop }
     'Settings' : { callback: @getDelegate().bound 'showSettingsPane' }
-    'Minimize' : { callback: noop }
+    'Minimize' : { callback: @getDelegate().bound 'hide' }
 
 
   createInputWidget: ->
