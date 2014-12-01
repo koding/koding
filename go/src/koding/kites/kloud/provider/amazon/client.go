@@ -14,6 +14,11 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+var (
+	ErrInstanceTerminated = errors.New("instance is terminated")
+	ErrNoInstances        = aws.ErrNoInstances // just export it to others
+)
+
 type AmazonClient struct {
 	*aws.Amazon
 	Log  logging.Logger
@@ -105,7 +110,8 @@ func (a *AmazonClient) CheckBuild(instanceId string, start, finish int) (ec2.Ins
 
 		currentStatus := statusToState(instance.State.Name)
 		if currentStatus.In(machinestate.Terminated, machinestate.Terminating) {
-			return 0, errors.New("machine is destroyed right after the build, this shouldn't happen!")
+			a.Log.Warning("machine is terminated, trying again.")
+			return 0, ErrInstanceTerminated
 		}
 
 		return currentStatus, nil
