@@ -59,6 +59,7 @@ type Build struct {
 	provider      *Provider
 	start, finish int
 	log           logging.Logger
+	retryCount    int
 }
 
 // normalize returns the normalized step according to the initial start and finish
@@ -128,16 +129,55 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			},
 		})
 	} else {
-		b.log.Info("[%s] Continue build process with leftover data, instanceId: '%s' and queryString: '%s'",
+		b.log.Info("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
 			b.machine.Id, instanceId, queryString)
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
 	b.log.Info("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
 	buildArtifact, err := b.checkBuild(instanceId)
+	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
+		// reset the stored instance id and query string. They will be updated again the next time.
+		b.log.Warning("[%s] machine with instance id '%s' has a problem '%s'. Building a new machine",
+			b.machine.Id, instanceId, err)
+
+		// we fallback to us-east-1 because a terminated or no instances error
+		// only appears if the given region doesn't have any space left to
+		// build instances, such as volume limites. Unfortunaly a
+		// "RunInstances" doesn't return an error because that particular limit
+		// is being displayed on the UI.
+		b.amazon.Builder.InstanceId = ""
+		b.machine.QueryString = ""
+		b.amazon.Builder.Region = "us-east-1"
+
+		client, err := b.provider.EC2Clients.Region("us-east-1")
+		if err != nil {
+			return nil, err
+		}
+		b.amazon.Client = client
+
+		b.provider.Update(b.machine.Id, &kloud.StorageData{
+			Type: "building",
+			Data: map[string]interface{}{
+				"instanceId":  "",
+				"queryString": "",
+			},
+		})
+
+		if b.retryCount == 3 {
+			return nil, errors.New("I've tried to build three times in row without any success")
+		}
+		b.retryCount++
+
+		// call it again recursively
+		return b.run()
+	}
+
+	// if it's something else return it!
 	if err != nil {
 		return nil, err
 	}
+
 	buildArtifact.KiteQuery = queryString
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)

@@ -110,9 +110,9 @@ func (w *WaitState) Wait() error {
 					return err
 				}
 
-				fmt.Printf("waitstate: statefunc failed, trying again (tried '%d' times): %s ",
-					totalErrCount, err)
 				totalErrCount++
+				fmt.Printf("waitstate: statefunc failed, trying again (tried '%d' times): %s\n",
+					totalErrCount, err)
 			}
 		case <-time.After(time.Second * 40):
 			// cancel the current ongoing process if it takes too long
