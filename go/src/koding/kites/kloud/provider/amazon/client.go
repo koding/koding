@@ -103,7 +103,12 @@ func (a *AmazonClient) CheckBuild(instanceId string, start, finish int) (ec2.Ins
 			return 0, err
 		}
 
-		return statusToState(instance.State.Name), nil
+		currentStatus := statusToState(instance.State.Name)
+		if currentStatus.In(machinestate.Terminated, machinestate.Terminating) {
+			return 0, errors.New("machine is destroyed right after the build, this shouldn't happen!")
+		}
+
+		return currentStatus, nil
 	}
 
 	ws := waitstate.WaitState{

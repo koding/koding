@@ -75,8 +75,9 @@ module.exports = class JName extends Model
   stripTemplate:->
     stripTemplate Base.constructors[@constructorName], @name
 
-  @fetchModels =do->
-    fetchByNameObject =(nameObj, callback)->
+  @fetchModels = do->
+
+    fetchByNameObject = (nameObj, callback)->
       models = []
       queue = nameObj.slugs.map (slug, i)->->
         konstructor = Base.constructors[slug.constructorName]
@@ -94,19 +95,38 @@ module.exports = class JName extends Model
         callback null, { models, name: nameObj }
 
     fetchModels = (name, callback)->
+
       if 'string' is typeof name
+
         JName.one {name}, (err, nameObj)->
           if err then callback err
           else if nameObj?
             fetchByNameObject nameObj, callback
           else
             callback null
+
+      else if Array.isArray name
+
+        JName.some {name: $in: name}, limit: 30, (err, nameObjects)->
+          return callback err  if err?
+
+          if nameObjects?
+            models = []
+            queue = nameObjects.map (nameObj, i)->->
+              fetchByNameObject nameObj, (err, model)->
+                models[i] = err ? model
+                queue.fin()
+            dash queue, ->
+              callback null, models
+          else
+            callback null
+
       else
         fetchByNameObject name, callback
 
   fetchModels:(callback)-> @fetchModels this, callback
 
-  @release =(name, callback=->)->
+  @release = (name, callback=->)->
     @remove {name}, callback
 
   @validateName =(candidate)->

@@ -98,5 +98,8 @@ module.exports = class JSession extends Model
         callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->
+
+    ipAddress = (ipAddress.split ',')[0]
+
     JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->
       callback err
