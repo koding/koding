@@ -8,14 +8,21 @@ class NavigationMachineItem extends JView
 
   constructor: (options = {}, data) ->
 
-    machine            = data
-    @alias             = machine.slug or machine.label
+    machine      = data
+    @alias       = machine.slug or machine.label
+    ideRoute     = "/IDE/#{@alias}/my-workspace"
+    machineOwner = machine.jMachine.credential
+    isMyMachine  = machineOwner is KD.nick()
+    channelId    = ''
 
-    ideRoute           = "/IDE/#{@alias}/my-workspace"
-    machineOwner       = machine.jMachine.credential
+    if not isMyMachine and KD.userWorkspaces
+      KD.userWorkspaces.forEach (ws) ->
+        return if channelId
 
-    unless machineOwner is KD.nick()
-      ideRoute         = "#{ideRoute}/#{machineOwner}"
+        if ws.machineUId is machine.uid and ws.channelId
+          channelId = ws.channelId
+
+      ideRoute = "/IDE/#{channelId}"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
