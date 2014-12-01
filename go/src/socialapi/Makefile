@@ -52,7 +52,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emailnotifierdev dailyemailnotifierdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -84,6 +84,8 @@ algoliaconnectordev:
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
+
+emaildev: activityemaildev dailyemaildev privatemessageemaildev
 
 activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
