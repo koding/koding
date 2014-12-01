@@ -1372,8 +1372,19 @@ class IDEAppController extends AppController
 
       queue = usernames.map (username) ->
         ->
-          kite[method] {username}, ->
-            queue.fin()
+          kite[method] {username}
+            .then -> queue.fin()
+            .error (err) ->
+              queue.fin()
+
+              return  if err.message in [
+                'user is already in the shared list.'
+                'user is not in the shared list.'
+              ]
+
+              action = if share then 'added' else 'removed'
+              KD.showError "#{username} couldn't be #{action} as an user"
+              console.error err
 
       Bongo.dash queue, callback
 
