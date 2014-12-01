@@ -94,12 +94,12 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 	}
 	cs.BodyContent.Timezone = timezone
 
-	if err := cs.BodyContent.AddMessages(cms); err != nil {
-		return nil, err
-	}
-
 	if isGroupChannel {
 		cs.BodyContent.IsNicknameShown = true
+	}
+
+	if err := cs.BodyContent.AddMessages(cms); err != nil {
+		return nil, err
 	}
 
 	if err := cs.prepareLink(); err != nil {
