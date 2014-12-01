@@ -257,6 +257,7 @@ func fetchChannelMessageCount(a *models.Account, ch *models.Channel, awaySince t
 	q.ExcludeField("AccountId", a.Id)
 	q.Type = models.Channel_TYPE_PRIVATE_MESSAGE
 	cm := models.NewChannelMessage()
+	q.GroupChannelId = ch.Id
 
 	return cm.FetchTotalMessageCount(q)
 }
