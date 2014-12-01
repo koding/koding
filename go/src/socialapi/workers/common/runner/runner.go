@@ -175,10 +175,10 @@ func (r *Runner) ListenFor(eventName string, handleFunc interface{}) error {
 	return r.Bongo.Broker.Subscribe(eventName, handleFunc)
 }
 
-func (r *Runner) Listen() {
+func (r *Runner) Listen() error {
 	// blocking
 	// listen for events
-	r.Bongo.Broker.Listen()
+	return r.Bongo.Broker.Listen()
 }
 
 func (r *Runner) Close() error {
