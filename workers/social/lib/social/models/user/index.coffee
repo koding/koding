@@ -789,8 +789,11 @@ Team Koding
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
+    console.log "Client IP during registration:", clientIP
+
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
+      console.log "Found region:", {country, region}
 
     newToken       = null
     invite         = null
