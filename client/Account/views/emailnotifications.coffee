@@ -18,6 +18,8 @@ class AccountEmailNotifications extends KDView
         title          : 'When someone likes my content'
       mention          :
         title          : 'When someone mentions me'
+      marketing        :
+        title          : 'Receive feature updates and special offers'
 
     globalValue = frequency.global
 

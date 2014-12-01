@@ -624,6 +624,7 @@ Team Koding
             groupJoined    : on
             groupLeft      : off
             mention        : on
+            marketing      : on
           }
         }
 
