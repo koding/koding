@@ -47,8 +47,8 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     # when it contains initial participants it contains all the accounts
     # initially added to the conversation
-    if initialParticipants?.length
-      if initialParticipants.length is 1
+    if initialParticipants
+      if initialParticipants.length is 0
         body = "started this conversation"
       else
         body = "started the conversation and invited "

@@ -9,7 +9,7 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class Koding extends ProviderInterface
 
-  SUPPORTED_REGIONS    = ['ap-southeast-1', 'us-east-1']
+  SUPPORTED_REGIONS    = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
 
   PLANS                =
     free               :
@@ -111,11 +111,11 @@ module.exports = class Koding extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { instanceType, label, storage, region, regionIp } = options
-    { r: { group, user, account } } = client
+    { instanceType, label, storage, region } = options
+    { r: { group, user, account }, clientIP } = client
 
     storage ?= 3
-    userIp   = regionIp or user.registeredFrom?.ip
+    userIp   = clientIP or user.registeredFrom?.ip
 
     guessNextLabel user, group, label, (err, label)=>
 

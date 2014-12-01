@@ -385,7 +385,7 @@ class VirtualizationController extends KDController
         return reject err  if err?
         useNewKites = info.isEnabled and Math.random() <= info.ratio
         KD.useNewKites = useNewKites
-        localStorage.useNewKites = if useNewKites then "1" else "0"
+        try localStorage.useNewKites = if useNewKites then "1" else "0"
         KD.singletons.kontrol.reauthenticate()  if useNewKites
         resolve useNewKites
 
