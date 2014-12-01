@@ -132,6 +132,52 @@ func (mwc *Controller) fetchGroupOwnerId(g *mongomodels.Group) (int64, error) {
 	return mwc.AccountIdByOldId(r.TargetId.Hex())
 }
 
+func (mwc *Controller) createChannelParticipants(s modelhelper.Selector, channelId int64) error {
+
+	migrateRelationship := func(relationship interface{}) error {
+		r := relationship.(*mongomodels.Relationship)
+
+		if r.MigrationStatus == "Completed" {
+			return nil
+		}
+		// fetch follower
+		id, err := mwc.AccountIdByOldId(r.TargetId.Hex())
+		if err != nil {
+			mwc.log.Error("Participant account %s cannot be fetched: %s", r.TargetId.Hex(), err)
+			return nil
+		}
+
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = channelId
+		cp.AccountId = id
+		cp.StatusConstant = models.ChannelParticipant_STATUS_ACTIVE
+		cp.LastSeenAt = r.TimeStamp
+		cp.UpdatedAt = r.TimeStamp
+		cp.CreatedAt = r.TimeStamp
+		if err := cp.CreateRaw(); err != nil {
+			mwc.log.Error("Participant cannot be created: %s", err)
+			return nil
+		}
+
+		r.MigrationStatus = "Completed"
+		if err := modelhelper.UpdateRelationship(r); err != nil {
+			mwc.log.Error("Participant relationship cannot be flagged as migrated: %s", err)
+		}
+
+		return nil
+	}
+
+	iterOptions := helpers.NewIterOptions()
+	iterOptions.CollectionName = "relationships"
+	iterOptions.F = migrateRelationship
+	iterOptions.Filter = s
+	iterOptions.Result = &mongomodels.Relationship{}
+	iterOptions.Limit = 1000000000
+	iterOptions.Skip = 0
+
+	return helpers.Iter(modelhelper.Mongo, iterOptions)
+}
+
 func completeGroupMigration(g *mongomodels.Group, channelId int64) error {
 	g.SocialApiChannelId = strconv.FormatInt(channelId, 10)
 	g.Migration = MigrationCompleted

@@ -23,7 +23,7 @@ class KodingKontrol extends (require 'kontrol')
     transportOptions      :
       heartbeatTimeout    : 30 * 1000 # 30 seconds
       # Force XHR for all kind of kite connection
-      protocols_whitelist : ['xhr-polling', 'xhr-streaming']
+      protocols_whitelist : ['xhr-polling'] # , 'xhr-streaming']
 
 
   reauthenticate: do -> KD.utils.debounce 2500, ->

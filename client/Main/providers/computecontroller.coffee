@@ -548,22 +548,17 @@ class ComputeController extends KDController
           stack   = @stacks.first._id
           storage = plans[plan]?.storage or 3
 
-          KD.utils.getLocationInfo (err, location)=>
+          @create {
+            provider : "koding"
+            stack, storage
+          }, (err, machine)=>
 
-            if not err? and location
-              regionIp = location.ip
+            @_inprogress = no
 
-            @create {
-              provider : "koding"
-              regionIp, stack, storage
-            }, (err, machine)=>
+            callback()
 
-              @_inprogress = no
-
-              callback()
-
-              unless KD.showError err
-                KD.userMachines.push machine
+            unless KD.showError err
+              KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->

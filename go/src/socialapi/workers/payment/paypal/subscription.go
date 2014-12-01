@@ -25,7 +25,16 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 
 	response, err := client.CreateRecurringPaymentsProfile(token, params)
 	err = handlePaypalErr(response, err)
+
 	if err != nil {
+		Log.Warning("Failed to create recuring profile for customer: %v, deleting customer",
+			customer.Username)
+
+		custErr := customer.Delete()
+		if custErr != nil {
+			Log.Error("Failed to delete customer: %v", custErr)
+		}
+
 		return err
 	}
 
