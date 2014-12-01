@@ -172,18 +172,18 @@ module.exports =
       .end()
 
 
-  searchActivity: (browser) ->
+  # searchActivity: (browser) ->
 
-    post     = helpers.postActivity(browser)
-    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
-    word     = post.split(' ')[0]
+  #   post     = helpers.postActivity(browser)
+  #   selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+  #   word     = post.split(' ')[0]
 
-    browser
-      .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
-      .waitForElementVisible    '.kdtabpaneview.search', 15000
-      .waitForElementVisible    selector, 15000
-      .assert.containsText      selector, word # Assertion
-      .end()
+  #   browser
+  #     .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
+  #     .waitForElementVisible    '.kdtabpaneview.search', 15000
+  #     .waitForElementVisible    selector, 15000
+  #     .assert.containsText      selector, word # Assertion
+  #     .end()
 
 
   showMoreCommentLink: (browser) ->
