@@ -66,6 +66,12 @@ class IDE.ChatParticipantView extends JView
       channel.emit 'RemovedFromChannel', account
 
 
+  setAsOnline: ->
+
+    @unsetClass 'offline'
+    @setClass   'online'
+
+
   pistachio: ->
     return """
       {{> @avatar}}
