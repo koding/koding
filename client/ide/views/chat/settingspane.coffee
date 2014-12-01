@@ -33,7 +33,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     channel
       .on 'RemovedFromChannel', (acc) => @removeParticipant acc.profile.nickname
-      .on 'AddedToChannel',     (acc) => @addParticipant acc.profile.nickname
+      .on 'AddedToChannel',     (acc) =>
+        if @rtm.isReady
+          @addParticipant acc.profile.nickname
 
 
   createElements: ->
@@ -114,6 +116,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
 
   toggleButtons: (state) ->
+
     startButton = @startSession
     endButton   = @endSession
 
