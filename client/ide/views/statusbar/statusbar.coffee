@@ -41,14 +41,12 @@ class IDE.StatusBar extends KDView
       click    : (event) ->
         KD.utils.stopDOMEvent event
         appManager.tell 'IDE', 'showChat'
-        # @hide()
 
     @addSubView @avatars = new KDCustomHTMLView
       cssClass : 'avatars fr hidden'
       click    : (event) ->
         KD.utils.stopDOMEvent event
         appManager.tell 'IDE', 'showChat'
-        # @hide()
 
 
   showInformation: ->
@@ -101,6 +99,8 @@ class IDE.StatusBar extends KDView
       oldAvatar.setClass   'online'
     else
       @createParticipantAvatar nickname, yes
+
+    @avatars.show()
 
 
   handleCollaborationEnded: ->
