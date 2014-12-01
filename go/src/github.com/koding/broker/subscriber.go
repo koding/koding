@@ -147,9 +147,9 @@ func (l *Consumer) Close() error {
 }
 
 func (l *Consumer) Listen() error {
-	if len(l.handlers) == 0 {
-		return ErrNoHandlerFound
-	}
+	// if len(l.handlers) == 0 {
+	// 	return ErrNoHandlerFound
+	// }
 
 	l.Log.Debug("Consumer is starting to listen: %t ", true)
 	err := l.Consumer.Consume(l.Start())
