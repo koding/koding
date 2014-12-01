@@ -248,6 +248,7 @@ module.exports = class UserPolicyView extends JView
       <p>
       In addition, Koding reserves the right to terminate unused VMs after a period of inactivity (Usually 45-60 days). Inactive accounts will
       be notified before any such action is taken.
+      </p>
 
       <p>
         (This document is an adaptation of the Google App Engine Program Policies
