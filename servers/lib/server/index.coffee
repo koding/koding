@@ -344,11 +344,15 @@ app.post '/:name?/Register', (req, res) ->
 
   return handleClientIdNotFound res, req unless clientId
 
+  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+
   koding.fetchClient clientId, context, (client) ->
     # when there is an error in the fetchClient, it returns message in it
     if client.message
       console.error JSON.stringify {req, client}
       return res.status(500).send client.message
+
+    client.clientIP = (clientIPAddress.split ',')[0]
 
     JUser.convert client, req.body, (err, result) ->
       return res.status(400).send err.message  if err?

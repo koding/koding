@@ -2,10 +2,14 @@ utils.extend utils,
 
   groupifyLink: (href, withOrigin = no) ->
 
-    {slug}   = KD.config.entryPoint
-    {origin} = window.location
-    href     = if slug is 'koding' then href else "#{slug}/#{href}"
-    href     = "#{origin}/#{href}"  if withOrigin
+    {slug, type} = KD.config.entryPoint
+    {origin}     = window.location
+
+    href = if type is 'group' and slug isnt 'koding'
+    then "#{slug}/#{href}"
+    else href
+
+    href         = "#{origin}/#{href}"  if withOrigin
 
     return href
 
