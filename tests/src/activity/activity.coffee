@@ -65,7 +65,7 @@ module.exports =
       .click                 '.kdcontextmenu .edit-post'
       .clearValue            activitySelector + ' .edit-widget [testpath=ActivityInputView]'
       .setValue              activitySelector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
-      .pause                 3000
+      .pause                 10000
       .assert.containsText   activitySelector, post # Assertion
       .end()
 
@@ -82,7 +82,7 @@ module.exports =
       .click                        activitySelector + ' .settings-menu-wrapper'
       .click                        '.kdcontextmenu .delete-post'
       .click                        '.kdmodal-inner .modal-clean-red'
-      .pause                        3000, ->
+      .pause                        10000, ->
         text = browser.getText activitySelector
         assert.notEqual text, post # Assertion
       .end()
@@ -96,7 +96,7 @@ module.exports =
     commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
     browser
-      .waitForElementVisible    commentSelector, 3000
+      .waitForElementVisible    commentSelector, 10000
       .click                    commentSelector + ' [testpath=activity-like-link]'
       .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
       .end()
@@ -110,9 +110,9 @@ module.exports =
     commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
 
     browser
-      .waitForElementVisible    commentSelector, 3000
+      .waitForElementVisible    commentSelector, 10000
       .click                    commentSelector + ' [testpath=activity-like-link]'
-      .waitForElementVisible    commentSelector + ' [testpath=activity-like-link]', 3000
+      .waitForElementVisible    commentSelector + ' [testpath=activity-like-link]', 10000
       .click                    commentSelector + ' [testpath=activity-like-link]'
       .waitForElementVisible    commentSelector + ' .liked:not(.count)', 10000 # Assertion
       .end()
@@ -125,13 +125,13 @@ module.exports =
     post            =  helpers.getFakeText()
 
     browser
-      .waitForElementPresent    commentSelector, 3000
+      .waitForElementPresent    commentSelector, 10000
       .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .edit-comment', 5000
+      .waitForElementVisible    '.kdcontextmenu .edit-comment', 10000
       .click                    '.kdcontextmenu .edit-comment'
       .clearValue               activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]'
       .setValue                 activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post + '\n'
-      .pause                    3000
+      .pause                    10000
       .assert.containsText      activitySelector + ' .comment-container', post # Assertion
       .end()
 
@@ -144,12 +144,12 @@ module.exports =
     post            =  helpers.getFakeText()
 
     browser
-      .waitForElementPresent    commentSelector, 3000
+      .waitForElementPresent    commentSelector, 10000
       .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .delete-comment', 5000
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 10000
       .click                    '.kdcontextmenu .delete-comment'
       .click                    '.kdmodal-inner .modal-clean-red'
-      .pause                    3000, ->
+      .pause                    10000, ->
         text = browser.getText activitySelector + ' .comment-container'
         assert.notEqual text, post # Assertion
       .end()
@@ -162,12 +162,12 @@ module.exports =
     commentSelector = activitySelector + ' .comment-container button.comment-menu'
 
     browser
-      .waitForElementPresent    commentSelector, 5000
+      .waitForElementPresent    commentSelector, 10000
       .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .delete-comment', 5000
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 10000
       .click                    '.kdcontextmenu .delete-comment'
       .click                    '.kdmodal-inner .modal-cancel'
-      .waitForElementNotPresent '.kdoverlay', 5000
+      .waitForElementNotPresent '.kdoverlay', 10000
       .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
       .end()
 
@@ -180,8 +180,9 @@ module.exports =
 
   #   browser
   #     .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
-  #     .waitForElementVisible    '.kdtabpaneview.search', 15000
-  #     .waitForElementVisible    selector, 15000
+  #     .waitForElementVisible    '.kdtabpaneview.search', 10000
+  #     .waitForElementVisible    selector, 10000
+  #     .pause                    10000
   #     .assert.containsText      selector, word # Assertion
   #     .end()
 
@@ -218,6 +219,7 @@ module.exports =
 
   #   browser
   #     .waitForElementVisible   '[testpath=channel-title]' + ' .following', 2000
+  #     .pause                    10000
   #     .click                   '[testpath=channel-title]' + ' .following'
   #     .waitForElementVisible   '[testpath="public-feed-link/Activity/Topic/public"]', 2000
   #     .click                   '[testpath="public-feed-link/Activity/Topic/public"]'
