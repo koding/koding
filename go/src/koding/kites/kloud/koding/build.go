@@ -59,6 +59,7 @@ type Build struct {
 	provider      *Provider
 	start, finish int
 	log           logging.Logger
+	retryCount    int
 }
 
 // normalize returns the normalized step according to the initial start and finish
@@ -162,6 +163,11 @@ func (b *Build) run() (*protocol.Artifact, error) {
 				"queryString": "",
 			},
 		})
+
+		if b.retryCount == 3 {
+			return nil, errors.New("I've tried to build three times in row without any success")
+		}
+		b.retryCount++
 
 		// call it again recursively
 		return b.run()
