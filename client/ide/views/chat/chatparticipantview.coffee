@@ -6,6 +6,8 @@ class IDE.ChatParticipantView extends JView
 
     super options, data
 
+    {@isInSession} = options
+
     @createElements()
 
 
@@ -26,15 +28,17 @@ class IDE.ChatParticipantView extends JView
       cssClass : 'name'
       partial  : nickname
 
+    @kickButton = new KDCustomHTMLView cssClass: 'hidden'
+
     if isMe
-      @kickButton  = new KDCustomHTMLView cssClass: 'hidden'
       @watchButton = new KDCustomHTMLView cssClass: 'hidden'
       @settings    = new KDCustomHTMLView cssClass: 'hidden'
     else
-      @kickButton  = new KDButtonView
-        title    : 'KICK'
-        cssClass : 'kick-button'
-        callback : @bound 'kickParticipant'
+      unless @isInSession
+        @kickButton  = new KDButtonView
+          title    : 'KICK'
+          cssClass : 'kick-button'
+          callback : @bound 'kickParticipant'
 
       @watchButton = new KDButtonView
         iconOnly : 'yes'

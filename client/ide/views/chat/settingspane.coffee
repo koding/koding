@@ -152,7 +152,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
   createParticipantView: (account, isOnline) =>
 
     channel = @getData()
-    view = new IDE.ChatParticipantView { isOnline }, { account, channel }
+    view = new IDE.ChatParticipantView { isOnline, @isInSession }, { account, channel }
     @participantViews[account.profile.nickname] = view
     @everyone.addSubView view, null, isOnline
 
