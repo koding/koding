@@ -133,7 +133,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
-	b.log.Info("[%s] Checking build process", b.machine.Id)
+	b.log.Info("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
 	buildArtifact, err := b.checkBuild(instanceId)
 	if err != nil {
 		return nil, err
