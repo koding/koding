@@ -16,6 +16,7 @@ module.exports = class JAccount extends jraphical.Module
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
+  Sendgrid         = require './sendgrid'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -688,7 +689,12 @@ module.exports = class JAccount extends jraphical.Module
       state = prefs[granularity]
       state = false if state not in [true, false]
       current[granularity] = state# then 'instant' else 'never'
-    user.update {$set: emailFrequency: current}, callback
+
+    user.update {$set: emailFrequency: current}, (err)->
+      if current["global"] is no
+        Sendgrid.unsubscribe user.getAt 'email', callback
+      else
+        Sendgrid.removeUnsubscribe user.getAt 'email', callback
 
   setEmailPreferences$: secure (client, prefs, callback)->
     JUser = require './user'
