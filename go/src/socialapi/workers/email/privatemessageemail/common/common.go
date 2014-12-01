@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	CachePrefix = "chatnotifier"
+	CachePrefix = "privatemessagenotifier"
 	MailPeriod  = 1 // minute
 )
 
