@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
-	"gopkg.in/fatih/set.v0"
 )
 
 type Client struct {
@@ -259,7 +258,7 @@ func (c *Client) resetControlChannel() {
 	}()
 }
 
-// RemoveFromRoute removes the sessions for the given routingKeyPrefix.
+// RemoveFromRoute removes the sessions for the given routingKeyPrefixes.
 func (c *Client) RemoveFromRoute(routingKeyPrefixes ...string) {
 	globalMapMutex.Lock()
 	defer globalMapMutex.Unlock()
