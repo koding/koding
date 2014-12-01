@@ -58,7 +58,6 @@ func (ci *ChannelImage) Render() (string, error) {
 }
 
 func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezone string) (*ChannelSummary, error) {
-	fmt.Println("timezone nedir ki", timezone)
 	cms, err := fetchLastMessages(a, ch, awaySince)
 	if err != nil {
 		return nil, err
