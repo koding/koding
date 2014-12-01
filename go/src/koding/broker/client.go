@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/streadway/amqp"
+	set "gopkg.in/fatih/set.v0"
 )
 
 type Client struct {
