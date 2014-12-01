@@ -14,6 +14,11 @@ import (
 	"github.com/mitchellh/goamz/ec2"
 )
 
+var (
+	ErrInstanceTerminated = errors.New("instance is terminated")
+	ErrNoInstances        = aws.ErrNoInstances // just export it to others
+)
+
 type AmazonClient struct {
 	*aws.Amazon
 	Log  logging.Logger
@@ -103,7 +108,13 @@ func (a *AmazonClient) CheckBuild(instanceId string, start, finish int) (ec2.Ins
 			return 0, err
 		}
 
-		return statusToState(instance.State.Name), nil
+		currentStatus := statusToState(instance.State.Name)
+		if currentStatus.In(machinestate.Terminated, machinestate.Terminating) {
+			a.Log.Warning("machine is terminated, trying again.")
+			return 0, ErrInstanceTerminated
+		}
+
+		return currentStatus, nil
 	}
 
 	ws := waitstate.WaitState{
