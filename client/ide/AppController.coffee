@@ -1462,7 +1462,7 @@ class IDEAppController extends AppController
       for account in accounts when account.profile.nickname is username
         target = account
 
-      @setMachineUser target, no  if target
+      @setMachineUser [target], no  if target
 
 
   showKickedModal: ->
