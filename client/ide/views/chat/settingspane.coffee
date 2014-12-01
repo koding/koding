@@ -32,7 +32,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     channel = @getData()
 
     channel
-      .on 'RemovedFromChannel', (acc) => @removeParticipant acc.profile.nickname
+      .on 'RemovedFromChannel', (acc) => @removeParticipant acc.profile.nickname, yes
       .on 'AddedToChannel',     (acc) =>
         if @rtm.isReady
           @addParticipant acc.profile.nickname
@@ -157,10 +157,13 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @everyone.addSubView view, null, isOnline
 
 
-  removeParticipant: (username) ->
+  removeParticipant: (username, unshare) ->
 
     @participantViews[username]?.destroy()
     delete @participantViews[username]
+
+    if unshare and not @isInSession # not @isInSession means user is host, bad naming!
+      @emit 'ParticipantKicked', username
 
 
   addParticipant: (nickname) ->

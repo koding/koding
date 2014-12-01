@@ -824,12 +824,13 @@ class IDEAppController extends AppController
       @changes           = @rtm.getFromModel 'changes'
       @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
 
-      unless @participants
-        @participants = @rtm.create 'list', 'participants', []
+      @participants      or= @rtm.create 'list', 'participants', []
+      @changes           or= @rtm.create 'list', 'changes', []
+      @broadcastMessages or= @rtm.create 'list', 'broadcastMessages', []
 
-      if @amIHost
-        @changes = @rtm.create 'list', 'changes', []
-        @broadcastMessages = @rtm.create 'list', 'broadcastMessages', []
+      # if @amIHost
+      #   @changes.clear()
+      #   @broadcastMessages.clear()
 
       isInList = no
 
@@ -960,10 +961,16 @@ class IDEAppController extends AppController
 
   listenChangeEvents: ->
 
+    # log 'listening changes'
+
+    # debugger
+
     @rtm.bindRealtimeListeners @changes, 'list'
     @rtm.bindRealtimeListeners @broadcastMessages, 'list'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
+
+      # log 'value added'
 
       [value] = event.values
 
@@ -1109,6 +1116,8 @@ class IDEAppController extends AppController
         @chat.settingsPane.createParticipantsList accounts
 
       @statusBar.emit 'CollaborationStarted'
+
+      @chat.settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
 
 
   createChatPane: ->
@@ -1313,6 +1322,7 @@ class IDEAppController extends AppController
 
 
   stopCollaborationSession: (callback) ->
+
     modalOptions =
       title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
@@ -1410,6 +1420,7 @@ class IDEAppController extends AppController
 
 
   handleBroadcastMessage: (data) ->
+
     {origin, type} = data
 
     return  if origin is KD.nick()
@@ -1422,19 +1433,56 @@ class IDEAppController extends AppController
 
       when 'ParticipantWantsToLeave'
 
-        if @amIHost
-          @listChatParticipants (accounts) =>
-            for account in accounts when account.profile.nickname is data.origin
-              target = account
+        @unshareMachineAndKlient data.origin  if @amIHost
 
-            @setMachineUser target, no  if target
+      when 'ParticipantKicked'
+
+        return  unless data.origin is @collaborationHost
+
+        if data.target is KD.nick()
+          KD.getSingleton('router').handleRoute '/IDE'
+          @removeMachineNode()
+          @showKickedModal()
+        else
+          @handleParticipantKicked data.target
+
+
+  unshareMachineAndKlient: (username, fetchUser = no) ->
+
+    if fetchUser
+      return KD.remote.cacheable username, (err, accounts) =>
+
+        return KD.showError err  if err
+
+        @setMachineUser accounts, no
+
+
+    @listChatParticipants (accounts) =>
+
+      for account in accounts when account.profile.nickname is username
+        target = account
+
+      @setMachineUser target, no  if target
+
+
+  showKickedModal: ->
+    options        =
+      title        : 'Session ended'
+      content      : "You have been removed from the session by @#{@collaborationHost}."
+      blocking     : yes
+      buttons      :
+        ok         :
+          title    : 'OK'
+          callback : => @modal.destroy()
+
+    @showModal options
 
 
   showSessionEndedModal: ->
 
     options        =
       title        : 'Session Ended'
-      content      : "This session ended by session owner. You won't be able to access it anymore"
+      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore."
       blocking     : yes
       buttons      :
         quit       :
@@ -1463,3 +1511,19 @@ class IDEAppController extends AppController
   removeMachineNode: ->
 
     KD.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
+
+
+  handleParticipantKicked: (username) ->
+
+    if @amIHost
+
+      message  =
+        type   : 'ParticipantKicked'
+        origin : KD.nick()
+        target : username
+
+      @broadcastMessages.push message
+      @unshareMachineAndKlient username, yes
+
+    @chat.emit 'ParticipantLeft', username
+    @statusBar.emit 'ParticipantLeft', username
