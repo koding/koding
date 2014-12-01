@@ -153,7 +153,7 @@ class MainController extends KDController
         return warn err  if err
         {timezone} = result
 
-        account.setTimezone lastLoginTimezone: timezone, (err) ->
+        account.setLastLoginTimezone lastLoginTimezone: timezone, (err) ->
 
           warn err  if err
 
