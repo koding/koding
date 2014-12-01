@@ -165,7 +165,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   addParticipant: (nickname) ->
 
-    return  if @participantViews[nickname]
+    participantView = @participantViews[nickname]
+
+    return participantView.setAsOnline()  if participantView
 
     KD.remote.cacheable nickname, (err, account) =>
       @createParticipantView account.first, yes
