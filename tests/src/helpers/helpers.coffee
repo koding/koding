@@ -1,17 +1,14 @@
 utils    = require '../utils/utils.js'
 register = require '../register/register.js'
 faker    = require 'faker'
-assert   = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
 module.exports =
 
-  beginTest: (browser, user) ->
+  beginTest: (browser) ->
     url  = @getUrl()
-
-    if not user
-      user = utils.getUser()
+    user = utils.getUser()
 
     browser.url(url)
     browser.maximizeWindow()
@@ -23,64 +20,16 @@ module.exports =
     return user
 
 
-  assertNotLoggedIn: (browser, user) ->
-    url = @getUrl()
-    browser.url(url)
-    browser.maximizeWindow()
-
-    browser.execute 'KD.isTesting = true;'
-
-    @attemptLogin(browser, user)
+  doLogin: (browser, user) ->
 
     browser
-      .waitForElementVisible   '.flex-wrapper', 20000 # Assertion
-
-
-  attemptLogin: (browser, user) ->
-    browser
-      .waitForElementVisible  '[testpath=main-header]', 50000
+      .waitForElementVisible  '[testpath=main-header]', 5000
       .click                  '#main-header [testpath=login-link]'
-      .waitForElementVisible  '[testpath=login-container]', 50000
+      .waitForElementVisible  '[testpath=login-container]', 5000
       .setValue               '[testpath=login-form-username]', user.username
       .setValue               '[testpath=login-form-password]', user.password
       .click                  '[testpath=login-button]'
       .pause                  5000
-
-  waitForVMRunning: (browser) ->
-    vmSelector           = '.vm.running.koding'
-    modalSelector        = '.env-modal.env-machine-state'
-    loaderSelector       = modalSelector + ' .kdloader'
-    buildingLabel        = modalSelector + ' .state-label.building'
-    turnOnButtonSelector = modalSelector + ' .turn-on.state-button'
-
-    browser.element 'css selector', vmSelector, (result) =>
-      if result.status is 0
-        console.log 'vm is running'
-      else
-        console.log 'vm is not running'
-        browser
-          .waitForElementVisible   modalSelector, 50000
-          .element 'css selector', buildingLabel, (result) =>
-            if result.status is 0
-              console.log 'vm is building, waiting to finish'
-              browser
-                .waitForElementNotVisible  modalSelector, 200000
-                .waitForElementVisible     vmSelector, 20000
-            else
-              console.log 'turn on button is clicked, waiting for VM turn on'
-
-              browser
-                .waitForElementNotVisible  loaderSelector, 50000
-                .waitForElementVisible     turnOnButtonSelector, 50000
-                .click                     turnOnButtonSelector
-                .waitForElementNotVisible  modalSelector, 200000
-                .waitForElementVisible     vmSelector, 20000
-
-
-  doLogin: (browser, user) ->
-    @attemptLogin(browser, user)
-
-    browser
       .element                'css selector', '[testpath=main-sidebar]', (result) =>
         if result.status is 0
           console.log 'log in success'
@@ -102,45 +51,24 @@ module.exports =
       .waitForElementVisible  '[testpath=main-header]', 10000 # Assertion
 
 
-  deleteFile: (browser, fileSelector) ->
+  doRegister: (browser, user) ->
 
-    browser
-      .waitForElementPresent     fileSelector, 20000
-      .click                     fileSelector
-      .click                     fileSelector + ' + .chevron'
-      .waitForElementVisible     'li.delete', 20000
-      .click                     'li.delete'
-      .waitForElementVisible     '.delete-container', 20000
-      .click                     '.delete-container button.clean-red'
-      .waitForElementNotPresent  fileSelector, 2000
+    user    = utils.getUser(yes) unless user
+    url     = @getUrl()
 
-
-  attemptEnterEmailAndUsernameOnRegister: (browser, user) ->
     browser
       .url                    @getUrl()
       .waitForElementVisible  '[testpath=main-header]', 10000
       .setValue               '[testpath=register-form-email]', user.email
       .setValue               '[testpath=register-form-username]', user.username
       .click                  '[testpath=signup-button]'
-
-  attemptEnterPasswordOnRegister: (browser, user) ->
-    browser
-      .waitForElementVisible  '[testpath=password-input]', 10000
       .setValue               '[testpath=password-input]', user.password
       .setValue               '[testpath=confirm-password-input]', user.password
       .click                  '[testpath=register-submit-button]'
 
-  doRegister: (browser, user) ->
+    @doLogout browser
 
-    user = utils.getUser(yes) unless user
-
-    @attemptEnterEmailAndUsernameOnRegister(browser, user)
-
-    @attemptEnterPasswordOnRegister(browser, user)
-
-    @doLogout(browser)
-
-    @doLogin(browser, user)
+    @doLogin browser, user
 
 
   postActivity: (browser, shouldBeginTest = yes) ->
@@ -162,12 +90,6 @@ module.exports =
 
     comment = @getFakeText()
 
-    @doPostComment(browser, comment, shouldAssert)
-
-    return comment
-
-
-  doPostComment: (browser, comment, shouldAssert = yes) ->
     browser
       .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
       .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
@@ -177,39 +99,22 @@ module.exports =
         .pause               6000 # required
         .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
+    return comment
 
-  doPostActivity: (browser, post, shouldAssert = yes) ->
+
+  doPostActivity: (browser, post) ->
+
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
-      .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
-
+      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
-      .click                  '.channel-title'
       .click                  '[testpath=post-activity-button]'
       .pause                  6000 # required
 
-    if shouldAssert
-      browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
+    browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
 
-
-  doFollowTopic: (browser) ->
-
-    hashtag  = @sendHashtagActivity(browser)
-    selector = activitySelector + ' .has-markdown p a:first-child'
-
-    browser
-      .waitForElementVisible   selector, 5000
-      .click                   selector
-      .pause                   3000 # really required
-      .assert.containsText     '[testpath=channel-title]', hashtag # Assertion
-      .waitForElementVisible   '[testpath=channel-title]' + ' .follow', 2000
-      .click                   '[testpath=channel-title]' + ' .follow'
-      .waitForElementVisible   '[testpath=channel-title]' + ' .following', 2000 # Assertion
-
-    return hashtag
 
   sendHashtagActivity: (browser) ->
 
@@ -230,95 +135,5 @@ module.exports =
     return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
-  openFolderContextMenu: (browser, user, folderName) ->
-
-    webPath       = '/home/' + user.username + '/' + folderName
-    webSelector   = "span[title='" + webPath + "']"
-
-    browser
-      .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
-      .waitForElementPresent   '.context-list-wrapper', 50000
-      .click                   '.context-list-wrapper .refresh'
-      .waitForElementVisible   webSelector, 50000
-      .click                   webSelector
-      .click                   webSelector + ' + .chevron'
-
-
-  createFile: (browser, user) ->
-
-    @openFolderContextMenu(browser, user, 'Web')
-
-    webPath   = '/home/' + user.username + '/Web'
-    paragraph = @getFakeText()
-    filename  = paragraph.split(' ')[0] + '.txt'
-
-    browser
-      .waitForElementVisible    'li.new-file', 50000
-      .click                    'li.new-file'
-      .waitForElementVisible    'li.selected .rename-container .hitenterview', 50000
-      .clearValue               'li.selected .rename-container .hitenterview'
-      .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
-      .pause                    3000 # required
-      .waitForElementPresent    "span[title='" + webPath + '/' + filename + "']", 50000 # Assertion
-
-    return filename
-
-
-  openChangeTopFolderMenu: (browser) ->
-
-    browser
-      .waitForElementVisible   '.vm-header', 50000
-      .click                   '.vm-header .buttons'
-      .waitForElementVisible   'li.change-top-folder', 50000
-      .click                   'li.change-top-folder'
-
-
-  createWorkspace: (browser) ->
-
-    paragraph     = @getFakeText()
-    workspaceName = paragraph.split(' ')[0]
-
-    browser
-      .waitForElementVisible   '.kdscrollview li a.more-link', 20000
-      .click                   '.kdscrollview li a.more-link'
-      .waitForElementVisible   '.kdmodal-inner', 20000
-      .click                   '.kdmodal-inner button'
-      .pause                   3000 # required
-      .waitForElementVisible   '.add-workspace-view', 20000
-      .setValue                '.add-workspace-view input.kdinput.text', workspaceName + '\n'
-      .waitForElementVisible   '.vm-info', 20000
-      .url (data) =>
-        url    = data.value
-        vmName = url.split('/IDE/')[1].split('/')[0]
-
-        browser
-          .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 40000 # Assertion
-          .assert.urlContains      workspaceName # Assertion
-          .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
-
-    return workspaceName
-
-
-  splitPanesUndo: (browser) ->
-
-    browser
-      .waitForElementVisible '.panel-1', 20000
-      .elements 'css selector', '.panel-1', (result) =>
-        assert.equal result.value.length, 2
-
-        browser
-          .waitForElementVisible   '.application-tab-handle-holder', 20000
-          .click                   '.application-tab-handle-holder .plus'
-          .waitForElementVisible   '.context-list-wrapper', 20000
-          .click                   '.context-list-wrapper li.undo-split'
-          .pause                   2000
-
-        .elements 'css selector', '.panel-1', (result) =>
-          assert.equal result.value.length, 1
-
-
-
   getUrl: ->
     return 'http://lvh.me:8090'
-    # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

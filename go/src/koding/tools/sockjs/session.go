@@ -154,7 +154,7 @@ func (s *Session) CreateNextFrame(frameStart, frameEnd []byte, escape bool) ([]b
 			return createFrame('c', `[3000,"Go away!"]`, frameStart, frameEnd, escape), true
 		}
 		messages = append(messages, message)
-	case <-time.After(10 * time.Second):
+	case <-time.After(25 * time.Second):
 		return createFrame('h', "", frameStart, frameEnd, escape), false
 	}
 

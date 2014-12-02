@@ -9,9 +9,8 @@ service nginx stop
 
 cd $REPOSITORY_PATH
 HOME=/root/ npm install --unsafe-perm
-./configure --host lvh.me:8090
+./configure
 ./run services
-./run install
 ./run &
 disown $!
 
