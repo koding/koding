@@ -37,6 +37,19 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     @glance()
 
 
+  glance: ->
+
+    return  unless @visible
+    return  unless KD.singletons.windowController.focused
+
+    super
+
+    { mainView } = KD.singletons
+    channel      = @getData()
+
+    mainView.glanceChannelWorkspace channel
+
+
   createParticipantsView: ->
 
     @createHeaderViews()
