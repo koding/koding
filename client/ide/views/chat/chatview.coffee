@@ -64,6 +64,8 @@ class IDE.ChatView extends KDTabView
       'ParticipantJoined', 'ParticipantLeft'
     ]
 
+    @settingsPane.on 'SessionStarted', @bound 'showChatPane'
+
     @emit 'ready'
 
 
