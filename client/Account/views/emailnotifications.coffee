@@ -9,9 +9,9 @@ class AccountEmailNotifications extends KDView
       global           :
         title          : 'Send me email notifications'
       daily            :
-        title          : 'Send me a daily digest'
+        title          : 'Send me a daily digest of activity on my posts'
       privateMessage   :
-        title          : 'When someone sends me a chat message'
+        title          : 'When someone sends me a private message'
       comment          :
         title          : 'When my post gets a new comment'
       likeActivities   :
@@ -19,7 +19,7 @@ class AccountEmailNotifications extends KDView
       mention          :
         title          : 'When someone mentions me'
       marketing        :
-        title          : 'Receive feature updates and special offers'
+        title          : 'When Koding has member updates (like privacy updates, inactive account notices, new offers and campaigns)'
 
     globalValue = frequency.global
 
