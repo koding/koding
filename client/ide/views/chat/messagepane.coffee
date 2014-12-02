@@ -28,6 +28,15 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     @glance()
 
 
+  handleFocus: (isFocused, event) ->
+
+    return  unless isFocused
+    return  unless $.contains @getElement(), event.target
+    return  unless @isPageAtBottom()
+
+    @glance()
+
+
   createParticipantsView: ->
 
     @createHeaderViews()
