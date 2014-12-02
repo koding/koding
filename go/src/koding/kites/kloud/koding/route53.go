@@ -222,7 +222,7 @@ func (d *DNS) Validate(domain, username string) error {
 	hostedZone := d.hostedZone
 
 	if domain == "" {
-		return nil, fmt.Errorf("Domain name argument is empty")
+		return fmt.Errorf("Domain name argument is empty")
 	}
 
 	if domain == hostedZone {

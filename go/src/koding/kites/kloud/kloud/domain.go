@@ -59,7 +59,10 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		// now assign the machine ip to the given domain name
+		k.Log.Info("[%s] Adding domain '%s' to the machine", args.MachineId, args.DomainName)
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+			k.Log.Warning("[%s] Adding domain '%s' to the machine failed. Err: %v",
+				args.MachineId, args.DomainName, err)
 			return nil, err
 		}
 
@@ -81,7 +84,8 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
-		// do not return on error because it might be already delete via unset
+		k.Log.Info("[%s] Removing domain '%s' from the machine", args.MachineId, args.DomainName)
+		// do not return on error because it might be already deleted via unset
 		k.Domainer.Delete(args.DomainName, m.IpAddress)
 
 		if err := k.DomainStorage.Delete(args.DomainName); err != nil {
@@ -101,7 +105,7 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 		// TODO: We can make it better if we remove the document instead of returning an error.
 		_, err := k.DomainStorage.Get(args.DomainName)
 		if err != nil {
-			return nil, fmt.Errorf("domain does not exists in DB")
+			return nil, fmt.Errorf("Domain document does not exist")
 		}
 
 		var ipAddr string
@@ -122,7 +126,10 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 			ipAddr = m.IpAddress
 		}
 
+		k.Log.Info("[%s] Unsetting domain '%s' from the machine", args.MachineId, args.DomainName)
 		if err := k.Domainer.Delete(args.DomainName, ipAddr); err != nil {
+			k.Log.Warning("[%s] Unsetting domain '%s' from the machine failed. Err: %v",
+				args.MachineId, args.DomainName, err)
 			return nil, err
 		}
 
@@ -144,10 +151,13 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 		//
 		// TODO: We can make it better if we create a document instead of returning an error.
 		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
-			return nil, fmt.Errorf("domain does not exists in DB")
+			return nil, fmt.Errorf("Domain document does not exist")
 		}
 
+		k.Log.Info("[%s] Setting domain '%s' to the machine", args.MachineId, args.DomainName)
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+			k.Log.Warning("[%s] Setting domain '%s' to the machine failed. Err: %v",
+				args.MachineId, args.DomainName, err)
 			return nil, err
 		}
 
