@@ -7,6 +7,8 @@ class IDE.ChatView extends KDTabView
 
     super options, data
 
+    @visible = no
+
     {@rtm, @isInSession} = options
 
     @unsetClass 'kdscrollview'
@@ -25,6 +27,20 @@ class IDE.ChatView extends KDTabView
 
     @once 'CollaborationStarted',        @bound 'removeLoader'
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
+
+
+  start: ->
+
+    @visible = yes
+
+    @show()
+
+
+  end: ->
+
+    @visible = no
+
+    @hide()
 
 
   createLoader: ->
@@ -71,4 +87,6 @@ class IDE.ChatView extends KDTabView
 
   showChatPane: -> @showPane @chatPane
 
+
   showSettingsPane: -> @showPane @settingsPane
+
