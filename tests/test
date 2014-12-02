@@ -31,7 +31,15 @@ runTests() {
   else
     echo "running single test: $a"
     command="nightwatch --group ./output/$a"
-    $command
+    counter=0
+    until $command
+    do
+      counter=$((counter + 1))
+      if [ $counter -eq $MAX_TRY_COUNT ]
+      then
+        exit 1
+      fi
+    done
   fi
 }
 
