@@ -296,20 +296,20 @@ module.exports =
       .end()
 
 
-  postMessageWithLink: (browser) ->
+  # postMessageWithLink: (browser) ->
 
-    helpers.beginTest(browser)
+  #   helpers.beginTest(browser)
 
-    link = 'http://nightwatchjs.org/' # last '/' is the trick!
-    linkSelector = activitySelector + ' .activity-content-wrapper article a'
+  #   link = 'http://nightwatchjs.org/' # last '/' is the trick!
+  #   linkSelector = activitySelector + ' .activity-content-wrapper article a'
 
-    helpers.doPostActivity(browser, link)
+  #   helpers.doPostActivity(browser, link)
 
-    browser.getAttribute linkSelector, 'href', (result) ->
-      href = result.value
-      assert.equal(link, href)
+  #   browser.getAttribute linkSelector, 'href', (result) ->
+  #     href = result.value
+  #     assert.equal(link, href)
 
-    browser.end()
+  #   browser.end()
 
 
   postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
