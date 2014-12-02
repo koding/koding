@@ -2,18 +2,36 @@
 KONFIG  = require('koding-config-manager').load("main.#{argv.c}")
 request = require "request"
 
-# This modules adds/removes email from Sendgrid's global unsubscribe list.
+# This module manages subscriptions of user emails to
 module.exports = class Sendgrid
 
-  @unsubscribe: (email, callback)->
-    request.post @url("unsubscribes.add", email), callback
+  ALL_USERS = "allusers"
+  MARKETING = "marketing"
 
-  @removeUnsubscribe: (email, callback)->
-    request.post @url("unsubscribes.delete", email), callback
+  @addToAllUsers: (email, name, callback)->
+    @addEmail ALL_USERS, email, name, callback
 
-  @url = (path, email) ->
+  @addToMarketing: (email, name, callback)->
+    @addEmail MARKETING, email, name, callback
+
+  @deleteFromMarketing: (email, callback)->
+    @delEmail MARKETING, email, callback
+
+  @addEmail: (list, email, name, callback)->
+    data = JSON.stringify({email, name})
+    url  = @url("newsletter/lists/email/add", "list=#{list}&data=#{data}")
+
+    request.post url, callback
+
+  @delEmail: (list, email, callback)->
+    url = @url("newsletter/lists/email/delete", "list=#{list}&email=#{email}")
+    request.post url, callback
+
+  @url= (path, opt)->
     url = "https://api.sendgrid.com/api/"
     url += "#{path}.json?"
     url += "api_user=#{KONFIG.sendgrid.username}&"
     url += "api_key=#{KONFIG.sendgrid.password}&"
-    url += "email=#{email}"
+    url += opt
+
+    return url

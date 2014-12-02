@@ -887,12 +887,17 @@ Team Koding
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
+        callback error, {account, recoveryToken, newToken}
+        queue.next()
+      ->
+        # rest are 3rd party api calls, not important to block register
+
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
         queue.next()
       ->
-        callback error, {account, recoveryToken, newToken}
+        Sendgrid.addToAllUsers user.email, ->
         queue.next()
     ]
 
