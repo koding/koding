@@ -88,6 +88,18 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleGlanced: (update) -> @selectedItem?.setUnreadCount? update.unreadCount
 
+
+  glanceChannelWorkspace: (channel) ->
+
+    sidebarItem = @getItemByData channel
+
+    @setUnreadCount sidebarItem, channel, 0
+
+    { socialapi } = KD.singletons
+
+    socialapi.channel.updateLastSeenTime channelId : channel._id, noop
+
+
   setUnreadCount: (item, data, unreadCount) ->
 
     return  unless item
