@@ -22,15 +22,17 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
-	if args.DomainName == "" {
-		return nil, fmt.Errorf("domain name argument is empty")
+
+	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
+		return nil, err
 	}
 
 	m, err := k.PrepareMachine(r)
-	switch err {
-	case ErrMachineDocNotFound:
-		args.recovery = true
-	case nil:
+	if err != nil && err != ErrMachineDocNotFound {
+		return nil, err
+	}
+
+	if err != ErrMachineDocNotFound {
 		// PrepareMachine is locking for us, so unlock after we are done
 		defer k.Locker.Unlock(m.Id)
 
@@ -40,19 +42,16 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 
 		// fake eventer to avoid panics if someone tries to use the eventer
 		m.Eventer = &eventer.Events{}
-	default:
-		return nil, err
-	}
-
-	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
-		return nil, err
+	} else {
+		// Enter the recovery mode where a machine document is not found by the
+		// given machineId
+		args.recovery = true
 	}
 
 	return fn(m, args)
 }
 
 func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
-	fmt.Println("domain.add")
 	addFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// a non nil means the domain exists
 		if _, err := k.Domainer.Get(args.DomainName); err == nil {
@@ -81,7 +80,6 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
-	fmt.Println("domain.remove")
 	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// do not return on error because it might be already delete via unset
 		k.Domainer.Delete(args.DomainName, m.IpAddress)
@@ -97,9 +95,10 @@ func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
-	fmt.Println("domain.unset")
 	unsetFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// be sure the domain does exist in storage before we delete the domain
+		//
+		// TODO: We can make it better if we remove the document instead of returning an error.
 		_, err := k.DomainStorage.Get(args.DomainName)
 		if err != nil {
 			return nil, fmt.Errorf("domain does not exists in DB")
@@ -107,6 +106,12 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 
 		var ipAddr string
 
+		// recovery is a flag, raised when a jMachine document is not found with the
+		// given machineId.
+		// We don't have the machine IPAddress because the machine document is
+		// not there, so we try to complete the request by finding the actual
+		// machine IP from the Domain provider, and removing the associated
+		// record set.
 		if args.recovery {
 			record, err := k.Domainer.Get(args.DomainName)
 			if err != nil {
@@ -121,8 +126,8 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, err
 		}
 
-		// remove the machineID for the given domain. The document is still
-		// there, but it'sn associated anymore with this domain.
+		// Remove the machineId for the given domain. The document is still
+		// there, but isn't associated with this domain anymore.
 		if err := k.DomainStorage.UpdateMachine(args.DomainName, ""); err != nil {
 			return nil, err
 		}
@@ -134,7 +139,6 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
-	fmt.Println("domain.set")
 	setFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// be sure the domain does exist in storage before we create the domain
 		//
