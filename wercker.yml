@@ -85,7 +85,7 @@ build:
         name: fetch pull requests
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
-          git fetch --quiet origin
+          git fetch --force --quiet origin
     - mktemp:
         envvar: GIT_REF
     - script:
