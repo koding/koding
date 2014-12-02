@@ -8,6 +8,10 @@ module.exports = class Sendgrid
   ALL_USERS = "allusers"
   MARKETING = "marketing"
 
+  @addNewUser: (email, name, callback)->
+    @addToAllUsers email, name, =>
+      @addToMarketing email, name, callback
+
   @addToAllUsers: (email, name, callback)->
     @addEmail ALL_USERS, email, name, callback
 

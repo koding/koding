@@ -16,6 +16,7 @@ module.exports = class JUser extends jraphical.Module
   JSessionHistory = require '../sessionhistory'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
+  Sendgrid        = require '../sendgrid'
 
   { v4: createId } = require 'node-uuid'
 
@@ -897,7 +898,7 @@ Team Koding
 
         queue.next()
       ->
-        Sendgrid.addToAllUsers user.email, ->
+        Sendgrid.addNewUser user.email, user.username, ->
         queue.next()
     ]
 
