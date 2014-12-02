@@ -20,6 +20,14 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     @input.input.on 'focus', (event) => @handleFocus yes, event
 
 
+  handleThresholdReached: ->
+
+    return  unless @visible
+    return  unless KD.singletons.windowController.focused
+
+    @glance()
+
+
   createParticipantsView: ->
 
     @createHeaderViews()
