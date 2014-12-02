@@ -16,7 +16,7 @@ import (
 	"github.com/koding/logging"
 )
 
-var ErrDialingKlientFailed = errors.New("Dialing klient failed.")
+var ErrDialingFailed = errors.New("Dialing klient failed.")
 
 // KlientPool represents a pool of connected klients
 type KlientPool struct {
@@ -117,7 +117,7 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 
 	remoteKite := kites[0]
 	if err := remoteKite.Dial(); err != nil {
-		return nil, ErrDialingKlientFailed
+		return nil, ErrDialingFailed
 	}
 
 	// klient connection is ready now
@@ -143,7 +143,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 			}
 
 		case <-timeout:
-			return nil, fmt.Errorf("timeout while connection for kite")
+			return nil, ErrDialingFailed
 		}
 	}
 }
