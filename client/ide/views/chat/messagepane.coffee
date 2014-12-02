@@ -6,6 +6,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     super options, data
 
+    @define 'visible', => @getDelegate().visible
+
     @on 'AddedParticipant', @bound 'participantAdded'
 
     # forward this event to channel, so that
