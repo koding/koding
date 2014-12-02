@@ -11,10 +11,6 @@ build:
     - add-ssh-key:
         keyname: DEPLOYMENT_KEY
     - script:
-        name: set up koding deployment key
-        code: |
-          chmod 600 $KODING_DEPLOYMENT_KEY
-    - script:
         name: fetch pull requests
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
@@ -95,6 +91,10 @@ build:
         name: testing client started
         code: |
           scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
+    - script:
+        name: set up koding deployment key
+        code: |
+          chmod 600 $KODING_DEPLOYMENT_KEY
     - mktemp:
         envvar: INSTANCE_DATA
     - mktemp:
