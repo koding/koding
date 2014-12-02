@@ -138,14 +138,13 @@ func New(name, version string) *Kite {
 	}
 
 	// This is the same as sockjs.DefaultOptions except we changed the
-	// heartbeat interval from 25 seconds to 10 seconds, and the
-	// disconnectDelay (latency) from 5 to 20.
+	// heartbeat interval from 25 seconds to 10 seconds.
 	sockjsOpts := sockjs.Options{
 		Websocket:       true,
 		JSessionID:      nil,
 		SockJSURL:       "http://cdn.sockjs.org/sockjs-0.3.min.js",
 		HeartbeatDelay:  10 * time.Second,
-		DisconnectDelay: 20 * time.Second,
+		DisconnectDelay: 5 * time.Second,
 		ResponseLimit:   128 * 1024,
 	}
 	// All websocket communication is done through this endpoint.
