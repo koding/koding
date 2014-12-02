@@ -123,7 +123,8 @@ do ->
       return routeToLatestWorkspace()  if err
 
       try
-        KD.userWorkspaces.forEach (workspace) =>
+
+        KD.userWorkspaces.forEach (workspace, index) =>
 
           if workspace.channelId is channel.id
 
@@ -140,7 +141,9 @@ do ->
               return loadIDE { machine, workspace, username, channelId }
 
           else
-            routeToLatestWorkspace()
+
+            if index + 1 is KD.userWorkspaces.length
+              routeToLatestWorkspace()
 
       catch e
 
