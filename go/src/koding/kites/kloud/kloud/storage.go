@@ -5,6 +5,8 @@ import (
 	"koding/kites/kloud/protocol"
 )
 
+var ErrMachineDocNotFound = NewError(ErrMachineNotFound)
+
 type Storage interface {
 	// Get returns the machine data associated with the given id from the
 	// username

@@ -2,6 +2,7 @@ package kloud
 
 import (
 	"fmt"
+
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/protocol"
 
@@ -10,6 +11,8 @@ import (
 
 type domainArgs struct {
 	DomainName string
+	MachineId  string
+	recovery   bool
 }
 
 type domainFunc func(*protocol.Machine, *domainArgs) (interface{}, error)
@@ -19,25 +22,27 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 	if err := r.Args.One().Unmarshal(args); err != nil {
 		return nil, err
 	}
-
 	if args.DomainName == "" {
 		return nil, fmt.Errorf("domain name argument is empty")
 	}
 
 	m, err := k.PrepareMachine(r)
-	if err != nil {
+	switch err {
+	case ErrMachineDocNotFound:
+		args.recovery = true
+	case nil:
+		// PrepareMachine is locking for us, so unlock after we are done
+		defer k.Locker.Unlock(m.Id)
+
+		if m.IpAddress == "" {
+			return nil, fmt.Errorf("ip address is not defined")
+		}
+
+		// fake eventer to avoid panics if someone tries to use the eventer
+		m.Eventer = &eventer.Events{}
+	default:
 		return nil, err
 	}
-
-	// PreparMachine is locking for us, so unlock after we are done
-	defer k.Locker.Unlock(m.Id)
-
-	if m.IpAddress == "" {
-		return nil, fmt.Errorf("ip address is not defined")
-	}
-
-	// fake eventer to avoid panics if someone tries to use the eventer
-	m.Eventer = &eventer.Events{}
 
 	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
 		return nil, err
@@ -47,10 +52,11 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 }
 
 func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
+	fmt.Println("domain.add")
 	addFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// a non nil means the domain exists
 		if _, err := k.Domainer.Get(args.DomainName); err == nil {
-			return nil, fmt.Errorf("domain record does exists")
+			return nil, fmt.Errorf("domain record already exists")
 		}
 
 		// now assign the machine ip to the given domain name
@@ -75,6 +81,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
+	fmt.Println("domain.remove")
 	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// do not return on error because it might be already delete via unset
 		k.Domainer.Delete(args.DomainName, m.IpAddress)
@@ -90,13 +97,27 @@ func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
+	fmt.Println("domain.unset")
 	unsetFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// be sure the domain does exist in storage before we delete the domain
-		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
+		_, err := k.DomainStorage.Get(args.DomainName)
+		if err != nil {
 			return nil, fmt.Errorf("domain does not exists in DB")
 		}
 
-		if err := k.Domainer.Delete(args.DomainName, m.IpAddress); err != nil {
+		var ipAddr string
+
+		if args.recovery {
+			record, err := k.Domainer.Get(args.DomainName)
+			if err != nil {
+				return nil, err
+			}
+			ipAddr = record.IP
+		} else {
+			ipAddr = m.IpAddress
+		}
+
+		if err := k.Domainer.Delete(args.DomainName, ipAddr); err != nil {
 			return nil, err
 		}
 
@@ -113,8 +134,11 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
+	fmt.Println("domain.set")
 	setFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// be sure the domain does exist in storage before we create the domain
+		//
+		// TODO: We can make it better if we create a document instead of returning an error.
 		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
 			return nil, fmt.Errorf("domain does not exists in DB")
 		}
@@ -123,7 +147,7 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, err
 		}
 
-		// addign the machineID for the given domain.
+		// adding the machineID for the given domain.
 		if err := k.DomainStorage.UpdateMachine(args.DomainName, m.Id); err != nil {
 			return nil, err
 		}
