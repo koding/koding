@@ -17,6 +17,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       channel = @getData()
       channel.emit 'AddedToChannel', participant
 
+    @input.input.on 'focus', (event) => @handleFocus yes, event
+
 
   createParticipantsView: ->
 
