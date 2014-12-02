@@ -19,7 +19,7 @@ class IDE.ChatView extends KDTabView
       icon     : {}
       click    : (event) =>
         KD.utils.stopDOMEvent event
-        @hide()
+        @end()
 
     @createLoader()
 

@@ -105,7 +105,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     'Search'   : { cssClass: 'disabled', callback: noop }
     'Settings' : { callback: @getDelegate().bound 'showSettingsPane' }
-    'Minimize' : { callback: @getDelegate().bound 'hide' }
+    'Minimize' : { callback: @getDelegate().bound 'end' }
 
 
   createInputWidget: ->
