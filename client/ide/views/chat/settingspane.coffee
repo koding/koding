@@ -97,6 +97,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       return @startSession.enable()  if err
 
       @toggleButtons 'started'
+      @emit 'SessionStarted'
 
 
   leaveSession: ->
