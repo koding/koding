@@ -19,6 +19,15 @@ build:
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
+    - mktemp:
+        envvar: GIT_REF
+    - script:
+        name: get git ref
+        code: |
+          REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
+          echo $REMOTE_BRANCH
+          scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
+          cat $GIT_REF
     - script:
         name: build started
         code: |
@@ -86,15 +95,6 @@ build:
         name: testing client started
         code: |
           scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
-    - mktemp:
-        envvar: GIT_REF
-    - script:
-        name: get git ref
-        code: |
-          REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
-          echo $REMOTE_BRANCH
-          scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
-          echo $GIT_REF
     - mktemp:
         envvar: INSTANCE_DATA
     - mktemp:
