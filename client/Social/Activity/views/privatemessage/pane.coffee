@@ -430,7 +430,10 @@ class PrivateMessagePane extends MessagePane
 
     {wrapper} = @scrollView
     wrapper.on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
-    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
+    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleThresholdReached'
+
+
+  handleThresholdReached: -> @handleFocus()
 
 
   editLastMessage: ->

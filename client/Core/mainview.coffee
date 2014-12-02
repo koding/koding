@@ -135,6 +135,11 @@ class MainView extends KDView
       windowController.notifyWindowResizeListeners()
 
 
+  glanceChannelWorkspace: (channel) ->
+
+    @activitySidebar.glanceChannelWorkspace channel
+
+
   createAccountArea:->
 
     @aside.addSubView @accountArea = new KDCustomHTMLView
