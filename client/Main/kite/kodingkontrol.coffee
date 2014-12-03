@@ -126,7 +126,6 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
         KiteCache.unset query
 
-    kite.connect()  if kite.name is 'klient'
 
     return kite
 

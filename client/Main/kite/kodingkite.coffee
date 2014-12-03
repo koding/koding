@@ -31,6 +31,8 @@ class KodingKite extends KDObject
     @forwardEvent @transport, 'close'
     @forwardEvent @transport, 'open'
 
+    @transport?.connect()  if @options.name is 'klient'
+
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
