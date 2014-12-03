@@ -211,8 +211,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       </ul>
       {{> @everyone}}
       <div class="warning">
-        <p>Please be advised</p>
-        <span>When you start a session, you share your "Entire VM".</span>
+        <span>Have sessions with people you trust, they can view and edit <strong>all</strong> your files.</span>
       </div>
       <div class='buttons'>
         {{> @startSession}} {{> @endSession}}
