@@ -2,7 +2,7 @@ class IDE.ChatView extends KDTabView
 
   constructor: (options = {}, data)->
 
-    options.cssClass            = 'chat-view loading'
+    options.cssClass            = 'chat-view loading onboarding'
     options.hideHandleContainer = yes
 
     super options, data
@@ -85,7 +85,10 @@ class IDE.ChatView extends KDTabView
     @emit 'ready'
 
 
-  showChatPane: -> @showPane @chatPane
+  showChatPane: ->
+
+    @unsetClass 'onboarding'
+    @showPane @chatPane
 
 
   showSettingsPane: -> @showPane @settingsPane
