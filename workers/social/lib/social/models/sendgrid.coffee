@@ -12,6 +12,10 @@ module.exports = class Sendgrid
     @addToAllUsers email, name, =>
       @addToMarketing email, name, callback
 
+  @deleteUser: (email, callback)->
+    @deleteFromMarketing email, =>
+      @deleteFromMarketing email, callback
+
   @addToAllUsers: (email, name, callback)->
     @addEmail ALL_USERS, email, name, callback
 

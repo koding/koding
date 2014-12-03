@@ -204,6 +204,8 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err?
         return callback createKodingError "User not found #{toBeDeletedUsername}"  unless user
 
+        oldEmail = user.email
+
         userValues = {
           username
           email
@@ -267,7 +269,11 @@ module.exports = class JUser extends jraphical.Module
                     }
                   }
                   Payment.deleteAccount deletedClient, (err)=>
-                    @logout deletedClient, callback
+                    @logout deletedClient, (err) =>
+                      callback err
+
+                      console.log user.email
+                      Sendgrid.deleteUser oldEmail, ->
 
   @isRegistrationEnabled = (callback)->
 
