@@ -704,6 +704,8 @@ module.exports = class JAccount extends jraphical.Module
         return callback err  if err
         updateUserPref()
 
+    updateUserPref()
+
   setEmailPreferences$: secure (client, prefs, callback)->
     JUser = require './user'
     JUser.fetchUser client, (err, user)=>
