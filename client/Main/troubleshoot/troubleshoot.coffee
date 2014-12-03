@@ -79,14 +79,6 @@ class Troubleshoot extends KDObject
       speedCheck   : no
       troubleshoot : checkVersion.bind this
 
-    # vmChecker = new VMChecker
-    # @registerItem "vm",
-    #   speedCheck   : no
-    #   troubleshoot : vmChecker.bound 'healthCheck'
-
-    # @registerItem "terminal",
-    #   troubleshoot : vmChecker.bound 'terminalHealthCheck'
-
   registerConnections: ->
     #register connection
     {externalUrl} = KD.config.troubleshoot
