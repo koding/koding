@@ -105,7 +105,13 @@ class ActivitySideView extends JView
 
     return  if err
 
-    @listController.addItem itemData for itemData, i in items when i < limit
+    workspaceChannels = KD.userWorkspaces
+      .filter (ws) -> ws.channelId
+      .map (ws) -> ws.channelId
+
+    for itemData, i in items when i < limit
+      item = @listController.addItem itemData
+      item.hide()  if itemData._id in workspaceChannels
 
     KD.utils.defer => @emit 'DataReady', items
 
