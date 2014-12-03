@@ -61,16 +61,20 @@ class KodingKite_KloudKite extends KodingKite
   askInfoFromKlient: (machineId, callback) ->
 
     {kontrol, computeController} = KD.singletons
-    {klient}   = kontrol.kites
-    machineUid = computeController.findUidFromMachineId machineId
+    {klient} = kontrol.kites
+    machine  = computeController.findMachineFromMachineId machineId
 
-    if not klient? or not machineId?
+    unless machineId?
       return callback null
 
-    klientKite = klient[machineUid]
+    klientKite = klient?[machine.uid]
 
-    if not klientKite?
-      return callback null
+    unless klientKite?
+
+      klientKite = kontrol.getKite
+        name            : "klient"
+        queryString     : machine.queryString
+        correlationName : machine.uid
 
     KD.remote.api.DataDog.increment "KlientInfo", noop
 

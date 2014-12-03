@@ -718,7 +718,7 @@ class ComputeController extends KDController
         callback err, { plan, plans, usage }
 
 
-  findUidFromMachineId: (machineId)->
+  findMachineFromMachineId: (machineId)->
 
     for machine in @machines
-      return machine.uid  if machine._id is machineId
+      return machine  if machine._id is machineId
