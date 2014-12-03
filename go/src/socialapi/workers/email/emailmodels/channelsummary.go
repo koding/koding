@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	TimeLayout   = "3:04 PM"
-	MessageLimit = 3
+	TimeLayout       = "3:04 PM"
+	MessageLimit     = 3
+	ParticipantLimit = 3
 )
 
 // ChannelSummary used for storing channel purpose and messages
@@ -25,15 +26,16 @@ type ChannelSummary struct {
 	// Unread count stores unread message count in the idle time
 	UnreadCount int
 	// AwaySince returns the oldest message in notification queue
-	AwaySince      time.Time
-	Participants   []models.ChannelParticipant
-	Purpose        string
-	ChannelId      string
-	Hostname       string
-	IsGroupChannel bool
-	Link           string
-	Image          string
-	Summary        string
+	AwaySince        time.Time
+	Participants     []models.ChannelParticipant
+	ParticipantCount int
+	Purpose          string
+	ChannelId        string
+	Hostname         string
+	IsGroupChannel   bool
+	Link             string
+	Image            string
+	Summary          string
 
 	BodyContent
 }
@@ -77,20 +79,26 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return nil, err
 	}
 
+	totalParticipantCount, err := fetchParticipantCount(ch)
+	if err != nil {
+		return nil, err
+	}
+
 	isGroupChannel := false
 	if len(participants) > 1 {
 		isGroupChannel = true
 	}
 
 	cs := &ChannelSummary{
-		Id:             ch.Id,
-		AwaySince:      awaySince,
-		UnreadCount:    count,
-		Participants:   participants,
-		Purpose:        ch.Purpose,
-		ChannelId:      strconv.FormatInt(ch.Id, 10),
-		Hostname:       config.MustGet().Hostname,
-		IsGroupChannel: isGroupChannel,
+		Id:               ch.Id,
+		AwaySince:        awaySince,
+		UnreadCount:      count,
+		Participants:     participants,
+		ParticipantCount: totalParticipantCount,
+		Purpose:          ch.Purpose,
+		ChannelId:        strconv.FormatInt(ch.Id, 10),
+		Hostname:         config.MustGet().Hostname,
+		IsGroupChannel:   isGroupChannel,
 	}
 	cs.BodyContent.Timezone = timezone
 
@@ -121,23 +129,28 @@ func (cs *ChannelSummary) Render() (string, error) {
 }
 
 func (cs *ChannelSummary) RenderImage() (string, error) {
-	// do not use any images for group conversations
-	if !cs.IsGroupChannel {
-		return cs.renderGravatar()
-	}
-
-	return "", nil
-}
-
-func (cs *ChannelSummary) renderGravatar() (string, error) {
 	if len(cs.Participants) < 1 {
 		return "", nil
 	}
 
-	nickname, err := getAccountNickname(cs.Participants[0].AccountId)
-	if err != nil {
-		return "", err
+	var nickname string
+	var err error
+
+	// do not use any images for group conversations
+	if !cs.IsGroupChannel {
+		nickname, err = getAccountNickname(cs.Participants[0].AccountId)
+		if err != nil {
+			return "", err
+		}
+
+	} else if len(cs.MessageSummaries) > 0 {
+		nickname = cs.MessageSummaries[0].Nickname
 	}
+
+	return cs.renderGravatar(nickname)
+}
+
+func (cs *ChannelSummary) renderGravatar(nickname string) (string, error) {
 
 	account, err := modelhelper.GetAccount(nickname)
 	if err != nil {
@@ -199,44 +212,63 @@ func (cs *ChannelSummary) prepareDirectMessageLink() error {
 // prepareGroupChannelTitle gets purpose as the channel title if it exists, or concatenates
 // latest participant nicknames for composing a title
 func (cs *ChannelSummary) prepareGroupChannelLink() error {
+	prefix := "Latest messages from your group conversation"
 	if cs.Purpose != "" {
 		cs.Title = cs.Purpose
+		prefix += ":"
 	} else {
 		if len(cs.Participants) == 0 {
 			return nil
 		}
 
-		account, err := models.Cache.Account.ById(cs.Participants[0].AccountId)
-		if err != nil {
-			return err
-		}
+		prefix += " with"
 
-		title := account.Nick
-		for i := 1; i < len(cs.Participants)-1; i++ {
+		nicknames := make([]string, 0)
+
+		for i := 0; i < ParticipantLimit && i < len(cs.Participants); i++ {
 			account, err := models.Cache.Account.ById(cs.Participants[i].AccountId)
 			if err != nil {
 				return err
 			}
-			title += ", " + account.Nick
+
+			nicknames = append(nicknames, account.Nick)
 		}
 
-		account, err = models.Cache.Account.ById(cs.Participants[len(cs.Participants)-1].AccountId)
-		if err != nil {
-			return err
-		}
-
-		title += " & " + account.Nick
-
-		cs.Title = title
+		cs.Title = cs.prepareTitleWithNicknames(nicknames)
 	}
 
 	titleUrl, err := cs.renderTitle()
 	if err != nil {
 		return err
 	}
-	cs.Link = fmt.Sprintf("Latest messages from %s", titleUrl)
+	cs.Link = fmt.Sprintf("%s %s", prefix, titleUrl)
 
 	return nil
+}
+
+func (cs *ChannelSummary) prepareTitleWithNicknames(nicknames []string) string {
+	// not possible but still being defensive
+	if len(nicknames) == 1 {
+		return nicknames[0]
+	}
+
+	title := ""
+	for i, nickname := range nicknames {
+		if i == len(nicknames)-1 {
+			break
+		}
+
+		title = fmt.Sprintf("%s %s,", title, nickname)
+	}
+
+	// remove last comma
+	title = title[:len(title)-1]
+
+	if cs.ParticipantCount <= ParticipantLimit {
+		return fmt.Sprintf("%s & %s", title, nicknames[len(nicknames)-1])
+	}
+
+	return fmt.Sprintf("%s, %s & %d more", title, nicknames[len(nicknames)-1], cs.ParticipantCount-ParticipantLimit)
 }
 
 // fetchLastMessage fetches latest channel messages excluding given user's messages.
@@ -267,6 +299,7 @@ func fetchParticipants(a *models.Account, ch *models.Channel) ([]models.ChannelP
 	cp.ChannelId = ch.Id
 	query := request.NewQuery()
 	query.ShowExempt = false
+
 	participants, err := cp.List(query)
 	if err != nil {
 		return participants, err
@@ -286,4 +319,15 @@ func fetchParticipants(a *models.Account, ch *models.Channel) ([]models.ChannelP
 	}
 
 	return flattenedParticipants, nil
+}
+
+func fetchParticipantCount(ch *models.Channel) (int, error) {
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = ch.Id
+	count, err := cp.FetchParticipantCount()
+	if err != nil {
+		return 0, err
+	}
+
+	return count - 1, nil
 }

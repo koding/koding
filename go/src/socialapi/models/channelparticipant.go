@@ -178,6 +178,10 @@ func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error
 		},
 	}
 
+	if q.Limit > 0 {
+		query.Pagination.Limit = q.Limit
+	}
+
 	// add filter for troll content
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
