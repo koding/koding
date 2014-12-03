@@ -5,7 +5,7 @@ class ComputeEventListener extends KDObject
     super
       interval : options.interval ? 4000
 
-    @kloud           = KD.singletons.kontrol.getKite
+    @kloud           = options.kloud or KD.singletons.kontrol.getKite
       name           : "kloud"
       environment    : KD.config.environment
 

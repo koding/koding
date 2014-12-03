@@ -14,9 +14,6 @@ class ComputeController extends KDController
 
     mainController.ready =>
 
-      @eventListener = new ComputeEventListener
-      @stateChecker  = new ComputeStateChecker
-
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
 
@@ -27,6 +24,12 @@ class ComputeController extends KDController
           environment  : KD.config.environment
           version      : KD.config.kites.kloud.version
           username     : KD.config.kites.kontrol.username
+
+        @eventListener = new ComputeEventListener {@kloud}
+        @stateChecker  = new ComputeStateChecker  {@kloud}
+
+        @stateChecker.machines = @machines
+        @stateChecker.start()
 
         KD.singletons
           .paymentController.on 'UserPlanUpdated', =>
@@ -73,8 +76,8 @@ class ComputeController extends KDController
           @stacks   = stacks
           @machines = machines
 
-          @stateChecker.machines = machines
-          @stateChecker.start()
+          @stateChecker?.machines = machines
+          @stateChecker?.start()
 
           KD.userMachines = machines
           @emit "MachineDataUpdated"

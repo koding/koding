@@ -5,7 +5,7 @@ class ComputeStateChecker extends KDObject
     super
       interval : options.interval ? 10000
 
-    @kloud           = KD.singletons.kontrol.getKite
+    @kloud           = options.kloud or KD.singletons.kontrol.getKite
       name           : "kloud"
       environment    : KD.config.environment
 
@@ -15,8 +15,8 @@ class ComputeStateChecker extends KDObject
     @running         = no
     @timer           = null
 
-    KD.singletons.windowController.addFocusListener (state)=>
-      if state then @start() else @stop()
+    # KD.singletons.windowController.addFocusListener (state)=>
+    #   if state then @start() else @stop()
 
   start:->
 
@@ -24,7 +24,7 @@ class ComputeStateChecker extends KDObject
     @running = yes
 
     @tick yes
-    @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
+    # @timer = KD.utils.repeat @getOption('interval'), @bound 'tick'
 
 
   stop:->
@@ -74,10 +74,12 @@ class ComputeStateChecker extends KDObject
         return  if not checkAll
       else
         {klient}   = kontrol.kites
-        machineUid = computeController.findUidFromMachineId machineId
+        machineUid = (computeController.findMachineFromMachineId machineId)?.uid
         return  if not (machineUid? and klient? and klient[machineUid])
 
       info "Checking all machine states..."  if checkAll
+
+      info "Checking state:", {machineId}
 
       call = @kloud.info { machineId, currentState }
 
