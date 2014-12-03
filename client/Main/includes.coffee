@@ -272,9 +272,6 @@ module.exports = [
 
   "pinger.coffee",
 
-  # KITE CONTROLLER
-  "kite/kitecontroller.coffee",
-
   # NEW KITES (extending kite.js)
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
