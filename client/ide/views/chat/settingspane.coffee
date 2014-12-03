@@ -67,12 +67,6 @@ class IDE.ChatSettingsPane extends KDTabPaneView
         { title : 'CAN EDIT', value : 'edit'}
       ]
 
-    @myself    = new IDE.ChatParticipantView
-      isOnline : yes
-      isMe     : yes
-      cssClass : 'myself'
-    , { account: KD.whoami(), channel }
-
     @everyone  = new KDCustomHTMLView
       tagName  : 'ul'
       cssClass : 'settings everyone loading'
@@ -184,16 +178,15 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   pistachio: ->
 
-    """
-    <header class='chat-settings'>
-    {{> @back}}
-    <div class='buttons'>
-      {{> @startSession}} {{> @endSession}}
-    </div>
-    </header>
-    <ul class='settings default'>
-      <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
-    </ul>
-    {{> @myself}}
-    {{> @everyone}}
+    return """
+      <header class='chat-settings'>
+      {{> @back}}
+      <div class='buttons'>
+        {{> @startSession}} {{> @endSession}}
+      </div>
+      </header>
+      <ul class='settings default'>
+        <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
+      </ul>
+      {{> @everyone}}
     """
