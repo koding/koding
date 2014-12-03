@@ -393,9 +393,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @addVMTree()
     @addFollowedTopics()
     @addConversations()
-    @addMessages()
 
-    @fetchWorkspaces()
+    @fetchWorkspaces => @addMessages()
 
 
   initiateFakeCounter: ->
