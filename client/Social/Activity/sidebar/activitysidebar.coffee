@@ -444,7 +444,7 @@ class ActivitySidebar extends KDCustomHTMLView
           else otherMachineUIds.push m.uid
 
         otherWorkspaces  = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in otherMachineUIds
-        myWorkspaces     = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in myMachineUIds
+        myWorkspaces     = workspaces.filter (ws) -> return ws.machineUId in myMachineUIds
 
         myChannels = []
         queue      = []
