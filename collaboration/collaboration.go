@@ -12,11 +12,10 @@ type Collaboration struct {
 }
 
 func New() *Collaboration {
-	// Try the persistent storage first. If it fails, try the in-memory one.
-
 	var db Storage
 	var err error
 
+	// Try the persistent storage first. If it fails, try the in-memory one.
 	db, err = NewBoltStorage()
 	if err != nil {
 		db = NewMemoryStorage()
