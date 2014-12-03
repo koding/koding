@@ -115,6 +115,9 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     kite = KontrolJS::createKite.call this, options
 
+    kite.on 'close', (event)=>
+      if event?.code is 1002 and event?.reason is "Can't connect to server"
+        KiteCache.unset query
 
     kite.connect()  if kite.name is 'klient'
 
