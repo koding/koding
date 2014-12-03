@@ -38,6 +38,13 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     @authenticate @getAuthOptions()
 
 
+  fetchKite: Promise.promisify (args, callback)->
+
+    if (cachedKite = KiteCache.get args.query)?
+      return callback null, @createKite cachedKite, args.query
+
+    KontrolJS::fetchKite.call this, args, callback
+
 
   fetchKites: Promise.promisify (args = {}, callback) ->
 
