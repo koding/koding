@@ -71,10 +71,15 @@ class KodingKite_KloudKite extends KodingKite
 
     unless klientKite?
 
-      klientKite = kontrol.getKite
-        name            : "klient"
-        queryString     : machine.queryString
-        correlationName : machine.uid
+      if machine.status.state is Machine.State.Running
+
+        klientKite = kontrol.getKite
+          name            : "klient"
+          queryString     : machine.queryString
+          correlationName : machine.uid
+
+      else
+        return callback null
 
     KD.remote.api.DataDog.increment "KlientInfo", noop
 
