@@ -75,6 +75,9 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       tagName  : 'h3'
       cssClass : 'workspace-name'
       partial  : 'My Workspace'
+      click      : (event) =>
+        KD.utils.stopDOMEvent event
+        @getDelegate().showSettingsPane()
 
     header.addSubView @chevron = @createMenu()
 
