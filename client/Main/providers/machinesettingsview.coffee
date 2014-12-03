@@ -64,10 +64,6 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label         : "Specs"
           itemClass     : KDView
           partial       : "1GB Ram, 1Core, #{storage}GB Disk"
-        sharedWith      :
-          label         : 'Shared With'
-          itemClass     : KDView
-          partial       : 'Fetching users...'
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
@@ -143,7 +139,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     {windowController, computeController} = KD.singletons
 
-    {statusToggle, statusLoader, sharedWith} = @modalTabs.forms.Settings.inputs
+    {statusToggle, statusLoader} = @modalTabs.forms.Settings.inputs
 
     statusToggle.hide()
 
@@ -168,24 +164,6 @@ class MachineSettingsPopup extends KDModalViewWithForms
         statusLoader.hide()
         statusToggle.setOff no
         statusToggle.show()
-
-
-    baseKite.klientShared().then (users) =>
-      if users
-        sharedWith.updatePartial users
-      else
-        sharedWith.updatePartial 'Nobody'
-
-      sharedWith.addSubView new KDCustomHTMLView
-        tagName  : 'span'
-        cssClass : 'domain-toggle'
-        click    : => @shareInput.show()
-
-      sharedWith.addSubView @shareInput = new KDHitEnterInputView
-        type     : 'text'
-        cssClass : 'hidden'
-        callback : =>
-          @shareMachineWithUser @shareInput.getValue()
 
 
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
