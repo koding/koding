@@ -1,0 +1,16 @@
+#!/bin/bash
+
+cd $(dirname $0)
+
+PR_HEAD=$(git branch -r -v | \
+                       grep ${WERCKER_GIT_COMMIT:0:7} | \
+                       awk '{print $1}')
+
+if [ -n "$PR_HEAD" -a "$(echo "$PR_HEAD" | grep 'origin/pull')" ]; then
+  PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
+  echo '--pull-request' "'+refs/pull/$PR_NR/head'"
+else
+  echo '--commit' $WERCKER_GIT_COMMIT
+fi
+
+exit 0
