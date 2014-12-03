@@ -120,7 +120,22 @@ IDE.settings.editor =
     xml         : ["XML"          , "xml|rdf|rss|wsdl|xslt|atom|mathml|mml|xul|xbl"]
     xquery      : ["XQuery"       , "xq"]
     yaml        : ["YAML"         , "yaml|yml"]
-    objectivec  : ["Objective C"  , "__dummy__"]
+    objectivec  : ["Objective C"  , "m|mm|h"]
+    actionscript: ["ActionScript" , "as"]
+    tcl         : ["TCL/Tk"       , "tcl|tk"]
+    ada         : ["Ada"          , "ada"]
+    assembly_x86: ["Assembly"     , "a86"]
+    batchfile   : ["Batch File"   , "bat"]
+    cobol       : ["Cobol"        , "cobol"]
+    erlang      : ["Erland"       , "erl"]
+    haml        : ["Haml"         , "haml"]
+    haskell     : ["Haskell"      , "hs"]
+    jsp         : ["JSP"          , "jsp"]
+    julia       : ["Julia"        , "jl"]
+    livescript  : ["LiveScript"   , "ls"]
+    pascal      : ["Pascal"       , "pas"]
+    prolog      : ["Prolog"       , "pl"]
+
 
   getAllExts : ->
     exts = (IDE.settings.editor.syntaxAssociations[key][1].split "|" for key in Object.keys IDE.settings.editor.syntaxAssociations)
