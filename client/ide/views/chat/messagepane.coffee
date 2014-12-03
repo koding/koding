@@ -139,9 +139,11 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
   settingsMenu: ->
 
-    'Search'   : { cssClass: 'disabled', callback: noop }
-    'Settings' : { callback: @getDelegate().bound 'showSettingsPane' }
-    'Minimize' : { callback: @getDelegate().bound 'end' }
+    'Search'     : cssClass: 'disabled', callback: noop
+    'Settings'   : callback: @getDelegate().bound 'showSettingsPane'
+    'Minimize'   : callback: @getDelegate().bound 'end'
+    'Learn More' : callback: =>
+      KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
 
 
   createInputWidget: ->
