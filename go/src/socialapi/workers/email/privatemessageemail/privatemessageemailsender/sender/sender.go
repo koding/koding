@@ -24,7 +24,6 @@ const (
 	Subject      = "[Koding] Chat notifications for %s"
 	DateLayout   = "Jan 2, 2006"
 	MAXROUTINES  = 4
-	Information  = "You have a few unread messages on Koding.com."
 )
 
 type Controller struct {
@@ -138,9 +137,13 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		if len(channels) == 0 {
 			continue
 		}
+		information := "You have a few unread messages on Koding.com."
 
 		// Decorate channel data
 		es := emailmodels.NewEmailSummary(channels...)
+		if len(es.Channels) == 1 && es.Channels[0].UnreadCount == 1 {
+			information = "You have an unread message on Koding.com."
+		}
 
 		// Render body
 		body, err := es.Render()
@@ -151,7 +154,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 
 		// Send
 		subject := fmt.Sprintf(Subject, time.Now().Format(DateLayout))
-		mailer.Information = Information
+		mailer.Information = information
 		if err := mailer.SendMail("chat", body, subject); err != nil {
 			c.log.Error("Could not send email for account: %d: %s", account.Id, err)
 		}
