@@ -88,7 +88,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @createPane_ editorPane, paneOptions, file
 
   createShortcutsView: ->
-    @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
+    name = 'Shortcuts'
+    for pane, index in @tabView.panes when name is pane.name
+      @tabView.showPaneByIndex index
+      return
+    @createPane_ new IDE.ShortcutsView, { name: name }
 
   createTerminal: (machine, path) ->
     ideApp = KD.getSingleton('appManager').getFrontApp()
