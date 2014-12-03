@@ -1,52 +1,63 @@
 package templates
 
 const Main = `
-{{.Title}}
-<table width="100%" style="margin: 12px 0; font-size: 14px; color: #353535;" cellpadding="0" cellspacing="0">
-  {{.Summary}}
-</table>
+<div class="post" style="background: #fff; border-radius: 3px; padding: 24px 24px 34px 24px; margin-bottom: 6px;">
+  <table width="100%" style="margin: 12px 0; font-size: 14px; color: #353535;" cellpadding="0" cellspacing="0">
+    {{.Summary}}
+  </table>
+</div>
 `
 
 const Channel = `
-<tr>
-  <td width="24px" valign="top">
-  {{.Image}}
-  </td>
-  <td style="padding: 24px 0 0 12px; line-height: 18px;">
-    {{.Link}}
-    <div style="border-top: 1px solid #eaeaea; margin: 6px 0 0;"></div>
-    {{.Summary}}
-  </td>
-</tr>
+<div class="post" style="background: #fff; border-radius: 3px; padding: 24px 24px 34px 24px; margin-bottom: 6px;">
+  <table width="100%" style="margin: 12px 0; font-size: 14px; color: #353535;" cellpadding="0" cellspacing="0">
+    <tr>
+      <td width="35px"  valign="middle">
+        {{.Image}}
+      </td>
+      <td valign="middle" style="font-size: 14px; padding: 0 0 0 16px;">
+        {{.Link}}
+      </td>
+    </tr>
+    <tr>
+      <td width="35px" valign="middle"></td>
+      <td valign="middle" style="font-size: 15px; padding: 0 0 0 16px;">
+        <table width="100%" cellpadding="0" cellspacing="0">
+          {{.Summary}}
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
 `
 
 const ChannelLink = `
 {{define "channellink"}}
-<b>
-  <a href="{{.Hostname}}/Activity/Message/{{.ChannelId}}" style="text-decoration: none; color:#222">{{.Title}}</a>
-</b>
+<a href="{{.Hostname}}/Activity/Message/{{.ChannelId}}" style="text-decoration: none; color: #52A840; font-weight: bold;">{{.Title}}</a>
 {{end}}
 `
 
 const ProfileLink = `
-<b>
-  <a href="{{.Hostname}}/{{.Nickname}}" style="text-decoration: none; color:#222">{{.Nickname}}</a>
-</b>
+<a href="{{.Hostname}}/{{.Nickname}}" style="text-decoration: none; color: #52A840; font-weight: bold;">{{.Nickname}}</a>
 `
 
 const Message = `
 {{define "message"}}
-<div style="margin:6px 0 0;">
-  <span style="color: #a5a5a5; font-weight: 200; margin: 0 6px 0 0;">{{.Time}}</span>
+<tr>
+  <td valign="top" style="color: #bbbbbb; font-size: 14px; padding: 14px 0 0 0; line-height: 18px; width: 60px; white-space: nowrap;">
+    {{.Time}}
+  </td>
+  <td valign="top" style="font-size: 15px; line-height: 18px; padding: 14px 0 0 12px;">
   {{if .IsNicknameShown}}
-    <span style="font-weight: 600; margin: 0 6px 0 0;">{{.Nickname}}:</span>
+    <span style="font-weight: bold; color:#656565; margin: 0 6px 0 0;">{{.Nickname}}:</span>
   {{end}}
-  {{.Body}}
-</div>
+    {{.Body}}
+  </td>
+</tr>
 {{end}}
 `
 
 const Gravatar = `
-<img width="24px" height="24px" style="border-radius: 3px; padding-top: 24px;"
-    src="https://gravatar.com/avatar/{{.Hash}}?size=24&d=https%3A%2F%2Fkoding-cdn.s3.amazonaws.com%2Fimages%2Fdefault.avatar.24.png" />
+<img width="35px" height="35px" style="background: #fafafa;"
+    src="https://gravatar.com/avatar/{{.Hash}}?size=35&d=https%3A%2F%2Fkoding-cdn.s3.amazonaws.com%2Fimages%2Fdefault.avatar.35.png" />
 `
