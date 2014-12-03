@@ -104,22 +104,24 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     return kite
 
 
-  createKite: (options)->
+  createKite: (options, query)->
 
     {kite} = options
 
     # If its trying to create a klient kite instance
     # allow to use websockets by emptying the protocols_whitelist
     if kite.name is 'klient'
-      options.transportOptions =
-        protocols_whitelist : []
+      options.transportOptions = protocols_whitelist: []
 
-    super options
+    kite = KontrolJS::createKite.call this, options
+
+
+    kite.connect()  if kite.name is 'klient'
+
+    return kite
 
 
   getKite: (options = {}) ->
-
-    @reauthenticate()  unless @kite?
 
     # Get options
     { name, correlationName, region, transportOptions,
