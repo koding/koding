@@ -691,10 +691,12 @@ module.exports = class JAccount extends jraphical.Module
       current[granularity] = state# then 'instant' else 'never'
 
     user.update {$set: emailFrequency: current}, (err)->
-      if current["marketing"] is no or current["global"] is no
-        return Sendgrid.deleteFromMarketing user.email
+      return callback err  if err
 
-      if current["marketing"] is yes
+      if current["marketing"] is no or current["global"] is no
+        return Sendgrid.deleteFromMarketing user.email, callback
+
+      if current["marketing"] is yes and current["global"] is yes
         return Sendgrid.addToMarketing user.email, user.username, callback
 
   setEmailPreferences$: secure (client, prefs, callback)->
