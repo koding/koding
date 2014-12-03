@@ -271,8 +271,6 @@ module.exports = class JUser extends jraphical.Module
                   Payment.deleteAccount deletedClient, (err)=>
                     @logout deletedClient, (err) =>
                       callback err
-
-                      console.log user.email
                       Sendgrid.deleteUser oldEmail, ->
 
   @isRegistrationEnabled = (callback)->
