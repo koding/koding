@@ -1133,7 +1133,7 @@ class IDEAppController extends AppController
 
     return @createChatPane()  unless @chat
 
-    @chat.show()
+    @chat.start()
 
 
   prepareCollaboration: ->
