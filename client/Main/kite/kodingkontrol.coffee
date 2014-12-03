@@ -89,7 +89,10 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
   setCachedKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
-    @kites[name][correlationName] = kite
+    unless kite?
+      delete @kites[name][correlationName]
+    else
+      @kites[name][correlationName] = kite
 
 
   getKiteProxy: (options) ->
@@ -107,16 +110,20 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
   createKite: (options, query)->
 
     {kite} = options
+    kiteName = kite.name
 
     # If its trying to create a klient kite instance
     # allow to use websockets by emptying the protocols_whitelist
-    if kite.name is 'klient'
+    if kiteName is 'klient'
       options.transportOptions = protocols_whitelist: []
 
     kite = KontrolJS::createKite.call this, options
 
     kite.on 'close', (event)=>
-      if event?.code is 1002 and event?.reason is "Can't connect to server"
+
+      if event?.code is 1002 and \
+         event?.reason is "Can't connect to server"
+
         KiteCache.unset query
 
     kite.connect()  if kite.name is 'klient'
@@ -175,7 +182,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
       # Instead parsing message we need to define a code or different
       # name for `No kite found` error in kite.js ~ FIXME GG
       if err and err.name is "KiteError" and /^No kite found/.test err.message
-        @setCachedKite name, correlationName, null
+        @setCachedKite name, correlationName
         kite.invalid = err
 
       {message} = err
