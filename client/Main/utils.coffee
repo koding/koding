@@ -52,6 +52,30 @@ utils.extend utils,
 
     return fullurl
 
+  proxifyTransportUrl: (url)->
+
+    return url  if /proxy.koding.com/.test url
+
+    # let's use DOM for parsing the url
+    parser = document.createElement("a")
+    parser.href = url
+
+    # build our new url, example:
+    # old: http://54.164.174.218:3000/kite
+    # new: https://koding.com/-/userproxy/54.164.243.111/kite
+    #           or
+    #      http://localhost:8090/-/userproxy/54.164.243.111/kite
+
+    proxy = {
+      dev        : 'devproxy'
+      production : 'prodproxy'
+      sandbox    : 'sandboxproxy'
+    }[KD.config.environment] or 'devproxy'
+
+    {protocol} = document.location
+
+    return "#{protocol}//proxy.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+
 
   applyMarkdown: (text, options = {})->
 
