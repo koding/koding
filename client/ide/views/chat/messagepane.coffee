@@ -65,19 +65,23 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
   createHeaderViews: ->
 
-    channel = @getData()
+    channel      = @getData()
+    {appManager} = KD.singletons
 
     header = new KDCustomHTMLView
       tagName  : 'header'
       cssClass : 'general-header'
 
     header.addSubView @title = new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'workspace-name'
-      partial  : 'My Workspace'
+      tagName    : 'a'
+      cssClass   : 'workspace-name'
+      partial    : 'My Workspace'
+      attributes : href : '#'
       click      : (event) =>
         KD.utils.stopDOMEvent event
         @getDelegate().showSettingsPane()
+
+    appManager.tell 'IDE', 'getWorkspaceName', @title.bound 'updatePartial'
 
     header.addSubView @chevron = @createMenu()
 
