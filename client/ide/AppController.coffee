@@ -1508,6 +1508,7 @@ class IDEAppController extends AppController
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
       @removeMachineNode()
       @modal.destroy()
+      KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
       KD.singletons.router.handleRoute '/IDE'
 
 
