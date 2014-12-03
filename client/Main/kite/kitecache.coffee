@@ -22,6 +22,13 @@ class KiteCache
   signed = (queryString)-> "KITE_#{queryString}"
 
 
+  proxifyTransport = (kite)->
+
+    if kite.kite.name is 'klient'
+      kite.url = KD.utils.proxifyTransportUrl kite.url
+
+    return kite
+
   @clearAll = ->
 
     for kite in (Object.keys storage) when /^KITE_/.test kite
@@ -38,6 +45,7 @@ class KiteCache
   @cache = (query, kite)->
 
     queryString = generateQueryString query
+    kite = proxifyTransport kite
     try storage[signed queryString] = JSON.stringify kite
     log "Kite cached with '#{queryString}' queryString."
 
