@@ -34,8 +34,7 @@ class KodingKite extends KDObject
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
-
-    @connect()  unless @_connectAttempted or @isDisconnected
+    @connect()  if not @_connectAttempted or @isDisconnected
 
     unless @invalid
 
