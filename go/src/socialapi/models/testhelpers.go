@@ -11,6 +11,74 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+func CreateChannelWithParticipants() (*Channel, []*Account) {
+	account1 := CreateAccountWithTest()
+	account2 := CreateAccountWithTest()
+	account3 := CreateAccountWithTest()
+	accounts := []*Account{account1, account2, account3}
+
+	channel := CreateChannelWithTest(account1.Id)
+	AddParticipants(channel.Id, account1.Id, account2.Id, account3.Id)
+
+	return channel, accounts
+}
+
+func CreateChannelWithTest(accountId int64) *Channel {
+	// create and account instance
+	channel := NewChannel()
+	channel.CreatorId = accountId
+
+	err := channel.Create()
+	So(err, ShouldBeNil)
+
+	return channel
+}
+
+func CreateMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
+	cm := NewChannelMessage()
+
+	cm.AccountId = accountId
+	// set channel id
+	cm.InitialChannelId = channelId
+	cm.TypeConstant = typeConstant
+	// set body
+	cm.Body = "testing message"
+
+	err := cm.Create()
+	So(err, ShouldBeNil)
+
+	return cm
+}
+
+func CreateTrollMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
+	cm := NewChannelMessage()
+
+	cm.AccountId = accountId
+	// set channel id
+	cm.InitialChannelId = channelId
+	cm.TypeConstant = typeConstant
+	// set body
+	cm.Body = "testing message"
+	cm.MetaBits = Troll
+
+	err := cm.Create()
+	So(err, ShouldBeNil)
+
+	return cm
+}
+
+func AddParticipants(channelId int64, accountIds ...int64) {
+
+	for _, accountId := range accountIds {
+		participant := NewChannelParticipant()
+		participant.ChannelId = channelId
+		participant.AccountId = accountId
+
+		err := participant.Create()
+		So(err, ShouldBeNil)
+	}
+}
+
 func createAccount() (*Account, error) {
 	// create and account instance
 	author := NewAccount()
@@ -32,7 +100,7 @@ func createAccount() (*Account, error) {
 	return author, nil
 }
 
-func createAccountWithTest() *Account {
+func CreateAccountWithTest() *Account {
 	account, err := createAccount()
 	So(err, ShouldBeNil)
 	So(account, ShouldNotBeNil)
@@ -124,7 +192,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 
 	a := NewAccount()
 	a.Nick = accHex
-	a.OldId = accHex
+	a.OldId = accId.Hex()
 	if err := a.Create(); err != nil {
 		return nil, err
 	}

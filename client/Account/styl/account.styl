@@ -174,27 +174,55 @@ body.account
             padding               0
 
 
-    &.email-notifications
     &.linked-accounts
+    &.email-notifications
+      max-width                   800px
+      ul.off
+        li:not(:first-child):before
+          size                  100% 100%
+
+      li:not(:first-child)
+        &:before
+          bg                    color rgba(255,255,255,.9)
+          content               ''
+          size                  100% 0%
+          z-index               101
+          abs()
+
       li
         size                      100%, 65px
         line-height               65px
         border-bottom             1px solid #DEDEDE
         padding                   0 4px 0 4px
+        clear                     both
         borderBox()
+        rel()
 
         &:last-of-type
+        &.has-sub
           border-bottom           none
 
-        .title
+        &.sub
+          line-height             37px
+          height                  51px
+          padding                 0 4px 0 24px
+          > .title
+            font-size             14px
+
+        > .title
           line-height             normal
-          kalc                    width, 100% \- 65px
+          kalc                    width, 100% \- 115px
           display                 inline-block
           vertical-align          middle
 
         .koding-on-off
+        .kdselectbox
           margin-top              18px
           fr()
+
+        .kdselectbox
+          margin-top              0
+
 
     &.delete-account
       .delete-account-view
