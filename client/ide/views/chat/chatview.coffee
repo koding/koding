@@ -92,4 +92,3 @@ class IDE.ChatView extends KDTabView
 
 
   showSettingsPane: -> @showPane @settingsPane
-

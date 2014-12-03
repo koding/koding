@@ -414,3 +414,37 @@ pmLinkColor   = #B6B6B6
   header.chat-settings
 
     hidden()
+
+
+
+.chat-view .message-pane
+
+  .onboarding
+
+    abs()
+    top                     110px
+    z-index                 2 // acetz!
+
+    .arrow
+
+      r-sprite              'ide', 'chat-arrow'
+      display               inline-block
+      margin                0 42px 0 50px
+
+    .balloon
+
+      r-sprite              'ide', 'chat-balloon'
+      display               inline-block
+
+    p
+      color                 #52A840
+      font-size             18px
+      padding               0 30px
+      margin-top            20px
+      line-height           1.4em
+
+      a
+        color               #52A840
+        font-weight         600
+        text-decoration     none
+        pointer()

@@ -20,6 +20,9 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     @input.input.on 'focus', (event) => @handleFocus yes, event
 
 
+    @once 'NewParticipantButtonClicked', => @onboarding.destroy()
+
+
   handleThresholdReached: ->
 
     return  unless @visible
@@ -60,7 +63,30 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     isMyChannel = KD.isMyChannel channel
 
-    @newParticipantButton.destroy()  unless isMyChannel
+    if isMyChannel
+
+      return  if channel.participantCount > 1
+
+      @addSubView @onboarding = new KDCustomHTMLView
+        cssClass : 'onboarding'
+        click    : @bound 'handleOnboardingViewClick'
+        partial  : """
+          <div class="arrow"></div>
+          <div class="balloon"></div>
+          <p>This is your chat session, go ahead and <a href="#">add a friend</a> here.</p>
+        """
+
+    else
+
+      @newParticipantButton.destroy()
+
+
+  handleOnboardingViewClick: (e) ->
+
+    if e.target.tagName is 'A'
+
+      @onboarding.destroy()
+      @showAutoCompleteInput()
 
 
   createHeaderViews: ->
@@ -124,6 +150,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
 
   participantAdded: (participant) ->
+
+    @onboarding.destroy()
 
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant]
