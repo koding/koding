@@ -900,9 +900,7 @@ class IDEAppController extends AppController
 
   resurrectSnapshot: ->
 
-    snapshot = @rtm.getFromModel "#{KD.nick()}Snapshot"
-
-    for change in snapshot.values() when change.context
+    for change in @mySnapshot.values() when change.context
       @createPaneFromChange change
 
 
@@ -914,9 +912,6 @@ class IDEAppController extends AppController
 
     {paneHash} = context
     nickname   = KD.nick()
-    snapshot   = @rtm.getFromModel "#{nickname}Snapshot"
-    changes    = @rtm.getFromModel 'changes'
-
 
     if change.origin is nickname
 
@@ -939,18 +934,15 @@ class IDEAppController extends AppController
 
         delete context.file?.content?
 
-
-      changes.push change
-
-    return  unless snapshot
+      @changes.push change
 
     switch change.type
 
       when 'NewPaneCreated'
-        snapshot.set paneHash, change
+        @mySnapshot.set paneHash, change
 
       when 'PaneRemoved'
-        snapshot.delete paneHash
+        @mySnapshot.delete paneHash
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
