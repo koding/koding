@@ -20,7 +20,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     @input.input.on 'focus', (event) => @handleFocus yes, event
 
 
-    @once 'NewParticipantButtonClicked', => @onboarding.destroy()
+    @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
 
 
   handleThresholdReached: ->
