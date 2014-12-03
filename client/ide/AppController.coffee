@@ -850,6 +850,7 @@ class IDEAppController extends AppController
       @listenChangeEvents()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
+      @resurrectSnapshot()
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
@@ -893,6 +894,14 @@ class IDEAppController extends AppController
     return panes
 
 
+  resurrectSnapshot: ->
+
+    snapshot = @rtm.getFromModel "#{KD.nick()}Snapshot"
+
+    for change in snapshot.values() when change.context
+      @createPaneFromChange change
+
+
   syncChange: (change) ->
 
     {context} = change
@@ -901,7 +910,7 @@ class IDEAppController extends AppController
 
     {paneHash} = context
     nickname   = KD.nick()
-    map        = @rtm.getFromModel "#{nickname}Snapshot"
+    snapshot   = @rtm.getFromModel "#{nickname}Snapshot"
     changes    = @rtm.getFromModel 'changes'
 
 
@@ -929,15 +938,15 @@ class IDEAppController extends AppController
 
       changes.push change
 
-    return  unless map
+    return  unless snapshot
 
     switch change.type
 
       when 'NewPaneCreated'
-        map.set paneHash, change
+        snapshot.set paneHash, change
 
       when 'PaneRemoved'
-        map.delete paneHash
+        snapshot.delete paneHash
 
 
   watchParticipant: (targetParticipant) ->
@@ -961,16 +970,10 @@ class IDEAppController extends AppController
 
   listenChangeEvents: ->
 
-    # log 'listening changes'
-
-    # debugger
-
     @rtm.bindRealtimeListeners @changes, 'list'
     @rtm.bindRealtimeListeners @broadcastMessages, 'list'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
-
-      # log 'value added'
 
       [value] = event.values
 
