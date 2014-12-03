@@ -1111,6 +1111,8 @@ class IDEAppController extends AppController
     if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
 
 
+  getWorkspaceName: (callback) -> callback @workspaceData.name
+
   createChatPaneView: (channel) ->
 
     options = { @rtm, @isInSession }
