@@ -1,4 +1,4 @@
-class KodingKontrol extends (require 'kontrol')
+class KodingKontrol extends KontrolJS = (require 'kontrol')
 
   constructor: (options = {})->
 
@@ -37,8 +37,31 @@ class KodingKontrol extends (require 'kontrol')
     # reauthenticate with the current session token
     @authenticate @getAuthOptions()
 
-  fetchKites: (query = {}, rest...) ->
-    super (@injectQueryParams query), rest...
+
+
+  fetchKites: Promise.promisify (args = {}, callback) ->
+
+    @reauthenticate()  unless @kite?
+
+    {query} = args
+    args    = @injectQueryParams args
+
+    @kite.tell 'getKites', [args], (err, result) =>
+      if err?
+        callback err
+        return
+
+      unless result?
+        callback @createKiteNotFoundError args.query
+        return
+
+      if query? and result.kites.length is 1
+        KiteCache.cache query, result.kites.first
+
+      callback null, @createKites result.kites
+      return
+    return
+
 
   getVersion: (name) ->
     return KD.config.kites[name].version ? '1.0.0'
