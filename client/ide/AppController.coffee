@@ -953,23 +953,10 @@ class IDEAppController extends AppController
         snapshot.delete paneHash
 
 
-  watchParticipant: (targetParticipant) ->
+  watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
 
-    # TODO: Add presence check before watching user.
-    target   = targetParticipant.nickname
-    nickname = KD.nick()
-    mapName  = "#{nickname}WatchMap"
 
-    map = @rtm.getFromModel mapName
-
-    if map
-      if map.get target
-        map.delete target
-      else
-        map.set target, target
-    else
-      map = @rtm.create 'map', mapName
-      map.set target, target
+  unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
   listenChangeEvents: ->
