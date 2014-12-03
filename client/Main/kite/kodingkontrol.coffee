@@ -41,15 +41,8 @@ class KodingKontrol extends (require 'kontrol')
     super (@injectQueryParams query), rest...
 
   getVersion: (name) ->
-    return '1.0.0'  unless name?
-    { os, terminal, klient, kloud } = KD.config.kites
-    # TODO: this could be more elegant:
-    {
-      oskite   : os.version
-      terminal : terminal.version
-      klient   : klient.version
-      kloud    : kloud.version
-    }[name] ? ''
+    return KD.config.kites[name].version ? '1.0.0'
+
 
   injectQueryParams: (args) ->
 
@@ -59,21 +52,15 @@ class KodingKontrol extends (require 'kontrol')
 
     return args
 
+
   getCachedKite: (name, correlationName) ->
     @kites[name]?[correlationName]
+
 
   setCachedKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
     @kites[name][correlationName] = kite
 
-  hasKite: (options = {}) ->
-    { name, correlationName, region } = options
-    return (kite = @getCachedKite name, correlationName)?
-
-  getWhoParams: (kiteName, correlationName) ->
-    if kiteName in ['oskite', 'terminal']
-      return vmName: correlationName
-    return { correlationName }
 
   getKiteProxy: (options) ->
 
