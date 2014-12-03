@@ -9,15 +9,17 @@ class KodingKontrol extends (require 'kontrol')
     @kites   = {}
     @regions = {}
 
-    @reauthenticate()
 
   getAuthOptions: ->
 
+    @_lastUsedKey = Cookies.get 'clientId'
+
     autoConnect           : no
+    autoReconnect         : no
     url                   : @_kontrolUrl ? KD.config.newkontrol.url
     auth                  :
       type                : 'sessionID'
-      key                 : Cookies.get 'clientId'
+      key                 : @_lastUsedKey
     transportClass        : SockJS
     transportOptions      :
       heartbeatTimeout    : 30 * 1000 # 30 seconds
@@ -25,9 +27,13 @@ class KodingKontrol extends (require 'kontrol')
       protocols_whitelist : ['xhr-polling'] # , 'xhr-streaming']
 
 
-  reauthenticate: ->
-    # disconnect the old kontrol kite
-    @kite?.disconnect()
+  reauthenticate: (initial)->
+
+    if @_lastUsedKey?
+      if (Cookies.get 'clientId') isnt @_lastUsedKey
+        # disconnect the old kontrol kite
+        @kite?.disconnect()
+
     # reauthenticate with the current session token
     @authenticate @getAuthOptions()
 
