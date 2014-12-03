@@ -1358,6 +1358,7 @@ class IDEAppController extends AppController
         @statusBar.emit 'CollaborationEnded'
         @chat.emit 'CollaborationEnded'
         @modal.destroy()
+        KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
       @rtm.deleteFile @getRealTimeFileName()
 
@@ -1513,6 +1514,7 @@ class IDEAppController extends AppController
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
       @removeMachineNode()
       @modal.destroy()
+      KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
       KD.singletons.router.handleRoute '/IDE'
 
 
