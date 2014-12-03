@@ -20,6 +20,8 @@ build:
     - script:
         name: get git ref
         code: |
+          git branch -r -v
+          git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7}
           REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
           echo $REMOTE_BRANCH
           scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
