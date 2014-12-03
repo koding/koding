@@ -25,7 +25,7 @@ const (
 	SCHEDULE      = "0 0 0 * * *"
 
 	Subject     = "[Koding] Your Koding Activity for today: %s"
-	Information = "Here what's happened on Koding.com today!"
+	Information = "Here is what happened on Koding.com today!"
 )
 
 type Controller struct {
