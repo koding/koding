@@ -363,6 +363,8 @@ class PrivateMessagePane extends MessagePane
 
   showAutoCompleteInput: ->
 
+    @emit 'NewParticipantButtonClicked'
+
     @autoCompleteForm.toggleClass 'active'
     @newParticipantButton.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
