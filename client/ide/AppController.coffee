@@ -997,11 +997,10 @@ class IDEAppController extends AppController
   handleChange: (change) ->
 
     {context, origin, type} = change
-    myWatchMap = @rtm.getFromModel "#{KD.nick()}WatchMap"
 
     return if not context or not origin or origin is KD.nick()
 
-    amIWatchingChangeOwner = not myWatchMap or myWatchMap.keys().length is 0 or origin in myWatchMap.keys()
+    amIWatchingChangeOwner = @myWatchMap.keys().length is 0 or origin in @myWatchMap.keys()
 
     if amIWatchingChangeOwner
       targetPane = @getPaneByChange change
