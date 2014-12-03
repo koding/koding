@@ -86,6 +86,7 @@ pmLinkColor   = #B6B6B6
     borderBox()
 
     header
+
       .chat-link
         height              20px
         line-height         20px
@@ -99,22 +100,24 @@ pmLinkColor   = #B6B6B6
           margin-right      7px
           r-sprite          'ide', 'chat-back'
 
-      div.buttons
-        padding             12px 0
+    div.buttons
+      abs()
+      padding               16px 0
+      bottom                0
 
-      .kdbutton
-        &[disabled]
-          bg                color #D0D0D0
+    .kdbutton
+      &[disabled]
+        bg                  color #D0D0D0
 
-        &.green
-          bg                color #52A840
+      &.green
+        bg                  color #52A840
 
-        &.red
-          bg                color #F56778
+      &.red
+        bg                  color #F56778
 
-        span.button-title
-          font-size         12px
-          line-height       18px
+      span.button-title
+        font-size           12px
+        line-height         18px
 
   .kdselectbox
     height                  24px
@@ -339,7 +342,7 @@ pmLinkColor   = #B6B6B6
       vertical-align        top
       ellipsis()
 
-  header.chat-settings
+  .chat-settings .buttons
     button
       size                  293px 34px
 
@@ -378,3 +381,36 @@ pmLinkColor   = #B6B6B6
       width                 100%
       margin-top            10px
       color                 #6a6a6a
+
+
+.chat-view .chat-settings .warning
+
+  hidden()
+
+
+.chat-view.onboarding
+
+  height                    148px
+
+  .chat-settings .warning
+
+    visible()
+    text-align              center
+
+    p
+
+      color                 #52A840
+      margin-top            13px
+      font-size             16px
+
+    span
+
+      color                 #575757
+      font-size             14px
+      display               inline-block
+      margin-top            10px
+
+  .settings
+  header.chat-settings
+
+    hidden()
