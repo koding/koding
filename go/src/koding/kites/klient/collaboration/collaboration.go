@@ -12,8 +12,18 @@ type Collaboration struct {
 }
 
 func New() *Collaboration {
+	// Try the persistent storage first. If it fails, try the in-memory one.
+
+	var db Storage
+	var err error
+
+	db, err = NewBoltStorage()
+	if err != nil {
+		db = NewMemoryStorage()
+	}
+
 	return &Collaboration{
-		Storage: NewBolt(),
+		Storage: db,
 	}
 }
 
@@ -26,7 +36,7 @@ func (c *Collaboration) Share(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("Wrong usage.")
 	}
 
-	if err := c.Set(params.Username, ""); err  != nil {
+	if err := c.Set(params.Username, ""); err != nil {
 		return nil, errors.New("user is already in the shared list.")
 	}
 
@@ -42,7 +52,7 @@ func (c *Collaboration) Unshare(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("Wrong usage.")
 	}
 
-	if  err := c.Delete(params.Username); err != nil {
+	if err := c.Delete(params.Username); err != nil {
 		return nil, errors.New("user is not in the shared list.")
 	}
 
