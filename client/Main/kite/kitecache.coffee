@@ -38,8 +38,13 @@ class KiteCache
 
 
   @unset = (query)->
-    queryString = generateQueryString query
-    delete storage[signed queryString]
+
+    if typeof query is 'object'
+      query = generateQueryString query
+
+    delete storage[signed query]
+
+    log "Kite cache cleared for #{query}"
 
 
   @cache = (query, kite)->
