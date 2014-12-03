@@ -18,7 +18,6 @@ import (
 	"github.com/koding/kite/testutil"
 
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/koding"
@@ -32,16 +31,16 @@ import (
 )
 
 var (
-	kloudKite *kite.Kite
-	kld       *kloud.Kloud
-	remote    *kite.Client
-	conf      *config.Config
-	provider  *koding.Provider
+	kloudKite  *kite.Kite
+	kld        *kloud.Kloud
+	remote     *kite.Client
+	conf       *config.Config
+	provider   *koding.Provider
+	machineId0 = "koding_id0"
 )
 
 const (
-	machineId0 = "koding_id0"
-	etcdIp     = "192.168.59.103:4001"
+	etcdIp = "192.168.59.103:4001"
 )
 
 type args struct {
@@ -74,8 +73,10 @@ func init() {
 		log.Fatal(err)
 	}
 
+	provider := newKodingProvider
+
 	// Add Kloud handlers
-	kld := newKloud()
+	kld := newKloud(provider)
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("start", kld.Start)
@@ -86,6 +87,13 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
+
+	// create test document in mongodb
+
+	machineId0, err = provider.Create("testuser")
+	if err != nil {
+		return panic(err)
+	}
 
 	user := kite.New("user", "0.0.1")
 	user.Config = conf.Copy()
@@ -485,24 +493,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 	return nil
 }
 
-func newKloud() *kloud.Kloud {
-	testChecker := &TestChecker{}
-	testStorage := &TestStorage{}
-	testDomainStorage := &TestDomainStorage{}
-	testLocker := &TestLocker{}
-	testLocker.IdLock = idlock.New()
-
-	var _ kloud.Storage = testStorage
-	var _ kloud.Locker = testLocker
-	var _ koding.Checker = testChecker
-
-	kld := kloud.New()
-	kld.Log = newLogger("kloud", false)
-	kld.Locker = testLocker
-	kld.Storage = testStorage
-	kld.DomainStorage = testDomainStorage
-	kld.Debug = true
-
+func newKodingProvider() *koding.Provider {
 	auth := aws.Auth{
 		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
 		SecretKey: "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",
@@ -515,8 +506,9 @@ func newKloud() *kloud.Kloud {
 
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
+	domainStorage := koding.NewDomainStorage(db)
 
-	provider = &koding.Provider{
+	return &koding.Provider{
 		Session:           db,
 		Kite:              kloudKite,
 		Log:               newLogger("koding", false),
@@ -531,18 +523,30 @@ func newKloud() *kloud.Kloud {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:        koding.NewDNSClient("dev.koding.io", auth),
-		Bucket:     koding.NewBucket("koding-klient", "development/latest", auth),
-		KeyName:    keys.DeployKeyName,
-		PublicKey:  keys.DeployPublicKey,
-		PrivateKey: keys.DeployPrivateKey,
+		DNS:           koding.NewDNSClient("dev.koding.io", auth),
+		DomainStorage: domainStorage,
+		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
+		KeyName:       keys.DeployKeyName,
+		PublicKey:     keys.DeployPublicKey,
+		PrivateKey:    keys.DeployPrivateKey,
 		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) {
 			return testChecker, nil
 		},
 	}
+}
 
+func newKloud(provider *koding.Provider) *kloud.Kloud {
+	testChecker := &TestChecker{}
+	var _ koding.Checker = testChecker
+
+	kld := kloud.New()
+	kld.Log = newLogger("kloud", false)
+	kld.Locker = provider
+	kld.Storage = provider
+	kld.DomainStorage = provider.DomainStorage
+	kld.Domainer = provider.DNS
+	kld.Debug = true
 	kld.AddProvider("koding", provider)
-
 	return kld
 }
 
