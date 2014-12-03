@@ -14,10 +14,6 @@ class ComputeController extends KDController
 
     mainController.ready =>
 
-      @kloud         = kontrol.getKite
-        name         : "kloud"
-        environment  : KD.config.environment
-
       @eventListener = new ComputeEventListener
       @stateChecker  = new ComputeStateChecker
 
@@ -25,6 +21,12 @@ class ComputeController extends KDController
       @on "MachineDestroyed", => do @reset
 
       @fetchStacks =>
+
+        @kloud         = kontrol.getKite
+          name         : "kloud"
+          environment  : KD.config.environment
+          version      : KD.config.kites.kloud.version
+          username     : KD.config.kites.kontrol.username
 
         KD.singletons
           .paymentController.on 'UserPlanUpdated', =>
