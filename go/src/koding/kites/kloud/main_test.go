@@ -73,7 +73,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	provider := newKodingProvider
+	provider = newKodingProvider()
 
 	// Add Kloud handlers
 	kld := newKloud(provider)
@@ -87,13 +87,6 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
-
-	// create test document in mongodb
-
-	machineId0, err = provider.Create("testuser")
-	if err != nil {
-		return panic(err)
-	}
 
 	user := kite.New("user", "0.0.1")
 	user.Config = conf.Copy()
@@ -116,7 +109,6 @@ func init() {
 }
 
 // Main VM action tests (build, start, stop, destroy, resize, reinit)
-
 func TestPing(t *testing.T) {
 	_, err := remote.Tell("kite.ping")
 	if err != nil {
@@ -124,30 +116,33 @@ func TestPing(t *testing.T) {
 	}
 }
 
-func TestInvalidMethodsOnUnitialized(t *testing.T) {
-	if err := start(machineId0); err == nil {
-		t.Error("`start` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := stop(machineId0); err == nil {
-		t.Error("`stop` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := destroy(machineId0); err == nil {
-		t.Error("`destroy` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := resize(machineId0); err == nil {
-		t.Error("`resize` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := reinit(machineId0); err == nil {
-		t.Error("`reinit` method can not be called on `uninitialized` machines.")
-	}
-}
-
 func TestBuild(t *testing.T) {
+	// create test document in mongodb
+	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		panic(err)
+	}
+
+	meta := map[string]interface{}{
+		"region":        "us-east-1",
+		"instance_type": "t2.micro",
+		"storage_size":  3,
+		"alwaysOn":      false,
+		"user_ssh_keys": []string{publicKey},
+	}
+
+	machineId0, err = provider.Create("testuser", meta)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if err := build(machineId0); err != nil {
+		t.Error(err)
+	}
+
+	// now try to ssh into the machine with temporary private key we created in
+	// the beginning
+	if err := checkSSHKey(machineId0, privateKey); err != nil {
 		t.Error(err)
 	}
 }
@@ -246,17 +241,6 @@ func build(id string) error {
 		MachineId: id,
 	}
 
-	// inject a generated public key to machine data so build can use it during
-	// cloud-init provisioning
-	data := GetMachineData(id)
-	privateKey, publicKey, err := sshutil.TemporaryKey()
-	if err != nil {
-		return err
-	}
-
-	data.Builder["user_ssh_keys"] = []string{publicKey}
-	SetMachineData(id, data)
-
 	resp, err := remote.Tell("build", buildArgs)
 	if err != nil {
 		return err
@@ -275,21 +259,25 @@ func build(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
+	return listenEvent(eArgs, machinestate.Running)
 
+}
+
+func checkSSHKey(id, privateKey string) error {
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
-	newData := GetMachineData(id)
+	machine, err := provider.Get(id)
+	if err != nil {
+		return err
+	}
 
 	sshConfig, err := sshutil.SshConfig("root", privateKey)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("Connecting to machine with ip '%s' via ssh\n", newData.IpAddress)
-	sshClient, err := sshutil.ConnectSSH(newData.IpAddress+":22", sshConfig)
+	log.Printf("Connecting to machine with ip '%s' via ssh\n", machine.IpAddress)
+	sshClient, err := sshutil.ConnectSSH(machine.IpAddress+":22", sshConfig)
 	if err != nil {
 		return err
 	}
@@ -508,6 +496,8 @@ func newKodingProvider() *koding.Provider {
 	db := modelhelper.Mongo
 	domainStorage := koding.NewDomainStorage(db)
 
+	testChecker := &TestChecker{}
+
 	return &koding.Provider{
 		Session:           db,
 		Kite:              kloudKite,
@@ -516,7 +506,6 @@ func newKodingProvider() *koding.Provider {
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
 		Test:              true,
-		DomainStorage:     &TestDomainStorage{},
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -535,18 +524,15 @@ func newKodingProvider() *koding.Provider {
 	}
 }
 
-func newKloud(provider *koding.Provider) *kloud.Kloud {
-	testChecker := &TestChecker{}
-	var _ koding.Checker = testChecker
-
+func newKloud(p *koding.Provider) *kloud.Kloud {
 	kld := kloud.New()
 	kld.Log = newLogger("kloud", false)
-	kld.Locker = provider
-	kld.Storage = provider
-	kld.DomainStorage = provider.DomainStorage
-	kld.Domainer = provider.DNS
+	kld.Locker = p
+	kld.Storage = p
+	kld.DomainStorage = p.DomainStorage
+	kld.Domainer = p.DNS
 	kld.Debug = true
-	kld.AddProvider("koding", provider)
+	kld.AddProvider("koding", p)
 	return kld
 }
 

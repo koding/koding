@@ -14,15 +14,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func (p *Provider) Create(username string) (string, error) {
-	meta := map[string]interface{}{
-		"type":          "amazon",
-		"region":        "us-east-1",
-		"instance_type": "t2.micro",
-		"storage_size":  3,
-		"alwaysOn":      false,
-	}
-
+func (p *Provider) Create(username string, meta map[string]interface{}) (string, error) {
 	machine := &MachineDocument{
 		Id:         bson.NewObjectId(),
 		Label:      "",

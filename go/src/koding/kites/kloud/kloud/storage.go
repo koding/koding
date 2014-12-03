@@ -6,11 +6,6 @@ import (
 )
 
 type Storage interface {
-	// Create creates a new machine data for the given username with the
-	// default values. It returns the ID of the machine data so the following
-	// methods can be used to manage the data.
-	Create(username string) (string, error)
-
 	// Get returns the machine data associated with the given id from the
 	// username
 	Get(id string) (*protocol.Machine, error)

@@ -6,8 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"koding/kites/kloud/idlock"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/koding"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
@@ -53,79 +51,7 @@ func init() {
 			},
 		},
 	}
-}
 
-// TestDomainStorage satisfies the DomainStorage interface
-type TestDomainStorage struct{}
-
-func (t *TestDomainStorage) Add(*protocol.Domain) error { return nil }
-
-func (t *TestDomainStorage) Delete(name string) error { return nil }
-
-func (t *TestDomainStorage) UpdateMachine(name, machine string) error { return nil }
-
-func (t *TestDomainStorage) Get(name string) (*protocol.Domain, error) { return nil, nil }
-
-func (t *TestDomainStorage) GetByMachine(machine string) ([]*protocol.Domain, error) {
-	return nil, nil
-}
-
-// TestStorage satisfies the Storage interface
-type TestStorage struct{}
-
-func (t *TestStorage) Get(id string) (*protocol.Machine, error) {
-	return GetMachineData(id), nil
-}
-
-func (t *TestStorage) Delete(id string) error {
-	// delete(TestMachineData, id)
-	return nil
-}
-
-func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
-	machine := GetMachineData(id)
-
-	switch s.Type {
-	case "build", "reinit":
-		machine.QueryString = s.Data["queryString"].(string)
-		machine.IpAddress = s.Data["ipAddress"].(string)
-		machine.Domain.Name = s.Data["domainName"].(string)
-		machine.Builder["instanceId"] = s.Data["instanceId"]
-		machine.Builder["instanceName"] = s.Data["instanceName"]
-	case "start":
-		machine.IpAddress = s.Data["ipAddress"].(string)
-		machine.Domain.Name = s.Data["domainName"].(string)
-		machine.Builder["instanceId"] = s.Data["instanceId"]
-	case "stop", "resize":
-		machine.IpAddress = s.Data["ipAddress"].(string)
-	default:
-		return nil
-	}
-
-	SetMachineData(id, machine)
-
-	return nil
-}
-
-func (t *TestStorage) UpdateState(id, reason string, state machinestate.State) error {
-	machineData := GetMachineData(id)
-	machineData.State = state
-	SetMachineData(id, machineData)
-	return nil
-}
-
-// TestLocker satisfies the Locker interface
-type TestLocker struct {
-	*idlock.IdLock
-}
-
-func (l *TestLocker) Lock(id string) error {
-	l.Get(id).Lock()
-	return nil
-}
-
-func (l *TestLocker) Unlock(id string) {
-	l.Get(id).Unlock()
 }
 
 // TestChecker satisfies Checker interface
