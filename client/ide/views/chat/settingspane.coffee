@@ -11,6 +11,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @participantViews    = {}
     {@rtm, @isInSession} = options
 
+    @amIHost = not @isInSession # not @isInSession means user is host, bad naming!
+
     @createElements()
 
     @on 'CollaborationNotInitialized', => @everyone.destroySubViews()
@@ -161,7 +163,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @participantViews[username]?.destroy()
     delete @participantViews[username]
 
-    if unshare and not @isInSession # not @isInSession means user is host, bad naming!
+    if unshare and @amIHost
       @emit 'ParticipantKicked', username
 
 
