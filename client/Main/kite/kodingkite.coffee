@@ -31,10 +31,11 @@ class KodingKite extends KDObject
     @forwardEvent @transport, 'close'
     @forwardEvent @transport, 'open'
 
-    @transport.connect() unless @isDisconnected
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
+
+    @connect()  unless @_connectAttempted or @isDisconnected
 
     unless @invalid
 
@@ -46,8 +47,8 @@ class KodingKite extends KDObject
 
       Promise.reject
         name    : "KiteInvalid"
-        message : """Kite is invalid. This kite (#{name}) not exists
-                     or there is a problem with connection."""
+        message : "Kite is invalid. This kite (#{name}) not exists
+                   or there is a problem with connection."
         err     : @_invalid
 
 
@@ -60,7 +61,10 @@ class KodingKite extends KDObject
 
   @constructors = {}
 
-  connect:    -> @transport?.connect()
+  connect: ->
+    @transport?.connect()
+    @_connectAttempted = yes
+
   disconnect: ->
     @isDisconnected = yes
     @transport?.disconnect()
@@ -71,4 +75,3 @@ class KodingKite extends KDObject
 
     KD.utils.wait 1000, =>
       @transport?.connect()
-
