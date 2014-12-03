@@ -820,13 +820,20 @@ class IDEAppController extends AppController
     @rtm.once 'FileLoaded', (doc) =>
       @rtm.setRealtimeDoc doc
       nickname           = KD.nick()
+      myWatchMapName     = "#{nickname}WatchMap"
+      mySnapshotName     = "#{nickname}Snapshot"
+
       @participants      = @rtm.getFromModel 'participants'
       @changes           = @rtm.getFromModel 'changes'
       @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
+      @myWatchMap        = @rtm.getFromModel myWatchMapName
+      @mySnapshot        = @rtm.getFromModel mySnapshotName
 
       @participants      or= @rtm.create 'list', 'participants', []
       @changes           or= @rtm.create 'list', 'changes', []
       @broadcastMessages or= @rtm.create 'list', 'broadcastMessages', []
+      @myWatchMap        or= @rtm.create 'map',  myWatchMapName, {}
+      @mySnapshot        or= @rtm.create 'map',  mySnapshotName, @createWorkspaceSnapshot()
 
       # if @amIHost
       #   @changes.clear()
@@ -871,13 +878,7 @@ class IDEAppController extends AppController
   addParticipant: (account) ->
 
     {hash, nickname} = account.profile
-    snapshotName     = "#{nickname}Snapshot"
-    snapshot         = @rtm.getFromModel snapshotName
-
     @participants.push { nickname, hash }
-
-    unless snapshot
-      @rtm.create 'map', snapshotName, @createWorkspaceSnapshot()
 
 
   createWorkspaceSnapshot: ->
