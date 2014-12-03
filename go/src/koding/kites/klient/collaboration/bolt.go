@@ -28,7 +28,7 @@ func NewBoltStorage() (*boltdb, error) {
 	return d, nil
 }
 
-// DB satisfies Storage interface
+// boltdb satisfies Storage interface
 type boltdb struct {
 	*bolt.DB
 }
