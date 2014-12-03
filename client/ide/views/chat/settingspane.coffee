@@ -180,13 +180,17 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     return """
       <header class='chat-settings'>
-      {{> @back}}
-      <div class='buttons'>
-        {{> @startSession}} {{> @endSession}}
-      </div>
+        {{> @back}}
       </header>
       <ul class='settings default'>
         <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
       </ul>
       {{> @everyone}}
+      <div class="warning">
+        <p>Please be advised</p>
+        <span>When you start a session, you share your "Entire VM".</span>
+      </div>
+      <div class='buttons'>
+        {{> @startSession}} {{> @endSession}}
+      </div>
     """
