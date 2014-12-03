@@ -70,6 +70,7 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
     @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
+    @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
   # event handling
 
@@ -773,6 +774,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+
+  handleReloadMessages: -> @fetchWorkspaces => @sections.messages.reload()
 
 
   handleWorkspaceUnreadCounts: (chatData) ->
