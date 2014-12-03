@@ -6,6 +6,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     super options, data
 
+    @define 'visible', => @getDelegate().visible
+
     @on 'AddedParticipant', @bound 'participantAdded'
 
     # forward this event to channel, so that
@@ -14,6 +16,38 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     @on 'AddedParticipant', (participant) =>
       channel = @getData()
       channel.emit 'AddedToChannel', participant
+
+    @input.input.on 'focus', (event) => @handleFocus yes, event
+
+
+  handleThresholdReached: ->
+
+    return  unless @visible
+    return  unless KD.singletons.windowController.focused
+
+    @glance()
+
+
+  handleFocus: (isFocused, event) ->
+
+    return  unless isFocused
+    return  unless $.contains @getElement(), event.target
+    return  unless @isPageAtBottom()
+
+    @glance()
+
+
+  glance: ->
+
+    return  unless @visible
+    return  unless KD.singletons.windowController.focused
+
+    super
+
+    { mainView } = KD.singletons
+    channel      = @getData()
+
+    mainView.glanceChannelWorkspace channel
 
 
   createParticipantsView: ->
@@ -71,7 +105,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     'Search'   : { cssClass: 'disabled', callback: noop }
     'Settings' : { callback: @getDelegate().bound 'showSettingsPane' }
-    'Minimize' : { callback: @getDelegate().bound 'hide' }
+    'Minimize' : { callback: @getDelegate().bound 'end' }
 
 
   createInputWidget: ->
