@@ -137,9 +137,8 @@ class MainController extends KDController
     @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
-    if KD.useNewKites
+    unless firstLoad
       (KD.getSingleton 'kontrol').reauthenticate()
-      # (KD.getSingleton 'kontrolProd').reauthenticate()
 
     account.fetchMyPermissionsAndRoles (err, res)=>
 

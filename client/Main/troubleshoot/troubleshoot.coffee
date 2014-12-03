@@ -55,16 +55,6 @@ class Troubleshoot extends KDObject
     @registerConnections()
     @registerBrokers()
 
-    if localStorage.useNewKites is '1'
-      @registerItem "newKite",
-        troubleshoot: (callback) ->
-          KD.singletons.kontrol.fetchKite({ query: { name: 'kontrol' }})
-          .then(callback)
-          .catch (err) ->
-            warn err
-        recover: ->
-          ErrorLog.create "Troubleshoot toggled kite stack"
-          KD.toggleKiteStack()
 
     # register osKite
     # vc = KD.singleton "vmController"
