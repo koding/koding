@@ -1,9 +1,6 @@
 package emailmodels
 
-import "fmt"
-
 type EmailSummary struct {
-	Title    string
 	Channels []*ChannelSummary
 }
 
@@ -16,25 +13,6 @@ func NewEmailSummary(css ...*ChannelSummary) *EmailSummary {
 	return es
 }
 
-func (es *EmailSummary) BuildPrivateMessageTitle() {
-	messagePreviewCount := 0
-	unreadMessageCount := 0
-	for _, channel := range es.Channels {
-		unreadMessageCount += channel.UnreadCount
-		messagePreviewCount += len(channel.MessageSummaries)
-	}
-
-	title := "You have a few unread messages on Koding.com."
-
-	title = fmt.Sprintf("%s Here are the latest %d.", title, messagePreviewCount)
-
-	if unreadMessageCount > messagePreviewCount {
-		title = fmt.Sprintf("%s You also have %d more.", title, unreadMessageCount-messagePreviewCount)
-	}
-
-	es.Title = title
-}
-
 func getPluralSuffix(count int) string {
 	if count > 1 {
 		return "s"
@@ -44,7 +22,7 @@ func getPluralSuffix(count int) string {
 }
 
 func (es *EmailSummary) Render() (string, error) {
-	body := es.Title
+	body := ""
 	for _, cs := range es.Channels {
 		content, err := cs.Render()
 		if err != nil {

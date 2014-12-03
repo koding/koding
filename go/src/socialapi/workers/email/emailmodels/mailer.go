@@ -13,6 +13,7 @@ type Mailer struct {
 	Body          string
 	Subject       string
 	EmailSettings *EmailSettings
+	Information   string
 }
 
 func NewMailer(a *models.Account, es *EmailSettings) (*Mailer, error) {
@@ -67,6 +68,7 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 
 func (m *Mailer) prepareContentWithLayout(contentType string) (string, error) {
 	lc := NewLayoutContent(m.UserContact, contentType, m.Body)
+	lc.Information = m.Information
 
 	return lc.Render()
 }

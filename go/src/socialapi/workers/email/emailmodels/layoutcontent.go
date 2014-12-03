@@ -12,9 +12,11 @@ type LayoutContent struct {
 	// Title used in head tag
 	Title string
 	// Body is all purpose main mail content field
-	Body     string
-	Hostname string
-	ShowLink bool
+	Body string
+	// Information is used as first sentence of email
+	Information string
+	Hostname    string
+	ShowLink    bool
 	// Token used for unsubscription
 	Token string
 	// RecipientEmail used for unsubscription

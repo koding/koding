@@ -111,6 +111,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 	mailer := &emailmodels.Mailer{
 		UserContact:   uc,
 		EmailSettings: n.settings,
+		Information:   prepareInformation(mc),
 	}
 
 	return mailer.SendMail(nc.TypeConstant, body, prepareSubject(mc))
@@ -123,6 +124,15 @@ func prepareSubject(mc *models.MailerContainer) string {
 	}
 
 	return fmt.Sprintf(Subject, t.GetDefinition())
+}
+
+func prepareInformation(mc *models.MailerContainer) string {
+	t, err := mc.Content.GetContentType()
+	if err != nil {
+		return ""
+	}
+
+	return fmt.Sprintf("You have a new %s on Koding.com", t.GetDefinition())
 }
 
 func (c *Controller) validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {

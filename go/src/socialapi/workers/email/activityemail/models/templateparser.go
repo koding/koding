@@ -71,7 +71,6 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 	}
 
 	es := emailmodels.NewEmailSummary(channelSummaries...)
-	es.Title = "Here what's happened on Koding today!"
 
 	return es.Render()
 }

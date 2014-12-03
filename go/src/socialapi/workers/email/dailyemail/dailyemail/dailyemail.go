@@ -24,7 +24,8 @@ const (
 	RECIPIENTSKEY = "recipients"
 	SCHEDULE      = "0 0 0 * * *"
 
-	Subject = "[Koding] Your Koding Activity for today: %s"
+	Subject     = "[Koding] Your Koding Activity for today: %s"
+	Information = "Here what's happened on Koding.com today!"
 )
 
 type Controller struct {
@@ -136,6 +137,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	mailer := emailmodels.Mailer{
 		EmailSettings: n.settings,
 		UserContact:   uc,
+		Information:   Information,
 	}
 
 	var loc *time.Location
