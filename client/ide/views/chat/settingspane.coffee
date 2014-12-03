@@ -211,7 +211,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       </ul>
       {{> @everyone}}
       <div class="warning">
-        <span>Have sessions with people you trust, they can view and edit <strong>all</strong> your files.</span>
+        <span>Have sessions with people <strong>you trust</strong>, they can view and edit <strong>all your files</strong>.</span>
       </div>
       <div class='buttons'>
         {{> @startSession}} {{> @endSession}}
