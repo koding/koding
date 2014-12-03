@@ -278,8 +278,6 @@ module.exports = [
   "kite/kites/klient.coffee",
   "kite/kites/kloud.coffee",
 
-  # Virtualization CONTROLLER
-  "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
 
   "status.coffee",

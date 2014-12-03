@@ -55,13 +55,6 @@ class Troubleshoot extends KDObject
     @registerConnections()
     @registerBrokers()
 
-
-    # register osKite
-    # vc = KD.singleton "vmController"
-    # @registerItem "osKite",
-    #   troubleshoot : vc.bound 'ping'
-    #   recover      : vc.bound 'ping'
-
     # register bongo
     KD.remote.once "modelsReady", =>
       bongoStatus = KD.remote.api.JSystemStatus
