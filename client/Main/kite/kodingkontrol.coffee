@@ -123,7 +123,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     # Get options
     { name, correlationName, region, transportOptions,
-      username, environment, queryString } = options
+      username, environment, version, queryString } = options
 
     # If no `correlationName` is defined assume this kite instance
     # is a singleton kite instance and keep track of it with this keyword
@@ -156,10 +156,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     # Query kontrol
     @fetchKite
-      query : query ? { name, region, username, environment }
-
-      # TODO : Implement optional kite.who
-      # who  : @getWhoParams name, correlationName
+      query : query ? { name, region, username, version, environment }
 
     # Connect to kite
     .then(kite.bound 'setTransport')
