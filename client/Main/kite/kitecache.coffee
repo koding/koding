@@ -1,0 +1,63 @@
+class KiteCache
+
+  storage = window.localStorage
+
+  log = (rest...)->
+    console.log "[KC] ", rest...
+
+
+  generateQueryString = (options)->
+
+    keys = [ "username", "environment", "name",
+             "version", "region", "hostname", "id" ]
+
+    query = ""
+
+    for key in keys
+      query += "/#{options[key] ? ""}"
+
+    return query
+
+
+  signed = (queryString)-> "KITE_#{queryString}"
+
+
+  @clearAll = ->
+
+    for kite in (Object.keys storage) when /^KITE_/.test kite
+      delete storage[kite]
+
+    log "All Kite caches cleared."
+
+
+  @unset = (query)->
+    queryString = generateQueryString query
+    delete storage[signed queryString]
+
+
+  @cache = (query, kite)->
+
+    queryString = generateQueryString query
+    try storage[signed queryString] = JSON.stringify kite
+    log "Kite cached with '#{queryString}' queryString."
+
+
+  @get = (query)->
+
+    queryString = generateQueryString query
+
+    kite = storage[signed queryString]
+
+    unless kite?
+      log "Kite requested with '#{queryString}' queryString, but not found."
+      return
+
+    try
+      kite = JSON.parse kite
+      # log "CACHED KITE FOUND:", query, kite
+    catch e
+      warn "parse failed", e
+      @unset query
+      kite = null
+
+    return kite
