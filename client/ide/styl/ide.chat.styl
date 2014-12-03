@@ -397,24 +397,23 @@ pmLinkColor   = #B6B6B6
     visible()
     text-align              center
 
-    p
-
-      color                 #52A840
-      margin-top            13px
-      font-size             16px
-
     span
 
-      color                 #575757
+      color                 #777
       font-size             14px
       display               inline-block
-      margin-top            10px
+      margin-top            22px
+      line-height           1.4em
+
+    strong
+
+      font-weight           600
+      color                 #575757
 
   .settings
   header.chat-settings
 
     hidden()
-
 
 
 .chat-view .message-pane
@@ -424,6 +423,7 @@ pmLinkColor   = #B6B6B6
     abs()
     top                     110px
     z-index                 2 // acetz!
+    background              #F8F8F8
 
     .arrow
 
@@ -442,6 +442,25 @@ pmLinkColor   = #B6B6B6
       padding               0 30px
       margin-top            20px
       line-height           1.4em
+
+      a
+        color               #52A840
+        font-weight         600
+        text-decoration     none
+        pointer()
+
+.chat-view
+
+  .everyone
+
+    margin-top              12px
+
+    p
+      color                 #7b7b7b
+      font-size             13px
+      margin-top            20px
+      line-height           1.4em
+      text-align            center
 
       a
         color               #52A840
