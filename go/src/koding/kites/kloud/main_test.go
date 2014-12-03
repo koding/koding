@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,6 +17,7 @@ import (
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
@@ -502,28 +504,41 @@ func newKloud() *kloud.Kloud {
 	kld.Debug = true
 
 	auth := aws.Auth{
-		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
-		SecretKey: "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",
+		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey: "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",
 	}
 
-	provider = &koding.Provider{
-		Kite: kloudKite,
-		Log:  newLogger("koding", false),
+	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
+	if mongoURL == "" {
+		panic("KLOUD_MONGODB_URL is not set")
+	}
 
+	modelhelper.Initialize(mongoURL)
+	db := modelhelper.Mongo
+
+	provider = &koding.Provider{
+		Session:           db,
+		Kite:              kloudKite,
+		Log:               newLogger("koding", false),
 		KontrolURL:        conf.KontrolURL,
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
 		Test:              true,
 		DomainStorage:     &TestDomainStorage{},
-		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
-		DNS:               koding.NewDNSClient("dev.koding.io", auth), // TODO: Use test.koding.io
-		Bucket:            koding.NewBucket("koding-klient", "development/latest", auth),
-
-		KeyName:     keys.DeployKeyName,
-		PublicKey:   keys.DeployPublicKey,
-		PrivateKey:  keys.DeployPrivateKey,
-		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) { return testChecker, nil },
-		PlanFetcher: func(_ *kloudprotocol.Machine) (koding.Plan, error) { return koding.Free, nil },
+		EC2Clients: multiec2.New(auth, []string{
+			"us-east-1",
+			"ap-southeast-1",
+			"us-west-2",
+			"eu-west-1",
+		}),
+		DNS:        koding.NewDNSClient("dev.koding.io", auth),
+		Bucket:     koding.NewBucket("koding-klient", "development/latest", auth),
+		KeyName:    keys.DeployKeyName,
+		PublicKey:  keys.DeployPublicKey,
+		PrivateKey: keys.DeployPrivateKey,
+		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) {
+			return testChecker, nil
+		},
 	}
 
 	kld.AddProvider("koding", provider)

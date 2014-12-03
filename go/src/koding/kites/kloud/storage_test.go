@@ -107,7 +107,7 @@ func (t *TestStorage) Update(id string, s *kloud.StorageData) error {
 	return nil
 }
 
-func (t *TestStorage) UpdateState(id string, state machinestate.State) error {
+func (t *TestStorage) UpdateState(id, reason string, state machinestate.State) error {
 	machineData := GetMachineData(id)
 	machineData.State = state
 	SetMachineData(id, machineData)
