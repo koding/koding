@@ -727,3 +727,18 @@ class ComputeController extends KDController
 
     for machine in @machines
       return machine  if machine._id is machineId
+
+  findMachineFromQueryString: (queryString)->
+
+    for machine in @machines
+      return machine  if machine.queryString is queryString
+
+  invalidateCache: (machineId)->
+
+    machine = @findMachineFromMachineId machineId
+
+    unless machine?
+      return warn \
+        "Unable to invalidate cache, machine not found with #{machineId}"
+
+    KiteCache.unset machine.queryString

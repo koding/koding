@@ -89,12 +89,15 @@ class KodingKite_KloudKite extends KodingKite
 
         if res is "pong"
         then callback State: Machine.State.Running, via: "klient"
-        else callback null
+        else
+          computeController.invalidateCache machineId
+          callback null
 
       .timeout 5000
 
       .catch ->
 
+        computeController.invalidateCache machineId
         callback null
 
 
@@ -116,7 +119,7 @@ class KodingKite_KloudKite extends KodingKite
 
         if err.name is "TimeoutError" and not @_reconnectedOnce
           warn "First time timeout, reconnecting to kloud..."
-          kontrol.kites.kloud.singleton.reconnect()
+          kontrol.kites.kloud.singleton?.reconnect?()
           @_reconnectedOnce = yes
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }
