@@ -871,10 +871,13 @@ class IDEAppController extends AppController
   addParticipant: (account) ->
 
     {hash, nickname} = account.profile
+    snapshotName     = "#{nickname}Snapshot"
+    snapshot         = @rtm.getFromModel snapshotName
 
     @participants.push { nickname, hash }
 
-    @rtm.create 'map', "#{nickname}Snapshot", @createWorkspaceSnapshot()
+    unless snapshot
+      @rtm.create 'map', snapshotName, @createWorkspaceSnapshot()
 
 
   createWorkspaceSnapshot: ->
