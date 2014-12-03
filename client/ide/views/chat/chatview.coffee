@@ -81,6 +81,11 @@ class IDE.ChatView extends KDTabView
     ]
 
     @settingsPane.on 'SessionStarted', @bound 'showChatPane'
+    @settingsPane.on 'AddNewParticipantRequested', =>
+      @showChatPane()
+
+      KD.utils.wait 500, =>
+        @chatPane.showAutoCompleteInput()
 
     @emit 'ready'
 
