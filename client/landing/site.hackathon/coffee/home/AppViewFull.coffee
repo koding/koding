@@ -412,7 +412,7 @@ module.exports = class HomeViewFull extends KDView
         The following themes have been selected:
         <ol>
           <li>Problems facing our planet, explained using interactive data visualization.
-          (e.g. climate change, earthquakes, food/water waste, etc.)</li>
+          (e.g. climate change, earthquakes, food/water waste, accessibility related issues, etc.)</li>
           <li>Introducing software development to a beginner (games!)</li>
           <li>No one reads the fine print (ie TOS, EULA, legal documents) anymore yet every
           site has them. Devise a creative/interactive solution.</li>
