@@ -1048,6 +1048,12 @@ class IDEAppController extends AppController
         @createNewDrawing context.paneHash
 
 
+    {paneHash} = context
+
+    unless @mySnapshot.get paneHash
+      @mySnapshot.set paneHash, change
+
+
   handleParticipantAction: (actionType, changeData) ->
 
     KD.utils.wait 2000, =>
