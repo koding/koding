@@ -448,20 +448,6 @@ module.exports = class LoginView extends JView
         @loginForm.button.hideLoader()
 
 
-
-  runExternal = (token)->
-    KD.getSingleton("kiteController").run
-      kiteName        : "externals"
-      method          : "import"
-      correlationName : " "
-      withArgs        :
-        value         : token
-        serviceName   : "github"
-        userId        : KD.whoami().getId()
-      ,
-    (err, status)-> log "Status of fetching stuff from external: #{status}"
-
-
   afterLoginCallback: (err, params={})->
     @loginForm.button.hideLoader()
     {entryPoint} = KD.config
