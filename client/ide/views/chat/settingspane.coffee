@@ -138,9 +138,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @everyone.unsetClass 'loading'
     @everyone.destroySubViews()
 
-    myNickname        = KD.nick()
-    onlineUsers       = @rtm.getFromModel('participants').asArray()
-    onlineNicknames   = (user.nickname for user in onlineUsers)
+    myNickname      = KD.nick()
+    onlineUsers     = @rtm.getFromModel('participants').asArray()
+    onlineNicknames = (user.nickname for user in onlineUsers)
 
     for account in accounts
       {nickname} = account.profile
@@ -149,6 +149,23 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       if nickname isnt myNickname
         @createParticipantView account, isOnline
 
+    if accounts.length is 1 and @amIHost
+
+      @everyone.addSubView @onboarding = new KDCustomHTMLView
+        tagName : 'p'
+        click   : @bound 'handleOnboardingViewClick'
+        partial : """
+          There is no collaborator in your session. <a href="#">Click here</a> to invite someone to this session.
+        """
+
+
+  handleOnboardingViewClick: (e) ->
+
+    if e.target.tagName is 'A'
+
+      @onboarding.destroy()
+      @emit 'AddNewParticipantRequested'
+
 
   createParticipantView: (account, isOnline) =>
 
@@ -156,6 +173,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     view = new IDE.ChatParticipantView { isOnline, @isInSession }, { account, channel }
     @participantViews[account.profile.nickname] = view
     @everyone.addSubView view, null, isOnline
+    @onboarding?.destroy()
 
 
   removeParticipant: (username, unshare) ->
