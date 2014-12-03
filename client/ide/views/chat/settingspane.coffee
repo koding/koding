@@ -45,6 +45,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @startSession = new KDButtonView
       title    : 'START SESSION'
       cssClass : 'solid green'
+      loader   : yes
       callback : @bound 'initiateSession'
 
     buttonTitle = if @isInSession then 'LEAVE SESSION' else 'END SESSION'
@@ -84,6 +85,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
   initiateSession: ->
 
     @startSession.disable()
+    @startSession.showLoader()
+
     {appManager} = KD.singletons
 
     appManager.tell 'IDE', 'startCollaborationSession', (err, channel) =>
@@ -91,6 +94,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       return @startSession.enable()  if err
 
       @toggleButtons 'started'
+      @startSession.hideLoader()
       @emit 'SessionStarted'
 
 
