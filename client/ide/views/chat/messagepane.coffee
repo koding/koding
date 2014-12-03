@@ -65,7 +65,10 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     if isMyChannel
 
-      return  if channel.participantCount > 1
+      isAlreadyUsed   = channel.lastMessage.payload?['system-message'] not in [ 'initiate', 'start' ]
+      hasParticipants = channel.participantCount > 1
+
+      return  if hasParticipants or isAlreadyUsed
 
       @addSubView @onboarding = new KDCustomHTMLView
         cssClass : 'onboarding'
