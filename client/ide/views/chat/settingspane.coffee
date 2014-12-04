@@ -169,9 +169,14 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   createParticipantView: (account, isOnline) =>
 
-    channel = @getData()
-    view = new IDE.ChatParticipantView { isOnline, @isInSession }, { account, channel }
-    @participantViews[account.profile.nickname] = view
+    {nickname} = account.profile
+    isWatching = @rtm.getFromModel("#{KD.nick()}WatchMap").keys().indexOf(nickname) > -1
+    channel    = @getData()
+    options    = { isOnline, @isInSession, isWatching }
+    data       = { account, channel }
+    view       = new IDE.ChatParticipantView options, data
+
+    @participantViews[nickname] = view
     @everyone.addSubView view, null, isOnline
     @onboarding?.destroy()
 
