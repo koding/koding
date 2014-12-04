@@ -3,13 +3,15 @@ package models
 // Channel request is used for channel authentication
 type ChannelRequest struct {
 	Request
+type PushRequest struct {
+	ChannelId int64 `json:"channelId,string"`
+	PushMessage
 }
 
-// Message request is used for pushing events
-type MessageRequest struct {
-	EventName string      `json:"eventName"`
-	Body      interface{} `json:"body"`
-	Request
+type PushMessage struct {
+	EventName string           `json:"eventName"`
+	Body      interface{}      `json:"body"`
+	Channel   *ChannelResponse `json:"-"`
 }
 
 // General purpose Request struct
