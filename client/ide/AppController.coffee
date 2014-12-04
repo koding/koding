@@ -1037,8 +1037,9 @@ class IDEAppController extends AppController
         @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()
 
       when 'editor'
-        {path}  = context.file
-        file    = FSHelper.createFileInstance path
+        {path}        = context.file
+        file          = FSHelper.createFileInstance path
+        file.paneHash = context.paneHash
 
         content = @rtm.getFromModel(path)?.getText() or ''
 
