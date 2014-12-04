@@ -56,15 +56,13 @@ class IDE.StatusBar extends KDView
 
   createParticipantAvatar: (nickname, isOnline) ->
 
-    view       = new AvatarView
+    view       = new IDE.StatusBarAvatarView
       origin   : nickname
-      tooltip  : title: nickname
       size     : width: 24, height: 24
       cssClass : if isOnline then 'online' else 'offline'
 
     @participantAvatars[nickname] = view
     @avatars.addSubView view
-    view.getElement().removeAttribute 'href'
 
 
   showAvatars: (accounts, currentlyOnline) ->
