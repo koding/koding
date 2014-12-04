@@ -156,7 +156,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
   participantAdded: (participant) ->
 
-    @onboarding.destroy()
+    @onboarding?.destroy()
 
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant]
