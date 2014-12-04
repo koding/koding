@@ -10,7 +10,7 @@ PR_HEAD=$(git branch -r -v | \
 
 if [ -n "$PR_HEAD" -a "$(echo "$PR_HEAD" | grep 'origin/pull')" ]; then
   PR_NR=$(echo $PR_HEAD | awk -F '/' '{print $NF}')
-  OPTIONS="--pull-request '+refs/pull/$PR_NR/head $OPTIONS"
+  OPTIONS="--pull-request '+refs/pull/$PR_NR/head' $OPTIONS"
 else
   OPTIONS="--commit $WERCKER_GIT_COMMIT $OPTIONS"
 fi
