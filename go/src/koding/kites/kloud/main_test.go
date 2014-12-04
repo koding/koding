@@ -121,54 +121,18 @@ func TestPing(t *testing.T) {
 }
 
 func TestBuild(t *testing.T) {
-	// create test document in mongodb
-	privateKey, publicKey, err := sshutil.TemporaryKey()
+	userData, err := createUser()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	user := &models.User{
-		ObjectId:      bson.NewObjectId(),
-		Email:         "testuser@testuser.com",
-		LastLoginDate: time.Now().UTC(),
-		RegisteredAt:  time.Now().UTC(),
-		Name:          "testuser", // bson equivelant is username
-		Password:      "somerandomnumbers",
-		Status:        "confirmed",
-		SshKeys: []struct {
-			Title string `bson:"title"`
-			Key   string `bson:"key"`
-		}{
-			{Key: publicKey},
-		},
-	}
-
-	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Insert(&user)
-	}); err != nil {
-		t.Error(err)
-	}
-
-	meta := map[string]interface{}{
-		"region":        "us-east-1",
-		"instance_type": "t2.micro",
-		"storage_size":  3,
-		"alwaysOn":      false,
-		// "user_ssh_keys": []string{publicKey},
-	}
-
-	machineId0, err = provider.Create("testuser", meta)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := build(machineId0); err != nil {
+	if err := build(userData.MachineId); err != nil {
 		t.Error(err)
 	}
 
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
-	if err := checkSSHKey(machineId0, privateKey); err != nil {
+	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
 		t.Error(err)
 	}
 }
@@ -260,6 +224,84 @@ func TestInvalidMethodsOnTerminated(t *testing.T) {
 	if err := reinit(machineId0); err == nil {
 		t.Error("`reinit` method can not be called on `terminated` machines.")
 	}
+}
+
+type singleUser struct {
+	MachineId  string
+	PrivateKey string
+	PublicKey  string
+}
+
+// createUser creates a test user in jUsers and a single jMachine document.
+func createUser() (*singleUser, error) {
+	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		return nil, err
+	}
+
+	username := "testuser"
+
+	userId := bson.NewObjectId()
+	user := &models.User{
+		ObjectId:      userId,
+		Email:         "testuser@testuser.com",
+		LastLoginDate: time.Now().UTC(),
+		RegisteredAt:  time.Now().UTC(),
+		Name:          username, // bson equivelant is username
+		Password:      "somerandomnumbers",
+		Status:        "confirmed",
+		SshKeys: []struct {
+			Title string `bson:"title"`
+			Key   string `bson:"key"`
+		}{
+			{Key: publicKey},
+		},
+	}
+
+	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Insert(&user)
+	}); err != nil {
+		return nil, err
+	}
+
+	// later we can add more users with "Owner:false" to test sharing capabilities
+	users := []models.Permissions{
+		{Id: userId, Sudo: true, Owner: true},
+	}
+
+	machineId := bson.NewObjectId()
+	machine := &koding.MachineDocument{
+		Id:         machineId,
+		Label:      "",
+		Domain:     username + ".dev.koding.io",
+		Credential: username,
+		Provider:   "koding",
+		CreatedAt:  time.Now().UTC(),
+		Meta: bson.M{
+			"region":        "eu-west-1",
+			"instance_type": "t2.micro",
+			"storage_size":  3,
+			"alwaysOn":      false,
+		},
+		Users:  users,
+		Groups: make([]models.Permissions, 0),
+	}
+	machine.Assignee.InProgress = false
+	machine.Assignee.AssignedAt = time.Now().UTC()
+	machine.Status.State = machinestate.NotInitialized.String()
+	machine.Status.ModifiedAt = time.Now().UTC()
+
+	if err := provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Insert(&machine)
+	}); err != nil {
+		return nil, err
+	}
+
+	return &singleUser{
+		MachineId:  machineId.Hex(),
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}, nil
 }
 
 func build(id string) error {

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"koding/db/models"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -13,36 +12,6 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
-
-func (p *Provider) Create(username string, meta map[string]interface{}) (string, error) {
-	machine := &MachineDocument{
-		Id:         bson.NewObjectId(),
-		Label:      "",
-		Domain:     username + "." + p.DNS.hostedZone,
-		Credential: username,
-		Provider:   "koding",
-		CreatedAt:  time.Now().UTC(),
-		Meta:       bson.M(meta),
-		Users:      make([]models.Permissions, 0),
-		Groups:     make([]models.Permissions, 0),
-	}
-
-	machine.Assignee.InProgress = false
-	machine.Assignee.AssignedAt = time.Now().UTC()
-
-	machine.Status.State = machinestate.NotInitialized.String()
-	machine.Status.ModifiedAt = time.Now().UTC()
-
-	err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Insert(&machine)
-	})
-
-	if err != nil {
-		return "", err
-	}
-
-	return machine.Id.Hex(), nil
-}
 
 // Get returns the meta of the associated credential with the given machine id.
 func (p *Provider) Get(id string) (*protocol.Machine, error) {
