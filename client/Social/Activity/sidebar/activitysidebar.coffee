@@ -412,14 +412,14 @@ class ActivitySidebar extends KDCustomHTMLView
           publicLink.unreadCount.hide()
 
 
-  workspacesFetched  = no
+  # workspacesFetched  = no
   fetchingWorkspaces = no
 
   fetchWorkspaces: do (callbackQueue = []) -> (callback = noop) ->
 
     activitySidebar = this
 
-    return callback null, KD.userWorkspaces  if workspacesFetched
+    # return callback null, KD.userWorkspaces  if workspacesFetched
     return callbackQueue.push callback       if fetchingWorkspaces
 
     fetchingWorkspaces = yes
@@ -458,7 +458,7 @@ class ActivitySidebar extends KDCustomHTMLView
           workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
           userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
           KD.userWorkspaces     = userWorkspaces
-          workspacesFetched     = yes
+          # workspacesFetched     = yes
           activitySidebar.updateMachineTree()
 
           callbackQueue.forEach (fn) -> fn null, userWorkspaces
