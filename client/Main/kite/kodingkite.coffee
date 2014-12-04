@@ -2,11 +2,21 @@ class KodingKite extends KDObject
 
   { @Error } = require 'kite'
 
+  [DISCONNECTED, CONNECTED] = [0, 1]
+
   constructor: (options) ->
     super options
 
     { name } = options
 
+    @on 'open', =>
+      console.log "CONNECTED to #{name}"
+      @_state = CONNECTED
+      @emit "connected"
+
+    @on 'close', =>
+      console.log "DISCONNECTED from #{name}"
+      @_state = DISCONNECTED
   extractInfoFromWsEvent = (event)->
     {reason, code, wasClean, timestamp, type} = event
 
