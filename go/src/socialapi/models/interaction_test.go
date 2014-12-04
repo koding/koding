@@ -75,7 +75,7 @@ func TestInteractionisExempt(t *testing.T) {
 
 		Convey("it should return true if account is troll", func() {
 			// create troll account
-			accTroll := createAccountWithTest()
+			accTroll := CreateAccountWithTest()
 			err := accTroll.MarkAsTroll()
 			So(err, ShouldBeNil)
 
@@ -89,7 +89,7 @@ func TestInteractionisExempt(t *testing.T) {
 
 		Convey("it should return false if account is not troll", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 
 			i := NewInteraction()
 			i.AccountId = acc.Id
@@ -111,7 +111,7 @@ func TestInteractionMarkIfExempt(t *testing.T) {
 
 	Convey("While marking if interaction isexempt ", t, func() {
 		Convey("it should return nil if exempt", func() {
-			accTroll := createAccountWithTest()
+			accTroll := CreateAccountWithTest()
 			err := accTroll.MarkAsTroll()
 			So(err, ShouldBeNil)
 

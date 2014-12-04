@@ -16,6 +16,7 @@ module.exports = class JUser extends jraphical.Module
   JSessionHistory = require '../sessionhistory'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
+  Sendgrid        = require '../sendgrid'
 
   { v4: createId } = require 'node-uuid'
 
@@ -203,6 +204,8 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err?
         return callback createKodingError "User not found #{toBeDeletedUsername}"  unless user
 
+        oldEmail = user.email
+
         userValues = {
           username
           email
@@ -266,7 +269,9 @@ module.exports = class JUser extends jraphical.Module
                     }
                   }
                   Payment.deleteAccount deletedClient, (err)=>
-                    @logout deletedClient, callback
+                    @logout deletedClient, (err) =>
+                      callback err
+                      Sendgrid.deleteUser oldEmail, ->
 
   @isRegistrationEnabled = (callback)->
 
@@ -624,6 +629,7 @@ Team Koding
             groupJoined    : on
             groupLeft      : off
             mention        : on
+            marketing      : on
           }
         }
 
@@ -889,12 +895,17 @@ Team Koding
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
+        callback error, {account, recoveryToken, newToken}
+        queue.next()
+      ->
+        # rest are 3rd party api calls, not important to block register
+
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
         queue.next()
       ->
-        callback error, {account, recoveryToken, newToken}
+        Sendgrid.addNewUser user.email, user.username, ->
         queue.next()
     ]
 
