@@ -880,9 +880,10 @@ utils.extend utils,
 
   getLocationInfo: do (queue=[])->
 
-    ip      = null
-    country = null
-    region  = null
+    ip       = null
+    country  = null
+    region   = null
+    timezone = null
 
     fail = ->
 
@@ -894,7 +895,7 @@ utils.extend utils,
     (callback = noop)->
 
       if ip? and country? and region?
-        callback null, { ip, country, region }
+        callback null, { ip, country, region, timezone }
         return
 
       return  if (queue.push callback) > 1
@@ -906,13 +907,14 @@ utils.extend utils,
         dataType : 'json'
         success  : (data)->
 
-          { ip, country_code, region_code } = data
+          { ip, country_code, region_code, time_zone } = data
 
-          country = country_code
-          region  = region_code
+          country  = country_code
+          region   = region_code
+          timezone = time_zone
 
           for cb in queue
-            cb null, { ip, country, region }
+            cb null, { ip, country, region, timezone }
 
           queue = []
 

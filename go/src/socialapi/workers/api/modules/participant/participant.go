@@ -9,7 +9,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
-	"time"
 
 	"github.com/koding/bongo"
 )
@@ -194,9 +193,8 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
-	participant.LastSeenAt = time.Now().UTC()
-
-	if err := participant.Update(); err != nil {
+	// glance the channel
+	if err := participant.Glance(); err != nil {
 		return response.NewBadRequest(err)
 	}
 

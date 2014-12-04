@@ -15,15 +15,6 @@ build:
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
           git fetch --force --quiet origin
-    - mktemp:
-        envvar: GIT_REF
-    - script:
-        name: get git ref
-        code: |
-          REMOTE_BRANCH=$(git branch -r -v | grep ${WERCKER_GIT_COMMIT:0:7} | awk '{print $1}')
-          echo $REMOTE_BRANCH
-          scripts/wercker/get-gitref $REMOTE_BRANCH > $GIT_REF
-          cat $GIT_REF
     - script:
         name: build started
         code: |
@@ -102,7 +93,8 @@ build:
     - script:
         name: launch test instance
         code: |
-          scripts/wercker/launch-test-instance --gitref "$(cat $GIT_REF)" | tail -n1 > $INSTANCE_DATA
+          INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
+          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
           cat $INSTANCE_DATA
           HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
           echo $HOST > $INSTANCE_IP
