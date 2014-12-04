@@ -15,7 +15,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     @_lastUsedKey = Cookies.get 'clientId'
 
     autoConnect           : no
-    autoReconnect         : no
+    autoReconnect         : yes
     url                   : @_kontrolUrl ? KD.config.newkontrol.url
     auth                  :
       type                : 'sessionID'
