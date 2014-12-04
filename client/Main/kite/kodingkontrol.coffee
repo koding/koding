@@ -133,6 +133,10 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
           kite.options.autoReconnect = no
           KiteCache.unset query
 
+          kiteInstance = @kites[kiteName]?['singleton'] or {}
+          {waitingCalls, waitingPromises} = kiteInstance
+
+          console.log "# WAITING CALLS for #{kiteName}", waitingCalls, waitingPromises
 
           delete @kites[kiteName]['singleton']
 
@@ -147,7 +151,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
   getKite: (options = {}) ->
 
     # Get options
-    { name, correlationName, region, transportOptions,
+    { name, correlationName, region, transportOptions, waitingCalls
       username, environment, version, queryString } = options
 
     # If no `correlationName` is defined assume this kite instance
@@ -178,6 +182,15 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
         .on 'open', ->
           KodingKontrol.dcNotification?.destroy()
           KodingKontrol.dcNotification = null
+
+    if waitingCalls? and waitingCalls.length > 0
+
+      console.log "THERE WERE WAITING CALLS FOR THIS KITE INSTANCE", waitingCalls
+
+      kite.once 'connected', ->
+        for call in waitingCalls
+          console.info "# CONSUMING... ", call
+          kite.transport?.tell call...
 
     # Query kontrol
     @fetchKite
