@@ -222,7 +222,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {id} = update.channel
 
-    return @removeItem id  unless update.isParticipant
+    return  if update.isParticipant
+
+    @removeItem id
+    @fetchWorkspaces()  if @workspaceItemChannelMap[id]
 
     # TODO update participants in sidebar
 
