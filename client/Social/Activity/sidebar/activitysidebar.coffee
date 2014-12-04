@@ -205,7 +205,14 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      index = 0  if typeConstant is 'privatemessage'
+      isPrivateMessage = typeConstant is 'privatemessage'
+
+      index = 0  if isPrivateMessage
+
+      # this method will update the vm tree
+      # `isParticipant` check may be reduntant,
+      # but it's left there just to be more cautious. ~Umut
+      @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
 
       item = @addItem channel, index
       @setUnreadCount item, channel, unreadCount
@@ -215,7 +222,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {id} = update.channel
 
-    return @removeItem id  unless update.isParticipant
+    return  if update.isParticipant
+
+    @removeItem id
+    @fetchWorkspaces()  if @workspaceItemChannelMap[id]
 
     # TODO update participants in sidebar
 
@@ -412,14 +422,14 @@ class ActivitySidebar extends KDCustomHTMLView
           publicLink.unreadCount.hide()
 
 
-  workspacesFetched  = no
+  # workspacesFetched  = no
   fetchingWorkspaces = no
 
   fetchWorkspaces: do (callbackQueue = []) -> (callback = noop) ->
 
     activitySidebar = this
 
-    return callback null, KD.userWorkspaces  if workspacesFetched
+    # return callback null, KD.userWorkspaces  if workspacesFetched
     return callbackQueue.push callback       if fetchingWorkspaces
 
     fetchingWorkspaces = yes
@@ -458,7 +468,7 @@ class ActivitySidebar extends KDCustomHTMLView
           workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
           userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
           KD.userWorkspaces     = userWorkspaces
-          workspacesFetched     = yes
+          # workspacesFetched     = yes
           activitySidebar.updateMachineTree()
 
           callbackQueue.forEach (fn) -> fn null, userWorkspaces
