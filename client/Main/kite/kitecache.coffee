@@ -6,7 +6,7 @@ class KiteCache
     console.log "[KC] ", rest...
 
 
-  generateQueryString = (options)->
+  @generateQueryString = (options)->
 
     keys = [ "username", "environment", "name",
              "version", "region", "hostname", "id" ]
@@ -40,7 +40,7 @@ class KiteCache
   @unset = (query)->
 
     if typeof query is 'object'
-      query = generateQueryString query
+      query = @generateQueryString query
 
     delete storage[signed query]
 
@@ -49,7 +49,7 @@ class KiteCache
 
   @cache = (query, kite)->
 
-    queryString = generateQueryString query
+    queryString = @generateQueryString query
     kite = proxifyTransport kite
     try storage[signed queryString] = JSON.stringify kite
     log "Kite cached with '#{queryString}' queryString."
@@ -57,7 +57,7 @@ class KiteCache
 
   @get = (query)->
 
-    queryString = generateQueryString query
+    queryString = @generateQueryString query
 
     kite = storage[signed queryString]
 
