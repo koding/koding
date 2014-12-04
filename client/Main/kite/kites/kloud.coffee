@@ -97,13 +97,12 @@ class KodingKite_KloudKite extends KodingKite
 
       .catch ->
 
-        computeController.invalidateCache machineId
         callback null
 
 
   askInfoFromKloud: (machineId, currentState) ->
 
-    {kontrol} = KD.singletons
+    {kontrol, computeController} = KD.singletons
 
     KD.remote.api.DataDog.increment "KloudInfo", noop
 
@@ -112,6 +111,9 @@ class KodingKite_KloudKite extends KodingKite
       .then (info) =>
 
         @resolveRequestingInfos machineId, info
+
+        unless info.State is Machine.State.Running
+          computeController.invalidateCache machineId
 
       .timeout ComputeController.timeout
 
