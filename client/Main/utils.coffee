@@ -644,7 +644,7 @@ utils.extend utils,
   #
   # Structure taken from github.com/koding/kite/protocol/protocol.go
 
-  splitKiteQuery: (query)->
+  splitKiteQuery: (query = "")->
 
     keys = [ "username", "environment", "name",
              "version", "region", "hostname", "id" ]
