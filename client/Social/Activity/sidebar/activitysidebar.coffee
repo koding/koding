@@ -208,13 +208,13 @@ class ActivitySidebar extends KDCustomHTMLView
       isPrivateMessage = typeConstant is 'privatemessage'
 
       index = 0  if isPrivateMessage
-      item  = @addItem channel, index
 
       # this method will update the vm tree
       # `isParticipant` check may be reduntant,
       # but it's left there just to be more cautious. ~Umut
       @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
 
+      item = @addItem channel, index
       @setUnreadCount item, channel, unreadCount
 
 
