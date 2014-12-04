@@ -634,3 +634,26 @@ func getAmazonStorageSize(machineId string) (int, error) {
 
 	return currentSize, nil
 }
+
+// TestChecker satisfies Checker interface
+type TestChecker struct{}
+
+func (c *TestChecker) Total() error {
+	return nil
+}
+
+func (c *TestChecker) AlwaysOn() error {
+	return nil
+}
+
+func (c *TestChecker) Timeout() error {
+	return nil
+}
+
+func (c *TestChecker) Storage(wantStorage int) error {
+	return nil
+}
+
+func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
+	return nil
+}
