@@ -31,8 +31,6 @@ class KodingKite extends KDObject
     @forwardEvent @transport, 'close'
     @forwardEvent @transport, 'open'
 
-    @transport?.connect()  if @options.name is 'klient'
-
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
@@ -60,16 +58,25 @@ class KodingKite extends KDObject
     for own method, rpcMethod of api
       @::[method] = @createMethod @prototype, { method, rpcMethod }
 
+
   @constructors = {}
 
+
   connect: ->
-    @transport?.connect()
-    @_connectAttempted = yes
+
+    if @transport?
+      @transport?.connect()
+    else
+      @once 'ready', =>
+        @transport?.connect()
+        @_connectAttempted = yes
+
 
   disconnect: ->
     @isDisconnected = yes
     @transport?.disconnect()
     @transport = null
+
 
   reconnect:  ->
     @transport?.disconnect()
