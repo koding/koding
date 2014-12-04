@@ -90,7 +90,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   createShortcutsView: ->
     name = 'Shortcuts'
     pane = @tabView.getPaneByName name
+    
     return @tabView.showPane pane  if pane
+    
     @createPane_ new IDE.ShortcutsView, { name }
 
   createTerminal: (machine, path) ->
