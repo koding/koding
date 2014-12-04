@@ -17,6 +17,10 @@ class KodingKite extends KDObject
     @on 'close', =>
       console.log "DISCONNECTED from #{name}"
       @_state = DISCONNECTED
+
+    @waitingCalls = []
+    @waitingPromises = []
+
   extractInfoFromWsEvent = (event)->
     {reason, code, wasClean, timestamp, type} = event
 
@@ -44,15 +48,27 @@ class KodingKite extends KDObject
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
+
+    { name } = @getOptions()
+
+    console.log "TELL :: #{name}.#{rpcMethod}"
+
     @connect()  if not @_connectAttempted or @isDisconnected
 
     unless @invalid
 
-      @ready().then => @transport?.tell rpcMethod, [params], callback
+      promise = new Promise (resolve, reject)=>
+
+        (@waitForConnection [rpcMethod, [params], callback]).then (args)=>
+          console.info "# CONNECTED TO #{name} SENDING #{rpcMethod}... "
+          resolve @transport?.tell args...
+
+      unless @_state is CONNECTED
+        @waitingPromises.push promise
+
+      promise
 
     else
-
-      { name } = @getOptions()
 
       Promise.reject
         name    : "KiteInvalid"
@@ -93,3 +109,20 @@ class KodingKite extends KDObject
 
     KD.utils.wait 1000, =>
       @transport?.connect()
+
+
+  waitForConnection: (args)->
+
+    { name } = @getOptions()
+
+    new Promise (resolve, reject)=>
+      return resolve args if @_state is CONNECTED
+
+      cid = (@waitingCalls.push args) - 1
+
+      console.log "# WAITING CALLS ON #{name}:", @waitingCalls
+
+      @once 'connected', ->
+        resolve @waitingCalls[cid]
+        delete  @waitingCalls[cid]
+
