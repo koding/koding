@@ -37,12 +37,12 @@ func (p *Pubnub) Authenticate(req *ChannelRequest) error {
 	return nil
 }
 
-func (p *Pubnub) Push(req *MessageRequest) error {
-	channelName := prepareChannelName(req)
+func (p *Pubnub) Push(pm PushMessage) error {
+	channelName := prepareChannelName(pm)
 
 	go p.handleResponse()
 
-	go p.pub.Publish(channelName, req, p.successCh, p.errorCh)
+	go p.pub.Publish(channelName, pm, p.successCh, p.errorCh)
 
 	return <-p.done
 }
@@ -51,8 +51,8 @@ func (p *Pubnub) Close() {
 	p.pub.CloseExistingConnection()
 }
 
-func prepareChannelName(req *MessageRequest) string {
-	return fmt.Sprintf("%s-%s-%s", req.Group, req.Type, req.Name)
+func prepareChannelName(pm PushMessage) string {
+	return fmt.Sprintf("%s-%s-%s", pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
 }
 
 func (p *Pubnub) handleResponse() {
