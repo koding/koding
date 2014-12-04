@@ -474,8 +474,17 @@ module.exports = class HomeViewFull extends KDView
           </li>
           <li>
             <figure>
-              <img src='https://www.digitalocean.com/assets/images/logos-badges/horizontal-black-71af2217.png' alt='Digital Ocean logo'/>
-              <figcaption>The top winning team will receive <strong>$5,000</strong> in account credit from <a href='http://www.digitalocean.com' target='_blank'>Digital Ocean</a>. and a <strong>one year service</strong> account credit from Tutum.</figcaption>
+              <figcaption>The top winning team will receive <strong>$5,000</strong> in account credit from <a href='http://www.digitalocean.com' target='_blank'>Digital Ocean</a>.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <figcaption><a href='http://www.tutum.co' target='_blank'>Tutum</a><strong> is giving one year service</strong> to the winning team.</figcaption>
+            </figure>
+          </li>
+          <li>
+            <figure>
+              <figcaption><a href='http://www.firebase.com' target='_blank'>Firebase</a> will award <strong>$5,500</strong> worth of credit to the winning team.</figcaption>
             </figure>
           </li>
          </ul>
