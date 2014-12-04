@@ -50,16 +50,16 @@ module.exports = class HomeViewFull extends KDView
 
     if KD.isLoggedIn()
     then @createApplyWidget()
-    else
+    else @$('.form-wrapper').hide()
 
-      @signUpForm = new HomeRegisterForm
-        cssClass    : 'login-form register no-anim'
-        buttonTitle : 'LET\'S DO THIS'
-        callback    : (formData) =>
-          router.requireApp 'Login', (controller) =>
-            controller.getView().showExtraInformation formData, @signUpForm
+    #   @signUpForm = new HomeRegisterForm
+    #     cssClass    : 'login-form register no-anim'
+    #     buttonTitle : 'LET\'S DO THIS'
+    #     callback    : (formData) =>
+    #       router.requireApp 'Login', (controller) =>
+    #         controller.getView().showExtraInformation formData, @signUpForm
 
-      @addSubView @signUpForm, '.form-wrapper'
+    #   @addSubView @signUpForm, '.form-wrapper'
 
 
   createApplyWidget: ->
@@ -96,11 +96,12 @@ module.exports = class HomeViewFull extends KDView
       title : "Hey, #{firstName or nickname}!"
 
 
-    @section.addSubView @button = new KDButtonView
-      cssClass : 'apply-button solid green medium'
-      title    : 'APPLY NOW'
-      loader   : yes
-      callback : @bound 'apply'
+    # @section.addSubView @button = new KDButtonView
+    # @section.addSubView @button = new KDButtonView
+    #   cssClass : 'apply-button solid green medium'
+    #   title    : 'APPLY NOW'
+    #   loader   : yes
+    #   callback : @bound 'apply'
 
 
   apply: ->
@@ -110,13 +111,13 @@ module.exports = class HomeViewFull extends KDView
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : (stats) =>
-        @button.hideLoader()
+        # @button.hideLoader()
         KD.campaignStats = stats
         @updateWidget()
         KD.singletons.router.handleRoute '/Hackathon'
       error       : (xhr) =>
         {responseText} = xhr
-        @button?.hideLoader()
+        # @button?.hideLoader()
         new KDNotificationView title : responseText
         KD.singletons.router.handleRoute '/Hackathon'
 
@@ -345,8 +346,7 @@ module.exports = class HomeViewFull extends KDView
       </video>
       <h3>To celebrate 500,000 developers...</h3>
       <h1>ANNOUNCING THE WORLD’S FIRST GLOBAL VIRTUAL <span>#HACKATHON</span></h1>
-      <h3>Let's hack together, wherever we are!</h3>
-      <h4>More than <b>$#{prize.toLocaleString()}</b> in cash prizes.</strong></h4>
+      <h3>Applications are now closed!</h3>
       <div class="form-wrapper clearfix #{if KD.isLoggedIn() then 'logged-in'}"></div>
     </section>
     <div class="counters">#{@getStats()}</div>
@@ -435,7 +435,7 @@ module.exports = class HomeViewFull extends KDView
       <li>Third prize: $2,000</li>
     </ol>
     <h6>Student Hacker (High school or less):</h6>
-    (Please note: Student hackers are not precluded from submitting their project for the Top Hacker 
+    (Please note: Student hackers are not precluded from submitting their project for the Top Hacker
     category.)
     <ol>
       <li>First prize: $1,500</li>
@@ -607,18 +607,7 @@ module.exports = class HomeViewFull extends KDView
       </article>
       <article class="schedule">
         <h4>How to submit your project</h4>
-          <p>Send the following details to <a href="mailto:hackathon@koding.com">hackathon@koding.com</a>
-            <ol>
-              <li>Koding VM URL where the judges can see your project.</li>
-              <li>URL to the team in the hackathon Git repo</li>
-              <li>A brief description of your project (not more than 250 words).</li>
-              <li>A brief introduction to your team members (who did what).</li>
-              <li>How your project addresses the theme of the hackathon.</li>
-              <li>What tools did you use to collaborate.</li>
-            </ol>
-          <p>Your submission should have a time label less than <b>#{secondDay} 2359 PST</b>.
-          Submissions received after the deadline will not be considered. No exceptions.
-        </p>
+        <p>Please follow the submission details that were emailed to you.</p>
       </article>
       <article class='apis'>
         <h4>Awesome API's for you to check out</h4>
