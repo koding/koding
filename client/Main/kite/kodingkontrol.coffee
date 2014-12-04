@@ -109,6 +109,8 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
   createKite: (options, query)->
 
+    {computeController} = KD.singletons
+
     {kite} = options
     kiteName = kite.name
 
@@ -132,7 +134,12 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
           KiteCache.unset query
 
 
+          delete @kites[kiteName]['singleton']
 
+          if machine = computeController.findMachineFromQueryString queryString
+            delete @kites[kiteName][machine.uid]
+
+          (@getKite { name: kiteName, queryString, waitingCalls })?.connect()
 
     return kite
 
