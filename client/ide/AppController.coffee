@@ -981,7 +981,7 @@ class IDEAppController extends AppController
 
     amIWatchingChangeOwner = @myWatchMap.keys().length is 0 or origin in @myWatchMap.keys()
 
-    if amIWatchingChangeOwner
+    if amIWatchingChangeOwner or type is 'CursorActivity'
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
