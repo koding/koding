@@ -55,14 +55,14 @@ var (
 )
 
 func main() {
-	// Close the klient.db in any case. Corrupt db would be catastrophic
-	defer collab.Close()
-
 	flag.Parse()
 	if *flagVersion {
 		fmt.Println(VERSION)
 		os.Exit(0)
 	}
+
+	// Close the klient.db in any case. Corrupt db would be catastrophic
+	defer collab.Close()
 
 	k := kite.New(NAME, VERSION)
 	conf := config.MustGet()
@@ -132,15 +132,14 @@ func main() {
 			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				return nil, fmt.Errorf("Can't read shared users from the storage.")
-			}
-
 			// Allow these users by default
-			allowedUsers := []string{k.Config.Username, "koding"}
+			allowedUsers := []string{k.Config.Username, "koding", "unknown"}
 
 			// Allow collaboration users as well
+			sharedUsers, err := collab.GetAll()
+			if err != nil {
+				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
+			}
 			allowedUsers = append(allowedUsers, sharedUsers...)
 
 			if !userIn(r.Username, allowedUsers...) {

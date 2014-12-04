@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DatabasePath = "/opt/kites/klient/klient.db"
+	DatabasePath = "/opt/kite/klient/klient.db"
 	UserBucket   = "users"
 )
 
