@@ -13,12 +13,11 @@ class IDE.ChatParticipantView extends JView
 
   createElements: ->
 
-    { account, channel } = @getData()
     { nickname }         = account.profile
-    { isOnline, isMe }   = @getOptions()
+    { isOnline }         = @getOptions()
+    { account, channel } = @getData()
 
     if isOnline then @setClass 'online' else @setClass 'offline'
-    @setClass 'me'  if isMe
 
     @avatar    = new AvatarView
       origin   : nickname
@@ -30,29 +29,25 @@ class IDE.ChatParticipantView extends JView
 
     @kickButton = new KDCustomHTMLView cssClass: 'hidden'
 
-    if isMe
-      @watchButton = new KDCustomHTMLView cssClass: 'hidden'
-      @settings    = new KDCustomHTMLView cssClass: 'hidden'
-    else
-      unless @isInSession
-        @kickButton  = new KDButtonView
-          title    : 'KICK'
-          cssClass : 'kick-button'
-          callback : @bound 'kickParticipant'
+    unless @isInSession
+      @kickButton  = new KDButtonView
+        title    : 'KICK'
+        cssClass : 'kick-button'
+        callback : @bound 'kickParticipant'
 
-      @watchButton = new KDButtonView
-        iconOnly : 'yes'
-        cssClass : 'watch-button'
-        callback : =>
-          @watchButton.toggleClass 'watching'
-          log 'watch/unwatch user'
+    @watchButton = new KDButtonView
+      iconOnly : 'yes'
+      cssClass : 'watch-button'
+      callback : =>
+        @watchButton.toggleClass 'watching'
+        KD.getSingleton('appManager').tell 'IDE', 'watchParticipant', nickname
 
-      @settings       = new KDSelectBox
-        defaultValue  : 'edit'
-        selectOptions : [
-          # { title : 'CAN READ', value : 'read'}
-          { title : 'CAN EDIT', value : 'edit'}
-        ]
+    @settings       = new KDSelectBox
+      defaultValue  : 'edit'
+      selectOptions : [
+        # { title : 'CAN READ', value : 'read'}
+        { title : 'CAN EDIT', value : 'edit'}
+      ]
 
 
   kickParticipant: ->
