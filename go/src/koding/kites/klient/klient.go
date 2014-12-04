@@ -133,7 +133,7 @@ func main() {
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 
 			// Allow these users by default
-			allowedUsers := []string{k.Config.Username, "koding", "unknown"}
+			allowedUsers := []string{k.Config.Username, "koding"}
 
 			// Allow collaboration users as well
 			sharedUsers, err := collab.GetAll()
