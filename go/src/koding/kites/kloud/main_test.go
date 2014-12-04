@@ -49,16 +49,11 @@ import (
 )
 
 var (
-	kloudKite  *kite.Kite
-	kld        *kloud.Kloud
-	remote     *kite.Client
-	conf       *config.Config
-	provider   *koding.Provider
-	machineId0 = "koding_id0"
-)
-
-const (
-	etcdIp = "192.168.59.103:4001"
+	kloudKite *kite.Kite
+	kld       *kloud.Kloud
+	remote    *kite.Client
+	conf      *config.Config
+	provider  *koding.Provider
 )
 
 type args struct {
