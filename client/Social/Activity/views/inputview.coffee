@@ -5,7 +5,7 @@ class ActivityInputView extends KDHitEnterInputView
     options.cssClass              = KD.utils.curry "input-view", options.cssClass
     options.autogrow             ?= yes
     options.minHeight            ?= 54
-    options.placeholder          ?= "What's new #{Encoder.htmlDecode KD.whoami().profile.firstName}?"
+    options.placeholder          ?= "Hey #{Encoder.htmlDecode KD.whoami().profile.firstName}, share something interesting or ask a question."
     options.attributes          or= {}
     options.attributes.testpath or= "ActivityInputView"
     options.attributes.rows     or= 1
