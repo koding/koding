@@ -13,9 +13,9 @@ class IDE.ChatParticipantView extends JView
 
   createElements: ->
 
-    { nickname }         = account.profile
-    { isOnline }         = @getOptions()
-    { account, channel } = @getData()
+    { isOnline, @isWatching } = @getOptions()
+    { account, channel }      = @getData()
+    { nickname }              = account.profile
 
     if isOnline then @setClass 'online' else @setClass 'offline'
 
@@ -39,8 +39,13 @@ class IDE.ChatParticipantView extends JView
       iconOnly : 'yes'
       cssClass : 'watch-button'
       callback : =>
+        methodName  = if @isWatching then 'unwatchParticipant' else 'watchParticipant'
+        @isWatching = not @isWatching
+
         @watchButton.toggleClass 'watching'
-        KD.getSingleton('appManager').tell 'IDE', 'watchParticipant', nickname
+        KD.getSingleton('appManager').tell 'IDE', methodName, nickname
+
+    @watchButton.setClass 'watching'  if @isWatching
 
     @settings       = new KDSelectBox
       defaultValue  : 'edit'
