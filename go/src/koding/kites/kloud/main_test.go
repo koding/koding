@@ -125,12 +125,13 @@ func TestPing(t *testing.T) {
 	}
 }
 
-func TestBuild(t *testing.T) {
+func TestSingleMachine(t *testing.T) {
 	userData, err := createUser()
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	// build
 	if err := build(userData.MachineId); err != nil {
 		t.Error(err)
 	}
@@ -140,50 +141,54 @@ func TestBuild(t *testing.T) {
 	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestInvalidMethodsOnRunning(t *testing.T) {
-	t.Log("Running invalid methods on a running VM.")
-	if err := build(machineId0); err == nil {
+	// invalid calls after build
+	if err := build(userData.MachineId); err == nil {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
-}
 
-func TestStop(t *testing.T) {
-	if err := stop(machineId0); err != nil {
+	// stop
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestInvalidMethodsOnStopped(t *testing.T) {
-	t.Log("Running invalid methods on a stopped VM.")
-	// run the tests now.
-	if err := build(machineId0); err == nil {
+	if err := build(userData.MachineId); err == nil {
 		t.Error("`build` method can not be called on `stopped` machines.")
 	}
 
-	if err := stop(machineId0); err == nil {
+	if err := stop(userData.MachineId); err == nil {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
-}
 
-func TestStart(t *testing.T) {
-	if err := start(machineId0); err != nil {
+	// start
+	log.Println("Starting machine")
+	if err := start(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestResize(t *testing.T) {
+	// resize
+	log.Println("Resizing machine")
 	storageWant := 5
-	m := GetMachineData(machineId0)
-	m.Builder["storage_size"] = storageWant
-	SetMachineData(machineId0, m)
-
-	if err := resize(machineId0); err != nil {
+	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(userData.MachineId),
+			bson.M{
+				"$set": bson.M{
+					"meta.storage_size": storageWant,
+				},
+			},
+		)
+	})
+	if err != nil {
 		t.Error(err)
 	}
 
-	storageGot, err := getAmazonStorageSize(machineId0)
+	if err := resize(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+
+	storageGot, err := getAmazonStorageSize(userData.MachineId)
 	if err != nil {
 		t.Error(err)
 	}
@@ -194,39 +199,36 @@ func TestResize(t *testing.T) {
 			storageGot,
 		)
 	}
-}
 
-func TestReinit(t *testing.T) {
-	if err := reinit(machineId0); err != nil {
+	// reinit
+	log.Println("Reinitializing machine")
+	if err := reinit(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestDestroy(t *testing.T) {
-	if err := destroy(machineId0); err != nil {
+	// destroy
+	log.Println("Destroying machine")
+	if err := destroy(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestInvalidMethodsOnTerminated(t *testing.T) {
-	t.Log("Running invalid methods on a terminated VM.")
-	if err := stop(machineId0); err == nil {
+	if err := stop(userData.MachineId); err == nil {
 		t.Error("`stop` method can not be called on `terminated` machines.")
 	}
 
-	if err := start(machineId0); err == nil {
+	if err := start(userData.MachineId); err == nil {
 		t.Error("`start` method can not be called on `terminated` machines.")
 	}
 
-	if err := destroy(machineId0); err == nil {
+	if err := destroy(userData.MachineId); err == nil {
 		t.Error("`destroy` method can not be called on `terminated` machines.")
 	}
 
-	if err := resize(machineId0); err == nil {
+	if err := resize(userData.MachineId); err == nil {
 		t.Error("`resize` method can not be called on `terminated` machines.")
 	}
 
-	if err := reinit(machineId0); err == nil {
+	if err := reinit(userData.MachineId); err == nil {
 		t.Error("`reinit` method can not be called on `terminated` machines.")
 	}
 }
@@ -361,6 +363,7 @@ func checkSSHKey(id, privateKey string) error {
 		return err
 	}
 
+	log.Printf("Testing SSH deployment")
 	output, err := sshClient.StartCommand("whoami")
 	if err != nil {
 		return err
@@ -395,11 +398,7 @@ func destroy(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Terminated); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Terminated)
 }
 
 func start(id string) error {
@@ -425,11 +424,7 @@ func start(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Running)
 }
 
 func stop(id string) error {
@@ -455,11 +450,7 @@ func stop(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Stopped); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Stopped)
 }
 
 func reinit(id string) error {
@@ -485,11 +476,7 @@ func reinit(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Running)
 }
 
 func resize(id string) error {
@@ -515,11 +502,7 @@ func resize(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Running)
 }
 
 // listenEvent calls the event method of kloud with the given arguments until
@@ -616,7 +599,10 @@ func newKloud(p *koding.Provider) *kloud.Kloud {
 }
 
 func getAmazonStorageSize(machineId string) (int, error) {
-	m := GetMachineData(machineId0)
+	m, err := provider.Get(machineId)
+	if err != nil {
+		return 0, err
+	}
 
 	a, err := provider.NewClient(m)
 	if err != nil {
