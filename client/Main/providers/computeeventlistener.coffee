@@ -91,10 +91,10 @@ class ComputeEventListener extends KDObject
     destroy : public : "MachineDestroyed", private : Terminated
 
 
-  tick:->
+  tick: (force)->
 
     return  unless @listeners.length
-    return  if @tickInProgress
+    return  if not force and @tickInProgress
     @tickInProgress = yes
 
     {computeController} = KD.singletons
@@ -134,9 +134,11 @@ class ComputeEventListener extends KDObject
       @listeners = activeListeners
       @tickInProgress = no
 
+    .timeout ComputeController.timeout
+
     .catch (err)=>
 
-      @tickInProgress = no
+      @tick yes  if err.name is "TimeoutError"
 
       warn "Eventer error:", err
       @stop()
