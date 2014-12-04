@@ -1,5 +1,7 @@
 class ComputeEventListener extends KDObject
 
+  {Stopped, Running, Terminated} = Machine.State
+
   constructor:(options = {})->
 
     super
@@ -66,6 +68,10 @@ class ComputeEventListener extends KDObject
 
     computeController.emit "public-#{machine._id}", state
 
+    unless event.status is Running
+      info "ComputeEvent listener triggered invalidateCache"
+      computeController.invalidateCache machine._id
+
 
   revertToPreviousState:(machine)->
 
@@ -77,12 +83,12 @@ class ComputeEventListener extends KDObject
 
   TypeStateMap =
 
-    stop    : public : "MachineStopped",   private : Machine.State.Stopped
-    start   : public : "MachineStarted",   private : Machine.State.Running
-    build   : public : "MachineBuilt",     private : Machine.State.Running
-    reinit  : public : "MachineBuilt",     private : Machine.State.Running
-    resize  : public : "MachineResized",   private : Machine.State.Running
-    destroy : public : "MachineDestroyed", private : Machine.State.Terminated
+    stop    : public : "MachineStopped",   private : Stopped
+    start   : public : "MachineStarted",   private : Running
+    build   : public : "MachineBuilt",     private : Running
+    reinit  : public : "MachineBuilt",     private : Running
+    resize  : public : "MachineResized",   private : Running
+    destroy : public : "MachineDestroyed", private : Terminated
 
 
   tick:->
