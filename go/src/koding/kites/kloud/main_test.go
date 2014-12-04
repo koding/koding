@@ -1,5 +1,19 @@
 package main
 
+/* HOW TO RUN THE TES
+
+Be sure you have a running ngrok instance. This is needed so klient can connect
+to our kontrol. Run it with:
+
+	./ngrok -authtoken="CMY-UsZMWdx586A3tA0U" -subdomain="kloud-test" 4099
+
+Postgres and mongodb url is same is in the koding dev config. below is an example go test command:
+
+	KLOUD_KONTROL_URL="http://kloud-test.ngrok.com/kite" KLOUD_MONGODB_URL=192.168.59.103:27017/koding KONTROL_POSTGRES_PASSWORD=kontrolapplication KONTROL_STORAGE=postgres KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
+
+
+*/
+
 import (
 	"fmt"
 	"log"
