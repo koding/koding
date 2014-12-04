@@ -54,7 +54,12 @@ type args struct {
 func init() {
 	conf = config.New()
 	conf.Username = "testuser"
-	conf.KontrolURL = "http://localhost:4099/kite"
+
+	conf.KontrolURL = os.Getenv("KLOUD_KONTROL_URL")
+	if conf.KontrolURL == "" {
+		conf.KontrolURL = "http://localhost:4099/kite"
+	}
+
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
@@ -238,8 +243,14 @@ func createUser() (*singleUser, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	username := "testuser"
+
+	// cleanup old document
+	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"username": username})
+	}); err != nil {
+		return nil, err
+	}
 
 	userId := bson.NewObjectId()
 	user := &models.User{
@@ -569,7 +580,7 @@ func newKodingProvider() *koding.Provider {
 	return &koding.Provider{
 		Session:           db,
 		Kite:              kloudKite,
-		Log:               newLogger("koding", false),
+		Log:               newLogger("koding", true),
 		KontrolURL:        conf.KontrolURL,
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
@@ -594,7 +605,7 @@ func newKodingProvider() *koding.Provider {
 
 func newKloud(p *koding.Provider) *kloud.Kloud {
 	kld := kloud.New()
-	kld.Log = newLogger("kloud", false)
+	kld.Log = newLogger("kloud", true)
 	kld.Locker = p
 	kld.Storage = p
 	kld.DomainStorage = p.DomainStorage
