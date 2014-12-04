@@ -28,6 +28,7 @@ var LoggedOutHome = `
     </script>
 
     {{template "analytics"}}
+    <a href='/Activity/Public' target='_self'>ACTIVITY</a>
   </body>
 </html>
 `
