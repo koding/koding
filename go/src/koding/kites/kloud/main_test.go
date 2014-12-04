@@ -9,9 +9,25 @@ to our kontrol. Run it with:
 
 Postgres and mongodb url is same is in the koding dev config. below is an example go test command:
 
-	KLOUD_KONTROL_URL="http://kloud-test.ngrok.com/kite" KLOUD_MONGODB_URL=192.168.59.103:27017/koding KONTROL_POSTGRES_PASSWORD=kontrolapplication KONTROL_STORAGE=postgres KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
+	KLOUD_KONTROL_URL="http://kloud-test.ngrok.com/kite"
+	KLOUD_MONGODB_URL=192.168.59.103:27017/koding
+	KONTROL_POSTGRES_PASSWORD=kontrolapplication KONTROL_STORAGE=postgres
+	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
+	KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
 
+To get profile files first compile a binary and call that particular binary with additional flags:
 
+	go test -c
+
+	KLOUD_KONTROL_URL="http://kloud-test.ngrok.com/kite"
+	KLOUD_MONGODB_URL=192.168.59.103:27017/koding
+	KONTROL_POSTGRES_PASSWORD=kontrolapplication KONTROL_STORAGE=postgres
+	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
+	KONTROL_POSTGRES_HOST=192.168.59.103 ./kloud.test -test.v -test.timeout 20m
+	-test.cpuprofile=kloud_cpu.prof -test.memprofile=kloud_mem.prof
+
+Create a nice graph from the cpu profile
+	go tool pprof --pdf kloud.test  kloud_cpu.prof > kloud_cpu.pdf
 */
 
 import (
@@ -126,7 +142,6 @@ func init() {
 	}
 }
 
-// Main VM action tests (build, start, stop, destroy, resize, reinit)
 func TestPing(t *testing.T) {
 	_, err := remote.Tell("kite.ping")
 	if err != nil {
@@ -134,6 +149,9 @@ func TestPing(t *testing.T) {
 	}
 }
 
+// TestSingleMachine creates a test user document and a single machine document
+// that is bound to thar particular test user. It builds, stops, starts,
+// resize, reinit and destroys the machine in order.
 func TestSingleMachine(t *testing.T) {
 	userData, err := createUser()
 	if err != nil {
