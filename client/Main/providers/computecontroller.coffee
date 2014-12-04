@@ -741,4 +741,7 @@ class ComputeController extends KDController
       return warn \
         "Unable to invalidate cache, machine not found with #{machineId}"
 
+    {kontrol} = KD.singletons
+
     KiteCache.unset machine.queryString
+    delete kontrol.kites?.klient?[machine.uid]
