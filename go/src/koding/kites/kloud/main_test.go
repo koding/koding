@@ -10,6 +10,9 @@ import (
 	"testing"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
 	"github.com/koding/kite/kontrol"
@@ -17,6 +20,7 @@ import (
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
@@ -120,7 +124,29 @@ func TestBuild(t *testing.T) {
 	// create test document in mongodb
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
-		panic(err)
+		t.Fatal(err)
+	}
+
+	user := &models.User{
+		ObjectId:      bson.NewObjectId(),
+		Email:         "testuser@testuser.com",
+		LastLoginDate: time.Now().UTC(),
+		RegisteredAt:  time.Now().UTC(),
+		Name:          "testuser", // bson equivelant is username
+		Password:      "somerandomnumbers",
+		Status:        "confirmed",
+		SshKeys: []struct {
+			Title string `bson:"title"`
+			Key   string `bson:"key"`
+		}{
+			{Key: publicKey},
+		},
+	}
+
+	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Insert(&user)
+	}); err != nil {
+		t.Error(err)
 	}
 
 	meta := map[string]interface{}{
@@ -128,7 +154,7 @@ func TestBuild(t *testing.T) {
 		"instance_type": "t2.micro",
 		"storage_size":  3,
 		"alwaysOn":      false,
-		"user_ssh_keys": []string{publicKey},
+		// "user_ssh_keys": []string{publicKey},
 	}
 
 	machineId0, err = provider.Create("testuser", meta)
