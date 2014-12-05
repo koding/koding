@@ -1,11 +1,13 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
+	"strings"
 
 	kmetrics "github.com/koding/metrics"
 
@@ -34,6 +36,10 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
+	// used for external requests
+	Params  map[string]string
+	Cookie  string
+	Cookies []*http.Cookie
 }
 
 // todo add prooper logging
@@ -171,4 +177,64 @@ func CountedByStatus(handler http.Handler, name string, collectMetrics bool) *Co
 		handler:        handler,
 		collectMetrics: collectMetrics,
 	}
+}
+
+//
+func MakeRequest(request *Request) (*http.Response, error) {
+	if request.Cookie != "" {
+		request.Cookies = parseCookies(request.Cookie)
+	}
+
+	request.Endpoint = prepareQueryString(request.Endpoint, request.Params)
+
+	client := new(http.Client)
+	req, err := http.NewRequest(request.Type, request.Endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// Add cookies
+	for _, cookie := range request.Cookies {
+		req.AddCookie(cookie)
+	}
+
+	return client.Do(req)
+}
+
+func prepareQueryString(endpoint string, params map[string]string) string {
+	if len(params) == 0 {
+		return endpoint
+	}
+
+	fullPath := fmt.Sprintf("%s?", endpoint)
+
+	for key, value := range params {
+		fullPath = fmt.Sprintf("%s%s=%s&", fullPath, key, value)
+	}
+
+	return fullPath[0 : len(fullPath)-1]
+}
+
+func parseCookies(cookie string) []*http.Cookie {
+	pairs := strings.Split(cookie, "; ")
+	cookies := make([]*http.Cookie, 0)
+
+	if len(pairs) == 0 {
+		return cookies
+	}
+
+	for _, val := range pairs {
+		cp := strings.Split(val, "=")
+		if len(cp) != 2 {
+			continue
+		}
+
+		c := new(http.Cookie)
+		c.Name = cp[0]
+		c.Value = cp[1]
+
+		cookies = append(cookies, c)
+	}
+
+	return cookies
 }
