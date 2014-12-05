@@ -24,7 +24,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	// do not expose errors to the client
 	env := config.MustGet().Environment
 	// do not expose errors to the client.
-	if env != "dev" || env != "test" {
+	if env != "dev" && env != "test" {
 		err = genericError
 	}
 
