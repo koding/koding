@@ -27,6 +27,7 @@ func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
 
 	return &Pubnub{
 		pub:       pub,
+		log:       log,
 		successCh: make(chan []byte),
 		errorCh:   make(chan []byte),
 		done:      make(chan error),
@@ -57,28 +58,24 @@ func prepareChannelName(pm *PushMessage) string {
 
 func (p *Pubnub) handleResponse() {
 	// TODO make it configurable
-	// TODO use logger
 	timeoutVal := 3 * time.Second
 	for {
 		select {
 		case success := <-p.successCh:
 			if string(success) != "[]" {
-				fmt.Println(fmt.Sprintf("Response: %s ", success))
-				fmt.Println("")
+				p.log.Debug("Response: %s ", success)
 			}
 			p.done <- nil
 			return
 		case failure := <-p.errorCh:
 			if string(failure) != "[]" {
-				fmt.Println(fmt.Sprintf("Error Callback: %s", failure))
-				fmt.Println("")
+				p.log.Debug("Could not push message to pubnub: %s", failure)
 			}
 
 			p.done <- fmt.Errorf(string(failure))
 			return
 		case <-time.Tick(timeoutVal):
-			fmt.Println(fmt.Sprintf("Handler timeout after %d secs", timeoutVal))
-			fmt.Println("")
+			p.log.Debug("Handler timeout after %d secs", timeoutVal)
 			p.done <- fmt.Errorf("request timeout")
 			return
 		}
