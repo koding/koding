@@ -324,7 +324,6 @@ pmLinkColor   = #B6B6B6
     line-height             34px
 
   .everyone
-
     padding-top             0 !important
 
     &.loading
@@ -390,16 +389,13 @@ pmLinkColor   = #B6B6B6
 
 
 .chat-view.onboarding
-
   height                    168px
 
   .chat-settings .warning
-
     visible()
     text-align              center
 
     span
-
       color                 #777
       font-size             14px
       display               inline-block
@@ -407,18 +403,15 @@ pmLinkColor   = #B6B6B6
       line-height           1.4em
 
     p
-
       margin-top            10px
 
       a
-
         font-size           13px
         color               #F56778
         text-transform      uppercase
         noTextDeco()
 
     strong
-
       font-weight           600
       color                 #575757
 
@@ -431,20 +424,17 @@ pmLinkColor   = #B6B6B6
 .chat-view .message-pane
 
   .onboarding
-
     abs()
     top                     90px
     z-index                 2 // acetz!
     background              #F8F8F8
 
     .arrow
-
       r-sprite              'ide', 'chat-arrow'
       display               inline-block
       margin                0 42px 0 50px
 
     .balloon
-
       r-sprite              'ide', 'chat-balloon'
       display               inline-block
 
@@ -464,7 +454,6 @@ pmLinkColor   = #B6B6B6
 .chat-view
 
   .everyone
-
     margin-top              12px
 
     p
@@ -479,3 +468,11 @@ pmLinkColor   = #B6B6B6
         font-weight         600
         text-decoration     none
         pointer()
+
+
+.ide
+  .kdlistitemview
+    &.end-session
+    &.leave-session
+      div
+        color               #F56778
