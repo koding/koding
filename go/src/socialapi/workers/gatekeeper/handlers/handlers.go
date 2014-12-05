@@ -8,14 +8,14 @@ import (
 func (h *Handler) AddHandlers(m *mux.Mux) {
 
 	// channel authentication
-	m.AddSessionlessHandler(
-		handler.Request{
-			Handler:        h.Authenticate,
-			Name:           "channel-authenticate",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{name}/authenticate",
-			CollectMetrics: true,
-		})
+	// m.AddSessionlessHandler(
+	// 	handler.Request{
+	// 		Handler:        h.Authenticate,
+	// 		Name:           "channel-authenticate",
+	// 		Type:           handler.PostRequest,
+	// 		Endpoint:       "/channel/{id}/authenticate",
+	// 		CollectMetrics: true,
+	// 	})
 
 	// channel push message
 	m.AddSessionlessHandler(
