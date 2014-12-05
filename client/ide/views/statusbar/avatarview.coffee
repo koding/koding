@@ -1,6 +1,7 @@
 class IDE.StatusBarAvatarView extends AvatarView
 
   INTENT_DELAY = 177
+  MENU         = null
 
   constructor: (options = {}, data) ->
 
@@ -9,6 +10,7 @@ class IDE.StatusBarAvatarView extends AvatarView
     super options, data
 
     @intentTimer = null
+    @nickname    = @getOptions().origin
 
 
   click: (event) ->
@@ -18,19 +20,19 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     return no
 
-
   mouseEnter: -> @intentTimer = KD.utils.wait INTENT_DELAY, @bound 'showMenu'
 
   mouseLeave: -> KD.utils.killWait @intentTimer  if @intentTimer
 
   showMenu: ->
 
-    return  if @menu
+    return  if MENU and MENU.getOptions().nickname is @nickname
+
+    MENU.destroy()  if MENU
 
     { appManager } = KD.singletons
     { rtm }        = appManager.getFrontApp()
-    { nickname }   = @getData().profile
-    changes        = rtm.getFromModel("#{nickname}Snapshot")?.values() or []
+    changes        = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
     menuItems      = {}
     menuData       =
       terminals : []
@@ -71,22 +73,23 @@ class IDE.StatusBarAvatarView extends AvatarView
 
       { watchMap, sessionHost } = collaborationData
 
-      isWatching  = watchMap.indexOf(nickname) > -1
+      isWatching  = watchMap.indexOf(@nickname) > -1
       title       = if isWatching then 'Unwatch' else 'Watch'
       menuWidth   = 172
 
       menuItems[title] =
         title    : title
-        callback : (item, e) => @setWatchState isWatching, nickname, item
+        callback : (item, e) => @setWatchState isWatching, @nickname, item
 
       if sessionHost is KD.nick()
         menuItems.Kick =
           title     : 'Kick'
           callback  : =>
-            @menu?.destroy()
+            MENU?.destroy()
             KD.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
 
-      @menu = new KDContextMenu
+      MENU = new KDContextMenu
+        nickname    : @nickname
         cssClass    : 'dark statusbar-files'
         event       : event
         delegate    : this
@@ -102,14 +105,14 @@ class IDE.StatusBarAvatarView extends AvatarView
 
 
       KD.utils.wait 200, =>
-        h = @menu.getHeight()
-        w = @menu.getWidth()
+        h = MENU.getHeight()
+        w = MENU.getWidth()
         top  = -h
         left = @getWidth()/2 - w/2
-        @menu.setOption 'offset', {left, top}
-        @menu.positionContextMenu()
+        MENU.setOption 'offset', {left, top}
+        MENU.positionContextMenu()
 
-      @menu.once 'KDObjectWillBeDestroyed', => @menu = null
+      MENU.once 'KDObjectWillBeDestroyed', => MENU = null
 
 
   setWatchState: (isWatching, nickname, item) ->
@@ -130,6 +133,6 @@ class IDE.StatusBarAvatarView extends AvatarView
 
   destroy: ->
 
-    @menu?.destroy()
+    MENU?.destroy()
 
     super
