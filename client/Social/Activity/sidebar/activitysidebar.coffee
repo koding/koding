@@ -92,13 +92,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   glanceChannelWorkspace: (channel) ->
 
-    sidebarItem = @getItemByData channel
-
-    @setUnreadCount sidebarItem, channel, 0
-
-    { socialapi } = KD.singletons
-
-    socialapi.channel.updateLastSeenTime channelId : channel._id, noop
+    @setWorkspaceUnreadCount channel, 0
 
 
   setUnreadCount: (item, data, unreadCount) ->
@@ -131,6 +125,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
     workspaceItem.child.setUnreadCount unreadCount
 
+    return  unless unreadCount is 0
+
+    { socialapi } = KD.singletons
+
+    socialapi.channel.updateLastSeenTime channelId : data._id, noop
 
 
   handleFollowedFeedUpdate: (update) ->
