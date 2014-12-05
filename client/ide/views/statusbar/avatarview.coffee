@@ -30,7 +30,7 @@ class IDE.StatusBarAvatarView extends AvatarView
     { appManager } = KD.singletons
     { rtm }        = appManager.getFrontApp()
     { profile }    = @getData()
-    changes        = rtm.getFromModel("#{profile.nickname}Snapshot").values()
+    changes        = rtm.getFromModel("#{nickname}Snapshot")?.values() or []
     menuItems      = {}
     menuData       =
       terminals : []
