@@ -449,7 +449,7 @@ class ActivitySidebar extends KDCustomHTMLView
         myMachineUIds    = []
 
         KD.userMachines.forEach (m) ->
-          if m.credential is nick
+          if m.data.credential is nick
           then myMachineUIds.push m.uid
           else otherMachineUIds.push m.uid
 
