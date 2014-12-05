@@ -43,7 +43,7 @@ type boltdb struct {
 
 func (b *boltdb) open(dbpath string) error {
 	var err error
-	b.DB, err = bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 1 * time.Second})
+	b.DB, err = bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
 	if err != nil {
 		return err
 	}
