@@ -793,9 +793,14 @@ class ActivitySidebar extends KDCustomHTMLView
   handleReloadMessages: -> @fetchWorkspaces => @sections.messages.reload()
 
 
+  machinesListed = no
   whenMachinesRendered: ->
 
-    new Promise (resolve) => @once 'MachinesListed', -> resolve()
+    new Promise (resolve) =>
+      return resolve()  if machinesListed
+      @once 'MachinesListed', ->
+        machinesListed = yes
+        resolve()
 
 
   handleWorkspaceUnreadCounts: (chatData) ->
