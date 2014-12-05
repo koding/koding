@@ -2,26 +2,34 @@ package collaboration
 
 import (
 	"os"
+	"os/user"
 	"path/filepath"
+	"time"
 
 	"github.com/boltdb/bolt"
 )
 
 const (
-	DatabasePath = "/opt/kite/klient/klient.db"
-	UserBucket   = "users"
+	UserBucket = "users"
+	// Canonical database path is `$HOME + DatabasePath`
+	DatabasePath = "/.config/koding/klient.bolt"
 )
 
+// NewBoltStorage returns a new boltdb
 func NewBoltStorage() (*boltdb, error) {
 	d := &boltdb{}
 
 	// Ensure data directory exists.
-	dir := filepath.Dir(DatabasePath)
-	if err := os.MkdirAll(dir, 0700); err != nil {
+	u, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+	boltPath := u.HomeDir + DatabasePath
+	if err := os.MkdirAll(filepath.Dir(boltPath), 0755); err != nil {
 		return nil, err
 	}
 
-	if err := d.open(DatabasePath); err != nil {
+	if err := d.open(boltPath); err != nil {
 		return nil, err
 	}
 
@@ -35,7 +43,7 @@ type boltdb struct {
 
 func (b *boltdb) open(dbpath string) error {
 	var err error
-	b.DB, err = bolt.Open(dbpath, 0600, nil)
+	b.DB, err = bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		return err
 	}
@@ -49,6 +57,7 @@ func (b *boltdb) open(dbpath string) error {
 	})
 }
 
+// Get returns the value of a given username
 func (b *boltdb) Get(username string) (string, error) {
 	var user string
 
@@ -86,20 +95,37 @@ func (b *boltdb) GetAll() ([]string, error) {
 	return users, nil
 }
 
+// Set assigns the value for the given username
 func (b *boltdb) Set(username, value string) error {
 	return b.Update(func(tx *Tx) error {
 		return tx.SetUser(username, value)
 	})
 }
 
+// Delete deletes the given username key and value from the bucket
 func (b *boltdb) Delete(username string) error {
 	return b.Update(func(tx *Tx) error {
 		return tx.DeleteUser(username)
 	})
 }
 
+// Close closes the boltdb database for further read and writes
 func (b *boltdb) Close() error {
 	return b.DB.Close()
+}
+
+// View executes a function in the context of a read-only transaction.
+func (b *boltdb) View(fn func(*Tx) error) error {
+	return b.DB.View(func(tx *bolt.Tx) error {
+		return fn(&Tx{tx})
+	})
+}
+
+// Update executes a function in the context of a writable transaction.
+func (b *boltdb) Update(fn func(*Tx) error) error {
+	return b.DB.Update(func(tx *bolt.Tx) error {
+		return fn(&Tx{tx})
+	})
 }
 
 // Tx is our own transaction type which provides helper methods
@@ -120,18 +146,4 @@ func (tx *Tx) SetUser(key, value string) error {
 // DeleteUser deletes the key of a users field by name.
 func (tx *Tx) DeleteUser(key string) error {
 	return tx.Bucket([]byte(UserBucket)).Delete([]byte(key))
-}
-
-// View executes a function in the context of a read-only transaction.
-func (b *boltdb) View(fn func(*Tx) error) error {
-	return b.DB.View(func(tx *bolt.Tx) error {
-		return fn(&Tx{tx})
-	})
-}
-
-// Update executes a function in the context of a writable transaction.
-func (b *boltdb) Update(fn func(*Tx) error) error {
-	return b.DB.Update(func(tx *bolt.Tx) error {
-		return fn(&Tx{tx})
-	})
 }
