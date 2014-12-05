@@ -1524,6 +1524,17 @@ class IDEAppController extends AppController
 
     @chat.emit 'ParticipantLeft', username
     @statusBar.emit 'ParticipantLeft', username
+
+
+  getCollaborationData: (callback = noop) =>
+
+    collaborationData =
+      watchMap        : @myWatchMap.values()
+      sessionHost     : @collaborationHost or KD.nick()
+
+    callback collaborationData
+
+
   kickParticipant: (account) ->
 
     options      =
