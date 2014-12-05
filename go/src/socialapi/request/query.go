@@ -152,8 +152,8 @@ func (q *Query) SetDefaults() *Query {
 		q.Limit = MAX_LIMIT
 	}
 
-	if q.From.IsZero() {
-		q.From = time.Now().UTC()
+	if q.To.IsZero() {
+		q.To = time.Now().UTC()
 	}
 
 	if q.GroupName == "" {
