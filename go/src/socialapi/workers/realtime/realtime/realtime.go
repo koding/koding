@@ -180,26 +180,14 @@ func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, even
 		return
 	}
 
-	notifiedParticipantIds := make([]int64, 0)
-
 	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE && c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return
 	}
 
-	// notify added/removed participants
-	for _, participant := range pe.Participants {
-		notifiedParticipantIds = append(notifiedParticipantIds, participant.AccountId)
-	}
-
-	// When a user is removed from a private channel notify all channel participants to
-	// make them update their sidebar channel list.
-	if c.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE && eventName == RemovedFromChannelEventName {
-		participantIds, err := c.FetchParticipantIds(&request.Query{})
-		if err != nil {
-			f.log.Error("Could not fetch participants: %s", err)
-			return
-		}
-		notifiedParticipantIds = append(notifiedParticipantIds, participantIds...)
+	notifiedParticipantIds, err := f.fetchNotifiedParticipantIds(c, pe, eventName)
+	if err != nil {
+		f.log.Error("Could not fetch participants: %s", err)
+		return
 	}
 
 	for _, participantId := range notifiedParticipantIds {
@@ -219,6 +207,27 @@ func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, even
 			f.log.Error("Ignoring err %s ", err.Error())
 		}
 	}
+}
+
+func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.ParticipantEvent, eventName string) ([]int64, error) {
+	notifiedParticipantIds := make([]int64, 0)
+
+	// notify added/removed participants
+	for _, participant := range pe.Participants {
+		notifiedParticipantIds = append(notifiedParticipantIds, participant.AccountId)
+	}
+
+	// When a user is removed from a private channel notify all channel participants to
+	// make them update their sidebar channel list.
+	if c.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE && eventName == RemovedFromChannelEventName {
+		participantIds, err := c.FetchParticipantIds(&request.Query{})
+		if err != nil {
+			return notifiedParticipantIds, err
+		}
+		notifiedParticipantIds = append(notifiedParticipantIds, participantIds...)
+	}
+
+	return notifiedParticipantIds, nil
 }
 
 // InteractionSaved runs when interaction is added
