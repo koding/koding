@@ -93,7 +93,7 @@ do ->
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
         {machineLabel, workspaceSlug} = latestWorkspace
 
-    KD.utils.defer =>
+    KD.utils.defer ->
       KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
