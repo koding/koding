@@ -114,12 +114,6 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	defer klientRef.Close()
-
-	if err = klientRef.Ping(); err != nil {
-		return err
-	}
-
 	// now the klient is connected and we can ping it, stop the timer and
 	// remove it from the list of inactive machines if it's still there.
 	p.Provider.stopTimer(p.Machine)
@@ -127,8 +121,10 @@ func (p *PlanChecker) Timeout() error {
 	// get the usage directly from the klient, which is the most predictable source
 	usg, err := klientRef.Usage()
 	if err != nil {
+		klientRef.Close()
 		return err
 	}
+	klientRef.Close()
 
 	// replace with the real and authenticated username
 	p.Machine.Builder["username"] = klientRef.Username
