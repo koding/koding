@@ -24,6 +24,12 @@ module.exports = class RecoverInlineForm extends LoginViewInlineForm
       type        : 'submit'
       loader      : yes
 
+    
+  reset: ->
+      
+      super
+      @button.hideLoader()
+
   pistachio:->
 
     """
