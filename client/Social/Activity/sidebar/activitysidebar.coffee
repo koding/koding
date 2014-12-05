@@ -123,6 +123,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     workspaceItem = @workspaceItemChannelMap[data._id]
 
+    return  unless workspaceItem
+
     workspaceItem.child.setUnreadCount unreadCount
 
     return  unless unreadCount is 0
@@ -214,7 +216,8 @@ class ActivitySidebar extends KDCustomHTMLView
       @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
 
       if KD.utils.isChannelCollaborative channel
-        @setWorkspaceUnreadCount channel, unreadCount
+        @fetchMachines => @fetchWorkspaces =>
+          @setWorkspaceUnreadCount channel, unreadCount
       else
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
@@ -227,7 +230,8 @@ class ActivitySidebar extends KDCustomHTMLView
     return  if update.isParticipant
 
     @removeItem id
-    @fetchWorkspaces()  if @workspaceItemChannelMap[id]
+    if @workspaceItemChannelMap[id]
+      @fetchMachines => @fetchWorkspaces()
 
     # TODO update participants in sidebar
 
