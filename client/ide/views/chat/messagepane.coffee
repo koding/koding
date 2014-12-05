@@ -6,6 +6,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     super options, data
 
+    @isInSession = options.isInSession
+
     @define 'visible', => @getDelegate().visible
 
     @on 'AddedParticipant', @bound 'participantAdded'
@@ -139,11 +141,17 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
   settingsMenu: ->
 
-    'Search'     : cssClass: 'disabled', callback: noop
-    'Settings'   : callback: @getDelegate().bound 'showSettingsPane'
-    'Minimize'   : callback: @getDelegate().bound 'end'
-    'Learn More' : callback: =>
-      KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
+    menu =
+      'Search'        : cssClass : 'disabled', callback: noop
+      # 'Settings'    : callback : @getDelegate().bound 'showSettingsPane'
+      'Minimize'      : callback : @getDelegate().bound 'end'
+      'Learn More'    : separator: yes, callback : => KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
+      'End Session'   : callback : => @parent.settingsPane.stopSession()
+      'Leave Session' : callback : => @parent.settingsPane.leaveSession()
+
+    if @isInSession then delete menu['End Session'] else delete menu['Leave Session']
+
+    return menu
 
 
   createInputWidget: ->
