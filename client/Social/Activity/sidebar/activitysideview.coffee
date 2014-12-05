@@ -105,13 +105,17 @@ class ActivitySideView extends JView
 
     return  if err
 
-    workspaceChannels = KD.userWorkspaces
-      .filter (ws) -> ws.channelId
-      .map (ws) -> ws.channelId
+    for itemData, i in items
 
-    for itemData, i in items when i < limit
-      item = @listController.addItem itemData
-      item.hide()  if itemData._id in workspaceChannels
+      # used `break` instead of `when`
+      # because `break` stops loop
+      # after the condition is satisfied
+      # unlike `when`. ~Umut
+      break     if i >= limit
+      continue  if KD.utils.isChannelCollaborative itemData
+
+      @listController.addItem itemData
+
 
     KD.utils.defer => @emit 'DataReady', items
 

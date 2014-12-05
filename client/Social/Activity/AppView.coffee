@@ -103,8 +103,10 @@ class ActivityAppView extends KDView
         if err then router.handleNotFound router.getCurrentPath()
         else
           # put after #koding #changelog
-          @sidebar.addItem data, 2
-          kallback data
+          unless KD.utils.isChannelCollaborative data
+            @sidebar.whenMachinesRendered().then =>
+              @sidebar.addItem data, 2
+              kallback data
     else
       kallback item.getData()
 

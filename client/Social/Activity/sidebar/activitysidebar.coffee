@@ -92,13 +92,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
   glanceChannelWorkspace: (channel) ->
 
-    sidebarItem = @getItemByData channel
-
-    @setUnreadCount sidebarItem, channel, 0
-
-    { socialapi } = KD.singletons
-
-    socialapi.channel.updateLastSeenTime channelId : channel._id, noop
+    @setWorkspaceUnreadCount channel, 0
 
 
   setUnreadCount: (item, data, unreadCount) ->
@@ -124,8 +118,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     item.setUnreadCount? unreadCount
 
-    @setWorkspaceUnreadCount data, unreadCount  if @workspaceItemChannelMap[data._id]
-
 
   setWorkspaceUnreadCount: (data, unreadCount) ->
 
@@ -133,6 +125,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
     workspaceItem.child.setUnreadCount unreadCount
 
+    return  unless unreadCount is 0
+
+    { socialapi } = KD.singletons
+
+    socialapi.channel.updateLastSeenTime channelId : data._id, noop
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -158,9 +155,11 @@ class ActivitySidebar extends KDCustomHTMLView
         when 'announcement' then 2
         else 0
 
-      item = @addItem data, index
-
-      @setUnreadCount item, data, unreadCount
+      if KD.utils.isChannelCollaborative data
+        @setWorkspaceUnreadCount data, unreadCount
+      else
+        item = @addItem data, index
+        @setUnreadCount item, data, unreadCount
 
 
   # when a comment is added to a post
@@ -214,8 +213,11 @@ class ActivitySidebar extends KDCustomHTMLView
       # but it's left there just to be more cautious. ~Umut
       @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
 
-      item = @addItem channel, index
-      @setUnreadCount item, channel, unreadCount
+      if KD.utils.isChannelCollaborative channel
+        @setWorkspaceUnreadCount channel, unreadCount
+      else
+        item = @addItem channel, index
+        @setUnreadCount item, channel, unreadCount
 
 
   accountRemovedFromChannel: (update) ->
@@ -548,6 +550,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
       @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
 
+    @emit 'MachinesListed'
+
 
   mapWorkspaceWithChannel: (data, node) ->
 
@@ -789,11 +793,22 @@ class ActivitySidebar extends KDCustomHTMLView
   handleReloadMessages: -> @fetchWorkspaces => @sections.messages.reload()
 
 
+  machinesListed = no
+  whenMachinesRendered: ->
+
+    new Promise (resolve) =>
+      return resolve()  if machinesListed
+      @once 'MachinesListed', ->
+        machinesListed = yes
+        resolve()
+
+
   handleWorkspaceUnreadCounts: (chatData) ->
 
-    chatData
-      .filter  (data) => @workspaceItemChannelMap[data._id]
-      .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
+    @whenMachinesRendered().then =>
+      chatData
+        .filter  (data) => @workspaceItemChannelMap[data._id]
+        .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
   addNewWorkspace: (machineData) ->
