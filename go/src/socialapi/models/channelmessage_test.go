@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/request"
 	"socialapi/workers/common/runner"
 	"testing"
 	"time"
@@ -431,6 +432,105 @@ func TestChannelMessageBuildEmptyMessageContainer(t *testing.T) {
 			bem, err := c.BuildEmptyMessageContainer()
 			So(err, ShouldBeNil)
 			So(bem.Message, ShouldEqual, c)
+		})
+	})
+}
+
+func TestChannelMessageFetchLatestMessages(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching latest messages of a channel with three participants and four messages", t, func() {
+		channel, accounts := CreateChannelWithParticipants()
+		cm1 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		cm2 := CreateMessage(channel.Id, accounts[1].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		cm3 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		cm4 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+
+		query := request.NewQuery()
+		query.Limit = 3
+		query.AddSortField("CreatedAt", request.ORDER_DESC)
+		query.Type = ChannelMessage_TYPE_PRIVATE_MESSAGE
+
+		Convey("first user should see last three messages when no parameters are set", func() {
+			c := NewChannelMessage()
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 3)
+			So(cms[2].Id, ShouldEqual, cm2.Id)
+		})
+
+		Convey("first user should see one message when their account id is excluded", func() {
+			query.ExcludeField("AccountId", cm1.AccountId)
+			c := NewChannelMessage()
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 1)
+			So(cms[0].Id, ShouldEqual, cm2.Id)
+		})
+
+		Convey("second user should see two messages starting with their own message", func() {
+			c := NewChannelMessage()
+			query.ExcludeField("AccountId", cm2.AccountId)
+			query.From = cm2.CreatedAt
+
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 2)
+			So(cms[0].Id, ShouldEqual, cm4.Id)
+			So(cms[1].Id, ShouldEqual, cm3.Id)
+		})
+
+		Convey("third user should see three messages when all parameters are set", func() {
+			c := NewChannelMessage()
+			query.ExcludeField("AccountId", accounts[2].Id)
+			query.From = cm1.CreatedAt
+
+			cms, err := c.FetchMessagesByChannelId(channel.Id, query)
+			So(err, ShouldBeNil)
+			So(len(cms), ShouldEqual, 3)
+			So(cms[0].Id, ShouldEqual, cm4.Id)
+			So(cms[1].Id, ShouldEqual, cm3.Id)
+			So(cms[2].Id, ShouldEqual, cm2.Id)
+		})
+	})
+}
+
+func TestChannelMessageFetchMessageCount(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching message count since the given time", t, func() {
+		channel, accounts := CreateChannelWithParticipants()
+		cm1 := CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		CreateMessage(channel.Id, accounts[1].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+		CreateMessage(channel.Id, accounts[0].Id, ChannelMessage_TYPE_PRIVATE_MESSAGE)
+
+		query := request.NewQuery()
+		query.Type = ChannelMessage_TYPE_PRIVATE_MESSAGE
+		query.GroupChannelId = channel.Id
+		query.From = cm1.CreatedAt
+
+		Convey("first user should see 4 messages when their account is not excluded", func() {
+			c := NewChannelMessage()
+			count, err := c.FetchTotalMessageCount(query)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 4)
+		})
+
+		Convey("second user should see 3 messages then their account is excluded", func() {
+			c := NewChannelMessage()
+			query.ExcludeField("AccountId", accounts[1].Id)
+			count, err := c.FetchTotalMessageCount(query)
+			So(err, ShouldBeNil)
+			So(count, ShouldEqual, 3)
 		})
 	})
 }

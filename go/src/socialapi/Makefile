@@ -52,7 +52,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emailnotifierdev dailyemailnotifierdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -60,12 +60,15 @@ apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c config/dev.toml $(PORT) $(DBG) $(METRICS)
+
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
+
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
+
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
@@ -77,21 +80,39 @@ pinnedpostdev:
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
+
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
-emailnotifierdev:
+
+emaildev: activityemaildev dailyemaildev privatemessageemaildev
+
+activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/emailnotifier -c $(CONFIG) $(DBG) $(METRICS)
-dailyemailnotifierdev:
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
+
+dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/dailyemailnotifier -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
+
+privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
+
+privatemessageemailfeederdev:
+	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) -d true $(METRICS)
+
+privatemessageemailsenderdev:
+	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) -d true $(METRICS)
+
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
+
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
+
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
@@ -107,15 +128,15 @@ sitemapdev: sitemapfeederdev sitemapgeneratordev
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
+
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
+
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
-sitemaprootgeneratordev:
-	@echo "$(OK_COLOR)==> Running Sitemap Root Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemaprootgenerator -c $(CONFIG) $(DBG) $(METRICS)
+
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
@@ -205,6 +226,19 @@ testapi:
 	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
+
+	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/feeder/*.go
+	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./feeder.test
+
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/sender/*.go
+	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./sender.test
+
+	@`which go` test -c workers/email/emailmodels/*.go
+	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./emailmodels.test
 
 doc:
 	@for package in $(PACKAGES); \
