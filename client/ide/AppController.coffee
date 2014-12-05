@@ -287,8 +287,9 @@ class IDEAppController extends AppController
 
   unmountMachine: (machineData) ->
 
-    panel        = @workspace.getView()
-    filesPane    = panel.getPaneByName 'filesPane'
+    panel     = @workspace.getView()
+    filesPane = panel.getPaneByName 'filesPane'
+
     filesPane.emit 'MachineUnmountRequested', machineData
 
 
