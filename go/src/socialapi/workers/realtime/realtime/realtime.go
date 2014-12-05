@@ -170,8 +170,8 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 	return nil
 }
 
-// notifyParticipants notifies current private channel participants and
-// removed participants included in ParticipantEvent.Participants about removed users
+// notifyParticipants notifies related participants when they join/leave private channel
+// or follow/unfollow a topic.
 // this is used for updating sidebar.
 func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, eventName string) {
 	c, err := models.ChannelById(pe.Id)
@@ -180,31 +180,26 @@ func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, even
 		return
 	}
 
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	notifiedParticipantIds := make([]int64, 0)
+
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE && c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return
 	}
 
-	var notifiedParticipantIds []int64
+	// notify added/removed participants
+	for _, participant := range pe.Participants {
+		notifiedParticipantIds = append(notifiedParticipantIds, participant.AccountId)
+	}
 
-	// When a user is removed notify all participants to make them update their sidebar
-	// channel list.
-	// When a user is added just notify that user for pushing them to subscribe for the
-	// further channel messages, and updating the sidebar.
-	switch eventName {
-	case AddedToChannelEventName:
-		notifiedParticipantIds = make([]int64, 0)
-	case RemovedFromChannelEventName:
-		// fetch current participants
-		notifiedParticipantIds, err = c.FetchParticipantIds(&request.Query{})
+	// When a user is removed from a private channel notify all channel participants to
+	// make them update their sidebar channel list.
+	if c.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE && eventName == RemovedFromChannelEventName {
+		participantIds, err := c.FetchParticipantIds(&request.Query{})
 		if err != nil {
 			f.log.Error("Could not fetch participants: %s", err)
 			return
 		}
-	}
-
-	// append removed participants
-	for _, participant := range pe.Participants {
-		notifiedParticipantIds = append(notifiedParticipantIds, participant.AccountId)
+		notifiedParticipantIds = append(notifiedParticipantIds, participantIds...)
 	}
 
 	for _, participantId := range notifiedParticipantIds {
