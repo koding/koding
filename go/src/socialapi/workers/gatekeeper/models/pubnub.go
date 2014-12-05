@@ -37,7 +37,7 @@ func (p *Pubnub) Authenticate(req *ChannelRequest) error {
 	return nil
 }
 
-func (p *Pubnub) Push(pm PushMessage) error {
+func (p *Pubnub) Push(pm *PushMessage) error {
 	channelName := prepareChannelName(pm)
 
 	go p.handleResponse()
@@ -51,7 +51,7 @@ func (p *Pubnub) Close() {
 	p.pub.CloseExistingConnection()
 }
 
-func prepareChannelName(pm PushMessage) string {
+func prepareChannelName(pm *PushMessage) string {
 	return fmt.Sprintf("%s-%s-%s", pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
 }
 
