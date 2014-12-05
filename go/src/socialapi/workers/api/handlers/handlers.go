@@ -157,6 +157,14 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/channel/{id}/fetch",
 		})
 
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:  channel.SecretNamesById,
+			Name:     "channel-secretnames-list",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/{id}/secretnames",
+		})
+
 	// exempt contents are filtered
 	// caching enabled
 	m.AddHandler(
