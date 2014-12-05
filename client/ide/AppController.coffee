@@ -1242,7 +1242,7 @@ class IDEAppController extends AppController
 
     message.initPrivateMessage
       body       : "@#{nick} initiated the IDE session."
-      purpose    : "IDE #{dateFormat 'HH:MM'}"
+      purpose    : "#{KD.utils.getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
       recipients : [ nick ]
       payload    :
         'system-message' : 'initiate'
