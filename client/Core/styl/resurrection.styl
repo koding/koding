@@ -588,6 +588,17 @@ div.nominateicon
           font-size       14px
           padding         0 0 9px 2px
 
+
+    span
+      top             2px
+      left            2px
+      position        relative
+      display         inline-block
+      cursor          pointer
+
+      &.domain-toggle
+        r-sprite      app 'add-12'
+
     &.domains
 
       label.kdlabel
@@ -595,18 +606,8 @@ div.nominateicon
         a
           text-decoration none
 
-        span
-          top             2px
-          left            2px
-          position        relative
-          display         inline-block
-          cursor          pointer
-
         span.domain-help
           r-sprite        app 'what-12'
-
-        span.domain-toggle
-          r-sprite        app 'add-12'
 
         &.expanded
           span.domain-toggle

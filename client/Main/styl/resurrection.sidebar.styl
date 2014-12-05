@@ -9,6 +9,7 @@ resurrection.styl
 }
 
 sidebarGray               = #A0A0A0
+sidebarGrayPale           = #777
 sidebarActive             = #fff
 sidebarSubtitle           = #979087
 sidebarSelectedBg         = #262626
@@ -137,6 +138,19 @@ sidebarTextShadow()
   padding             1px 20px
   borderBox()
 
+  cite.count
+    size            20px 20px
+    line-height     20px
+    color           #fff
+    abs             3px 7px 0 0
+    font-size       10px
+    font-weight     700
+    background      sidebarCountBg
+    rounded         3px
+    text-align      center
+    vendor          transition, all .354s .177s ease
+    fr()
+
   .more-link
     font-size         12px
     color             sidebarSectionHeaderColor
@@ -197,6 +211,7 @@ sidebarTextShadow()
       line-height     22px
       padding         0 0 0 35px
       rounded         0
+      overflow        visible
 
       figure
         display       block
@@ -242,14 +257,17 @@ sidebarTextShadow()
       abs()
       hidden()
 
-
     &.selected a
       color             sidebarActive
 
+    .shared-by
+      font-size       12px
+      color           sidebarGrayPale
+
     a
-      padding           5px 8px 5px 31px
+      padding           5px 8px 5px 19px
       display           block
-      size              auto 26px
+      size              218px 26px
       opacity           1
       color             sidebarGray
       borderBox()
@@ -269,10 +287,14 @@ sidebarTextShadow()
         bg            color #222
         abs           3px 0 0 3px
 
+      &.running:hover > div
+        width         180px
+
       > div
         position      relative
-        left          -12px
-
+        width         200px
+        vendor        transition, width .1s ease .05s
+        ellipsis()
 
       &.social > figure
       &.activity > figure
@@ -441,20 +463,6 @@ sidebarTextShadow()
     &.out
       margin-top      -28px
       vendor          transform, translateX(-300px)
-
-    cite.count
-      size            20px 20px
-      line-height     20px
-      color           #fff
-      abs             3px 7px 0 0
-      font-size       10px
-      font-weight     700
-      background      sidebarCountBg
-      rounded         3px
-      text-align      center
-      vendor          transition, all .354s .177s ease
-
-      fr()
 
     .ttag
       display        block
@@ -743,7 +751,7 @@ h3.sidebar-title
 
     &.add-icon
     &.buy-vm
-      margin        -2px 0 0 0
+      margin        -2px 6px 0 0
       r-sprite      app , 'plus-16'
 
     &.buy-vm

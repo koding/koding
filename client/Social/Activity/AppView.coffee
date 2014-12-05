@@ -17,11 +17,16 @@ class ActivityAppView extends KDView
       appStorageController
       windowController
       mainView
-    }             = KD.singletons
-    {entryPoint}  = KD.config
-
+    }            = KD.singletons
+    {entryPoint} = KD.config
+    # this is also assigned in viewAppended
+    # when you land on a privateMessage directly
+    # sidebar here becomes undefined
+    # and once view is appended we make sure
+    # that the sidebar property is set.
+    # a terrible hack, should be addressed later. - SY
+    @sidebar     = mainView.activitySidebar
     @appStorage  = appStorageController.storage 'Activity', '2.0'
-
     @panePathMap = {}
 
     @tabs = new KDTabView
@@ -49,19 +54,15 @@ class ActivityAppView extends KDView
 
   viewAppended: ->
 
-    # @addSubView @groupHeader  unless isKoding()
-    # @addSubView @sidebar
-    { mainView } = KD.singletons
-    @sidebar     = mainView.activitySidebar
+    # see above for the terrible hack note - SY
+    @sidebar ?= KD.singletons.mainView.activitySidebar
     @addSubView @tabs
 
     @parent.on 'KDTabPaneActive', =>
 
       return  unless pane = @tabs.getActivePane()
 
-      KD.utils.defer ->
-        pane.applyScrollTops()
-
+      KD.utils.defer -> pane.applyScrollTops()
       KD.utils.wait 50, -> pane.scrollView.wrapper.emit 'MutationHappened'
 
     @parent.on 'KDTabPaneInactive', =>
@@ -102,8 +103,10 @@ class ActivityAppView extends KDView
         if err then router.handleNotFound router.getCurrentPath()
         else
           # put after #koding #changelog
-          @sidebar.addItem data, 2
-          kallback data
+          unless KD.utils.isChannelCollaborative data
+            @sidebar.whenMachinesRendered().then =>
+              @sidebar.addItem data, 2
+              kallback data
     else
       kallback item.getData()
 

@@ -125,7 +125,7 @@ class LocalSyncController extends KDController
     unless ace.getContents() is lastSavedContent
       ace.emit "FileContentChanged"
     else
-      ace.emit "FileContentSynced"
+      ace.emit "FileContentRestored"
 
   removeLocalContents:->
     for key in @storage.getLocalStorageKeys()

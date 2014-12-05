@@ -82,6 +82,7 @@ class ActivitySideView extends JView
 
     {dataPath} = @getOptions()
     items = KD.singletons.socialapi.getPrefetchedData dataPath
+
     if items?.length
     then @renderItems null, items
     else @reload()
@@ -97,13 +98,27 @@ class ActivitySideView extends JView
 
 
   renderItems: (err, items = []) ->
+
     {limit} = @getOptions()
 
     @listController.hideLazyLoader()
 
     return  if err
 
-    @listController.addItem itemData for itemData, i in items when i < limit
+    for itemData, i in items
+
+      # used `break` instead of `when`
+      # because `break` stops loop
+      # after the condition is satisfied
+      # unlike `when`. ~Umut
+      break     if i >= limit
+      continue  if KD.utils.isChannelCollaborative itemData
+
+      @listController.addItem itemData
+
+
+    KD.utils.defer => @emit 'DataReady', items
+
 
 
   pistachio: ->

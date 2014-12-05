@@ -25,6 +25,11 @@ class KodingKite_KlientKite extends KodingKite
     webtermKillSession : 'webterm.killSession'
     webtermPing        : 'webterm.ping'
 
+    klientShare        : 'klient.share'
+    klientUnshare      : 'klient.unshare'
+    klientShared       : 'klient.shared'
+
+
   init: ->
     @connect()
     Promise.resolve()
