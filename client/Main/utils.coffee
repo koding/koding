@@ -951,6 +951,8 @@ utils.extend utils,
 
   isChannelCollaborative: (channel) ->
 
+    return no  unless channel.purpose?
+
     prefix = KD.utils.getCollaborativeChannelPrefix()
     return channel.purpose.slice(0, prefix.length) is prefix
 
