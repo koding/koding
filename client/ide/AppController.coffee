@@ -1524,3 +1524,14 @@ class IDEAppController extends AppController
 
     @chat.emit 'ParticipantLeft', username
     @statusBar.emit 'ParticipantLeft', username
+  kickParticipant: (account) ->
+
+    options      =
+      channelId  : @socialChannel.id
+      accountIds : [ account.socialApiId ]
+
+    KD.singletons.socialapi.channel.kickParticipants options, (err, result) =>
+
+      return KD.showError err  if err
+
+      @socialChannel.emit 'RemovedFromChannel', account

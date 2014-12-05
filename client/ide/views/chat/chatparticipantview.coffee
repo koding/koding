@@ -57,17 +57,7 @@ class IDE.ChatParticipantView extends JView
 
   kickParticipant: ->
 
-    { account, channel } = @getData()
-
-    { kickParticipants } = KD.singletons.socialapi.channel
-
-    options = { channelId: channel.id, accountIds: [account.socialApiId] }
-
-    kickParticipants options, (err, result) =>
-
-      return KD.showError err  if err
-
-      channel.emit 'RemovedFromChannel', account
+    KD.singletons.appManager.tell 'IDE', 'kickParticipants', @getData().account
 
 
   setAsOnline: ->
