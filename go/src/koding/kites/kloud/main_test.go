@@ -479,8 +479,6 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 		time.Sleep(2 * time.Second)
 		continue // still pending
 	}
-
-	return nil
 }
 
 func newKloud() *kloud.Kloud {

@@ -251,27 +251,40 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	return container, nil
 }
 
-func generateMessageListQuery(channelId int64, q *request.Query) *bongo.Query {
+func generateMessageListQuery(q *request.Query) *bongo.Query {
 	messageType := q.Type
 	if messageType == "" {
 		messageType = ChannelMessage_TYPE_POST
 	}
 
-	return &bongo.Query{
+	query := &bongo.Query{
 		Selector: map[string]interface{}{
-			"account_id":         q.AccountId,
-			"initial_channel_id": channelId,
-			"type_constant":      messageType,
+			"type_constant": messageType,
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
-		Sort: map[string]string{
-			"created_at": "DESC",
-		},
 	}
+
+	if q.GroupChannelId != 0 {
+		query.Selector["initial_channel_id"] = q.GroupChannelId
+	}
+
+	if q.AccountId != 0 {
+		query.Selector["account_id"] = q.AccountId
+	}
+
+	query.AddScope(ExcludeFields(q.Exclude))
+	query.AddScope(StartFrom(q.From))
+	query.AddScope(TillTo(q.To))
+
+	return query
 }
 
 func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *request.Query) ([]ChannelMessage, error) {
-	query := generateMessageListQuery(channelId, q)
+	q.GroupChannelId = channelId
+	query := generateMessageListQuery(q)
+	query.Sort = map[string]string{
+		"created_at": "DESC",
+	}
 
 	var messages []ChannelMessage
 	if err := c.Some(&messages, query); err != nil {
@@ -307,13 +320,7 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 
 // FetchTotalMessageCount fetch the count of all messages in the channel
 func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"account_id":    q.AccountId,
-			"type_constant": q.Type,
-		},
-		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
-	}
+	query := generateMessageListQuery(q)
 
 	query.AddScope(RemoveTrollContent(
 		c, q.ShowExempt,

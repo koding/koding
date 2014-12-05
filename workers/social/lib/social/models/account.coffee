@@ -16,6 +16,7 @@ module.exports = class JAccount extends jraphical.Module
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
+  Sendgrid         = require './sendgrid'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -170,10 +171,6 @@ module.exports = class JAccount extends jraphical.Module
         ]
         unlinkOauth:
           (signature String, Function)
-        changeUsername: [
-          (signature Object)
-          (signature Object, Function)
-        ]
         markUserAsExempt:
           (signature Boolean, Function)
         userIsExempt:
@@ -216,6 +213,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
+        setLastLoginTimezone:
+          (signature Object, Function)
 
     schema                  :
       socialApiId           : String
@@ -453,18 +452,6 @@ module.exports = class JAccount extends jraphical.Module
                 @constructor.emit 'UsernameChanged', change
                 freeOldUsername()
 
-  changeUsername$: secure (client, options, callback) ->
-
-    {delegate} = client.connection
-
-    if @type is 'unregistered' or not delegate.equals this
-    then return callback new KodingError 'Access denied'
-
-    options = username: options  if 'string' is typeof options
-
-    options.mustReauthenticate = yes
-
-    @changeUsername options, callback
 
   checkPermission: (target, permission, callback)->
     JPermissionSet = require './group/permissionset'
@@ -686,9 +673,23 @@ module.exports = class JAccount extends jraphical.Module
     current = user.getAt('emailFrequency') or {}
     Object.keys(prefs).forEach (granularity)->
       state = prefs[granularity]
-      state = false if state not in [true, false]
       current[granularity] = state# then 'instant' else 'never'
-    user.update {$set: emailFrequency: current}, callback
+
+    updateUserPref =->
+      user.update {$set: emailFrequency: current}, (err)->
+        return callback err  if err
+
+    if current["marketing"] is no or current["global"] is no
+      return Sendgrid.deleteFromMarketing user.email, (err)->
+        return callback err  if err
+        updateUserPref()
+
+    if current["marketing"] is yes and current["global"] is yes
+      return Sendgrid.addToMarketing user.email, user.username, (err)->
+        return callback err  if err
+        updateUserPref()
+
+    updateUserPref()
 
   setEmailPreferences$: secure (client, prefs, callback)->
     JUser = require './user'
@@ -1354,3 +1355,13 @@ module.exports = class JAccount extends jraphical.Module
           as          : 'like'
 
         rel.save (err)-> callback err
+
+  setLastLoginTimezone: secure (client, options, callback) ->
+    {lastLoginTimezone} = options
+
+    return callback new KodingError "timezone is not set"  unless lastLoginTimezone
+
+    @update $set: {lastLoginTimezone}, (err) ->
+      return callback new KodingError "Could not update last login timezone" if err
+      callback null
+

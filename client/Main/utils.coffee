@@ -2,10 +2,14 @@ utils.extend utils,
 
   groupifyLink: (href, withOrigin = no) ->
 
-    {slug}   = KD.config.entryPoint
-    {origin} = window.location
-    href     = if slug is 'koding' then href else "#{slug}/#{href}"
-    href     = "#{origin}/#{href}"  if withOrigin
+    {slug, type} = KD.config.entryPoint
+    {origin}     = window.location
+
+    href = if type is 'group' and slug isnt 'koding'
+    then "#{slug}/#{href}"
+    else href
+
+    href         = "#{origin}/#{href}"  if withOrigin
 
     return href
 
@@ -852,9 +856,10 @@ utils.extend utils,
 
   getLocationInfo: do (queue=[])->
 
-    ip      = null
-    country = null
-    region  = null
+    ip       = null
+    country  = null
+    region   = null
+    timezone = null
 
     fail = ->
 
@@ -866,7 +871,7 @@ utils.extend utils,
     (callback = noop)->
 
       if ip? and country? and region?
-        callback null, { ip, country, region }
+        callback null, { ip, country, region, timezone }
         return
 
       return  if (queue.push callback) > 1
@@ -874,17 +879,18 @@ utils.extend utils,
       $.ajax
         url      : '//freegeoip.net/json/?callback=?'
         error    : fail
-        timeout  : 1500
+        timeout  : 5000
         dataType : 'json'
         success  : (data)->
 
-          { ip, country_code, region_code } = data
+          { ip, country_code, region_code, time_zone } = data
 
-          country = country_code
-          region  = region_code
+          country  = country_code
+          region   = region_code
+          timezone = time_zone
 
           for cb in queue
-            cb null, { ip, country, region }
+            cb null, { ip, country, region, timezone }
 
           queue = []
 
