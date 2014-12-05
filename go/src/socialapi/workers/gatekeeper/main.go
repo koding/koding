@@ -6,6 +6,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/gatekeeper/handlers"
 	"socialapi/workers/gatekeeper/models"
+	"socialapi/workers/helper"
 )
 
 const Name = "GateKeeper"
@@ -22,11 +23,19 @@ func main() {
 	pubnub := models.NewPubnub(r.Conf.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
 
+	// later on broker support must be removed
+	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
+	broker, err := models.NewBroker(rmq)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	mc := mux.NewMuxConfig(Name, config.Host, config.Port)
 	m := mux.NewMux(mc, r.Log)
 	m.Metrics = r.Metrics
 
-	h := handlers.NewHandler(pubnub)
+	h := handlers.NewHandler(pubnub, broker)
 
 	h.AddHandlers(m)
 
