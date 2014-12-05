@@ -139,7 +139,6 @@ class AccountSshKeyListItem extends KDListItemView
     {key, title} = @getData()
 
     if key and title
-      log key, title
       @info.$('span.title').text title
       @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
