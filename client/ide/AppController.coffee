@@ -514,8 +514,18 @@ class IDEAppController extends AppController
           view.webtermView.updateSettings()
 
   showShortcutsView: ->
+    paneView = null
+    @forEachSubViewInIDEViews_ (view) ->
+      if view instanceof IDE.ShortcutsView
+        paneView = view.parent
+        
+    
+    return paneView.parent.showPane paneView if paneView
+    
+    
     @activeTabView.emit 'ShortcutsViewRequested'
-
+    
+    
   getActivePaneView: ->
     return @activeTabView?.getActivePane()?.getSubViews().first
 
