@@ -29,7 +29,7 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     { appManager } = KD.singletons
     { rtm }        = appManager.getFrontApp()
-    { profile }    = @getData()
+    { nickname }   = @getData().profile
     changes        = rtm.getFromModel("#{nickname}Snapshot")?.values() or []
     menuItems      = {}
     menuData       =
@@ -67,30 +67,69 @@ class IDE.StatusBarAvatarView extends AvatarView
           @destroy()
         menuItems[title].separator = yes  if i is items.length - 1
 
-    menuWidth       = 172
-    statusBarHeight = 40
+    appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
 
-    @menu = new KDContextMenu
-      cssClass    : 'dark statusbar-files'
-      event       : event
-      delegate    : this
-      x           : @getX()
-      y           : @getY()
-      offset      :
-        top       : -5000
-        left      : -86
-      arrow       :
-        placement : 'bottom'
-        margin    : menuWidth / 2
-    , menuItems
+      { watchMap, sessionHost } = collaborationData
+
+      isWatching  = watchMap.indexOf(nickname) > -1
+      title       = if isWatching then 'Unwatch' else 'Watch'
+      menuWidth   = 172
+
+      menuItems[title] =
+        title    : title
+        callback : (item, e) => @setWatchState isWatching, nickname, item
+
+      if sessionHost is KD.nick()
+        menuItems.Kick =
+          title     : 'Kick'
+          callback  : =>
+            @menu?.destroy()
+            KD.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
+
+      @menu = new KDContextMenu
+        cssClass    : 'dark statusbar-files'
+        event       : event
+        delegate    : this
+        x           : @getX()
+        y           : @getY()
+        offset      :
+          top       : -5000
+          left      : -86
+        arrow       :
+          placement : 'bottom'
+          margin    : menuWidth / 2
+      , menuItems
 
 
-    KD.utils.wait 200, =>
-      h = @menu.getHeight()
-      w = @menu.getWidth()
-      top  = -h
-      left = @getWidth()/2 - w/2
-      @menu.setOption 'offset', {left, top}
-      @menu.positionContextMenu()
+      KD.utils.wait 200, =>
+        h = @menu.getHeight()
+        w = @menu.getWidth()
+        top  = -h
+        left = @getWidth()/2 - w/2
+        @menu.setOption 'offset', {left, top}
+        @menu.positionContextMenu()
 
-    @menu.once 'KDObjectWillBeDestroyed', => @menu = null
+      @menu.once 'KDObjectWillBeDestroyed', => @menu = null
+
+
+  setWatchState: (isWatching, nickname, item) ->
+
+    isWatching = @latestWatchState or isWatching
+    methodName = 'watchParticipant'
+    menuLabel  = 'Unwatch'
+
+    if isWatching
+      methodName = 'unwatchParticipant'
+      menuLabel  = 'Watch'
+
+    KD.singletons.appManager.tell 'IDE', methodName, nickname
+    item.updatePartial menuLabel
+
+    @latestWatchState = not isWatching
+
+
+  destroy: ->
+
+    @menu?.destroy()
+
+    super
