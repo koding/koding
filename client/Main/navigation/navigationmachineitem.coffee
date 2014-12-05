@@ -39,9 +39,9 @@ class NavigationMachineItem extends JView
     unless isMyMachine
       labelPartial = """
         #{labelPartial}
-        <span class='shared-by'>
+        <cite class='shared-by'>
           (shared by @#{Encoder.htmlDecode machineOwner})
-        </span>
+        </cite>
       """
 
     @label     = new KDCustomHTMLView
