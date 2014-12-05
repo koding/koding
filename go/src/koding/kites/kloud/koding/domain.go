@@ -138,7 +138,7 @@ func (d *Domains) UpdateMachine(name, machineId string) error {
 
 	if machineId != "" {
 		if !bson.IsObjectIdHex(machineId) {
-			return fmt.Errorf("'%s' is not a valid object Id")
+			return fmt.Errorf("'%s' is not a valid object Id", machineId)
 		}
 
 		updateData["machineId"] = bson.ObjectIdHex(machineId)
