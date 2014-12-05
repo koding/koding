@@ -464,7 +464,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
         myChannels = []
         queue      = []
-        workspaces.forEach (ws) ->
+        otherWorkspaces.forEach (ws) ->
           queue.push ->
             socialapi.channel.byId id : ws.channelId, (err, channel) ->
               myChannels.push channel.id  if channel
