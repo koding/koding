@@ -20,11 +20,11 @@ module.exports = class JNotificationMailToken extends Model
     comment        : 'comment'
     likeActivities : 'like'
     followActions  : 'follow'
+    mention        : 'mention'
+    privateMessage : 'chat'
+    # not active notification types
     groupJoined    : 'group join'
     groupLeft      : 'group leave'
-    mention        : 'mention'
-    # not active notification types
-    privateMessage : 'private message'
     groupInvite    : 'group invite'
     groupRequest   : 'group request'
     groupApproved  : 'group approval'

@@ -37,20 +37,20 @@ module.exports =
       .end()
 
 
-  unlikePost: (browser) ->
+  # unlikePost: (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.postActivity(browser, no)
-    selector    = activitySelector + ' [testpath=activity-like-link]'
-    likeElement = activitySelector + ' .like-summary'
+  #   user = helpers.beginTest(browser)
+  #   helpers.postActivity(browser, no)
+  #   selector    = activitySelector + ' [testpath=activity-like-link]'
+  #   likeElement = activitySelector + ' .like-summary'
 
-    browser
-      .waitForElementVisible    selector, 10000
-      .click                    selector
-      .waitForElementVisible    selector + '.liked', 10000
-      .click                    selector + '.liked'
-      .waitForElementNotVisible likeElement, 10000
-      .end()
+  #   browser
+  #     .waitForElementVisible    selector, 10000
+  #     .click                    selector
+  #     .waitForElementVisible    selector + '.liked', 10000
+  #     .click                    selector + '.liked'
+  #     .waitForElementNotVisible likeElement, 10000
+  #     .end()
 
 
   editPost: (browser) ->

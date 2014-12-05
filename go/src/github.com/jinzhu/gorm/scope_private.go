@@ -400,7 +400,7 @@ func (scope *Scope) related(value interface{}, foreignKeys ...string) *Scope {
 		if foreignValue, ok := scope.FieldByName(foreignKey); ok {
 			return toScope.inlineCondition(foreignValue).callCallbacks(scope.db.parent.callback.queries)
 		} else if toScope.HasColumn(foreignKey) {
-			sql := fmt.Sprintf("%v = ?", scope.Quote(toSnake(foreignKey)))
+			sql := fmt.Sprintf("%v = ?", scope.Quote(ToSnake(foreignKey)))
 			return toScope.inlineCondition(sql, scope.PrimaryKeyValue()).callCallbacks(scope.db.parent.callback.queries)
 		}
 	}
@@ -489,7 +489,7 @@ func (scope *Scope) getPrimaryKey() string {
 
 		// if primaryKey tag found, return column name
 		if fieldStruct.Tag.Get("primaryKey") != "" {
-			return toSnake(fieldStruct.Name)
+			return ToSnake(fieldStruct.Name)
 		}
 	}
 

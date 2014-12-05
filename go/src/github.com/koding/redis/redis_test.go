@@ -285,15 +285,26 @@ func TestHashMultipleSet(t *testing.T) {
 		t.Errorf("Could create hash set: %s", err)
 		return
 	}
+	defer session.Del("mayhem")
+
+	length, err := session.GetHashLength("mayhem")
+	if err != nil {
+		t.Errorf("Could not get hash set length: %s", err)
+		return
+	}
+
+	if length != len(item) {
+		t.Errorf("Expected %d but got %d as hash length: ", len(item), length)
+	}
+
 	reply, err := session.GetHashMultipleSet("mayhem", "zoot")
 	if err != nil {
 		t.Errorf("Could not get hash set: %s", err)
-		session.Del("mayhem")
 		return
 	}
+
 	if len(reply) != 1 {
 		t.Errorf("Wrong return value count: %d", len(reply))
-		session.Del("mayhem")
 		return
 	}
 
@@ -301,5 +312,109 @@ func TestHashMultipleSet(t *testing.T) {
 	if response != "sax" {
 		t.Errorf("Wrong hashset value of the element: %s", response)
 	}
-	session.Del("mayhem")
+
+	value, err := session.GetHashSetField("mayhem", "zoot")
+	if err != nil {
+		t.Errorf("Could not get hash set field value: %s", err)
+	}
+
+	if value != "sax" {
+		t.Errorf("Wrong hashset field value: %s", err)
+	}
+
+	result, err := session.HashSetIfNotExists("mayhem", "janice", "ukulele")
+	if err != nil {
+		t.Errorf("Could not set hash field: %s", err)
+	}
+
+	if result != false {
+		t.Error("Expected false from hash set but got true")
+	}
+
+	result, err = session.HashSetIfNotExists("mayhem", "kermit", "frog")
+	if err != nil {
+		t.Errorf("Could not set hash field: %s", err)
+	}
+
+	if result != true {
+		t.Error("Expected true from hash set but got false")
+	}
+
+	deleteCount, err := session.DeleteHashSetField("mayhem", "kermit")
+	if err != nil {
+		t.Errorf("Could not delete hash field: %s", err)
+	}
+
+	if deleteCount != 1 {
+		t.Errorf("Expected 1 but got %d from hash set field deletion", deleteCount)
+	}
+
+	length, err = session.GetHashLength("mayhem")
+	if err != nil {
+		t.Errorf("Could not get hash set length: %s", err)
+	}
+
+	if length != len(item) {
+		t.Errorf("Expected %d but got %d as hash length: ", len(item), length)
+	}
+}
+
+func TestSortedSet(t *testing.T) {
+	set1Key, set2Key, destination := "set1", "set2", "combined-set"
+
+	_, err := session.SortedSetIncrBy(set1Key, 1, "item1")
+	if err != nil {
+		t.Errorf("Error creating set1", err)
+		return
+	}
+
+	_, err = session.SortedSetIncrBy(set2Key, 1, "item2")
+	if err != nil {
+		t.Errorf("Error creating set2", err)
+
+		session.Del(set1Key)
+		return
+	}
+
+	keys := []string{set1Key, set2Key}
+	weights := []interface{}{1, 1}
+
+	reply, err := session.SortedSetsUnion(destination, keys, weights, "SUM")
+	if err != nil {
+		t.Errorf("Error creating combined sets", err)
+
+		session.Del(set1Key)
+		session.Del(set2Key)
+		return
+	}
+
+	if reply < 2 {
+		t.Errorf("Wrong number of elements added to combined set", err, reply)
+	}
+
+	score, err := session.SortedSetScore(destination, "item1")
+	if err != nil {
+		t.Errorf("Couldn't get score of item from sorted set: %s", err)
+		return
+	}
+
+	if score != 1 {
+		t.Errorf("Wrong number of elements added to combined set", err, reply)
+	}
+
+	_, err = session.SortedSetRem(destination, "item1")
+	if err != nil {
+		t.Errorf("Couldn't remove item from sorted set: %s", err)
+		return
+	}
+
+	_, err = session.SortedSetScore(destination, "item1")
+	if err == nil {
+		t.Errorf("Didn't remove item from sorted set")
+		return
+	}
+
+	session.Del(set1Key)
+	session.Del(set2Key)
+	session.Del(destination)
 }
