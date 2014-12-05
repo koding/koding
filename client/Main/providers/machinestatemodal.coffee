@@ -184,14 +184,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
         Please select a new VM to operate on from the VMs list or create a new one.
       """
-
-      if @machine.status.state is Terminated
-        KD.getSingleton 'computeController'
-          .kloud.info { @machineId, currentState: @machine.status.state }
-          .then (response)=>
-            if response.State is Terminated
-              @createStateButton()
-          .catch noop
     else if @state is Running
       @prepareIDE()
       @destroy()
