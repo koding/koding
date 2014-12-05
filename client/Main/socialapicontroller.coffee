@@ -540,7 +540,7 @@ class SocialApiController extends KDController
       xhr.onreadystatechange = =>
         # 0     - connection failed
         # >=400 - http errors
-        return if xhr.status is 0 or xhr.status >= 400
+        if xhr.status is 0 or xhr.status >= 400
           return callback err
 
         return if xhr.readyState isnt 4
