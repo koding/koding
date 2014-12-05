@@ -884,7 +884,7 @@ utils.extend utils,
       $.ajax
         url      : '//freegeoip.net/json/?callback=?'
         error    : fail
-        timeout  : 1500
+        timeout  : 5000
         dataType : 'json'
         success  : (data)->
 
