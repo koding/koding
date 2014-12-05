@@ -548,6 +548,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
       @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
 
+    @emit 'MachinesListed'
+
 
   mapWorkspaceWithChannel: (data, node) ->
 
@@ -787,6 +789,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   handleReloadMessages: -> @fetchWorkspaces => @sections.messages.reload()
+
+
+  whenMachinesRendered: ->
+
+    new Promise (resolve) => @once 'MachinesListed', -> resolve()
 
 
   handleWorkspaceUnreadCounts: (chatData) ->
