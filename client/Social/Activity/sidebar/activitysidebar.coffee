@@ -800,9 +800,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
   handleWorkspaceUnreadCounts: (chatData) ->
 
-    chatData
-      .filter  (data) => @workspaceItemChannelMap[data._id]
-      .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
+    @whenMachinesRendered().then =>
+      chatData
+        .filter  (data) => @workspaceItemChannelMap[data._id]
+        .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
   addNewWorkspace: (machineData) ->
