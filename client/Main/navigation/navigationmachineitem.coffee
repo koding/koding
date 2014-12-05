@@ -40,7 +40,7 @@ class NavigationMachineItem extends JView
       labelPartial = """
         #{labelPartial}
         <cite class='shared-by'>
-          (shared by @#{Encoder.htmlDecode machineOwner})
+          (@#{Encoder.htmlDecode machineOwner})
         </cite>
       """
 
