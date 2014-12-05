@@ -123,6 +123,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     workspaceItem = @workspaceItemChannelMap[data._id]
 
+    return  unless workspaceItem
+
     workspaceItem.child.setUnreadCount unreadCount
 
     return  unless unreadCount is 0
