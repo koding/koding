@@ -28,14 +28,24 @@ class NavigationMachineItem extends JView
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
       href             : KD.utils.groupifyLink ideRoute
-      title            : "Open IDE for #{@alias}"
+      title            : "Open IDE for #{@alias} (shared by @#{Encoder.htmlDecode machineOwner})"
 
     super options, data
 
     @machine   = @getData()
 
+    labelPartial = machine.label or @alias
+
+    unless isMyMachine
+      labelPartial = """
+        #{labelPartial}
+        <cite class='shared-by'>
+          (@#{Encoder.htmlDecode machineOwner})
+        </cite>
+      """
+
     @label     = new KDCustomHTMLView
-      partial  : machine.label or @alias
+      partial  : labelPartial
 
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
