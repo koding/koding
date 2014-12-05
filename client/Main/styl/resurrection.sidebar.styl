@@ -9,6 +9,7 @@ resurrection.styl
 }
 
 sidebarGray               = #A0A0A0
+sidebarGrayPale           = #AAA
 sidebarActive             = #fff
 sidebarSubtitle           = #979087
 sidebarSelectedBg         = #262626
@@ -259,10 +260,14 @@ sidebarTextShadow()
     &.selected a
       color             sidebarActive
 
+    .shared-by
+      font-size       12px
+      color           sidebarGrayPale
+
     a
-      padding           5px 8px 5px 31px
+      padding           5px 8px 5px 19px
       display           block
-      size              auto 26px
+      size              218px 26px
       opacity           1
       color             sidebarGray
       borderBox()
@@ -282,10 +287,14 @@ sidebarTextShadow()
         bg            color #222
         abs           3px 0 0 3px
 
+      &.running:hover > div
+        width         180px
+
       > div
         position      relative
-        left          -12px
-
+        width         200px
+        vendor        transition, width .1s ease .05s
+        ellipsis()
 
       &.social > figure
       &.activity > figure
