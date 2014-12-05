@@ -67,13 +67,15 @@ class IDE.ChatView extends KDTabView
 
   createPanes: ->
 
-    channel   = @getData()
-    type      = channel.typeConstant
-    channelId = channel.id
-    name      = 'collaboration'
+    channel         = @getData()
+    type            = channel.typeConstant
+    channelId       = channel.id
+    name            = 'collaboration'
+    chatOptions     = { name, type, channelId, @isInSession }
+    settingsOptions = { @rtm, @isInSession }
 
-    @addPane @chatPane     = new IDE.ChatMessagePane {name, type, channelId}, channel
-    @addPane @settingsPane = new IDE.ChatSettingsPane { @rtm, @isInSession }, channel
+    @addPane @chatPane     = new IDE.ChatMessagePane  chatOptions, channel
+    @addPane @settingsPane = new IDE.ChatSettingsPane settingsOptions, channel
 
     @settingsPane.forwardEvents this, [
       'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
