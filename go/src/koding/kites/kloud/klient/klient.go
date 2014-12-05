@@ -116,6 +116,8 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 	}
 
 	remoteKite := kites[0]
+	remoteKite.ReadBufferSize = 512
+	remoteKite.WriteBufferSize = 512
 	if err := remoteKite.Dial(); err != nil {
 		return nil, ErrDialingFailed
 	}
