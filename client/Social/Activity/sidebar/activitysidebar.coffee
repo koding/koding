@@ -124,8 +124,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
     item.setUnreadCount? unreadCount
 
-    @setWorkspaceUnreadCount data, unreadCount  if @workspaceItemChannelMap[data._id]
-
 
   setWorkspaceUnreadCount: (data, unreadCount) ->
 
@@ -158,9 +156,11 @@ class ActivitySidebar extends KDCustomHTMLView
         when 'announcement' then 2
         else 0
 
-      item = @addItem data, index
-
-      @setUnreadCount item, data, unreadCount
+      if KD.utils.isChannelCollaborative data
+        @setWorkspaceUnreadCount data, unreadCount
+      else
+        item = @addItem data, index
+        @setUnreadCount item, data, unreadCount
 
 
   # when a comment is added to a post
@@ -214,8 +214,11 @@ class ActivitySidebar extends KDCustomHTMLView
       # but it's left there just to be more cautious. ~Umut
       @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
 
-      item = @addItem channel, index
-      @setUnreadCount item, channel, unreadCount
+      if KD.utils.isChannelCollaborative channel
+        @setWorkspaceUnreadCount channel, unreadCount
+      else
+        item = @addItem channel, index
+        @setUnreadCount item, channel, unreadCount
 
 
   accountRemovedFromChannel: (update) ->
