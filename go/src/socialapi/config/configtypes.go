@@ -55,8 +55,9 @@ type (
 		Debug             bool   `env:"key=KONFIG_SOCIALAPI_DEBUG 					       		      default=false"`
 
 		// just a temp hack
-		Host string
-		Port string
+		Host     string
+		Port     string
+		ProxyURL string
 
 		CustomDomain CustomDomain
 	}
