@@ -1,14 +1,20 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"socialapi/config"
+	"socialapi/request"
+	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
 	"socialapi/workers/gatekeeper/models"
-	"strings"
+	"socialapi/workers/helper"
+
+	"github.com/koding/logging"
 )
 
 var (
@@ -17,120 +23,127 @@ var (
 )
 
 type Handler struct {
-	Realtime models.Realtime
+	Realtime []models.Realtime
+	logger   logging.Logger
 }
 
-func NewHandler(r models.Realtime) *Handler {
-	return &Handler{
-		Realtime: r,
+func NewHandler(adapters ...models.Realtime) *Handler {
+
+	handler := &Handler{
+		Realtime: make([]models.Realtime, 0),
+		logger:   helper.MustGetLogger(),
 	}
+
+	handler.Realtime = append(handler.Realtime, adapters...)
+
+	return handler
 }
 
-func (h *Handler) Authenticate(u *url.URL, header http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
-	cookie := header.Get("Cookie")
+// func (h *Handler) Authenticate(u *url.URL, header http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
+// 	if err := checkParticipation(u, header, req); err != nil {
+// 		return response.NewAccessDenied(err)
+// 	}
 
-	if err := checkParticipation(u, cookie, req); err != nil {
-		return response.NewAccessDenied(err)
-	}
+// 	// user has access permission, now authenticate user to channel via pubnub
+// 	if err := h.Realtime.Authenticate(req); err != nil {
+// 		return response.NewBadRequest(err)
+// 	}
 
-	// user has access permission, now authenticate user to channel via pubnub
-	if err := h.Realtime.Authenticate(req); err != nil {
+// 	return response.NewOK(req)
+// }
+
+func (h *Handler) Push(u *url.URL, _ http.Header, pm *models.PushMessage) (int, http.Header, interface{}, error) {
+	id, err := request.GetId(u)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(req)
-}
-
-func (h *Handler) Push(u *url.URL, _ http.Header, req *models.MessageRequest) (int, http.Header, interface{}, error) {
-	name := u.Query().Get("name")
-	req.Name = name
-	if ok := isRequestValid(req.Request); !ok {
+	if ok := isRequestValid(id, pm); !ok {
 		return response.NewBadRequest(nil)
 	}
 
-	if err := h.Realtime.Push(req); err != nil {
+	// Fetch related channel first
+	cr := new(models.ChannelRequest)
+	cr.Id = id
+	channelResponse, err := fetchChannelById(cr)
+	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(req)
-}
+	pm.Channel = channelResponse
+	pm.ChannelId = id
 
-func isRequestValid(req models.Request) bool {
-	return req.Name != "" && req.Group != "" && req.Type != ""
-}
-
-func checkParticipation(u *url.URL, cookie string, req *models.ChannelRequest) error {
-
-	if ok := isRequestValid(req.Request); !ok {
-		return ErrInvalidRequest
+	for _, adapter := range h.Realtime {
+		if err := adapter.Push(pm); err != nil {
+			h.logger.Error("Could not push message to message exchange: %s", err)
+		}
 	}
 
-	cookies := parseCookies(cookie)
-	endpoint := "/channel/checkparticipation"
-	fullPath := prepareQueryString(endpoint, map[string]string{
-		"name":  req.Name,
-		"group": req.Group,
-		"type":  req.Type,
-	})
+	return response.NewOK(pm)
+}
 
-	client := new(http.Client)
-	request, err := http.NewRequest("GET", fullPath, nil)
-	for _, cookie := range cookies {
-		request.AddCookie(cookie)
+func isRequestValid(id int64, req *models.PushMessage) bool {
+	return id != 0 && req.EventName != ""
+}
+
+// func checkParticipation(u *url.URL, header http.Header, cr *models.ChannelRequest) error {
+
+// 	cookie := header.Get("Cookie")
+// 	request := &models.Request{
+// 		Method:   "GET",
+// 		Endpoint: "/channel/checkparticipation",
+// 		Params: map[string]string{
+// 			"name":  cr.Name,
+// 			"group": cr.Group,
+// 			"type":  cr.Type,
+// 		},
+// 		Cookie: cookie,
+// 	}
+
+// 	resp, err := MakeRequest(request)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	// Need a better response
+// 	if resp.StatusCode != 200 {
+// 		return fmt.Errorf(resp.Status)
+// 	}
+
+// 	return nil
+// }
+
+func fetchChannelById(cr *models.ChannelRequest) (*models.ChannelResponse, error) {
+	request := &handler.Request{
+		Type:     handler.GetRequest,
+		Endpoint: fmt.Sprintf("%s/channel/%d/fetch", config.MustGet().ProxyURL, cr.Id),
 	}
 
-	resp, err := client.Do(request)
+	resp, err := handler.MakeRequest(request)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode != 200 {
-		return fmt.Errorf(resp.Status)
+		return nil, fmt.Errorf(resp.Status)
 	}
 
-	return nil
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	channelResponse := new(models.ChannelResponse)
+	err = json.Unmarshal(body, channelResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return channelResponse, nil
 }
 
 func authenticate(req *models.ChannelRequest) error {
 
 	return fmt.Errorf("not implemented")
-}
-
-func prepareQueryString(endpoint string, params map[string]string) string {
-	conf := config.MustGet()
-	if len(params) == 0 {
-		return endpoint
-	}
-
-	// TODO make it configurable
-	fullPath := fmt.Sprintf("%s//localhost:7000%s?", conf.Protocol, endpoint)
-	for key, value := range params {
-		fullPath = fmt.Sprintf("%s%s=%s&", fullPath, key, value)
-	}
-
-	return fullPath[0 : len(fullPath)-1]
-}
-
-func parseCookies(cookie string) []*http.Cookie {
-	pairs := strings.Split(cookie, "; ")
-	cookies := make([]*http.Cookie, 0)
-
-	if len(pairs) == 0 {
-		return cookies
-	}
-
-	for _, val := range pairs {
-		cp := strings.Split(val, "=")
-		if len(cp) != 2 {
-			continue
-		}
-
-		c := new(http.Cookie)
-		c.Name = cp[0]
-		c.Value = cp[1]
-
-		cookies = append(cookies, c)
-	}
-
-	return cookies
 }
