@@ -8,7 +8,6 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/api/realtimehelper"
 	"socialapi/workers/common/response"
 	"time"
 
@@ -46,8 +45,6 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		// todo this should be internal server error
 		return response.NewBadRequest(err)
 	}
-
-	go realtimehelper.MessageSaved(channelId, req.Id)
 
 	cmc := models.NewChannelMessageContainer()
 	err = cmc.Fetch(req.Id, request.GetQuery(u))
