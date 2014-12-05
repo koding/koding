@@ -106,9 +106,9 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       cssClass   : 'workspace-name'
       partial    : 'My Workspace'
       attributes : href : '#'
-      click      : (event) =>
-        KD.utils.stopDOMEvent event
-        @getDelegate().showSettingsPane()
+      # click      : (event) =>
+      #   KD.utils.stopDOMEvent event
+      #   @getDelegate().showSettingsPane()
 
     appManager.tell 'IDE', 'getWorkspaceName', @title.bound 'updatePartial'
 
