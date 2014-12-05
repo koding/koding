@@ -37,20 +37,20 @@ module.exports =
       .end()
 
 
-  # unlikePost: (browser) ->
+  unlikePost: (browser) ->
 
-  #   user = helpers.beginTest(browser)
-  #   helpers.postActivity(browser, no)
-  #   selector    = activitySelector + ' [testpath=activity-like-link]'
-  #   likeElement = activitySelector + ' .like-summary'
+    user = helpers.beginTest(browser)
+    helpers.postActivity(browser, no)
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    likeElement = activitySelector + ' .like-summary'
 
-  #   browser
-  #     .waitForElementVisible    selector, 10000
-  #     .click                    selector
-  #     .waitForElementVisible    selector + '.liked', 10000
-  #     .click                    selector + '.liked'
-  #     .waitForElementNotVisible likeElement, 10000
-  #     .end()
+    browser
+      .waitForElementVisible    selector, 10000
+      .click                    selector
+      .waitForElementVisible    selector + '.liked', 10000
+      .click                    selector + '.liked'
+      .waitForElementNotVisible likeElement, 10000
+      .end()
 
 
   editPost: (browser) ->
@@ -172,19 +172,19 @@ module.exports =
       .end()
 
 
-  # searchActivity: (browser) ->
+  searchActivity: (browser) ->
 
-  #   post     = helpers.postActivity(browser)
-  #   selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
-  #   word     = post.split(' ')[0]
+    post     = helpers.postActivity(browser)
+    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+    word     = post.split(' ')[0]
 
-  #   browser
-  #     .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
-  #     .waitForElementVisible    '.kdtabpaneview.search', 10000
-  #     .waitForElementVisible    selector, 10000
-  #     .pause                    10000
-  #     .assert.containsText      selector, word # Assertion
-  #     .end()
+    browser
+      .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
+      .waitForElementVisible    '.kdtabpaneview.search', 10000
+      .waitForElementVisible    selector, 10000
+      .pause                    10000
+      .assert.containsText      selector, word # Assertion
+      .end()
 
 
   showMoreCommentLink: (browser) ->
@@ -206,29 +206,29 @@ module.exports =
     browser.end()
 
 
-  # followTopic: (browser) ->
+  followTopic: (browser) ->
 
-  #   helpers.doFollowTopic(browser)
-  #   browser.end()
+    helpers.doFollowTopic(browser)
+    browser.end()
 
 
-  # unfollowTopic: (browser) ->
+  unfollowTopic: (browser) ->
 
-  #   hashtag = helpers.doFollowTopic(browser)
-  #   selector = '.activity-sidebar .followed.topics'
+    hashtag = helpers.doFollowTopic(browser)
+    selector = '.activity-sidebar .followed.topics'
 
-  #   browser
-  #     .waitForElementVisible   '[testpath=channel-title]' + ' .following', 2000
-  #     .pause                    10000
-  #     .click                   '[testpath=channel-title]' + ' .following'
-  #     .waitForElementVisible   '[testpath="public-feed-link/Activity/Topic/public"]', 2000
-  #     .click                   '[testpath="public-feed-link/Activity/Topic/public"]'
-  #     .refresh()
-  #     .pause 2000 # reguired
+    browser
+      .waitForElementVisible   '[testpath=channel-title]' + ' .following', 2000
+      .pause                    10000
+      .click                   '[testpath=channel-title]' + ' .following'
+      .waitForElementVisible   '[testpath="public-feed-link/Activity/Topic/public"]', 2000
+      .click                   '[testpath="public-feed-link/Activity/Topic/public"]'
+      .refresh()
+      .pause 2000 # reguired
 
-  #   browser.getText selector
-  #   assert.notEqual(hashtag)
-  #   browser.end()
+    browser.getText selector
+    assert.notEqual(hashtag)
+    browser.end()
 
 
   postLongMessage: (browser) ->
@@ -296,20 +296,20 @@ module.exports =
       .end()
 
 
-  # postMessageWithLink: (browser) ->
+  postMessageWithLink: (browser) ->
 
-  #   helpers.beginTest(browser)
+    helpers.beginTest(browser)
 
-  #   link = 'http://nightwatchjs.org/' # last '/' is the trick!
-  #   linkSelector = activitySelector + ' .activity-content-wrapper article a'
+    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    linkSelector = activitySelector + ' .activity-content-wrapper article a'
 
-  #   helpers.doPostActivity(browser, link)
+    helpers.doPostActivity(browser, link)
 
-  #   browser.getAttribute linkSelector, 'href', (result) ->
-  #     href = result.value
-  #     assert.equal(link, href)
+    browser.getAttribute linkSelector, 'href', (result) ->
+      href = result.value
+      assert.equal(link, href)
 
-  #   browser.end()
+    browser.end()
 
 
   postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
