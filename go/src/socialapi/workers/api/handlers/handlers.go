@@ -149,6 +149,14 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/channel/search",
 		})
 
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:  channel.ById,
+			Name:     "channel-get-byid",
+			Type:     handler.GetRequest,
+			Endpoint: "/channel/{id}/fetch",
+		})
+
 	// exempt contents are filtered
 	// caching enabled
 	m.AddHandler(

@@ -94,6 +94,21 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return handleChannelListResponse(channelList, q)
 }
 
+// ById finds channels by their id. It is for internal use and must not be exposed.
+func ById(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	id, err := request.GetId(u)
+	if err != nil {
+		response.NewBadRequest(err)
+	}
+
+	channel, err := models.ChannelById(id)
+	if err != nil {
+		response.NewBadRequest(err)
+	}
+
+	return response.HandleResultAndError(channel, err)
+}
+
 // ByName finds topics by their name
 func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
