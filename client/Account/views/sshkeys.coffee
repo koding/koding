@@ -92,8 +92,8 @@ class AccountSshKeyListItem extends KDListItemView
       cssClass : "ssh-key-item clearfix"
       partial  : """
       <div class='ssh-key-info'>
-        <h4>#{@getData().title}</h4>
-        <p>#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</p>
+        <h4><span class="title">#{@getData().title}</span></h4>
+        <p><span class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</span></p>
       </div>
       """
 
@@ -139,6 +139,7 @@ class AccountSshKeyListItem extends KDListItemView
     {key, title} = @getData()
 
     if key and title
+      log key, title
       @info.$('span.title').text title
       @info.$('span.key').text "#{key.substr(0,45)} . . . #{key.substr(-25)}"
       @swappable.swapViews()
