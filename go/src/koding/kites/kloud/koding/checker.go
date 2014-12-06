@@ -118,17 +118,19 @@ func (p *PlanChecker) Timeout() error {
 	// remove it from the list of inactive machines if it's still there.
 	p.Provider.stopTimer(p.Machine)
 
-	// get the usage directly from the klient, which is the most predictable source
-	usg, err := klientRef.Usage()
-	if err != nil {
-		klientRef.Close()
-		return err
-	}
-	klientRef.Close()
-
 	// replace with the real and authenticated username
 	p.Machine.Builder["username"] = klientRef.Username
 	p.Username = klientRef.Username
+
+	// get the usage directly from the klient, which is the most predictable source
+	usg, err := klientRef.Usage()
+
+	klientRef.Close()
+	klientRef = nil
+
+	if err != nil {
+		return err
+	}
 
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := p.Plan.Limits().Timeout
