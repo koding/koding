@@ -16,6 +16,8 @@ class IDE.ChatView extends KDTabView
     @addSubView new CustomLinkView
       title    : ''
       cssClass : 'close'
+      tooltip  :
+        title  : 'Minimize'
       icon     : {}
       click    : (event) =>
         KD.utils.stopDOMEvent event
