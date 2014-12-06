@@ -27,6 +27,7 @@ class IDE.ChatView extends KDTabView
 
     @once 'CollaborationStarted',        @bound 'removeLoader'
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
+    @once 'CollaborationEnded',          @bound 'destroy'
 
 
   start: ->

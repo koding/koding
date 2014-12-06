@@ -36,8 +36,11 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     channel
       .on 'RemovedFromChannel', (acc) => @removeParticipant acc.profile.nickname, yes
       .on 'AddedToChannel',     (acc) =>
-        if @rtm.isReady
-          @addParticipant acc.profile.nickname
+
+        return  unless acc.profile?
+        return  unless @rtm.isReady
+
+        @addParticipant acc.profile.nickname
 
 
   createElements: ->

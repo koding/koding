@@ -141,10 +141,12 @@ do ->
 
               return loadIDE { machine, workspace, username, channelId }
 
-          else
+          # Commented out because of the side effects. ~Umut
+          # (e.g can't select random vms/workspaces)
 
-            if index + 1 is KD.userWorkspaces.length
-              routeToLatestWorkspace()
+          # else
+          #   if index + 1 is KD.userWorkspaces.length
+          #     routeToLatestWorkspace()
 
       catch e
 
