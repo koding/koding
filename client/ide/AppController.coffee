@@ -1253,6 +1253,35 @@ class IDEAppController extends AppController
     @rtm.fetchFileByTitle @getRealTimeFileName id
 
 
+  setSocialChannel: (channel) ->
+
+    @socialChannel = channel
+
+    @socialChannel.on 'AddedToChannel', (originOrAccount) =>
+
+      kallback = (account) =>
+
+        return  unless account
+
+        {nickname} = account.profile
+        @statusBar.createParticipantAvatar nickname, no
+        @watchParticipant nickname
+
+      if originOrAccount.constructorName
+        KD.remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
+      else if 'string' is typeof originOrAccount
+        KD.remote.cacheable originOrAccount, kallback
+      else
+        kallback originOrAccount
+
+
+    @socialChannel.on 'RemovedFromChannel', (account) =>
+
+      {nickname} = account.profile
+      @statusBar.removeParticipantAvatar nickname
+
+
+
   initPrivateMessage: (callback) ->
 
     {message} = KD.singletons.socialapi
@@ -1269,8 +1298,8 @@ class IDEAppController extends AppController
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
-      [channel]      = channels
-      @socialChannel = channel
+      [channel] = channels
+      @setSocialChannel channel
 
       @updateWorkspace { channelId : channel.id }
         .then =>
@@ -1289,7 +1318,7 @@ class IDEAppController extends AppController
     KD.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return KD.showError err  if err
 
-      @socialChannel = channel
+      @setSocialChannel channel
 
       callback @socialChannel
 
