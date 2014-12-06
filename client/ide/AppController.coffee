@@ -836,7 +836,8 @@ class IDEAppController extends AppController
       @myWatchMap        or= @rtm.create 'map',  myWatchMapName, {}
       @mySnapshot        or= @rtm.create 'map',  mySnapshotName, @createWorkspaceSnapshot()
 
-      # if @amIHost
+      if @amIHost
+        @getView().setClass 'host'
       #   @changes.clear()
       #   @broadcastMessages.clear()
 
