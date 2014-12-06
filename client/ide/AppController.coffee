@@ -1576,7 +1576,7 @@ class IDEAppController extends AppController
   getCollaborationData: (callback = noop) =>
 
     collaborationData =
-      watchMap        : @myWatchMap.values()
+      watchMap        : @myWatchMap?.values()
       amIHost         : @amIHost
 
     callback collaborationData
