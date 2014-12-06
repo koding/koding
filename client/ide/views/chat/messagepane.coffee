@@ -145,11 +145,11 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       'Search'        : cssClass : 'disabled', callback: noop
       # 'Settings'    : callback : @getDelegate().bound 'showSettingsPane'
       'Minimize'      : callback : @getDelegate().bound 'end'
-      'Learn More'    : separator: yes, callback : => KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
-      'End Session'   : callback : => @parent.settingsPane.stopSession()
-      'Leave Session' : callback : => @parent.settingsPane.leaveSession()
+      'Learn More'    : separator: yes, callback : -> KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
 
-    if @isInSession then delete menu['End Session'] else delete menu['Leave Session']
+    if @isInSession
+    then menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
+    else menu['End Session']   = { callback : => @parent.settingsPane.stopSession() }
 
     return menu
 
