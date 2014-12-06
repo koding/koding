@@ -31,11 +31,9 @@ class CustomLinkView extends KDCustomHTMLView
     data               = @getData()
     {icon, attributes} = options
     {href}             = attributes
-
     data.title        ?= href  if href isnt '#'
-
-    {title} = data
-    tmpl    = "{{> @icon}}"
+    {title}            = data
+    tmpl               = if icon then "{{> @icon}}" else ""
 
     if icon and title
       if icon.placement is 'left'
