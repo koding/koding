@@ -492,7 +492,7 @@ class IDEAppController extends AppController
       @openFile file, contents
 
 
-  createNewTerminal: (machine, path, session, joinUser) ->
+  createNewTerminal: (machine, path, session, joinUser, hash) ->
 
     machine = null  unless machine instanceof Machine
 
@@ -502,7 +502,7 @@ class IDEAppController extends AppController
       if rootPath and not isDefault
         path = rootPath
 
-    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser
+    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser, hash
 
 
   createNewBrowser: (url) ->
@@ -996,7 +996,7 @@ class IDEAppController extends AppController
 
     return if not context or not origin or origin is KD.nick()
 
-    amIWatchingChangeOwner = @myWatchMap.keys().length is 0 or origin in @myWatchMap.keys()
+    amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
 
     if amIWatchingChangeOwner or type is 'CursorActivity'
       targetPane = @getPaneByChange change
@@ -1051,7 +1051,8 @@ class IDEAppController extends AppController
 
     switch context.paneType
       when 'terminal'
-        @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()
+        nick = @collaborationHost or KD.nick()
+        @createNewTerminal @mountedMachine, null, context.session, nick, context.paneHash
 
       when 'editor'
         {path}        = context.file
