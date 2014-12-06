@@ -40,7 +40,7 @@ func (i *Info) Action(args []string, k *kite.Client) error {
 		return err
 	}
 
-	DefaultUi.Info(fmt.Sprintf("%+v", result))
+	DefaultUi.Info(fmt.Sprintf("%s", result.State))
 
 	if flagWatchEvents {
 		return watch(k, "info", *i.id, defaultPollInterval)
