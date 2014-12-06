@@ -15,6 +15,8 @@ class IDE.StatusBar extends KDView
     @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
     @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
     @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
+    @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
+    @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
 
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
@@ -77,6 +79,11 @@ class IDE.StatusBar extends KDView
 
       unless nickname is myNickname
         @createParticipantAvatar nickname, isOnline
+
+
+  decorateWatchedAvatars: (nickname) -> @participantAvatars[nickname].setClass 'watching'
+
+  decorateUnwatchedAvatars: (nickname) -> @participantAvatars[nickname].unsetClass 'watching'
 
 
   dimParticipantAvatar: (nickname) ->

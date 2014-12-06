@@ -856,10 +856,16 @@ class IDEAppController extends AppController
         @handleParticipantAction 'left', participant
 
       @registerParticipantSessionId()
-      @listenChangeEvents()
+      @bindRealtimeEvents()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()
+
+      unless @myWatchMap.values().length
+        @listChatParticipants (accounts) =>
+          accounts.forEach (account) =>
+            {nickname} = account.profile
+            @myWatchMap.set nickname, nickname
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
@@ -953,26 +959,35 @@ class IDEAppController extends AppController
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
-  listenChangeEvents: ->
+  bindRealtimeEvents: ->
 
     @rtm.bindRealtimeListeners @changes, 'list'
     @rtm.bindRealtimeListeners @broadcastMessages, 'list'
+    @rtm.bindRealtimeListeners @myWatchMap, 'map'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
 
       [value] = event.values
 
       switch list
-
-        when @changes
-          @handleChange value
-
-        when @broadcastMessages
-          @handleBroadcastMessage value
+        when @changes           then @handleChange value
+        when @broadcastMessages then @handleBroadcastMessage value
 
     @rtm.on 'ValuesRemovedFromList', (list, event) =>
 
       @handleChange event.values[0]  if list is @changes
+
+    @rtm.on 'MapValueChanged', (map, event) =>
+
+      return unless map is @myWatchMap
+
+      {property, newValue, oldValue} = event
+
+      if newValue is property
+        @statusBar.emit 'ParticipantWatched', property
+
+      else unless newValue
+        @statusBar.emit 'ParticipantUnwatched', property
 
 
   handleChange: (change) ->
