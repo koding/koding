@@ -1481,8 +1481,8 @@ class IDEAppController extends AppController
 
   showKickedModal: ->
     options        =
-      title        : 'Session ended'
-      content      : "You have been removed from the session by @#{@collaborationHost}."
+      title        : 'Your session has been closed'
+      content      : "You have been removed from the session by @#{@collaborationHost}. - Please reload your browser -"
       blocking     : yes
       buttons      :
         ok         :
@@ -1495,8 +1495,8 @@ class IDEAppController extends AppController
   showSessionEndedModal: ->
 
     options        =
-      title        : 'Session Ended'
-      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore."
+      title        : 'Session ended'
+      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
       blocking     : yes
       buttons      :
         quit       :
@@ -1512,8 +1512,8 @@ class IDEAppController extends AppController
   handleParticipantLeaveAction: ->
 
     options   =
-      title   : 'Are you sure'
-      content : "If you leave this session you won't be able to return this session."
+      title   : 'Are you sure?'
+      content : "If you leave this session you won't be able to return back."
 
     @showModal options, =>
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
