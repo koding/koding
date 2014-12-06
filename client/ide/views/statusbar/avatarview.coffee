@@ -82,12 +82,15 @@ class IDE.StatusBarAvatarView extends AvatarView
       { watchMap, amIHost } = collaborationData
 
       isWatching  = watchMap.indexOf(@nickname) > -1
-      title       = if isWatching then 'Unwatch' else 'Watch'
       menuWidth   = 172
 
-      menuItems[title] =
-        title    : title
-        callback : (item, e) => @setWatchState isWatching, @nickname, item
+      unless @hasClass 'offline'
+        menuItems.Watch =
+          type         : 'customView'
+          view         : new IDE.ChatHeadWatchItemView
+            isWatching : isWatching
+            nickname   : @nickname
+            delegate   : this
 
       if amIHost
         menuItems.Kick =
