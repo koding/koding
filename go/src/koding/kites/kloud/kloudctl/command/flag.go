@@ -28,7 +28,6 @@ func NewFlag(name, synopsis string) *Flag {
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
-	flagSet.StringVar(&flagUsername, "user", "koding", "Respective use of the given machine id")
 	flagSet.StringVar(&flagKloudAddr, "kloud-addr", "http://127.0.0.1:5500/kite",
 		"Kloud addr to connect")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")

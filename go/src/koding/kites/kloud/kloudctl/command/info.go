@@ -28,7 +28,6 @@ func NewInfo() cli.CommandFactory {
 func (i *Info) SingleMachine(id string, k *kite.Client) (string, error) {
 	infoArgs := &KloudArgs{
 		MachineId: id,
-		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("info", infoArgs)

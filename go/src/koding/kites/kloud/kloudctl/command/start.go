@@ -2,6 +2,8 @@ package command
 
 import (
 	"fmt"
+	"strings"
+	"sync"
 
 	"koding/kites/kloud/kloud"
 
@@ -10,40 +12,64 @@ import (
 )
 
 type Start struct {
-	id *string
+	ids *string
 }
 
 func NewStart() cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag("start", "Start a machine")
 		f.action = &Start{
-			id: f.String("id", "", "Machine id of to be started."),
+			ids: f.String("ids", "", "Machine id of information being showed."),
 		}
 		return f, nil
 	}
 }
 
-func (s *Start) Action(args []string, k *kite.Client) error {
+func (s *Start) SingleMachine(id string, k *kite.Client) (string, error) {
 	startArgs := &KloudArgs{
-		MachineId: *s.id,
-		Username:  flagUsername,
+		MachineId: id,
 	}
 
 	resp, err := k.Tell("start", startArgs)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	var result kloud.ControlResult
 	err = resp.Unmarshal(&result)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	DefaultUi.Info(fmt.Sprintf("%+v", result))
+	return result.EventId, nil
+}
 
-	if flagWatchEvents {
-		return watch(k, "start", *s.id, defaultPollInterval)
+func (s *Start) Action(args []string, k *kite.Client) error {
+	machines := strings.Split(*s.ids, ",")
+
+	var wg sync.WaitGroup
+	for _, id := range machines {
+		wg.Add(1)
+
+		go func(id string) {
+			defer wg.Done()
+			result, err := s.SingleMachine(id, k)
+			if err != nil {
+				DefaultUi.Error(err.Error())
+			} else {
+				DefaultUi.Info(fmt.Sprintf("%+v", result))
+			}
+		}(id)
 	}
+
+	DefaultUi.Info(fmt.Sprintf("start called for '%d' machines:\n", len(machines)))
+
+	if len(machines) == 1 {
+		if flagWatchEvents {
+			return watch(k, "start", machines[0], defaultPollInterval)
+		}
+	}
+
+	wg.Wait()
 	return nil
 }
