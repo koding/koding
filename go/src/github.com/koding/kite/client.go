@@ -75,6 +75,12 @@ type Client struct {
 	m sync.RWMutex
 
 	firstRequestHandlersNotified sync.Once
+
+	// ReadBufferSize is the input buffer size. By default it's 4096.
+	ReadBufferSize int
+
+	// WriteBufferSize is the output buffer size. By default it's 4096.
+	WriteBufferSize int
 }
 
 // callOptions is the type of first argument in the dnode message.
@@ -139,9 +145,15 @@ func (c *Client) SetUsername(username string) {
 
 // Dial connects to the remote Kite. Returns error if it can't.
 func (c *Client) Dial() (err error) {
+	// zero means no timeout
+	return c.DialTimeout(0)
+}
+
+// DialTimeout acts like Dial but takes a timeout.
+func (c *Client) DialTimeout(timeout time.Duration) (err error) {
 	c.LocalKite.Log.Debug("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
 
-	if err := c.dial(); err != nil {
+	if err := c.dial(timeout); err != nil {
 		return err
 	}
 
@@ -159,26 +171,23 @@ func (c *Client) DialForever() (connected chan bool, err error) {
 	return
 }
 
-func (c *Client) dialForever(connectNotifyChan chan bool) {
-	dial := func() error {
-		c.LocalKite.Log.Info("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
-		if !c.Reconnect {
-			return nil
-		}
-		return c.dial()
+func (c *Client) dial(timeout time.Duration) (err error) {
+	if c.ReadBufferSize == 0 {
+		c.ReadBufferSize = 4096
 	}
 
-	backoff.Retry(dial, &c.redialBackOff) // this will retry dial forever
-
-	if connectNotifyChan != nil {
-		close(connectNotifyChan)
+	if c.WriteBufferSize == 0 {
+		c.WriteBufferSize = 4096
 	}
 
-	go c.run()
-}
+	opts := &sockjsclient.DialOptions{
+		BaseURL:         c.URL,
+		ReadBufferSize:  c.ReadBufferSize,
+		WriteBufferSize: c.WriteBufferSize,
+		Timeout:         timeout,
+	}
 
-func (c *Client) dial() (err error) {
-	c.session, err = sockjsclient.ConnectWebsocketSession(c.URL)
+	c.session, err = sockjsclient.ConnectWebsocketSession(opts)
 	if err != nil {
 		// explicitly set nil to avoid panicing when used the methods of that interface
 		c.session = nil
@@ -193,6 +202,24 @@ func (c *Client) dial() (err error) {
 	go c.callOnConnectHandlers()
 
 	return nil
+}
+
+func (c *Client) dialForever(connectNotifyChan chan bool) {
+	dial := func() error {
+		c.LocalKite.Log.Info("Dialing '%s' kite: %s", c.Kite.Name, c.URL)
+		if !c.Reconnect {
+			return nil
+		}
+		return c.dial(0)
+	}
+
+	backoff.Retry(dial, &c.redialBackOff) // this will retry dial forever
+
+	if connectNotifyChan != nil {
+		close(connectNotifyChan)
+	}
+
+	go c.run()
 }
 
 func (c *Client) RemoteAddr() string {
