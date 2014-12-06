@@ -75,6 +75,14 @@ class ActivitySidebar extends KDCustomHTMLView
   # event handling
 
   messageAddedToChannel: (update) ->
+
+    { channel, channelMessage, unreadCount } = update
+
+    if KD.utils.isChannelCollaborative channel
+      if channelMessage.payload['system-message'] in ['start', 'stop']
+        @fetchMachines => @fetchWorkspaces =>
+          @setWorkspaceUnreadCount channel, unreadCount
+
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
       else  @handleFollowedFeedUpdate update
@@ -210,11 +218,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
       index = 0  if isPrivateMessage
 
-      # this method will update the vm tree
-      # `isParticipant` check may be reduntant,
-      # but it's left there just to be more cautious. ~Umut
-      @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
-
       if KD.utils.isChannelCollaborative channel
         @fetchMachines => @fetchWorkspaces =>
           @setWorkspaceUnreadCount channel, unreadCount
@@ -230,6 +233,7 @@ class ActivitySidebar extends KDCustomHTMLView
     return  if update.isParticipant
 
     @removeItem id
+
     if @workspaceItemChannelMap[id]
       @fetchMachines => @fetchWorkspaces()
 
