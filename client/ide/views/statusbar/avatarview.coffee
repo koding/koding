@@ -9,8 +9,16 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     super options, data
 
-    @intentTimer = null
-    @nickname    = @getOptions().origin
+    @intentTimer   = null
+    @nickname      = @getOptions().origin
+    { appManager } = KD.singletons
+
+    appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
+
+      { watchMap } = collaborationData
+      isWatching  = watchMap.indexOf(@nickname) > -1
+
+      @setClass 'watching'  if isWatching
 
 
   click: (event) ->
@@ -115,20 +123,12 @@ class IDE.StatusBarAvatarView extends AvatarView
       MENU.once 'KDObjectWillBeDestroyed', => MENU = null
 
 
-  setWatchState: (isWatching, nickname, item) ->
+  setWatchState: (shouldWatch, nickname) ->
 
-    isWatching = @latestWatchState or isWatching
-    methodName = 'watchParticipant'
-    menuLabel  = 'Unwatch'
-
-    if isWatching
-      methodName = 'unwatchParticipant'
-      menuLabel  = 'Watch'
+    @toggleClass 'watching'
+    methodName = if shouldWatch then 'watchParticipant' else 'unwatchParticipant'
 
     KD.singletons.appManager.tell 'IDE', methodName, nickname
-    item.updatePartial menuLabel
-
-    @latestWatchState = not isWatching
 
 
   destroy: ->
