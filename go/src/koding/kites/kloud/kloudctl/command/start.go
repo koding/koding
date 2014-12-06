@@ -64,12 +64,13 @@ func (s *Start) Action(args []string, k *kite.Client) error {
 
 	DefaultUi.Info(fmt.Sprintf("start called for '%d' machines:\n", len(machines)))
 
+	wg.Wait()
+
 	if len(machines) == 1 {
 		if flagWatchEvents {
 			return watch(k, "start", machines[0], defaultPollInterval)
 		}
 	}
 
-	wg.Wait()
 	return nil
 }
