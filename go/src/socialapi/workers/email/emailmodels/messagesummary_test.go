@@ -16,7 +16,7 @@ func TestRenderMessage(t *testing.T) {
 	defer r.Close()
 
 	Convey("Message should be able to rendered", t, func() {
-		ms := NewMessageSummary("canthefason", "", "hehe", time.Now())
+		ms := NewMessageSummary("canthefason", 0, "hehe", time.Now())
 
 		body, err := ms.Render()
 		So(err, ShouldBeNil)
