@@ -40,7 +40,7 @@ func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
 	}()
 
 	// Check if klient is running first.
-	klientRef, err := klient.NewWithTimeout(p.Kite, m.QueryString, time.Second*10)
+	klientRef, err := klient.ConnectTimeout(p.Kite, m.QueryString, time.Second*10)
 	if err == nil {
 		// we could connect to it, which is more than enough
 		p.stopTimer(m)
