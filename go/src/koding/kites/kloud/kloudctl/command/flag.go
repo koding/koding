@@ -19,6 +19,8 @@ type Flag struct {
 	name     string
 	synopsis string
 	action   Actioner
+
+	totalDefaultFlag int
 }
 
 func NewFlag(name, synopsis string) *Flag {
@@ -37,6 +39,7 @@ func NewFlag(name, synopsis string) *Flag {
 	}
 
 	f.FlagSet = flagSet
+	f.totalDefaultFlag = f.NumberOfFlags()
 	return f
 }
 
@@ -67,7 +70,9 @@ func (f *Flag) NumberOfFlags() int {
 func (f *Flag) ParseArgs(args []string) error {
 	// If there are some flags defined and the user didnt' provide any flag
 	// let us report it
-	if f.NumberOfFlags() != 0 && len(args) == 0 {
+	cmdFlagCount := f.NumberOfFlags() - f.totalDefaultFlag
+
+	if cmdFlagCount > len(args) {
 		fmt.Print(f.Help())
 		return errors.New("no arguments")
 	}
