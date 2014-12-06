@@ -640,7 +640,7 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       {ace} = editorPane.aceView
-      ace.once 'FileContentSynced', ->
+      ace.once 'FileContentRestored', ->
         ace.removeModifiedFromTab editorPane.aceView
 
       editorPane.emit 'SaveRequested'
