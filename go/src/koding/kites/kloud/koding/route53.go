@@ -222,7 +222,7 @@ func (d *DNS) Validate(domain, username string) error {
 	hostedZone := d.hostedZone
 
 	if domain == hostedZone {
-		return fmt.Errorf("Domain can't be the same as top-level domain", hostedZone)
+		return fmt.Errorf("Domain '%s' can't be the same as top-level domain '%s'", domain, hostedZone)
 	}
 
 	if !strings.Contains(domain, hostedZone) {
