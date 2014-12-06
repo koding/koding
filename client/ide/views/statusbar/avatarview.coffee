@@ -97,7 +97,7 @@ class IDE.StatusBarAvatarView extends AvatarView
         y           : @getY()
         offset      :
           top       : -5000
-          left      : -86
+          left      : -82
         arrow       :
           placement : 'bottom'
           margin    : menuWidth / 2
@@ -107,8 +107,8 @@ class IDE.StatusBarAvatarView extends AvatarView
       KD.utils.wait 200, =>
         h = MENU.getHeight()
         w = MENU.getWidth()
-        top  = -h
-        left = @getWidth()/2 - w/2
+        top  = -h - 10
+        left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
         MENU.setOption 'offset', {left, top}
         MENU.positionContextMenu()
 
