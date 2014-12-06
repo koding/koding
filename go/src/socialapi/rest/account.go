@@ -76,3 +76,20 @@ func CheckChannelOwnership(acc *models.Account, channel *models.Channel) (bool, 
 		Type:     "channel",
 	})
 }
+
+func FetchAccountActivities(acc *models.Account, channel *models.Channel) ([]*models.ChannelMessageContainer, error) {
+	url := fmt.Sprintf("/account/%d/posts?groupName=%s&accountId=%d", acc.Id, channel.GroupName, acc.Id)
+
+	res, err := sendRequest("GET", url, nil)
+	if err != nil {
+		return make([]*models.ChannelMessageContainer, 0), err
+	}
+
+	var arr []*models.ChannelMessageContainer
+
+	if err := json.Unmarshal(res, &arr); err != nil {
+		return make([]*models.ChannelMessageContainer, 0), err
+	}
+
+	return arr, nil
+}

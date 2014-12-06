@@ -190,7 +190,7 @@ func (p *PlanChecker) Total() error {
 	if len(instances) >= allowedMachines {
 		p.Log.Debug("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 			p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
-		return fmt.Errorf("total machine limit has been reached. Current count: %d Plan limit: %s",
+		return fmt.Errorf("total machine limit has been reached. Current count: %d Plan limit: %d",
 			len(instances), allowedMachines)
 	}
 

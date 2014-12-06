@@ -12,6 +12,16 @@ keys              =
   id_rsa          : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa'          , 'utf8').toString 'base64'
   id_rsa_pub      : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa.pub'      , 'utf8').toString 'base64'
 
+if argv['pull-request']
+  git_fetch    = "git fetch origin #{argv['pull-request']}"
+  git_checkout = 'git checkout FETCH_HEAD'
+else if argv.commit
+  git_fetch    = 'git fetch origin'
+  git_checkout = "git checkout -fq #{argv.commit}"
+else
+  console.error 'error: Please specify a remote branch or a commit'
+  process.exit 1
+
 userData =
   """
   #cloud-config
@@ -27,8 +37,8 @@ userData =
     - echo #{keys.id_rsa_pub}      | base64 --decode > /root/.ssh/id_rsa.pub
     - chmod 0600 /root/.ssh/id_rsa
     - cd /opt/koding
-    - git fetch origin '#{argv.gitref}'
-    - git checkout FETCH_HEAD
+    - #{git_fetch}
+    - #{git_checkout}
     - git submodule update --recursive
     - /opt/koding/scripts/wercker/init-test-instance
   """
