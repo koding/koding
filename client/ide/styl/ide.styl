@@ -864,14 +864,17 @@ body.ide .kddialogview.save-as-dialog
 
   .kdlistview-contextmenu.default
     bg                      color #131313
+    rel()
 
-  .kdlistitemview-contextitem.default
+  .kdlistitemview-contextitem
     font-size               12px
     line-height             1.4em
     color                   #aaa
     padding                 6px 10px
     text-overflow           ellipsis
     overflow                hidden
+    pointer()
+    borderBox()
     &.separator
       padding               0
       &:last-child
@@ -879,7 +882,25 @@ body.ide .kddialogview.save-as-dialog
     &.selected
     &.active
       color                 white
-      bg                    color #131313
+      bg                    color, #131313 !important
 
   .kdlistitemview-contextitem.default.separator
     border-bottom           1px solid #444
+
+  .koding-on-off.tiny
+    vendor                  transform, scale(.6)
+    abs                     5px 25px 0 0
+    &.off
+      bg                    color #665
+
+  .custom-link-view.info
+    size                    15px 25px
+    abs                     5px 26px 0 0
+    display                 block
+    abs                     2px 10px 0 0
+    vendor                  transform, scale(.8)
+    &:after
+      content               ''
+      r-sprite              ide help
+      margin-top            -6px
+      display               block
