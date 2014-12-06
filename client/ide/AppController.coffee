@@ -1056,7 +1056,7 @@ class IDEAppController extends AppController
 
       when 'editor'
         {path}        = context.file
-        file          = FSHelper.createFileInstance path
+        file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
         file.paneHash = context.paneHash
 
         content = @rtm.getFromModel(path)?.getText() or ''
