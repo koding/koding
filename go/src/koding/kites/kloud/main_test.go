@@ -1,6 +1,6 @@
 package main
 
-/* HOW TO RUN THE TES
+/* HOW TO RUN THE TEST
 
 Be sure you have a running ngrok instance. This is needed so klient can connect
 to our kontrol. Run it with:
