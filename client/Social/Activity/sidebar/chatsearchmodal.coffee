@@ -14,3 +14,10 @@ class ChatSearchModal extends SidebarSearchModal
     super options, data
 
 
+  populate: (items) ->
+
+    nonCollaborativeItems = items
+      .filter (channel) -> not KD.utils.isChannelCollaborative channel
+
+    super nonCollaborativeItems
+
