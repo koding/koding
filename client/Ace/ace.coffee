@@ -28,8 +28,9 @@ class Ace extends KDView
             @lastSavedContents = contents
 
           @editor.on 'change', =>
-            @emit 'FileContentChanged'  unless @suppressListeners
-            @emit 'FileContentRestored'  if @isCurrentContentChanged()
+            if @isCurrentContentChanged()
+            then @emit 'FileContentChanged'  unless @suppressListeners
+            else @emit 'FileContentRestored'
 
           @editor.gotoLine 0
           @focus()
