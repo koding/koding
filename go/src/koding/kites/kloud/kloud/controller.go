@@ -284,7 +284,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		defer k.idlock.Get(machine.Id).Unlock()
 
 		k.Log.Info("[%s] ========== %s started (user: %s) ==========",
-			machine.Id, strings.ToUpper(r.Method), r.Username)
+			machine.Id, strings.ToUpper(r.Method), machine.Username)
 
 		start := time.Now()
 
@@ -305,11 +305,11 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 				r.Method, machine.State)
 
 			k.Log.Info("[%s] ========== %s failed (user: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), r.Username)
+				machine.Id, strings.ToUpper(r.Method), machine.Username)
 		} else {
 			totalDuration := time.Since(start)
 			k.Log.Info("[%s] ========== %s finished with success (user: %s, duration: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), r.Username, totalDuration)
+				machine.Id, strings.ToUpper(r.Method), machine.Username, totalDuration)
 		}
 
 		// update final status in storage

@@ -254,34 +254,6 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	// Admin bypass if the username is koding or kloud
-	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		if r.Args == nil {
-			return nil, nil
-		}
-
-		if _, err := r.Args.SliceOfLength(1); err != nil {
-			return nil, nil
-		}
-
-		var args struct {
-			MachineId string
-			Username  string
-		}
-
-		if err := r.Args.One().Unmarshal(&args); err != nil {
-			return nil, nil
-		}
-
-		if koding.IsAdmin(r.Username) && args.Username != "" {
-			k.Log.Warning("[%s] ADMIN COMMAND: replacing username from '%s' to '%s'",
-				args.MachineId, r.Username, args.Username)
-			r.Username = args.Username
-		}
-
-		return nil, nil
-	})
-
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
