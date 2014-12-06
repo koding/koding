@@ -12,13 +12,6 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     @on 'AddedParticipant', @bound 'participantAdded'
 
-    # forward this event to channel, so that
-    # it can change in other views as well.
-    # Kind of observable. ~Umut
-    @on 'AddedParticipant', (participant) =>
-      channel = @getData()
-      channel.emit 'AddedToChannel', participant
-
     @input.input.on 'focus', (event) => @handleFocus yes, event
 
 
@@ -163,6 +156,12 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
 
   participantAdded: (participant) ->
+
+    # forward this event to channel, so that
+    # it can change in other views as well.
+    # Kind of observable. ~Umut
+    channel = @getData()
+    channel.emit 'AddedToChannel', participant
 
     @onboarding?.destroy()
 
