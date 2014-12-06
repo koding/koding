@@ -75,6 +75,14 @@ class ActivitySidebar extends KDCustomHTMLView
   # event handling
 
   messageAddedToChannel: (update) ->
+
+    { channel, channelMessage, unreadCount } = update
+
+    if KD.utils.isChannelCollaborative channel
+      if channelMessage.payload['system-message'] in ['start', 'stop']
+        @fetchMachines => @fetchWorkspaces =>
+          @setWorkspaceUnreadCount channel, unreadCount
+
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
       else  @handleFollowedFeedUpdate update
