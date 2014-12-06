@@ -31,6 +31,8 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   bindChannelEvents: ->
 
+    return
+
     channel = @getData()
 
     channel
