@@ -210,11 +210,6 @@ class ActivitySidebar extends KDCustomHTMLView
 
       index = 0  if isPrivateMessage
 
-      # this method will update the vm tree
-      # `isParticipant` check may be reduntant,
-      # but it's left there just to be more cautious. ~Umut
-      @fetchWorkspaces()  if update.isParticipant and isPrivateMessage
-
       if KD.utils.isChannelCollaborative channel
         @fetchMachines => @fetchWorkspaces =>
           @setWorkspaceUnreadCount channel, unreadCount
@@ -230,6 +225,7 @@ class ActivitySidebar extends KDCustomHTMLView
     return  if update.isParticipant
 
     @removeItem id
+
     if @workspaceItemChannelMap[id]
       @fetchMachines => @fetchWorkspaces()
 
