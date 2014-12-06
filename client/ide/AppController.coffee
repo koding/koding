@@ -492,7 +492,7 @@ class IDEAppController extends AppController
       @openFile file, contents
 
 
-  createNewTerminal: (machine, path, session, joinUser) ->
+  createNewTerminal: (machine, path, session, joinUser, hash) ->
 
     machine = null  unless machine instanceof Machine
 
@@ -502,7 +502,7 @@ class IDEAppController extends AppController
       if rootPath and not isDefault
         path = rootPath
 
-    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser
+    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser, hash
 
 
   createNewBrowser: (url) ->
@@ -836,7 +836,8 @@ class IDEAppController extends AppController
       @myWatchMap        or= @rtm.create 'map',  myWatchMapName, {}
       @mySnapshot        or= @rtm.create 'map',  mySnapshotName, @createWorkspaceSnapshot()
 
-      # if @amIHost
+      if @amIHost
+        @getView().setClass 'host'
       #   @changes.clear()
       #   @broadcastMessages.clear()
 
@@ -855,10 +856,16 @@ class IDEAppController extends AppController
         @handleParticipantAction 'left', participant
 
       @registerParticipantSessionId()
-      @listenChangeEvents()
+      @bindRealtimeEvents()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()
+
+      unless @myWatchMap.values().length
+        @listChatParticipants (accounts) =>
+          accounts.forEach (account) =>
+            {nickname} = account.profile
+            @myWatchMap.set nickname, nickname
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
@@ -952,26 +959,35 @@ class IDEAppController extends AppController
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
-  listenChangeEvents: ->
+  bindRealtimeEvents: ->
 
     @rtm.bindRealtimeListeners @changes, 'list'
     @rtm.bindRealtimeListeners @broadcastMessages, 'list'
+    @rtm.bindRealtimeListeners @myWatchMap, 'map'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
 
       [value] = event.values
 
       switch list
-
-        when @changes
-          @handleChange value
-
-        when @broadcastMessages
-          @handleBroadcastMessage value
+        when @changes           then @handleChange value
+        when @broadcastMessages then @handleBroadcastMessage value
 
     @rtm.on 'ValuesRemovedFromList', (list, event) =>
 
       @handleChange event.values[0]  if list is @changes
+
+    @rtm.on 'MapValueChanged', (map, event) =>
+
+      return unless map is @myWatchMap
+
+      {property, newValue, oldValue} = event
+
+      if newValue is property
+        @statusBar.emit 'ParticipantWatched', property
+
+      else unless newValue
+        @statusBar.emit 'ParticipantUnwatched', property
 
 
   handleChange: (change) ->
@@ -980,7 +996,7 @@ class IDEAppController extends AppController
 
     return if not context or not origin or origin is KD.nick()
 
-    amIWatchingChangeOwner = @myWatchMap.keys().length is 0 or origin in @myWatchMap.keys()
+    amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
 
     if amIWatchingChangeOwner or type is 'CursorActivity'
       targetPane = @getPaneByChange change
@@ -1035,7 +1051,8 @@ class IDEAppController extends AppController
 
     switch context.paneType
       when 'terminal'
-        @createNewTerminal @mountedMachine, null, context.session, @collaborationHost or KD.nick()
+        nick = @collaborationHost or KD.nick()
+        @createNewTerminal @mountedMachine, null, context.session, nick, context.paneHash
 
       when 'editor'
         {path}        = context.file
@@ -1236,6 +1253,35 @@ class IDEAppController extends AppController
     @rtm.fetchFileByTitle @getRealTimeFileName id
 
 
+  setSocialChannel: (channel) ->
+
+    @socialChannel = channel
+
+    @socialChannel.on 'AddedToChannel', (originOrAccount) =>
+
+      kallback = (account) =>
+
+        return  unless account
+
+        {nickname} = account.profile
+        @statusBar.createParticipantAvatar nickname, no
+        @watchParticipant nickname
+
+      if originOrAccount.constructorName
+        KD.remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
+      else if 'string' is typeof originOrAccount
+        KD.remote.cacheable originOrAccount, kallback
+      else
+        kallback originOrAccount
+
+
+    @socialChannel.on 'RemovedFromChannel', (account) =>
+
+      {nickname} = account.profile
+      @statusBar.removeParticipantAvatar nickname
+
+
+
   initPrivateMessage: (callback) ->
 
     {message} = KD.singletons.socialapi
@@ -1252,8 +1298,8 @@ class IDEAppController extends AppController
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
-      [channel]      = channels
-      @socialChannel = channel
+      [channel] = channels
+      @setSocialChannel channel
 
       @updateWorkspace { channelId : channel.id }
         .then =>
@@ -1272,7 +1318,7 @@ class IDEAppController extends AppController
     KD.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return KD.showError err  if err
 
-      @socialChannel = channel
+      @setSocialChannel channel
 
       callback @socialChannel
 
@@ -1464,8 +1510,8 @@ class IDEAppController extends AppController
 
   showKickedModal: ->
     options        =
-      title        : 'Session ended'
-      content      : "You have been removed from the session by @#{@collaborationHost}."
+      title        : 'Your session has been closed'
+      content      : "You have been removed from the session by @#{@collaborationHost}. - Please reload your browser -"
       blocking     : yes
       buttons      :
         ok         :
@@ -1478,8 +1524,8 @@ class IDEAppController extends AppController
   showSessionEndedModal: ->
 
     options        =
-      title        : 'Session Ended'
-      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore."
+      title        : 'Session ended'
+      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
       blocking     : yes
       buttons      :
         quit       :
@@ -1495,8 +1541,8 @@ class IDEAppController extends AppController
   handleParticipantLeaveAction: ->
 
     options   =
-      title   : 'Are you sure'
-      content : "If you leave this session you won't be able to return this session."
+      title   : 'Are you sure?'
+      content : "If you leave this session you won't be able to return back."
 
     @showModal options, =>
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
@@ -1530,8 +1576,8 @@ class IDEAppController extends AppController
   getCollaborationData: (callback = noop) =>
 
     collaborationData =
-      watchMap        : @myWatchMap.values()
-      sessionHost     : @collaborationHost or KD.nick()
+      watchMap        : @myWatchMap?.values()
+      amIHost         : @amIHost
 
     callback collaborationData
 

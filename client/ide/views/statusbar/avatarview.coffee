@@ -1,6 +1,7 @@
 class IDE.StatusBarAvatarView extends AvatarView
 
   INTENT_DELAY = 177
+  MENU         = null
 
   constructor: (options = {}, data) ->
 
@@ -8,7 +9,16 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     super options, data
 
-    @intentTimer = null
+    @intentTimer   = null
+    @nickname      = @getOptions().origin
+    { appManager } = KD.singletons
+
+    appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
+
+      { watchMap } = collaborationData
+      isWatching  = watchMap.indexOf(@nickname) > -1
+
+      @setClass 'watching'  if isWatching
 
 
   click: (event) ->
@@ -18,19 +28,19 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     return no
 
-
   mouseEnter: -> @intentTimer = KD.utils.wait INTENT_DELAY, @bound 'showMenu'
 
   mouseLeave: -> KD.utils.killWait @intentTimer  if @intentTimer
 
   showMenu: ->
 
-    return  if @menu
+    return  if MENU and MENU.getOptions().nickname is @nickname
+
+    MENU.destroy()  if MENU
 
     { appManager } = KD.singletons
     { rtm }        = appManager.getFrontApp()
-    { nickname }   = @getData().profile
-    changes        = rtm.getFromModel("#{nickname}Snapshot")?.values() or []
+    changes        = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
     menuItems      = {}
     menuData       =
       terminals : []
@@ -69,24 +79,28 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
 
-      { watchMap, sessionHost } = collaborationData
+      { watchMap, amIHost } = collaborationData
 
-      isWatching  = watchMap.indexOf(nickname) > -1
-      title       = if isWatching then 'Unwatch' else 'Watch'
+      isWatching  = watchMap.indexOf(@nickname) > -1
       menuWidth   = 172
 
-      menuItems[title] =
-        title    : title
-        callback : (item, e) => @setWatchState isWatching, nickname, item
+      unless @hasClass 'offline'
+        menuItems.Watch =
+          type         : 'customView'
+          view         : new IDE.ChatHeadWatchItemView
+            isWatching : isWatching
+            nickname   : @nickname
+            delegate   : this
 
-      if sessionHost is KD.nick()
+      if amIHost
         menuItems.Kick =
           title     : 'Kick'
           callback  : =>
-            @menu?.destroy()
+            MENU?.destroy()
             KD.singletons.appManager.tell 'IDE', 'kickParticipant', @getData()
 
-      @menu = new KDContextMenu
+      MENU = new KDContextMenu
+        nickname    : @nickname
         cssClass    : 'dark statusbar-files'
         event       : event
         delegate    : this
@@ -94,7 +108,7 @@ class IDE.StatusBarAvatarView extends AvatarView
         y           : @getY()
         offset      :
           top       : -5000
-          left      : -86
+          left      : -82
         arrow       :
           placement : 'bottom'
           margin    : menuWidth / 2
@@ -102,34 +116,26 @@ class IDE.StatusBarAvatarView extends AvatarView
 
 
       KD.utils.wait 200, =>
-        h = @menu.getHeight()
-        w = @menu.getWidth()
-        top  = -h
-        left = @getWidth()/2 - w/2
-        @menu.setOption 'offset', {left, top}
-        @menu.positionContextMenu()
+        h = MENU.getHeight()
+        w = MENU.getWidth()
+        top  = -h - 10
+        left = @getWidth()/2 - w/2 - 4 # for an unknown reason - SY
+        MENU.setOption 'offset', {left, top}
+        MENU.positionContextMenu()
 
-      @menu.once 'KDObjectWillBeDestroyed', => @menu = null
+      MENU.once 'KDObjectWillBeDestroyed', => MENU = null
 
 
-  setWatchState: (isWatching, nickname, item) ->
+  setWatchState: (shouldWatch, nickname) ->
 
-    isWatching = @latestWatchState or isWatching
-    methodName = 'watchParticipant'
-    menuLabel  = 'Unwatch'
-
-    if isWatching
-      methodName = 'unwatchParticipant'
-      menuLabel  = 'Watch'
+    @toggleClass 'watching'
+    methodName = if shouldWatch then 'watchParticipant' else 'unwatchParticipant'
 
     KD.singletons.appManager.tell 'IDE', methodName, nickname
-    item.updatePartial menuLabel
-
-    @latestWatchState = not isWatching
 
 
   destroy: ->
 
-    @menu?.destroy()
+    MENU?.destroy()
 
     super

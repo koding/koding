@@ -184,7 +184,7 @@ pmLinkColor   = #B6B6B6
         font-size           12px
 
       &.active
-        top                 98px
+        top                 78px
         opacity             1
         z-index             100
 
@@ -351,19 +351,49 @@ pmLinkColor   = #B6B6B6
 
 
 .ide
+  .host .avatars
+
+    .avatarview.offline
+      display               inline-block
+      img
+        opacity             .2 !important
+        &:hover
+          opacity           .5 !important
+
 
   .avatars
     margin-right            5px
 
     .avatarview
       display               inline-block
-      height                40px
-      padding               7px 3px 0
+      margin                7px 3px 0
+      size                  24px 24px
+      overflow              visible
       borderBox()
-      &.offline
-        opacity             .5
-        hidden()
+      rel()
+      &:after
+        content             ''
+        abs                 0px 0 0 0px
+        size                24px 1px
+        vendor              transition, all .3s ease
+        shadow              0 0 0 0 #ff9200
+        bg                  color transparent
 
+      &.watching:after
+        content             ''
+        size                2px 1px
+        abs                 28px 0 0 11px
+        shadow              0 0 5px 2px #ff9200
+        z-index             2
+        background          #ff9200
+
+      &.offline
+        display             none
+        &.watching:after
+          display           none
+      img
+        vertical-align      top
+        borderBox()
 
 .chat-view.loading
 
