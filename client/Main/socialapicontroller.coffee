@@ -534,24 +534,12 @@ class SocialApiController extends KDController
     fetchActivities      : (options, callback)->
       err = {message: "An error occurred"}
 
-      xhr = new XMLHttpRequest
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      xhr.open 'GET', endPoint
-      xhr.onreadystatechange = =>
-        # 0     - connection failed
-        # >=400 - http errors
-        if xhr.status is 0 or xhr.status >= 400
-          return callback err
+      KD.utils.doXhrRequest {type: 'GET', endPoint, async: no}, (err, response) ->
+        return callback err  if err
 
-        return if xhr.readyState isnt 4
-
-        if xhr.status not in [200, 304]
-          return callback err
-
-        response = JSON.parse xhr.responseText
         return callback null, mapActivities response
 
-      xhr.send()
 
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'
