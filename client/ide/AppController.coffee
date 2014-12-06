@@ -1344,6 +1344,7 @@ class IDEAppController extends AppController
       @rtm.once 'FileDeleted', =>
         @statusBar.emit 'CollaborationEnded'
         @chat.emit 'CollaborationEnded'
+        @chat = null
         @modal.destroy()
         KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
