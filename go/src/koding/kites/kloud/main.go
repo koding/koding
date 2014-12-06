@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	_ "expvar"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +20,7 @@ import (
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/kloudctl/command"
 	kloudprotocol "koding/kites/kloud/protocol"
 
 	"github.com/koding/metrics"
@@ -299,6 +301,14 @@ func newKite(conf *Config) *kite.Kite {
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+
+	// This is a custom authenticator just for kloudctl
+	k.Authenticators["kloudctl"] = func(r *kite.Request) error {
+		if r.Auth.Key != command.KloudSecretKey {
+			return errors.New("wrong secret key passed, you are not authenticated")
+		}
+		return nil
+	}
 
 	return k
 }

@@ -9,9 +9,8 @@ import (
 
 var (
 	// global flags variables
-	flagRandomKite  bool
 	flagWatchEvents bool
-	flagKloudQuery  string
+	flagKloudAddr   string
 	flagUsername    string
 )
 
@@ -28,8 +27,8 @@ func NewFlag(name, synopsis string) *Flag {
 
 	// global subcommand flags
 	flagSet.StringVar(&flagUsername, "user", "koding", "Respective use of the given machine id")
-	flagSet.StringVar(&flagKloudQuery, "kontrol-query", "/koding/dev/kloud", "Define first three query keys in username/environment/kitename format ...")
-	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Choose random kloud instance if there are multiple instances available.")
+	flagSet.StringVar(&flagKloudAddr, "kloud-addr", "http://127.0.0.1:5500/kite",
+		"Kloud addr to connect")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")
 
 	f := &Flag{
