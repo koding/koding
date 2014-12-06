@@ -1532,7 +1532,7 @@ class IDEAppController extends AppController
 
     collaborationData =
       watchMap        : @myWatchMap.values()
-      sessionHost     : @collaborationHost or KD.nick()
+      amIHost         : @amIHost
 
     callback collaborationData
 

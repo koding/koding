@@ -71,7 +71,7 @@ class IDE.StatusBarAvatarView extends AvatarView
 
     appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
 
-      { watchMap, sessionHost } = collaborationData
+      { watchMap, amIHost } = collaborationData
 
       isWatching  = watchMap.indexOf(@nickname) > -1
       title       = if isWatching then 'Unwatch' else 'Watch'
@@ -81,7 +81,7 @@ class IDE.StatusBarAvatarView extends AvatarView
         title    : title
         callback : (item, e) => @setWatchState isWatching, @nickname, item
 
-      if sessionHost is KD.nick()
+      if amIHost
         menuItems.Kick =
           title     : 'Kick'
           callback  : =>
