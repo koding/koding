@@ -103,6 +103,13 @@ func Exists(k *kite.Kite, queryString string) error {
 // klient is ready to use. It's connected and needs to be closed once the task
 // is finished with it.
 func Connect(k *kite.Kite, queryString string) (*Klient, error) {
+	return ConnectTimeout(k, queryString, 0)
+}
+
+// ConnectTimeout returns a new connected klient instance to the given
+// queryString. The klient is ready to use. It's tries to connect for the given
+// timeout duration
+func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
@@ -118,7 +125,7 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 	remoteKite := kites[0]
 	remoteKite.ReadBufferSize = 512
 	remoteKite.WriteBufferSize = 512
-	if err := remoteKite.Dial(); err != nil {
+	if err := remoteKite.DialTimeout(t); err != nil {
 		return nil, ErrDialingFailed
 	}
 
@@ -128,11 +135,8 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 		client:   remoteKite,
 		Username: remoteKite.Username,
 	}, nil
-
 }
 
-// Klient returns a new connected klient instance to the given queryString. The
-// klient is ready to use. It's tries to connect for the given timeout duration
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	timeout := time.After(t)
 
