@@ -177,6 +177,8 @@ class MainController extends KDController
       mainView._logoutAnimation()
       KD.singletons.localSync.removeLocalContents()
 
+      KiteCache.clearAll()
+
       Cookies.expire "koding082014"
       Cookies.expire "useOldKoding"
 
