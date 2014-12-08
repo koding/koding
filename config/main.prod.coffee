@@ -335,7 +335,7 @@ Configuration = (options={}) ->
     dailyemailnotifier  :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
 
     algoliaconnector    :
       group             : "socialapi"
@@ -378,10 +378,10 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
 
-    emailnotifier       :
+    activityemail       :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/emailnotifier -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
 
     topicfeed           :
       group             : "socialapi"
@@ -393,6 +393,15 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
+    privatemessageemailfeeder :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
+
+    privatemessageemailsender :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------

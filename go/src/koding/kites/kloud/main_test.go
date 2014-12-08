@@ -1,13 +1,47 @@
 package main
 
+/* HOW TO RUN THE TEST
+
+Be sure you have a running ngrok instance. This is needed so klient can connect
+to our kontrol. Run it with:
+
+	./ngrok -authtoken="CMY-UsZMWdx586A3tA0U" -subdomain="kloud-test" 4099
+
+Postgres and mongodb url is same is in the koding dev config. below is an example go test command:
+
+	KLOUD_KONTROL_URL="http://kloud-test.ngrok.com/kite"
+	KLOUD_MONGODB_URL=192.168.59.103:27017/koding
+	KONTROL_POSTGRES_PASSWORD=kontrolapplication KONTROL_STORAGE=postgres
+	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
+	KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
+
+To get profile files first compile a binary and call that particular binary with additional flags:
+
+	go test -c
+
+	KLOUD_KONTROL_URL="http://kloud-test.ngrok.com/kite"
+	KLOUD_MONGODB_URL=192.168.59.103:27017/koding
+	KONTROL_POSTGRES_PASSWORD=kontrolapplication KONTROL_STORAGE=postgres
+	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
+	KONTROL_POSTGRES_HOST=192.168.59.103 ./kloud.test -test.v -test.timeout 20m
+	-test.cpuprofile=kloud_cpu.prof -test.memprofile=kloud_mem.prof
+
+Create a nice graph from the cpu profile
+	go tool pprof --pdf kloud.test  kloud_cpu.prof > kloud_cpu.pdf
+*/
+
 import (
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -16,7 +50,8 @@ import (
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
 
-	"koding/kites/kloud/idlock"
+	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/koding"
@@ -37,11 +72,6 @@ var (
 	provider  *koding.Provider
 )
 
-const (
-	machineId0 = "koding_id0"
-	etcdIp     = "192.168.59.103:4001"
-)
-
 type args struct {
 	MachineId string
 }
@@ -49,7 +79,12 @@ type args struct {
 func init() {
 	conf = config.New()
 	conf.Username = "testuser"
-	conf.KontrolURL = "http://localhost:4099/kite"
+
+	conf.KontrolURL = os.Getenv("KLOUD_KONTROL_URL")
+	if conf.KontrolURL == "" {
+		conf.KontrolURL = "http://localhost:4099/kite"
+	}
+
 	conf.KontrolKey = testkeys.Public
 	conf.KontrolUser = "testuser"
 	conf.KiteKey = testutil.NewKiteKey().Raw
@@ -72,8 +107,10 @@ func init() {
 		log.Fatal(err)
 	}
 
+	provider = newKodingProvider()
+
 	// Add Kloud handlers
-	kld := newKloud()
+	kld := newKloud(provider)
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("start", kld.Start)
@@ -105,8 +142,6 @@ func init() {
 	}
 }
 
-// Main VM action tests (build, start, stop, destroy, resize, reinit)
-
 func TestPing(t *testing.T) {
 	_, err := remote.Tell("kite.ping")
 	if err != nil {
@@ -114,76 +149,73 @@ func TestPing(t *testing.T) {
 	}
 }
 
-func TestInvalidMethodsOnUnitialized(t *testing.T) {
-	if err := start(machineId0); err == nil {
-		t.Error("`start` method can not be called on `uninitialized` machines.")
+// TestSingleMachine creates a test user document and a single machine document
+// that is bound to thar particular test user. It builds, stops, starts,
+// resize, reinit and destroys the machine in order.
+func TestSingleMachine(t *testing.T) {
+	userData, err := createUser()
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	if err := stop(machineId0); err == nil {
-		t.Error("`stop` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := destroy(machineId0); err == nil {
-		t.Error("`destroy` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := resize(machineId0); err == nil {
-		t.Error("`resize` method can not be called on `uninitialized` machines.")
-	}
-
-	if err := reinit(machineId0); err == nil {
-		t.Error("`reinit` method can not be called on `uninitialized` machines.")
-	}
-}
-
-func TestBuild(t *testing.T) {
-	if err := build(machineId0); err != nil {
+	// build
+	if err := build(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestInvalidMethodsOnRunning(t *testing.T) {
-	t.Log("Running invalid methods on a running VM.")
-	if err := build(machineId0); err == nil {
+	// now try to ssh into the machine with temporary private key we created in
+	// the beginning
+	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
+		t.Error(err)
+	}
+
+	// invalid calls after build
+	if err := build(userData.MachineId); err == nil {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
-}
 
-func TestStop(t *testing.T) {
-	if err := stop(machineId0); err != nil {
+	// stop
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestInvalidMethodsOnStopped(t *testing.T) {
-	t.Log("Running invalid methods on a stopped VM.")
-	// run the tests now.
-	if err := build(machineId0); err == nil {
+	if err := build(userData.MachineId); err == nil {
 		t.Error("`build` method can not be called on `stopped` machines.")
 	}
 
-	if err := stop(machineId0); err == nil {
+	if err := stop(userData.MachineId); err == nil {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
-}
 
-func TestStart(t *testing.T) {
-	if err := start(machineId0); err != nil {
+	// start
+	log.Println("Starting machine")
+	if err := start(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestResize(t *testing.T) {
+	// resize
+	log.Println("Resizing machine")
 	storageWant := 5
-	m := GetMachineData(machineId0)
-	m.Builder["storage_size"] = storageWant
-	SetMachineData(machineId0, m)
-
-	if err := resize(machineId0); err != nil {
+	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(userData.MachineId),
+			bson.M{
+				"$set": bson.M{
+					"meta.storage_size": storageWant,
+				},
+			},
+		)
+	})
+	if err != nil {
 		t.Error(err)
 	}
 
-	storageGot, err := getAmazonStorageSize(machineId0)
+	if err := resize(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+
+	storageGot, err := getAmazonStorageSize(userData.MachineId)
 	if err != nil {
 		t.Error(err)
 	}
@@ -194,58 +226,128 @@ func TestResize(t *testing.T) {
 			storageGot,
 		)
 	}
-}
 
-func TestReinit(t *testing.T) {
-	if err := reinit(machineId0); err != nil {
+	// reinit
+	log.Println("Reinitializing machine")
+	if err := reinit(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestDestroy(t *testing.T) {
-	if err := destroy(machineId0); err != nil {
+	// destroy
+	log.Println("Destroying machine")
+	if err := destroy(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
 
-func TestInvalidMethodsOnTerminated(t *testing.T) {
-	t.Log("Running invalid methods on a terminated VM.")
-	if err := stop(machineId0); err == nil {
+	if err := stop(userData.MachineId); err == nil {
 		t.Error("`stop` method can not be called on `terminated` machines.")
 	}
 
-	if err := start(machineId0); err == nil {
+	if err := start(userData.MachineId); err == nil {
 		t.Error("`start` method can not be called on `terminated` machines.")
 	}
 
-	if err := destroy(machineId0); err == nil {
+	if err := destroy(userData.MachineId); err == nil {
 		t.Error("`destroy` method can not be called on `terminated` machines.")
 	}
 
-	if err := resize(machineId0); err == nil {
+	if err := resize(userData.MachineId); err == nil {
 		t.Error("`resize` method can not be called on `terminated` machines.")
 	}
 
-	if err := reinit(machineId0); err == nil {
+	if err := reinit(userData.MachineId); err == nil {
 		t.Error("`reinit` method can not be called on `terminated` machines.")
 	}
+}
+
+type singleUser struct {
+	MachineId  string
+	PrivateKey string
+	PublicKey  string
+}
+
+// createUser creates a test user in jUsers and a single jMachine document.
+func createUser() (*singleUser, error) {
+	privateKey, publicKey, err := sshutil.TemporaryKey()
+	if err != nil {
+		return nil, err
+	}
+	username := "testuser"
+
+	// cleanup old document
+	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"username": username})
+	}); err != nil {
+		return nil, err
+	}
+
+	userId := bson.NewObjectId()
+	user := &models.User{
+		ObjectId:      userId,
+		Email:         "testuser@testuser.com",
+		LastLoginDate: time.Now().UTC(),
+		RegisteredAt:  time.Now().UTC(),
+		Name:          username, // bson equivelant is username
+		Password:      "somerandomnumbers",
+		Status:        "confirmed",
+		SshKeys: []struct {
+			Title string `bson:"title"`
+			Key   string `bson:"key"`
+		}{
+			{Key: publicKey},
+		},
+	}
+
+	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
+		return c.Insert(&user)
+	}); err != nil {
+		return nil, err
+	}
+
+	// later we can add more users with "Owner:false" to test sharing capabilities
+	users := []models.Permissions{
+		{Id: userId, Sudo: true, Owner: true},
+	}
+
+	machineId := bson.NewObjectId()
+	machine := &koding.MachineDocument{
+		Id:         machineId,
+		Label:      "",
+		Domain:     username + ".dev.koding.io",
+		Credential: username,
+		Provider:   "koding",
+		CreatedAt:  time.Now().UTC(),
+		Meta: bson.M{
+			"region":        "eu-west-1",
+			"instance_type": "t2.micro",
+			"storage_size":  3,
+			"alwaysOn":      false,
+		},
+		Users:  users,
+		Groups: make([]models.Permissions, 0),
+	}
+	machine.Assignee.InProgress = false
+	machine.Assignee.AssignedAt = time.Now().UTC()
+	machine.Status.State = machinestate.NotInitialized.String()
+	machine.Status.ModifiedAt = time.Now().UTC()
+
+	if err := provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Insert(&machine)
+	}); err != nil {
+		return nil, err
+	}
+
+	return &singleUser{
+		MachineId:  machineId.Hex(),
+		PrivateKey: privateKey,
+		PublicKey:  publicKey,
+	}, nil
 }
 
 func build(id string) error {
 	buildArgs := &args{
 		MachineId: id,
 	}
-
-	// inject a generated public key to machine data so build can use it during
-	// cloud-init provisioning
-	data := GetMachineData(id)
-	privateKey, publicKey, err := sshutil.TemporaryKey()
-	if err != nil {
-		return err
-	}
-
-	data.Builder["user_ssh_keys"] = []string{publicKey}
-	SetMachineData(id, data)
 
 	resp, err := remote.Tell("build", buildArgs)
 	if err != nil {
@@ -265,25 +367,30 @@ func build(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
+	return listenEvent(eArgs, machinestate.Running)
 
+}
+
+func checkSSHKey(id, privateKey string) error {
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
-	newData := GetMachineData(id)
+	machine, err := provider.Get(id)
+	if err != nil {
+		return err
+	}
 
 	sshConfig, err := sshutil.SshConfig("root", privateKey)
 	if err != nil {
 		return err
 	}
 
-	log.Printf("Connecting to machine with ip '%s' via ssh\n", newData.IpAddress)
-	sshClient, err := sshutil.ConnectSSH(newData.IpAddress+":22", sshConfig)
+	log.Printf("Connecting to machine with ip '%s' via ssh\n", machine.IpAddress)
+	sshClient, err := sshutil.ConnectSSH(machine.IpAddress+":22", sshConfig)
 	if err != nil {
 		return err
 	}
 
+	log.Printf("Testing SSH deployment")
 	output, err := sshClient.StartCommand("whoami")
 	if err != nil {
 		return err
@@ -318,11 +425,7 @@ func destroy(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Terminated); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Terminated)
 }
 
 func start(id string) error {
@@ -348,11 +451,7 @@ func start(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Running)
 }
 
 func stop(id string) error {
@@ -378,11 +477,7 @@ func stop(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Stopped); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Stopped)
 }
 
 func reinit(id string) error {
@@ -408,11 +503,7 @@ func reinit(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Running)
 }
 
 func resize(id string) error {
@@ -438,11 +529,7 @@ func resize(id string) error {
 		},
 	})
 
-	if err := listenEvent(eArgs, machinestate.Running); err != nil {
-		return err
-	}
-
-	return nil
+	return listenEvent(eArgs, machinestate.Running)
 }
 
 // listenEvent calls the event method of kloud with the given arguments until
@@ -479,60 +566,68 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 		time.Sleep(2 * time.Second)
 		continue // still pending
 	}
-
-	return nil
 }
 
-func newKloud() *kloud.Kloud {
-	testChecker := &TestChecker{}
-	testStorage := &TestStorage{}
-	testDomainStorage := &TestDomainStorage{}
-	testLocker := &TestLocker{}
-	testLocker.IdLock = idlock.New()
-
-	var _ kloud.Storage = testStorage
-	var _ kloud.Locker = testLocker
-	var _ koding.Checker = testChecker
-
-	kld := kloud.New()
-	kld.Log = newLogger("kloud", false)
-	kld.Locker = testLocker
-	kld.Storage = testStorage
-	kld.DomainStorage = testDomainStorage
-	kld.Debug = true
-
+func newKodingProvider() *koding.Provider {
 	auth := aws.Auth{
-		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
-		SecretKey: "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",
+		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey: "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",
 	}
 
-	provider = &koding.Provider{
-		Kite: kloudKite,
-		Log:  newLogger("koding", false),
+	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
+	if mongoURL == "" {
+		panic("KLOUD_MONGODB_URL is not set")
+	}
 
+	modelhelper.Initialize(mongoURL)
+	db := modelhelper.Mongo
+	domainStorage := koding.NewDomainStorage(db)
+
+	testChecker := &TestChecker{}
+
+	return &koding.Provider{
+		Session:           db,
+		Kite:              kloudKite,
+		Log:               newLogger("koding", true),
 		KontrolURL:        conf.KontrolURL,
 		KontrolPrivateKey: testkeys.Private,
 		KontrolPublicKey:  testkeys.Public,
 		Test:              true,
-		DomainStorage:     &TestDomainStorage{},
-		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
-		DNS:               koding.NewDNSClient("dev.koding.io", auth), // TODO: Use test.koding.io
-		Bucket:            koding.NewBucket("koding-klient", "development/latest", auth),
-
-		KeyName:     keys.DeployKeyName,
-		PublicKey:   keys.DeployPublicKey,
-		PrivateKey:  keys.DeployPrivateKey,
-		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) { return testChecker, nil },
-		PlanFetcher: func(_ *kloudprotocol.Machine) (koding.Plan, error) { return koding.Free, nil },
+		EC2Clients: multiec2.New(auth, []string{
+			"us-east-1",
+			"ap-southeast-1",
+			"us-west-2",
+			"eu-west-1",
+		}),
+		DNS:           koding.NewDNSClient("dev.koding.io", auth),
+		DomainStorage: domainStorage,
+		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
+		KeyName:       keys.DeployKeyName,
+		PublicKey:     keys.DeployPublicKey,
+		PrivateKey:    keys.DeployPrivateKey,
+		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) {
+			return testChecker, nil
+		},
 	}
+}
 
-	kld.AddProvider("koding", provider)
-
+func newKloud(p *koding.Provider) *kloud.Kloud {
+	kld := kloud.New()
+	kld.Log = newLogger("kloud", true)
+	kld.Locker = p
+	kld.Storage = p
+	kld.DomainStorage = p.DomainStorage
+	kld.Domainer = p.DNS
+	kld.Debug = true
+	kld.AddProvider("koding", p)
 	return kld
 }
 
 func getAmazonStorageSize(machineId string) (int, error) {
-	m := GetMachineData(machineId0)
+	m, err := provider.Get(machineId)
+	if err != nil {
+		return 0, err
+	}
 
 	a, err := provider.NewClient(m)
 	if err != nil {
@@ -563,4 +658,27 @@ func getAmazonStorageSize(machineId string) (int, error) {
 	}
 
 	return currentSize, nil
+}
+
+// TestChecker satisfies Checker interface
+type TestChecker struct{}
+
+func (c *TestChecker) Total() error {
+	return nil
+}
+
+func (c *TestChecker) AlwaysOn() error {
+	return nil
+}
+
+func (c *TestChecker) Timeout() error {
+	return nil
+}
+
+func (c *TestChecker) Storage(wantStorage int) error {
+	return nil
+}
+
+func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
+	return nil
 }
