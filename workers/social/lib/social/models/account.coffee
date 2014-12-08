@@ -213,7 +213,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
-        setLastLoginTimezone:
+        setLastLoginTimezoneOffset:
           (signature Object, Function)
 
     schema                  :
@@ -1356,12 +1356,12 @@ module.exports = class JAccount extends jraphical.Module
 
         rel.save (err)-> callback err
 
-  setLastLoginTimezone: secure (client, options, callback) ->
-    {lastLoginTimezone} = options
+  setLastLoginTimezoneOffset: secure (client, options, callback) ->
+    {lastLoginTimezoneOffset} = options
 
-    return callback new KodingError "timezone is not set"  unless lastLoginTimezone
+    return callback new KodingError "timezone offset is not set"  unless lastLoginTimezoneOffset
 
-    @update $set: {lastLoginTimezone}, (err) ->
-      return callback new KodingError "Could not update last login timezone" if err
+    @update $set: {lastLoginTimezoneOffset}, (err) ->
+      return callback new KodingError "Could not update last login timezone offset" if err
       callback null
 

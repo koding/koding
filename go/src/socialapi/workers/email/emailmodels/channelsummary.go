@@ -59,7 +59,7 @@ func (ci *ChannelImage) Render() (string, error) {
 	return buf.String(), nil
 }
 
-func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezone string) (*ChannelSummary, error) {
+func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezoneOffset int) (*ChannelSummary, error) {
 	cms, err := fetchLastMessages(a, ch, awaySince)
 	if err != nil {
 		return nil, err
@@ -100,7 +100,7 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		Hostname:         config.MustGet().Hostname,
 		IsGroupChannel:   isGroupChannel,
 	}
-	cs.BodyContent.Timezone = timezone
+	cs.BodyContent.TimezoneOffset = timezoneOffset
 
 	if isGroupChannel {
 		cs.BodyContent.IsNicknameShown = true
