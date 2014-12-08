@@ -32,52 +32,52 @@ build:
           cd client/Framework && npm install && cd ../../
           cd client/landing && npm install && cd ../../
           scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install (submodules) finished" "building" 30
-    - script:
-        name: configure build
-        code: ./configure --config $CONFIG --projectRoot /opt/koding
-    - script:
-        name: build client
-        code: |
-          sudo chown -R $USER ~/.npm
-          ./run
-          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
-    - script:
-        name: build go binaries
-        code: go/build.sh
-    - script:
-        name: build social api
-        cwd: go/src/socialapi
-        code: |
-          make configure
-          make install
-          make build
-    - script:
-        name: build backend finished
-        code: |
-          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
-    - script:
-        name: testing backend started
-        code: |
-          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
-    - script:
-        name: create postgresql tables
-        cwd: go
-        code: |
-          src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
-          bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
-    - script:
-        name: test social api
-        code: |
-          sudo -E scripts/wercker/init-socialapi.sh
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
-          cd go/src/socialapi
-          make testapi config=./config/test.toml
-    - script:
-        name: testing backend finished
-        code: |
-          scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
+    # - script:
+    #     name: configure build
+    #     code: ./configure --config $CONFIG --projectRoot /opt/koding
+    # - script:
+    #     name: build client
+    #     code: |
+    #       sudo chown -R $USER ~/.npm
+    #       ./run
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+    # - script:
+    #     name: build go binaries
+    #     code: go/build.sh
+    # - script:
+    #     name: build social api
+    #     cwd: go/src/socialapi
+    #     code: |
+    #       make configure
+    #       make install
+    #       make build
+    # - script:
+    #     name: build backend finished
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
+    # - script:
+    #     name: testing backend started
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
+    # - script:
+    #     name: create postgresql tables
+    #     cwd: go
+    #     code: |
+    #       src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
+    #       bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
+    # - script:
+    #     name: test social api
+    #     code: |
+    #       sudo -E scripts/wercker/init-socialapi.sh
+    #       tail -n 100 /var/log/koding/social-api.log
+    #       tail -n 100 /var/log/koding/social-populartopic.log
+    #       tail -n 100 /var/log/koding/social-pinnedpost.log
+    #       cd go/src/socialapi
+    #       make testapi config=./config/test.toml
+    # - script:
+    #     name: testing backend finished
+    #     code: |
+    #       scripts/notify-cebeci.sh "BUILD_STARTED" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
         name: testing client started
         code: |
@@ -103,26 +103,26 @@ build:
           scripts/wercker/check-connectivity $HOST 4444 1m 3
           sleep 120
           scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
-    - script:
-        name: run register test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test register'
-    - script:
-        name: run login test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
-    - script:
-        name: run logout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test logout'
-    - script:
-        name: run activity test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
     # - script:
-    #     name: run ide test suite
+    #     name: run register test suite
     #     code: |
-    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide'
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test register'
+    # - script:
+    #     name: run login test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
+    # - script:
+    #     name: run logout test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test logout'
+    # - script:
+    #     name: run activity test suite
+    #     code: |
+    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
+    - script:
+        name: run ide test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide'
     - script:
         name: testing client finished
         code: |
