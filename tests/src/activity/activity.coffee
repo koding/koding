@@ -30,9 +30,9 @@ module.exports =
     likeElement = activitySelector + ' .like-summary'
 
     browser
-      .waitForElementVisible selector, 10000
+      .waitForElementVisible selector, 25000
       .click                 selector
-      .waitForElementVisible likeElement, 10000
+      .waitForElementVisible likeElement, 25000
       .assert.containsText   likeElement, user.username + ' liked this.'
       .end()
 
@@ -45,11 +45,11 @@ module.exports =
     likeElement = activitySelector + ' .like-summary'
 
     browser
-      .waitForElementVisible    selector, 10000
+      .waitForElementVisible    selector, 25000
       .click                    selector
-      .waitForElementVisible    selector + '.liked', 10000
+      .waitForElementVisible    selector + '.liked', 25000
       .click                    selector + '.liked'
-      .waitForElementNotVisible likeElement, 10000
+      .waitForElementNotVisible likeElement, 25000
       .end()
 
 
@@ -60,12 +60,12 @@ module.exports =
     post = helpers.getFakeText()
 
     browser
-      .waitForElementVisible activitySelector + ' .settings-menu-wrapper', 10000
+      .waitForElementVisible activitySelector + ' .settings-menu-wrapper', 25000
       .click                 activitySelector + ' .settings-menu-wrapper'
       .click                 '.kdcontextmenu .edit-post'
       .clearValue            activitySelector + ' .edit-widget [testpath=ActivityInputView]'
       .setValue              activitySelector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
-      .pause                 10000
+      .pause                 20000
       .assert.containsText   activitySelector, post # Assertion
       .end()
 
@@ -78,11 +78,11 @@ module.exports =
     post = helpers.getFakeText()
 
     browser
-      .waitForElementVisible        activitySelector + ' .settings-menu-wrapper', 10000
+      .waitForElementVisible        activitySelector + ' .settings-menu-wrapper', 25000
       .click                        activitySelector + ' .settings-menu-wrapper'
       .click                        '.kdcontextmenu .delete-post'
       .click                        '.kdmodal-inner .modal-clean-red'
-      .pause                        10000, ->
+      .pause                        20000, ->
         text = browser.getText activitySelector
         assert.notEqual text, post # Assertion
       .end()
@@ -125,13 +125,13 @@ module.exports =
     post            =  helpers.getFakeText()
 
     browser
-      .waitForElementPresent    commentSelector, 10000
+      .waitForElementPresent    commentSelector, 25000
       .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .edit-comment', 10000
+      .waitForElementVisible    '.kdcontextmenu .edit-comment', 25000
       .click                    '.kdcontextmenu .edit-comment'
       .clearValue               activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]'
       .setValue                 activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post + '\n'
-      .pause                    10000
+      .pause                    20000
       .assert.containsText      activitySelector + ' .comment-container', post # Assertion
       .end()
 
@@ -144,12 +144,12 @@ module.exports =
     post            =  helpers.getFakeText()
 
     browser
-      .waitForElementPresent    commentSelector, 10000
+      .waitForElementPresent    commentSelector, 25000
       .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .delete-comment', 10000
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
       .click                    '.kdcontextmenu .delete-comment'
       .click                    '.kdmodal-inner .modal-clean-red'
-      .pause                    10000, ->
+      .pause                    20000, ->
         text = browser.getText activitySelector + ' .comment-container'
         assert.notEqual text, post # Assertion
       .end()
@@ -162,12 +162,12 @@ module.exports =
     commentSelector = activitySelector + ' .comment-container button.comment-menu'
 
     browser
-      .waitForElementPresent    commentSelector, 10000
+      .waitForElementPresent    commentSelector, 25000
       .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .delete-comment', 10000
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
       .click                    '.kdcontextmenu .delete-comment'
       .click                    '.kdmodal-inner .modal-cancel'
-      .waitForElementNotPresent '.kdoverlay', 10000
+      .waitForElementNotPresent '.kdoverlay', 25000
       .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
       .end()
 
@@ -180,9 +180,9 @@ module.exports =
 
     browser
       .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
-      .waitForElementVisible    '.kdtabpaneview.search', 10000
-      .waitForElementVisible    selector, 10000
-      .pause                    10000
+      .waitForElementVisible    '.kdtabpaneview.search', 25000
+      .waitForElementVisible    selector, 25000
+      .pause                    25000
       .assert.containsText      selector, word # Assertion
       .end()
 
@@ -196,7 +196,7 @@ module.exports =
 
     browser
       .refresh()
-      .waitForElementVisible  activitySelector + ' .comment-container [testpath=list-previous-link]', 10000
+      .waitForElementVisible  activitySelector + ' .comment-container [testpath=list-previous-link]', 25000
       .end()
 
 
@@ -283,7 +283,7 @@ module.exports =
 
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
-      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
+      .waitForElementVisible  '[testpath=ActivityInputView]', 25000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', image
