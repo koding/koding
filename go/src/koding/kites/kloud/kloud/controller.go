@@ -270,7 +270,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 	k.Storage.UpdateState(machine.Id, initialReason, s.initial)
 
 	// each method has his own unique eventer
-	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
+	eventId := r.Method + "-" + machine.Id
+	machine.Eventer = k.NewEventer(eventId)
 
 	// push the first event so it's filled with it, let people know that we're
 	// starting.
@@ -328,7 +329,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 	}()
 
 	return ControlResult{
-		EventId: machine.Eventer.Id(),
+		EventId: eventId,
 		State:   s.initial,
 	}, nil
 }
