@@ -1,13 +1,15 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
+	"koding/kites/kloud/kloud"
+
 	"github.com/koding/kite"
 	"github.com/mitchellh/cli"
-	"koding/kites/kloud/kloud"
 )
 
 const defaultPollInterval = 4 * time.Second
@@ -60,6 +62,10 @@ func watch(k *kite.Client, eventType string, eventId string, interval time.Durat
 		var events []kloud.EventResponse
 		if err := resp.Unmarshal(&events); err != nil {
 			return err
+		}
+
+		if len(events) == 0 {
+			return errors.New("incoming event response is not an array")
 		}
 
 		DefaultUi.Info(fmt.Sprintf("%s ==> %s [Status: %s Percentage: %d]",
