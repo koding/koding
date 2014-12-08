@@ -73,7 +73,7 @@ func (c *Cmd) Action(args []string, k *kite.Client) error {
 
 	if len(machines) == 1 {
 		if flagWatchEvents {
-			return watch(k, "build", machines[0], defaultPollInterval)
+			return watch(k, c.command, machines[0], defaultPollInterval)
 		}
 	}
 
