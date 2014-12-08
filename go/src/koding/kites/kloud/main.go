@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	_ "expvar"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +20,7 @@ import (
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/kloudctl/command"
 	kloudprotocol "koding/kites/kloud/protocol"
 
 	"github.com/koding/metrics"
@@ -252,34 +254,6 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	// Admin bypass if the username is koding or kloud
-	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		if r.Args == nil {
-			return nil, nil
-		}
-
-		if _, err := r.Args.SliceOfLength(1); err != nil {
-			return nil, nil
-		}
-
-		var args struct {
-			MachineId string
-			Username  string
-		}
-
-		if err := r.Args.One().Unmarshal(&args); err != nil {
-			return nil, nil
-		}
-
-		if koding.IsAdmin(r.Username) && args.Username != "" {
-			k.Log.Warning("[%s] ADMIN COMMAND: replacing username from '%s' to '%s'",
-				args.MachineId, r.Username, args.Username)
-			r.Username = args.Username
-		}
-
-		return nil, nil
-	})
-
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
 	k.HandleFunc("start", kld.Start)
@@ -299,6 +273,14 @@ func newKite(conf *Config) *kite.Kite {
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+
+	// This is a custom authenticator just for kloudctl
+	k.Authenticators["kloudctl"] = func(r *kite.Request) error {
+		if r.Auth.Key != command.KloudSecretKey {
+			return errors.New("wrong secret key passed, you are not authenticated")
+		}
+		return nil
+	}
 
 	return k
 }
