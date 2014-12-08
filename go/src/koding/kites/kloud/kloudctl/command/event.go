@@ -68,6 +68,10 @@ func watch(k *kite.Client, eventType string, eventId string, interval time.Durat
 			return errors.New("incoming event response is not an array")
 		}
 
+		if events[0].Error != nil {
+			return events[0].Error
+		}
+
 		DefaultUi.Info(fmt.Sprintf("%s ==> %s [Status: %s Percentage: %d]",
 			fmt.Sprint(time.Now())[:19],
 			events[0].Event.Message,
