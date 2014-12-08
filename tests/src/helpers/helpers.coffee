@@ -64,8 +64,8 @@ module.exports =
             if result.status is 0
               console.log 'vm is building, waiting to finish'
               browser
-                .waitForElementNotVisible  modalSelector, 200000
-                .waitForElementVisible     vmSelector, 20000
+                .waitForElementNotVisible  modalSelector, 300000
+                .waitForElementVisible     vmSelector, 30000
             else
               console.log 'turn on button is clicked, waiting for VM turn on'
 
@@ -73,8 +73,8 @@ module.exports =
                 .waitForElementNotVisible  loaderSelector, 50000
                 .waitForElementVisible     turnOnButtonSelector, 50000
                 .click                     turnOnButtonSelector
-                .waitForElementNotVisible  modalSelector, 200000
-                .waitForElementVisible     vmSelector, 20000
+                .waitForElementNotVisible  modalSelector, 300000
+                .waitForElementVisible     vmSelector, 30000
 
 
   doLogin: (browser, user) ->
