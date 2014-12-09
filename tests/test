@@ -8,7 +8,7 @@ runTests() {
   SUITE=$1
   SUBSUITE=$2
 
-  if [ ! "$SUITE" ]; then
+  if [ -z "$SUITE" ]; then
     for i in ./output/*;do
       if [ -d "$i" ];then
           if [ "$i" == "./output/helpers" ] || [ "$i" == "./output/utils" ]; then
@@ -32,7 +32,7 @@ runTests() {
   else
     echo "running single test suite: $SUITE $SUBSUITE"
 
-    if [ ! "$SUBSUITE" ]; then
+    if [ -z "$SUBSUITE" ]; then
       command="nightwatch --group ./output/$SUITE"
     else
       command="nightwatch --group ./output/$SUITE/$SUBSUITE.js"
