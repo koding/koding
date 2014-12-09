@@ -7,15 +7,17 @@ import (
 	"socialapi/config"
 	"socialapi/workers/common/handler"
 
+	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
 )
 
 type Broker struct {
 	rmqConn *amqp.Connection
+	log     logging.Logger
 }
 
-func NewBroker(rmq *rabbitmq.RabbitMQ) (*Broker, error) {
+func NewBroker(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Broker, error) {
 	rmqConn, err := rmq.Connect("NewGatekeeperBroker")
 	if err != nil {
 		return nil, err
@@ -23,6 +25,7 @@ func NewBroker(rmq *rabbitmq.RabbitMQ) (*Broker, error) {
 
 	return &Broker{
 		rmqConn: rmqConn.Conn(),
+		log:     log,
 	}, nil
 }
 
