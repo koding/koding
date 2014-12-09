@@ -12,16 +12,17 @@ import (
 )
 
 type UserContact struct {
-	AccountId         int64
-	UserOldId         bson.ObjectId
-	Email             string
-	FirstName         string
-	LastName          string
-	Username          string
-	Hash              string
-	Token             string
-	LastLoginTimezone string
-	EmailSettings     *mongomodels.EmailFrequency
+	AccountId     int64
+	UserOldId     bson.ObjectId
+	Email         string
+	FirstName     string
+	LastName      string
+	Username      string
+	Hash          string
+	Token         string
+	EmailSettings *mongomodels.EmailFrequency
+
+	LastLoginTimezoneOffset int
 }
 
 var emailConfig = map[string]string{
@@ -74,15 +75,15 @@ func FetchUserContact(accountId int64) (*UserContact, error) {
 	}
 
 	return &UserContact{
-		AccountId:         accountId,
-		UserOldId:         user.ObjectId,
-		Email:             user.Email,
-		FirstName:         account.Profile.FirstName,
-		LastName:          account.Profile.LastName,
-		Username:          account.Profile.Nickname,
-		Hash:              account.Profile.Hash,
-		LastLoginTimezone: account.LastLoginTimezone,
-		EmailSettings:     &user.EmailFrequency,
+		AccountId:               accountId,
+		UserOldId:               user.ObjectId,
+		Email:                   user.Email,
+		FirstName:               account.Profile.FirstName,
+		LastName:                account.Profile.LastName,
+		Username:                account.Profile.Nickname,
+		Hash:                    account.Profile.Hash,
+		EmailSettings:           &user.EmailFrequency,
+		LastLoginTimezoneOffset: account.LastLoginTimezoneOffset,
 	}, nil
 }
 
