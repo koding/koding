@@ -25,7 +25,7 @@ func main() {
 
 	// later on broker support must be removed
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-	broker, err := models.NewBroker(rmq)
+	broker, err := models.NewBroker(rmq, r.Log)
 	if err != nil {
 		fmt.Println(err)
 		return
