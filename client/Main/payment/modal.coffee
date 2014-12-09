@@ -18,8 +18,6 @@ class PaymentModal extends PaymentBaseModal
 
     operation = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
-    console.log {operation}
-
     options.title = switch operation
       when PaymentWorkflow.operation.UPGRADE then 'Upgrades are awesome. Let\'s do this!'
       when PaymentWorkflow.operation.INTERVAL_CHANGE then 'Change your billing cycle'
