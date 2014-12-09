@@ -44,7 +44,13 @@ class PaymentWorkflow extends KDController
       PaymentWorkflow.planTitle.PROFESSIONAL
     ]
 
-    (arr.indexOf selected) > (arr.indexOf current)
+    current  = arr.indexOf current
+    selected = arr.indexOf selected
+
+    return switch
+      when selected >  current then PaymentWorkflow.operation.UPGRADE
+      when selected is current then PaymentWorkflow.operation.INTERVAL_CHANGE
+      when selected <  current then PaymentWorkflow.operation.DOWNGRADE
 
 
   getInitialState: -> {
@@ -166,6 +172,7 @@ class PaymentWorkflow extends KDController
       options.email = email
       options.provider = @state.provider
 
+      console.log {token, planTitle, planInterval, options}
 
       paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
         @modal.form.submitButton.hideLoader()
