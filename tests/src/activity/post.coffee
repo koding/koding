@@ -21,6 +21,7 @@ module.exports =
 
     browser.end()
 
+
   postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
 
     post = helpers.getFakeText()
