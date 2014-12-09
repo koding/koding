@@ -99,6 +99,9 @@ module.exports = class JSession extends Model
 
   @updateClientIP = (clientId, ipAddress, callback)->
 
+    unless ipAddress
+      return callback 'IP Address is missing'
+
     ipAddress = (ipAddress.split ',')[0]
 
     JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->

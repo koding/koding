@@ -171,10 +171,6 @@ module.exports = class JAccount extends jraphical.Module
         ]
         unlinkOauth:
           (signature String, Function)
-        changeUsername: [
-          (signature Object)
-          (signature Object, Function)
-        ]
         markUserAsExempt:
           (signature Boolean, Function)
         userIsExempt:
@@ -217,7 +213,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
-        setLastLoginTimezone:
+        setLastLoginTimezoneOffset:
           (signature Object, Function)
 
     schema                  :
@@ -456,18 +452,6 @@ module.exports = class JAccount extends jraphical.Module
                 @constructor.emit 'UsernameChanged', change
                 freeOldUsername()
 
-  changeUsername$: secure (client, options, callback) ->
-
-    {delegate} = client.connection
-
-    if @type is 'unregistered' or not delegate.equals this
-    then return callback new KodingError 'Access denied'
-
-    options = username: options  if 'string' is typeof options
-
-    options.mustReauthenticate = yes
-
-    @changeUsername options, callback
 
   checkPermission: (target, permission, callback)->
     JPermissionSet = require './group/permissionset'
@@ -1372,12 +1356,12 @@ module.exports = class JAccount extends jraphical.Module
 
         rel.save (err)-> callback err
 
-  setLastLoginTimezone: secure (client, options, callback) ->
-    {lastLoginTimezone} = options
+  setLastLoginTimezoneOffset: secure (client, options, callback) ->
+    {lastLoginTimezoneOffset} = options
 
-    return callback new KodingError "timezone is not set"  unless lastLoginTimezone
+    return callback new KodingError "timezone offset is not set"  unless lastLoginTimezoneOffset
 
-    @update $set: {lastLoginTimezone}, (err) ->
-      return callback new KodingError "Could not update last login timezone" if err
+    @update $set: {lastLoginTimezoneOffset}, (err) ->
+      return callback new KodingError "Could not update last login timezone offset" if err
       callback null
 

@@ -4,12 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"koding/kite-handler/command"
-	"koding/kite-handler/fs"
-	"koding/kite-handler/terminal"
-	"koding/kites/klient/collaboration"
-	"koding/kites/klient/protocol"
-	"koding/kites/klient/usage"
 	"log"
 	"net"
 	"net/url"
@@ -17,6 +11,13 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"koding/kite-handler/command"
+	"koding/kite-handler/fs"
+	"koding/kite-handler/terminal"
+	"koding/kites/klient/collaboration"
+	"koding/kites/klient/protocol"
+	"koding/kites/klient/usage"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -45,6 +46,7 @@ var (
 	usg  = usage.NewUsage()
 	klog kite.Logger
 
+	// this is used to allow other users to call any klient method.
 	collab = collaboration.New()
 
 	// we also could use an atomic boolean this is simple for now.
@@ -58,6 +60,9 @@ func main() {
 		fmt.Println(VERSION)
 		os.Exit(0)
 	}
+
+	// Close the klient.db in any case. Corrupt db would be catastrophic
+	defer collab.Close()
 
 	k := kite.New(NAME, VERSION)
 	conf := config.MustGet()
@@ -127,13 +132,15 @@ func main() {
 			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 
-			// Allow these users by default.
+			// Allow these users by default
 			allowedUsers := []string{k.Config.Username, "koding"}
 
-			// Add collaboration users to the list
-			for user := range collab.AllowedUsers {
-				allowedUsers = append(allowedUsers, user)
+			// Allow collaboration users as well
+			sharedUsers, err := collab.GetAll()
+			if err != nil {
+				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
 			}
+			allowedUsers = append(allowedUsers, sharedUsers...)
 
 			if !userIn(r.Username, allowedUsers...) {
 				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)

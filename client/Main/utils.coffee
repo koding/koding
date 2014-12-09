@@ -879,7 +879,7 @@ utils.extend utils,
       $.ajax
         url      : '//freegeoip.net/json/?callback=?'
         error    : fail
-        timeout  : 1500
+        timeout  : 5000
         dataType : 'json'
         success  : (data)->
 
@@ -941,6 +941,15 @@ utils.extend utils,
           callback message: "Failed to upload"
         success     : ->
           callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
+
+  getCollaborativeChannelPrefix: -> '___collaborativeSession.'
+
+  isChannelCollaborative: (channel) ->
+
+    return no  unless channel.purpose?
+
+    prefix = KD.utils.getCollaborativeChannelPrefix()
+    return channel.purpose.slice(0, prefix.length) is prefix
 
 
   ###*
