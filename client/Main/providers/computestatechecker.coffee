@@ -5,10 +5,6 @@ class ComputeStateChecker extends KDObject
     super
       interval : options.interval ? 10000
 
-    @kloud           = options.kloud or KD.singletons.kontrol.getKite
-      name           : "kloud"
-      environment    : KD.config.environment
-
     @machines        = []
     @ignoredMachines = []
     @tickInProgress  = no
@@ -81,7 +77,7 @@ class ComputeStateChecker extends KDObject
 
       info "Checking state:", {machineId}
 
-      call = @kloud.info { machineId, currentState }
+      call = computeController.getKloud().info { machineId, currentState }
 
       .then (response)=>
 

@@ -25,8 +25,8 @@ class ComputeController extends KDController
           version      : KD.config.kites.kloud.version
           username     : KD.config.kites.kontrol.username
 
-        @eventListener = new ComputeEventListener {@kloud}
-        @stateChecker  = new ComputeStateChecker  {@kloud}
+        @eventListener = new ComputeEventListener
+        @stateChecker  = new ComputeStateChecker
 
         @stateChecker.machines = @machines
         @stateChecker.start()
@@ -42,6 +42,14 @@ class ComputeController extends KDController
         @emit 'ready'
 
         @info machine for machine in @machines
+
+  getKloud: ->
+
+    KD.singletons.kontrol.getKite
+      name         : "kloud"
+      environment  : KD.config.environment
+      version      : KD.config.kites.kloud.version
+      username     : KD.config.kites.kontrol.username
 
 
   fetchStacks: do (queue=[])->

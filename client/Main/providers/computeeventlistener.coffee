@@ -7,10 +7,6 @@ class ComputeEventListener extends KDObject
     super
       interval : options.interval ? 4000
 
-    @kloud           = options.kloud or KD.singletons.kontrol.getKite
-      name           : "kloud"
-      environment    : KD.config.environment
-
     @listeners       = []
     @machineStatuses = {}
     @tickInProgress  = no
@@ -99,7 +95,7 @@ class ComputeEventListener extends KDObject
 
     {computeController} = KD.singletons
 
-    @kloud.event @listeners
+    computeController.getKloud().event @listeners
 
     .then (responses)=>
 
