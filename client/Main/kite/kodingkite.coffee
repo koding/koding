@@ -28,14 +28,15 @@ class KodingKite extends KDObject
     return {reason, code, wasClean, timestamp, type}
 
   logTransportFailures:->
-    if @transport.ws?
-      @transport.ws.addEventListener 'close', (event)->
-        params = extractInfoFromWsEvent event
-        ErrorLog.create 'ws closed', params
+    return  unless @transport?.ws?
 
-      @transport.ws.addEventListener 'error', (event)->
-        params = extractInfoFromWsEvent event
-        ErrorLog.create 'ws error', params
+    @transport.ws.addEventListener 'close', (event)->
+      params = extractInfoFromWsEvent event
+      ErrorLog.create 'ws closed', params
+
+    @transport.ws.addEventListener 'error', (event)->
+      params = extractInfoFromWsEvent event
+      ErrorLog.create 'ws error', params
 
   getTransport: -> @transport
 
