@@ -27,6 +27,12 @@ class PaymentWorkflow extends KDController
     PAYPAL : 'paypal'
     KODING : 'koding'
 
+  @operation =
+    UPGRADE         : 1
+    INTERVAL_CHANGE : 0
+    DOWNGRADE       : -1
+
+
   FAILED_ATTEMPT_LIMIT = 3
 
   @isUpgrade = (current, selected) ->
