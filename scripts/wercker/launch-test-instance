@@ -46,7 +46,7 @@ userData =
 options              =
   params             :
     ImageId          : 'ami-f464e69c'
-    InstanceType     : 't2.medium'
+    InstanceType     : 'c3.xlarge'
     MinCount         : 1
     MaxCount         : 1
     SubnetId         : 'subnet-b47692ed'
