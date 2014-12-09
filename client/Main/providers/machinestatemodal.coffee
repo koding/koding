@@ -141,7 +141,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @triggerEventTimer 0
 
       KD.getSingleton 'computeController'
-        .kloud.info { @machineId, currentState }
+        .getKloud().info { @machineId, currentState }
         .then (response)=>
 
           info "Initial info result:", response

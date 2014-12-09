@@ -8,7 +8,7 @@ class ComputeController extends KDController
 
     super
 
-    { mainController, kontrol, router } = KD.singletons
+    { mainController, router } = KD.singletons
 
     do @reset
 
@@ -18,12 +18,6 @@ class ComputeController extends KDController
       @on "MachineDestroyed", => do @reset
 
       @fetchStacks =>
-
-        @kloud         = kontrol.getKite
-          name         : "kloud"
-          environment  : KD.config.environment
-          version      : KD.config.kites.kloud.version
-          username     : KD.config.kites.kontrol.username
 
         @eventListener = new ComputeEventListener
         @stateChecker  = new ComputeStateChecker
@@ -245,7 +239,7 @@ class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      call = @kloud.destroy { machineId: machine._id }
+      call = @getKloud().destroy { machineId: machine._id }
 
       .then (res)=>
 
@@ -273,7 +267,7 @@ class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      call = @kloud.reinit { machineId: machine._id }
+      call = @getKloud().reinit { machineId: machine._id }
 
       .then (res)=>
 
@@ -310,7 +304,7 @@ class ComputeController extends KDController
 
         machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-        call = @kloud.resize { machineId: machine._id }
+        call = @getKloud().resize { machineId: machine._id }
 
         .then (res)=>
 
@@ -336,7 +330,7 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @kloud.build { machineId: machine._id }
+    call = @getKloud().build { machineId: machine._id }
 
     .then (res)=>
 
@@ -360,7 +354,7 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfNotExists = no ).isDisconnected = no
 
-    call = @kloud.start { machineId: machine._id }
+    call = @getKloud().start { machineId: machine._id }
 
     .then (res)=>
 
@@ -385,7 +379,7 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @kloud.stop { machineId: machine._id }
+    call = @getKloud().stop { machineId: machine._id }
 
     .then (res)=>
 
@@ -439,7 +433,7 @@ class ComputeController extends KDController
     machineId = machine._id
     currentState = machine.status.state
 
-    call = @kloud.info { machineId, currentState }
+    call = @getKloud().info { machineId, currentState }
 
     .then (response)=>
 
@@ -717,7 +711,7 @@ class ComputeController extends KDController
 
   setDomain: (machine, newDomain, callback = noop) ->
 
-    @kloud.setDomain { machineId: machine._id, newDomain }
+    @getKloud().setDomain { machineId: machine._id, newDomain }
     .nodeify callback
 
 
