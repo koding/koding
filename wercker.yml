@@ -97,8 +97,8 @@ build:
           scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
           cat $INSTANCE_DATA
           HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+          if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
-          if [ -z "$HOST)" ]; then exit 1; fi
           scripts/wercker/check-connectivity $HOST 8090 1m 3
           scripts/wercker/check-connectivity $HOST 4444 1m 3
           sleep 120
@@ -116,9 +116,25 @@ build:
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test logout'
     - script:
-        name: run activity test suite
+        name: run activity post test suite
         code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity'
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity post'
+    - script:
+        name: run activity post with test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity postwith'
+    - script:
+        name: run activity edit delete test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity editdelete'
+    - script:
+        name: run activity like unlike suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity likeunlike'
+    - script:
+        name: run activity other test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity others'
     # - script:
     #     name: run ide test suite
     #     code: |

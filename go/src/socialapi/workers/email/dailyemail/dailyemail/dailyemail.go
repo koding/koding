@@ -140,10 +140,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		Information:   Information,
 	}
 
-	var loc *time.Location
-	if uc.LastLoginTimezone != "" {
-		loc, _ = time.LoadLocation(uc.LastLoginTimezone)
-	}
+	loc := time.FixedZone("", uc.LastLoginTimezoneOffset*-60)
 
 	today := time.Now()
 	if loc != nil {

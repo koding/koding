@@ -6,6 +6,7 @@ MAX_TRY_COUNT=3
 
 runTests() {
   a=$1
+  b=$2
 
   if [ ! "$a" ]; then
     for i in ./output/*;do
@@ -13,7 +14,7 @@ runTests() {
           if [ "$i" == "./output/helpers" ] || [ "$i" == "./output/utils" ]; then
             echo "skipping $i"
           else
-            echo "running $i test"
+            echo "running $i test suite"
             command="nightwatch --group $i"
 
             counter=0
@@ -29,8 +30,14 @@ runTests() {
       fi
     done
   else
-    echo "running single test: $a"
-    command="nightwatch --group ./output/$a"
+    echo "running single test suite: $a $b"
+
+    if [ ! "$b" ]; then
+      command="nightwatch --group ./output/$a"
+    else
+      command="nightwatch --group ./output/$a/$b.js"
+    fi
+
     counter=0
     until $command
     do
@@ -51,4 +58,4 @@ gulp
 
 echo 'running tests'
 
-runTests $1
+runTests $1 $2

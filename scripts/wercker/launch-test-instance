@@ -13,7 +13,7 @@ keys              =
   id_rsa_pub      : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa.pub'      , 'utf8').toString 'base64'
 
 if argv['pull-request']
-  git_fetch    = "git fetch origin '#{argv['pull-request']}'"
+  git_fetch    = "git fetch origin #{argv['pull-request']}"
   git_checkout = 'git checkout FETCH_HEAD'
 else if argv.commit
   git_fetch    = 'git fetch origin'
@@ -46,7 +46,7 @@ userData =
 options              =
   params             :
     ImageId          : 'ami-f464e69c'
-    InstanceType     : 't2.medium'
+    InstanceType     : 'c3.xlarge'
     MinCount         : 1
     MaxCount         : 1
     SubnetId         : 'subnet-b47692ed'
