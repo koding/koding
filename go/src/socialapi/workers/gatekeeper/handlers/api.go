@@ -13,6 +13,7 @@ import (
 	"socialapi/workers/common/response"
 	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
+	"sync"
 
 	"github.com/koding/logging"
 )
@@ -73,11 +74,16 @@ func (h *Handler) Push(u *url.URL, _ http.Header, pm *models.PushMessage) (int, 
 	pm.Channel = channelResponse
 	pm.ChannelId = id
 
+	var wg sync.WaitGroup
 	for _, adapter := range h.Realtime {
-		if err := adapter.Push(pm); err != nil {
-			h.logger.Error("Could not push message to message exchange: %s", err)
-		}
+		wg.Add(1)
+		go func(r models.Realtime) {
+			r.Push(pm)
+			wg.Done()
+		}(adapter)
 	}
+
+	wg.Wait()
 
 	return response.NewOK(pm)
 }
