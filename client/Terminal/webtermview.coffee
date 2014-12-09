@@ -7,8 +7,6 @@ class WebTermView extends KDCustomScrollView
 
     super options, data
 
-    @initBackoff()
-
     KD.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
 
 
@@ -46,7 +44,6 @@ class WebTermView extends KDCustomScrollView
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
-      @clearBackoffTimeout()
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
@@ -58,7 +55,6 @@ class WebTermView extends KDCustomScrollView
       @setFocus no
       KD.getSingleton('windowController').removeLayer this
 
-    @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
 
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
@@ -325,8 +321,6 @@ class WebTermView extends KDCustomScrollView
       mainView = KD.getSingleton "mainView"
       mainView.toggleFullscreen()
       event.preventDefault()
-
-  initBackoff: KDBroker.Broker::initBackoff
 
 
   mainTabPaneShown: (pane) ->
