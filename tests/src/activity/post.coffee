@@ -21,6 +21,21 @@ module.exports =
 
     browser.end()
 
+  postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
+
+    post = helpers.getFakeText()
+
+    helpers.postActivity(browser)
+
+    browser.waitForElementVisible '[testpath=activity-list] > section:first-child', 25000
+
+    secondPostSelector = '[testpath=activity-list] section:nth-of-type(2) [testpath=ActivityListItemView]:nth-of-type(1) article'
+
+    browser.getText secondPostSelector, (result) ->
+      assert.notEqual(post, result.value)
+
+    browser.end()
+
 
   postLongMessage: (browser) ->
 
@@ -48,18 +63,4 @@ module.exports =
       comment += helpers.getFakeText()
 
     helpers.doPostComment(browser, comment)
-    browser.end()
-
-
-  postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
-
-    post = helpers.getFakeText()
-
-    helpers.postActivity(browser)
-
-    secondPostSelector = '[testpath=activity-list] section:nth-of-type(2) [testpath=ActivityListItemView]:nth-of-type(1) article'
-    secondPost = browser.getText secondPostSelector
-
-    assert.notEqual(post, secondPost)
-
     browser.end()
