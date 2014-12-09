@@ -5,10 +5,10 @@ cd $(dirname $0)
 MAX_TRY_COUNT=3
 
 runTests() {
-  a=$1
-  b=$2
+  SUITE=$1
+  SUBSUITE=$2
 
-  if [ ! "$a" ]; then
+  if [ ! "$SUITE" ]; then
     for i in ./output/*;do
       if [ -d "$i" ];then
           if [ "$i" == "./output/helpers" ] || [ "$i" == "./output/utils" ]; then
@@ -30,12 +30,12 @@ runTests() {
       fi
     done
   else
-    echo "running single test suite: $a $b"
+    echo "running single test suite: $SUITE $SUBSUITE"
 
-    if [ ! "$b" ]; then
-      command="nightwatch --group ./output/$a"
+    if [ ! "$SUBSUITE" ]; then
+      command="nightwatch --group ./output/$SUITE"
     else
-      command="nightwatch --group ./output/$a/$b.js"
+      command="nightwatch --group ./output/$SUITE/$SUBSUITE.js"
     fi
 
     counter=0
