@@ -134,16 +134,14 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
           KiteCache.unset query
 
           kiteInstance = @kites[kiteName]?['singleton'] or {}
-          {waitingCalls, waitingPromises} = kiteInstance
-
-          console.log "# WAITING CALLS for #{kiteName}", waitingCalls, waitingPromises
+          {waitingPromises} = kiteInstance
 
           delete @kites[kiteName]['singleton']
 
           if machine = computeController.findMachineFromQueryString queryString
             delete @kites[kiteName][machine.uid]
 
-          (@getKite { name: kiteName, queryString, waitingCalls })?.connect()
+          (@getKite { name: kiteName, queryString, waitingPromises })?.connect()
 
     return kite
 
@@ -151,7 +149,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
   getKite: (options = {}) ->
 
     # Get options
-    { name, correlationName, region, transportOptions, waitingCalls
+    { name, correlationName, region, transportOptions, waitingPromises
       username, environment, version, queryString } = options
 
     # If no `correlationName` is defined assume this kite instance
@@ -183,14 +181,15 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
           KodingKontrol.dcNotification?.destroy()
           KodingKontrol.dcNotification = null
 
-    if waitingCalls? and waitingCalls.length > 0
+    if waitingPromises? and waitingPromises.length > 0
 
-      console.log "THERE WERE WAITING CALLS FOR THIS KITE INSTANCE", waitingCalls
+      console.log "THERE WERE WAITING PROMISES FOR THIS KITE:", waitingPromises
 
       kite.once 'connected', ->
-        for call in waitingCalls
-          console.info "# CONSUMING... ", call
-          kite.transport?.tell call...
+        console.log "RESOLVING WAITING PROMISES...", waitingPromises
+        for promise in waitingPromises
+          [resolve, args] = promise
+          resolve kite.transport?.tell args...
 
     # Query kontrol
     @fetchKite
