@@ -61,7 +61,7 @@ func TestRenderChannel(t *testing.T) {
 
 			cs.Participants = append(cs.Participants, *cp2)
 
-			ms2 := NewMessageSummary(account2.Nick, "", "hoho", time.Now())
+			ms2 := NewMessageSummary(account2.Nick, 0, "hoho", time.Now())
 			cs.MessageSummaries = append(cs.MessageSummaries, ms2)
 			Convey("when purpose is not set, account nicknames must be shown as title", func() {
 				body, err := cs.Render()

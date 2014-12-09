@@ -97,13 +97,28 @@ class ActivitySideView extends JView
 
 
   renderItems: (err, items = []) ->
+
     {limit} = @getOptions()
 
     @listController.hideLazyLoader()
 
     return  if err
 
-    @listController.addItem itemData for itemData, i in items when i < limit
+    regularItemCount = 0
+    index = 0
+
+    loop
+
+      break  if index is items.length
+
+      itemData = items[index]
+      index   += 1
+
+      break     if regularItemCount >= limit
+      continue  if KD.utils.isChannelCollaborative itemData
+
+      @listController.addItem itemData
+      regularItemCount += 1
 
 
   pistachio: ->

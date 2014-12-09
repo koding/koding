@@ -1,16 +1,16 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
-	"strconv"
 	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 )
+
+// used to authenticate with Kloud directly
+const KloudSecretKey = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
 
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
@@ -59,68 +59,16 @@ func kloudClient() (*kite.Client, error) {
 	k.Config = config
 	k.SetLogLevel(kite.WARNING)
 
-	query, err := protocol.KiteFromString(flagKloudQuery + "////")
-	if err != nil {
+	remoteKite := k.NewClient(flagKloudAddr)
+	remoteKite.Auth = &kite.Auth{
+		Type: "kloudctl",
+		Key:  KloudSecretKey,
+	}
+
+	if err := remoteKite.DialTimeout(time.Second * 10); err != nil {
+		DefaultUi.Output(fmt.Sprintf("Connecting failed to %s: %s", flagKloudAddr, err))
 		return nil, err
 	}
 
-	kloudQuery := &protocol.KontrolQuery{
-		Username:    query.Username,
-		ID:          query.ID,
-		Hostname:    query.Hostname,
-		Name:        query.Name,
-		Environment: query.Environment,
-		Region:      query.Region,
-		Version:     query.Version,
-	}
-
-	kites, err := k.GetKites(kloudQuery)
-	if err != nil {
-		return nil, err
-	}
-
-	remoteKite := func(index int) (*kite.Client, error) {
-		if index == 0 {
-			return nil, errors.New("zero index")
-		}
-
-		remoteKloud := kites[index-1]
-		if err := remoteKloud.Dial(); err != nil {
-			return nil, err
-		}
-
-		return remoteKloud, nil
-	}
-
-	if len(kites) == 1 {
-		return remoteKite(1)
-	}
-
-	if flagRandomKite {
-		randomIndex := rand.Intn(len(kites)) + 1
-		DefaultUi.Output(fmt.Sprintf("Using random kite %s", kites[randomIndex-1]))
-		return remoteKite(randomIndex)
-	}
-
-	// we have more than one kloud instance
-	DefaultUi.Output("Which kloud instance do you want to use?\n")
-	for i, kite := range kites {
-		fmt.Printf("[%d]\t %+v\n", i+1, kite)
-	}
-
-	response, err := DefaultUi.Ask("\n==> ")
-	if err != nil {
-		return nil, err
-	}
-
-	index, err := strconv.Atoi(response)
-	if err != nil {
-		return nil, err
-	}
-
-	if index > len(kites) || index == 0 {
-		return nil, errors.New("Invalid input")
-	}
-
-	return remoteKite(index)
+	return remoteKite, nil
 }

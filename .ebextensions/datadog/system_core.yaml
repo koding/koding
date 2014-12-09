@@ -1,0 +1,5 @@
+init_config:
+
+instances:
+    - foo: bar
+      # No configuration is needed for this check, just make sure that there is at least one instance defined
