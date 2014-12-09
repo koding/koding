@@ -38,14 +38,12 @@ func (p *Pubnub) Authenticate(req *ChannelRequest) error {
 	return nil
 }
 
-func (p *Pubnub) Push(pm *PushMessage) error {
+func (p *Pubnub) Push(pm *PushMessage) {
 	channelName := prepareChannelName(pm)
 
 	go p.handleResponse()
 
-	go p.pub.Publish(channelName, pm, p.successCh, p.errorCh)
-
-	return <-p.done
+	p.pub.Publish(channelName, pm, p.successCh, p.errorCh)
 }
 
 func (p *Pubnub) Close() {

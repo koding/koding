@@ -33,24 +33,27 @@ func (b *Broker) Authenticate(req *ChannelRequest) error {
 	return nil
 }
 
-func (b *Broker) Push(pm *PushMessage) error {
+func (b *Broker) Push(pm *PushMessage) {
 	// fetch these secret names from socialapi
 	resp, err := fetchSecretNamesById(pm.ChannelId)
 	if err != nil {
-		return err
+		b.log.Error("Could not fetch secret names: %s", err)
+		return
 	}
 
 	//convert data into json message
 	byteMessage, err := json.Marshal(pm.Body)
 	if err != nil {
-		return err
+		b.log.Error("Could not marshal push message: %s", err)
+		return
 	}
 
 	// get a new channel for publishing a message
 
 	channel, err := b.rmqConn.Channel()
 	if err != nil {
-		return err
+		b.log.Error("Could not get channel: %s", err)
+		return
 	}
 	// do not forget to close the channel
 	defer channel.Close()
@@ -64,11 +67,10 @@ func (b *Broker) Push(pm *PushMessage) error {
 			false,      // immediate
 			amqp.Publishing{Body: byteMessage}, // message
 		); err != nil {
-			return err
+			b.log.Error("Could not publish message: %s", err)
+			return
 		}
 	}
-
-	return nil
 }
 
 func fetchSecretNamesById(channelId int64) (*ChannelResponse, error) {
