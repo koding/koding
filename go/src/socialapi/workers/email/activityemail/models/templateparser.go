@@ -14,6 +14,12 @@ func NewTemplateParser() *TemplateParser {
 }
 
 func (tp *TemplateParser) RenderInstantTemplate(mc *MailerContainer) (string, error) {
+	uc, err := emailmodels.FetchUserContactWithToken(mc.AccountId)
+	if err != nil {
+		return "", err
+	}
+	tp.UserContact = uc
+
 	cs, err := tp.buildChannelSummary(mc)
 	if err != nil {
 		return "", err
@@ -31,7 +37,7 @@ func (tp *TemplateParser) buildChannelSummary(mc *MailerContainer) (*emailmodels
 
 	cs := new(emailmodels.ChannelSummary)
 
-	ms := emailmodels.NewMessageSummary("", actor.LastLoginTimezone, mc.Message, mc.CreatedAt)
+	ms := emailmodels.NewMessageSummary("", tp.UserContact.LastLoginTimezoneOffset, mc.Message, mc.CreatedAt)
 
 	summary, err := ms.Render()
 	if err != nil {

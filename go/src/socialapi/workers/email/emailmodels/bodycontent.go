@@ -8,7 +8,7 @@ type BodyContent struct {
 	// MessageSummaries are in descending order
 	MessageSummaries []*MessageSummary
 
-	Timezone string
+	TimezoneOffset int
 
 	IsNicknameShown bool
 }
@@ -26,7 +26,7 @@ func (bc *BodyContent) AddMessages(messages []models.ChannelMessage) error {
 			return err
 		}
 
-		ms := NewMessageSummary(nickname, bc.Timezone, message.Body, message.CreatedAt)
+		ms := NewMessageSummary(nickname, bc.TimezoneOffset, message.Body, message.CreatedAt)
 		bc.MessageSummaries = append(bc.MessageSummaries, ms)
 	}
 

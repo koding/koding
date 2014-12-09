@@ -97,7 +97,7 @@ func init() {
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
 
-	// Power up kloud kite
+	/ Power up kloud kite
 	kloudKite = kite.New("kloud", "0.0.1")
 	kloudKite.Config = conf.Copy()
 	kloudKite.Config.Port = 4002
@@ -149,11 +149,25 @@ func TestPing(t *testing.T) {
 	}
 }
 
+func TestCreateUsers(t *testing.T) {
+	t.Skip("Enable manually")
+	machineCount := 20
+
+	for i := 0; i < machineCount; i++ {
+		userData, err := createUser("testuser" + strconv.Itoa(i))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		fmt.Printf("%+v\n", userData.MachineId)
+	}
+}
+
 // TestSingleMachine creates a test user document and a single machine document
 // that is bound to thar particular test user. It builds, stops, starts,
 // resize, reinit and destroys the machine in order.
 func TestSingleMachine(t *testing.T) {
-	userData, err := createUser()
+	userData, err := createUser("testuser")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,24 +281,21 @@ type singleUser struct {
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
-func createUser() (*singleUser, error) {
+func createUser(username string) (*singleUser, error) {
 	privateKey, publicKey, err := sshutil.TemporaryKey()
 	if err != nil {
 		return nil, err
 	}
-	username := "testuser"
 
 	// cleanup old document
-	if err := provider.Session.Run("jUsers", func(c *mgo.Collection) error {
+	provider.Session.Run("jUsers", func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"username": username})
-	}); err != nil {
-		return nil, err
-	}
+	})
 
 	userId := bson.NewObjectId()
 	user := &models.User{
 		ObjectId:      userId,
-		Email:         "testuser@testuser.com",
+		Email:         username + "@testuser.com",
 		LastLoginDate: time.Now().UTC(),
 		RegisteredAt:  time.Now().UTC(),
 		Name:          username, // bson equivelant is username
