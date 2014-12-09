@@ -2,6 +2,8 @@
 
 set -e
 
+HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
+
 export REPOSITORY_PATH='/opt/koding'
 export DISPLAY=:99
 
@@ -9,8 +11,9 @@ service nginx stop
 
 cd $REPOSITORY_PATH
 HOME=/root/ npm install --unsafe-perm
-./configure
+./configure --host $HOST:8090
 ./run services
+./run install
 ./run &
 disown $!
 

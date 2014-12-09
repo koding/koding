@@ -28,7 +28,7 @@ const (
 	NotificationContent_TYPE_LIKE    = "like"
 	NotificationContent_TYPE_COMMENT = "comment"
 	NotificationContent_TYPE_MENTION = "mention"
-	NotificationContent_TYPE_PM      = "pm"
+	NotificationContent_TYPE_PM      = "chat"
 )
 
 func (n *NotificationContent) FindByTarget() error {

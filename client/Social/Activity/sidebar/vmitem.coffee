@@ -13,6 +13,6 @@ class SidebarVMItem extends SidebarItem
 
   pistachio: ->
     """
-      #{@machine.slug}
+      #{@machine.slug ? "koding-vm-0"}
     """
 

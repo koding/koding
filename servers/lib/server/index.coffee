@@ -126,6 +126,7 @@ app.use (req, res, next) ->
   {JSession} = koding.models
   {clientId} = req.cookies
   clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+  return next()  unless clientIPAddress
   res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: no }
   JSession.updateClientIP clientId, clientIPAddress, (err)->
     if err then console.log err
@@ -344,11 +345,15 @@ app.post '/:name?/Register', (req, res) ->
 
   return handleClientIdNotFound res, req unless clientId
 
+  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+
   koding.fetchClient clientId, context, (client) ->
     # when there is an error in the fetchClient, it returns message in it
     if client.message
       console.error JSON.stringify {req, client}
       return res.status(500).send client.message
+
+    client.clientIP = (clientIPAddress.split ',')[0]
 
     JUser.convert client, req.body, (err, result) ->
       return res.status(400).send err.message  if err?
@@ -637,6 +642,13 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
   path = name
   path = "#{path}/#{section}"  if section
   path = "#{path}/#{slug}"     if slug
+
+  # When we try to access /Activity/Message/New route, it is trying to
+  # fetch message history with channel id = 'New' and returning:
+  # Bad Request: strconv.ParseInt: parsing "New": invalid syntax error.
+  # Did not like the way I resolve this, but this handler function is already
+  # saying 'Refactor me' :)
+  return next()  if section is 'Message' and slug is 'New'
 
   return res.redirect 301, req.url.substring 7  if name in ['koding', 'guests']
   # Checks if its an internal request like /Activity, /Terminal ...

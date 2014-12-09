@@ -14,113 +14,90 @@ import (
 )
 
 // Info checks the machine state based on the klient and AWS states.
-func (p *Provider) Info(m *protocol.Machine) (result *protocol.InfoArtifact, err error) {
+func (p *Provider) Info(m *protocol.Machine) (*protocol.InfoArtifact, error) {
 	dbState := m.State
 	resultState := dbState
-	klientState := machinestate.Unknown
+	reason := "not known yet"
 
-	// Check if klient is running first.
-	klientRef, err := klient.NewWithTimeout(p.Kite, m.QueryString, time.Second*10)
-	switch err {
-	case nil:
-		if err = klientRef.Ping(); err != nil {
-			p.Log.Info("[%s] Klient is not responding to 'ping' request. Err: %v", m.Id, err)
-		}
-		klientRef.Close()
-		klientState = machinestate.Running
-	case kite.ErrNoKitesAvailable:
-		// klient state is still machinestate.Unknown.
-		p.Log.Debug("[%s] Klient is not registered to Kontrol. Err: %s", m.Id, err)
-
-		// XXX: AWS call reduction workaround.
-		if dbState == machinestate.Stopped {
-			p.Log.Debug("[%s] Info result: Returning db state '%s' because the klient is not registered. Username: %s",
-				m.Id, dbState, m.Username)
-			return &protocol.InfoArtifact{
-				State: machinestate.Stopped,
-			}, nil
-		}
-	case klient.ErrDialingKlientFailed:
-		// klient state is still machinestate.Unknown.
-		p.Log.Debug("[%s] %s", m.Id, err)
-
-		// XXX: AWS call reduction workaround.
-		if dbState == machinestate.Stopped {
-			p.Log.Debug("[%s] Info result: Returning db state '%s' because dialing klient failed. Username: %s",
-				m.Id, dbState, m.Username)
-			return &protocol.InfoArtifact{
-				State: machinestate.Stopped,
-			}, nil
-		}
-	default:
-		// Any other error will fallback to here. So assume that kontrol
-		// failed or some other catastrophic failure occured. So, do not
-		// stop or destroy the machine because of our failure.
-		p.Log.Critical("[%s] couldn't get klient information to check machine status. Probably couldn't connect to Kontrol. Err: %s ",
-			m.Id, err)
-
-		// XXX: AWS call reduction workaround.
-		p.Log.Debug("[%s] Info result: Returning db state '%s' because kontrol is unreachable. Username: %s",
-			m.Id, dbState, m.Username)
+	// return lazily if it's a progress state, such as "Building, Stopping,
+	// etc.."
+	if dbState.InProgress() {
 		return &protocol.InfoArtifact{
 			State: dbState,
 		}, nil
 	}
 
-	reason := ""
-	switch klientState {
-	case machinestate.Running:
-		reason = "Klient is active and healthy."
+	defer func() {
+		// Update db state if the up-to-date state is different than the db.
+		if resultState != dbState {
+			p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
+				m.Id, resultState, reason)
 
-		p.stopTimer(m)
-		resultState = machinestate.Running
-	case machinestate.Unknown:
-		reason = "Klient is not reachable."
-
-		amz, err := p.NewClient(m)
-		if err != nil {
-			return nil, err
-		}
-		infoResp, err := amz.Info()
-		if err != nil {
-			return nil, err
-		}
-
-		switch infoResp.State {
-		case machinestate.Running:
-			// this is a case where: 1) klient is unreachable 2) machine is running
-			// we don't want to give away our machines without a klient is running on it,
-			// so mark and return as stopped.
-			resultState = machinestate.Stopped
-
-			// startTimer does not start a timer on always-on machines. no worries.
-			p.startTimer(m)
-
-			// Check if the machine is always-on and don't send a stopped state.
-			if a, ok := m.Builder["alwaysOn"]; ok {
-				if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
-					// machine is always-on. return as running
-					resultState = machinestate.Running
-				}
+			if err := p.CheckAndUpdateState(m.Id, resultState); err != nil {
+				p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
 			}
-		default:
-			// This is the place where a state transition is in place or simply
-			// the machine is stopped/terminated. So we don't expect the klient
-			// to be run. Return as is.
-			resultState = infoResp.State
+		}
+	}()
+
+	// Check if klient is running first.
+	klientRef, err := klient.ConnectTimeout(p.Kite, m.QueryString, time.Second*10)
+	if err == nil {
+		// we could connect to it, which is more than enough
+		p.stopTimer(m)
+		klientRef.Close()
+
+		reason = "Klient is active and healthy."
+		resultState = machinestate.Running
+
+		return &protocol.InfoArtifact{
+			State: resultState,
+		}, nil
+	}
+
+	if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
+		// klient state is still machinestate.Unknown.
+		p.Log.Debug("[%s] Klient is not registered to Kontrol. Err: %s", m.Id, err)
+
+		// XXX: AWS call reduction workaround.
+		if dbState == machinestate.Stopped {
+			p.Log.Debug("[%s] Info result: Returning db state '%s' because the klient is not available. Username: %s",
+				m.Id, dbState, m.Username)
+			return &protocol.InfoArtifact{
+				State: machinestate.Stopped,
+			}, nil
 		}
 	}
 
-	// Update db state if the up-to-date state is different than the db.
-	if resultState != dbState {
-		p.Log.Info("[%s] Info decision: Inconsistent state between the machine and db document. Updating state to '%s'. Reason: %s",
-			m.Id, resultState, reason)
+	// We couldn't reach klient, either kontrol is crashed or we couldn't dial
+	// to it, and many other problems...
+	reason = "Klient is not reachable."
+	amz, err := p.NewClient(m)
+	if err != nil {
+		return nil, err
+	}
+	infoResp, err := amz.Info()
+	if err != nil {
+		return nil, err
+	}
 
-		err = p.CheckAndUpdateState(m.Id, resultState)
-		if err != nil {
-			p.Log.Debug("[%s] Info decision: Error while updating the machine state. Err: %v", m.Id, err)
+	resultState = infoResp.State
+
+	// this is a case where: 1) klient is unreachable 2) machine is running
+	// we don't want to give away our machines without a klient is running on it,
+	// so mark and return as stopped.
+	if infoResp.State == machinestate.Running {
+		resultState = machinestate.Stopped
+
+		// startTimer does not start a timer on always-on machines. no worries.
+		p.startTimer(m)
+
+		// Check if the machine is always-on and don't send a stopped state.
+		if a, ok := m.Builder["alwaysOn"]; ok {
+			if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
+				// machine is always-on. return as running
+				resultState = machinestate.Running
+			}
 		}
-
 	}
 
 	p.Log.Debug("[%s] Info result: '%s'. Username: %s", m.Id, resultState, m.Username)
