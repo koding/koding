@@ -43,10 +43,15 @@ class IDE.StatusBarAvatarView extends AvatarView
     changes        = rtm.getFromModel("#{@nickname}Snapshot")?.values() or []
     menuItems      = {}
     menuData       =
-      terminals : []
-      drawings  : []
-      browsers  : []
-      editors   : []
+      terminals    : []
+      drawings     : []
+      browsers     : []
+      editors      : []
+    menuLabels     =
+      terminal     : 'Terminal'
+      drawing      : 'Drawing Board'
+      browser      : 'Browser'
+      editor       : 'Editor'
 
 
     changes.forEach (change, i) ->
@@ -64,18 +69,21 @@ class IDE.StatusBarAvatarView extends AvatarView
         when 'drawing'  then drawings.push  { change }
         when 'browser'  then browsers.push  { change }
 
-
     for own section, items of menuData
 
       items.forEach (item, i) ->
         { context: { paneType } } = item.change
         title = item.title or "#{paneType.capitalize()} #{i+1}"
-        menuItems[title] = { title }
-        menuItems[title].change = item.change
-        menuItems[title].callback = (it) ->
+        label = menuLabels[paneType]
+        menuItems[label] or= children: {}
+        targetObj = menuItems[label].children
+        targetObj[title] = { title }
+        targetObj[title].change = item.change
+        targetObj[title].callback = (it) ->
           appManager.tell 'IDE', 'createPaneFromChange', it.getData().change
           @destroy()
-        menuItems[title].separator = yes  if i is items.length - 1
+
+    menuItems.separator = type: 'separator'
 
     appManager.tell 'IDE', 'getCollaborationData', (collaborationData) =>
 
