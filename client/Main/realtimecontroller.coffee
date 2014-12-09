@@ -35,6 +35,6 @@ class RealtimeController extends KDController
           that.emit eventName, body
 
   prepareChannelName = (options) ->
-    { channelName, typeConstant, group } = options
+    { channelName, typeConstant, group, token } = options
 
-    return "#{group}-#{typeConstant}-#{channelName}"
+    return "#{token}-#{group}-#{typeConstant}-#{channelName}"

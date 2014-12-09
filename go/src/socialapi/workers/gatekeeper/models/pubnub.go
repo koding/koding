@@ -50,7 +50,7 @@ func (p *Pubnub) Close() {
 }
 
 func prepareChannelName(pm *PushMessage) string {
-	return fmt.Sprintf("%s-%s-%s", pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
+	return fmt.Sprintf("%s-%s-%s-%s", pm.Token, pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
 }
 
 func (p *Pubnub) handleResponse() {

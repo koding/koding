@@ -73,6 +73,7 @@ func (h *Handler) Push(u *url.URL, _ http.Header, pm *models.PushMessage) (int, 
 
 	pm.Channel = channelResponse
 	pm.ChannelId = id
+	pm.Token = channelResponse.Token
 
 	var wg sync.WaitGroup
 	for _, adapter := range h.Realtime {
