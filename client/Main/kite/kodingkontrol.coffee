@@ -46,7 +46,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     KontrolJS::fetchKite.call this, args, callback
 
 
-  fetchKites: Promise.promisify (args = {}, callback) ->
+  fetchKites: Promise.promisify (args, callback) ->
 
     @reauthenticate()  unless @kite?
 
@@ -70,8 +70,9 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     return KD.config.kites[name].version ? '1.0.0'
 
 
-  injectQueryParams: (args) ->
+  injectQueryParams: (args = {}) ->
 
+    args.query             ?= {}
     args.query.version     ?= @getVersion args.query.name
     args.query.username    ?= KD.config.kites.kontrol.username
     args.query.environment ?= KD.config.environment
