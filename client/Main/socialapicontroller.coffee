@@ -269,7 +269,7 @@ class SocialApiController extends KDController
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
-        {name, typeConstant} = socialApiChannel
+        {name, typeConstant, token} = socialApiChannel
 
         subscriptionData =
           serviceType: 'socialapi'
@@ -280,7 +280,7 @@ class SocialApiController extends KDController
           connectDirectly: yes
 
         if KD.isPubnubEnabled()
-          KD.singletons.realtime.subscribe {channelName: name, typeConstant, group: group.slug}
+          KD.singletons.realtime.subscribe {channelName: name, typeConstant, group: group.slug, token}
           realtimeChannel = KD.singletons.realtime
         else
           # do not use callbacks while subscribing, KD.remote.subscribe already
