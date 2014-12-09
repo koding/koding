@@ -11,6 +11,7 @@ module.exports =
 
 
   loginWithEmail: (browser) ->
+
     ourUser = utils.getUser()
 
     user = {
@@ -24,6 +25,7 @@ module.exports =
 
 
   loginWithInvalidUsername: (browser) ->
+
     user = {
       username: 'r2d2'
       password: 'WEEyoh'
@@ -34,6 +36,7 @@ module.exports =
 
 
   loginWithInvalidPassword: (browser) ->
+
     ourUser = utils.getUser()
     user    = {
       username: ourUser.username
