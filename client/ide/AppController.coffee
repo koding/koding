@@ -1243,14 +1243,20 @@ class IDEAppController extends AppController
 
   isRealtimeSessionActive: (id, callback) ->
 
-    @rtm.once 'FileQueryFinished', (file) =>
+    kallback = =>
+      @rtm.once 'FileQueryFinished', (file) =>
 
-      if file.result.items.length > 0
-        callback yes, file
-      else
-        callback no
+        if file.result.items.length > 0
+          callback yes, file
+        else
+          callback no
 
-    @rtm.fetchFileByTitle @getRealTimeFileName id
+      @rtm.fetchFileByTitle @getRealTimeFileName id
+
+    if @rtm then kallback()
+    else
+      @rtm = new RealTimeManager
+      @rtm.ready => kallback()
 
 
   setSocialChannel: (channel) ->
@@ -1392,6 +1398,7 @@ class IDEAppController extends AppController
         @chat.emit 'CollaborationEnded'
         @chat = null
         @modal.destroy()
+        @rtm = null
         KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
       @rtm.deleteFile @getRealTimeFileName()
@@ -1519,6 +1526,7 @@ class IDEAppController extends AppController
           callback : => @modal.destroy()
 
     @showModal options
+    @rtm = null
 
 
   showSessionEndedModal: ->
@@ -1536,6 +1544,7 @@ class IDEAppController extends AppController
 
     @showModal options
     @removeMachineNode()
+    @rtm = null
 
 
   handleParticipantLeaveAction: ->
@@ -1548,6 +1557,7 @@ class IDEAppController extends AppController
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
       @removeMachineNode()
       @modal.destroy()
+      @rtm = null
       KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
       KD.singletons.router.handleRoute '/IDE'
 
