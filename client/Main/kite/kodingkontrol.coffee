@@ -54,9 +54,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     args    = @injectQueryParams args
 
     @kite.tell 'getKites', [args], (err, result) =>
-      if err?
-        callback err
-        return
+      return callback err  if err?
 
       unless result?
         callback @createKiteNotFoundError args.query
@@ -66,8 +64,6 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
         KiteCache.cache query, result.kites.first
 
       callback null, @createKites result.kites
-      return
-    return
 
 
   getVersion: (name) ->
