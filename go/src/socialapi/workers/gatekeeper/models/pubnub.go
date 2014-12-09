@@ -3,7 +3,6 @@ package models
 import (
 	"fmt"
 	"socialapi/config"
-	"time"
 
 	"github.com/koding/logging"
 	"github.com/pubnub/go/messaging"
@@ -13,25 +12,28 @@ type Pubnub struct {
 	pub       *messaging.Pubnub
 	successCh chan []byte
 	errorCh   chan []byte
-	done      chan error
 	log       logging.Logger
 }
 
+const Origin = "pubsub.pubnub.com"
+
 func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
-	messaging.SetResumeOnReconnect(true)
+	messaging.SetResumeOnReconnect(false)
 	messaging.SetSubscribeTimeout(3)
 	messaging.LoggingEnabled(true)
-	messaging.SetOrigin("pubsub.pubnub.com")
+	messaging.SetOrigin(Origin)
 	// publishKey, subscribeKey, secretKey, cipher, ssl, uuid
 	pub := messaging.NewPubnub(conf.PublishKey, conf.SubscribeKey, "", "", false, "")
-
-	return &Pubnub{
+	pb := &Pubnub{
 		pub:       pub,
 		log:       log,
 		successCh: make(chan []byte),
 		errorCh:   make(chan []byte),
-		done:      make(chan error),
 	}
+
+	go pb.handleResponse()
+
+	return pb
 }
 
 func (p *Pubnub) Authenticate(req *ChannelRequest) error {
@@ -40,9 +42,6 @@ func (p *Pubnub) Authenticate(req *ChannelRequest) error {
 
 func (p *Pubnub) Push(pm *PushMessage) {
 	channelName := prepareChannelName(pm)
-
-	go p.handleResponse()
-
 	p.pub.Publish(channelName, pm, p.successCh, p.errorCh)
 }
 
@@ -55,27 +54,16 @@ func prepareChannelName(pm *PushMessage) string {
 }
 
 func (p *Pubnub) handleResponse() {
-	// TODO make it configurable
-	timeoutVal := 3 * time.Second
 	for {
 		select {
 		case success := <-p.successCh:
 			if string(success) != "[]" {
 				p.log.Debug("Response: %s ", success)
 			}
-			p.done <- nil
-			return
 		case failure := <-p.errorCh:
 			if string(failure) != "[]" {
-				p.log.Debug("Could not push message to pubnub: %s", failure)
+				p.log.Error("Could not push message to pubnub: %s", failure)
 			}
-
-			p.done <- fmt.Errorf(string(failure))
-			return
-		case <-time.Tick(timeoutVal):
-			p.log.Debug("Handler timeout after %d secs", timeoutVal)
-			p.done <- fmt.Errorf("request timeout")
-			return
 		}
 	}
 }
