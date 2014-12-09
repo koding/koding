@@ -22,6 +22,12 @@ class KodingKite extends KDObject
     @waitingCalls = []
     @waitingPromises = []
 
+    @_kiteInvalidError =
+      name    : "KiteInvalid"
+      message : "Kite is invalid. This kite (#{name}) not exists
+                 or there is a problem with connection."
+
+
   extractInfoFromWsEvent = (event)->
     {reason, code, wasClean, timestamp, type} = event
 
@@ -59,24 +65,31 @@ class KodingKite extends KDObject
 
     unless @invalid
 
+      _resolve = null
+      _args    = null
+
       promise = new Promise (resolve, reject)=>
 
-        (@waitForConnection [rpcMethod, [params], callback]).then (args)=>
-          console.info "# CONNECTED TO #{name} SENDING #{rpcMethod}... "
-          resolve @transport?.tell args...
+        _resolve = resolve
+        _args    = [rpcMethod, [params], callback]
+
+        @waitForConnection _args
+
+          .then (args)=>
+            console.info "# CONNECTED TO #{name} SENDING #{rpcMethod}... "
+            resolve @transport?.tell args...
+
+          .catch =>
+            reject @_kiteInvalidError
 
       unless @_state is CONNECTED
-        @waitingPromises.push promise
+        @waitingPromises.push [_resolve, _args]
 
       promise
 
     else
 
-      Promise.reject
-        name    : "KiteInvalid"
-        message : "Kite is invalid. This kite (#{name}) not exists
-                   or there is a problem with connection."
-        err     : @_invalid
+      Promise.reject @_kiteInvalidError
 
 
   @createMethod = (ctx, { method, rpcMethod }) ->
