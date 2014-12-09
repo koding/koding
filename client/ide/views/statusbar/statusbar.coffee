@@ -54,6 +54,8 @@ class IDE.StatusBar extends KDView
 
   createParticipantAvatar: (nickname, isOnline) ->
 
+    return  if @participantAvatars[nickname]
+
     view       = new IDE.StatusBarAvatarView
       origin   : nickname
       size     : width: 24, height: 24
