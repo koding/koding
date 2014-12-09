@@ -68,4 +68,3 @@ module.exports =
       .click                    commentSelector + ' [testpath=activity-like-link]'
       .waitForElementVisible    commentSelector + ' .liked:not(.count)', 25000 # Assertion
       .end()
-
