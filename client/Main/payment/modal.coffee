@@ -7,7 +7,7 @@ class PaymentModal extends PaymentBaseModal
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
     provider     : PaymentWorkflow.provider.KODING
-    isUpgrade    : yes
+    isUpgrade    : PaymentWorkflow.operation.UPGRADE
 
 
   constructor: (options = {}, data) ->
@@ -16,21 +16,23 @@ class PaymentModal extends PaymentBaseModal
 
     @state = KD.utils.extend @getInitialState(), state
 
-    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+    operation = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
-    if isUpgrade
-      options.title    = 'Upgrades are awesome. Let\'s do this!'
-      options.subtitle = ''
-    else
-      options.title    = 'Downgrade your plan'
-      options.subtitle = ''
+    console.log {operation}
+
+    options.title = switch operation
+      when PaymentWorkflow.operation.UPGRADE then 'Upgrades are awesome. Let\'s do this!'
+      when PaymentWorkflow.operation.INTERVAL_CHANGE then 'Change your billing cycle'
+      when PaymentWorkflow.operation.DOWNGRADE then 'Downgrade your plan'
+
+    options.subtitle = ''
 
     super options, data
 
 
   initViews: ->
 
-    { provider, isUpgrade, planTitle } = @state
+    { provider, planTitle } = @state
     { PAYPAL } = PaymentWorkflow.provider
     { FREE }   = PaymentWorkflow.planTitle
 
@@ -110,16 +112,20 @@ class PaymentModal extends PaymentBaseModal
 
     { currentPlan, planTitle } = @state
 
-    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
+    operation = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
-    if isUpgrade
-      @setTitle 'Congratulations! Upgrade successful.'
-      @setSubtitle 'Your account has been upgraded to the plan below.'
-    else
-      @setTitle 'Downgrade complete.'
-      @setSubtitle ''
+    switch operation
+      when PaymentWorkflow.operation.UPGRADE
+        @setTitle 'Congratulations! Upgrade successful'
+        @setSubtitle 'Your account has been upgraded to the plan below.'
+      when PaymentWorkflow.operation.INTERVAL_CHANGE
 
-    @form.showSuccess isUpgrade
+        @setTitle 'Billing cycle changed'
+
+      when PaymentWorkflow.operation.DOWNGRADE
+        @setTitle 'Downgrade complete.'
+
+    @form.showSuccess operation
 
     @once 'KDModalViewDestroyed', =>
       @emit 'PaymentWorkflowFinished', @state
