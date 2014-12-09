@@ -24,17 +24,12 @@ module.exports =
   postMessageAndSeeIfItsPostedOnlyOnce: (browser) ->
 
     post = helpers.getFakeText()
+    secondPostSelector = '[testpath=ActivityListItemView]:nth-child(2) p'
 
     helpers.postActivity(browser)
 
-    # browser.waitForElementVisible '[testpath=activity-list] > section:first-child', 25000
-
-    secondPostSelector = '[testpath=activity-list] section:nth-of-type(2) [testpath=ActivityListItemView]:nth-of-type(1) article'
-
-    browser
-      .waitForElementVisible secondPostSelector, 25000
-      .getText secondPostSelector, (result) ->
-        assert.notEqual(post, result.value)
+    browser.getText secondPostSelector, (result) ->
+      assert.notEqual(post, result.value)
 
     browser.end()
 
