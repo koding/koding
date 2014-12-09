@@ -2,6 +2,10 @@ class RealtimeController extends KDController
 
   constructor: (options = {}, data) ->
 
+    # when we remove broker completely, we no longer need to
+    # make another caching here
+    @channels = {}
+
     super options, data
 
     {subscribekey} = KD.config.pubnub
@@ -26,15 +30,35 @@ class RealtimeController extends KDController
     { channelName, typeConstant, group } = options
     return KD.showError { message: "channel name is not set" }  unless channelName
 
-    that = this
+    pubnubChannelName = prepareChannelName options
+
+    # return channel if it already exists
+    return @channels[pubnubChannelName]  if @channels[pubnubChannelName]
+
+    channelInstance = new PubnubChannel()
+    @channels[pubnubChannelName] = channelInstance
+
     @pubnub.subscribe
-      channel : prepareChannelName options
+      channel : pubnubChannelName
       message : (message, env, channel) =>
-        if message
-          {eventName, body} = message
-          that.emit eventName, body
+        return  unless message
+        {eventName, body} = message
+
+        # no need to emit any events when not subscribed
+        return  unless @channels[channel]
+
+        @channels[channel].emit eventName, body
+
+    return channelInstance
 
   prepareChannelName = (options) ->
     { channelName, typeConstant, group, token } = options
 
     return "#{token}-#{group}-#{typeConstant}-#{channelName}"
+
+
+class PubnubChannel extends KDObject
+
+  constructor: (options = {}) ->
+
+    super options
