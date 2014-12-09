@@ -26,7 +26,7 @@ module.exports =
       .waitForElementVisible   'li.open-file', 20000
       .click                   'li.open-file'
       .waitForElementVisible   '.indexhtml',   20000 # Assertion
-      .waitForElementVisible   '.ace_content', 20000# Assertion
+      .waitForElementVisible   '.ace_content', 20000 # Assertion
       .assert.containsText     '.ace_content', 'Hello World from HTML by Koding' # Assertion
       .end()
 
