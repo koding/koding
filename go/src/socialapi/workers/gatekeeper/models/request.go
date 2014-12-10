@@ -18,6 +18,12 @@ type UpdateInstanceMessage struct {
 	Message
 }
 
+type NotificationMessage struct {
+	Nickname  string              `json:"nickname"`
+	Body      NotificationContent `json:"body"`
+	EventName string              `json:"eventName"`
+}
+
 type Message struct {
 	Token     string      `json:"token"`
 	EventName string      `json:"eventName"`
@@ -36,4 +42,11 @@ type ChannelResponse struct {
 	Group       string   `json:"groupName"`
 	Token       string   `json:"token"`
 	SecretNames []string `json:"secretNames"`
+}
+
+// Namings are for backward compatibility
+type NotificationContent struct {
+	Context  string      `json:"context"`
+	Event    string      `json:"event"`
+	Contents interface{} `json:"contents"`
 }
