@@ -9,7 +9,7 @@ type ChannelRequest struct {
 }
 
 type PushMessage struct {
-	ChannelId int64            `json:"channelId,string"`
+	ChannelId int64            `json:"channelId"`
 	Token     string           `json:"token"`
 	EventName string           `json:"eventName"`
 	Body      interface{}      `json:"body"`

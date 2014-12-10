@@ -5,17 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net/http"
-	"net/url"
 	"socialapi/config"
-	"socialapi/request"
 	"socialapi/workers/common/handler"
-	"socialapi/workers/common/response"
 	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
 	"sync"
 
 	"github.com/koding/logging"
+	"github.com/koding/rabbitmq"
+	"github.com/streadway/amqp"
 )
 
 var (
@@ -26,18 +24,32 @@ var (
 type Handler struct {
 	Realtime []models.Realtime
 	logger   logging.Logger
+	rmqConn  *amqp.Connection
 }
 
-func NewHandler(adapters ...models.Realtime) *Handler {
+func NewHandler(rmqConn *rabbitmq.RabbitMQ, adapters ...models.Realtime) (*Handler, error) {
+	// connnects to RabbitMQ
+	rmqConn, err := rmqConn.Connect("NewGatekeeperController")
+	if err != nil {
+		return nil, err
+	}
 
 	handler := &Handler{
 		Realtime: make([]models.Realtime, 0),
 		logger:   helper.MustGetLogger(),
+		rmqConn:  rmqConn.Conn(),
 	}
 
 	handler.Realtime = append(handler.Realtime, adapters...)
 
-	return handler
+	return handler, nil
+}
+
+// DefaultErrHandler controls the errors, return false if an error occurred
+func (r *Handler) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	r.logger.Error("an error occurred deleting gatekeeper event: %s", err)
+	delivery.Ack(false)
+	return false
 }
 
 // func (h *Handler) Authenticate(u *url.URL, header http.Header, req *models.ChannelRequest) (int, http.Header, interface{}, error) {
@@ -53,26 +65,21 @@ func NewHandler(adapters ...models.Realtime) *Handler {
 // 	return response.NewOK(req)
 // }
 
-func (h *Handler) Push(u *url.URL, _ http.Header, pm *models.PushMessage) (int, http.Header, interface{}, error) {
-	id, err := request.GetId(u)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	if ok := isRequestValid(id, pm); !ok {
-		return response.NewBadRequest(nil)
+func (h *Handler) UpdateChannel(pm *models.PushMessage) error {
+	if ok := isRequestValid(pm); !ok {
+		h.logger.Error("Invalid request")
+		return nil
 	}
 
 	// Fetch related channel first
 	cr := new(models.ChannelRequest)
-	cr.Id = id
+	cr.Id = pm.ChannelId
 	channelResponse, err := fetchChannelById(cr)
 	if err != nil {
-		return response.NewBadRequest(err)
+		return err
 	}
 
 	pm.Channel = channelResponse
-	pm.ChannelId = id
 	pm.Token = channelResponse.Token
 
 	var wg sync.WaitGroup
@@ -86,11 +93,11 @@ func (h *Handler) Push(u *url.URL, _ http.Header, pm *models.PushMessage) (int, 
 
 	wg.Wait()
 
-	return response.NewOK(pm)
+	return nil
 }
 
-func isRequestValid(id int64, req *models.PushMessage) bool {
-	return id != 0 && req.EventName != ""
+func isRequestValid(req *models.PushMessage) bool {
+	return req.ChannelId != 0 && req.EventName != ""
 }
 
 // func checkParticipation(u *url.URL, header http.Header, cr *models.ChannelRequest) error {
