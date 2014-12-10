@@ -42,7 +42,7 @@ func (p *Pubnub) Authenticate(req *ChannelRequest) error {
 
 func (p *Pubnub) Push(pm *PushMessage) {
 	channelName := prepareChannelName(pm)
-	p.pub.Publish(channelName, pm, p.successCh, p.errorCh)
+	p.publish(channelName, pm)
 }
 
 func (p *Pubnub) Close() {
@@ -51,7 +51,16 @@ func (p *Pubnub) Close() {
 
 func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) {
 	channelName := prepareInstanceChannelName(um)
-	p.pub.Publish(channelName, um, p.successCh, p.errorCh)
+	p.publish(channelName, um)
+}
+
+func (p *Pubnub) NotifyUser(nm *NotificationMessage) {
+	channelName := prepareNotificationChannelName(nm)
+	p.publish(channelName, nm)
+}
+
+func (p *Pubnub) publish(channelName string, message interface{}) {
+	p.pub.Publish(channelName, message, p.successCh, p.errorCh)
 }
 
 func prepareChannelName(pm *PushMessage) string {
@@ -60,6 +69,10 @@ func prepareChannelName(pm *PushMessage) string {
 
 func prepareInstanceChannelName(um *UpdateInstanceMessage) string {
 	return fmt.Sprintf("instance-%s", um.Token)
+}
+
+func prepareNotificationChannelName(nm *NotificationMessage) string {
+	return fmt.Sprintf("notification-%s", nm.Nickname)
 }
 
 func (p *Pubnub) handleResponse() {
