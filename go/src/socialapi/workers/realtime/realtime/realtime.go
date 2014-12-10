@@ -2,7 +2,6 @@ package realtime
 
 import (
 	"encoding/json"
-	"fmt"
 	mongomodels "koding/db/models"
 	"socialapi/models"
 	"socialapi/request"
@@ -621,44 +620,7 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 }
 
 func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
-	routingKey := "oid." + instanceToken + ".event." + eventName
-	updateMessage, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	updateArr := make([]string, 1)
-	if eventName == "updateInstance" {
-		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
-	} else {
-		updateArr[0] = string(updateMessage)
-	}
-
-	msg, err := json.Marshal(updateArr)
-	if err != nil {
-		return err
-	}
-
-	f.log.Debug(
-		"Sending Instance Event Id:%s Message:%s EventName:%s",
-		instanceToken,
-		updateMessage,
-		eventName,
-	)
-
-	return channel.Publish(
-		"updateInstances", // exchange name
-		routingKey,        // routing key
-		false,             // mandatory
-		false,             // immediate
-		amqp.Publishing{Body: msg}, // message
-	)
+	return realtimehelper.UpdateInstance(instanceToken, eventName, message)
 }
 
 func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models.ChannelMessage, eventName string) error {
