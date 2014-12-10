@@ -50,9 +50,16 @@ func (p *Pubnub) Close() {
 }
 
 func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) {
+	channelName := prepareInstanceChannelName(um)
+	p.pub.Publish(channelName, um, p.successCh, p.errorCh)
 }
+
 func prepareChannelName(pm *PushMessage) string {
-	return fmt.Sprintf("%s-%s-%s-%s", pm.Token, pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
+	return fmt.Sprintf("channel-%s-%s-%s-%s", pm.Token, pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
+}
+
+func prepareInstanceChannelName(um *UpdateInstanceMessage) string {
+	return fmt.Sprintf("instance-%s", um.Token)
 }
 
 func (p *Pubnub) handleResponse() {

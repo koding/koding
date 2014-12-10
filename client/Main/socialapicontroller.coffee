@@ -280,7 +280,7 @@ class SocialApiController extends KDController
           connectDirectly: yes
 
         if KD.isPubnubEnabled()
-          realtimeChannel = KD.singletons.realtime.subscribe {channelName: name, typeConstant, group: group.slug, token}
+          realtimeChannel = KD.singletons.realtime.subscribe {channelName: name, typeConstant, group: group.slug, token, eventType: "channel"}
         else
           # do not use callbacks while subscribing, KD.remote.subscribe already
           # returns the required channel object. Use it. Callbacks are called

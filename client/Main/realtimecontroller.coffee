@@ -27,15 +27,13 @@ class RealtimeController extends KDController
     KD.utils.doXhrRequest {endPoint, data}, callback
 
   subscribe: (options = {}) ->
-    { channelName, typeConstant, group } = options
-    return KD.showError { message: "channel name is not set" }  unless channelName
 
     pubnubChannelName = prepareChannelName options
 
     # return channel if it already exists
     return @channels[pubnubChannelName]  if @channels[pubnubChannelName]
 
-    channelInstance = new PubnubChannel()
+    channelInstance = new PubnubChannel name: pubnubChannelName
     @channels[pubnubChannelName] = channelInstance
 
     @pubnub.subscribe
@@ -52,9 +50,16 @@ class RealtimeController extends KDController
     return channelInstance
 
   prepareChannelName = (options) ->
-    { channelName, typeConstant, group, token } = options
+    { channelName, typeConstant, group, token, eventType } = options
 
-    return "#{token}-#{group}-#{typeConstant}-#{channelName}"
+    switch eventType
+      when 'channel'
+        { channelName, typeConstant, group } = options
+        return "channel-#{token}-#{group}-#{typeConstant}-#{channelName}"
+      when 'instance'
+        return "instance-#{token}"
+
+    return ""
 
 
 class PubnubChannel extends KDObject
