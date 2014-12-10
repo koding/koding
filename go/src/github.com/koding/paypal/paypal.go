@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -314,8 +315,19 @@ func (pClient *PayPalClient) UpdateRecurringPaymentsProfile(profileId string, pa
 
 func (pClient *PayPalClient) GetRecurringPaymentsProfileDetails(profileId string) (*PayPalResponse, error) {
 	values := url.Values{}
+
 	values.Set("METHOD", "GetRecurringPaymentsProfileDetails")
 	values.Set("PROFILEID", profileId)
+
+	return pClient.PerformRequest(values)
+}
+
+func (pClient *PayPalClient) ProfileTransactionSearch(profileId string, startDate time.Time) (*PayPalResponse, error) {
+	values := url.Values{}
+
+	values.Set("PROFILEID", profileId)
+	values.Set("METHOD", "TransactionSearch")
+	values.Set("STARTDATE", startDate.Format(time.RFC3339))
 
 	return pClient.PerformRequest(values)
 }
