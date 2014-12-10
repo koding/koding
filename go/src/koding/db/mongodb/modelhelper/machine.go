@@ -105,3 +105,14 @@ func CreateMachine(m *models.Machine) error {
 
 	return Mongo.Run(MachineColl, query)
 }
+
+func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"_id": machineId},
+			bson.M{"$set": bson.M{"meta.alwaysOn": alwaysOn}},
+		)
+	}
+
+	return Mongo.Run("jMachines", query)
+}
