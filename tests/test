@@ -5,15 +5,16 @@ cd $(dirname $0)
 MAX_TRY_COUNT=3
 
 runTests() {
-  a=$1
+  SUITE=$1
+  SUBSUITE=$2
 
-  if [ ! "$a" ]; then
+  if [ -z "$SUITE" ]; then
     for i in ./output/*;do
       if [ -d "$i" ];then
           if [ "$i" == "./output/helpers" ] || [ "$i" == "./output/utils" ]; then
             echo "skipping $i"
           else
-            echo "running $i test"
+            echo "running $i test suite"
             command="nightwatch --group $i"
 
             counter=0
@@ -29,8 +30,14 @@ runTests() {
       fi
     done
   else
-    echo "running single test: $a"
-    command="nightwatch --group ./output/$a"
+    echo "running single test suite: $SUITE $SUBSUITE"
+
+    if [ -z "$SUBSUITE" ]; then
+      command="nightwatch --group ./output/$SUITE"
+    else
+      command="nightwatch --group ./output/$SUITE/$SUBSUITE.js"
+    fi
+
     counter=0
     until $command
     do
@@ -51,4 +58,4 @@ gulp
 
 echo 'running tests'
 
-runTests $1
+runTests $1 $2

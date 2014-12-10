@@ -105,20 +105,23 @@ class ActivitySideView extends JView
 
     return  if err
 
-    for itemData, i in items
+    regularItemCount = 0
+    index = 0
 
-      # used `break` instead of `when`
-      # because `break` stops loop
-      # after the condition is satisfied
-      # unlike `when`. ~Umut
-      break     if i >= limit
+    loop
+
+      break  if index is items.length
+
+      itemData = items[index]
+      index   += 1
+
+      break     if regularItemCount >= limit
       continue  if KD.utils.isChannelCollaborative itemData
 
       @listController.addItem itemData
-
+      regularItemCount += 1
 
     KD.utils.defer => @emit 'DataReady', items
-
 
 
   pistachio: ->
