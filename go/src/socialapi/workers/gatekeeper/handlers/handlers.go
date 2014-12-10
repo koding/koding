@@ -35,4 +35,13 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Endpoint:       "/message/{token}/update",
 			CollectMetrics: true,
 		})
+
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:        h.NotifyUser,
+			Name:           "notify-user",
+			Type:           handler.PostRequest,
+			Endpoint:       "/account/{nickname}/notify",
+			CollectMetrics: true,
+		})
 }

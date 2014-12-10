@@ -105,10 +105,31 @@ func (h *Handler) UpdateInstance(u *url.URL, _ http.Header, um *models.UpdateIns
 		}(adapter)
 	}
 
+	wg.Wait()
+
 	return response.NewOK(um)
 }
 
 func (h *Handler) NotifyUser(u *url.URL, _ http.Header, nm *models.NotificationMessage) (int, http.Header, interface{}, error) {
+	nickname := u.Query().Get("nickname")
+	if nickname == "" {
+		return response.NewBadRequest(fmt.Errorf("Nickname is not set"))
+	}
+	nm.Nickname = nickname
+	nm.EventName = "message"
+
+	var wg sync.WaitGroup
+	for _, adapter := range h.Realtime {
+		wg.Add(1)
+		go func(r models.Realtime) {
+			r.NotifyUser(nm)
+			wg.Done()
+		}(adapter)
+	}
+
+	wg.Wait()
+
+	return response.NewOK(nm)
 }
 
 func isRequestValid(id int64, req *models.PushMessage) bool {
