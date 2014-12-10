@@ -89,6 +89,25 @@ func (h *Handler) Push(u *url.URL, _ http.Header, pm *models.PushMessage) (int, 
 	return response.NewOK(pm)
 }
 
+func (h *Handler) UpdateInstance(u *url.URL, _ http.Header, um *models.UpdateInstanceMessage) (int, http.Header, interface{}, error) {
+	token := u.Query().Get("token")
+	if token == "" {
+		return response.NewBadRequest(fmt.Errorf("Token is not set"))
+	}
+	um.Token = token
+
+	var wg sync.WaitGroup
+	for _, adapter := range h.Realtime {
+		wg.Add(1)
+		go func(r models.Realtime) {
+			r.UpdateInstance(um)
+			wg.Done()
+		}(adapter)
+	}
+
+	return response.NewOK(um)
+}
+
 func isRequestValid(id int64, req *models.PushMessage) bool {
 	return id != 0 && req.EventName != ""
 }

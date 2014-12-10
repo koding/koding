@@ -26,4 +26,13 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Endpoint:       "/channel/{id}/push",
 			CollectMetrics: true,
 		})
+
+	m.AddSessionlessHandler(
+		handler.Request{
+			Handler:        h.UpdateInstance,
+			Name:           "message-update",
+			Type:           handler.PostRequest,
+			Endpoint:       "/message/{token}/update",
+			CollectMetrics: true,
+		})
 }
