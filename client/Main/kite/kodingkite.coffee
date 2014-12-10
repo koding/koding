@@ -3,7 +3,7 @@ class KodingKite extends KDObject
   { @Error } = require 'kite'
 
   [DISCONNECTED, CONNECTED] = [0, 1]
-  MAX_QUEUE_SIZE = 5
+  MAX_QUEUE_SIZE = 50
 
   constructor: (options) ->
     super options
@@ -132,7 +132,9 @@ class KodingKite extends KDObject
 
     new Promise (resolve, reject)=>
       return resolve args if @_state is CONNECTED
-      return reject()  if @waitingCalls.length >= MAX_QUEUE_SIZE
+      if @waitingCalls.length >= MAX_QUEUE_SIZE
+        console.log "# CALL REJECTED SINCE WAITING QUEUE IS TOO BIG NOW."
+        return reject()
 
       cid = (@waitingCalls.push args) - 1
 
