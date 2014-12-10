@@ -275,7 +275,10 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 
 	// push the first event so it's filled with it, let people know that we're
 	// starting.
-	machine.Eventer.Push(&eventer.Event{Message: fmt.Sprintf("Starting %s", r.Method), Status: s.initial})
+	machine.Eventer.Push(&eventer.Event{
+		Message: fmt.Sprintf("Starting %s", r.Method),
+		Status:  s.initial,
+	})
 
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
