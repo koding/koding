@@ -50,14 +50,17 @@ class RealtimeController extends KDController
     return channelInstance
 
   prepareChannelName = (options) ->
-    { channelName, typeConstant, group, token, eventType } = options
-
+    { eventType } = options
     switch eventType
       when 'channel'
-        { channelName, typeConstant, group } = options
+        { channelName, typeConstant, group, token } = options
         return "channel-#{token}-#{group}-#{typeConstant}-#{channelName}"
       when 'instance'
+        { token } = options
         return "instance-#{token}"
+      when 'notification'
+        {nickname} = options
+        return "notification-#{nickname}"
 
     return ""
 

@@ -18,10 +18,16 @@ class NotificationController extends KDObject
 
   setListeners:->
 
-    @notificationChannel = KD.remote.subscribe 'notification',
+    @notificationChannel = null
+
+    if KD.isPubnubEnabled()
+      eventType = "notification"
+      {nickname} = KD.whoami().profile
+      @notificationChannel = KD.singletons.realtime.subscribe { nickname, eventType }
+    else
+      @notificationChannel = KD.remote.subscribe 'notification',
       serviceType : 'notification'
       isExclusive : yes
-
 
 
     @notificationChannel.off()
