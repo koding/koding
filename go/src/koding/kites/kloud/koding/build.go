@@ -126,6 +126,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			Data: map[string]interface{}{
 				"instanceId":  instanceId,
 				"queryString": queryString,
+				"region":      b.amazon.Builder.Region,
 			},
 		})
 	} else {
