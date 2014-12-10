@@ -3,11 +3,13 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends PaymentBaseModal
 
+  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+
   getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
     provider     : PaymentWorkflow.provider.KODING
-    isUpgrade    : PaymentWorkflow.operation.UPGRADE
+    operation    : PaymentWorkflow.operation.UPGRADE
 
 
   constructor: (options = {}, data) ->
@@ -16,12 +18,12 @@ class PaymentModal extends PaymentBaseModal
 
     @state = KD.utils.extend @getInitialState(), state
 
-    operation = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
 
     options.title = switch operation
-      when PaymentWorkflow.operation.UPGRADE then 'Upgrades are awesome. Let\'s do this!'
-      when PaymentWorkflow.operation.INTERVAL_CHANGE then 'Change your billing cycle'
-      when PaymentWorkflow.operation.DOWNGRADE then 'Downgrade your plan'
+      when UPGRADE         then 'Upgrades are awesome. Let\'s do this!'
+      when INTERVAL_CHANGE then 'Change your billing cycle'
+      when DOWNGRADE       then 'Downgrade your plan'
 
     options.subtitle = ''
 
@@ -110,17 +112,15 @@ class PaymentModal extends PaymentBaseModal
 
     { currentPlan, planTitle } = @state
 
-    operation = PaymentWorkflow.isUpgrade currentPlan, planTitle
+    operation = PaymentWorkflow.getOperation currentPlan, planTitle
 
     switch operation
-      when PaymentWorkflow.operation.UPGRADE
+      when UPGRADE
         @setTitle 'Congratulations! Upgrade successful'
         @setSubtitle 'Your account has been upgraded to the plan below.'
-      when PaymentWorkflow.operation.INTERVAL_CHANGE
-
+      when INTERVAL_CHANGE
         @setTitle 'Billing cycle changed'
-
-      when PaymentWorkflow.operation.DOWNGRADE
+      when DOWNGRADE
         @setTitle 'Downgrade complete.'
 
     @form.showSuccess operation

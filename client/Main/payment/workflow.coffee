@@ -35,7 +35,7 @@ class PaymentWorkflow extends KDController
 
   FAILED_ATTEMPT_LIMIT = 3
 
-  @isUpgrade = (current, selected) ->
+  @getOperation = (current, selected) ->
 
     arr = [
       PaymentWorkflow.planTitle.FREE
@@ -69,13 +69,15 @@ class PaymentWorkflow extends KDController
 
   start: ->
 
-    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
 
-    @state.isUpgrade = isUpgrade
+    @state.operation = operation
 
-    if isUpgrade
-    then @startRegularFlow()
-    else @startDowngradeFlow()
+    { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+
+    switch operation
+      when DOWNGRADE                then @startDowngradeFlow()
+      when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
 
 
   startRegularFlow: ->
