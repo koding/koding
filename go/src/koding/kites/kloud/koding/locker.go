@@ -25,32 +25,41 @@ func (p *Provider) Lock(id string) error {
 			ReturnNew: true,
 		}
 
-		// if Find() is successful the Update() above will be applied (which
-		// set's us as assignee by marking the inProgress to true). If not, it
-		// means someone else is working on this document and we should return
-		// with an error. The whole process is atomic and a single transaction.
-		_, err := c.Find(
-			bson.M{
-				"_id": bson.ObjectIdHex(id),
-				"assignee.inProgress": bson.M{"$ne": true},
-			},
-		).Apply(change, &machine) // machine is used just used for prevent nil unmarshalling
-		return err
+		// if Find() is successful,  the update above will be applied (which
+		// set's the assignee by marking the inProgress to true).
+		query := c.Find(bson.M{"_id": bson.ObjectIdHex(id)})
+
+		if err := query.One(&machine); err != nil {
+			return err
+		}
+
+		if machine.Assignee.InProgress {
+			return kloud.ErrLockAcquired
+		}
+
+		if _, err := query.Apply(change, &machine); err != nil {
+			return err
+		} // machine is used just used for prevent nil unmarshalling
+
+		return nil
 	})
 
-	// query didn't matched, means it's assigned to some other Kloud
-	// instances and an ongoing event is in process.
-	if err == mgo.ErrNotFound {
+	switch err {
+	case nil:
+		return nil
+	// query didn't matched, means document a document with a relation with
+	// jMachine document is out of sync or a jMachine document is deleted
+	// manually.
+	case mgo.ErrNotFound:
+		return kloud.ErrMachineDocNotFound
+	// an ongoing event is in progress
+	case kloud.ErrLockAcquired:
 		return kloud.ErrLockAcquired
-	}
-
 	// some other error, this shouldn't be happed
-	if err != nil {
+	default:
 		p.Log.Error("Storage get error: %s", err.Error())
 		return kloud.NewError(kloud.ErrBadState)
 	}
-
-	return nil
 }
 
 func (p *Provider) Unlock(id string) {
