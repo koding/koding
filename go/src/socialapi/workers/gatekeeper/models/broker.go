@@ -119,6 +119,9 @@ func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) {
 	}
 }
 
+func (b *Broker) NotifyUser(nm *NotificationMessage) {
+}
+
 func fetchSecretNamesById(channelId int64) (*ChannelResponse, error) {
 	request := &handler.Request{
 		Type:     handler.GetRequest,

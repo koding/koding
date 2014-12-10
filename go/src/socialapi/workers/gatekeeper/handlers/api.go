@@ -108,6 +108,9 @@ func (h *Handler) UpdateInstance(u *url.URL, _ http.Header, um *models.UpdateIns
 	return response.NewOK(um)
 }
 
+func (h *Handler) NotifyUser(u *url.URL, _ http.Header, nm *models.NotificationMessage) (int, http.Header, interface{}, error) {
+}
+
 func isRequestValid(id int64, req *models.PushMessage) bool {
 	return id != 0 && req.EventName != ""
 }
