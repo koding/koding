@@ -34,6 +34,7 @@ module.exports =
     browser
       .waitForElementVisible    selector, 25000
       .click                    selector
+      .pause                    4000 # required
       .waitForElementVisible    selector + '.liked', 25000
       .click                    selector + '.liked'
       .waitForElementNotVisible likeElement, 25000
