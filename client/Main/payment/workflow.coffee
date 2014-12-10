@@ -27,9 +27,15 @@ class PaymentWorkflow extends KDController
     PAYPAL : 'paypal'
     KODING : 'koding'
 
+  @operation =
+    UPGRADE         : 1
+    INTERVAL_CHANGE : 0
+    DOWNGRADE       : -1
+
+
   FAILED_ATTEMPT_LIMIT = 3
 
-  @isUpgrade = (current, selected) ->
+  @getOperation = (current, selected) ->
 
     arr = [
       PaymentWorkflow.planTitle.FREE
@@ -38,7 +44,13 @@ class PaymentWorkflow extends KDController
       PaymentWorkflow.planTitle.PROFESSIONAL
     ]
 
-    (arr.indexOf selected) > (arr.indexOf current)
+    current  = arr.indexOf current
+    selected = arr.indexOf selected
+
+    return switch
+      when selected >  current then PaymentWorkflow.operation.UPGRADE
+      when selected is current then PaymentWorkflow.operation.INTERVAL_CHANGE
+      when selected <  current then PaymentWorkflow.operation.DOWNGRADE
 
 
   getInitialState: -> {
@@ -57,13 +69,15 @@ class PaymentWorkflow extends KDController
 
   start: ->
 
-    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
+    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
 
-    @state.isUpgrade = isUpgrade
+    @state.operation = operation
 
-    if isUpgrade
-    then @startRegularFlow()
-    else @startDowngradeFlow()
+    { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+
+    switch operation
+      when DOWNGRADE                then @startDowngradeFlow()
+      when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
 
 
   startRegularFlow: ->
@@ -160,8 +174,8 @@ class PaymentWorkflow extends KDController
       options.email = email
       options.provider = @state.provider
 
-
       paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
+
         @modal.form.submitButton.hideLoader()
 
         if err
