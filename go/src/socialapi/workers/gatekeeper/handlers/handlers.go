@@ -1,9 +1,6 @@
 package handlers
 
-import (
-	"socialapi/workers/common/handler"
-	"socialapi/workers/common/mux"
-)
+import "socialapi/workers/common/mux"
 
 func (h *Handler) AddHandlers(m *mux.Mux) {
 
@@ -16,32 +13,4 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 	// 		Endpoint:       "/channel/{id}/authenticate",
 	// 		CollectMetrics: true,
 	// 	})
-
-	// channel push message
-	m.AddSessionlessHandler(
-		handler.Request{
-			Handler:        h.Push,
-			Name:           "channel-push",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}/push",
-			CollectMetrics: true,
-		})
-
-	m.AddSessionlessHandler(
-		handler.Request{
-			Handler:        h.UpdateInstance,
-			Name:           "message-update",
-			Type:           handler.PostRequest,
-			Endpoint:       "/message/{token}/update",
-			CollectMetrics: true,
-		})
-
-	m.AddSessionlessHandler(
-		handler.Request{
-			Handler:        h.NotifyUser,
-			Name:           "notify-user",
-			Type:           handler.PostRequest,
-			Endpoint:       "/account/{nickname}/notify",
-			CollectMetrics: true,
-		})
 }

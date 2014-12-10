@@ -47,6 +47,8 @@ func (p *Pubnub) Push(pm *PushMessage) {
 
 func (p *Pubnub) Close() {
 	p.pub.CloseExistingConnection()
+	close(p.successCh)
+	close(p.errorCh)
 }
 
 func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) {

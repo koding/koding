@@ -35,13 +35,22 @@ func main() {
 	m := mux.NewMux(mc, r.Log)
 	m.Metrics = r.Metrics
 
-	h := handlers.NewHandler(pubnub, broker)
+	h, err := handlers.NewHandler(rmq, pubnub, broker)
+	if err != nil {
+		panic(err)
+	}
 
 	h.AddHandlers(m)
 
 	m.Listen()
 
 	defer m.Close()
+
+	r.SetContext(h)
+	r.ListenFor("gatekeeper_channel_updated", (*handlers.Handler).UpdateChannel)
+	r.ListenFor("gatekeeper_message_updated", (*handlers.Handler).UpdateMessage)
+	r.ListenFor("gatekeeper_notify_user", (*handlers.Handler).NotifyUser)
+	r.Listen()
 
 	r.Wait()
 }
