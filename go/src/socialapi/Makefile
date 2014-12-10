@@ -240,6 +240,10 @@ testapi:
 	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
+	@`which go` test -c workers/realtime/realtime/*.go
+	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./realtime.test
+
 doc:
 	@for package in $(PACKAGES); \
 	do \
