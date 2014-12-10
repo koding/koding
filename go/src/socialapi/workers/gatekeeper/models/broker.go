@@ -73,6 +73,9 @@ func (b *Broker) Push(pm *PushMessage) {
 	}
 }
 
+func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) {
+}
+
 func fetchSecretNamesById(channelId int64) (*ChannelResponse, error) {
 	request := &handler.Request{
 		Type:     handler.GetRequest,

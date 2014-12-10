@@ -49,6 +49,8 @@ func (p *Pubnub) Close() {
 	p.pub.CloseExistingConnection()
 }
 
+func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) {
+}
 func prepareChannelName(pm *PushMessage) string {
 	return fmt.Sprintf("%s-%s-%s-%s", pm.Token, pm.Channel.Group, pm.Channel.Type, pm.Channel.Name)
 }
