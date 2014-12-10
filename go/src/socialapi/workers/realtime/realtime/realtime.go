@@ -1,7 +1,6 @@
 package realtime
 
 import (
-	"encoding/json"
 	mongomodels "koding/db/models"
 	"socialapi/models"
 	"socialapi/request"
@@ -643,33 +642,10 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 func (f *Controller) sendNotification(
 	accountId int64, groupName string, eventName string, data interface{},
 ) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
 	account, err := models.FetchAccountFromCache(accountId)
 	if err != nil {
 		return err
 	}
 
-	notification := map[string]interface{}{
-		"event":    eventName,
-		"context":  groupName,
-		"contents": data,
-	}
-
-	byteNotification, err := json.Marshal(notification)
-	if err != nil {
-		return err
-	}
-
-	return channel.Publish(
-		"notification",
-		account.Nick, // this is routing key
-		false,
-		false,
-		amqp.Publishing{Body: byteNotification},
-	)
+	return realtimehelper.NotifyUser(account.Nick, eventName, data, groupName)
 }

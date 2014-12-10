@@ -120,6 +120,28 @@ func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) {
 }
 
 func (b *Broker) NotifyUser(nm *NotificationMessage) {
+	channel, err := b.rmqConn.Channel()
+	if err != nil {
+		b.log.Error("Could not get channel: %s", err)
+		return
+	}
+	defer channel.Close()
+
+	byteNotification, err := json.Marshal(nm.Body)
+	if err != nil {
+		b.log.Error("Could not marshal notification data: %s", err)
+		return
+	}
+
+	if err := channel.Publish(
+		"notification",
+		nm.Nickname, // this is routing key
+		false,
+		false,
+		amqp.Publishing{Body: byteNotification},
+	); err != nil {
+		b.log.Error("Could not publish notification message: %s", err)
+	}
 }
 
 func fetchSecretNamesById(channelId int64) (*ChannelResponse, error) {
