@@ -208,10 +208,11 @@ class WebTerm.Terminal extends KDObject
   updateAppSize: ->
 
     { appView } = @getOptions()
+    {width: charWidth, height: charHeight} = @getCharSizes()
 
     height = appView.parent.getHeight() - 24 # padding
 
-    newHeight = Math.floor(height / @_mbHeight) * @_mbHeight
+    newHeight = Math.floor(height / charHeight) * charHeight
 
     appView.setHeight newHeight
 

@@ -79,15 +79,19 @@ class SinglePlanView extends KDView
     { title, monthPrice, yearPrice
       reducedMonth, discount } = @getOptions()
 
+    { planInterval } = @state
+
     planTitle = title.toLowerCase()
 
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
-      reducedMonth, discount
+      reducedMonth, discount, planInterval
     }
 
 
   setPlanInterval: (planInterval) ->
+
+    KD.utils.extend @state, { planInterval }
 
     price = @getPrice planInterval
 

@@ -161,6 +161,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			Data: map[string]interface{}{
 				"instanceId":  "",
 				"queryString": "",
+				"region":      "us-east-1",
 			},
 		})
 
