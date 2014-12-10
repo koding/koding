@@ -10,22 +10,38 @@ import (
 
 func PushMessage(channelId int64, eventName string, body interface{}) error {
 	endpoint := fmt.Sprintf("%s/api/gatekeeper/channel/%d/push", config.MustGet().CustomDomain.Public, channelId)
-
-	return doRequest(endpoint, eventName, body)
-}
-
-func UpdateInstance(token string, eventName string, body interface{}) error {
-	endpoint := fmt.Sprintf("%s/api/gatekeeper/message/%s/update", config.MustGet().CustomDomain.Public, token)
-
-	return doRequest(endpoint, eventName, body)
-}
-
-func doRequest(endpoint, eventName string, body interface{}) error {
 	request := map[string]interface{}{
 		"eventName": eventName,
 		"body":      body,
 	}
 
+	return doRequest(endpoint, request)
+}
+
+func UpdateInstance(token string, eventName string, body interface{}) error {
+	endpoint := fmt.Sprintf("%s/api/gatekeeper/message/%s/update", config.MustGet().CustomDomain.Public, token)
+	request := map[string]interface{}{
+		"eventName": eventName,
+		"body":      body,
+	}
+
+	return doRequest(endpoint, request)
+}
+
+func NotifyUser(nickname, eventName string, body interface{}, groupName string) error {
+	endpoint := fmt.Sprintf("%s/api/gatekeeper/account/%s/notify", config.MustGet().CustomDomain.Public, nickname)
+	request := map[string]interface{}{
+		"body": map[string]interface{}{
+			"event":    eventName,
+			"contents": body,
+			"context":  groupName,
+		},
+	}
+
+	return doRequest(endpoint, request)
+}
+
+func doRequest(endpoint string, request map[string]interface{}) error {
 	payload, err := json.Marshal(request)
 	if err != nil {
 		return err
