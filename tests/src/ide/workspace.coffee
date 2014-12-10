@@ -36,4 +36,3 @@ module.exports =
         .click                     modalSelector + ' button.red'
         .waitForElementNotVisible  workspaceSelector, 20000
         .end()
-
