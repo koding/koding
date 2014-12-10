@@ -10,10 +10,18 @@ type ChannelRequest struct {
 
 type PushMessage struct {
 	ChannelId int64            `json:"channelId,string"`
-	Token     string           `json:"token"`
-	EventName string           `json:"eventName"`
-	Body      interface{}      `json:"body"`
 	Channel   *ChannelResponse `json:"-"`
+	Message
+}
+
+type UpdateInstanceMessage struct {
+	Message
+}
+
+type Message struct {
+	Token     string      `json:"token"`
+	EventName string      `json:"eventName"`
+	Body      interface{} `json:"body"`
 }
 
 type AuthRequest struct {
