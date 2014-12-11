@@ -121,23 +121,22 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
   createTerminal: (options) ->
- 
+
     { machine, path, session, joinUser, hash } = options
+    { appManager } = KD.singletons
+    frontApp       = appManager.getFrontApp()
+    machine       ?= frontApp.mountedMachine
 
     unless machine
-      {machines} = KD.getSingleton 'computeController'
-      machineId  = ideApp.mountedMachineUId
-
-    frontApp = appManager.getFrontApp()
-    machine ?= frontApp.mountedMachine
+      { machines } = KD.getSingleton 'computeController'
+      machineId  = frontApp.mountedMachineUId
 
     unless path
-      workspaceData = ideApp.workspaceData or {}
-
-      {rootPath, isDefault} = workspaceData
+      workspaceData = frontApp.workspaceData or {}
+      { rootPath, isDefault } = workspaceData
 
       if rootPath and not isDefault
-        path = ideApp.workspaceData.rootPath
+        path = frontApp.workspaceData.rootPath
 
     terminalPane = new IDE.TerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
@@ -145,7 +144,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     terminalPane.once 'WebtermCreated', =>
       terminalPane.webtermView.on 'click', @bound 'click'
 
-      if not session and not joinUser
+      unless joinUser
         change        =
           context     :
             session   : terminalPane.remote.session
@@ -305,19 +304,13 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @emit 'PaneRemoved', pane
 
 
-  getDummyFilePath: ->
-
-    return "localfile:/Untitled.txt@#{Date.now()}"
+  getDummyFilePath: -> return "localfile:/Untitled.txt@#{Date.now()}"
 
 
-  openMachineTerminal: (machine) ->
-
-    @createTerminal machine
+  openMachineTerminal: (machine) -> @createTerminal { machine }
 
 
-  openMachineWebPage: (machine) ->
-
-    @createPreview machine.ipAddress
+  openMachineWebPage: (machine) -> @createPreview machine.ipAddress
 
 
   closeTabByFile: (file)  ->
@@ -346,7 +339,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     terminalSessions =
       "New Session"  :
-        callback     : => @createTerminal machine
+        callback     : => @createTerminal { machine }
         separator    : sessions.length > 0
 
     activeSessions = []
@@ -361,7 +354,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         children          :
           'Open'          :
             disabled      : isActive
-            callback      : => @createTerminal machine, null, session
+            callback      : => @createTerminal { machine, session }
           'Terminate'     :
             callback      : => @terminateSession machine, session
 

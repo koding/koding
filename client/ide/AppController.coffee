@@ -314,7 +314,7 @@ class IDEAppController extends AppController
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
         else
-          @createNewTerminal machine
+          @createNewTerminal { machine }
           @setActiveTabView @ideViews.first.tabView
 
 
@@ -492,7 +492,9 @@ class IDEAppController extends AppController
       @openFile file, contents
 
 
-  createNewTerminal: (machine, path, session, joinUser, hash) ->
+  createNewTerminal: (options) ->
+
+    { machine, path, session, joinUser, hash } = options
 
     machine = null  unless machine instanceof Machine
 
@@ -502,7 +504,7 @@ class IDEAppController extends AppController
       if rootPath and not isDefault
         path = rootPath
 
-    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser, hash
+    @activeTabView.emit 'TerminalPaneRequested', options
 
 
   createNewBrowser: (url) ->
@@ -788,7 +790,7 @@ class IDEAppController extends AppController
     unless @fakeViewsDestroyed
       @fakeFinderView?.destroy()
       @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal machine
+      @createNewTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
 
@@ -1059,8 +1061,13 @@ class IDEAppController extends AppController
 
     switch context.paneType
       when 'terminal'
-        nick = @collaborationHost or KD.nick()
-        @createNewTerminal @mountedMachine, null, context.session, nick, context.paneHash
+        terminalOptions =
+          machine  : @mountedMachine
+          session  : context.session
+          hash     : context.paneHash
+          joinUser : @collaborationHost or KD.nick()
+
+        @createNewTerminal terminalOptions
 
       when 'editor'
         {path}        = context.file

@@ -8,7 +8,7 @@ class IDE.TerminalPane extends IDE.Pane
 
     super options, data
 
-    {@machine, @session} = @getOptions()
+    { @machine, @session } = @getOptions()
 
     @createTerminal()
 
@@ -23,8 +23,7 @@ class IDE.TerminalPane extends IDE.Pane
       cssClass         : 'webterm'
       advancedSettings : no
 
-
-    {joinUser, session} = @getOptions()
+    { joinUser, session } = @getOptions()
 
     if joinUser and session
       # TODO: Also pass sizeX and sizeY
