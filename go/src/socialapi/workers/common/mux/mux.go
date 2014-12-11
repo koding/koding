@@ -12,15 +12,15 @@ import (
 	"github.com/rcrowley/go-tigertonic"
 )
 
-type MuxConfig struct {
+type Config struct {
 	Name  string
 	Host  string
 	Port  int
 	Debug bool
 }
 
-func NewMuxConfig(name, host string, port int) *MuxConfig {
-	return &MuxConfig{
+func NewConfig(name, host string, port int) *Config {
+	return &Config{
 		Name: name,
 		Host: host,
 		Port: port,
@@ -33,11 +33,11 @@ type Mux struct {
 	mux    *tigertonic.TrieServeMux
 	nsMux  *tigertonic.TrieServeMux
 	server *tigertonic.Server
-	config *MuxConfig
+	config *Config
 	log    logging.Logger
 }
 
-func NewMux(mc *MuxConfig, log logging.Logger) *Mux {
+func New(mc *Config, log logging.Logger) *Mux {
 	m := &Mux{
 		mux:   tigertonic.NewTrieServeMux(),
 		nsMux: tigertonic.NewTrieServeMux(),

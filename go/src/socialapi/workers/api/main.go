@@ -33,9 +33,9 @@ func main() {
 
 	port, _ := strconv.Atoi(r.Conf.Port)
 
-	mc := mux.NewMuxConfig(Name, r.Conf.Host, port)
+	mc := mux.NewConfig(Name, r.Conf.Host, port)
 	mc.Debug = r.Conf.Debug
-	m := mux.NewMux(mc, r.Log)
+	m := mux.New(mc, r.Log)
 
 	m.Metrics = r.Metrics
 	handlers.AddHandlers(m)
