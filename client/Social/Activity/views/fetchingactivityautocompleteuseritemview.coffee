@@ -1,6 +1,6 @@
 class FetchingActivityAutoCompleteUserItemView extends KDAutoCompleteFetchingItem
 
-  constructor: (options, data) ->
+  constructor: (options = {}, data) ->
     
     options.type = 'dropdown-member'
     
