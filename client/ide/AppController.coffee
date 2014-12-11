@@ -837,14 +837,16 @@ class IDEAppController extends AppController
       @participants      = @rtm.getFromModel 'participants'
       @changes           = @rtm.getFromModel 'changes'
       @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
+      @pingTime          = @rtm.getFromModel 'pingTime'
       @myWatchMap        = @rtm.getFromModel myWatchMapName
       @mySnapshot        = @rtm.getFromModel mySnapshotName
 
-      @participants      or= @rtm.create 'list', 'participants', []
-      @changes           or= @rtm.create 'list', 'changes', []
-      @broadcastMessages or= @rtm.create 'list', 'broadcastMessages', []
-      @myWatchMap        or= @rtm.create 'map',  myWatchMapName, {}
-      @mySnapshot        or= @rtm.create 'map',  mySnapshotName, @createWorkspaceSnapshot()
+      @participants      or= @rtm.create 'list',   'participants', []
+      @changes           or= @rtm.create 'list',   'changes', []
+      @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
+      @pingTime          or= @rtm.create 'string', 'pingTime'
+      @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
+      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @createWorkspaceSnapshot()
 
       if @amIHost
         @getView().setClass 'host'
@@ -867,6 +869,7 @@ class IDEAppController extends AppController
 
       @registerParticipantSessionId()
       @bindRealtimeEvents()
+      # @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()
@@ -1618,3 +1621,19 @@ class IDEAppController extends AppController
       return KD.showError err  if err
 
       @socialChannel.emit 'RemovedFromChannel', account
+
+
+  listenPings: ->
+
+    pingInterval = 1000 * 5
+    pongInterval = 1000 * 15
+    diffInterval = 1000 * 32
+
+    if @amIHost
+      KD.utils.repeat pingInterval, => @pingTime.setText Date.now().toString()
+    else
+      KD.utils.repeat pongInterval, =>
+        lastPing = @pingTime.getText()
+
+        if Date.now() - lastPing > diffInterval
+          log 'falling behind'
