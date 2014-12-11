@@ -15,8 +15,8 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
-	"koding/kites/kloud/koding"
 	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/provider/koding"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
