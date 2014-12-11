@@ -314,7 +314,7 @@ class IDEAppController extends AppController
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
         else
-          @createNewTerminal machine
+          @createNewTerminal { machine }
           @setActiveTabView @ideViews.first.tabView
 
 
@@ -492,7 +492,9 @@ class IDEAppController extends AppController
       @openFile file, contents
 
 
-  createNewTerminal: (machine, path, session, joinUser, hash) ->
+  createNewTerminal: (options) ->
+
+    { machine, path, session, joinUser, hash } = options
 
     machine = null  unless machine instanceof Machine
 
@@ -502,7 +504,7 @@ class IDEAppController extends AppController
       if rootPath and not isDefault
         path = rootPath
 
-    @activeTabView.emit 'TerminalPaneRequested', machine, path, session, joinUser, hash
+    @activeTabView.emit 'TerminalPaneRequested', options
 
 
   createNewBrowser: (url) ->
@@ -617,6 +619,14 @@ class IDEAppController extends AppController
 
 
   showShortcutsView: ->
+
+    paneView = null
+
+    @forEachSubViewInIDEViews_ (view) ->
+      paneView = view.parent  if view instanceof IDE.ShortcutsView
+
+    return paneView.parent.showPane paneView if paneView
+
 
     @activeTabView.emit 'ShortcutsViewRequested'
 
@@ -780,7 +790,7 @@ class IDEAppController extends AppController
     unless @fakeViewsDestroyed
       @fakeFinderView?.destroy()
       @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal machine
+      @createNewTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
 
@@ -827,14 +837,16 @@ class IDEAppController extends AppController
       @participants      = @rtm.getFromModel 'participants'
       @changes           = @rtm.getFromModel 'changes'
       @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
+      @pingTime          = @rtm.getFromModel 'pingTime'
       @myWatchMap        = @rtm.getFromModel myWatchMapName
       @mySnapshot        = @rtm.getFromModel mySnapshotName
 
-      @participants      or= @rtm.create 'list', 'participants', []
-      @changes           or= @rtm.create 'list', 'changes', []
-      @broadcastMessages or= @rtm.create 'list', 'broadcastMessages', []
-      @myWatchMap        or= @rtm.create 'map',  myWatchMapName, {}
-      @mySnapshot        or= @rtm.create 'map',  mySnapshotName, @createWorkspaceSnapshot()
+      @participants      or= @rtm.create 'list',   'participants', []
+      @changes           or= @rtm.create 'list',   'changes', []
+      @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
+      @pingTime          or= @rtm.create 'string', 'pingTime'
+      @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
+      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @createWorkspaceSnapshot()
 
       if @amIHost
         @getView().setClass 'host'
@@ -857,6 +869,7 @@ class IDEAppController extends AppController
 
       @registerParticipantSessionId()
       @bindRealtimeEvents()
+      # @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()
@@ -1051,8 +1064,13 @@ class IDEAppController extends AppController
 
     switch context.paneType
       when 'terminal'
-        nick = @collaborationHost or KD.nick()
-        @createNewTerminal @mountedMachine, null, context.session, nick, context.paneHash
+        terminalOptions =
+          machine  : @mountedMachine
+          session  : context.session
+          hash     : context.paneHash
+          joinUser : @collaborationHost or KD.nick()
+
+        @createNewTerminal terminalOptions
 
       when 'editor'
         {path}        = context.file
@@ -1603,3 +1621,19 @@ class IDEAppController extends AppController
       return KD.showError err  if err
 
       @socialChannel.emit 'RemovedFromChannel', account
+
+
+  listenPings: ->
+
+    pingInterval = 1000 * 5
+    pongInterval = 1000 * 15
+    diffInterval = 1000 * 32
+
+    if @amIHost
+      KD.utils.repeat pingInterval, => @pingTime.setText Date.now().toString()
+    else
+      KD.utils.repeat pongInterval, =>
+        lastPing = @pingTime.getText()
+
+        if Date.now() - lastPing > diffInterval
+          log 'falling behind'
