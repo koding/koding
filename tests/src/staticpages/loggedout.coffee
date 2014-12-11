@@ -29,7 +29,7 @@ module.exports =
 
     browser
       .waitForElementVisible  '.content-page.legal', 25000
-      .waitForElementVisible  '.content-page.legal .content', 25000
+      .waitForElementVisible  '.content-page.legal .handles', 25000
       .end()
 
 
