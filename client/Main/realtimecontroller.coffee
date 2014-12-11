@@ -72,3 +72,5 @@ class PubnubChannel extends KDObject
   constructor: (options = {}) ->
 
     super options
+
+    @name = options.name
