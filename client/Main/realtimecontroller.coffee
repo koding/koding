@@ -40,12 +40,14 @@ class RealtimeController extends KDController
       channel : pubnubChannelName
       message : (message, env, channel) =>
         return  unless message
+        console.log 'mesaj mi var', env
         {eventName, body} = message
 
         # no need to emit any events when not subscribed
         return  unless @channels[channel]
 
         @channels[channel].emit eventName, body
+      restore : yes
 
     return channelInstance
 
