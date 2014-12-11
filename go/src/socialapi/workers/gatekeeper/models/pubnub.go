@@ -23,7 +23,7 @@ func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
 	messaging.LoggingEnabled(true)
 	messaging.SetOrigin(Origin)
 	// publishKey, subscribeKey, secretKey, cipher, ssl, uuid
-	pub := messaging.NewPubnub(conf.PublishKey, conf.SubscribeKey, "", "", false, "")
+	pub := messaging.NewPubnub(conf.PublishKey, conf.SubscribeKey, conf.SecretKey, "", false, "")
 	pb := &Pubnub{
 		pub:       pub,
 		log:       log,
