@@ -83,7 +83,7 @@ class ManageDomainsView extends KDView
     @warning.hide()
     @input.makeDisabled()
 
-    computeController.kloud
+    computeController.getKloud()
 
       .addDomain {domainName: domain, machineId}
 
@@ -116,7 +116,8 @@ class ManageDomainsView extends KDView
     @loader.show()
     @warning.hide()
 
-    computeController.kloud
+    computeController.getKloud()
+
       .removeDomain {domainName: domain, machineId}
 
       .then =>
@@ -157,7 +158,7 @@ class ManageDomainsView extends KDView
     machineId           = @machine._id
     action              = if state then 'setDomain' else 'unsetDomain'
 
-    computeController.kloud[action] {domainName: domain, machineId}
+    computeController.getKloud()[action] {domainName: domain, machineId}
       .then ->
         computeController.domains = []
         domainItem.data.machineId = null  unless state
@@ -221,7 +222,7 @@ class ManageDomainsView extends KDView
           loader    :
             color   : 'darkred'
           callback  : ->
-            computeController.kloud
+            computeController.getKloud()
               .unsetDomain {domainName: domain, machineId}
               .then -> callback yes
               .catch (err)->
