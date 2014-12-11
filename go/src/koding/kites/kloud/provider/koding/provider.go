@@ -124,6 +124,15 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 }
 
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
+	checker, err := p.PlanChecker(m)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := checker.AlwaysOn(); err != nil {
+		return nil, err
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
