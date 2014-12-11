@@ -1,13 +1,23 @@
-TEST NAME,COMPONENT,STATE,NOTES
-Login with Username,Homepage,On Production,
-Login with Email,Homepage,On Production,
-Login with Invalid Username,Homepage,On Production,
-Login with Invalid Password,Homepage,On Production,
-Logout,Homepage,On Production,
-Register with valid credentials,Homepage,On Production,
-Register with Invalid Username,Homepage,On Production,
-Register with Invalid Email,Homepage,On Production,
-Register with Invalid Password,Homepage,On Production,
+Total # of tests,140,,
+# of Tests Implemented,49,,
+Tests Implemented (%),35.00%,,
+Tests on Production,49,,
+Tests Coverage (%),35.00%,,
+# of Tests Disabled,0,,
+Tests Disabled (%),0.00%,,
+# of Tests In Progress,12,,
+Tests In Progress (%),8.57%,,
+,,,
+TEST NAME,COMPONENT,STATE,RESULT
+Login with Username,Homepage,Implemented,Passed
+Login with Email,Homepage,Implemented,Passed
+Login with Invalid Username,Homepage,Implemented,Passed
+Login with Invalid Password,Homepage,Implemented,Passed
+Logout,Homepage,Implemented,Passed
+Register with valid credentials,Homepage,Implemented,Passed
+Register with Invalid Username,Homepage,Implemented,Passed
+Register with Invalid Email,Homepage,Implemented,Passed
+Register with Invalid Password,Homepage,Implemented,Passed
 Check if verification email is sent after registration,Homepage,,
 Forgot Password with Email Confirmation,Homepage,,
 Login with Github,Homepage,,
@@ -22,33 +32,40 @@ Features,Static pages,,
 Change filter,Activity,,
 Search message,Activity,,
 Preview a Post,Activity,,
-Post Short Message,Activity,On Production,
-Post Long Message,Activity,On Production,
-Post Message with Code,Activity,On Production,
-Post Message with Image,Activity,On Production,
-Post Message with Link,Activity,On Production,
+Post Short Message,Activity,Implemented,Passed
+Post Long Message,Activity,Implemented,Passed
+Post Message with Code,Activity,Implemented,Passed
+Post Message with Image,Activity,Implemented,Passed
+Post Message with Link,Activity,Implemented,Passed
 Post Message with Combination of those,Activity,,
-Post message and see if it’s posted only once,Activity,On Production,
-Edit Post,Activity,On Production,
-Delete Post,Activity,On Production,
-Like a Post,Activity,On Production,
-Unlike a Post,Activity,,
-Make a Short Comment,Activity,On Production,
-Make a Long Comment,Activity,On Production,
-Make a Comment with Code,Activity,On Production,
-Make a Comment with Link,Activity,On Production,
-Make a Comment with Image,Activity,On Production,
-Delete a Comment,Activity,On Production,
-Edit Comment,Activity,On Production,
-Like a Comment,Activity,,
-Unlike a Comment,Activity,,
+Post message and see if it’s posted only once,Activity,Implemented,Passed
+Edit Post,Activity,Implemented,Passed
+Delete Post,Activity,Implemented,Passed
+Like a Post,Activity,Implemented,Passed
+Unlike a Post,Activity,Implemented,Passed
+Make a Short Comment,Activity,Implemented,Passed
+Make a Long Comment,Activity,Implemented,Passed
+Make a Comment with Code,Activity,Implemented,Passed
+Make a Comment with Link,Activity,Implemented,Passed
+Make a Comment with Image,Activity,Implemented,Passed
+Delete a Comment,Activity,Implemented,Passed
+Cancel Deleting a Comment,Activity,Implemented,Passed
+See more comment link,Activity,Implemented,Passed
+Send a Post with Hashtag,Activity,Implemented,Passed
+Edit Comment,Activity,Implemented,Passed
+Like a Comment,Activity,Implemented,Passed
+Unlike a Comment,Activity,Implemented,Passed
 Follow a Topic and see if it’s added to your sidebar,Activity,,
 Unfollow a Topic and see if it’s removed from your sidebar,Activity,,
-Search topic,Activity,,
+Search for a topic in channel list,Activity,,
 Switch between channels,Activity,,
 Activity page for logged out users,Activity,,
 ,,,
-Check that user's posts are displayed on the Profile page,Account,,
+Check that user's posts are displayed on the Profile page,Account,Implemented,Passed
+Edit first name,Account,,
+Edit last name,Account,,
+Edit location,Account,,
+Zoom a photo,Account,,
 ,,,
 Check if notification count goes up when my post receives a comment,Notifications,,
 Check if notification count goes up when my post receives a like,Notifications,,
@@ -72,41 +89,42 @@ Check if the scroll works fine when a new post is received,Private Message,,
 Check if the scroll works fine when a new post is sent,Private Message,,
 Check if the focus remains on the message box after you’ve sent a post,Private Message,,
 ,,,
-Run Command on Terminal,IDE,Implemented,*Implemented IDE tests will be on production in about 2-3 days right after solving the problems on Wercker.
-Create a Workspace from VM List,IDE,Implemented,
+Run Command on Terminal,IDE,Implemented,Passed
+Create a Workspace from VM List,IDE,Implemented,Passed
 Create a Workspace from Filetree,IDE,,
-Delete a Workspace,IDE,Implemented,
-Open a File,IDE,Implemented,
+Delete a Workspace,IDE,Implemented,Passed
+Open a File,IDE,Implemented,Passed
 Upload File by Drag&Drop,IDE,,
-Expand/Collapse file tree,IDE,Implemented,
-Rename File,IDE,Implemented,
-Duplicate File,IDE,Implemented,
-Save File,IDE,Implemented,
+Expand/Collapse file tree,IDE,Implemented,Passed
+Rename File,IDE,Implemented,Passed
+Duplicate File,IDE,Implemented,Passed
+Save File,IDE,Implemented,Passed
 Save File As,IDE,,
-Delete File,IDE,Implemented,
-Create a New File from context menu,IDE,Implemented,
-Create a new file from machine header,IDE,Implemented,
+Delete File,IDE,Implemented,Passed
+Create a New File from context menu,IDE,Implemented,Passed
+Create a new file from machine header,IDE,,
 Create a New Folder,IDE,,
-Change top folder,IDE,Implemented,
-Split tab panes vertically,IDE,Implemented,
-Split tab panes horizontally,IDE,Implemented,
-Merge tab panes,IDE,Implemented,
-"Check ""Undo split"" menu item not shown when splits merged",IDE,Implemented,
-Switch to settings tab,IDE,Implemented,
-Enter/Exit fullscreen,IDE,,
+Change top folder,IDE,Implemented,Passed
+Split tab panes vertically,IDE,Implemented,Passed
+Split tab panes horizontally,IDE,Implemented,Passed
+Merge tab panes,IDE,Implemented,Passed
+"Check ""Undo split"" menu item not shown when splits merged",IDE,Implemented,Passed
+Switch to settings tab,IDE,Implemented,Passed
+Enter/Exit fullscreen,IDE,Implemented,Passed
 ,,,
-Turn VM on,Environments,,
-Turn VM off,Environments,,
-Add domain,Environments,,
-Create a new VM,Environments,,
-Assign domain,Environments,,
-Delete domain,Environments,,
-Reinit an existing VM,Environments,,
-Terminate an existing VM,Environments,,
-Update VM nickname,Environments,,
-Toggle Always On/Off VM,Environments,,
-Check if domains work,Environments,,
-Check if Terminal and Filetree are working when you try to re-connect after internet disconnection,Environments,,
+Turn VM on,Environments,In Progress,
+Turn VM off,Environments,In Progress,
+Add domain,Environments,In Progress,
+Create a new VM,Environments,In Progress,
+Assign domain,Environments,In Progress,
+Delete domain,Environments,In Progress,
+Reinit an existing VM,Environments,In Progress,
+Terminate an existing VM,Environments,In Progress,
+Update VM nickname,Environments,In Progress,
+Toggle Always On/Off VM,Environments,In Progress,
+Check if domains work,Environments,In Progress,
+Check if Terminal and Filetree are working when you try to re-connect after internet disconnection,Environments,In Progress,
+Check if Terminal and Filetree are working when after login for VMs with 'Keep VM always on' option enabled,Environments,,
 ,,,
 Edit Name,Account Settings,,
 Edit Last Name,Account Settings,,
@@ -116,6 +134,23 @@ Update Payment Method,Account Settings,,
 Add ssh key,Account Settings,,
 Upload a photo,Account Settings,,
 Use Gravatar,Account Settings,,
+Delete account,Account Settings,,
+,,,
+Check that user receive email notifications if 'Send me email notifications' option is enabled,Email Notifications,,
+Check that user do not receive any email notifications if 'Send me email notifications' option is disabled,Email Notifications,,
+Check that user receive daily digest if 'Send me a daily digest of activity on my posts' option is enabled,Email Notifications,,
+Check that user do not receive daily digest if 'Send me a daily digest of activity on my posts' option is disabled,Email Notifications,,
+Check that user receive email notifications about chat messages if 'When someone sends me a private message' option is enabled,Email Notifications,,
+Check that user do not receive email notifications about chat messages if 'When someone sends me a private message' option is disabled,Email Notifications,,
+Check that delay setting applies correctly,Email Notifications,,
+Check that user receive email notifications about new comments if 'When my post gets a new comment' option is enabled,Email Notifications,,
+Check that user do not receive email notifications about new comments if 'When my post gets a new comment' option is disabled,Email Notifications,,
+Check that user receive email notifications about new likes if 'When someone likes my content' option is enabled,Email Notifications,,
+Check that user do not receive email notifications about new likes if 'When someone likes my content' option is disabled,Email Notifications,,
+Check that user receive email notifications about new mentions if 'When someone mentions me' option is enabled,Email Notifications,,
+Check that user do not receive email notifications about new mentions if 'When someone mentions me' option is disabled,Email Notifications,,
+Check that user receive email notifications about Koding updates if 'When Koding has member updates' option is enabled,Email Notifications,,
+Check that user do not receive email notifications about Koding updates if 'When Koding has member updates' option is disabled,Email Notifications,,
 ,,,
 Start a session,Collaboration,,
 Edit settings,Collaboration,,
@@ -126,43 +161,6 @@ Kick user from the session,Collaboration,,
 End session,Collaboration,,
 ,,,
 Page load times for logged out user,Site metrics,,
-Page load times for logged in user,Site metrics,,
+Load times for logged in user,Site metrics,,
 Login time,Site metrics,,
 Registration time,Site metrics,,
-,,,
-,,,
-Total # of tests,110,,
-Tests on Production,25,,
-Tests Coverage,22.73%,,
-,,,
-The below tests are being performed manually until a way for automation is found,,,
-Check shortcuts,,,
-            cmd-shift-enter -> full screen,IDE,,
-ctrl-alt-v -> split vertically,IDE,,
-ctrl-alt-h -> split horizontally,IDE,,
-ctrl-alt-m -> merge splitview,IDE,,
-ctrl-alt-o -> find file by name,IDE,,
-ctrl-alt-f -> search in all files,IDE,,
-ctrl-alt-n -> open new file,IDE,,
-ctrl-alt-t -> open new terminal,IDE,,
-ctrl-alt-b -> open new browser,IDE,,
-ctrl-alt-d -> open new drawing board,IDE,,
-ctrl-alt-k -> toggle sidebar,IDE,,
-ctrl-alt-w -> close tab,IDE,,
-ctrl-alt-[ -> go to left tab,IDE,,
-ctrl-alt-] -> go to right tab,IDE,,
-cmd-1 -> go to tab number 1,IDE,,
-cmd-2 -> go to tab number 2,IDE,,
-cmd-3 -> go to tab number 3,IDE,,
-cmd-4 -> go to tab number 4,IDE,,
-cmd-5 -> go to tab number 5,IDE,,
-cmd-6 -> go to tab number 6,IDE,,
-cmd-s -> save,IDE,,
-cmd-shift-s -> save as,IDE,,
-ctrl-alt-s -> save all,IDE,,
-cmd-f -> find,IDE,,
-cmd-g -> find next,IDE,,
-cmd-shift-g -> find previous,IDE,,
-cmd-shift-f -> find and replace,IDE,,
-ctrl-alt-p -> preview file,IDE,,
-cmd-up -> go to top,IDE,,

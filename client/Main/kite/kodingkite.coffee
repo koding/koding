@@ -2,10 +2,29 @@ class KodingKite extends KDObject
 
   { @Error } = require 'kite'
 
+  [DISCONNECTED, CONNECTED] = [0, 1]
+  MAX_QUEUE_SIZE = 50
+
   constructor: (options) ->
     super options
 
     { name } = options
+
+    @on 'open', =>
+      @_state = CONNECTED
+      @emit "connected"
+
+    @on 'close', =>
+      @_state = DISCONNECTED
+
+    @waitingCalls = []
+    @waitingPromises = []
+
+    @_kiteInvalidError =
+      name    : "KiteInvalid"
+      message : "Kite is invalid. This kite (#{name}) not exists
+                 or there is a problem with connection."
+
 
   extractInfoFromWsEvent = (event)->
     {reason, code, wasClean, timestamp, type} = event
@@ -13,14 +32,15 @@ class KodingKite extends KDObject
     return {reason, code, wasClean, timestamp, type}
 
   logTransportFailures:->
-    if @transport.ws?
-      @transport.ws.addEventListener 'close', (event)->
-        params = extractInfoFromWsEvent event
-        ErrorLog.create 'ws closed', params
+    return  unless @transport?.ws?
 
-      @transport.ws.addEventListener 'error', (event)->
-        params = extractInfoFromWsEvent event
-        ErrorLog.create 'ws error', params
+    @transport.ws.addEventListener 'close', (event)->
+      params = extractInfoFromWsEvent event
+      ErrorLog.create 'ws closed', params
+
+    @transport.ws.addEventListener 'error', (event)->
+      params = extractInfoFromWsEvent event
+      ErrorLog.create 'ws error', params
 
   getTransport: -> @transport
 
@@ -31,24 +51,40 @@ class KodingKite extends KDObject
     @forwardEvent @transport, 'close'
     @forwardEvent @transport, 'open'
 
-    @transport.connect() unless @isDisconnected
     @emit 'ready'
 
   tell: (rpcMethod, params, callback) ->
 
+    { name } = @getOptions()
+
+    @connect()  if not @_connectAttempted or @isDisconnected
+
     unless @invalid
 
-      @ready().then => @transport?.tell rpcMethod, [params], callback
+      _resolve = null
+      _args    = null
+
+      promise = new Promise (resolve, reject)=>
+
+        _resolve = resolve
+        _args    = [rpcMethod, [params], callback]
+
+        @waitForConnection _args
+
+          .then (args)=>
+            resolve @transport?.tell args...
+
+          .catch =>
+            reject @_kiteInvalidError
+
+      unless @_state is CONNECTED
+        @waitingPromises.push [_resolve, _args]
+
+      promise
 
     else
 
-      { name } = @getOptions()
-
-      Promise.reject
-        name    : "KiteInvalid"
-        message : """Kite is invalid. This kite (#{name}) not exists
-                     or there is a problem with connection."""
-        err     : @_invalid
+      Promise.reject @_kiteInvalidError
 
 
   @createMethod = (ctx, { method, rpcMethod }) ->
@@ -58,17 +94,46 @@ class KodingKite extends KDObject
     for own method, rpcMethod of api
       @::[method] = @createMethod @prototype, { method, rpcMethod }
 
+
   @constructors = {}
 
-  connect:    -> @transport?.connect()
+
+  connect: ->
+
+    if @transport?
+      @transport?.connect()
+    else
+      @once 'ready', =>
+        @transport?.connect()
+        @_connectAttempted = yes
+
+
   disconnect: ->
     @isDisconnected = yes
     @transport?.disconnect()
     @transport = null
+
 
   reconnect:  ->
     @transport?.disconnect()
 
     KD.utils.wait 1000, =>
       @transport?.connect()
+
+
+  waitForConnection: (args)->
+
+    { name } = @getOptions()
+
+    new Promise (resolve, reject)=>
+      return resolve args if @_state is CONNECTED
+      if @waitingCalls.length >= MAX_QUEUE_SIZE
+        warn "Call rejected for #{name} kite, queue has #{MAX_QUEUE_SIZE} items."
+        return reject()
+
+      cid = (@waitingCalls.push args) - 1
+
+      @once 'connected', ->
+        resolve @waitingCalls[cid]
+        delete  @waitingCalls[cid]
 

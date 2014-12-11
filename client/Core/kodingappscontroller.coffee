@@ -435,57 +435,6 @@ class KodingAppsController extends KDController
           title   : "An error occurred."
           content : "Something went wrong while installing Koding App Compiler. Please try again."
 
-  @compileAppOnServer = (path, callback)->
-
-    return
-
-    app = KodingAppsController.getAppInfoFromPath path, yes
-    return  unless app
-
-    loader = new KDNotificationView
-      duration : 18000
-      title    : "Compiling #{app.name}..."
-      type     : "mini"
-
-    {vmController} = KD.singletons
-    vmController.run
-      withArgs : "kdc #{app.path}"
-      vmName   : app.vm
-    , (err, response)->
-
-      if err or not response
-
-        loader.notificationSetTitle "An unknown error occurred"
-        loader.notificationSetTimer 2000
-        callback? err, app
-        warn err
-
-      else if response.exitStatus is 0
-
-        loader.notificationSetTitle "App compiled successfully"
-        loader.notificationSetTimer 2000
-        callback null, app
-
-      else
-
-        loader.destroy()
-
-        err = response.stderr or response.stdout
-
-        if response.exitStatus is 127
-          KodingAppsController.installKDC()
-          callback? { message: "KDC is not installed: #{err}" }
-          return
-
-        new KDModalView
-          title    : "An error occurred while compiling #{app.name}"
-          width    : 600
-          overlay  : yes
-          cssClass : 'compiler-modal'
-          content  : "<pre>#{err}</pre>"
-
-        callback? { message: "Failed to compile: #{err}" }, app
-
   @createJApp = ({path, target}, callback)->
 
     app = @getAppInfoFromPath path
