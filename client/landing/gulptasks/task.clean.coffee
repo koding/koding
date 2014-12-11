@@ -1,8 +1,7 @@
-gulp   = require 'gulp'
-rimraf = require 'gulp-rimraf'
+gulp    = require 'gulp'
+Promise = require 'bluebird'
+del     = Promise.promisify require 'del'
 
 { BUILD_PATH } = require './helper.constants'
 
-module.exports = ->
-  gulp.src [BUILD_PATH], read: no
-    .pipe rimraf force: yes
+module.exports = -> del [BUILD_PATH], force: yes
