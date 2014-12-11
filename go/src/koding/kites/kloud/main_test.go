@@ -54,7 +54,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/koding"
+	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
 	kloudprotocol "koding/kites/kloud/protocol"
