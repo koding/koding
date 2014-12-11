@@ -618,6 +618,14 @@ class IDEAppController extends AppController
 
   showShortcutsView: ->
 
+    paneView = null
+
+    @forEachSubViewInIDEViews_ (view) ->
+      paneView = view.parent  if view instanceof IDE.ShortcutsView
+
+    return paneView.parent.showPane paneView if paneView
+
+
     @activeTabView.emit 'ShortcutsViewRequested'
 
 

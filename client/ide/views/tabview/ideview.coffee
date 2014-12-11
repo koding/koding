@@ -120,30 +120,30 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
-
-  createTerminal: (machine, path, session, joinUser, hash) ->
-
-    ideApp = KD.getSingleton('appManager').getFrontApp()
+  createTerminal: (options) ->
+ 
+    { machine, path, session, joinUser, hash } = options
 
     unless machine
       {machines} = KD.getSingleton 'computeController'
       machineId  = ideApp.mountedMachineUId
 
-      machine = m for m in machines when m.uid is machineId
+    frontApp = appManager.getFrontApp()
+    machine ?= frontApp.mountedMachine
 
     unless path
-      {workspaceData} = ideApp
-      {rootPath, isDefault} = workspaceData?
+      workspaceData = ideApp.workspaceData or {}
+
+      {rootPath, isDefault} = workspaceData
 
       if rootPath and not isDefault
         path = ideApp.workspaceData.rootPath
 
-    terminalPane = new IDE.TerminalPane { machine, path, joinUser, session, hash }
+    terminalPane = new IDE.TerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
-      terminalPane.webtermView.on 'click', =>
-        @click()
+      terminalPane.webtermView.on 'click', @bound 'click'
 
       if not session and not joinUser
         change        =
@@ -337,23 +337,50 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   getPlusMenuItems: ->
 
-    ideApp = KD.getSingleton('appManager').getFrontApp()
-    items  =
+    {appManager} = KD.singletons
+
+    frontApp = appManager.getFrontApp()
+    machine  = frontApp.mountedMachine
+
+    sessions = machine?.getBaseKite().terminalSessions or []
+
+    terminalSessions =
+      "New Session"  :
+        callback     : => @createTerminal machine
+        separator    : sessions.length > 0
+
+    activeSessions = []
+    frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
+      if pane.remote?
+        activeSessions.push pane.remote.session
+
+    sessions.forEach (session, i) =>
+      isActive = session in activeSessions
+      terminalSessions["Session (#{session[0..5]}) &nbsp"] =
+        disabled          : isActive
+        children          :
+          'Open'          :
+            disabled      : isActive
+            callback      : => @createTerminal machine, null, session
+          'Terminate'     :
+            callback      : => @terminateSession machine, session
+
+    items =
       'New File'          : callback : => @createEditor()
-      'New Terminal'      : callback : => @createTerminal()
+      'New Terminal'      : children : terminalSessions
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :
         callback          : => @createDrawingBoard()
         separator         : yes
       'Split Vertically':
-        callback          : -> ideApp.splitVertically()
+        callback          : -> frontApp.splitVertically()
       'Split Horizontally':
-        callback          : -> ideApp.splitHorizontally()
+        callback          : -> frontApp.splitHorizontally()
 
     if @parent instanceof KDSplitViewPanel
       items['Undo Split'] =
         separator         : yes
-        callback          : -> ideApp.mergeSplitView()
+        callback          : -> frontApp.mergeSplitView()
     else
       items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
         type              : 'separator'
@@ -391,3 +418,13 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     contextMenu = new KDContextMenu options, @getPlusMenuItems()
 
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
+
+
+
+
+  terminateSession: (machine, session)->
+
+    machine.getBaseKite().webtermKillSession {session}
+
+    .catch (err)->
+      warn "Failed to terminate session, possibly it's already dead.", err

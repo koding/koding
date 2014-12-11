@@ -8,16 +8,18 @@ class IDE.TerminalPane extends IDE.Pane
 
     super options, data
 
-    {@machine} = @getOptions()
+    {@machine, @session} = @getOptions()
 
     @createTerminal()
+
 
   createTerminal: ->
     options =
       delegate         : this
       readOnly         : @getOption 'readOnly'
       machine          : @machine
-      mode             : 'create'
+      mode             : @getMode()
+      session          : @session
       cssClass         : 'webterm'
       advancedSettings : no
 
@@ -45,13 +47,19 @@ class IDE.TerminalPane extends IDE.Pane
     @webtermView.connectToTerminal()
 
     @webtermView.once "WebTerm.terminated", =>
+
+      return  unless @parent
+
       paneView = @parent
       tabView  = paneView.parent
 
       tabView.removePane paneView
 
+      @machine.getBaseKite().fetchTerminalSessions()
+
+
   getMode: ->
-    return 'create'
+    return  if @session? then 'resume' else 'create'
 
   runCommand: (command, callback) ->
     return unless command
