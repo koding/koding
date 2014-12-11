@@ -95,7 +95,7 @@ func (p *PlanChecker) AlwaysOn() error {
 		return nil // allow user, it didn't reach the limit
 	}
 
-	p.Log.Debug("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+	p.Log.Info("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
 		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan)
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
