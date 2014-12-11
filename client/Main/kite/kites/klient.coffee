@@ -91,7 +91,6 @@ class KodingKite_KlientKite extends KodingKite
 
     .then (sessions)=>
 
-      info "[#{@getOption 'correlationName'}] Sessions fetched."
       @terminalSessions = sessions
 
     .catch (err)->

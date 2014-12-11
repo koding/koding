@@ -75,8 +75,6 @@ class ComputeStateChecker extends KDObject
 
       info "Checking all machine states..."  if checkAll
 
-      info "Checking state:", {machineId}
-
       call = computeController.getKloud().info { machineId, currentState }
 
       .then (response)=>

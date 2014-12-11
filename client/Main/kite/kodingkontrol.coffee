@@ -180,10 +180,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     if waitingPromises? and waitingPromises.length > 0
 
-      console.log "THERE WERE WAITING PROMISES FOR THIS KITE:", waitingPromises
-
       kite.once 'connected', ->
-        console.log "RESOLVING WAITING PROMISES...", waitingPromises
         for promise in waitingPromises
           [resolve, args] = promise
           resolve kite.transport?.tell args...

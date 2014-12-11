@@ -138,7 +138,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         KD.utils.defer => @turnOnMachine()
         return
 
-      @triggerEventTimer 0
+      @triggerEventTimer 10
 
       KD.getSingleton 'computeController'
         .getKloud().info { @machineId, currentState }

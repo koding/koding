@@ -11,12 +11,10 @@ class KodingKite extends KDObject
     { name } = options
 
     @on 'open', =>
-      console.log "CONNECTED to #{name}"
       @_state = CONNECTED
       @emit "connected"
 
     @on 'close', =>
-      console.log "DISCONNECTED from #{name}"
       @_state = DISCONNECTED
 
     @waitingCalls = []
@@ -59,8 +57,6 @@ class KodingKite extends KDObject
 
     { name } = @getOptions()
 
-    console.log "TELL :: #{name}.#{rpcMethod}"
-
     @connect()  if not @_connectAttempted or @isDisconnected
 
     unless @invalid
@@ -76,7 +72,6 @@ class KodingKite extends KDObject
         @waitForConnection _args
 
           .then (args)=>
-            console.info "# CONNECTED TO #{name} SENDING #{rpcMethod}... "
             resolve @transport?.tell args...
 
           .catch =>
@@ -133,12 +128,10 @@ class KodingKite extends KDObject
     new Promise (resolve, reject)=>
       return resolve args if @_state is CONNECTED
       if @waitingCalls.length >= MAX_QUEUE_SIZE
-        console.log "# CALL REJECTED SINCE WAITING QUEUE IS TOO BIG NOW."
+        warn "Call rejected for #{name} kite, queue has #{MAX_QUEUE_SIZE} items."
         return reject()
 
       cid = (@waitingCalls.push args) - 1
-
-      console.log "# WAITING CALLS ON #{name}:", @waitingCalls
 
       @once 'connected', ->
         resolve @waitingCalls[cid]

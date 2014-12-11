@@ -65,7 +65,6 @@ class ComputeEventListener extends KDObject
     computeController.emit "public-#{machine._id}", state
 
     unless event.status is Running
-      info "ComputeEvent listener triggered invalidateCache"
       computeController.invalidateCache machine._id
 
 
