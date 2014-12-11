@@ -62,9 +62,13 @@ Deploy.createInstances options, (err, res) ->
 
   interval = setInterval ->
     ec2.describeInstances InstanceIds: [instanceId], (err, response) ->
-      instance = response.Reservations[0].Instances[0]
-      return unless instance
+      return unless response
+      return unless response.Reservations
+      return unless reservation = response.Reservations[0]
+      return unless reservation.Instances
+      return unless instance = response.Reservations[0].Instances[0]
       return unless instance.State.Name is 'running'
+
       clearInterval interval
 
       {PublicIpAddress, PublicDnsName} = instance
