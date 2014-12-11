@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/gatekeeper/handlers"
+	"socialapi/workers/gatekeeper/dispatcher/dispatcher"
 	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
 )
 
-const Name = "GateKeeper"
+const Name = "Dispatcher"
 
 func main() {
 	r := runner.New(Name)
@@ -18,7 +17,6 @@ func main() {
 		return
 	}
 
-	config := r.Conf.GateKeeper
 	// create a realtime service provider instance.
 	pubnub := models.NewPubnub(r.Conf.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
@@ -31,25 +29,15 @@ func main() {
 		return
 	}
 
-	mc := mux.NewMuxConfig(Name, config.Host, config.Port)
-	m := mux.NewMux(mc, r.Log)
-	m.Metrics = r.Metrics
-
-	h, err := handlers.NewHandler(rmq, pubnub, broker)
+	c, err := dispatcher.NewController(rmq, pubnub, broker)
 	if err != nil {
 		panic(err)
 	}
 
-	h.AddHandlers(m)
-
-	m.Listen()
-
-	defer m.Close()
-
-	r.SetContext(h)
-	r.ListenFor("gatekeeper_channel_updated", (*handlers.Handler).UpdateChannel)
-	r.ListenFor("gatekeeper_message_updated", (*handlers.Handler).UpdateMessage)
-	r.ListenFor("gatekeeper_notify_user", (*handlers.Handler).NotifyUser)
+	r.SetContext(c)
+	r.ListenFor("gatekeeper_channel_updated", (*dispatcher.Controller).UpdateChannel)
+	r.ListenFor("gatekeeper_message_updated", (*dispatcher.Controller).UpdateMessage)
+	r.ListenFor("gatekeeper_notify_user", (*dispatcher.Controller).NotifyUser)
 	r.Listen()
 
 	r.Wait()

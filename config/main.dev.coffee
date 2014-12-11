@@ -342,14 +342,20 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [ "= /payments/stripe/webhook" ]
 
-    gatekeeper          :
+    # gatekeeper          :
+    #   group             : "socialapi"
+    #   ports             :
+    #     incoming        : "#{gatekeeper.port}"
+    #   supervisord       :
+    #     command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+    #   healthCheckURL    : "http://localhost:#{gatekeeper.port}/healthCheck"
+    #   versionURL        : "http://localhost:#{gatekeeper.port}/version"
+
+    dispatcher          :
       group             : "socialapi"
-      ports             :
-        incoming        : "#{gatekeeper.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
-      healthCheckURL    : "http://localhost:#{gatekeeper.port}/healthCheck"
-      versionURL        : "http://localhost:#{gatekeeper.port}/version"
+        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
