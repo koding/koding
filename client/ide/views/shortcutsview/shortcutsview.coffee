@@ -43,7 +43,6 @@ class IDE.ShortcutsView extends KDView
       'Search in all files'    : 'Ctrl-Alt-F'
       'Open new file'          : 'Ctrl-Alt-N'
       'Open new terminal'      : 'Ctrl-Alt-T'
-      'Open new browser'       : 'Ctrl-Alt-B'
       'Open new drawing board' : 'Ctrl-Alt-D'
       'Toggle sidebar'         : 'Ctrl-Alt-K'
       'Fullscreen'             : 'Meta-Shift-Enter'

@@ -25,7 +25,6 @@ class IDEAppController extends AppController
       'save all files'      : 'saveAllFiles'
       'create new file'     : 'createNewFile'
       'create new terminal' : 'createNewTerminal'
-      'create new browser'  : 'createNewBrowser'
       'create new drawing'  : 'createNewDrawing'
       'collapse sidebar'    : 'collapseSidebar'
       'expand sidebar'      : 'expandSidebar'
@@ -45,7 +44,6 @@ class IDEAppController extends AppController
       { command: 'save all files',      binding: 'ctrl+alt+s', global: yes }
       { command: 'create new file',     binding: 'ctrl+alt+n', global: yes }
       { command: 'create new terminal', binding: 'ctrl+alt+t', global: yes }
-      { command: 'create new browser',  binding: 'ctrl+alt+b', global: yes }
       { command: 'create new drawing',  binding: 'ctrl+alt+d', global: yes }
       { command: 'toggle sidebar',      binding: 'ctrl+alt+k', global: yes }
       { command: 'close tab',           binding: 'ctrl+alt+w', global: yes }
@@ -409,7 +407,7 @@ class IDEAppController extends AppController
     @getView().unsetClass 'sidebar-collapsed'
     floatedPanel.unsetClass 'floating'
     @isSidebarCollapsed = no
-    # filesPane.tabView.showPaneByIndex 0
+    filesPane.tabView.showPaneByIndex 0
 
     # floatedPanel._lastSize = 250
     # splitView.unsetFloatingPanel 0
@@ -446,6 +444,7 @@ class IDEAppController extends AppController
 
     @activeTabView.emit 'TerminalPaneRequested', machine, path
 
+  #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)
   createNewBrowser: (url) ->
     url = ''  unless typeof url is 'string'
     @activeTabView.emit 'PreviewPaneRequested', url
