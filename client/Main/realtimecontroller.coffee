@@ -26,7 +26,7 @@ class RealtimeController extends KDController
     data = {name: channelName, typeConstant, group}
     KD.utils.doXhrRequest {endPoint, data}, callback
 
-  subscribe: (options = {}) ->
+  subscribe: (options = {}, callback = noop) ->
 
     pubnubChannelName = prepareChannelName options
 
@@ -40,13 +40,14 @@ class RealtimeController extends KDController
       channel : pubnubChannelName
       message : (message, env, channel) =>
         return  unless message
-        console.log 'mesaj mi var', env
         {eventName, body} = message
 
         # no need to emit any events when not subscribed
         return  unless @channels[channel]
 
         @channels[channel].emit eventName, body
+      connect : -> callback null
+      error   : (err) -> callback err # not sure if it is really sending an error
       restore : yes
 
     return channelInstance
