@@ -139,8 +139,9 @@ class WebTermView extends KDCustomScrollView
 
     kite.on 'close', =>
 
-      unless kite.isDisconnected
-        @webtermConnect if remote? then 'resume' else 'create'
+      if not kite.isDisconnected and not kite.invalid
+        kite.once 'connected', =>
+          @webtermConnect if remote? then 'resume' else 'create'
 
 
   connectToTerminal: ->
