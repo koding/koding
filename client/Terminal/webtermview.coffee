@@ -118,7 +118,7 @@ class WebTermView extends KDCustomScrollView
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
-      @reconnectionInProgress = false
+      @_triedToReconnect = no
 
     .catch (err) =>
 
@@ -139,9 +139,9 @@ class WebTermView extends KDCustomScrollView
 
     kite.on 'close', =>
 
-      if not kite.isDisconnected and not kite.invalid
-        kite.once 'connected', =>
-          @webtermConnect if remote? then 'resume' else 'create'
+      if not kite.isDisconnected and not @_triedToReconnect
+        @_triedToReconnect = yes
+        @webtermConnect if remote? then 'resume' else 'create'
 
 
   connectToTerminal: ->
