@@ -88,6 +88,13 @@ utils.extend utils,
           queue = []
 
 
+  clearKiteCaches: ->
+
+    if window.localStorage?
+      for kite in (Object.keys window.localStorage) when /^KITE_/.test kite
+        delete window.localStorage[kite]
+
+
   registerDummyUser:->
 
     return if location.hostname is "koding.com"

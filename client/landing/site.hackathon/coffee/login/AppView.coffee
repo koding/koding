@@ -520,6 +520,8 @@ module.exports = class LoginView extends JView
       query = KD.utils.stringifyQuery {planTitle, planInterval}
       query = "?#{query}"
 
+    KD.utils.clearKiteCaches()
+
     $.ajax
       url         : '/Login'
       data        : { username, password }

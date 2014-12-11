@@ -96,6 +96,13 @@ utils.extend utils,
           queue = []
 
 
+  clearKiteCaches: ->
+
+    if window.localStorage?
+      for kite in (Object.keys window.localStorage) when /^KITE_/.test kite
+        delete window.localStorage[kite]
+
+
   # Chrome apps open links in a new browser window. OAuth authentication
   # relies on `window.opener` to be present to communicate back to the
   # parent window, which isn't available in a chrome app. Therefore, we
