@@ -95,7 +95,7 @@ func (p *PlanChecker) AlwaysOn() error {
 		return nil // allow user, it didn't reach the limit
 	}
 
-	p.Log.Debug("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+	p.Log.Info("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
 		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan)
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
@@ -114,25 +114,23 @@ func (p *PlanChecker) Timeout() error {
 		return err
 	}
 
-	defer klientRef.Close()
-
-	if err = klientRef.Ping(); err != nil {
-		return err
-	}
-
 	// now the klient is connected and we can ping it, stop the timer and
 	// remove it from the list of inactive machines if it's still there.
 	p.Provider.stopTimer(p.Machine)
 
-	// get the usage directly from the klient, which is the most predictable source
-	usg, err := klientRef.Usage()
-	if err != nil {
-		return err
-	}
-
 	// replace with the real and authenticated username
 	p.Machine.Builder["username"] = klientRef.Username
 	p.Username = klientRef.Username
+
+	// get the usage directly from the klient, which is the most predictable source
+	usg, err := klientRef.Usage()
+
+	klientRef.Close()
+	klientRef = nil
+
+	if err != nil {
+		return err
+	}
 
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := p.Plan.Limits().Timeout

@@ -29,10 +29,6 @@ class WebTerm.Terminal extends KDObject
       for keyHandler in ['keyDown', 'keyPress', 'keyUp', 'paste']
         @[keyHandler] = noop
 
-    try
-      localStorage?["WebTerm.logRawOutput"] ?= "false"
-      localStorage?["WebTerm.slowDrawing"]  ?= "false"
-
     @parent               = containerView
     @container            = containerView.$()
     @server               = null
@@ -208,10 +204,11 @@ class WebTerm.Terminal extends KDObject
   updateAppSize: ->
 
     { appView } = @getOptions()
+    {width: charWidth, height: charHeight} = @getCharSizes()
 
     height = appView.parent.getHeight() - 24 # padding
 
-    newHeight = Math.floor(height / @_mbHeight) * @_mbHeight
+    newHeight = Math.floor(height / charHeight) * charHeight
 
     appView.setHeight newHeight
 

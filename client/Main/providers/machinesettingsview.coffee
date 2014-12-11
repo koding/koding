@@ -147,8 +147,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
     currentState = @machine.status.state
     baseKite     = @machine.getBaseKite()
 
-    computeController
-      .kloud.info { machineId, currentState }
+    computeController.getKloud()
+
+      .info { machineId, currentState }
       .then (response)->
 
         if response.State is Running
