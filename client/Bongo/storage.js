@@ -1,6 +1,6 @@
 // https://gist.github.com/remy/350433
 
-if (typeof window.localStorage == 'undefined' || typeof window.sessionStorage == 'undefined') (function () {
+(function () {
 
 var Storage = function (type) {
   function createCookie(name, value, days) {
@@ -92,7 +92,14 @@ var Storage = function (type) {
   };
 };
 
-if (typeof window.localStorage == 'undefined') window.localStorage = new Storage('local');
+try {
+  window.localStorage["_testlocalstorage"] = 1;
+  delete window.localStorage["_testlocalstorage"];
+} catch (e) {
+  console.log("Creating lcoal storage.....");
+  window.localStorage = new Storage('local');
+}
+
 if (typeof window.sessionStorage == 'undefined') window.sessionStorage = new Storage('session');
 
 })();
