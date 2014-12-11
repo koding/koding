@@ -38,7 +38,7 @@
     "gulp-util": "^3.0.1",
     "gulp.spritesmith": "^1.2.0",
     "imagemin-pngquant": "^4.0.0",
-    "kdf": "^0.1.9",
+    "kdf": "^0.1.10",
     "minimist": "^1.1.0",
     "request": "^2.45.0",
     "vinyl-source-stream": "^1.0.0",
