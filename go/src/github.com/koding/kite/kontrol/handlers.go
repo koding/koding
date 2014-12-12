@@ -70,6 +70,7 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 				})
 			case <-time.After(HeartbeatInterval + HeartbeatDelay):
 				k.log.Info("Kite didn't sent any heartbeat %s.", remote.Kite)
+				every.Stop()
 				closed = true
 				return
 			}
