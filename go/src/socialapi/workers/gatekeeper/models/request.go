@@ -9,8 +9,7 @@ type ChannelRequest struct {
 }
 
 type PushMessage struct {
-	ChannelId int64            `json:"channelId"`
-	Channel   *ChannelResponse `json:"-"`
+	Channel *Channel `json:"channel"`
 	Message
 }
 
@@ -35,12 +34,11 @@ type AuthRequest struct {
 	EventName string `json:"eventName"`
 }
 
-type ChannelResponse struct {
-	Id          string   `json:"id"`
+type Channel struct {
+	Id          int64    `json:"id"`
 	Name        string   `json:"name"`
 	Type        string   `json:"typeConstant"`
 	Group       string   `json:"groupName"`
-	Token       string   `json:"token"`
 	SecretNames []string `json:"secretNames"`
 }
 

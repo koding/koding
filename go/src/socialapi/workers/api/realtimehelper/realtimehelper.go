@@ -1,12 +1,23 @@
 package realtimehelper
 
-import "github.com/koding/bongo"
+import (
+	"socialapi/models"
 
-func PushMessage(channelId int64, eventName string, body interface{}) error {
+	"github.com/koding/bongo"
+)
+
+func PushMessage(c *models.Channel, eventName string, body interface{}, secretNames []string) error {
 	request := map[string]interface{}{
-		"channelId": channelId,
 		"eventName": eventName,
 		"body":      body,
+		"token":     c.Token,
+		"channel": map[string]interface{}{
+			"id":           c.Id,
+			"secretNames":  secretNames,
+			"name":         c.Name,
+			"typeConstant": c.TypeConstant,
+			"groupName":    c.GroupName,
+		},
 	}
 
 	return bongo.B.Emit("gatekeeper_channel_updated", request)

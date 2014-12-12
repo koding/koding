@@ -1,11 +1,6 @@
 package dispatcher
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"socialapi/config"
-	"socialapi/workers/common/handler"
 	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
 	"sync"
@@ -52,17 +47,6 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 		c.logger.Error("Invalid request")
 		return nil
 	}
-
-	cr := new(models.ChannelRequest)
-	cr.Id = pm.ChannelId
-	channelResponse, err := fetchChannelById(cr)
-	if err != nil {
-		return err
-	}
-
-	pm.Channel = channelResponse
-	pm.Token = channelResponse.Token
-
 	// TODO add timeout
 
 	var wg sync.WaitGroup
@@ -124,35 +108,4 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	wg.Wait()
 
 	return nil
-}
-
-// TODO change this and send it from realtime worker. No need to fetch it again
-func fetchChannelById(cr *models.ChannelRequest) (*models.ChannelResponse, error) {
-	request := &handler.Request{
-		Type:     handler.GetRequest,
-		Endpoint: fmt.Sprintf("%s/channel/%d/fetch", config.MustGet().ProxyURL, cr.Id),
-	}
-
-	resp, err := handler.MakeRequest(request)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf(resp.Status)
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	channelResponse := new(models.ChannelResponse)
-	err = json.Unmarshal(body, channelResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return channelResponse, nil
 }

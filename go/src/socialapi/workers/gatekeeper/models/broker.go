@@ -3,9 +3,6 @@ package models
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"socialapi/config"
-	"socialapi/workers/common/handler"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -34,13 +31,6 @@ func (b *Broker) Authenticate(req *ChannelRequest) error {
 }
 
 func (b *Broker) Push(pm *PushMessage) {
-	// fetch these secret names from socialapi
-	resp, err := fetchSecretNamesById(pm.ChannelId)
-	if err != nil {
-		b.log.Error("Could not fetch secret names: %s", err)
-		return
-	}
-
 	//convert data into json message
 	byteMessage, err := json.Marshal(pm.Body)
 	if err != nil {
@@ -58,7 +48,7 @@ func (b *Broker) Push(pm *PushMessage) {
 	// do not forget to close the channel
 	defer channel.Close()
 
-	for _, secretName := range resp.SecretNames {
+	for _, secretName := range pm.Channel.SecretNames {
 		routingKey := "socialapi.channelsecret." + secretName + "." + pm.EventName
 		if err := channel.Publish(
 			"broker",   // exchange name
@@ -142,34 +132,4 @@ func (b *Broker) NotifyUser(nm *NotificationMessage) {
 	); err != nil {
 		b.log.Error("Could not publish notification message: %s", err)
 	}
-}
-
-func fetchSecretNamesById(channelId int64) (*ChannelResponse, error) {
-	request := &handler.Request{
-		Type:     handler.GetRequest,
-		Endpoint: fmt.Sprintf("%s/channel/%d/secretnames", config.MustGet().ProxyURL, channelId),
-	}
-
-	resp, err := handler.MakeRequest(request)
-	if err != nil {
-		return nil, err
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf(resp.Status)
-	}
-
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	channelResponse := new(ChannelResponse)
-	err = json.Unmarshal(body, channelResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	return channelResponse, nil
 }

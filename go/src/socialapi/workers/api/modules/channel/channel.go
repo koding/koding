@@ -8,9 +8,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"strconv"
-
-	"labix.org/v2/mgo"
 
 	"github.com/koding/bongo"
 )
@@ -95,44 +92,6 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	}
 
 	return handleChannelListResponse(channelList, q)
-}
-
-// ById finds channels by their id. It is for internal use and must not be exposed.
-func ById(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := request.GetId(u)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	channel, err := models.ChannelById(id)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	return response.HandleResultAndError(channel, nil)
-}
-
-func SecretNamesById(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
-	id, err := request.GetId(u)
-	if err != nil {
-		response.NewBadRequest(err)
-	}
-
-	names, err := models.SecretNamesByChannelId(id)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	if err == mgo.ErrNotFound || len(names) < 1 {
-		return response.NewNotFound()
-	}
-
-	resp := map[string]interface{}{
-		"id":          strconv.FormatInt(id, 10),
-		"secretNames": names,
-	}
-
-	return response.HandleResultAndError(resp, nil)
 }
 
 // ByName finds topics by their name

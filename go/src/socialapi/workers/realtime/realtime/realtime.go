@@ -7,6 +7,8 @@ import (
 	"socialapi/workers/api/realtimehelper"
 	notificationmodels "socialapi/workers/notification/models"
 
+	"labix.org/v2/mgo"
+
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -636,7 +638,22 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 // message is sent as a json message
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
-	return realtimehelper.PushMessage(channelId, eventName, data)
+	ch, err := models.ChannelById(channelId)
+	if err != nil {
+		return err
+	}
+
+	names, err := models.SecretNamesByChannelId(channelId)
+	if err != nil {
+		return err
+	}
+
+	if err == mgo.ErrNotFound || len(names) < 1 {
+		f.log.Info("Channel %d doesn't have any secret name", channelId)
+		return nil
+	}
+
+	return realtimehelper.PushMessage(ch, eventName, data, names)
 }
 
 func (f *Controller) sendNotification(
