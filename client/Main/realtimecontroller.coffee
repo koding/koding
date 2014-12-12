@@ -63,7 +63,8 @@ class RealtimeController extends KDController
         return "instance-#{token}"
       when 'notification'
         {nickname} = options
-        return "notification-#{nickname}"
+        {environment} = KD.config
+        return "notification-#{environment}-#{nickname}"
 
     return ""
 

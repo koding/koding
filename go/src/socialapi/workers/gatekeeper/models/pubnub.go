@@ -76,7 +76,8 @@ func prepareInstanceChannelName(um *UpdateInstanceMessage) string {
 }
 
 func prepareNotificationChannelName(nm *NotificationMessage) string {
-	return fmt.Sprintf("notification-%s", nm.Nickname)
+	env := config.MustGet().Environment
+	return fmt.Sprintf("notification-%s-%s", env, nm.Nickname)
 }
 
 /////////////////// PubnubRequest /////////////////////
