@@ -35,9 +35,9 @@ func main() {
 	}
 
 	r.SetContext(c)
-	r.ListenFor("gatekeeper_channel_updated", (*dispatcher.Controller).UpdateChannel)
-	r.ListenFor("gatekeeper_message_updated", (*dispatcher.Controller).UpdateMessage)
-	r.ListenFor("gatekeeper_notify_user", (*dispatcher.Controller).NotifyUser)
+	r.ListenFor("dispatcher_channel_updated", (*dispatcher.Controller).UpdateChannel)
+	r.ListenFor("dispatcher_message_updated", (*dispatcher.Controller).UpdateMessage)
+	r.ListenFor("dispatcher_notify_user", (*dispatcher.Controller).NotifyUser)
 	r.Listen()
 
 	r.Wait()

@@ -20,7 +20,7 @@ func PushMessage(c *models.Channel, eventName string, body interface{}, secretNa
 		},
 	}
 
-	return bongo.B.Emit("gatekeeper_channel_updated", request)
+	return bongo.B.Emit("dispatcher_channel_updated", request)
 }
 
 func UpdateInstance(token string, eventName string, body interface{}) error {
@@ -30,7 +30,7 @@ func UpdateInstance(token string, eventName string, body interface{}) error {
 		"body":      body,
 	}
 
-	return bongo.B.Emit("gatekeeper_message_updated", request)
+	return bongo.B.Emit("dispatcher_message_updated", request)
 }
 
 func NotifyUser(nickname, eventName string, body interface{}, groupName string) error {
@@ -43,5 +43,5 @@ func NotifyUser(nickname, eventName string, body interface{}, groupName string) 
 		},
 	}
 
-	return bongo.B.Emit("gatekeeper_notify_user", request)
+	return bongo.B.Emit("dispatcher_notify_user", request)
 }
