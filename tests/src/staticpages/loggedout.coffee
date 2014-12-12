@@ -25,10 +25,9 @@ module.exports =
   legalPage: (browser) ->
 
     browser.url(legalPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser)
+    helpers.assertMainHeader(browser, no)
 
     browser
-      .pause  3000
       .waitForElementVisible  '.content-page.legal', 25000
       .end()
 
@@ -47,7 +46,7 @@ module.exports =
   aboutPage: (browser) ->
 
     browser.url(aboutPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser)
+    helpers.assertMainHeader(browser, no)
 
     browser
       .waitForElementVisible  '.content-page.about', 25000
@@ -58,7 +57,7 @@ module.exports =
   featuresPage: (browser) ->
 
     browser.url(featuresPageUrl).maximizeWindow()
-    helpers.assertMainHeader(browser)
+    helpers.assertMainHeader(browser, no)
 
     browser
       .waitForElementVisible  '.content-page.features', 25000

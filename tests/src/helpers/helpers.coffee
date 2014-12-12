@@ -321,11 +321,15 @@ module.exports =
           assert.equal result.value.length, 1
 
 
-  assertMainHeader: (browser) ->
+  assertMainHeader: (browser, assertLoginLink = yes) ->
 
-    browser
-      .waitForElementVisible   '[testpath=main-header] a#koding-logo', 25000
-      .waitForElementVisible   '[testpath=main-header] [testpath=login-link]', 25000
+    logoSelector = '[testpath=main-header] a#koding-logo'
+    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
+
+    browser.waitForElementVisible logoSelector, 25000
+
+    if assertLoginLink
+      browser.waitForElementVisible loginLinkSelector, 25000
 
 
   getUrl: ->
