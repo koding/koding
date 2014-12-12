@@ -1,8 +1,7 @@
 package models
 
 type Realtime interface {
-	Authenticate(req *ChannelRequest) error
-	Push(req *PushMessage)
-	UpdateInstance(req *UpdateInstanceMessage)
-	NotifyUser(req *NotificationMessage)
+	Push(req *PushMessage) error
+	UpdateInstance(req *UpdateInstanceMessage) error
+	NotifyUser(req *NotificationMessage) error
 }

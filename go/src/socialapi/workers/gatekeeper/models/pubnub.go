@@ -36,13 +36,10 @@ func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
 	return pb
 }
 
-func (p *Pubnub) Authenticate(req *ChannelRequest) error {
-	return nil
-}
-
-func (p *Pubnub) Push(pm *PushMessage) {
+func (p *Pubnub) Push(pm *PushMessage) error {
 	channelName := prepareChannelName(pm)
-	p.publish(channelName, pm)
+
+	return p.publish(channelName, pm)
 }
 
 func (p *Pubnub) Close() {
@@ -51,18 +48,20 @@ func (p *Pubnub) Close() {
 	close(p.errorCh)
 }
 
-func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) {
+func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) error {
 	channelName := prepareInstanceChannelName(um)
-	p.publish(channelName, um)
+
+	return p.publish(channelName, um)
 }
 
-func (p *Pubnub) NotifyUser(nm *NotificationMessage) {
+func (p *Pubnub) NotifyUser(nm *NotificationMessage) error {
 	channelName := prepareNotificationChannelName(nm)
-	p.publish(channelName, nm)
+
+	return p.publish(channelName, nm)
 }
 
-func (p *Pubnub) publish(channelName string, message interface{}) {
 	p.pub.Publish(channelName, message, p.successCh, p.errorCh)
+func (p *Pubnub) publish(channelName string, message interface{}) error {
 }
 
 func prepareChannelName(pm *PushMessage) string {

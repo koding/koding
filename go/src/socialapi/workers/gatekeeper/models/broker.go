@@ -26,24 +26,18 @@ func NewBroker(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Broker, error) {
 	}, nil
 }
 
-func (b *Broker) Authenticate(req *ChannelRequest) error {
-	return nil
-}
-
-func (b *Broker) Push(pm *PushMessage) {
+func (b *Broker) Push(pm *PushMessage) error {
 	//convert data into json message
 	byteMessage, err := json.Marshal(pm.Body)
 	if err != nil {
-		b.log.Error("Could not marshal push message: %s", err)
-		return
+		return err
 	}
 
 	// get a new channel for publishing a message
 
 	channel, err := b.rmqConn.Channel()
 	if err != nil {
-		b.log.Error("Could not get channel: %s", err)
-		return
+		return err
 	}
 	// do not forget to close the channel
 	defer channel.Close()
@@ -57,25 +51,24 @@ func (b *Broker) Push(pm *PushMessage) {
 			false,      // immediate
 			amqp.Publishing{Body: byteMessage}, // message
 		); err != nil {
-			b.log.Error("Could not publish message: %s", err)
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
-func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) {
+func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) error {
 	channel, err := b.rmqConn.Channel()
 	if err != nil {
-		b.log.Error("Could not get channel: %s", err)
-		return
+		return err
 	}
 	defer channel.Close()
 
 	routingKey := "oid." + um.Token + ".event." + um.EventName
 	updateMessage, err := json.Marshal(um.Body)
 	if err != nil {
-		b.log.Error("Could not marshal update instance message: %s", err)
-		return
+		return err
 	}
 
 	updateArr := make([]string, 1)
@@ -87,8 +80,7 @@ func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) {
 
 	msg, err := json.Marshal(updateArr)
 	if err != nil {
-		b.log.Error("Could not marshal update instance array: %s", err)
-		return
+		return err
 	}
 
 	b.log.Debug(
@@ -98,38 +90,32 @@ func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) {
 		um.EventName,
 	)
 
-	if err := channel.Publish(
+	return channel.Publish(
 		"updateInstances", // exchange name
 		routingKey,        // routing key
 		false,             // mandatory
 		false,             // immediate
 		amqp.Publishing{Body: msg}, // message
-	); err != nil {
-		b.log.Error("Could not publish update instance message: %s", err)
-	}
+	)
 }
 
-func (b *Broker) NotifyUser(nm *NotificationMessage) {
+func (b *Broker) NotifyUser(nm *NotificationMessage) error {
 	channel, err := b.rmqConn.Channel()
 	if err != nil {
-		b.log.Error("Could not get channel: %s", err)
-		return
+		return err
 	}
 	defer channel.Close()
 
 	byteNotification, err := json.Marshal(nm.Body)
 	if err != nil {
-		b.log.Error("Could not marshal notification data: %s", err)
-		return
+		return err
 	}
 
-	if err := channel.Publish(
+	return channel.Publish(
 		"notification",
 		nm.Nickname, // this is routing key
 		false,
 		false,
 		amqp.Publishing{Body: byteNotification},
-	); err != nil {
-		b.log.Error("Could not publish notification message: %s", err)
-	}
+	)
 }
