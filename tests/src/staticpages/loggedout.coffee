@@ -28,6 +28,7 @@ module.exports =
     helpers.assertMainHeader(browser)
 
     browser
+      .pause  3000
       .waitForElementVisible  '.content-page.legal', 25000
       .end()
 
