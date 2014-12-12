@@ -366,6 +366,7 @@ class IDEAppController extends AppController
     splitView.resizePanel 39, 0
     @getView().setClass 'sidebar-collapsed'
     floatedPanel.setClass 'floating'
+    @activeFilesPaneName = tabView.activePane.name
     tabView.showPaneByName 'Dummy'
 
     @isSidebarCollapsed = yes
@@ -407,7 +408,7 @@ class IDEAppController extends AppController
     @getView().unsetClass 'sidebar-collapsed'
     floatedPanel.unsetClass 'floating'
     @isSidebarCollapsed = no
-    filesPane.tabView.showPaneByIndex 0
+    filesPane.tabView.showPaneByName @activeFilesPaneName
 
     # floatedPanel._lastSize = 250
     # splitView.unsetFloatingPanel 0

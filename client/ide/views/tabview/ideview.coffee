@@ -180,6 +180,15 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
+    
+    
+  openSavedFile: (file, content) ->
+      
+      pane = @tabView.getActivePane()
+      if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
+        @tabView.removePane @tabView.getActivePane()
+      @openFile file, content
+
 
   openFile: (file, content, callback = noop) ->
     if @openFiles.indexOf(file) > -1
