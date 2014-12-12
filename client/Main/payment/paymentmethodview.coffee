@@ -5,7 +5,38 @@ class PaymentMethodView extends JView
     options.cssClass    = KD.utils.curry "payment-method", options.cssClass
     options.editLink   ?= no
     options.removeLink ?= no
+
+    data = null  if @isNoCard data
+
     super options, data
+
+    @createViews()
+
+
+  updateViewStates: (method) ->
+
+    @paymentMethodInfo.updatePartial @getCardInfoPartial method
+
+    if method
+    then @controlsView.show()
+    else @controlsView.hide()
+
+
+  isNoCard: (data) ->
+
+    return  unless data
+
+    noCard =
+      data.last4 is '' and
+      data.year  is 0 and
+      data.month is 0
+
+    return noCard
+
+
+  createViews: ->
+
+    data = @getData()
 
     @editLink = new KDButtonView
       title    : 'Update'
@@ -22,19 +53,22 @@ class PaymentMethodView extends JView
         @emit 'PaymentMethodRemoveRequested', data
 
     if @getOption 'editLink' or @getOption 'removeLink'
-    then @controlsView = new KDCustomHTMLView cssClass : 'payment-method-controls'
+    then @controlsView = new KDCustomHTMLView cssClass : 'payment-method-controls hidden'
     else @controlsView = new KDCustomHTMLView tagName  : 'span'
 
     if @getOption 'editLink'   then @controlsView.addSubView @editLink
     if @getOption 'removeLink' then @controlsView.addSubView @removeLink
 
-    @paymentMethodInfo = new KDCustomHTMLView cssClass  : 'billing-link'
+    @paymentMethodInfo = new KDCustomHTMLView cssClass : 'billing-link'
     @paymentMethodInfo.hide()
     @setPaymentInfo data
 
 
   getCardInfoPartial: (paymentMethod) ->
-    return "<span class='no-item-found'>You have no payment methods</span>"  unless paymentMethod
+
+    noCardPartial = "<span class='no-item-found'>You have no payment methods</span>"
+
+    return noCardPartial  unless paymentMethod
 
     { last4 } = paymentMethod
 
@@ -54,9 +88,17 @@ class PaymentMethodView extends JView
     <pre>#{numberPrefix}#{last4}</pre>
     """
 
+  updatePaymentMethod: (paymentMethod) ->
+
+    return @data = null  if @isNoCard paymentMethod
+
+    @data[key] = value  for key, value of paymentMethod
+
+
   setPaymentInfo: (paymentMethod) ->
-    @setData paymentMethod  if paymentMethod
-    @paymentMethodInfo.updatePartial @getCardInfoPartial paymentMethod
+
+    @updatePaymentMethod paymentMethod
+    @updateViewStates paymentMethod
     @paymentMethodInfo.show()
 
   pistachio: ->
