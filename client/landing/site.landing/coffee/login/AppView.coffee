@@ -57,15 +57,12 @@ module.exports = class LoginView extends JView
 
     super options, data
 
-    @resetRegisterForm = false  
-    
     @logo = new KDCustomHTMLView
       tagName    : 'a'
       cssClass   : 'koding-logo'
       partial    : '<cite></cite>'
       attributes : href : '/'
-      click      : =>
-        @resetRegisterFormIfNeed()
+
 
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
@@ -78,8 +75,6 @@ module.exports = class LoginView extends JView
       title       : 'Forgot your password?'
       testPath    : 'landing-recover-password'
       href        : '/Recover'
-      click       : =>
-        @resetRegisterFormIfNeed()
 
     @goToRegisterLink = new CustomLinkView
       title       : 'Sign up'
@@ -594,7 +589,6 @@ module.exports = class LoginView extends JView
     switch name
       when "register"
         @registerForm.email.input.setFocus()
-        @resetRegisterForm = true
       when "finishRegistration"
         @finishRegistrationForm.username.input.setFocus()
       when "redeem"
@@ -650,9 +644,3 @@ module.exports = class LoginView extends JView
       new KDNotificationView
         title   : err.message
         duration: 1000
-  
-  resetRegisterFormIfNeed: ->  
-    if @resetRegisterForm
-      @registerForm.reset()
-      @resetRegisterForm = false
-

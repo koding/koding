@@ -88,13 +88,4 @@ module.exports = class LoginInputView extends JView
     @setClass if err then 'validation-error' else 'validation-passed'
 
   
-  reset: ->
-    @input.setValue ''
-    @input.clearValidationFeedback()
-    @placeholder.unsetClass 'out'
-    @placeholder.unsetClass 'puff'
-    @icon.unsetTooltip()
-    @resetDecoration()
-
-
   pistachio:-> "{{> @input}}{{> @placeholder}}{{> @icon}}"
