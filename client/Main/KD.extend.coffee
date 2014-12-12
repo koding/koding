@@ -259,8 +259,11 @@ KD.extend
 
   togglePubnub: ->
     isPubnubEnabled = localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
-    try localStorage.isPubnubEnabled = !isPubnubEnabled
-    location.reload()
+    try
+      localStorage.isPubnubEnabled = !isPubnubEnabled
+      location.reload()
+    catch e
+      warn "could not toggle pubnub: #{e}"
 
   isPubnubEnabled: ->
     localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
