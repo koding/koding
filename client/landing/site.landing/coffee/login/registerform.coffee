@@ -83,9 +83,13 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
   usernameCheckTimer = null
 
   reset:->
+
     inputs = KDFormView.findChildInputs this
-    input.clearValidationFeedback() for input in inputs
+    for input in inputs
+      input.parent.reset()
+    
     super
+    
 
   usernameCheck:(input, event, delay=800)->
     return if event?.which is 9

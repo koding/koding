@@ -62,6 +62,8 @@ module.exports = class LoginView extends JView
       cssClass   : 'koding-logo'
       partial    : '<cite></cite>'
       attributes : href : '/'
+      click      : =>
+        @registerForm.reset()
 
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
@@ -74,6 +76,8 @@ module.exports = class LoginView extends JView
       title       : 'Forgot your password?'
       testPath    : 'landing-recover-password'
       href        : '/Recover'
+      click       : =>
+        @registerForm.reset()
 
     @goToRegisterLink = new CustomLinkView
       title       : 'Sign up'
