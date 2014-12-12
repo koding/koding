@@ -43,8 +43,7 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 
 // UpdateChannel sends channel update events
 func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
-	if pm.ChannelId == 0 || pm.EventName == "" {
-		c.logger.Error("Invalid request")
+	if ok := c.isPushMessageValid(pm); !ok {
 		return nil
 	}
 	// TODO add timeout
@@ -61,6 +60,25 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 	wg.Wait()
 
 	return nil
+}
+
+func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
+	if pm.Channel.Id == 0 {
+		c.logger.Error("Invalid request: channel id is not set")
+		return false
+	}
+
+	if pm.EventName == "" {
+		c.logger.Error("Invalid request: event name is not set")
+		return false
+	}
+
+	if pm.Token == "" {
+		c.logger.Error("Invalid request: token is not set")
+		return false
+	}
+
+	return true
 }
 
 // UpdateMessage sends message update events
