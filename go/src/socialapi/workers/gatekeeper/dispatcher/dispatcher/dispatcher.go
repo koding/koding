@@ -3,7 +3,6 @@ package dispatcher
 import (
 	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
-	"sync"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -11,12 +10,13 @@ import (
 )
 
 type Controller struct {
-	Realtime []models.Realtime
-	logger   logging.Logger
-	rmqConn  *amqp.Connection
+	Broker  *models.Broker
+	Pubnub  *models.Pubnub
+	logger  logging.Logger
+	rmqConn *amqp.Connection
 }
 
-func NewController(rmqConn *rabbitmq.RabbitMQ, adapters ...models.Realtime) (*Controller, error) {
+func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.Pubnub, broker *models.Broker) (*Controller, error) {
 
 	rmqConn, err := rmqConn.Connect("NewGatekeeperController")
 	if err != nil {
@@ -24,12 +24,11 @@ func NewController(rmqConn *rabbitmq.RabbitMQ, adapters ...models.Realtime) (*Co
 	}
 
 	handler := &Controller{
-		Realtime: make([]models.Realtime, 0),
-		logger:   helper.MustGetLogger(),
-		rmqConn:  rmqConn.Conn(),
+		Pubnub:  pubnub,
+		Broker:  broker,
+		logger:  helper.MustGetLogger(),
+		rmqConn: rmqConn.Conn(),
 	}
-
-	handler.Realtime = append(handler.Realtime, adapters...)
 
 	return handler, nil
 }
@@ -46,20 +45,16 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 	if ok := c.isPushMessageValid(pm); !ok {
 		return nil
 	}
-	// TODO add timeout
 
-	var wg sync.WaitGroup
-	for _, adapter := range c.Realtime {
-		wg.Add(1)
-		go func(r models.Realtime) {
-			r.Push(pm)
-			wg.Done()
-		}(adapter)
-	}
+	// TODO later on Pubnub needs its own queue
+	go func() {
+		err := c.Pubnub.Push(pm)
+		if err != nil {
+			c.logger.Error("Could not push update channel message to pubnub: %s", err)
+		}
+	}()
 
-	wg.Wait()
-
-	return nil
+	return c.Broker.Push(pm)
 }
 
 func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
@@ -88,20 +83,15 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 		return nil
 	}
 
-	// TODO add timeout
+	// TODO later on Pubnub needs its own queue
+	go func() {
+		err := c.Pubnub.UpdateInstance(um)
+		if err != nil {
+			c.logger.Error("Could not push update instance message to pubnub: %s", err)
+		}
+	}()
 
-	var wg sync.WaitGroup
-	for _, adapter := range c.Realtime {
-		wg.Add(1)
-		go func(r models.Realtime) {
-			r.UpdateInstance(um)
-			wg.Done()
-		}(adapter)
-	}
-
-	wg.Wait()
-
-	return nil
+	return c.Broker.UpdateInstance(um)
 }
 
 // NotifyUser sends user notifications to related channel
@@ -112,18 +102,13 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	}
 	nm.EventName = "message"
 
-	// TODO add timeout
+	// TODO later on Pubnub needs its own queue
+	go func() {
+		err := c.Pubnub.NotifyUser(nm)
+		if err != nil {
+			c.logger.Error("Could not push notification message to pubnub: %s", err)
+		}
+	}()
 
-	var wg sync.WaitGroup
-	for _, adapter := range c.Realtime {
-		wg.Add(1)
-		go func(r models.Realtime) {
-			r.NotifyUser(nm)
-			wg.Done()
-		}(adapter)
-	}
-
-	wg.Wait()
-
-	return nil
+	return c.Broker.NotifyUser(nm)
 }
