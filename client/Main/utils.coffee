@@ -990,7 +990,11 @@ utils.extend utils,
     xhr.open type, endPoint, async
     xhr.setRequestHeader "Content-Type", "application/json;"
     xhr.onreadystatechange = (result) =>
-      response = JSON.parse xhr.responseText
+      try {
+        response = JSON.parse xhr.responseText
+      } catch (err) {
+        return callback { message : "invalid json: could not parse response" }
+      }
       # 0     - connection failed
       # >=400 - http errors
       if xhr.status is 0 or xhr.status >= 400
