@@ -138,7 +138,7 @@ class DeleteModalView extends KDModalViewWithForms
       else
 
         machines.forEach (machine)->
-          computeController.kloud
+          computeController.getKloud()
           .destroy { machineId: machine._id }
           .then  (res)->
             info res if res?
@@ -146,7 +146,7 @@ class DeleteModalView extends KDModalViewWithForms
           .timeout ComputeController.timeout
           .catch (err)->
             KD.utils.wait 400, ->
-              computeController.kloud
+              computeController.getKloud()
               .destroy { machineId: machine._id }
             warn err if err?
 

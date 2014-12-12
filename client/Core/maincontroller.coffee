@@ -74,14 +74,12 @@ class MainController extends KDController
     KD.registerSingleton 'notificationController',    new NotificationController
     KD.registerSingleton 'linkController',            new LinkController
     KD.registerSingleton 'display',                   new ContentDisplayController
-    KD.registerSingleton 'kiteController',            new KiteController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton 'localStorageController',    new LocalStorageController
     KD.registerSingleton 'oauthController',           new OAuthController
     KD.registerSingleton 'groupsController',          new GroupsController
     KD.registerSingleton 'activityController',        new ActivityController
     KD.registerSingleton 'paymentController',         new PaymentController
-    # KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
     KD.registerSingleton 'helpController',            new HelpController
@@ -139,9 +137,8 @@ class MainController extends KDController
     @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
-    if KD.useNewKites
+    unless firstLoad
       (KD.getSingleton 'kontrol').reauthenticate()
-      # (KD.getSingleton 'kontrolProd').reauthenticate()
 
     account.fetchMyPermissionsAndRoles (err, res)=>
 
@@ -178,6 +175,8 @@ class MainController extends KDController
     KD.remote.api.JUser.logout (err) =>
       mainView._logoutAnimation()
       KD.singletons.localSync.removeLocalContents()
+
+      KiteCache.clearAll()
 
       Cookies.expire "koding082014"
       Cookies.expire "useOldKoding"
