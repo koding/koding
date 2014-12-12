@@ -43,6 +43,9 @@ class KiteCache
 
   @cache = (query, kite) ->
 
+    unless kite?
+      return warn "[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE"
+
     queryString = @generateQueryString query
     kite = proxifyTransport kite
     try storage[signed queryString] = JSON.stringify kite

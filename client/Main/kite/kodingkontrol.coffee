@@ -60,7 +60,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
         callback @createKiteNotFoundError args.query
         return
 
-      if query?
+      if query? and result.kites.length > 0
         KiteCache.cache query, result.kites.first
 
       callback null, @createKites result.kites
