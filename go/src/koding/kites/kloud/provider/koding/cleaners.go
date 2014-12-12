@@ -68,18 +68,9 @@ func (p *Provider) CleanDeletedVMs() error {
 		return err
 	}
 
-	deleteMachine := func(id string) error {
-		// we don't use p.Get() because it checks the user existence too,
-		// however for deleted machines there are no users
-		machine := &MachineDocument{}
-		if err := p.Session.Run("jMachines", func(c *mgo.Collection) error {
-			return c.FindId(bson.ObjectIdHex(id)).One(&machine)
-		}); err != nil {
-			return err
-		}
-
+	deleteMachine := func(machine MachineDocument) error {
 		m := &protocol.Machine{
-			Id:          id,
+			Id:          machine.Id.Hex(),
 			Username:    machine.Credential, // contains the username for koding provider
 			Provider:    machine.Provider,
 			Builder:     machine.Meta,
@@ -92,19 +83,19 @@ func (p *Provider) CleanDeletedVMs() error {
 
 		// if there is no instance Id just remove the document
 		if _, ok := m.Builder["instanceId"]; !ok {
-			return p.Delete(id)
+			return p.Delete(m.Id)
 		}
 
 		p.Log.Info("[%s] cleaner: terminating user deleted machine. User %s",
-			id, m.Username)
+			m.Id, m.Username)
 
 		p.Destroy(m)
 
-		return p.Delete(id)
+		return p.Delete(m.Id)
 	}
 
 	for _, machine := range machines {
-		if err := deleteMachine(machine.Id.Hex()); err != nil {
+		if err := deleteMachine(machine); err != nil {
 			p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
 				machine.Id.Hex(), err.Error())
 		}
