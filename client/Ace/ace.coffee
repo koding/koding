@@ -16,7 +16,7 @@ class Ace extends KDView
     super
     @hide()
     @appStorage.fetchStorage (storage)=>
-      requirejs ['ace/ace'], (ace)=>
+      requirejs ['ace/ace'], =>
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
@@ -35,10 +35,11 @@ class Ace extends KDView
 
           KD.mixpanel 'Open Ace, success'
 
-      requirejs ['ace/keyboard/vim'], (vimMode) =>
-        @vimKeyboardHandler = vimMode.handler
+      requirejs ['ace/keyboard-vim'], =>
+        @vimKeyboardHandler = ace.require('ace/keyboard/vim').handler 
 
-      @emacsKeyboardHandler = 'ace/keyboard/emacs'
+      requirejs ['ace/keyboard-emacs'], =>
+        @emacsKeyboardHandler = ace.require('ace/keyboard/emacs').handler
 
   prepareEditor:->
 
@@ -58,7 +59,7 @@ class Ace extends KDView
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
 
-    requirejs ['ace/ext/language_tools'], =>
+    requirejs ['ace/ext-language_tools'], =>
       @editor.setOptions
         enableBasicAutocompletion: yes
         enableSnippets: yes
@@ -266,13 +267,15 @@ class Ace extends KDView
       syntaxChoice = @appStorage.getValue "syntax_#{ext}"
       mode = syntaxChoice or mode or 'text'
 
-    requirejs ["ace/mode/#{mode}"], ({Mode})=>
+    requirejs ["ace/mode-#{mode}"], =>
+      {Mode} = ace.require "ace/mode/#{mode}"
       @editor.getSession().setMode new Mode
       @syntaxMode = mode
 
   setTheme:(themeName, save = yes)->
     themeName or= @appStorage.getValue('theme') or 'base16'
-    requirejs ["ace/theme/#{themeName}"], (callback) =>
+    requirejs ["ace/theme-#{themeName}"], =>
+      callback = ace.require "ace/theme/#{themeName}"
       @editor.setTheme "ace/theme/#{themeName}"
       return  unless save
       @appStorage.setValue 'theme', themeName, =>
