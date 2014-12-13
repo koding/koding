@@ -124,6 +124,37 @@ func TestExpire(t *testing.T) {
 	}
 }
 
+func TestTTL(t *testing.T) {
+	key := "rainbow"
+	_, err := session.TTL(key)
+	if err == nil {
+		t.Errorf("Expected %s error but got nil", "ttl is not set")
+	}
+
+	err = session.Set(key, "connection")
+	if err != nil {
+		t.Errorf("Could not set value of key: %s", err)
+		t.FailNow()
+	}
+	defer session.Del(key)
+
+	err = session.Expire(key, 1*time.Second)
+	if err != nil {
+		t.Errorf("Could not set expire date of the key: %s", err)
+		t.FailNow()
+	}
+
+	ttl, err := session.TTL(key)
+	if err != nil {
+		t.Errorf("Could not get TTL value of the key: %s", err)
+		t.FailNow()
+	}
+
+	if ttl.Seconds() > 1 || ttl.Seconds() < 0 {
+		t.Errorf("Expected TTL between 0 and 1 but got: %d", ttl.Seconds())
+	}
+}
+
 func TestSetWithExpire(t *testing.T) {
 	err := session.Setex("swedish", 1*time.Second, "chef")
 	if err != nil {

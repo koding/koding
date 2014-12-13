@@ -179,6 +179,25 @@ func (r *RedisSession) Expire(key string, timeout time.Duration) error {
 	return nil
 }
 
+// TTL returns remaining TTL value of the given key. An error is returned
+// when TTL is not existed or key is not found
+func (r *RedisSession) TTL(key string) (time.Duration, error) {
+	reply, err := redis.Int(r.Do("TTL", r.AddPrefix(key)))
+	if err != nil {
+		return 0, err
+	}
+
+	if reply == -1 {
+		return 0, errors.New("ttl is not set")
+	}
+
+	if reply == -2 {
+		return 0, errors.New("key does not exist")
+	}
+
+	return time.Duration(reply) * time.Second, nil
+}
+
 // Set key to hold the string value and set key to timeout after a given
 // number of seconds. This command is equivalent to executing the following commands:
 // SET mykey value
