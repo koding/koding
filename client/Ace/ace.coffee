@@ -17,6 +17,8 @@ class Ace extends KDView
     @hide()
     @appStorage.fetchStorage (storage)=>
       requirejs ['ace/ace'], =>
+        @keyHandlers = {}
+
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
@@ -34,12 +36,6 @@ class Ace extends KDView
           @show()
 
           KD.mixpanel 'Open Ace, success'
-
-      requirejs ['ace/keyboard-vim'], =>
-        @vimKeyboardHandler = ace.require('ace/keyboard/vim').handler 
-
-      requirejs ['ace/keyboard-emacs'], =>
-        @emacsKeyboardHandler = ace.require('ace/keyboard/emacs').handler
 
   prepareEditor:->
 
@@ -313,14 +309,25 @@ class Ace extends KDView
     return  unless save
     @appStorage.setValue 'showInvisibles', value
 
-  setKeyboardHandler: (value = 'default') ->
-    handlers =
-      default : null
-      vim     : @vimKeyboardHandler
-      emacs   : @emacsKeyboardHandler
+  setKeyboardHandler: (name = 'default') ->
+    done = (handler) =>
+      @editor.setKeyboardHandler handler
+      @appStorage.setValue 'keyboardHandler', name
 
-    @editor.setKeyboardHandler handlers[value]
-    @appStorage.setValue 'keyboardHandler', value
+    next = (path) =>
+      binding = ace.require path
+      @keyHandlers[name] = binding.handler
+      done binding.handler
+
+    if name is 'default'
+      done null
+    else
+      path = "ace/keyboard/#{name}"
+      unless name of @keyHandlers
+        requirejs [path.replace('board/', 'binding-')], ->
+          next path
+      else
+        done @keyHandlers[name]
 
   setScrollPastEnd: (value = yes) ->
     @editor.setOption 'scrollPastEnd', value
