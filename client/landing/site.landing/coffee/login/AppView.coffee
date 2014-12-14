@@ -63,7 +63,6 @@ module.exports = class LoginView extends JView
       partial    : '<cite></cite>'
       attributes : href : '/'
 
-
     @backToLoginLink = new CustomLinkView
       title       : 'Sign In'
       href        : '/Login'
@@ -91,9 +90,8 @@ module.exports = class LoginView extends JView
         tagName     : "a"
         cssClass    : "github-login"
         partial     : "Sign in using <strong>GitHub</strong>"
-        click       : ->
-
-          KD.singletons.oauthController.openPopup "github"
+        click       : -> KD.singletons.oauthController.openPopup "github"
+    
     else
       @github = new KDCustomHTMLView
         tagName     : "a"
@@ -157,7 +155,6 @@ module.exports = class LoginView extends JView
 
 
   viewAppended:->
-
 
     @setTemplate @pistachio()
     @template.update()
