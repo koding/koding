@@ -69,7 +69,6 @@ module.exports = class LoginView extends JView
       href        : '/Login'
       click       : ->
 
-
     @goToRecoverLink = new CustomLinkView
       cssClass    : 'forgot-link'
       title       : 'Forgot your password?'
