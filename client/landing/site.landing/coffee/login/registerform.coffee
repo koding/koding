@@ -80,12 +80,19 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
       @button.hideLoader()
 
+    KD.singletons.router.on 'RouteInfoHandled', =>
+      @email.icon.unsetTooltip()
+      @username.icon.unsetTooltip()
+
   usernameCheckTimer = null
 
   reset:->
+
     inputs = KDFormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
+    
     super
+    
 
   usernameCheck:(input, event, delay=800)->
     return if event?.which is 9
