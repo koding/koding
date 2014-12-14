@@ -87,5 +87,5 @@ module.exports = class LoginInputView extends JView
 
     @setClass if err then 'validation-error' else 'validation-passed'
 
-  
+
   pistachio:-> "{{> @input}}{{> @placeholder}}{{> @icon}}"
