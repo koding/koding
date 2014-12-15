@@ -131,6 +131,8 @@ class IDEAppController extends AppController
       # opening pages which uses old SplitView.
       # TODO: This needs to be fixed. ~Umut
       KD.singletons.windowController.notifyWindowResizeListeners()
+      
+      @resizeActiveTerminalPane()
 
 
   bindRouteHandler: ->
@@ -677,3 +679,11 @@ class IDEAppController extends AppController
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
     return unless title
     new KDNotificationView { title, cssClass, type, duration }
+
+
+  resizeActiveTerminalPane: ->
+    
+    for ideView in @ideViews
+      pane = ideView.tabView.getActivePane()
+      if pane and pane.view instanceof IDE.TerminalPane
+        pane.view.webtermView.terminal.updateSize()
