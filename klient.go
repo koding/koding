@@ -176,6 +176,9 @@ func main() {
 		"webterm.connect":     true,
 		"webterm.killSession": true,
 		"exec":                true,
+		"klient.share":        true,
+		"klient.unshare":      true,
+		"klient.shared":       true,
 	}
 
 	// we measure every incoming request
