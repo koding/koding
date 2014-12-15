@@ -200,7 +200,7 @@ func newKite() *kite.Kite {
 		}
 	})
 
-	// Metrics, is used by Kloud to get metrics
+	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.PreHandleFunc(usg.Counter) // we measure every incoming request
 	k.HandleFunc("klient.usage", usg.Current)
 
