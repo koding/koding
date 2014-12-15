@@ -24,7 +24,7 @@ class RealtimeController extends KDController
 
     endPoint = '/api/gatekeeper/channel/authenticate'
     data = {name: channelName, typeConstant, group}
-    KD.utils.doXhrRequest {endPoint, data}, callback
+    KD.utils.doXhrRequest {endPoint, data, async: no}, callback
 
   subscribe: (options = {}, callback = noop) ->
 

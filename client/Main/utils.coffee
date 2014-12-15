@@ -1006,6 +1006,7 @@ utils.extend utils,
 
   doXhrRequest: (options = {}, callback) ->
     {type, endPoint, data, async} = options
+    async ?= yes
     type = 'POST'  unless type
 
     return callback {message: "endPoint not set"}  unless endPoint
