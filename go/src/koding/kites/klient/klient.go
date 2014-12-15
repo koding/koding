@@ -236,6 +236,11 @@ func main() {
 		log.Panic(err)
 	}
 
+	k.Log.Info("Going to register over HTTP to kontrol with URL: %s", registerURL)
+	// we run this in background because the previous registration was
+	// successfull
+	go k.RegisterHTTPForever(registerURL)
+
 	k.Log.Info("Running as version %s", VERSION)
 
 	k.Run()
