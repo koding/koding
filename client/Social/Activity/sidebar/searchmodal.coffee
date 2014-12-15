@@ -112,7 +112,7 @@ class SidebarSearchModal extends KDModalView
     else if val is '' and not @searchActive    then return
     else if val is @lastTerm and @searchActive then return
 
-    options      = @getSearchOptions()
+    options      = @getSearchOptions val
     options.name = val
 
     @setClass 'search-active'
@@ -124,9 +124,9 @@ class SidebarSearchModal extends KDModalView
     @fetchForSearch options, @bound 'populate'
 
 
-  getSearchOptions: ->
+  getSearchOptions: (val) ->
 
-    limit = if @searchActive
+    limit = if @searchActive and (val.indexOf @lastTerm) > -1
     then @listController.getItemCount()
     else 0
 
@@ -136,6 +136,7 @@ class SidebarSearchModal extends KDModalView
   reset: ->
 
     @searchActive = no
+    @lastTerm = ''
 
     @unsetClass 'search-active'
     @listController.removeAllItems()
