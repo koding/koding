@@ -44,15 +44,8 @@ func register(k *kite.Kite) error {
 		errors.New("register url is nil")
 	}
 
-	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	if err := k.RegisterForever(registerURL); err != nil {
-		return err
-	}
-
 	k.Log.Info("Going to register over HTTP to kontrol with URL: %s", registerURL)
-	// we run this in background because the previous registration was
-	// successfull
-	go k.RegisterHTTPForever(registerURL)
+	k.RegisterHTTPForever(registerURL)
 
 	return nil
 }
