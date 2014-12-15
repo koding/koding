@@ -217,8 +217,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
-        websocket       : yes
-        locations       : ["~^/kontrol/.*"]
+        disableLocation : yes
       healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
@@ -229,7 +228,8 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
-        disableLocation : yes
+        websocket       : yes
+        locations       : ["~^/kloud/.*"]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
