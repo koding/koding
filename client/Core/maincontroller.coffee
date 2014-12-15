@@ -148,6 +148,8 @@ class MainController extends KDController
 
       tzOffset = (new Date()).getTimezoneOffset()
 
+      return  unless tzOffset?
+
       account.setLastLoginTimezoneOffset lastLoginTimezoneOffset: tzOffset, (err) ->
 
         warn err  if err
