@@ -54,6 +54,7 @@ module.exports = [
   # status bar
   "views/statusbar/syntaxselectormenuitem.coffee"
   "views/statusbar/statusbarmenu.coffee"
+  "views/statusbar/statusbarmenuitem.coffee"
   "views/statusbar/statusbar.coffee"
   "views/statusbar/avatarview.coffee"
   "views/statusbar/chatheadwatchitemview.coffee"
