@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -13,10 +14,10 @@ import (
 
 const publicEcho = "http://echoip.com"
 
-func getRegisterURL(k *kite.Kite) (*url.URL, error) {
+func register(k *kite.Kite) error {
 	ip, err := publicIP()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	scheme := "http"
@@ -24,11 +25,36 @@ func getRegisterURL(k *kite.Kite) (*url.URL, error) {
 		scheme = "https"
 	}
 
-	return &url.URL{
+	registerURL := &url.URL{
 		Scheme: scheme,
 		Host:   ip.String() + ":" + strconv.Itoa(k.Config.Port),
 		Path:   "/kite",
-	}, nil
+	}
+
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		registerURL = u
+	}
+
+	if registerURL == nil {
+		errors.New("register url is nil")
+	}
+
+	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
+	if err := k.RegisterForever(registerURL); err != nil {
+		return err
+	}
+
+	k.Log.Info("Going to register over HTTP to kontrol with URL: %s", registerURL)
+	// we run this in background because the previous registration was
+	// successfull
+	go k.RegisterHTTPForever(registerURL)
+
+	return nil
 }
 
 // publicIP returns an IP that is supposed to be Public.
