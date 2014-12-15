@@ -42,7 +42,29 @@ var (
 	NAME    = protocol.Name
 
 	// this is our main reference to count and measure metrics for the klient
-	usg = usage.NewUsage()
+	// we count only those methods, please add/remove methods here that will
+	// reset the timer of a klient.
+	usg = usage.NewUsage(map[string]bool{
+		"fs.readDirectory":    true,
+		"fs.glob":             true,
+		"fs.readFile":         true,
+		"fs.writeFile":        true,
+		"fs.uniquePath":       true,
+		"fs.getInfo":          true,
+		"fs.setPermissions":   true,
+		"fs.remove":           true,
+		"fs.rename":           true,
+		"fs.createDirectory":  true,
+		"fs.move":             true,
+		"fs.copy":             true,
+		"webterm.getSessions": true,
+		"webterm.connect":     true,
+		"webterm.killSession": true,
+		"exec":                true,
+		"klient.share":        true,
+		"klient.unshare":      true,
+		"klient.shared":       true,
+	})
 
 	// this is used to allow other users to call any klient method.
 	collab = collaboration.New()
@@ -178,34 +200,8 @@ func newKite() *kite.Kite {
 		}
 	})
 
-	// count only those methods, please add/remove methods here that will reset
-	// the timer of a klient.
-	usg.CountedMethods = map[string]bool{
-		"fs.readDirectory":    true,
-		"fs.glob":             true,
-		"fs.readFile":         true,
-		"fs.writeFile":        true,
-		"fs.uniquePath":       true,
-		"fs.getInfo":          true,
-		"fs.setPermissions":   true,
-		"fs.remove":           true,
-		"fs.rename":           true,
-		"fs.createDirectory":  true,
-		"fs.move":             true,
-		"fs.copy":             true,
-		"webterm.getSessions": true,
-		"webterm.connect":     true,
-		"webterm.killSession": true,
-		"exec":                true,
-		"klient.share":        true,
-		"klient.unshare":      true,
-		"klient.shared":       true,
-	}
-
-	// we measure every incoming request
-	k.PreHandleFunc(usg.Counter)
-
 	// Metrics, is used by Kloud to get metrics
+	k.PreHandleFunc(usg.Counter) // we measure every incoming request
 	k.HandleFunc("klient.usage", usg.Current)
 
 	// Collaboration, is used by our Koding.com browser client
