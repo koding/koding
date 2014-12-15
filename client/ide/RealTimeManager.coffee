@@ -25,7 +25,7 @@ class RealTimeManager extends KDObject
   auth: ->
 
     $.ajax
-      url: '/-/google-api',
+      url: '/-/google-api/authorize/drive',
       dataType: 'JSON'
       success: (authToken) =>
         # TODO: Error handling please
@@ -42,7 +42,7 @@ class RealTimeManager extends KDObject
   reauth: ->
 
     $.ajax
-      url: '/-/google-api'
+      url: '/-/google-api/authorize/drive'
       dataType: 'JSON'
       success: (authToken) =>
         gapi.auth.setToken authToken
