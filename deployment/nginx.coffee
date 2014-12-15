@@ -294,7 +294,7 @@ module.exports.create = (KONFIG, environment)->
 
       # special case for kontrol to support additional paths, like /kontrol/heartbeat
       location ~^/kontrol/(.*) {
-        proxy_pass            http://kontrol/$1;
+        proxy_pass            http://kontrol/$1$is_args$args;
 
         # needed for websocket handshake
         proxy_http_version    1.1;
