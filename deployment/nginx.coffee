@@ -96,7 +96,7 @@ createLocations = (KONFIG) ->
   locations = ""
   for name, options of workers when options.ports?
 
-    # don't add those who whis not to be generated, probably because those are
+    # don't add those who whish not to be generated, probably because those are
     # using manually written locations
     continue if options.nginx?.disableLocation?
 
