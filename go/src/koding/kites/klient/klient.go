@@ -26,10 +26,10 @@ var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
-	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
+	flagDebug       = flag.Bool("debug", false, "Debug mode")
 
 	// update paramters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
@@ -92,6 +92,11 @@ func main() {
 
 func newKite() *kite.Kite {
 	k := kite.New(NAME, VERSION)
+
+	if *flagDebug {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
 	conf := config.MustGet()
 	k.Config = conf
 	k.Config.Port = *flagPort
