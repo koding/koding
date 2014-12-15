@@ -2,7 +2,7 @@ package models
 
 // Channel request is used for channel authentication/
 type ChannelRequest struct {
-	Id    int64  `json:"id"`
+	Id    int64  `json:"id,string"`
 	Name  string `json:"name"`
 	Group string `json:"group"`
 	Type  string `json:"typeConstant"`
