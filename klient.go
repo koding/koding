@@ -4,7 +4,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"os"
@@ -43,8 +42,7 @@ var (
 	NAME    = protocol.Name
 
 	// this is our main reference to count and measure metrics for the klient
-	usg  = usage.NewUsage()
-	klog kite.Logger
+	usg = usage.NewUsage()
 
 	// this is used to allow other users to call any klient method.
 	collab = collaboration.New()
@@ -61,15 +59,23 @@ func main() {
 		os.Exit(0)
 	}
 
+	k := newKite()
+
 	// Close the klient.db in any case. Corrupt db would be catastrophic
 	defer collab.Close()
 
+	k.Log.Info("Running as version %s", VERSION)
+	k.Run()
+}
+
+func newKite() *kite.Kite {
 	k := kite.New(NAME, VERSION)
 	conf := config.MustGet()
 	k.Config = conf
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
 	k.Config.Region = *flagRegion
+	k.Id = conf.Id // always boot up with the same id in the kite.key
 
 	// FIXME: It's ugly I know. It's a fix for Koding local development and is
 	// needed
@@ -90,29 +96,25 @@ func main() {
 		k.Config.KontrolURL = u.String()
 	}
 
-	klog = k.Log
-
 	if *flagUpdateInterval < time.Minute {
-		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		k.Log.Warning("Update interval can't be less than one minute. Setting to one minute.")
 		*flagUpdateInterval = time.Minute
 	}
 
 	updater := &Updater{
 		Endpoint: *flagUpdateURL,
 		Interval: *flagUpdateInterval,
+		Log:      k.Log,
 	}
 
 	// before we register check for latest update and re-update itself before
 	// we continue
 	k.Log.Info("Checking for new updates")
 	if err := updater.checkAndUpdate(); err != nil {
-		klog.Warning("Self-update: %s", err)
+		k.Log.Warning("Self-update: %s", err)
 	}
 
 	go updater.Run()
-
-	// always boot up with the same id in the kite.key
-	k.Id = conf.Id
 
 	userIn := func(user string, users ...string) bool {
 		for _, u := range users {
@@ -203,17 +205,15 @@ func main() {
 	// we measure every incoming request
 	k.PreHandleFunc(usg.Counter)
 
-	// this provides us to get the current usage whenever we want
+	// Metrics, is used by Kloud to get metrics
 	k.HandleFunc("klient.usage", usg.Current)
 
-	// also invoke updating
-	k.Handle("klient.update", updater)
-
-	// Collaboration
+	// Collaboration, is used by our Koding.com browser client
 	k.HandleFunc("klient.share", collab.Share)
 	k.HandleFunc("klient.unshare", collab.Unshare)
 	k.HandleFunc("klient.shared", collab.Shared)
 
+	// Filesystem
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
 	k.HandleFunc("fs.readFile", fs.ReadFile)
@@ -227,45 +227,20 @@ func main() {
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
 
+	// Terminal
 	terminal.ResetFunc = usg.Reset
-
 	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
 	k.HandleFunc("webterm.connect", terminal.Connect)
-
 	k.HandleFunc("webterm.killSession", terminal.KillSession)
+
+	// Execution
 	k.HandleFunc("exec", command.Exec)
 
-	registerURL, err := getRegisterURL(k)
-	if err != nil {
-		log.Panic("could not get public ip" + err.Error())
+	if err := register(k); err != nil {
+		panic(err)
 	}
 
-	if *flagRegisterURL != "" {
-		u, err := url.Parse(*flagRegisterURL)
-		if err != nil {
-			k.Log.Fatal("Couldn't parse register url: %s", err)
-		}
-
-		registerURL = u
-	}
-
-	if registerURL == nil {
-		log.Panic("register url is nil")
-	}
-
-	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
-	if err := k.RegisterForever(registerURL); err != nil {
-		log.Panic(err)
-	}
-
-	k.Log.Info("Going to register over HTTP to kontrol with URL: %s", registerURL)
-	// we run this in background because the previous registration was
-	// successfull
-	go k.RegisterHTTPForever(registerURL)
-
-	k.Log.Info("Running as version %s", VERSION)
-
-	k.Run()
+	return k
 }
 
 // Given a string of the form "host", "host:port", or "[ipv6::address]:port",

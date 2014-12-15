@@ -22,6 +22,7 @@ import (
 type Updater struct {
 	Endpoint string
 	Interval time.Duration
+	Log      kite.Logger
 }
 
 type UpdateData struct {
@@ -38,7 +39,7 @@ func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 	go func() {
 		r.LocalKite.Log.Info("klient.Update is called. Updating binary via latest version")
 		if err := u.checkAndUpdate(); err != nil {
-			klog.Warning("klient.update: %s", err)
+			u.Log.Warning("klient.update: %s", err)
 		}
 	}()
 
@@ -75,24 +76,24 @@ func (u *Updater) checkAndUpdate() error {
 		return err
 	}
 
-	klog.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
+	u.Log.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
 	if !current.LessThan(latest) {
 		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)",
 			currentVer, latestVer)
 	}
 
-	klog.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
+	u.Log.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
 
 	basePath := "https://s3.amazonaws.com/koding-klient/" + protocol.Environment + "/latest"
 	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"
 
-	return updateBinary(latestKlientURL)
+	return u.updateBinary(latestKlientURL)
 }
 
-func updateBinary(url string) error {
-	u := update.New()
-	klog.Info("Checking if I can update myself and have the necessary permissions")
-	err := u.CanUpdate()
+func (u *Updater) updateBinary(url string) error {
+	updater := update.New()
+	u.Log.Info("Checking if I can update myself and have the necessary permissions")
+	err := updater.CanUpdate()
 	if err != nil {
 		return err
 	}
@@ -102,14 +103,14 @@ func updateBinary(url string) error {
 		return err
 	}
 
-	klog.Info("Going to update binary at: %s", self)
-	bin, err := fetch(url)
+	u.Log.Info("Going to update binary at: %s", self)
+	bin, err := u.fetch(url)
 	if err != nil {
 		return err
 	}
 
-	klog.Info("Replacing new binary with the old one.")
-	err, errRecover := u.FromStream(bytes.NewBuffer(bin))
+	u.Log.Info("Replacing new binary with the old one.")
+	err, errRecover := updater.FromStream(bytes.NewBuffer(bin))
 	if err != nil {
 		if errRecover != nil {
 			return errRecover
@@ -132,7 +133,7 @@ func updateBinary(url string) error {
 	updating = false
 	updatingMu.Unlock()
 
-	klog.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
+	u.Log.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
 
 	execErr := syscall.Exec(self, args, env)
 	if execErr != nil {
@@ -143,7 +144,7 @@ func updateBinary(url string) error {
 }
 
 func (u *Updater) latestVersion() (string, error) {
-	klog.Info("Getting latest version from %s", u.Endpoint)
+	u.Log.Info("Getting latest version from %s", u.Endpoint)
 	resp, err := http.Get(u.Endpoint)
 	if err != nil {
 		return "", err
@@ -158,8 +159,8 @@ func (u *Updater) latestVersion() (string, error) {
 	return strings.TrimSpace(string(latest)), nil
 }
 
-func fetch(url string) ([]byte, error) {
-	klog.Info("Fetching binary %s", url)
+func (u *Updater) fetch(url string) ([]byte, error) {
+	u.Log.Info("Fetching binary %s", url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -186,12 +187,12 @@ func fetch(url string) ([]byte, error) {
 
 // Run runs the updater in the background for the interval of updater interval.
 func (u *Updater) Run() {
-	klog.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
+	u.Log.Info("Starting Updater with following options:\n\tinterval of: %s\n\tendpoint: %s",
 		u.Interval, u.Endpoint)
 
 	for _ = range time.Tick(u.Interval) {
 		if err := u.checkAndUpdate(); err != nil {
-			klog.Warning("Self-update: %s", err)
+			u.Log.Warning("Self-update: %s", err)
 		}
 	}
 }
