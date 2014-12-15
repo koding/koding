@@ -157,6 +157,25 @@ func main() {
 		return true, nil
 	})
 
+	// Unshare collab users if the klient owner disconnects
+	k.OnDisconnect(func(c *kite.Client) {
+		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
+		if c.Username == k.Config.Username {
+			sharedUsers, err := collab.GetAll()
+			if err != nil {
+				k.Log.Warning("Couldn't unshare users: '%s'", err)
+				return
+			}
+
+			k.Log.Info("Unsharing users '%s'", sharedUsers)
+			for _, user := range sharedUsers {
+				if err := collab.Delete(user); err != nil {
+					k.Log.Warning("Couldn't delete user from storage: '%s'", err)
+				}
+			}
+		}
+	})
+
 	// count only those methods, please add/remove methods here that will reset
 	// the timer of a klient.
 	usg.CountedMethods = map[string]bool{
