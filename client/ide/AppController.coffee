@@ -826,6 +826,8 @@ class IDEAppController extends AppController
 
     return unless fileId
 
+    @rtmFileId = fileId
+
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
@@ -869,7 +871,7 @@ class IDEAppController extends AppController
 
       @registerParticipantSessionId()
       @bindRealtimeEvents()
-      # @listenPings()
+      @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()
@@ -1547,11 +1549,13 @@ class IDEAppController extends AppController
     @rtm = null
 
 
-  showSessionEndedModal: ->
+  showSessionEndedModal: (content) ->
+
+    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
 
     options        =
       title        : 'Session ended'
-      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
+      content      : content
       blocking     : yes
       buttons      :
         quit       :
@@ -1635,5 +1639,10 @@ class IDEAppController extends AppController
       KD.utils.repeat pongInterval, =>
         lastPing = @pingTime.getText()
 
-        if Date.now() - lastPing > diffInterval
-          log 'falling behind'
+        return  if Date.now() - lastPing < diffInterval
+
+        KD.remote.api.Collaboration.stop @rtmFileId, @workspaceData, (err) =>
+          if err
+          then console.warn err
+          else @showSessionEndedModal \
+            "@#{@collaborationHost} has left the session."
