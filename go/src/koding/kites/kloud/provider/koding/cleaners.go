@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multierrors"
@@ -32,6 +33,10 @@ func (p *Provider) RunCleaners(interval time.Duration) {
 		}
 
 		if err := p.CleanStates(CleanUpTimeout); err != nil {
+			p.Log.Warning("Cleaning states vms: %s", err)
+		}
+
+		if err := p.CleanNotInitializedVMs(); err != nil {
 			p.Log.Warning("Cleaning states vms: %s", err)
 		}
 	}
@@ -93,6 +98,88 @@ func (p *Provider) CleanDeletedVMs() error {
 
 		return p.Delete(m.Id)
 	}
+
+	for _, machine := range machines {
+		if err := deleteMachine(machine); err != nil {
+			p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
+				machine.Id.Hex(), err.Error())
+		}
+	}
+
+	machines = nil // garbage collect it
+
+	return nil
+}
+
+// CleanNotInitializedVMs purges AWS machines that were created but wasn't used
+// to finish the final build.
+func (p *Provider) CleanNotInitializedVMs() error {
+	p.Log.Debug("cleaner for NotInitialized vms has started")
+	machines := make([]MachineDocument, 0)
+
+	query := func(c *mgo.Collection) error {
+		// we remove machines which are set to NotInitialized and the state is
+		// older than one hour. This means a build was started, we created a VM
+		// but there was a problem and the build failed, but because the user
+		// didn't continue the build the previously VM was never destroyed.
+		unusedMachines := bson.M{
+			"assignee.inProgress": false,
+			"status.state":        machinestate.NotInitialized.String(),
+			"status.modifiedAt":   bson.M{"$lt": time.Now().UTC().Add(-time.Hour)},
+		}
+
+		fmt.Printf("time.Now().UTC().Add(-time.Minute) %+v\n", time.Now().UTC().Add(-time.Minute))
+
+		machine := MachineDocument{}
+		iter := c.Find(unusedMachines).Batch(50).Iter()
+		for iter.Next(&machine) {
+			machines = append(machines, machine)
+		}
+
+		return iter.Close()
+	}
+
+	if err := p.Session.Run("jMachines", query); err != nil {
+		return err
+	}
+
+	deleteMachine := func(machine MachineDocument) error {
+		// if the machine has an empty instanceId just return
+		if i, ok := machine.Meta["instanceId"]; ok {
+			if instanceId, ok := i.(string); ok {
+				if instanceId == "" {
+					return nil
+				}
+			}
+		} else {
+			// also return if it doesn't exist
+			return nil
+		}
+
+		m := &protocol.Machine{
+			Id:          machine.Id.Hex(),
+			Username:    machine.Credential, // contains the username for koding provider
+			Provider:    machine.Provider,
+			Builder:     machine.Meta,
+			State:       machine.State(),
+			IpAddress:   machine.IpAddress,
+			QueryString: machine.QueryString,
+			Eventer:     &eventer.Events{},
+		}
+		m.Domain.Name = machine.Domain
+
+		p.Log.Info("[%s] cleaner: terminating NotInitialized user machine: %s",
+			m.Id, m.Username)
+
+		err := p.Destroy(m)
+
+		p.Log.Info("[%s] cleaner: cleaning up NotInitialized user machine finished: %s",
+			m.Id, m.Username)
+
+		return err
+	}
+
+	p.Log.Debug("cleaner for NotInitialized vms has found '%d' vms to be cleaned", len(machines))
 
 	for _, machine := range machines {
 		if err := deleteMachine(machine); err != nil {
