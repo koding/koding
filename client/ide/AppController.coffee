@@ -708,7 +708,7 @@ class IDEAppController extends AppController
         {syntaxSelector} = menu
         {ace}            = paneView.aceView
 
-        syntaxSelector.select.setValue ace.getSyntax()
+        syntaxSelector.select.setValue ace.getSyntax() or 'text'
         syntaxSelector.on 'SelectionMade', (value) =>
           ace.setSyntax value
 
@@ -753,6 +753,7 @@ class IDEAppController extends AppController
     view.setViewHeight withReplaceMode
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
 
+  showFindReplaceViewWithReplaceMode: -> @showFindReplaceView yes
 
   hideFindAndReplaceView: ->
 
