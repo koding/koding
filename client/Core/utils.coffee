@@ -28,7 +28,7 @@ utils.extend utils,
       return utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
   isNavigatorApple: ->
-    if navigator.platform.match(/(Mac|iPhone|iPod|iPad)/i) then yes else no
+    /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
 
   getDummyName:->
     u  = KD.utils
