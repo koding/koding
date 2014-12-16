@@ -826,6 +826,8 @@ class IDEAppController extends AppController
 
     return unless fileId
 
+    @rtmFileId = fileId
+
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
