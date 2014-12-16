@@ -26,7 +26,7 @@ class IDE.StatusBarMenu extends KDContextMenu
       [ 'Save'               , 'Meta+S'      , 'saveFile' ]
       [ 'Save As...'         , 'Meta+Shift+S', 'saveAs' ]
       [ 'Save All'           , 'Ctrl+Alt+S'  , 'saveAllFiles' ]
-      @syntaxSelector
+      [ 'Syntax'             , @syntaxSelector ]
       [ 'Preview'            , 'Ctrl+Alt+P'  , 'previewFile' ]
       [ 'Find...'            , 'Meta+F'      , 'showFindReplaceView' ]
       [ 'Find and replace...', 'Meta+Shift+F', 'showFindReplaceViewWithReplaceMode' ]
@@ -50,19 +50,27 @@ class IDE.StatusBarMenu extends KDContextMenu
     items = {}
 
     while (item = list.shift())?
-
-      if isNavigatorApple
-        for k, v of macKeysUnicodeMapping
-          item[1] = item[1].replace(k, v)
-        # by tradition osx is not displaying + for shortcuts
-        item[1] = item[1].replace(/\+/g, '')
-      else
-        for k, v of winKeysMapping
-          item[1] = item[1].replace(k, v)
-
+      isCustomView = typeof item[1] isnt 'string'
       key = item[0]
-      items[key] =
-        shortcut: item[1]
-        callback: appManager.tell.bind appManager, 'IDE', item[2]
+
+      unless isCustomView
+
+        if isNavigatorApple
+          for own k, v of macKeysUnicodeMapping
+            item[1] = item[1].replace(k, v)
+          # by tradition osx is not displaying + for shortcuts
+          item[1] = item[1].replace(/\+/g, '')
+        else
+          for own k, v of winKeysMapping
+            item[1] = item[1].replace(k, v)
+
+        items[key] =
+          shortcut: item[1]
+          callback: appManager.tell.bind appManager, 'IDE', item[2]
+
+      else
+        items[key] =
+          type: 'customView'
+          view: item[1]
 
     return items
