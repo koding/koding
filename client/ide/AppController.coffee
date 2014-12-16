@@ -686,4 +686,4 @@ class IDEAppController extends AppController
     for ideView in @ideViews
       pane = ideView.tabView.getActivePane()
       if pane and pane.view instanceof IDE.TerminalPane
-        pane.view.webtermView.terminal.updateSize()
+        pane.view.webtermView.terminal?.updateSize()
