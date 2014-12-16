@@ -166,19 +166,23 @@ class MainController extends KDController
       eventSuffix = if KD.isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-  doLogout:->
-    mainView = KD.getSingleton("mainView")
+  doLogout: ->
+
+    mainView = KD.getSingleton 'mainView'
+
     KD.logout()
-    storage = new LocalStorage 'Koding'
+
+    storage = new LocalStorage 'Koding', '1.0'
 
     KD.remote.api.JUser.logout (err) =>
+
       mainView._logoutAnimation()
       KD.singletons.localSync.removeLocalContents()
 
       KiteCache.clearAll()
 
-      Cookies.expire "koding082014"
-      Cookies.expire "useOldKoding"
+      Cookies.expire 'koding082014'
+      Cookies.expire 'useOldKoding'
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
@@ -187,6 +191,7 @@ class MainController extends KDController
         @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
         location.reload()
+
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>
