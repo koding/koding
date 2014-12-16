@@ -97,6 +97,6 @@ class KodingKite_KlientKite extends KodingKite
 
       @terminalSessions = sessions
 
-    .catch (err)->
+    .catch (err)=>
       # Reset current sessions if fails
       @terminalSessions = []

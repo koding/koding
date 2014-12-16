@@ -99,18 +99,18 @@ class WebTermView extends KDCustomScrollView
 
   webtermConnect:(mode = 'create')->
 
-    if @reconnectionInProgress
-      return console.info "reconnection is in progress"
-
-    @reconnectionInProgress = yes
-
     options = @generateOptions()
     options.mode = mode
 
+    remote = null
+
     kite = @getKite()
     kite.init()
-    kite.webtermConnect(options).then (remote) =>
-      return  unless remote?
+    kite.webtermConnect(options).then (_remote) =>
+
+      return  unless _remote?
+
+      remote = _remote
 
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=>
@@ -120,7 +120,7 @@ class WebTermView extends KDCustomScrollView
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
-      @reconnectionInProgress = false
+      @_triedToReconnect = no
 
     .catch (err) =>
 
@@ -129,7 +129,6 @@ class WebTermView extends KDCustomScrollView
 
       if err.code is "ErrInvalidSession"
 
-        @reconnectionInProgress = false
         @emit 'TerminalCanceled',
           machineId : @getMachine().uid
           sessionId : @getOptions().session
@@ -138,12 +137,13 @@ class WebTermView extends KDCustomScrollView
         return
 
       else
-
-        @reconnectionInProgress = false
         throw err
 
     kite.on 'close', =>
-      @webtermConnect 'resume'  unless kite.isDisconnected
+
+      if not kite.isDisconnected and not @_triedToReconnect
+        @_triedToReconnect = yes
+        @webtermConnect if remote? then 'resume' else 'create'
 
 
   connectToTerminal: ->

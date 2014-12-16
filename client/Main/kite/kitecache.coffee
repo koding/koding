@@ -1,6 +1,7 @@
 class KiteCache
 
-  storage = window.localStorage
+
+  storage = LocalStorage.getStorage()
 
 
   @generateQueryString = (options) ->
@@ -39,13 +40,19 @@ class KiteCache
       query = @generateQueryString query
 
     delete storage[signed query]
+    return
 
 
   @cache = (query, kite) ->
 
+    unless kite?
+      return warn "[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE"
+
     queryString = @generateQueryString query
     kite = proxifyTransport kite
-    try storage[signed queryString] = JSON.stringify kite
+    kite.cachedAt = +new Date()
+
+    LocalStorage.setValue (signed queryString), (JSON.stringify kite)
 
 
   @get = (query) ->
@@ -58,9 +65,26 @@ class KiteCache
 
     try
       kite = JSON.parse kite
+
     catch e
-      warn "parse failed", e
-      @unset query
-      kite = null
+      warn "[KiteCache] PARSE ERROR", e
+      return @unset query
+
+    if kite.cachedAt?
+
+      cachedAt = new Date kite.cachedAt
+      now      = new Date
+
+      # Add 24 hours on top of cached at date
+      cachedAt.setHours cachedAt.getHours() + 24
+
+      if cachedAt < now
+        warn "[KiteCache] CACHE FOUND BUT OUTDATED, REMOVING..."
+        return @unset queryString
+
+    else
+      warn "[KiteCache] CACHE FOUND BUT DOESNT HAVE TIMESTAMP, REMOVING..."
+      return @unset queryString
+
 
     return kite
