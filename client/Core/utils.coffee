@@ -27,6 +27,9 @@ utils.extend utils,
 
       return utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
+  isNavigatorApple: ->
+    /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
+
   getDummyName:->
     u  = KD.utils
     gr = u.getRandomNumber
