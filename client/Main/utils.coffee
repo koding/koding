@@ -757,7 +757,7 @@ utils.extend utils,
     ]
 
     body = fn body for fn in fns
-    body = KD.utils.expandUsernames body, 'code'
+    body = KD.utils.expandUsernames body, 'code, a'
 
     return body
 
