@@ -1549,11 +1549,13 @@ class IDEAppController extends AppController
     @rtm = null
 
 
-  showSessionEndedModal: ->
+  showSessionEndedModal: (content) ->
+
+    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
 
     options        =
       title        : 'Session ended'
-      content      : "This session ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
+      content      : content
       blocking     : yes
       buttons      :
         quit       :
