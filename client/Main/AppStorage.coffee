@@ -1,6 +1,6 @@
 class AppStorage extends KDObject
 
-  constructor: (appId, version)->
+  constructor: (appId, version = '1.0')->
     @_applicationID = appId
     @_applicationVersion = version
     @reset()
