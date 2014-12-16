@@ -133,7 +133,7 @@ app.use (req, res, next) ->
     next()
 
 
-app.get "/-/google-api",(req, res)->
+app.get '/-/google-api/authorize/drive',(req, res)->
   ggl = require("googleapis")
   gsc = KONFIG.googleapiServiceAccount
   eml = gsc.serviceAccountEmail
