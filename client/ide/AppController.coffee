@@ -708,7 +708,7 @@ class IDEAppController extends AppController
         {syntaxSelector} = menu
         {ace}            = paneView.aceView
 
-        syntaxSelector.select.setValue ace.getSyntax() ? 'text'
+        syntaxSelector.select.setValue ace.getSyntax() or 'text'
         syntaxSelector.on 'SelectionMade', (value) =>
           ace.setSyntax value
 

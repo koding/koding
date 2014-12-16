@@ -1,11 +1,11 @@
 class IDE.StatusBarMenuItem extends JContextMenuItem
 
   viewAppended:->
-    data = @getData()
+    { title, type, shortcut } = @getData()
 
-    return super()  unless data.type isnt 'customView'
+    return super()  unless type isnt 'customView'
 
     @updatePartial """
-      <span class='name'>#{data.title}</span>
-      <span class='shortcut'>#{data.shortcut}</span>
+      <span class='name'>#{title}</span>
+      <span class='shortcut'>#{shortcut}</span>
       """
