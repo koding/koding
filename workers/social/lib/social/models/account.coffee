@@ -732,7 +732,7 @@ module.exports = class JAccount extends jraphical.Module
 
   dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
                   "sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
-                  "szkl", "canthefason", "nitin", "igungor"]
+                  "szkl", "canthefason", "nitin", "igungor", "usirin"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1359,7 +1359,7 @@ module.exports = class JAccount extends jraphical.Module
   setLastLoginTimezoneOffset: secure (client, options, callback) ->
     {lastLoginTimezoneOffset} = options
 
-    return callback new KodingError "timezone offset is not set"  unless lastLoginTimezoneOffset
+    return callback new KodingError "timezone offset is not set"  unless lastLoginTimezoneOffset?
 
     @update $set: {lastLoginTimezoneOffset}, (err) ->
       return callback new KodingError "Could not update last login timezone offset" if err
