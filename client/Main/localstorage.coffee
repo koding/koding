@@ -66,6 +66,14 @@ class LocalStorage extends AppStorage
   getLocalStorageKeys:->
     return Object.keys storage
 
+
+  @setValue = (key, value)->
+    try storage[key] = value
+
+
+  @getStorage = -> storage
+
+
 class LocalStorageController extends KDController
 
   constructor:->

@@ -1,6 +1,7 @@
 class KiteCache
 
-  storage = window.localStorage
+
+  storage = LocalStorage.getStorage()
 
 
   @generateQueryString = (options) ->
@@ -48,7 +49,7 @@ class KiteCache
 
     queryString = @generateQueryString query
     kite = proxifyTransport kite
-    try storage[signed queryString] = JSON.stringify kite
+    LocalStorage.setValue (signed queryString), (JSON.stringify kite)
 
 
   @get = (query) ->
