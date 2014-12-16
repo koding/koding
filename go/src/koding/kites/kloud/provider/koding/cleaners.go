@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -101,13 +100,14 @@ func (p *Provider) CleanDeletedVMs() error {
 	}
 
 	for _, machine := range machines {
-		if err := deleteMachine(machine); err != nil {
-			p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
-				machine.Id.Hex(), err.Error())
-		}
-	}
+		go func(machine MachineDocument) {
+			if err := deleteMachine(machine); err != nil {
+				p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
+					machine.Id.Hex(), err.Error())
+			}
 
-	machines = nil // garbage collect it
+		}(machine)
+	}
 
 	return nil
 }
@@ -196,8 +196,6 @@ func (p *Provider) CleanNotInitializedVMs() error {
 			}
 		}(machine)
 	}
-
-	machines = nil // garbage collect it
 
 	return nil
 }
