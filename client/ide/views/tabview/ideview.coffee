@@ -19,6 +19,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'ShortcutsViewRequested',   @bound 'createShortcutsView'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
+    #absolete: 'preview file' feature was removed (bug #82710798)
     @tabView.on 'PreviewPaneRequested',     (url) -> window.open "http://#{url}"
     @tabView.on 'DrawingPaneRequested',     @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',       @bound 'showView'
@@ -270,6 +271,15 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
+    
+    
+  openSavedFile: (file, content) ->
+      
+      pane = @tabView.getActivePane()
+      if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
+        @tabView.removePane @tabView.getActivePane()
+      @openFile file, content
+
 
 
   openFile: (file, content, callback = noop, emitChange) ->

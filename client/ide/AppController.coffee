@@ -25,7 +25,6 @@ class IDEAppController extends AppController
       'save all files'      : 'saveAllFiles'
       'create new file'     : 'createNewFile'
       'create new terminal' : 'createNewTerminal'
-      'create new browser'  : 'createNewBrowser'
       'create new drawing'  : 'createNewDrawing'
       'collapse sidebar'    : 'collapseSidebar'
       'expand sidebar'      : 'expandSidebar'
@@ -132,6 +131,8 @@ class IDEAppController extends AppController
       # opening pages which uses old SplitView.
       # TODO: This needs to be fixed. ~Umut
       KD.singletons.windowController.notifyWindowResizeListeners()
+
+      @resizeActiveTerminalPane()
 
 
   bindRouteHandler: ->
@@ -414,6 +415,7 @@ class IDEAppController extends AppController
     splitView.resizePanel 39, 0
     @getView().setClass 'sidebar-collapsed'
     floatedPanel.setClass 'floating'
+    @activeFilesPaneName = tabView.activePane.name
     tabView.showPaneByName 'Dummy'
 
     @isSidebarCollapsed = yes
@@ -457,7 +459,7 @@ class IDEAppController extends AppController
     @getView().unsetClass 'sidebar-collapsed'
     floatedPanel.unsetClass 'floating'
     @isSidebarCollapsed = no
-    # filesPane.tabView.showPaneByIndex 0
+    filesPane.tabView.showPaneByName @activeFilesPaneName
 
     # floatedPanel._lastSize = 250
     # splitView.unsetFloatingPanel 0
@@ -507,6 +509,7 @@ class IDEAppController extends AppController
     @activeTabView.emit 'TerminalPaneRequested', options
 
 
+  #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)
   createNewBrowser: (url) ->
 
     url = ''  unless typeof url is 'string'
@@ -821,6 +824,14 @@ class IDEAppController extends AppController
 
     return unless title
     new KDNotificationView { title, cssClass, type, duration }
+
+
+  resizeActiveTerminalPane: ->
+
+    for ideView in @ideViews
+      pane = ideView.tabView.getActivePane()
+      if pane and pane.view instanceof IDE.TerminalPane
+        pane.view.webtermView.terminal?.updateSize()
 
 
   loadCollaborationFile: (fileId) ->
