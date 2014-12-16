@@ -1639,5 +1639,10 @@ class IDEAppController extends AppController
       KD.utils.repeat pongInterval, =>
         lastPing = @pingTime.getText()
 
-        if Date.now() - lastPing > diffInterval
-          log 'falling behind'
+        return  if Date.now() - lastPing < diffInterval
+
+        KD.remote.api.Collaboration.stop @rtmFileId, @workspaceData, (err) =>
+          if err
+          then console.warn err
+          else @showSessionEndedModal \
+            "@#{@collaborationHost} has left the session."
