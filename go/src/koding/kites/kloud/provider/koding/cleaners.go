@@ -3,6 +3,7 @@ package koding
 import (
 	"fmt"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multierrors"
 	"koding/kites/kloud/protocol"
@@ -128,8 +129,6 @@ func (p *Provider) CleanNotInitializedVMs() error {
 			"status.modifiedAt":   bson.M{"$lt": time.Now().UTC().Add(-time.Hour)},
 		}
 
-		fmt.Printf("time.Now().UTC().Add(-time.Minute) %+v\n", time.Now().UTC().Add(-time.Minute))
-
 		machine := MachineDocument{}
 		iter := c.Find(unusedMachines).Batch(50).Iter()
 		for iter.Next(&machine) {
@@ -173,19 +172,29 @@ func (p *Provider) CleanNotInitializedVMs() error {
 
 		err := p.Destroy(m)
 
+		p.Update(m.Id, &kloud.StorageData{
+			// building state is normal, because we can clean up InstanceId
+			// with this mode
+			Type: "building",
+			Data: map[string]interface{}{
+				"instanceId":  "",
+				"queryString": "",
+			},
+		})
+
 		p.Log.Info("[%s] cleaner: cleaning up NotInitialized user machine finished: %s",
 			m.Id, m.Username)
 
 		return err
 	}
 
-	p.Log.Debug("cleaner for NotInitialized vms has found '%d' vms to be cleaned", len(machines))
-
 	for _, machine := range machines {
-		if err := deleteMachine(machine); err != nil {
-			p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
-				machine.Id.Hex(), err.Error())
-		}
+		go func(machine MachineDocument) {
+			if err := deleteMachine(machine); err != nil {
+				p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
+					machine.Id.Hex(), err.Error())
+			}
+		}(machine)
 	}
 
 	machines = nil // garbage collect it
