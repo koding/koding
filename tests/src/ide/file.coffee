@@ -7,28 +7,28 @@ assert  = require 'assert'
 module.exports =
 
 
-  openFile: (browser) ->
+  # openFile: (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   user = helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
 
-    helpers.openFolderContextMenu(browser, user, 'Web')
+  #   helpers.openFolderContextMenu(browser, user, 'Web')
 
-    webPath       = '/home/' + user.username + '/Web'
-    indexSelector = "span[title='" + webPath + '/index.html' + "']"
+  #   webPath       = '/home/' + user.username + '/Web'
+  #   indexSelector = "span[title='" + webPath + '/index.html' + "']"
 
-    browser
-      .waitForElementVisible   'li.expand', 15000
-      .click                   'li.expand'
-      .waitForElementVisible   indexSelector, 15000
-      .click                   indexSelector
-      .click                   indexSelector + ' + .chevron'
-      .waitForElementVisible   'li.open-file', 20000
-      .click                   'li.open-file'
-      .waitForElementVisible   '.indexhtml',   20000 # Assertion
-      .waitForElementVisible   '.ace_content', 20000 # Assertion
-      .assert.containsText     '.ace_content', 'Hello World from HTML by Koding' # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible   'li.expand', 15000
+  #     .click                   'li.expand'
+  #     .waitForElementVisible   indexSelector, 15000
+  #     .click                   indexSelector
+  #     .click                   indexSelector + ' + .chevron'
+  #     .waitForElementVisible   'li.open-file', 20000
+  #     .click                   'li.open-file'
+  #     .waitForElementVisible   '.indexhtml',   20000 # Assertion
+  #     .waitForElementVisible   '.ace_content', 20000 # Assertion
+  #     .assert.containsText     '.ace_content', 'Hello World from HTML by Koding' # Assertion
+  #     .end()
 
 
   createFile: (browser) ->
