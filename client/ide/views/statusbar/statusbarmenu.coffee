@@ -17,7 +17,7 @@ class IDE.StatusBarMenu extends KDContextMenu
         @destroy()
 
   getMenuItems: ->
-    isNavigatorApple = utils.isNavigatorApple()
+    isNavigatorApple = KD.utils.isNavigatorApple()
 
     @syntaxSelector = new IDE.SyntaxSelectorMenuItem
 

@@ -753,9 +753,7 @@ class IDEAppController extends AppController
     view.setViewHeight withReplaceMode
     view.setTextIntoFindInput '' # FIXME: Set selected text if exists
 
-  showFindReplaceViewWithReplaceMode: ->
-
-    @showFindReplaceView yes
+  showFindReplaceViewWithReplaceMode: -> @showFindReplaceView yes
 
   hideFindAndReplaceView: ->
 
