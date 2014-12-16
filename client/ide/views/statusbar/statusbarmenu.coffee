@@ -16,13 +16,8 @@ class IDE.StatusBarMenu extends KDContextMenu
       if event.target.classList.contains 'kdlistitemview'
         @destroy()
 
-  # XXX: this method should be factored out
-  isApple: ->
-    apples = [ "MacIntel", "MacPPC", "Mac68K", "Macintosh", "iPad" ]
-    return apples.indexOf(navigator.platform) > -1
-
   getMenuItems: ->
-    isApple = @isApple()
+    isApple = utils.isApple()
 
     @syntaxSelector = new IDE.SyntaxSelectorMenuItem
 
