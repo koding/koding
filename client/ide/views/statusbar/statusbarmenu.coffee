@@ -17,7 +17,7 @@ class IDE.StatusBarMenu extends KDContextMenu
         @destroy()
 
   getMenuItems: ->
-    isApple = utils.isApple()
+    isNavigatorApple = utils.isNavigatorApple()
 
     @syntaxSelector = new IDE.SyntaxSelectorMenuItem
 
@@ -29,7 +29,7 @@ class IDE.StatusBarMenu extends KDContextMenu
       @syntaxSelector,
       [ 'Preview'            , 'Ctrl+Alt+P'  , 'previewFile' ],
       [ 'Find...'            , 'Meta+F'      , 'showFindReplaceView' ],
-      [ 'Find and replace...', 'Meta+Shift+F', 'showFindReplaceView' ],
+      [ 'Find and replace...', 'Meta+Shift+F', 'showFindReplaceViewWithReplaceMode' ],
       [ 'Find in files...'   , 'Ctrl+Alt+F'  , 'showContentSearch' ],
       [ 'Jump to file...'    , 'Ctrl+Alt+O'  , 'showFileFinder' ],
       [ 'Go to line...'      , 'Meta+G'      , 'goToLine' ]
@@ -54,7 +54,7 @@ class IDE.StatusBarMenu extends KDContextMenu
       if item is @syntaxSelector
         items.customView = @syntaxSelector
         continue
-      if isApple
+      if isNavigatorApple
         for k, v of macKeysUnicodeMapping
           item[1] = item[1].replace(k, v)
         # by tradition osx is not displaying + for shortcuts
