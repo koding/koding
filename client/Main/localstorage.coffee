@@ -1,12 +1,32 @@
 class LocalStorage extends AppStorage
 
+
+  storage = null
+
+
+  @createPolyfillAPI   = ->
+
+    storage.removeItem = (key) -> delete storage[key]
+    storage.setItem    = (key, val) -> storage[key] = val
+    storage.getItem    = (key) -> storage[key]
+    storage.clear      = ->
+      storage = KD.utils.dict()
+      LocalStorage.createPolyfillAPI()
+      return
+
+    return
+
+
   # This is necessary to check if its allowed to use window.localStorage
   # otherwise it crashes the rest of the code
   try
     storage = window.localStorage
+
   catch e
     warn "#{e.name} occurred while getting localStorage:", e.message
-    storage = {}
+
+    storage = KD.utils.dict()
+    LocalStorage.createPolyfillAPI()
 
 
   fetchStorage: ->
