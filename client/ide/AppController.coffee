@@ -871,7 +871,7 @@ class IDEAppController extends AppController
 
       @registerParticipantSessionId()
       @bindRealtimeEvents()
-      # @listenPings()
+      @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()
