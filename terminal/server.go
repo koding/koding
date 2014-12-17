@@ -10,9 +10,13 @@ import (
 // Server is the type of object that is sent to the connected client.
 // Represents a running shell process on the server.
 type Server struct {
-	Session          string `json:"session"`
-	remote           Remote
-	pty              *pty.PTY
+	Session string `json:"session"`
+
+	// never expose the following fields as we return them back to the client.
+	// Dnode is decoding it and client side get mad about it.
+	remote Remote
+	pty    *pty.PTY
+
 	currentSecond    int64
 	messageCounter   int
 	byteCounter      int
