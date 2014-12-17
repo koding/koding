@@ -4,8 +4,6 @@ package terminal
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"koding/tools/pty"
@@ -17,32 +15,13 @@ import (
 	"unicode/utf8"
 
 	"github.com/koding/kite"
-	"github.com/koding/kite/dnode"
 )
 
-const randomStringLength = 24 // 144 bit base64 encoded
-
-var ResetFunc func()
-
-// Server is the type of object that is sent to the connected client.
-// Represents a running shell process on the server.
-type Server struct {
-	Session          string `json:"session"`
-	remote           Remote
-	pty              *pty.PTY
-	currentSecond    int64
-	messageCounter   int
-	byteCounter      int
-	lineFeeedCounter int
-	throttling       bool
+type Terminal struct {
+	InputHook func()
 }
 
-type Remote struct {
-	Output       dnode.Function
-	SessionEnded dnode.Function
-}
-
-func KillSession(r *kite.Request) (interface{}, error) {
+func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Session string
 	}
@@ -62,7 +41,7 @@ func KillSession(r *kite.Request) (interface{}, error) {
 	return true, nil
 }
 
-func GetSessions(r *kite.Request) (interface{}, error) {
+func (t *Terminal) GetSessions(r *kite.Request) (interface{}, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("Could not get home dir: %s", err)
@@ -76,7 +55,7 @@ func GetSessions(r *kite.Request) (interface{}, error) {
 	return sessions, nil
 }
 
-func Connect(r *kite.Request) (interface{}, error) {
+func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Remote       Remote
 		Session      string
@@ -111,9 +90,10 @@ func Connect(r *kite.Request) (interface{}, error) {
 
 	// We will return this object to the client.
 	server := &Server{
-		Session: command.Session,
-		remote:  params.Remote,
-		pty:     p,
+		Session:   command.Session,
+		remote:    params.Remote,
+		pty:       p,
+		inputHook: t.InputHook,
 	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
@@ -200,46 +180,6 @@ func Connect(r *kite.Request) (interface{}, error) {
 	return server, nil
 }
 
-// Input is called when some text is written to the terminal.
-func (s *Server) Input(d *dnode.Partial) {
-	data := d.MustSliceOfLength(1)[0].MustString()
-
-	// this is only used for koding's own purpose to count wheter an
-	// input was called or not. There is probably better ways, like
-	// exposing messageCounter variable and check it. However this just
-	// works now.
-	ResetFunc()
-
-	// There is no need to protect the Write() with a mutex because
-	// Kite Library guarantees that only one message is processed at a time.
-	s.pty.Master.Write([]byte(data))
-}
-
-// ControlSequence is called when a non-printable key is pressed on the terminal.
-func (s *Server) ControlSequence(d *dnode.Partial) {
-	data := d.MustSliceOfLength(1)[0].MustString()
-	s.pty.MasterEncoded.Write([]byte(data))
-}
-
-func (s *Server) SetSize(d *dnode.Partial) {
-	args := d.MustSliceOfLength(2)
-	x := args[0].MustFloat64()
-	y := args[1].MustFloat64()
-	s.setSize(x, y)
-}
-
-func (s *Server) setSize(x, y float64) {
-	s.pty.SetSize(uint16(x), uint16(y))
-}
-
-func (s *Server) Close(d *dnode.Partial) {
-	s.pty.Signal(syscall.SIGHUP)
-}
-
-func (s *Server) Terminate(d *dnode.Partial) {
-	s.Close(nil)
-}
-
 func filterInvalidUTF8(buf []byte) []byte {
 	i := 0
 	j := 0
@@ -257,10 +197,4 @@ func filterInvalidUTF8(buf []byte) []byte {
 		i += l
 	}
 	return buf[:j]
-}
-
-func randomString() string {
-	r := make([]byte, randomStringLength*6/8)
-	rand.Read(r)
-	return base64.URLEncoding.EncodeToString(r)
 }

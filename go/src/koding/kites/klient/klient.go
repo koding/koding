@@ -229,10 +229,13 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.copy", fs.Copy)
 
 	// Terminal
-	terminal.ResetFunc = usg.Reset
-	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
-	k.HandleFunc("webterm.connect", terminal.Connect)
-	k.HandleFunc("webterm.killSession", terminal.KillSession)
+	term := &terminal.Terminal{
+		InputHook: usg.Reset,
+	}
+
+	k.HandleFunc("webterm.getSessions", term.GetSessions)
+	k.HandleFunc("webterm.connect", term.Connect)
+	k.HandleFunc("webterm.killSession", term.KillSession)
 
 	// Execution
 	k.HandleFunc("exec", command.Exec)

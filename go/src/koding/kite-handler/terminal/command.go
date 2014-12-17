@@ -2,6 +2,8 @@ package terminal
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -13,9 +15,10 @@ import (
 )
 
 const (
-	sessionPrefix     = "koding"
-	defaultShell      = "/bin/bash"
-	defaultScreenPath = "/usr/bin/screen"
+	sessionPrefix      = "koding"
+	defaultShell       = "/bin/bash"
+	defaultScreenPath  = "/usr/bin/screen"
+	randomStringLength = 24 // 144 bit base64 encoded
 )
 
 type Command struct {
@@ -162,4 +165,10 @@ func killSession(session string) error {
 
 func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
+}
+
+func randomString() string {
+	r := make([]byte, randomStringLength*6/8)
+	rand.Read(r)
+	return base64.URLEncoding.EncodeToString(r)
 }
