@@ -72,6 +72,10 @@ module.exports = class UserPolicyView extends JView
         <li>
           Malicious content;
         </li>
+        
+        <li>
+          Any type of proxy services including but not exclusively VPN servers, TOR servers, etc.
+        </li>
 
         <li>
           BitTorrenting or Filesharing;
