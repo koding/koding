@@ -88,7 +88,7 @@ func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 
 // KillSessions kills all available screen sessions
 func (t *Terminal) KillSessions(r *kite.Request) (interface{}, error) {
-	if err := killSessions(); err != nil {
+	if err := killSessions(r.Username); err != nil {
 		return nil, err
 	}
 
