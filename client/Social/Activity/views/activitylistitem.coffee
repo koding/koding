@@ -283,7 +283,10 @@ class ActivityListItemView extends KDListItemView
           @destroy()
 
       article.classList.add 'tall'
-      @addSubView @showMore, '.activity-content-wrapper'
+      if @$('.activity-content-wrapper .mark-for-show-more').length > 0
+        @addSubView @showMore, '.mark-for-show-more'
+      else 
+        @addSubView @showMore, '.activity-content-wrapper'
 
 
   pistachio: ->
@@ -300,6 +303,7 @@ class ActivityListItemView extends KDListItemView
       {{> @resend}}
       {{> @embedBox}}
       {{> @actionLinks}}
+      <mark class="mark-for-show-more"> </mark>
       {{> @likeSummaryView}}
     </div>
     {{> @commentBox}}
