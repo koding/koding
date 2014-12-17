@@ -223,26 +223,28 @@ func newKite() *kite.Kite {
 	// Unshare collab users if the klient owner disconnects
 	k.OnDisconnect(func(c *kite.Client) {
 		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
-		if c.Username == k.Config.Username {
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				k.Log.Warning("Couldn't unshare users: '%s'", err)
-				return
+		if c.Username != k.Config.Username {
+			return // we don't care for others
+		}
+
+		sharedUsers, err := collab.GetAll()
+		if err != nil {
+			k.Log.Warning("Couldn't unshare users: '%s'", err)
+			return
+		}
+
+		if len(sharedUsers) == 0 {
+			return // nothing to do ...
+		}
+
+		k.Log.Info("Unsharing users '%s'", sharedUsers)
+		for _, user := range sharedUsers {
+			if err := collab.Delete(user); err != nil {
+				k.Log.Warning("Couldn't delete user from storage: '%s'", err)
 			}
 
-			if len(sharedUsers) == 0 {
-				return // nothing to do ...
-			}
-
-			k.Log.Info("Unsharing users '%s'", sharedUsers)
-			for _, user := range sharedUsers {
-				if err := collab.Delete(user); err != nil {
-					k.Log.Warning("Couldn't delete user from storage: '%s'", err)
-				}
-
-				// close all active sessions of the current
-				term.CloseSessions(user)
-			}
+			// close all active sessions of the current
+			term.CloseSessions(user)
 		}
 	})
 
