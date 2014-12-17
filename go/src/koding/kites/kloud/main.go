@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	_ "expvar"
 	"fmt"
 	"io/ioutil"
@@ -14,18 +15,18 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
-	"koding/kites/kloud/koding"
 	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/provider/koding"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/kloudctl/command"
 	kloudprotocol "koding/kites/kloud/protocol"
 
 	"github.com/koding/metrics"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
@@ -78,7 +79,6 @@ type Config struct {
 
 	// --- KONTROL CONFIGURATION ---
 	Public      bool   // Try to register with a public ip
-	Proxy       bool   // Try to register behind a koding proxy
 	RegisterURL string // Explicitly register with this given url
 }
 
@@ -113,25 +113,12 @@ func main() {
 		registerURL = u
 	}
 
-	if conf.Proxy {
-		k.Log.Info("Proxy mode is enabled")
-		// Koding proxies in production only
-		proxyQuery := &protocol.KontrolQuery{
-			Username:    "koding",
-			Environment: "production",
-			Name:        "proxy",
-		}
-
-		k.Log.Info("Seaching proxy: %#v", proxyQuery)
-		go k.RegisterToProxy(registerURL, proxyQuery)
-	} else {
-		if err := k.RegisterForever(registerURL); err != nil {
-			k.Log.Fatal(err.Error())
-		}
+	if err := k.RegisterForever(registerURL); err != nil {
+		k.Log.Fatal(err.Error())
 	}
 
+	// DataDog listens to it
 	go func() {
-		// TODO ~ parameterize this
 		err := http.ListenAndServe("0.0.0.0:6060", nil)
 		k.Log.Error(err.Error())
 	}()
@@ -173,8 +160,8 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
-		AccessKey: "AKIAIKAVWAYVSMCW4Z5A",
-		SecretKey: "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",
+		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey: "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",
 	}
 
 	stats, err := metrics.NewDogStatsD("kloud.aws")
@@ -186,11 +173,16 @@ func newKite(conf *Config) *kite.Kite {
 	domainStorage := koding.NewDomainStorage(db)
 
 	kodingProvider := &koding.Provider{
-		Kite:              k,
-		Log:               newLogger("koding", conf.DebugMode),
-		Session:           db,
-		DomainStorage:     domainStorage,
-		EC2Clients:        multiec2.New(auth, []string{"us-east-1", "ap-southeast-1"}),
+		Kite:          k,
+		Log:           newLogger("koding", conf.DebugMode),
+		Session:       db,
+		DomainStorage: domainStorage,
+		EC2Clients: multiec2.New(auth, []string{
+			"us-east-1",
+			"ap-southeast-1",
+			"us-west-2",
+			"eu-west-1",
+		}),
 		DNS:               dnsInstance,
 		Bucket:            koding.NewBucket("koding-klient", klientFolder, auth),
 		Test:              conf.TestMode,
@@ -233,7 +225,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
-	go kodingProvider.RunCleaners(time.Minute)
+	go kodingProvider.RunCleaners(time.Minute * 2)
 
 	kld := kloud.NewWithDefaults()
 	kld.Storage = kodingProvider
@@ -246,34 +238,6 @@ func newKite(conf *Config) *kite.Kite {
 	if err != nil {
 		panic(err)
 	}
-
-	// Admin bypass if the username is koding or kloud
-	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		if r.Args == nil {
-			return nil, nil
-		}
-
-		if _, err := r.Args.SliceOfLength(1); err != nil {
-			return nil, nil
-		}
-
-		var args struct {
-			MachineId string
-			Username  string
-		}
-
-		if err := r.Args.One().Unmarshal(&args); err != nil {
-			return nil, nil
-		}
-
-		if koding.IsAdmin(r.Username) && args.Username != "" {
-			k.Log.Warning("[%s] ADMIN COMMAND: replacing username from '%s' to '%s'",
-				args.MachineId, r.Username, args.Username)
-			r.Username = args.Username
-		}
-
-		return nil, nil
-	})
 
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
@@ -294,6 +258,14 @@ func newKite(conf *Config) *kite.Kite {
 
 	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+
+	// This is a custom authenticator just for kloudctl
+	k.Authenticators["kloudctl"] = func(r *kite.Request) error {
+		if r.Auth.Key != command.KloudSecretKey {
+			return errors.New("wrong secret key passed, you are not authenticated")
+		}
+		return nil
+	}
 
 	return k
 }

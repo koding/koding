@@ -1,6 +1,5 @@
 # Koding (the repository)
 
-
 [![wercker status](https://app.wercker.com/status/8da42fd35762f3883b96b6d85b3f0c46/m "wercker status")](https://app.wercker.com/project/bykey/8da42fd35762f3883b96b6d85b3f0c46)
 
 Welcome! This is the main Koding repository. Below you can find some
@@ -40,7 +39,9 @@ information about the folder structure.
 * team:    a folder for our remote working developers. You can find the working
            hours of every remote working developers here.
 
-* tests:   PLEASE FILL HERE
+* tests:   folder contains autotests
+           Latest updates about autotests status can be found here:
+           https://github.com/koding/koding/blob/master/tests/coverage.csv 
 
 * vagrant: PLEASE FILL HERE
 

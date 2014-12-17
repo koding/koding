@@ -184,7 +184,7 @@ module.exports = class SocialChannel extends Base
     return callback message: "channel id is required for leaving a channel"  unless data.channelId
 
     { delegate } = client.connection
-    data.accountIds = [ delegate.socialApiId ]
+    data.accountIds = [ delegate.socialApiId ]  unless data.accountIds
 
     doRequest 'removeParticipants', client, data, callback
 

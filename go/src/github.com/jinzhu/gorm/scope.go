@@ -201,7 +201,7 @@ func (scope *Scope) TableName() string {
 			}
 		}
 
-		str := toSnake(data.Type().Name())
+		str := ToSnake(data.Type().Name())
 
 		if !scope.db.parent.singularTable {
 			for index, reg := range pluralMapKeys {
@@ -251,7 +251,7 @@ func (scope *Scope) Fields() []*Field {
 
 		var field Field
 		field.Name = fieldStruct.Name
-		field.DBName = toSnake(fieldStruct.Name)
+		field.DBName = ToSnake(fieldStruct.Name)
 
 		value := indirectValue.FieldByName(fieldStruct.Name)
 		field.Value = value.Interface()

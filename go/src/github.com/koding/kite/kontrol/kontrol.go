@@ -35,7 +35,7 @@ var (
 
 	// HeartbeatDelay is the compensation interval which is added to the
 	// heartbeat to avoid network delays
-	HeartbeatDelay = time.Second * 10
+	HeartbeatDelay = time.Second * 20
 
 	// UpdateInterval is the interval in which the key gets updated
 	// periodically. Keeping it low increase the write load to the storage, so
@@ -63,6 +63,9 @@ type Kontrol struct {
 	privateKey string // for signing tokens
 
 	clientLocks *IdLock
+
+	heartbeats   map[string]*time.Timer
+	heartbeatsMu sync.Mutex // protects each clients heartbeat timer
 
 	// storage defines the storage of the kites.
 	storage Storage
@@ -98,12 +101,16 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 		privateKey:  privateKey,
 		log:         k.Log,
 		clientLocks: NewIdlock(),
+		heartbeats:  make(map[string]*time.Timer, 0),
 	}
 
 	k.HandleFunc("register", kontrol.handleRegister)
 	k.HandleFunc("registerMachine", kontrol.handleMachine).DisableAuthentication()
 	k.HandleFunc("getKites", kontrol.handleGetKites)
 	k.HandleFunc("getToken", kontrol.handleGetToken)
+
+	k.HandleFunc("registerHTTP", kontrol.handleRegisterHTTP)
+	k.HandleHTTPFunc("/heartbeat", kontrol.handleHeartbeat)
 
 	return kontrol
 }

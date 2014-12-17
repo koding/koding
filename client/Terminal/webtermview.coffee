@@ -7,8 +7,6 @@ class WebTermView extends KDCustomScrollView
 
     super options, data
 
-    @initBackoff()
-
     KD.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
 
 
@@ -46,7 +44,6 @@ class WebTermView extends KDCustomScrollView
 
     @terminal.sessionEndedCallback = (sessions) =>
       @emit "WebTerm.terminated"
-      @clearBackoffTimeout()
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
@@ -58,7 +55,6 @@ class WebTermView extends KDCustomScrollView
       @setFocus no
       KD.getSingleton('windowController').removeLayer this
 
-    @on "KDObjectWillBeDestroyed", @bound "clearBackoffTimeout"
 
     @getElement().addEventListener "mousedown", (event) =>
       @terminal.mousedownHappened = yes
@@ -103,18 +99,18 @@ class WebTermView extends KDCustomScrollView
 
   webtermConnect:(mode = 'create')->
 
-    if @reconnectionInProgress
-      return console.info "reconnection is in progress"
-
-    @reconnectionInProgress = yes
-
     options = @generateOptions()
     options.mode = mode
 
+    remote = null
+
     kite = @getKite()
     kite.init()
-    kite.webtermConnect(options).then (remote) =>
-      return  unless remote?
+    kite.webtermConnect(options).then (_remote) =>
+
+      return  unless _remote?
+
+      remote = _remote
 
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=>
@@ -124,7 +120,7 @@ class WebTermView extends KDCustomScrollView
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
-      @reconnectionInProgress = false
+      @_triedToReconnect = no
 
     .catch (err) =>
 
@@ -133,7 +129,6 @@ class WebTermView extends KDCustomScrollView
 
       if err.code is "ErrInvalidSession"
 
-        @reconnectionInProgress = false
         @emit 'TerminalCanceled',
           machineId : @getMachine().uid
           sessionId : @getOptions().session
@@ -142,12 +137,13 @@ class WebTermView extends KDCustomScrollView
         return
 
       else
-
-        @reconnectionInProgress = false
         throw err
 
     kite.on 'close', =>
-      @webtermConnect 'resume'  unless kite.isDisconnected
+
+      if not kite.isDisconnected and not @_triedToReconnect
+        @_triedToReconnect = yes
+        @webtermConnect if remote? then 'resume' else 'create'
 
 
   connectToTerminal: ->
@@ -166,85 +162,6 @@ class WebTermView extends KDCustomScrollView
 
       {mode} = @getOptions()
       @webtermConnect mode
-
-    KD.getSingleton("kiteController").on "KiteError", (err) =>
-
-      warn "kite error:", err
-
-      @reconnected = no
-      {code, serviceGenericName} = err
-
-      machineName = @getMachine().getName()
-
-      ErrorLog.create "KiteError", {
-        code, serviceGenericName, machineName, reason: err?.message
-      }
-
-  # FIXME GG
-  #     if code is 503 and serviceGenericName.indexOf("kite-os") is 0
-  #       @reconnectAttemptFailed serviceGenericName, vmName
-
-  # reconnectAttemptFailed: (serviceGenericName, vmName) ->
-  #   return  if @reconnected or not serviceGenericName
-
-  #   kiteController = KD.getSingleton "kiteController"
-  #   [prefix, kiteType, kiteRegion] = serviceGenericName.split "-"
-  #   serviceName = "~#{kiteType}-#{kiteRegion}~#{vmName}"
-
-  #   @setBackoffTimeout(
-  #     @bound "attemptToReconnect"
-  #     @bound "handleConnectionFailure"
-  #   )
-
-  #   kiteController.kiteInstances[serviceName]?.cycleChannel()
-
-  # attemptToReconnect: ->
-  #   return  if @reconnected
-  #   @getDelegate().notify
-  #     cssClass  : "error"
-  #     title     : "Trying to reconnect your Terminal"
-  #     duration  : 2 * 60 * 1000 # 2 mins
-
-  #   hasResponse  = no
-
-  #   {vm} = @getOptions()
-  #   {hostnameAlias, region} = vm
-  #   {vmController, kontrol} = KD.singletons
-
-  #   kite =
-  #     if KD.useNewKites
-  #     then kontrol.kites.terminal[hostnameAlias]
-  #     else vmController.terminalKites[hostnameAlias]
-  #   kite?.webtermGetSessions().then (sessions) =>
-  #     hasResponse = yes
-  #     return if @reconnected
-
-  #   @handleReconnect()
-
-  # handleReconnect: (force = no) ->
-  #   return  if not force and @reconnected
-
-  #   @clearBackoffTimeout()
-  #   options =
-  #     session : @sessionId
-  #     vm      : @getOption('vm')
-
-  #   @emit "WebTermNeedsToBeRecovered", options
-  #   @reconnected = yes
-
-  # handleConnectionFailure: ->
-  #   title = "Sorry, something is wrong with our backend."
-
-  #   ErrorLog.create title
-
-  #   return if @failedToReconnect
-  #   @reconnected       = no
-  #   @failedToReconnect = yes
-  #   @clearBackoffTimeout()
-  #   @getDelegate().notify
-  #     title     : title
-  #     cssClass  : "error"
-  #     duration  : 15 * 1000 # 15 secs
 
 
   destroy: ->
@@ -325,8 +242,6 @@ class WebTermView extends KDCustomScrollView
       mainView = KD.getSingleton "mainView"
       mainView.toggleFullscreen()
       event.preventDefault()
-
-  initBackoff: KDBroker.Broker::initBackoff
 
 
   mainTabPaneShown: (pane) ->

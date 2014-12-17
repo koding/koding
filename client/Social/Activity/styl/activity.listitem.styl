@@ -514,12 +514,22 @@ activity.listitem.styl
           margin          4px 10px 0 0
 
   &.editing
+    .edit-widget-wrapper
+      display             block
+
     .activity-content-wrapper
       > article
         display           none
 
       .activity-actions
         display           none
+
+      .cancel-editing
+        background        transparent
+        shadow            none
+
+        .button-title
+          color           #999
 
 
 .kdlistitemview-activity.preview
@@ -587,55 +597,112 @@ activity.listitem.styl
     rounded                 3px 3px 0 0
     borderBox()
 
-  .activity-content-wrapper > .link-embed-box
-    padding                 0 0 15px
-    overflow                visible
+  .edit-widget-wrapper
+    display                 none
+
+.link-embed-box
+  width                     auto
+  position                  relative
+  background                #fff
+  margin-bottom             14px
+  border                    1px solid #efefef
+
+  .embed-link-view
+    margin                  0
+    border                  none
+    width                   auto
+    height                  100px
+    padding                 0
+
+  .preview-image
+    size                    100px, 100px
+    border                  none
+    fl()
+
+  .preview-text
+    kalc                    width (100% \- 124px)
+    height                  100px
+    padding                 10px
+    overflow                hidden
     borderBox()
+    fl()
 
-    .embed-link-view
+    a
+      text-decoration       none
 
-      .preview-image
-        display             block
-        margin              0
-        padding             0
-        z-index             10
+    h4
+      display               inline-block
+      font-size             12px
+      font-weight           600
+      margin-bottom         8px
+      margin-right          60px
+      color                 #636363
+      white-space           nowrap
+      text-overflow         ellipsis
 
-        img
-          display           block
-          margin            0
-          padding           0
-          width             100%
-          min-height        153px
+    .description
+      display               block
+      height                50px
+      overflow              hidden
+      font-size             12px
+      color                 #3b3b3b
+      line-height           16px
 
-      .preview-text
-        padding             17px
-        border              1px solid #e5e5e5
-        z-index             9
-        borderBox()
+    .provider-info
+      height                14px
+      color                 #acacac
+      font-size             12px
+      abs                   0 0 12px 10px
 
-        a.preview-text-link
-          noTextDeco()
+  // .activity-content-wrapper > .link-embed-box
+  //   padding                 0 0 15px
+  //   overflow                visible
+  //   borderBox()
 
-          h4
-            font-size       14px
-            line-height     19px
-            color           #4f4f4f
-            display         block
+  //   .embed-link-view
 
-        a.description
-          padding           14px 0
-          color             #727272
-          font-size         12px
-          line-height       18px
-          display           block
-          opacity           .99
+  //     .preview-image
+  //       display             block
+  //       margin              0
+  //       padding             0
+  //       z-index             10
 
-        .provider-info
-          overflow          visible
-          color             #bdbdbd
-          opacity           .99
-          font-size         12px
-          line-height       16px
+  //       img
+  //         display           block
+  //         margin            0
+  //         padding           0
+  //         width             100%
+  //         min-height        153px
 
-      .preview-image + .preview-text
-        border-top-color    #d2d2d2
+  //     .preview-text
+  //       padding             17px
+  //       border              1px solid #e5e5e5
+  //       z-index             9
+  //       borderBox()
+
+  //       a.preview-text-link
+  //         noTextDeco()
+
+  //         h4
+  //           font-size       14px
+  //           line-height     19px
+  //           color           #4f4f4f
+  //           display         block
+
+  //       a.description
+  //         padding           14px 0
+  //         color             #727272
+  //         font-size         12px
+  //         line-height       18px
+  //         display           block
+  //         opacity           .99
+
+  //       .provider-info
+  //         overflow          visible
+  //         color             #bdbdbd
+  //         opacity           .99
+  //         font-size         12px
+  //         line-height       16px
+
+  //     .preview-image + .preview-text
+  //       border-top-color    #d2d2d2

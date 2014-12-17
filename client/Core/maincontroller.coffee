@@ -74,14 +74,12 @@ class MainController extends KDController
     KD.registerSingleton 'notificationController',    new NotificationController
     KD.registerSingleton 'linkController',            new LinkController
     KD.registerSingleton 'display',                   new ContentDisplayController
-    KD.registerSingleton 'kiteController',            new KiteController
     KD.registerSingleton 'router',           router = new KodingRouter
     KD.registerSingleton 'localStorageController',    new LocalStorageController
     KD.registerSingleton 'oauthController',           new OAuthController
     KD.registerSingleton 'groupsController',          new GroupsController
     KD.registerSingleton 'activityController',        new ActivityController
     KD.registerSingleton 'paymentController',         new PaymentController
-    # KD.registerSingleton 'vmController',              new VirtualizationController
     KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
     KD.registerSingleton 'helpController',            new HelpController
@@ -138,9 +136,8 @@ class MainController extends KDController
     @on 'pageLoaded.as.loggedIn', (account)-> # ignore othter parameters
       KD.utils.setPreferredDomain account if account
 
-    if KD.useNewKites
+    unless firstLoad
       (KD.getSingleton 'kontrol').reauthenticate()
-      # (KD.getSingleton 'kontrolProd').reauthenticate()
 
     account.fetchMyPermissionsAndRoles (err, res)=>
 
@@ -148,6 +145,13 @@ class MainController extends KDController
 
       KD.config.roles       = res.roles
       KD.config.permissions = res.permissions
+
+      tzOffset = (new Date()).getTimezoneOffset()
+
+      account.setLastLoginTimezoneOffset lastLoginTimezoneOffset: tzOffset, (err) ->
+
+        warn err  if err
+
 
       @ready @emit.bind this, "AccountChanged", account, firstLoad
 
@@ -162,17 +166,23 @@ class MainController extends KDController
       eventSuffix = if KD.isLoggedIn() then "loggedIn" else "loggedOut"
       @emit "#{eventPrefix}.#{eventSuffix}", account, connectedState, firstLoad
 
-  doLogout:->
-    mainView = KD.getSingleton("mainView")
+  doLogout: ->
+
+    mainView = KD.getSingleton 'mainView'
+
     KD.logout()
-    storage = new LocalStorage 'Koding'
+
+    storage = new LocalStorage 'Koding', '1.0'
 
     KD.remote.api.JUser.logout (err) =>
+
       mainView._logoutAnimation()
       KD.singletons.localSync.removeLocalContents()
 
-      Cookies.expire "koding082014"
-      Cookies.expire "useOldKoding"
+      KiteCache.clearAll()
+
+      Cookies.expire 'koding082014'
+      Cookies.expire 'useOldKoding'
 
       wc = KD.singleton 'windowController'
       wc.clearUnloadListeners()
@@ -181,6 +191,7 @@ class MainController extends KDController
         @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
         location.reload()
+
 
   attachListeners:->
     # @on 'pageLoaded.as.(loggedIn|loggedOut)', (account)=>

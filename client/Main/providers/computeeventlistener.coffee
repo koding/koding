@@ -1,13 +1,11 @@
 class ComputeEventListener extends KDObject
 
+  {Stopped, Running, Terminated} = Machine.State
+
   constructor:(options = {})->
 
     super
       interval : options.interval ? 4000
-
-    @kloud           = KD.singletons.kontrol.getKite
-      name           : "kloud"
-      environment    : KD.config.environment
 
     @listeners       = []
     @machineStatuses = {}
@@ -66,6 +64,12 @@ class ComputeEventListener extends KDObject
 
     computeController.emit "public-#{machine._id}", state
 
+    unless event.status is Running
+      computeController.invalidateCache machine._id
+
+      KodingKontrol.dcNotification?.destroy()
+      KodingKontrol.dcNotification = null
+
 
   revertToPreviousState:(machine)->
 
@@ -77,23 +81,23 @@ class ComputeEventListener extends KDObject
 
   TypeStateMap =
 
-    stop    : public : "MachineStopped",   private : Machine.State.Stopped
-    start   : public : "MachineStarted",   private : Machine.State.Running
-    build   : public : "MachineBuilt",     private : Machine.State.Running
-    reinit  : public : "MachineBuilt",     private : Machine.State.Running
-    resize  : public : "MachineResized",   private : Machine.State.Running
-    destroy : public : "MachineDestroyed", private : Machine.State.Terminated
+    stop    : public : "MachineStopped",   private : Stopped
+    start   : public : "MachineStarted",   private : Running
+    build   : public : "MachineBuilt",     private : Running
+    reinit  : public : "MachineBuilt",     private : Running
+    resize  : public : "MachineResized",   private : Running
+    destroy : public : "MachineDestroyed", private : Terminated
 
 
-  tick:->
+  tick: (force)->
 
     return  unless @listeners.length
-    return  if @tickInProgress
+    return  if not force and @tickInProgress
     @tickInProgress = yes
 
     {computeController} = KD.singletons
 
-    @kloud.event @listeners
+    computeController.getKloud().event @listeners
 
     .then (responses)=>
 
@@ -128,9 +132,11 @@ class ComputeEventListener extends KDObject
       @listeners = activeListeners
       @tickInProgress = no
 
+    .timeout ComputeController.timeout
+
     .catch (err)=>
 
-      @tickInProgress = no
+      @tick yes  if err.name is "TimeoutError"
 
       warn "Eventer error:", err
       @stop()

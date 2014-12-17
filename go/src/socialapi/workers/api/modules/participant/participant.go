@@ -9,7 +9,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
-	"time"
 
 	"github.com/koding/bongo"
 )
@@ -110,7 +109,19 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to kick other users"))
+		}
+
 		participants[i].ChannelId = query.Id
 		if err := participants[i].Delete(); err != nil {
 			return response.NewBadRequest(err)
@@ -182,9 +193,8 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
-	participant.LastSeenAt = time.Now().UTC()
-
-	if err := participant.Update(); err != nil {
+	// glance the channel
+	if err := participant.Glance(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
