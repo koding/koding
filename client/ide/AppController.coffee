@@ -1643,7 +1643,7 @@ class IDEAppController extends AppController
 
     pingInterval = 1000 * 5
     pongInterval = 1000 * 15
-    diffInterval = 1000 * 32
+    diffInterval = KD.config.collaboration.timeout
 
     if @amIHost
       KD.utils.repeat pingInterval, => @pingTime.setText Date.now().toString()
