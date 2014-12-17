@@ -27,6 +27,8 @@ class ErrorLog
         userAgent
         idle
         protocol
+        useNewKites   : KD.useNewKites
+        osKiteVersion : osVersion
       }, params
 
       KD.remoteLog.api.JErrorLog.create error, ->

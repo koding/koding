@@ -12,7 +12,7 @@ import (
 // And inits a channel
 func createNewChannelWithTest() *Channel {
 	// init account
-	creator := CreateAccountWithTest()
+	creator := createAccountWithTest()
 
 	// init channel
 	c := NewChannel()
@@ -152,7 +152,7 @@ func TestChannelCreate(t *testing.T) {
 			c := NewChannel()
 			c.GroupName = "malitest"
 			c.TypeConstant = Channel_TYPE_GROUP
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			c.CreatorId = account.Id
 			So(c.Create(), ShouldBeNil)
 			c.Id = 0
@@ -163,7 +163,7 @@ func TestChannelCreate(t *testing.T) {
 			c := NewChannel()
 			c.GroupName = "malitest2"
 			c.TypeConstant = Channel_TYPE_GROUP
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			c.CreatorId = account.Id
 			So(c.Create(), ShouldBeNil)
 			firstChannel := c.Id
@@ -175,7 +175,7 @@ func TestChannelCreate(t *testing.T) {
 		Convey("calling followers channel create twice should not return error", func() {
 			c := NewChannel()
 			c.TypeConstant = Channel_TYPE_FOLLOWERS
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			c.CreatorId = account.Id
 			So(c.Create(), ShouldBeNil)
 			c.Id = 0
@@ -185,7 +185,7 @@ func TestChannelCreate(t *testing.T) {
 		Convey("calling followers channel create twice should return same channel", func() {
 			c := NewChannel()
 			c.TypeConstant = Channel_TYPE_FOLLOWERS
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			c.CreatorId = account.Id
 			So(c.Create(), ShouldBeNil)
 			firstChannel := c.Id
@@ -246,7 +246,7 @@ func TestChannelCanOpen(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 
 			// create a new account
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 
 			cp, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
@@ -263,7 +263,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			So(c.Create(), ShouldBeNil)
 
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 
 			cp, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
@@ -296,7 +296,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			So(c.Create(), ShouldBeNil)
 
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			// add participant to the channel
 			cp, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
@@ -317,7 +317,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			So(c.Create(), ShouldBeNil)
 
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
 			So(canOpen, ShouldBeTrue)
@@ -329,7 +329,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			So(c.Create(), ShouldBeNil)
 
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
 			So(canOpen, ShouldBeTrue)
@@ -341,7 +341,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			So(c.Create(), ShouldBeNil)
 
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
 			So(canOpen, ShouldBeFalse)
@@ -353,7 +353,7 @@ func TestChannelCanOpen(t *testing.T) {
 
 			So(c.Create(), ShouldBeNil)
 
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			canOpen, err := c.CanOpen(account.Id)
 			So(err, ShouldBeNil)
 			So(canOpen, ShouldBeFalse)
@@ -402,7 +402,7 @@ func TestChannelAddParticipant(t *testing.T) {
 			c := createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_PINNED_ACTIVITY
 			So(c.Create(), ShouldBeNil)
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			cp, err := c.AddParticipant(account.Id)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrCannotAddNewParticipantToPinnedChannel)
@@ -412,7 +412,7 @@ func TestChannelAddParticipant(t *testing.T) {
 		Convey("we can not add same user twice to channel", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			cp, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 			So(cp, ShouldNotBeNil)
@@ -426,7 +426,7 @@ func TestChannelAddParticipant(t *testing.T) {
 		Convey("we can add same user again after leaving the channel", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			cp, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 			So(cp, ShouldNotBeNil)
@@ -461,7 +461,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 		Convey("removing a non existent participant from the channel should not give error", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			err := c.RemoveParticipant(account.Id)
 			So(err, ShouldBeNil)
 		})
@@ -469,7 +469,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 		Convey("participant can leave the channel", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 
@@ -480,7 +480,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 		Convey("when we remove already removed account again from the channel, it should not give err", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			account := CreateAccountWithTest()
+			account := createAccountWithTest()
 
 			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
@@ -860,7 +860,7 @@ func TestChannelIsParticipant(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// add the created account to the channel
@@ -879,7 +879,7 @@ func TestChannelIsParticipant(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// account is created but didn't add to the channel
@@ -921,7 +921,7 @@ func TestChannelFetchParticipant(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// add account to the channel
@@ -942,7 +942,7 @@ func TestChannelFetchParticipant(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// add account to the channel

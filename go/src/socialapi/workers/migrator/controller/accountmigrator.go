@@ -30,18 +30,14 @@ func (mwc *Controller) migrateAllAccounts() {
 	successCount := 0
 
 	s := modelhelper.Selector{
-		"type": "registered",
+		"migration": modelhelper.Selector{"$exists": false},
+		"type":      "registered",
 	}
 
 	migrateAccount := func(account interface{}) error {
 		oldAccount := account.(*mongomodels.Account)
 		socialApiId, err := oldAccount.GetSocialApiId()
-		if err != nil {
-			mwc.handleAccountError(oldAccount, err)
-			return nil
-		}
-
-		if socialApiId != 0 {
+		if err != nil || socialApiId != 0 {
 			return nil
 		}
 

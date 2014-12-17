@@ -61,25 +61,16 @@ class KodingKite_KloudKite extends KodingKite
   askInfoFromKlient: (machineId, callback) ->
 
     {kontrol, computeController} = KD.singletons
-    {klient} = kontrol.kites
-    machine  = computeController.findMachineFromMachineId machineId
+    {klient}   = kontrol.kites
+    machineUid = computeController.findUidFromMachineId machineId
 
-    unless machineId?
+    if not klient? or not machineId?
       return callback null
 
-    klientKite = klient?[machine.uid]
+    klientKite = klient[machineUid]
 
-    unless klientKite?
-
-      if machine.status.state is Machine.State.Running
-
-        klientKite = kontrol.getKite
-          name            : "klient"
-          queryString     : machine.queryString
-          correlationName : machine.uid
-
-      else
-        return callback null
+    if not klientKite?
+      return callback null
 
     KD.remote.api.DataDog.increment "KlientInfo", noop
 
@@ -89,9 +80,7 @@ class KodingKite_KloudKite extends KodingKite
 
         if res is "pong"
         then callback State: Machine.State.Running, via: "klient"
-        else
-          computeController.invalidateCache machineId
-          callback null
+        else callback null
 
       .timeout 5000
 
@@ -102,7 +91,7 @@ class KodingKite_KloudKite extends KodingKite
 
   askInfoFromKloud: (machineId, currentState) ->
 
-    {kontrol, computeController} = KD.singletons
+    {kontrol} = KD.singletons
 
     KD.remote.api.DataDog.increment "KloudInfo", noop
 
@@ -112,16 +101,13 @@ class KodingKite_KloudKite extends KodingKite
 
         @resolveRequestingInfos machineId, info
 
-        unless info.State is Machine.State.Running
-          computeController.invalidateCache machineId
-
       .timeout ComputeController.timeout
 
       .catch (err) =>
 
         if err.name is "TimeoutError" and not @_reconnectedOnce
           warn "First time timeout, reconnecting to kloud..."
-          kontrol.kites.kloud.singleton?.reconnect?()
+          kontrol.kites.kloud.singleton.reconnect()
           @_reconnectedOnce = yes
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }

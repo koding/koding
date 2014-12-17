@@ -29,7 +29,7 @@ Configuration = (options={}) ->
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://localhost"     , local_:          "localhost"                          , port:     80                   }
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
-  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
+  kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               4000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.prod'              }
@@ -94,7 +94,7 @@ Configuration = (options={}) ->
     # -- WORKER CONFIGURATION -- #
 
     gowebserver                    : {port          : 6500}
-    webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
+    webserver                      : {port          : 3000                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3    , port  : 9540 }
@@ -217,7 +217,8 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/kontrol -region #{region} -machines #{etcd} -environment #{environment} -mongourl #{KONFIG.mongo} -port #{kontrol.port} -privatekey #{kontrol.privateKeyFile} -publickey #{kontrol.publicKeyFile} -storage postgres -postgres-dbname #{kontrolPostgres.dbname} -postgres-host #{kontrolPostgres.host} -postgres-port #{kontrolPostgres.port} -postgres-username #{kontrolPostgres.username} -postgres-password #{kontrolPostgres.password}"
       nginx             :
-        disableLocation : yes
+        websocket       : yes
+        locations       : ["~^/kontrol/.*"]
       healthCheckURL    : "http://localhost:#{KONFIG.kontrol.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kontrol.port}/version"
 
@@ -334,7 +335,7 @@ Configuration = (options={}) ->
     dailyemailnotifier  :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/dailyemail -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/dailyemailnotifier -c #{socialapi.configFilePath}"
 
     algoliaconnector    :
       group             : "socialapi"
@@ -377,10 +378,10 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/sitemapgenerator -c #{socialapi.configFilePath}"
 
-    activityemail       :
+    emailnotifier       :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/activityemail -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/emailnotifier -c #{socialapi.configFilePath}"
 
     topicfeed           :
       group             : "socialapi"
@@ -392,15 +393,6 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/trollmode -c #{socialapi.configFilePath}"
 
-    privatemessageemailfeeder :
-      group             : "socialapi"
-      supervisord       :
-        command         : "#{GOBIN}/privatemessageemailfeeder -c #{socialapi.configFilePath}"
-
-    privatemessageemailsender :
-      group             : "socialapi"
-      supervisord       :
-        command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------

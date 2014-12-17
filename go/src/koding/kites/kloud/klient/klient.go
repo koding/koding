@@ -16,7 +16,7 @@ import (
 	"github.com/koding/logging"
 )
 
-var ErrDialingFailed = errors.New("Dialing klient failed.")
+var ErrDialingKlientFailed = errors.New("Dialing klient failed.")
 
 // KlientPool represents a pool of connected klients
 type KlientPool struct {
@@ -103,13 +103,6 @@ func Exists(k *kite.Kite, queryString string) error {
 // klient is ready to use. It's connected and needs to be closed once the task
 // is finished with it.
 func Connect(k *kite.Kite, queryString string) (*Klient, error) {
-	return ConnectTimeout(k, queryString, 0)
-}
-
-// ConnectTimeout returns a new connected klient instance to the given
-// queryString. The klient is ready to use. It's tries to connect for the given
-// timeout duration
-func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
@@ -123,10 +116,8 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	}
 
 	remoteKite := kites[0]
-	remoteKite.ReadBufferSize = 512
-	remoteKite.WriteBufferSize = 512
-	if err := remoteKite.DialTimeout(t); err != nil {
-		return nil, ErrDialingFailed
+	if err := remoteKite.Dial(); err != nil {
+		return nil, ErrDialingKlientFailed
 	}
 
 	// klient connection is ready now
@@ -135,8 +126,11 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 		client:   remoteKite,
 		Username: remoteKite.Username,
 	}, nil
+
 }
 
+// Klient returns a new connected klient instance to the given queryString. The
+// klient is ready to use. It's tries to connect for the given timeout duration
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	timeout := time.After(t)
 
@@ -149,7 +143,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 			}
 
 		case <-timeout:
-			return nil, ErrDialingFailed
+			return nil, fmt.Errorf("timeout while connection for kite")
 		}
 	}
 }

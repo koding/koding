@@ -12,16 +12,6 @@ keys              =
   id_rsa          : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa'          , 'utf8').toString 'base64'
   id_rsa_pub      : new Buffer(fs.readFileSync './install/keys/prod.ssh/id_rsa.pub'      , 'utf8').toString 'base64'
 
-if argv['pull-request']
-  git_fetch    = "git fetch origin #{argv['pull-request']}"
-  git_checkout = 'git checkout FETCH_HEAD'
-else if argv.commit
-  git_fetch    = 'git fetch origin'
-  git_checkout = "git checkout -fq #{argv.commit}"
-else
-  console.error 'error: Please specify a remote branch or a commit'
-  process.exit 1
-
 userData =
   """
   #cloud-config
@@ -30,15 +20,14 @@ userData =
 
   runcmd:
     - echo 127.0.0.1 `hostname` >> /etc/hosts
-    - echo 127.0.0.1 freegeoip.net >> /etc/hosts
     - echo #{keys.config}          | base64 --decode > /root/.ssh/config
     - echo #{keys.authorized_keys} | base64 --decode > /root/.ssh/authorized_keys
     - echo #{keys.id_rsa}          | base64 --decode > /root/.ssh/id_rsa
     - echo #{keys.id_rsa_pub}      | base64 --decode > /root/.ssh/id_rsa.pub
     - chmod 0600 /root/.ssh/id_rsa
     - cd /opt/koding
-    - #{git_fetch}
-    - #{git_checkout}
+    - git fetch origin '#{argv.gitref}'
+    - git checkout FETCH_HEAD
     - git submodule update --recursive
     - /opt/koding/scripts/wercker/init-test-instance
   """
@@ -46,7 +35,7 @@ userData =
 options              =
   params             :
     ImageId          : 'ami-f464e69c'
-    InstanceType     : 'c3.xlarge'
+    InstanceType     : 't2.medium'
     MinCount         : 1
     MaxCount         : 1
     SubnetId         : 'subnet-b47692ed'

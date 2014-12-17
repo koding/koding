@@ -28,20 +28,8 @@ type Rand struct {
 
 var r = Rand{r: rand.New(rand.NewSource(time.Now().UnixNano()))}
 
-type WebsocketSession struct {
-	conn     *websocket.Conn
-	id       string
-	messages []string
-}
-
-type DialOptions struct {
-	BaseURL                         string
-	ReadBufferSize, WriteBufferSize int
-	Timeout                         time.Duration
-}
-
-func ConnectWebsocketSession(opts *DialOptions) (*WebsocketSession, error) {
-	dialURL, err := url.Parse(opts.BaseURL)
+func ConnectWebsocketSession(baseURL string) (*WebsocketSession, error) {
+	dialURL, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -66,21 +54,7 @@ func ConnectWebsocketSession(opts *DialOptions) (*WebsocketSession, error) {
 	requestHeader := http.Header{}
 	requestHeader.Add("Origin", originalScheme+"://"+dialURL.Host)
 
-	ws := websocket.Dialer{
-		ReadBufferSize:  opts.ReadBufferSize,
-		WriteBufferSize: opts.WriteBufferSize,
-	}
-
-	// if the user passed a timeout, us a dial with a timeout
-	if opts.Timeout != 0 {
-		ws.NetDial = func(network, addr string) (net.Conn, error) {
-			return net.DialTimeout(network, addr, opts.Timeout)
-		}
-		// this is used as Deadline inside gorillas dialer method
-		ws.HandshakeTimeout = opts.Timeout
-	}
-
-	conn, _, err := ws.Dial(dialURL.String(), requestHeader)
+	conn, _, err := websocket.DefaultDialer.Dial(dialURL.String(), requestHeader)
 	if err != nil {
 		return nil, err
 	}
@@ -88,6 +62,12 @@ func ConnectWebsocketSession(opts *DialOptions) (*WebsocketSession, error) {
 	session := NewWebsocketSession(conn)
 	session.id = sessionID
 	return session, nil
+}
+
+type WebsocketSession struct {
+	conn     *websocket.Conn
+	id       string
+	messages []string
 }
 
 func NewWebsocketSession(conn *websocket.Conn) *WebsocketSession {

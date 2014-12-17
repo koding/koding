@@ -92,7 +92,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(unreadCount, ShouldEqual, 0)
 		})
 
-		SkipConvey("pinned message's unread count could be calculated", func() {
+		Convey("pinned message's unread count could be calculated", func() {
 			// create an account
 			account, err := createAccount()
 			So(err, ShouldBeNil)

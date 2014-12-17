@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/koding/kite/config"
@@ -137,18 +136,8 @@ func New(name, version string) *Kite {
 		httpHandler:        http.NewServeMux(),
 	}
 
-	// This is the same as sockjs.DefaultOptions except we changed the
-	// heartbeat interval from 25 seconds to 10 seconds.
-	sockjsOpts := sockjs.Options{
-		Websocket:       true,
-		JSessionID:      nil,
-		SockJSURL:       "http://cdn.sockjs.org/sockjs-0.3.min.js",
-		HeartbeatDelay:  10 * time.Second,
-		DisconnectDelay: 5 * time.Second,
-		ResponseLimit:   128 * 1024,
-	}
 	// All websocket communication is done through this endpoint.
-	k.HandleHTTP("/", sockjs.NewHandler("/kite", sockjsOpts, k.sockjsHandler))
+	k.HandleHTTP("/", sockjs.NewHandler("/kite", sockjs.DefaultOptions, k.sockjsHandler))
 
 	// Add useful debug logs
 	k.OnConnect(func(c *Client) { k.Log.Debug("New session: %s", c.session.ID()) })

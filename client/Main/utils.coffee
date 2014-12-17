@@ -2,14 +2,10 @@ utils.extend utils,
 
   groupifyLink: (href, withOrigin = no) ->
 
-    {slug, type} = KD.config.entryPoint
-    {origin}     = window.location
-
-    href = if type is 'group' and slug isnt 'koding'
-    then "#{slug}/#{href}"
-    else href
-
-    href         = "#{origin}/#{href}"  if withOrigin
+    {slug}   = KD.config.entryPoint
+    {origin} = window.location
+    href     = if slug is 'koding' then href else "#{slug}/#{href}"
+    href     = "#{origin}/#{href}"  if withOrigin
 
     return href
 
@@ -51,30 +47,6 @@ utils.extend utils,
               "url=#{encodeURIComponent url}"
 
     return fullurl
-
-  proxifyTransportUrl: (url)->
-
-    return url  if /proxy.koding.com/.test url
-
-    # let's use DOM for parsing the url
-    parser = document.createElement("a")
-    parser.href = url
-
-    # build our new url, example:
-    # old: http://54.164.174.218:3000/kite
-    # new: https://koding.com/-/userproxy/54.164.243.111/kite
-    #           or
-    #      http://localhost:8090/-/userproxy/54.164.243.111/kite
-
-    proxy = {
-      dev        : 'devproxy'
-      production : 'prodproxy'
-      sandbox    : 'sandboxproxy'
-    }[KD.config.environment] or 'devproxy'
-
-    {protocol} = document.location
-
-    return "#{protocol}//proxy.koding.com/-/#{proxy}/#{parser.hostname}/kite"
 
 
   applyMarkdown: (text, options = {})->
@@ -644,7 +616,7 @@ utils.extend utils,
   #
   # Structure taken from github.com/koding/kite/protocol/protocol.go
 
-  splitKiteQuery: (query = "")->
+  splitKiteQuery: (query)->
 
     keys = [ "username", "environment", "name",
              "version", "region", "hostname", "id" ]
@@ -757,7 +729,7 @@ utils.extend utils,
     ]
 
     body = fn body for fn in fns
-    body = KD.utils.expandUsernames body, 'code, a'
+    body = KD.utils.expandUsernames body, 'code'
 
     return body
 
@@ -880,10 +852,9 @@ utils.extend utils,
 
   getLocationInfo: do (queue=[])->
 
-    ip       = null
-    country  = null
-    region   = null
-    timezone = null
+    ip      = null
+    country = null
+    region  = null
 
     fail = ->
 
@@ -895,7 +866,7 @@ utils.extend utils,
     (callback = noop)->
 
       if ip? and country? and region?
-        callback null, { ip, country, region, timezone }
+        callback null, { ip, country, region }
         return
 
       return  if (queue.push callback) > 1
@@ -903,18 +874,17 @@ utils.extend utils,
       $.ajax
         url      : '//freegeoip.net/json/?callback=?'
         error    : fail
-        timeout  : 5000
+        timeout  : 1500
         dataType : 'json'
         success  : (data)->
 
-          { ip, country_code, region_code, time_zone } = data
+          { ip, country_code, region_code } = data
 
-          country  = country_code
-          region   = region_code
-          timezone = time_zone
+          country = country_code
+          region  = region_code
 
           for cb in queue
-            cb null, { ip, country, region, timezone }
+            cb null, { ip, country, region }
 
           queue = []
 
@@ -965,15 +935,6 @@ utils.extend utils,
           callback message: "Failed to upload"
         success     : ->
           callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
-
-  getCollaborativeChannelPrefix: -> '___collaborativeSession.'
-
-  isChannelCollaborative: (channel) ->
-
-    return no  unless channel.purpose?
-
-    prefix = KD.utils.getCollaborativeChannelPrefix()
-    return channel.purpose.slice(0, prefix.length) is prefix
 
 
   ###*

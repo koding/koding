@@ -22,18 +22,16 @@ class PrivateMessageForm extends KDFormViewWithFields
   createUserAutoComplete: ->
 
     @autoComplete = new KDAutoCompleteController
-      form                  : this
-      name                  : 'userController'
-      placeholder           : 'Type a username...'
-      itemClass             : ActivityAutoCompleteUserItemView
-      fetchingItemClass     : FetchingActivityAutoCompleteUserItemView
-      nothingFoundItemClass : KDAutoCompleteNothingFoundItem
-      itemDataPath          : 'profile.nickname'
-      outputWrapper         : @chatHeads
-      selectedItemClass     : ChatHead
-      listWrapperCssClass   : 'private-message'
-      submitValuesAsText    : yes
-      dataSource            : @bound 'fetchAccounts'
+      form                : this
+      name                : 'userController'
+      placeholder         : 'Type a username...'
+      itemClass           : ActivityAutoCompleteUserItemView
+      itemDataPath        : 'profile.nickname'
+      outputWrapper       : @chatHeads
+      selectedItemClass   : ChatHead
+      listWrapperCssClass : 'private-message'
+      submitValuesAsText  : yes
+      dataSource          : @bound 'fetchAccounts'
 
     autoCompleteView = @autoComplete.getView()
 

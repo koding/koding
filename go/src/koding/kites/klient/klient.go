@@ -4,19 +4,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"net"
-	"net/url"
-	"os"
-	"strings"
-	"sync"
-	"time"
-
 	"koding/kite-handler/command"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
 	"koding/kites/klient/collaboration"
 	"koding/kites/klient/protocol"
 	"koding/kites/klient/usage"
+	"log"
+	"net"
+	"net/url"
+	"os"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
@@ -26,10 +26,10 @@ var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
 	flagVersion     = flag.Bool("version", false, "Show version and exit")
+	flagProxy       = flag.Bool("proxy", false, "Start klient behind a proxy")
 	flagEnvironment = flag.String("env", protocol.Environment, "Change environment")
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
-	flagDebug       = flag.Bool("debug", false, "Debug mode")
 
 	// update paramters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
@@ -42,31 +42,9 @@ var (
 	NAME    = protocol.Name
 
 	// this is our main reference to count and measure metrics for the klient
-	// we count only those methods, please add/remove methods here that will
-	// reset the timer of a klient.
-	usg = usage.NewUsage(map[string]bool{
-		"fs.readDirectory":    true,
-		"fs.glob":             true,
-		"fs.readFile":         true,
-		"fs.writeFile":        true,
-		"fs.uniquePath":       true,
-		"fs.getInfo":          true,
-		"fs.setPermissions":   true,
-		"fs.remove":           true,
-		"fs.rename":           true,
-		"fs.createDirectory":  true,
-		"fs.move":             true,
-		"fs.copy":             true,
-		"webterm.getSessions": true,
-		"webterm.connect":     true,
-		"webterm.killSession": true,
-		"exec":                true,
-		"klient.share":        true,
-		"klient.unshare":      true,
-		"klient.shared":       true,
-	})
+	usg  = usage.NewUsage()
+	klog kite.Logger
 
-	// this is used to allow other users to call any klient method.
 	collab = collaboration.New()
 
 	// we also could use an atomic boolean this is simple for now.
@@ -81,28 +59,12 @@ func main() {
 		os.Exit(0)
 	}
 
-	k := newKite()
-
-	// Close the klient.db in any case. Corrupt db would be catastrophic
-	defer collab.Close()
-
-	k.Log.Info("Running as version %s", VERSION)
-	k.Run()
-}
-
-func newKite() *kite.Kite {
 	k := kite.New(NAME, VERSION)
-
-	if *flagDebug {
-		k.SetLogLevel(kite.DEBUG)
-	}
-
 	conf := config.MustGet()
 	k.Config = conf
 	k.Config.Port = *flagPort
 	k.Config.Environment = *flagEnvironment
 	k.Config.Region = *flagRegion
-	k.Id = conf.Id // always boot up with the same id in the kite.key
 
 	// FIXME: It's ugly I know. It's a fix for Koding local development and is
 	// needed
@@ -123,25 +85,29 @@ func newKite() *kite.Kite {
 		k.Config.KontrolURL = u.String()
 	}
 
+	klog = k.Log
+
 	if *flagUpdateInterval < time.Minute {
-		k.Log.Warning("Update interval can't be less than one minute. Setting to one minute.")
+		klog.Warning("Update interval can't be less than one minute. Setting to one minute.")
 		*flagUpdateInterval = time.Minute
 	}
 
 	updater := &Updater{
 		Endpoint: *flagUpdateURL,
 		Interval: *flagUpdateInterval,
-		Log:      k.Log,
 	}
 
 	// before we register check for latest update and re-update itself before
 	// we continue
 	k.Log.Info("Checking for new updates")
 	if err := updater.checkAndUpdate(); err != nil {
-		k.Log.Warning("Self-update: %s", err)
+		klog.Warning("Self-update: %s", err)
 	}
 
 	go updater.Run()
+
+	// always boot up with the same id in the kite.key
+	k.Id = conf.Id
 
 	userIn := func(user string, users ...string) bool {
 		for _, u := range users {
@@ -161,15 +127,13 @@ func newKite() *kite.Kite {
 			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
 				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 
-			// Allow these users by default
+			// Allow these users by default.
 			allowedUsers := []string{k.Config.Username, "koding"}
 
-			// Allow collaboration users as well
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
+			// Add collaboration users to the list
+			for user := range collab.AllowedUsers {
+				allowedUsers = append(allowedUsers, user)
 			}
-			allowedUsers = append(allowedUsers, sharedUsers...)
 
 			if !userIn(r.Username, allowedUsers...) {
 				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
@@ -186,16 +150,41 @@ func newKite() *kite.Kite {
 		return true, nil
 	})
 
-	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
-	k.PreHandleFunc(usg.Counter) // we measure every incoming request
+	// count only those methods, please add/remove methods here that will reset
+	// the timer of a klient.
+	usg.CountedMethods = map[string]bool{
+		"fs.readDirectory":    true,
+		"fs.glob":             true,
+		"fs.readFile":         true,
+		"fs.writeFile":        true,
+		"fs.uniquePath":       true,
+		"fs.getInfo":          true,
+		"fs.setPermissions":   true,
+		"fs.remove":           true,
+		"fs.rename":           true,
+		"fs.createDirectory":  true,
+		"fs.move":             true,
+		"fs.copy":             true,
+		"webterm.getSessions": true,
+		"webterm.connect":     true,
+		"webterm.killSession": true,
+		"exec":                true,
+	}
+
+	// we measure every incoming request
+	k.PreHandleFunc(usg.Counter)
+
+	// this provides us to get the current usage whenever we want
 	k.HandleFunc("klient.usage", usg.Current)
 
-	// Collaboration, is used by our Koding.com browser client
+	// also invoke updating
+	k.Handle("klient.update", updater)
+
+	// Collaboration
 	k.HandleFunc("klient.share", collab.Share)
 	k.HandleFunc("klient.unshare", collab.Unshare)
 	k.HandleFunc("klient.shared", collab.Shared)
 
-	// Filesystem
 	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
 	k.HandleFunc("fs.glob", fs.Glob)
 	k.HandleFunc("fs.readFile", fs.ReadFile)
@@ -209,50 +198,40 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
 
-	// Execution
+	terminal.ResetFunc = usg.Reset
+
+	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
+	k.HandleFunc("webterm.connect", terminal.Connect)
+
+	k.HandleFunc("webterm.killSession", terminal.KillSession)
 	k.HandleFunc("exec", command.Exec)
 
-	// Terminal
-	term := terminal.New(k.Log)
-	term.InputHook = usg.Reset
-	k.HandleFunc("webterm.getSessions", term.GetSessions)
-	k.HandleFunc("webterm.connect", term.Connect)
-	k.HandleFunc("webterm.killSession", term.KillSession)
-	k.HandleFunc("webterm.killSessions", term.KillSessions)
-
-	// Unshare collab users if the klient owner disconnects
-	k.OnDisconnect(func(c *kite.Client) {
-		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
-		if c.Username != k.Config.Username {
-			return // we don't care for others
-		}
-
-		sharedUsers, err := collab.GetAll()
-		if err != nil {
-			k.Log.Warning("Couldn't unshare users: '%s'", err)
-			return
-		}
-
-		if len(sharedUsers) == 0 {
-			return // nothing to do ...
-		}
-
-		k.Log.Info("Unsharing users '%s'", sharedUsers)
-		for _, user := range sharedUsers {
-			if err := collab.Delete(user); err != nil {
-				k.Log.Warning("Couldn't delete user from storage: '%s'", err)
-			}
-
-			// close all active sessions of the current
-			term.CloseSessions(user)
-		}
-	})
-
-	if err := register(k); err != nil {
-		panic(err)
+	registerURL, err := getRegisterURL(k)
+	if err != nil {
+		log.Panic("could not get public ip" + err.Error())
 	}
 
-	return k
+	if *flagRegisterURL != "" {
+		u, err := url.Parse(*flagRegisterURL)
+		if err != nil {
+			k.Log.Fatal("Couldn't parse register url: %s", err)
+		}
+
+		registerURL = u
+	}
+
+	if registerURL == nil {
+		log.Panic("register url is nil")
+	}
+
+	k.Log.Info("Going to register to kontrol with URL: %s", registerURL)
+	if err := k.RegisterForever(registerURL); err != nil {
+		log.Panic(err)
+	}
+
+	k.Log.Info("Running as version %s", VERSION)
+
+	k.Run()
 }
 
 // Given a string of the form "host", "host:port", or "[ipv6::address]:port",

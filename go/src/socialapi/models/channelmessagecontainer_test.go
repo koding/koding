@@ -122,7 +122,7 @@ func TestChannelMessageContainerAddAccountOldId(t *testing.T) {
 
 		Convey("it should add account old id successfully ", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			cmc := NewChannelMessageContainer()

@@ -1,5 +1,4 @@
 jraphical = require 'jraphical'
-Regions   = require 'koding-regions'
 
 Flaggable = require '../../traits/flaggable'
 
@@ -16,7 +15,6 @@ module.exports = class JUser extends jraphical.Module
   JSessionHistory = require '../sessionhistory'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
-  Sendgrid        = require '../sendgrid'
 
   { v4: createId } = require 'node-uuid'
 
@@ -204,8 +202,6 @@ module.exports = class JUser extends jraphical.Module
         return callback err  if err?
         return callback createKodingError "User not found #{toBeDeletedUsername}"  unless user
 
-        oldEmail = user.email
-
         userValues = {
           username
           email
@@ -269,9 +265,7 @@ module.exports = class JUser extends jraphical.Module
                     }
                   }
                   Payment.deleteAccount deletedClient, (err)=>
-                    @logout deletedClient, (err) =>
-                      callback err
-                      Sendgrid.deleteUser oldEmail, ->
+                    @logout deletedClient, callback
 
   @isRegistrationEnabled = (callback)->
 
@@ -629,7 +623,6 @@ Team Koding
             groupJoined    : on
             groupLeft      : off
             mention        : on
-            marketing      : on
           }
         }
 
@@ -776,11 +769,11 @@ Team Koding
       guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
-    { connection, sessionToken : clientId, clientIP } = client
+    { connection, sessionToken : clientId } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
-    { username, email, firstName, lastName, agree,
-      inviteCode, referrer, password, passwordConfirm } = userFormData
+    { username, email, firstName, lastName, locationData
+      agree, inviteCode, referrer, password, passwordConfirm } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -795,11 +788,8 @@ Team Koding
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
-    console.log "Client IP during registration:", clientIP
-
-    if clientIP
-      { ip, country, region } = Regions.findLocation clientIP
-      console.log "Found region:", {country, region}
+    if locationData?
+      try { ip, country, region } = JSON.parse locationData
 
     newToken       = null
     invite         = null
@@ -895,17 +885,12 @@ Team Koding
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
       ->
-        callback error, {account, recoveryToken, newToken}
-        queue.next()
-      ->
-        # rest are 3rd party api calls, not important to block register
-
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
         queue.next()
       ->
-        Sendgrid.addNewUser user.email, user.username, ->
+        callback error, {account, recoveryToken, newToken}
         queue.next()
     ]
 
@@ -1043,9 +1028,27 @@ Team Koding
         res.forbidden = if username in @bannedUserList then yes else no
         callback null, res
 
+  confirmEmail:(callback)->
+    @update {$set:email:'confirmed'}, callback
+
+  fetchContextualAccount:(context, rest..., callback)->
+    # Relationship.one {
+    #   as          : 'owner'
+    #   sourceId    : @getId()
+    #   targetName  : 'JAccount'
+    #   'data.context': context
+    # }, (err, account)=>
+    #   if err
+    #     callback err
+    #   else if account?
+    #     callback null, account
+    #   else
+    #     @fetchOwnAccount rest..., callback
 
   fetchAccount:(context, rest...)->
     @fetchOwnAccount rest...
+    # if context is 'koding' then @fetchOwnAccount rest...
+    # else @fetchContextualAccount context, rest...
 
   setPassword:(password, callback)->
     salt = createSalt()

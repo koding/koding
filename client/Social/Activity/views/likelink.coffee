@@ -41,9 +41,7 @@ class ActivityLikeLink extends CustomLinkView
 
     fn {id}, (err) =>
       @locked = no
-      if err
-        data.emit 'LikeChanged', isInteracted
-        warn err
+      @showError err  if err
 
 
   update: ->

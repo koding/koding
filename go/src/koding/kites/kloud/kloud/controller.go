@@ -270,15 +270,11 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 	k.Storage.UpdateState(machine.Id, initialReason, s.initial)
 
 	// each method has his own unique eventer
-	eventId := r.Method + "-" + machine.Id
-	machine.Eventer = k.NewEventer(eventId)
+	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
 
 	// push the first event so it's filled with it, let people know that we're
 	// starting.
-	machine.Eventer.Push(&eventer.Event{
-		Message: fmt.Sprintf("Starting %s", r.Method),
-		Status:  s.initial,
-	})
+	machine.Eventer.Push(&eventer.Event{Message: fmt.Sprintf("Starting %s", r.Method), Status: s.initial})
 
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
@@ -288,7 +284,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		defer k.idlock.Get(machine.Id).Unlock()
 
 		k.Log.Info("[%s] ========== %s started (user: %s) ==========",
-			machine.Id, strings.ToUpper(r.Method), machine.Username)
+			machine.Id, strings.ToUpper(r.Method), r.Username)
 
 		start := time.Now()
 
@@ -309,11 +305,11 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 				r.Method, machine.State)
 
 			k.Log.Info("[%s] ========== %s failed (user: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), machine.Username)
+				machine.Id, strings.ToUpper(r.Method), r.Username)
 		} else {
 			totalDuration := time.Since(start)
 			k.Log.Info("[%s] ========== %s finished with success (user: %s, duration: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), machine.Username, totalDuration)
+				machine.Id, strings.ToUpper(r.Method), r.Username, totalDuration)
 		}
 
 		// update final status in storage
@@ -332,7 +328,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 	}()
 
 	return ControlResult{
-		EventId: eventId,
+		EventId: machine.Eventer.Id(),
 		State:   s.initial,
 	}, nil
 }

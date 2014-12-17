@@ -16,8 +16,6 @@ const (
 	DEFAULT_REPLY_LIMIT = 3
 	MAX_REPLY_LIMIT     = 25
 	MAX_LIMIT           = 25
-	ORDER_ASC           = "ASC"
-	ORDER_DESC          = "DESC"
 )
 
 type Query struct {
@@ -39,27 +37,10 @@ type Query struct {
 	ReplySkip       int       `url:"replySkip"`
 	AddIsInteracted bool      `url:"addIsInteracted"`
 	ObjectId        int64     `url:"objectId"`
-	Exclude         map[string]interface{}
-	Sort            map[string]string
 }
 
 func NewQuery() *Query {
-	return &Query{
-		Exclude: make(map[string]interface{}, 0),
-		Sort:    make(map[string]string, 0),
-	}
-}
-
-func (q *Query) ExcludeField(field string, value interface{}) {
-	q.Exclude[field] = value
-}
-
-func (q *Query) AddSortField(field, order string) {
-	if order != ORDER_ASC && order != ORDER_DESC {
-		return
-	}
-
-	q.Sort[field] = order
+	return &Query{}
 }
 
 func (q *Query) MapURL(u *url.URL) *Query {
@@ -152,8 +133,8 @@ func (q *Query) SetDefaults() *Query {
 		q.Limit = MAX_LIMIT
 	}
 
-	if q.To.IsZero() {
-		q.To = time.Now().UTC()
+	if q.From.IsZero() {
+		q.From = time.Now().UTC()
 	}
 
 	if q.GroupName == "" {

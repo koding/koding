@@ -28,14 +28,9 @@ type Account struct {
 		CreatedAt  time.Time `bson:"createdAt" json:"createdAt"`
 		Likes      int       `json:"likes" bson:"likes"`
 	} `bson:"meta" json:"meta"`
-	IsExempt                bool `json:"isExempt" bson:"isExempt"`
-	LastLoginTimezoneOffset int  `json:"lastLoginTimezoneOffset" bson:"lastLoginTimezoneOffset"`
+	IsExempt bool `json:"isExempt" bson:"isExempt"`
 }
 
 func (a *Account) GetSocialApiId() (int64, error) {
-	if a.SocialApiId == "" {
-		return 0, nil
-	}
-
 	return strconv.ParseInt(a.SocialApiId, 10, 64)
 }

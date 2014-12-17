@@ -43,15 +43,29 @@ class Status extends KDController
     else
       @state = RECONNECTED
       @emit "reconnected", @disconnectOptions
+      @startPingingKites()
       @resetLocals()
+
+  startPingingKites: ->
+    @eachKite (channel)->
+      channel.setStartPinging()
 
   disconnected: ->
     return "already disconnected"  if @connectionState is DOWN
 
+    @stopPingingKites()
     @connectionState = DOWN
     @state = DISCONNECTED
     @emit "disconnected", @disconnectOptions
 
+  stopPingingKites: ->
+    @eachKite (channel)->
+      channel.setStopPinging()
+
+  eachKite: (callback) ->
+    kiteChannels = KD.getSingleton("kiteController").channels
+    for own channelName, channel of kiteChannels
+      callback(channel)
 
   internetUp: ->
     @connected()  if @connectionState is DOWN
@@ -62,6 +76,27 @@ class Status extends KDController
 
   loggedInStateChanged: (account) ->
     @emit "bongoConnected", account
+    # @registerBongoAndBroker()
+    # @registerKites()
+
+  registerBongoAndBroker: ->
+    bongo = KD.remote
+    broker = KD.remote.mq
+    monitorItems = KD.getSingleton "monitorItems"
+    monitorItems.register {bongo, broker}
+
+  registerKites: ->
+    monitorItems = KD.getSingleton "monitorItems"
+    kite = KD.getSingleton "kiteController"
+
+    kite.on "channelAdded", (channel, name) ->
+      monitorItems.getItems()[name] = channel
+
+      channel.on "unresponsive", ->
+        KD.troubleshoot(false)
+
+    kite.on "channelDeleted", (channel, name) ->
+      delete monitorItems.getItems()[name]
 
   sessionTokenChanged: (token) ->
     @emit "sessionTokenChanged", token

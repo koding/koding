@@ -3,6 +3,7 @@ package waitstate
 import (
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"koding/kites/kloud/machinestate"
@@ -79,10 +80,6 @@ func (w *WaitState) Wait() error {
 	metaState := MetaStates[w.Action]
 	pollState := machinestate.Unknown
 
-	// we stop after 4 consecutive errors
-	totalErrCount := 0
-	totalErrLimit := 4
-
 	for {
 		select {
 		// Poll less, push more.
@@ -106,13 +103,7 @@ func (w *WaitState) Wait() error {
 			// care out that we are not stuck here infinitely.
 			pollState, err = w.StateFunc(w.Start)
 			if err != nil {
-				if totalErrCount == totalErrLimit {
-					return err
-				}
-
-				totalErrCount++
-				fmt.Printf("waitstate: statefunc failed, trying again (tried '%d' times): %s\n",
-					totalErrCount, err)
+				log.Printf("waitstate: statefunc failed, trying again: %s", err)
 			}
 		case <-time.After(time.Second * 40):
 			// cancel the current ongoing process if it takes too long

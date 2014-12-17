@@ -53,7 +53,7 @@ class Machine extends KDObject
         @jMachine = machine
         @updateLocalData()
       else
-        @status = state: Machine.State.Terminated
+        @status = Machine.State.Terminated
         @queryString = null
         computeController.reset yes
 

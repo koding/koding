@@ -3,13 +3,11 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends PaymentBaseModal
 
-  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
-
   getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
     provider     : PaymentWorkflow.provider.KODING
-    operation    : PaymentWorkflow.operation.UPGRADE
+    isUpgrade    : yes
 
 
   constructor: (options = {}, data) ->
@@ -18,21 +16,21 @@ class PaymentModal extends PaymentBaseModal
 
     @state = KD.utils.extend @getInitialState(), state
 
-    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
+    isUpgrade = PaymentWorkflow.isUpgrade @state.currentPlan, @state.planTitle
 
-    options.title = switch operation
-      when UPGRADE         then 'Upgrades are awesome. Let\'s do this!'
-      when INTERVAL_CHANGE then 'Change your billing cycle'
-      when DOWNGRADE       then 'Downgrade your plan'
-
-    options.subtitle = ''
+    if isUpgrade
+      options.title    = 'Upgrades are awesome. Let\'s do this!'
+      options.subtitle = ''
+    else
+      options.title    = 'Downgrade your plan'
+      options.subtitle = ''
 
     super options, data
 
 
   initViews: ->
 
-    { provider, planTitle } = @state
+    { provider, isUpgrade, planTitle } = @state
     { PAYPAL } = PaymentWorkflow.provider
     { FREE }   = PaymentWorkflow.planTitle
 
@@ -112,18 +110,16 @@ class PaymentModal extends PaymentBaseModal
 
     { currentPlan, planTitle } = @state
 
-    operation = PaymentWorkflow.getOperation currentPlan, planTitle
+    isUpgrade = PaymentWorkflow.isUpgrade currentPlan, planTitle
 
-    switch operation
-      when UPGRADE
-        @setTitle 'Congratulations! Upgrade successful'
-        @setSubtitle 'Your account has been upgraded to the plan below.'
-      when INTERVAL_CHANGE
-        @setTitle 'Billing cycle changed'
-      when DOWNGRADE
-        @setTitle 'Downgrade complete.'
+    if isUpgrade
+      @setTitle 'Congratulations! Upgrade successful.'
+      @setSubtitle 'Your account has been upgraded to the plan below.'
+    else
+      @setTitle 'Downgrade complete.'
+      @setSubtitle ''
 
-    @form.showSuccess operation
+    @form.showSuccess isUpgrade
 
     @once 'KDModalViewDestroyed', =>
       @emit 'PaymentWorkflowFinished', @state

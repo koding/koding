@@ -51,8 +51,6 @@ module.exports = (account, req, res) ->
             id        : 19295
             name      : "Support"
           ,
-          tags	      : ["Plan->#{plan}"]
-          ,
           threads     : [
             type      : "customer"
             createdBy :

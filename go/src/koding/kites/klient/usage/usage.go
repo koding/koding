@@ -34,10 +34,10 @@ type Usage struct {
 	MethodCalls int32 `json:"method_calls"`
 
 	// CountedMethods
-	countedMethods map[string]bool
+	CountedMethods map[string]bool
 }
 
-func NewUsage(countedMethods map[string]bool) *Usage {
+func NewUsage() *Usage {
 	return &Usage{
 		// start with free, can be upgraded, downgraded later
 		plan: &Plan{
@@ -45,14 +45,14 @@ func NewUsage(countedMethods map[string]bool) *Usage {
 			timeout: time.Minute * 30,
 		},
 		latestActivity: time.Now(),
-		countedMethods: countedMethods,
+		CountedMethods: make(map[string]bool, 0),
 	}
 }
 
 // Counter resets the current usage and counts the incoming calls.
 func (u *Usage) Counter(r *kite.Request) (interface{}, error) {
 	// don't reset for incoming methods that are not allowed
-	if _, ok := u.countedMethods[r.Method]; !ok {
+	if _, ok := u.CountedMethods[r.Method]; !ok {
 		return nil, nil
 	}
 

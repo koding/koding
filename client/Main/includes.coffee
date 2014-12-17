@@ -6,7 +6,6 @@ module.exports = [
   "libs/uuid.js",
   'libs/underscore-min.js'
   "libs/accounting.js",
-
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
@@ -234,6 +233,7 @@ module.exports = [
 
   "troubleshoot/liveupdatechecker.coffee",
   "troubleshoot/brokerrecovery.coffee",
+  "troubleshoot/vmchecker.coffee",
   "troubleshoot/troubleshootresultview.coffee",
   "troubleshoot/troubleshootmessageview.coffee",
 
@@ -272,13 +272,17 @@ module.exports = [
 
   "pinger.coffee",
 
+  # KITE CONTROLLER
+  "kite/kitecontroller.coffee",
+
   # NEW KITES (extending kite.js)
-  "kite/kitecache.coffee",
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
   "kite/kites/klient.coffee",
   "kite/kites/kloud.coffee",
 
+  # Virtualization CONTROLLER
+  "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
 
   "status.coffee",

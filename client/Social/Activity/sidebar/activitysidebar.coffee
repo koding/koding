@@ -134,9 +134,9 @@ class ActivitySidebar extends KDCustomHTMLView
         when 'announcement' then 2
         else 0
 
-      unless KD.utils.isChannelCollaborative data
-        item = @addItem data, index
-        @setUnreadCount item, data, unreadCount
+      item = @addItem data, index
+
+      @setUnreadCount item, data, unreadCount
 
 
   # when a comment is added to a post
@@ -183,9 +183,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
       index = 0  if typeConstant is 'privatemessage'
 
-      unless KD.utils.isChannelCollaborative channel
-        item = @addItem channel, index
-        @setUnreadCount item, channel, unreadCount
+      item = @addItem channel, index
+      @setUnreadCount item, channel, unreadCount
 
 
   accountRemovedFromChannel: (update) ->

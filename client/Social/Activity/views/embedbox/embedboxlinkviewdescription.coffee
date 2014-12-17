@@ -55,7 +55,6 @@ class EmbedBoxLinkViewDescription extends KDView
     value = @getData().link_embed?.description or @getData().description
     if value?
       value = Encoder.XSSEncode value
-      value = "#{value.substring 0, 128}..."
 
     return value
 

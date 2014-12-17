@@ -7,8 +7,8 @@ class EmbedBoxLinkViewImage extends CustomLinkView
     options.target = "_blank"
 
     imageOptions         = options.imageOptions or {}
-    imageOptions.width  ?= 100
-    imageOptions.height ?= 100
+    imageOptions.width  ?= 619
+    imageOptions.height ?= 200
     imageOptions.crop   ?= yes
     imageOptions.grow   ?= yes
 

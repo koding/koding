@@ -50,7 +50,7 @@ var (
 
 	flagProfile      = flag.String("c", "", "Configuration profile from file")
 	flagBrokerDomain = flag.String("a", "", "Send kontrol a custom domain istead of os.Hostname")
-	flagDuration     = flag.Duration("t", time.Second*50, "Duration for timeout in seconds - Duration flag accept any input valid for time.ParseDuration.")
+	flagDuration     = flag.Duration("t", time.Second*5, "Duration for timeout in seconds - Duration flag accept any input valid for time.ParseDuration.")
 	flagKontrolUUID  = flag.String("u", "", "Enable Kontrol mode")
 	flagBrokerType   = flag.String("b", "broker", "Define broker type. Available: broker, premiumBroker and brokerKite, premiumBrokerKite. B")
 	flagDebug        = flag.Bool("d", false, "Debug mode")

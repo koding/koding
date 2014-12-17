@@ -3,155 +3,13 @@ package kontrol
 import (
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/dnode"
-	"github.com/koding/kite/kontrol/onceevery"
 	kontrolprotocol "github.com/koding/kite/kontrol/protocol"
 	"github.com/koding/kite/protocol"
 )
-
-func (k *Kontrol) handleHeartbeat(rw http.ResponseWriter, req *http.Request) {
-	id := req.URL.Query().Get("id")
-	if id == "" {
-		http.Error(rw, "query id is empty", http.StatusBadRequest)
-		return
-	}
-
-	k.heartbeatsMu.Lock()
-	defer k.heartbeatsMu.Unlock()
-
-	k.log.Debug("Heartbeat received '%s'", id)
-	if updateTimer, ok := k.heartbeats[id]; ok {
-		// try to reset the timer every time the remote kite sends us a
-		// heartbeat. Because the timer get reset, the timer is never fired, so
-		// the value get always updated with the updater in the background
-		// according to the write interval. If the kite doesn't send any
-		// heartbeat, the timer func is being called, which stops the updater
-		// so the key is being deleted automatically via the TTL mechanism.
-		updateTimer.Reset(HeartbeatInterval + HeartbeatDelay)
-		k.heartbeats[id] = updateTimer
-
-		k.log.Debug("Sending pong '%s'", id)
-		rw.Write([]byte("pong"))
-		return
-	}
-
-	// if we reach here than it has several meanings:
-	// * kite was registered before, but kontrol is restarted
-	// * kite was registered before, but kontrol has lost track
-	// * kite was no registered and someone else sends an heartbeat
-	// we send back "registeragain" so the caller can be added in to the
-	// heartbeats map above.
-	k.log.Debug("Sending registeragain '%s'", id)
-	rw.Write([]byte("registeragain"))
-}
-
-func (k *Kontrol) handleRegisterHTTP(r *kite.Request) (interface{}, error) {
-	k.log.Info("Register (via HTTP) request from: %s", r.Client.Kite)
-
-	if r.Args.One().MustMap()["url"].MustString() == "" {
-		return nil, errors.New("invalid url")
-	}
-
-	var args struct {
-		URL string `json:"url"`
-	}
-	r.Args.One().MustUnmarshal(&args)
-	if args.URL == "" {
-		return nil, errors.New("empty url")
-	}
-
-	// Only accept requests with kiteKey because we need this info
-	// for generating tokens for this kite.
-	if r.Auth.Type != "kiteKey" {
-		return nil, fmt.Errorf("Unexpected authentication type: %s", r.Auth.Type)
-	}
-
-	kiteURL := args.URL
-	remote := r.Client
-
-	if err := validateKiteKey(&remote.Kite); err != nil {
-		return nil, err
-	}
-
-	value := &kontrolprotocol.RegisterValue{
-		URL: kiteURL,
-	}
-
-	// Register first by adding the value to the storage. Return if there is
-	// any error.
-	if err := k.storage.Upsert(&remote.Kite, value); err != nil {
-		k.log.Error("storage add '%s' error: %s", remote.Kite, err)
-		return nil, errors.New("internal error - register")
-	}
-
-	// if there is already just reset it
-	k.heartbeatsMu.Lock()
-	defer k.heartbeatsMu.Unlock()
-
-	updateTimer, ok := k.heartbeats[remote.Kite.ID]
-	if ok {
-		// there is already a previous registration, use it
-		k.log.Info("Kite was already register (via HTTP), use timer cache %s", remote.Kite)
-		updateTimer.Reset(HeartbeatInterval + HeartbeatDelay)
-		k.heartbeats[remote.Kite.ID] = updateTimer
-	} else {
-		// we create a new ticker which is going to update the key periodically in
-		// the storage so it's always up to date. Instead of updating the key
-		// periodically according to the HeartBeatInterval below, we are buffering
-		// the write speed here with the UpdateInterval.
-		stopped := make(chan struct{})
-		updater := time.NewTicker(UpdateInterval)
-		updaterFunc := func() {
-			for {
-				select {
-				case <-updater.C:
-					k.log.Debug("Kite is active (via HTTP), updating the value %s", remote.Kite)
-					err := k.storage.Update(&remote.Kite, value)
-					if err != nil {
-						k.log.Error("storage update '%s' error: %s", remote.Kite, err)
-					}
-				case <-stopped:
-					k.log.Info("Kite is nonactive (via HTTP). Updater is closed %s", remote.Kite)
-					return
-				}
-			}
-		}
-		go updaterFunc()
-
-		// we are now creating a timer that is going to call the function which
-		// stops the background updater if it's not resetted. The time is being
-		// resetted on a separate HTTP endpoint "/heartbeat"
-		k.heartbeats[remote.Kite.ID] = time.AfterFunc(HeartbeatInterval+HeartbeatDelay, func() {
-			k.log.Info("Kite didn't sent any heartbeat (via HTTP). Stopping the updater %s",
-				remote.Kite)
-			// stop the updater so it doesn't update it in the background
-			updater.Stop()
-
-			k.heartbeatsMu.Lock()
-			defer k.heartbeatsMu.Unlock()
-
-			select {
-			case <-stopped:
-			default:
-				close(stopped)
-			}
-
-			delete(k.heartbeats, remote.Kite.ID)
-		})
-	}
-
-	k.log.Info("Kite registered (via HTTP): %s", remote.Kite)
-
-	// send response back to the kite, also identify him with the new name
-	return &protocol.RegisterResult{
-		URL:               args.URL,
-		HeartbeatInterval: int64(HeartbeatInterval / time.Second),
-	}, nil
-}
 
 func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 	k.log.Info("Register request from: %s", r.Client.Kite)
@@ -192,58 +50,53 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("internal error - register")
 	}
 
-	every := onceevery.New(UpdateInterval)
-
-	ping := make(chan struct{}, 1)
-	closed := false
-
+	// we create a new ticker which is going to update the key periodically in
+	// the storage so it's always up to date. Instead of updating the key
+	// periodically according to the HeartBeatInterval below, we are buffering
+	// the write speed here with the UpdateInterval.
+	updater := time.NewTicker(UpdateInterval)
 	updaterFunc := func() {
-		for {
-			select {
-			case <-ping:
-				k.log.Debug("Kite is active, got a ping %s", remote.Kite)
-				every.Do(func() {
-					k.log.Info("Kite is active, updating the value %s", remote.Kite)
-					err := k.storage.Update(&remote.Kite, value)
-					if err != nil {
-						k.log.Error("storage update '%s' error: %s", remote.Kite, err)
-					}
-				})
-			case <-time.After(HeartbeatInterval + HeartbeatDelay):
-				k.log.Info("Kite didn't sent any heartbeat %s.", remote.Kite)
-				every.Stop()
-				closed = true
-				return
+		for _ = range updater.C {
+			k.log.Debug("Kite is active, updating the value %s", remote.Kite)
+			err := k.storage.Update(&remote.Kite, value)
+			if err != nil {
+				k.log.Error("storage update '%s' error: %s", remote.Kite, err)
 			}
 		}
 	}
+
 	go updaterFunc()
+
+	// lostFunc is called when we don't get any heartbeat or we lost
+	// connection. In any case it will stop the updater
+	lostFunc := func(reason string) func() {
+		return func() {
+			k.log.Info("Kite %s. Stopping the updater %s", reason, remote.Kite)
+			// stop the updater so it doesn't update it in the background
+			updater.Stop()
+		}
+	}
+
+	// we are now creating a timer that is going to call the lostFunc, which
+	// stops the background updater if it's not resetted.
+	updateTimer := time.AfterFunc(HeartbeatInterval+HeartbeatDelay,
+		lostFunc("didn't get heartbeat"))
 
 	heartbeatArgs := []interface{}{
 		HeartbeatInterval / time.Second,
 		dnode.Callback(func(args *dnode.Partial) {
+			// try to reset the timer every time the remote kite calls this
+			// callback(sends us heartbeat). Because the timer get reset, the
+			// lostFunc above will never be fired, so the value get always
+			// updated with the updater in the background according to the
+			// write interval. If the kite doesn't send any heartbeat, the
+			// deleteFunc is being called, which stops the updater so the key
+			// is being deleted automatically via the TTL mechanism.
 			k.log.Debug("Kite send us an heartbeat. %s", remote.Kite)
 
 			k.clientLocks.Get(remote.Kite.ID).Lock()
-			defer k.clientLocks.Get(remote.Kite.ID).Unlock()
-
-			select {
-			case ping <- struct{}{}:
-			default:
-			}
-
-			// seems we miss a heartbeat, so start it again!
-			if closed {
-				closed = false
-				k.log.Warning("Updater was closed, but we are still getting heartbeats. Starting again %s",
-					remote.Kite)
-
-				// it might be removed because the ttl cleaner would come
-				// before us, so try to add it again, the updater will than
-				// continue to update it afterwards.
-				k.storage.Upsert(&remote.Kite, value)
-				go updaterFunc()
-			}
+			updateTimer.Reset(HeartbeatInterval + HeartbeatDelay)
+			k.clientLocks.Get(remote.Kite.ID).Unlock()
 		}),
 	}
 
@@ -252,10 +105,7 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 
 	k.log.Info("Kite registered: %s", remote.Kite)
 
-	remote.OnDisconnect(func() {
-		k.log.Info("Kite disconnected: %s", remote.Kite)
-		every.Stop()
-	})
+	remote.OnDisconnect(lostFunc("disconnected")) // also call it when we disconnect
 
 	// send response back to the kite, also identify him with the new name
 	return &protocol.RegisterResult{URL: args.URL}, nil

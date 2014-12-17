@@ -136,6 +136,31 @@ func bodyLenCheck(body string) error {
 	return nil
 }
 
+// todo create a new message while updating the channel_message and delete other
+// cases, since deletion is a soft delete, old instances will still be there
+
+// CreateRaw creates a new channel message without effected by auto generated createdAt
+// and updatedAt values
+func (c *ChannelMessage) CreateRaw() error {
+	insertSql := "INSERT INTO " +
+		c.BongoName() +
+		` ("body","slug","type_constant","account_id","initial_channel_id",` +
+		`"created_at","updated_at","deleted_at","payload") ` +
+		"VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) " +
+		"RETURNING ID"
+
+	return bongo.B.DB.CommonDB().QueryRow(insertSql, c.Body, c.Slug, c.TypeConstant, c.AccountId, c.InitialChannelId,
+		c.CreatedAt, c.UpdatedAt, c.DeletedAt, c.Payload).Scan(&c.Id)
+}
+
+// UpdateBodyRaw updates message body without effecting createdAt/UpdatedAt
+// timestamps
+func (c *ChannelMessage) UpdateBodyRaw() error {
+	updateSql := fmt.Sprintf("UPDATE %s SET body=? WHERE id=?", c.BongoName())
+
+	return bongo.B.DB.Exec(updateSql, c.Body, c.Id).Error
+}
+
 type messageResponseStruct struct {
 	Index   int
 	Message *ChannelMessageContainer
@@ -251,40 +276,27 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	return container, nil
 }
 
-func generateMessageListQuery(q *request.Query) *bongo.Query {
+func generateMessageListQuery(channelId int64, q *request.Query) *bongo.Query {
 	messageType := q.Type
 	if messageType == "" {
 		messageType = ChannelMessage_TYPE_POST
 	}
 
-	query := &bongo.Query{
+	return &bongo.Query{
 		Selector: map[string]interface{}{
-			"type_constant": messageType,
+			"account_id":         q.AccountId,
+			"initial_channel_id": channelId,
+			"type_constant":      messageType,
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+		Sort: map[string]string{
+			"created_at": "DESC",
+		},
 	}
-
-	if q.GroupChannelId != 0 {
-		query.Selector["initial_channel_id"] = q.GroupChannelId
-	}
-
-	if q.AccountId != 0 {
-		query.Selector["account_id"] = q.AccountId
-	}
-
-	query.AddScope(ExcludeFields(q.Exclude))
-	query.AddScope(StartFrom(q.From))
-	query.AddScope(TillTo(q.To))
-
-	return query
 }
 
 func (c *ChannelMessage) FetchMessagesByChannelId(channelId int64, q *request.Query) ([]ChannelMessage, error) {
-	q.GroupChannelId = channelId
-	query := generateMessageListQuery(q)
-	query.Sort = map[string]string{
-		"created_at": "DESC",
-	}
+	query := generateMessageListQuery(channelId, q)
 
 	var messages []ChannelMessage
 	if err := c.Some(&messages, query); err != nil {
@@ -320,7 +332,13 @@ func (c *ChannelMessage) GetMentionedUsernames() []string {
 
 // FetchTotalMessageCount fetch the count of all messages in the channel
 func (c *ChannelMessage) FetchTotalMessageCount(q *request.Query) (int, error) {
-	query := generateMessageListQuery(q)
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"account_id":    q.AccountId,
+			"type_constant": q.Type,
+		},
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
+	}
 
 	query.AddScope(RemoveTrollContent(
 		c, q.ShowExempt,

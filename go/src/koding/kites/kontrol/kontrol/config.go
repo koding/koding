@@ -14,7 +14,6 @@ type Config struct {
 	Region      string
 	Environment string
 	Port        int
-	Debug       bool
 
 	// Etcd
 	Machines []string

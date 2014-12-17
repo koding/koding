@@ -98,7 +98,7 @@ func TestChannelParticipantIsParticipant(t *testing.T) {
 		Convey("it should not have error if account is exist", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 			cp := NewChannelParticipant()
 			cp.ChannelId = c.Id
@@ -143,9 +143,9 @@ func TestChannelParticipantFetchParticipantCount(t *testing.T) {
 		Convey("it should return participant count successfully", func() {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
-			acc1 := CreateAccountWithTest()
+			acc1 := createAccountWithTest()
 			So(acc1.Create(), ShouldBeNil)
 			cp := NewChannelParticipant()
 			cp.ChannelId = c.Id
@@ -193,7 +193,7 @@ func TestChannelParticipantgetAccountId(t *testing.T) {
 
 		Convey("it should return account id if account is exist", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			cp := NewChannelParticipant()
@@ -246,7 +246,7 @@ func TestChannelParticipantFetchParticipant(t *testing.T) {
 
 		Convey("it should not have any error if account is exist in channel", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// create channel
@@ -284,7 +284,7 @@ func TestChannelParticipantFetchActiveParticipant(t *testing.T) {
 
 		Convey("it should return active participant successfully", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// create channel
@@ -304,7 +304,7 @@ func TestChannelParticipantFetchActiveParticipant(t *testing.T) {
 
 		Convey("it should have error if account is not exist in channel", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// create channel
@@ -339,7 +339,7 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 	Convey("While marking if participant is exempt", t, func() {
 		Convey("it should be nil if participant is already exempt", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			acc.IsTroll = true
 			So(acc.Update(), ShouldBeNil)
 
@@ -367,7 +367,7 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 
 		Convey("it should have error if account is not set", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			acc.IsTroll = false
 			So(acc.Update(), ShouldBeNil)
 
@@ -405,7 +405,7 @@ func TestChannelParticipantisExempt(t *testing.T) {
 
 		Convey("it should return true if participant is troll", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			err := acc.MarkAsTroll()
 			So(err, ShouldBeNil)
 
@@ -419,7 +419,7 @@ func TestChannelParticipantisExempt(t *testing.T) {
 
 		Convey("it should return true if participant is not troll", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 
 			cp := NewChannelParticipant()
 			cp.AccountId = acc.Id

@@ -30,17 +30,16 @@ type User struct {
 }
 
 type EmailFrequency struct {
-	Global            bool   `bson:"global"`
-	Daily             bool   `bson:"daily"`
-	PrivateMessage    bool   `bson:"privateMessage"`
-	Follow            bool   `bson:"followActions"`
-	Comment           bool   `bson:"comment"`
-	Like              bool   `bson:"likeActivities"`
-	GroupInvite       bool   `bson:"groupInvite"`
-	GroupRequest      bool   `bson:"groupRequest"`
-	GroupApproved     bool   `bson:"groupApproved"`
-	Join              bool   `bson:"groupJoined"`
-	Leave             bool   `bson:"groupLeft"`
-	Mention           bool   `bson:"mention"`
-	NotificationDelay string `bson:"pmNotificationDelay"`
+	Global         bool `bson:"global"`
+	Daily          bool `bson:"daily"`
+	PrivateMessage bool `bson:"privateMessage"`
+	Follow         bool `bson:"followActions"`
+	Comment        bool `bson:"comment"`
+	Like           bool `bson:"likeActivities"`
+	GroupInvite    bool `bson:"groupInvite"`
+	GroupRequest   bool `bson:"groupRequest"`
+	GroupApproved  bool `bson:"groupApproved"`
+	Join           bool `bson:"groupJoined"`
+	Leave          bool `bson:"groupLeft"`
+	Mention        bool `bson:"mention"`
 }

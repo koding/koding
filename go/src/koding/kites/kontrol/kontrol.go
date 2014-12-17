@@ -5,7 +5,6 @@ import (
 	"koding/artifact"
 	"koding/kites/kontrol/kontrol"
 
-	"github.com/koding/kite"
 	"github.com/koding/multiconfig"
 )
 
@@ -36,10 +35,6 @@ func main() {
 
 	k.Kite.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
 	k.Kite.HandleHTTPFunc("/version", artifact.VersionHandler())
-
-	if conf.Debug {
-		k.Kite.SetLogLevel(kite.DEBUG)
-	}
 
 	k.Run()
 }

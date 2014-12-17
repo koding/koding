@@ -138,10 +138,10 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         KD.utils.defer => @turnOnMachine()
         return
 
-      @triggerEventTimer 10
+      @triggerEventTimer 0
 
       KD.getSingleton 'computeController'
-        .getKloud().info { @machineId, currentState }
+        .kloud.info { @machineId, currentState }
         .then (response)=>
 
           info "Initial info result:", response
@@ -184,6 +184,14 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
         Please select a new VM to operate on from the VMs list or create a new one.
       """
+
+      if @machine.status.state is Terminated
+        KD.getSingleton 'computeController'
+          .kloud.info { @machineId, currentState: @machine.status.state }
+          .then (response)=>
+            if response.State is Terminated
+              @createStateButton()
+          .catch noop
     else if @state is Running
       @prepareIDE()
       @destroy()
@@ -280,7 +288,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         if plan is "free"
           message = "
             Your VM was automatically turned off after 60 minutes
-            of inactivity as you are on the free plan."
+            of inactivity as you are in <strong>Free</strong> plan."
           upgradeMessage = """
             <a href="/Pricing" class="upgrade-link">
               Upgrade to make your VMs always-on.

@@ -2,8 +2,6 @@ package command
 
 import (
 	"fmt"
-	"strings"
-	"sync"
 
 	"koding/kites/kloud/protocol"
 
@@ -12,56 +10,40 @@ import (
 )
 
 type Info struct {
-	ids *string
+	id *string
 }
 
 func NewInfo() cli.CommandFactory {
 	return func() (cli.Command, error) {
 		f := NewFlag("info", "Show status and information about a machine")
 		f.action = &Info{
-			ids: f.String("ids", "", "Machine id of information being showed."),
+			id: f.String("id", "", "Machine id of information being showed."),
 		}
 		return f, nil
 	}
 }
 
-func (i *Info) SingleMachine(id string, k *kite.Client) (string, error) {
+func (i *Info) Action(args []string, k *kite.Client) error {
 	infoArgs := &KloudArgs{
-		MachineId: id,
+		MachineId: *i.id,
+		Username:  flagUsername,
 	}
 
 	resp, err := k.Tell("info", infoArgs)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	var result protocol.InfoArtifact
 	err = resp.Unmarshal(&result)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return result.State.String(), nil
-}
+	DefaultUi.Info(fmt.Sprintf("%+v", result))
 
-func (i *Info) Action(args []string, k *kite.Client) error {
-	machines := strings.Split(*i.ids, ",")
-
-	var wg sync.WaitGroup
-	for _, id := range machines {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			result, err := i.SingleMachine(id, k)
-			if err != nil {
-				DefaultUi.Error(err.Error())
-			} else {
-				DefaultUi.Info(fmt.Sprintf("%s: %s", id, result))
-			}
-		}(id)
+	if flagWatchEvents {
+		return watch(k, "info", *i.id, defaultPollInterval)
 	}
-
-	DefaultUi.Info(fmt.Sprintf("info called for '%d' machines:\n", len(machines)))
-	wg.Wait()
 	return nil
 }

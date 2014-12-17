@@ -26,7 +26,7 @@ class SidebarMoreLink extends CustomLinkView
     { visibleCount, limit } = @getOptions()
     { totalCount }          = res
 
-    if visibleCount > limit
+    if totalCount > limit
     then @show()
     else @hide()
 

@@ -101,11 +101,11 @@ func TestChannelMessageListCount(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 
 			// create account as troll
-			acc1 := CreateAccountWithTest()
+			acc1 := createAccountWithTest()
 			err := acc1.MarkAsTroll()
 			So(err, ShouldBeNil)
 
-			acc2 := CreateAccountWithTest()
+			acc2 := createAccountWithTest()
 
 			// create message that creator is troll
 			msg := createMessageWithTest()
@@ -157,7 +157,7 @@ func TestChannelMessageListisExempt(t *testing.T) {
 
 		Convey("it should return true is channel is exempt", func() {
 			// create account as troll
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			err := acc.MarkAsTroll()
 			So(err, ShouldBeNil)
 
@@ -181,7 +181,7 @@ func TestChannelMessageListisExempt(t *testing.T) {
 
 		Convey("it should return false is channel is not exempt", func() {
 			// create account as not troll
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			acc.IsTroll = false
 
 			// create channel
@@ -222,7 +222,7 @@ func TestChannelMessageListMarkIfExempt(t *testing.T) {
 
 		Convey("it should mark as exempt if channel is exempt", func() {
 			// create account as troll
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 			err := acc.MarkAsTroll()
 			So(err, ShouldBeNil)
 
@@ -280,7 +280,7 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 
 		Convey("it should not have error if update is done successfuly", func() {
 			// create account
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 
 			// create channel
 			c := createNewChannelWithTest()
@@ -349,7 +349,7 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 
 		Convey("it should count if participant is troll", func() {
 			// create account as troll
-			accTroll := CreateAccountWithTest()
+			accTroll := createAccountWithTest()
 			err := accTroll.MarkAsTroll()
 			So(err, ShouldBeNil)
 
@@ -420,7 +420,7 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 
 		Convey("it should return false if message is not in the channel", func() {
 			// create account as troll
-			accTroll := CreateAccountWithTest()
+			accTroll := createAccountWithTest()
 
 			// create channel
 			c := createNewChannelWithTest()
@@ -445,7 +445,7 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 
 		Convey("it should return true if message is in the channel", func() {
 			// create account as troll
-			acc := CreateAccountWithTest()
+			acc := createAccountWithTest()
 
 			// create channel
 			c := createNewChannelWithTest()

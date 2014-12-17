@@ -3,30 +3,26 @@ package collaboration
 import (
 	"errors"
 	"strings"
+	"sync"
 
 	"github.com/koding/kite"
 )
 
-type Collaboration struct {
-	Storage
+type SharedUsers struct {
+	AllowedUsers map[string]bool
+	mu           sync.Mutex
 }
 
-func New() *Collaboration {
-	var db Storage
-	var err error
-
-	// Try the persistent storage first. If it fails, try the in-memory one.
-	db, err = NewBoltStorage()
-	if err != nil {
-		db = NewMemoryStorage()
-	}
-
-	return &Collaboration{
-		Storage: db,
+func New() *SharedUsers {
+	return &SharedUsers{
+		AllowedUsers: make(map[string]bool),
 	}
 }
 
-func (c *Collaboration) Share(r *kite.Request) (interface{}, error) {
+func (s *SharedUsers) Share(r *kite.Request) (interface{}, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	var params struct {
 		Username string
 	}
@@ -35,14 +31,19 @@ func (c *Collaboration) Share(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("Wrong usage.")
 	}
 
-	if err := c.Set(params.Username, ""); err != nil {
+	if _, ok := s.AllowedUsers[params.Username]; ok {
 		return nil, errors.New("user is already in the shared list.")
 	}
+
+	s.AllowedUsers[params.Username] = true
 
 	return "shared", nil
 }
 
-func (c *Collaboration) Unshare(r *kite.Request) (interface{}, error) {
+func (s *SharedUsers) Unshare(r *kite.Request) (interface{}, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	var params struct {
 		Username string
 	}
@@ -51,17 +52,20 @@ func (c *Collaboration) Unshare(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("Wrong usage.")
 	}
 
-	if err := c.Delete(params.Username); err != nil {
+	if _, ok := s.AllowedUsers[params.Username]; !ok {
 		return nil, errors.New("user is not in the shared list.")
 	}
+
+	delete(s.AllowedUsers, params.Username)
 
 	return "unshared", nil
 }
 
-func (c *Collaboration) Shared(r *kite.Request) (interface{}, error) {
-	users, err := c.GetAll()
-	if err != nil {
-		return nil, err
+func (s *SharedUsers) Shared(r *kite.Request) (interface{}, error) {
+	shared := make([]string, 0)
+	for user := range s.AllowedUsers {
+		shared = append(shared, user)
 	}
-	return strings.Join(users, ","), nil
+
+	return strings.Join(shared, ","), nil
 }

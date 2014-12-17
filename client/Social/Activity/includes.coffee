@@ -55,7 +55,6 @@ module.exports = [
   "views/chatheadautocompleteitem.coffee"
   "views/alltopicsmodal.coffee"
   "views/activityautocompleteuseritemview.coffee"
-  "views/fetchingactivityautocompleteuseritemview.coffee"
   "views/searchinputview.coffee"
 
   "views/embedbox.coffee"

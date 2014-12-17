@@ -8,7 +8,22 @@
 
 KD.extend
 
+  useNewKites  : do ->
+    useNewKites = switch
+      when KD.config.kites.stack.force
+        Boolean KD.config.kites.stack.newKites
+      when localStorage.useNewKites?
+        Boolean Number localStorage.useNewKites
+    localStorage.useNewKites = if useNewKites then '1' else ''
+    return useNewKites
   useWebSockets : yes
+
+  toggleKiteStack: ->
+    localStorage.useNewKites =
+      if @useNewKites
+      then ''
+      else '1'
+    location.reload()
 
   socketConnected:->
     @backendIsConnected = yes

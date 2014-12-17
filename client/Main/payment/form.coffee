@@ -10,8 +10,6 @@
 # from the rest. ~Umut
 class PaymentForm extends JView
 
-  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
-
   getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
@@ -36,7 +34,7 @@ class PaymentForm extends JView
 
     {
       planTitle, planInterval, reducedMonth
-      currentPlan, yearPrice, operation
+      currentPlan, yearPrice, isUpgrade
     } = @state
 
     @plan = new KDCustomHTMLView
@@ -60,10 +58,9 @@ class PaymentForm extends JView
       cssClass : 'success-msg hidden'
       partial  : ''
 
-    buttonPartial = switch operation
-      when  1 then 'UPGRADE YOUR PLAN'
-      when  0 then 'MAKE CHANGE'
-      when -1 then 'DOWNGRADE'
+    buttonPartial = if isUpgrade
+    then 'UPGRADE YOUR PLAN'
+    else 'DOWNGRADE'
 
     @submitButton = new KDButtonView
       style     : 'solid medium green'
@@ -97,10 +94,7 @@ class PaymentForm extends JView
     { KODING } = PaymentWorkflow.provider
     { currentPlan, planTitle, planInterval, provider } = @state
 
-    operation = PaymentWorkflow.getOperation currentPlan, planTitle
-
     @yearPriceMessage.hide()  if planInterval is MONTH
-    @yearPriceMessage.hide()  if operation is PaymentWorkflow.operation.INTERVAL_CHANGE
 
     # no need to show those views when they are
     # downgrading to free account.
@@ -181,20 +175,15 @@ class PaymentForm extends JView
       @$('.summary')
     ].forEach (view) -> view.detach()
 
-    {operation} = @state
-
-    word = switch operation
-      when UPGRADE         then 'upgrades'
-      when INTERVAL_CHANGE then 'changes'
-      when DOWNGRADE       then 'downgrades'
+    {isUpgrade} = @state
 
     @existingCreditCardMessage.updatePartial "
-      We are sorry #{word} are disabled for Paypal.
+      We are sorry #{if isUpgrade then 'upgrades' else 'downgrades'} are disabled for Paypal.
       Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>
     "
 
 
-  showSuccess: (operation) ->
+  showSuccess: (isUpgrade) ->
 
     [
       @form
@@ -206,29 +195,17 @@ class PaymentForm extends JView
 
     @$('.divider').detach()
 
-    switch operation
-
-      when PaymentWorkflow.operation.UPGRADE
-
-        @successMessage.updatePartial "
-          Depending on the plan upgraded to, you now have access to more computing
-          and storage resources.
-          <a href='http://learn.koding.com/guides/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
-             target='_blank'>
-           Learn more
-          </a>
-          about how to use your new resources.
-        "
-        @successMessage.show()
-
-      when PaymentWorkflow.operation.INTERVAL_CHANGE
-
-        @successMessage.updatePartial "
-          Your billing cycle has been successfully updated.
-          Please note that this makes no change to your available
-          resources.
-        "
-        @successMessage.show()
+    if isUpgrade
+      @successMessage.updatePartial "
+        Depending on the plan upgraded to, you now have access to more computing
+        and storage resources.
+        <a href='http://learn.koding.com/guides/what-happens-upon-upgrade/?utm_source=upgrade_modal&utm_medium=website&utm_campaign=upgrade'
+           target='_blank'>
+         Learn more
+        </a>
+        about how to use your new resources.
+      "
+      @successMessage.show()
 
     @submitButton.setTitle 'CONTINUE'
     @submitButton.setCallback =>

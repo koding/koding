@@ -92,8 +92,8 @@ class AccountSshKeyListItem extends KDListItemView
       cssClass : "ssh-key-item clearfix"
       partial  : """
       <div class='ssh-key-info'>
-        <h4><span class="title">#{@getData().title}</span></h4>
-        <p><span class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</span></p>
+        <h4>#{@getData().title}</h4>
+        <p>#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</p>
       </div>
       """
 

@@ -211,6 +211,32 @@ class DockController extends KDViewController
         @setNavItemState {name:options.name, options}, 'active'
 
 
+  fetchVMs: (callback)->
+
+    {vmController} = KD.singletons
+
+    # force refetch from server everytime vms fetched.
+    vmController.fetchVMs force = yes, (err, vms) =>
+      if err
+        ErrorLog.create 'terminal: Couldn\'t fetch vms', reason : err
+        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+
+      # hostnameAlias comes in format 'vm-0.senthil.kd.io', this helper
+      # gets just the vm number
+      getVMNumber = ({hostnameAlias})->
+        +(hostnameAlias.match(/\d+/)[0])
+
+      # sort vms by vm number
+      vms.sort (a,b)->
+        getVMNumber(a) > getVMNumber(b)
+
+      callback vms
+
+  refreshSidebarVMs: ->
+    @fetchVMs (vms) =>
+      @vmTree.removeAllNodes()
+      @listVMs vms
+
   getRelativeItem: (increment, predicate) ->
 
     i = @activeIndex

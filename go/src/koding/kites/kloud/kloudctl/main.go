@@ -18,15 +18,15 @@ func main() {
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
 		"ping":    command.NewPing(),
+		"build":   command.NewBuild(),
 		"event":   command.NewEvent(),
 		"info":    command.NewInfo(),
-		"build":   command.NewCmd("build"),
-		"start":   command.NewCmd("start"),
-		"stop":    command.NewCmd("stop"),
-		"destroy": command.NewCmd("destroy"),
-		"restart": command.NewCmd("restart"),
-		"resize":  command.NewCmd("resize"),
-		"reinit":  command.NewCmd("reinit"),
+		"start":   command.NewStart(),
+		"stop":    command.NewStop(),
+		"destroy": command.NewDestroy(),
+		"restart": command.NewRestart(),
+		"resize":  command.NewResize(),
+		"reinit":  command.NewReinit(),
 	}
 
 	_, err := c.Run()

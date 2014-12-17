@@ -176,7 +176,7 @@ class AceView extends JView
         {tabView} = @getDelegate()
         return  if tabView.willClose
 
-        @getDelegate().openSavedFile newFile, contents
+        @getDelegate().openFile newFile, contents
 
     , { inputDefaultValue: file.name }
 

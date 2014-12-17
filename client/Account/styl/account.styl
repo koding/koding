@@ -174,55 +174,24 @@ body.account
             padding               0
 
 
-    &.linked-accounts
     &.email-notifications
-      max-width                   800px
-      ul.off
-        li:not(:first-child):before
-          size                  100% 100%
-
-      li:not(:first-child)
-        &:before
-          bg                    color rgba(255,255,255,.9)
-          content               ''
-          size                  100% 0%
-          z-index               101
-          abs()
-
+    &.linked-accounts
       li
         size                      100%, 65px
         line-height               65px
         border-bottom             1px solid #DEDEDE
         padding                   0 4px 0 4px
-        clear                     both
         borderBox()
-        rel()
 
         &:last-of-type
-        &.has-sub
           border-bottom           none
 
-        &.sub
-          line-height             37px
-          height                  51px
-          padding                 0 4px 0 24px
-          > .title
-            font-size             14px
-
-        > .title
-          line-height             normal
-          kalc                    width, 100% \- 115px
-          display                 inline-block
-          vertical-align          middle
+        .title
+          fl()
 
         .koding-on-off
-        .kdselectbox
           margin-top              18px
           fr()
-
-        .kdselectbox
-          margin-top              0
-
 
     &.delete-account
       .delete-account-view
@@ -349,23 +318,6 @@ body.account
             color                 #323232
 
     &.ssh-keys
-      > .kdlistview.keys
-        padding-top               40px
-
-      .add-big-btn
-        abs                       0px 0 0 0px
-
-      .add-key-form
-        margin-top                34px
-
-        &:after
-          content                 ''
-          display                 block
-          width                   auto
-          margin                  24px 17px 0 0
-          height                  1px
-          background              #dedede
-
       .ssh-key-item
         size                      100%, auto
         padding                   23px 0

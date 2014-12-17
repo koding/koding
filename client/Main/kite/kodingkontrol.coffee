@@ -1,4 +1,4 @@
-class KodingKontrol extends KontrolJS = (require 'kontrol')
+class KodingKontrol extends (require 'kontrol')
 
   constructor: (options = {})->
 
@@ -9,88 +9,65 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     @kites   = {}
     @regions = {}
 
+    @reauthenticate()
 
   getAuthOptions: ->
 
-    @_lastUsedKey = Cookies.get 'clientId'
-
     autoConnect           : no
-    autoReconnect         : yes
     url                   : @_kontrolUrl ? KD.config.newkontrol.url
     auth                  :
       type                : 'sessionID'
-      key                 : @_lastUsedKey
+      key                 : Cookies.get 'clientId'
     transportClass        : SockJS
     transportOptions      :
       heartbeatTimeout    : 30 * 1000 # 30 seconds
       # Force XHR for all kind of kite connection
-      protocols_whitelist : ['xhr-polling'] # , 'xhr-streaming']
+      protocols_whitelist : ['xhr-polling', 'xhr-streaming']
 
 
-  reauthenticate: (initial)->
-
-    if @_lastUsedKey?
-      if (Cookies.get 'clientId') isnt @_lastUsedKey
-        # disconnect the old kontrol kite
-        @kite?.disconnect()
-
+  reauthenticate: ->
+    # disconnect the old kontrol kite
+    @kite?.disconnect()
     # reauthenticate with the current session token
     @authenticate @getAuthOptions()
 
-
-  fetchKite: Promise.promisify (args, callback)->
-
-    if (cachedKite = KiteCache.get args.query)?
-      return callback null, @createKite cachedKite, args.query
-
-    KontrolJS::fetchKite.call this, args, callback
-
-
-  fetchKites: Promise.promisify (args, callback) ->
-
-    @reauthenticate()  unless @kite?
-
-    {query} = args
-    args    = @injectQueryParams args
-
-    @kite.tell 'getKites', [args], (err, result) =>
-      return callback err  if err?
-
-      unless result?
-        callback @createKiteNotFoundError args.query
-        return
-
-      if query? and result.kites.length > 0
-        KiteCache.cache query, result.kites.first
-
-      callback null, @createKites result.kites
-
+  fetchKites: (query = {}, rest...) ->
+    super (@injectQueryParams query), rest...
 
   getVersion: (name) ->
-    return KD.config.kites[name].version ? '1.0.0'
+    return '1.0.0'  unless name?
+    { os, terminal, klient, kloud } = KD.config.kites
+    # TODO: this could be more elegant:
+    {
+      oskite   : os.version
+      terminal : terminal.version
+      klient   : klient.version
+      kloud    : kloud.version
+    }[name] ? ''
 
+  injectQueryParams: (args) ->
 
-  injectQueryParams: (args = {}) ->
-
-    args.query             ?= {}
     args.query.version     ?= @getVersion args.query.name
     args.query.username    ?= KD.config.kites.kontrol.username
     args.query.environment ?= KD.config.environment
 
     return args
 
-
   getCachedKite: (name, correlationName) ->
     @kites[name]?[correlationName]
 
-
   setCachedKite: (name, correlationName, kite) ->
     @kites[name] ?= {}
-    unless kite?
-      delete @kites[name][correlationName]
-    else
-      @kites[name][correlationName] = kite
+    @kites[name][correlationName] = kite
 
+  hasKite: (options = {}) ->
+    { name, correlationName, region } = options
+    return (kite = @getCachedKite name, correlationName)?
+
+  getWhoParams: (kiteName, correlationName) ->
+    if kiteName in ['oskite', 'terminal']
+      return vmName: correlationName
+    return { correlationName }
 
   getKiteProxy: (options) ->
 
@@ -104,50 +81,26 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     return kite
 
 
-  createKite: (options, query)->
-
-    {computeController} = KD.singletons
+  createKite: (options)->
 
     {kite} = options
-    kiteName = kite.name
 
     # If its trying to create a klient kite instance
     # allow to use websockets by emptying the protocols_whitelist
-    if kiteName is 'klient'
-      options.transportOptions = protocols_whitelist: []
+    if kite.name is 'klient'
+      options.transportOptions =
+        protocols_whitelist : []
 
-    kite = KontrolJS::createKite.call this, options
-
-    if query?
-
-      queryString = KiteCache.generateQueryString query
-
-      kite.on 'close', (event)=>
-
-        if event?.code is 1002 and \
-           event?.reason is "Can't connect to server"
-
-          kite.options.autoReconnect = no
-          KiteCache.unset query
-
-          kiteInstance = @kites[kiteName]?['singleton'] or {}
-          {waitingPromises} = kiteInstance
-
-          delete @kites[kiteName]['singleton']
-
-          if machine = computeController.findMachineFromQueryString queryString
-            delete @kites[kiteName][machine.uid]
-
-          (@getKite { name: kiteName, queryString, waitingPromises })?.connect()
-
-    return kite
+    super options
 
 
   getKite: (options = {}) ->
 
+    @reauthenticate()  unless @kite?
+
     # Get options
-    { name, correlationName, region, transportOptions, waitingPromises
-      username, environment, version, queryString } = options
+    { name, correlationName, region, transportOptions,
+      username, environment, queryString } = options
 
     # If no `correlationName` is defined assume this kite instance
     # is a singleton kite instance and keep track of it with this keyword
@@ -178,16 +131,12 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
           KodingKontrol.dcNotification?.destroy()
           KodingKontrol.dcNotification = null
 
-    if waitingPromises? and waitingPromises.length > 0
-
-      kite.once 'connected', ->
-        for promise in waitingPromises
-          [resolve, args] = promise
-          resolve kite.transport?.tell args...
-
     # Query kontrol
     @fetchKite
-      query : query ? { name, region, username, version, environment }
+      query : query ? { name, region, username, environment }
+
+      # TODO : Implement optional kite.who
+      # who  : @getWhoParams name, correlationName
 
     # Connect to kite
     .then(kite.bound 'setTransport')
@@ -201,7 +150,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
       # Instead parsing message we need to define a code or different
       # name for `No kite found` error in kite.js ~ FIXME GG
       if err and err.name is "KiteError" and /^No kite found/.test err.message
-        @setCachedKite name, correlationName
+        @setCachedKite name, correlationName, null
         kite.invalid = err
 
       {message} = err

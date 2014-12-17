@@ -20,7 +20,7 @@ class ActivityTopicsWidget extends KDCustomHTMLView
             height        : 40
       noItemFoundWidget   : new KDView
         cssClass          : "no-item-found"
-        partial           : "<cite>There are no topics.</cite>"
+        partial           : "<cite>There is no topics.</cite>"
 
     @addSubView @listController.getView()
 
