@@ -153,11 +153,12 @@ func sessionExists(session, username string) bool {
 	return false
 }
 
-// killSessions kills all screen sessions
-func killSessions() error {
-	out, err := exec.Command("killall", "screen").CombinedOutput()
-	if err != nil {
-		return commandError("screen kill failed", err, out)
+// killSessions kills all screen sessions for given username
+func killSessions(username string) error {
+	for _, session := range screenSessions(username) {
+		if err := killSession(session); err != nil {
+			return err
+		}
 	}
 
 	return nil
