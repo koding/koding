@@ -59,6 +59,8 @@ module.exports = class Collaboration extends Base
 
       lastSeen = new Date parseInt doc.data.value.pingTime.value, 10
 
-      if (Date.now() - lastSeen.getTime()) > (10 * 60 * 1000)
+      {timeout} = KONFIG.collaboration
+
+      if (Date.now() - lastSeen.getTime()) > timeout
       then unshareMachine workspace, callback
       else callback 'host is alive'
