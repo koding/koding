@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"sync"
 	"syscall"
 	"time"
 	"unicode/utf8"
@@ -19,8 +20,50 @@ import (
 
 type Terminal struct {
 	InputHook func()
+	Log       kite.Logger
+
+	Users      map[string]*User
+	sync.Mutex // protects Users
 }
 
+func New(log kite.Logger) *Terminal {
+	return &Terminal{
+		Users: make(map[string]*User),
+		Log:   log,
+	}
+}
+
+// AddUserSession adds the given username and session
+func (t *Terminal) AddUserSession(username, session string, server *Server) {
+	t.Lock()
+	defer t.Unlock()
+
+	// check if it's exists, if not go and lazy initialize a new user instance
+	var user *User
+	var ok bool
+	user, ok = t.Users[username]
+	if !ok {
+		user = NewUser(username)
+	}
+
+	user.AddSession(session, server)
+	t.Users[username] = user
+}
+
+// DeleteUserSession deletes the given session from the Users map
+func (t *Terminal) DeleteUserSession(username, session string) {
+	t.Lock()
+	defer t.Unlock()
+
+	user := t.Users[username]
+	user.DeleteSession(session)
+
+	if len(user.Sessions) == 0 {
+		delete(t.Users, username)
+	}
+}
+
+// KillSession kills the given screen session
 func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Session string
@@ -38,9 +81,12 @@ func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	t.DeleteUserSession(r.Username, params.Session)
+
 	return true, nil
 }
 
+// GetSessions return a list of curren active screen sessions
 func (t *Terminal) GetSessions(r *kite.Request) (interface{}, error) {
 	user, err := user.Current()
 	if err != nil {
@@ -55,6 +101,8 @@ func (t *Terminal) GetSessions(r *kite.Request) (interface{}, error) {
 	return sessions, nil
 }
 
+// Connect creates and open a new TTY instance. It returns a *Server instance
+// so every caller can send and receive from the connected TTY end.
 func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Remote       Remote
@@ -97,6 +145,8 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
 
+	t.AddUserSession(r.Username, command.Session, server)
+
 	// wrap the command with sudo -i for initiation login shell. This is needed
 	// in order to have Environments and other to be initialized correctly.
 	// check also if klient was started in root mode or not.
@@ -137,6 +187,8 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 		server.pty.Slave.Close()
 		server.pty.Master.Close()
 		server.remote.SessionEnded.Call()
+
+		t.DeleteUserSession(r.Username, command.Session)
 	}()
 
 	// Read the STDOUT from shell process and send to the connected client.
@@ -178,6 +230,25 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	}()
 
 	return server, nil
+}
+
+// CloseSessions closes all active session for the given username and deletes
+// it from the internal user map
+func (t *Terminal) CloseSessions(username string) {
+	t.Log.Info("Closing terminal sessions of user '%s'", username)
+	t.Lock()
+	user, ok := t.Users[username]
+	if !ok {
+		t.Unlock()
+		return
+	}
+	t.Unlock()
+
+	user.CloseSessions()
+
+	t.Lock()
+	delete(t.Users, username)
+	t.Unlock()
 }
 
 func filterInvalidUTF8(buf []byte) []byte {

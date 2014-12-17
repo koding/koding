@@ -186,25 +186,6 @@ func newKite() *kite.Kite {
 		return true, nil
 	})
 
-	// Unshare collab users if the klient owner disconnects
-	k.OnDisconnect(func(c *kite.Client) {
-		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
-		if c.Username == k.Config.Username {
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				k.Log.Warning("Couldn't unshare users: '%s'", err)
-				return
-			}
-
-			k.Log.Info("Unsharing users '%s'", sharedUsers)
-			for _, user := range sharedUsers {
-				if err := collab.Delete(user); err != nil {
-					k.Log.Warning("Couldn't delete user from storage: '%s'", err)
-				}
-			}
-		}
-	})
-
 	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.PreHandleFunc(usg.Counter) // we measure every incoming request
 	k.HandleFunc("klient.usage", usg.Current)
@@ -228,17 +209,41 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
 
-	// Terminal
-	term := &terminal.Terminal{
-		InputHook: usg.Reset,
-	}
+	// Execution
+	k.HandleFunc("exec", command.Exec)
 
+	// Terminal
+	term := terminal.New(k.Log)
+	term.InputHook = usg.Reset
 	k.HandleFunc("webterm.getSessions", term.GetSessions)
 	k.HandleFunc("webterm.connect", term.Connect)
 	k.HandleFunc("webterm.killSession", term.KillSession)
 
-	// Execution
-	k.HandleFunc("exec", command.Exec)
+	// Unshare collab users if the klient owner disconnects
+	k.OnDisconnect(func(c *kite.Client) {
+		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
+		if c.Username == k.Config.Username {
+			sharedUsers, err := collab.GetAll()
+			if err != nil {
+				k.Log.Warning("Couldn't unshare users: '%s'", err)
+				return
+			}
+
+			if len(sharedUsers) == 0 {
+				return // nothing to do ...
+			}
+
+			k.Log.Info("Unsharing users '%s'", sharedUsers)
+			for _, user := range sharedUsers {
+				if err := collab.Delete(user); err != nil {
+					k.Log.Warning("Couldn't delete user from storage: '%s'", err)
+				}
+
+				// close all active sessions of the current
+				term.CloseSessions(user)
+			}
+		}
+	})
 
 	if err := register(k); err != nil {
 		panic(err)
