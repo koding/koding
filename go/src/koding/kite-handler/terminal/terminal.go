@@ -236,13 +236,14 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 // it from the internal user map
 func (t *Terminal) CloseSessions(username string) {
 	t.Log.Info("Closing terminal sessions of user '%s'", username)
+
 	t.Lock()
 	user, ok := t.Users[username]
+	t.Unlock()
+
 	if !ok {
-		t.Unlock()
 		return
 	}
-	t.Unlock()
 
 	user.CloseSessions()
 
