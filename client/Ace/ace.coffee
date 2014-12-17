@@ -33,6 +33,10 @@ class Ace extends KDView
             else @emit 'FileContentRestored'
 
           @editor.gotoLine 0
+
+          # remove cmd+L binding. we have already defined cmd+g for this purpose
+          @editor.commands.removeCommand 'gotoline'
+
           @focus()
           @show()
 
