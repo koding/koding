@@ -153,6 +153,16 @@ func sessionExists(session, username string) bool {
 	return false
 }
 
+// killSessions kills all screen sessions
+func killSessions() error {
+	out, err := exec.Command("killall", "screen").CombinedOutput()
+	if err != nil {
+		return commandError("screen kill failed", err, out)
+	}
+
+	return nil
+}
+
 // killSession kills the given SessionID
 func killSession(session string) error {
 	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill").Output()
