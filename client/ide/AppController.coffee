@@ -1648,7 +1648,7 @@ class IDEAppController extends AppController
     if @amIHost
       KD.utils.repeat pingInterval, => @pingTime.setText Date.now().toString()
     else
-      KD.utils.repeat pongInterval, =>
+      repeat = KD.utils.repeat pongInterval, =>
         lastPing = @pingTime.getText()
 
         return  if Date.now() - lastPing < diffInterval
@@ -1656,5 +1656,7 @@ class IDEAppController extends AppController
         KD.remote.api.Collaboration.stop @rtmFileId, @workspaceData, (err) =>
           if err
           then console.warn err
-          else @showSessionEndedModal \
-            "@#{@collaborationHost} has left the session."
+          else
+            KD.utils.killRepeat repeat
+            @showSessionEndedModal \
+              "@#{@collaborationHost} has left the session."
