@@ -218,6 +218,7 @@ func newKite() *kite.Kite {
 	k.HandleFunc("webterm.getSessions", term.GetSessions)
 	k.HandleFunc("webterm.connect", term.Connect)
 	k.HandleFunc("webterm.killSession", term.KillSession)
+	k.HandleFunc("webterm.killSessions", term.KillSessions)
 
 	// Unshare collab users if the klient owner disconnects
 	k.OnDisconnect(func(c *kite.Client) {
