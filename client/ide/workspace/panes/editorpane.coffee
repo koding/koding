@@ -22,6 +22,7 @@ class IDE.EditorPane extends IDE.Pane
     file.once 'fs.delete.finished', =>
       KD.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
+    @once 'RealTimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealTimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
 
@@ -211,15 +212,19 @@ class IDE.EditorPane extends IDE.Pane
       @setLineWidgets row, column, origin
 
 
-  listenCollaborativeStringChanges: ->
+  setContentFromCollaborativeString: ->
 
-    filePath = @getFile().path
-    string   = @rtm.getFromModel filePath
+    {path} = @getFile()
 
-    unless string
-      return @rtm.create 'string', filePath, @getContent()
+    unless string = @rtm.getFromModel path
+      return @rtm.create 'string', path, @getContent()
 
     @setContent string.getText(), no
+
+
+  listenCollaborativeStringChanges: ->
+
+    return  unless string = @rtm.getFromModel @getFile().path
 
     @rtm.bindRealtimeListeners string, 'string'
 
@@ -232,8 +237,10 @@ class IDE.EditorPane extends IDE.Pane
 
     string = @rtm.getFromModel @getFile().path
 
-    return  unless changedString is string
     return  if @isChangedByMe change
+
+    string = @rtm.getFromModel @getFile().path
+    return  unless changedString is string
 
     @applyChange change
 
