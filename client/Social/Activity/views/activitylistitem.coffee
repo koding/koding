@@ -295,10 +295,12 @@ class ActivityListItemView extends KDListItemView
           @destroy()
 
       article.classList.add 'tall'
-      if @hasShowMoreMark
-        @addSubView @showMore, '.mark-for-show-more'
-      else 
-        @addSubView @showMore, '.activity-content-wrapper'
+      
+      selector = if @hasShowMoreMark
+      then '.mark-for-show-more'
+      else '.activity-content-wrapper'
+      
+      @addSubView @showMore, selector
 
 
   pistachio: ->
