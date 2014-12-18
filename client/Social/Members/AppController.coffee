@@ -169,15 +169,13 @@ class MembersAppController extends AppController
 
   showContentDisplay:(contentDisplay)->
     
-    scrollView = new KDCustomScrollView
-      lazyLoadThreshold : 100
-      type              : contentDisplay.getOptions().type
-    scrollView.wrapper.addSubView contentDisplay
-    
-    scrollView.wrapper.on 'LazyLoadThresholdReached', => 
+    view = new ContentDisplayScrollableView
+      contentDisplay : contentDisplay
+
+    view.on 'LazyLoadThresholdReached', => 
       @emit 'LazyLoadThresholdReached'
       
-    KD.singleton('display').emit "ContentDisplayWantsToBeShown", scrollView
+    KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
     return contentDisplay
 
   fetchFeedForHomePage:(callback)->
