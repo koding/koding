@@ -223,19 +223,19 @@ class IDE.EditorPane extends IDE.Pane
 
     @rtm.bindRealtimeListeners string, 'string'
 
-    @rtm.on 'TextInsertedIntoString', (changedString, change) =>
+    @rtm
+      .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
+      .on 'TextDeletedFromString', @bound 'handleCollaborativeStringEvent'
 
-      if changedString is string
-        return if @isChangedByMe change
 
-        @applyChange change
+  handleCollaborativeStringEvent: (changedString, change) ->
 
-    @rtm.on 'TextDeletedFromString', (changedString, change) =>
+    string = @rtm.getFromModel @getFile().path
 
-      if changedString is string
-        return if @isChangedByMe change
+    return  unless changedString is string
+    return  if @isChangedByMe change
 
-        @applyChange change
+    @applyChange change
 
 
   isChangedByMe: (change) ->
