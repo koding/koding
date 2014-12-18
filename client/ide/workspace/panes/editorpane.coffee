@@ -121,7 +121,6 @@ class IDE.EditorPane extends IDE.Pane
 
   bindChangeListeners: ->
 
-    ace           = @getAce()
     change        =
       origin      : KD.nick()
       context     :
@@ -132,19 +131,28 @@ class IDE.EditorPane extends IDE.Pane
           machine :
             uid   : @file.machine.uid
 
-    ace.on 'ace.change.cursor', (cursor) =>
-      change.type = 'CursorActivity'
-      change.context.cursor = cursor
+    @getAce()
+      .on 'ace.change.cursor', @lazyBound 'handleCursorChange', change
+      .on 'FileContentChanged', @lazyBound 'handleFileContentChange', change
+      .on 'FileContentRestored', @lazyBound 'handleFileContentChange', change
 
-      @emit 'ChangeHappened', change
 
-    ace.on 'FileContentChanged', =>
-      return if @dontEmitChangeEvent
+  handleCursorChange: (change, cursor) ->
 
-      change.type = 'ContentChange'
-      change.context.file.content = @getContent()
+    change.type = 'CursorActivity'
+    change.context.cursor = cursor
 
-      @emit 'ChangeHappened', change
+    @emit 'ChangeHappened', change
+
+
+  handleFileContentChange: (change) ->
+
+    return if @dontEmitChangeEvent
+
+    change.type = 'ContentChange'
+    change.context.file.content = @getContent()
+
+    @emit 'ChangeHappened', change
 
 
   serialize: ->
