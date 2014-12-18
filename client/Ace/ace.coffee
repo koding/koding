@@ -29,7 +29,7 @@ class Ace extends KDView
 
           @editor.on 'change', =>
             @emit 'FileContentChanged'  unless @suppressListeners
-            @emit 'FileContentRestored'  if @isCurrentContentChanged()
+            @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
           @editor.gotoLine 0
           @focus()
