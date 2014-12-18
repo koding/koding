@@ -4,45 +4,67 @@ package terminal
 
 import (
 	"bytes"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"koding/tools/pty"
 	"os"
 	"os/exec"
 	"os/user"
+	"sync"
 	"syscall"
 	"time"
 	"unicode/utf8"
 
 	"github.com/koding/kite"
-	"github.com/koding/kite/dnode"
 )
 
-const randomStringLength = 24 // 144 bit base64 encoded
+type Terminal struct {
+	InputHook func()
+	Log       kite.Logger
 
-var ResetFunc func()
-
-// Server is the type of object that is sent to the connected client.
-// Represents a running shell process on the server.
-type Server struct {
-	Session          string `json:"session"`
-	remote           Remote
-	pty              *pty.PTY
-	currentSecond    int64
-	messageCounter   int
-	byteCounter      int
-	lineFeeedCounter int
-	throttling       bool
+	Users      map[string]*User
+	sync.Mutex // protects Users
 }
 
-type Remote struct {
-	Output       dnode.Function
-	SessionEnded dnode.Function
+func New(log kite.Logger) *Terminal {
+	return &Terminal{
+		Users: make(map[string]*User),
+		Log:   log,
+	}
 }
 
-func KillSession(r *kite.Request) (interface{}, error) {
+// AddUserSession adds the given username and session
+func (t *Terminal) AddUserSession(username, session string, server *Server) {
+	t.Lock()
+	defer t.Unlock()
+
+	// check if it's exists, if not go and lazy initialize a new user instance
+	var user *User
+	var ok bool
+	user, ok = t.Users[username]
+	if !ok {
+		user = NewUser(username)
+	}
+
+	user.AddSession(session, server)
+	t.Users[username] = user
+}
+
+// DeleteUserSession deletes the given session from the Users map
+func (t *Terminal) DeleteUserSession(username, session string) {
+	t.Lock()
+	defer t.Unlock()
+
+	user := t.Users[username]
+	user.DeleteSession(session)
+
+	if len(user.Sessions) == 0 {
+		delete(t.Users, username)
+	}
+}
+
+// KillSession kills the given screen session
+func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Session string
 	}
@@ -59,10 +81,22 @@ func KillSession(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
+	t.DeleteUserSession(r.Username, params.Session)
+
 	return true, nil
 }
 
-func GetSessions(r *kite.Request) (interface{}, error) {
+// KillSessions kills all available screen sessions
+func (t *Terminal) KillSessions(r *kite.Request) (interface{}, error) {
+	if err := killSessions(r.Username); err != nil {
+		return nil, err
+	}
+
+	return true, nil
+}
+
+// GetSessions return a list of curren active screen sessions
+func (t *Terminal) GetSessions(r *kite.Request) (interface{}, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("Could not get home dir: %s", err)
@@ -76,7 +110,9 @@ func GetSessions(r *kite.Request) (interface{}, error) {
 	return sessions, nil
 }
 
-func Connect(r *kite.Request) (interface{}, error) {
+// Connect creates and open a new TTY instance. It returns a *Server instance
+// so every caller can send and receive from the connected TTY end.
+func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	var params struct {
 		Remote       Remote
 		Session      string
@@ -111,11 +147,14 @@ func Connect(r *kite.Request) (interface{}, error) {
 
 	// We will return this object to the client.
 	server := &Server{
-		Session: command.Session,
-		remote:  params.Remote,
-		pty:     p,
+		Session:   command.Session,
+		remote:    params.Remote,
+		pty:       p,
+		inputHook: t.InputHook,
 	}
 	server.setSize(float64(params.SizeX), float64(params.SizeY))
+
+	t.AddUserSession(r.Username, command.Session, server)
 
 	// wrap the command with sudo -i for initiation login shell. This is needed
 	// in order to have Environments and other to be initialized correctly.
@@ -157,6 +196,8 @@ func Connect(r *kite.Request) (interface{}, error) {
 		server.pty.Slave.Close()
 		server.pty.Master.Close()
 		server.remote.SessionEnded.Call()
+
+		t.DeleteUserSession(r.Username, command.Session)
 	}()
 
 	// Read the STDOUT from shell process and send to the connected client.
@@ -200,44 +241,24 @@ func Connect(r *kite.Request) (interface{}, error) {
 	return server, nil
 }
 
-// Input is called when some text is written to the terminal.
-func (s *Server) Input(d *dnode.Partial) {
-	data := d.MustSliceOfLength(1)[0].MustString()
+// CloseSessions closes all active session for the given username and deletes
+// it from the internal user map
+func (t *Terminal) CloseSessions(username string) {
+	t.Log.Info("Closing terminal sessions of user '%s'", username)
 
-	// this is only used for koding's own purpose to count wheter an
-	// input was called or not. There is probably better ways, like
-	// exposing messageCounter variable and check it. However this just
-	// works now.
-	ResetFunc()
+	t.Lock()
+	user, ok := t.Users[username]
+	t.Unlock()
 
-	// There is no need to protect the Write() with a mutex because
-	// Kite Library guarantees that only one message is processed at a time.
-	s.pty.Master.Write([]byte(data))
-}
+	if !ok {
+		return
+	}
 
-// ControlSequence is called when a non-printable key is pressed on the terminal.
-func (s *Server) ControlSequence(d *dnode.Partial) {
-	data := d.MustSliceOfLength(1)[0].MustString()
-	s.pty.MasterEncoded.Write([]byte(data))
-}
+	user.CloseSessions()
 
-func (s *Server) SetSize(d *dnode.Partial) {
-	args := d.MustSliceOfLength(2)
-	x := args[0].MustFloat64()
-	y := args[1].MustFloat64()
-	s.setSize(x, y)
-}
-
-func (s *Server) setSize(x, y float64) {
-	s.pty.SetSize(uint16(x), uint16(y))
-}
-
-func (s *Server) Close(d *dnode.Partial) {
-	s.pty.Signal(syscall.SIGHUP)
-}
-
-func (s *Server) Terminate(d *dnode.Partial) {
-	s.Close(nil)
+	t.Lock()
+	delete(t.Users, username)
+	t.Unlock()
 }
 
 func filterInvalidUTF8(buf []byte) []byte {
@@ -257,10 +278,4 @@ func filterInvalidUTF8(buf []byte) []byte {
 		i += l
 	}
 	return buf[:j]
-}
-
-func randomString() string {
-	r := make([]byte, randomStringLength*6/8)
-	rand.Read(r)
-	return base64.URLEncoding.EncodeToString(r)
 }

@@ -514,12 +514,22 @@ activity.listitem.styl
           margin          4px 10px 0 0
 
   &.editing
+    .edit-widget-wrapper
+      display             block
+
     .activity-content-wrapper
       > article
         display           none
 
       .activity-actions
         display           none
+
+      .cancel-editing
+        background        transparent
+        shadow            none
+
+        .button-title
+          color           #999
 
 
 .kdlistitemview-activity.preview
@@ -586,6 +596,9 @@ activity.listitem.styl
     padding                 24px 24px 16px
     rounded                 3px 3px 0 0
     borderBox()
+
+  .edit-widget-wrapper
+    display                 none
 
 .link-embed-box
   width                     auto

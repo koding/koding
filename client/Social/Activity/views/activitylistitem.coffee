@@ -77,7 +77,20 @@ class ActivityListItemView extends KDListItemView
       else new KDView
 
     @editWidgetWrapper = new KDCustomHTMLView
-      cssClass         : 'edit-widget-wrapper'
+      cssClass         : 'edit-widget-wrapper clearfix'
+
+    @editWidgetWrapper.addSubView new KDButtonView
+      style     : 'solid green mini fr'
+      title     : 'DONE'
+      callback  : =>
+        @editWidget.submit @editWidget.input.getValue()
+
+    @editWidgetWrapper.addSubView new KDButtonView
+      style     : 'solid mini fr'
+      cssClass  : 'cancel-editing'
+      title     : 'CANCEL'
+      callback  : =>
+        @editWidget.input.emit 'EscapePerformed'
 
     @resend = new KDCustomHTMLView cssClass: 'resend hidden'
 
@@ -119,7 +132,6 @@ class ActivityListItemView extends KDListItemView
       @editWidget = new editWidgetClass { delegate:this }, @getData()
       @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
-      @editWidget.input.on 'blur', @bound 'resetEditing'
       @editWidgetWrapper.addSubView @editWidget, null, yes
 
     KD.utils.defer =>

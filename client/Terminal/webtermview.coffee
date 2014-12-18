@@ -106,9 +106,11 @@ class WebTermView extends KDCustomScrollView
 
     kite = @getKite()
     kite.init()
-    kite.webtermConnect(options).then (remote) =>
+    kite.webtermConnect(options).then (_remote) =>
 
-      return  unless remote?
+      return  unless _remote?
+
+      remote = _remote
 
       @setOption "session", remote.session
       @terminal.eventHandler = (data)=>

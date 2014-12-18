@@ -321,6 +321,16 @@ module.exports =
           assert.equal result.value.length, 1
 
 
+  assertMainHeader: (browser, assertLoginLink = yes) ->
+
+    logoSelector = '[testpath=main-header] a#koding-logo'
+    loginLinkSelector = '[testpath=main-header] [testpath=login-link]'
+
+    browser.waitForElementVisible logoSelector, 25000
+
+    if assertLoginLink
+      browser.waitForElementVisible loginLinkSelector, 25000
+
 
   getUrl: ->
     return 'http://lvh.me:8090'
