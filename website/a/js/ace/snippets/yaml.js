@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./yaml.snippets");
-exports.scope = "yaml";
-
-});
+ace.define("ace/snippets/yaml",["require","exports","module"],function(e,t,n){"use strict";t.snippetText=undefined,t.scope="yaml"})
