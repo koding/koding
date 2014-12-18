@@ -101,6 +101,10 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 
 	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
+		if err == bongo.RecordNotFound {
+			return response.NewNotFound()
+		}
+
 		return response.NewBadRequest(err)
 	}
 

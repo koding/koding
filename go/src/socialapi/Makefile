@@ -99,11 +99,11 @@ privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderde
 
 privatemessageemailfeederdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) -d true $(METRICS)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemailsenderdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) -d true $(METRICS)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
