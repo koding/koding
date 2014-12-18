@@ -100,7 +100,7 @@ build:
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
           scripts/wercker/check-connectivity $HOST 8090 1m 3
-          scripts/wercker/check-connectivity $HOST 4444 1m 3
+          scripts/wercker/check-connectivity $HOST 4444 1m 5
           sleep 120
           scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
     - script:
