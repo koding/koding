@@ -2,7 +2,7 @@
 
 echo checking for run-away process ...
 
-CPU_THRESHOLD=75
+CPU_THRESHOLD=90
 
 TOPPROCESS=$(ps -eo pid -eo pcpu -eo command | sort -k 2 -r | grep -v PID | head -n 1)
 
