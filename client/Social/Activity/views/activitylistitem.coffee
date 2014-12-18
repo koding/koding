@@ -283,13 +283,14 @@ class ActivityListItemView extends KDListItemView
           @destroy()
 
       article.classList.add 'tall'
-      if @$('.activity-content-wrapper .mark-for-show-more').length > 0
+      if @hasShowMoreMark
         @addSubView @showMore, '.mark-for-show-more'
       else 
         @addSubView @showMore, '.activity-content-wrapper'
 
 
   pistachio: ->
+    @hasShowMoreMark = yes
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}
