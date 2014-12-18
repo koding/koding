@@ -84,7 +84,7 @@ func (tp *TemplateParser) RenderDailyTemplate(containers []*MailerContainer) (st
 func prepareTitle(mc *MailerContainer, actor *emailmodels.UserContact) (string, error) {
 	ac := new(ActionContent)
 	ac.Action = mc.ActivityMessage
-	ac.Hostname = config.MustGet().Hostname
+	ac.Hostname = config.MustGet().Protocol + "//" + config.MustGet().Hostname
 	ac.ObjectType = mc.ObjectType
 	ac.Slug = mc.Slug
 	ac.Nickname = actor.Username
