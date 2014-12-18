@@ -1,17 +1,17 @@
 package realtime
 
 import (
-	"encoding/json"
-	"fmt"
 	mongomodels "koding/db/models"
 	"socialapi/models"
 	"socialapi/request"
+	"socialapi/workers/api/realtimehelper"
 	notificationmodels "socialapi/workers/notification/models"
+
+	"labix.org/v2/mgo"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
-	"labix.org/v2/mgo"
 )
 
 const (
@@ -621,44 +621,7 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 }
 
 func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
-	routingKey := "oid." + instanceToken + ".event." + eventName
-	updateMessage, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	updateArr := make([]string, 1)
-	if eventName == "updateInstance" {
-		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
-	} else {
-		updateArr[0] = string(updateMessage)
-	}
-
-	msg, err := json.Marshal(updateArr)
-	if err != nil {
-		return err
-	}
-
-	f.log.Debug(
-		"Sending Instance Event Id:%s Message:%s EventName:%s",
-		instanceToken,
-		updateMessage,
-		eventName,
-	)
-
-	return channel.Publish(
-		"updateInstances", // exchange name
-		routingKey,        // routing key
-		false,             // mandatory
-		false,             // immediate
-		amqp.Publishing{Body: msg}, // message
-	)
+	return realtimehelper.UpdateInstance(instanceToken, eventName, message)
 }
 
 func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models.ChannelMessage, eventName string) error {
@@ -675,77 +638,31 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 // message is sent as a json message
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
-	// fetch secret names of the channel
-	secretNames, err := models.SecretNamesByChannelId(channelId)
-	if err != nil && err != mgo.ErrNotFound {
+	ch, err := models.ChannelById(channelId)
+	if err != nil {
 		return err
 	}
 
-	if err == mgo.ErrNotFound || len(secretNames) < 1 {
-		f.log.Info("Channel %d doest have any secret name", channelId)
+	names, err := models.SecretNamesByChannelId(channelId)
+	if err != nil {
+		return err
+	}
+
+	if err == mgo.ErrNotFound || len(names) < 1 {
+		f.log.Info("Channel %d doesn't have any secret name", channelId)
 		return nil
 	}
 
-	//convert data into json message
-	byteMessage, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-
-	// get a new channel for publishing a message
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	// do not forget to close the channel
-	defer channel.Close()
-
-	for _, secretName := range secretNames {
-		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
-		if err := channel.Publish(
-			"broker",   // exchange name
-			routingKey, // routing key
-			false,      // mandatory
-			false,      // immediate
-			amqp.Publishing{Body: byteMessage}, // message
-		); err != nil {
-			return err
-		}
-	}
-	return nil
-
+	return realtimehelper.PushMessage(ch, eventName, data, names)
 }
 
 func (f *Controller) sendNotification(
 	accountId int64, groupName string, eventName string, data interface{},
 ) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
 	account, err := models.FetchAccountFromCache(accountId)
 	if err != nil {
 		return err
 	}
 
-	notification := map[string]interface{}{
-		"event":    eventName,
-		"context":  groupName,
-		"contents": data,
-	}
-
-	byteNotification, err := json.Marshal(notification)
-	if err != nil {
-		return err
-	}
-
-	return channel.Publish(
-		"notification",
-		account.Nick, // this is routing key
-		false,
-		false,
-		amqp.Publishing{Body: byteNotification},
-	)
+	return realtimehelper.NotifyUser(account.Nick, eventName, data, groupName)
 }

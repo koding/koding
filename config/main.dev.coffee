@@ -48,6 +48,8 @@ Configuration = (options={}) ->
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
+  pubnub              = { publishkey: "pub-c-8f084ee2-2004-4282-b9b7-64af33dd1f01", subscribekey: "sub-c-ba656662-6332-11e4-8c2b-02ee2ddab7fe"  , secretkey: "sec-c-YTQ4MzVmOGMtZjkxOS00NWQ0LTgyYjgtZGZkZWFhOWU0YWRl"                                     , enabled:  yes                       }
+  gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -76,6 +78,8 @@ Configuration = (options={}) ->
     debug             : no
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
     paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
+    gatekeeper        : gatekeeper
+    customDomain      : customDomain
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -98,6 +102,7 @@ Configuration = (options={}) ->
     socialapi                      : socialapi
     mongo                          : mongo
     kiteHome                       : kiteHome
+    gatekeeper                     : gatekeeper
     redis                          : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
@@ -122,6 +127,7 @@ Configuration = (options={}) ->
 
     kontrol                        : kontrol
     newkontrol                     : kontrol
+    gatekeeper                     : gatekeeper
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
@@ -196,6 +202,7 @@ Configuration = (options={}) ->
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
     paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
+    pubnub            : { subscribekey: pubnub.subscribekey , enabled: no     }
 
 
       # END: PROPERTIES SHARED WITH BROWSER #
@@ -333,6 +340,21 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
       nginx             :
         locations       : [ "= /payments/stripe/webhook" ]
+
+    # gatekeeper          :
+    #   group             : "socialapi"
+    #   ports             :
+    #     incoming        : "#{gatekeeper.port}"
+    #   supervisord       :
+    #     command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+    #   healthCheckURL    : "http://localhost:#{gatekeeper.port}/healthCheck"
+    #   versionURL        : "http://localhost:#{gatekeeper.port}/version"
+
+    dispatcher          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#

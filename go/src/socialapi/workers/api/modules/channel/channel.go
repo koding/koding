@@ -164,8 +164,12 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 	return response.HandleResultAndError(cc, cc.Err)
 }
 
-func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
+	if context.Client != nil && context.Client.Account != nil {
+		q.AccountId = context.Client.Account.Id
+	}
+
 	if q.Type == "" || q.AccountId == 0 {
 		return response.NewBadRequest(errors.New("type or accountid is not set"))
 	}

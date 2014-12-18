@@ -4,7 +4,15 @@ class MessageEventManager extends KDObject
 
     super options, data
 
-    data
+    messageChannel = null
+
+    if KD.isPubnubEnabled()
+      eventType = "instance"
+      messageChannel = KD.singletons.realtime.subscribe {channelName: name, token: data.token, eventType}
+    else
+      messageChannel = data
+
+    messageChannel
       .on 'InteractionAdded', @bound 'addInteraction'
       .on 'InteractionRemoved', @bound 'removeInteraction'
       .on 'ReplyAdded', @bound 'addReply'

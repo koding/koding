@@ -257,6 +257,17 @@ KD.extend
       return callback {message: "Account not found", name: "NotFound"} unless owner
       callback null, owner
 
+  togglePubnub: ->
+    isPubnubEnabled = localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
+    try
+      localStorage.isPubnubEnabled = !isPubnubEnabled
+      location.reload()
+    catch e
+      warn "could not toggle pubnub: #{e}"
+
+  isPubnubEnabled: ->
+    localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
+
 
 Object.defineProperty KD, "defaultSlug",
   get:->

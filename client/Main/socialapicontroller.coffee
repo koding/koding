@@ -269,24 +269,29 @@ class SocialApiController extends KDController
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
+        {name, typeConstant, token} = socialApiChannel
+
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
-          channelType: socialApiChannel.typeConstant
-          channelName: socialApiChannel.name
+          channelType: typeConstant
+          channelName: name
           isExclusive: yes
           connectDirectly: yes
 
-        # do not use callbacks while subscribing, KD.remote.subscribe already
-        # returns the required channel object. Use it. Callbacks are called
-        # twice in the subscribe function
-        brokerChannel = KD.remote.subscribe channelName, subscriptionData
+        if KD.isPubnubEnabled()
+          realtimeChannel = KD.singletons.realtime.subscribe {channelName: name, typeConstant, group: group.slug, token, eventType: "channel"}
+        else
+          # do not use callbacks while subscribing, KD.remote.subscribe already
+          # returns the required channel object. Use it. Callbacks are called
+          # twice in the subscribe function
+          realtimeChannel = KD.remote.subscribe channelName, subscriptionData
 
         # add opened channel to the openedChannels list, for later use
-        socialapi.openedChannels[channelName] = {delegate: brokerChannel, channel: socialApiChannel}
+        socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
 
         # start forwarding private channel evetns to the original social channel
-        forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+        forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
 
         # notify listener
         socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
@@ -528,24 +533,12 @@ class SocialApiController extends KDController
     fetchActivities      : (options, callback)->
       err = {message: "An error occurred"}
 
-      xhr = new XMLHttpRequest
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      xhr.open 'GET', endPoint
-      xhr.onreadystatechange = =>
-        # 0     - connection failed
-        # >=400 - http errors
-        return if xhr.status is 0 or xhr.status >= 400
-          return callback err
+      KD.utils.doXhrRequest {type: 'GET', endPoint, async: no}, (err, response) ->
+        return callback err  if err
 
-        return if xhr.readyState isnt 4
-
-        if xhr.status not in [200, 304]
-          return callback err
-
-        response = JSON.parse xhr.responseText
         return callback null, mapActivities response
 
-      xhr.send()
 
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'

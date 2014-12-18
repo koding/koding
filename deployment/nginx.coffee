@@ -292,6 +292,14 @@ module.exports.create = (KONFIG, environment)->
         #{if environment is "sandbox" then basicAuth else ""}
       }
 
+      location ~ /api/gatekeeper/(.*) {
+        proxy_pass            http://gatekeeper/$1;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+      }
+
       # special case for kontrol to support additional paths, like /kontrol/heartbeat
       location ~^/kontrol/(.*) {
         proxy_pass            http://kontrol/$1$is_args$args;
