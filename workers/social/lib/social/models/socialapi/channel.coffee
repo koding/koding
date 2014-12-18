@@ -54,6 +54,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchProfileFeed     :
           (signature Object, Function)
+        fetchProfileFeedCount:
+          (signature Object, Function)
         updateLastSeenTime   :
           (signature Object, Function)
         glancePinnedPost     :
@@ -145,6 +147,10 @@ module.exports = class SocialChannel extends Base
   # fetchProfileFeed - lists all activities of an account
   # within a specified group
   @fetchProfileFeed      = secureRequest fnName: 'fetchProfileFeed'
+
+  # fetchProfileFeedCount - fetches all activity count of an account
+  # within a specified group
+  @fetchProfileFeedCount = secureRequest fnName: 'fetchProfileFeedCount'
 
   # fetchPopularTopics - lists group specific popular topics
   # it can be daily, weekly, monthly
