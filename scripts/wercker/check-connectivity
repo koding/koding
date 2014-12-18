@@ -4,7 +4,7 @@ HOST=$1
 PORT=$2
 INTERVAL=$3
 TRY_COUNT=$4
-COUNTER=0
+COUNTER=1
 
 until nc $HOST $PORT < /dev/null; do
     sleep $INTERVAL
