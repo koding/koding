@@ -229,6 +229,10 @@ class IDE.EditorPane extends IDE.Pane
 
     @setContent string.getText(), no
 
+    ace = @getAce()
+    if ace.contentChanged = ace.isCurrentContentChanged()
+      ace.emit 'FileContentChanged'
+
 
   listenCollaborativeStringChanges: ->
 
