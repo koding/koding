@@ -881,7 +881,7 @@ class IDEAppController extends AppController
       @rtm.on 'CollaboratorLeft', (doc, participant) =>
         @handleParticipantAction 'left', participant
 
-      @registerParticipantSessionId()
+      @registerCollaborationSessionId()
       @bindRealtimeEvents()
       @listenPings()
       @rtm.isReady = yes
@@ -897,7 +897,7 @@ class IDEAppController extends AppController
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
 
-  registerParticipantSessionId: ->
+  registerCollaborationSessionId: ->
 
     collaborators = @rtm.getCollaborators()
 
@@ -905,9 +905,13 @@ class IDEAppController extends AppController
       participants = @participants.asArray()
 
       for user, index in participants when user.nickname is KD.nick()
-        user.sessionId = collaborator.sessionId
+        newData = KD.utils.dict()
+
+        newData[key] = value  for key, value of user
+
+        newData.sessionId = collaborator.sessionId
         @participants.remove index
-        @participants.insert index, user
+        @participants.insert index, newData
 
 
   addParticipant: (account) ->
