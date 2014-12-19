@@ -315,6 +315,8 @@ module.exports = class JUser extends jraphical.Module
 
           return
 
+        username = 'guestuser'  if /^guest-/.test username
+
         JUser.one {username}, (err, user)=>
 
           if err?
