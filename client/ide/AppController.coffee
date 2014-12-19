@@ -1010,10 +1010,10 @@ class IDEAppController extends AppController
     switch change.type
 
       when 'NewPaneCreated'
-        @mySnapshot.set paneHash, change
+        @mySnapshot.set paneHash, change  if paneHash
 
       when 'PaneRemoved'
-        @mySnapshot.delete paneHash
+        @mySnapshot.delete paneHash  if paneHash
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
