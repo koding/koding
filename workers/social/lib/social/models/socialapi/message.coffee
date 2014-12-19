@@ -61,7 +61,7 @@ module.exports = class SocialMessage extends Base
         paymentSubscribe:
           (signature Object, Function)
 
-    schema          :
+    schema             :
       id               : Number
       body             : String
       accountId        : Number
@@ -75,9 +75,8 @@ module.exports = class SocialMessage extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  { fetchGroup, secureRequest,
-    doRequest, permittedRequest,
-    ensureGroupChannel } = require "./helper"
+  { secureRequest, ensureGroupChannel,
+    doRequest, permittedRequest } = require "./helper"
 
   @post = permit 'create posts',
     success: (client, data, callback)->
@@ -261,9 +260,6 @@ module.exports = class SocialMessage extends Base
         cachedEmbedlyResult[urls] = result
         callback err, result
 
-  { fetchGroup, secureRequest,
-    doRequest, permittedRequest,
-    ensureGroupChannel, fetchGroup } = require "./helper"
 
   @paymentSubscribe = secure (client, options, callback)->
     doRequest "paymentSubscribe", client, options, callback

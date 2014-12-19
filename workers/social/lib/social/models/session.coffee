@@ -73,6 +73,7 @@ module.exports = class JSession extends Model
           else
             callback null, { session, account }
 
+
   @fetchSession =(clientId, callback)->
     # if clientId is undefined or null
     return @createSession callback  unless clientId
@@ -89,12 +90,12 @@ module.exports = class JSession extends Model
   @fetchGuestUserSession = (callback) ->
     username = 'guestuser'
     @one {username}, (err, session) ->
-      return callback err if err?
-      return callback null, session if session?
+      return callback err  if err?
+      return callback null, session  if session?
       clientId = createId()
       session = new JSession { clientId, username }
       session.save (err)->
-        return callback err if err?
+        return callback err  if err?
         callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->
