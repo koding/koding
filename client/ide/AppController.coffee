@@ -834,6 +834,13 @@ class IDEAppController extends AppController
         pane.view.webtermView.terminal?.updateSize()
 
 
+  removePaneFromTabView: (pane, shouldDetach = no) ->
+
+    paneView = pane.parent
+    tabView  = paneView.parent
+    tabView.removePane paneView
+
+
   loadCollaborationFile: (fileId) ->
 
     return unless fileId
@@ -847,6 +854,7 @@ class IDEAppController extends AppController
       nickname           = KD.nick()
       myWatchMapName     = "#{nickname}WatchMap"
       mySnapshotName     = "#{nickname}Snapshot"
+      hostName           = @collaborationHost
 
       @participants      = @rtm.getFromModel 'participants'
       @changes           = @rtm.getFromModel 'changes'
@@ -860,7 +868,7 @@ class IDEAppController extends AppController
       @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
       @pingTime          or= @rtm.create 'string', 'pingTime'
       @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @createWorkspaceSnapshot()
+      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
 
       if @amIHost
         @getView().setClass 'host'
@@ -894,6 +902,12 @@ class IDEAppController extends AppController
             {nickname} = account.profile
             @myWatchMap.set nickname, nickname
 
+      if not @amIHost and @myWatchMap.values().indexOf(hostName) > -1
+        hostSnapshot = @rtm.getFromModel "#{hostName}Snapshot"
+
+        for key, change of hostSnapshot.values()
+          @createPaneFromChange change
+
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
 
@@ -920,27 +934,45 @@ class IDEAppController extends AppController
     @participants.push { nickname, hash }
 
 
-  createWorkspaceSnapshot: ->
+  getWorkspaceSnapshot: ->
 
     panes = {}
 
     @forEachSubViewInIDEViews_ (pane) ->
       return unless pane.serialize
 
-      if pane.options.paneType is 'editor'
-        data = pane.serialize()
-        panes[data.hash] = data
-      else
-        data = pane.serialize()
-        panes[data.hash] = data
+      data = pane.serialize()
+      panes[data.hash] =
+        type    : 'NewPaneCreated'
+        context : data
 
     return panes
 
 
   resurrectSnapshot: ->
 
-    for change in @mySnapshot.values() when change.context
-      @createPaneFromChange change
+    return  if @collaborationJustInitialized
+
+    snapshot = @mySnapshot.values()
+
+    if snapshot.length
+      @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
+
+      for change in snapshot when change.context
+        {paneType} = change.context
+
+        if paneType is 'terminal'
+          @setActiveTabView @ideViews.last.tabView
+        else
+          @setActiveTabView @ideViews.first.tabView
+
+        @createPaneFromChange change
+    else
+      @mySnapshot.clear()
+      currentSnapshot = @getWorkspaceSnapshot()
+
+      for key, value of currentSnapshot
+        @mySnapshot.set key, value
 
 
   syncChange: (change) ->
@@ -1080,12 +1112,14 @@ class IDEAppController extends AppController
     {context} = change
     return unless context
 
+    paneHash = context.paneHash or context.hash
+
     switch context.paneType
       when 'terminal'
         terminalOptions =
           machine  : @mountedMachine
           session  : context.session
-          hash     : context.paneHash
+          hash     : paneHash
           joinUser : @collaborationHost or KD.nick()
 
         @createNewTerminal terminalOptions
@@ -1093,17 +1127,14 @@ class IDEAppController extends AppController
       when 'editor'
         {path}        = context.file
         file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
-        file.paneHash = context.paneHash
+        file.paneHash = paneHash
 
         content = @rtm.getFromModel(path)?.getText() or ''
 
         @openFile file, content, noop, no
 
       when 'drawing'
-        @createNewDrawing context.paneHash
-
-
-    {paneHash} = context
+        @createNewDrawing paneHash
 
     unless @mySnapshot.get paneHash
       @mySnapshot.set paneHash, change
@@ -1396,6 +1427,8 @@ class IDEAppController extends AppController
         collaboration    : yes
     , callback
 
+    @collaborationJustInitialized = yes
+
     @rtm.once 'FileCreated', (file) =>
       @loadCollaborationFile file.id
 
@@ -1437,6 +1470,7 @@ class IDEAppController extends AppController
         @rtm = null
         KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
+      @mySnapshot.clear()
       @rtm.deleteFile @getRealTimeFileName()
 
       @setMachineSharingStatus off
