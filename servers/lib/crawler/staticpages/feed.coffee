@@ -4,16 +4,16 @@
 encoder                 = require 'htmlencode'
 {createActivityContent} = require '../helpers'
 
-createProfileContent = (models, account, profileBuilder, options, callback)->
-  { client, name, page, route } = options
-  { JAccount, SocialChannel } = models
-  targetId = account.socialApiId
+createProfileFeed = (models, account, options, callback)->
+  { client, page, targetId } = options
+  { SocialChannel } = models
   sessionToken = client.sessionToken
+  targetId = account.socialApiId
 
   SocialChannel.fetchProfileFeedCount client, {targetId, sessionToken}, (err, response)->
-    return callback err  if err
+    return callback null, err  if err
     itemCount = response?.totalCount
-    return callback null, profileBuilder account, ""  unless itemCount
+    return callback ''  unless itemCount
 
     itemsPerPage = 5
     skip = 0
@@ -27,17 +27,18 @@ createProfileContent = (models, account, profileBuilder, options, callback)->
       replyLimit : 25
 
     SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
-      return callback err  if err or not result
+      return callback null, err  if err or not result
       unless result.length
-        return callback null, profileBuilder account, ""
+        return callback ''
 
       buildContent models, result, options, (err, content) ->
-        return callback err  if err or not content
+        return callback null, err  if err or not content
 
         pagination = getPagination page, itemCount, itemsPerPage, "#{account.profile.nickname}"
-        fullPage = profileBuilder account, content, pagination
+        if pagination
+          content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
 
-        callback null, fullPage
+        callback content
 
 
 createFeed = (models, options, callback)->
@@ -305,7 +306,7 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
 module.exports = {
   buildContent
   createFeed
-  createProfileContent
+  createProfileFeed
   putContentIntoFullPage
   getSidebar
   getEmptyPage

@@ -2,7 +2,7 @@
 { getAvatarImageUrl }      = require './activity'
 { getSidebar }             = require './feed'
 
-module.exports = (account, statusUpdates, pagination='')=>
+module.exports = (account, statusUpdates)=>
   getGraphMeta = require './graphmeta'
   analytics    = require './analytics'
 
@@ -19,7 +19,7 @@ module.exports = (account, statusUpdates, pagination='')=>
   <body itemscope itemtype="http://schema.org/WebPage" class="super profile">
     <div id="kdmaincontainer" class="kdview with-sidebar">
       #{getSidebar()}
-      #{putContent(account, statusUpdates, pagination)}
+      #{putContent(account, statusUpdates)}
     </div>
     #{analytics()}
     <script>
@@ -49,7 +49,7 @@ module.exports = (account, statusUpdates, pagination='')=>
   # </html>
   # """
 
-putContent = (account, statusUpdates, pagination)=>
+putContent = (account, statusUpdates)=>
   profile      = getProfile account
 
   if statusUpdates is ""
@@ -80,7 +80,6 @@ putContent = (account, statusUpdates, pagination)=>
           <div class="kdview kdtabpaneview statuses clearfix active">
             <div class="kdview kdlistview kdlistview-default activity-related" itemscope itemtype="http://schema.org/UserComments">
               #{statusUpdates}
-              #{if pagination then '<nav class="crawler-pagination clearfix">' + pagination + '</nav>' else '' }
             </div>
           </div>
         </div>

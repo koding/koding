@@ -18,7 +18,10 @@ fetchProfileContent = (models, options, callback) ->
   JAccount.one "profile.nickname": name, (err, account) ->
     return callback err  if err or not account
     
-    feed.createProfileContent models, account, profile, options, callback
+    feed.createProfileFeed models, account, options, (content, err) -> 
+      return callback err  if err
+      
+      return callback null, profile account, content
 
 
 fetchPostContent = (models, options, callback) ->
