@@ -17,6 +17,26 @@ class KiteCache
     return query
 
 
+  isKiteValid = (kite) ->
+
+    return no  unless kite?.token?
+
+    [header, body, rest...] = kite.token.split '.'
+
+    return no  unless body
+
+    try
+      {exp} = JSON.parse atob body
+    catch e
+      warn "Failed to parse token:", e
+      return no
+
+    exp = +new Date exp * 1000
+    now = +new Date
+
+    return now < exp
+
+
   signed = (queryString) -> "KITE_#{queryString}"
 
 
@@ -50,7 +70,6 @@ class KiteCache
 
     queryString = @generateQueryString query
     kite = proxifyTransport kite
-    kite.cachedAt = +new Date()
 
     LocalStorage.setValue (signed queryString), (JSON.stringify kite)
 
@@ -71,20 +90,13 @@ class KiteCache
       return @unset query
 
     if kite.cachedAt?
-
-      cachedAt = new Date kite.cachedAt
-      now      = new Date
-
-      # Add 24 hours on top of cached at date
-      cachedAt.setHours cachedAt.getHours() + 24
-
-      if cachedAt < now
-        warn "[KiteCache] CACHE FOUND BUT OUTDATED, REMOVING..."
-        return @unset queryString
-
-    else
-      warn "[KiteCache] CACHE FOUND BUT DOESNT HAVE TIMESTAMP, REMOVING..."
+      warn "[KiteCache] CACHE FOUND WITH OLD STYLE TIMESTAMP, REMOVING..."
       return @unset queryString
 
+    else
+
+      unless isKiteValid kite
+        warn "[KiteCache] CACHE FOUND BUT ITS OUTDATED, REMOVING..."
+        return @unset queryString
 
     return kite
