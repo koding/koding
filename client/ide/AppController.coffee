@@ -936,12 +936,10 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) ->
       return unless pane.serialize
 
-      if pane.options.paneType is 'editor'
-        data = pane.serialize()
-        panes[data.hash] = data
-      else
-        data = pane.serialize()
-        panes[data.hash] = data
+      data = pane.serialize()
+      panes[data.hash] =
+        type: 'NewPaneCreated'
+        context: data
 
     return panes
 
