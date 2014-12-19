@@ -17,20 +17,8 @@ fetchProfileContent = (models, options, callback) ->
   {JAccount, SocialChannel} = models
   JAccount.one "profile.nickname": name, (err, account) ->
     return callback err  if err or not account
-
-    fetchOptions =
-      targetId   : account.socialApiId
-      limit      : 5
-      replyLimit : 25
-
-    SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
-      return callback err  if err or not result
-      unless result.length
-        return callback null, profile account, ""
-
-      feed.buildContent models, result, options, (err, content) ->
-        return callback err  if err or not content
-        callback null, profile account, content
+    
+    feed.createProfileContent models, account, profile, options, callback
 
 
 fetchPostContent = (models, options, callback) ->

@@ -4,7 +4,41 @@
 encoder                 = require 'htmlencode'
 {createActivityContent} = require '../helpers'
 
-ITEMSPERPAGE = 20
+createProfileContent = (models, account, profileBuilder, options, callback)->
+  { client, name, page, route } = options
+  { JAccount, SocialChannel } = models
+  targetId = account.socialApiId
+  sessionToken = client.sessionToken
+
+  SocialChannel.fetchProfileFeedCount client, {targetId, sessionToken}, (err, response)->
+    return callback err  if err
+    itemCount = response?.totalCount
+    return callback null, profileBuilder account, ""  unless itemCount
+
+    itemsPerPage = 5
+    skip = 0
+    if page > 0
+      skip = (page - 1) * itemsPerPage
+      
+    fetchOptions =
+      targetId   : targetId
+      limit      : itemsPerPage
+      skip       : skip
+      replyLimit : 25
+
+    SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
+      return callback err  if err or not result
+      unless result.length
+        return callback null, profileBuilder account, ""
+
+      buildContent models, result, options, (err, content) ->
+        return callback err  if err or not content
+
+        pagination = getPagination page, itemCount, itemsPerPage, "#{account.profile.nickname}"
+        fullPage = profileBuilder account, content, pagination
+
+        callback null, fullPage
+
 
 createFeed = (models, options, callback)->
   {JAccount, SocialChannel} = models
@@ -13,13 +47,14 @@ createFeed = (models, options, callback)->
 
   return callback "channelId not set"  unless channelId
 
+  itemsPerPage = 20
   skip = 0
   if page > 0
-    skip = (page - 1) * ITEMSPERPAGE
+    skip = (page - 1) * itemsPerPage
 
   options = {
     id          : channelId
-    limit       : ITEMSPERPAGE
+    limit       : itemsPerPage
     skip        : skip
     channelName : channelName
     sessionToken
@@ -47,7 +82,7 @@ createFeed = (models, options, callback)->
         content = schemaorgTagsOpening + channelTitleContent +
           pageContent + schemaorgTagsClosing
 
-        pagination = getPagination page, itemCount, "Activity/#{route}"
+        pagination = getPagination page, itemCount, itemsPerPage, "Activity/#{route}"
         fullPage = putContentIntoFullPage content, pagination
 
         callback null, fullPage
@@ -84,14 +119,14 @@ buildContent = (models, messageList, options, callback) ->
   daisy queue
 
 
-getPagination = (currentPage, numberOfItems, route="")->
+getPagination = (currentPage, numberOfItems, itemsPerPage, route="")->
   # This is the number of adjacent link around current page.
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
   # (Except 3-dots, they are useless for bots.)
   PAGERWINDOW = 4
 
-  numberOfPages = Math.ceil(numberOfItems / ITEMSPERPAGE)
+  numberOfPages = Math.ceil(numberOfItems / itemsPerPage)
   firstLink = prevLink = nextLink = lastLink = ""
 
   if currentPage > 1
@@ -270,6 +305,7 @@ putContentIntoFullPage = (content, pagination, graphMeta)->
 module.exports = {
   buildContent
   createFeed
+  createProfileContent
   putContentIntoFullPage
   getSidebar
   getEmptyPage
