@@ -23,6 +23,10 @@ class KodingKite_KlientKite extends KodingKite
     webtermGetSessions : 'webterm.getSessions'
     webtermPing        : 'webterm.ping'
 
+    klientShare        : 'klient.share'
+    klientUnshare      : 'klient.unshare'
+    klientShared       : 'klient.shared'
+
 
   constructor:->
 

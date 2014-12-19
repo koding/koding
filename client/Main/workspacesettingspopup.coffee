@@ -20,7 +20,7 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
 
   viewAppended:->
 
-    navItem   = @getData()
+    navItem   = @getDelegate()
     workspace = navItem.getData()
 
     @addSubView @deleteButton = new KDButtonView

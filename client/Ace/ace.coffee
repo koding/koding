@@ -23,15 +23,20 @@ class Ace extends KDView
           return  unless document.getElementById id
           @editor = ace.edit id
           @prepareEditor()
-          @utils.defer => @emit 'ace.ready'
           if contents
             @setContents contents
             @lastSavedContents = contents
+
           @editor.on 'change', =>
-            if @isCurrentContentChanged() then @emit 'FileContentChanged' else @emit 'FileContentSynced'
+            if @isCurrentContentChanged()
+            then @emit 'FileContentChanged'  unless @suppressListeners
+            else @emit 'FileContentRestored'
+
           @editor.gotoLine 0
           @focus()
           @show()
+
+          @utils.defer => @emit 'ace.ready'
 
           KD.mixpanel 'Open Ace, success'
 
@@ -39,6 +44,26 @@ class Ace extends KDView
         @vimKeyboardHandler = vimMode.handler
 
       @emacsKeyboardHandler = 'ace/keyboard/emacs'
+
+      requirejs ['ace/range'], (range) =>
+        @once 'ace.ready', =>
+          {@Range} = range
+
+      requirejs [ 'ace/line_widgets' ], (lineWidgets) =>
+        @once 'ace.ready', =>
+          @lineWidgetManager = new lineWidgets.LineWidgets @editor.getSession()
+          @lineWidgetManager.attach @editor
+
+      requirejs ['ace/anchor'], (anchor) =>
+        {@Anchor} = anchor
+
+  setContent: (content, emitFileContentChangedEvent = yes) ->
+    @suppressListeners = yes  unless emitFileContentChangedEvent
+
+    @editor.setValue content, -1
+
+    @suppressListeners = no   unless emitFileContentChangedEvent
+
 
   prepareEditor:->
 
@@ -70,7 +95,7 @@ class Ace extends KDView
     unless err
       @notify 'Successfully saved!', 'success'
       @lastSavedContents = @lastContentsSentForSave
-      @emit 'FileContentSynced'
+      @emit 'FileContentRestored'
       # unless @askedForSave
         # log "this file has changed, put a modal and block editing @fatihacet!"
         # fatihacet - this case works buggy.
@@ -79,12 +104,13 @@ class Ace extends KDView
       @notify "You don't have enough permission to save!", 'error'
 
   saveAsFinished:->
-    @emit 'FileContentSynced'
+    @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 
   setEditorListeners:->
 
-    @editor.getSession().selection.on 'changeCursor', (cursor)=>
+    @editor.getSession().selection.on 'changeCursor', (cursor) =>
+      return if @suppressListeners
       @emit 'ace.change.cursor', @editor.getSession().getSelection().getCursor()
 
     @editor.commands.on 'afterExec', (e) =>
@@ -400,7 +426,7 @@ class Ace extends KDView
 
     for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
       aceView.ace.requestSave()
-      aceView.ace.once 'FileContentSynced', -> @removeModifiedFromTab aceView
+      aceView.ace.once 'FileContentRestored', -> @removeModifiedFromTab aceView
 
   removeModifiedFromTab:(aceView)->
     {name} = aceView.ace.data

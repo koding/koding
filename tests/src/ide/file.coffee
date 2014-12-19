@@ -25,9 +25,9 @@ module.exports =
       .click                   indexSelector + ' + .chevron'
       .waitForElementVisible   'li.open-file', 20000
       .click                   'li.open-file'
-      .waitForElementVisible   '.indexhtml',   20000 # Assertion
-      .waitForElementVisible   '.ace_content', 20000 # Assertion
-      .assert.containsText     '.ace_content', 'Hello World from HTML by Koding' # Assertion
+      .waitForElementVisible   '.indexhtml', 20000 # Assertion
+      .waitForElementVisible   '.kdtabpaneview.indexhtml', 20000 # Assertion
+      .assert.containsText     '.kdtabpaneview.indexhtml', 'Hello World from HTML by Koding' # Assertion
       .end()
 
 
