@@ -589,7 +589,7 @@ Team Koding
         user.password = createId()
         user.email    = "#{username}@koding.com"
 
-        user.fetchAccount 'kontext', (err, account) =>
+        user.fetchOwnAccount (err, account) =>
           return callback err  if err?
 
           account.profile.nickname = username
