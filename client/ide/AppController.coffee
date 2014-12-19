@@ -951,7 +951,7 @@ class IDEAppController extends AppController
 
   resurrectSnapshot: ->
 
-    return  if @collaborationJustInitialized
+    return  if @collaborationJustInitialized or @fakeTabView
 
     snapshot = @mySnapshot.values()
 
