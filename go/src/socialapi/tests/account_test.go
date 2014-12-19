@@ -138,3 +138,40 @@ func TestAccountFetchProfile(t *testing.T) {
 	})
 
 }
+
+func TestAccountProfilePostCount(t *testing.T) {
+	Convey("While fetching account activity count in profile page", t, func() {
+		// create account
+		acc1 := models.NewAccount()
+		acc1.OldId = bson.NewObjectId().Hex()
+		acc1, err := rest.CreateAccount(acc1)
+		So(err, ShouldBeNil)
+		So(acc1, ShouldNotBeNil)
+
+		// create channel
+		channel, err := rest.CreateChannelWithType(acc1.Id, models.Channel_TYPE_GROUP)
+		So(err, ShouldBeNil)
+		So(channel, ShouldNotBeNil)
+
+		// create message
+		post, err := rest.CreatePost(channel.Id, acc1.Id)
+		So(err, ShouldBeNil)
+		So(post, ShouldNotBeNil)
+
+		Convey("it should fetch all post count when they are not troll", func() {
+			cr, err := rest.FetchAccountActivityCount(acc1, channel)
+			So(err, ShouldBeNil)
+			So(cr, ShouldNotBeNil)
+			So(cr.TotalCount, ShouldEqual, 1)
+
+			post, err := rest.CreatePost(channel.Id, acc1.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+
+			cr, err = rest.FetchAccountActivityCount(acc1, channel)
+			So(err, ShouldBeNil)
+			So(cr, ShouldNotBeNil)
+			So(cr.TotalCount, ShouldEqual, 2)
+		})
+	})
+}

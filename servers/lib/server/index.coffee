@@ -655,7 +655,7 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
     if name is 'Develop'
       return res.redirect 301, '/IDE'
 
-    if name in ['Activity']
+    if name is 'Activity'
       isLoggedIn req, res, (err, loggedIn, account)->
 
         return  serveHome req, res, next  if loggedIn
