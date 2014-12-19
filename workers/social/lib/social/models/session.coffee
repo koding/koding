@@ -55,7 +55,8 @@ module.exports = class JSession extends Model
   @createSession =(callback) ->
     JUser = require './user'
     clientId = createId()
-    JUser.createTemporaryUser (err, resp) =>
+
+    JUser.fetchGuestUser (err, resp) =>
 
       if not resp
         console.error message = "Failed to create guest user :/ ~ This is critical!"
