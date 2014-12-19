@@ -7,17 +7,15 @@ class IDE.EditorPane extends IDE.Pane
     options.cssClass = KD.utils.curry 'editor-pane', options.cssClass
     options.paneType = 'editor'
 
-    {file} = options
-    @file  = file
+    {file}       = options
+    @file        = file
+    @lineWidgets = {}
 
     super options, data
 
     @hash  = file.paneHash  if file.paneHash
 
     @on 'SaveRequested', @bound 'save'
-
-    @lineWidgets = {}
-    @cursors     = {}
 
     @createEditor()
 
@@ -169,7 +167,6 @@ class IDE.EditorPane extends IDE.Pane
   setLineWidgets: (row, col, username) ->
 
     oldWidget      = @lineWidgets[username]
-    oldCursor      = @cursors[username]
     {renderer}     = @getEditor()
     widgetManager  = @getAce().lineWidgetManager
     lineHeight     = renderer.lineHeight
