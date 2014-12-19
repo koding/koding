@@ -7,7 +7,7 @@ assert  = require 'assert'
 module.exports =
 
 
-  createWorkspaceFromVmList: (browser) ->
+  createWorkspaceFromSidebar: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
