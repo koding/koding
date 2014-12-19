@@ -570,14 +570,9 @@ Team Koding
       else
         callback null
 
+
   @createGuestUsername = (callback) ->
-    ((require 'koding-counter') {
-      db          : @getClient()
-      counterName : 'guest'
-      offset      : 0
-    }).next (err, guestId) ->
-      return callback err  if err?
-      callback null, "guest-#{guestId}"
+    callback null, "guest-#{(require 'hat')(64)}"
 
 
   @fetchGuestUser = (callback)->
