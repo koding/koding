@@ -946,6 +946,8 @@ class IDEAppController extends AppController
 
   resurrectSnapshot: ->
 
+    return  if @initializedCollaboration
+
     snapshot = @mySnapshot.values()
 
     if snapshot.length
@@ -1419,6 +1421,8 @@ class IDEAppController extends AppController
         'system-message' : 'start'
         collaboration    : yes
     , callback
+
+    @initializedCollaboration = yes
 
     @rtm.once 'FileCreated', (file) =>
       @loadCollaborationFile file.id
