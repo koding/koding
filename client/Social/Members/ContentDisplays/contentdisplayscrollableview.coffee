@@ -11,17 +11,17 @@ class ContentDisplayScrollableView extends KDView
   
   viewAppended: ->
     
-    scrollView = new KDCustomScrollView
+    @scrollView = new KDCustomScrollView
       lazyLoadThreshold : 100
 
-    scrollView.wrapper.addSubView @getOptions().contentDisplay
+    @scrollView.wrapper.addSubView @getOptions().contentDisplay
     
-    @addSubView scrollView
+    @addSubView @scrollView
     
-    scrollView.wrapper.on 'LazyLoadThresholdReached', =>
-      @emit 'LazyLoadThresholdReached'
+    @scrollView.wrapper.forwardEvent this, 'LazyLoadThresholdReached'
 
 
   _windowDidResize: ->
     
-    @getOptions().contentDisplay.setHeight window.innerHeight
+    @getOptions().contentDisplay.setCss { minHeight : window.innerHeight }
+    @scrollView.setHeight window.innerHeight

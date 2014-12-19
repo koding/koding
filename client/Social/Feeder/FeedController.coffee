@@ -209,8 +209,7 @@ class FeedController extends KDViewController
         else
           @loadFeed filter
       else
-        if @feedIsLoading
-          return
+        return  if @feedIsLoading
 
         @feedIsLoading = yes
 

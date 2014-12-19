@@ -61,7 +61,6 @@ class MembersAppController extends AppController
       contentDisplay.addSubView profileView
       @prepareFeederView model, (feederView)->
         contentDisplay.addSubView feederView
-        contentDisplay.setHeight window.innerHeight
 
   createGroupMembersView: (contentDisplay)->
     contentDisplay.addSubView new HeaderViewSection
@@ -69,7 +68,6 @@ class MembersAppController extends AppController
       type     : "big"
     @prepareFeederView KD.whoami(), (feederView)->
       contentDisplay.addSubView feederView
-      contentDisplay.setHeight window.innerHeight
 
   prepareFeederView:(account, callback)->
     windowController = KD.getSingleton('windowController')
@@ -172,8 +170,7 @@ class MembersAppController extends AppController
     view = new ContentDisplayScrollableView
       contentDisplay : contentDisplay
 
-    view.on 'LazyLoadThresholdReached', => 
-      @emit 'LazyLoadThresholdReached'
+    view.forwardEvent this, 'LazyLoadThresholdReached'
       
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
     return contentDisplay
