@@ -834,6 +834,15 @@ class IDEAppController extends AppController
         pane.view.webtermView.terminal?.updateSize()
 
 
+  # TODO: We are using these 3 lines in a few places in the codebase.
+  # It would be better to refactor they to use this method.
+  # I couldn't make it because lack of time, it should be well tested.
+  removePaneFromTabView: (pane, shouldDetach = no) ->
+    paneView = pane.parent
+    tabView  = paneView.parent
+    tabView.removePane paneView
+
+
   loadCollaborationFile: (fileId) ->
 
     return unless fileId
