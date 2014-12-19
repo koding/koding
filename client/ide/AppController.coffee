@@ -1087,12 +1087,14 @@ class IDEAppController extends AppController
     {context} = change
     return unless context
 
+    paneHash = context.paneHash or context.hash
+
     switch context.paneType
       when 'terminal'
         terminalOptions =
           machine  : @mountedMachine
           session  : context.session
-          hash     : context.paneHash
+          hash     : paneHash
           joinUser : @collaborationHost or KD.nick()
 
         @createNewTerminal terminalOptions
@@ -1100,17 +1102,14 @@ class IDEAppController extends AppController
       when 'editor'
         {path}        = context.file
         file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
-        file.paneHash = context.paneHash
+        file.paneHash = paneHash
 
         content = @rtm.getFromModel(path)?.getText() or ''
 
         @openFile file, content, noop, no
 
       when 'drawing'
-        @createNewDrawing context.paneHash
-
-
-    {paneHash} = context
+        @createNewDrawing paneHash
 
     unless @mySnapshot.get paneHash
       @mySnapshot.set paneHash, change
