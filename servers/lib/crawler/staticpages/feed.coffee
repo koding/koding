@@ -7,13 +7,13 @@ encoder                 = require 'htmlencode'
 createProfileFeed = (models, account, options, callback)->
   { client, page, targetId } = options
   { SocialChannel } = models
-  sessionToken = client.sessionToken
+  { sessionToken } = client
   targetId = account.socialApiId
 
   SocialChannel.fetchProfileFeedCount client, {targetId, sessionToken}, (err, response)->
-    return callback null, err  if err
+    return callback err  if err
     itemCount = response?.totalCount
-    return callback ''  unless itemCount
+    return callback null, ''  unless itemCount
 
     itemsPerPage = 5
     skip = 0
@@ -27,18 +27,18 @@ createProfileFeed = (models, account, options, callback)->
       replyLimit : 25
 
     SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
-      return callback null, err  if err or not result
+      return callback err  if err or not result
       unless result.length
-        return callback ''
+        return callback null, ''
 
       buildContent models, result, options, (err, content) ->
-        return callback null, err  if err or not content
+        return callback err  if err or not content
 
         pagination = getPagination page, itemCount, itemsPerPage, "#{account.profile.nickname}"
         if pagination
           content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
 
-        callback content
+        callback null, content
 
 
 createFeed = (models, options, callback)->
