@@ -19,3 +19,8 @@ class IDE.PreviewPane extends IDE.Pane
     @previewer.on 'ViewerLocationChanged', (newLocation) =>
       @setOption 'url', newLocation
       @emit 'LocationChanged', newLocation
+
+  serialize: ->
+    {url, paneType} = @getOptions()
+
+    return { url, paneType, @hash }

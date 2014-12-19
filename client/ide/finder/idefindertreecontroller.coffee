@@ -19,7 +19,9 @@ class IDE.FinderTreeController extends NFinderTreeController
 
 
   createTerminal: (node) ->
+
     {path, machine} = node.getData()
     appManager      = KD.getSingleton 'appManager'
+    path            = FSHelper.plainPath path
 
-    appManager.tell 'IDE', 'createNewTerminal', machine, FSHelper.plainPath path
+    appManager.tell 'IDE', 'createNewTerminal', { machine, path }

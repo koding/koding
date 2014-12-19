@@ -10,7 +10,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @openFiles = []
     @bindListeners()
 
+
   bindListeners: ->
+
     @on 'PlusHandleClicked', @bound 'createPlusContextMenu'
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
@@ -24,9 +26,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'TabNeedsToBeClosed',       @bound 'closeTabByFile'
     @tabView.on 'GoToLineRequested',        @bound 'goToLine'
 
-    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback) =>
+    @tabView.on 'FileNeedsToBeOpened', (file, contents, callback, emitChange) =>
       @closeUntitledFileIfNotChanged()
-      @openFile file, contents, callback
+      @openFile file, contents, callback, emitChange
 
     @tabView.on 'PaneDidShow', =>
       @updateStatusBar()
@@ -46,12 +48,17 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
       tabHandle.addSubView icon, null, yes
 
+
   createPane_: (view, paneOptions, paneData) ->
+
     unless view or paneOptions
       return new Error 'Missing argument for createPane_ helper'
 
     unless view instanceof KDView
       return new Error 'View must be an instance of KDView'
+
+    if view instanceof IDE.EditorPane
+      paneOptions.name = @trimUntitledFileName paneOptions.name
 
     pane = new KDTabPaneView paneOptions, paneData
     pane.addSubView view
@@ -62,7 +69,17 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     return pane
 
-  createEditor: (file, content, callback = noop) ->
+
+  trimUntitledFileName: (name) ->
+
+    untitledNameRegex = /Untitled[0-9\-]*.txt/
+    matchedPattern    = untitledNameRegex.exec name
+
+    return  if matchedPattern then matchedPattern.first else name
+
+
+  createEditor: (file, content, callback = noop, emitChange = yes) ->
+
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
     editorPane  = new IDE.EditorPane { file, content, delegate: this }
@@ -72,7 +89,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
     editorPane.once 'EditorIsReady', ->
-      {ace}      = editorPane.aceView
+      ace        = editorPane.getAce()
       appManager = KD.getSingleton 'appManager'
 
       ace.on 'ace.change.cursor', (cursor) ->
@@ -88,37 +105,97 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @createPane_ editorPane, paneOptions, file
 
+    if emitChange
+      change        =
+        context     :
+          file      :
+            content : content
+            path    : file.path
+            machine :
+              uid   : file.machine.uid
+
+      @emitChange editorPane, change
+
+
   createShortcutsView: ->
+
     @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
 
-  createTerminal: (machine, path, session) ->
+  createTerminal: (options) ->
 
-    {appManager} = KD.singletons
+    { machine, path, session, joinUser, hash } = options
+    { appManager } = KD.singletons
+    frontApp       = appManager.getFrontApp()
+    machine       ?= frontApp.mountedMachine
 
-    frontApp = appManager.getFrontApp()
-    machine ?= frontApp.mountedMachine
-    path    ?= frontApp.workspaceData?.rootPath
+    unless machine
+      { machines } = KD.getSingleton 'computeController'
+      machineId  = frontApp.mountedMachineUId
 
-    terminalPane = new IDE.TerminalPane { machine, path, session }
+    unless path
+      workspaceData = frontApp.workspaceData or {}
+      { rootPath, isDefault } = workspaceData
+
+      if rootPath and not isDefault
+        path = frontApp.workspaceData.rootPath
+
+    terminalPane = new IDE.TerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
       terminalPane.webtermView.on 'click', @bound 'click'
 
-  createDrawingBoard: ->
-    @createPane_ new IDE.DrawingPane, { name: 'Drawing' }
+      unless joinUser
+        change        =
+          context     :
+            session   : terminalPane.remote.session
+            machine   :
+              uid     : machine.uid
+
+        @emitChange terminalPane, change
+
+
+  emitChange: (pane = {}, change = { context: {} }, type = 'NewPaneCreated') ->
+
+    change.context.paneType = pane.options?.paneType or null
+    change.context.paneHash = pane.hash or null
+
+    change.type   = type
+    change.origin = KD.nick()
+
+    if type in [ 'PaneRemoved', 'TabChanged' ] and pane.file
+      change.context.file = path: pane.file.path
+
+    @emit 'ChangeHappened', change
+
+
+  createDrawingBoard: (paneHash) ->
+
+    drawingPane = new IDE.DrawingPane { hash: paneHash }
+    @createPane_ drawingPane, { name: 'Drawing' }
+
+    unless paneHash
+      @emitChange  drawingPane, context: {}
+
 
   createPreview: (url) ->
+
     previewPane = new IDE.PreviewPane { url }
     @createPane_ previewPane, { name: 'Browser' }
 
     previewPane.on 'LocationChanged', (newLocation) =>
       @updateStatusBar 'preview', newLocation
 
+    @emitChange previewPane, context: { url }
+
+
   showView: (view) ->
+
     @createPane_ view, { name: 'Search Result' }
 
+
   updateStatusBar: (paneType, data) ->
+
     appManager = KD.getSingleton 'appManager'
 
     unless paneType
@@ -130,6 +207,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         {file} = subView.getOptions()
         {ace}  = subView.aceView
         cursor = if ace.editor? then ace.editor.getCursorPosition() else row: 0, column: 0
+
+        file.name = @trimUntitledFileName file.name
+
         data   = { file, cursor }
 
       else if paneType is 'terminal'
@@ -148,17 +228,21 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'updateStatusBar', paneType, data
 
-  removeOpenDocument: ->
-    # TODO: This method is legacy, should be reimplemented in ace bundle.
+
+  removeOpenDocument: -> # legacy, should be reimplemented in ace bundle.
+
 
   getActivePaneView: ->
+
     return @tabView.getActivePane().view
 
+
   focusTab: ->
+
     pane = @getActivePaneView()
     return unless pane
 
-    KD.utils.defer ->
+    KD.utils.defer =>
       {paneType} = pane.getOptions()
       appManager = KD.getSingleton 'appManager'
 
@@ -170,10 +254,17 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       else
         appManager.tell 'IDE', 'hideFindAndReplaceView'
 
+    unless @suppressChangeHandlers
+      @emitChange pane, context: {}, 'TabChanged'
+
+
   goToLine: ->
+
     @getActivePaneView().aceView.ace.showGotoLine()
 
+
   click: ->
+
     super
 
     appManager = KD.getSingleton 'appManager'
@@ -190,48 +281,62 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @openFile file, content
 
 
-  openFile: (file, content, callback = noop) ->
+
+  openFile: (file, content, callback = noop, emitChange) ->
+
     if @openFiles.indexOf(file) > -1
       editorPane = @switchToEditorTabByFile file
       callback editorPane
     else
-      @createEditor file, content, callback
+      @createEditor file, content, callback, emitChange
       @openFiles.push file
 
+
   switchToEditorTabByFile: (file) ->
+
     for pane, index in @tabView.panes when file is pane.getData()
       @tabView.showPaneByIndex index
       return editorPane = pane.view
 
+
   toggleFullscreen: ->
+
     @toggleClass 'fullscren'
     KD.getSingleton('windowController').notifyWindowResizeListeners()
     @isFullScreen = !@isFullScreen
 
+
   handlePaneRemoved: (pane) ->
+
     file = pane.getData()
     @openFiles.splice @openFiles.indexOf(file), 1
-    @emit 'PaneRemoved'
+    @emitChange pane.view, context: {}, 'PaneRemoved'
+    @emit 'PaneRemoved', pane
 
-  getDummyFilePath: ->
-    return 'localfile:/Untitled.txt'
 
-  openMachineTerminal: (machine) ->
-    @createTerminal machine
+  getDummyFilePath: -> return "localfile:/Untitled.txt@#{Date.now()}"
 
-  openMachineWebPage: (machine) ->
-    @createPreview machine.ipAddress
+
+  openMachineTerminal: (machine) -> @createTerminal { machine }
+
+
+  openMachineWebPage: (machine) -> @createPreview machine.ipAddress
+
 
   closeTabByFile: (file)  ->
+
     for pane in @tabView.panes when pane?.data is file
       pane.getOptions().aceView.ace.contentChanged = no # hook to avoid file close modal
       @tabView.removePane pane
 
+
   closeUntitledFileIfNotChanged: ->
+
     for pane in @tabView.panes when pane
       if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
         if pane.view.getValue() is ''
           @tabView.removePane pane
+
 
   getPlusMenuItems: ->
 
@@ -244,7 +349,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     terminalSessions =
       "New Session"  :
-        callback     : => @createTerminal machine
+        callback     : => @createTerminal { machine }
         separator    : sessions.length > 0
 
     activeSessions = []
@@ -259,7 +364,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         children          :
           'Open'          :
             disabled      : isActive
-            callback      : => @createTerminal machine, null, session
+            callback      : => @createTerminal { machine, session }
           'Terminate'     :
             callback      : => @terminateSession machine, session
 
@@ -271,17 +376,14 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         callback          : => @createDrawingBoard()
         separator         : yes
       'Split Vertically':
-        callback          : ->
-          appManager.getFrontApp().splitVertically()
+        callback          : -> frontApp.splitVertically()
       'Split Horizontally':
-        callback          : ->
-          appManager.getFrontApp().splitHorizontally()
+        callback          : -> frontApp.splitHorizontally()
 
     if @parent instanceof KDSplitViewPanel
       items['Undo Split'] =
         separator         : yes
-        callback          : ->
-          appManager.getFrontApp().mergeSplitView()
+        callback          : -> frontApp.mergeSplitView()
     else
       items['']           = # TODO: `type: 'separator'` also creates label, see: https://cloudup.com/c90pFQS_n6X
         type              : 'separator'
@@ -292,7 +394,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     return items
 
+
   createEditorMenu: (tabHandle, icon) ->
+
     tabHandle.setClass 'menu-visible'
     KD.getSingleton('appManager').tell 'IDE', 'showStatusBarMenu', this, icon
 
@@ -300,6 +404,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @menu.once 'KDObjectWillBeDestroyed', =>
         tabHandle.unsetClass 'menu-visible'
         delete @menu
+
 
   createPlusContextMenu: ->
 

@@ -98,6 +98,19 @@ class IDE.DrawingPane extends IDE.Pane
     @$canvas.setLineSize  3
     @$canvas.setLineColor colors.first
 
+    @$canvas.on 'mouseup mouseleave touchend ', @bound 'emitChangeHappened'
+    @on 'DrawingBoardUpdated', @bound 'emitChangeHappened'
+
+
+  emitChangeHappened: ->
+    @emit 'ChangeHappened', {
+      origin     : KD.nick()
+      type       : 'DrawingBoardUpdated'
+      context    :
+        paneHash : @hash
+        paneType : 'drawing'
+        data     : @getCanvasData()
+    }
 
   addLayerForMenu: ->
     KD.getSingleton('windowController').addLayer @toolbarMenu
@@ -121,10 +134,14 @@ class IDE.DrawingPane extends IDE.Pane
     @toolbarMenu.destroy()
 
 
-  redo: -> @$canvas.redo()
+  redo: ->
+    @$canvas.redo()
+    @emit 'DrawingBoardUpdated'
 
 
-  undo: -> @$canvas.undo()
+  undo: ->
+    @$canvas.undo()
+    @emit 'DrawingBoardUpdated'
 
 
   setPenColor: (color) -> @$canvas.setLineColor color
@@ -145,12 +162,29 @@ class IDE.DrawingPane extends IDE.Pane
   setCanvasData: (json) -> @$canvas.jsonLoad json
 
 
-  clear: -> @$canvas.clear()
+  clear: ->
+    @$canvas.clear()
+    @emit 'DrawingBoardUpdated'
 
 
   save: ->
     new KDNotificationView
       title: 'Saving will be enabled soon.'
+
+
+  serialize: ->
+    data       =
+      data     : @getCanvasData()
+      hash     : @hash
+      paneType : @getOptions().type
+
+    return data
+
+
+  handleChange: (change) ->
+    return unless change.context?.data
+
+    @setCanvasData change.context.data
 
 
   viewAppended: ->

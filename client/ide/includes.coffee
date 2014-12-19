@@ -54,7 +54,10 @@ module.exports = [
   # status bar
   "views/statusbar/syntaxselectormenuitem.coffee"
   "views/statusbar/statusbarmenu.coffee"
+  "views/statusbar/statusbarmenuitem.coffee"
   "views/statusbar/statusbar.coffee"
+  "views/statusbar/avatarview.coffee"
+  "views/statusbar/chatheadwatchitemview.coffee"
 
   # misc views
   "views/basesplitview.coffee"
@@ -64,7 +67,17 @@ module.exports = [
   # stylus
   "styl/ide.finder.styl"
   "styl/ide.styl"
+  "styl/ide.chat.styl"
 
   # 3rd party
   "../../website/a/js/sketchpad.js"
+  "../../website/a/js/gapi.js"
+
+  # collaboration
+  "RealTimeManager.coffee"
+  "views/chat/chatparticipantview.coffee"
+  "views/chat/chatview.coffee"
+  "views/chat/messagepane.coffee"
+  "views/chat/settingspane.coffee"
+
 ]

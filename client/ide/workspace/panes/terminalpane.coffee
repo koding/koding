@@ -8,13 +8,13 @@ class IDE.TerminalPane extends IDE.Pane
 
     super options, data
 
-    {@machine, @session} = @getOptions()
+    { @machine, @session } = @getOptions()
 
     @createTerminal()
 
 
   createTerminal: ->
-    @webtermView       = new WebTermView
+    options =
       delegate         : this
       readOnly         : @getOption 'readOnly'
       machine          : @machine
@@ -22,6 +22,16 @@ class IDE.TerminalPane extends IDE.Pane
       session          : @session
       cssClass         : 'webterm'
       advancedSettings : no
+
+    { joinUser, session } = @getOptions()
+
+    if joinUser and session
+      # TODO: Also pass sizeX and sizeY
+      options.joinUser = joinUser
+      options.session  = session
+      options.mode     = 'shared'
+
+    @webtermView = new WebTermView options
 
     @addSubView @webtermView
 
@@ -71,3 +81,15 @@ class IDE.TerminalPane extends IDE.Pane
   setFocus: (state) ->
     super state
     @webtermView.setFocus state
+
+
+  serialize: ->
+    {label, ipAddress, slug, uid} = @machine
+    {path, paneType} = @getOptions()
+
+    data       =
+      path     : path
+      machine  : { label, ipAddress, slug, uid }
+      paneType : paneType
+      session  : @remote?.session
+      hash     : @hash
