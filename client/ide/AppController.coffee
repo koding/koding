@@ -1443,6 +1443,7 @@ class IDEAppController extends AppController
         @rtm = null
         KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
+      @mySnapshot.clear()
       @rtm.deleteFile @getRealTimeFileName()
 
       @setMachineSharingStatus off
