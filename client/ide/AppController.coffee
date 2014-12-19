@@ -869,7 +869,7 @@ class IDEAppController extends AppController
       @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
       @pingTime          or= @rtm.create 'string', 'pingTime'
       @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @createWorkspaceSnapshot()
+      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
 
       if @amIHost
         @getView().setClass 'host'
@@ -929,7 +929,7 @@ class IDEAppController extends AppController
     @participants.push { nickname, hash }
 
 
-  createWorkspaceSnapshot: ->
+  getWorkspaceSnapshot: ->
 
     panes = {}
 
