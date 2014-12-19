@@ -88,7 +88,12 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
 
     fetchGroupName { groupName, section }, (err, groupName)->
       return handleError err, callback if err
-      fetchAccount session.username, (err, account)->
+
+      {username} = session
+      username   = 'guestuser'  if /^guest-/.test username
+
+      fetchAccount username, (err, account)->
+
         return handleError err, callback if err
         return callback null, fakeClient unless account?
 
