@@ -856,6 +856,7 @@ class IDEAppController extends AppController
       nickname           = KD.nick()
       myWatchMapName     = "#{nickname}WatchMap"
       mySnapshotName     = "#{nickname}Snapshot"
+      hostName           = @collaborationHost
 
       @participants      = @rtm.getFromModel 'participants'
       @changes           = @rtm.getFromModel 'changes'
@@ -902,6 +903,12 @@ class IDEAppController extends AppController
           accounts.forEach (account) =>
             {nickname} = account.profile
             @myWatchMap.set nickname, nickname
+
+      if not @amIHost and @myWatchMap.values().indexOf(hostName) > -1
+        hostSnapshot = @rtm.getFromModel "#{hostName}Snapshot"
+
+        for key, change of hostSnapshot.values()
+          @createPaneFromChange change
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
