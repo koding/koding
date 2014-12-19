@@ -946,7 +946,7 @@ class IDEAppController extends AppController
 
   resurrectSnapshot: ->
 
-    return  if @initializedCollaboration
+    return  if @collaborationJustInitialized
 
     snapshot = @mySnapshot.values()
 
@@ -1422,7 +1422,7 @@ class IDEAppController extends AppController
         collaboration    : yes
     , callback
 
-    @initializedCollaboration = yes
+    @collaborationJustInitialized = yes
 
     @rtm.once 'FileCreated', (file) =>
       @loadCollaborationFile file.id
