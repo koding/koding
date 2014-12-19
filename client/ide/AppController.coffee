@@ -946,8 +946,26 @@ class IDEAppController extends AppController
 
   resurrectSnapshot: ->
 
-    for change in @mySnapshot.values() when change.context
-      @createPaneFromChange change
+    snapshot = @mySnapshot.values()
+
+    if snapshot.length
+      @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
+
+      for change in snapshot when change.context
+        {paneType} = change.context
+
+        if paneType is 'terminal'
+          @setActiveTabView @ideViews.last.tabView
+        else
+          @setActiveTabView @ideViews.first.tabView
+
+        @createPaneFromChange change
+    else
+      @mySnapshot.clear()
+      currentSnapshot = @getWorkspaceSnapshot()
+
+      for key, value of currentSnapshot
+        @mySnapshot.set key, value
 
 
   syncChange: (change) ->
