@@ -1641,16 +1641,6 @@ class IDEAppController extends AppController
 
   handleParticipantKicked: (username) ->
 
-    if @amIHost
-
-      message  =
-        type   : 'ParticipantKicked'
-        origin : KD.nick()
-        target : username
-
-      @broadcastMessages.push message
-      @unshareMachineAndKlient username, yes
-
     @chat.emit 'ParticipantLeft', username
     @statusBar.emit 'ParticipantLeft', username
 
@@ -1666,15 +1656,26 @@ class IDEAppController extends AppController
 
   kickParticipant: (account) ->
 
+    return  unless @amIHost
+
     options      =
       channelId  : @socialChannel.id
       accountIds : [ account.socialApiId ]
 
-    KD.singletons.socialapi.channel.kickParticipants options, (err, result) =>
+    @setMachineUser [account], no, =>
 
-      return KD.showError err  if err
+      KD.singletons.socialapi.channel.kickParticipants options, (err, result) =>
 
-      @socialChannel.emit 'RemovedFromChannel', account
+        return KD.showError err  if err
+
+        @socialChannel.emit 'RemovedFromChannel', account
+
+        message  =
+          type   : 'ParticipantKicked'
+          origin : KD.nick()
+          target : account.profile.nickname
+
+        @broadcastMessages.push message
 
 
   listenPings: ->
