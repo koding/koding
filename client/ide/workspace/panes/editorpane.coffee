@@ -216,7 +216,8 @@ class IDE.EditorPane extends IDE.Pane
     filePath = @getFile().path
     string   = @rtm.getFromModel filePath
 
-    return unless string
+    unless string
+      return @rtm.create 'string', filePath, @getContent()
 
     @setContent string.getText(), no
 
