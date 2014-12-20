@@ -153,16 +153,22 @@ class RealTimeManager extends KDObject
     return data
 
 
-  bindRealtimeListeners: (data, type) ->
+  bindRealtimeListeners: do (instances = []) ->
 
-    if type is 'string'
-      @bindStringListeners data
+    (instance, type) ->
 
-    else if type is 'map'
-      @bindMapListeners data
+      return  if instance in instances
 
-    else if type is 'list'
-      @bindListListeners data
+      instances.push instance
+
+      if type is 'string'
+        @bindStringListeners instance
+
+      else if type is 'map'
+        @bindMapListeners instance
+
+      else if type is 'list'
+        @bindListListeners instance
 
 
   bindStringListeners: (string) ->
