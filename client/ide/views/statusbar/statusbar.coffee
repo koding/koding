@@ -18,6 +18,8 @@ class IDE.StatusBar extends KDView
     @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
     @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
 
+    { mainController } = KD.singletons
+    collabDisabled     = mainController.isFeatureDisabled 'collaboration'
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
@@ -42,9 +44,12 @@ class IDE.StatusBar extends KDView
       cssClass : 'share fr hidden'
       click    : (event) ->
         KD.utils.stopDOMEvent event
-        appManager.tell 'IDE', 'showChat'
+        appManager.tell 'IDE', 'showChat'  unless collabDisabled
 
     @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr'
+
+    @avatars.hide()  if collabDisabled
+
 
 
   showInformation: ->
