@@ -95,6 +95,7 @@ class IDEAppController extends AppController
     appView   = @getView()
     workspace = @workspace = new IDE.Workspace { layoutOptions }
     @ideViews = []
+    @layout = ndpane(16)
 
     {windowController} = KD.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
