@@ -72,7 +72,6 @@ class IDEAppController extends AppController
     ]
 
   constructor: (options = {}, data) ->
-
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
@@ -556,29 +555,44 @@ class IDEAppController extends AppController
 
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
+  moveTab: (targetPanel) ->
+    ancestors = iv: null, svp: null, sv: null
+    Object.keys(ancestors).reduce ((a, b) ->
+      ancestors[b] = a.parent
+      return ancestors[b]),
+      @activeTabView
+
+    return  unless ancestors.svp instanceof KDSplitViewPanel
+
+    pane_ = @activeTabView.panes[@activeTabView.getActivePaneIndex()]
+    {pane} = @activeTabView.removePane pane_, yes, yes
+
+    targetPanel.subViews[0].tabView.addPane pane
+    @setActiveTabView targetPanel.subViews[0].tabView
+
   moveTabUp: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.north(srcOffset)
-    console.log targetOffset, @layoutMap[targetOffset]
+    @moveTab @layoutMap[targetOffset]
 
   moveTabDown: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.south(srcOffset)
-    console.log targetOffset, @layoutMap[targetOffset]
+    @moveTab @layoutMap[targetOffset]
 
   moveTabLeft: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.west(srcOffset)
-    console.log targetOffset, @layoutMap[targetOffset]
+    @moveTab @layoutMap[targetOffset]
 
   moveTabRight: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.east(srcOffset)
-    console.log targetOffset, @layoutMap[targetOffset]
+    @moveTab @layoutMap[targetOffset]
 
   goToLeftTab: ->
 
