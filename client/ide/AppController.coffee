@@ -203,6 +203,7 @@ class IDEAppController extends AppController
       views     : [ null, newIDEView ]
 
     layout.split(type is 'vertical')
+    splitView._layout = layout
 
     @registerIDEView newIDEView
 
@@ -210,6 +211,8 @@ class IDEAppController extends AppController
       splitView.panels.first.attach ideView
       splitView.panels[0] = ideView.parent
       splitView.options.views[0] = ideView
+      splitView.panels.forEach (panel, i) ->
+        panel._layout = layout.leafs[i]
 
     ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
