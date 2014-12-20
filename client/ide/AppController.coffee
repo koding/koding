@@ -560,6 +560,7 @@ class IDEAppController extends AppController
     return  unless panel instanceof KDSplitViewPanel
 
     targetOffset = @layout[direction](panel._layout.data.offset)
+    return  if targetOffset is undefined
 
     targetPanel = @layoutMap[targetOffset]
 
