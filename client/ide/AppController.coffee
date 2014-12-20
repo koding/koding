@@ -187,6 +187,13 @@ class IDEAppController extends AppController
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
     newIDEView     = new IDE.IDEView ideViewOptions
+
+    splitViewPanel = @activeTabView.parent.parent
+    if splitViewPanel instanceof KDSplitViewPanel
+      layout = SplitViewPanel._layout
+    else
+      layout = @layout
+
     @activeTabView = null
 
     ideView.detach()
@@ -194,6 +201,8 @@ class IDEAppController extends AppController
     splitView   = new KDSplitView
       type      : type
       views     : [ null, newIDEView ]
+
+    layout.split(type is 'vertical')
 
     @registerIDEView newIDEView
 
