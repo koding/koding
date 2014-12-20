@@ -103,7 +103,11 @@ class IDEAppController extends AppController
     appView   = @getView()
     workspace = @workspace = new IDE.Workspace { layoutOptions }
     @ideViews = []
+
+    # todo:
+    # - following two should be abstracted out into a separate api
     @layout = ndpane(16)
+    @layoutMap = new Array(16*16)
 
     {windowController} = KD.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
@@ -215,12 +219,14 @@ class IDEAppController extends AppController
 
     @registerIDEView newIDEView
 
-    splitView.once 'viewAppended', ->
+    splitView.once 'viewAppended', =>
       splitView.panels.first.attach ideView
       splitView.panels[0] = ideView.parent
       splitView.options.views[0] = ideView
-      splitView.panels.forEach (panel, i) ->
-        panel._layout = layout.leafs[i]
+      splitView.panels.forEach (panel, i) =>
+        leaf = layout.leafs[i]
+        panel._layout = leaf
+        @layoutMap[leaf.data.offset] = panel
 
     ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
@@ -236,8 +242,6 @@ class IDEAppController extends AppController
 
     return  unless panel instanceof KDSplitViewPanel
 
-    splitView._layout.merge()
-
     if parent instanceof KDSplitViewPanel
       parentSplitView    = parent.parent
       panelIndexInParent = parentSplitView.panels.indexOf parent
@@ -247,8 +251,14 @@ class IDEAppController extends AppController
         index = @ideViews.indexOf view
         @ideViews.splice index, 1
 
+      @layoutMap[splitView._layout.data.offset] = parent
+
       @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
       @doResize()
+
+    splitView._layout.leafs.forEach (leaf) =>
+      @layoutMap[leaf.data.offset] = null
+    splitView._layout.merge()
 
     splitView.merge()
 
@@ -550,25 +560,25 @@ class IDEAppController extends AppController
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.north(srcOffset)
-    console.log targetOffset
+    console.log targetOffset, @layoutMap[targetOffset]
 
   moveTabDown: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.south(srcOffset)
-    console.log targetOffset
+    console.log targetOffset, @layoutMap[targetOffset]
 
   moveTabLeft: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.west(srcOffset)
-    console.log targetOffset
+    console.log targetOffset, @layoutMap[targetOffset]
 
   moveTabRight: ->
     panel = @activeTabView.parent.parent
     srcOffset = panel._layout.data.offset
     targetOffset = @layout.east(srcOffset)
-    console.log targetOffset
+    console.log targetOffset, @layoutMap[targetOffset]
 
   goToLeftTab: ->
 
