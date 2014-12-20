@@ -547,9 +547,28 @@ class IDEAppController extends AppController
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
   moveTabUp: ->
+    panel = @activeTabView.parent.parent
+    srcOffset = panel._layout.data.offset
+    targetOffset = @layout.north(srcOffset)
+    console.log targetOffset
+
   moveTabDown: ->
+    panel = @activeTabView.parent.parent
+    srcOffset = panel._layout.data.offset
+    targetOffset = @layout.south(srcOffset)
+    console.log targetOffset
+
   moveTabLeft: ->
+    panel = @activeTabView.parent.parent
+    srcOffset = panel._layout.data.offset
+    targetOffset = @layout.west(srcOffset)
+    console.log targetOffset
+
   moveTabRight: ->
+    panel = @activeTabView.parent.parent
+    srcOffset = panel._layout.data.offset
+    targetOffset = @layout.east(srcOffset)
+    console.log targetOffset
 
   goToLeftTab: ->
 
