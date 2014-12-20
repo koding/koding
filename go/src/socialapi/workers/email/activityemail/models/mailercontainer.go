@@ -47,14 +47,15 @@ func (mc *MailerContainer) PrepareContainer() error {
 		}
 		mc.Message = target.Body
 		target, err = fetchMessageParent(mc.Activity.MessageId)
-
+		if err != nil {
+			return err
+		}
 	default:
 		target, err = fetchMessageTarget(mc.Content.TargetId)
+		if err != nil {
+			return err
+		}
 		mc.Message = target.Body
-	}
-
-	if err != nil {
-		return err
 	}
 
 	mc.prepareGroup(target)
@@ -70,8 +71,9 @@ func (mc *MailerContainer) PrepareContainer() error {
 
 func fetchMessageTarget(messageId int64) (*socialmodels.ChannelMessage, error) {
 	target := socialmodels.NewChannelMessage()
+
 	if err := target.ById(messageId); err != nil {
-		return nil, fmt.Errorf("target message not found")
+		return nil, err
 	}
 
 	return target, nil

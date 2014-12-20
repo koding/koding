@@ -11,6 +11,7 @@ import (
 	notificationmodels "socialapi/workers/notification/models"
 	"time"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -96,6 +97,9 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 	mc.Content = nc
 
 	if err := mc.PrepareContainer(); err != nil {
+		if err == bongo.RecordNotFound {
+			return nil
+		}
 		return err
 	}
 
