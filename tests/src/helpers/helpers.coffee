@@ -319,7 +319,6 @@ module.exports =
         .waitForElementVisible     modalSelector, 20000
         .click                     modalSelector + ' button.red'
         .waitForElementNotVisible  workspaceSelector, 20000
-        .end()
 
 
   splitPanesUndo: (browser) ->

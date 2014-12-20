@@ -23,6 +23,7 @@ module.exports =
     workspaceName = helpers.createWorkspace(browser)
 
     helpers.deleteWorkspace(browser, workspaceName)
+    browser.end()
 
 
   createWorkspaceFromFileTree: (browser) ->
