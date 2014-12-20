@@ -16,7 +16,10 @@ if [ 0 -eq "$(echo "${LOAD} < ${CPU_THRESHOLD}" | bc)" ] ; then
   echo system overloading!
   echo Top-most process killed $NAME
 
-  MESSAGE=`echo $TOPPROCESS | awk '{print "I restarted " $3 "  because of extensive (%" $2 ") CPU usage. PID was " $1}'`
+  PUBLIC_HOSTNAME=`/opt/aws/bin/ec2-metadata --public-hostname | awk '{print $2}'`
+  SSH_LINK="ssh://ec2-user@$PUBLIC_HOSTNAME"
+  MESSAGE="I have restarted *$NAME* at <$SSH_LINK|$HOSTNAME> with *PID:$PID* because of extensive *(% $LOAD) CPU* usage."
+
   PAYLOAD="payload={\"channel\": \"#_devops\", \"username\": \"assassin\", \"text\": \"$MESSAGE\", \"icon_emoji\": \":ghost:\"}"
   curl -X POST --data-urlencode "$PAYLOAD" https://hooks.slack.com/services/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
 
