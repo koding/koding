@@ -4,11 +4,11 @@ echo checking for run-away process ...
 
 CPU_THRESHOLD=90
 
-TOPPROCESS=$(ps -eo pid -eo pcpu -eo command | sort -k 2 -r | grep -v PID | head -n 1)
+TOPPROCESS=$(top -b -n 1 | head -n 8 | tail -n 1)
 
 PID=`echo $TOPPROCESS | awk '{print $1}'`
-LOAD=`echo $TOPPROCESS | awk '{print $2}'`
-NAME=`echo $TOPPROCESS | awk '{print $3}'`
+LOAD=`echo $TOPPROCESS | awk '{print $9}'`
+NAME=`echo $TOPPROCESS | awk '{print $12}'`
 
 # check if CPU_THRESHOLD is lower than LOAD
 if [ 0 -eq "$(echo "${LOAD} < ${CPU_THRESHOLD}" | bc)" ] ; then
