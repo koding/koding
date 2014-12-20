@@ -228,6 +228,8 @@ class IDEAppController extends AppController
 
     return  unless panel instanceof KDSplitViewPanel
 
+    splitView._layout.merge()
+
     if parent instanceof KDSplitViewPanel
       parentSplitView    = parent.parent
       panelIndexInParent = parentSplitView.panels.indexOf parent
