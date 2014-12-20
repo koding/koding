@@ -20,7 +20,6 @@ var emailConfig = map[string]string{
 	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
 	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
 	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
-	notificationmodels.NotificationContent_TYPE_PM:      "privateMessage",
 }
 
 const (
