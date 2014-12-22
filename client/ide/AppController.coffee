@@ -569,6 +569,7 @@ class IDEAppController extends AppController
 
     targetPanel.subViews[0].tabView.addPane pane
     @setActiveTabView targetPanel.subViews[0].tabView
+    @doResize()
 
   moveTabUp: -> @moveTab('north')
 
