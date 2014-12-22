@@ -80,7 +80,7 @@ IDE.settings.editor =
     dart        : ["Dart"         , "dart"]
     delphi      : ["Delphi"       , "delphi"]
     diff        : ["Diff"         , "diff|patch"]
-    erlang      : ["Erland"       , "erl"]
+    erlang      : ["Erlang"       , "erl"]
     fortran     : ["Fortran"      , "f|for|f77|f90|f95|f03|f2k"]
     glsl        : ["GLSL"         , "glsl"]
     golang      : ["Go"           , "go"]
