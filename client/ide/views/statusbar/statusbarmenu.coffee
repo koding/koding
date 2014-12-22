@@ -13,7 +13,7 @@ class IDE.StatusBarMenu extends KDContextMenu
     super options, menuItems
 
     @on 'ContextMenuItemReceivedClick', (view, event) =>
-      if event.target.classList.contains 'kdlistitemview'
+      if event.target.classList.contains 'name'
         @destroy()
 
   getMenuItems: ->
