@@ -484,8 +484,8 @@ module.exports = class JMachine extends Module
   share: secure (client, users, callback) ->
 
     options = target : users, asUser : yes
-
     @shareWith$ client, options, callback
+
 
   unshare: secure (client, users, callback)->
 
@@ -502,12 +502,10 @@ module.exports = class JMachine extends Module
   setAsOwner: secure (client, users, callback) ->
 
     options = target : users, asUser : yes, asOwner : yes
-
     @shareWith$ client, options, callback
 
 
   unsetAsOwner: secure (client, users, callback) ->
 
     options = target : users, asUser : yes, asOwner : no
-
     @shareWith$ client, options, callback
