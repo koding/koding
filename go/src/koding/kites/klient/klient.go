@@ -231,6 +231,7 @@ func newKite() *kite.Kite {
 		// it's still not initialized, so don't do anything
 		if disconnectTimer != nil {
 			// stop previously started disconnect timer.
+			k.Log.Info("Disconnection timer is cancelled.")
 			disconnectTimer.Stop()
 		}
 
@@ -249,6 +250,7 @@ func newKite() *kite.Kite {
 			disconnectTimer.Stop()
 		}
 
+		k.Log.Info("Disconnection timer of 10 minutes is fired.")
 		disconnectTimer = time.NewTimer(time.Minute * 10)
 
 		// Close all active sessions of the current. Do not close it
