@@ -20,11 +20,7 @@ createProfileFeed = (models, account, options, callback)->
     if page > 0
       skip = (page - 1) * itemsPerPage
       
-    fetchOptions =
-      targetId   : targetId
-      limit      : itemsPerPage
-      skip       : skip
-      replyLimit : 25
+    fetchOptions = { targetId, limit: itemsPerPage, skip, replyLimit: 25 }
 
     SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
       return callback err  if err or not result
@@ -34,7 +30,14 @@ createProfileFeed = (models, account, options, callback)->
       buildContent models, result, options, (err, content) ->
         return callback err  if err or not content
 
-        pagination = getPagination page, itemCount, itemsPerPage, "#{account.profile.nickname}"
+        paginationOptions = {
+          currentPage   : page
+          numberOfItems : itemCount
+          itemsPerPage
+          route         : "#{account.profile.nickname}"
+        }
+        
+        pagination = getPagination paginationOptions
         if pagination
           content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
 
@@ -83,7 +86,14 @@ createFeed = (models, options, callback)->
         content = schemaorgTagsOpening + channelTitleContent +
           pageContent + schemaorgTagsClosing
 
-        pagination = getPagination page, itemCount, itemsPerPage, "Activity/#{route}"
+        paginationOptions = {
+          currentPage   : page
+          numberOfItems : itemCount
+          itemsPerPage
+          route         : "Activity/#{route}"
+        }
+
+        pagination = getPagination paginationOptions
         fullPage = putContentIntoFullPage content, pagination
 
         callback null, fullPage
@@ -120,39 +130,40 @@ buildContent = (models, messageList, options, callback) ->
   daisy queue
 
 
-getPagination = (currentPage, numberOfItems, itemsPerPage, route="")->
+getPagination = (options)->
   # This is the number of adjacent link around current page.
   # E.g. let current page be 9, then pagination will look like this:
   # First Prev ... 4 5 6 7 8 9 10 11 12 13 14 ... Next Last
   # (Except 3-dots, they are useless for bots.)
   PAGERWINDOW = 4
+  options.route ?= ''
 
-  numberOfPages = Math.ceil(numberOfItems / itemsPerPage)
+  numberOfPages = Math.ceil(options.numberOfItems / options.itemsPerPage)
   firstLink = prevLink = nextLink = lastLink = ""
 
-  if currentPage > 1
-    firstLink = getSinglePageLink 1, "First", route
-    prevLink  = getSinglePageLink (currentPage - 1), "Prev", route
+  if options.currentPage > 1
+    firstLink = getSinglePageLink 1, "First", options.route
+    prevLink  = getSinglePageLink (options.currentPage - 1), "Prev", options.route
 
-  if currentPage < numberOfPages
-    lastLink  = getSinglePageLink numberOfPages, "Last", route
-    nextLink  = getSinglePageLink (currentPage + 1), "Next", route
+  if options.currentPage < numberOfPages
+    lastLink  = getSinglePageLink numberOfPages, "Last", options.route
+    nextLink  = getSinglePageLink (options.currentPage + 1), "Next", options.route
 
   pagination = firstLink + prevLink
 
   start = 1
   end = numberOfPages
 
-  start = currentPage - PAGERWINDOW  if currentPage > PAGERWINDOW
+  start = options.currentPage - PAGERWINDOW  if options.currentPage > PAGERWINDOW
 
-  if currentPage + PAGERWINDOW < numberOfPages
-    end   = currentPage + PAGERWINDOW
+  if options.currentPage + PAGERWINDOW < numberOfPages
+    end   = options.currentPage + PAGERWINDOW
 
   if start > 1
     pagination += getNoHrefLink " ... "
 
   [start..end].map (pageNumber)->
-    pagination += getSinglePageLink pageNumber, null, route
+    pagination += getSinglePageLink pageNumber, null, options.route
 
   if end < numberOfPages
     pagination += getNoHrefLink " ... "
