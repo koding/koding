@@ -88,7 +88,9 @@ class AccountBilling extends KDView
     paymentController.creditCard (err, cc) =>
 
       card = null  if err?
-
+      
+      # intentional if/else ifs
+      # to denote the edge cases - SY
       if subscription.provider is 'paypal'
         card = null
 
