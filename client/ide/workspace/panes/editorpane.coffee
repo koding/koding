@@ -54,7 +54,7 @@ class IDE.EditorPane extends IDE.Pane
 
 
   handleAutoSave: ->
-    return   if @getFile().machine instanceof DummyMachine
+    return   if @getFile().path.indexOf('localfile:/') > -1
     @save()  if @getAce().isContentChanged()
 
 
