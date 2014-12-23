@@ -8,6 +8,7 @@ module.exports = [
   "ContentDisplays/avatarchangeheaderview.coffee"
   "ContentDisplays/profilecontenteditableview.coffee"
   "ContentDisplays/profileview.coffee"
+  "ContentDisplays/contentdisplayscrollableview.coffee"
 
   "groupmemberspagelistitemview.coffee"
   "newmemberactivitylistitem.coffee"
