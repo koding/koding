@@ -121,6 +121,9 @@ class IDEAppController extends AppController
 
         @bindRouteHandler()
 
+        KD.utils.repeat 5000, =>
+          @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
+
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app instanceof IDEAppController
