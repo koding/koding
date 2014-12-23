@@ -10,3 +10,7 @@ https://github.com/SvenDowideit/generate_cert for it which we can also use.
 5. Here is also some information on how to start the Docker Deamon securely
 https://docs.docker.com/articles/https/
 https://github.com/docker/docker/blob/master/docs/sources/reference/commandline/cli.md
+
+
+# Install latest docker to Ubuntu
+curl -sSL https://get.docker.com/ubuntu/ | sudo sh

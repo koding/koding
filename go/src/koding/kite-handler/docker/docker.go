@@ -4,8 +4,8 @@ package docker
 import (
 	"errors"
 
+	dockerclient "github.com/fsouza/go-dockerclient"
 	"github.com/koding/kite"
-	"github.com/samalba/dockerclient"
 )
 
 // Docker defines the main configuration. One instance is running as one Docker
@@ -20,7 +20,7 @@ import (
 // 6. Remove the container
 // 7. Destroy the image
 type Docker struct {
-	client *dockerclient.DockerClient
+	client *dockerclient.Client
 }
 
 // New connects to a Docker Deamon specified with the given URL. It can be a
@@ -28,7 +28,7 @@ type Docker struct {
 func New(url string) *Docker {
 	// the error is returned only when the passed URL is not parsable via
 	// url.Parse, so we can safely neglect it
-	client, _ := dockerclient.NewDockerClient(url, nil)
+	client, _ := dockerclient.NewClient(url)
 	return &Docker{
 		client: client,
 	}
