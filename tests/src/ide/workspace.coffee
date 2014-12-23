@@ -51,3 +51,4 @@ module.exports =
           .pause                  3000
           .assert.containsText    '.vm-info', name # Assertion
           .end()
+
