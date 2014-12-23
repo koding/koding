@@ -555,6 +555,8 @@ class IDEAppController extends AppController
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
   moveTab: (direction) ->
+    return unless @activeTabView.parent?
+
     panel = @activeTabView.parent.parent
     return  unless panel instanceof KDSplitViewPanel
 
