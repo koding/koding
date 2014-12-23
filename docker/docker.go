@@ -10,15 +10,7 @@ import (
 
 // Docker defines the main configuration. One instance is running as one Docker
 // client, so multiple instances of a Docker struct can connect to multiple
-// Docker Servers. After creating a new Docker struct, it'll be able to manage
-// Docker containers. A usual working lifecyle is:
-// 1. Build a Docker image
-// 2. Create a new Docker container from that image
-// 3. Start this container
-// 4. Connect and open a terminal instance to it (optional)
-// 5. Stop the container
-// 6. Remove the container
-// 7. Destroy the image
+// Docker Servers.
 type Docker struct {
 	client *dockerclient.Client
 }
