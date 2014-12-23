@@ -69,8 +69,11 @@ class KodingKite_KlientKite extends KodingKite
 
       .then (remote) =>
 
-        unless remote.session in @terminalSessions
-          @terminalSessions.push remote.session
+        if @terminalSessions.length is 0
+          @fetchTerminalSessions()
+        else
+          unless remote.session in @terminalSessions
+            @terminalSessions.push remote.session
 
         return remote
 
