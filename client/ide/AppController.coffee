@@ -201,9 +201,8 @@ class IDEAppController extends AppController
 
     splitViewPanel = @activeTabView.parent.parent
     if splitViewPanel instanceof KDSplitViewPanel
-      layout = splitViewPanel._layout
-    else
-      layout = @layout
+    then layout = splitViewPanel._layout
+    else layout = @layout
 
     @activeTabView = null
 
