@@ -424,12 +424,13 @@ class Ace extends KDView
 
     for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
       aceView.ace.requestSave()
-      aceView.ace.once 'FileContentRestored', -> @removeModifiedFromTab aceView
+      aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
 
-  removeModifiedFromTab:(aceView)->
     {name} = aceView.ace.data
     for handle in aceView.delegate.tabView.handles when handle.options.title is name
       handle.unsetClass 'modified'
+  removeModifiedFromTab: ->
+    aceView      = @parent
 
   showGotoLine: ->
     unless @gotoLineModal
