@@ -1,233 +1,78 @@
-box: koding/base@0.0.14
-no-response-timeout: 10
-services:
-  - wercker/postgresql@0.0.4
-  - wercker/rabbitmq@1.0.1
-  - wercker/redis@0.0.8
-  - wercker/mongodb@1.0.1
+# This file describes how to package klient.deb and uploads to a persistent
+# storage Packaging is done if a push is made to `klientkite.development` or
+# `klientkite.production` branches on `koding` repository.
+#
+# 1. If a push is made to either branches, a build number is created from the
+# latest version number and incremented.
+#
+# 2. A Debian package (deb) is built with a version with a semantical versioning.
+# Also a gzip file is created in the same directory.
+#
+# 3. These files are then uploaded to AWS S3 to `koding-klient` bucket in a
+# directory called `development/$BUILDNO/{foo.0.1.0.gz,foo.0.1.0_amd64.deb}`
+#
+# For future readers who are humble like me to inspect these variables:
+# KLIENT_CHANNEL: development/production
+# S3_KLIENTKITE: koding-klient
+box: koding/base@0.0.12
 
 build:
   steps:
-    - add-ssh-key:
-        keyname: DEPLOYMENT_KEY
-    - script:
-        name: fetch pull requests
-        code: |
-          git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
-          git fetch --force --quiet origin
-    - script:
-        name: build started
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
-    - script:
-        name: npm install
-        code: |
-          npm cache clean
-          npm set registry https://registry.npmjs.org/
-          npm install
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install finished" "building" 50
-    - script:
-        name: npm install (submodules)
-        code: |
-          cd client/Framework && npm install && cd ../../
-          cd client/landing && npm install && cd ../../
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install (submodules) finished" "building" 30
-    - script:
-        name: configure build
-        code: ./configure --config $CONFIG --projectRoot /opt/koding
-    - script:
-        name: build client
-        code: |
-          sudo chown -R $USER ~/.npm
-          ./run
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
-    - script:
-        name: build social api
-        cwd: go/src/socialapi
-        code: |
-          make configure
-          make install
-          make build
-    - script:
-        name: build backend finished
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build backend finished" "building" 40
-    - script:
-        name: testing backend started
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend started" "building" 41
-    - script:
-        name: create postgresql tables
-        cwd: go
-        code: |
-          src/socialapi/db/sql/definition/create-wercker.sh src/socialapi/db/sql
-          bin/migrate -url "postgres://$WERCKER_POSTGRESQL_HOST:$WERCKER_POSTGRESQL_PORT/$WERCKER_POSTGRESQL_DATABASE?user=$WERCKER_POSTGRESQL_USERNAME&password=$WERCKER_POSTGRESQL_PASSWORD" -path "src/socialapi/db/sql/migrations" up
-    - script:
-        name: test social api
-        code: |
-          sudo -E scripts/wercker/init-socialapi.sh
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
-          cd go/src/socialapi
-          make testapi config=./config/test.toml
-    - script:
-        name: testing backend finished
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
-    - script:
-        name: testing client started
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
-    - script:
-        name: set up koding deployment key
-        code: |
-          chmod 600 $KODING_DEPLOYMENT_KEY
-    - mktemp:
-        envvar: INSTANCE_DATA
-    - mktemp:
-        envvar: INSTANCE_IP
-    - script:
-        name: launch test instance
-        code: |
-          INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
-          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
-          cat $INSTANCE_DATA
-          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
-          if [ -z "$HOST" ]; then exit 1; fi
-          echo $HOST > $INSTANCE_IP
-          scripts/wercker/check-connectivity $HOST 8090 1m 3
-          scripts/wercker/check-connectivity $HOST 4444 1m 7
-          sleep 120
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
-    - script:
-        name: run register test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test register'
-    - script:
-        name: run login test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
-    - script:
-        name: run logout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test logout'
-    - script:
-        name: run activity post test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity post'
-    - script:
-        name: run activity post with test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity postwith'
-    - script:
-        name: run activity edit delete test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity editdelete'
-    - script:
-        name: run activity like unlike suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity likeunlike'
-    - script:
-        name: run activity other test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity others'
-    - script:
-        name: run account page test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test account accountpage'
-    - script:
-        name: run ide file test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide file'
-    - script:
-        name: run ide layout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide layout'
-    - script:
-        name: run ide workspace test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide workspace'
-    - script:
-        name: run ide general test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide general'
-    - script:
-        name: run static page loggedout test suite
-        code: |
-          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test staticpages loggedout'
-    - script:
-        name: testing client finished
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
-  after-steps:
-    - script:
-        name: terminate test instance
-        code: |
-          INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
-          scripts/wercker/terminate-test-instance $INSTANCE_ID
-    - jessefulton/slack-notify:
-        subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
-        username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
-    - script:
-        name: build finished
-        code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is $WERCKER_RESULT " $WERCKER_RESULT 100
+
 deploy:
   steps:
     - script:
-        name: deploy started
+        name: configure s3cmd (temporary workaround)
         code: |
-          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "<$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH started" "deploying" 5
-    - create-file:
-        name: write version file
-        filename: $WERCKER_ROOT/VERSION
-        content: ${WERCKER_GIT_COMMIT:0:8}
-        overwrite: true
+          echo '[default]' > ~/.s3cfg
+          echo "access_key=$S3_KEY_ID" >> ~/.s3cfg
+          echo "secret_key=$S3_KEY_SECRET" >> ~/.s3cfg
+
+          # Shortcut to s3://koding-klient/development directory
+          export S3DIR="s3://$S3_KLIENTKITE/$KLIENT_CHANNEL"
+
+          # Fetch the latest build number since wercker doesn't provide one
+          s3cmd get $S3DIR/latest-version.txt version
+          export OLDBUILDNO=$(cat version)
+          export NEWBUILDNO=$(($OLDBUILDNO+1))
+          echo "New version will be: $NEWBUILDNO"
+          rm -f version
+
     - script:
-        name: zip
+        name: package klient.deb
         code: |
-          cd $WERCKER_ROOT
+          # Create klient.0.1.x.gz
+          export GOPATH=$PWD/go
+          go run go/package.go -a klient -e $KLIENT_CHANNEL -b $NEWBUILDNO
+          go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/kites/klient/protocol.Environment $KLIENT_CHANNEL" koding/kites/klient
+          gzip -N klient
+          mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
-          ./configure --config $CONFIG --projectRoot /opt/koding
-          ./run
-
-          rm -rf .git .build node_modules
-          rm -rf go/bin go/pkg
-          rm -rf website/a/js/*.map
-          zip -q --symlinks -r $ARCHIVE .
-
-          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "created deploy file $ARCHIVE" "deploying" 45
-
-
-    - koding/eb-deploy@0.0.8:
-        access-key: $S3_KEY_ID
-        secret-key: $S3_KEY_SECRET
-        app-name: koding
-        env-name: $EB_ENV_NAME
-        version-label: $ARCHIVE
-        region: $EB_ENV_REGION
-        s3-bucket: $S3_EB_DEPLOY-$EB_ENV_REGION
-        s3-key: $ARCHIVE
     - script:
-        name: notify-cebeci with eb trigger
+        name: sync with s3
         code: |
-          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "triggered $EB_ENV_NAME EB" "deploying" 95
+          #  Copy files to S3.
+          s3cmd -P put *.deb  $S3DIR/$NEWBUILDNO/
+          s3cmd -P put *.gz  $S3DIR/$NEWBUILDNO/
+
+          # Cleanup the latest/ folder and put the latest one in there
+          s3cmd del --recursive $S3DIR/latest/
+          s3cmd -P put *.deb  $S3DIR/latest/
+          s3cmd -P put *.gz  $S3DIR/latest/
+
+          # Update latest-version.txt with the latest version
+          s3cmd del $S3DIR/latest-version.txt
+          echo $NEWBUILDNO > latest-version.txt
+          s3cmd -P put latest-version.txt  $S3DIR/latest-version.txt
 
   after-steps:
-    - jessefulton/slack-notify:
+    - sherzberg/slack-notify@0.0.11:
+        token: $KLIENT_SLACK_TOKEN
         subdomain: koding
-        token: $SLACK_TOKEN
-        channel: announce
         username: wercker
-        icon_url: https://avatars3.githubusercontent.com/u/1695193?s=140
-    - script:
-        name: notify-cebeci with result
-        code: |
-          $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "wercker is done with the <$WERCKER_DEPLOY_URL|deploy> of $WERCKER_GIT_BRANCH result: $WERCKER_RESULT" $WERCKER_RESULT 100
+        channel: "#announce"
+        passed-message: "klient/$KLIENT_CHANNEL: A new klient (ver. $NEWBUILDNO) is successfuly built and deployed."
+        failed-message: "klient/$KLIENT_CHANNEL: New Klient could not be built or deployed. See $WERCKER_DEPLOY_URL for the details."
