@@ -53,7 +53,7 @@ app        = express()
   addReferralCode
   handleClientIdNotFound
   getClientId
-}          = require './helpers'
+} = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
@@ -558,6 +558,24 @@ isInAppRoute = (name)->
   return false if intRegex.test firstLetter
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
+
+
+app.post '/-/emails/subscribe', (req, res)->
+
+  {Sendgrid}          = koding.models
+  {email, type, name} = req.body
+
+  return res.status(400).send 'not ok'  unless /@/.test email
+
+  type or= 'marketing'
+  name or= email.split('@')[0]
+
+  switch type
+    when 'all'       then Sendgrid.addToAllUsers  email, name
+    when 'marketing' then Sendgrid.addToMarketing email, name
+    else res.status(400).send 'not ok'
+
+  res.status(200).send 'ok'
 
 
 app.post '/Hackathon/Apply', (req, res, next)->
