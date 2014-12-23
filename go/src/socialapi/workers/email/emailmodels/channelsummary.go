@@ -97,7 +97,7 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		ParticipantCount: totalParticipantCount,
 		Purpose:          ch.Purpose,
 		ChannelId:        strconv.FormatInt(ch.Id, 10),
-		Hostname:         config.MustGet().Hostname,
+		Hostname:         config.MustGet().Protocol + "//" + config.MustGet().Hostname,
 		IsGroupChannel:   isGroupChannel,
 	}
 	cs.BodyContent.TimezoneOffset = timezoneOffset

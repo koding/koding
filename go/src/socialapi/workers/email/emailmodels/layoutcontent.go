@@ -37,7 +37,7 @@ func NewLayoutContent(u *UserContact, contentType, body string) *LayoutContent {
 		ShowLink:       showLink,
 		ContentType:    contentType,
 		RecipientEmail: url.QueryEscape(u.Email),
-		Hostname:       config.MustGet().Hostname,
+		Hostname:       config.MustGet().Protocol + "//" + config.MustGet().Hostname,
 	}
 }
 

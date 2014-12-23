@@ -320,6 +320,12 @@ fetchProfileFeed = (data, callback)->
   url = "/account/#{data.targetId}/posts"
   get url, data, callback
 
+fetchProfileFeedCount = (data, callback)->
+  if not data.targetId
+    return callback { message: "targetId should be set"}
+  url = "/account/#{data.targetId}/posts/count"
+  get url, data, callback
+
 messageById = (data, callback)->
   if not data.id
     return callback { message: "id should be set"}
@@ -458,6 +464,7 @@ module.exports = {
   listNotifications
   updateLastSeenTime
   fetchProfileFeed
+  fetchProfileFeedCount
   searchTopics
   searchChats
   fetchPrivateMessages

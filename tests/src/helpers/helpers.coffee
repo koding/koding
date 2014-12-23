@@ -268,6 +268,38 @@ module.exports =
     return filename
 
 
+  createFolder: (browser, user) ->
+
+    folderName     = @getFakeText().split(' ')[0]
+    folderPath     = '/home/' + user.username + '/' + folderName
+    folderSelector = "span[title='" + folderPath + "']"
+
+    browser
+      .waitForElementVisible   '.vm-header', 50000
+      .click                   '.vm-header .buttons'
+      .waitForElementPresent   '.context-list-wrapper', 50000
+      .click                   '.context-list-wrapper .refresh'
+      .pause                   2000
+      .waitForElementVisible   '.vm-header', 50000
+      .click                   '.vm-header .buttons'
+      .waitForElementVisible   '.context-list-wrapper',50000
+      .click                   '.context-list-wrapper li.new-folder'
+      .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
+      .clearValue              'li.selected .rename-container .hitenterview'
+      .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
+      .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
+      .pause                    3000 # required
+      .waitForElementPresent    folderSelector, 50000 # Assertion
+
+    data = {
+      name: folderName
+      path: folderPath
+      selector: folderSelector
+    }
+
+    return data
+
+
   openChangeTopFolderMenu: (browser) ->
 
     browser
@@ -298,9 +330,27 @@ module.exports =
         browser
           .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 40000 # Assertion
           .assert.urlContains      workspaceName # Assertion
+          .waitForElementVisible   '.vm-info', 20000
           .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
 
     return workspaceName
+
+
+  deleteWorkspace: (browser, workspaceName) ->
+
+    browser.url (data) =>
+      url               = data.value
+      vmName            = url.split('/IDE/')[1].split('/')[0]
+      workspaceSelector = 'a[href="/IDE/' + vmName + '/' + workspaceName + '"]'
+      modalSelector     = '.activity-modal.ws-settings'
+
+      browser
+        .waitForElementVisible     workspaceSelector, 20000
+        .click                     workspaceSelector
+        .click                     workspaceSelector + ' .ws-settings-icon'
+        .waitForElementVisible     modalSelector, 20000
+        .click                     modalSelector + ' button.red'
+        .waitForElementNotVisible  workspaceSelector, 20000
 
 
   splitPanesUndo: (browser) ->

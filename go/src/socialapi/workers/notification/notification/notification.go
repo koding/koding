@@ -6,7 +6,6 @@ import (
 	"socialapi/workers/notification/models"
 	"time"
 
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -42,34 +41,6 @@ func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
 	}
 
 	return nwc, nil
-}
-
-// this is temporary method used for hiding private message notifications
-// previously created. Once it is run in all servers, it will be deleted
-func HidePMNotifications() {
-	// n.log.Debug("hiding pm notifications")
-	fmt.Println("hiding pm notifications")
-	var ids []int64
-	nc := models.NewNotificationContent()
-	query := &bongo.Query{
-		Selector: map[string]interface{}{
-			"type_constant": models.NotificationContent_TYPE_PM,
-		},
-		Pluck: "id",
-	}
-
-	if err := nc.Some(&ids, query); err != nil {
-		fmt.Printf("Could not hide pm notifications: %s \n", err)
-		return
-	}
-
-	if len(ids) == 0 {
-		return
-	}
-
-	if err := models.NewNotification().HideByContentIds(ids); err != nil {
-		fmt.Printf("Could not hide pm notifications: %s \n", err)
-	}
 }
 
 // CreateReplyNotification notifies main thread owner.
@@ -190,42 +161,6 @@ func (n *Controller) DeleteNotification(cm *socialapimodels.ChannelMessage) erro
 	}
 
 	return models.NewNotification().HideByContentIds(contentIds)
-}
-
-func (n *Controller) privateMessageNotification(cm *socialapimodels.ChannelMessage) error {
-	if cm.TypeConstant != socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
-		return nil
-	}
-
-	// fetch participants
-	cp := socialapimodels.NewChannelParticipant()
-	cp.ChannelId = cm.InitialChannelId
-	time.Sleep(3 * time.Second)
-	participantIds, err := cp.ListAccountIds(0)
-	if err != nil {
-		return err
-	}
-
-	if len(participantIds) == 0 {
-		n.log.Warning("Private channel participant count cannot be 0")
-		return nil
-	}
-
-	pn := models.NewPMNotification()
-	pn.TargetId = cm.InitialChannelId
-	pn.NotifierId = cm.AccountId
-	nc, err := models.CreateNotificationContent(pn)
-	if err != nil {
-		return err
-	}
-
-	for _, participant := range participantIds {
-		if cm.AccountId != participant {
-			n.notifyOnce(nc.Id, participant)
-		}
-	}
-
-	return nil
 }
 
 // CreateMentionNotification creates mention notifications for the related channel messages

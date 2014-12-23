@@ -40,9 +40,6 @@ func (mc *MailerContainer) PrepareContainer() error {
 	var target *socialmodels.ChannelMessage
 
 	switch mc.Content.TypeConstant {
-	case models.NotificationContent_TYPE_PM:
-		target, err = fetchChannelTarget(mc.Content.TargetId)
-		mc.Message = target.Body
 	case models.NotificationContent_TYPE_COMMENT:
 		target, err = fetchMessageTarget(mc.Activity.MessageId)
 		if err != nil {
@@ -50,14 +47,15 @@ func (mc *MailerContainer) PrepareContainer() error {
 		}
 		mc.Message = target.Body
 		target, err = fetchMessageParent(mc.Activity.MessageId)
-
+		if err != nil {
+			return err
+		}
 	default:
 		target, err = fetchMessageTarget(mc.Content.TargetId)
+		if err != nil {
+			return err
+		}
 		mc.Message = target.Body
-	}
-
-	if err != nil {
-		return err
 	}
 
 	mc.prepareGroup(target)
@@ -71,26 +69,11 @@ func (mc *MailerContainer) PrepareContainer() error {
 	return nil
 }
 
-func fetchChannelTarget(channelId int64) (*socialmodels.ChannelMessage, error) {
-	cml := socialmodels.NewChannelMessageList()
-	q := request.NewQuery()
-	q.Limit = 1
-	messageIds, err := cml.FetchMessageIdsByChannelId(channelId, q)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(messageIds) == 0 {
-		return nil, fmt.Errorf("private message not found")
-	}
-
-	return fetchMessageTarget(messageIds[0])
-}
-
 func fetchMessageTarget(messageId int64) (*socialmodels.ChannelMessage, error) {
 	target := socialmodels.NewChannelMessage()
+
 	if err := target.ById(messageId); err != nil {
-		return nil, fmt.Errorf("target message not found")
+		return nil, err
 	}
 
 	return target, nil

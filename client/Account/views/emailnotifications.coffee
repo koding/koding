@@ -81,7 +81,7 @@ class AccountEmailNotifications extends KDView
       mention          :
         title          : 'When someone mentions me'
       marketing        :
-        title          : 'When Koding has member updates (like privacy updates, inactive account notices, new offers and campaigns)'
+        title          : 'When Koding has member updates (like VM security updates, privacy updates, inactive account notices, offers and campaigns.)'
       pmNotificationDelay:
         title          : ''
 

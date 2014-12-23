@@ -397,36 +397,44 @@ module.exports = class JAccount extends jraphical.Module
         return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
-    if 'string' is typeof options
-      username = options
-    else
-      { username, mustReauthenticate, isRegistration } = options
+
+    { username, isRegistration } = options
 
     oldUsername = @profile.nickname
 
     if username is oldUsername
-    then return callback new KodingError "Username was not changed!"
 
-    freeOldUsername = ->
-      JName.remove name: oldUsername, (err) ->
-        return callback err  if err
-        callback null
+      if isRegistration
 
-    handleErr = (err) ->
-      JName.remove name: username, (err) ->
-        return callback err  if err
+        # To keep safe all other listeners of 'UsernameChanged' event
+        # we are checking for the `isRegistration` flag before returning
+        # error here. Instead in here we are faking like we did the
+        # username change sucessfully. ~ GG
 
-      if err.code is 11000
-      then return callback new KodingError 'Username is not available!'
-      else if err?
-      then return callback err
+        @constructor.emit 'UsernameChanged', {
+          oldUsername, username, isRegistration
+        }
+        return callback null
 
+      else
+        return callback new KodingError "Username was not changed!"
+
+    # Validate username
     unless @constructor.validateAt 'profile.nickname', username
-    then return callback new KodingError 'Invalid username!'
+      return callback new KodingError 'Invalid username!'
 
-    name = new JName
-      name: username
-      slugs: [
+    # Custom error helper, we are using it to free up new JName
+    # for given username, if any error happens after JName creation.
+    hasError = (err) ->
+      if err?
+        JName.remove name: username, ->
+          callback err
+        return yes
+
+    # Create JName for new username
+    name    = new JName
+      name  : username
+      slugs : [
         constructorName : 'JUser'
         collectionName  : 'jUsers'
         slug            : username
@@ -434,23 +442,36 @@ module.exports = class JAccount extends jraphical.Module
       ]
 
     name.save (err) =>
-      return handleErr err  if err
 
+      return  if err?
+
+        # If failed to save with duplicate error, return a custom error
+        if err?.code is 11000
+          callback new KodingError 'Username is not available!'
+        else
+          callback err
+
+      # Find the JUser assigned to this JAccount
       @fetchUser (err, user) =>
-        return callback err  if err
+        return  if hasError err
 
+        # Update it's username field too
         user.update { $set: { username, oldUsername } }, (err) =>
-          if err then handleErr err, callback
-          else
-            @update { $set: 'profile.nickname': username }, (err) =>
-              if err then handleErr err
-              else
-                change = {
-                  oldUsername, username, mustReauthenticate, isRegistration
-                }
-                @sendNotification 'UsernameChanged', change  if mustReauthenticate
-                @constructor.emit 'UsernameChanged', change
-                freeOldUsername()
+          return  if hasError err
+
+          # Update profile.nickname
+          @update { $set: 'profile.nickname': username }, (err) =>
+            return  if hasError err
+
+            # Emit the change, let the whole system knows
+            change = { oldUsername, username, isRegistration }
+            @constructor.emit 'UsernameChanged', change
+
+            callback null
+
+            # Free up the old username
+            JName.remove name: oldUsername, (err) ->
+              console.warn "[JAccount.changeUsername]", err  if err?
 
 
   checkPermission: (target, permission, callback)->
