@@ -222,7 +222,7 @@ func newKite() *kite.Kite {
 
 	var disconnectTimer *time.Timer
 
-	k.OnConnect(func(c *kite.Client) {
+	k.OnFirstRequest(func(c *kite.Client) {
 		k.Log.Info("Kite '%s/%s/%s' is connected", c.Username, c.Environment, c.Name)
 		if c.Username != k.Config.Username {
 			return // we don't care for others
