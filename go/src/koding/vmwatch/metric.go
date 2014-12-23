@@ -5,7 +5,7 @@ import "time"
 type Metric interface {
 	GetAndSaveData(string, time.Time) error
 	GetVmsOverLimit(time.Time) []string
-	IsVmOverLimit(string, time.Time) LimitResponse
+	IsUserOverLimit(string, time.Time) LimitResponse
 }
 
 type MetricData struct {

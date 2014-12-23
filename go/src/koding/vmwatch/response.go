@@ -8,9 +8,9 @@ type Response struct {
 	CurrentUsage, AllowedUsage float64
 }
 
-func checker(machineId string) Response {
+func checker(username string) Response {
 	for _, metric := range metricsToSave {
-		resp := metric.IsVmOverLimit(machineId, time.Now())
+		resp := metric.IsUserOverLimit(username, time.Now())
 
 		if resp.OverLimit {
 			return Response{
