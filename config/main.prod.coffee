@@ -142,7 +142,7 @@ Configuration = (options={}) ->
     siftScience                    : 'e6c3413236e08107'
 
     collaboration :
-      timeout     : 10 * 60 * 1000
+      timeout     : 1 * 60 * 1000
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
