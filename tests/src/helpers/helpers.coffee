@@ -268,6 +268,38 @@ module.exports =
     return filename
 
 
+  createFolder: (browser, user) ->
+
+    folderName     = @getFakeText().split(' ')[0]
+    folderPath     = '/home/' + user.username + '/' + folderName
+    folderSelector = "span[title='" + folderPath + "']"
+
+    browser
+      .waitForElementVisible   '.vm-header', 50000
+      .click                   '.vm-header .buttons'
+      .waitForElementPresent   '.context-list-wrapper', 50000
+      .click                   '.context-list-wrapper .refresh'
+      .pause                   2000
+      .waitForElementVisible   '.vm-header', 50000
+      .click                   '.vm-header .buttons'
+      .waitForElementVisible   '.context-list-wrapper',50000
+      .click                   '.context-list-wrapper li.new-folder'
+      .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
+      .clearValue              'li.selected .rename-container .hitenterview'
+      .waitForElementVisible   'li.selected .rename-container .hitenterview', 50000
+      .setValue                'li.selected .rename-container .hitenterview', folderName + '\n'
+      .pause                    3000 # required
+      .waitForElementPresent    folderSelector, 50000 # Assertion
+
+    data = {
+      name: folderName
+      path: folderPath
+      selector: folderSelector
+    }
+
+    return data
+
+
   openChangeTopFolderMenu: (browser) ->
 
     browser
