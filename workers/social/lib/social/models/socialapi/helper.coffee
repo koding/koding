@@ -8,7 +8,7 @@ fetchGroup = (client, callback)->
   JGroup = require '../group'
   JGroup.one slug : groupName, (err, group)=>
     return callback err  if err
-    return callback {error: "Group not found"}  unless group
+    return callback {error: "Group \"#{groupName}\" not found"}  unless group
 
     {delegate} = client.connection
     return callback {error: "Request not valid"} unless delegate

@@ -100,7 +100,7 @@ build:
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
           scripts/wercker/check-connectivity $HOST 8090 1m 3
-          scripts/wercker/check-connectivity $HOST 4444 1m 3
+          scripts/wercker/check-connectivity $HOST 4444 1m 7
           sleep 120
           scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
     - script:
@@ -155,6 +155,10 @@ build:
         name: run ide general test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide general'
+    - script:
+        name: run static page loggedout test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test staticpages loggedout'
     - script:
         name: testing client finished
         code: |

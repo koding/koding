@@ -15,7 +15,9 @@ func TestTerminal(t *testing.T) {
 	terminal.Config.DisableConcurrency = true
 	terminal.Config.DisableAuthentication = true
 	terminal.Config.Port = 3636
-	terminal.HandleFunc("connect", Connect)
+
+	termInstance := &Terminal{}
+	terminal.HandleFunc("connect", termInstance.Connect)
 
 	go terminal.Run()
 	<-terminal.ServerReadyNotify()

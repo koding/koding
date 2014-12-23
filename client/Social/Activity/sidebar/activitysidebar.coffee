@@ -27,7 +27,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
   constructor: (options = {}) ->
 
-    options.cssClass  = 'activity-sidebar'
+    options.cssClass     = 'activity-sidebar'
+    options.maxListeners = 20
 
     super options
 
@@ -43,6 +44,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @itemsBySlug  = {}
     @itemsByName  = {}
     @selectedItem = null
+
+    @workspaceItemChannelMap = {}
 
     # @appsList = new DockController
 
@@ -67,10 +70,19 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
     @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
+    @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
   # event handling
 
   messageAddedToChannel: (update) ->
+
+    { channel, channelMessage, unreadCount } = update
+
+    if KD.utils.isChannelCollaborative channel
+      if channelMessage.payload['system-message'] in ['start', 'stop']
+        @fetchMachines => @fetchWorkspaces =>
+          @setWorkspaceUnreadCount channel, unreadCount
+
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
       else  @handleFollowedFeedUpdate update
@@ -84,6 +96,12 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   handleGlanced: (update) -> @selectedItem?.setUnreadCount? update.unreadCount
+
+
+  glanceChannelWorkspace: (channel) ->
+
+    @setWorkspaceUnreadCount channel, 0
+
 
   setUnreadCount: (item, data, unreadCount) ->
 
@@ -106,9 +124,22 @@ class ActivitySidebar extends KDCustomHTMLView
       else
         pane.putNewMessageIndicator()
 
-
     item.setUnreadCount? unreadCount
 
+
+  setWorkspaceUnreadCount: (data, unreadCount) ->
+
+    workspaceItem = @workspaceItemChannelMap[data._id]
+
+    return  unless workspaceItem
+
+    workspaceItem.child.setUnreadCount unreadCount
+
+    return  unless unreadCount is 0
+
+    { socialapi } = KD.singletons
+
+    socialapi.channel.updateLastSeenTime channelId : data._id, noop
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -134,7 +165,9 @@ class ActivitySidebar extends KDCustomHTMLView
         when 'announcement' then 2
         else 0
 
-      unless KD.utils.isChannelCollaborative data
+      if KD.utils.isChannelCollaborative data
+        @setWorkspaceUnreadCount data, unreadCount
+      else
         item = @addItem data, index
         @setUnreadCount item, data, unreadCount
 
@@ -181,9 +214,14 @@ class ActivitySidebar extends KDCustomHTMLView
       channel.participantCount = participantCount
       channel.emit 'update'
 
-      index = 0  if typeConstant is 'privatemessage'
+      isPrivateMessage = typeConstant is 'privatemessage'
 
-      unless KD.utils.isChannelCollaborative channel
+      index = 0  if isPrivateMessage
+
+      if KD.utils.isChannelCollaborative channel
+        @fetchMachines => @fetchWorkspaces =>
+          @setWorkspaceUnreadCount channel, unreadCount
+      else
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
 
@@ -192,7 +230,12 @@ class ActivitySidebar extends KDCustomHTMLView
 
     {id} = update.channel
 
-    return @removeItem id  unless update.isParticipant
+    return  if update.isParticipant
+
+    @removeItem id
+
+    if @workspaceItemChannelMap[id]
+      @fetchMachines => @fetchWorkspaces()
 
     # TODO update participants in sidebar
 
@@ -371,7 +414,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @addVMTree()
     @addFollowedTopics()
     @addConversations()
-    @addMessages()
+
+    @fetchWorkspaces => @addMessages()
 
 
   initiateFakeCounter: ->
@@ -388,10 +432,69 @@ class ActivitySidebar extends KDCustomHTMLView
           publicLink.unreadCount.hide()
 
 
+  # workspacesFetched  = no
+  fetchingWorkspaces = no
+
+  fetchWorkspaces: do (callbackQueue = []) -> (callback = noop) ->
+
+    activitySidebar = this
+
+    # return callback null, KD.userWorkspaces  if workspacesFetched
+    return callbackQueue.push callback       if fetchingWorkspaces
+
+    fetchingWorkspaces = yes
+
+    # put first callback to queue as well.
+    callbackQueue.push callback
+
+    KD.remote.api.JWorkspace.fetchByMachines()
+
+      .then (workspaces) ->
+        fetchingWorkspaces = no
+
+        nick        = KD.nick()
+        {socialapi} = KD.singletons
+
+        otherMachineUIds = []
+        myMachineUIds    = []
+
+        KD.userMachines.forEach (m) ->
+          if m.data.credential is nick
+          then myMachineUIds.push m.uid
+          else otherMachineUIds.push m.uid
+
+        otherWorkspaces  = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in otherMachineUIds
+        myWorkspaces     = workspaces.filter (ws) -> return ws.machineUId in myMachineUIds
+
+        myChannels = []
+        queue      = []
+        otherWorkspaces.forEach (ws) ->
+          queue.push ->
+            socialapi.channel.byId id : ws.channelId, (err, channel) ->
+              myChannels.push channel.id  if channel
+              queue.fin()
+
+        Bongo.dash queue, ->
+          workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
+          userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
+          KD.userWorkspaces     = userWorkspaces
+          # workspacesFetched     = yes
+          activitySidebar.updateMachineTree()
+
+          callbackQueue.forEach (fn) -> fn null, userWorkspaces
+          callbackQueue = []
+
+      .error (rest...) ->
+        fetchingWorkspaces = no
+        callbackQueue.forEach (fn) -> fn rest...
+        callbackQueue = []
+
+
 
   listMachines: (machines) ->
 
     treeData = []
+    nickname = KD.nick()
 
     for machine in machines
 
@@ -399,7 +502,9 @@ class ActivitySidebar extends KDCustomHTMLView
         machine = machine.getData()
 
       treeData.push item = new Machine {machine}
+
       id = item.getId()
+
       treeData.push
         title        : 'Workspaces'
         type         : 'title'
@@ -408,26 +513,61 @@ class ActivitySidebar extends KDCustomHTMLView
         machineUId   : machine.uid
         machineLabel : machine.slug or machine.label
 
-      treeData.push
-        title        : 'My Workspace'
-        type         : 'workspace'
-        href         : "/IDE/#{machine.slug or machine.label}/my-workspace"
-        id           : "#{machine.slug or machine.label}-workspace"
-        parentId     : id
-        machineLabel : machine.slug or machine.label
+      ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
+      machineOwner = machine.credential
+      isMyMachine  = machineOwner is KD.nick()
+      ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
+      hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
+
+      unless hasWorkspace
+        treeData.push
+          title        : 'My Workspace'
+          type         : 'workspace'
+          href         : ideRoute
+          id           : "#{machine.slug or machine.label}-workspace"
+          parentId     : id
+          machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
+
         if workspace.machineUId is machine.uid
+          ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+          title    = "#{workspace.name}"
+
+          unless isMyMachine
+            if channelId = workspace.channelId
+            then ideRoute = "/IDE/#{channelId}"
+            else
+              return
+
+          unless workspace.isDefault
+            title += "<span class='ws-settings-icon'></span>"
+
           treeData.push
-            title        : "#{workspace.name} <span class='ws-settings-icon'></span>"
+            title        : title
             type         : 'workspace'
-            href         : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+            href         : ideRoute
             machineLabel : machine.slug or machine.label
             data         : workspace
             id           : workspace._id
             parentId     : id
 
-    @machineTree.addNode data for data in treeData
+    for data in treeData
+
+      node = @machineTree.addNode data
+
+      @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
+
+    @emit 'MachinesListed'
+
+
+  mapWorkspaceWithChannel: (data, node) ->
+
+    return  unless data.data?.channelId?
+
+    { channelId } = data.data
+
+    @workspaceItemChannelMap[channelId] = node
 
 
   selectWorkspace: (data) ->
@@ -512,6 +652,8 @@ class ActivitySidebar extends KDCustomHTMLView
       treeItemClass       : NavigationItem
       addListsCollapsed   : yes
 
+    @machineTree.getView().unsetClass 'kdscrollview'
+
     # This is temporary, we will create a separate TreeViewController
     # for this and put this logic into there ~ FIXME ~ GG
     @machineTree.dblClick = (nodeView, event)->
@@ -532,19 +674,12 @@ class ActivitySidebar extends KDCustomHTMLView
     section.addSubView @machineTree.getView()
 
     @machineTree.on 'NodeWasAdded', (machineItem) =>
-
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
     if KD.userMachines.length
-      @listMachines KD.userMachines
-      @updateMachineTree()
-    else
-      @fetchMachines @bound 'listMachines'
+    then @listMachines (KD.remote.revive machine for machine in KD.userMachines)
+    else @fetchMachines @bound 'listMachines'
 
-    # section.addSubView more = new MoreVMsModal {}, null
-    # section.addSubView more = new SidebarMoreLink
-    #   tagName  : 'a'
-    #   click    : @bound 'handleMoreVMsClick'
 
   handleMachineItemClick: (machineItem, event) ->
 
@@ -657,8 +792,31 @@ class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         KD.remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
+    @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
+
     if KD.singletons.mainController.isFeatureDisabled 'private-messages'
       @sections.messages.hide()
+
+
+  handleReloadMessages: -> @fetchWorkspaces => @sections.messages.reload()
+
+
+  machinesListed = no
+  whenMachinesRendered: ->
+
+    new Promise (resolve) =>
+      return resolve()  if machinesListed
+      @once 'MachinesListed', ->
+        machinesListed = yes
+        resolve()
+
+
+  handleWorkspaceUnreadCounts: (chatData) ->
+
+    @whenMachinesRendered().then =>
+      chatData
+        .filter  (data) => @workspaceItemChannelMap[data._id]
+        .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
   addNewWorkspace: (machineData) ->
@@ -776,3 +934,11 @@ class ActivitySidebar extends KDCustomHTMLView
         ws for ws in KD.userWorkspaces when ws.machineUId isnt machine.uid
 
       @updateMachineTree()
+
+
+  removeMachineNode: (machine) ->
+    {nodes}    = @machineTree
+    {jMachine} = machine
+
+    for nodeId, node of nodes when node.data?.jMachine is jMachine
+      @machineTree.removeNode nodeId

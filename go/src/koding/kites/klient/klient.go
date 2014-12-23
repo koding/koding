@@ -31,7 +31,7 @@ var (
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 
-	// update paramters
+	// update parameters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
 		"Change interval for checking for new updates")
 	flagUpdateURL = flag.String("update-url",
@@ -104,8 +104,8 @@ func newKite() *kite.Kite {
 	k.Config.Region = *flagRegion
 	k.Id = conf.Id // always boot up with the same id in the kite.key
 
-	// FIXME: It's ugly I know. It's a fix for Koding local development and is
-	// needed
+	// // FIXME: It's ugly I know. It's a fix for Koding local development and is
+	// // needed
 	if !strings.Contains(k.Config.KontrolURL, "ngrok") {
 		// override current kontrolURL so it talks to port 3000, this is needed
 		// because ELB can forward requests based on ports. The port 80 and 443 are
@@ -186,30 +186,11 @@ func newKite() *kite.Kite {
 		return true, nil
 	})
 
-	// Unshare collab users if the klient owner disconnects
-	k.OnDisconnect(func(c *kite.Client) {
-		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
-		if c.Username == k.Config.Username {
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				k.Log.Warning("Couldn't unshare users: '%s'", err)
-				return
-			}
-
-			k.Log.Info("Unsharing users '%s'", sharedUsers)
-			for _, user := range sharedUsers {
-				if err := collab.Delete(user); err != nil {
-					k.Log.Warning("Couldn't delete user from storage: '%s'", err)
-				}
-			}
-		}
-	})
-
 	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.PreHandleFunc(usg.Counter) // we measure every incoming request
 	k.HandleFunc("klient.usage", usg.Current)
 
-	// Collaboration, is used by our Koding.com browser client
+	// Collaboration, is used by our Koding.com browser client.
 	k.HandleFunc("klient.share", collab.Share)
 	k.HandleFunc("klient.unshare", collab.Unshare)
 	k.HandleFunc("klient.shared", collab.Shared)
@@ -228,14 +209,78 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
 
-	// Terminal
-	terminal.ResetFunc = usg.Reset
-	k.HandleFunc("webterm.getSessions", terminal.GetSessions)
-	k.HandleFunc("webterm.connect", terminal.Connect)
-	k.HandleFunc("webterm.killSession", terminal.KillSession)
-
 	// Execution
 	k.HandleFunc("exec", command.Exec)
+
+	// Terminal
+	term := terminal.New(k.Log)
+	term.InputHook = usg.Reset
+	k.HandleFunc("webterm.getSessions", term.GetSessions)
+	k.HandleFunc("webterm.connect", term.Connect)
+	k.HandleFunc("webterm.killSession", term.KillSession)
+	k.HandleFunc("webterm.killSessions", term.KillSessions)
+
+	var disconnectTimer *time.Timer
+
+	k.OnFirstRequest(func(c *kite.Client) {
+		k.Log.Info("Kite '%s/%s/%s' is connected", c.Username, c.Environment, c.Name)
+		if c.Username != k.Config.Username {
+			return // we don't care for others
+		}
+
+		// it's still not initialized, so don't do anything
+		if disconnectTimer != nil {
+			// stop previously started disconnect timer.
+			k.Log.Info("Disconnection timer is cancelled.")
+			disconnectTimer.Stop()
+		}
+
+	})
+
+	// Unshare collab users if the klient owner disconnects
+	k.OnDisconnect(func(c *kite.Client) {
+		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
+		if c.Username != k.Config.Username {
+			return // we don't care for others
+		}
+
+		// if there is any previously created timers stop them so we don't leak
+		// goroutines
+		if disconnectTimer != nil {
+			disconnectTimer.Stop()
+		}
+
+		k.Log.Info("Disconnection timer of 1 minutes is fired.")
+		disconnectTimer = time.NewTimer(time.Minute * 1)
+
+		// Close all active sessions of the current. Do not close it
+		// immediately, instead of give some time so users can safely exit. If
+		// the user reconnects again the timer will be stopped so we don't
+		// unshare for network hiccups accidentally.
+		go func() {
+			select {
+			case <-disconnectTimer.C:
+				sharedUsers, err := collab.GetAll()
+				if err != nil {
+					k.Log.Warning("Couldn't unshare users: '%s'", err)
+					return
+				}
+
+				if len(sharedUsers) == 0 {
+					return // nothing to do ...
+				}
+
+				k.Log.Info("Unsharing users '%s'", sharedUsers)
+				for _, user := range sharedUsers {
+					if err := collab.Delete(user); err != nil {
+						k.Log.Warning("Couldn't delete user from storage: '%s'", err)
+					}
+					term.CloseSessions(user)
+
+				}
+			}
+		}()
+	})
 
 	if err := register(k); err != nil {
 		panic(err)

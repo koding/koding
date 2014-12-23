@@ -42,7 +42,6 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 
 	account, err := fetchAccount(username)
 	if err != nil {
-		expireClientId(w, r)
 		return nil, err
 	}
 
