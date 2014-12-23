@@ -1700,4 +1700,8 @@ class IDEAppController extends AppController
           then console.warn err
           else
             KD.utils.killRepeat repeat
-            @showSessionEndedModal "@#{@collaborationHost} has left the session."
+            @stopCollaborationSession =>
+              new KDNotificationView
+                title    : "@#{@collaborationHost} has left the session."
+                duration : 3000
+              KD.singletons.router.handleRoute '/IDE'
