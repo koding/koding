@@ -26,7 +26,7 @@ func main() {
 		ticker := time.NewTicker(tickerInterval)
 
 		for _ = range ticker.C {
-			err := stopRunningVmsOverLimit()
+			err := stopVmsOverLimit()
 			if err != nil {
 				log.Fatal(err)
 			}

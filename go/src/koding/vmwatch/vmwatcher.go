@@ -24,7 +24,7 @@ func getAndSaveRunningVmsMetrics() error {
 	return nil
 }
 
-func stopRunningVmsOverLimit() error {
+func stopVmsOverLimit() error {
 	runningVms, err := getRunningVms()
 	if err != nil {
 		return err
@@ -37,7 +37,7 @@ func stopRunningVmsOverLimit() error {
 				continue
 			}
 
-			err := stopVmIfRunning(vm.ObjectId.Hex())
+			err := stopVm(vm.ObjectId.Hex())
 			if err != nil {
 				log.Println(err)
 			}
@@ -53,8 +53,4 @@ func getRunningVms() ([]models.Machine, error) {
 
 func getOverLimitVms([]Metric) ([]models.Machine, error) {
 	return []models.Machine{}, nil
-}
-
-func stopVmIfRunning(machineId string) error {
-	return nil
 }
