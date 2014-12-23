@@ -12,8 +12,12 @@ import (
 )
 
 func TestRunningVms(t *testing.T) {
+	var machine *models.Machine
+
 	Convey("Given running vm", t, func() {
-		err := insertRunningMachine()
+		var err error
+
+		machine, err = insertRunningMachine()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return the vm", func() {
@@ -22,16 +26,28 @@ func TestRunningVms(t *testing.T) {
 
 			So(len(vms), ShouldEqual, 1)
 		})
+
+		Reset(func() {
+			removeMachine(machine)
+		})
 	})
 }
 
-func insertRunningMachine() error {
-	machine := models.Machine{ObjectId: bson.NewObjectId()}
+func insertRunningMachine() (*models.Machine, error) {
+	machine := &models.Machine{ObjectId: bson.NewObjectId()}
 	machine.Status.State = modelhelper.VmRunningState
 
 	query := func(c *mgo.Collection) error {
 		return c.Insert(machine)
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.MachineColl, query)
+	return machine, modelhelper.Mongo.Run(modelhelper.MachineColl, query)
+}
+
+func removeMachine(machine *models.Machine) {
+	query := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"_id": machine.ObjectId})
+	}
+
+	modelhelper.Mongo.Run(modelhelper.MachineColl, query)
 }
