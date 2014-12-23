@@ -24,7 +24,7 @@ http://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo
 sudo groupadd docker
 sudo gpasswd -a arslan docker
 sudo service docker restart
-newgrp docker
+newgrp docker # but the user should login/logout
 
 
 -------------------------------
