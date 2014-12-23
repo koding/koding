@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/go-webserver/utils"
@@ -43,7 +42,6 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 
 	account, err := fetchAccount(username)
 	if err != nil {
-		expireClientId(w, r)
 		return nil, err
 	}
 
@@ -84,11 +82,6 @@ func fetchSession(clientId string) (*models.Session, error) {
 }
 
 func fetchAccount(username string) (*models.Account, error) {
-
-	if strings.HasPrefix(username, "guest-") {
-		username = "guestuser"
-	}
-
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
 		return nil, err
