@@ -103,5 +103,9 @@ func (d *Docker) Destroy(r *kite.Request) (interface{}, error) {
 
 // List lists all available containers
 func (d *Docker) List(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+	filter := dockerclient.ListContainersOptions{
+		All: true,
+	}
+
+	return d.client.ListContainers(filter)
 }
