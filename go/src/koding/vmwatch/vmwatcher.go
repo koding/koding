@@ -33,7 +33,7 @@ func stopVmsOverLimit() error {
 
 	for _, vm := range runningVms {
 		for _, metric := range metricsToSave {
-			resp := metric.IsVmOverLimit(vm.ObjectId.Hex(), time.Now())
+			resp := metric.IsUserOverLimit(vm.Credential, time.Now())
 			if !resp.OverLimit {
 				continue
 			}
