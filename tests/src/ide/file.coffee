@@ -39,6 +39,14 @@ module.exports =
     browser.end()
 
 
+  createFolder: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    helpers.createFolder(browser, user)
+    browser.end()
+
+
   deleteFile: (browser) ->
 
     user = helpers.beginTest(browser)
