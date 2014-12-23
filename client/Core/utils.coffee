@@ -27,6 +27,9 @@ utils.extend utils,
 
       return utils.generatePassword length, memorable, pattern, "" + prefix + chr
 
+  isNavigatorApple: ->
+    /(Mac|iPhone|iPod|iPad)/i.test(navigator.platform)
+
   getDummyName:->
     u  = KD.utils
     gr = u.getRandomNumber
@@ -109,3 +112,16 @@ utils.extend utils,
       string = "[Object object]"
 
     return string
+
+
+  selectText: (el) ->
+
+    if document.selection
+      range = document.body.createTextRange()
+      range.moveToElementText el
+      range.select()
+
+    else if window.getSelection
+      range = document.createRange()
+      range.selectNode el
+      window.getSelection().addRange range

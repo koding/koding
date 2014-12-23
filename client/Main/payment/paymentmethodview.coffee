@@ -6,8 +6,6 @@ class PaymentMethodView extends JView
     options.editLink   ?= no
     options.removeLink ?= no
 
-    data = null  if @isNoCard data
-
     super options, data
 
     @createViews()
@@ -68,7 +66,7 @@ class PaymentMethodView extends JView
 
     noCardPartial = "<span class='no-item-found'>You have no payment methods</span>"
 
-    return noCardPartial  unless paymentMethod
+    return noCardPartial  if not paymentMethod or @isNoCard paymentMethod
 
     { last4 } = paymentMethod
 
@@ -87,6 +85,7 @@ class PaymentMethodView extends JView
     """
     <pre>#{numberPrefix}#{last4}</pre>
     """
+
 
   updatePaymentMethod: (paymentMethod) ->
 

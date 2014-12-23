@@ -55,7 +55,8 @@ module.exports = class JSession extends Model
   @createSession =(callback) ->
     JUser = require './user'
     clientId = createId()
-    JUser.createTemporaryUser (err, resp) =>
+
+    JUser.fetchGuestUser (err, resp) =>
 
       if not resp
         console.error message = "Failed to create guest user :/ ~ This is critical!"
@@ -73,7 +74,8 @@ module.exports = class JSession extends Model
           else
             callback null, { session, account }
 
-  @fetchSession =(clientId, callback)->
+
+  @fetchSession = (clientId, callback)->
     # if clientId is undefined or null
     return @createSession callback  unless clientId
 
@@ -89,12 +91,12 @@ module.exports = class JSession extends Model
   @fetchGuestUserSession = (callback) ->
     username = 'guestuser'
     @one {username}, (err, session) ->
-      return callback err if err?
-      return callback null, session if session?
+      return callback err  if err?
+      return callback null, session  if session?
       clientId = createId()
       session = new JSession { clientId, username }
       session.save (err)->
-        return callback err if err?
+        return callback err  if err?
         callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->

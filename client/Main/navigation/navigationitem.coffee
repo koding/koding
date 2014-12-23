@@ -19,6 +19,7 @@ class NavigationItem extends JTreeItemView
 
 
   createMachineItem: (data) ->
+
     @type  = 'machine'
     @setClass 'machine'
     @child = new NavigationMachineItem {}, data
@@ -39,25 +40,14 @@ class NavigationItem extends JTreeItemView
         activitySidebar.emit 'MoreWorkspaceModalRequested', data
 
   createWorkspaceItem: (data) ->
+
     @setClass 'workspace'
-    @child    = new KDCustomHTMLView
-      partial : """
-        <figure></figure>
-        <a href='#{KD.utils.groupifyLink data.href}'>#{data.title}</a>
-      """
-      click   : (event) =>
-        if event.target.classList.contains 'ws-settings-icon'
-          KD.utils.stopDOMEvent event
 
-          bounds   = this.getBounds()
-          position =
-            top    : Math.max bounds.y - 38, 0
-            left   : bounds.x + bounds.w + 16
-
-          new WorkspaceSettingsPopup {position}, this
+    @child = new NavigationWorkspaceItem { delegate: this }, data
 
 
   createNewWorkspaceView: ->
+
     @setClass 'workspace'
     { machineUId, machineLabel } = @getData()
 
@@ -65,6 +55,7 @@ class NavigationItem extends JTreeItemView
 
 
   createAppItem: ->
+
     @setClass 'app'
     @child    = new KDCustomHTMLView
       partial : """
@@ -77,3 +68,4 @@ class NavigationItem extends JTreeItemView
     """
       {{> @child}}
     """
+
