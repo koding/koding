@@ -65,5 +65,8 @@ func TestList(t *testing.T) {
 	}
 
 	fmt.Printf("len(containers) %+v\n", len(containers))
-	fmt.Printf("containers %+v\n", containers)
+	for _, container := range containers {
+		image := container.Image
+		fmt.Printf("image %+v\n", image)
+	}
 }
