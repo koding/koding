@@ -49,3 +49,22 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 
 	return containers, nil
 }
+
+var (
+	VmRunningState = "Running"
+)
+
+func GetRunningVms() ([]*models.Machine, error) {
+	machines := []*models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"status.state": VmRunningState}).All(&machines)
+	}
+
+	err := Mongo.Run(MachineColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
