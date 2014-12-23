@@ -53,6 +53,11 @@ class IDE.EditorPane extends IDE.Pane
       KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
 
 
+  handleAutoSave: ->
+    return   if @getFile().machine instanceof DummyMachine
+    @save()  if @getAce().isContentChanged()
+
+
   save: ->
     @getAce().emit 'ace.requests.save', @getContent()
 

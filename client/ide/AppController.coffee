@@ -121,6 +121,9 @@ class IDEAppController extends AppController
 
         @bindRouteHandler()
 
+        KD.utils.repeat 5000, =>
+          @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
+
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
       return  unless app instanceof IDEAppController
@@ -653,9 +656,7 @@ class IDEAppController extends AppController
 
     @forEachSubViewInIDEViews_ 'editor', (editorPane) ->
       {ace} = editorPane.aceView
-      ace.once 'FileContentRestored', ->
-        ace.removeModifiedFromTab editorPane.aceView
-
+      ace.once 'FileContentRestored', -> ace.removeModifiedFromTab()
       editorPane.emit 'SaveRequested'
 
 

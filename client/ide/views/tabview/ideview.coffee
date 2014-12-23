@@ -333,9 +333,12 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   closeUntitledFileIfNotChanged: ->
 
     for pane in @tabView.panes when pane
-      if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
-        if pane.view.getValue() is ''
-          @tabView.removePane pane
+
+      isFsFile = pane.data instanceof FSFile
+      isLocal  = pane.data.path.indexOf('localfile:/') > -1
+      isEmpty  = pane.view.getValue() is ''
+
+      @tabView.removePane pane  if isFsFile and isLocal and isEmpty
 
 
   getPlusMenuItems: ->
