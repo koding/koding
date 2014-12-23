@@ -38,7 +38,7 @@ class KodingKite_KlientKite extends KodingKite
 
   init: ->
 
-    @connect()
+    @connect()  unless @_connectAttempted
 
     unless @terminalSessions.length
       @fetchTerminalSessions()
