@@ -50,7 +50,7 @@ module.exports = class SubscribeFormView extends KDFormViewWithFields
     data = @serializeFormData()
 
     jQuery.ajax
-      url         : "/-/marketing/subscribe"
+      url         : "/-/emails/subscribe"
       type        : 'POST'
       data        : data
       success     : => @emit 'subscribeSuccess'
