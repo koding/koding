@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/koding/kite"
+	"github.com/samalba/dockerclient"
 )
 
 // Docker defines the main configuration. One instance is running as one Docker
@@ -18,22 +19,19 @@ import (
 // 5. Stop the container
 // 6. Remove the container
 // 7. Destroy the image
-type Docker struct{}
+type Docker struct {
+	client *dockerclient.DockerClient
+}
 
-// TODO:
-// 1. Docker Deamon needs to be run in TCP Mode. If UNIX sockets are used we
-// need to setup the client so it has access to the `docker` group which
-// maintains the the socket. So initiallty TCP is a good start.
-// 2. TCP mode is enabled by adding "-H tcp://bind-ip:port" to
-// /etc/default/docker or DOCKER_OPTS
-// 3. But only authenticated Client should access it over TCP, so we need to
-// generate TLS cert keys and let both the Deamon and Client use it.
-// 4. The boot2docker guys are using this package:
-// https://github.com/SvenDowideit/generate_cert for it which we can also use.
-// 5. Here is also some information on how to start the Docker Deamon securely
-// https://docs.docker.com/articles/https/
-func New() *Docker {
-	return &Docker{}
+// New connects to a Docker Deamon specified with the given URL. It can be a
+// TCP address or a UNIX socket.
+func New(url string) *Docker {
+	// the error is returned only when the passed URL is not parsable via
+	// url.Parse, so we can safely neglect it
+	client, _ := dockerclient.NewDockerClient(url, nil)
+	return &Docker{
+		client: client,
+	}
 }
 
 // Build builds a new container image from a public Docker path or froma a
@@ -70,5 +68,10 @@ func (d *Docker) Kill(r *kite.Request) (interface{}, error) {
 
 // Destroy destroys and removes an image.
 func (d *Docker) Destroy(r *kite.Request) (interface{}, error) {
+	return nil, errors.New("not implemented yet.")
+}
+
+// List lists all available containers
+func (d *Docker) List(r *kite.Request) (interface{}, error) {
 	return nil, errors.New("not implemented yet.")
 }
