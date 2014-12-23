@@ -250,8 +250,8 @@ func newKite() *kite.Kite {
 			disconnectTimer.Stop()
 		}
 
-		k.Log.Info("Disconnection timer of 10 minutes is fired.")
-		disconnectTimer = time.NewTimer(time.Minute * 10)
+		k.Log.Info("Disconnection timer of 1 minutes is fired.")
+		disconnectTimer = time.NewTimer(time.Minute * 1)
 
 		// Close all active sessions of the current. Do not close it
 		// immediately, instead of give some time so users can safely exit. If
