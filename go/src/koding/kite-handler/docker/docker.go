@@ -2,7 +2,10 @@
 package docker
 
 import (
+	"archive/tar"
+	"bytes"
 	"errors"
+	"time"
 
 	dockerclient "github.com/fsouza/go-dockerclient"
 	"github.com/koding/kite"
@@ -26,10 +29,45 @@ func New(url string) *Docker {
 	}
 }
 
-// Build builds a new container image from a public Docker path or froma a
+// Build builds a new container image from a public Docker path or from a
 // given Dockerfile
 func (d *Docker) Build(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+	var params buildArgs
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	// For now we'll only support one single DockerFile without any additional
+	// files
+	if params.DockerFile != "" {
+		t := time.Now()
+		inputbuf, outputbuf := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
+		tr := tar.NewWriter(inputbuf)
+
+		tr.WriteHeader(&tar.Header{
+			Name:       "Dockerfile",
+			Size:       10,
+			ModTime:    t,
+			AccessTime: t,
+			ChangeTime: t,
+		})
+
+		tr.Write([]byte("FROM base\n"))
+		tr.Close()
+
+		opts := dockerclient.BuildImageOptions{
+			Name:         "test",
+			InputStream:  inputbuf,
+			OutputStream: outputbuf,
+		}
+		if err := d.client.BuildImage(opts); err != nil {
+			return nil, err
+		}
+
+		return true, nil
+	}
+
+	return nil, errors.New("build is not implemented yet.")
 }
 
 // Create creates a new container
