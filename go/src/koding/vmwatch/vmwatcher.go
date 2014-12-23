@@ -2,6 +2,7 @@ package main
 
 import (
 	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"log"
 	"time"
 )
@@ -47,6 +48,6 @@ func stopVmsOverLimit() error {
 	return nil
 }
 
-func getRunningVms() ([]models.Machine, error) {
-	return []models.Machine{}, nil
+func getRunningVms() ([]*models.Machine, error) {
+	return modelhelper.GetRunningVms()
 }
