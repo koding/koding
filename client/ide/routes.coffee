@@ -125,6 +125,8 @@ do ->
 
       try
 
+        return routeToLatestWorkspace()  unless KD.userWorkspaces.length
+
         KD.userWorkspaces.forEach (workspace, index) =>
 
           if workspace.channelId is channel.id
