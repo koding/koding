@@ -335,8 +335,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     for pane in @tabView.panes when pane
 
       isFsFile = pane.data instanceof FSFile
+
+      return unless isFsFile
+
       isLocal  = pane.data.path.indexOf('localfile:/') > -1
-      isEmpty  = pane.view.getValue() is ''
+      isEmpty  = pane.view.getEditor()?.getSession()?.getValue() # intentional `?` checks
 
       @tabView.removePane pane  if isFsFile and isLocal and isEmpty
 
