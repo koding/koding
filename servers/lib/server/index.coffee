@@ -53,7 +53,7 @@ app        = express()
   addReferralCode
   handleClientIdNotFound
   getClientId
-}          = require './helpers'
+} = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
@@ -562,7 +562,7 @@ isInAppRoute = (name)->
 
 app.post '/-/emails/subscribe', (req, res)->
 
-  Sendgrid            = require '../sendgrid'
+  {Sendgrid}          = koding.models
   {email, type, name} = req.body
 
   return res.status(400).send 'not ok'  unless /@/.test email
