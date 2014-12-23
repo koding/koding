@@ -4,7 +4,7 @@ module.exports = [
   "namespaces.coffee"
 
   # ndpane 0.1.2
-  "../../website/a/js/ndpane/dist/ndpane.min.js"
+  "../../website/a/js/ndpane.min.js"
 
   # finder
   "finder/idefindercontextmenucontroller.coffee"

@@ -560,15 +560,14 @@ class IDEAppController extends AppController
     return  unless panel instanceof KDSplitViewPanel
 
     targetOffset = @layout[direction](panel._layout.data.offset)
-    return  if targetOffset is undefined
+    return  unless targetOffset?
 
     targetPanel = @layoutMap[targetOffset]
 
-    {pane} = @activeTabView.removePane \
-      @activeTabView.panes[@activeTabView.getActivePaneIndex()], yes, yes
+    {pane} = @activeTabView.removePane @activeTabView.getActivePane(), yes, yes
 
-    targetPanel.subViews[0].tabView.addPane pane
-    @setActiveTabView targetPanel.subViews[0].tabView
+    targetPanel.subViews.first.tabView.addPane pane
+    @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
 
   moveTabUp: -> @moveTab('north')
