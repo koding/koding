@@ -426,11 +426,19 @@ class Ace extends KDView
       aceView.ace.requestSave()
       aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
 
-    {name} = aceView.ace.data
-    for handle in aceView.delegate.tabView.handles when handle.options.title is name
-      handle.unsetClass 'modified'
   removeModifiedFromTab: ->
     aceView      = @parent
+    {name}       = aceView.ace.data
+    {handles}    = aceView.delegate.tabView
+    targetHandle = null
+
+    for handle in handles when handle.getOptions().title is name
+      targetHandle = handle
+      targetHandle.setClass 'saved'
+
+      KD.utils.wait 500, ->
+        targetHandle.unsetClass 'modified'
+        targetHandle.unsetClass 'saved'
 
   showGotoLine: ->
     unless @gotoLineModal
