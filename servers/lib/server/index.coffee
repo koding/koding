@@ -53,7 +53,7 @@ app        = express()
   addReferralCode
   handleClientIdNotFound
   getClientId
-}          = require './helpers'
+} = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
@@ -89,21 +89,15 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error " ------ FIX ME ------ @chris"
+  console.error " ------ FIX ME ------ @gokmen"
   console.error " there was an uncaught exception", err
   console.error err.stack
-  console.error " ------ FIX ME ------ @chris"
-  # process.exit 1
+  console.error " ------ FIX ME ------ @gokmen"
 
-
-# app.post "/inbound",(req,res)->
-#   console.log  "ok"
-#   console.log req.body
-#   res.send "ok"
-#   return
 
 # this is for creating session for incoming user if it doesnt have
 app.use (req, res, next) ->
+
   {JSession} = koding.models
   {clientId} = req.cookies
 
@@ -115,32 +109,25 @@ app.use (req, res, next) ->
     return next()  if err
     return next()  unless result?.session
 
+    # add referral code into session if there is one
+    addReferralCode req, res
+
     updateCookie req, res, result.session
 
-    next()
+    remoteIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    return next()  unless remoteIp
 
-app.use (req, res, next) ->
-  # add referral code into session if there is one
-  addReferralCode req, res
+    res.cookie "clientIPAddress", remoteIp, { maxAge: 900000, httpOnly: no }
 
-  {JSession} = koding.models
-  {clientId} = req.cookies
-  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  return next()  unless clientIPAddress
-  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: no }
-  JSession.updateClientIP clientId, clientIPAddress, (err)->
-    if err then console.log err
-    next()
+    JSession.updateClientIP result.session.clientId, remoteIp, (err)->
+      console.log err  if err?
+      next()
 
 
-app.get "/-/google-api",(req, res)->
-  ggl = require("googleapis")
-  gsc = KONFIG.googleapiServiceAccount
-  eml = gsc.serviceAccountEmail
-  key = gsc.serviceAccountKeyFile
-  scp = ['https://www.googleapis.com/auth/drive']
-  jwt = new ggl.auth.JWT(eml, key, null, scp).authorize (err,authToken)->
-
+app.get '/-/google-api/authorize/drive', (req, res) ->
+  options = subject: 'https://www.googleapis.com/auth/drive'
+  google_utils = require 'koding-googleapis'
+  google_utils.authorize options, (err, authToken) ->
     return res.status(401).send err if err
     res.status(200).send authToken
 
@@ -571,6 +558,24 @@ isInAppRoute = (name)->
   return false if intRegex.test firstLetter
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
+
+
+app.post '/-/emails/subscribe', (req, res)->
+
+  {Sendgrid}          = koding.models
+  {email, type, name} = req.body
+
+  return res.status(400).send 'not ok'  unless /@/.test email
+
+  type or= 'marketing'
+  name or= email.split('@')[0]
+
+  switch type
+    when 'all'       then Sendgrid.addToAllUsers  email, name
+    when 'marketing' then Sendgrid.addToMarketing email, name
+    else res.status(400).send 'not ok'
+
+  res.status(200).send 'ok'
 
 
 app.post '/Hackathon/Apply', (req, res, next)->

@@ -10,7 +10,7 @@ var LoggedInHome = `
     <link rel="stylesheet" href="/a/css/koding.css?{{.Version}}" />
   </head>
 
-  <body class='logged-in'>
+  <body class='logged-in dark ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
     <script>var KD={}</script>

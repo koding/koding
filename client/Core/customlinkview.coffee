@@ -27,19 +27,20 @@ class CustomLinkView extends KDCustomHTMLView
 
   pistachio:->
 
-    options = @getOptions()
-    data    = @getData()
+    options            = @getOptions()
+    data               = @getData()
+    {icon, attributes} = options
+    {href}             = attributes
+    data.title        ?= href  if href isnt '#'
+    {title}            = data
+    tmpl               = if icon then "{{> @icon}}" else ""
 
-    data.title ?= options.attributes.href
+    if icon and title
+      if icon.placement is 'left'
+      then tmpl += "{span.title{ #(title)}}"
+      else tmpl  = "{span.title{ #(title)}}" + tmpl
 
-    tmpl = "{{> @icon}}"
-
-    if options.icon and data.title
-      if options.icon.placement is 'left'
-        tmpl += "{span.title{ #(title)}}"
-      else
-        tmpl = "{span.title{ #(title)}}" + tmpl
-    else if not options.icon and data.title
+    else if not icon and title
       tmpl = "{span.title{ #(title)}}"
 
     return tmpl

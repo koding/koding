@@ -11,6 +11,7 @@ import (
 	notificationmodels "socialapi/workers/notification/models"
 	"time"
 
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -20,7 +21,6 @@ var emailConfig = map[string]string{
 	notificationmodels.NotificationContent_TYPE_COMMENT: "comment",
 	notificationmodels.NotificationContent_TYPE_LIKE:    "likeActivities",
 	notificationmodels.NotificationContent_TYPE_MENTION: "mention",
-	notificationmodels.NotificationContent_TYPE_PM:      "privateMessage",
 }
 
 const (
@@ -97,6 +97,9 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 	mc.Content = nc
 
 	if err := mc.PrepareContainer(); err != nil {
+		if err == bongo.RecordNotFound {
+			return nil
+		}
 		return err
 	}
 

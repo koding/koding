@@ -480,18 +480,32 @@ module.exports = class JMachine extends Module
       JMachine::shareWith.call this, options, callback
 
 
-  share: secure (client, users, callback)->
-    options = target: users, asUser: yes
-    JMachine::shareWith$.call this, client, options, callback
+
+  share: secure (client, users, callback) ->
+
+    options = target : users, asUser : yes
+    @shareWith$ client, options, callback
+
 
   unshare: secure (client, users, callback)->
+
     options = target: users, asUser: no
-    JMachine::shareWith$.call this, client, options, callback
 
-  setAsOwner: secure (client, users, callback)->
-    options = target: users, asUser: yes, asOwner: yes
-    JMachine::shareWith$.call this, client, options, callback
+    {connection:{delegate}} = client
+    {profile:{nickname}}    = delegate
 
-  unsetAsOwner: secure (client, users, callback)->
-    options = target: users, asUser: yes, asOwner: no
-    JMachine::shareWith$.call this, client, options, callback
+    if users.length is 1 and users[0] is nickname
+    then @shareWith options, callback
+    else @shareWith$ client, options, callback
+
+
+  setAsOwner: secure (client, users, callback) ->
+
+    options = target : users, asUser : yes, asOwner : yes
+    @shareWith$ client, options, callback
+
+
+  unsetAsOwner: secure (client, users, callback) ->
+
+    options = target : users, asUser : yes, asOwner : no
+    @shareWith$ client, options, callback
