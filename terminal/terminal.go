@@ -55,7 +55,11 @@ func (t *Terminal) DeleteUserSession(username, session string) {
 	t.Lock()
 	defer t.Unlock()
 
-	user := t.Users[username]
+	user, ok := t.Users[username]
+	if !ok {
+		return // nothing to do
+	}
+
 	user.DeleteSession(session)
 
 	if len(user.Sessions) == 0 {
