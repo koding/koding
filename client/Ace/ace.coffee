@@ -93,7 +93,6 @@ class Ace extends KDView
 
   saveFinished:(err, res)->
     unless err
-      @notify 'Successfully saved!', 'success'
       @lastSavedContents = @lastContentsSentForSave
       @emit 'FileContentRestored'
       # unless @askedForSave
@@ -205,7 +204,6 @@ class Ace extends KDView
   fetchContents:(callback)->
     file = @getData()
     unless /localfile:/.test file.path
-      @notify 'Loading...', null, null, 10000
       file.fetchContents callback
       # {vmName, path} = file
       # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
