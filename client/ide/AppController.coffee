@@ -1437,43 +1437,46 @@ class IDEAppController extends AppController
     @setMachineSharingStatus on
 
 
-  stopCollaborationSession: (callback) ->
+  showEndCollaborationModal: (callback) ->
 
     modalOptions =
       title      : 'Are you sure?'
       content    : 'This will end your session and all participants will be removed from this session.'
 
-    @showModal modalOptions, =>
+    @showModal modalOptions, => @stopCollaborationSession callback
 
-      @chat.settingsPane.endSession.disable()
 
-      return callback msg : 'no social channel'  unless @socialChannel
+  stopCollaborationSession: (callback = noop) ->
 
-      {message} = KD.singletons.socialapi
-      nick      = KD.nick()
+    @chat.settingsPane.endSession.disable()
 
-      message.sendPrivateMessage
-        body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
-        channelId  : @socialChannel.id
-        payload    :
-           'system-message' : 'stop'
-           collaboration    : yes
-      , callback
+    return callback msg : 'no social channel'  unless @socialChannel
 
-      @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
+    {message} = KD.singletons.socialapi
+    nick      = KD.nick()
 
-      @rtm.once 'FileDeleted', =>
-        @statusBar.emit 'CollaborationEnded'
-        @chat.emit 'CollaborationEnded'
-        @chat = null
-        @modal.destroy()
-        @rtm = null
-        KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+    message.sendPrivateMessage
+      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
+      channelId  : @socialChannel.id
+      payload    :
+         'system-message' : 'stop'
+         collaboration    : yes
+    , callback
 
-      @mySnapshot.clear()
-      @rtm.deleteFile @getRealTimeFileName()
+    @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
 
-      @setMachineSharingStatus off
+    @rtm.once 'FileDeleted', =>
+      @statusBar.emit 'CollaborationEnded'
+      @chat.emit 'CollaborationEnded'
+      @chat = null
+      @modal.destroy()
+      @rtm = null
+      KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+
+    @mySnapshot.clear()
+    @rtm.deleteFile @getRealTimeFileName()
+
+    @setMachineSharingStatus off
 
 
   setMachineSharingStatus: (status) ->

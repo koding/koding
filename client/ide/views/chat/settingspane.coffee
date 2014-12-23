@@ -114,7 +114,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     {appManager} = KD.singletons
 
-    appManager.tell 'IDE', 'stopCollaborationSession', (err, channel) =>
+    appManager.tell 'IDE', 'showEndCollaborationModal', (err, channel) =>
 
       return @endSession.enable()  if err
 
