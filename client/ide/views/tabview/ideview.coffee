@@ -271,10 +271,10 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
-    
-    
+
+
   openSavedFile: (file, content) ->
-      
+
       pane = @tabView.getActivePane()
       if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
         @tabView.removePane @tabView.getActivePane()
@@ -347,26 +347,31 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     sessions = machine?.getBaseKite().terminalSessions or []
 
-    terminalSessions =
-      "New Session"  :
-        callback     : => @createTerminal { machine }
-        separator    : sessions.length > 0
+    terminalSessions = {}
+    activeSessions   = []
 
-    activeSessions = []
     frontApp.forEachSubViewInIDEViews_ 'terminal', (pane) =>
-      if pane.remote?
-        activeSessions.push pane.remote.session
+      activeSessions.push pane.remote.session  if pane.remote?
 
     sessions.forEach (session, i) =>
       isActive = session in activeSessions
       terminalSessions["Session (#{session[0..5]}) &nbsp"] =
         disabled          : isActive
+        separator         : sessions.length is i
         children          :
           'Open'          :
             disabled      : isActive
             callback      : => @createTerminal { machine, session }
           'Terminate'     :
             callback      : => @terminateSession machine, session
+
+    terminalSessions["New Session"] =
+      callback            : => @createTerminal { machine }
+      separator           : sessions.length > 0
+
+    if sessions.length > 0
+      terminalSessions["Terminate all"] =
+        callback          : => @terminateSessions machine
 
     items =
       'New File'          : callback : => @createEditor()
@@ -423,7 +428,19 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     contextMenu.once 'ContextMenuItemReceivedClick', -> contextMenu.destroy()
 
 
+  terminateSessions: (machine)->
 
+    machine.getBaseKite().webtermKillSessions()
+
+    .catch (err)->
+      # This `webterm.killSessions` is not deployed yet
+      # when I was writing these lines, so I've added
+      # a feedback for user. ~ GG
+      if err.type is "methodNotFound"
+        new KDNotificationView
+          title : "Coming soon"
+      else
+        warn "Failed to terminate sessions", err
 
   terminateSession: (machine, session)->
 
