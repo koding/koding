@@ -25,7 +25,19 @@ func init() {
 		dockerHost = "tcp://192.168.59.103:2376" // darwin, boot2docker
 	}
 
-	dock := New(dockerHost)
+	dockerCertPath := os.Getenv("DOCKER_CERT_PATH")
+	if dockerCertPath == "" {
+		panic("please set DOCKER_CERT_PATH")
+	}
+
+	certFile := dockerCertPath + "/cert.pem"
+	keyFile := dockerCertPath + "/key.pem"
+	caFile := dockerCertPath + "/ca.pem"
+
+	client, _ := dockerclient.NewTLSClient(dockerHost, certFile, keyFile, caFile)
+	dock := &Docker{
+		client: client,
+	}
 
 	d.HandleFunc("list", dock.List)
 
