@@ -20,6 +20,7 @@ class KodingKite_KlientKite extends KodingKite
     fsMove             : 'fs.move'
     fsCreateDirectory  : 'fs.createDirectory'
 
+    webtermKillSessions: 'webterm.killSessions'
     webtermGetSessions : 'webterm.getSessions'
     webtermPing        : 'webterm.ping'
 
