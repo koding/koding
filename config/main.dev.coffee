@@ -150,7 +150,7 @@ Configuration = (options={}) ->
     siftScience                    : 'a41deacd57929378'
 
     collaboration :
-      timeout     : 30 * 1000
+      timeout     : 1 * 60 * 1000
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
