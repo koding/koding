@@ -32,8 +32,8 @@ func stopVmsOverLimit() error {
 
 	for _, vm := range runningVms {
 		for _, metric := range metricsToSave {
-			lresp := metric.IsVmOverLimit(vm.ObjectId.Hex(), time.Now())
-			if !lresp.OverLimit {
+			resp := metric.IsVmOverLimit(vm.ObjectId.Hex(), time.Now())
+			if !resp.OverLimit {
 				continue
 			}
 
@@ -48,9 +48,5 @@ func stopVmsOverLimit() error {
 }
 
 func getRunningVms() ([]models.Machine, error) {
-	return []models.Machine{}, nil
-}
-
-func getOverLimitVms([]Metric) ([]models.Machine, error) {
 	return []models.Machine{}, nil
 }
