@@ -20,6 +20,7 @@ class KodingKite_KlientKite extends KodingKite
     fsMove             : 'fs.move'
     fsCreateDirectory  : 'fs.createDirectory'
 
+    webtermKillSessions: 'webterm.killSessions'
     webtermGetSessions : 'webterm.getSessions'
     webtermPing        : 'webterm.ping'
 
@@ -37,12 +38,11 @@ class KodingKite_KlientKite extends KodingKite
 
   init: ->
 
-    @connect()
+    @connect()  unless @_connectAttempted
 
-    unless @terminalSessions.length
-      @fetchTerminalSessions()
-
-    Promise.resolve()
+    if @terminalSessions.length is 0 and not @_fetchingSessions
+    then @fetchTerminalSessions()
+    else Promise.resolve()
 
 
   # setTransport is used to override the setTransport method in KodingKite
@@ -69,8 +69,11 @@ class KodingKite_KlientKite extends KodingKite
 
       .then (remote) =>
 
-        unless remote.session in @terminalSessions
-          @terminalSessions.push remote.session
+        if @terminalSessions.length is 0
+          @fetchTerminalSessions()
+        else
+          unless remote.session in @terminalSessions
+            @terminalSessions.push remote.session
 
         return remote
 
@@ -91,12 +94,19 @@ class KodingKite_KlientKite extends KodingKite
 
   fetchTerminalSessions: ->
 
+    @_fetchingSessions = yes
+
     @webtermGetSessions()
 
     .then (sessions)=>
 
       @terminalSessions = sessions
+      @_fetchingSessions = no
+
+    .timeout 10000
 
     .catch (err)=>
+
       # Reset current sessions if fails
       @terminalSessions = []
+      @_fetchingSessions = no

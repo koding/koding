@@ -86,9 +86,8 @@ module.exports = class SocialChannel extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  { fetchGroup, secureRequest,
-    doRequest, permittedRequest,
-    ensureGroupChannel, fetchGroup } = require "./helper"
+  { secureRequest, ensureGroupChannel,
+    doRequest, permittedRequest } = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
     return "socialapi-\

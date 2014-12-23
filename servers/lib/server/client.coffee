@@ -8,6 +8,13 @@ handleError = (err, callback) ->
   return callback? err
 
 
+isInAppRoute = (name)->
+  [firstLetter] = name
+  if /^\d/.test firstLetter then no
+  else if firstLetter.toUpperCase() is firstLetter then yes
+  else no
+
+
 fetchGroupName = ({ groupName: name, section }, callback)->
   {JName} = bongo.models
 
@@ -45,8 +52,12 @@ updateCookie = (req, res, session)->
   res.cookie "clientId", clientId, { maxAge, secure }
 
 generateFakeClientFromReq = (req, res, callback)->
+
   {clientId} = req.cookies
   {name: groupName, section} = req.params
+
+  groupName = 'koding'  if isInAppRoute groupName
+
   # if client id is not set, check for pendingCookies
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
@@ -88,7 +99,12 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
 
     fetchGroupName { groupName, section }, (err, groupName)->
       return handleError err, callback if err
-      fetchAccount session.username, (err, account)->
+
+      {username} = session
+      username   = 'guestuser'  if /^guest-/.test username
+
+      fetchAccount username, (err, account)->
+
         return handleError err, callback if err
         return callback null, fakeClient unless account?
 
