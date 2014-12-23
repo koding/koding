@@ -30,23 +30,24 @@ module.exports =
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    helpers.openFolderContextMenu(browser, user, 'Web')
+
+    folderData = helpers.createFolder(browser, user)
+    name       = '~/' + folderData.name
 
     browser
-      .waitForElementVisible   '.kdlistview-contextmenu', 25000
-      .waitForElementVisible   '.kdlistview-contextmenu li.workspace-from-here', 25000
-      .click                   '.kdlistview-contextmenu li.workspace-from-here'
+      .waitForElementVisible  folderData.selector, 50000
+      .click                  folderData.selector
+      .waitForElementVisible  folderData.selector + ' + .chevron', 20000
+      .click                  folderData.selector + ' + .chevron'
+      .waitForElementVisible  '.context-list-wrapper', 20000
+      .click                  '.context-list-wrapper li.workspace-from-here'
       .url (data) =>
         url    = data.value
 
         vmName = url.split('/IDE/')[1].split('/')[0]
 
         browser
-          .waitForElementPresent   'a[href="/IDE/' + vmName + '/web"]', 40000 # Assertion
-          .assert.urlContains      '/web' # Assertion
-          .waitForElementVisible   '.vm-info', 20000
-          .assert.containsText     '.vm-info', '~/Web' # Assertion
-
-        helpers.deleteWorkspace(browser, 'web')
-
-    browser.end()
+          .waitForElementVisible  '.activity-sidebar .jtreeview-wrapper li' + ' a[href="/IDE/' + vmName + '/' + folderData.name + '"]', 20000 #Assertion
+          .pause                  3000
+          .assert.containsText    '.vm-info', name # Assertion
+          .end()
