@@ -1,25 +1,57 @@
 do ->
 
-  loadWorkspace = (machineLabel, workspaceSlug, username, channelId) ->
-    username or= KD.nick()
-    workspace  = ws  for ws in KD.userWorkspaces when ws.slug is workspaceSlug
-    machine    = getMachine machineLabel, username
+  loadWorkspace = (options, workspace) ->
+
+    {machineLabel, workspaceSlug, username} = options
+
+    machine = getMachine machineLabel, username
 
     if workspace
-      loadIDE { machine, workspace, username, channelId }
+      loadIDE { machine, workspace, username }
+
+    else if workspaceSlug is 'my-workspace'
+      workspace =
+        isDummy      : yes
+        isDefault    : yes
+        slug         : 'my-workspace'
+        machineLabel : machine?.slug or machine?.label
+
+      loadIDE { machine, workspace, username }
 
     else
-      if workspaceSlug is 'my-workspace'
-        workspace =
-          isDummy      : yes
-          isDefault    : yes
-          slug         : 'my-workspace'
-          machineLabel : machine?.slug or machine?.label
+      routeToLatestWorkspace()
 
-        loadIDE { machine, workspace, username, channelId }
 
-      else
-        routeToLatestWorkspace()
+  findWorkspace = (options, callback) ->
+
+    {machineLabel, workspaceSlug, username} = options
+
+    kallback = (workspaces) ->
+
+      for workspace in workspaces
+        continue  unless workspace.machineLabel is machineLabel
+        continue  unless workspace.slug is workspaceSlug
+
+        return callback workspace
+
+      return callback null
+
+    if username
+    then filterWorkspacesByUsername username, kallback
+    else kallback KD.userWorkspaces
+
+
+  filterWorkspacesByUsername = (username, callback) ->
+
+    KD.remote.cacheable username, (err, [account]) ->
+      if err
+        console.error err
+        callback []
+
+      originId = account.getId()
+
+      callback KD.userWorkspaces.filter (workspace) ->
+        originId is workspace.originId
 
 
   selectWorkspaceOnSidebar = (data) ->
@@ -171,8 +203,11 @@ do ->
 
     '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
+      {params} = routeInfo
+      params.username or= KD.nick()
+
       refreshWorkspaces ->
 
-        { machineLabel, workspaceSlug } = routeInfo.params
+        findWorkspace params, (workspace) ->
 
-        loadWorkspace machineLabel, workspaceSlug
+          loadWorkspace params, workspace
