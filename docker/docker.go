@@ -20,6 +20,22 @@ import (
 // 7. Destroy the image
 type Docker struct{}
 
+// TODO:
+// 1. Docker Deamon needs to be run in TCP Mode. If UNIX sockets are used we
+// need to setup the client so it has access to the `docker` group which
+// maintains the the socket. So initiallty TCP is a good start.
+// 2. TCP mode is enabled by adding "-H tcp://bind-ip:port" to
+// /etc/default/docker or DOCKER_OPTS
+// 3. But only authenticated Client should access it over TCP, so we need to
+// generate TLS cert keys and let both the Deamon and Client use it.
+// 4. The boot2docker guys are using this package:
+// https://github.com/SvenDowideit/generate_cert for it which we can also use.
+// 5. Here is also some information on how to start the Docker Deamon securely
+// https://docs.docker.com/articles/https/
+func New() *Docker {
+	return &Docker{}
+}
+
 // Build builds a new container image from a public Docker path or froma a
 // given Dockerfile
 func (d *Docker) Build(r *kite.Request) (interface{}, error) {
