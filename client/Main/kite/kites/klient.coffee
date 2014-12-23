@@ -40,10 +40,9 @@ class KodingKite_KlientKite extends KodingKite
 
     @connect()  unless @_connectAttempted
 
-    unless @terminalSessions.length
-      @fetchTerminalSessions()
-
-    Promise.resolve()
+    if @terminalSessions.length is 0 and not @_fetchingSessions
+    then @fetchTerminalSessions()
+    else Promise.resolve()
 
 
   # setTransport is used to override the setTransport method in KodingKite
@@ -92,12 +91,19 @@ class KodingKite_KlientKite extends KodingKite
 
   fetchTerminalSessions: ->
 
+    @_fetchingSessions = yes
+
     @webtermGetSessions()
 
     .then (sessions)=>
 
       @terminalSessions = sessions
+      @_fetchingSessions = no
+
+    .timeout 10000
 
     .catch (err)=>
+
       # Reset current sessions if fails
       @terminalSessions = []
+      @_fetchingSessions = no
