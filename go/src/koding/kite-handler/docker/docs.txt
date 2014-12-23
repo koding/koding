@@ -12,5 +12,31 @@ https://docs.docker.com/articles/https/
 https://github.com/docker/docker/blob/master/docs/sources/reference/commandline/cli.md
 
 
+-------------------------------
 # Install latest docker to Ubuntu
 curl -sSL https://get.docker.com/ubuntu/ | sudo sh
+
+-------------------------------
+
+We can use the UNIX socket but then we need to add the user to this group.
+http://askubuntu.com/questions/477551/how-can-i-use-docker-without-sudo
+
+sudo groupadd docker
+sudo gpasswd -a arslan docker
+sudo service docker restart
+newgrp docker
+
+
+-------------------------------
+
+After creating a new Docker struct, it'll be able to manage
+// Docker containers. A usual working lifecyle is:
+// 1. Build a Docker image
+// 2. Create a new Docker container from that image
+// 3. Start this container
+// 4. Connect and open a terminal instance to it (optional)
+// 5. Stop the container
+// 6. Remove the container
+// 7. Destroy the image
+
+-------------------------------

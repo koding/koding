@@ -211,7 +211,7 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.copy", fs.Copy)
 
 	// Docker
-	dock := docker.New("tcp")
+	dock := docker.New("unix:///var/run/docker.sock")
 	k.HandleFunc("docker.build", dock.Build)
 	k.HandleFunc("docker.create", dock.Create)
 	k.HandleFunc("docker.connect", dock.Connect)
