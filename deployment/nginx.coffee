@@ -24,10 +24,11 @@ basicAuth = """
 auth_basic            "Restricted";
       auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
-createWebLocation = (name, location, auth = no) ->
+createWebLocation = ({name, location, auth, proxyPass}) ->
+  auth ?= no
   return """\n
       location #{location} {
-        proxy_pass            http://#{name};
+        proxy_pass            #{proxyPass};
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
@@ -36,10 +37,10 @@ createWebLocation = (name, location, auth = no) ->
       }
   \n"""
 
-createWebsocketLocation = (name, location) ->
+createWebsocketLocation = ({name, location, proxyPass}) ->
   return """\n
       location #{location} {
-        proxy_pass            http://#{name};
+        proxy_pass            #{proxyPass};
 
         # needed for websocket handshake
         proxy_http_version    1.1;
@@ -95,7 +96,6 @@ createLocations = (KONFIG) ->
 
   locations = ""
   for name, options of workers when options.ports?
-
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
     continue if options.nginx?.disableLocation?
@@ -104,6 +104,7 @@ createLocations = (KONFIG) ->
     location = ""
 
     options.nginx.locations or= ["/#{name}"]
+    options.nginx.proxyPass or= "http://#{name}"
 
 
     for location in options.nginx.locations
@@ -119,7 +120,8 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      locations += fn name, location, auth
+      { proxyPass } = options.nginx
+      locations += fn {name, location, auth, proxyPass}
 
   return locations
 
@@ -290,14 +292,6 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
 
         #{if environment is "sandbox" then basicAuth else ""}
-      }
-
-      location ~ /api/gatekeeper/(.*) {
-        proxy_pass            http://gatekeeper/$1;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
       }
 
       # special case for kontrol to support additional paths, like /kontrol/heartbeat
