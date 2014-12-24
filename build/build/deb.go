@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"go/build"
-	"koding/tools/deps"
-	"koding/tools/util"
 	"log"
 	"os"
 	"os/exec"
@@ -13,6 +11,9 @@ import (
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/koding/klient/build/deps"
+	"github.com/koding/klient/build/util"
 )
 
 type Deb struct {
