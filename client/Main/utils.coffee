@@ -1017,12 +1017,13 @@ utils.extend utils,
       try
         response = JSON.parse xhr.responseText
       catch e
-        return callback { message : "invalid json: could not parse response" }
+        return callback { message : "invalid json: could not parse response", code: xhr.status }
 
       # 0     - connection failed
       # >=400 - http errors
       if xhr.status is 0 or xhr.status >= 400
         return callback { message: response.description}
+
 
       return if xhr.readyState isnt 4
 
