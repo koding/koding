@@ -48,7 +48,7 @@ Configuration = (options={}) ->
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
-  pubnub              = { publishkey: "pub-c-8f084ee2-2004-4282-b9b7-64af33dd1f01", subscribekey: "sub-c-ba656662-6332-11e4-8c2b-02ee2ddab7fe"  , secretkey: "sec-c-YTQ4MzVmOGMtZjkxOS00NWQ0LTgyYjgtZGZkZWFhOWU0YWRl"                                     , enabled:  yes                       }
+  pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , enabled:  yes                       }
   gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
 
   # configuration for socialapi, order will be the same with
