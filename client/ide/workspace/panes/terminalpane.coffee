@@ -60,6 +60,7 @@ class IDE.TerminalPane extends IDE.Pane
   getMode: ->
     return  if @session? then 'resume' else 'create'
 
+
   runCommand: (command, callback) ->
     return unless command
 
@@ -72,11 +73,11 @@ class IDE.TerminalPane extends IDE.Pane
 
     @remote.input "#{command}\n"
 
-  notify: (message) -> console.log 'notify:', message
 
   resurrect: ->
     @destroySubViews()
     @createTerminal()
+
 
   setFocus: (state) ->
     super state

@@ -14,6 +14,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   createCanvas: ->
+
     @canvas      = new KDCustomHTMLView
       tagName    : 'canvas'
       attributes :
@@ -24,6 +25,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   createToolbar: ->
+
     @toolbar  = new KDCustomHTMLView cssClass: 'drawing-board-toolbar'
     commands  =
       undo    : action : 'undo'
@@ -55,6 +57,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   showPenSizes: ->
+
     items = []
 
     penSizes.forEach (size) =>
@@ -67,6 +70,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   showColors: ->
+
     items  = []
 
     colors.forEach (color) =>
@@ -79,6 +83,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   createToolbarMenu: (items) ->
+
     @toolbarMenu?.destroy()
 
     @addSubView @toolbarMenu = new KDCustomHTMLView
@@ -90,6 +95,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   init: ->
+
     @$canvas = @canvas.getDomElement()
     @$canvas.sketchpad
       aspectRatio : 1
@@ -103,6 +109,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   emitChangeHappened: ->
+
     @emit 'ChangeHappened', {
       origin     : KD.nick()
       type       : 'DrawingBoardUpdated'
@@ -113,6 +120,7 @@ class IDE.DrawingPane extends IDE.Pane
     }
 
   addLayerForMenu: ->
+
     KD.getSingleton('windowController').addLayer @toolbarMenu
 
     @toolbarMenu.once 'ReceivedClickElsewhere', =>
@@ -122,6 +130,7 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   handleColorChange: (color) ->
+
     @setPenColor color
     @colorMenuView.updatePartial "<p class='icon' style='background-color:#{color}'></p>"
     @colorMenuView.unsetClass 'selected'
@@ -129,17 +138,20 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   handlePenSizeChange: (size) ->
+
     @setPenSize size
     @penSizeMenuView.unsetClass 'selected'
     @toolbarMenu.destroy()
 
 
   redo: ->
+
     @$canvas.redo()
     @emit 'DrawingBoardUpdated'
 
 
   undo: ->
+
     @$canvas.undo()
     @emit 'DrawingBoardUpdated'
 
@@ -163,16 +175,19 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   clear: ->
+
     @$canvas.clear()
     @emit 'DrawingBoardUpdated'
 
 
   save: ->
+
     new KDNotificationView
       title: 'Saving will be enabled soon.'
 
 
   serialize: ->
+
     data       =
       data     : @getCanvasData()
       hash     : @hash
@@ -182,12 +197,14 @@ class IDE.DrawingPane extends IDE.Pane
 
 
   handleChange: (change) ->
+
     return unless change.context?.data
 
     @setCanvasData change.context.data
 
 
   viewAppended: ->
+
     super
 
     @createCanvas()
