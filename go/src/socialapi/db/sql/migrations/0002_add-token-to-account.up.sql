@@ -1,0 +1,3 @@
+ALTER TABLE api.account ADD COLUMN token UUID NOT NULL DEFAULT uuid_generate_v4();
+
+ALTER TABLE api.account ADD CONSTRAINT "account_token_key" UNIQUE ("token") NOT DEFERRABLE INITIALLY IMMEDIATE;
