@@ -10,7 +10,10 @@ class RealtimeController extends KDController
 
     {subscribekey} = KD.config.pubnub
 
-    @pubnub = PUBNUB.init subscribe_key : subscribekey
+    @pubnub = PUBNUB.init
+      subscribe_key : subscribekey
+      uuid          : KD.whoami()._id
+
   # channel authentication is needed for notification channel and
   # private channels
   authenticate: (options, callback) ->
