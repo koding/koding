@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"strings"
 	"testing"
 
 	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
@@ -42,9 +43,9 @@ func init() {
 		client: client,
 	}
 
-	d.HandleFunc("list", dock.List)
 	d.HandleFunc("create", dock.Create)
-	d.HandleFunc("destroy", dock.Destroy)
+	d.HandleFunc("list", dock.List)
+	d.HandleFunc("start", dock.Start)
 	d.HandleFunc("removeContainer", dock.RemoveContainer)
 
 	go d.Run()
@@ -62,8 +63,11 @@ func TestCreate(t *testing.T) {
 		Name  string
 		Image string
 	}{
-		Name:  TestContainerName,
-		Image: "ubuntu",
+		Name: TestContainerName,
+		// we choose redis because it's a long living, blocking container. It
+		// uses a "entrypoint.sh" script as entrypoint so it doesn't exit once
+		// we start it
+		Image: "redis",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -72,6 +76,35 @@ func TestCreate(t *testing.T) {
 	if TestContainerName != resp.MustString() {
 		t.Errorf("container name is wrong, have '%s', want '%s'",
 			resp.MustString(), TestContainerName)
+	}
+}
+
+func TestStart(t *testing.T) {
+	container, err := getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	_, err = remote.Tell("start", struct {
+		ID string
+	}{
+		ID: container.ID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	container, err = getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	if container.Status == "" {
+		t.Fatal("container should be running, but we have nothing")
+	}
+
+	if strings.Contains(container.Status, "Exit") {
+		t.Fatalf("container is not running: %s", container.Status)
 	}
 }
 
@@ -135,16 +168,3 @@ func getContainer(containerName string) (*dockerclient.APIContainers, error) {
 
 	return nil, ErrNotFound
 }
-
-// func TestDestroy(t *testing.T) {
-// 	resp, err := remote.Tell("destroy", struct {
-// 		Name string
-// 	}{
-// 		Name: TestContainerName,
-// 	})
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	fmt.Printf("resp.MustBool() %+v\n", resp.MustBool())
-// }

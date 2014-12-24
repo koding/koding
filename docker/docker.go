@@ -85,12 +85,28 @@ func (d *Docker) Stop(r *kite.Request) (interface{}, error) {
 
 // Start starts a stopped container
 func (d *Docker) Start(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+	var params struct {
+		// The ID of the container.
+		ID string
+	}
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	if params.ID == "" {
+		return nil, errors.New("missing arg: container is is empty")
+	}
+
+	if err := d.client.StartContainer(params.ID, nil); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 // RemoveContainer removes a container
 func (d *Docker) RemoveContainer(r *kite.Request) (interface{}, error) {
-	// we can remove either by name or by id
 	var params struct {
 		// The ID of the container.
 		ID string
