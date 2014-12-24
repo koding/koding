@@ -48,8 +48,7 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 
 	// TODO later on Pubnub needs its own queue
 	go func() {
-		err := c.Pubnub.Push(pm)
-		if err != nil {
+		if err := c.Pubnub.Push(pm); err != nil {
 			c.logger.Error("Could not push update channel message to pubnub: %s", err)
 		}
 	}()
@@ -68,7 +67,7 @@ func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
 		return false
 	}
 
-	if pm.Token == "" {
+	if pm.Channel.Token == "" {
 		c.logger.Error("Invalid request: token is not set")
 		return false
 	}
@@ -96,7 +95,7 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 
 // NotifyUser sends user notifications to related channel
 func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
-	if nm.Nickname == "" {
+	if nm.Account.Nickname == "" {
 		c.logger.Error("Nickname is not set")
 		return nil
 	}

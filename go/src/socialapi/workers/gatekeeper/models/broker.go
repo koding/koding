@@ -113,7 +113,7 @@ func (b *Broker) NotifyUser(nm *NotificationMessage) error {
 
 	return channel.Publish(
 		"notification",
-		nm.Nickname, // this is routing key
+		nm.Account.Nickname, // this is routing key
 		false,
 		false,
 		amqp.Publishing{Body: byteNotification},
