@@ -12,24 +12,25 @@ import (
 )
 
 var (
-	MagicInstanceId = "i-ad086943"
-	USEastRegion    = "us-east-1"
+	magicInstanceId = "i-ad086943"
+	testUsername    = "test"
+	usEastRegion    = "us-east-1"
 )
 
-func TestRunningVms(t *testing.T) {
+func TestRunningMachine(t *testing.T) {
 	var machine *models.Machine
 
-	Convey("Given running vm", t, func() {
+	Convey("Given running machine", t, func() {
 		var err error
 
 		machine, err = insertRunningMachine()
 		So(err, ShouldBeNil)
 
-		Convey("Then it should return the vm", func() {
-			vms, err := getRunningVms()
+		Convey("Then it should return the machine", func() {
+			machines, err := getRunningVms()
 			So(err, ShouldBeNil)
 
-			So(len(vms), ShouldEqual, 1)
+			So(len(machines), ShouldEqual, 1)
 		})
 
 		Reset(func() {
@@ -38,16 +39,16 @@ func TestRunningVms(t *testing.T) {
 	})
 }
 
-func TestQueueRunningVms(t *testing.T) {
+func TestOverlimitMachines(t *testing.T) {
 	var machine *models.Machine
 
-	Convey("Given queued vm", t, func() {
+	Convey("Given queued machine", t, func() {
 		var err error
 
 		machine, err = insertRunningMachine()
 		So(err, ShouldBeNil)
 
-		Convey("Then it should queue the vm", func() {
+		Convey("Then it should queue the machine", func() {
 			err := queueUsernamesForMetricGet()
 			So(err, ShouldBeNil)
 
@@ -58,7 +59,7 @@ func TestQueueRunningVms(t *testing.T) {
 			So((string(usernames[0].([]uint8))), ShouldEqual, machine.Credential)
 		})
 
-		Convey("Then it should pop the vm", func() {
+		Convey("Then it should pop the machine", func() {
 			queuedMachines, err := popMachinesForMetricGet()
 			So(err, ShouldBeNil)
 			So(len(queuedMachines), ShouldEqual, 1)
@@ -72,11 +73,38 @@ func TestQueueRunningVms(t *testing.T) {
 	})
 }
 
+func TestStoppingMachines(t *testing.T) {
+	var machine *models.Machine
+
+	Convey("Given running machines that is over limit", t, func() {
+		var err error
+
+		machine, err = insertRunningMachine()
+		So(err, ShouldBeNil)
+
+		err = queueUsernamesForMetricGet()
+		So(err, ShouldBeNil)
+
+		Convey("Then it should return machine", func() {
+			for _, metric := range metricsToSave {
+				machines, err := metric.GetMachinesOverLimit()
+				So(err, ShouldBeNil)
+
+				So(len(machines), ShouldEqual, 1)
+			}
+		})
+
+		Reset(func() {
+			removeMachine(machine)
+		})
+	})
+}
+
 func insertRunningMachine() (*models.Machine, error) {
 	machine := &models.Machine{
 		ObjectId:   bson.NewObjectId(),
-		Meta:       bson.M{"instance_id": MagicInstanceId, "region": USEastRegion},
-		Credential: "test",
+		Meta:       bson.M{"instance_id": magicInstanceId, "region": usEastRegion},
+		Credential: testUsername,
 	}
 
 	machine.Status.State = modelhelper.VmRunningState
