@@ -73,6 +73,24 @@ func (t *Token) GetOrCreate() (*Token, error) {
 	return t.create()
 }
 
+func (t *Token) Regenerate() (*Token, error) {
+	return t.create()
+}
+
+func (t *Token) Invalidate() error {
+	if t.AccountId == 0 {
+		return ErrAccountIdNotSet
+	}
+
+	key := t.prepareKey()
+
+	redisConn := helper.MustGetRedisConn()
+
+	_, err := redisConn.Del(key)
+
+	return err
+}
+
 func (t *Token) get() (*Token, error) {
 	redisConn := helper.MustGetRedisConn()
 	uuid4, err := redisConn.Get(t.prepareKey())
