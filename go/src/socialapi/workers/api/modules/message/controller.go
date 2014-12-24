@@ -8,6 +8,7 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
+	"socialapi/workers/api/realtimehelper"
 	"socialapi/workers/common/response"
 	"time"
 
@@ -34,6 +35,13 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	if err := req.Create(); err != nil {
 		// todo this should be internal server error
+		return response.NewBadRequest(err)
+	}
+
+	// TODO for avoiding messages without pubnub channels in error case,
+	// I have implemented this sync for now. Open for debate
+	// send it to pubnub
+	if err := realtimehelper.SubscribeMessage(req); err != nil {
 		return response.NewBadRequest(err)
 	}
 
