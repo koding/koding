@@ -22,6 +22,7 @@ class IDE.EditorPane extends IDE.Pane
     file.once 'fs.delete.finished', =>
       KD.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
+    @once 'RealTimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealTimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
 
@@ -125,7 +126,6 @@ class IDE.EditorPane extends IDE.Pane
 
   bindChangeListeners: ->
 
-    ace           = @getAce()
     change        =
       origin      : KD.nick()
       context     :
@@ -136,19 +136,28 @@ class IDE.EditorPane extends IDE.Pane
           machine :
             uid   : @file.machine.uid
 
-    ace.on 'ace.change.cursor', (cursor) =>
-      change.type = 'CursorActivity'
-      change.context.cursor = cursor
+    @getAce()
+      .on 'ace.change.cursor', @lazyBound 'handleCursorChange', change
+      .on 'FileContentChanged', @lazyBound 'handleFileContentChange', change
+      .on 'FileContentRestored', @lazyBound 'handleFileContentChange', change
 
-      @emit 'ChangeHappened', change
 
-    ace.on 'FileContentChanged', =>
-      return if @dontEmitChangeEvent
+  handleCursorChange: (change, cursor) ->
 
-      change.type = 'ContentChange'
-      change.context.file.content = @getContent()
+    change.type = 'CursorActivity'
+    change.context.cursor = cursor
 
-      @emit 'ChangeHappened', change
+    @emit 'ChangeHappened', change
+
+
+  handleFileContentChange: (change) ->
+
+    return if @dontEmitChangeEvent
+
+    change.type = 'ContentChange'
+    change.context.file.content = @getContent()
+
+    @emit 'ChangeHappened', change
 
 
   serialize: ->
@@ -216,31 +225,41 @@ class IDE.EditorPane extends IDE.Pane
       @setLineWidgets row, column, origin
 
 
-  listenCollaborativeStringChanges: ->
+  setContentFromCollaborativeString: ->
 
-    filePath = @getFile().path
-    string   = @rtm.getFromModel filePath
+    {path} = @getFile()
 
-    unless string
-      return @rtm.create 'string', filePath, @getContent()
+    unless string = @rtm.getFromModel path
+      return @rtm.create 'string', path, @getContent()
 
     @setContent string.getText(), no
 
+    ace = @getAce()
+    if ace.contentChanged = ace.isCurrentContentChanged()
+      ace.emit 'FileContentChanged'
+
+
+  listenCollaborativeStringChanges: ->
+
+    return  unless string = @rtm.getFromModel @getFile().path
+
     @rtm.bindRealtimeListeners string, 'string'
 
-    @rtm.on 'TextInsertedIntoString', (changedString, change) =>
+    @rtm
+      .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
+      .on 'TextDeletedFromString', @bound 'handleCollaborativeStringEvent'
 
-      if changedString is string
-        return if @isChangedByMe change
 
-        @applyChange change
+  handleCollaborativeStringEvent: (changedString, change) ->
 
-    @rtm.on 'TextDeletedFromString', (changedString, change) =>
+    string = @rtm.getFromModel @getFile().path
 
-      if changedString is string
-        return if @isChangedByMe change
+    return  if @isChangedByMe change
 
-        @applyChange change
+    string = @rtm.getFromModel @getFile().path
+    return  unless changedString is string
+
+    @applyChange change
 
 
   isChangedByMe: (change) ->
