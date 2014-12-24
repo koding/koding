@@ -38,6 +38,40 @@ func TestRunningVms(t *testing.T) {
 	})
 }
 
+func TestQueueRunningVms(t *testing.T) {
+	var machine *models.Machine
+
+	Convey("Given queued vm", t, func() {
+		var err error
+
+		machine, err = insertRunningMachine()
+		So(err, ShouldBeNil)
+
+		Convey("Then it should queue the vm", func() {
+			err := queueUsernamesForMetricGet()
+			So(err, ShouldBeNil)
+
+			usernames, err := redisStorage.Client.GetSetMembers(redisStorage.QueueKey(NetworkOut))
+			So(err, ShouldBeNil)
+
+			So(len(usernames), ShouldEqual, 1)
+			So((string(usernames[0].([]uint8))), ShouldEqual, machine.Credential)
+		})
+
+		Convey("Then it should pop the vm", func() {
+			queuedMachines, err := popMachinesForMetricGet()
+			So(err, ShouldBeNil)
+			So(len(queuedMachines), ShouldEqual, 1)
+
+			So(queuedMachines[0].Credential, ShouldEqual, machine.Credential)
+		})
+
+		Reset(func() {
+			removeMachine(machine)
+		})
+	})
+}
+
 func insertRunningMachine() (*models.Machine, error) {
 	machine := &models.Machine{
 		ObjectId:   bson.NewObjectId(),

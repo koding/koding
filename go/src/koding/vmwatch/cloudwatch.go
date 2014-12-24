@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"time"
 
@@ -85,8 +84,6 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 			sum += raw.Sum / 1024 / 1024
 		}
 	}
-
-	fmt.Println(c.Name, username, sum)
 
 	return storage.Save(c.Name, username, sum)
 }

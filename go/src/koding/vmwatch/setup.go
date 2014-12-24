@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	conf        *config.Config
-	redisClient *redis.RedisSession
+	conf         *config.Config
+	redisClient  *redis.RedisSession
+	redisStorage *RedisStorage
 )
 
 func init() {
@@ -24,5 +25,7 @@ func init() {
 		log.Fatal(err)
 	}
 
-	storage = &RedisStorage{Client: redisClient}
+	redisStorage = &RedisStorage{Client: redisClient}
+
+	storage = redisStorage
 }
