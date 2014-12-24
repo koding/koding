@@ -5,11 +5,11 @@ all: build
 
 test: 
 	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
-	@`which godep` go test -race  ./...
+	@`which go` test -race  ./...
 
 build: 
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
-	@`which godep` go build -v  ./...
+	@`which go` build -v  ./...
 
 .PHONY: all build test
 

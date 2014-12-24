@@ -75,6 +75,11 @@
 			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
 		},
 		{
+			"ImportPath": "github.com/docker/docker/pkg/units",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
 			"ImportPath": "github.com/docker/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar",
 			"Comment": "v1.4.1-179-g4baa240",
 			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
@@ -114,6 +119,11 @@
 		{
 			"ImportPath": "github.com/kr/binarydist",
 			"Rev": "9955b0ab8708602d411341e55fffd7e0700f86bd"
+		},
+		{
+			"ImportPath": "github.com/kr/pty",
+			"Comment": "release.r56-25-g05017fc",
+			"Rev": "05017fcccf23c823bfdea560dcc958a136e54fb7"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
