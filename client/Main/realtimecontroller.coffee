@@ -50,6 +50,25 @@ class RealtimeController extends KDController
     return @subscribePubnub options, callback
 
 
+  subscribeNotification: (callback) ->
+    unless KD.isPubnubEnabled()
+      notificationChannel = KD.remote.subscribe 'notification',
+        serviceType : 'notification'
+        isExclusive : yes
+
+      return callback null, notificationChannel
+
+    { nickname } = KD.whoami().profile
+    { environment } = KD.config
+    channelName = "notification-#{environment}-#{nickname}"
+    options = { channelName }
+    options.authenticate =
+      endPoint : "/api/gatekeeper/subscribe/notification"
+      data     : { id: KD.whoami().socialApiId }
+
+    @subscribePubnub options, callback
+
+
   subscribePubnub: (options = {}, callback) ->
 
     pubnubChannelName = options.channelName
