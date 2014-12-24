@@ -55,11 +55,13 @@ class IDE.EditorPane extends IDE.Pane
 
 
   handleAutoSave: ->
+
     return   if @getFile().path.indexOf('localfile:/') > -1
     @save()  if @getAce().isContentChanged()
 
 
   save: ->
+
     @getAce().emit 'ace.requests.save', @getContent()
 
 

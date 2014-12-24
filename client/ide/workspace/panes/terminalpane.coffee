@@ -14,6 +14,7 @@ class IDE.TerminalPane extends IDE.Pane
 
 
   createTerminal: ->
+
     options =
       delegate         : this
       readOnly         : @getOption 'readOnly'
@@ -58,10 +59,12 @@ class IDE.TerminalPane extends IDE.Pane
 
 
   getMode: ->
+
     return  if @session? then 'resume' else 'create'
 
 
   runCommand: (command, callback) ->
+
     return unless command
 
     unless @remote
@@ -75,16 +78,19 @@ class IDE.TerminalPane extends IDE.Pane
 
 
   resurrect: ->
+
     @destroySubViews()
     @createTerminal()
 
 
   setFocus: (state) ->
+
     super state
     @webtermView.setFocus state
 
 
   serialize: ->
+
     {label, ipAddress, slug, uid} = @machine
     {path, paneType} = @getOptions()
 
