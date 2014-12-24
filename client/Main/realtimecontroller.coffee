@@ -29,16 +29,33 @@ class RealtimeController extends KDController
   # subscriptionData =
   #   serviceType: 'socialapi'
   #   group      : group.slug
-  #   channelType: socialApiChannel.typeConstant
-  #   channelName: socialApiChannel.name
-  authenticate: (options = {}, callback = noop) ->
+  #   channelType: typeConstant
+  #   channelName: name
+  #   isExclusive: yes
+  #   connectDirectly: yes
+  #   brokerChannelName: channelName
+  subscribeChannel: (subscriptionData, callback) ->
 
-    { channelName, typeConstant, group } = options
-    return callback { message: "channel name is not defined" }  unless channelName
+    # validate first
+    { channelName, channelType: typeConstant, group, token } = subscriptionData
 
-    endPoint = '/api/gatekeeper/channel/authenticate'
-    data = {name: channelName, typeConstant, group}
-    KD.utils.doXhrRequest {endPoint, data}, callback
+    return callback { message: 'channel name is not defined' }  unless channelName
+
+    return @subscribeBroker subscriptionData, callback  unless KD.isPubnubEnabled()
+
+    pubnubChannelName = "channel-#{token}"
+
+    options = { channelName: pubnubChannelName }
+
+    # authentication needed for private message channels (pinnedactivity is for future use )
+    if typeConstant in ['privatemessage', 'pinnedactivity']
+      options.authenticate =
+        endPoint : "/api/gatekeeper/subscribe/channel"
+        data     : { name: channelName, typeConstant, groupName: group }
+
+    return @subscribePubnub options, callback
+
+
   # subcribeMessage subscribes to message channels for instance update events
   # message channels do not need any authentication
   subscribeMessage: (message, callback) ->
