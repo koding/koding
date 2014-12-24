@@ -1,9 +1,4 @@
-First install godep:
-
-```
-go get github.com/tools/godep
-```
-
+Be sure the repo is inside a `$GOPATH`
 To build and test all packages run:
 
 `make`
