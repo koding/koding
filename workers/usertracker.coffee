@@ -6,6 +6,10 @@ allUsers = {}
 
 redisClient = null
 
+sendData = (prefix, keys)->
+  hllDailyKey = "#{prefix}_visitingusers:#{argv.c}:daily:#{year}:#{month}:#{day}"
+  redisClient?.pfadd hllDailyKey, keys..., ->
+
 publishToRedis = ->
   uniqueKeysRegistered = Object.keys registeredUsers
   uniqueKeysAll = Object.keys allUsers
@@ -19,19 +23,12 @@ publishToRedis = ->
   if uniqueKeysRegistered.length > 0
     # clear the previous ones
     registeredUsers = {}
-
-    hllDailyKey = "registered_visitingusers:#{argv.c}:daily:#{year}:#{month}:#{day}"
-
-    redisClient?.pfadd hllDailyKey, uniqueKeysRegistered..., ->
+    sendData "registered", uniqueKeysRegistered
 
   if uniqueKeysAll.length > 0
     # clear the previous ones
     allUsers = {}
-
-    hllDailyKey = "all_visitingusers:#{argv.c}:daily:#{year}:#{month}:#{day}"
-
-    redisClient?.pfadd hllDailyKey, uniqueKeysAll..., ->
-
+    sendData "all", uniqueKeysAll
 
 module.exports.track = (username)->
   # if user is a registered one track them seperately
