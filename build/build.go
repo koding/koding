@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"koding/tools/build"
 	"log"
 	"os"
 	"path/filepath"
@@ -13,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/koding/klient/build/build"
 )
 
 var (
