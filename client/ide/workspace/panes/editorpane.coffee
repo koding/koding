@@ -317,3 +317,11 @@ class IDE.EditorPane extends IDE.Pane
       @getEditorSession().remove range
 
     @dontEmitChangeEvent = no
+
+
+  makeReadOnly: ->
+    @getEditor().setReadOnly yes
+
+
+  makeEditable: ->
+    @getEditor().setReadOnly no
