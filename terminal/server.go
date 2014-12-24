@@ -1,10 +1,10 @@
 package terminal
 
 import (
-	"koding/tools/pty"
 	"syscall"
 
 	"github.com/koding/kite/dnode"
+	"github.com/koding/klient/terminal/pty"
 )
 
 // Server is the type of object that is sent to the connected client.

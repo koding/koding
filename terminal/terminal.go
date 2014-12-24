@@ -6,7 +6,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"koding/tools/pty"
 	"os"
 	"os/exec"
 	"os/user"
@@ -16,6 +15,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/koding/kite"
+	"github.com/koding/klient/terminal/pty"
 )
 
 type Terminal struct {
