@@ -49,6 +49,7 @@ module.exports =
         browser
           .waitForElementVisible  '.activity-sidebar .jtreeview-wrapper li' + ' a[href="/IDE/' + vmName + '/' + folderData.name + '"]', 20000 #Assertion
           .pause                  3000
+          .waitForElementVisible  '.vm-info', 20000
           .assert.containsText    '.vm-info', name # Assertion
           .end()
 
