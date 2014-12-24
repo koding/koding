@@ -32,7 +32,10 @@ func New(url string) *Docker {
 // Build builds a new container image from a public Docker path or from a
 // given Dockerfile
 func (d *Docker) Build(r *kite.Request) (interface{}, error) {
-	var params buildArgs
+	var params struct {
+		DockerFile string
+	}
+
 	if err := r.Args.One().Unmarshal(&params); err != nil {
 		return nil, err
 	}
