@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"koding/kites/klient/protocol"
 	"net/http"
 	"os"
 	"strings"
@@ -16,6 +15,7 @@ import (
 	"github.com/hashicorp/go-version"
 	"github.com/inconshreveable/go-update"
 	"github.com/koding/kite"
+	"github.com/koding/klient/protocol"
 	"github.com/mitchellh/osext"
 )
 
