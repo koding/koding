@@ -93,7 +93,7 @@ class AceView extends JView
 
     @ace.on 'FileContentRestored', =>
       @ace.contentChanged = no
-      @getActiveTabHandle().unsetClass 'modified'
+      @ace.removeModifiedFromTab()
       delete @getDelegate().quitOptions
 
     @on 'KDObjectWillBeDestroyed', =>

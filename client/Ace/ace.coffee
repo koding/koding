@@ -28,9 +28,8 @@ class Ace extends KDView
             @lastSavedContents = contents
 
           @editor.on 'change', =>
-            if @isCurrentContentChanged()
-            then @emit 'FileContentChanged'  unless @suppressListeners
-            else @emit 'FileContentRestored'
+            @emit 'FileContentChanged'  unless @suppressListeners
+            @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
           @editor.gotoLine 0
           @focus()
@@ -93,7 +92,6 @@ class Ace extends KDView
 
   saveFinished:(err, res)->
     unless err
-      @notify 'Successfully saved!', 'success'
       @lastSavedContents = @lastContentsSentForSave
       @emit 'FileContentRestored'
       # unless @askedForSave
@@ -205,7 +203,6 @@ class Ace extends KDView
   fetchContents:(callback)->
     file = @getData()
     unless /localfile:/.test file.path
-      @notify 'Loading...', null, null, 10000
       file.fetchContents callback
       # {vmName, path} = file
       # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
@@ -426,12 +423,21 @@ class Ace extends KDView
 
     for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
       aceView.ace.requestSave()
-      aceView.ace.once 'FileContentRestored', -> @removeModifiedFromTab aceView
+      aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
 
-  removeModifiedFromTab:(aceView)->
-    {name} = aceView.ace.data
-    for handle in aceView.delegate.tabView.handles when handle.options.title is name
-      handle.unsetClass 'modified'
+  removeModifiedFromTab: ->
+    aceView      = @parent
+    {name}       = aceView.ace.data
+    {handles}    = aceView.delegate.tabView
+    targetHandle = null
+
+    for handle in handles when handle.getOptions().title is name
+      targetHandle = handle
+      targetHandle.setClass 'saved'
+
+      KD.utils.wait 500, ->
+        targetHandle.unsetClass 'modified'
+        targetHandle.unsetClass 'saved'
 
   showGotoLine: ->
     unless @gotoLineModal
