@@ -497,3 +497,12 @@ func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (int64, 
 
 	return redis.Int64(r.Do("ZREM", prefixed...))
 }
+
+// SortedSetAdds adds updates the element score, and as a side effect, its
+// position on the sorted set.
+//
+// See: http://redis.io/commands/zadd
+func (r *RedisSession) SortedSetAddSingle(key, member string, score interface{}) error {
+	_, err := r.Do("ZADD", r.AddPrefix(key), score, member)
+	return err
+}

@@ -15,7 +15,7 @@ var (
 
 func init() {
 	var err error
-	conf := &RedisConf{Server: "localhost:6379"}
+	conf := &RedisConf{Server: "192.168.59.103:6379"}
 	session, err = NewRedisSession(conf)
 	if err != nil {
 		panic(fmt.Sprintf("Could not start redis: %s", err))
@@ -411,6 +411,22 @@ func TestSortedSet(t *testing.T) {
 	_, err = session.SortedSetScore(destination, "item1")
 	if err == nil {
 		t.Errorf("Didn't remove item from sorted set")
+		return
+	}
+
+	err = session.SortedSetAddSingle(destination, "item1", 1)
+	if err != nil {
+		t.Errorf("Couldn't remove item from sorted set: %s", err)
+		return
+	}
+
+	score, err = session.SortedSetScore(destination, "item1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if score != 1 {
+		t.Errorf("Didn't set score for item in sorted set")
 		return
 	}
 
