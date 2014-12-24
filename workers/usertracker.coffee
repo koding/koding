@@ -1,28 +1,44 @@
 {argv} = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-users = {}
+registeredUsers = {}
+allUsers = {}
+
 redisClient = null
 
 publishToRedis = ->
-  uniqueKeys = Object.keys users
-  console.log uniqueKeys
-  # return if we dont have any users for this iteration
-  return if uniqueKeys.length is 0
-
-  # clear the previous ones
-  users = {}
+  uniqueKeysRegistered = Object.keys registeredUsers
+  uniqueKeysAll = Object.keys allUsers
 
   dateObj = new Date()
   month = dateObj.getUTCMonth() + 1
   day   = dateObj.getUTCDate()
   year  = dateObj.getUTCFullYear()
 
-  hllDailyKey = "dailyusers:#{argv.c}:#{year}:#{month}:#{day}"
+  # return if we dont have any registeredUsers for this iteration
+  if uniqueKeysRegistered.length > 0
+    # clear the previous ones
+    registeredUsers = {}
 
-  redisClient?.pfadd hllDailyKey, uniqueKeys..., ->
+    hllDailyKey = "registered_visitingusers:#{argv.c}:daily:#{year}:#{month}:#{day}"
 
-module.exports.track = (username)-> users[username] = ""
+    redisClient?.pfadd hllDailyKey, uniqueKeysRegistered..., ->
+
+  if uniqueKeysAll.length > 0
+    # clear the previous ones
+    allUsers = {}
+
+    hllDailyKey = "all_visitingusers:#{argv.c}:daily:#{year}:#{month}:#{day}"
+
+    redisClient?.pfadd hllDailyKey, uniqueKeysAll..., ->
+
+
+module.exports.track = (username)->
+  # if user is a registered one track them seperately
+  registeredUsers[username] = ""  unless /guest-/.test username
+
+  allUsers[username] = ""
+
 module.exports.start = ->
   redis = require "redis"
   redisClient = redis.createClient(
