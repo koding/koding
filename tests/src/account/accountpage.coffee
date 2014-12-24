@@ -21,3 +21,14 @@ module.exports =
       .waitForElementVisible   postInPageSelector, 25000
       .assert.containsText     postInPageSelector, post
       .end()
+
+
+  editFirstName: (browser) ->
+
+    helpers.beginTest(browser)
+    paragraph = helpers.getFakeText()
+    inputSelector = '.firstname input.text'
+
+    helpers.changeName(browser, inputSelector, yes)
+    browser.end()
+
