@@ -83,6 +83,18 @@ class RealtimeController extends KDController
         restore : yes
 
 
+  # subscribeBroker subscribes the broker channels when it is enabled.
+  # This will be deleted later on
+  subscribeBroker: (subscriptionData = {}, callback) ->
+    {brokerChannelName:channelName} = subscriptionData
+    # do not use callbacks while subscribing, KD.remote.subscribe already
+    # returns the required channel object. Use it. Callbacks are called
+    # twice in the subscribe function
+    realtimeChannel = KD.remote.subscribe channelName, subscriptionData
+
+    callback null, realtimeChannel
+
+
 class PubnubChannel extends KDObject
 
   constructor: (options = {}) ->
