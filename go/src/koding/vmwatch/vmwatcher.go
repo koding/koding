@@ -47,6 +47,34 @@ func stopVmsOverLimit() error {
 	return nil
 }
 
+func queueUsernamesForMetricGet() error {
+	machines, err := getRunningVms()
+	if err != nil {
+		return err
+	}
+
+	usernames := []interface{}{}
+	for _, machine := range machines {
+		usernames = append(usernames, machine.Credential)
+	}
+
+	return storage.Queue(NetworkOut, usernames)
+}
+
+func popMachinesForMetricGet() ([]*models.Machine, error) {
+	username, err := storage.Pop(NetworkOut)
+	if err != nil {
+		return nil, err
+	}
+
+	machines, err := modelhelper.GetMachinesForUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
+
 func getRunningVms() ([]*models.Machine, error) {
 	return modelhelper.GetRunningVms()
 }
