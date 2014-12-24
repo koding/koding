@@ -174,6 +174,12 @@ class IDE.DrawingPane extends IDE.Pane
   setCanvasData: (json) -> @$canvas.jsonLoad json
 
 
+  makeEditable: -> @$canvas.setReadOnly no
+
+
+  makeReadOnly: -> @$canvas.setReadOnly yes
+
+
   clear: ->
 
     @$canvas.clear()
