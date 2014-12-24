@@ -5,7 +5,7 @@ all: build
 
 test: 
 	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
-	@`which go` test -race  ./...
+	@`which godep` go test -race  ./...
 
 build: 
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
