@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/docker/docker/pkg/units"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/docker/docker/pkg/units"
 )
 
 func TestMemInfo(t *testing.T) {
