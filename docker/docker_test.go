@@ -46,6 +46,7 @@ func init() {
 	d.HandleFunc("create", dock.Create)
 	d.HandleFunc("list", dock.List)
 	d.HandleFunc("start", dock.Start)
+	d.HandleFunc("stop", dock.Stop)
 	d.HandleFunc("removeContainer", dock.RemoveContainer)
 
 	go d.Run()
@@ -105,6 +106,31 @@ func TestStart(t *testing.T) {
 
 	if strings.Contains(container.Status, "Exit") {
 		t.Fatalf("container is not running: %s", container.Status)
+	}
+}
+
+func TestStop(t *testing.T) {
+	container, err := getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	_, err = remote.Tell("stop", struct {
+		ID string
+	}{
+		ID: container.ID,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	container, err = getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	if !strings.Contains(container.Status, "Exit") {
+		t.Fatalf("container is not stopped: %s", container.Status)
 	}
 }
 

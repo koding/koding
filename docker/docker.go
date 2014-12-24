@@ -80,7 +80,24 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 
 // Stop stops a running container
 func (d *Docker) Stop(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+	var params struct {
+		// The ID of the container.
+		ID string
+	}
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	if params.ID == "" {
+		return nil, errors.New("missing arg: container is is empty")
+	}
+
+	if err := d.client.StopContainer(params.ID, 0); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 // Start starts a stopped container
