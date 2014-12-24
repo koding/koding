@@ -3,9 +3,9 @@ package main
 import "time"
 
 type Metric interface {
-	GetAndSaveData(string, time.Time) error
-	GetVmsOverLimit(time.Time) []string
-	IsUserOverLimit(string, time.Time) LimitResponse
+	GetAndSaveData(string) error
+	GetVmsOverLimit() []string
+	IsUserOverLimit(string) LimitResponse
 }
 
 type MetricData struct {

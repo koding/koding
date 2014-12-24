@@ -68,3 +68,18 @@ func GetRunningVms() ([]*models.Machine, error) {
 
 	return machines, nil
 }
+
+func GetMachinesForUsername(username string) ([]*models.Machine, error) {
+	machines := []*models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"credential": username}).All(&machines)
+	}
+
+	err := Mongo.Run(MachineColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
