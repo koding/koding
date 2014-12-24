@@ -4,7 +4,6 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"log"
-	"time"
 )
 
 func getAndSaveRunningVmsMetrics() error {
@@ -15,7 +14,7 @@ func getAndSaveRunningVmsMetrics() error {
 
 	for _, vm := range runningVms {
 		for _, metric := range metricsToSave {
-			err := metric.GetAndSaveData(vm.ObjectId.Hex(), time.Now())
+			err := metric.GetAndSaveData(vm.Credential)
 			if err != nil {
 				log.Println(err)
 			}
@@ -33,7 +32,7 @@ func stopVmsOverLimit() error {
 
 	for _, vm := range runningVms {
 		for _, metric := range metricsToSave {
-			resp := metric.IsUserOverLimit(vm.Credential, time.Now())
+			resp := metric.IsUserOverLimit(vm.Credential)
 			if !resp.OverLimit {
 				continue
 			}

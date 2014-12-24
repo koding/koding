@@ -11,6 +11,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var (
+	MagicInstanceId = "i-ad086943"
+	USEastRegion    = "us-east-1"
+)
+
 func TestRunningVms(t *testing.T) {
 	var machine *models.Machine
 
@@ -34,7 +39,12 @@ func TestRunningVms(t *testing.T) {
 }
 
 func insertRunningMachine() (*models.Machine, error) {
-	machine := &models.Machine{ObjectId: bson.NewObjectId()}
+	machine := &models.Machine{
+		ObjectId:   bson.NewObjectId(),
+		Meta:       bson.M{"instance_id": MagicInstanceId, "region": USEastRegion},
+		Credential: "test",
+	}
+
 	machine.Status.State = modelhelper.VmRunningState
 
 	query := func(c *mgo.Collection) error {
