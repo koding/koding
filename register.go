@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
 const publicEcho = "http://echoip.com"

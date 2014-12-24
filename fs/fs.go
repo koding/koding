@@ -9,14 +9,14 @@ import (
 	"path"
 	"sync"
 
-	"github.com/koding/kite"
-	"github.com/koding/kite/dnode"
-	"gopkg.in/fsnotify.v1"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
+	"github.com/koding/klient/Godeps/_workspace/src/gopkg.in/fsnotify.v1"
 )
 
 var (
-	// watcher variables
-	once               sync.Once
+	once sync. // watcher variables
+	Once
 	newPaths, oldPaths = make(chan string), make(chan string)
 
 	// Limit of watching folders

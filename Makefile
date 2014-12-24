@@ -9,5 +9,7 @@ test:
 
 build: 
 	@echo "$(OK_COLOR)==> Building all packages $(NO_COLOR)"
-	@`which go` build -v  ./...
+	@`which godep` go build -v 
+
+.PHONY: all build test
 

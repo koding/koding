@@ -19,8 +19,8 @@ import (
 	"github.com/koding/klient/terminal"
 	"github.com/koding/klient/usage"
 
-	"github.com/koding/kite"
-	"github.com/koding/kite/config"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
 )
 
 var (
