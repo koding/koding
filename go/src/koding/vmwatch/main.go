@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 	"time"
+
+	"github.com/robfig/cron"
 )
 
 var (
@@ -11,16 +13,20 @@ var (
 )
 
 func main() {
-	go func() {
-		ticker := time.NewTicker(tickerInterval)
-
-		for _ = range ticker.C {
-			err := getAndSaveRunningVmsMetrics()
-			if err != nil {
-				log.Fatal(err)
-			}
+	c := cron.New()
+	c.AddFunc("@hourly", func() {
+		err := queueUsernamesForMetricGet()
+		if err != nil {
+			log.Fatal(err)
 		}
-	}()
+	})
+
+	c.AddFunc("0 5-59/30 * * * *", func() {
+		err := getAndSaveQueueMachineMetrics()
+		if err != nil {
+			log.Fatal(err)
+		}
+	})
 
 	go func() {
 		ticker := time.NewTicker(tickerInterval)

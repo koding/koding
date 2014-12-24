@@ -6,15 +6,15 @@ import (
 	"log"
 )
 
-func getAndSaveRunningVmsMetrics() error {
-	runningVms, err := getRunningVms()
+func getAndSaveQueueMachineMetrics() error {
+	machines, err := popMachinesForMetricGet()
 	if err != nil {
 		return err
 	}
 
-	for _, vm := range runningVms {
+	for _, machine := range machines {
 		for _, metric := range metricsToSave {
-			err := metric.GetAndSaveData(vm.Credential)
+			err := metric.GetAndSaveData(machine.Credential)
 			if err != nil {
 				log.Println(err)
 			}
