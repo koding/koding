@@ -179,6 +179,15 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 		return response.NewBadRequest(err)
 	}
 
+	res := models.NewCheckParticipationResponse()
+	res.Channel = &channel
+	res.Account = context.Client.Account
+
+	// it looks like this is public channel and no need to check for participation
+	if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return response.NewOK(res)
+	}
+
 	canOpen, err := channel.CanOpen(q.AccountId)
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -193,7 +202,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 			))
 	}
 
-	return response.NewOK(channel)
+	return response.NewOK(res)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
