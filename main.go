@@ -217,8 +217,8 @@ func newKite() *kite.Kite {
 	k.HandleFunc("docker.connect", dock.Connect)
 	k.HandleFunc("docker.stop", dock.Stop)
 	k.HandleFunc("docker.start", dock.Start)
-	k.HandleFunc("docker.kill", dock.Kill)
-	k.HandleFunc("docker.destroy", dock.Destroy)
+	k.HandleFunc("docker.removeContainer", dock.RemoveContainer)
+	k.HandleFunc("docker.removeImage", dock.RemoveImage)
 	k.HandleFunc("docker.list", dock.List)
 
 	// Execution
