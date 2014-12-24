@@ -25,19 +25,15 @@ func getAndSaveQueueMachineMetrics() error {
 }
 
 func stopVmsOverLimit() error {
-	runningVms, err := getRunningVms()
-	if err != nil {
-		return err
-	}
+	for _, metric := range metricsToSave {
+		machines, err := metric.GetMachinesOverLimit()
+		if err != nil {
+			log.Println(err)
+			continue
+		}
 
-	for _, vm := range runningVms {
-		for _, metric := range metricsToSave {
-			resp := metric.IsUserOverLimit(vm.Credential)
-			if !resp.OverLimit {
-				continue
-			}
-
-			err := stopVm(vm.ObjectId.Hex())
+		for _, machine := range machines {
+			err := stopVm(machine.ObjectId.Hex())
 			if err != nil {
 				log.Println(err)
 			}
@@ -51,6 +47,10 @@ func queueUsernamesForMetricGet() error {
 	machines, err := getRunningVms()
 	if err != nil {
 		return err
+	}
+
+	if len(machines) == 0 {
+		return nil
 	}
 
 	usernames := []interface{}{}

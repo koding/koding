@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"time"
 
@@ -88,8 +89,25 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	return storage.Save(c.Name, username, sum)
 }
 
-func (c *Cloudwatch) GetVmsOverLimit() []string {
-	return []string{}
+func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
+	usernames, err := storage.Range(c.Name, NetworkOutLimt)
+	if err != nil {
+		return nil, err
+	}
+
+	machines := []*models.Machine{}
+
+	for _, username := range usernames {
+		ms, err := modelhelper.GetMachinesForUsername(username)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		machines = append(machines, ms...)
+	}
+
+	return machines, nil
 }
 
 func (c *Cloudwatch) IsUserOverLimit(username string) LimitResponse {

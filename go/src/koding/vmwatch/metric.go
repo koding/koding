@@ -1,10 +1,13 @@
 package main
 
-import "time"
+import (
+	"koding/db/models"
+	"time"
+)
 
 type Metric interface {
 	GetAndSaveData(string) error
-	GetVmsOverLimit() []string
+	GetMachinesOverLimit() ([]*models.Machine, error)
 	IsUserOverLimit(string) LimitResponse
 }
 

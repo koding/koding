@@ -10,6 +10,7 @@ import (
 type Storage interface {
 	Queue(string, []interface{}) error
 	Pop(string) (string, error)
+	Range(string, int) ([]string, error)
 	Save(string, string, float64) error
 	Get(string, string) (float64, error)
 }
@@ -20,6 +21,8 @@ var (
 	WorkerName = "cloudwatch"
 	GroupBy    = "users"
 	QueueName  = "queue"
+
+	NetworkOutLimt = 7
 )
 
 type RedisStorage struct {
@@ -43,12 +46,32 @@ func (r *RedisStorage) Get(metricName, username string) (float64, error) {
 	return r.Client.SortedSetScore(r.Key(metricName), username)
 }
 
+func (r *RedisStorage) Range(metricName string, min int) ([]string, error) {
+	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, "+inf")
+	if err != nil {
+		return nil, err
+	}
+
+	usernames := []string{}
+	for _, username := range raw {
+		usernames = append(usernames, string(username.([]uint8)))
+	}
+
+	return usernames, nil
+}
+
 func (r *RedisStorage) Key(prefix string) string {
 	year, week := now.BeginningOfWeek().ISOWeek()
 	return fmt.Sprintf("%s:%s:%s:%d-%d", WorkerName, prefix, GroupBy, year, week)
 }
 
 func (r *RedisStorage) QueueKey(prefix string) string {
-	year, week := now.BeginningOfWeek().ISOWeek()
-	return fmt.Sprintf("%s:%s:%s:%d-%d", WorkerName, prefix, QueueName, year, week)
+	t := now.BeginningOfHour()
+
+	year, month, day := t.Date()
+	hour := t.Hour()
+
+	return fmt.Sprintf("%s:%s:%s:%d-%s-%d-%d",
+		WorkerName, prefix, QueueName, year, month, day, hour,
+	)
 }
