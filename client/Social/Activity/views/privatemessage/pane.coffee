@@ -142,7 +142,7 @@ class PrivateMessagePane extends MessagePane
     return [prevSibling, nextSibling]
 
 
-  unsetPaddingIfNeed: ->
+  removePadding: ->
       
     listView     = @listController.getView()
     headerHeight = @heads?.getHeight() or 0
@@ -156,8 +156,7 @@ class PrivateMessagePane extends MessagePane
   
   messageExpanded: () ->
     
-    if @unsetPaddingIfNeed()
-      @scrollDown()
+    @scrollDown()  if @removePadding()
 
     @scrollView.wrapper.emit 'MutationHappened'
 
