@@ -34,37 +34,44 @@ class IDEAppController extends AppController
       'go to right tab'     : 'goToRightTab'
       'go to tab number'    : 'goToTabNumber'
       'fullscren ideview'   : 'toggleFullscreenIDEView'
+      'move tab up'         : 'moveTabUp'
+      'move tab down'       : 'moveTabDown'
+      'move tab left'       : 'moveTabLeft'
+      'move tab right'      : 'moveTabRight'
 
     keyBindings: [
-      { command: 'find file by name',   binding: 'ctrl+alt+o',       global: yes }
-      { command: 'search all files',    binding: 'ctrl+alt+f',       global: yes }
-      { command: 'split vertically',    binding: 'ctrl+alt+v',       global: yes }
-      { command: 'split horizontally',  binding: 'ctrl+alt+h',       global: yes }
-      { command: 'merge splitview',     binding: 'ctrl+alt+m',       global: yes }
-      { command: 'preview file',        binding: 'ctrl+alt+p',       global: yes }
-      { command: 'save all files',      binding: 'ctrl+alt+s',       global: yes }
-      { command: 'create new file',     binding: 'ctrl+alt+n',       global: yes }
-      { command: 'create new terminal', binding: 'ctrl+alt+t',       global: yes }
-      { command: 'create new browser',  binding: 'ctrl+alt+b',       global: yes }
-      { command: 'create new drawing',  binding: 'ctrl+alt+d',       global: yes }
-      { command: 'toggle sidebar',      binding: 'ctrl+alt+k',       global: yes }
-      { command: 'close tab',           binding: 'ctrl+alt+w',       global: yes }
-      { command: 'go to left tab',      binding: 'ctrl+alt+[',       global: yes }
-      { command: 'go to right tab',     binding: 'ctrl+alt+]',       global: yes }
-      { command: 'go to tab number',    binding: 'mod+1',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+2',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+3',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+4',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+5',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+6',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+7',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+8',            global: yes }
-      { command: 'go to tab number',    binding: 'mod+9',            global: yes }
-      { command: 'fullscren ideview',   binding: 'mod+shift+enter',  global: yes }
+      { command: 'find file by name',   binding: 'ctrl+alt+o',           global: yes }
+      { command: 'search all files',    binding: 'ctrl+alt+f',           global: yes }
+      { command: 'split vertically',    binding: 'ctrl+alt+v',           global: yes }
+      { command: 'split horizontally',  binding: 'ctrl+alt+h',           global: yes }
+      { command: 'merge splitview',     binding: 'ctrl+alt+m',           global: yes }
+      { command: 'preview file',        binding: 'ctrl+alt+p',           global: yes }
+      { command: 'save all files',      binding: 'ctrl+alt+s',           global: yes }
+      { command: 'create new file',     binding: 'ctrl+alt+n',           global: yes }
+      { command: 'create new terminal', binding: 'ctrl+alt+t',           global: yes }
+      { command: 'create new browser',  binding: 'ctrl+alt+b',           global: yes }
+      { command: 'create new drawing',  binding: 'ctrl+alt+d',           global: yes }
+      { command: 'toggle sidebar',      binding: 'ctrl+alt+k',           global: yes }
+      { command: 'close tab',           binding: 'ctrl+alt+w',           global: yes }
+      { command: 'go to left tab',      binding: 'ctrl+alt+[',           global: yes }
+      { command: 'go to right tab',     binding: 'ctrl+alt+]',           global: yes }
+      { command: 'go to tab number',    binding: 'mod+1',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+2',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+3',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+4',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+5',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+6',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+7',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+8',                global: yes }
+      { command: 'go to tab number',    binding: 'mod+9',                global: yes }
+      { command: 'fullscren ideview',   binding: 'mod+shift+enter',      global: yes }
+      { command: 'move tab up',         binding: 'mod+alt+shift+up',     global: yes }
+      { command: 'move tab down',       binding: 'mod+alt+shift+down',   global: yes }
+      { command: 'move tab left',       binding: 'mod+alt+shift+left',   global: yes }
+      { command: 'move tab right',      binding: 'mod+alt+shift+right',  global: yes }
     ]
 
   constructor: (options = {}, data) ->
-
     options.appInfo =
       type          : 'application'
       name          : 'IDE'
@@ -95,6 +102,11 @@ class IDEAppController extends AppController
     appView   = @getView()
     workspace = @workspace = new IDE.Workspace { layoutOptions }
     @ideViews = []
+
+    # todo:
+    # - following two should be abstracted out into a separate api
+    @layout = ndpane(16)
+    @layoutMap = new Array(16*16)
 
     {windowController} = KD.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
@@ -189,6 +201,12 @@ class IDEAppController extends AppController
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
     newIDEView     = new IDE.IDEView ideViewOptions
+
+    splitViewPanel = @activeTabView.parent.parent
+    if splitViewPanel instanceof KDSplitViewPanel
+    then layout = splitViewPanel._layout
+    else layout = @layout
+
     @activeTabView = null
 
     ideView.detach()
@@ -197,12 +215,19 @@ class IDEAppController extends AppController
       type      : type
       views     : [ null, newIDEView ]
 
+    layout.split(type is 'vertical')
+    splitView._layout = layout
+
     @registerIDEView newIDEView
 
-    splitView.once 'viewAppended', ->
+    splitView.once 'viewAppended', =>
       splitView.panels.first.attach ideView
       splitView.panels[0] = ideView.parent
       splitView.options.views[0] = ideView
+      splitView.panels.forEach (panel, i) =>
+        leaf = layout.leafs[i]
+        panel._layout = leaf
+        @layoutMap[leaf.data.offset] = panel
 
     ideParent.addSubView splitView
     @setActiveTabView newIDEView.tabView
@@ -227,8 +252,14 @@ class IDEAppController extends AppController
         index = @ideViews.indexOf view
         @ideViews.splice index, 1
 
+      @layoutMap[splitView._layout.data.offset] = parent
+
       @handleSplitMerge views, parent, parentSplitView, panelIndexInParent
       @doResize()
+
+    splitView._layout.leafs.forEach (leaf) =>
+      @layoutMap[leaf.data.offset] = null
+    splitView._layout.merge()
 
     splitView.merge()
 
@@ -526,6 +557,30 @@ class IDEAppController extends AppController
 
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
+  moveTab: (direction) ->
+    return unless @activeTabView.parent?
+
+    panel = @activeTabView.parent.parent
+    return  unless panel instanceof KDSplitViewPanel
+
+    targetOffset = @layout[direction](panel._layout.data.offset)
+    return  unless targetOffset?
+
+    targetPanel = @layoutMap[targetOffset]
+
+    {pane} = @activeTabView.removePane @activeTabView.getActivePane(), yes, yes
+
+    targetPanel.subViews.first.tabView.addPane pane
+    @setActiveTabView targetPanel.subViews.first.tabView
+    @doResize()
+
+  moveTabUp: -> @moveTab('north')
+
+  moveTabDown: -> @moveTab('south')
+
+  moveTabLeft: -> @moveTab('west')
+
+  moveTabRight: -> @moveTab('east')
 
   goToLeftTab: ->
 
