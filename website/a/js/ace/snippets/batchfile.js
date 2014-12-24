@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./batchfile.snippets");
-exports.scope = "batchfile";
-
-});
+ace.define("ace/snippets/batchfile",["require","exports","module"],function(e,t,n){"use strict";t.snippetText=undefined,t.scope="batchfile"})
