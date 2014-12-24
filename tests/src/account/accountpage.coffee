@@ -26,7 +26,6 @@ module.exports =
   editFirstName: (browser) ->
 
     helpers.beginTest(browser)
-    paragraph = helpers.getFakeText()
     inputSelector = '.firstname input.text'
 
     helpers.changeName(browser, inputSelector, yes)
@@ -36,7 +35,6 @@ module.exports =
   editLastName: (browser) ->
 
     helpers.beginTest(browser)
-    paragraph = helpers.getFakeText()
     inputSelector = '.lastname input.text'
 
     helpers.changeName(browser, inputSelector, no)
