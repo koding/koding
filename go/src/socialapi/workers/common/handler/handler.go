@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"socialapi/config"
@@ -40,6 +43,8 @@ type Request struct {
 	Params  map[string]string
 	Cookie  string
 	Cookies []*http.Cookie
+	Body    interface{}
+	Headers map[string]string
 }
 
 // todo add prooper logging
@@ -182,13 +187,27 @@ func CountedByStatus(handler http.Handler, name string, collectMetrics bool) *Co
 //
 func MakeRequest(request *Request) (*http.Response, error) {
 	if request.Cookie != "" {
-		request.Cookies = parseCookies(request.Cookie)
+		request.Cookies = parseCookiesToArray(request.Cookie)
 	}
 
 	request.Endpoint = prepareQueryString(request.Endpoint, request.Params)
 
 	client := new(http.Client)
-	req, err := http.NewRequest(request.Type, request.Endpoint, nil)
+	hostname := config.MustGet().CustomDomain.Public
+	endpoint := fmt.Sprintf("%s/%s", hostname, request.Endpoint)
+
+	var byteData io.Reader
+	if request.Body != nil {
+		body, err := json.Marshal(request.Body)
+		if err != nil {
+			return nil, err
+		}
+		byteData = bytes.NewReader(body)
+	}
+
+	req, err := http.NewRequest(request.Type, endpoint, byteData)
+	req = prepareHeaders(req, request.Headers)
+
 	if err != nil {
 		return nil, err
 	}
@@ -215,7 +234,17 @@ func prepareQueryString(endpoint string, params map[string]string) string {
 	return fullPath[0 : len(fullPath)-1]
 }
 
-func parseCookies(cookie string) []*http.Cookie {
+func prepareHeaders(req *http.Request, headers map[string]string) *http.Request {
+	newReq := new(http.Request)
+	*newReq = *req
+	for k, v := range headers {
+		newReq.Header.Set(k, v)
+	}
+
+	return newReq
+}
+
+func parseCookiesToArray(cookie string) []*http.Cookie {
 	pairs := strings.Split(cookie, "; ")
 	cookies := make([]*http.Cookie, 0)
 
@@ -234,6 +263,30 @@ func parseCookies(cookie string) []*http.Cookie {
 		c.Value = cp[1]
 
 		cookies = append(cookies, c)
+	}
+
+	return cookies
+}
+
+func ParseCookiesToMap(cookie string) map[string]*http.Cookie {
+	pairs := strings.Split(cookie, "; ")
+	cookies := make(map[string]*http.Cookie, 0)
+
+	if len(pairs) == 0 {
+		return cookies
+	}
+
+	for _, val := range pairs {
+		cp := strings.Split(val, "=")
+		if len(cp) != 2 {
+			continue
+		}
+
+		c := new(http.Cookie)
+		c.Name = cp[0]
+		c.Value = cp[1]
+
+		cookies[cp[0]] = c
 	}
 
 	return cookies
