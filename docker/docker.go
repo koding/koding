@@ -2,9 +2,9 @@
 package docker
 
 import (
-	"archive/tar"
-	"bytes"
 	"errors"
+	"fmt"
+	"strconv"
 	"time"
 
 	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
@@ -32,50 +32,47 @@ func New(url string) *Docker {
 // Build builds a new container image from a public Docker path or from a
 // given Dockerfile
 func (d *Docker) Build(r *kite.Request) (interface{}, error) {
+	return nil, errors.New("build is not implemented yet.")
+}
+
+// Create creates a new container
+func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 	var params struct {
-		DockerFile string
+		// Custom Container name
+		Name string
+
+		// Image name
+		Image string
 	}
 
 	if err := r.Args.One().Unmarshal(&params); err != nil {
 		return nil, err
 	}
 
-	// For now we'll only support one single DockerFile without any additional
-	// files
-	if params.DockerFile != "" {
-		t := time.Now()
-		inputbuf, outputbuf := bytes.NewBuffer(nil), bytes.NewBuffer(nil)
-		tr := tar.NewWriter(inputbuf)
-
-		tr.WriteHeader(&tar.Header{
-			Name:       "Dockerfile",
-			Size:       10,
-			ModTime:    t,
-			AccessTime: t,
-			ChangeTime: t,
-		})
-
-		tr.Write([]byte("FROM base\n"))
-		tr.Close()
-
-		opts := dockerclient.BuildImageOptions{
-			Name:         "test",
-			InputStream:  inputbuf,
-			OutputStream: outputbuf,
-		}
-		if err := d.client.BuildImage(opts); err != nil {
-			return nil, err
-		}
-
-		return true, nil
+	if params.Image == "" {
+		return nil, errors.New("missing arg: image is empty")
 	}
 
-	return nil, errors.New("build is not implemented yet.")
-}
+	// generate new name if name is missing
+	if params.Name == "" {
+		params.Name = r.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+	}
 
-// Create creates a new container
-func (d *Docker) Create(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+	opts := dockerclient.CreateContainerOptions{
+		Name: params.Name,
+		Config: &dockerclient.Config{
+			Image: params.Image,
+		},
+	}
+
+	container, err := d.client.CreateContainer(opts)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("container %+v\n", container)
+
+	return container.Name, nil
 }
 
 // Connects connects to an existing Container by spawning a new process and

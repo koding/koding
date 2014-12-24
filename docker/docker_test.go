@@ -40,6 +40,7 @@ func init() {
 	}
 
 	d.HandleFunc("list", dock.List)
+	d.HandleFunc("create", dock.Create)
 
 	go d.Run()
 	<-d.ServerReadyNotify()
@@ -49,6 +50,22 @@ func init() {
 	if err != nil {
 		log.Fatal("err")
 	}
+}
+
+func TestCreate(t *testing.T) {
+	resp, err := remote.Tell("create", struct {
+		Name  string
+		Image string
+	}{
+		// Name:  "arslanContainer",
+		Image: "ubuntu",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	containerName := resp.MustString()
+	fmt.Printf("containerName %+v\n", containerName)
 }
 
 func TestList(t *testing.T) {
