@@ -36,7 +36,18 @@ class RealtimeController extends KDController
     endPoint = '/api/gatekeeper/channel/authenticate'
     data = {name: channelName, typeConstant, group}
     KD.utils.doXhrRequest {endPoint, data}, callback
+  # subcribeMessage subscribes to message channels for instance update events
+  # message channels do not need any authentication
+  subscribeMessage: (message, callback) ->
 
+    return callback null, message  unless KD.isPubnubEnabled()
+
+    {token} = message
+
+    channelName = "instance-#{token}"
+    options = { channelName }
+
+    return @subscribePubnub options, callback
 
 
   subscribePubnub: (options = {}, callback) ->
