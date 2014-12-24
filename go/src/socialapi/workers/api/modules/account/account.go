@@ -35,6 +35,14 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
+func GetAccountFromSession(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if c.Client == nil || c.Client.Account == nil {
+		return response.NewNotFound()
+	}
+
+	return response.NewOK(c.Client.Account)
+}
+
 func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 

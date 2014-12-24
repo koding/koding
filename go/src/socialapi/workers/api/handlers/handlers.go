@@ -344,6 +344,14 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/account/{id}/owns",
 		})
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  account.GetAccountFromSession,
+			Name:     "account-info",
+			Type:     handler.GetRequest,
+			Endpoint: "/account",
+		})
+
 	// fetch profile feed
 	// m.AddHandler("GET", "/account/{id}/profile/feed"
 	//   handler.Request{
