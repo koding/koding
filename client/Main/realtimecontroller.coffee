@@ -11,6 +11,17 @@ class RealtimeController extends KDController
     {subscribekey} = KD.config.pubnub
 
     @pubnub = PUBNUB.init subscribe_key : subscribekey
+  # channel authentication is needed for notification channel and
+  # private channels
+  authenticate: (options, callback) ->
+
+    return callback null  unless options?
+
+    { endPoint, data } = options
+    return callback { message : "endPoint is not set"}  unless endPoint
+
+    KD.utils.doXhrRequest {endPoint, data}, callback
+
 
   # subscriptionData =
   #   serviceType: 'socialapi'
@@ -26,47 +37,39 @@ class RealtimeController extends KDController
     data = {name: channelName, typeConstant, group}
     KD.utils.doXhrRequest {endPoint, data}, callback
 
-  subscribe: (options = {}, callback = noop) ->
 
-    pubnubChannelName = prepareChannelName options
+
+  subscribePubnub: (options = {}, callback) ->
+
+    pubnubChannelName = options.channelName
 
     # return channel if it already exists
-    return @channels[pubnubChannelName]  if @channels[pubnubChannelName]
+    return callback null, @channels[pubnubChannelName]  if @channels[pubnubChannelName]
 
-    channelInstance = new PubnubChannel name: pubnubChannelName
-    @channels[pubnubChannelName] = channelInstance
+    @authenticate options.authenticate, (err) =>
 
-    @pubnub.subscribe
-      channel : pubnubChannelName
-      message : (message, env, channel) =>
-        return  unless message
-        {eventName, body} = message
+      return callback err  if err
 
-        # no need to emit any events when not subscribed
-        return  unless @channels[channel]
+      realtimeToken = Cookies.get("realtimeToken")
+      @pubnub.auth realtimeToken
 
-        @channels[channel].emit eventName, body
-      connect : -> callback null
-      error   : (err) -> callback err # not sure if it is really sending an error
-      restore : yes
+      channelInstance = new PubnubChannel name: pubnubChannelName
 
-    return channelInstance
+      @pubnub.subscribe
+        channel : pubnubChannelName
+        message : (message, env, channel) =>
+          return  unless message
+          {eventName, body} = message
 
-  prepareChannelName = (options) ->
-    { eventType } = options
-    switch eventType
-      when 'channel'
-        { channelName, typeConstant, group, token } = options
-        return "channel-#{token}-#{group}-#{typeConstant}-#{channelName}"
-      when 'instance'
-        { token } = options
-        return "instance-#{token}"
-      when 'notification'
-        {nickname} = options
-        {environment} = KD.config
-        return "notification-#{environment}-#{nickname}"
+          # no need to emit any events when not subscribed
+          return  unless @channels[channel]
 
-    return ""
+          @channels[channel].emit eventName, body
+        connect : =>
+          @channels[pubnubChannelName] = channelInstance
+          callback null, channelInstance
+        error   : (err) -> callback err # not sure if it is really sending an error
+        restore : yes
 
 
 class PubnubChannel extends KDObject
