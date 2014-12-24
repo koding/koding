@@ -11,14 +11,16 @@ import (
 )
 
 var (
-	d      *kite.Kite
-	remote *kite.Client
+	d                 *kite.Kite
+	remote            *kite.Client
+	TestContainerName = "dockertest"
 )
 
 func init() {
 	d = kite.New("docker", "0.0.1")
 	d.Config.DisableAuthentication = true
 	d.Config.Port = 3636
+	d.Config.Username = "dockertest"
 
 	dockerHost := os.Getenv("DOCKER_HOST")
 	if dockerHost == "" {
@@ -57,11 +59,16 @@ func TestCreate(t *testing.T) {
 		Name  string
 		Image string
 	}{
-		// Name:  "arslanContainer",
+		Name:  TestContainerName,
 		Image: "ubuntu",
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if containerName != resp.MustString() {
+		t.Errorf("container name is wrong, have '%s', want '%s'",
+			resp.MustString(), containerName)
 	}
 
 	containerName := resp.MustString()
@@ -81,9 +88,15 @@ func TestList(t *testing.T) {
 		t.Error(err)
 	}
 
-	fmt.Printf("len(containers) %+v\n", len(containers))
 	for _, container := range containers {
 		image := container.Image
-		fmt.Printf("image %+v\n", image)
+		name := container.Names[0]
+		t.Logf("image, name: %s, %s\n", image, name)
+		// there is a slash in front of the names, so include it
+		if name == "/"+TestContainerName {
+			return // successfull
+		}
 	}
+
+	t.Errorf("No image found with name '%s'\n", TestContainerName)
 }
