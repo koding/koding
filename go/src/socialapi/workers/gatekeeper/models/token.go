@@ -15,7 +15,7 @@ const (
 )
 
 var (
-	ErrAccountIdNotSet = fmt.Errorf("account old id is not set")
+	ErrAccountIdNotSet = fmt.Errorf("account id is not set")
 	ErrTokenNotSet     = fmt.Errorf("token is not set")
 	ErrNotFound        = fmt.Errorf("not found")
 	ErrInvalidToken    = fmt.Errorf("invalid token")
@@ -91,6 +91,10 @@ func (t *Token) Invalidate() error {
 	return err
 }
 
+func (t *Token) GetTTL() int64 {
+	return t.Expires.Unix() - time.Now().Unix()
+}
+
 func (t *Token) get() (*Token, error) {
 	redisConn := helper.MustGetRedisConn()
 	uuid4, err := redisConn.Get(t.prepareKey())
@@ -126,12 +130,12 @@ func (t *Token) create() (*Token, error) {
 	token := NewToken()
 	token.Token = uuid4
 	token.AccountId = t.AccountId
+	expires := time.Now().Round(time.Second).Add(TTL)
+	token.Expires = expires
 
 	if err := token.save(); err != nil {
 		return nil, err
 	}
-	expires := time.Now().Round(time.Second).Add(TTL)
-	token.Expires = expires
 
 	return token, nil
 }

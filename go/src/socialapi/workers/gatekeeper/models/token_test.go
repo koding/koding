@@ -29,7 +29,7 @@ func TestPrepareCacheKey(t *testing.T) {
 		t.AccountId = 3
 		key := t.prepareKey()
 		env := config.MustGet().Environment
-		So(key, ShouldEqual, fmt.Sprintf("%s:Realtime:account-3", env))
+		So(key, ShouldEqual, fmt.Sprintf("%s:realtime:account-3", env))
 	})
 }
 
