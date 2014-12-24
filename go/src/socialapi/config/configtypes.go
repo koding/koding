@@ -144,10 +144,12 @@ type (
 	}
 
 	Pubnub struct {
-		PublishKey   string `env:"key=KONFIG_GATEKEEPER_PUBNUB_PUBLISHKEY"`
-		SubscribeKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
-		SecretKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
-		Enabled      bool   `env:"key=KONFIG_GATEKEEPER_PUBNUB_ENABLED"`
+		PublishKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_PUBLISHKEY"`
+		SubscribeKey  string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
+		SecretKey     string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
+		ServerAuthKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SERVERAUTHKEY"`
+		Enabled       bool   `env:"key=KONFIG_GATEKEEPER_PUBNUB_ENABLED"`
+		Origin        string `env:"key=KONFIG_GATEKEEPER_PUBNUB_ORIGIN"`
 	}
 
 	CustomDomain struct {
