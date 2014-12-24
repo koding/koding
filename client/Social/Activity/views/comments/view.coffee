@@ -162,6 +162,8 @@ class CommentView extends KDView
     @unsetClass 'no-comment commented'
     @setClass   'active-comment'
 
+    @getElement().scrollIntoView no
+
 
   setFixedHeight: (maxHeight) ->
 
