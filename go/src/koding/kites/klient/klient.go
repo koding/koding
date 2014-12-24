@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"koding/kite-handler/command"
+	"koding/kite-handler/docker"
 	"koding/kite-handler/fs"
 	"koding/kite-handler/terminal"
 	"koding/kites/klient/collaboration"
@@ -208,6 +209,17 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.createDirectory", fs.CreateDirectory)
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
+
+	// Docker
+	dock := docker.New("unix:///var/run/docker.sock")
+	k.HandleFunc("docker.build", dock.Build)
+	k.HandleFunc("docker.create", dock.Create)
+	k.HandleFunc("docker.connect", dock.Connect)
+	k.HandleFunc("docker.stop", dock.Stop)
+	k.HandleFunc("docker.start", dock.Start)
+	k.HandleFunc("docker.kill", dock.Kill)
+	k.HandleFunc("docker.destroy", dock.Destroy)
+	k.HandleFunc("docker.list", dock.List)
 
 	// Execution
 	k.HandleFunc("exec", command.Exec)
