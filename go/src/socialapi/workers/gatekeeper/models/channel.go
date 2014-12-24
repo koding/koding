@@ -1,0 +1,80 @@
+package models
+
+import (
+	"fmt"
+	"socialapi/config"
+)
+
+type Channel struct {
+	Id          int64    `json:"id,string"`
+	Name        string   `json:"name"`
+	Type        string   `json:"typeConstant"`
+	Group       string   `json:"groupName"`
+	SecretNames []string `json:"secretNames"`
+	Token       string   `json:"token"`
+}
+
+type ChannelInterface interface {
+	PrepareName() string
+	GrantAccess(p *Pubnub, a *Authenticate) error
+}
+
+////////// PrivateMessageChannel //////////
+
+// TODO change its name
+type PrivateMessageChannel struct {
+	Channel
+}
+
+func NewPrivateMessageChannel(c Channel) *PrivateMessageChannel {
+	return &PrivateMessageChannel{c}
+}
+
+func (pmc *PrivateMessageChannel) PrepareName() string {
+	return fmt.Sprintf("channel-%s", pmc.Token)
+}
+
+func (pmc *PrivateMessageChannel) GrantAccess(p *Pubnub, a *Authenticate) error {
+	if pmc.Channel.Type == "privatemessage" || pmc.Channel.Type == "pinnedactivity" {
+		return p.GrantAccess(a, pmc)
+	}
+
+	return p.GrantPublicAccess(pmc)
+}
+
+////////// NotificationChannel //////////
+
+type NotificationChannel struct {
+	Account *Account
+}
+
+func NewNotificationChannel(a *Account) *NotificationChannel {
+	return &NotificationChannel{a}
+}
+
+func (nc *NotificationChannel) PrepareName() string {
+	env := config.MustGet().Environment
+	return fmt.Sprintf("notification-%s-%s", env, nc.Account.Nickname)
+}
+
+func (nc *NotificationChannel) GrantAccess(p *Pubnub, a *Authenticate) error {
+	return p.GrantAccess(a, nc)
+}
+
+////////// MessageUpdateChannel //////////
+
+type MessageUpdateChannel struct {
+	UpdateInstanceMessage
+}
+
+func NewMessageUpdateChannel(ui UpdateInstanceMessage) *MessageUpdateChannel {
+	return &MessageUpdateChannel{ui}
+}
+
+func (mc *MessageUpdateChannel) PrepareName() string {
+	return fmt.Sprintf("instance-%s", mc.Token)
+}
+
+func (mc *MessageUpdateChannel) GrantAccess(p *Pubnub, a *Authenticate) error {
+	return p.GrantPublicAccess(mc)
+}

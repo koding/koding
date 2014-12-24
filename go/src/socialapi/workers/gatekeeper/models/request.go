@@ -34,12 +34,6 @@ type AuthRequest struct {
 	EventName string `json:"eventName"`
 }
 
-type Channel struct {
-	Id          int64    `json:"id"`
-	Name        string   `json:"name"`
-	Type        string   `json:"typeConstant"`
-	Group       string   `json:"groupName"`
-	SecretNames []string `json:"secretNames"`
 }
 
 // Namings are for backward compatibility
