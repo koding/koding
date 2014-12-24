@@ -1,7 +1,7 @@
 NO_COLOR=\033[0m
 OK_COLOR=\033[0;32m
 
-all: build test
+all: build
 
 test: 
 	@echo "$(OK_COLOR)==> Testing all packages $(NO_COLOR)"
