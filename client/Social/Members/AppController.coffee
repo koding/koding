@@ -170,7 +170,7 @@ class MembersAppController extends AppController
     view = new ContentDisplayScrollableView
       contentDisplay : contentDisplay
 
-    view.forwardEvent this, 'LazyLoadThresholdReached'
+    @forwardEvent view, 'LazyLoadThresholdReached'
       
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
     return contentDisplay
