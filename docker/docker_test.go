@@ -1,7 +1,7 @@
 package docker
 
 import (
-	"fmt"
+	"errors"
 	"log"
 	"os"
 	"testing"
@@ -14,6 +14,7 @@ var (
 	d                 *kite.Kite
 	remote            *kite.Client
 	TestContainerName = "dockertest"
+	ErrNotFound       = errors.New("not found")
 )
 
 func init() {
@@ -43,6 +44,8 @@ func init() {
 
 	d.HandleFunc("list", dock.List)
 	d.HandleFunc("create", dock.Create)
+	d.HandleFunc("destroy", dock.Destroy)
+	d.HandleFunc("removeContainer", dock.RemoveContainer)
 
 	go d.Run()
 	<-d.ServerReadyNotify()
@@ -66,37 +69,82 @@ func TestCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if containerName != resp.MustString() {
+	if TestContainerName != resp.MustString() {
 		t.Errorf("container name is wrong, have '%s', want '%s'",
-			resp.MustString(), containerName)
+			resp.MustString(), TestContainerName)
 	}
-
-	containerName := resp.MustString()
-	fmt.Printf("containerName %+v\n", containerName)
 }
 
 func TestList(t *testing.T) {
-	resp, err := remote.Tell("list")
+	container, err := getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	if container.Names[0] != "/"+TestContainerName {
+		t.Errorf("container name is wrong, have '%s', want '%s'", container.Names[0], TestContainerName)
+	}
+}
+
+func TestRemoveContainer(t *testing.T) {
+	container, err := getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	if container.ID == "" {
+		t.Error("container Id is empty, can't remove anything")
+		return
+	}
+
+	_, err = remote.Tell("removeContainer", struct {
+		ID string
+	}{
+		ID: container.ID,
+	})
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	_, err = getContainer(TestContainerName)
+	if err != nil && err != ErrNotFound {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+}
+
+func getContainer(containerName string) (*dockerclient.APIContainers, error) {
+	resp, err := remote.Tell("list")
+	if err != nil {
+		return nil, err
 	}
 
 	var containers []dockerclient.APIContainers
 
 	err = resp.Unmarshal(&containers)
 	if err != nil {
-		t.Error(err)
+		return nil, err
 	}
 
 	for _, container := range containers {
-		image := container.Image
 		name := container.Names[0]
-		t.Logf("image, name: %s, %s\n", image, name)
 		// there is a slash in front of the names, so include it
-		if name == "/"+TestContainerName {
-			return // successfull
+		if name == "/"+containerName {
+			return &container, nil
 		}
 	}
 
-	t.Errorf("No image found with name '%s'\n", TestContainerName)
+	return nil, ErrNotFound
 }
+
+// func TestDestroy(t *testing.T) {
+// 	resp, err := remote.Tell("destroy", struct {
+// 		Name string
+// 	}{
+// 		Name: TestContainerName,
+// 	})
+// 	if err != nil {
+// 		t.Fatal(err)
+// 	}
+//
+// 	fmt.Printf("resp.MustBool() %+v\n", resp.MustBool())
+// }

@@ -3,7 +3,6 @@ package docker
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -70,8 +69,6 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	fmt.Printf("container %+v\n", container)
-
 	return container.Name, nil
 }
 
@@ -91,14 +88,62 @@ func (d *Docker) Start(r *kite.Request) (interface{}, error) {
 	return nil, errors.New("not implemented yet.")
 }
 
-// Kill kills and delete a container
-func (d *Docker) Kill(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+// RemoveContainer removes a container
+func (d *Docker) RemoveContainer(r *kite.Request) (interface{}, error) {
+	// we can remove either by name or by id
+	var params struct {
+		// The ID of the container.
+		ID string
+
+		// A flag that indicates whether Docker should remove the volumes
+		// associated to the container.
+		RemoveVolumes bool
+
+		// A flag that indicates whether Docker should remove the container
+		// even if it is currently running.
+		Force bool
+	}
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	if params.ID == "" {
+		return nil, errors.New("missing arg: container is is empty")
+	}
+
+	opts := dockerclient.RemoveContainerOptions{
+		ID: params.ID,
+	}
+
+	if err := d.client.RemoveContainer(opts); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
-// Destroy destroys and removes an image.
-func (d *Docker) Destroy(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("not implemented yet.")
+// RemoveImage removes an existing image.
+func (d *Docker) RemoveImage(r *kite.Request) (interface{}, error) {
+	// we can remove either by name or by id
+	var params struct {
+		// Container name
+		Name string
+	}
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	if params.Name == "" {
+		return nil, errors.New("missing arg: name is empty")
+	}
+
+	if err := d.client.RemoveImage(params.Name); err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
 
 // List lists all available containers
