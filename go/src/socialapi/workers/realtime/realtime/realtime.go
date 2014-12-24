@@ -94,7 +94,7 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 		}
 	}
 
-	if err := f.sendInstanceEvent(cm.Token, cm, "updateInstance"); err != nil {
+	if err := f.sendInstanceEvent(cm, cm, "updateInstance"); err != nil {
 		f.log.Error(err.Error())
 		return err
 	}
@@ -281,7 +281,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		return err
 	}
 
-	err = f.sendInstanceEvent(m.Token, res, eventName)
+	err = f.sendInstanceEvent(m, res, eventName)
 	if err != nil {
 		return err
 	}
@@ -316,7 +316,7 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(parent.Token, cmc, "ReplyAdded")
+	err = f.sendInstanceEvent(parent, cmc, "ReplyAdded")
 	if err != nil {
 		return err
 	}
@@ -382,7 +382,7 @@ func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 		return err
 	}
 
-	if err := f.sendInstanceEvent(m.Token, mr, "ReplyRemoved"); err != nil {
+	if err := f.sendInstanceEvent(m, mr, "ReplyRemoved"); err != nil {
 		return err
 	}
 
@@ -620,8 +620,8 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
 }
 
-func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
-	return realtimehelper.UpdateInstance(instanceToken, eventName, message)
+func (f *Controller) sendInstanceEvent(cm *models.ChannelMessage, body interface{}, eventName string) error {
+	return realtimehelper.UpdateInstance(cm, eventName, body)
 }
 
 func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models.ChannelMessage, eventName string) error {
@@ -643,14 +643,16 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 		return err
 	}
 
+	// TODO broker related stuff. We do not need this for pubnub.
+	// When no one connected via broker, channel secret names are not created
+	// therefore we can ignore secret name fetch
 	names, err := models.SecretNamesByChannelId(channelId)
-	if err != nil {
-		return err
-	}
-
-	if err == mgo.ErrNotFound || len(names) < 1 {
+	if err == mgo.ErrNotFound {
 		f.log.Info("Channel %d doesn't have any secret name", channelId)
-		return nil
+	} else if len(names) < 1 {
+		f.log.Info("Channel %d doesn't have any secret name", channelId)
+	} else if err != nil {
+		f.log.Info("Could not fetch channel %d secret names", channelId)
 	}
 
 	return realtimehelper.PushMessage(ch, eventName, data, names)
@@ -664,5 +666,5 @@ func (f *Controller) sendNotification(
 		return err
 	}
 
-	return realtimehelper.NotifyUser(account.Nick, eventName, data, groupName)
+	return realtimehelper.NotifyUser(account, eventName, data, groupName)
 }

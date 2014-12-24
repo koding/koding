@@ -1,7 +1,10 @@
 package realtimehelper
 
 import (
+	"fmt"
 	"socialapi/models"
+	"socialapi/workers/common/handler"
+	"strconv"
 
 	"github.com/koding/bongo"
 )
@@ -10,32 +13,33 @@ func PushMessage(c *models.Channel, eventName string, body interface{}, secretNa
 	request := map[string]interface{}{
 		"eventName": eventName,
 		"body":      body,
-		"token":     c.Token,
 		"channel": map[string]interface{}{
-			"id":           c.Id,
+			"id":           strconv.FormatInt(c.Id, 10),
 			"secretNames":  secretNames,
 			"name":         c.Name,
 			"typeConstant": c.TypeConstant,
 			"groupName":    c.GroupName,
+			"token":        c.Token,
 		},
 	}
 
 	return bongo.B.Emit("dispatcher_channel_updated", request)
 }
 
-func UpdateInstance(token string, eventName string, body interface{}) error {
+func UpdateInstance(m *models.ChannelMessage, eventName string, body interface{}) error {
 	request := map[string]interface{}{
-		"token":     token,
+		"token":     m.Token,
 		"eventName": eventName,
 		"body":      body,
+		"messageId": m.Id,
 	}
 
 	return bongo.B.Emit("dispatcher_message_updated", request)
 }
 
-func NotifyUser(nickname, eventName string, body interface{}, groupName string) error {
+func NotifyUser(a *models.Account, eventName string, body interface{}, groupName string) error {
 	request := map[string]interface{}{
-		"nickname": nickname,
+		"account": a,
 		"body": map[string]interface{}{
 			"event":    eventName,
 			"contents": body,
