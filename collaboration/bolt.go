@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/boltdb/bolt"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 )
 
 const (

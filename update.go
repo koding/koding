@@ -12,11 +12,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/hashicorp/go-version"
-	"github.com/inconshreveable/go-update"
-	"github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/hashicorp/go-version"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/inconshreveable/go-update"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/mitchellh/osext"
 	"github.com/koding/klient/protocol"
-	"github.com/mitchellh/osext"
 )
 
 type Updater struct {

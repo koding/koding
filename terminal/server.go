@@ -3,7 +3,7 @@ package terminal
 import (
 	"syscall"
 
-	"github.com/koding/kite/dnode"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
 	"github.com/koding/klient/terminal/pty"
 )
 

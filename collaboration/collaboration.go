@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
 type Collaboration struct {

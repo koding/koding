@@ -1,0 +1,145 @@
+{
+	"ImportPath": "github.com/koding/klient",
+	"GoVersion": "go1.4",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "bitbucket.org/kardianos/osext",
+			"Comment": "null-15",
+			"Rev": "44140c5fc69ecf1102c5ef451d73cd98ef59b178"
+		},
+		{
+			"ImportPath": "code.google.com/p/go-charset/charset",
+			"Comment": "null-32",
+			"Rev": "ebbeafdc430eb6c7e44e9a730a38eaff4c56ba3a"
+		},
+		{
+			"ImportPath": "code.google.com/p/go-charset/data",
+			"Comment": "null-32",
+			"Rev": "ebbeafdc430eb6c7e44e9a730a38eaff4c56ba3a"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.6.2-10-g51fe59a",
+			"Rev": "51fe59aca108dc5680109e7b2051cbdcfa5a253c"
+		},
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-5-g33e7a07",
+			"Rev": "33e7a074e2c470b6d0b7ee23322a1c4cc759044b"
+		},
+		{
+			"ImportPath": "github.com/cenkalti/backoff",
+			"Rev": "9831e1e25c874e0a0601b6dc43641071414eec7a"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v2.2.0-2-g47b263f",
+			"Rev": "47b263f020574c14765ecc3ea88f0e9447046632"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/archive",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/fileutils",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/ioutils",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/pools",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/promise",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/system",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar",
+			"Comment": "v1.4.1-179-g4baa240",
+			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+		},
+		{
+			"ImportPath": "github.com/fsouza/go-dockerclient",
+			"Rev": "b52383442df766febf51f9f858ee311f69a2f264"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "9007e29a7c93fc3dcebbdbf742ce0efaf19e6510"
+		},
+		{
+			"ImportPath": "github.com/hashicorp/go-version",
+			"Rev": "bb92dddfa9792e738a631f04ada52858a139bcf7"
+		},
+		{
+			"ImportPath": "github.com/inconshreveable/go-update",
+			"Rev": "221d034a558b4c21b0624b2a450c076913854a57"
+		},
+		{
+			"ImportPath": "github.com/koding/cache",
+			"Rev": "487fc0ca06f9aa1a02d796f5510784b47d5afae2"
+		},
+		{
+			"ImportPath": "github.com/koding/kite",
+			"Rev": "445a0fca1e78f6673bdd37bda983f4401256d0b0"
+		},
+		{
+			"ImportPath": "github.com/koding/logging",
+			"Rev": "9bea19b682b83bb5fa8d0f5a3f81197ac4f5d8c4"
+		},
+		{
+			"ImportPath": "github.com/koding/passwd",
+			"Rev": "12dbab6d6d5ca38ffa3c772d5d86bcc5ef1f0ad5"
+		},
+		{
+			"ImportPath": "github.com/kr/binarydist",
+			"Rev": "9955b0ab8708602d411341e55fffd7e0700f86bd"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "740c764bc6149d3f1806231418adb9f52c11bcbf"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/osext",
+			"Rev": "0dd3f918b21bec95ace9dc86c7e70266cfc5c702"
+		},
+		{
+			"ImportPath": "github.com/nu7hatch/gouuid",
+			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
+			"ImportPath": "gopkg.in/fatih/set.v0",
+			"Comment": "v0.1.0-3-g27c4092",
+			"Rev": "27c40922c40b43fe04554d8223a402af3ea333f3"
+		},
+		{
+			"ImportPath": "gopkg.in/fsnotify.v1",
+			"Comment": "v1.1.0",
+			"Rev": "f582d920d11386e8ae15227bb5933a8f9b4c3dec"
+		},
+		{
+			"ImportPath": "gopkg.in/igm/sockjs-go.v2/sockjs",
+			"Rev": "9dbc79efa97d9a6c6b4a515893bd02c9242e9225"
+		}
+	]
+}
