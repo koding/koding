@@ -329,6 +329,7 @@ module.exports =
 
         browser
           .waitForElementPresent   'a[href="/IDE/' + vmName + '/' + workspaceName + '"]', 40000 # Assertion
+          .pause                   10000
           .assert.urlContains      workspaceName # Assertion
           .waitForElementVisible   '.vm-info', 20000
           .assert.containsText     '.vm-info', '~/Workspaces/' + workspaceName # Assertion
