@@ -183,7 +183,15 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
       kite.once 'connected', ->
         for promise in waitingPromises
           [resolve, args] = promise
-          resolve kite.transport?.tell args...
+          resolve (
+            kite.transport?.tell args...
+              .then (res)->
+                KiteLogger.logSucess name, args.first
+                return res
+              .catch (err)->
+                KiteLogger.logFailed name, args.first
+                throw err
+          )
 
     # Query kontrol
     @fetchKite
