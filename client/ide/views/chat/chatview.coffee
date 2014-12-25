@@ -46,6 +46,13 @@ class IDE.ChatView extends KDTabView
     @hide()
 
 
+  show: ->
+
+    super
+
+    @chatPane?.resetPadding()
+
+
   createLoader: ->
 
     @loaderView = new KDView cssClass: 'loader-view'
