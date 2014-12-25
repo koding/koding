@@ -270,14 +270,9 @@ class MessagePane extends KDTabPaneView
       item.delete()
 
 
-  setScrollTops: ->
+  setScrollTops: -> @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
 
-    @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
-
-
-  applyScrollTops: ->
-
-    @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
+  applyScrollTops: -> @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
 
 
   viewAppended: ->
@@ -296,7 +291,6 @@ class MessagePane extends KDTabPaneView
 
     KD.utils.wait 1000, @bound 'glance'
     KD.utils.wait 50, => @scrollView.wrapper.emit 'MutationHappened'
-
 
 
   glance: ->
@@ -325,9 +319,7 @@ class MessagePane extends KDTabPaneView
     @separator?.destroy()
     @separator = null
 
-
   focus: ->
-
 
   populate: (callback = noop) ->
 
@@ -336,7 +328,6 @@ class MessagePane extends KDTabPaneView
     @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
-
       return  if @currentFilter isnt filter
 
       @listController.removeAllItems()  if @listController.getItemCount()
@@ -394,9 +385,7 @@ class MessagePane extends KDTabPaneView
       return  if loading
 
       listController ?= @listController
-
       listController.showLazyLoader()
-
       {appManager} = KD.singletons
       last         = listController.getListItems().last
 
@@ -411,7 +400,6 @@ class MessagePane extends KDTabPaneView
         from = last.getData().createdAt
 
       @fetch {from, skip}, (err, items = []) =>
-
         loading = no
         listController.hideLazyLoader()
 

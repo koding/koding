@@ -54,6 +54,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchProfileFeed     :
           (signature Object, Function)
+        fetchProfileFeedCount:
+          (signature Object, Function)
         updateLastSeenTime   :
           (signature Object, Function)
         glancePinnedPost     :
@@ -84,9 +86,8 @@ module.exports = class SocialChannel extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  { fetchGroup, secureRequest,
-    doRequest, permittedRequest,
-    ensureGroupChannel, fetchGroup } = require "./helper"
+  { secureRequest, ensureGroupChannel,
+    doRequest, permittedRequest } = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
     return "socialapi-\
@@ -145,6 +146,10 @@ module.exports = class SocialChannel extends Base
   # fetchProfileFeed - lists all activities of an account
   # within a specified group
   @fetchProfileFeed      = secureRequest fnName: 'fetchProfileFeed'
+
+  # fetchProfileFeedCount - fetches all activity count of an account
+  # within a specified group
+  @fetchProfileFeedCount = secureRequest fnName: 'fetchProfileFeedCount'
 
   # fetchPopularTopics - lists group specific popular topics
   # it can be daily, weekly, monthly

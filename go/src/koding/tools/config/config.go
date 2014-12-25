@@ -271,6 +271,9 @@ type RuntimeOptions struct {
 		SubscribeKey string `json:"subscribekey"`
 		Enabled      bool   `json:"enabled"`
 	} `json:"pubnub"`
+	Collaboration struct {
+		Timeout int `json:"timeout"`
+	} `json:"collaboration"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

@@ -109,7 +109,7 @@ func New(conf *config.Config, version, publicKey, privateKey string) *Kontrol {
 	k.HandleFunc("getKites", kontrol.handleGetKites)
 	k.HandleFunc("getToken", kontrol.handleGetToken)
 
-	k.HandleFunc("registerHTTP", kontrol.handleRegisterHTTP)
+	k.HandleHTTPFunc("/register", kontrol.handleRegisterHTTP)
 	k.HandleHTTPFunc("/heartbeat", kontrol.handleHeartbeat)
 
 	return kontrol
@@ -248,7 +248,7 @@ func generateToken(aud, username, issuer, privateKey string) (string, error) {
 	// cache invalidation, because we cache the token in tokenCache we need to
 	// invalidate it expiration time. This was handled usually within JWT, but
 	// now we have to do it manually for our own cache.
-	time.AfterFunc(TokenTTL, func() {
+	time.AfterFunc(TokenTTL-TokenLeeway, func() {
 		tokenCacheMu.Lock()
 		defer tokenCacheMu.Unlock()
 

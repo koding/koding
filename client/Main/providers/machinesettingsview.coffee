@@ -143,8 +143,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     statusToggle.hide()
 
-    machineId = @machine._id
+    machineId    = @machine._id
     currentState = @machine.status.state
+    baseKite     = @machine.getBaseKite()
 
     computeController.getKloud()
 
@@ -263,3 +264,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
         if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
           @resizeButton.show()
+
+
+  shareMachineWithUser: (username) ->
+    @machine.jMachine.shareWith target: username
+    @machine.getBaseKite().klientShare { username }

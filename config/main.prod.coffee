@@ -141,6 +141,8 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'e6c3413236e08107'
 
+    collaboration :
+      timeout     : 1 * 60 * 1000
 
     #--- CLIENT-SIDE BUILD CONFIGURATION ---#
 
@@ -186,6 +188,7 @@ Configuration = (options={}) ->
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : '3305771626'
     paypal            : { formUrl: 'https://www.paypal.com/incontext' }
+    collaboration     : KONFIG.collaboration
 
 
       # END: PROPERTIES SHARED WITH BROWSER #

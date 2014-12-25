@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/garyburd/redigo/redis"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/robfig/cron"
 )
@@ -114,9 +115,10 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	for _, activityId := range activityIds {
 		container, err := buildContainerForDailyMail(accountId, activityId)
 		if err != nil {
-			if err != ObsoleteActivity {
+			if err != ObsoleteActivity && err != bongo.RecordNotFound {
 				n.log.Error("error occurred while sending activity: %s ", err)
 			}
+
 			continue
 		}
 

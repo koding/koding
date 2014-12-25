@@ -155,6 +155,9 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'a41deacd57929378'
 
+    collaboration :
+      timeout     : 1 * 60 * 1000
+
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
 
@@ -203,6 +206,7 @@ Configuration = (options={}) ->
     siftScience       : 'f270274999'
     paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
     pubnub            : { subscribekey: pubnub.subscribekey , enabled: no     }
+    collaboration     : KONFIG.collaboration
 
 
       # END: PROPERTIES SHARED WITH BROWSER #
@@ -485,7 +489,7 @@ Configuration = (options={}) ->
       function kill_all () {
         #{killlist()}
 
-        echo "killing hanged processes"
+        echo "killing hung processes"
         # there is race condition, that killlist() can not kill all process
         sleep 3
 

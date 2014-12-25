@@ -564,12 +564,17 @@ utils.extend utils,
         return 'error'
 
   getColorFromString:(str)->
-    return [
-      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00"
-      "#009BCB", "#37B298", "#35485F", "#D35219"
-      "#FDAB2E", "#19A2C4", "#37B298", "#BA4B3A"
-      "#F1C42C", "#DB4B00", "#009BCB", "#B82F68"
-    ][parseInt (md5.digest str)[0], 16]
+    hash  = 0
+    color = '#'
+
+    for i in [0...str.length]
+      hash = str.charCodeAt(i) + ((hash << 5) - hash)
+
+    for i in [0...3]
+      value = (hash >> (i * 8)) & 0xFF
+      color += ('00' + value.toString(16)).substr(-2)
+
+    return color
 
   formatMoney: accounting.formatMoney
 

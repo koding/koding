@@ -185,6 +185,7 @@ class FeedController extends KDViewController
         @emit "FilterLoaded"
         {limit}      = options
         {scrollView} = listController
+        @feedIsLoading = no
         if items?.length > 0
           unless err
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
@@ -208,4 +209,8 @@ class FeedController extends KDViewController
         else
           @loadFeed filter
       else
+        return  if @feedIsLoading
+
+        @feedIsLoading = yes
+
         filter.dataSource selector, options, kallback

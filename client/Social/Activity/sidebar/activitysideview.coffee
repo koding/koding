@@ -82,6 +82,7 @@ class ActivitySideView extends JView
 
     {dataPath} = @getOptions()
     items = KD.singletons.socialapi.getPrefetchedData dataPath
+
     if items?.length
     then @renderItems null, items
     else @reload()
@@ -119,6 +120,8 @@ class ActivitySideView extends JView
 
       @listController.addItem itemData
       regularItemCount += 1
+
+    KD.utils.defer => @emit 'DataReady', items
 
 
   pistachio: ->

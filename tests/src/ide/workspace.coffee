@@ -7,7 +7,7 @@ assert  = require 'assert'
 module.exports =
 
 
-  createWorkspaceFromVmList: (browser) ->
+  createWorkspaceFromSidebar: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -22,17 +22,34 @@ module.exports =
 
     workspaceName = helpers.createWorkspace(browser)
 
-    browser.url (data) =>
-      url               = data.value
-      vmName            = url.split('/IDE/')[1].split('/')[0]
-      workspaceSelector = 'a[href="/IDE/' + vmName + '/' + workspaceName + '"]'
-      modalSelector     = '.activity-modal.ws-settings'
+    helpers.deleteWorkspace(browser, workspaceName)
+    browser.end()
 
-      browser
-        .waitForElementVisible     workspaceSelector, 20000
-        .click                     workspaceSelector
-        .click                     workspaceSelector + ' .ws-settings-icon'
-        .waitForElementVisible     modalSelector, 20000
-        .click                     modalSelector + ' button.red'
-        .waitForElementNotVisible  workspaceSelector, 20000
-        .end()
+
+  createWorkspaceFromFileTree: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    folderData = helpers.createFolder(browser, user)
+    name       = '~/' + folderData.name
+
+    browser
+      .waitForElementVisible  folderData.selector, 50000
+      .click                  folderData.selector
+      .waitForElementVisible  folderData.selector + ' + .chevron', 20000
+      .click                  folderData.selector + ' + .chevron'
+      .waitForElementVisible  '.context-list-wrapper', 20000
+      .click                  '.context-list-wrapper li.workspace-from-here'
+      .url (data) =>
+        url    = data.value
+
+        vmName = url.split('/IDE/')[1].split('/')[0]
+
+        browser
+          .waitForElementVisible  '.activity-sidebar .jtreeview-wrapper li' + ' a[href="/IDE/' + vmName + '/' + folderData.name + '"]', 20000 #Assertion
+          .pause                  3000
+          .waitForElementVisible  '.vm-info', 20000
+          .assert.containsText    '.vm-info', name # Assertion
+          .end()
+

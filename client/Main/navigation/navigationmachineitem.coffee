@@ -8,22 +8,44 @@ class NavigationMachineItem extends JView
 
   constructor: (options = {}, data) ->
 
-    machine            = data
-    @alias             = machine.slug or machine.label
-    path               = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
+    machine      = data
+    @alias       = machine.slug or machine.label
+    ideRoute     = "/IDE/#{@alias}/my-workspace"
+    machineOwner = machine.jMachine.credential
+    isMyMachine  = machineOwner is KD.nick()
+    channelId    = ''
+
+    if not isMyMachine and KD.userWorkspaces
+      KD.userWorkspaces.forEach (ws) ->
+        return if channelId
+
+        if ws.machineUId is machine.uid and ws.channelId
+          channelId = ws.channelId
+
+      ideRoute = "/IDE/#{channelId}"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : path
-      title            : "Open IDE for #{@alias}"
+      href             : KD.utils.groupifyLink ideRoute
+      title            : "Open IDE for #{@alias} (shared by @#{Encoder.htmlDecode machineOwner})"
 
     super options, data
 
     @machine   = @getData()
 
+    labelPartial = machine.label or @alias
+
+    unless isMyMachine
+      labelPartial = """
+        #{labelPartial}
+        <cite class='shared-by'>
+          (@#{Encoder.htmlDecode machineOwner})
+        </cite>
+      """
+
     @label     = new KDCustomHTMLView
-      partial  : machine.label or @alias
+      partial  : labelPartial
 
     @progress  = new KDProgressBarView
       cssClass : 'hidden'

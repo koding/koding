@@ -315,6 +315,14 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/account/{id}/posts",
 		})
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  account.FetchPostCount,
+			Name:     "account-post-count",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/posts/count",
+		})
+
 	// follow the account
 	m.AddHandler(
 		handler.Request{
