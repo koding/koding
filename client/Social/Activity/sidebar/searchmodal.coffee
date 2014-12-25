@@ -77,6 +77,8 @@ class SidebarSearchModal extends KDModalView
 
     return  unless items?.length?
 
+    @listController.removeAllItems()
+      
     @listController.addItem itemData for itemData in items
 
     @listController.lazyLoader.setClass 'do-not-show'
