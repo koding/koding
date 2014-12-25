@@ -48,6 +48,9 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     mainView.glanceChannelWorkspace channel
 
 
+  excludedAreaHeight: 121
+
+
   createParticipantsView: ->
 
     @createHeaderViews()
