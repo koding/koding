@@ -43,6 +43,10 @@ type Cloudwatch struct {
 	Name string
 }
 
+func (c *Cloudwatch) GetName() string {
+	return c.Name
+}
+
 func (c *Cloudwatch) GetAndSaveData(username string) error {
 	userMachines, err := modelhelper.GetMachinesForUsername(username)
 	if err != nil {

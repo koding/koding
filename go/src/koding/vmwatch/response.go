@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Response struct {
 	CanStart                   bool
 	Reason                     string
@@ -15,6 +17,7 @@ func checker(username string) Response {
 				CanStart:     false,
 				AllowedUsage: resp.AllowedUsage,
 				CurrentUsage: resp.CurrentUsage,
+				Reason:       fmt.Sprintf("%s over limit", metric.GetName()),
 			}
 		}
 	}
