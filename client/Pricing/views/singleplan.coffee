@@ -69,7 +69,7 @@ class SinglePlanView extends KDView
         partial  : partial
 
     @addSubView @buyButton = new KDButtonView
-      style     : 'plan-buy-button'
+      style     : 'plan-buy-button medium'
       title     : 'SELECT'
       state     : { name, monthPrice, yearPrice }
       callback  : @bound 'select'

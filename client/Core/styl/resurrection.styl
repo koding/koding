@@ -287,159 +287,6 @@ aside.app-sidebar
     vendor            transform-style, preserve-3d
     vendor            transform, scale(0)
 
-
-#kdmaincontainer > .pointer
-  abs()
-  bottom                380px
-  left                  500px
-  top                   auto
-  display               block
-  z-index               99999
-  size                  20px, 20px
-  border                3px solid white
-  opacity               1
-  bg                    color, #ff9200
-  gradient              #FFAB23, #F27500
-  vendor                transition, left 2s ease-in-out\,\
-                                    top 2s ease-in-out\,\
-                                    opacity .4s
-  border-radius         50%
-  shadow                0px 1px 3px 0px rgba(0,0,0,.2)
-  &.clickPulse
-    vendor              animation, clickAnimate 1s forwards ease-in-out
-  &.out
-    opacity             0
-
-.kdnotification
-  a
-    color               inherit
-
-@-webkit-keyframes clickAnimate
-  0%
-    -webkit-transform   scale(1)
-    shadow              0 0 0 0 rgba(255,146,0,0)
-  15%
-    -webkit-transform   scale(0.6)
-  25%
-    -webkit-transform   scale(1)
-  50%
-    shadow              0 0 0 10px rgba(255,146,0,.8)
-  100%
-    shadow              0 0 0 25px rgba(255,146,0,0)
-
-@-moz-keyframes clickAnimate
-  0%
-    -moz-transform      scale(1)
-    shadow              0 0 0 0 rgba(255,146,0,0)
-  15%
-    -moz-transform      scale(0.6)
-  25%
-    -moz-transform      scale(1)
-  50%
-    shadow              0 0 0 10px rgba(255,146,0,.8)
-  100%
-    shadow              0 0 0 25px rgba(255,146,0,0)
-
-// Intro animation for 'Show me how!' button
-
-.cta_button
-  vendor                animation, bounceIn .6s ease-in-out
-
-@-webkit-keyframes bounceIn
-  0%
-    -webkit-transform   scale(0)
-    opacity             0
-  50%
-    -webkit-transform   scale(1.1)
-    opacity             1
-  75%
-    -webkit-transform   scale(0.9)
-  100%
-    -webkit-transform   scale(1)
-
-@-moz-keyframes bounceIn
-  0%
-    -moz-transform      scale(0)
-    opacity             0
-  50%
-    -moz-transform      scale(1.1)
-    opacity             1
-  75%
-    -moz-transform      scale(0.9)
-  100%
-    -moz-transform      scale(1)
-
-
-.nominate-modal
-
-  z-index                       10001
-  background                    white
-  border-radius                 7px
-  text-align                    center
-  box-shadow                    0 0 20px
-
-  a
-    text-decoration             none
-
-  .logo
-
-    background                  url("../images/icon_rocket.png") no-repeat
-    height                      160px
-    top                         -20px
-    left                        130px
-    width                       160px
-    abs()
-
-  .header
-
-    height                      100px
-    background                  #504E4B
-    border-top-right-radius     5px
-    border-top-left-radius      5px
-    margin-bottom               40px
-
-  p
-
-    padding                     20px 70px 10px 70px
-    font-size                   15px
-
-  div.button
-
-    background                  #2E7FA1
-    text-shadow                 none
-    color                       white
-    font-size                   20px
-    padding                     10px
-    width                       210px
-    margin                      20px auto
-    border-radius               4px
-    cursor                      pointer
-
-div.nominateicon
-  width                         45px
-  height                        55px
-  background                    url("../images/icon_medal.png") no-repeat
-  background-position           12px 0px
-  background-color              #2B3335
-  border-radius                 3px
-  cursor                        pointer
-  right                         285px
-  z-index                       1
-  top                           0
-  abs()
-
-.kdmodal.redeem-modal
-
-  .formline
-    overflow              visible
-    padding               15px 0 0
-    .input-wrapper
-      overflow            visible
-      margin-right        8px
-      fr()
-    label
-      margin              0
-
 #editor-modal
   &.loading
     .kdmodal-inner
@@ -835,9 +682,6 @@ body.account
 
   .input-validation.placement-top:after
     border-top-color    rgba(217, 95, 95, .75)
-
-  .kdoverlay
-    background          rgba(255, 255, 255, .75)
 
 
 paymentGreen       = #00b156
@@ -1315,13 +1159,6 @@ paymentGrayLighter  = #f8f8f8
   .content-container
     text-align          center
 
-  .kdbutton
-    rounded             4px !important
-    bg                  color, #4EA04C !important
-    height              40px !important
-    &:focus
-      vendor            box-shadow, none !important
-
   .footer
     bg                  color, #DCDCDC
     font-size           14px
@@ -1339,12 +1176,11 @@ paymentGrayLighter  = #f8f8f8
     overflow            hidden
 
   .kdbutton
-   &.turn-on
-     padding            0 20px 0 14px
-     .icon
-       r-sprite         'ide', 'turn-on'
-       margin           12px 12px 0 0 !important
-       padding          0
+    margin              0 auto
+
+    &.turn-on
+      .icon
+        r-sprite        'ide', 'turn-on'
 
   .content-container
     margin-bottom       30px

@@ -117,6 +117,8 @@ validationRed = rgba(217, 58, 55, 0.65)
     r-sprite        activity 'check-gray'
     margin          0 6px 0 0
     padding         0
+    vendor          transform, none
+    position        static
     fr()
 
   .button-title
@@ -135,6 +137,7 @@ validationRed = rgba(217, 58, 55, 0.65)
       .icon
         r-sprite    activity 'check-green'
         opacity     .6
+        margin      0 5px 0 0
 
 
 .avatarview
@@ -434,237 +437,6 @@ button.app-settings-menu
     border            none
     shadow            none
 
-//
-// THIN BUTTON STYLES
-//
-.kdbutton.thin
-  bg                   color transparent
-  border               2px solid logoBg
-  rounded              28px
-  padding              0
-  height               55px
-  borderBox()
-  span.button-title
-    padding            0
-    color              logoBg
-    font-size          18px
-    text-decoration    uppercase
-    letter-spacing     1px
-  &:hover
-    bg                 color white
-  &:active
-    bg                 color logoBg
-    span.button-title
-      color            white
-  &:focus
-    shadow             0 0 10px -2px logoBg
-
-  // Sizes
-  &.medium
-    height             42px
-    line-height        38px
-    rounded            21px
-
-  &.small
-    height             26px
-    line-height        24px
-    rounded            13px
-
-    span.button-title
-      font-size        14px
-
-  // Color variatons
-
-  &.red
-    border-color       #E94835
-
-    span.button-title
-      color            #E94835
-
-    &:active
-      bg               color #E94835
-
-      span.button-title
-        color          white
-
-  &.gray
-    border-color       #929292
-
-    span.button-title
-      color            #666666
-
-    &:active
-      bg               color #E94835
-
-      span.button-title
-        color          white
-
-
-//
-// SOLID BUTTON STYLES
-//
-
-.kdbutton.solid
-  bg                   color #3c4043
-  border               none
-  rounded              3px
-  padding              0 20px
-  margin               0
-  height               55px
-  borderBox()
-  span.button-title
-    padding            0
-    color              rgba(227, 227, 227, 0.8)
-    font-size          18px
-    letter-spacing     .6px
-    line-height        55px
-    text-rendering     geometricPrecision
-  span.icon
-    margin             18px 0 0 0
-  &:hover
-    bg                 color #4A4E52
-  &:active
-    bg                 color logoBg
-    span.button-title
-      color            white
-  &:focus
-    shadow             0 0 10px -2px logoBg
-  &.icon-only
-    span.icon
-      margin           0
-
-.kdbutton.solid.green
-  bg                   color #61C17F
-  span.button-title
-    color              white
-  &:hover
-  &:active
-  &:focus
-    bg                 color #2DBEA1
-    span.button-title
-      color            white
-  &:focus
-    shadow             0 0 10px -2px logoBg
-
-.kdbutton.solid.compact
-  height               30px
-  padding              0 16px
-  span
-    line-height        30px
-    font-size          12px
-
-.kdbutton.compact.light-gray
-  bg                   color, transparent !important
-  border               2px solid #CBCBCB
-  span
-    color              #858585 !important
-    line-height        26px
-
-.kdbutton.solid.yellow
-  bg                   color #ff9f00
-  span.button-title
-    color              #ac4a00
-  &:hover
-  &:active
-  &:focus
-    bg                 color #ac4a00
-    span.button-title
-      color            #ff9f00
-  &:focus
-    shadow             0 0 10px -2px #ff9f00
-
-.kdbutton.solid.clear
-  bg                   color transparent
-  rounded              0
-  span.button-title
-    color              #444
-  &:hover
-  &:active
-  &:focus
-    background         none
-    shadow             none
-    span.button-title
-      color            #222
-
-.kdbutton.solid.light-gray
-  bg                   color #C0C0C0
-  span.button-title
-    color              white
-  &:hover
-  &:active
-  &:focus
-    bg                 color #a0a0a0
-    span.button-title
-      color            whitesmoke
-  &:focus
-    shadow             0 0 10px -2px #ff9f00
-
-.kdbutton.solid.small
-  margin              0
-  padding             0 25px
-  size                auto 26px
-  rounded             10px
-  text-align          center
-  span.button-title
-    font-size         13px
-    line-height       1
-  span.icon
-    margin            2px 0 0 0
-
-.kdbutton.solid.mini
-  margin              0
-  padding             0 10px
-  size                auto 20px
-  rounded             6px
-  text-align          center
-  span.button-title
-    font-size         12px
-    line-height       1
-  span.icon
-    margin            2px 0 0 0
-
-.kdbutton.solid.medium
-  margin              0
-  padding             0 25px
-  size                auto 40px
-  text-align          center
-  span.button-title
-    font-size         14px
-    font-weight       400
-    line-height       42px
-  span.icon
-    margin            12px 12px 0 0
-
-.kdbutton.solid.red
-  bg                   color #D75B5B
-  span.button-title
-    color              white
-  span.icon
-    margin             18px 0 0 0
-  &:hover
-  &:active
-  &:focus
-    bg                 color #e14a35
-  &:focus
-    shadow             0 0 10px -2px logoBg
-
-  &.shadowed
-    shadow             0 2px 0 0 #a33e2f
-    .button-title
-      text-shadow      0 -1px 2px rgba(0, 0, 0, .75)
-
-.kdbutton.w-loader.loading
-  .button-title
-  .icon
-    opacity            0
-
-  .kdloader
-    size               auto, auto
-    vendor             transform, translateX(-50%) translateY(-50%)
-
-
-/*  */
-
 
 /* More vms modal  */
 
@@ -939,100 +711,6 @@ button.app-settings-menu
       vendor              transform, translateX(16px)
     a.knob
       size                14px 14px
-
-//
-// KODING RESURRECTION MODAL THEME
-//
-
-// .kdmodal.resurrection
-
-.kdmodal
-  bg                    color white
-  rounded               6px
-  shadow                0 0 32px rgba(0,0,0,.46)
-  position              fixed !important
-
-  .kdmodal-inner
-    margin              45px
-
-    .close-icon
-      r-sprite            app, "modal-close-icon"
-      top               14px
-      right             14px
-
-      &:hover
-        r-sprite          app, "modal-close-icon"
-
-  .kdmodal-title
-    cursor              move
-    line-height         normal !important
-    font-weight         400
-    color               #50595a !important
-    margin-bottom       15px !important
-    padding             0 !important
-    background          none !important
-    border              none !important
-
-    .title
-      font-size         24px !important
-
-  .kdmodal-content
-    margin              15px 0 0 0 !important
-    padding             0 !important
-    font-size           16px !important
-    line-height         22px !important
-
-    .modalformline
-      padding           0
-      overflow          visible
-
-      &:last-child
-        border-bottom   1px solid transparent
-
-
-  .kdmodal-buttons
-  .formline.button-field
-    margin              24px 0 0 0 !important
-    background          none !important
-    // looks better i think w/o - SY
-    // border-top          2px solid #f3f4f5 !important
-    height              73px !important
-
-    .kdbutton
-      fr()
-
-      &.to-left
-        margin-left     0
-        margin-right    12px
-        fl()
-
-      &:not(.solid)
-        size            auto, 45px
-        background      none
-        border-width    3px
-        border-style    solid
-        margin          22px 0 0 12px !important
-        padding         0 24px !important
-        rounded         23px
-        font-size       18px
-        text-transform  uppercase
-        font-family     'Proxima Nova'
-
-    .modal-clean-red
-      border-color      #e94b35
-      color             #e94b35
-
-    .modal-clean-green
-      border-color      #1aaf5d
-      color             #1aaf5d
-
-    .modal-cancel
-      border-color      #bdc3c7
-      color             #bdc3c7
-
-.kdoverlay
-  fix()
-
 
 .kdnotification.mini.tray
   bg                  color, #fff
@@ -2077,7 +1755,6 @@ footer.main-footer
     margin                  10px 0 0
     color                   #a3a3a3
     text-align              center
-
 
 
 @media only screen and (min-width : 320px) and (max-width : 568px)
