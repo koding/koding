@@ -287,7 +287,6 @@ module.exports = [
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
-  "errorlog.coffee",
   "metric.coffee",
 
   # ---------- Main APP ENDS ---------- #
