@@ -41,12 +41,14 @@ func init() {
 	client, _ := dockerclient.NewTLSClient(dockerHost, certFile, keyFile, caFile)
 	dock := &Docker{
 		client: client,
+		log:    d.Log,
 	}
 
 	d.HandleFunc("create", dock.Create)
-	d.HandleFunc("list", dock.List)
 	d.HandleFunc("start", dock.Start)
+	d.HandleFunc("exec", dock.Exec)
 	d.HandleFunc("stop", dock.Stop)
+	d.HandleFunc("list", dock.List)
 	d.HandleFunc("removeContainer", dock.RemoveContainer)
 
 	go d.Run()
@@ -106,6 +108,22 @@ func TestStart(t *testing.T) {
 
 	if strings.Contains(container.Status, "Exit") {
 		t.Fatalf("container is not running: %s", container.Status)
+	}
+}
+
+func TestExec(t *testing.T) {
+	container, err := getContainer(TestContainerName)
+	if err != nil {
+		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
+	}
+
+	_, err = remote.Tell("exec", struct {
+		ID string
+	}{
+		ID: container.ID,
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

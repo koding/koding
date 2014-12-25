@@ -2,9 +2,12 @@
 package docker
 
 import (
+	"bytes"
 	"errors"
+	"os"
 	"strconv"
 	"time"
+	"unicode/utf8"
 
 	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
@@ -15,6 +18,7 @@ import (
 // Docker Servers.
 type Docker struct {
 	client *dockerclient.Client
+	log    kite.Logger
 }
 
 // New connects to a Docker Deamon specified with the given URL. It can be a
@@ -61,6 +65,10 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 		Name: params.Name,
 		Config: &dockerclient.Config{
 			Image: params.Image,
+			Tty:   true,
+			// AttachStdin:  true,
+			// AttachStdout: true,
+			// AttachStderr: true,
 		},
 	}
 
@@ -72,9 +80,59 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 	return container.Name, nil
 }
 
-// Connects connects to an existing Container by spawning a new process and
+// Exec connects to an existing Container by spawning a new process and
 // attaching to it.
-func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
+func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
+	var params struct {
+		// The ID of the container.
+		ID string
+	}
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	if params.ID == "" {
+		return nil, errors.New("missing arg: container is is empty")
+	}
+
+	createOpts := dockerclient.CreateExecOptions{
+		Container: params.ID,
+		Tty:       true,
+		Cmd:       []string{"bash"},
+		// we attach to anything, it's used in the same was as with `docker
+		// exec`
+		AttachStdout: true,
+		AttachStderr: true,
+		AttachStdin:  true,
+	}
+
+	// now we create a new Exec instance. It will return us an exec ID which
+	// will be used to start the created exec instance
+	d.log.Info("Creating exec instance")
+	ex, err := d.client.CreateExec(createOpts)
+	if err != nil {
+		return nil, err
+	}
+
+	// testing ...
+	stdoutBuffer := new(bytes.Buffer)
+	stdinBuffer.WriteString(`ls\r`)
+
+	opts := dockerclient.StartExecOptions{
+		RawTerminal:  true,      // because we are creating containers with Tty:true
+		OutputStream: os.Stdout, // if tty is enabled, stderr is included in output
+		ErrorStream:  os.Stderr,
+		InputStream:  stdinBuffer,
+	}
+
+	d.log.Info("Starting exec instance '%s'", ex.ID)
+	if err := d.client.StartExec(ex.ID, opts); err != nil {
+		return nil, err
+	}
+
+	time.Sleep(time.Second * 30)
+
 	return nil, errors.New("not implemented yet.")
 }
 
@@ -186,4 +244,23 @@ func (d *Docker) List(r *kite.Request) (interface{}, error) {
 	}
 
 	return d.client.ListContainers(filter)
+}
+
+func filterInvalidUTF8(buf []byte) []byte {
+	i := 0
+	j := 0
+	for {
+		r, l := utf8.DecodeRune(buf[i:])
+		if l == 0 {
+			break
+		}
+		if r < 0xD800 {
+			if i != j {
+				copy(buf[j:], buf[i:i+l])
+			}
+			j += l
+		}
+		i += l
+	}
+	return buf[:j]
 }

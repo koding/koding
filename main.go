@@ -214,7 +214,7 @@ func newKite() *kite.Kite {
 	dock := docker.New("unix:///var/run/docker.sock")
 	k.HandleFunc("docker.build", dock.Build)
 	k.HandleFunc("docker.create", dock.Create)
-	k.HandleFunc("docker.connect", dock.Connect)
+	k.HandleFunc("docker.exec", dock.Exec)
 	k.HandleFunc("docker.stop", dock.Stop)
 	k.HandleFunc("docker.start", dock.Start)
 	k.HandleFunc("docker.removeContainer", dock.RemoveContainer)
