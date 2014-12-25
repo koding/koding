@@ -3,6 +3,9 @@ module.exports = [
   # namespacing
   "namespaces.coffee"
 
+  # ndpane 0.1.2
+  "../../website/a/js/ndpane.min.js"
+
   # finder
   "finder/idefindercontextmenucontroller.coffee"
   "finder/idefindertreecontroller.coffee"

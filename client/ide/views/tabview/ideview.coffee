@@ -439,14 +439,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     machine.getBaseKite().webtermKillSessions()
 
     .catch (err)->
-      # This `webterm.killSessions` is not deployed yet
-      # when I was writing these lines, so I've added
-      # a feedback for user. ~ GG
-      if err.type is "methodNotFound"
-        new KDNotificationView
-          title : "Coming soon"
-      else
-        warn "Failed to terminate sessions", err
+      warn "Failed to terminate sessions", err
 
   terminateSession: (machine, session)->
 
