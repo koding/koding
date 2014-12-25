@@ -45,6 +45,7 @@ class KiteLogger
       @consumeInProgress = no
 
 
-  @interval = 10000 # 10 seconds
-  @timer    = KD.utils.repeat @interval, @consume
+  if KD.config.environment is 'production'
+    @interval = 10000 # 10 seconds
+    @timer = KD.utils.repeat @interval, @consume
 
