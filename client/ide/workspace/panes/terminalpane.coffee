@@ -100,3 +100,26 @@ class IDE.TerminalPane extends IDE.Pane
       paneType : paneType
       session  : @remote?.session
       hash     : @hash
+
+
+  setEditMode: (state) ->
+
+    {terminal} = @webtermView
+    return  unless terminal
+
+    {cursor} = terminal
+    return  unless cursor
+
+    if state
+      @webtermView.terminal.isReadOnly = no
+      cursor.stopped = no
+      cursor.setBlinking yes
+    else
+      @webtermView.terminal.isReadOnly = yes
+      cursor.stopBlink()
+
+
+  makeEditable: -> @setEditMode yes
+
+
+  makeReadOnly: -> @setEditMode no
