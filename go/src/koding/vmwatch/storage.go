@@ -22,6 +22,8 @@ var (
 	GroupBy    = "users"
 	QueueName  = "queue"
 
+	RedisInfinity = "+inf"
+
 	NetworkOutLimt = 7
 )
 
@@ -47,7 +49,7 @@ func (r *RedisStorage) Get(metricName, username string) (float64, error) {
 }
 
 func (r *RedisStorage) Range(metricName string, min int) ([]string, error) {
-	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, "+inf")
+	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, RedisInfinity)
 	if err != nil {
 		return nil, err
 	}
