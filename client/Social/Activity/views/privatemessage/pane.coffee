@@ -495,13 +495,15 @@ class PrivateMessagePane extends MessagePane
   resetPadding: ->
 
     listView = @listController.getView()
-    headerHeight = @heads?.getHeight() or 0
 
-    contentIsShort = window.innerHeight - headerHeight < listView.getHeight()
+    freeAreaHeight = @getHeight() - @excludedAreaHeight
+    contentHeight  = listView.getHeight()
 
-    return  unless contentIsShort
+    if freeAreaHeight < contentHeight
+      listView.unsetClass 'padded'
 
-    listView.unsetClass 'padded'
+
+  excludedAreaHeight: 85
 
 
   fetchAccounts: PrivateMessageForm::fetchAccounts
