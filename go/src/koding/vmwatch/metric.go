@@ -9,6 +9,7 @@ type Metric interface {
 	GetAndSaveData(string) error
 	GetMachinesOverLimit() ([]*models.Machine, error)
 	IsUserOverLimit(string) LimitResponse
+	GetName() string
 }
 
 type MetricData struct {
