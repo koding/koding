@@ -145,12 +145,10 @@ class PrivateMessagePane extends MessagePane
 
     data         = item.getData()
     listView     = @listController.getView()
-    headerHeight = @heads?.getHeight() or 0
 
     {applyConsequency, hasSameOwner} = helper
 
-    if window.innerHeight - headerHeight < listView.getHeight()
-      listView.unsetClass 'padded'
+    @resetPadding()
 
     # TODO: This is a temporary fix,
     # we need to revisit this part.
@@ -492,6 +490,18 @@ class PrivateMessagePane extends MessagePane
 
     @newMessagesMark?.destroy()
     @newMessagesMark = null
+
+
+  resetPadding: ->
+
+    listView = @listController.getView()
+    headerHeight = @heads?.getHeight() or 0
+
+    contentIsShort = window.innerHeight - headerHeight < listView.getHeight()
+
+    return  unless contentIsShort
+
+    listView.unsetClass 'padded'
 
 
   fetchAccounts: PrivateMessageForm::fetchAccounts
