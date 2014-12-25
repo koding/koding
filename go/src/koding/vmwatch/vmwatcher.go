@@ -24,7 +24,7 @@ func getAndSaveQueueMachineMetrics() error {
 	return nil
 }
 
-func stopVmsOverLimit() error {
+func stopMachinesOverLimit() error {
 	for _, metric := range metricsToSave {
 		machines, err := metric.GetMachinesOverLimit()
 		if err != nil {

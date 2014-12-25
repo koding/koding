@@ -33,7 +33,7 @@ func main() {
 
 	// stop machines overlimit at 10th and 40th minutes of every hour
 	c.AddFunc("0 10-59/35 * * * *", func() {
-		err := stopVmsOverLimit()
+		err := stopMachinesOverLimit()
 		if err != nil {
 			log.Fatal(err)
 		}
