@@ -18,7 +18,7 @@ class ContentDisplayScrollableView extends KDView
     
     @addSubView @scrollView
     
-    @scrollView.wrapper.forwardEvent this, 'LazyLoadThresholdReached'
+    @forwardEvent @scrollView.wrapper, 'LazyLoadThresholdReached'
 
 
   _windowDidResize: ->
