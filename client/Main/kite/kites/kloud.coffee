@@ -95,6 +95,8 @@ class KodingKite_KloudKite extends KodingKite
 
       .catch ->
 
+        KiteLogger.logFailed 'klient', 'kite.ping'
+
         callback null
 
 
@@ -115,10 +117,14 @@ class KodingKite_KloudKite extends KodingKite
 
       .catch (err) =>
 
-        if err.name is "TimeoutError" and not @_reconnectedOnce
-          warn "First time timeout, reconnecting to kloud..."
-          kontrol.kites.kloud.singleton?.reconnect?()
-          @_reconnectedOnce = yes
+        if err.name is "TimeoutError"
+
+          unless @_reconnectedOnce
+            warn "First time timeout, reconnecting to kloud..."
+            kontrol.kites.kloud.singleton?.reconnect?()
+            @_reconnectedOnce = yes
+
+          KiteLogger.logFailed 'kloud', 'info'
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }
         @resolveRequestingInfos machineId, State: currentState
