@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/gatekeeper/dispatcher/dispatcher"
-	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
+	"socialapi/workers/realtime/dispatcher/dispatcher"
+	"socialapi/workers/realtime/models"
 )
 
 const Name = "Dispatcher"

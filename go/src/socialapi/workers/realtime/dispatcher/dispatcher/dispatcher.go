@@ -1,8 +1,8 @@
 package dispatcher
 
 import (
-	"socialapi/workers/gatekeeper/models"
 	"socialapi/workers/helper"
+	"socialapi/workers/realtime/models"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"

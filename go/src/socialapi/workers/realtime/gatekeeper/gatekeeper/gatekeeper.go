@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/response"
-	"socialapi/workers/gatekeeper/models"
+	"socialapi/workers/realtime/models"
 	"time"
 
 	"github.com/koding/logging"

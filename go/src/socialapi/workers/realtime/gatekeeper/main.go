@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/gatekeeper/models"
-	"socialapi/workers/gatekeeper/realtimeapi/api"
+	"socialapi/workers/realtime/gatekeeper/gatekeeper"
+	"socialapi/workers/realtime/models"
 )
 
-const Name = "RealtimeApi"
+const Name = "Gatekeeper"
 
 func main() {
 	r := runner.New(Name)
