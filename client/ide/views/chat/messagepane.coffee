@@ -54,6 +54,8 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     @scrollView.wrapper.emit 'MutationHappened'
 
+    @scrollDown()
+
 
   excludedAreaHeight: 121
 
