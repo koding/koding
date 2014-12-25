@@ -171,9 +171,9 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
         .on 'close', ->
           if not kite.isDisconnected and kite.transport?.options.autoReconnect
             KodingKontrol.dcNotification ?= new KDNotificationView
-              title     : 'Trying to reconnect...'
-              type      : 'tray'
-              duration  : 999999
+              title    : 'Trying to reconnect...'
+              type     : 'tray'
+              duration : 999999
         .on 'open', ->
           KodingKontrol.dcNotification?.destroy()
           KodingKontrol.dcNotification = null
