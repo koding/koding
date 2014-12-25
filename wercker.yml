@@ -1,37 +1,39 @@
-# This file describes how to package `klient.deb` and upload to a persistent
-# storage.
-#
-# Packaging is done if a push is made to `klientkite.development` or
-# `klientkite.production` branches on `koding` repository.
-#
-# 1. If a push is made to either branches, a build number is created from the
-# latest version number and incremented.
-#
-# 2. A Debian package (deb) is built with a version with a semantical versioning.
-# Also a gzip file is created in the same directory.
-#
-# 3. These files are then uploaded to AWS S3 to `koding-klient` bucket in a
-# directory called `development/$BUILDNO/{foo.0.1.0.gz,foo.0.1.0_amd64.deb}`
+# This file describes how to create `klient.gz` and `klient.deb` and then
+# upload to a persistent storage.
 
-box: koding/base@0.0.12
+# XXX: this box includes go 1.3.3. there is no mistake here.
+box: wercker/golang@1.2.3
 
 build:
   steps:
+    - setup-go-workspace
+
     - script:
-        name: build go binaries
-        code: go/build.sh
+        name: go build
+        code: go build -v ./...
+
+    - script:
+        name: go test
+        code: go test -v
 
 deploy:
   steps:
+    - setup-go-workspace
+
     - script:
-        name: configure s3cmd (temporary workaround)
+        name: install debuild and s3cmd commands
+        code: |
+          sudo apt-get update
+          sudo apt-get install -y ubuntu-dev-tools s3cmd
+
+    - script:
+        name: configure s3cmd
         code: |
           echo '[default]' > ~/.s3cfg
-          echo "access_key=$S3_KEY_ID" >> ~/.s3cfg
-          echo "secret_key=$S3_KEY_SECRET" >> ~/.s3cfg
+          echo "access_key=$S3_ACCESS_KEY" >> ~/.s3cfg
+          echo "secret_key=$S3_SECRET_KEY" >> ~/.s3cfg
 
-          # Shortcut to s3://koding-klient/development directory
-          export S3DIR="s3://$S3_KLIENTKITE/$KLIENT_CHANNEL"
+          export S3DIR="s3://koding-klient/$CHANNEL"
 
           # Fetch the latest build number since wercker doesn't provide one
           s3cmd get $S3DIR/latest-version.txt version
@@ -41,17 +43,29 @@ deploy:
           rm -f version
 
     - script:
-        name: package klient.deb
+        name: build klient binary
         code: |
-          # Create klient.0.1.x.gz
-          export GOPATH=$PWD/go
-          go run go/package.go -a klient -e $KLIENT_CHANNEL -b $NEWBUILDNO
-          go build -v -ldflags "-X koding/kites/klient/protocol.Version 0.1.$NEWBUILDNO -X koding/kites/klient/protocol.Environment $KLIENT_CHANNEL" koding/kites/klient
+          go build -v -ldflags "-X github.com/koding/klient/protocol.Version 0.1.$NEWBUILDNO -X github.com/koding/klient/protocol.Environment $CHANNEL" github.com/koding/klient
+
+    - script:
+        name: validate klient version
+        code: |
+          [[ $(./klient -version) == "0.1.$NEWBUILDNO" ]]
+
+    - script:
+        name: prepare klient.gz
+        code: |
           gzip -N klient
           mv klient.gz klient-0.1.$NEWBUILDNO.gz
 
     - script:
-        name: sync with s3
+        name: prepare klient.deb
+        code: |
+          go run build/build.go -e $CHANNEL -b $NEWBUILDNO
+          dpkg -f *.deb
+
+    - script:
+        name: upload gz and deb to s3
         code: |
           #  Copy files to S3.
           s3cmd -P put *.deb  $S3DIR/$NEWBUILDNO/
@@ -65,14 +79,13 @@ deploy:
           # Update latest-version.txt with the latest version
           s3cmd del $S3DIR/latest-version.txt
           echo $NEWBUILDNO > latest-version.txt
-          s3cmd -P put latest-version.txt  $S3DIR/latest-version.txt
+          s3cmd -P put latest-version.txt $S3DIR/latest-version.txt
 
   after-steps:
     - sherzberg/slack-notify@0.0.11:
-        token: $KLIENT_SLACK_TOKEN
+        token: $SLACK_TOKEN
         subdomain: koding
         username: wercker
         channel: "#announce"
-        passed-message: "klient/$KLIENT_CHANNEL: A new klient (ver. $NEWBUILDNO) is successfuly built and deployed."
-        failed-message: "klient/$KLIENT_CHANNEL: New Klient could not be built or deployed. See $WERCKER_DEPLOY_URL for the details."
-
+        passed-message: "klient/$CHANNEL: A new klient (ver. $NEWBUILDNO) is successfully built and deployed."
+        failed-message: "klient/$CHANNEL: New Klient could not be built or deployed. See $WERCKER_DEPLOY_URL for the details."
