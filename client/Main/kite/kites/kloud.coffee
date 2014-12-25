@@ -81,8 +81,6 @@ class KodingKite_KloudKite extends KodingKite
       else
         return callback null
 
-    KD.remote.api.DataDog.increment "KlientInfo", noop
-
     klientKite.ping()
 
       .then (res)->
@@ -103,8 +101,6 @@ class KodingKite_KloudKite extends KodingKite
   askInfoFromKloud: (machineId, currentState) ->
 
     {kontrol, computeController} = KD.singletons
-
-    KD.remote.api.DataDog.increment "KloudInfo", noop
 
     @tell 'info', { machineId }
 
