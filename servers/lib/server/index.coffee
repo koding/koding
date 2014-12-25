@@ -120,7 +120,8 @@ app.use (req, res, next) ->
 
     res.cookie "clientIPAddress", remoteIp, { maxAge: 900000, httpOnly: no }
 
-    usertracker.track result?.session?.username
+    if result?.session?.username
+      usertracker.track result.session.username
 
     JSession.updateClientIP result.session.clientId, remoteIp, (err)->
       console.log err  if err?
