@@ -91,7 +91,6 @@ func responseWithCookie(req interface{}, token string) (int, http.Header, interf
 		Name:       "realtimeToken",
 		Value:      token,
 		Path:       "/",
-		Domain:     "lvh.me", // TODO change this
 		Expires:    expires,
 		RawExpires: expires.Format(time.UnixDate),
 		Raw:        "realtimeToken=" + token,
