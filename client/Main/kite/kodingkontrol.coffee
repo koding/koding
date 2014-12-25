@@ -191,7 +191,6 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     # Connect to kite
     .then(kite.bound 'setTransport')
-    .then(kite.bound 'logTransportFailures')
 
     # Report error
     .catch (err)=>

@@ -31,18 +31,9 @@ class KodingKite extends KDObject
 
     return {reason, code, wasClean, timestamp, type}
 
-  logTransportFailures:->
-    return  unless @transport?.ws?
-
-    @transport.ws.addEventListener 'close', (event)->
-      params = extractInfoFromWsEvent event
-      ErrorLog.create 'ws closed', params
-
-    @transport.ws.addEventListener 'error', (event)->
-      params = extractInfoFromWsEvent event
-      ErrorLog.create 'ws error', params
 
   getTransport: -> @transport
+
 
   setTransport: (@transport) ->
     if @transport?.ws?
@@ -52,6 +43,7 @@ class KodingKite extends KDObject
     @forwardEvent @transport, 'open'
 
     @emit 'ready'
+
 
   tell: (rpcMethod, params, callback) ->
 
