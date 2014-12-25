@@ -12,7 +12,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     @on 'AddedParticipant', @bound 'participantAdded'
 
-    @input.input.on 'focus', (event) => @handleFocus yes, event
+    @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
 
     @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
