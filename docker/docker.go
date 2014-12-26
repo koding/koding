@@ -4,11 +4,12 @@ package docker
 import (
 	"bytes"
 	"errors"
-	"os"
 	"strconv"
 	"time"
 	"unicode/utf8"
 
+	"github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/charset"
+	_ "github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/data"
 	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
@@ -23,12 +24,13 @@ type Docker struct {
 
 // New connects to a Docker Deamon specified with the given URL. It can be a
 // TCP address or a UNIX socket.
-func New(url string) *Docker {
+func New(url string, log kite.Logger) *Docker {
 	// the error is returned only when the passed URL is not parsable via
 	// url.Parse, so we can safely neglect it
 	client, _ := dockerclient.NewClient(url)
 	return &Docker{
 		client: client,
+		log:    log,
 	}
 }
 
@@ -64,11 +66,11 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 	opts := dockerclient.CreateContainerOptions{
 		Name: params.Name,
 		Config: &dockerclient.Config{
-			Image: params.Image,
-			Tty:   true,
-			// AttachStdin:  true,
-			// AttachStdout: true,
-			// AttachStderr: true,
+			Image:        params.Image,
+			Tty:          true,
+			AttachStdin:  true,
+			AttachStdout: true,
+			AttachStderr: true,
 		},
 	}
 
@@ -86,18 +88,50 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 	var params struct {
 		// The ID of the container.
 		ID string
+
+		Remote       Remote
+		Session      string
+		SizeX, SizeY int
+		Mode         string
 	}
 
 	if err := r.Args.One().Unmarshal(&params); err != nil {
 		return nil, err
 	}
 
-	if params.ID == "" {
-		return nil, errors.New("missing arg: container is is empty")
+	// if params.ID == "" {
+	// 	return nil, errors.New("missing arg: container ID is empty")
+	// }
+
+	d.log.Info("params %+v\n", params)
+
+	//////////////////
+	imageOpts := dockerclient.CreateContainerOptions{
+		Name: "webtest",
+		Config: &dockerclient.Config{
+			Image:        "redis",
+			Tty:          true,
+			AttachStdin:  true,
+			AttachStdout: true,
+			AttachStderr: true,
+		},
 	}
 
+	container, err := d.client.CreateContainer(imageOpts)
+	if err == nil {
+		// if successfull start it
+		if err := d.client.StartContainer(container.ID, nil); err != nil {
+			// return nil, err
+			d.log.Error("starting error: %s", err)
+		}
+	} else {
+		d.log.Error("creating error: %s", err)
+	}
+
+	//////////////////
+
 	createOpts := dockerclient.CreateExecOptions{
-		Container: params.ID,
+		Container: container.ID,
 		Tty:       true,
 		Cmd:       []string{"bash"},
 		// we attach to anything, it's used in the same was as with `docker
@@ -115,25 +149,78 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// testing ...
 	stdoutBuffer := new(bytes.Buffer)
-	stdinBuffer.WriteString(`ls\r`)
+	stdinBuffer := new(bytes.Buffer)
 
 	opts := dockerclient.StartExecOptions{
-		RawTerminal:  true,      // because we are creating containers with Tty:true
-		OutputStream: os.Stdout, // if tty is enabled, stderr is included in output
-		ErrorStream:  os.Stderr,
+		RawTerminal:  true, // because we are creating containers with Tty:true
+		OutputStream: stdoutBuffer,
+		ErrorStream:  stdoutBuffer,
 		InputStream:  stdinBuffer,
 	}
 
-	d.log.Info("Starting exec instance '%s'", ex.ID)
-	if err := d.client.StartExec(ex.ID, opts); err != nil {
+	masterEncoded, err := charset.NewWriter("ISO-8859-1", stdinBuffer)
+	if err != nil {
 		return nil, err
 	}
 
-	time.Sleep(time.Second * 30)
+	errCh := make(chan error)
+	closeCh := make(chan bool)
 
-	return nil, errors.New("not implemented yet.")
+	server := Server{
+		remote:          params.Remote,
+		out:             stdoutBuffer,
+		in:              stdinBuffer,
+		controlSequence: masterEncoded,
+		closeChan:       closeCh,
+	}
+
+	go func() {
+		d.log.Info("Starting exec instance '%s'", ex.ID)
+		err := d.client.StartExec(ex.ID, opts)
+		errCh <- err
+	}()
+
+	if err := d.client.ResizeExecTTY(ex.ID, params.SizeY, params.SizeX); err != nil {
+		return nil, err
+	}
+
+	go func() {
+		select {
+		case err := <-errCh:
+			if err != nil {
+				d.log.Error("startExec error: err")
+			}
+		case <-closeCh:
+			// TODO close hijacker's connection. We need to modify startExec
+		}
+
+	}()
+
+	// Read the STDOUT from shell process and send to the connected client.
+	go func() {
+		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+		for {
+			n, err := server.in.Read(buf)
+			for n < cap(buf)-1 {
+				r, _ := utf8.DecodeLastRune(buf[:n])
+				if r != utf8.RuneError {
+					break
+				}
+				server.in.Read(buf[n : n+1])
+				n++
+			}
+
+			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
+			if err != nil {
+				break
+			}
+		}
+		d.log.Info("Breaking out of for loop")
+	}()
+
+	d.log.Info("Returning server")
+	return server, nil
 }
 
 // Stop stops a running container

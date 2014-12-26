@@ -211,10 +211,10 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.copy", fs.Copy)
 
 	// Docker
-	dock := docker.New("unix:///var/run/docker.sock")
+	dock := docker.New("unix:///var/run/docker.sock", k.Log)
 	k.HandleFunc("docker.build", dock.Build)
 	k.HandleFunc("docker.create", dock.Create)
-	k.HandleFunc("docker.exec", dock.Exec)
+	k.HandleFunc("webterm.connect", dock.Exec)
 	k.HandleFunc("docker.stop", dock.Stop)
 	k.HandleFunc("docker.start", dock.Start)
 	k.HandleFunc("docker.removeContainer", dock.RemoveContainer)
@@ -228,7 +228,7 @@ func newKite() *kite.Kite {
 	term := terminal.New(k.Log)
 	term.InputHook = usg.Reset
 	k.HandleFunc("webterm.getSessions", term.GetSessions)
-	k.HandleFunc("webterm.connect", term.Connect)
+	// k.HandleFunc("webterm.connect", term.Connect)
 	k.HandleFunc("webterm.killSession", term.KillSession)
 	k.HandleFunc("webterm.killSessions", term.KillSessions)
 
