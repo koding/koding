@@ -184,7 +184,6 @@ module.exports =
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
-
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
       .click                  '.channel-title'
@@ -381,6 +380,36 @@ module.exports =
 
     if assertLoginLink
       browser.waitForElementVisible loginLinkSelector, 25000
+
+
+  changeName: (browser, inputSelector, shouldAssertSidebar) ->
+
+    paragraph           = @getFakeText()
+    newName             = paragraph.split(' ')[0]
+    avatarSelector      = '.avatar-area a.profile'
+    accountPageSelector = '#main-panel-wrapper .user-profile'
+    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
+
+    browser
+      .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
+      .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
+      .waitForElementVisible   '.avatararea-popup .content', 20000
+      .click                   '.avatararea-popup .content [testpath=AccountSettingsLink]'
+      .waitForElementVisible   accountPageSelector, 20000
+      .waitForElementVisible   inputSelector, 20000
+      .clearValue              inputSelector
+      .setValue                inputSelector, newName + '\n'
+      .waitForElementVisible   saveButtonSelector, 20000
+      .click                   saveButtonSelector
+      .refresh()
+      .waitForElementVisible   inputSelector, 20000
+      .getValue                inputSelector, (result) ->
+        assert.equal           result.value, newName
+
+        if shouldAssertSidebar
+          browser
+            .waitForElementVisible   avatarSelector, 20000
+            .assert.containsText     avatarSelector, newName
 
 
   getUrl: ->
