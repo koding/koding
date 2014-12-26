@@ -80,7 +80,7 @@ class ActivityListItemView extends KDListItemView
       cssClass         : 'edit-widget-wrapper clearfix'
 
     @editWidgetWrapper.addSubView new KDButtonView
-      style     : 'solid green mini fr'
+      style     : 'solid green mini fr done-button'
       title     : 'DONE'
       callback  : =>
         @editWidget.submit @editWidget.input.getValue()
