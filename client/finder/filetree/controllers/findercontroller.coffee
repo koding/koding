@@ -311,6 +311,9 @@ class NFinderController extends KDViewController
           return machineItem
 
 
+  setReadOnly: (state) -> @treeController.isReadOnly = state
+
+
   # Settings helpers
   #
   updateMountState:(uid, state)->
