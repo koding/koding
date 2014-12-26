@@ -502,8 +502,8 @@ div.nominateicon
 .kdmodal.ws-settings
 .kdmodal.vm-settings
 
-  background              #242424 !important
-  border-color            #242424 !important
+  background              #fafafa !important
+  border-color            #fafafa !important
 
   .kdmodal-title
     hidden()
@@ -517,11 +517,11 @@ div.nominateicon
 
   .modal-arrow
     left                  -41px !important
-    border-right-color    #242424 !important
+    border-right-color    #fafafa !important
     vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
 
     &:before
-      border-right-color  #242424 !important
+      border-right-color  #fafafa !important
 
   &.activity-modal
     .kdmodal-inner
@@ -537,20 +537,20 @@ div.nominateicon
       margin-bottom       0
       width               153px
       text-overflow       ellipsis
-      color               #F3EDE0
+      color               #909090
       fr()
 
       .koding-on-off
         margin-top        1px
         &.on
-          background      #387635
+          background      #428040
         &.off
-          background      #494949
+          background      #b6b6b6
 
       .kdselectbox
         margin-top        4px
 
-      color               #F3EDE0
+      color               #909090
       font-size           12px
       line-height         21px
       font-weight         600
@@ -558,7 +558,7 @@ div.nominateicon
 
       a
         text-decoration   underline
-        color             #F3EDE0
+        color             #909090
 
     &.nickname
 
@@ -589,15 +589,16 @@ div.nominateicon
           padding         0 0 9px 2px
 
 
-    span
-      top             2px
-      left            2px
+    span.title
       position        relative
       display         inline-block
       cursor          pointer
 
-      &.domain-toggle
-        r-sprite      app 'add-12'
+    span.domain-toggle
+      display         inline-block
+      r-sprite        app 'add-12'
+      vertical-align  middle
+      opacity         .4
 
     &.domains
 
@@ -607,6 +608,8 @@ div.nominateicon
           text-decoration none
 
         span.domain-help
+          display         inline-block
+          vertical-align  middle
           r-sprite        app 'what-12'
 
         &.expanded
@@ -631,7 +634,7 @@ div.nominateicon
 
       .input-wrapper
         width             100%
-        border-bottom     1px solid #333
+        border-bottom     1px solid #e0e0e0
         z-index           -1
         top               24px
         abs()
@@ -645,7 +648,7 @@ div.nominateicon
 
         &:before
           content         'More'
-          background      #242424
+          background      #fafafa
           size            55px 20px
           padding-right   15px
           margin-left     -15px
@@ -746,15 +749,14 @@ div.nominateicon
 
       &:hover
         span.remove-domain
-          display         block
+          display         inline-block
 
       span.remove-domain
-        top               4px
-        right             36px
         display           none
         r-sprite          app 'delete-12'
         cursor            pointer
-        abs()
+        vertical-align    middle
+        margin-left       8px
 
   label.kdlabel
 
@@ -763,12 +765,12 @@ div.nominateicon
     margin                0
     font-weight           600
     padding-left          3px
-    color                 #99999B
+    color                 #a3a3a3
 
   .kdbutton.solid
     font-weight           600
     &.red
-      background          #D43130
+      background          #d73c3c
     &.reinit
       background          #F69D03
 
@@ -792,7 +794,7 @@ div.nominateicon
 .kdmodal.ws-settings
 
   .kdtabview
-    border-bottom         1px solid #333
+    border-bottom         1px solid #e0e0e0
 
   .modal-arrow
     left                  -36px !important
