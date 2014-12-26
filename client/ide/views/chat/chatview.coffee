@@ -37,7 +37,6 @@ class IDE.ChatView extends KDTabView
     @visible = yes
 
     @show()
-    @chatPane.refresh()
 
 
   end: ->
@@ -46,6 +45,13 @@ class IDE.ChatView extends KDTabView
 
     @hide()
 
+  
+  show: ->
+    
+    super
+    
+    @chatPane?.refresh()
+    
 
   createLoader: ->
 
