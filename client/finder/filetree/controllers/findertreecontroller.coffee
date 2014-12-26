@@ -517,6 +517,8 @@ class NFinderTreeController extends JTreeViewController
 
   click:(nodeView, event)->
 
+    return  if @isReadOnly
+
     if $(event.target).is ".chevron"
       @contextMenu nodeView, event
       return no
@@ -528,6 +530,8 @@ class NFinderTreeController extends JTreeViewController
     super
 
   dblClick:(nodeView, event)->
+
+    return  if @isReadOnly
 
     @openItem nodeView
 
