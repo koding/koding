@@ -169,8 +169,10 @@ module.exports =
 
   doPostComment: (browser, comment, shouldAssert = yes) ->
     browser
-      .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
-      .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
+      .click                    activitySelector + ' [testpath=CommentInputView]'
+      .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
+      .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
+      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
 
     if shouldAssert
       browser
