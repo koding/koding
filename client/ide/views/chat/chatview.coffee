@@ -45,13 +45,13 @@ class IDE.ChatView extends KDTabView
 
     @hide()
 
-  
+
   show: ->
-    
+
     super
-    
+
     @chatPane?.refresh()
-    
+
 
   createLoader: ->
 
