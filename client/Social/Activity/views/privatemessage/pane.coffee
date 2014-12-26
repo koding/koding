@@ -142,10 +142,9 @@ class PrivateMessagePane extends MessagePane
     return [prevSibling, nextSibling]
 
 
-  removePadding: ->
+  resetPadding: ->
       
-    listView     = @listController.getView()
-    headerHeight = @heads?.getHeight() or 0
+    listView = @listController.getView()
 
     if (listView.hasClass 'padded') and (@scrollView.getHeight() < listView.getHeight())
       listView.unsetClass 'padded'
@@ -156,7 +155,7 @@ class PrivateMessagePane extends MessagePane
   
   messageExpanded: () ->
     
-    @scrollDown()  if @removePadding()
+    @scrollDown()  if @resetPadding()
 
     @scrollView.wrapper.emit 'MutationHappened'
 
@@ -505,9 +504,10 @@ class PrivateMessagePane extends MessagePane
     
     return  if not @listController.getItemCount()
     
-    @removePadding()
+    @resetPadding()
     item.checkIfItsTooTall()  for item in @listController.getListItems()
-    @_windowDidResize()
+    @scrollView.wrapper.emit 'MutationHappened'
+    @scrollDown()
   
   
   focus: -> @input.focus()
@@ -519,20 +519,6 @@ class PrivateMessagePane extends MessagePane
 
     @newMessagesMark?.destroy()
     @newMessagesMark = null
-
-
-  resetPadding: ->
-
-    listView = @listController.getView()
-
-    freeAreaHeight = @getHeight() - @excludedAreaHeight
-    contentHeight  = listView.getHeight()
-
-    if freeAreaHeight < contentHeight
-      listView.unsetClass 'padded'
-
-
-  excludedAreaHeight: 85
 
 
   fetchAccounts: PrivateMessageForm::fetchAccounts
