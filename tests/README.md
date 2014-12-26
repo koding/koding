@@ -14,6 +14,6 @@ cd tests
 
 
 - `./test activity` this will run all tests for activity
-- `./test activity editdelete` # this will just run edit delete tests
-- `./test ide` # run all tests for IDE
-- `./test ide workspace` # run workspace related tests for IDE.
+- `./test activity editdelete` this will just run edit delete tests
+- `./test ide` run all tests for IDE
+- `./test ide workspace` run workspace related tests for IDE.
