@@ -48,18 +48,6 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     mainView.glanceChannelWorkspace channel
 
 
-  resetPadding: ->
-
-    super
-
-    @scrollView.wrapper.emit 'MutationHappened'
-
-    @scrollDown()
-
-
-  excludedAreaHeight: 121
-
-
   createParticipantsView: ->
 
     @createHeaderViews()
