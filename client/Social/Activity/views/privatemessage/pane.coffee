@@ -147,7 +147,7 @@ class PrivateMessagePane extends MessagePane
     listView     = @listController.getView()
     headerHeight = @heads?.getHeight() or 0
 
-    if (listView.hasClass 'padded') and (window.innerHeight - headerHeight < listView.getHeight())
+    if (listView.hasClass 'padded') and (@scrollView.getHeight() < listView.getHeight())
       listView.unsetClass 'padded'
       return yes
       
@@ -501,6 +501,15 @@ class PrivateMessagePane extends MessagePane
     KD.utils.defer @bound 'focus'
 
 
+  refresh: ->
+    
+    return  if not @listController.getItemCount()
+    
+    @removePadding()
+    item.checkIfItsTooTall()  for item in @listController.getListItems()
+    @_windowDidResize()
+  
+  
   focus: -> @input.focus()
 
 

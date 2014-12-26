@@ -288,7 +288,7 @@ class ActivityListItemView extends KDListItemView
         href     : '#'
         partial  : 'Show more'
         click    : ->
-          article.style['max-height'] = "#{scrollHeight}px"
+          article.style.maxHeight = "#{scrollHeight}px"
           article.classList.remove 'tall'
           
           KD.utils.wait 500, -> list.emit 'ItemWasExpanded'
