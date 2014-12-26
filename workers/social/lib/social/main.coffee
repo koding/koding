@@ -8,6 +8,8 @@ log = -> console.log arguments...
 {extend} = require 'underscore'
 { join: joinPath } = require 'path'
 
+usertracker = require('../../../usertracker')
+
 process.on 'uncaughtException', (err)->
   exec './beep'
   console.log err, err?.stack
@@ -72,6 +74,9 @@ koding = new Bongo {
         koding.emit 'error', err
 
       else if account instanceof JAccount
+
+        usertracker.track account.profile.nickname
+
         { clientIP } = session
         callback {
           sessionToken, context, clientIP,
@@ -116,6 +121,8 @@ helmet = require 'helmet'
 app = express()
 
 do ->
+  usertracker.start()
+
   compression = require 'compression'
   bodyParser = require 'body-parser'
 
