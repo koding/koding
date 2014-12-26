@@ -37,6 +37,7 @@ class IDE.ChatView extends KDTabView
     @visible = yes
 
     @show()
+    @chatPane.refresh()
 
 
   end: ->
@@ -92,7 +93,7 @@ class IDE.ChatView extends KDTabView
       'ParticipantJoined', 'ParticipantLeft'
     ]
 
-    @settingsPane.on 'SessionStarted', @bound 'showChatPane'
+    @settingsPane.on 'SessionStarted', @bound 'sessionStarted'
     @settingsPane.on 'AddNewParticipantRequested', =>
       @showChatPane()
 
@@ -109,3 +110,9 @@ class IDE.ChatView extends KDTabView
 
 
   showSettingsPane: -> @showPane @settingsPane
+  
+  
+  sessionStarted: ->
+    
+    @showChatPane()
+    @chatPane.refresh()
