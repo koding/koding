@@ -172,6 +172,8 @@ module.exports =
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
       .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
+      .click                    activitySelector + ' .has-markdown' # blur
+      .pause                    3000 # content preview
       .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
 
     if shouldAssert
