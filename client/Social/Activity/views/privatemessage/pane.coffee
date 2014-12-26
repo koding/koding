@@ -500,16 +500,6 @@ class PrivateMessagePane extends MessagePane
     KD.utils.defer @bound 'focus'
 
 
-  refresh: ->
-    
-    return  if not @listController.getItemCount()
-    
-    @resetPadding()
-    item.checkIfItsTooTall()  for item in @listController.getListItems()
-    @scrollView.wrapper.emit 'MutationHappened'
-    @scrollDown()
-  
-  
   focus: -> @input.focus()
 
 
@@ -557,5 +547,3 @@ class PrivateMessagePane extends MessagePane
           datetime : date.toUTCString()
 
     parse : (args...) -> args.map (item) -> parseInt item
-
-
