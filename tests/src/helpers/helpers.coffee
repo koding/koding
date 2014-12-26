@@ -384,21 +384,23 @@ module.exports =
 
   changeName: (browser, inputSelector, shouldAssertSidebar) ->
 
-    paragraph = @getFakeText()
-    newName   = paragraph.split(' ')[0]
-    avatar    = '.avatar-area a.profile'
+    paragraph           = @getFakeText()
+    newName             = paragraph.split(' ')[0]
+    avatarSelector      = '.avatar-area a.profile'
+    accountPageSelector = '#main-panel-wrapper .user-profile'
+    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
 
     browser
       .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
       .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
-      .waitForElementVisible   '.content', 20000
-      .click                   '.content [testpath=AccountSettingsLink]'
-      .waitForElementVisible   '.account-avatar-area', 20000
+      .waitForElementVisible   '.avatararea-popup .content', 20000
+      .click                   '.avatararea-popup .content [testpath=AccountSettingsLink]'
+      .waitForElementVisible   accountPageSelector, 20000
       .waitForElementVisible   inputSelector, 20000
       .clearValue              inputSelector
       .setValue                inputSelector, newName + '\n'
-      .waitForElementVisible   '.button-field .profile-save-changes', 20000
-      .click                   '.button-field .profile-save-changes'
+      .waitForElementVisible   saveButtonSelector, 20000
+      .click                   saveButtonSelector
       .refresh()
       .waitForElementVisible   inputSelector, 20000
       .getValue                inputSelector, (result) ->
@@ -406,9 +408,8 @@ module.exports =
 
         if shouldAssertSidebar
           browser
-            .waitForElementVisible   avatar, 20000
-            .assert.containsText     avatar, newName
-
+            .waitForElementVisible   avatarSelector, 20000
+            .assert.containsText     avatarSelector, newName
 
 
   getUrl: ->
