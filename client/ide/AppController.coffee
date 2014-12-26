@@ -1761,3 +1761,23 @@ class IDEAppController extends AppController
                 title    : "@#{@collaborationHost} has left the session."
                 duration : 3000
               KD.singletons.router.handleRoute '/IDE'
+
+
+  makeReadOnly: ->
+
+    return  if @isReadOnly
+
+    @isReadOnly = yes
+    @forEachSubViewInIDEViews_ (pane) -> pane.makeReadOnly()
+    @finderPane.makeReadOnly()
+    @getView.setClass 'read-only'
+
+
+  makeEditable: ->
+
+    return  unless @isReadOnly
+
+    @isReadOnly = no
+    @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
+    @finderPane.makeEditable()
+    @getView.unsetClass 'read-only'
