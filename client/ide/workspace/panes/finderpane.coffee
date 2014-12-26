@@ -19,7 +19,9 @@ class IDE.FinderPane extends IDE.Pane
       @addSubView fc.getView()
       @bindListeners()
 
+
   bindListeners: ->
+
     mgr = KD.getSingleton 'appManager'
     fc  = @finderController
 
@@ -31,6 +33,14 @@ class IDE.FinderPane extends IDE.Pane
     fc.treeController.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
-    @on 'MachineMountRequested',   (machine, rootPath) -> fc.mountMachine machine, { mountPath: rootPath }
+    @on 'MachineMountRequested', (machine, rootPath) ->
+      fc.mountMachine machine, { mountPath: rootPath }
 
-    @on 'MachineUnmountRequested', (machine) -> fc.unmountMachine machine.uid
+    @on 'MachineUnmountRequested', (machine) ->
+      fc.unmountMachine machine.uid
+
+
+  makeReadOnly: -> @finderController.setReadOnly yes
+
+
+  makeEditable: -> @finderController.setReadOnly no
