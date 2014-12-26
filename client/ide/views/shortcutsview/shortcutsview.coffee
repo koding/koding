@@ -1,10 +1,10 @@
-class IDE.ShortcutsView extends KDView
+class IDE.ShortcutsView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'key-mappings'
-
     super options, data
+
+    @wrapper.setClass 'key-mappings'
 
     shortcuts = @getShortcuts()
     apples    = [ "MacIntel", "MacPPC", "Mac68K", "Macintosh", "iPad" ]
@@ -28,7 +28,7 @@ class IDE.ShortcutsView extends KDView
 
         container.addSubView new IDE.ShortcutView {}, { shortcut, description }
 
-      @addSubView container
+      @wrapper.addSubView container
 
   getShortcuts: ->
 
