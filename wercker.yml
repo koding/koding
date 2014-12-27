@@ -46,12 +46,6 @@ build:
           INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
           scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
           cat $INSTANCE_DATA
-          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
-          if [ -z "$HOST" ]; then exit 1; fi
-          echo $HOST > $INSTANCE_IP
-          scripts/wercker/check-connectivity $HOST 8090 1m 5
-          scripts/wercker/check-connectivity $HOST 4444 1m 7
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot /opt/koding
@@ -98,6 +92,14 @@ build:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
+    - script:
+        name: check connectivity
+        code: |
+          HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
+          if [ -z "$HOST" ]; then exit 1; fi
+          echo $HOST > $INSTANCE_IP
+          scripts/wercker/check-connectivity $HOST 8090 1m 5
+          scripts/wercker/check-connectivity $HOST 4444 1m 7
     - script:
         name: testing client started
         code: |
