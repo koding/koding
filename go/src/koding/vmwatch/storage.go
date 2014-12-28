@@ -10,7 +10,7 @@ import (
 type Storage interface {
 	Queue(string, []interface{}) error
 	Pop(string) (string, error)
-	Range(string, int) ([]string, error)
+	Range(string, float64) ([]string, error)
 	Save(string, string, float64) error
 	Get(string, string) (float64, error)
 	ExemptGet(string, string) (bool, error)
@@ -28,7 +28,7 @@ var (
 
 	RedisInfinity = "+inf"
 
-	NetworkOutLimt = 7
+	NetworkOutLimt float64 = 7
 )
 
 type RedisStorage struct {
@@ -52,7 +52,7 @@ func (r *RedisStorage) Get(metricName, username string) (float64, error) {
 	return r.Client.SortedSetScore(r.Key(metricName), username)
 }
 
-func (r *RedisStorage) Range(metricName string, min int) ([]string, error) {
+func (r *RedisStorage) Range(metricName string, min float64) ([]string, error) {
 	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, RedisInfinity)
 	if err != nil {
 		return nil, err

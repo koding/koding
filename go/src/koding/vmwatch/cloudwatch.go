@@ -114,6 +114,17 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 	return machines, nil
 }
 
-func (c *Cloudwatch) IsUserOverLimit(username string) LimitResponse {
-	return LimitResponse{}
+func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
+	value, err := storage.Get(c.GetName(), username)
+	if err != nil {
+		return nil, err
+	}
+
+	lr := &LimitResponse{
+		OverLimit:    value >= NetworkOutLimt,
+		AllowedUsage: NetworkOutLimt,
+		CurrentUsage: value,
+	}
+
+	return lr, err
 }
