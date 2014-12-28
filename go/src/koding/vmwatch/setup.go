@@ -28,4 +28,11 @@ func init() {
 	redisStorage = &RedisStorage{Client: redisClient}
 
 	storage = redisStorage
+
+	for _, metric := range metricsToSave {
+		err = storage.ExemptSave(metric.GetName(), ExemptUsers)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }
