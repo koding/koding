@@ -7,16 +7,22 @@ import (
 )
 
 func getAndSaveQueueMachineMetrics() error {
-	machines, err := popMachinesForMetricGet()
-	if err != nil {
-		return err
-	}
+	for {
+		machines, err := popMachinesForMetricGet()
+		if err != nil {
+			return err
+		}
 
-	for _, machine := range machines {
-		for _, metric := range metricsToSave {
-			err := metric.GetAndSaveData(machine.Credential)
-			if err != nil {
-				log.Println(err)
+		if len(machines) == 0 {
+			return nil
+		}
+
+		for _, machine := range machines {
+			for _, metric := range metricsToSave {
+				err := metric.GetAndSaveData(machine.Credential)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 		}
 	}
