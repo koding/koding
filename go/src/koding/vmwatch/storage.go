@@ -13,14 +13,17 @@ type Storage interface {
 	Range(string, int) ([]string, error)
 	Save(string, string, float64) error
 	Get(string, string) (float64, error)
+	ExemptSave(string, []interface{}) error
 }
 
 var (
 	storage Storage
 
+	// redis key prefixes
 	WorkerName = "cloudwatch"
 	GroupBy    = "users"
 	QueueName  = "queue"
+	ExemptKey  = "exempt"
 
 	RedisInfinity = "+inf"
 
@@ -60,6 +63,15 @@ func (r *RedisStorage) Range(metricName string, min int) ([]string, error) {
 	}
 
 	return usernames, nil
+}
+
+func (r *RedisStorage) ExemptSave(prefix string, usernames []interface{}) error {
+	_, err := r.Client.AddSetMembers(r.ExemptKey(prefix), usernames...)
+	return err
+}
+
+func (r *RedisStorage) ExemptKey(prefix string) string {
+	return fmt.Sprintf("%s:%s:%s", WorkerName, prefix, ExemptKey)
 }
 
 func (r *RedisStorage) Key(prefix string) string {
