@@ -13,6 +13,7 @@ type Storage interface {
 	Range(string, int) ([]string, error)
 	Save(string, string, float64) error
 	Get(string, string) (float64, error)
+	ExemptGet(string, string) (bool, error)
 	ExemptSave(string, []interface{}) error
 }
 
@@ -68,6 +69,22 @@ func (r *RedisStorage) Range(metricName string, min int) ([]string, error) {
 func (r *RedisStorage) ExemptSave(prefix string, usernames []interface{}) error {
 	_, err := r.Client.AddSetMembers(r.ExemptKey(prefix), usernames...)
 	return err
+}
+
+func (r *RedisStorage) ExemptGet(prefix, username string) (bool, error) {
+	yes, err := r.Client.IsSetMember(r.ExemptKey(prefix), username)
+	if err != nil {
+		return false, err
+	}
+
+	switch yes {
+	case 0:
+		return true, nil
+	case 1:
+		return false, nil
+	}
+
+	return false, nil
 }
 
 func (r *RedisStorage) ExemptKey(prefix string) string {
