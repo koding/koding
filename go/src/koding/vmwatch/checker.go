@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
 
 type Response struct {
 	CanStart                   bool
@@ -10,6 +13,16 @@ type Response struct {
 
 func checker(username string) Response {
 	for _, metric := range metricsToSave {
+		yes, err := exemptFromStopping(metric.GetName(), username)
+		if err != nil {
+			log.Println(err)
+			return Response{CanStart: true}
+		}
+
+		if yes {
+			return Response{CanStart: true}
+		}
+
 		resp := metric.IsUserOverLimit(username)
 
 		if resp.OverLimit {
