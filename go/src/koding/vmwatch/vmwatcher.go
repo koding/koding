@@ -41,12 +41,13 @@ func stopMachinesOverLimit() error {
 		for _, machine := range machines {
 			username := machine.Credential
 
-			yes, err := shouldStopMachine(metric.GetName(), username)
+			yes, err := exemptFromStopping(metric.GetName(), username)
 			if err != nil {
-				return err
+				log.Println(err)
+				continue
 			}
 
-			if yes {
+			if !yes {
 				err = stopVm(machine.ObjectId.Hex())
 				if err != nil {
 					log.Println(err)
@@ -92,30 +93,4 @@ func popMachinesForMetricGet() ([]*models.Machine, error) {
 
 func getRunningVms() ([]*models.Machine, error) {
 	return modelhelper.GetRunningVms()
-}
-
-func shouldStopMachine(metricName, username string) (bool, error) {
-	plan, err := getPlanForUser(username)
-	if err != nil {
-		return false, err
-	}
-
-	if plan != "free" {
-		return true, nil
-	}
-
-	isExempt, err := storage.ExemptGet(metricName, username)
-	if err != nil {
-		return false, err
-	}
-
-	if isExempt {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func getPlanForUser(username string) (string, error) {
-	return "", nil
 }
