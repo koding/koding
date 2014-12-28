@@ -26,7 +26,11 @@ func checker(username string) Response {
 			continue
 		}
 
-		resp := metric.IsUserOverLimit(username)
+		resp, err := metric.IsUserOverLimit(username)
+		if err != nil {
+			log.Println(err)
+			return Response{CanStart: true}
+		}
 
 		if resp.OverLimit {
 			return Response{
