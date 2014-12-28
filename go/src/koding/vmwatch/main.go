@@ -2,20 +2,19 @@ package main
 
 import (
 	"log"
-	"time"
 
 	"github.com/robfig/cron"
 )
 
 var (
-	metricsToSave  = []Metric{&Cloudwatch{"NetworkOut"}}
-	tickerInterval = time.Minute * 45
+	metricsToSave = []Metric{&Cloudwatch{"NetworkOut"}}
 )
 
 func main() {
 	c := cron.New()
 
-	// queue to get metrics at top of every hour
+	// queue to get metrics at top of every hour; uses redis set to queue
+	// the usernames so multiple workers don't queue the same usernames.
 	c.AddFunc("@hourly", func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
@@ -23,7 +22,8 @@ func main() {
 		}
 	})
 
-	// get and save metrics at 5th and 35th minutes of every hour
+	// get and save metrics at 5th and 35th minutes of every hour; the
+	// reason for 5th minute, is to not queue and pop at the same time.
 	c.AddFunc("0 5-59/30 * * * *", func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
@@ -31,7 +31,9 @@ func main() {
 		}
 	})
 
-	// stop machines overlimit at 10th and 40th minutes of every hour
+	// stop machines overlimit at 10th and 40th minutes of every hour;
+	// there's no reason for running it at a certain point of the hour,
+	// there's no overlap for the logs to not overlap.
 	c.AddFunc("0 10-59/35 * * * *", func() {
 		err := stopMachinesOverLimit()
 		if err != nil {

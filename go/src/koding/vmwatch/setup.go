@@ -29,6 +29,7 @@ func init() {
 
 	storage = redisStorage
 
+	// store exempt usernames in a set
 	for _, metric := range metricsToSave {
 		err = storage.ExemptSave(metric.GetName(), ExemptUsers)
 		if err != nil {
