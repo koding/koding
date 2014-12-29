@@ -8,17 +8,17 @@ import (
 
 func getAndSaveQueueMachineMetrics() error {
 	for {
-		machines, err := popMachinesForMetricGet()
-		if err != nil {
-			return err
-		}
+		for _, metric := range metricsToSave {
+			machines, err := popMachinesForMetricGet(metric.GetName())
+			if err != nil {
+				return err
+			}
 
-		if len(machines) == 0 {
-			return nil
-		}
+			if len(machines) == 0 {
+				return nil
+			}
 
-		for _, machine := range machines {
-			for _, metric := range metricsToSave {
+			for _, machine := range machines {
 				err := metric.GetAndSaveData(machine.Credential)
 				if err != nil {
 					log.Println(err)
@@ -74,11 +74,18 @@ func queueUsernamesForMetricGet() error {
 		usernames = append(usernames, machine.Credential)
 	}
 
-	return storage.Queue(NetworkOut, usernames)
+	for _, metric := range metricsToSave {
+		err := storage.Queue(metric.GetName(), usernames)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func popMachinesForMetricGet() ([]*models.Machine, error) {
-	username, err := storage.Pop(NetworkOut)
+func popMachinesForMetricGet(metricName string) ([]*models.Machine, error) {
+	username, err := storage.Pop(metricName)
 	if err != nil {
 		return nil, err
 	}

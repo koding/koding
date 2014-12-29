@@ -27,8 +27,6 @@ var (
 	ExemptKey  = "exempt"
 
 	RedisInfinity = "+inf"
-
-	NetworkOutLimt float64 = 7
 )
 
 type RedisStorage struct {

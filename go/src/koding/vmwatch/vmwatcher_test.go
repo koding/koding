@@ -60,7 +60,7 @@ func TestOverlimitMachines(t *testing.T) {
 		})
 
 		Convey("Then it should pop the machine", func() {
-			queuedMachines, err := popMachinesForMetricGet()
+			queuedMachines, err := popMachinesForMetricGet(NetworkOut)
 			So(err, ShouldBeNil)
 			So(len(queuedMachines), ShouldEqual, 1)
 

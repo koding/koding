@@ -24,11 +24,6 @@ var (
 	sevenDaysAgo = today.Add(-7 * 24 * time.Hour)
 
 	auth aws.Auth
-
-	useAwsDefaultRegion = false
-	awsDefaultRegion    aws.ServiceInfo
-
-	NetworkOut = "NetworkOut"
 )
 
 func init() {
@@ -41,11 +36,16 @@ func init() {
 }
 
 type Cloudwatch struct {
-	Name string
+	Name  string
+	Limit float64
 }
 
 func (c *Cloudwatch) GetName() string {
 	return c.Name
+}
+
+func (c *Cloudwatch) GetLimit() float64 {
+	return c.Limit
 }
 
 func (c *Cloudwatch) GetAndSaveData(username string) error {
@@ -132,8 +132,8 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	}
 
 	lr := &LimitResponse{
-		CanStart:     NetworkOutLimt >= value,
-		AllowedUsage: NetworkOutLimt,
+		CanStart:     c.GetLimit() >= value,
+		AllowedUsage: c.GetLimit(),
 		CurrentUsage: value,
 		Reason:       fmt.Sprintf("%s overlimit", c.GetName()),
 	}
