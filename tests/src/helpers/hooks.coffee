@@ -56,7 +56,7 @@ methods =
       string += value.join ','
       string += '\n'
 
-    [strDay, month, day, year, time] = Date.now().toString().split ' '
+    [strDay, month, day, year, time] = new Date(Date.now()).toString().split ' '
     date = month + '-' + day + '-' + year + '-' + time
 
     s3 = new AWS.S3 params:
