@@ -5,25 +5,14 @@ class KiteLogger
   @log = (kiteName, rpcCall, state) ->
 
     key = "#{kiteName}.#{rpcCall}:#{state}"
+    # log "[KITELOGGER]", key
+
     @buffer[key] ?= 0
     @buffer[key]++
 
-
-  @logFailed = (rest...) ->
-    @log rest..., 'failed'
-
-
-  @logSuccess = (rest...) ->
-    @log rest..., 'success'
-
-
-  @logQueued = (rest...) ->
-    @log rest..., 'queued'
-
-
-  @logStarted = (rest...) ->
-    @log rest..., 'started'
-
+  ['failed', 'success', 'queued', 'started'].forEach (helper)=>
+    @[helper] = (kiteName, rpcCall) ->
+      @log kiteName, rpcCall, helper
 
   @consume = ->
 
