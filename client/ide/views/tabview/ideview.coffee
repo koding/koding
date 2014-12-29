@@ -419,6 +419,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   createPlusContextMenu: ->
 
+    return  if @isReadOnly
+
     offset      = @holderView.plusHandle.$().offset()
     offsetLeft  = offset.left - 133
     margin      = if offsetLeft >= -1 then -20 else 12
