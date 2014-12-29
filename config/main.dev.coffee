@@ -825,6 +825,7 @@ Configuration = (options={}) ->
         ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
         ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
 
+        migrate up
       }
 
       function services () {
