@@ -62,6 +62,7 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 	a.Channel = models.NewNotificationChannel(account)
 	a.Account = account
 
+	// TODO need async requests. Re-try in case of an error
 	err = h.pubnub.Authenticate(a)
 	if err != nil {
 		return response.NewBadRequest(err)

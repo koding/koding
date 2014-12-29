@@ -38,12 +38,12 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
-	// TODO for avoiding messages without pubnub channels in error case,
-	// I have implemented this sync for now. Open for debate
-	// send it to pubnub
-	if err := realtimehelper.SubscribeMessage(req); err != nil {
-		return response.NewBadRequest(err)
-	}
+	go func() {
+		// send it to pubnub
+		if err := realtimehelper.SubscribeMessage(req); err != nil {
+			fmt.Printf("Could not subscribe to message: %s \n", err)
+		}
+	}()
 
 	cml := models.NewChannelMessageList()
 	// override channel id
