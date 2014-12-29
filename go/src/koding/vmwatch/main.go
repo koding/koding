@@ -7,7 +7,12 @@ import (
 )
 
 var (
-	metricsToSave = []Metric{&Cloudwatch{"NetworkOut"}}
+	NetworkOut             = "NetworkOut"
+	NetworkOutLimt float64 = 7
+
+	metricsToSave = []Metric{
+		&Cloudwatch{Name: NetworkOut, Limit: NetworkOutLimt},
+	}
 )
 
 func main() {
