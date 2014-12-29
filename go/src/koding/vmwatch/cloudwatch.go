@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"time"
@@ -120,10 +121,21 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 		return nil, err
 	}
 
+	yes, err := exemptFromStopping(c.GetName(), username)
+	if err != nil {
+		return nil, err
+	}
+
+	if yes {
+		lr := &LimitResponse{CanStart: true}
+		return lr, nil
+	}
+
 	lr := &LimitResponse{
-		OverLimit:    value >= NetworkOutLimt,
+		CanStart:     NetworkOutLimt >= value,
 		AllowedUsage: NetworkOutLimt,
 		CurrentUsage: value,
+		Reason:       fmt.Sprintf("%s overlimit", c.GetName()),
 	}
 
 	return lr, err
