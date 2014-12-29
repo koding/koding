@@ -56,8 +56,11 @@ methods =
       string += value.join ','
       string += '\n'
 
+    [strDay, month, day, year, time] = Date.now().toString().split ' '
+    date = month + '-' + day + '-' + year + '-' + time
+
     s3 = new AWS.S3 params:
-      Key    : browser.suite + '-' + Date.now()
+      Key    : browser.suite + '-' + date + '.csv'
       Bucket : 'koding-test-data'
 
     s3.createBucket ->
