@@ -69,24 +69,24 @@ class KodingKite extends KDObject
         _resolve = resolve
         _args    = [rpcMethod, [params], callback]
 
-        KiteLogger.logQueued name, rpcMethod
+        KiteLogger.queued name, rpcMethod
 
         @waitForConnection _args
 
           .then (args)=>
-            KiteLogger.logStarted name, rpcMethod
+            KiteLogger.started name, rpcMethod
             resolve (
               @transport?.tell args...
                 .then (res)->
-                  KiteLogger.logSuccess name, rpcMethod
+                  KiteLogger.success name, rpcMethod
                   return res
                 .catch (err)->
-                  KiteLogger.logFailed name, rpcMethod
+                  KiteLogger.failed name, rpcMethod
                   throw err
             )
 
           .catch =>
-            KiteLogger.logFailed name, rpcMethod
+            KiteLogger.failed name, rpcMethod
             reject @_kiteInvalidError
 
       unless @_state is CONNECTED
@@ -96,7 +96,7 @@ class KodingKite extends KDObject
 
     else
 
-      KiteLogger.logFailed name, rpcMethod
+      KiteLogger.failed name, rpcMethod
       Promise.reject @_kiteInvalidError
 
 

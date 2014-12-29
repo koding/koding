@@ -189,7 +189,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
                 KiteLogger.logSucess name, args.first
                 return res
               .catch (err)->
-                KiteLogger.logFailed name, args.first
+                KiteLogger.failed name, args.first
                 throw err
           )
 

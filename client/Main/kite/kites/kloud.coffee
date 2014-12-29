@@ -95,7 +95,7 @@ class KodingKite_KloudKite extends KodingKite
 
       .catch ->
 
-        KiteLogger.logFailed 'klient', 'kite.ping'
+        KiteLogger.failed 'klient', 'kite.ping'
 
         callback null
 
@@ -124,7 +124,7 @@ class KodingKite_KloudKite extends KodingKite
             kontrol.kites.kloud.singleton?.reconnect?()
             @_reconnectedOnce = yes
 
-          KiteLogger.logFailed 'kloud', 'info'
+          KiteLogger.failed 'kloud', 'info'
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }
         @resolveRequestingInfos machineId, State: currentState
