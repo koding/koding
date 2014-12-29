@@ -254,7 +254,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       else
         appManager.tell 'IDE', 'hideFindAndReplaceView'
 
-    unless @suppressChangeHandlers
+    if not @suppressChangeHandlers and not @isReadOnly
       @emitChange pane, context: {}, 'TabChanged'
 
 
