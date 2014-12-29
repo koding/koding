@@ -1,24 +1,10 @@
 package main
 
-import (
-	"koding/db/models"
-	"time"
-)
+import "koding/db/models"
 
 type Metric interface {
 	GetAndSaveData(string) error
 	GetMachinesOverLimit() ([]*models.Machine, error)
 	IsUserOverLimit(string) (*LimitResponse, error)
 	GetName() string
-}
-
-type MetricData struct {
-	Timestamp time.Time
-	Value     float64
-}
-
-type LimitResponse struct {
-	CanStart                   bool
-	CurrentUsage, AllowedUsage float64
-	Reason                     string
 }
