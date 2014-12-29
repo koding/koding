@@ -39,7 +39,7 @@ module.exports = class JMachine extends Module
       instance          :
         reviveUsers     :
           (signature Function)
-        shareWith     :
+        shareWith       :
           (signature Object, Function)
         setProvisioner  :
           (signature String, Function)
