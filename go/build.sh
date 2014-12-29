@@ -22,7 +22,6 @@ services=(
   github.com/koding/kite/kitectl
   koding/kites/kontrol
   github.com/coreos/etcd
-  koding/kites/klient
   koding/kites/kloud
   koding/kites/kloud/kloudctl
   koding/virt/vmproxy
