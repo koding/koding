@@ -40,4 +40,9 @@ func main() {
 			log.Fatal(err)
 		}
 	})
+
+	c.Start()
+
+	// run forever
+	select {}
 }
