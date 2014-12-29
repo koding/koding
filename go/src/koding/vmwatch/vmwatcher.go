@@ -6,6 +6,9 @@ import (
 	"log"
 )
 
+// pops username from set in db and gets metrics for machines belonging
+// to that user; it uses pop instead of find so multiple workers can
+// work in parallel
 func getAndSaveQueueMachineMetrics() error {
 	for {
 		for _, metric := range metricsToSave {
