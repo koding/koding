@@ -1,46 +1,21 @@
 package main
 
-import (
-	"fmt"
-	"log"
-)
+import "log"
 
-type Response struct {
-	CanStart                   bool
-	Reason                     string
-	CurrentUsage, AllowedUsage float64
-}
-
-// iterate through each metric, check if user is exempt for that metric,
-// if exempt, check next metric, since an user can be exempt for one
-// metric, but not exempt for other one; if not exempt check if overlimit.
-func checker(username string) Response {
+// iterate through each metric, check if user is over limit for that
+// metric, return true if yes, go onto next metric if not
+func checker(username string) *LimitResponse {
 	for _, metric := range metricsToSave {
-		yes, err := exemptFromStopping(metric.GetName(), username)
+		lr, err := metric.IsUserOverLimit(username)
 		if err != nil {
 			log.Println(err)
-			return Response{CanStart: true}
+			return &LimitResponse{CanStart: true}
 		}
 
-		if yes {
-			continue
-		}
-
-		resp, err := metric.IsUserOverLimit(username)
-		if err != nil {
-			log.Println(err)
-			return Response{CanStart: true}
-		}
-
-		if resp.OverLimit {
-			return Response{
-				CanStart:     false,
-				AllowedUsage: resp.AllowedUsage,
-				CurrentUsage: resp.CurrentUsage,
-				Reason:       fmt.Sprintf("%s over limit", metric.GetName()),
-			}
+		if !lr.CanStart {
+			return lr
 		}
 	}
 
-	return Response{CanStart: true}
+	return &LimitResponse{CanStart: true}
 }

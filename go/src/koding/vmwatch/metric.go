@@ -18,6 +18,7 @@ type MetricData struct {
 }
 
 type LimitResponse struct {
-	OverLimit                  bool
+	CanStart                   bool
 	CurrentUsage, AllowedUsage float64
+	Reason                     string
 }
