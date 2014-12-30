@@ -171,9 +171,9 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
         .on 'close', ->
           if not kite.isDisconnected and kite.transport?.options.autoReconnect
             KodingKontrol.dcNotification ?= new KDNotificationView
-              title     : 'Trying to reconnect...'
-              type      : 'tray'
-              duration  : 999999
+              title    : 'Trying to reconnect...'
+              type     : 'tray'
+              duration : 999999
         .on 'open', ->
           KodingKontrol.dcNotification?.destroy()
           KodingKontrol.dcNotification = null
@@ -183,7 +183,15 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
       kite.once 'connected', ->
         for promise in waitingPromises
           [resolve, args] = promise
-          resolve kite.transport?.tell args...
+          resolve (
+            kite.transport?.tell args...
+              .then (res)->
+                KiteLogger.logSucess name, args.first
+                return res
+              .catch (err)->
+                KiteLogger.failed name, args.first
+                throw err
+          )
 
     # Query kontrol
     @fetchKite

@@ -39,8 +39,8 @@ module.exports.track = (username)->
 module.exports.start = ->
   redis = require "redis"
   redisClient = redis.createClient(
-    KONFIG.redis.split(":")[1]
-    KONFIG.redis.split(":")[0]
+    KONFIG.monitoringRedis.split(":")[1]
+    KONFIG.monitoringRedis.split(":")[0]
     {}
   )
 

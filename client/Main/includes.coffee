@@ -36,6 +36,7 @@ module.exports = [
   "linkcontroller.coffee",
   "widgetcontroller.coffee",
   "localsynccontroller.coffee",
+  "kitelogger.coffee",
 
   # onboarding
   "onboarding/onboardingviewcontroller.coffee",
