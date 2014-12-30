@@ -34,6 +34,12 @@ class IDE.FinderPane extends IDE.Pane
     tc.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
+    tc.on 'FolderCollapsed', (path) =>
+      @emit 'ChangeHappened', @getChangeObject 'Collapsed', path
+
+    tc.on 'FolderExpanded', (path) =>
+      @emit 'ChangeHappened', @getChangeObject 'Expanded', path
+
     @on 'MachineMountRequested', (machine, rootPath) ->
       fc.mountMachine machine, { mountPath: rootPath }
 
@@ -45,3 +51,15 @@ class IDE.FinderPane extends IDE.Pane
 
 
   makeEditable: -> @finderController.setReadOnly no
+
+
+  getChangeObject: (action, path) ->
+
+    change     =
+      origin   : KD.nick()
+      type     : 'FileTreeInteraction'
+      context  :
+        action : action
+        path   : path
+
+    return change
