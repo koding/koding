@@ -65,7 +65,7 @@ func main() {
 	c.Start()
 
 	http.HandleFunc("/", checkerHttp)
-	http.ListenAndServe(port, nil)
+	http.ListenAndServe(":"+port, nil)
 }
 
 func checkerHttp(w http.ResponseWriter, r *http.Request) {
