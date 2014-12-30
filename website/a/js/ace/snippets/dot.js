@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./dot.snippets");
-exports.scope = "dot";
-
-});
+ace.define("ace/snippets/dot",["require","exports","module"],function(e,t,n){t.snippetText="",t.scope="dot"})
