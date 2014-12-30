@@ -97,7 +97,7 @@ Configuration = (options={}) ->
     # -- WORKER CONFIGURATION -- #
 
     vmwatcher                      : {
-      port                         : 6400
+      port                         : "6400"
       awsKey                       : "AKIAIWHOKFWDYNSQFGCQ"
       awsSecret                    : "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"
       kloudSecretKey               : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
