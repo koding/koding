@@ -9,7 +9,9 @@ import (
 )
 
 var (
-	PlanUrl = "http://localhost:7000/payments/subscriptions"
+	PlanUrl  = "http://localhost:7000/payments/subscriptions"
+	FreePlan = "free"
+	PaidPlan = "paid"
 )
 
 var ExemptUsers = []interface{}{
@@ -40,10 +42,9 @@ func exemptFromStopping(metricName, username string) (bool, error) {
 	return false, nil
 }
 
-var (
-	FreePlan = "free"
-	PaidPlan = "paid"
-)
+type SubscriptionResponse struct {
+	PlanTitle string `json:"planTitle"`
+}
 
 func getPlanForUser(username string) (string, error) {
 	account, err := modelhelper.GetAccount(username)
@@ -73,8 +74,4 @@ func getPlanForUser(username string) (string, error) {
 	default:
 		return PaidPlan, nil
 	}
-}
-
-type SubscriptionResponse struct {
-	PlanTitle string `json:"planTitle"`
 }
