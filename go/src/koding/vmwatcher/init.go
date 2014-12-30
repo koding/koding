@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	conf *config.Config
+	conf = config.MustConfig("")
 	port = conf.Vmwatcher.Port
 
 	AWS_KEY    = conf.Vmwatcher.AwsKey
@@ -26,8 +26,6 @@ var (
 )
 
 func init() {
-	conf = config.MustConfig("")
-
 	// initialize mongo
 	modelhelper.Initialize(conf.Mongo)
 
