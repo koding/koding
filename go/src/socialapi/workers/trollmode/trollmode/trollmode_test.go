@@ -34,7 +34,9 @@ func CreatePrivateMessageUser() {
 	acc.Id = bson.NewObjectId()
 	acc.Profile.Nickname = "sinan"
 
-	modelhelper.CreateAccount(acc)
+	if err := modelhelper.CreateAccount(acc); err != nil {
+		panic(err)
+	}
 }
 
 func TestMarkedAsTroll(t *testing.T) {
