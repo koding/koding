@@ -906,25 +906,12 @@ class IDEAppController extends AppController
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
+      nickname = KD.nick()
+      hostName = @collaborationHost
+
       @rtm.setRealtimeDoc doc
-      nickname           = KD.nick()
-      myWatchMapName     = "#{nickname}WatchMap"
-      mySnapshotName     = "#{nickname}Snapshot"
-      hostName           = @collaborationHost
 
-      @participants      = @rtm.getFromModel 'participants'
-      @changes           = @rtm.getFromModel 'changes'
-      @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
-      @pingTime          = @rtm.getFromModel 'pingTime'
-      @myWatchMap        = @rtm.getFromModel myWatchMapName
-      @mySnapshot        = @rtm.getFromModel mySnapshotName
-
-      @participants      or= @rtm.create 'list',   'participants', []
-      @changes           or= @rtm.create 'list',   'changes', []
-      @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
-      @pingTime          or= @rtm.create 'string', 'pingTime'
-      @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
+      @setCollaborativeReferences()
 
       if @amIHost
         @getView().setClass 'host'
@@ -965,6 +952,27 @@ class IDEAppController extends AppController
           @createPaneFromChange change
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
+
+
+  setCollaborativeReferences: ->
+
+    nickname           = KD.nick()
+    myWatchMapName     = "#{nickname}WatchMap"
+    mySnapshotName     = "#{nickname}Snapshot"
+
+    @participants      = @rtm.getFromModel 'participants'
+    @changes           = @rtm.getFromModel 'changes'
+    @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
+    @pingTime          = @rtm.getFromModel 'pingTime'
+    @myWatchMap        = @rtm.getFromModel myWatchMapName
+    @mySnapshot        = @rtm.getFromModel mySnapshotName
+
+    @participants      or= @rtm.create 'list',   'participants', []
+    @changes           or= @rtm.create 'list',   'changes', []
+    @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
+    @pingTime          or= @rtm.create 'string', 'pingTime'
+    @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
+    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
 
 
   registerCollaborationSessionId: ->
