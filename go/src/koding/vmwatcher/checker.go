@@ -16,24 +16,6 @@ type LimitResponse struct {
 	Reason       string  `json:"reason"`
 }
 
-// iterate through each metric, check if user is over limit for that
-// metric, return true if yes, go onto next metric if not
-func checker(username string) *LimitResponse {
-	for _, metric := range metricsToSave {
-		response, err := metric.IsUserOverLimit(username)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-
-		if !response.CanStart {
-			return response
-		}
-	}
-
-	return &LimitResponse{CanStart: true}
-}
-
 type ErrorResponse struct {
 	Error string `json:"error"`
 }
@@ -68,6 +50,24 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(js)
+}
+
+// iterate through each metric, check if user is over limit for that
+// metric, return true if yes, go onto next metric if not
+func checker(username string) *LimitResponse {
+	for _, metric := range metricsToSave {
+		response, err := metric.IsUserOverLimit(username)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		if !response.CanStart {
+			return response
+		}
+	}
+
+	return &LimitResponse{CanStart: true}
 }
 
 func writeError(w http.ResponseWriter, err string) {
