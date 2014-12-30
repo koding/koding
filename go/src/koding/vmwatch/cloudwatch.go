@@ -20,20 +20,11 @@ var (
 	AWS_NAMESPACE = "AWS/EC2"
 	AWS_PERIOD    = 604800
 
-	today        = now.BeginningOfDay()
-	sevenDaysAgo = today.Add(-7 * 24 * time.Hour)
+	startingToday = now.BeginningOfDay()
+	sevenDaysAgo  = startingToday.Add(-7 * 24 * time.Hour)
 
 	auth aws.Auth
 )
-
-func init() {
-	var err error
-
-	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", now.BeginningOfDay())
-	if err != nil {
-		log.Fatal("Error: %+v\n", err)
-	}
-}
 
 type Cloudwatch struct {
 	Name  string
@@ -74,8 +65,8 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 		request := &cloudwatch.GetMetricStatisticsRequest{
 			Dimensions: []cloudwatch.Dimension{*dimension},
 			Statistics: []string{cloudwatch.StatisticDatapointSum},
-			MetricName: c.Name,
-			EndTime:    today,
+			MetricName: c.GetName(),
+			EndTime:    startingToday,
 			StartTime:  sevenDaysAgo,
 			Period:     AWS_PERIOD,
 			Namespace:  AWS_NAMESPACE,
