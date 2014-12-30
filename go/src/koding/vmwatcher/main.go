@@ -10,10 +10,11 @@ package main
 
 import (
 	"encoding/json"
-	"io"
 	"koding/db/mongodb/modelhelper"
 	"log"
 	"net/http"
+
+	"labix.org/v2/mgo/bson"
 
 	"github.com/robfig/cron"
 )
@@ -69,18 +70,34 @@ func main() {
 	http.ListenAndServe(":"+port, nil)
 }
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
 func checkerHttp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	accountId := r.URL.Query().Get("account_id")
 	if accountId == "" {
-		io.WriteString(w, `{"error":"account_id is required"}`)
+		js, _ := json.Marshal(ErrorResponse{"account_id is required"})
+		w.Write(js)
+
+		return
+	}
+
+	yes := bson.IsObjectIdHex(accountId)
+	if !yes {
+		js, _ := json.Marshal(ErrorResponse{"account_id is not valid"})
+		w.Write(js)
+
 		return
 	}
 
 	account, err := modelhelper.GetAccountById(accountId)
 	if err != nil {
-		io.WriteString(w, `{"error":"error fetching account_id"}`)
+		js, _ := json.Marshal(ErrorResponse{"account_id is not valid"})
+		w.Write(js)
+
 		return
 	}
 
