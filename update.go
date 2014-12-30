@@ -76,10 +76,9 @@ func (u *Updater) checkAndUpdate() error {
 		return err
 	}
 
-	u.Log.Info("Comparing current version %s with latest version %s", currentVer, latestVer)
 	if !current.LessThan(latest) {
-		return fmt.Errorf("Current version (%s) is equal or greater than latest (%s)",
-			currentVer, latestVer)
+		// current running binary version is equal or greater than what we fetched, so return we don't need to update
+		return nil
 	}
 
 	u.Log.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
@@ -92,7 +91,6 @@ func (u *Updater) checkAndUpdate() error {
 
 func (u *Updater) updateBinary(url string) error {
 	updater := update.New()
-	u.Log.Info("Checking if I can update myself and have the necessary permissions")
 	err := updater.CanUpdate()
 	if err != nil {
 		return err

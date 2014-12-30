@@ -44,8 +44,9 @@ func register(k *kite.Kite) error {
 		errors.New("register url is nil")
 	}
 
-	k.Log.Info("Going to register over HTTP to kontrol with URL: %s", registerURL)
-	return k.RegisterForever(registerURL)
+	k.Log.Info("Going to register via HTTP to kontrol with URL: %s", registerURL)
+	k.RegisterHTTPForever(registerURL)
+	return nil
 }
 
 // publicIP returns an IP that is supposed to be Public.
