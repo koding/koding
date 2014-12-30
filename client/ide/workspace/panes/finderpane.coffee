@@ -24,13 +24,14 @@ class IDE.FinderPane extends IDE.Pane
 
     mgr = KD.getSingleton 'appManager'
     fc  = @finderController
+    tc  = @finderController.treeController
 
     fc.on 'FileNeedsToBeOpened', (file) ->
       file.fetchContents (err, contents) ->
         mgr.tell 'IDE', 'openFile', file, contents
         KD.getSingleton('windowController').setKeyView null
 
-    fc.treeController.on 'TerminalRequested', (machine) ->
+    tc.on 'TerminalRequested', (machine) ->
       mgr.tell 'IDE', 'openMachineTerminal', machine
 
     @on 'MachineMountRequested', (machine, rootPath) ->
