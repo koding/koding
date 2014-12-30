@@ -48,18 +48,6 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     mainView.glanceChannelWorkspace channel
 
 
-  resetPadding: ->
-
-    super
-
-    @scrollView.wrapper.emit 'MutationHappened'
-
-    @scrollDown()
-
-
-  excludedAreaHeight: 121
-
-
   createParticipantsView: ->
 
     @createHeaderViews()
@@ -179,3 +167,13 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant]
+
+  
+  refresh: ->
+    
+    return  if not @listController.getItemCount()
+    
+    @resetPadding()
+    item.checkIfItsTooTall()  for item in @listController.getListItems()
+    @scrollView.wrapper.emit 'MutationHappened'
+    @scrollDown()
