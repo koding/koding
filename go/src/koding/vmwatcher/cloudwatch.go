@@ -113,7 +113,7 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 
 func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	value, err := storage.Get(c.GetName(), username)
-	if err != nil {
+	if err != nil && !isRedisRecordNil(err) {
 		return nil, err
 	}
 
@@ -135,4 +135,8 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	}
 
 	return lr, err
+}
+
+func isRedisRecordNil(err error) bool {
+	return err.Error() == "redigo: nil returned"
 }
