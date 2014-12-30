@@ -4,10 +4,13 @@ package docker
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"os"
 	"strconv"
 	"time"
 	"unicode/utf8"
 
+	"github.com/docker/docker/pkg/promise"
 	"github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/charset"
 	_ "github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/data"
 	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
@@ -27,7 +30,7 @@ type Docker struct {
 func New(url string, log kite.Logger) *Docker {
 	// the error is returned only when the passed URL is not parsable via
 	// url.Parse, so we can safely neglect it
-	client, _ := dockerclient.NewClient(url)
+	client, _ := dockerclient.NewVersionedClient(url, "1.16")
 	return &Docker{
 		client: client,
 		log:    log,
@@ -66,11 +69,11 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 	opts := dockerclient.CreateContainerOptions{
 		Name: params.Name,
 		Config: &dockerclient.Config{
-			Image:        params.Image,
-			Tty:          true,
-			AttachStdin:  true,
-			AttachStdout: true,
-			AttachStderr: true,
+			Image: params.Image,
+			Tty:   true,
+			// AttachStdin:  true,
+			// AttachStdout: true,
+			// AttachStderr: true,
 		},
 	}
 
@@ -80,6 +83,80 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 	}
 
 	return container.Name, nil
+}
+
+// Connect connects to an existing Container by spawning a new process and
+// attaching to it.
+func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
+	var params struct {
+		// The ID of the container.
+		ID string
+	}
+
+	if err := r.Args.One().Unmarshal(&params); err != nil {
+		return nil, err
+	}
+
+	if params.ID == "" {
+		return nil, errors.New("missing arg: container ID is empty")
+	}
+
+	createOpts := dockerclient.CreateExecOptions{
+		// Container: params.ID,
+		Container: "high_torvalds",
+		Detach:    false,
+		Tty:       true,
+		Cmd:       []string{"bash"},
+		// we attach to anything, it's used in the same was as with `docker
+		// exec`
+		AttachStdout: true,
+		AttachStderr: true,
+		AttachStdin:  true,
+	}
+
+	// now we create a new Exec instance. It will return us an exec ID which
+	// will be used to start the created exec instance
+	d.log.Info("Creating exec instance")
+	ex, err := d.client.CreateExec(createOpts)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Printf("ex = %+v\n", ex)
+
+	opts := dockerclient.StartExecOptions{
+		Detach:       false,
+		Tty:          true,
+		OutputStream: os.Stdout,
+		ErrorStream:  os.Stdout,
+		InputStream:  os.Stdin,
+		// Container:    params.ID,
+		Container: "high_torvalds",
+		// Tty:       true,
+		Cmd: []string{"bash"},
+		// we attach to anything, it's used in the same was as with `docker
+		// exec`
+		AttachStdout: true,
+		AttachStderr: true,
+		AttachStdin:  true,
+	}
+
+	errCh := promise.Go(func() error {
+		d.log.Info("starting exec instance '%s'", ex.ID)
+		return d.client.StartExec(ex.ID, opts)
+	})
+
+	d.log.Info("Resizing exec instance '%s'", ex.ID)
+	if err := d.client.ResizeExecTTY(ex.ID, 28, 208); err != nil {
+		fmt.Printf("resize exec err %+v\n", err)
+	}
+
+	fmt.Println("waiting err from errch")
+	if err := <-errCh; err != nil {
+		fmt.Printf("hijack err = %+v\n", err)
+		return nil, err
+	}
+
+	return true, nil
 }
 
 // Exec connects to an existing Container by spawning a new process and
@@ -181,6 +258,7 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		errCh <- err
 	}()
 
+	d.log.Info("Resizing exec instance '%s'", ex.ID)
 	if err := d.client.ResizeExecTTY(ex.ID, params.SizeY, params.SizeX); err != nil {
 		return nil, err
 	}

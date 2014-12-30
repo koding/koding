@@ -14,7 +14,7 @@ import (
 var (
 	d                 *kite.Kite
 	remote            *kite.Client
-	TestContainerName = "dockertest"
+	TestContainerName = "dockertestnew"
 	ErrNotFound       = errors.New("not found")
 )
 
@@ -38,7 +38,7 @@ func init() {
 	keyFile := dockerCertPath + "/key.pem"
 	caFile := dockerCertPath + "/ca.pem"
 
-	client, _ := dockerclient.NewTLSClient(dockerHost, certFile, keyFile, caFile)
+	client, _ := dockerclient.NewVersionnedTLSClient(dockerHost, certFile, keyFile, caFile, "1.16")
 	dock := &Docker{
 		client: client,
 		log:    d.Log,
@@ -46,7 +46,7 @@ func init() {
 
 	d.HandleFunc("create", dock.Create)
 	d.HandleFunc("start", dock.Start)
-	d.HandleFunc("exec", dock.Exec)
+	d.HandleFunc("connect", dock.Connect)
 	d.HandleFunc("stop", dock.Stop)
 	d.HandleFunc("list", dock.List)
 	d.HandleFunc("removeContainer", dock.RemoveContainer)
@@ -111,13 +111,13 @@ func TestStart(t *testing.T) {
 	}
 }
 
-func TestExec(t *testing.T) {
+func TestConnect(t *testing.T) {
 	container, err := getContainer(TestContainerName)
 	if err != nil {
 		t.Errorf("No image found with name '%s': %s\n", TestContainerName, err)
 	}
 
-	_, err = remote.Tell("exec", struct {
+	_, err = remote.Tell("connect", struct {
 		ID string
 	}{
 		ID: container.ID,
