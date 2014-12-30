@@ -11,9 +11,9 @@ import (
 
 type LimitResponse struct {
 	CanStart     bool    `json:"can_start"`
-	CurrentUsage float64 `json:"current_usage"`
-	AllowedUsage float64 `json:"allowed_usage"`
-	Reason       string  `json:"reason"`
+	CurrentUsage float64 `json:"current_usage,omitempty"`
+	AllowedUsage float64 `json:"allowed_usage,omitempty"`
+	Reason       string  `json:"reason,omitempty"`
 }
 
 type ErrorResponse struct {
