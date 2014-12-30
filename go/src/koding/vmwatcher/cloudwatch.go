@@ -18,6 +18,8 @@ var (
 	AWS_NAMESPACE = "AWS/EC2"
 	AWS_PERIOD    = 604800
 
+	GB_TO_MB float64 = 1000
+
 	startingToday = now.BeginningOfDay()
 	sevenDaysAgo  = startingToday.Add(-7 * 24 * time.Hour)
 
@@ -129,8 +131,8 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	lr := &LimitResponse{
 		CanStart:     c.GetLimit() >= value,
-		AllowedUsage: c.GetLimit(),
-		CurrentUsage: value,
+		AllowedUsage: c.GetLimit() * GB_TO_MB,
+		CurrentUsage: value * GB_TO_MB,
 		Reason:       fmt.Sprintf("%s overlimit", c.GetName()),
 	}
 
