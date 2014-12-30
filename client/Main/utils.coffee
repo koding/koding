@@ -354,7 +354,6 @@ utils.extend utils,
 
   warnAndLog: (msg, params)->
     warn msg, params
-    ErrorLog.create msg, params
 
   # Version Compare
   # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee
