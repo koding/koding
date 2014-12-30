@@ -9,7 +9,10 @@
 package main
 
 import (
+	"encoding/json"
+	"io"
 	"log"
+	"net/http"
 
 	"github.com/robfig/cron"
 )
@@ -61,6 +64,24 @@ func main() {
 
 	c.Start()
 
-	// run forever
-	select {}
+	http.HandleFunc("/", checkerHttp)
+	http.ListenAndServe(port, nil)
+}
+
+func checkerHttp(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("account_id")
+	if username == "" {
+		io.WriteString(w, "account_id is required")
+	}
+
+	response := checker(username)
+
+	js, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
