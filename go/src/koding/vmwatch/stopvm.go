@@ -29,7 +29,7 @@ type stopResult struct {
 
 func stopVm(machineId string) error {
 	// create new kite
-	k := kite.New("cloudwatcher", "0.0.1")
+	k := kite.New(WorkerName, WorkerVersion)
 	config, err := config.Get()
 	if err != nil {
 		log.Fatal(err)

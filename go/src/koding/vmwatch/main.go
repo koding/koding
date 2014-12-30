@@ -15,6 +15,9 @@ import (
 )
 
 var (
+	WorkerName    = "vmwatcher"
+	WorkerVersion = "0.0.1"
+
 	NetworkOut             = "NetworkOut"
 	NetworkOutLimt float64 = 7
 

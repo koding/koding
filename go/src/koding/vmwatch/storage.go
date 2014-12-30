@@ -21,10 +21,9 @@ var (
 	storage Storage
 
 	// redis key prefixes
-	WorkerName = "cloudwatch"
-	GroupBy    = "users"
-	QueueName  = "queue"
-	ExemptKey  = "exempt"
+	GroupBy   = "users"
+	QueueName = "queue"
+	ExemptKey = "exempt"
 
 	RedisInfinity = "+inf"
 )
