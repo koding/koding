@@ -953,6 +953,8 @@ class IDEAppController extends AppController
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
 
+      @finderPane.on 'ChangeHappened', @bound 'syncChange'
+
 
   setCollaborativeReferences: ->
 
