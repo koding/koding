@@ -10,7 +10,17 @@ import (
 )
 
 var (
-	conf         *config.Config
+	conf *config.Config
+	port = conf.Vmwatcher.Port
+
+	AWS_KEY    = conf.Vmwatcher.AwsKey
+	AWS_SECRET = conf.Vmwatcher.AwsSecret
+
+	// This secret key is here because this worker will be bypassed from the
+	// token authentication in kloud.
+	KloudSecretKey = conf.Vmwatcher.KloudSecretKey
+	KloudAddr      = conf.Vmwatcher.KloudAddr
+
 	redisClient  *redis.RedisSession
 	redisStorage *RedisStorage
 )

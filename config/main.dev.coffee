@@ -81,6 +81,8 @@ Configuration = (options={}) ->
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
+  kloudPort           = 5500
+
   KONFIG              =
     configName                     : configName
     environment                    : environment
@@ -104,7 +106,13 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : 6400}
+    vmwatcher                      : {
+      port                         : 6400
+      awsKey                       : "AKIAIWHOKFWDYNSQFGCQ"
+      awsSecret                    : "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"
+      kloudSecretKey               : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
+      kloudAddr                    : "http://localhost:#{kloudPort}/kite"
+    }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -119,7 +127,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
+    kloud                          : {port          : kloudPort           , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
