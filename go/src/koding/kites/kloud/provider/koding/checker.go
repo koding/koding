@@ -68,8 +68,8 @@ type PlanChecker struct {
 type networkUsageResponse struct {
 	CanStart     bool   `json:"can_start"`
 	Reason       string `json:"reason"`
-	AllowedUsage int    `json:"allowed"`
-	CurrentUsage int    `json:"current"`
+	AllowedUsage int    `json:"allowed_usage"`
+	CurrentUsage int    `json:"current_usage"`
 }
 
 func (p *PlanChecker) NetworkUsage() error {
