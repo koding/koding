@@ -36,7 +36,7 @@ services=(
   github.com/canthefason/goldorf
   github.com/mattes/migrate
   koding/go-webserver
-  koding/vmwatch
+  koding/vmwatcher
 
   socialapi/workers/api
   socialapi/workers/email/activityemail
