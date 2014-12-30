@@ -5,6 +5,7 @@ import (
 	"koding/tools/config"
 	"log"
 
+	"github.com/crowdmob/goamz/aws"
 	"github.com/koding/redis"
 )
 
@@ -17,8 +18,10 @@ var (
 func init() {
 	conf = config.MustConfig("dev")
 
+	// initialize mongo
 	modelhelper.Initialize(conf.Mongo)
 
+	// initialize redis
 	var err error
 	redisClient, err = redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
 	if err != nil {
@@ -35,5 +38,12 @@ func init() {
 		if err != nil {
 			log.Fatal(err)
 		}
+	}
+
+	// initialize cloudwatch api client
+	// arguments are: key, secret, token, expiration
+	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", startingToday)
+	if err != nil {
+		log.Fatal("Error: %+v\n", err)
 	}
 }

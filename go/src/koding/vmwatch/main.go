@@ -1,3 +1,11 @@
+// vmwatcher is an enforcer that gets various metrics (currently only
+// `NetworkOut` from cloudwatch api is implemented) and stops the vm if it's
+// over the limit for that metric; in addition it also exposes a http endpoint
+// for various workers (kloud for now) to check if user is overlimit before
+// taking an action (ie starting a vm).
+//
+// The goal of this worker is to prevent users from abusing the system, not be
+// a secondary storage for metrics data.
 package main
 
 import (
@@ -10,6 +18,8 @@ var (
 	NetworkOut             = "NetworkOut"
 	NetworkOutLimt float64 = 7
 
+	// defines list of metrics, all queue/fetch/save operations
+	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
 		&Cloudwatch{Name: NetworkOut, Limit: NetworkOutLimt},
 	}
@@ -20,6 +30,8 @@ func main() {
 
 	// queue to get metrics at top of every hour; uses redis set to queue
 	// the usernames so multiple workers don't queue the same usernames.
+	// this needs to be done at top of hour, so running multiple workers
+	// won't cause a problem.
 	c.AddFunc("@hourly", func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
@@ -27,8 +39,7 @@ func main() {
 		}
 	})
 
-	// get and save metrics at 15th minute of every hour; the reason for
-	// 15th minute, is to not queue and pop at the same time.
+	// get and save metrics at 15th minute of every hour
 	c.AddFunc("0 15 * * * *", func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
