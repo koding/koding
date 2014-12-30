@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"log"
 	"net/http"
 )
 
@@ -22,7 +21,6 @@ var ExemptUsers = []interface{}{
 func exemptFromStopping(metricName, username string) (bool, error) {
 	plan, err := getPlanForUser(username)
 	if err != nil {
-		log.Println(err)
 		return true, err
 	}
 
@@ -32,7 +30,6 @@ func exemptFromStopping(metricName, username string) (bool, error) {
 
 	isExempt, err := storage.ExemptGet(metricName, username)
 	if err != nil {
-		log.Println(err)
 		return true, err
 	}
 
