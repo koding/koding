@@ -76,9 +76,9 @@ func (r *RedisStorage) ExemptGet(prefix, username string) (bool, error) {
 
 	switch yes {
 	case 0:
-		return true, nil
-	case 1:
 		return false, nil
+	case 1:
+		return true, nil
 	}
 
 	return false, nil
