@@ -72,6 +72,7 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 	username := r.URL.Query().Get("account_id")
 	if username == "" {
 		io.WriteString(w, "account_id is required")
+		return
 	}
 
 	response := checker(username)

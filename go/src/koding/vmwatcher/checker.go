@@ -3,9 +3,10 @@ package main
 import "log"
 
 type LimitResponse struct {
-	CanStart                   bool
-	CurrentUsage, AllowedUsage float64
-	Reason                     string
+	CanStart     bool    `json:"can_start"`
+	CurrentUsage float64 `json:"current_usage"`
+	AllowedUsage float64 `json:"allowed_usage"`
+	Reason       string  `json:"reason"`
 }
 
 // iterate through each metric, check if user is over limit for that
