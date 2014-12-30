@@ -69,9 +69,11 @@ func main() {
 }
 
 func checkerHttp(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
 	username := r.URL.Query().Get("account_id")
 	if username == "" {
-		io.WriteString(w, "account_id is required")
+		io.WriteString(w, `{"error":"account_id is required"}`)
 		return
 	}
 
@@ -83,6 +85,5 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 }
