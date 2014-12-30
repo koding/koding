@@ -77,7 +77,7 @@ func (p *PlanChecker) NetworkUsage() error {
 	if err != nil {
 		p.Log.Debug("[%s] Failed to parse network-usage endpoint: %v. err: %v",
 			p.Machine.Id, p.NetworkUsageEndpoint, err)
-		return nil
+		return err
 	}
 
 	var account *models.Account
@@ -86,7 +86,7 @@ func (p *PlanChecker) NetworkUsage() error {
 	}); err != nil {
 		p.Log.Warning("[%s] Failed to fetch user information while checking network-usage. err: %v",
 			p.Machine.Id, err)
-		return nil
+		return err
 	}
 
 	q := networkEndpoint.Query()
@@ -97,7 +97,7 @@ func (p *PlanChecker) NetworkUsage() error {
 	if err != nil {
 		p.Log.Warning("[%s] Failed to fetch network-usage because network-usage providing api host seems down. err: %v",
 			p.Machine.Id, err)
-		return nil
+		return err
 	}
 	defer resp.Body.Close()
 
@@ -105,19 +105,19 @@ func (p *PlanChecker) NetworkUsage() error {
 	if err := json.NewDecoder(resp.Body).Decode(&usageResponse); err != nil {
 		p.Log.Warning("[%s] Failed to decode network-usage response. err: %v",
 			p.Machine.Id, err)
-		return nil
+		return err
 	}
 
 	if resp.StatusCode != 200 {
 		p.Log.Debug("[%s] Network-usage response code is not 200. It's %v",
 			p.Machine.Id, resp.StatusCode)
-		return nil
+		return err
 	}
 
 	if !usageResponse.CanStart {
 		p.Log.Debug("[%s] Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
 			p.Machine.Id, usageResponse.AllowedUsage, usageResponse.CurrentUsage)
-		return nil
+		return err
 	}
 	return nil
 }
