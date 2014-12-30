@@ -281,17 +281,18 @@ class ActivityListItemView extends KDListItemView
     if scrollHeight > height
 
       @showMore?.destroy()
+      list = @getDelegate()
       @showMore = new KDCustomHTMLView
         tagName  : 'a'
         cssClass : 'show-more'
         href     : '#'
         partial  : 'Show more'
         click    : ->
-          article.style['max-height'] = "#{scrollHeight}px"
+          article.style.maxHeight = "#{scrollHeight}px"
           article.classList.remove 'tall'
-          # FIXME: this is a hack to cause a mutation
-          # for scrollview to readjust - SY
-          KD.utils.wait 500, -> article.innerHTML += ' '
+          
+          KD.utils.wait 500, -> list.emit 'ItemWasExpanded'
+
           @destroy()
 
       article.classList.add 'tall'

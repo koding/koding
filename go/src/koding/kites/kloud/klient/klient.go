@@ -8,9 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"koding/kite-handler/command"
-	"koding/kites/klient/usage"
-
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
@@ -24,6 +21,11 @@ type KlientPool struct {
 	klients map[string]*Klient
 	log     logging.Logger
 	sync.Mutex
+}
+
+type Usage struct {
+	// InactiveDuration reports the minimum duration since the latest activity.
+	InactiveDuration time.Duration `json:"inactive_duration"`
 }
 
 // Klient represents a remote klient instance
@@ -159,39 +161,18 @@ func (k *Klient) Close() {
 }
 
 // Usage calls the usage method of remote and get's the result back
-func (k *Klient) Usage() (*usage.Usage, error) {
-	resp, err := k.client.Tell(usage.MethodName)
+func (k *Klient) Usage() (*Usage, error) {
+	resp, err := k.client.Tell("klient.usage")
 	if err != nil {
 		return nil, err
 	}
 
-	var usg *usage.Usage
+	var usg *Usage
 	if err := resp.Unmarshal(&usg); err != nil {
 		return nil, err
 	}
 
 	return usg, nil
-}
-
-// Exec runs a shell command on remote klient machinek
-func (k *Klient) Exec(cmd string) (*command.Output, error) {
-	var params = struct {
-		Command string
-	}{
-		Command: cmd,
-	}
-
-	resp, err := k.client.Tell("exec", params)
-	if err != nil {
-		return nil, err
-	}
-
-	var out *command.Output
-	if err := resp.Unmarshal(&out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
 }
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.

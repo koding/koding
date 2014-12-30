@@ -7,17 +7,17 @@ allUsers = {}
 redisClient = null
 
 sendData = (prefix, keys)->
+  dateObj = new Date()
+  month = dateObj.getUTCMonth() + 1
+  day   = dateObj.getUTCDate()
+  year  = dateObj.getUTCFullYear()
+
   hllDailyKey = "#{prefix}_visitingusers:#{argv.c}:daily:#{year}:#{month}:#{day}"
   redisClient?.pfadd hllDailyKey, keys..., ->
 
 publishToRedis = ->
   uniqueKeysRegistered = Object.keys registeredUsers
   uniqueKeysAll = Object.keys allUsers
-
-  dateObj = new Date()
-  month = dateObj.getUTCMonth() + 1
-  day   = dateObj.getUTCDate()
-  year  = dateObj.getUTCFullYear()
 
   # return if we dont have any registeredUsers for this iteration
   if uniqueKeysRegistered.length > 0
@@ -39,8 +39,8 @@ module.exports.track = (username)->
 module.exports.start = ->
   redis = require "redis"
   redisClient = redis.createClient(
-    KONFIG.redis.split(":")[1]
-    KONFIG.redis.split(":")[0]
+    KONFIG.monitoringRedis.split(":")[1]
+    KONFIG.monitoringRedis.split(":")[0]
     {}
   )
 
