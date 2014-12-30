@@ -45,8 +45,11 @@ type Config struct {
 	// Connect to Koding mongodb
 	MongoURL string `required:"true"`
 
-	// Endpoint for fetchin plans
+	// Endpoint for fetching plans
 	PlanEndpoint string `required:"true"`
+
+	// Endpoint for fetching user machine network usage
+	NetworkUsageEndpoint string `required:"true"`
 
 	// --- DEVELOPMENT CONFIG ---
 	// Show version and exit if enabled
@@ -213,14 +216,15 @@ func newKite(conf *Config) *kite.Kite {
 		}
 
 		return &koding.PlanChecker{
-			Api:      a,
-			Provider: kodingProvider,
-			DB:       kodingProvider.Session,
-			Kite:     kodingProvider.Kite,
-			Log:      kodingProvider.Log,
-			Username: m.Username,
-			Machine:  m,
-			Plan:     plan,
+			Api:                  a,
+			Provider:             kodingProvider,
+			DB:                   kodingProvider.Session,
+			Kite:                 kodingProvider.Kite,
+			Log:                  kodingProvider.Log,
+			Username:             m.Username,
+			Machine:              m,
+			Plan:                 plan,
+			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		}, nil
 	}
 
