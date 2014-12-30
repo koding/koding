@@ -24,6 +24,8 @@ var (
 	sevenDaysAgo  = startingToday.Add(-7 * 24 * time.Hour)
 
 	auth aws.Auth
+
+	PaidPlanMultiplier float64 = 2
 )
 
 type Cloudwatch struct {
@@ -114,24 +116,42 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 }
 
 func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
+	canStart := &LimitResponse{CanStart: true}
+
 	value, err := storage.Get(c.GetName(), username)
 	if err != nil && !isRedisRecordNil(err) {
-		return nil, err
+		log.Println(err)
+		return canStart, nil
 	}
 
 	yes, err := exemptFromStopping(c.GetName(), username)
 	if err != nil {
-		return nil, err
+		log.Println(err)
+		return canStart, nil
 	}
 
 	if yes {
-		lr := &LimitResponse{CanStart: true}
-		return lr, nil
+		return canStart, nil
+	}
+
+	planTitle, err := getPlanForUser(username)
+	if err != nil {
+		log.Println(err)
+		return canStart, nil
+	}
+
+	var limit float64
+
+	switch planTitle {
+	case FreePlan:
+		limit = c.GetLimit()
+	default:
+		limit = c.GetLimit() * PaidPlanMultiplier
 	}
 
 	lr := &LimitResponse{
-		CanStart:     c.GetLimit() >= value,
-		AllowedUsage: c.GetLimit() * GB_TO_MB,
+		CanStart:     limit >= value,
+		AllowedUsage: limit * GB_TO_MB,
 		CurrentUsage: value * GB_TO_MB,
 		Reason:       fmt.Sprintf("%s overlimit", c.GetName()),
 	}
