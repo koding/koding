@@ -339,6 +339,18 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [ "= /payments/stripe/webhook" ]
 
+    vmwatcher           :
+      group             : "webserver"
+      instances         : 1
+      ports             :
+        incoming        : "#{KONFIG.vmwatcher.port}"
+      supervisord       :
+        command         : "#{GOBIN}/goldorf -run koding/vmwatcher -c #{configName}"
+      nginx             :
+        locations       : ["= /-/vmwatcher/check"]
+      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
+      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#

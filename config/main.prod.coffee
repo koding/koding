@@ -316,6 +316,18 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
+    vmwatcher           :
+      group             : "webserver"
+      instances         : 1
+      ports             :
+        incoming        : "#{KONFIG.vmwatcher.port}"
+      supervisord       :
+        command         : "#{GOBIN}/vmwatcher"
+      nginx             :
+        locations       : ["/-/vmwatcher/check"]
+      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
+
     # clientWatcher       :
     #   group             : "webserver"
     #   supervisord       :
