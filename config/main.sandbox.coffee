@@ -89,6 +89,7 @@ Configuration = (options={}) ->
     mongo                          : mongo
     kiteHome                       : kiteHome
     redis                          : "#{redis.host}:#{redis.port}"
+    monitoringRedis                : "54.174.68.90:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
