@@ -140,6 +140,10 @@ build:
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test account accountpage'
     - script:
+        name: run account settings test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test account accountsettings'
+    - script:
         name: run ide file test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide file'
