@@ -12,14 +12,14 @@ type LimitResponse struct {
 // metric, return true if yes, go onto next metric if not
 func checker(username string) *LimitResponse {
 	for _, metric := range metricsToSave {
-		lr, err := metric.IsUserOverLimit(username)
+		response, err := metric.IsUserOverLimit(username)
 		if err != nil {
 			log.Println(err)
-			return &LimitResponse{CanStart: true}
+			continue
 		}
 
-		if !lr.CanStart {
-			return lr
+		if !response.CanStart {
+			return response
 		}
 	}
 
