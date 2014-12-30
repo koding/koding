@@ -74,30 +74,31 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
+func writeError(w http.ResponseWriter, err string) {
+	js, _ := json.Marshal(ErrorResponse{err})
+
+	w.WriteHeader(500)
+	w.Write(js)
+}
+
 func checkerHttp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	accountId := r.URL.Query().Get("account_id")
 	if accountId == "" {
-		js, _ := json.Marshal(ErrorResponse{"account_id is required"})
-		w.Write(js)
-
+		writeError(w, "account_id is required")
 		return
 	}
 
 	yes := bson.IsObjectIdHex(accountId)
 	if !yes {
-		js, _ := json.Marshal(ErrorResponse{"account_id is not valid"})
-		w.Write(js)
-
+		writeError(w, "account_id is not valid")
 		return
 	}
 
 	account, err := modelhelper.GetAccountById(accountId)
 	if err != nil {
-		js, _ := json.Marshal(ErrorResponse{"account_id is not valid"})
-		w.Write(js)
-
+		writeError(w, "account_id is not valid")
 		return
 	}
 
@@ -105,7 +106,7 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 
 	js, err := json.Marshal(response)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		writeError(w, err.Error())
 		return
 	}
 
