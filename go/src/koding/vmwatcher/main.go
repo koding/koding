@@ -11,6 +11,7 @@ package main
 import (
 	"encoding/json"
 	"io"
+	"koding/db/mongodb/modelhelper"
 	"log"
 	"net/http"
 
@@ -71,13 +72,19 @@ func main() {
 func checkerHttp(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	username := r.URL.Query().Get("account_id")
-	if username == "" {
+	accountId := r.URL.Query().Get("account_id")
+	if accountId == "" {
 		io.WriteString(w, `{"error":"account_id is required"}`)
 		return
 	}
 
-	response := checker(username)
+	account, err := modelhelper.GetAccountById(accountId)
+	if err != nil {
+		io.WriteString(w, `{"error":"error fetching account_id"}`)
+		return
+	}
+
+	response := checker(account.Profile.Nickname)
 
 	js, err := json.Marshal(response)
 	if err != nil {
