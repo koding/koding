@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./rdoc.snippets");
-exports.scope = "rdoc";
-
-});
+ace.define("ace/snippets/rdoc",["require","exports","module"],function(e,t,n){"use strict";t.snippetText=undefined,t.scope="rdoc"})

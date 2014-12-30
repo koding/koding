@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./julia.snippets");
-exports.scope = "julia";
-
-});
+ace.define("ace/snippets/julia",["require","exports","module"],function(e,t,n){"use strict";t.snippetText=undefined,t.scope="julia"})
