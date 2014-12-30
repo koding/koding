@@ -42,19 +42,9 @@ func stopMachinesOverLimit() error {
 		}
 
 		for _, machine := range machines {
-			username := machine.Credential
-
-			yes, err := exemptFromStopping(metric.GetName(), username)
+			err = stopVm(machine.ObjectId.Hex())
 			if err != nil {
 				log.Println(err)
-				continue
-			}
-
-			if !yes {
-				err = stopVm(machine.ObjectId.Hex())
-				if err != nil {
-					log.Println(err)
-				}
 			}
 		}
 	}

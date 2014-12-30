@@ -94,13 +94,20 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 	machines := []*models.Machine{}
 
 	for _, username := range usernames {
-		ms, err := modelhelper.GetMachinesForUsername(username)
+		yes, err := exemptFromStopping(c.GetName(), username)
 		if err != nil {
-			log.Println(err)
-			continue
+			return nil, err
 		}
 
-		machines = append(machines, ms...)
+		if !yes {
+			ms, err := modelhelper.GetMachinesForUsername(username)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			machines = append(machines, ms...)
+		}
 	}
 
 	return machines, nil
