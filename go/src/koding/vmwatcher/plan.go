@@ -40,6 +40,7 @@ func getPlanForUser(username string) (string, error) {
 		return "", errors.New("response status not 200")
 	}
 
+	// there are 2 tiers: free and paid; all paid users get same quota
 	switch subscription.PlanTitle {
 	case FreePlan:
 		return FreePlan, nil

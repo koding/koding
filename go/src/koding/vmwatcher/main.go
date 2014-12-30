@@ -62,6 +62,7 @@ func main() {
 
 	c.Start()
 
+	// expose api for workers like kloud to check if users is over limit
 	http.HandleFunc("/", checkerHttp)
 	http.ListenAndServe(":"+port, nil)
 }
