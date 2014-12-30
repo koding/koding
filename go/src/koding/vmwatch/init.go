@@ -16,7 +16,7 @@ var (
 )
 
 func init() {
-	conf = config.MustConfig("dev")
+	conf = config.MustConfig("")
 
 	// initialize mongo
 	modelhelper.Initialize(conf.Mongo)
