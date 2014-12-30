@@ -81,8 +81,6 @@ class KodingKite_KloudKite extends KodingKite
       else
         return callback null
 
-    KD.remote.api.DataDog.increment "KlientInfo", noop
-
     klientKite.ping()
 
       .then (res)->
@@ -97,14 +95,14 @@ class KodingKite_KloudKite extends KodingKite
 
       .catch ->
 
+        KiteLogger.failed 'klient', 'kite.ping'
+
         callback null
 
 
   askInfoFromKloud: (machineId, currentState) ->
 
     {kontrol, computeController} = KD.singletons
-
-    KD.remote.api.DataDog.increment "KloudInfo", noop
 
     @tell 'info', { machineId }
 
@@ -119,10 +117,14 @@ class KodingKite_KloudKite extends KodingKite
 
       .catch (err) =>
 
-        if err.name is "TimeoutError" and not @_reconnectedOnce
-          warn "First time timeout, reconnecting to kloud..."
-          kontrol.kites.kloud.singleton?.reconnect?()
-          @_reconnectedOnce = yes
+        if err.name is "TimeoutError"
+
+          unless @_reconnectedOnce
+            warn "First time timeout, reconnecting to kloud..."
+            kontrol.kites.kloud.singleton?.reconnect?()
+            @_reconnectedOnce = yes
+
+          KiteLogger.failed 'kloud', 'info'
 
         warn "[kloud:info] failed, sending current state back:", { currentState, err }
         @resolveRequestingInfos machineId, State: currentState
