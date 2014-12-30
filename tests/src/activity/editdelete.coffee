@@ -83,8 +83,7 @@ module.exports =
 
   cancelCommentDeletion: (browser) ->
 
-    comment = helpers.postComment(browser)
-
+    comment         = helpers.postComment(browser)
     commentSelector = activitySelector + ' .comment-container button.comment-menu'
 
     browser

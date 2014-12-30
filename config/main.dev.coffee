@@ -104,6 +104,7 @@ Configuration = (options={}) ->
     kiteHome                       : kiteHome
     gatekeeper                     : gatekeeper
     redis                          : "#{redis.host}:#{redis.port}"
+    monitoringRedis                : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #

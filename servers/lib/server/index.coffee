@@ -33,6 +33,7 @@ http       = require "https"
 helmet     = require 'helmet'
 request    = require 'request'
 bodyParser = require 'body-parser'
+usertracker = require('../../../workers/usertracker')
 
 {JSession} = koding.models
 app        = express()
@@ -118,6 +119,9 @@ app.use (req, res, next) ->
     return next()  unless remoteIp
 
     res.cookie "clientIPAddress", remoteIp, { maxAge: 900000, httpOnly: no }
+
+    if result?.session?.username
+      usertracker.track result.session.username
 
     JSession.updateClientIP result.session.clientId, remoteIp, (err)->
       console.log err  if err?
@@ -759,6 +763,10 @@ app.get '*', (req,res)->
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+# start user tracking
+usertracker.start()
+
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.
