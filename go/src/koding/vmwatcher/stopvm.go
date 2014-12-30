@@ -9,13 +9,6 @@ import (
 	"github.com/koding/kite/config"
 )
 
-const (
-	// This secret key is here because your worker will be bypassed from the
-	// token authentication.
-	KloudSecretKey = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
-	KloudAddr      = "http://127.0.0.1:5500/kite"
-)
-
 // request arguments
 type stopArgs struct {
 	MachineId string `json:"machineId"`
