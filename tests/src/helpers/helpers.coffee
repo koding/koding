@@ -46,11 +46,15 @@ module.exports =
       .click                  '[testpath=login-button]'
       .pause                  5000
 
-  waitForVMRunning: (browser) ->
-    vmSelector           = '.vm.running.koding'
-    modalSelector        = '.env-modal.env-machine-state'
-    loaderSelector       = modalSelector + ' .kdloader'
-    buildingLabel        = modalSelector + ' .state-label.building'
+  waitForVMRunning: (browser, machineName) ->
+    vmSelector = '.vm.running.koding'
+
+    if machineName
+      vmSelector   = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
+
+    modalSelector  = '.env-modal.env-machine-state'
+    loaderSelector = modalSelector + ' .kdloader'
+    buildingLabel  = modalSelector + ' .state-label.building'
     turnOnButtonSelector = modalSelector + ' .turn-on.state-button'
 
     browser.element 'css selector', vmSelector, (result) =>
