@@ -9,6 +9,7 @@
 package main
 
 import (
+	"koding/artifact"
 	"log"
 	"net/http"
 
@@ -64,5 +65,9 @@ func main() {
 
 	// expose api for workers like kloud to check if users is over limit
 	http.HandleFunc("/", checkerHttp)
+
+	http.HandleFunc("/version", artifact.VersionHandler())
+	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
+
 	http.ListenAndServe(":"+port, nil)
 }
