@@ -10,6 +10,11 @@ PID=`echo $TOPPROCESS | awk '{print $1}'`
 LOAD=`echo $TOPPROCESS | awk '{print $9}'`
 NAME=`echo $TOPPROCESS | awk '{print $12}'`
 
+# java is conflicting with our script
+if [[ "$NAME" == "java" ]]; then
+  exit 0
+fi
+
 # check if CPU_THRESHOLD is lower than LOAD
 if [ 0 -eq "$(echo "${LOAD} < ${CPU_THRESHOLD}" | bc)" ] ; then
   kill -9 $PID
