@@ -10,7 +10,8 @@ do ->
       loadIDE { machine, workspace, username }
 
     else if workspaceSlug is 'my-workspace'
-      workspace =
+      workspace = new KD.remote.api.JWorkspace
+        _id          : 'my-workspace'
         isDummy      : yes
         isDefault    : yes
         slug         : 'my-workspace'
