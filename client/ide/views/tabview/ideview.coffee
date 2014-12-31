@@ -276,7 +276,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   openSavedFile: (file, content) ->
 
       pane = @tabView.getActivePane()
-      if pane.data instanceof FSFile and pane.data.path is @getDummyFilePath()
+      if pane.data instanceof FSFile and @isDummyFilePath pane.data.path
         @tabView.removePane @tabView.getActivePane()
       @openFile file, content
 
@@ -314,7 +314,15 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @emit 'PaneRemoved', pane
 
 
-  getDummyFilePath: -> return "localfile:/Untitled.txt@#{Date.now()}"
+  getDummyFilePath: (uniquePath = yes) -> 
+    
+    filePath = "localfile:/Untitled.txt"
+    filePath += "@#{Date.now()}"  if uniquePath
+    
+    return filePath
+
+
+  isDummyFilePath: (filePath) -> (filePath?.indexOf @getDummyFilePath false) is 0
 
 
   openMachineTerminal: (machine) -> @createTerminal { machine }
