@@ -103,24 +103,29 @@ class WebTermView extends KDCustomScrollView
   getKite: -> @getMachine().getBaseKite()
 
 
-  webtermConnect:(mode = 'create')->
+  webtermConnect: (mode)->
+
+    mode ?= if @_lastRemote? then 'resume' else 'create'
 
     @messagePane.busy()
 
     options = @generateOptions()
     options.mode = mode
 
-    remote = null
+    @_lastRemote = null
 
     kite = @getKite()
+
     kite.init()
-    kite.webtermConnect(options).then (_remote) =>
 
-      return  unless _remote?
+    kite.webtermConnect(options).then (remote)=>
 
-      remote = _remote
+      return  unless remote?
+
+      @_lastRemote = remote
 
       @setOption "session", remote.session
+
       @terminal.eventHandler = (data)=>
         @emit "WebTermEvent", data
 
@@ -128,30 +133,23 @@ class WebTermView extends KDCustomScrollView
       @sessionId = remote.session
 
       @emit "WebTermConnected", remote
+
       @_triedToReconnect = no
 
-    .catch (err) =>
+      KD.utils.wait 500, @messagePane.bound 'hide'
 
-      KD.utils.warnAndLog "terminal: webtermConnect error",
-        { hostnameAlias: @getMachine().getName(), reason:err?.message, options }
+    .timeout ComputeController.timeout
 
-      if err.code is "ErrInvalidSession"
+    .catch (err)=>
 
-        @emit 'TerminalCanceled',
-          machineId : @getMachine().uid
-          sessionId : @getOptions().session
-          error     : err
+      throw err  unless @messagePane.handleError err
 
-        return
-
-      else
-        throw err
 
     kite.on 'close', =>
 
       if not kite.isDisconnected and not @_triedToReconnect
         @_triedToReconnect = yes
-        @webtermConnect if remote? then 'resume' else 'create'
+        @webtermConnect()
 
 
   connectToTerminal: ->
