@@ -100,7 +100,7 @@ do ->
 
     for instance in ideApps.instances
       isSameMachine   = instance.mountedMachineUId is machineUId
-      isSameWorkspace = instance.workspaceData is workspace
+      isSameWorkspace = instance.workspaceData.getId() is workspace.getId()
 
       if isSameMachine
         if isSameWorkspace then ideInstance = instance
