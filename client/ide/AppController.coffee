@@ -863,6 +863,9 @@ class IDEAppController extends AppController
 
       @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
+      unless @amIHost
+        @makeReadOnly()  if @permissions.get(nickname) is 'read'
+
 
   setCollaborativeReferences: ->
 
