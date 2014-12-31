@@ -52,7 +52,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	for _, machine := range userMachines {
 		var meta = machine.Meta.(bson.M)
 		var regionStr = meta["region"].(string)
-		var instanceId = meta["instance_id"].(string)
+		var instanceId = meta["instanceId"].(string)
 
 		dimension := &cloudwatch.Dimension{
 			Name:  "InstanceId",
