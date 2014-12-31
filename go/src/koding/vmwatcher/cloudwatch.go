@@ -88,8 +88,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 }
 
 func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
-	// TODO: remove hardcoded NetworkOutLimt here
-	usernames, err := storage.Range(c.Name, NetworkOutLimt)
+	usernames, err := storage.Range(c.Name, c.Limit)
 	if err != nil {
 		return nil, err
 	}
