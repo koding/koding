@@ -25,7 +25,6 @@ func getAndSaveQueueMachineMetrics() error {
 			}
 
 			if len(machines) == 0 {
-				Log.Error(err.Error())
 				continue
 			}
 
