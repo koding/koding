@@ -12,7 +12,7 @@ import (
 func getAndSaveQueueMachineMetrics() error {
 	var index = 0
 	defer func() {
-		Log.Info("Fetched %d entries for queued usernames", index)
+		Log.Info("Fetched: %d entries for queued usernames", index)
 	}()
 
 	for {
@@ -52,19 +52,37 @@ func stopMachinesOverLimit() error {
 			continue
 		}
 
+		Log.Info(
+			"Fetched: %d machines that are overlimit for metric: %s",
+			len(machines), metric.GetName(),
+		)
+
+		if len(machines) == 0 {
+			continue
+		}
+
+		var stopSuccess = 0
+
 		for _, machine := range machines {
 			err = stopVm(machine.ObjectId.Hex())
 			if err != nil {
-				log.Println(err)
+				Log.Error(err.Error())
 				continue
 			}
 
+			stopSuccess += 1
+
 			err := metric.RemoveUsername(machine.Credential)
 			if err != nil {
-				log.Println(err)
+				Log.Error(err.Error())
 				continue
 			}
 		}
+
+		Log.Info(
+			"Successfully stopped: %d overlimit machines for metric: %s",
+			len(machines), metric.GetName(),
+		)
 	}
 
 	return nil
@@ -86,13 +104,13 @@ func queueUsernamesForMetricGet() error {
 	}
 
 	for _, metric := range metricsToSave {
+		Log.Info("Queued: %d usernames for metric: %s", len(usernames), metric.GetName())
+
 		err := storage.Queue(metric.GetName(), usernames)
 		if err != nil {
 			return err
 		}
 	}
-
-	Log.Info("Queued %v users for metrics get", len(usernames))
 
 	return nil
 }

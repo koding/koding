@@ -10,7 +10,6 @@ package main
 
 import (
 	"koding/artifact"
-	"log"
 	"net/http"
 
 	"github.com/robfig/cron"
@@ -40,7 +39,7 @@ func main() {
 	c.AddFunc("0 0 * * * *", func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
-			log.Fatal(err)
+			Log.Fatal(err.Error())
 		}
 	})
 
@@ -48,7 +47,7 @@ func main() {
 	c.AddFunc("0 15 * * * *", func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
-			log.Fatal(err)
+			Log.Fatal(err.Error())
 		}
 	})
 
@@ -57,7 +56,7 @@ func main() {
 	c.AddFunc("0 20,40 * * * *", func() {
 		err := stopMachinesOverLimit()
 		if err != nil {
-			log.Fatal(err)
+			Log.Fatal(err.Error())
 		}
 	})
 
@@ -68,6 +67,8 @@ func main() {
 
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
+
+	Log.Info("Listening on port: %s", port)
 
 	http.ListenAndServe(":"+port, nil)
 }

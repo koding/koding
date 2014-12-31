@@ -29,6 +29,8 @@ var (
 )
 
 func init() {
+	Log.Info("Starting %s", WorkerName)
+
 	// initialize mongo
 	modelhelper.Initialize(conf.Mongo)
 
@@ -51,7 +53,7 @@ func init() {
 		}
 	}
 
-	Log.Info("Saved %v users as exempt", len(ExemptUsers))
+	Log.Info("Saved: %v users as exempt", len(ExemptUsers))
 
 	// initialize cloudwatch api client
 	// arguments are: key, secret, token, expiration

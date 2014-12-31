@@ -25,27 +25,30 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 
 	accountId := r.URL.Query().Get("account_id")
 	if accountId == "" {
-		writeError(w, "account_id is required")
+		writeError(w, "", "account_id is required")
 		return
 	}
 
 	yes := bson.IsObjectIdHex(accountId)
 	if !yes {
-		writeError(w, "account_id is not valid")
+		writeError(w, accountId, "account_id is not valid")
 		return
 	}
 
 	account, err := modelhelper.GetAccountById(accountId)
 	if err != nil {
-		writeError(w, "account_id is not valid")
+		writeError(w, accountId, "account_id is not valid")
 		return
 	}
 
-	response := checker(account.Profile.Nickname)
+	var username = account.Profile.Nickname
+	var response = checker(username)
+
+	Log.Info("Returning response: %v for username: %v", response, username)
 
 	js, err := json.Marshal(response)
 	if err != nil {
-		writeError(w, err.Error())
+		writeError(w, accountId, err.Error())
 		return
 	}
 
@@ -70,7 +73,9 @@ func checker(username string) *LimitResponse {
 	return &LimitResponse{CanStart: true}
 }
 
-func writeError(w http.ResponseWriter, err string) {
+func writeError(w http.ResponseWriter, accountId, err string) {
+	Log.Error("Returning error: %v for accountId: %v", accountId, err)
+
 	js, _ := json.Marshal(ErrorResponse{err})
 
 	w.WriteHeader(500)
