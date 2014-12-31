@@ -152,12 +152,14 @@ class WebTermView extends KDCustomScrollView
 
     @appStorage.fetchStorage =>
 
-      @appStorage.setValue 'font'      , 'ubuntu-mono' if not @appStorage.getValue('font')?
-      @appStorage.setValue 'fontSize'  , 14 if not @appStorage.getValue('fontSize')?
-      @appStorage.setValue 'theme'     , 'green-on-black' if not @appStorage.getValue('theme')?
-      @appStorage.setValue 'visualBell', false if not @appStorage.getValue('visualBell')?
-      @appStorage.setValue 'scrollback', 1000 if not @appStorage.getValue('scrollback')?
-      @appStorage.setValue 'blinkingCursor', yes if not @appStorage.getValue('blinkingCursor')?
+      @appStorage.setDefaults
+        'font'           : 'ubuntu-mono'
+        'fontSize'       : 14
+        'theme'          : 'green-on-black'
+        'visualBell'     : no
+        'scrollback'     : 1000
+        'blinkingCursor' : no
+
       @updateSettings()
 
       {mode} = @getOptions()
