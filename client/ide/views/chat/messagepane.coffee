@@ -168,11 +168,11 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant]
 
-  
+
   refresh: ->
-    
+
     return  if not @listController.getItemCount()
-    
+
     @resetPadding()
     item.checkIfItsTooTall()  for item in @listController.getListItems()
     @scrollView.wrapper.emit 'MutationHappened'
