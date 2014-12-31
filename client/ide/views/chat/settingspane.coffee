@@ -68,7 +68,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       cssClass : 'chat-link'
       click    : => @getDelegate().showChatPane()
 
-    @defaultSetting = new KDSelectBox
+    @defaultPermission = new KDSelectBox
       defaultValue  : 'edit'
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
@@ -217,7 +217,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
         {{> @back}}
       </header>
       <ul class='settings default'>
-        <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
+        <li><label>Anyone who joins</label>{{> @defaultPermission}}</li>
       </ul>
       {{> @everyone}}
       <div class="warning">
