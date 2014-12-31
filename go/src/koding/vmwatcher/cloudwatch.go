@@ -174,5 +174,5 @@ func (c *Cloudwatch) RemoveUsername(username string) error {
 }
 
 func isRedisRecordNil(err error) bool {
-	return err.Error() == "redigo: nil returned"
+	return err != nil && err.Error() == "redigo: nil returned"
 }
