@@ -323,9 +323,9 @@ class IDE.EditorPane extends IDE.Pane
 
   makeReadOnly: ->
 
-    @getEditor().setReadOnly yes
+    @getEditor()?.setReadOnly yes
 
 
   makeEditable: ->
 
-    @getEditor().setReadOnly no
+    @getEditor()?.setReadOnly no
