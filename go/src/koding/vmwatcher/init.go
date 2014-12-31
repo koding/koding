@@ -5,8 +5,12 @@ import (
 	"koding/tools/config"
 	"log"
 	"socialapi/workers/helper"
+	"time"
+
+	kiteConfig "github.com/koding/kite/config"
 
 	"github.com/crowdmob/goamz/aws"
+	"github.com/koding/kite"
 	"github.com/koding/redis"
 )
 
@@ -21,6 +25,8 @@ var (
 	// token authentication in kloud.
 	KloudSecretKey = conf.Vmwatcher.KloudSecretKey
 	KloudAddr      = conf.Vmwatcher.KloudAddr
+
+	KiteClient *kite.Client
 
 	redisClient  *redis.RedisSession
 	redisStorage *RedisStorage
@@ -38,7 +44,7 @@ func init() {
 	var err error
 	redisClient, err = redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
 	if err != nil {
-		log.Fatal(err)
+		Log.Fatal(err.Error())
 	}
 
 	redisStorage = &RedisStorage{Client: redisClient}
@@ -49,7 +55,7 @@ func init() {
 	for _, metric := range metricsToSave {
 		err = storage.ExemptSave(metric.GetName(), ExemptUsers)
 		if err != nil {
-			log.Fatal(err)
+			Log.Fatal(err.Error())
 		}
 	}
 
@@ -59,6 +65,28 @@ func init() {
 	// arguments are: key, secret, token, expiration
 	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", startingToday)
 	if err != nil {
-		log.Fatal("Error: %+v\n", err)
+		Log.Fatal(err.Error())
+	}
+
+	// create new kite
+	k := kite.New(WorkerName, WorkerVersion)
+	config, err := kiteConfig.Get()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// set skeleton config
+	k.Config = config
+
+	// create a new connection to the cloud
+	KiteClient := k.NewClient(KloudAddr)
+	KiteClient.Auth = &kite.Auth{
+		Type: "kloudctl",
+		Key:  KloudSecretKey,
+	}
+
+	// dial the kloud address
+	if err := KiteClient.DialTimeout(time.Second * 10); err != nil {
+		Log.Fatal(err.Error())
 	}
 }
