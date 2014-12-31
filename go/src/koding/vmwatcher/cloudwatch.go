@@ -49,8 +49,18 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 
 	for _, machine := range userMachines {
 		var meta = machine.Meta.(bson.M)
-		var regionStr = meta["region"].(string)
-		var instanceId = meta["instanceId"].(string)
+
+		regionStr, ok := meta["region"].(string)
+		if !ok {
+			Log.Error("queued machine has no `region`", machine.ObjectId)
+			continue
+		}
+
+		instanceId, ok := meta["instanceId"].(string)
+		if !ok {
+			Log.Error("queued machine has no `instanceId`", machine.ObjectId)
+			continue
+		}
 
 		dimension := &cloudwatch.Dimension{
 			Name:  "InstanceId",
