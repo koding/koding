@@ -1199,7 +1199,7 @@ class IDEAppController extends AppController
       {settingsPane} = @chat
 
       settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-      settingsPane.updatePermissions()
+      settingsPane.updateDefaultPermissions()
 
 
   createChatPane: ->
