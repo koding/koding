@@ -62,7 +62,7 @@ func init() {
 
 	// initialize cloudwatch api client
 	// arguments are: key, secret, token, expiration
-	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", startingToday)
+	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", startingWeek)
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

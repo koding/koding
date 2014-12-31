@@ -18,8 +18,8 @@ var (
 
 	GB_TO_MB float64 = 1000
 
-	startingToday = now.BeginningOfDay()
-	sevenDaysAgo  = startingToday.Add(-7 * 24 * time.Hour)
+	rightNow     = time.Now()
+	startingWeek = now.BeginningOfWeek()
 
 	auth aws.Auth
 
@@ -76,8 +76,8 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 			Dimensions: []cloudwatch.Dimension{*dimension},
 			Statistics: []string{cloudwatch.StatisticDatapointSum},
 			MetricName: c.GetName(),
-			EndTime:    startingToday,
-			StartTime:  sevenDaysAgo,
+			EndTime:    rightNow,
+			StartTime:  startingWeek,
 			Period:     AWS_PERIOD,
 			Namespace:  AWS_NAMESPACE,
 		}
