@@ -12,6 +12,12 @@ class IDE.DrawingPane extends IDE.Pane
 
     super options, data
 
+    KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
+
+    @once 'RealTimeManagerSet', =>
+      myPermission = @rtm.getFromModel('permissions').get KD.nick()
+      @makeReadOnly()  if myPermission is 'read'
+
 
   createCanvas: ->
 
