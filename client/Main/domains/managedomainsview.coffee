@@ -46,7 +46,7 @@ class ManageDomainsView extends KDView
         width       : 14
         height      : 14
       loaderOptions :
-        color       : '#FFFFFF'
+        color       : '#333333'
       showLoader    : yes
 
     @addSubView @warning = new KDCustomHTMLView

@@ -10,6 +10,7 @@ module.exports = [
   "webtermview.coffee",
   "terminalwrapper.coffee",
   "webtermsettingsview.coffee",
+  "webtermmessagepane.coffee",
   "webtermsettings.coffee",
   "sessionstackview.coffee",
   "sessionitemview.coffee",
