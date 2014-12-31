@@ -76,6 +76,12 @@ class WebTermView extends KDCustomScrollView
 
     @setKeyView()
 
+    @addSubView @messagePane = new WebTermMessagePane
+      cssClass: 'hidden'
+
+    @messagePane.on 'RequestNewSession', @lazyBound 'webtermConnect', 'create'
+    @messagePane.on 'RequestReconnect',  @bound 'webtermConnect'
+
 
   generateOptions:->
 
@@ -98,6 +104,8 @@ class WebTermView extends KDCustomScrollView
 
 
   webtermConnect:(mode = 'create')->
+
+    @messagePane.busy()
 
     options = @generateOptions()
     options.mode = mode
