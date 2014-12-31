@@ -70,8 +70,18 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @updatePercentage percentage  if percentage?
 
     else
-      @state    = status
-      @hasError = error?.length > 0
+      @state = status
+
+      if error?.length > 0
+        if /NetworkOutLimit/i.test event.message
+          @customErrorMessage = """
+            <p>You've reached your outbound network usage limit for this week.</p>
+            <span>Please upgrade your <a href="/Pricing">plan</a> or <span
+            class="contact-support">contact support</span> for further
+            assistance.</span>
+          """
+
+        @hasError = yes
 
       if not percentage?
         @switchToIDEIfNeeded()
@@ -316,7 +326,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @errorMessage = new KDCustomHTMLView
       cssClass    : 'error-message'
-      partial     : """
+      partial     : @customErrorMessage or """
         <p>There was an error when initializing your VM.</p>
         <span>Please try reloading this page or <span
         class="contact-support">contact support</span> for further
