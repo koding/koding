@@ -46,6 +46,13 @@ class IDE.ChatView extends KDTabView
     @hide()
 
 
+  show: ->
+
+    super
+
+    @chatPane?.refresh()
+
+
   createLoader: ->
 
     @loaderView = new KDView cssClass: 'loader-view'
@@ -85,7 +92,7 @@ class IDE.ChatView extends KDTabView
       'ParticipantJoined', 'ParticipantLeft'
     ]
 
-    @settingsPane.on 'SessionStarted', @bound 'showChatPane'
+    @settingsPane.on 'SessionStarted', @bound 'sessionStarted'
     @settingsPane.on 'AddNewParticipantRequested', =>
       @showChatPane()
 
@@ -102,3 +109,9 @@ class IDE.ChatView extends KDTabView
 
 
   showSettingsPane: -> @showPane @settingsPane
+  
+  
+  sessionStarted: ->
+    
+    @showChatPane()
+    @chatPane.refresh()

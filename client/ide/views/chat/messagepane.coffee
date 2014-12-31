@@ -12,7 +12,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     @on 'AddedParticipant', @bound 'participantAdded'
 
-    @input.input.on 'focus', (event) => @handleFocus yes, event
+    @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
 
     @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
@@ -167,3 +167,13 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant]
+
+  
+  refresh: ->
+    
+    return  if not @listController.getItemCount()
+    
+    @resetPadding()
+    item.checkIfItsTooTall()  for item in @listController.getListItems()
+    @scrollView.wrapper.emit 'MutationHappened'
+    @scrollDown()

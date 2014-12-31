@@ -351,6 +351,19 @@ body.ide.dark
       &.off
         bg              color, dark-tab-header-bg
 
+// shortcuts tab
+.shortcuts
+
+  .kdcustomscrollview
+    styleScrollBars rgba(255,255,255,.25)
+
+    .kdview.kdscrolltrack.horizontal
+      hidden()
+
+    .kdview.kdscrolltrack &.out
+      opacity           1 !important
+
+
 // key mappings
 .key-mappings
   padding               50px
