@@ -313,7 +313,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 				machine.Id, r.Method, machine.State, err.Error())
 
 			status = machine.State
-			msg = ""
+			msg = err.Error()
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 			finishReason = fmt.Sprintf("User command: '%s' failed. Setting back to state: %s",
 				r.Method, machine.State)
