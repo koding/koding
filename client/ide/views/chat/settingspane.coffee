@@ -206,6 +206,12 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       @createParticipantView account.first, yes
 
 
+  updatePermissions: ->
+
+    permissions = @rtm.getFromModel 'permissions'
+    @defaultPermission.setValue permissions.get 'default'
+
+
 
   setDefaultPermission: (value) ->
 
