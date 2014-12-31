@@ -191,6 +191,9 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @everyone.addSubView participantView, null, isOnline
     @onboarding?.destroy()
 
+    participantView.on 'ParticipantPermissionChanged', (permission) =>
+      @rtm.getFromModel('permissions').set nickname, permission
+
 
   removeParticipant: (username, unshare) ->
 
