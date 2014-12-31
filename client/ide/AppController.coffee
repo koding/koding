@@ -396,29 +396,6 @@ class IDEAppController extends AppController
       @expandSidebar()  if @isSidebarCollapsed
 
 
-    # TODO: This will reactivated after release.
-    # temporary fix. ~Umut
-
-    # splitView.once 'PanelSetToFloating', =>
-    #   floatedPanel._lastSize = desiredSize
-    #   @getView().setClass 'sidebar-collapsed'
-    #   @isSidebarCollapsed = yes
-    #   KD.getSingleton("windowController").notifyWindowResizeListeners()
-
-    # # splitView.setFloatingPanel 0, 39
-    # tabView.showPaneByName 'Dummy'
-
-    # tabView.on 'PaneDidShow', (pane) ->
-    #   return if pane.options.name is 'Dummy'
-    #   splitView.showPanel 0
-    #   floatedPanel._lastSize = desiredSize
-
-    # floatedPanel.on 'ReceivedClickElsewhere', ->
-    #   KD.utils.defer ->
-    #     splitView.setFloatingPanel 0, 39
-    #     tabView.showPaneByName 'Dummy'
-
-
   expandSidebar: ->
 
     panel        = @workspace.getView()
@@ -431,13 +408,6 @@ class IDEAppController extends AppController
     floatedPanel.unsetClass 'floating'
     @isSidebarCollapsed = no
     filesPane.tabView.showPaneByName @activeFilesPaneName
-
-    # floatedPanel._lastSize = 250
-    # splitView.unsetFloatingPanel 0
-    # filesPane.tabView.showPaneByIndex 0
-    # floatedPanel.off 'ReceivedClickElsewhere'
-    # @getView().unsetClass 'sidebar-collapsed'
-    # @isSidebarCollapsed = no
 
 
   toggleSidebar: ->
