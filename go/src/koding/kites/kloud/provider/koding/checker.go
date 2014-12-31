@@ -1,13 +1,14 @@
 package koding
 
 import (
+	"encoding/json"
 	"fmt"
-	"koding/db/mongodb"
+	"net/http"
+	"net/url"
 	"strconv"
 
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
-
+	"koding/db/models"
+	"koding/db/mongodb"
 	aws "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
@@ -17,6 +18,8 @@ import (
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/mitchellh/goamz/ec2"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 // Checker checks various aspects of a machine. It is used for limiting certain
@@ -44,17 +47,79 @@ type Checker interface {
 	// AllowedInstances checks whether the given machine has the permisison to
 	// create the given instance type
 	AllowedInstances(wantInstance InstanceType) error
+
+	// NetworkUsage checks whether the given machine has exceeded the network
+	// outbound limit
+	NetworkUsage() error
 }
 
 type PlanChecker struct {
-	Api      *amazon.AmazonClient
-	DB       *mongodb.MongoDB
-	Machine  *protocol.Machine
-	Provider *Provider
-	Kite     *kite.Kite
-	Username string
-	Log      logging.Logger
-	Plan     Plan
+	Api                  *amazon.AmazonClient
+	DB                   *mongodb.MongoDB
+	Machine              *protocol.Machine
+	Provider             *Provider
+	Kite                 *kite.Kite
+	Username             string
+	Log                  logging.Logger
+	Plan                 Plan
+	NetworkUsageEndpoint string
+}
+
+type networkUsageResponse struct {
+	CanStart     bool   `json:"can_start"`
+	Reason       string `json:"reason"`
+	AllowedUsage int    `json:"allowed_usage"`
+	CurrentUsage int    `json:"current_usage"`
+}
+
+func (p *PlanChecker) NetworkUsage() error {
+	networkEndpoint, err := url.Parse(p.NetworkUsageEndpoint)
+	if err != nil {
+		p.Log.Debug("[%s] Failed to parse network-usage endpoint: %v. err: %v",
+			p.Machine.Id, p.NetworkUsageEndpoint, err)
+		return err
+	}
+
+	var account *models.Account
+	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": p.Username}).One(&account)
+	}); err != nil {
+		p.Log.Warning("[%s] Failed to fetch user information while checking network-usage. err: %v",
+			p.Machine.Id, err)
+		return err
+	}
+
+	q := networkEndpoint.Query()
+	q.Set("account_id", account.Id.Hex())
+	networkEndpoint.RawQuery = q.Encode()
+
+	resp, err := http.Get(networkEndpoint.String())
+	if err != nil {
+		p.Log.Warning("[%s] Failed to fetch network-usage because network-usage providing api host seems down. err: %v",
+			p.Machine.Id, err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	var usageResponse *networkUsageResponse
+	if err := json.NewDecoder(resp.Body).Decode(&usageResponse); err != nil {
+		p.Log.Warning("[%s] Failed to decode network-usage response. err: %v",
+			p.Machine.Id, err)
+		return err
+	}
+
+	if resp.StatusCode != 200 {
+		p.Log.Debug("[%s] Network-usage response code is not 200. It's %v",
+			p.Machine.Id, resp.StatusCode)
+		return err
+	}
+
+	if !usageResponse.CanStart {
+		p.Log.Debug("[%s] Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
+			p.Machine.Id, usageResponse.AllowedUsage, usageResponse.CurrentUsage)
+		return err
+	}
+	return nil
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {

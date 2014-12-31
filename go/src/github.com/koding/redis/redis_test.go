@@ -414,6 +414,22 @@ func TestSortedSet(t *testing.T) {
 		return
 	}
 
+	err = session.SortedSetAddSingle(destination, "item1", 1)
+	if err != nil {
+		t.Errorf("Couldn't remove item from sorted set: %s", err)
+		return
+	}
+
+	score, err = session.SortedSetScore(destination, "item1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if score != 1 {
+		t.Errorf("Didn't set score for item in sorted set")
+		return
+	}
+
 	session.Del(set1Key)
 	session.Del(set2Key)
 	session.Del(destination)
