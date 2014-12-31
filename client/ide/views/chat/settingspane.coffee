@@ -176,15 +176,19 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   createParticipantView: (account, isOnline) =>
 
-    {nickname} = account.profile
-    isWatching = @rtm.getFromModel("#{KD.nick()}WatchMap").keys().indexOf(nickname) > -1
-    channel    = @getData()
-    options    = { isOnline, @isInSession, isWatching }
-    data       = { account, channel }
-    view       = new IDE.ChatParticipantView options, data
+    {nickname}        = account.profile
+    watchList         = @rtm.getFromModel("#{KD.nick()}WatchMap").keys()
+    isWatching        = watchList.indexOf(nickname) > -1
+    permissionsMap    = @rtm.getFromModel 'permissions'
+    defaultPermission = permissionsMap.get 'default'
+    permission        = permissionsMap.get(nickname) or defaultPermission
+    channel           = @getData()
+    options           = { isOnline, @isInSession, isWatching, permission }
+    data              = { account, channel }
+    participantView   = new IDE.ChatParticipantView options, data
 
-    @participantViews[nickname] = view
-    @everyone.addSubView view, null, isOnline
+    @participantViews[nickname] = participantView
+    @everyone.addSubView participantView, null, isOnline
     @onboarding?.destroy()
 
 
@@ -211,7 +215,6 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     permissions = @rtm.getFromModel 'permissions'
     @defaultPermission.setValue permissions.get 'default'
-
 
 
   setDefaultPermission: (value) ->
