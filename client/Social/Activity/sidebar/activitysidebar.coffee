@@ -635,7 +635,6 @@ class ActivitySidebar extends KDCustomHTMLView
     computeController.reset()
     computeController.fetchMachines (err, machines)=>
       if err
-        ErrorLog.create 'terminal: Couldn\'t fetch machines', reason : err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
       callback machines

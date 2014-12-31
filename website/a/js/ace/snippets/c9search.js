@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./c9search.snippets");
-exports.scope = "c9search";
-
-});
+ace.define("ace/snippets/c9search",["require","exports","module"],function(e,t,n){t.snippetText="",t.scope="c9search"})
