@@ -19,13 +19,13 @@ var (
 	WorkerName    = "vmwatcher"
 	WorkerVersion = "0.0.1"
 
-	NetworkOut             = "NetworkOut"
-	NetworkOutLimt float64 = 7000 // 7GB/week
+	NetworkOut              = "NetworkOut"
+	NetworkOutLimit float64 = 7000 // 7GB/week
 
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
-		&Cloudwatch{Name: NetworkOut, Limit: NetworkOutLimt},
+		&Cloudwatch{Name: NetworkOut, Limit: NetworkOutLimit},
 	}
 )
 
