@@ -1181,7 +1181,10 @@ class IDEAppController extends AppController
 
       @statusBar.emit 'CollaborationStarted'
 
-      @chat.settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
+      {settingsPane} = @chat
+
+      settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
+      settingsPane.updatePermissions()
 
 
   createChatPane: ->
