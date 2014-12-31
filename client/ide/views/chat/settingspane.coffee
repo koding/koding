@@ -71,7 +71,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @defaultSetting = new KDSelectBox
       defaultValue  : 'edit'
       selectOptions : [
-        # { title : 'CAN READ', value : 'read'}
+        { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
       ]
 

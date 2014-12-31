@@ -50,7 +50,7 @@ class IDE.ChatParticipantView extends JView
     @settings       = new KDSelectBox
       defaultValue  : 'edit'
       selectOptions : [
-        # { title : 'CAN READ', value : 'read'}
+        { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
       ]
 
