@@ -63,3 +63,22 @@ class IDE.FinderPane extends IDE.Pane
         path   : path
 
     return change
+
+
+  handleChange: (change = {}) ->
+
+    return  unless change.type is 'FileTreeInteraction'
+
+    {context} = change
+    return  unless context
+
+    {action} = context
+    fc = @finderController
+    tc = fc.treeController
+
+    tc.dontEmitChangeEvent = yes
+
+    if      action is 'Expanded'  then fc.expandFolders context.path
+    else if action is 'Collapsed' then tc.collapseFolder tc.nodes[context.path]
+
+    tc.dontEmitChangeEvent = no
