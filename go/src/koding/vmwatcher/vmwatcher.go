@@ -14,11 +14,13 @@ func getAndSaveQueueMachineMetrics() error {
 		for _, metric := range metricsToSave {
 			machines, err := popMachinesForMetricGet(metric.GetName())
 			if err != nil {
-				return err
+				log.Println(err)
+				continue
 			}
 
 			if len(machines) == 0 {
-				return nil
+				log.Println(err)
+				continue
 			}
 
 			for _, machine := range machines {
