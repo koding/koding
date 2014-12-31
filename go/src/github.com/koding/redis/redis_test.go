@@ -15,7 +15,7 @@ var (
 
 func init() {
 	var err error
-	conf := &RedisConf{Server: "192.168.59.103:6379"}
+	conf := &RedisConf{Server: "localhost:6379"}
 	session, err = NewRedisSession(conf)
 	if err != nil {
 		panic(fmt.Sprintf("Could not start redis: %s", err))
