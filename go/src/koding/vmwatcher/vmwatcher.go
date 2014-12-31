@@ -3,7 +3,6 @@ package main
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"log"
 )
 
 // pops username from set in db and gets metrics for machines belonging
@@ -26,14 +25,14 @@ func getAndSaveQueueMachineMetrics() error {
 			}
 
 			if len(machines) == 0 {
-				log.Println(err)
+				Log.Error(err.Error())
 				continue
 			}
 
 			for _, machine := range machines {
 				err := metric.GetAndSaveData(machine.Credential)
 				if err != nil {
-					log.Println(err)
+					Log.Error(err.Error())
 				}
 			}
 		}
@@ -48,7 +47,7 @@ func stopMachinesOverLimit() error {
 	for _, metric := range metricsToSave {
 		machines, err := metric.GetMachinesOverLimit()
 		if err != nil {
-			log.Println(err)
+			Log.Error(err.Error())
 			continue
 		}
 

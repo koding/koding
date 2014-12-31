@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"koding/db/mongodb/modelhelper"
-	"log"
 	"net/http"
 
 	"labix.org/v2/mgo/bson"
@@ -61,7 +60,7 @@ func checker(username string) *LimitResponse {
 	for _, metric := range metricsToSave {
 		response, err := metric.IsUserOverLimit(username)
 		if err != nil {
-			log.Println(err)
+			Log.Error(err.Error())
 			continue
 		}
 

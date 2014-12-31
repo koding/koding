@@ -6,8 +6,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
-	"log"
-
 	"github.com/crowdmob/goamz/aws"
 	"github.com/crowdmob/goamz/cloudwatch"
 	"github.com/jinzhu/now"
@@ -105,7 +103,7 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 		if !yes {
 			ms, err := modelhelper.GetMachinesForUsername(username)
 			if err != nil {
-				log.Println(err)
+				Log.Error(err.Error())
 				continue
 			}
 
@@ -121,13 +119,13 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	value, err := storage.Get(c.GetName(), username)
 	if err != nil && !isRedisRecordNil(err) {
-		log.Println(err)
+		Log.Error(err.Error())
 		return canStart, nil
 	}
 
 	yes, err := exemptFromStopping(c.GetName(), username)
 	if err != nil {
-		log.Println(err)
+		Log.Error(err.Error())
 		return canStart, nil
 	}
 
@@ -137,7 +135,7 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	planTitle, err := getPlanForUser(username)
 	if err != nil {
-		log.Println(err)
+		Log.Error(err.Error())
 		return canStart, nil
 	}
 

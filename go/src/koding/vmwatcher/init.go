@@ -3,7 +3,6 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
-	"log"
 	"socialapi/workers/helper"
 	"time"
 
@@ -72,7 +71,7 @@ func init() {
 	k := kite.New(WorkerName, WorkerVersion)
 	config, err := kiteConfig.Get()
 	if err != nil {
-		log.Fatal(err)
+		Log.Fatal(err.Error())
 	}
 
 	// set skeleton config
