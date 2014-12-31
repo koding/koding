@@ -1021,6 +1021,7 @@ class IDEAppController extends AppController
     @rtm.on 'MapValueChanged', (map, event) =>
 
       if      map is @myWatchMap  then @handleWatchMapChange event
+      else if map is @permissions then @handlePermissionsMapChange event
 
 
   handleWatchMapChange: (event) ->
@@ -1033,6 +1034,10 @@ class IDEAppController extends AppController
     else unless newValue
       @statusBar.emit 'ParticipantUnwatched', property
 
+
+  handlePermissionsMapChange: (event) ->
+
+    @chat.settingsPane.defaultPermission.setValue event.newValue
 
 
   handleChange: (change) ->
