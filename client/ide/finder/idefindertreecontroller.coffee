@@ -31,6 +31,8 @@ class IDE.FinderTreeController extends NFinderTreeController
 
     super nodeView, callback
 
+    return  if @dontEmitChangeEvent
+
     @emit 'FolderCollapsed', nodeView.getData().path
 
 
@@ -38,5 +40,6 @@ class IDE.FinderTreeController extends NFinderTreeController
 
     super nodeView, callback
 
+    return  if @dontEmitChangeEvent
 
     @emit 'FolderExpanded', nodeView.getData().path
