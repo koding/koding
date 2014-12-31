@@ -16,8 +16,8 @@ type Server struct {
 	// Dnode is decoding it and client side get mad about it.
 	remote Remote
 
-	out             io.Writer
-	in              io.Reader
+	out             io.Reader
+	in              io.Writer
 	controlSequence io.Writer
 
 	// inputHook is called whenever an input is received
@@ -37,14 +37,18 @@ func (s *Server) Input(d *dnode.Partial) {
 
 	s.inputHook()
 
+	fmt.Printf("data = %+v\n", data)
+
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
-	s.out.Write([]byte(data))
+	s.in.Write([]byte(data))
 }
 
 // ControlSequence is called when a non-printable key is pressed on the terminal.
 func (s *Server) ControlSequence(d *dnode.Partial) {
 	data := d.MustSliceOfLength(1)[0].MustString()
+
+	fmt.Printf("controls data = %+v\n", data)
 	s.controlSequence.Write([]byte(data))
 }
 

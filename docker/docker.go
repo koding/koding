@@ -2,9 +2,9 @@
 package docker
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"time"
@@ -104,7 +104,6 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 	createOpts := dockerclient.CreateExecOptions{
 		// Container: params.ID,
 		Container: "high_torvalds",
-		Detach:    false,
 		Tty:       true,
 		Cmd:       []string{"bash"},
 		// we attach to anything, it's used in the same was as with `docker
@@ -129,15 +128,6 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		OutputStream: os.Stdout,
 		ErrorStream:  os.Stdout,
 		InputStream:  os.Stdin,
-		// Container:    params.ID,
-		Container: "high_torvalds",
-		// Tty:       true,
-		Cmd: []string{"bash"},
-		// we attach to anything, it's used in the same was as with `docker
-		// exec`
-		AttachStdout: true,
-		AttachStderr: true,
-		AttachStdin:  true,
 	}
 
 	errCh := promise.Go(func() error {
@@ -226,17 +216,18 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	stdoutBuffer := new(bytes.Buffer)
-	stdinBuffer := new(bytes.Buffer)
+	outReadPipe, outWritePipe := io.Pipe()
+	inReadPipe, inWritePipe := io.Pipe()
 
 	opts := dockerclient.StartExecOptions{
-		RawTerminal:  true, // because we are creating containers with Tty:true
-		OutputStream: stdoutBuffer,
-		ErrorStream:  stdoutBuffer,
-		InputStream:  stdinBuffer,
+		Detach:       false,
+		Tty:          true,
+		OutputStream: outWritePipe,
+		ErrorStream:  outWritePipe,
+		InputStream:  inReadPipe,
 	}
 
-	masterEncoded, err := charset.NewWriter("ISO-8859-1", stdinBuffer)
+	masterEncoded, err := charset.NewWriter("ISO-8859-1", inWritePipe)
 	if err != nil {
 		return nil, err
 	}
@@ -245,9 +236,10 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 	closeCh := make(chan bool)
 
 	server := Server{
+		Session:         "12345",
 		remote:          params.Remote,
-		out:             stdoutBuffer,
-		in:              stdinBuffer,
+		out:             outReadPipe,
+		in:              inWritePipe,
 		controlSequence: masterEncoded,
 		closeChan:       closeCh,
 	}
@@ -257,11 +249,6 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		err := d.client.StartExec(ex.ID, opts)
 		errCh <- err
 	}()
-
-	d.log.Info("Resizing exec instance '%s'", ex.ID)
-	if err := d.client.ResizeExecTTY(ex.ID, params.SizeY, params.SizeX); err != nil {
-		return nil, err
-	}
 
 	go func() {
 		select {
@@ -279,16 +266,18 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 	go func() {
 		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
 		for {
-			n, err := server.in.Read(buf)
+			n, err := server.out.Read(buf)
 			for n < cap(buf)-1 {
 				r, _ := utf8.DecodeLastRune(buf[:n])
 				if r != utf8.RuneError {
 					break
 				}
-				server.in.Read(buf[n : n+1])
+				server.out.Read(buf[n : n+1])
 				n++
 			}
 
+			out := string(filterInvalidUTF8(buf[:n]))
+			fmt.Printf("out = %+v\n", out)
 			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
