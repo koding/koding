@@ -47,18 +47,25 @@ func init() {
 	}
 
 	redisStorage = &RedisStorage{Client: redisClient}
-
 	storage = redisStorage
 
-	// store exempt usernames
+	saveExemptUsers()
+	initializeKlient()
+}
+
+func saveExemptUsers() {
 	for _, metric := range metricsToSave {
-		err = storage.ExemptSave(metric.GetName(), ExemptUsers)
+		err := storage.ExemptSave(metric.GetName(), ExemptUsers)
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
 	}
 
 	Log.Info("Saved: %v users as exempt", len(ExemptUsers))
+}
+
+func initializeKlient() {
+	var err error
 
 	// initialize cloudwatch api client
 	// arguments are: key, secret, token, expiration
