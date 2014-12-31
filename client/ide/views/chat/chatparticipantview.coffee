@@ -52,6 +52,8 @@ class IDE.ChatParticipantView extends JView
     @permissions    = new KDSelectBox
       defaultValue  : permission
       disabled      : not @amIHost
+      callback      : (permission) =>
+        @emit 'ParticipantPermissionChanged', permission
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
