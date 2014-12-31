@@ -322,7 +322,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     return filePath
 
 
-  isDummyFilePath: (filePath) -> (filePath.indexOf @getDummyFilePath false) is 0
+  isDummyFilePath: (filePath) -> filePath.indexOf(@getDummyFilePath no) is 0
 
 
   openMachineTerminal: (machine) -> @createTerminal { machine }
