@@ -1,0 +1,23 @@
+language: go
+
+go:
+  - 1.2
+  - 1.3
+  - 1.3.3
+  - 1.4
+
+after_script:
+  - FIXIT=$(go fmt ./...); if [ -n "${FIXIT}" ]; then FIXED=$(echo $FIXIT | wc -l); echo "gofmt - ${FIXED} file(s) not formatted correctly, please run gofmt to fix them:\n ${FIXIT} " && exit 1; fi
+
+script:
+  - go test -v ./aws/
+  - go test -v ./cloudwatch/
+  - go test -v ./dynamodb/
+  - go test -v ./ec2/
+  - go test -v ./elb/
+  - go test -v ./iam/
+  - go test -v ./s3/
+  - go test -v ./sqs/
+  - go test -v ./autoscaling/
+  - go test -v ./rds/
+  - go test -v ./sns/
