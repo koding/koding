@@ -79,7 +79,7 @@ func saveLimitsUnlessExists() {
 			Log.Fatal(err.Error())
 		}
 
-		Log.Info("Saved limit: %s for metric: %s", metric.GetLimit(), metric.GetName())
+		Log.Info("Saved limit: %v for metric: %s", metric.GetLimit(), metric.GetName())
 	}
 }
 

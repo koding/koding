@@ -36,29 +36,29 @@ func main() {
 	// the usernames so multiple workers don't queue the same usernames.
 	// this needs to be done at top of hour, so running multiple workers
 	// won't cause a problem.
-	// c.AddFunc("0 0 * * * *", func() {
-	err := queueUsernamesForMetricGet()
-	if err != nil {
-		Log.Fatal(err.Error())
-	}
-	// })
+	c.AddFunc("0 0 * * * *", func() {
+		err := queueUsernamesForMetricGet()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+	})
 
 	// get and save metrics at 15th minute of every hour
-	// c.AddFunc("0 15 * * * *", func() {
-	err = getAndSaveQueueMachineMetrics()
-	if err != nil {
-		Log.Fatal(err.Error())
-	}
-	// })
+	c.AddFunc("0 15 * * * *", func() {
+		err := getAndSaveQueueMachineMetrics()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+	})
 
 	// stop machines overlimit at 20th & 40th of every hour; there's no reason
 	// for running it at a certain point except not having overlap in logs
-	// c.AddFunc("0 20,40 * * * *", func() {
-	err = stopMachinesOverLimit()
-	if err != nil {
-		Log.Fatal(err.Error())
-	}
-	// })
+	c.AddFunc("0 20,40 * * * *", func() {
+		err := stopMachinesOverLimit()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+	})
 
 	c.Start()
 
