@@ -3,9 +3,6 @@ module.exports = [
   # namespacing
   "namespaces.coffee"
 
-  # ndpane 0.1.2
-  "../../website/a/js/ndpane.min.js"
-
   # finder
   "finder/idefindercontextmenucontroller.coffee"
   "finder/idefindertreecontroller.coffee"
@@ -76,6 +73,7 @@ module.exports = [
   # 3rd party
   "../../website/a/js/sketchpad.js"
   "../../website/a/js/gapi.js"
+  "../../website/a/js/ndpane.min.js"
 
   # collaboration
   "RealTimeManager.coffee"
