@@ -20,7 +20,7 @@ var (
 	WorkerVersion = "0.0.1"
 
 	NetworkOut             = "NetworkOut"
-	NetworkOutLimt float64 = 7
+	NetworkOutLimt float64 = 7000 // 7GB/week
 
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
