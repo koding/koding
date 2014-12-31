@@ -156,7 +156,7 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 		Reason:       fmt.Sprintf("%s overlimit", c.GetName()),
 	}
 
-	return lr, err
+	return lr, nil
 }
 
 func isRedisRecordNil(err error) bool {
