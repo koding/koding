@@ -57,6 +57,12 @@ class IDE.TerminalPane extends IDE.Pane
 
       @machine.getBaseKite().fetchTerminalSessions()
 
+    KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
+
+    @once 'RealTimeManagerSet', =>
+      myPermission = @rtm.getFromModel('permissions').get KD.nick()
+      @makeReadOnly()  if myPermission is 'read'
+
 
   getMode: ->
 
