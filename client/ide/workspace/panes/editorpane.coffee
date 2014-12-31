@@ -217,7 +217,7 @@ class IDE.EditorPane extends IDE.Pane
       @lineWidgets[username] = lineWidgetOptions
 
 
-  handleChange: (change, rtm, realTimeDoc) ->
+  handleChange: (change) ->
 
     {context, type, origin} = change
 
