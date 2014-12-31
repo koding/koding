@@ -1024,7 +1024,19 @@ class IDEAppController extends AppController
         @handleWatchMapChange event
 
       else if map is @permissions
-        @chat.settingsPane.emit 'PermissionChanged', event
+        @handlePermissionMapChange event
+
+
+  handlePermissionMapChange: (event) ->
+
+    @chat.settingsPane.emit 'PermissionChanged', event
+
+    {property, newValue} = event
+
+    return  unless property is KD.nick()
+
+    if      newValue is 'edit' then @makeEditable()
+    else if newValue is 'read' then @makeReadOnly()
 
 
   handleWatchMapChange: (event) ->
