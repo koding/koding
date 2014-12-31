@@ -65,6 +65,7 @@ module.exports = [
   # misc views
   "views/basesplitview.coffee"
 
+  "AppControllerOptions.coffee"
   "AppController.coffee"
 
   # stylus
