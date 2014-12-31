@@ -39,18 +39,26 @@ func init() {
 	// initialize mongo
 	modelhelper.Initialize(conf.Mongo)
 
-	// initialize redis
+	initializeRedis()
+
+	// set globals
+	redisStorage = &RedisStorage{Client: redisClient}
+	storage = redisStorage
+
+	initializeKlient()
+
+	// save defaults
+	saveExemptUsers()
+	saveLimitsUnlessExists()
+}
+
+func initializeRedis() {
 	var err error
+
 	redisClient, err = redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
-
-	redisStorage = &RedisStorage{Client: redisClient}
-	storage = redisStorage
-
-	saveExemptUsers()
-	initializeKlient()
 }
 
 func saveExemptUsers() {
@@ -62,6 +70,17 @@ func saveExemptUsers() {
 	}
 
 	Log.Info("Saved: %v users as exempt", len(ExemptUsers))
+}
+
+func saveLimitsUnlessExists() {
+	for _, metric := range metricsToSave {
+		err := storage.SaveLimitUnlessExists(metric.GetName(), metric.GetLimit())
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+
+		Log.Info("Saved limit: %s for metric: %s", metric.GetLimit(), metric.GetName())
+	}
 }
 
 func initializeKlient() {

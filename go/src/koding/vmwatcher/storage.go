@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/jinzhu/now"
 	"github.com/koding/redis"
@@ -16,6 +17,8 @@ type Storage interface {
 	Get(string, string) (float64, error)
 	ExemptGet(string, string) (bool, error)
 	ExemptSave(string, []interface{}) error
+	SaveLimitUnlessExists(string, float64) error
+	GetLimit(string, float64) (float64, error)
 }
 
 var (
@@ -25,6 +28,7 @@ var (
 	GroupBy   = "users"
 	QueueName = "queue"
 	ExemptKey = "exempt"
+	LimitKey  = "limit"
 
 	RedisInfinity = "+inf"
 )
@@ -88,6 +92,48 @@ func (r *RedisStorage) ExemptGet(prefix, username string) (bool, error) {
 func (r *RedisStorage) Remove(prefix, username string) error {
 	_, err := r.Client.RemoveSetMembers(r.Key(prefix), username)
 	return err
+}
+
+func (r *RedisStorage) GetLimit(prefix string, defaultLimit float64) (float64, error) {
+	existingLimitStr, err := r.Client.Get(r.LimitKey(prefix))
+	if err != nil && !isRedisRecordNil(err) {
+		return defaultLimit, err
+	}
+
+	if isRedisRecordNil(err) {
+		Log.Error("Fetching limit for metric: %s returned nil", prefix)
+		return defaultLimit, nil
+	}
+
+	existingLimit, err := strconv.ParseFloat(existingLimitStr, 64)
+	if err != nil {
+		Log.Error("Marshalling limit fetched by db failed: %v", existingLimit)
+		return defaultLimit, nil
+	}
+
+	return existingLimit, nil
+}
+
+func (r *RedisStorage) SaveLimitUnlessExists(prefix string, limit float64) error {
+	existingLimitStr, err := r.Client.Get(r.LimitKey(prefix))
+	if err != nil && !isRedisRecordNil(err) {
+		return err
+	}
+
+	if isRedisRecordNil(err) {
+		err := r.Client.Set(r.LimitKey(prefix), fmt.Sprintf("%v", limit))
+		if err != nil {
+			return err
+		}
+	}
+
+	Log.Info("Current limit for metric: %s is: %s", existingLimitStr, prefix)
+
+	return nil
+}
+
+func (r *RedisStorage) LimitKey(prefix string) string {
+	return fmt.Sprintf("%s:%s:%s", WorkerName, prefix, LimitKey)
 }
 
 func (r *RedisStorage) ExemptKey(prefix string) string {
