@@ -71,6 +71,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @defaultPermission = new KDSelectBox
       defaultValue  : 'edit'
       callback      : (value) => @setDefaultPermission value
+      disabled      : not @amIHost
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}

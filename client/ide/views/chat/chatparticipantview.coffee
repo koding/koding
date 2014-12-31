@@ -49,6 +49,7 @@ class IDE.ChatParticipantView extends JView
 
     @settings       = new KDSelectBox
       defaultValue  : 'edit'
+      disabled      : not @amIHost
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
