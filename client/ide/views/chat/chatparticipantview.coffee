@@ -38,6 +38,8 @@ class IDE.ChatParticipantView extends JView
     @watchButton = new KDButtonView
       iconOnly : 'yes'
       cssClass : 'watch-button'
+      tooltip  :
+        title  : "Watch #{nickname}"
       callback : =>
         methodName  = if @isWatching then 'unwatchParticipant' else 'watchParticipant'
         @isWatching = not @isWatching
