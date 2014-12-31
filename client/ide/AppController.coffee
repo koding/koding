@@ -1157,6 +1157,8 @@ class IDEAppController extends AppController
 
     return unless change.context
 
+    return @finderPane  if change.type is 'FileTreeInteraction'
+
     targetPane = null
     {context}  = change
     {paneType} = context
@@ -1249,6 +1251,7 @@ class IDEAppController extends AppController
 
 
   getWorkspaceName: (callback) -> callback @workspaceData.name
+
 
   createChatPaneView: (channel) ->
 
