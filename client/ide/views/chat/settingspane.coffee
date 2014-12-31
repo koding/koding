@@ -18,6 +18,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @on 'CollaborationNotInitialized', => @everyone.destroySubViews()
     @on 'ParticipantJoined', @bound 'addParticipant'
     @on 'ParticipantLeft',   @bound 'removeParticipant'
+    @on 'PermissionChanged', @bound 'handlePermissionChange'
 
     @on 'CollaborationEnded', =>
       @toggleButtons 'ended'
@@ -223,6 +224,17 @@ class IDE.ChatSettingsPane extends KDTabPaneView
   setDefaultPermission: (value) ->
 
     @rtm.getFromModel('permissions').set 'default', value
+
+
+  handlePermissionChange: (event) ->
+    {newValue, property} = event
+
+    return  unless newValue in ['edit', 'read']
+
+    if property is 'default'
+      @defaultPermission.setValue newValue
+    else
+      @participantViews[property]?.permissions.setValue newValue
 
 
   viewAppended: JView::viewAppended
