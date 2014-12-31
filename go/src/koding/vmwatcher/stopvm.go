@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -54,8 +53,6 @@ func stopVm(machineId string) error {
 	if err := resp.Unmarshal(&result); err != nil {
 		return err
 	}
-
-	fmt.Printf("result %+v\n", result)
 
 	return nil
 }

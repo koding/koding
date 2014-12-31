@@ -10,6 +10,7 @@ import (
 type Storage interface {
 	Queue(string, []interface{}) error
 	Pop(string) (string, error)
+	Remove(string, string) error
 	Range(string, float64) ([]string, error)
 	Save(string, string, float64) error
 	Get(string, string) (float64, error)
@@ -82,6 +83,11 @@ func (r *RedisStorage) ExemptGet(prefix, username string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func (r *RedisStorage) Remove(prefix, username string) error {
+	_, err := r.Client.RemoveSetMembers(r.Key(prefix), username)
+	return err
 }
 
 func (r *RedisStorage) ExemptKey(prefix string) string {

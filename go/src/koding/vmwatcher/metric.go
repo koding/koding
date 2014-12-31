@@ -7,4 +7,5 @@ type Metric interface {
 	GetMachinesOverLimit() ([]*models.Machine, error)
 	IsUserOverLimit(string) (*LimitResponse, error)
 	GetName() string
+	RemoveUsername(string) error
 }

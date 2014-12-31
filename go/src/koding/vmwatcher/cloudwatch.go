@@ -88,6 +88,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 }
 
 func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
+	// TODO: remove hardcoded NetworkOutLimt here
 	usernames, err := storage.Range(c.Name, NetworkOutLimt)
 	if err != nil {
 		return nil, err
@@ -157,6 +158,10 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	}
 
 	return lr, nil
+}
+
+func (c *Cloudwatch) RemoveUsername(username string) error {
+	return storage.Remove(c.GetName(), username)
 }
 
 func isRedisRecordNil(err error) bool {
