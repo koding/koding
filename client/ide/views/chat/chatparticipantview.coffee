@@ -6,16 +6,16 @@ class IDE.ChatParticipantView extends JView
 
     super options, data
 
-    {@isInSession} = options
-
     @createElements()
 
 
   createElements: ->
 
-    { isOnline, @isWatching } = @getOptions()
-    { account, channel }      = @getData()
-    { nickname }              = account.profile
+    { isOnline, @isWatching, @isInSession } = @getOptions()
+    { account, channel } = @getData()
+    { nickname }         = account.profile
+
+    @amIHost = not @isInSession
 
     if isOnline then @setClass 'online' else @setClass 'offline'
 
@@ -29,7 +29,7 @@ class IDE.ChatParticipantView extends JView
 
     @kickButton = new KDCustomHTMLView cssClass: 'hidden'
 
-    unless @isInSession
+    if @amIHost
       @kickButton  = new KDButtonView
         title    : 'KICK'
         cssClass : 'kick-button'
