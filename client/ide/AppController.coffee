@@ -1020,15 +1020,19 @@ class IDEAppController extends AppController
 
     @rtm.on 'MapValueChanged', (map, event) =>
 
-      return unless map is @myWatchMap
+      if      map is @myWatchMap  then @handleWatchMapChange event
 
-      {property, newValue, oldValue} = event
 
-      if newValue is property
-        @statusBar.emit 'ParticipantWatched', property
+  handleWatchMapChange: (event) ->
 
-      else unless newValue
-        @statusBar.emit 'ParticipantUnwatched', property
+    {property, newValue, oldValue} = event
+
+    if newValue is property
+      @statusBar.emit 'ParticipantWatched', property
+
+    else unless newValue
+      @statusBar.emit 'ParticipantUnwatched', property
+
 
 
   handleChange: (change) ->
