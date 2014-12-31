@@ -31,16 +31,12 @@ class IDE.FinderTreeController extends NFinderTreeController
 
     super nodeView, callback
 
-    @emit 'FolderCollapsed', @getFolderPath_ nodeView
+    @emit 'FolderCollapsed', nodeView.getData().path
 
 
   expandFolder: (nodeView, callback) ->
 
     super nodeView, callback
 
-    @emit 'FolderExpanded', @getFolderPath_ nodeView
 
-
-  getFolderPath_: (nodeView) ->
-
-    return FSHelper.plainPath nodeView.getData().path
+    @emit 'FolderExpanded', nodeView.getData().path
