@@ -49,8 +49,8 @@ class IDE.ChatParticipantView extends JView
 
     @watchButton.setClass 'watching'  if @isWatching
 
-    @settings       = new KDSelectBox
       defaultValue  : 'edit'
+    @permissions    = new KDSelectBox
       disabled      : not @amIHost
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
@@ -76,6 +76,6 @@ class IDE.ChatParticipantView extends JView
       <div class="settings">
         {{> @kickButton}}
         {{> @watchButton}}
-        {{> @settings}}
+        {{> @permissions}}
       <div>
     """
