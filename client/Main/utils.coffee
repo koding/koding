@@ -87,6 +87,8 @@ utils.extend utils,
     options.pedantic  ?= false
     options.sanitize  ?= true
     options.breaks    ?= true
+    options.paragraphs?= true
+    options.tables    ?= true
     options.highlight ?= (text, lang) ->
       if hljs.getLanguage lang
       then hljs.highlight(lang,text).value
