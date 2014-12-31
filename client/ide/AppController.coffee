@@ -1004,6 +1004,7 @@ class IDEAppController extends AppController
     @rtm.bindRealtimeListeners @changes, 'list'
     @rtm.bindRealtimeListeners @broadcastMessages, 'list'
     @rtm.bindRealtimeListeners @myWatchMap, 'map'
+    @rtm.bindRealtimeListeners @permissions, 'map'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
 
