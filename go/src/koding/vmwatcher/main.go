@@ -37,7 +37,7 @@ func main() {
 	// the usernames so multiple workers don't queue the same usernames.
 	// this needs to be done at top of hour, so running multiple workers
 	// won't cause a problem.
-	c.AddFunc("@hourly", func() {
+	c.AddFunc("0 0 * * * *", func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
 			log.Fatal(err)
