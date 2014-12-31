@@ -10,11 +10,15 @@ import (
 // to that user; it uses pop instead of find so multiple workers can
 // work in parallel
 func getAndSaveQueueMachineMetrics() error {
+	var index = 0
+	defer func() {
+		Log.Info("Fetched %d entries for queued usernames", index)
+	}()
+
 	for {
 		for _, metric := range metricsToSave {
 			machines, err := popMachinesForMetricGet(metric.GetName())
 			if err != nil {
-
 				// ran out of usernames in queue, so return
 				if isRedisRecordNil(err) {
 					return nil
@@ -33,6 +37,8 @@ func getAndSaveQueueMachineMetrics() error {
 				}
 			}
 		}
+
+		index += 1
 	}
 
 	return nil
@@ -85,6 +91,8 @@ func queueUsernamesForMetricGet() error {
 			return err
 		}
 	}
+
+	Log.Info("Queued %v users for metrics get", len(usernames))
 
 	return nil
 }

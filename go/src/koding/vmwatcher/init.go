@@ -4,6 +4,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/tools/config"
 	"log"
+	"socialapi/workers/helper"
 
 	"github.com/crowdmob/goamz/aws"
 	"github.com/koding/redis"
@@ -23,6 +24,8 @@ var (
 
 	redisClient  *redis.RedisSession
 	redisStorage *RedisStorage
+
+	Log = helper.CreateLogger(WorkerName, false)
 )
 
 func init() {
@@ -47,6 +50,8 @@ func init() {
 			log.Fatal(err)
 		}
 	}
+
+	Log.Info("Saved %v users as exempt", len(ExemptUsers))
 
 	// initialize cloudwatch api client
 	// arguments are: key, secret, token, expiration
