@@ -86,6 +86,6 @@ func init() {
 
 	// dial the kloud address
 	if err := KiteClient.DialTimeout(time.Second * 10); err != nil {
-		Log.Fatal(err.Error())
+		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
 }

@@ -43,7 +43,10 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 	var username = account.Profile.Nickname
 	var response = checker(username)
 
-	Log.Info("Returning response: %v for username: %v", response, username)
+	Log.Info(
+		"Returning response#canStart: %v, response#current_usage:%v for username: %v",
+		response.CanStart, response.CurrentUsage, username,
+	)
 
 	js, err := json.Marshal(response)
 	if err != nil {
@@ -73,7 +76,7 @@ func checker(username string) *LimitResponse {
 }
 
 func writeError(w http.ResponseWriter, accountId, err string) {
-	Log.Error("Returning error: %v for accountId: %v", accountId, err)
+	Log.Error("accountId: %s; error: %s", accountId, err)
 
 	js, _ := json.Marshal(ErrorResponse{err})
 
