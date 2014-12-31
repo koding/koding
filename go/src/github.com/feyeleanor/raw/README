@@ -1,0 +1,40 @@
+== Disclaimer ==
+The RAW package circumvents and subverts Go's type system. As such it should be used with extreme caution and only
+when absolutely necessary. Incautious use can and will lead to memory corruption. As such no warranty can be provided
+as to its suitability or fitness for purpose.
+
+Just to reiterate: MISUSE WILL RESULT IN MEMORY CORRUPTION.
+
+
+== License ==
+
+RAW is dual-licensed.
+
+The library can be included in your project as "Random Access Woe" under the BSD-derived license in LICENSE.
+
+"Read it And Weep" is the closed-source variant of the library. It is in all particulars identical to the open-source
+version but requires a commercial usage license and in the process hides your shame for abusing Go in this manner.
+Further details of commercial license costs are available from the author on request.
+
+
+== About ==
+
+RAW is a high-level interface to Go's unsafe and reflection packages, designed to ease both generic programming and
+low-level memory access.
+
+RAW allows any type with identifiable contiguous memory allocation to be converted to a byte slice which can then
+be manipulated using many of the standard IO interfaces provided by the core library. This is very unsafe but for
+certain system programming tasks can be very useful. In particular it facilitates the sharing of memory buffers with
+language runtimes and any number of related tricks such as polymorphic variables, mixed-content arrays and binary
+data marshalling.
+
+Documentation is currently sparse but will improve over time. I have tried to keep nomenclature clear to assist with
+figuring our how the library should be used and there are also extensive tests which demonstrate all of the library
+types and their methods in use.
+
+
+== History ==
+
+The RAW package began life as a research spike of the GoLightly virtual machine project and was originally to be called
+either "Dangerous" or "Deadly" to reflect the unpleasant consequences of misuse. A friend suggested "Random Access Woe"
+and the name stuck.
