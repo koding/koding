@@ -11,7 +11,7 @@ class IDE.ChatParticipantView extends JView
 
   createElements: ->
 
-    { isOnline, @isWatching, @isInSession } = @getOptions()
+    { isOnline, @isWatching, @isInSession, permission } = @getOptions()
     { account, channel } = @getData()
     { nickname }         = account.profile
 
@@ -49,8 +49,8 @@ class IDE.ChatParticipantView extends JView
 
     @watchButton.setClass 'watching'  if @isWatching
 
-      defaultValue  : 'edit'
     @permissions    = new KDSelectBox
+      defaultValue  : permission
       disabled      : not @amIHost
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
