@@ -465,6 +465,7 @@ class IDEAppController extends AppController
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
   moveTab: (direction) ->
+
     return unless @activeTabView.parent?
 
     panel = @activeTabView.parent.parent
@@ -868,9 +869,11 @@ class IDEAppController extends AppController
     nickname           = KD.nick()
     myWatchMapName     = "#{nickname}WatchMap"
     mySnapshotName     = "#{nickname}Snapshot"
+    defaultPermission  = default: 'edit'
 
     @participants      = @rtm.getFromModel 'participants'
     @changes           = @rtm.getFromModel 'changes'
+    @permissions       = @rtm.getFromModel 'permissions'
     @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
     @pingTime          = @rtm.getFromModel 'pingTime'
     @myWatchMap        = @rtm.getFromModel myWatchMapName
@@ -878,6 +881,7 @@ class IDEAppController extends AppController
 
     @participants      or= @rtm.create 'list',   'participants', []
     @changes           or= @rtm.create 'list',   'changes', []
+    @permissions       or= @rtm.create 'map',    'permissions', defaultPermission
     @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
     @pingTime          or= @rtm.create 'string', 'pingTime'
     @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
