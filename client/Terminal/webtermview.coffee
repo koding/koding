@@ -187,14 +187,26 @@ class WebTermView extends KDCustomScrollView
 
   updateSettings: ->
 
-    @container.unsetClass font.value for font in __webtermSettings.fonts
-    @container.unsetClass theme.value for theme in __webtermSettings.themes
+    for font in __webtermSettings.fonts
+      @container.unsetClass font.value
+      @messagePane.unsetClass font.value
 
-    @container.setClass @appStorage.getValue('font')
-    @container.setClass @appStorage.getValue('theme')
+    for theme in __webtermSettings.themes
+      @container.unsetClass theme.value
+      @messagePane.unsetClass theme.value
+
+    font        = @appStorage.getValue 'font'
+    theme       = @appStorage.getValue 'theme'
+    themeBucket = [font, theme].join ' '
+
+    @container.setClass themeBucket
+    @messagePane.setClass themeBucket
 
     @container.$().css
       fontSize: @appStorage.getValue('fontSize') + 'px'
+
+    @$().css
+      color: (window.getComputedStyle @container.getElement()).backgroundColor
 
     @terminal.updateSize true
     @terminal.scrollToBottom()
