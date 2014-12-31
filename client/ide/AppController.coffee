@@ -530,17 +530,21 @@ class IDEAppController extends AppController
 
   createNewTerminal: (options) ->
 
-    { machine, path, session, joinUser, hash } = options
+    { machine, path } = options
 
-    machine = null  unless machine instanceof Machine
+    unless machine instanceof Machine
+      machine = @mountedMachine
 
     if @workspaceData
+
       {rootPath, isDefault} = @workspaceData
 
       if rootPath and not isDefault
         path = rootPath
 
-    @activeTabView.emit 'TerminalPaneRequested', options
+    path = null  unless typeof path is 'string'
+
+    @activeTabView.emit 'TerminalPaneRequested', { machine, path }
 
 
   #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)
