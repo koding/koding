@@ -70,6 +70,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     @defaultPermission = new KDSelectBox
       defaultValue  : 'edit'
+      callback      : (value) => @setDefaultPermission value
       selectOptions : [
         { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
@@ -203,6 +204,12 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
     KD.remote.cacheable nickname, (err, account) =>
       @createParticipantView account.first, yes
+
+
+
+  setDefaultPermission: (value) ->
+
+    @rtm.getFromModel('permissions').set 'default', value
 
 
   viewAppended: JView::viewAppended
