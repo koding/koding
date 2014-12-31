@@ -8,8 +8,8 @@ var ExemptUsers = []interface{}{
 // wrong while checking, we return true as a precaution
 func exemptFromStopping(metricName, username string) (bool, error) {
 	isExempt, err := storage.ExemptGet(metricName, username)
-	if err != nil {
-		return true, err
+	if err != nil && !isRedisRecordNil(err) {
+		return true, nil
 	}
 
 	if isExempt {

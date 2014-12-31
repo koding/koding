@@ -14,8 +14,11 @@ func getAndSaveQueueMachineMetrics() error {
 		for _, metric := range metricsToSave {
 			machines, err := popMachinesForMetricGet(metric.GetName())
 			if err != nil {
-				log.Println(err)
-				continue
+
+				// ran out of usernames in queue, so return
+				if isRedisRecordNil(err) {
+					return nil
+				}
 			}
 
 			if len(machines) == 0 {
