@@ -41,7 +41,7 @@ class IDE.TerminalPane extends IDE.Pane
 
       KD.utils.wait 166, =>
         {path} = @getOptions()
-        @runCommand "cd #{path}" if path
+        @runCommand "cd #{path}"  if path
 
     @webtermView.connectToTerminal()
 

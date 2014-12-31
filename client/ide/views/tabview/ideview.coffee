@@ -391,7 +391,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       'New Drawing Board' :
         callback          : => @createDrawingBoard()
         separator         : yes
-      'Split Vertically':
+      'Split Vertically'  :
         callback          : -> frontApp.splitVertically()
       'Split Horizontally':
         callback          : -> frontApp.splitHorizontally()

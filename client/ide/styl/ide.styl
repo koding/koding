@@ -153,13 +153,20 @@ body.ide.dark
     height              100%
 
   .terminal-pane
-    padding             12px 0 12px 12px
+
+    padding             12px
     box-sizing          border-box
 
     > .kdcustomscrollview
+      overflow          visible !important
+      box-shadow        0px 0px 10px 30px
+      color             dark-panel-bg
+
       styleScrollBars rgba(255,255,255,.25)
       .kdview.kdscrolltrack.horizontal
         hidden()
+      .kdview.kdscrolltrack.vertical
+        right             -12px
       .kdview.kdscrolltrack &.out
         opacity           1 !important
 
@@ -405,7 +412,7 @@ body.ide.dark
     > .kdsplitview
       > .panel-1
         .pane-wrapper
-          kalc          height, 100% \- 34px
+          kalc          height, 100% \- 40px
 
   .status-bar
     bottom              0
