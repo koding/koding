@@ -216,4 +216,6 @@ do ->
 
         findWorkspace params, (workspace) ->
 
+          params.username = KD.nick()
+
           loadWorkspace params, workspace
