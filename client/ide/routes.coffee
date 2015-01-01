@@ -39,7 +39,7 @@ do ->
 
     if username
     then filterWorkspacesByUsername username, kallback
-    else kallback KD.userWorkspaces
+    else filterOwnWorkspaces kallback
 
 
   filterWorkspacesByUsername = (username, callback) ->
@@ -53,6 +53,12 @@ do ->
 
       callback KD.userWorkspaces.filter (workspace) ->
         originId is workspace.originId
+
+
+  filterOwnWorkspaces = (callback) ->
+
+    callback KD.userWorkspaces.filter (workspace) ->
+      workspace.originId is KD.whoami()._id
 
 
   selectWorkspaceOnSidebar = (data) ->
@@ -205,7 +211,6 @@ do ->
     '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
       {params} = routeInfo
-      params.username or= KD.nick()
 
       refreshWorkspaces ->
 
