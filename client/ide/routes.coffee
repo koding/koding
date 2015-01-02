@@ -210,12 +210,12 @@ do ->
 
     '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
+      refreshWorkspaces noop
+
       {params} = routeInfo
 
-      refreshWorkspaces ->
+      findWorkspace params, (workspace) ->
 
-        findWorkspace params, (workspace) ->
+        params.username = KD.nick()
 
-          params.username = KD.nick()
-
-          loadWorkspace params, workspace
+        loadWorkspace params, workspace
