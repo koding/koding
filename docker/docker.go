@@ -29,7 +29,7 @@ type Docker struct {
 func New(url string, log kite.Logger) *Docker {
 	// the error is returned only when the passed URL is not parsable via
 	// url.Parse, so we can safely neglect it
-	client, _ := dockerclient.NewVersionedClient(url, "1.16")
+	client, _ := dockerclient.NewClient(url)
 	return &Docker{
 		client: client,
 		log:    log,
