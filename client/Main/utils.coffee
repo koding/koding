@@ -87,6 +87,8 @@ utils.extend utils,
     options.pedantic  ?= false
     options.sanitize  ?= true
     options.breaks    ?= true
+    options.paragraphs?= true
+    options.tables    ?= true
     options.highlight ?= (text, lang) ->
       if hljs.getLanguage lang
       then hljs.highlight(lang,text).value
@@ -354,7 +356,6 @@ utils.extend utils,
 
   warnAndLog: (msg, params)->
     warn msg, params
-    ErrorLog.create msg, params
 
   # Version Compare
   # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee

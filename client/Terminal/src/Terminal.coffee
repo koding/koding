@@ -163,16 +163,16 @@ class WebTerm.Terminal extends KDObject
 
   setSize: (x, y) ->
 
-    return if x is @sizeX and y is @sizeY
+    return  if x is @sizeX and y is @sizeY
 
     cursorLineIndex  = @screenBuffer.toLineIndex(@cursor.y)
     [@sizeX, @sizeY] = [x, y]
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
-    @server.setSize x, y if @server
+    @server.setSize x, y  if @server
 
-  getCharSizes:->
+  getCharSizes: ->
     sizes =
       width  : @measurebox.getWidth()  or @_mbWidth  or 7
       height : @measurebox.getHeight() or @_mbHeight or 14

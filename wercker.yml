@@ -11,6 +11,11 @@ build:
     - add-ssh-key:
         keyname: DEPLOYMENT_KEY
     - script:
+        name: setup git identity
+        code: |
+          git config --global user.email 'sysops@koding.com'
+          git config --global user.name 'Koding Bot'
+    - script:
         name: fetch pull requests
         code: |
           git config --add remote.origin.fetch '+refs/pull/*/head:refs/remotes/origin/pull/*'
@@ -20,25 +25,43 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
     - script:
-        name: npm install
+        name: koding node modules
         code: |
-          npm cache clean
-          npm set registry https://registry.npmjs.org/
-          npm install
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install finished" "building" 50
+          $WERCKER_ROOT/scripts/wercker/install-node-modules koding
     - script:
-        name: npm install (submodules)
+        name: kd node modules
         code: |
-          cd client/Framework && npm install && cd ../../
-          cd client/landing && npm install && cd ../../
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - npm install (submodules) finished" "building" 30
+          cd client/Framework
+          $WERCKER_ROOT/scripts/wercker/install-node-modules kd
+    - script:
+        name: landing node modules
+        code: |
+          cd client/landing
+          $WERCKER_ROOT/scripts/wercker/install-node-modules landing
+    - script:
+        name: notify cebeci
+        code: |
+          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
+    - script:
+        name: set up koding deployment key
+        code: |
+          chmod 600 $KODING_DEPLOYMENT_KEY
+    - mktemp:
+        envvar: INSTANCE_DATA
+    - mktemp:
+        envvar: INSTANCE_IP
+    - script:
+        name: launch test instance
+        code: |
+          INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
+          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
+          cat $INSTANCE_DATA
     - script:
         name: configure build
         code: ./configure --config $CONFIG --projectRoot /opt/koding
     - script:
         name: build client
         code: |
-          sudo chown -R $USER ~/.npm
           ./run
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
@@ -79,30 +102,17 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
     - script:
-        name: testing client started
+        name: check connectivity
         code: |
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
-    - script:
-        name: set up koding deployment key
-        code: |
-          chmod 600 $KODING_DEPLOYMENT_KEY
-    - mktemp:
-        envvar: INSTANCE_DATA
-    - mktemp:
-        envvar: INSTANCE_IP
-    - script:
-        name: launch test instance
-        code: |
-          INSTANCE_OPTIONS=$(scripts/wercker/get-instance-options)
-          scripts/wercker/launch-test-instance $INSTANCE_OPTIONS | tail -n1 > $INSTANCE_DATA
-          cat $INSTANCE_DATA
           HOST=$(cat $INSTANCE_DATA | awk '{print $2}')
           if [ -z "$HOST" ]; then exit 1; fi
           echo $HOST > $INSTANCE_IP
-          scripts/wercker/check-connectivity $HOST 8090 1m 3
+          scripts/wercker/check-connectivity $HOST 8090 1m 5
           scripts/wercker/check-connectivity $HOST 4444 1m 7
-          sleep 120
-          scripts/notify-cebeci.sh "build" ${WERCKER_GIT_COMMIT:0:8} "test client in progress" "testing" 65
+    - script:
+        name: testing client started
+        code: |
+          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client started" "building" 46
     - script:
         name: run register test suite
         code: |
@@ -139,6 +149,10 @@ build:
         name: run account page test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test account accountpage'
+    - script:
+        name: run account settings test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test account accountsettings'
     - script:
         name: run ide file test suite
         code: |

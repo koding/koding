@@ -19,7 +19,8 @@ module.exports =
       .click                 activitySelector + ' .settings-menu-wrapper'
       .click                 '.kdcontextmenu .edit-post'
       .clearValue            activitySelector + ' .edit-widget [testpath=ActivityInputView]'
-      .setValue              activitySelector + ' .edit-widget [testpath=ActivityInputView]', post + '\n'
+      .setValue              activitySelector + ' .edit-widget [testpath=ActivityInputView]', post
+      .click                 activitySelector + ' .done-button'
       .pause                 20000
       .assert.containsText   activitySelector, post # Assertion
       .end()
@@ -56,7 +57,8 @@ module.exports =
       .waitForElementVisible    '.kdcontextmenu .edit-comment', 25000
       .click                    '.kdcontextmenu .edit-comment'
       .clearValue               activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]'
-      .setValue                 activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post + '\n'
+      .setValue                 activitySelector + ' .comment-container .comment-input-widget [testpath=CommentInputView]', post
+      .click                    activitySelector + ' .edit-comment-box .submit-button'
       .pause                    20000
       .assert.containsText      activitySelector + ' .comment-container', post # Assertion
       .end()
