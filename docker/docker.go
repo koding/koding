@@ -251,6 +251,12 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		errCh <- err
 	}()
 
+	// Y is  height, X is width
+	err = d.client.ResizeExecTTY(ex.ID, int(params.SizeY), int(params.SizeX))
+	if err != nil {
+		fmt.Println("error resizing", err)
+	}
+
 	go func() {
 		select {
 		case err := <-errCh:
@@ -267,12 +273,7 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 	go func() {
 		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
 		for {
-			fmt.Println("listening to out")
 			n, err := server.out.Read(buf)
-			if err != nil {
-				fmt.Println("out 1 err", err)
-			}
-
 			for n < cap(buf)-1 {
 				r, _ := utf8.DecodeLastRune(buf[:n])
 				if r != utf8.RuneError {
@@ -286,7 +287,6 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 			fmt.Printf("out = %+v\n", out)
 			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
 			if err != nil {
-				fmt.Println("out 2 err", err)
 				break
 			}
 		}

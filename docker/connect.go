@@ -41,8 +41,6 @@ func (s *Server) Input(d *dnode.Partial) {
 		s.inputHook()
 	}
 
-	fmt.Printf("data = %+v\n", data)
-
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
 	s.in.Write([]byte(data))
@@ -51,8 +49,6 @@ func (s *Server) Input(d *dnode.Partial) {
 // ControlSequence is called when a non-printable key is pressed on the terminal.
 func (s *Server) ControlSequence(d *dnode.Partial) {
 	data := d.MustSliceOfLength(1)[0].MustString()
-
-	fmt.Printf("controls data = %+v\n", data)
 	s.controlSequence.Write([]byte(data))
 }
 
@@ -60,7 +56,6 @@ func (s *Server) SetSize(d *dnode.Partial) {
 	args := d.MustSliceOfLength(2)
 	x := args[0].MustFloat64()
 	y := args[1].MustFloat64()
-	fmt.Printf("setSize is called: x: %+v, y: %+v\n", x, y)
 
 	err := s.client.ResizeExecTTY(s.Session, int(y), int(x))
 	if err != nil {
