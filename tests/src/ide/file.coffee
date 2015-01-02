@@ -31,7 +31,7 @@ module.exports =
       .end()
 
 
-  createFile: (browser) ->
+  createFileFromContextMenu: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -39,11 +39,44 @@ module.exports =
     browser.end()
 
 
-  createFolder: (browser) ->
+  createFileFromMachineHeader: (browser) ->
+
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
+    filePath      = '/home/' + user.username
+    paragraph     = helpers.getFakeText()
+    fileName      = paragraph.split(' ')[0] + '.txt'
+    fileSelector  = "span[title='" + filePath + '/' + fileName + "']"
+    inputSelector = '.rename-container input.hitenterview'
+
+    browser
+      .waitForElementVisible     '.vm-header', 20000
+      .click                     '.vm-header span.chevron'
+      .waitForElementVisible     '.context-list-wrapper', 20000
+      .click                     '.context-list-wrapper li.new-file'
+      .waitForElementVisible     inputSelector, 20000
+      .click                     inputSelector
+      .clearValue                inputSelector
+      .setValue                  inputSelector, fileName + '\n'
+      .waitForElementPresent     fileSelector, 20000 # Assertion
+      .end()
+
+
+  createFolderMachineHeader: (browser) ->
 
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     helpers.createFolder(browser, user)
+    browser.end()
+
+
+  createFolderFromContextMenu: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    helpers.createFile(browser, user, 'li.new-folder')
     browser.end()
 
 
@@ -113,28 +146,3 @@ module.exports =
     helpers.deleteFile(browser, newFile)
 
     browser.end()
-
-
-  createNewFileFromMachineHeader: (browser) ->
-
-    user = helpers.beginTest(browser)
-
-    helpers.waitForVMRunning(browser)
-
-    filePath      = '/home/' + user.username
-    paragraph     = helpers.getFakeText()
-    fileName      = paragraph.split(' ')[0] + '.txt'
-    fileSelector  = "span[title='" + filePath + '/' + fileName + "']"
-    inputSelector = '.rename-container input.hitenterview'
-
-    browser
-      .waitForElementVisible     '.vm-header', 20000
-      .click                     '.vm-header span.chevron'
-      .waitForElementVisible     '.context-list-wrapper', 20000
-      .click                     '.context-list-wrapper li.new-file'
-      .waitForElementVisible     inputSelector, 20000
-      .click                     inputSelector
-      .clearValue                inputSelector
-      .setValue                  inputSelector, fileName + '\n'
-      .waitForElementPresent     fileSelector, 20000 # Assertion
-      .end()
