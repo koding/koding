@@ -5,13 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strconv"
 	"sync"
 	"time"
 	"unicode/utf8"
 
-	"github.com/docker/docker/pkg/promise"
 	"github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/charset"
 	_ "github.com/koding/klient/Godeps/_workspace/src/code.google.com/p/go-charset/data"
 	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
@@ -89,70 +87,6 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 // Connect connects to an existing Container by spawning a new process and
 // attaching to it.
 func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
-	var params struct {
-		// The ID of the container.
-		ID string
-	}
-
-	if err := r.Args.One().Unmarshal(&params); err != nil {
-		return nil, err
-	}
-
-	if params.ID == "" {
-		return nil, errors.New("missing arg: container ID is empty")
-	}
-
-	createOpts := dockerclient.CreateExecOptions{
-		// Container: params.ID,
-		Container: "high_torvalds",
-		Tty:       true,
-		Cmd:       []string{"bash"},
-		// we attach to anything, it's used in the same was as with `docker
-		// exec`
-		AttachStdout: true,
-		AttachStderr: true,
-		AttachStdin:  true,
-	}
-
-	// now we create a new Exec instance. It will return us an exec ID which
-	// will be used to start the created exec instance
-	d.log.Info("Creating exec instance")
-	ex, err := d.client.CreateExec(createOpts)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Printf("ex = %+v\n", ex)
-
-	opts := dockerclient.StartExecOptions{
-		Detach:       false,
-		Tty:          true,
-		OutputStream: os.Stdout,
-		ErrorStream:  os.Stdout,
-		InputStream:  os.Stdin,
-	}
-
-	errCh := promise.Go(func() error {
-		d.log.Info("starting exec instance '%s'", ex.ID)
-		return d.client.StartExec(ex.ID, opts)
-	})
-
-	d.log.Info("Resizing exec instance '%s'", ex.ID)
-	if err := d.client.ResizeExecTTY(ex.ID, 28, 208); err != nil {
-		fmt.Printf("resize exec err %+v\n", err)
-	}
-
-	fmt.Println("waiting err from errch")
-	if err := <-errCh; err != nil {
-		fmt.Printf("hijack err = %+v\n", err)
-		return nil, err
-	}
-
-	return true, nil
-}
-
-// Exec connects to an existing Container by spawning a new process and
-// attaching to it.
-func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 	var params struct {
 		// The ID of the container.
 		ID string
