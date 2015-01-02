@@ -199,7 +199,6 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     # Connect to kite
     .then(kite.bound 'setTransport')
-    .then(kite.bound 'logTransportFailures')
 
     # Report error
     .catch (err)=>
@@ -212,10 +211,6 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
         @setCachedKite name, correlationName
         kite.invalid = err
 
-      {message} = err
-      message   = if message then message else err
-
-      ErrorLog.create message
 
     return kite
 
