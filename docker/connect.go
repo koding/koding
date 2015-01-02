@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
 )
 
@@ -24,6 +25,7 @@ type Server struct {
 	inputHook func()
 
 	closeChan chan bool
+	client    *dockerclient.Client
 }
 
 type Remote struct {
@@ -57,6 +59,11 @@ func (s *Server) SetSize(d *dnode.Partial) {
 	x := args[0].MustFloat64()
 	y := args[1].MustFloat64()
 	fmt.Printf("setSize is called: x: %+v, y: %+v\n", x, y)
+
+	err := s.client.ResizeExecTTY(s.Session, int(y), int(x))
+	if err != nil {
+		fmt.Println("error resizing", err)
+	}
 }
 
 func (s *Server) Close(d *dnode.Partial) {
