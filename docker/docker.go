@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -251,12 +252,6 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		errCh <- err
 	}()
 
-	// Y is  height, X is width
-	err = d.client.ResizeExecTTY(ex.ID, int(params.SizeY), int(params.SizeX))
-	if err != nil {
-		fmt.Println("error resizing", err)
-	}
-
 	go func() {
 		select {
 		case err := <-errCh:
@@ -268,6 +263,8 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 		}
 
 	}()
+
+	var once sync.Once
 
 	// Read the STDOUT from shell process and send to the connected client.
 	go func() {
@@ -282,6 +279,20 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 				server.out.Read(buf[n : n+1])
 				n++
 			}
+
+			// we need to set it for the first time. Because "StartExec" is
+			// called in a goroutine and it's blocking there is now way we know
+			// when it's ready. Therefore we set the size only once when get an
+			// output. After that the client side is setting the TTY size with
+			// the Server.SetSize method, that is called everytime the client
+			// side sends a size command to us.
+			once.Do(func() {
+				// Y is  height, X is width
+				err = d.client.ResizeExecTTY(ex.ID, int(params.SizeY), int(params.SizeX))
+				if err != nil {
+					fmt.Println("error resizing", err)
+				}
+			})
 
 			out := string(filterInvalidUTF8(buf[:n]))
 			fmt.Printf("out = %+v\n", out)
