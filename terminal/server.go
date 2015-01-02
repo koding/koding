@@ -36,7 +36,9 @@ type Remote struct {
 func (s *Server) Input(d *dnode.Partial) {
 	data := d.MustSliceOfLength(1)[0].MustString()
 
-	s.inputHook()
+	if s.inputHook != nil {
+		s.inputHook()
+	}
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.

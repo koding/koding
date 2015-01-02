@@ -37,7 +37,9 @@ type Remote struct {
 func (s *Server) Input(d *dnode.Partial) {
 	data := d.MustSliceOfLength(1)[0].MustString()
 
-	s.inputHook()
+	if s.inputHook != nil {
+		s.inputHook()
+	}
 
 	fmt.Printf("data = %+v\n", data)
 
