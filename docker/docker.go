@@ -162,7 +162,10 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		InputStream:  inReadPipe,
 	}
 
-	masterEncoded, err := charset.NewWriter("ISO-8859-1", inWritePipe)
+	// Control characters needs to be in ISO-8859 charset, so be sure that
+	// UTF-8 writes are translated to this charset, for more info:
+	// http://en.wikipedia.org/wiki/Control_character
+	controlSequence, err := charset.NewWriter("ISO-8859-1", inWritePipe)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +178,7 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		remote:          params.Remote,
 		out:             outReadPipe,
 		in:              inWritePipe,
-		controlSequence: masterEncoded,
+		controlSequence: controlSequence,
 		closeChan:       closeCh,
 		client:          d.client,
 	}
