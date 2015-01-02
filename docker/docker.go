@@ -235,7 +235,7 @@ func (d *Docker) Exec(r *kite.Request) (interface{}, error) {
 	errCh := make(chan error)
 	closeCh := make(chan bool)
 
-	server := Server{
+	server := &Server{
 		Session:         ex.ID,
 		remote:          params.Remote,
 		out:             outReadPipe,
