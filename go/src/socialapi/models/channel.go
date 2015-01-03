@@ -7,6 +7,7 @@ import (
 
 	"socialapi/request"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -38,6 +39,9 @@ type Channel struct {
 	// MetaBits holds meta bit information about the channel
 	MetaBits MetaBits `json:"metaBits"`
 
+	// Extra data storage
+	Payload gorm.Hstore `json:"payload,omitempty"`
+
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
 
@@ -58,6 +62,7 @@ const (
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
 	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
+	Channel_TYPE_COLLABORATION   = "collaboration"
 	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
