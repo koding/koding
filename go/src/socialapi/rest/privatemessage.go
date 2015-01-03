@@ -9,9 +9,8 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
-func SendPrivateMessage(pmr models.PrivateMessageRequest) (*models.ChannelContainer, error) {
-
-	url := "/privatemessage/init"
+func SendPrivateChannelRequest(pmr models.PrivateChannelRequest) (*models.ChannelContainer, error) {
+	url := "/privatechannel/init"
 	res, err := marshallAndSendRequest("POST", url, pmr)
 	if err != nil {
 		return nil, err
@@ -26,15 +25,15 @@ func SendPrivateMessage(pmr models.PrivateMessageRequest) (*models.ChannelContai
 	return model, nil
 }
 
-func GetPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
-	return fetchPrivateMessages(q, "/privatemessage/list")
+func GetPrivateChannels(q *request.Query) ([]models.ChannelContainer, error) {
+	return fetchPrivateChannels(q, "/privatechannel/list")
 }
 
-func SearchPrivateMessages(q *request.Query) ([]models.ChannelContainer, error) {
-	return fetchPrivateMessages(q, "/privatemessage/search")
+func SearchPrivateChannels(q *request.Query) ([]models.ChannelContainer, error) {
+	return fetchPrivateChannels(q, "/privatechannel/search")
 }
 
-func fetchPrivateMessages(q *request.Query, endpoint string) ([]models.ChannelContainer, error) {
+func fetchPrivateChannels(q *request.Query, endpoint string) ([]models.ChannelContainer, error) {
 	v, err := query.Values(q)
 	if err != nil {
 		return nil, err
