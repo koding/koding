@@ -185,13 +185,11 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 
 		Convey("it should append successfully", func() {
 			acc1 := NewAccount()
-			acc1.Id = 1
 			acc1.OldId = "11"
 			acc1.Nick = "acc1"
 			So(acc1.Create(), ShouldBeNil)
 
 			acc2 := NewAccount()
-			acc2.Id = 2
 			acc2.OldId = "22"
 			acc2.Nick = "acc2"
 			So(acc2.Create(), ShouldBeNil)
