@@ -16,7 +16,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func CreatePrivateMessageUser(nickname string) {
+func CreatePrivateChannelUser(nickname string) {
 	acc, err := modelhelper.GetAccount(nickname)
 	if err == nil {
 		return
@@ -31,6 +31,11 @@ func CreatePrivateMessageUser(nickname string) {
 	acc.Profile.Nickname = nickname
 
 	modelhelper.CreateAccount(acc)
+
+	a := models.NewAccount()
+	a.Nick = nickname
+	a.OldId = acc.Id.Hex()
+	a.Create()
 }
 
 func TestPrivateMesssages(t *testing.T) {
@@ -43,11 +48,11 @@ func TestPrivateMesssages(t *testing.T) {
 	modelhelper.Initialize(r.Conf.Mongo)
 	defer modelhelper.Close()
 
-	CreatePrivateMessageUser("devrim")
-	CreatePrivateMessageUser("sinan")
-	CreatePrivateMessageUser("chris")
+	CreatePrivateChannelUser("devrim")
+	CreatePrivateChannelUser("sinan")
+	CreatePrivateChannelUser("chris")
 
-	Convey("while testing private messages", t, func() {
+	Convey("while testing private channels", t, func() {
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
 		account, err := rest.CreateAccount(account)
@@ -69,82 +74,82 @@ func TestPrivateMesssages(t *testing.T) {
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 		Convey("one can send private message to one person", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body message for private message @chris @devrim @sinan"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim", "sinan"}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 
 		})
 
 		Convey("0 recipient should not fail", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{}
 
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 
 		})
 		Convey("if body is nil, should fail to create PM", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = ""
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldNotBeNil)
 			So(cmc, ShouldBeNil)
 		})
 		Convey("if group name is nil, should not fail to create PM", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message @chris @devrim @sinan"
 			pmr.GroupName = ""
 			pmr.Recipients = []string{"chris", "devrim", "sinan"}
 
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 		})
 
 		Convey("if sender is not defined should fail to create PM", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = 0
 			pmr.Body = "this is a body for private message"
 			pmr.GroupName = ""
 			pmr.Recipients = []string{}
 
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldNotBeNil)
 			So(cmc, ShouldBeNil)
 		})
 
 		Convey("one can send private message to multiple person", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message @sinan"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"sinan"}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 
 		})
 		Convey("private message response should have created channel", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message @devrim @sinan"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"devrim", "sinan"}
 
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 			So(cmc.Channel.TypeConstant, ShouldEqual, models.Channel_TYPE_PRIVATE_MESSAGE)
@@ -155,37 +160,37 @@ func TestPrivateMesssages(t *testing.T) {
 		})
 
 		Convey("private message response should have participant status data", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message @chris @devrim @sinan"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim", "sinan"}
 
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 			So(cmc.IsParticipant, ShouldBeTrue)
 		})
 
 		Convey("private message response should have participant count", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for @sinan private message @devrim"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"devrim", "sinan"}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 			So(cmc.ParticipantCount, ShouldEqual, 3)
 		})
 
 		Convey("private message response should have participant preview", func() {
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is @chris a body for @devrim private message"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 			So(len(cmc.ParticipantsPreview), ShouldEqual, 3)
@@ -193,12 +198,12 @@ func TestPrivateMesssages(t *testing.T) {
 
 		Convey("private message response should have last Message", func() {
 			body := "hi @devrim this is a body for private message also for @chris"
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = body
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 			So(cmc.LastMessage.Message.Body, ShouldEqual, body)
@@ -210,16 +215,16 @@ func TestPrivateMesssages(t *testing.T) {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 			body := "hi @devrim this is a body for private message also for @chris"
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = body
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cmc, ShouldNotBeNil)
 
-			pm, err := rest.GetPrivateMessages(&request.Query{AccountId: account.Id, GroupName: groupName})
+			pm, err := rest.GetPrivateChannels(&request.Query{AccountId: account.Id, GroupName: groupName})
 			So(err, ShouldBeNil)
 			So(pm, ShouldNotBeNil)
 			So(len(pm), ShouldNotEqual, 0)
@@ -237,22 +242,22 @@ func TestPrivateMesssages(t *testing.T) {
 		Convey("user should be able to search private messages via purpose field", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "search private messages"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
 			pmr.Purpose = "test me up"
 
-			cmc, err := rest.SendPrivateMessage(pmr)
+			cmc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 
 			query := request.Query{AccountId: account.Id, GroupName: groupName}
-			_, err = rest.SearchPrivateMessages(&query)
+			_, err = rest.SearchPrivateChannels(&query)
 			So(err, ShouldNotBeNil)
 
 			query.Name = "test"
-			pm, err := rest.SearchPrivateMessages(&query)
+			pm, err := rest.SearchPrivateChannels(&query)
 			So(err, ShouldBeNil)
 			So(pm, ShouldNotBeNil)
 			So(len(pm), ShouldNotEqual, 0)
@@ -269,13 +274,13 @@ func TestPrivateMesssages(t *testing.T) {
 		Convey("user join activity should be listed by recipients", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "test private message participants"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
 
-			cc, err := rest.SendPrivateMessage(pmr)
+			cc, err := rest.SendPrivateChannelRequest(pmr)
 
 			So(err, ShouldBeNil)
 			So(cc, ShouldNotBeNil)
@@ -340,13 +345,13 @@ func TestPrivateMesssages(t *testing.T) {
 		Convey("user should not be able to edit join messages", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "test private message participants again"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris"}
 
-			cc, err := rest.SendPrivateMessage(pmr)
+			cc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cc, ShouldNotBeNil)
 
@@ -379,13 +384,13 @@ func TestPrivateMesssages(t *testing.T) {
 		Convey("first chat message should include initial participants", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "test initial participation message"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
 
-			cc, err := rest.SendPrivateMessage(pmr)
+			cc, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(cc, ShouldNotBeNil)
 
