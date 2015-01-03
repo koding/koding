@@ -121,7 +121,8 @@ do ->
       callback()
 
 
-  putVMInWorkspace = (machine)->
+  putVMInWorkspace = (machine) ->
+
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
 
