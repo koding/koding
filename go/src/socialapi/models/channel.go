@@ -90,11 +90,29 @@ func NewChannel() *Channel {
 //
 // Tests are done
 func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
+	return NewPrivateChannel(creatorId, groupName, Channel_TYPE_PRIVATE_MESSAGE)
+}
+
+// NewCollaborationChannel takes the creator id and group name of the channel as arguments
+// sets required content of the channel
+// and sets constants as 'private'
+//
+// Tests are done
+func NewCollaborationChannel(creatorId int64, groupName string) *Channel {
+	return NewPrivateChannel(creatorId, groupName, Channel_TYPE_COLLABORATION)
+}
+
+// NewPrivateChannel takes the creator id, group name of the channel and channel type as arguments
+// sets required content of the channel
+// and sets constants as 'private'
+//
+// Tests are done
+func NewPrivateChannel(creatorId int64, groupName string, typeConstant string) *Channel {
 	c := NewChannel()
 	c.GroupName = groupName
 	c.CreatorId = creatorId
 	c.Name = RandomName()
-	c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+	c.TypeConstant = typeConstant
 	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
 	c.Purpose = ""
 	return c
