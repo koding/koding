@@ -148,7 +148,7 @@ class RealTimeManager extends KDObject
     data   = model[methods[type]] initialValue
     model.getRoot().set key, data
 
-    @bindRealtimeListeners data, 'type'
+    @bindRealtimeListeners data, type
 
     return data
 
