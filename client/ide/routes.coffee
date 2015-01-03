@@ -126,7 +126,7 @@ do ->
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
 
-    machineLabel    = machine?.slug or machine?.label or ''
+    machineLabel    = machine.slug or machine.label
     workspaceSlug   = 'my-workspace'
 
     if latestWorkspace
