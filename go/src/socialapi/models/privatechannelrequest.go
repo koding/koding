@@ -9,7 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-type PrivateMessageRequest struct {
+type PrivateChannelRequest struct {
 	Body            string      `json:"body"`
 	Payload         gorm.Hstore `json:"payload,omitempty"`
 	GroupName       string      `json:"groupName"`
@@ -19,11 +19,12 @@ type PrivateMessageRequest struct {
 	RequestData     string `json:"requestData"`
 	ClientRequestId string `json:"ClientRequestId"`
 	Purpose         string `json:"purpose"`
+	TypeConstant    string `json:"type"`
 }
 
 type ChatActivity interface {
 	GetType() string
-	GetBody(*PrivateMessageRequest) string
+	GetBody(*PrivateChannelRequest) string
 }
 
 type ChatMessage struct{}
@@ -42,7 +43,7 @@ func (cm ChatMessage) GetType() string {
 	return ChannelMessage_TYPE_PRIVATE_MESSAGE
 }
 
-func (cm ChatMessage) GetBody(p *PrivateMessageRequest) string {
+func (cm ChatMessage) GetBody(p *PrivateChannelRequest) string {
 	return p.Body
 }
 
@@ -50,7 +51,7 @@ func (cm ChatJoin) GetType() string {
 	return ChannelMessage_TYPE_JOIN
 }
 
-func (cm ChatJoin) GetBody(p *PrivateMessageRequest) string {
+func (cm ChatJoin) GetBody(p *PrivateChannelRequest) string {
 	return "join"
 }
 
@@ -58,7 +59,7 @@ func (cm ChatLeave) GetType() string {
 	return ChannelMessage_TYPE_LEAVE
 }
 
-func (cm ChatLeave) GetBody(p *PrivateMessageRequest) string {
+func (cm ChatLeave) GetBody(p *PrivateChannelRequest) string {
 	return "leave"
 }
 
@@ -66,11 +67,11 @@ func (cm ChatInit) GetType() string {
 	return ChannelMessage_TYPE_JOIN
 }
 
-func (cm ChatInit) GetBody(p *PrivateMessageRequest) string {
+func (cm ChatInit) GetBody(p *PrivateChannelRequest) string {
 	return "join"
 }
 
-func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
+func (p *PrivateChannelRequest) Create() (*ChannelContainer, error) {
 	// validate the request
 	if err := p.validate(); err != nil {
 		return nil, err
@@ -83,7 +84,7 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 	}
 
 	// create the channel
-	c := NewPrivateMessageChannel(p.AccountId, p.GroupName)
+	c := NewPrivateChannel(p.AccountId, p.GroupName, p.TypeConstant)
 	c.Purpose = p.Purpose
 	if err := c.Create(); err != nil {
 		return nil, err
@@ -130,7 +131,7 @@ func (p *PrivateMessageRequest) Create() (*ChannelContainer, error) {
 	return cmc, nil
 }
 
-func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
+func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 	if err := p.validate(); err != nil {
 		return nil, err
 	}
@@ -175,14 +176,14 @@ func (p *PrivateMessageRequest) Send() (*ChannelContainer, error) {
 	return p.AddMessage(c)
 }
 
-func (p *PrivateMessageRequest) Clone() *PrivateMessageRequest {
-	clone := new(PrivateMessageRequest)
+func (p *PrivateChannelRequest) Clone() *PrivateChannelRequest {
+	clone := new(PrivateChannelRequest)
 	*clone = *p
 
 	return clone
 }
 
-func (p *PrivateMessageRequest) AddMessage(c *Channel) (*ChannelContainer, error) {
+func (p *PrivateChannelRequest) AddMessage(c *Channel) (*ChannelContainer, error) {
 	cm, err := p.createActivity(c, ChatMessage{})
 	if err != nil {
 		return nil, err
@@ -191,7 +192,7 @@ func (p *PrivateMessageRequest) AddMessage(c *Channel) (*ChannelContainer, error
 	return p.buildContainer(c, cm)
 }
 
-func (p *PrivateMessageRequest) AddJoinActivity(c *Channel, addedBy int64) error {
+func (p *PrivateChannelRequest) AddJoinActivity(c *Channel, addedBy int64) error {
 	cj := ChatJoin{}
 	if p.AccountId != addedBy {
 		cj.AddedBy = addedBy
@@ -202,13 +203,13 @@ func (p *PrivateMessageRequest) AddJoinActivity(c *Channel, addedBy int64) error
 	return err
 }
 
-func (p *PrivateMessageRequest) AddLeaveActivity(c *Channel) error {
+func (p *PrivateChannelRequest) AddLeaveActivity(c *Channel) error {
 	_, err := p.createActivity(c, ChatLeave{})
 
 	return err
 }
 
-func (p *PrivateMessageRequest) AddInitActivity(c *Channel, participantIds []int64) error {
+func (p *PrivateChannelRequest) AddInitActivity(c *Channel, participantIds []int64) error {
 	ci := ChatInit{}
 	if len(participantIds) == 0 {
 		return nil
@@ -221,7 +222,7 @@ func (p *PrivateMessageRequest) AddInitActivity(c *Channel, participantIds []int
 	return err
 }
 
-func (p *PrivateMessageRequest) createActivity(c *Channel, ca ChatActivity) (*ChannelMessage, error) {
+func (p *PrivateChannelRequest) createActivity(c *Channel, ca ChatActivity) (*ChannelMessage, error) {
 	cm, err := p.createMessage(c.Id, ca)
 	if err != nil {
 		return nil, err
@@ -233,7 +234,7 @@ func (p *PrivateMessageRequest) createActivity(c *Channel, ca ChatActivity) (*Ch
 	return cm, err
 }
 
-func (p *PrivateMessageRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
+func (p *PrivateChannelRequest) buildContainer(c *Channel, cm *ChannelMessage) (*ChannelContainer, error) {
 
 	lastMessageContainer, err := cm.BuildEmptyMessageContainer()
 	if err != nil {
@@ -249,7 +250,7 @@ func (p *PrivateMessageRequest) buildContainer(c *Channel, cm *ChannelMessage) (
 	return cmc, nil
 }
 
-func (p *PrivateMessageRequest) validate() error {
+func (p *PrivateChannelRequest) validate() error {
 	if p.AccountId == 0 {
 		return ErrAccountIdIsNotSet
 	}
@@ -258,11 +259,15 @@ func (p *PrivateMessageRequest) validate() error {
 		p.GroupName = Channel_KODING_NAME
 	}
 
+	if p.TypeConstant == "" {
+		p.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+	}
+
 	return nil
 }
 
 // TODO refactor this function to use postgres
-func (p *PrivateMessageRequest) obtainParticipantIds() ([]int64, error) {
+func (p *PrivateChannelRequest) obtainParticipantIds() ([]int64, error) {
 	participantIds := make([]int64, len(p.Recipients))
 	for i, participantName := range p.Recipients {
 		// get account from mongo
@@ -314,7 +319,7 @@ func prependCreatorId(participants []int64, authorId int64) []int64 {
 	return participantIds
 }
 
-func (p *PrivateMessageRequest) createMessage(channelId int64, ca ChatActivity) (*ChannelMessage, error) {
+func (p *PrivateChannelRequest) createMessage(channelId int64, ca ChatActivity) (*ChannelMessage, error) {
 	cm := NewChannelMessage()
 	cm.Body = ca.GetBody(p)
 	cm.TypeConstant = ca.GetType()
