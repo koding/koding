@@ -259,22 +259,28 @@ initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
     return callback { message: "Request is not valid"}
 
-  url = "/privatemessage/init"
+  url = "/privatechannel/init"
   post url, data, callback
 
 sendPrivateMessage = (data, callback)->
   if not data.body or not data.channelId
     return callback { message: "Request is not valid"}
 
-  url = "/privatemessage/send"
+  url = "/privatechannel/send"
   post url, data, callback
 
 fetchPrivateMessages = (data, callback)->
-  url = "/privatemessage/list"
+  url = "/privatechannel/list"
   get url, data, callback
 
 fetchPrivateMessageCount = (data, callback)->
-  url = "/privatemessage/count"
+  url = "/privatechannel/count"
+  get url, data, callback
+
+searchChats = (data, callback)->
+  if not data.name
+    return callback { message: "Name should be set for chat search"}
+  url = "/privatechannel/search"
   get url, data, callback
 
 followUser = (data, callback)->
@@ -306,12 +312,6 @@ searchTopics = (data, callback)->
   if not data.name
     return callback { message: "Name should be set for topic search"}
   url = "/channel/search"
-  get url, data, callback
-
-searchChats = (data, callback)->
-  if not data.name
-    return callback { message: "Name should be set for chat search"}
-  url = "/privatemessage/search"
   get url, data, callback
 
 fetchProfileFeed = (data, callback)->
