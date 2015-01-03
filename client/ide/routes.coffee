@@ -129,9 +129,9 @@ do ->
     machineLabel    = machine.slug or machine.label
     workspaceSlug   = 'my-workspace'
 
-    if latestWorkspace
+    if latestWorkspace and latestWorkspace.machineLabel is machineLabel
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
-        {machineLabel, workspaceSlug} = latestWorkspace
+        {workspaceSlug} = latestWorkspace
 
     KD.utils.defer ->
       KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
