@@ -218,4 +218,6 @@ do ->
 
         params.username = KD.nick()
 
-        loadWorkspace params, workspace
+        if workspace
+        then loadWorkspace params, workspace
+        else routeToLatestWorkspace()
