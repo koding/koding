@@ -64,14 +64,15 @@ activity.markdown.styl
     padding               0
     word-wrap             break-word
 
-    code
-      font-family         monoFamily
-      font-size           12px
-      color               #8959a8
-      padding             2px 4px
-      background-color    rgba(0, 0, 0, .02)
-      border              1px solid #eaeaea
-      rounded             2px
+  p code,
+  ul code
+    font-family         monoFamily
+    font-size           12px
+    color               #8959a8
+    padding             2px 4px
+    background-color    rgba(0, 0, 0, .02)
+    border              1px solid #eaeaea
+    rounded             2px
 
   /* Code */
   pre
@@ -161,3 +162,37 @@ activity.markdown.styl
       .xml .css
       .xml .hljs-cdata
         opacity .5
+
+  /* Tables */
+
+  table
+    border-collapse           collapse
+    text-align                left
+    width                     100%
+
+    th,
+    td
+      padding                 10px
+
+    thead
+      th
+        background            #efefef
+        color                 #777
+        font-size             14px
+        border-left           1px solid #dadada
+
+        &:first-child
+          border              none
+
+    tbody
+      td
+        border-left           1px solid #efefef
+        font-size             14px
+
+        &:first-child
+          border-left         none
+
+      tr
+        &:nth-of-type(2n)
+          td
+            background        #fafafa

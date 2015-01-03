@@ -173,8 +173,12 @@ module.exports =
 
   doPostComment: (browser, comment, shouldAssert = yes) ->
     browser
-      .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
-      .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
+      .click                    activitySelector + ' [testpath=CommentInputView]'
+      .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
+      .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
+      .click                    activitySelector + ' .has-markdown' # blur
+      .pause                    3000 # content preview
+      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
 
     if shouldAssert
       browser
@@ -251,7 +255,10 @@ module.exports =
       .click                   webSelector + ' + .chevron'
 
 
-  createFile: (browser, user) ->
+  createFile: (browser, user, selector) ->
+
+    if not selector
+      selector = 'li.new-file'
 
     @openFolderContextMenu(browser, user, 'Web')
 
@@ -260,8 +267,8 @@ module.exports =
     filename  = paragraph.split(' ')[0] + '.txt'
 
     browser
-      .waitForElementVisible    'li.new-file', 50000
-      .click                    'li.new-file'
+      .waitForElementVisible    selector, 50000
+      .click                    selector
       .waitForElementVisible    'li.selected .rename-container .hitenterview', 50000
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'

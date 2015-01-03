@@ -265,8 +265,18 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 
+	// check if the argument has any Reason, and add it to the existing reason.
+	var args struct {
+		Reason string
+	}
+	r.Args.One().Unmarshal(&args) // no need to check for err, we already did it in prepareMachine
+
+	initialReason := fmt.Sprintf("Machine is '%s' due user command: '%s'.", s.initial, r.Method)
+	if args.Reason != "" {
+		initialReason += "Custom reason: " + args.Reason
+	}
+
 	// now mark that we are starting...
-	initialReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.initial, r.Method)
 	k.Storage.UpdateState(machine.Id, initialReason, s.initial)
 
 	// each method has his own unique eventer
@@ -314,6 +324,10 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 			totalDuration := time.Since(start)
 			k.Log.Info("[%s] ========== %s finished with success (user: %s, duration: %s) ==========",
 				machine.Id, strings.ToUpper(r.Method), machine.Username, totalDuration)
+		}
+
+		if args.Reason != "" {
+			finishReason += "Custom reason: " + args.Reason
 		}
 
 		// update final status in storage

@@ -751,7 +751,7 @@ module.exports = class JAccount extends jraphical.Module
         @update ($set: 'counts.twitterFollowers': followerCount), ->
 
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "fatihacet", "arslan",
                   "sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
                   "szkl", "canthefason", "nitin", "igungor", "usirin"]
 
