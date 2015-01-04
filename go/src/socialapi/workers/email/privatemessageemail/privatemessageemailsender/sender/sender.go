@@ -5,6 +5,7 @@ import (
 	"socialapi/models"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/common"
+	"socialapi/workers/email/templates"
 	"strconv"
 	"sync"
 	"time"
@@ -137,13 +138,15 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		if len(channels) == 0 {
 			continue
 		}
-		information := "You have a few unread messages on Koding.com."
+		information := "You have a few unread messages"
 
 		// Decorate channel data
 		es := emailmodels.NewEmailSummary(channels...)
 		if len(es.Channels) == 1 && es.Channels[0].UnreadCount == 1 {
-			information = "You have an unread message on Koding.com."
+			information = "You have an unread message"
 		}
+
+		information = fmt.Sprintf("%s on %s.", information, templates.KodingLink)
 
 		// Render body
 		body, err := es.Render()
