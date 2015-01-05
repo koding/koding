@@ -102,7 +102,6 @@ Configuration = (options={}) ->
     socialapi                      : socialapi
     mongo                          : mongo
     kiteHome                       : kiteHome
-    gatekeeper                     : gatekeeper
     redis                          : "#{redis.host}:#{redis.port}"
     monitoringRedis                : "#{redis.host}:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
@@ -356,7 +355,7 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{gatekeeper.port}/version"
       nginx             :
         locations         : [ "~ /api/gatekeeper/(.*)" ]
-        proxyPass         : "http://gatekeeper/$1"
+        proxyPass         : "http://gatekeeper/$1$is_args$args"
 
     dispatcher          :
       group             : "socialapi"
