@@ -101,9 +101,9 @@ class IDE.ChatMessagePane extends PrivateMessagePane
       cssClass   : 'workspace-name'
       partial    : 'My Workspace'
       attributes : href : '#'
-      click      : (event) =>
-        KD.utils.stopDOMEvent event
-        @getDelegate().showSettingsPane()
+      # click      : (event) =>
+      #   KD.utils.stopDOMEvent event
+      #   @getDelegate().showSettingsPane()
 
     appManager.tell 'IDE', 'getWorkspaceName', @title.bound 'updatePartial'
 
@@ -136,7 +136,7 @@ class IDE.ChatMessagePane extends PrivateMessagePane
 
     menu =
       'Search'     : cssClass : 'disabled', callback: noop
-      'Settings'   : callback : @getDelegate().bound 'showSettingsPane'
+      # 'Settings'   : callback : @getDelegate().bound 'showSettingsPane'
       'Minimize'   : callback : @getDelegate().bound 'end'
       'Learn More' : separator: yes, callback : -> KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
 
