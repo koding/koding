@@ -46,10 +46,10 @@ func init() {
 
 	d.HandleFunc("create", dock.Create)
 	d.HandleFunc("start", dock.Start)
-	d.HandleFunc("connect", dock.Connect)
+	d.HandleFunc("connect", dock.Connect) // TODO: doesn't work inside our tests, look at it
 	d.HandleFunc("stop", dock.Stop)
 	d.HandleFunc("list", dock.List)
-	d.HandleFunc("removeContainer", dock.RemoveContainer)
+	d.HandleFunc("remove", dock.RemoveContainer)
 
 	go d.Run()
 	<-d.ServerReadyNotify()
@@ -174,7 +174,7 @@ func TestRemoveContainer(t *testing.T) {
 		return
 	}
 
-	_, err = remote.Tell("removeContainer", struct {
+	_, err = remote.Tell("remove", struct {
 		ID string
 	}{
 		ID: container.ID,
