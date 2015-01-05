@@ -91,7 +91,8 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 // attaching to it.
 func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 	var params struct {
-		// The ID of the container.
+		// The ID of the container. This needs to be created and started before
+		// we can use Connect.
 		ID string
 
 		// Cmd contains the command which is executed and passed to the docker
@@ -135,8 +136,12 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	outReadPipe, outWritePipe := io.Pipe()
+	// these pipes are important as we are acting as a proxy between the
+	// Browser (client side) and Docker Deamon. For example, every input coming
+	// from the client side is being written into inWritePipe and this input is
+	// then read by docker exec via the inReadPipe.
 	inReadPipe, inWritePipe := io.Pipe()
+	outReadPipe, outWritePipe := io.Pipe()
 
 	opts := dockerclient.StartExecOptions{
 		Detach:       false,
@@ -180,7 +185,7 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		select {
 		case err := <-errCh:
 			if err != nil {
-				d.log.Error("startExec error: err")
+				d.log.Error("startExec error: ", err)
 			}
 		case <-closeCh:
 			// TODO close hijacker's connection. We need to modify startExec
@@ -218,8 +223,6 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 				}
 			})
 
-			out := string(filterInvalidUTF8(buf[:n]))
-			fmt.Printf("out = %+v\n", out)
 			server.remote.Output.Call(string(filterInvalidUTF8(buf[:n])))
 			if err != nil {
 				break
