@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
@@ -93,8 +94,13 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		// The ID of the container.
 		ID string
 
-		Remote       Remote
+		// Cmd contains the command which is executed and passed to the docker
+		// exec api. If empty "bash" is used.
+		Cmd string
+
 		SizeX, SizeY int
+
+		Remote Remote
 	}
 
 	if err := r.Args.One().Unmarshal(&params); err != nil {
@@ -105,10 +111,15 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("missing arg: container ID is empty")
 	}
 
+	cmd := []string{"bash"}
+	if params.Cmd != "" {
+		cmd = strings.Fields(params.Cmd)
+	}
+
 	createOpts := dockerclient.CreateExecOptions{
 		Container: params.ID,
 		Tty:       true,
-		Cmd:       []string{"bash"},
+		Cmd:       cmd,
 		// we attach to anything, it's used in the same was as with `docker
 		// exec`
 		AttachStdout: true,
