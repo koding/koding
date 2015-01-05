@@ -2,7 +2,12 @@ package models
 
 import (
 	"socialapi/workers/common/runner"
+	"strings"
 	"testing"
+
+	"math/rand"
+
+	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
@@ -185,13 +190,13 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 
 		Convey("it should append successfully", func() {
 			acc1 := NewAccount()
-			acc1.OldId = "11"
-			acc1.Nick = "acc1"
+			acc1.OldId = bson.NewObjectId().Hex()
+			acc1.Nick = bson.NewObjectId().Hex()
 			So(acc1.Create(), ShouldBeNil)
 
 			acc2 := NewAccount()
-			acc2.OldId = "22"
-			acc2.Nick = "acc2"
+			acc2.OldId = bson.NewObjectId().Hex()
+			acc2.Nick = bson.NewObjectId().Hex()
 			So(acc2.Create(), ShouldBeNil)
 
 			idd := []int64{acc1.Id, acc2.Id}
@@ -236,14 +241,13 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 		Convey("it should have channel name as required", func() {
 			// create account
 			acc := NewAccount()
-			acc.Id = 1
-			acc.OldId = "11"
-			acc.Nick = "acc1"
+			acc.OldId = bson.NewObjectId().Hex()
+			acc.Nick = bson.NewObjectId().Hex()
 			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
-			So(cff.Name, ShouldEqual, "1-FollowingFeedChannel")
+			So(strings.HasSuffix(cff.Name, "-FollowingFeedChannel"), ShouldBeTrue)
 		})
 
 		Convey("it should have group name as Channel_KODING_NAME", func() {
@@ -297,8 +301,7 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 
 		Convey("it should have account in db", func() {
 			acc := NewAccount()
-			acc.Id = 112233
-
+			acc.Id = rand.Int63()
 			err := acc.UnMarkAsTroll()
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
