@@ -507,6 +507,11 @@ func (r *RedisSession) SortedSetAddSingle(key, member string, score interface{})
 	return err
 }
 
+var (
+	NegativeInf = "-inf"
+	PositiveInf = "+inf"
+)
+
 // SortedSetRangebyScore key min max
 // returns all the elements in the sorted set at key with a score
 // between min and max.
