@@ -101,19 +101,18 @@ func (p *PlanChecker) NetworkUsage() error {
 	}
 	defer resp.Body.Close()
 
-	var usageResponse *networkUsageResponse
-	if err := json.NewDecoder(resp.Body).Decode(&usageResponse); err != nil {
-		p.Log.Warning("[%s] Failed to decode network-usage response. err: %v",
-			p.Machine.Id, err)
-		return err
-	}
-
 	if resp.StatusCode != 200 {
 		p.Log.Debug("[%s] Network-usage response code is not 200. It's %v",
 			p.Machine.Id, resp.StatusCode)
 		return err
 	}
 
+	var usageResponse *networkUsageResponse
+	if err := json.NewDecoder(resp.Body).Decode(&usageResponse); err != nil {
+		p.Log.Warning("[%s] Failed to decode network-usage response. err: %v",
+			p.Machine.Id, err)
+		return err
+	}
 	if !usageResponse.CanStart {
 		p.Log.Debug("[%s] Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
 			p.Machine.Id, usageResponse.AllowedUsage, usageResponse.CurrentUsage)
