@@ -188,9 +188,15 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 				d.log.Error("startExec error: ", err)
 			}
 		case <-closeCh:
-			// TODO close hijacker's connection. We need to modify startExec
-		}
+			// once we close them the underlying hijack process in docker
+			// client package will end too, which will close the underlying
+			// connection once it's finished/returned.
+			inReadPipe.CloseWithError(errors.New("user closed the session"))
+			inWritePipe.CloseWithError(errors.New("user closed the session"))
 
+			outReadPipe.CloseWithError(errors.New("user closed the session"))
+			outWritePipe.CloseWithError(errors.New("user closed the session"))
+		}
 	}()
 
 	var once sync.Once
