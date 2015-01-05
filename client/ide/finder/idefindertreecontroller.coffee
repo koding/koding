@@ -25,3 +25,21 @@ class IDE.FinderTreeController extends NFinderTreeController
     path            = FSHelper.plainPath path
 
     appManager.tell 'IDE', 'createNewTerminal', { machine, path }
+
+
+  collapseFolder: (nodeView, callback) ->
+
+    super nodeView, callback
+
+    return  if @dontEmitChangeEvent
+
+    @emit 'FolderCollapsed', nodeView.getData().path
+
+
+  expandFolder: (nodeView, callback) ->
+
+    super nodeView, callback
+
+    return  if @dontEmitChangeEvent
+
+    @emit 'FolderExpanded', nodeView.getData().path

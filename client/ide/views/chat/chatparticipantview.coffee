@@ -6,16 +6,16 @@ class IDE.ChatParticipantView extends JView
 
     super options, data
 
-    {@isInSession} = options
-
     @createElements()
 
 
   createElements: ->
 
-    { isOnline, @isWatching } = @getOptions()
-    { account, channel }      = @getData()
-    { nickname }              = account.profile
+    { isOnline, @isWatching, @isInSession, permission } = @getOptions()
+    { account, channel } = @getData()
+    { nickname }         = account.profile
+
+    @amIHost = not @isInSession
 
     if isOnline then @setClass 'online' else @setClass 'offline'
 
@@ -29,7 +29,7 @@ class IDE.ChatParticipantView extends JView
 
     @kickButton = new KDCustomHTMLView cssClass: 'hidden'
 
-    unless @isInSession
+    if @amIHost
       @kickButton  = new KDButtonView
         title    : 'KICK'
         cssClass : 'kick-button'
@@ -38,6 +38,8 @@ class IDE.ChatParticipantView extends JView
     @watchButton = new KDButtonView
       iconOnly : 'yes'
       cssClass : 'watch-button'
+      tooltip  :
+        title  : "Watch #{nickname}"
       callback : =>
         methodName  = if @isWatching then 'unwatchParticipant' else 'watchParticipant'
         @isWatching = not @isWatching
@@ -47,10 +49,13 @@ class IDE.ChatParticipantView extends JView
 
     @watchButton.setClass 'watching'  if @isWatching
 
-    @settings       = new KDSelectBox
-      defaultValue  : 'edit'
+    @permissions    = new KDSelectBox
+      defaultValue  : permission
+      disabled      : not @amIHost
+      callback      : (permission) =>
+        @emit 'ParticipantPermissionChanged', permission
       selectOptions : [
-        # { title : 'CAN READ', value : 'read'}
+        { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
       ]
 
@@ -73,6 +78,6 @@ class IDE.ChatParticipantView extends JView
       <div class="settings">
         {{> @kickButton}}
         {{> @watchButton}}
-        {{> @settings}}
+        {{> @permissions}}
       <div>
     """

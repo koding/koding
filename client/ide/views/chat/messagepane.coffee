@@ -135,10 +135,10 @@ class IDE.ChatMessagePane extends PrivateMessagePane
   settingsMenu: ->
 
     menu =
-      'Search'        : cssClass : 'disabled', callback: noop
-      # 'Settings'    : callback : @getDelegate().bound 'showSettingsPane'
-      'Minimize'      : callback : @getDelegate().bound 'end'
-      'Learn More'    : separator: yes, callback : -> KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
+      'Search'     : cssClass : 'disabled', callback: noop
+      # 'Settings'   : callback : @getDelegate().bound 'showSettingsPane'
+      'Minimize'   : callback : @getDelegate().bound 'end'
+      'Learn More' : separator: yes, callback : -> KD.utils.createExternalLink 'http://learn.koding.com/collaboration'
 
     if @isInSession
     then menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
@@ -168,11 +168,11 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     appManager = KD.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant]
 
-  
+
   refresh: ->
-    
+
     return  if not @listController.getItemCount()
-    
+
     @resetPadding()
     item.checkIfItsTooTall()  for item in @listController.getListItems()
     @scrollView.wrapper.emit 'MutationHappened'

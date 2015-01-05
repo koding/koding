@@ -53,13 +53,19 @@ class IDE.EditorPane extends IDE.Pane
 
       KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
 
+      @once 'RealTimeManagerSet', =>
+        myPermission = @rtm.getFromModel('permissions').get KD.nick()
+        @makeReadOnly()  if myPermission is 'read'
+
 
   handleAutoSave: ->
+
     return   if @getFile().path.indexOf('localfile:/') > -1
     @save()  if @getAce().isContentChanged()
 
 
   save: ->
+
     @getAce().emit 'ace.requests.save', @getContent()
 
 
@@ -215,7 +221,7 @@ class IDE.EditorPane extends IDE.Pane
       @lineWidgets[username] = lineWidgetOptions
 
 
-  handleChange: (change, rtm, realTimeDoc) ->
+  handleChange: (change) ->
 
     {context, type, origin} = change
 
@@ -317,3 +323,13 @@ class IDE.EditorPane extends IDE.Pane
       @getEditorSession().remove range
 
     @dontEmitChangeEvent = no
+
+
+  makeReadOnly: ->
+
+    @getEditor()?.setReadOnly yes
+
+
+  makeEditable: ->
+
+    @getEditor()?.setReadOnly no

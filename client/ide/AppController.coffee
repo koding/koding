@@ -6,70 +6,7 @@ class IDEAppController extends AppController
   } = Machine.State
 
 
-  KD.registerAppClass this,
-    name         : 'IDE'
-    behavior     : 'application'
-    multiple     : yes
-    preCondition :
-      condition  : (options, cb) -> cb KD.isLoggedIn()
-      failure    : (options, cb) ->
-        KD.getSingleton('appManager').open 'IDE', conditionPassed : yes
-        KD.showEnforceLoginModal()
-    commands:
-      'find file by name'   : 'showFileFinder'
-      'search all files'    : 'showContentSearch'
-      'split vertically'    : 'splitVertically'
-      'split horizontally'  : 'splitHorizontally'
-      'merge splitview'     : 'mergeSplitView'
-      'preview file'        : 'previewFile'
-      'save all files'      : 'saveAllFiles'
-      'create new file'     : 'createNewFile'
-      'create new terminal' : 'createNewTerminal'
-      'create new drawing'  : 'createNewDrawing'
-      'collapse sidebar'    : 'collapseSidebar'
-      'expand sidebar'      : 'expandSidebar'
-      'toggle sidebar'      : 'toggleSidebar'
-      'close tab'           : 'closeTab'
-      'go to left tab'      : 'goToLeftTab'
-      'go to right tab'     : 'goToRightTab'
-      'go to tab number'    : 'goToTabNumber'
-      'fullscren ideview'   : 'toggleFullscreenIDEView'
-      'move tab up'         : 'moveTabUp'
-      'move tab down'       : 'moveTabDown'
-      'move tab left'       : 'moveTabLeft'
-      'move tab right'      : 'moveTabRight'
-
-    keyBindings: [
-      { command: 'find file by name',   binding: 'ctrl+alt+o',           global: yes }
-      { command: 'search all files',    binding: 'ctrl+alt+f',           global: yes }
-      { command: 'split vertically',    binding: 'ctrl+alt+v',           global: yes }
-      { command: 'split horizontally',  binding: 'ctrl+alt+h',           global: yes }
-      { command: 'merge splitview',     binding: 'ctrl+alt+m',           global: yes }
-      { command: 'preview file',        binding: 'ctrl+alt+p',           global: yes }
-      { command: 'save all files',      binding: 'ctrl+alt+s',           global: yes }
-      { command: 'create new file',     binding: 'ctrl+alt+n',           global: yes }
-      { command: 'create new terminal', binding: 'ctrl+alt+t',           global: yes }
-      { command: 'create new browser',  binding: 'ctrl+alt+b',           global: yes }
-      { command: 'create new drawing',  binding: 'ctrl+alt+d',           global: yes }
-      { command: 'toggle sidebar',      binding: 'ctrl+alt+k',           global: yes }
-      { command: 'close tab',           binding: 'ctrl+alt+w',           global: yes }
-      { command: 'go to left tab',      binding: 'ctrl+alt+[',           global: yes }
-      { command: 'go to right tab',     binding: 'ctrl+alt+]',           global: yes }
-      { command: 'go to tab number',    binding: 'mod+1',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+2',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+3',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+4',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+5',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+6',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+7',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+8',                global: yes }
-      { command: 'go to tab number',    binding: 'mod+9',                global: yes }
-      { command: 'fullscren ideview',   binding: 'mod+shift+enter',      global: yes }
-      { command: 'move tab up',         binding: 'mod+alt+shift+up',     global: yes }
-      { command: 'move tab down',       binding: 'mod+alt+shift+down',   global: yes }
-      { command: 'move tab left',       binding: 'mod+alt+shift+left',   global: yes }
-      { command: 'move tab right',      binding: 'mod+alt+shift+right',  global: yes }
-    ]
+  KD.registerAppClass this, new IDE.AppControllerOptions
 
   constructor: (options = {}, data) ->
     options.appInfo =
@@ -459,29 +396,6 @@ class IDEAppController extends AppController
       @expandSidebar()  if @isSidebarCollapsed
 
 
-    # TODO: This will reactivated after release.
-    # temporary fix. ~Umut
-
-    # splitView.once 'PanelSetToFloating', =>
-    #   floatedPanel._lastSize = desiredSize
-    #   @getView().setClass 'sidebar-collapsed'
-    #   @isSidebarCollapsed = yes
-    #   KD.getSingleton("windowController").notifyWindowResizeListeners()
-
-    # # splitView.setFloatingPanel 0, 39
-    # tabView.showPaneByName 'Dummy'
-
-    # tabView.on 'PaneDidShow', (pane) ->
-    #   return if pane.options.name is 'Dummy'
-    #   splitView.showPanel 0
-    #   floatedPanel._lastSize = desiredSize
-
-    # floatedPanel.on 'ReceivedClickElsewhere', ->
-    #   KD.utils.defer ->
-    #     splitView.setFloatingPanel 0, 39
-    #     tabView.showPaneByName 'Dummy'
-
-
   expandSidebar: ->
 
     panel        = @workspace.getView()
@@ -494,13 +408,6 @@ class IDEAppController extends AppController
     floatedPanel.unsetClass 'floating'
     @isSidebarCollapsed = no
     filesPane.tabView.showPaneByName @activeFilesPaneName
-
-    # floatedPanel._lastSize = 250
-    # splitView.unsetFloatingPanel 0
-    # filesPane.tabView.showPaneByIndex 0
-    # floatedPanel.off 'ReceivedClickElsewhere'
-    # @getView().unsetClass 'sidebar-collapsed'
-    # @isSidebarCollapsed = no
 
 
   toggleSidebar: ->
@@ -566,6 +473,7 @@ class IDEAppController extends AppController
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
   moveTab: (direction) ->
+
     return unless @activeTabView.parent?
 
     panel = @activeTabView.parent.parent
@@ -914,25 +822,12 @@ class IDEAppController extends AppController
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
+      nickname = KD.nick()
+      hostName = @collaborationHost
+
       @rtm.setRealtimeDoc doc
-      nickname           = KD.nick()
-      myWatchMapName     = "#{nickname}WatchMap"
-      mySnapshotName     = "#{nickname}Snapshot"
-      hostName           = @collaborationHost
 
-      @participants      = @rtm.getFromModel 'participants'
-      @changes           = @rtm.getFromModel 'changes'
-      @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
-      @pingTime          = @rtm.getFromModel 'pingTime'
-      @myWatchMap        = @rtm.getFromModel myWatchMapName
-      @mySnapshot        = @rtm.getFromModel mySnapshotName
-
-      @participants      or= @rtm.create 'list',   'participants', []
-      @changes           or= @rtm.create 'list',   'changes', []
-      @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
-      @pingTime          or= @rtm.create 'string', 'pingTime'
-      @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-      @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
+      @setCollaborativeReferences()
 
       if @amIHost
         @getView().setClass 'host'
@@ -973,6 +868,35 @@ class IDEAppController extends AppController
           @createPaneFromChange change
 
       KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
+
+      @finderPane.on 'ChangeHappened', @bound 'syncChange'
+
+      unless @amIHost
+        @makeReadOnly()  if @permissions.get(nickname) is 'read'
+
+
+  setCollaborativeReferences: ->
+
+    nickname           = KD.nick()
+    myWatchMapName     = "#{nickname}WatchMap"
+    mySnapshotName     = "#{nickname}Snapshot"
+    defaultPermission  = default: 'edit'
+
+    @participants      = @rtm.getFromModel 'participants'
+    @changes           = @rtm.getFromModel 'changes'
+    @permissions       = @rtm.getFromModel 'permissions'
+    @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
+    @pingTime          = @rtm.getFromModel 'pingTime'
+    @myWatchMap        = @rtm.getFromModel myWatchMapName
+    @mySnapshot        = @rtm.getFromModel mySnapshotName
+
+    @participants      or= @rtm.create 'list',   'participants', []
+    @changes           or= @rtm.create 'list',   'changes', []
+    @permissions       or= @rtm.create 'map',    'permissions', defaultPermission
+    @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
+    @pingTime          or= @rtm.create 'string', 'pingTime'
+    @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
+    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
 
 
   registerCollaborationSessionId: ->
@@ -1091,6 +1015,7 @@ class IDEAppController extends AppController
     @rtm.bindRealtimeListeners @changes, 'list'
     @rtm.bindRealtimeListeners @broadcastMessages, 'list'
     @rtm.bindRealtimeListeners @myWatchMap, 'map'
+    @rtm.bindRealtimeListeners @permissions, 'map'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
 
@@ -1106,15 +1031,34 @@ class IDEAppController extends AppController
 
     @rtm.on 'MapValueChanged', (map, event) =>
 
-      return unless map is @myWatchMap
+      if map is @myWatchMap
+        @handleWatchMapChange event
 
-      {property, newValue, oldValue} = event
+      else if map is @permissions
+        @handlePermissionMapChange event
 
-      if newValue is property
-        @statusBar.emit 'ParticipantWatched', property
 
-      else unless newValue
-        @statusBar.emit 'ParticipantUnwatched', property
+  handlePermissionMapChange: (event) ->
+
+    @chat.settingsPane.emit 'PermissionChanged', event
+
+    {property, newValue} = event
+
+    return  unless property is KD.nick()
+
+    if      newValue is 'edit' then @makeEditable()
+    else if newValue is 'read' then @makeReadOnly()
+
+
+  handleWatchMapChange: (event) ->
+
+    {property, newValue, oldValue} = event
+
+    if newValue is property
+      @statusBar.emit 'ParticipantWatched', property
+
+    else unless newValue
+      @statusBar.emit 'ParticipantUnwatched', property
 
 
   handleChange: (change) ->
@@ -1154,6 +1098,8 @@ class IDEAppController extends AppController
   getPaneByChange: (change) ->
 
     return unless change.context
+
+    return @finderPane  if change.type is 'FileTreeInteraction'
 
     targetPane = null
     {context}  = change
@@ -1248,6 +1194,7 @@ class IDEAppController extends AppController
 
   getWorkspaceName: (callback) -> callback @workspaceData.name
 
+
   createChatPaneView: (channel) ->
 
     options = { @rtm, @isInSession }
@@ -1260,7 +1207,10 @@ class IDEAppController extends AppController
 
       @statusBar.emit 'CollaborationStarted'
 
-      @chat.settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
+      {settingsPane} = @chat
+
+      settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
+      settingsPane.updateDefaultPermissions()
 
 
   createChatPane: ->
@@ -1769,3 +1719,25 @@ class IDEAppController extends AppController
                 title    : "@#{@collaborationHost} has left the session."
                 duration : 3000
               KD.singletons.router.handleRoute '/IDE'
+
+
+  makeReadOnly: ->
+
+    return  if @isReadOnly
+
+    @isReadOnly = yes
+    ideView.isReadOnly = yes  for ideView in @ideViews
+    @forEachSubViewInIDEViews_ (pane) -> pane.makeReadOnly()
+    @finderPane.makeReadOnly()
+    @getView().setClass 'read-only'
+
+
+  makeEditable: ->
+
+    return  unless @isReadOnly
+
+    @isReadOnly = no
+    ideView.isReadOnly = no  for ideView in @ideViews
+    @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
+    @finderPane.makeEditable()
+    @getView().unsetClass 'read-only'

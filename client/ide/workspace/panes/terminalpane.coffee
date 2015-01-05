@@ -14,6 +14,7 @@ class IDE.TerminalPane extends IDE.Pane
 
 
   createTerminal: ->
+
     options =
       delegate         : this
       readOnly         : @getOption 'readOnly'
@@ -56,11 +57,20 @@ class IDE.TerminalPane extends IDE.Pane
 
       @machine.getBaseKite().fetchTerminalSessions()
 
+    KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
+
+    @once 'RealTimeManagerSet', =>
+      myPermission = @rtm.getFromModel('permissions').get KD.nick()
+      @makeReadOnly()  if myPermission is 'read'
+
 
   getMode: ->
+
     return  if @session? then 'resume' else 'create'
 
+
   runCommand: (command, callback) ->
+
     return unless command
 
     unless @remote
@@ -72,18 +82,21 @@ class IDE.TerminalPane extends IDE.Pane
 
     @remote.input "#{command}\n"
 
-  notify: (message) -> console.log 'notify:', message
 
   resurrect: ->
+
     @destroySubViews()
     @createTerminal()
 
+
   setFocus: (state) ->
+
     super state
     @webtermView.setFocus state
 
 
   serialize: ->
+
     {label, ipAddress, slug, uid} = @machine
     {path, paneType} = @getOptions()
 
@@ -93,3 +106,26 @@ class IDE.TerminalPane extends IDE.Pane
       paneType : paneType
       session  : @remote?.session
       hash     : @hash
+
+
+  setEditMode: (state) ->
+
+    {terminal} = @webtermView
+    return  unless terminal
+
+    {cursor} = terminal
+    return  unless cursor
+
+    if state
+      @webtermView.terminal.isReadOnly = no
+      cursor.stopped = no
+      cursor.setBlinking yes
+    else
+      @webtermView.terminal.isReadOnly = yes
+      cursor.stopBlink()
+
+
+  makeEditable: -> @setEditMode yes
+
+
+  makeReadOnly: -> @setEditMode no

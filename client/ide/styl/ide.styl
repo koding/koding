@@ -940,3 +940,17 @@ body.ide .kddialogview.save-as-dialog
       r-sprite              ide help
       margin-top            -6px
       display               block
+
+
+.ide .application-page.read-only
+  .kdtabhandle.plus
+  .nfinder .chevron
+  .kdtabhandle .close-tab
+  .kdtabhandle .options
+    hidden()
+
+  ul ul li.selected
+    bg                      color, transparent
+
+  .kdtabhandle
+    pointer-events          none

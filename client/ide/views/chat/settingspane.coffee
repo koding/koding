@@ -18,6 +18,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     @on 'CollaborationNotInitialized', => @everyone.destroySubViews()
     @on 'ParticipantJoined', @bound 'addParticipant'
     @on 'ParticipantLeft',   @bound 'removeParticipant'
+    @on 'PermissionChanged', @bound 'handlePermissionChange'
 
     @on 'CollaborationEnded', =>
       @toggleButtons 'ended'
@@ -68,10 +69,12 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       cssClass : 'chat-link'
       click    : => @getDelegate().showChatPane()
 
-    @defaultSetting = new KDSelectBox
+    @defaultPermission = new KDSelectBox
       defaultValue  : 'edit'
+      callback      : (value) => @setDefaultPermission value
+      disabled      : not @amIHost
       selectOptions : [
-        # { title : 'CAN READ', value : 'read'}
+        { title : 'CAN READ', value : 'read'}
         { title : 'CAN EDIT', value : 'edit'}
       ]
 
@@ -174,16 +177,23 @@ class IDE.ChatSettingsPane extends KDTabPaneView
 
   createParticipantView: (account, isOnline) =>
 
-    {nickname} = account.profile
-    isWatching = @rtm.getFromModel("#{KD.nick()}WatchMap").keys().indexOf(nickname) > -1
-    channel    = @getData()
-    options    = { isOnline, @isInSession, isWatching }
-    data       = { account, channel }
-    view       = new IDE.ChatParticipantView options, data
+    {nickname}        = account.profile
+    watchList         = @rtm.getFromModel("#{KD.nick()}WatchMap").keys()
+    isWatching        = watchList.indexOf(nickname) > -1
+    permissionsMap    = @rtm.getFromModel 'permissions'
+    defaultPermission = permissionsMap.get 'default'
+    permission        = permissionsMap.get(nickname) or defaultPermission
+    channel           = @getData()
+    options           = { isOnline, @isInSession, isWatching, permission }
+    data              = { account, channel }
+    participantView   = new IDE.ChatParticipantView options, data
 
-    @participantViews[nickname] = view
-    @everyone.addSubView view, null, isOnline
+    @participantViews[nickname] = participantView
+    @everyone.addSubView participantView, null, isOnline
     @onboarding?.destroy()
+
+    participantView.on 'ParticipantPermissionChanged', (permission) =>
+      @rtm.getFromModel('permissions').set nickname, permission
 
 
   removeParticipant: (username, unshare) ->
@@ -205,6 +215,29 @@ class IDE.ChatSettingsPane extends KDTabPaneView
       @createParticipantView account.first, yes
 
 
+  updateDefaultPermissions: ->
+
+    permissions = @rtm.getFromModel 'permissions'
+    @defaultPermission.setValue permissions.get 'default'
+
+
+  setDefaultPermission: (value) ->
+
+    @rtm.getFromModel('permissions').set 'default', value
+
+
+  handlePermissionChange: (event) ->
+
+    {newValue, property} = event
+
+    return  unless newValue in ['edit', 'read']
+
+    if property is 'default'
+      @defaultPermission.setValue newValue
+    else
+      @participantViews[property]?.permissions.setValue newValue
+
+
   viewAppended: JView::viewAppended
 
   setTemplate: JView::setTemplate
@@ -217,7 +250,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
         {{> @back}}
       </header>
       <ul class='settings default'>
-        <li><label>Anyone who joins</label>{{> @defaultSetting}}</li>
+        <li><label>Anyone who joins</label>{{> @defaultPermission}}</li>
       </ul>
       {{> @everyone}}
       <div class="warning">
