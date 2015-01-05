@@ -44,25 +44,33 @@ var (
 	// we count only those methods, please add/remove methods here that will
 	// reset the timer of a klient.
 	usg = usage.NewUsage(map[string]bool{
-		"fs.readDirectory":    true,
-		"fs.glob":             true,
-		"fs.readFile":         true,
-		"fs.writeFile":        true,
-		"fs.uniquePath":       true,
-		"fs.getInfo":          true,
-		"fs.setPermissions":   true,
-		"fs.remove":           true,
-		"fs.rename":           true,
-		"fs.createDirectory":  true,
-		"fs.move":             true,
-		"fs.copy":             true,
-		"webterm.getSessions": true,
-		"webterm.connect":     true,
-		"webterm.killSession": true,
-		"exec":                true,
-		"klient.share":        true,
-		"klient.unshare":      true,
-		"klient.shared":       true,
+		"fs.readDirectory":       true,
+		"fs.glob":                true,
+		"fs.readFile":            true,
+		"fs.writeFile":           true,
+		"fs.uniquePath":          true,
+		"fs.getInfo":             true,
+		"fs.setPermissions":      true,
+		"fs.remove":              true,
+		"fs.rename":              true,
+		"fs.createDirectory":     true,
+		"fs.move":                true,
+		"fs.copy":                true,
+		"webterm.getSessions":    true,
+		"webterm.connect":        true,
+		"webterm.killSession":    true,
+		"exec":                   true,
+		"klient.share":           true,
+		"klient.unshare":         true,
+		"klient.shared":          true,
+		"docker.build":           true,
+		"docker.create":          true,
+		"docker.connect":         true,
+		"docker.stop":            true,
+		"docker.start":           true,
+		"docker.removeContainer": true,
+		"docker.removeImage":     true,
+		"docker.list":            true,
 	})
 
 	// this is used to allow other users to call any klient method.
@@ -193,7 +201,7 @@ func newKite() *kite.Kite {
 	dock := docker.New("unix:///var/run/docker.sock", k.Log)
 	k.HandleFunc("docker.build", dock.Build)
 	k.HandleFunc("docker.create", dock.Create)
-	k.HandleFunc("webterm.connect", dock.Connect)
+	k.HandleFunc("docker.connect", dock.Connect)
 	k.HandleFunc("docker.stop", dock.Stop)
 	k.HandleFunc("docker.start", dock.Start)
 	k.HandleFunc("docker.removeContainer", dock.RemoveContainer)
@@ -207,7 +215,7 @@ func newKite() *kite.Kite {
 	term := terminal.New(k.Log)
 	term.InputHook = usg.Reset
 	k.HandleFunc("webterm.getSessions", term.GetSessions)
-	// k.HandleFunc("webterm.connect", term.Connect)
+	k.HandleFunc("webterm.connect", term.Connect)
 	k.HandleFunc("webterm.killSession", term.KillSession)
 	k.HandleFunc("webterm.killSessions", term.KillSessions)
 
