@@ -98,8 +98,8 @@ Configuration = (options={}) ->
 
     vmwatcher                      : {
       port                         : "6400"
-      awsKey                       : "AKIAIWHOKFWDYNSQFGCQ"
-      awsSecret                    : "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"
+      awsKey                       : "AKIAI6KPPX7WUT3XAYIQ"
+      awsSecret                    : "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"
       kloudSecretKey               : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
       kloudAddr                    : "http://localhost:#{kloudPort}/kite"
     }
