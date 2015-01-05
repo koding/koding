@@ -10,7 +10,8 @@ do ->
       loadIDE { machine, workspace, username }
 
     else if workspaceSlug is 'my-workspace'
-      workspace =
+      workspace = new KD.remote.api.JWorkspace
+        _id          : 'my-workspace'
         isDummy      : yes
         isDefault    : yes
         slug         : 'my-workspace'
@@ -38,7 +39,7 @@ do ->
 
     if username
     then filterWorkspacesByUsername username, kallback
-    else kallback KD.userWorkspaces
+    else filterOwnWorkspaces kallback
 
 
   filterWorkspacesByUsername = (username, callback) ->
@@ -52,6 +53,12 @@ do ->
 
       callback KD.userWorkspaces.filter (workspace) ->
         originId is workspace.originId
+
+
+  filterOwnWorkspaces = (callback) ->
+
+    callback KD.userWorkspaces.filter (workspace) ->
+      workspace.originId is KD.whoami()._id
 
 
   selectWorkspaceOnSidebar = (data) ->
@@ -99,7 +106,7 @@ do ->
 
     for instance in ideApps.instances
       isSameMachine   = instance.mountedMachineUId is machineUId
-      isSameWorkspace = instance.workspaceData is workspace
+      isSameWorkspace = instance.workspaceData.getId() is workspace.getId()
 
       if isSameMachine
         if isSameWorkspace then ideInstance = instance
@@ -203,11 +210,12 @@ do ->
 
     '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
+      refreshWorkspaces noop
+
       {params} = routeInfo
-      params.username or= KD.nick()
 
-      refreshWorkspaces ->
+      findWorkspace params, (workspace) ->
 
-        findWorkspace params, (workspace) ->
+        params.username = KD.nick()
 
-          loadWorkspace params, workspace
+        loadWorkspace params, workspace

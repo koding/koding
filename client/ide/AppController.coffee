@@ -437,17 +437,25 @@ class IDEAppController extends AppController
 
   createNewTerminal: (options) ->
 
-    { machine, path, session, joinUser, hash } = options
+    { machine, path } = options
 
-    machine = null  unless machine instanceof Machine
+    unless machine instanceof Machine
+      machine = @mountedMachine
 
     if @workspaceData
+
       {rootPath, isDefault} = @workspaceData
 
       if rootPath and not isDefault
         path = rootPath
+    
+    # options can be an Event instance if the initiator is
+    # a shortcut, and that can have a `path` property
+    # which is an Array. This check is to make sure that the 
+    # `path` is always the one we send explicitly here - SY
+    path = null  unless typeof path is 'string'
 
-    @activeTabView.emit 'TerminalPaneRequested', options
+    @activeTabView.emit 'TerminalPaneRequested', { machine, path }
 
 
   #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)

@@ -123,21 +123,18 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   createTerminal: (options) ->
 
-    { machine, path, session, joinUser, hash } = options
-    { appManager } = KD.singletons
-    frontApp       = appManager.getFrontApp()
-    machine       ?= frontApp.mountedMachine
+    { appManager }   = KD.singletons
+    frontApp         = appManager.getFrontApp()
+    options.machine ?= frontApp.mountedMachine
 
-    unless machine
-      { machines } = KD.getSingleton 'computeController'
-      machineId  = frontApp.mountedMachineUId
-
-    unless path
+    unless options.path
       workspaceData = frontApp.workspaceData or {}
       { rootPath, isDefault } = workspaceData
 
       if rootPath and not isDefault
-        path = frontApp.workspaceData.rootPath
+        options.path = frontApp.workspaceData.rootPath
+
+    { machine, joinUser } = options
 
     terminalPane = new IDE.TerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
@@ -394,7 +391,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       'New Drawing Board' :
         callback          : => @createDrawingBoard()
         separator         : yes
-      'Split Vertically':
+      'Split Vertically'  :
         callback          : -> frontApp.splitVertically()
       'Split Horizontally':
         callback          : -> frontApp.splitHorizontally()

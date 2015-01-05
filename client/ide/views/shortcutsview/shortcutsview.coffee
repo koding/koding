@@ -7,8 +7,7 @@ class IDE.ShortcutsView extends KDCustomScrollView
     @wrapper.setClass 'key-mappings'
 
     shortcuts = @getShortcuts()
-    apples    = [ "MacIntel", "MacPPC", "Mac68K", "Macintosh", "iPad" ]
-    isApple   = apples.indexOf(navigator.platform) > -1
+    isNavigatorApple = KD.utils.isNavigatorApple()
 
     for title, mapping of shortcuts
       container = new KDCustomHTMLView
@@ -19,7 +18,7 @@ class IDE.ShortcutsView extends KDCustomScrollView
         metaKey   = 'Ctrl'
         key       = 'Others'
 
-        if isApple
+        if isNavigatorApple
           metaKey = 'Cmd'
           key     = 'Apple'
 
