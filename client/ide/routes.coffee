@@ -128,10 +128,14 @@ do ->
 
     machineLabel    = machine.slug or machine.label
     workspaceSlug   = 'my-workspace'
+    username        = machine.data.credential
 
     if latestWorkspace and latestWorkspace.machineLabel is machineLabel
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
         {workspaceSlug} = latestWorkspace
+
+    if workspaceSlug is 'my-workspace'
+      loadWorkspace {machineLabel, workspaceSlug, username}
 
     KD.utils.defer ->
       KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
@@ -221,4 +225,4 @@ do ->
 
         if workspace
         then loadWorkspace params, workspace
-        else routeToLatestWorkspace()
+        else routeToLatestWorkspace {params}
