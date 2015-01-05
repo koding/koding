@@ -215,14 +215,14 @@ do ->
 
     '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
-      refreshWorkspaces noop
-
       {params} = routeInfo
 
-      findWorkspace params, (workspace) ->
+      refreshWorkspaces ->
 
-        params.username = KD.nick()
+        findWorkspace params, (workspace) ->
 
-        if workspace
-        then loadWorkspace params, workspace
-        else routeToLatestWorkspace {params}
+          params.username = KD.nick()
+
+          if workspace
+          then loadWorkspace params, workspace
+          else routeToLatestWorkspace {params}
