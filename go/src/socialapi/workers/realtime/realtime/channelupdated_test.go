@@ -207,7 +207,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(unreadCount, ShouldEqual, 0)
 		})
 
-		Convey("collabration channel's unread count could be calculated", func() {
+		Convey("collaboration channel's unread count could be calculated", func() {
 			// create an account
 			account, err := createAccount()
 			So(err, ShouldBeNil)

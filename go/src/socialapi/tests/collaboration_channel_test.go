@@ -14,8 +14,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestCollabrationChannels(t *testing.T) {
-	r := runner.New("collabration_channel_test")
+func TestCollaborationChannels(t *testing.T) {
+	r := runner.New("collaboration_channel_test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
@@ -28,7 +28,7 @@ func TestCollabrationChannels(t *testing.T) {
 	CreatePrivateChannelUser("sinan")
 	CreatePrivateChannelUser("chris")
 
-	Convey("while testing collabration channel", t, func() {
+	Convey("while testing collaboration channel", t, func() {
 		account := models.NewAccount()
 		account.OldId = AccountOldId.Hex()
 		account, err := rest.CreateAccount(account)
@@ -49,7 +49,7 @@ func TestCollabrationChannels(t *testing.T) {
 
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-		Convey("one can send initiate the collabration channel with only him", func() {
+		Convey("one can send initiate the collaboration channel with only him", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message"
@@ -63,7 +63,7 @@ func TestCollabrationChannels(t *testing.T) {
 
 		})
 
-		Convey("one can send initiate the collabration channel with 2 participants", func() {
+		Convey("one can send initiate the collaboration channel with 2 participants", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body message for private message @chris @devrim @sinan"
@@ -90,7 +90,7 @@ func TestCollabrationChannels(t *testing.T) {
 			So(cmc, ShouldBeNil)
 		})
 
-		Convey("if group name is nil, should not fail to create collabration channel", func() {
+		Convey("if group name is nil, should not fail to create collaboration channel", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
 			pmr.Body = "this is a body for private message @chris @devrim @sinan"
@@ -103,7 +103,7 @@ func TestCollabrationChannels(t *testing.T) {
 			So(cmc, ShouldNotBeNil)
 		})
 
-		Convey("if sender is not defined should fail to create collabration channel", func() {
+		Convey("if sender is not defined should fail to create collaboration channel", func() {
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = 0
 			pmr.Body = "this is a body for private message"
@@ -243,12 +243,12 @@ func TestCollabrationChannels(t *testing.T) {
 
 		})
 
-		Convey("user should be able to search collabration channels via purpose field", func() {
+		Convey("user should be able to search collaboration channels via purpose field", func() {
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
-			pmr.Body = "search collabration channel"
+			pmr.Body = "search collaboration channel"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
 			pmr.Purpose = "test me up"
@@ -286,7 +286,7 @@ func TestCollabrationChannels(t *testing.T) {
 
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
-			pmr.Body = "test collabration channel participants"
+			pmr.Body = "test collaboration channel participants"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris", "devrim"}
 			pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
@@ -358,7 +358,7 @@ func TestCollabrationChannels(t *testing.T) {
 
 			pmr := models.PrivateChannelRequest{}
 			pmr.AccountId = account.Id
-			pmr.Body = "test collabration channel participants again"
+			pmr.Body = "test collaboration channel participants again"
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"chris"}
 			pmr.TypeConstant = models.Channel_TYPE_COLLABORATION
