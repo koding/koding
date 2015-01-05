@@ -37,12 +37,6 @@ func New(url string, log kite.Logger) *Docker {
 	}
 }
 
-// Build builds a new container image from a public Docker path or from a
-// given Dockerfile
-func (d *Docker) Build(r *kite.Request) (interface{}, error) {
-	return nil, errors.New("build is not implemented yet.")
-}
-
 // Create creates a new container
 func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 	var params struct {
@@ -313,29 +307,6 @@ func (d *Docker) RemoveContainer(r *kite.Request) (interface{}, error) {
 	}
 
 	if err := d.client.RemoveContainer(opts); err != nil {
-		return nil, err
-	}
-
-	return true, nil
-}
-
-// RemoveImage removes an existing image.
-func (d *Docker) RemoveImage(r *kite.Request) (interface{}, error) {
-	// we can remove either by name or by id
-	var params struct {
-		// Container name
-		Name string
-	}
-
-	if err := r.Args.One().Unmarshal(&params); err != nil {
-		return nil, err
-	}
-
-	if params.Name == "" {
-		return nil, errors.New("missing arg: name is empty")
-	}
-
-	if err := d.client.RemoveImage(params.Name); err != nil {
 		return nil, err
 	}
 

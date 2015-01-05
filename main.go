@@ -44,33 +44,31 @@ var (
 	// we count only those methods, please add/remove methods here that will
 	// reset the timer of a klient.
 	usg = usage.NewUsage(map[string]bool{
-		"fs.readDirectory":       true,
-		"fs.glob":                true,
-		"fs.readFile":            true,
-		"fs.writeFile":           true,
-		"fs.uniquePath":          true,
-		"fs.getInfo":             true,
-		"fs.setPermissions":      true,
-		"fs.remove":              true,
-		"fs.rename":              true,
-		"fs.createDirectory":     true,
-		"fs.move":                true,
-		"fs.copy":                true,
-		"webterm.getSessions":    true,
-		"webterm.connect":        true,
-		"webterm.killSession":    true,
-		"exec":                   true,
-		"klient.share":           true,
-		"klient.unshare":         true,
-		"klient.shared":          true,
-		"docker.build":           true,
-		"docker.create":          true,
-		"docker.connect":         true,
-		"docker.stop":            true,
-		"docker.start":           true,
-		"docker.removeContainer": true,
-		"docker.removeImage":     true,
-		"docker.list":            true,
+		"fs.readDirectory":    true,
+		"fs.glob":             true,
+		"fs.readFile":         true,
+		"fs.writeFile":        true,
+		"fs.uniquePath":       true,
+		"fs.getInfo":          true,
+		"fs.setPermissions":   true,
+		"fs.remove":           true,
+		"fs.rename":           true,
+		"fs.createDirectory":  true,
+		"fs.move":             true,
+		"fs.copy":             true,
+		"webterm.getSessions": true,
+		"webterm.connect":     true,
+		"webterm.killSession": true,
+		"exec":                true,
+		"klient.share":        true,
+		"klient.unshare":      true,
+		"klient.shared":       true,
+		"docker.create":       true,
+		"docker.connect":      true,
+		"docker.stop":         true,
+		"docker.start":        true,
+		"docker.remove":       true,
+		"docker.list":         true,
 	})
 
 	// this is used to allow other users to call any klient method.
@@ -199,13 +197,11 @@ func newKite() *kite.Kite {
 
 	// Docker
 	dock := docker.New("unix:///var/run/docker.sock", k.Log)
-	k.HandleFunc("docker.build", dock.Build)
 	k.HandleFunc("docker.create", dock.Create)
 	k.HandleFunc("docker.connect", dock.Connect)
 	k.HandleFunc("docker.stop", dock.Stop)
 	k.HandleFunc("docker.start", dock.Start)
-	k.HandleFunc("docker.removeContainer", dock.RemoveContainer)
-	k.HandleFunc("docker.removeImage", dock.RemoveImage)
+	k.HandleFunc("docker.remove", dock.RemoveContainer)
 	k.HandleFunc("docker.list", dock.List)
 
 	// Execution
