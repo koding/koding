@@ -16,7 +16,7 @@ var (
 	AWS_NAMESPACE = "AWS/EC2"
 	AWS_PERIOD    = 604800
 
-	GB_TO_MB float64 = 1000
+	GB_TO_MB float64 = 1024
 
 	rightNow     = time.Now()
 	startingWeek = now.BeginningOfWeek()
@@ -88,7 +88,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 		}
 
 		for _, raw := range response.GetMetricStatisticsResult.Datapoints {
-			sum += raw.Sum / 1024 / 1024
+			sum += raw.Sum / GB_TO_MB / GB_TO_MB
 		}
 	}
 
