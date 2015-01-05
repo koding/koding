@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
+	realtimemodels "socialapi/workers/realtime/models"
 
 	"github.com/koding/logging"
 	"github.com/robfig/cron"
@@ -19,14 +20,17 @@ var (
 
 type Controller struct {
 	log     logging.Logger
+	pubnub  *realtimemodels.PubNub
 	cronJob *cron.Cron
 	ready   chan bool
 }
 
-func New(log logging.Logger) (*Controller, error) {
+func New(log logging.Logger, pubnub *realtimemodels.PubNub) (*Controller, error) {
+
 	wc := &Controller{
-		log:   log,
-		ready: make(chan bool, 1),
+		log:    log,
+		pubnub: pubnub,
+		ready:  make(chan bool, 1),
 	}
 
 	return wc, nil
@@ -65,6 +69,8 @@ func (mwc *Controller) Start() {
 	mwc.migrateAllAccounts()
 
 	mwc.migrateAllGroups()
+
+	mwc.GrantPublicAccess()
 
 	mwc.log.Notice("Migration finished")
 
