@@ -121,16 +121,17 @@ do ->
       callback()
 
 
-  putVMInWorkspace = (machine)->
+  putVMInWorkspace = (machine) ->
+
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
 
-    machineLabel    = machine?.slug or machine?.label or ''
+    machineLabel    = machine.slug or machine.label
     workspaceSlug   = 'my-workspace'
 
-    if latestWorkspace
+    if latestWorkspace and latestWorkspace.machineLabel is machineLabel
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
-        {machineLabel, workspaceSlug} = latestWorkspace
+        {workspaceSlug} = latestWorkspace
 
     KD.utils.defer ->
       KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
@@ -218,4 +219,6 @@ do ->
 
         params.username = KD.nick()
 
-        loadWorkspace params, workspace
+        if workspace
+        then loadWorkspace params, workspace
+        else routeToLatestWorkspace()
