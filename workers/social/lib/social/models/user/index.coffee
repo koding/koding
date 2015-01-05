@@ -192,6 +192,9 @@ module.exports = class JUser extends jraphical.Module
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
 
+    if toBeDeletedUsername is "guestuser"
+      return callback createKodingError "It's not allowed to delete this user!"
+
     # only owner and the dummy admins can delete a user
     unless toBeDeletedUsername is delegate.profile.nickname or
            delegate.can 'administer accounts'
