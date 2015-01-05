@@ -96,13 +96,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {
-      port                         : "6400"
-      awsKey                       : "AKIAI6KPPX7WUT3XAYIQ"
-      awsSecret                    : "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"
-      kloudSecretKey               : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
-      kloudAddr                    : "http://localhost:#{kloudPort}/kite"
-    }
+    vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe" , kloudAddr : "http://localhost:#{kloudPort}/kite" }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
