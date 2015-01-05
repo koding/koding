@@ -70,9 +70,11 @@ func (d *Docker) Create(r *kite.Request) (interface{}, error) {
 		Config: &dockerclient.Config{
 			Image: params.Image,
 			Tty:   true,
-			// AttachStdin:  true,
-			// AttachStdout: true,
-			// AttachStderr: true,
+			// the following Attach fields need to be set so we can open a TTY
+			// instace via the Connect method.
+			AttachStdin:  true,
+			AttachStdout: true,
+			AttachStderr: true,
 		},
 	}
 
@@ -99,39 +101,12 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	// if params.ID == "" {
-	// 	return nil, errors.New("missing arg: container ID is empty")
-	// }
-
-	d.log.Info("params %+v\n", params)
-
-	//////////////////
-	imageOpts := dockerclient.CreateContainerOptions{
-		Name: "webtest",
-		Config: &dockerclient.Config{
-			Image:        "redis",
-			Tty:          true,
-			AttachStdin:  true,
-			AttachStdout: true,
-			AttachStderr: true,
-		},
+	if params.ID == "" {
+		return nil, errors.New("missing arg: container ID is empty")
 	}
-
-	container, err := d.client.CreateContainer(imageOpts)
-	if err == nil {
-		// if successfull start it
-		if err := d.client.StartContainer(container.ID, nil); err != nil {
-			// return nil, err
-			d.log.Error("starting error: %s", err)
-		}
-	} else {
-		d.log.Error("creating error: %s", err)
-	}
-
-	//////////////////
 
 	createOpts := dockerclient.CreateExecOptions{
-		Container: container.ID,
+		Container: params.ID,
 		Tty:       true,
 		Cmd:       []string{"bash"},
 		// we attach to anything, it's used in the same was as with `docker
