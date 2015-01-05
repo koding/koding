@@ -19,7 +19,7 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-func checkerHttp(w http.ResponseWriter, r *http.Request) {
+func checkerHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	accountId := r.URL.Query().Get("account_id")
@@ -48,13 +48,11 @@ func checkerHttp(w http.ResponseWriter, r *http.Request) {
 		response.CanStart, response.CurrentUsage, username,
 	)
 
-	js, err := json.Marshal(response)
+	err = json.NewEncoder(w).Encode(response)
 	if err != nil {
 		writeError(w, accountId, err.Error())
 		return
 	}
-
-	w.Write(js)
 }
 
 // iterate through each metric, check if user is over limit for that

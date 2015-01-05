@@ -63,7 +63,7 @@ func main() {
 	c.Start()
 
 	// expose api for workers like kloud to check if users is over limit
-	http.HandleFunc("/", checkerHttp)
+	http.HandleFunc("/", checkerHTTP)
 
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
