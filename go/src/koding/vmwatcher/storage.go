@@ -29,8 +29,6 @@ var (
 	QueueName = "queue"
 	ExemptKey = "exempt"
 	LimitKey  = "limit"
-
-	RedisInfinity = "+inf"
 )
 
 type RedisStorage struct {
@@ -55,7 +53,7 @@ func (r *RedisStorage) Get(metricName, username string) (float64, error) {
 }
 
 func (r *RedisStorage) Range(metricName string, min float64) ([]string, error) {
-	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, RedisInfinity)
+	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, redis.PositiveInf)
 	if err != nil {
 		return nil, err
 	}
