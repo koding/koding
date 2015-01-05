@@ -9,7 +9,6 @@ import (
 	"github.com/crowdmob/goamz/aws"
 	"github.com/crowdmob/goamz/cloudwatch"
 	"github.com/jinzhu/now"
-	"labix.org/v2/mgo/bson"
 )
 
 var (
@@ -39,6 +38,10 @@ func (c *Cloudwatch) GetLimit() float64 {
 	return c.Limit
 }
 
+func isEmpty(s string) bool {
+	return s == ""
+}
+
 func (c *Cloudwatch) GetAndSaveData(username string) error {
 	userMachines, err := modelhelper.GetMachinesForUsername(username)
 	if err != nil {
@@ -48,26 +51,22 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	var sum float64
 
 	for _, machine := range userMachines {
-		var meta = machine.Meta.(bson.M)
-
-		regionStr, ok := meta["region"].(string)
-		if !ok {
+		if isEmpty(machine.Meta.Region) {
 			Log.Error("queued machine has no `region`", machine.ObjectId)
 			continue
 		}
 
-		instanceId, ok := meta["instanceId"].(string)
-		if !ok {
+		if isEmpty(machine.Meta.InstanceId) {
 			Log.Error("queued machine has no `instanceId`", machine.ObjectId)
 			continue
 		}
 
 		dimension := &cloudwatch.Dimension{
 			Name:  "InstanceId",
-			Value: instanceId,
+			Value: machine.Meta.InstanceId,
 		}
 
-		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[regionStr].CloudWatchServicepoint)
+		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[machine.Meta.Region].CloudWatchServicepoint)
 		if err != nil {
 			return err
 		}
