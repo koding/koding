@@ -46,6 +46,8 @@ services=(
   socialapi/workers/trollmode
   socialapi/workers/populartopic
   socialapi/workers/realtime
+  socialapi/workers/realtime/gatekeeper
+  socialapi/workers/realtime/dispatcher
   socialapi/workers/topicfeed
   socialapi/workers/migrator
   socialapi/workers/sitemap/sitemapfeeder
