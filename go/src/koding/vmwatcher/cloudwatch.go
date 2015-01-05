@@ -130,14 +130,12 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	value, err := storage.Get(c.GetName(), username)
 	if err != nil && !isRedisRecordNil(err) {
-		Log.Error(err.Error())
-		return canStart, nil
+		return nil, err
 	}
 
 	yes, err := exemptFromStopping(c.GetName(), username)
 	if err != nil {
-		Log.Error(err.Error())
-		return canStart, nil
+		return nil, err
 	}
 
 	if yes {
@@ -146,8 +144,7 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	planTitle, err := getPlanForUser(username)
 	if err != nil {
-		Log.Error(err.Error())
-		return canStart, nil
+		return nil, err
 	}
 
 	var limit float64
