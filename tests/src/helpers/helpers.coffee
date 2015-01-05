@@ -255,7 +255,10 @@ module.exports =
       .click                   webSelector + ' + .chevron'
 
 
-  createFile: (browser, user) ->
+  createFile: (browser, user, selector) ->
+
+    if not selector
+      selector = 'li.new-file'
 
     @openFolderContextMenu(browser, user, 'Web')
 
@@ -264,8 +267,8 @@ module.exports =
     filename  = paragraph.split(' ')[0] + '.txt'
 
     browser
-      .waitForElementVisible    'li.new-file', 50000
-      .click                    'li.new-file'
+      .waitForElementVisible    selector, 50000
+      .click                    selector
       .waitForElementVisible    'li.selected .rename-container .hitenterview', 50000
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
