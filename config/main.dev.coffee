@@ -349,7 +349,7 @@ Configuration = (options={}) ->
         locations       : [ "= /payments/stripe/webhook" ]
 
     vmwatcher           :
-      group             : "webserver"
+      group             : "environment"
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"

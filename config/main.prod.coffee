@@ -326,7 +326,7 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
     vmwatcher           :
-      group             : "webserver"
+      group             : "environment"
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
