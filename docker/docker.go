@@ -92,9 +92,7 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		ID string
 
 		Remote       Remote
-		Session      string
 		SizeX, SizeY int
-		Mode         string
 	}
 
 	if err := r.Args.One().Unmarshal(&params); err != nil {
@@ -158,7 +156,7 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		Detach:       false,
 		Tty:          true,
 		OutputStream: outWritePipe,
-		ErrorStream:  outWritePipe,
+		ErrorStream:  outWritePipe, // this is ok, that's how tty works
 		InputStream:  inReadPipe,
 	}
 
@@ -187,6 +185,9 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 		d.log.Info("Starting exec instance '%s'", ex.ID)
 		err := d.client.StartExec(ex.ID, opts)
 		errCh <- err
+
+		// call the remote function that we ended the session
+		server.remote.SessionEnded.Call()
 	}()
 
 	go func() {
