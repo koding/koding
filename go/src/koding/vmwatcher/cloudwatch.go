@@ -76,7 +76,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 			Dimensions: []cloudwatch.Dimension{*dimension},
 			Statistics: []string{cloudwatch.StatisticDatapointSum},
 			MetricName: c.GetName(),
-			EndTime:    rightNow,
+			EndTime:    time.Now(),
 			StartTime:  startingWeek,
 			Period:     AWS_PERIOD,
 			Namespace:  AWS_NAMESPACE,
