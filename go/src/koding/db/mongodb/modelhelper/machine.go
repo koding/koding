@@ -58,7 +58,14 @@ func GetRunningVms() ([]*models.Machine, error) {
 	machines := []*models.Machine{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"status.state": VmRunningState}).All(&machines)
+		iter := c.Find(bson.M{"status.state": VmRunningState}).Iter()
+
+		var machine *models.Machine
+		for iter.Next(&machine) {
+			machines = append(machines, machine)
+		}
+
+		return nil
 	}
 
 	err := Mongo.Run(MachineColl, query)
