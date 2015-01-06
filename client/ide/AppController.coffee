@@ -1647,6 +1647,7 @@ class IDEAppController extends AppController
       @removeMachineNode()
       @modal.destroy()
       @rtm = null
+      KD.singletons.socialapi.channel.leave channelId: @socialChannel.getId()
       KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
       KD.singletons.router.handleRoute '/IDE'
 
