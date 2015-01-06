@@ -18,7 +18,7 @@ type Controller struct {
 
 func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) (*Controller, error) {
 
-	rmqConn, err := rmqConn.Connect("NewGatekeeperController")
+	rmqConn, err := rmqConn.Connect("NewDispatcherController")
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *mo
 
 // DefaultErrHandler controls the errors, return false if an error occurred
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
-	c.logger.Error("an error occurred deleting gatekeeper event: %s", err)
+	c.logger.Error("an error occurred deleting dispatcher event: %s", err)
 	delivery.Ack(false)
 	return false
 }
