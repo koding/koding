@@ -1,8 +1,7 @@
-// vmwatcher is an enforcer that gets various metrics (currently only
-// `NetworkOut` from cloudwatch api is implemented) and stops the vm if it's
+// vmwatcher is an enforcer that gets various metrics and stops the vm if it's
 // over the limit for that metric; in addition it also exposes a http endpoint
-// for various workers (kloud for now) to check if user is overlimit before
-// taking an action (ie starting a vm).
+// for various workers to check if user is overlimit before taking an action
+// (ie starting a vm).
 //
 // The goal of this worker is to prevent users from abusing the system, not be
 // a secondary storage for metrics data.

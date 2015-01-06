@@ -25,10 +25,7 @@ var (
 	KloudSecretKey = conf.Vmwatcher.KloudSecretKey
 	KloudAddr      = conf.Vmwatcher.KloudAddr
 
-	KiteClient *kite.Client
-
-	redisClient  *redis.RedisSession
-	redisStorage *RedisStorage
+	controller *VmController
 
 	Log = helper.CreateLogger(WorkerName, false)
 )
@@ -36,29 +33,28 @@ var (
 func init() {
 	Log.Info("Starting %s", WorkerName)
 
+	controller = &VmController{}
+
+	initializeRedis(controller)
+	initializeKlient(controller)
+
+	storage = controller.Redis
+
 	// initialize mongo
 	modelhelper.Initialize(conf.Mongo)
-
-	initializeRedis()
-
-	// set globals
-	redisStorage = &RedisStorage{Client: redisClient}
-	storage = redisStorage
-
-	initializeKlient()
 
 	// save defaults
 	saveExemptUsers()
 	saveLimitsUnlessExists()
 }
 
-func initializeRedis() {
-	var err error
-
-	redisClient, err = redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+func initializeRedis(c *VmController) {
+	redisClient, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
+
+	c.Redis = &RedisStorage{Client: redisClient}
 }
 
 func saveExemptUsers() {
@@ -83,7 +79,7 @@ func saveLimitsUnlessExists() {
 	}
 }
 
-func initializeKlient() {
+func initializeKlient(c *VmController) {
 	var err error
 
 	// initialize cloudwatch api client
@@ -104,14 +100,16 @@ func initializeKlient() {
 	k.Config = config
 
 	// create a new connection to the cloud
-	KiteClient := k.NewClient(KloudAddr)
-	KiteClient.Auth = &kite.Auth{
+	kiteClient := k.NewClient(KloudAddr)
+	kiteClient.Auth = &kite.Auth{
 		Type: "kloudctl",
 		Key:  KloudSecretKey,
 	}
 
 	// dial the kloud address
-	if err := KiteClient.DialTimeout(time.Second * 10); err != nil {
+	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
+
+	c.Klient = kiteClient
 }

@@ -12,6 +12,6 @@ type stopResult struct {
 }
 
 func stopVm(machineId string) error {
-	_, err := KiteClient.Tell("stop", &stopArgs{MachineId: machineId})
+	_, err := controller.Klient.Tell("stop", &stopArgs{MachineId: machineId})
 	return err
 }
