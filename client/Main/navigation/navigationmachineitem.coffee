@@ -31,7 +31,7 @@ class NavigationMachineItem extends JView
       title            : "Open IDE for #{@alias}"
 
     unless machineOwner is KD.nick()
-      options.attributes.href += " (shared by @#{Encoder.htmlDecode machineOwner})"
+      options.attributes.title += " (shared by @#{Encoder.htmlDecode machineOwner})"
 
     super options, data
 
