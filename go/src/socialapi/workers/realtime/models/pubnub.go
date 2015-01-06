@@ -10,8 +10,8 @@ import (
 	"github.com/pubnub/go/messaging"
 )
 
-type Pubnub struct {
 	pub   *messaging.Pubnub
+type PubNub struct {
 	log   logging.Logger
 	token string
 }
@@ -21,11 +21,11 @@ const (
 	ServerId       = -1
 )
 
-func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
 	messaging.SetResumeOnReconnect(true)
 	messaging.SetSubscribeTimeout(3)
 	messaging.LoggingEnabled(true)
 	messaging.SetOrigin(conf.Origin)
+func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
 
 	// TODO we can use different pubnub connections for channel access grants and message publish
 	// library is signing all the messages which is not needed
@@ -33,8 +33,8 @@ func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
 	pub := messaging.NewPubnub(conf.PublishKey, conf.SubscribeKey, conf.SecretKey, "", false, strconv.Itoa(ServerId))
 	pub.SetAuthenticationKey(conf.ServerAuthKey)
 
-	pb := &Pubnub{
 		pub:   pub,
+	pb := &PubNub{
 		log:   log,
 		token: conf.ServerAuthKey,
 	}
@@ -73,11 +73,11 @@ func (p *Pubnub) grantServerAccess(c ChannelInterface) error {
 	return p.GrantAccess(a, c)
 }
 
-func (p *Pubnub) Close() {
 	p.pub.CloseExistingConnection()
+func (p *PubNub) Close() {
 }
 
-func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) error {
+func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 	mc := NewMessageUpdateChannel(*um)
 
 	// TODO grant access when the message is created instead of here
@@ -92,7 +92,7 @@ func (p *Pubnub) UpdateInstance(um *UpdateInstanceMessage) error {
 	return nil
 }
 
-func (p *Pubnub) NotifyUser(nm *NotificationMessage) error {
+func (p *PubNub) NotifyUser(nm *NotificationMessage) error {
 	nc := NewNotificationChannel(nm.Account)
 	// TODO grant access when the account is created
 	if err := p.grantServerAccess(nc); err != nil {
@@ -102,17 +102,17 @@ func (p *Pubnub) NotifyUser(nm *NotificationMessage) error {
 	return p.publish(nc, nm)
 }
 
-func (p *Pubnub) Authenticate(a *Authenticate) error {
+func (p *PubNub) Authenticate(a *Authenticate) error {
 	return a.Channel.GrantAccess(p, a)
 }
 
 // GrantAcess grants access for the channel with the given token. When token value is an
 // empty string it provides public access for the channel.
 // TODO by default TTL is set to 0. Add TTL support later on
-func (p *Pubnub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 	pr := NewPubnubRequest()
 	pr.log = p.log
 	channelName := c.PrepareName()
+func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 
 	go pr.handlePublishResponse()
 	// read and write access can be optional later on.
@@ -122,7 +122,7 @@ func (p *Pubnub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 	return <-pr.done
 }
 
-func (p *Pubnub) GrantPublicAccess(c ChannelInterface) error {
+func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
 	a := &Authenticate{}
 	a.Account = &Account{Token: ""}
 

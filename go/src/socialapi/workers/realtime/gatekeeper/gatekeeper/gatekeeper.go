@@ -14,11 +14,11 @@ import (
 )
 
 type Handler struct {
-	pubnub *models.Pubnub
+	pubnub *models.PubNub
 	logger logging.Logger
 }
 
-func NewHandler(p *models.Pubnub, l logging.Logger) *Handler {
+func NewHandler(p *models.PubNub, l logging.Logger) *Handler {
 	return &Handler{
 		pubnub: p,
 		logger: l,

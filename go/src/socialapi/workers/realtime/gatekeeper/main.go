@@ -19,7 +19,7 @@ func main() {
 
 	config := r.Conf.GateKeeper
 	// create a realtime service provider instance.
-	pubnub := models.NewPubnub(r.Conf.GateKeeper.Pubnub, r.Log)
+	pubnub := models.NewPubNub(r.Conf.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
 
 	mc := mux.NewConfig(Name, config.Host, config.Port)

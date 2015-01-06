@@ -16,7 +16,7 @@ type Channel struct {
 
 type ChannelInterface interface {
 	PrepareName() string
-	GrantAccess(p *Pubnub, a *Authenticate) error
+	GrantAccess(p *PubNub, a *Authenticate) error
 }
 
 ////////// PrivateMessageChannel //////////
@@ -34,7 +34,7 @@ func (pmc *PrivateMessageChannel) PrepareName() string {
 	return fmt.Sprintf("channel-%s", pmc.Token)
 }
 
-func (pmc *PrivateMessageChannel) GrantAccess(p *Pubnub, a *Authenticate) error {
+func (pmc *PrivateMessageChannel) GrantAccess(p *PubNub, a *Authenticate) error {
 	if pmc.Channel.Type == "privatemessage" || pmc.Channel.Type == "pinnedactivity" {
 		return p.GrantAccess(a, pmc)
 	}
@@ -57,7 +57,7 @@ func (nc *NotificationChannel) PrepareName() string {
 	return fmt.Sprintf("notification-%s-%s", env, nc.Account.Nickname)
 }
 
-func (nc *NotificationChannel) GrantAccess(p *Pubnub, a *Authenticate) error {
+func (nc *NotificationChannel) GrantAccess(p *PubNub, a *Authenticate) error {
 	return p.GrantAccess(a, nc)
 }
 
@@ -75,6 +75,6 @@ func (mc *MessageUpdateChannel) PrepareName() string {
 	return fmt.Sprintf("instance-%s", mc.Token)
 }
 
-func (mc *MessageUpdateChannel) GrantAccess(p *Pubnub, a *Authenticate) error {
+func (mc *MessageUpdateChannel) GrantAccess(p *PubNub, a *Authenticate) error {
 	return p.GrantPublicAccess(mc)
 }

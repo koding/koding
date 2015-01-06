@@ -18,7 +18,7 @@ func main() {
 	}
 
 	// create a realtime service provider instance.
-	pubnub := models.NewPubnub(r.Conf.GateKeeper.Pubnub, r.Log)
+	pubnub := models.NewPubNub(r.Conf.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
 
 	// later on broker support must be removed

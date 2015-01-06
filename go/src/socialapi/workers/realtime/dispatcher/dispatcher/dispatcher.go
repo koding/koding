@@ -11,12 +11,12 @@ import (
 
 type Controller struct {
 	Broker  *models.Broker
-	Pubnub  *models.Pubnub
+	Pubnub  *models.PubNub
 	logger  logging.Logger
 	rmqConn *amqp.Connection
 }
 
-func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.Pubnub, broker *models.Broker) (*Controller, error) {
+func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) (*Controller, error) {
 
 	rmqConn, err := rmqConn.Connect("NewGatekeeperController")
 	if err != nil {
