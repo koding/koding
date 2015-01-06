@@ -56,6 +56,35 @@ class RealtimeController extends KDController
     return @subscribePubnub options, callback
 
 
+  # unsubscribeChannel unsubscribes the user from given channel
+  unsubscribeChannel: (channel) ->
+
+    return @unsubscribeBroker channel  unless KD.isPubnubEnabled()
+
+    @unsubscribePubnub channel
+
+
+  unsubscribeBroker: (channel) ->
+    {groupName, typeConstant, name} = channel
+    channelName = "socialapi.#{groupName}-#{typeConstant}-#{name}"
+    # unsubscribe from the channel.
+    # When a user leaves, and then rejoins a private channel, broker sends
+    # related channel from cache, but this channel contains old secret name.
+    # For this reason I have added this unsubscribe call.
+    # !!! This cache invalidation must be handled when cycleChannel event is received
+    KD.remote.mq.unsubscribe channelName
+
+
+  unsubscribePubnub: (channel) ->
+    {token} = channel
+    channelName = "channel-#{token}"
+    @pubnub.unsubscribe({
+      channel : channelName,
+    })
+
+    delete @channels[channelName]
+
+
   # subcribeMessage subscribes to message channels for instance update events
   # message channels do not need any authentication
   subscribeMessage: (message, callback) ->

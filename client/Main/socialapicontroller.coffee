@@ -66,12 +66,10 @@ class SocialApiController extends KDController
 
     {typeConstant, id} = channel
     delete socialapi._cache[typeConstant][id]
-    # unsubscribe from the channel.
-    # When a user leaves, and then rejoins a private channel, broker sends
-    # related channel from cache, but this channel contains old secret name.
-    # For this reason I have added this unsubscribe call.
-    # !!! This cache invalidation must be handled when cycleChannel event is received
-    KD.remote.mq.unsubscribe channelName
+
+    {realtime} = KD.singletons
+
+    realtime.unsubscribeChannel channel
 
 
   mapActivity = (data) ->
