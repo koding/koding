@@ -455,7 +455,7 @@ class IDEAppController extends AppController
     # `path` is always the one we send explicitly here - SY
     path = null  unless typeof path is 'string'
 
-    @activeTabView.emit 'TerminalPaneRequested', { machine, path }
+    @activeTabView.emit 'TerminalPaneRequested', options
 
 
   #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)
