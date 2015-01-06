@@ -2,7 +2,6 @@ package koding
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -90,6 +89,10 @@ func (p *PlanChecker) NetworkUsage() error {
 		return err
 	}
 
+	// in case of error fetching network usage, assume it's ok to start
+	var usageResponse = &networkUsageResponse{}
+	usageResponse.CanStart = true
+
 	q := networkEndpoint.Query()
 	q.Set("account_id", account.Id.Hex())
 	networkEndpoint.RawQuery = q.Encode()
@@ -98,21 +101,20 @@ func (p *PlanChecker) NetworkUsage() error {
 	if err != nil {
 		p.Log.Warning("[%s] Failed to fetch network-usage because network-usage providing api host seems down. err: %v",
 			p.Machine.Id, err)
-		return err
+		return nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
 		p.Log.Debug("[%s] Network-usage response code is not 200. It's %v",
 			p.Machine.Id, resp.StatusCode)
-		return errors.New("Network-usage response code is not 200")
+		return nil
 	}
 
-	var usageResponse *networkUsageResponse
 	if err := json.NewDecoder(resp.Body).Decode(&usageResponse); err != nil {
 		p.Log.Warning("[%s] Failed to decode network-usage response. err: %v",
 			p.Machine.Id, err)
-		return err
+		return nil
 	}
 	if !usageResponse.CanStart {
 		p.Log.Debug("[%s] Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
