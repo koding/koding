@@ -10,6 +10,7 @@ package main
 import (
 	"koding/artifact"
 	"net/http"
+	"time"
 
 	"github.com/robfig/cron"
 )
@@ -29,6 +30,11 @@ var (
 )
 
 func main() {
+	startTime := time.Now()
+	defer func() {
+		Log.Info("Exited...ran for: %s", time.Since(startTime))
+	}()
+
 	c := cron.New()
 
 	// queue to get metrics at top of every hour; uses redis set to queue
@@ -70,4 +76,5 @@ func main() {
 	Log.Info("Listening on port: %s", port)
 
 	http.ListenAndServe(":"+port, nil)
+
 }

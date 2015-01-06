@@ -31,17 +31,16 @@ var (
 )
 
 func init() {
-	Log.Info("Starting %s", WorkerName)
+	Log.Info("Starting...")
 
 	controller = &VmController{}
 
 	initializeRedis(controller)
 	initializeKlient(controller)
 
-	storage = controller.Redis
+	initializeMongo()
 
-	// initialize mongo
-	modelhelper.Initialize(conf.Mongo)
+	storage = controller.Redis
 
 	// save defaults
 	saveExemptUsers()
@@ -54,7 +53,15 @@ func initializeRedis(c *VmController) {
 		Log.Fatal(err.Error())
 	}
 
+	Log.Info("Connected to redis: %s", conf.Redis)
+
 	c.Redis = &RedisStorage{Client: redisClient}
+}
+
+func initializeMongo() {
+	modelhelper.Initialize(conf.Mongo)
+
+	Log.Info("Connected to mongo: %s", conf.Mongo)
 }
 
 func saveExemptUsers() {
@@ -74,8 +81,6 @@ func saveLimitsUnlessExists() {
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
-
-		Log.Info("Saved limit: %v for metric: %s", metric.GetLimit(), metric.GetName())
 	}
 }
 
@@ -110,6 +115,8 @@ func initializeKlient(c *VmController) {
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
+
+	Log.Info("Connected to klient: %s", KloudAddr)
 
 	c.Klient = kiteClient
 }
