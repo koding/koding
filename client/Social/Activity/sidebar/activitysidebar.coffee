@@ -477,6 +477,21 @@ class ActivitySidebar extends KDCustomHTMLView
         Bongo.dash queue, ->
           workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
           userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
+
+          KD.userMachines.forEach (machine) ->
+            for workspace in KD.userWorkspaces \
+              when workspace.slug is 'my-workspace' \
+              and workspace.machineLabel is machine.label
+                return
+
+            userWorkspaces.push new KD.remote.api.JWorkspace
+              _id          : 'my-workspace'
+              isDummy      : yes
+              isDefault    : yes
+              originId     : KD.whoami()._id # In case JAccount is not revived yet
+              slug         : 'my-workspace'
+              machineLabel : machine.label
+
           KD.userWorkspaces     = userWorkspaces
           # workspacesFetched     = yes
           activitySidebar.updateMachineTree()

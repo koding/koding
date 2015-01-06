@@ -57,6 +57,7 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
+  rack       = createSalt.rack 64
 
   @share()
 
@@ -192,6 +193,9 @@ module.exports = class JUser extends jraphical.Module
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
 
+    if toBeDeletedUsername is "guestuser"
+      return callback createKodingError "It's not allowed to delete this user!"
+
     # only owner and the dummy admins can delete a user
     unless toBeDeletedUsername is delegate.profile.nickname or
            delegate.can 'administer accounts'
@@ -256,22 +260,19 @@ module.exports = class JUser extends jraphical.Module
                   isRegistration : false
                   username
                 }
-                ((require 'koding-counter') {
-                  db          : JAccount.getClient()
-                  counterName : "koding~#{toBeDeletedUsername}~"
-                  offset      : 0
-                }).reinitialize ->
+
                 user.unlinkOAuths =>
+
                   Payment = require "../payment"
-                  deletedClient = {
-                    connection: {
-                      delegate: account
-                    }
-                  }
+
+                  deletedClient = connection: delegate: account
+
                   Payment.deleteAccount deletedClient, (err)=>
+
                     @logout deletedClient, (err) =>
                       callback err
                       Sendgrid.deleteUser oldEmail, ->
+
 
   @isRegistrationEnabled = (callback)->
 
@@ -572,7 +573,8 @@ Team Koding
 
 
   @createGuestUsername = (callback) ->
-    callback null, "guest-#{(require 'hat')(64)}"
+
+    callback null, "guest-#{rack()}"
 
 
   @fetchGuestUser = (callback)->
