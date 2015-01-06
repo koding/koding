@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 )
@@ -62,7 +63,11 @@ func stopMachinesOverLimit() error {
 		var stopSuccess = 0
 
 		for _, machine := range machines {
-			err = stopVm(machine.ObjectId.Hex())
+			reason := fmt.Sprintf(
+				"%v overlimit, allowed: %d", metric.GetName(), metric.GetLimit(),
+			)
+
+			err = stopVm(machine.ObjectId.Hex(), reason)
 			if err != nil {
 				Log.Error(err.Error())
 				continue
@@ -78,8 +83,8 @@ func stopMachinesOverLimit() error {
 		}
 
 		Log.Info(
-			"Successfully stopped: %d overlimit machines for metric: %s",
-			len(machines), metric.GetName(),
+			"Successfully stopped: %d/%d overlimit machines for metric: %s",
+			stopSuccess, len(machines), metric.GetName(),
 		)
 	}
 
