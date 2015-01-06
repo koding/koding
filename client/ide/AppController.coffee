@@ -1171,6 +1171,7 @@ class IDEAppController extends AppController
       else
         @chat.emit 'ParticipantLeft', targetUser
         @statusBar.emit 'ParticipantLeft', targetUser
+        @removeParticipantCursorWidget targetUser
 
         # check the user is still at same index, so we won't remove someone else.
         user = @participants.get targetIndex
@@ -1571,6 +1572,7 @@ class IDEAppController extends AppController
       when 'ParticipantWantsToLeave'
 
         @statusBar.removeParticipantAvatar origin
+        @removeParticipantCursorWidget targetUser
 
       when 'ParticipantKicked'
 
@@ -1690,12 +1692,14 @@ class IDEAppController extends AppController
 
         @socialChannel.emit 'RemovedFromChannel', account
 
-        message  =
-          type   : 'ParticipantKicked'
-          origin : KD.nick()
-          target : account.profile.nickname
+        targetUser = account.profile.nickname
+        message    =
+          type     : 'ParticipantKicked'
+          origin   : KD.nick()
+          target   : targetUser
 
         @broadcastMessages.push message
+        @removeParticipantCursorWidget targetUser
 
 
   listenPings: ->
@@ -1722,6 +1726,16 @@ class IDEAppController extends AppController
                 title    : "@#{@collaborationHost} has left the session."
                 duration : 3000
               KD.singletons.router.handleRoute '/IDE'
+
+
+  removeParticipantCursorWidget: (targetUser) ->
+
+    @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
+      userLineWidget = editorPane.lineWidgets?[targetUser]
+
+      if userLineWidget
+        widgetManager = editorPane.getAce().lineWidgetManager
+        widgetManager.removeLineWidget userLineWidget
 
 
   makeReadOnly: ->
