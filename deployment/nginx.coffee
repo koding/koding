@@ -321,10 +321,10 @@ module.exports.create = (KONFIG, environment)->
       #{createUserMachineLocation("latest-vm")}
       #{createUserMachineLocation("dev-vm")}
       
-      #{createUserMachineLocation("devproxy")}
       #{createUserMachineLocation("prodproxy")}
+      #{createUserMachineLocation("latestproxy")}
       #{createUserMachineLocation("sandboxproxy")}
-      
+      #{createUserMachineLocation("devproxy")}
     # close server
     }
 
