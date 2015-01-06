@@ -481,7 +481,7 @@ class ActivitySidebar extends KDCustomHTMLView
           KD.userMachines.forEach (machine) ->
             for workspace in KD.userWorkspaces \
               when workspace.slug is 'my-workspace' \
-              and workspace.machineLabel is machine.label
+              and workspace.machineUId is machine.uid
                 return
 
             userWorkspaces.push new KD.remote.api.JWorkspace
@@ -490,7 +490,9 @@ class ActivitySidebar extends KDCustomHTMLView
               isDefault    : yes
               originId     : KD.whoami()._id # In case JAccount is not revived yet
               slug         : 'my-workspace'
+              machineUId   : machine.uid
               machineLabel : machine.label
+              name         : 'My Workspace'
 
           KD.userWorkspaces     = userWorkspaces
           # workspacesFetched     = yes
