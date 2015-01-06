@@ -145,13 +145,19 @@ class WebTerm.Terminal extends KDObject
     (event.ctrlKey or event.metaKey) and event.shiftKey and event.keyCode is 13
 
   keyDown: (event) ->
+    return  if @isReadOnly
     return  if ignoreKeyDownEvent event
+
     @inputHandler.keyDown event
 
   keyPress: (event) ->
+    return  if @isReadOnly
+
     @inputHandler.keyPress event
 
   keyUp: (event) ->
+    return  if @isReadOnly
+
     @inputHandler.keyUp event
 
   setKeyFocus: ->
@@ -326,6 +332,8 @@ class WebTerm.Terminal extends KDObject
 
 
   paste: (event) =>
+
+    return  if @isReadOnly
 
     KD.utils.stopDOMEvent event
     @server.input event.originalEvent.clipboardData.getData "text/plain"

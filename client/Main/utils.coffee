@@ -54,7 +54,7 @@ utils.extend utils,
 
   proxifyTransportUrl: (url)->
 
-    return url  if /proxy.koding.com/.test url
+    return url  if /p.koding.com/.test url
 
     # let's use DOM for parsing the url
     parser = document.createElement("a")
@@ -74,7 +74,7 @@ utils.extend utils,
 
     {protocol} = document.location
 
-    return "#{protocol}//proxy.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+    return "#{protocol}//p.koding.com/-/#{proxy}/#{parser.hostname}/kite"
 
 
   applyMarkdown: (text, options = {})->

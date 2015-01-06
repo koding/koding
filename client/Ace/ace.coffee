@@ -39,6 +39,9 @@ class Ace extends KDView
           
           # remove cmd+L binding. we have already defined cmd+g for this purpose
           @editor.commands.removeCommand 'gotoline'
+          
+          # we are using ctrl+alt+s for 'Save All' action
+          @editor.commands.removeCommand 'sortlines'
 
           @focus()
           @show()
@@ -121,7 +124,6 @@ class Ace extends KDView
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
       @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
-      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
@@ -428,6 +430,7 @@ class Ace extends KDView
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
+  #obsolete: Now we are using IDE saveAllFiles method
   saveAllFiles: ->
     aceApp = KD.singletons.appManager.get 'Ace'
     return unless aceApp

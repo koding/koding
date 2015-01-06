@@ -8,7 +8,6 @@ import (
 )
 
 func (mwc *Controller) GrantPublicAccess() {
-	mwc.log.Notice("Channel Public Access grant operation started")
 	mwc.GrantChannelAccess()
 	mwc.GrantMessageAccess()
 }
@@ -54,7 +53,7 @@ func (mwc *Controller) GrantChannelAccess() {
 }
 
 func (mwc *Controller) GrantMessageAccess() {
-	mwc.log.Notice("Granting message access for channels")
+	mwc.log.Notice("Granting public access for messages")
 
 	c := models.NewChannelMessage()
 	query := bongo.B.DB.
