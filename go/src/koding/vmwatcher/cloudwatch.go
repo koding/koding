@@ -35,7 +35,8 @@ func (c *Cloudwatch) GetName() string {
 }
 
 func (c *Cloudwatch) GetLimit() float64 {
-	return c.Limit
+	limit, _ := storage.GetLimit(c.GetName(), c.Limit)
+	return limit
 }
 
 func isEmpty(s string) bool {
@@ -159,8 +160,8 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	lr := &LimitResponse{
 		CanStart:     limit >= value,
-		AllowedUsage: limit * GB_TO_MB,
-		CurrentUsage: value * GB_TO_MB,
+		AllowedUsage: limit,
+		CurrentUsage: value,
 		Reason:       fmt.Sprintf("%s overlimit", c.GetName()),
 	}
 
