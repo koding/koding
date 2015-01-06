@@ -636,7 +636,6 @@ Configuration = (options={}) ->
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
         echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
-        echo "  run vmwatcher [test]      : to run vmwatcher worker or the tests"
         echo "  run help                  : to show this list"
         echo ""
 
@@ -982,14 +981,6 @@ Configuration = (options={}) ->
           cd "#{GOPATH}/src/socialapi"
           make install-migrate
           migrate $2 $3
-        fi
-
-      elif [ "$1" == "vmwatcher" ]; then
-
-        if [ "$2" == "test" ]; then
-          go test go/src/koding/vmwatch/*.go
-        else
-          echo "no test"
         fi
 
       elif [ "$#" == "0" ]; then
