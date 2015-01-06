@@ -25,7 +25,6 @@ func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
 
 	cs := NewClientSettings(conf)
 	cs.ID = strconv.Itoa(ServerId)
-	cs.Token = conf.ServerAuthKey
 	client := pubnub.NewPubNubClient(cs)
 
 	// when secretkey is used all the messages are signed.
