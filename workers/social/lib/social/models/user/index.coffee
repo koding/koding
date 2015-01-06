@@ -189,6 +189,8 @@ module.exports = class JUser extends jraphical.Module
   @unregister = secure (client, toBeDeletedUsername, callback) ->
     {delegate} = client.connection
 
+    console.log "#{delegate.profile.nickname} requested to delete: #{toBeDeletedUsername}"
+
     # deleter should be registered one
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
