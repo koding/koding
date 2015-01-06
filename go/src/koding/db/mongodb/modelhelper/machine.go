@@ -77,13 +77,20 @@ func GetRunningVms() ([]*models.Machine, error) {
 }
 
 func GetMachinesForUsername(username string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
 	machines := []*models.Machine{}
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"credential": username}).All(&machines)
+		return c.Find(
+			bson.M{"users.id": user.ObjectId, "users.sudo": true},
+		).All(&machines)
 	}
 
-	err := Mongo.Run(MachineColl, query)
+	err = Mongo.Run(MachineColl, query)
 	if err != nil {
 		return nil, err
 	}
