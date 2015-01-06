@@ -1,17 +1,17 @@
 package models
 
 import (
-	"fmt"
 	"socialapi/config"
 	"strconv"
 	"time"
 
 	"github.com/koding/logging"
-	"github.com/pubnub/go/messaging"
+	"github.com/koding/pubnub"
 )
 
-	pub   *messaging.Pubnub
 type PubNub struct {
+	pub   *pubnub.PubNubClient
+	grant *pubnub.AccessGrant
 	log   logging.Logger
 	token string
 }
@@ -21,25 +21,33 @@ const (
 	ServerId       = -1
 )
 
-	messaging.SetResumeOnReconnect(true)
-	messaging.SetSubscribeTimeout(3)
-	messaging.LoggingEnabled(true)
-	messaging.SetOrigin(conf.Origin)
 func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
 
-	// TODO we can use different pubnub connections for channel access grants and message publish
-	// library is signing all the messages which is not needed
-	// publishKey, subscribeKey, secretKey, cipher, ssl, uuid
-	pub := messaging.NewPubnub(conf.PublishKey, conf.SubscribeKey, conf.SecretKey, "", false, strconv.Itoa(ServerId))
-	pub.SetAuthenticationKey(conf.ServerAuthKey)
+	cs := NewClientSettings(conf)
+	cs.ID = strconv.Itoa(ServerId)
+	cs.Token = conf.ServerAuthKey
+	client := pubnub.NewPubNubClient(cs)
 
-		pub:   pub,
+	// when secretkey is used all the messages are signed.
+	// we only need to sign grant access messages
+	cs.SecretKey = conf.SecretKey
+	ag := pubnub.NewAccessGrant(pubnub.NewAccessGrantOptions(), cs)
+
 	pb := &PubNub{
+		pub:   client,
+		grant: ag,
 		log:   log,
 		token: conf.ServerAuthKey,
 	}
 
 	return pb
+}
+
+func NewClientSettings(conf config.Pubnub) *pubnub.ClientSettings {
+	return &pubnub.ClientSettings{
+		PublishKey:   conf.PublishKey,
+		SubscribeKey: conf.SubscribeKey,
+	}
 }
 
 func (p *PubNub) UpdateChannel(pm *PushMessage) error {
@@ -64,7 +72,7 @@ func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	return p.publish(pmc, pm)
 }
 
-func (p *Pubnub) grantServerAccess(c ChannelInterface) error {
+func (p *PubNub) grantServerAccess(c ChannelInterface) error {
 	a := &Authenticate{
 		Account: &Account{Id: ServerId, Token: p.token},
 		Channel: c,
@@ -73,8 +81,8 @@ func (p *Pubnub) grantServerAccess(c ChannelInterface) error {
 	return p.GrantAccess(a, c)
 }
 
-	p.pub.CloseExistingConnection()
 func (p *PubNub) Close() {
+	p.pub.Close()
 }
 
 func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
@@ -106,20 +114,23 @@ func (p *PubNub) Authenticate(a *Authenticate) error {
 	return a.Channel.GrantAccess(p, a)
 }
 
-// GrantAcess grants access for the channel with the given token. When token value is an
-// empty string it provides public access for the channel.
+// GrantAcess grants access for the channel with the given token.
 // TODO by default TTL is set to 0. Add TTL support later on
-	pr := NewPubnubRequest()
-	pr.log = p.log
-	channelName := c.PrepareName()
 func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
-
-	go pr.handlePublishResponse()
 	// read and write access can be optional later on.
-	// channel name, token, read access, write access, TTL, success channel, error channel
-	go p.pub.GrantSubscribe(channelName, a.Account.Token, true, true, 0, pr.successCh, pr.errorCh)
+	settings := &pubnub.AuthSettings{
+		ChannelName: c.PrepareName(),
+		CanRead:     true,
+		CanWrite:    true,
+		TTL:         0,
+		Token:       a.Account.Token,
+	}
 
-	return <-pr.done
+	return p.grant.Grant(settings)
+}
+
+	// read and write access can be optional later on.
+
 }
 
 func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
@@ -129,47 +140,6 @@ func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
 	return p.GrantAccess(a, c)
 }
 
-func (p *Pubnub) publish(c ChannelInterface, message interface{}) error {
-
-	pr := NewPubnubRequest()
-	pr.log = p.log
-
-	go pr.handlePublishResponse()
-
-	go p.pub.Publish(c.PrepareName(), message, pr.successCh, pr.errorCh)
-
-	return <-pr.done
-}
-
-/////////////////// PubnubRequest /////////////////////
-
-type PubnubRequest struct {
-	successCh chan []byte
-	errorCh   chan []byte
-	done      chan error
-	log       logging.Logger
-}
-
-func NewPubnubRequest() *PubnubRequest {
-	return &PubnubRequest{
-		successCh: make(chan []byte),
-		errorCh:   make(chan []byte),
-		done:      make(chan error),
-	}
-}
-
-func (pr *PubnubRequest) handlePublishResponse() {
-	for {
-		select {
-		case <-pr.successCh:
-			pr.done <- nil
-			return
-		case failure := <-pr.errorCh:
-			// TODO fix error response
-			pr.log.Error("Could not push message to pubnub: %v", string(failure))
-			return
-		case <-time.After(PublishTimeout):
-			pr.done <- fmt.Errorf("pubnub timeout")
-		}
-	}
+func (p *PubNub) publish(c ChannelInterface, message interface{}) error {
+	return p.pub.Push(c.PrepareName(), message)
 }
