@@ -57,7 +57,8 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
-
+  rack       = createSalt.rack 64
+  
   @share()
 
   @trait __dirname, '../../traits/flaggable'
@@ -577,7 +578,7 @@ Team Koding
 
 
   @createGuestUsername = (callback) ->
-    callback null, "guest-#{(require 'hat')(64)}"
+    callback null, "guest-#{rack()}"
 
 
   @fetchGuestUser = (callback)->
