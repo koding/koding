@@ -93,7 +93,7 @@ func initializeKlient(c *VmController) {
 
 	// initialize cloudwatch api client
 	// arguments are: key, secret, token, expiration
-	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", startingWeek)
+	auth, err = aws.GetAuth(AWS_KEY, AWS_SECRET, "", now.BeginningOfWeek())
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

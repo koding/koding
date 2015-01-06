@@ -18,8 +18,7 @@ var (
 
 	GB_TO_MB float64 = 1024
 
-	rightNow     = time.Now()
-	startingWeek = now.BeginningOfWeek()
+	rightNow = time.Now()
 
 	auth aws.Auth
 
@@ -79,7 +78,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 			Statistics: []string{cloudwatch.StatisticDatapointSum},
 			MetricName: c.GetName(),
 			EndTime:    time.Now(),
-			StartTime:  startingWeek,
+			StartTime:  now.BeginningOfWeek(),
 			Period:     AWS_PERIOD,
 			Namespace:  AWS_NAMESPACE,
 		}
