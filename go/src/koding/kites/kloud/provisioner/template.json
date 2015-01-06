@@ -1,0 +1,87 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+        "template_dir": "website/",
+        "bash_dir": "bash/",
+        "kodingart_dir": "kodingart/"
+    },
+    "builders": [
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-latest-{{timestamp}}",
+            "instance_type": "m3.medium",
+            "region": "us-east-1",
+            "source_ami": "ami-680fd500",
+            "subnet_id": "subnet-98d30fef",
+            "vpc_id": "vpc-bf65dada",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
+            "name": "north-virginia"
+        },
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-latest-{{timestamp}}",
+            "instance_type": "m3.medium",
+            "region": "eu-west-1",
+            "source_ami": "ami-c2c576b5",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
+            "name": "ireland"
+        },
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-latest-{{timestamp}}",
+            "instance_type": "m3.medium",
+            "region": "us-west-2",
+            "source_ami": "ami-3dc5910d",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
+            "name": "oregon"
+        },
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-latest-{{timestamp}}",
+            "instance_type": "m3.medium",
+            "region": "ap-southeast-1",
+            "source_ami": "ami-14be9846",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
+            "name": "singapore"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "script.sh",
+            "pause_before": "30s"
+        },
+        {
+            "type": "file",
+            "source": "{{user `template_dir`}}",
+            "destination": "/tmp/userdata/Web"
+        },
+        {
+            "type": "file",
+            "source": "{{user `bash_dir`}}",
+            "destination": "/tmp/userdata/bash"
+        },
+        {
+            "type": "file",
+            "source": "{{user `kodingart_dir`}}",
+            "destination": "/tmp/userdata/kodingart"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
+                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
+                "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
+            ]
+        }
+    ]
+}
