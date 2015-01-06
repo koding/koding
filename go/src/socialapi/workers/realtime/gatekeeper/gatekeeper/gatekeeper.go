@@ -88,13 +88,10 @@ func (h *Handler) SubscribeMessage(u *url.URL, header http.Header, um *models.Up
 func responseWithCookie(req interface{}, token string) (int, http.Header, interface{}, error) {
 	expires := time.Now().AddDate(5, 0, 0)
 	cookie := &http.Cookie{
-		Name:       "realtimeToken",
-		Value:      token,
-		Path:       "/",
-		Expires:    expires,
-		RawExpires: expires.Format(time.UnixDate),
-		Raw:        "realtimeToken=" + token,
-		Unparsed:   []string{"realtimeToken=" + token},
+		Name:    "realtimeToken",
+		Value:   token,
+		Path:    "/",
+		Expires: expires,
 	}
 
 	return response.NewOKWithCookie(req, []*http.Cookie{cookie})
