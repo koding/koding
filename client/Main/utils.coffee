@@ -54,7 +54,7 @@ utils.extend utils,
 
   proxifyTransportUrl: (url)->
 
-    return url  if /proxy.koding.com/.test url
+    return url  if /p.koding.com/.test url
 
     # let's use DOM for parsing the url
     parser = document.createElement("a")
@@ -67,14 +67,14 @@ utils.extend utils,
     #      http://localhost:8090/-/userproxy/54.164.243.111/kite
 
     proxy = {
-      dev        : 'devproxy'
-      production : 'prodproxy'
-      sandbox    : 'sandboxproxy'
-    }[KD.config.environment] or 'devproxy'
+      dev        : 'dev-vm'
+      production : 'prod-vm'
+      sandbox    : 'sandbox-vm'
+    }[KD.config.environment] or 'dev-vm'
 
     {protocol} = document.location
 
-    return "#{protocol}//proxy.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+    return "#{protocol}//p.koding.com/-/#{proxy}/#{parser.hostname}/kite"
 
 
   applyMarkdown: (text, options = {})->
@@ -87,6 +87,8 @@ utils.extend utils,
     options.pedantic  ?= false
     options.sanitize  ?= true
     options.breaks    ?= true
+    options.paragraphs?= true
+    options.tables    ?= true
     options.highlight ?= (text, lang) ->
       if hljs.getLanguage lang
       then hljs.highlight(lang,text).value
@@ -354,7 +356,6 @@ utils.extend utils,
 
   warnAndLog: (msg, params)->
     warn msg, params
-    ErrorLog.create msg, params
 
   # Version Compare
   # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee

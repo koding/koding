@@ -57,7 +57,8 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
-
+  rack       = createSalt.rack 64
+  
   @share()
 
   @trait __dirname, '../../traits/flaggable'
@@ -187,10 +188,15 @@ module.exports = class JUser extends jraphical.Module
 
   @unregister = secure (client, toBeDeletedUsername, callback) ->
     {delegate} = client.connection
-
+    
+    console.log "#{delegate.profile.nickname} requested to delete: #{toBeDeletedUsername}"
+    
     # deleter should be registered one
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
+
+    if toBeDeletedUsername is "guestuser"
+      return callback createKodingError "It's not allowed to delete this user!"
 
     # only owner and the dummy admins can delete a user
     unless toBeDeletedUsername is delegate.profile.nickname or
@@ -572,7 +578,7 @@ Team Koding
 
 
   @createGuestUsername = (callback) ->
-    callback null, "guest-#{(require 'hat')(64)}"
+    callback null, "guest-#{rack()}"
 
 
   @fetchGuestUser = (callback)->
