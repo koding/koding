@@ -62,14 +62,14 @@ func (k *Kontrol) handleRegister(r *kite.Request) (interface{}, error) {
 			case <-ping:
 				k.log.Debug("Kite is active, got a ping %s", remote.Kite)
 				every.Do(func() {
-					k.log.Info("Kite is active, updating the value %s", remote.Kite)
+					k.log.Debug("Kite is active, updating the value %s", remote.Kite)
 					err := k.storage.Update(&remote.Kite, value)
 					if err != nil {
 						k.log.Error("storage update '%s' error: %s", remote.Kite, err)
 					}
 				})
 			case <-time.After(HeartbeatInterval + HeartbeatDelay):
-				k.log.Info("Kite didn't sent any heartbeat %s.", remote.Kite)
+				k.log.Debug("Kite didn't sent any heartbeat %s.", remote.Kite)
 				every.Stop()
 				closed = true
 				return
