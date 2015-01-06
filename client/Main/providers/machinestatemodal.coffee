@@ -73,7 +73,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @state = status
 
       if error?.length > 0
-        if /NetworkOutLimit/i.test event.message
+        if /NetworkOut overlimit/i.test event.message
           @customErrorMessage = """
             <p>You've reached your outbound network usage limit for this week.</p>
             <span>Please upgrade your <a href="/Pricing">plan</a> or <span
