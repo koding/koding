@@ -118,3 +118,20 @@ func (c *Controller) GrantMessagePublicAccess(um *models.UpdateInstanceMessage) 
 	return c.Pubnub.GrantPublicAccess(muc)
 }
 
+func (c *Controller) RevokeChannelAccess(rca *models.RevokeChannelAccess) error {
+	channel := models.Channel{
+		Token: rca.ChannelToken,
+	}
+	pmc := models.NewPrivateMessageChannel(channel)
+
+	for _, token := range rca.Tokens {
+		a := &models.Authenticate{
+			Account: &models.Account{Token: token},
+		}
+		if err := c.Pubnub.RevokeAccess(a, pmc); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

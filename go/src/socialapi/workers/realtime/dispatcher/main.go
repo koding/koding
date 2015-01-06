@@ -39,6 +39,7 @@ func main() {
 	r.ListenFor("dispatcher_message_updated", (*dispatcher.Controller).UpdateMessage)
 	r.ListenFor("dispatcher_notify_user", (*dispatcher.Controller).NotifyUser)
 	r.ListenFor("api.channel_message_created", (*dispatcher.Controller).GrantMessagePublicAccess)
+	r.ListenFor("event.channel_participant_removed_from_channel", (*dispatcher.Controller).RevokeChannelAccess)
 	r.Listen()
 
 	r.Wait()
