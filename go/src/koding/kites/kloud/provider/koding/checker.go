@@ -2,6 +2,7 @@ package koding
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -104,7 +105,7 @@ func (p *PlanChecker) NetworkUsage() error {
 	if resp.StatusCode != 200 {
 		p.Log.Debug("[%s] Network-usage response code is not 200. It's %v",
 			p.Machine.Id, resp.StatusCode)
-		return err
+		return errors.New("Network-usage response code is not 200")
 	}
 
 	var usageResponse *networkUsageResponse
