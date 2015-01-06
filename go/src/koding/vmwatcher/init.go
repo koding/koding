@@ -28,7 +28,7 @@ var (
 
 	controller *VmController
 
-	Log = helper.CreateLogger(WorkerName, false)
+	Log = helper.CreateLogger(WorkerName, true)
 )
 
 func initialize() {
@@ -76,7 +76,7 @@ func saveExemptUsers() {
 		}
 	}
 
-	Log.Info("Saved: %v users as exempt", len(ExemptUsers))
+	Log.Debug("Saved: %v users as exempt", len(ExemptUsers))
 }
 
 func saveLimitsUnlessExists() {

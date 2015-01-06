@@ -43,7 +43,7 @@ func checkerHTTP(w http.ResponseWriter, r *http.Request) {
 	var username = account.Profile.Nickname
 	var response = checker(username)
 
-	Log.Info(
+	Log.Debug(
 		"Returning response#canStart: %v, response#current_usage:%v for username: %v",
 		response.CanStart, response.CurrentUsage, username,
 	)

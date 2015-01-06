@@ -94,7 +94,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 		}
 	}
 
-	Log.Info("'%s' has used: %v '%s'", username, sum, c.Name)
+	Log.Debug("'%s' has used: %v '%s'", username, sum, c.Name)
 
 	return storage.Save(c.Name, username, sum)
 }

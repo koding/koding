@@ -109,8 +109,6 @@ func (r *RedisStorage) GetLimit(prefix string, defaultLimit float64) (float64, e
 		return defaultLimit, nil
 	}
 
-	Log.Info("Limit: %v for metric: %s", existingLimit, prefix)
-
 	return existingLimit, nil
 }
 
@@ -121,7 +119,7 @@ func (r *RedisStorage) SaveLimitUnlessExists(prefix string, limit float64) error
 	}
 
 	if isRedisRecordNil(err) {
-		Log.Info("No limit for metric: %s setting to default: %v", prefix, limit)
+		Log.Debug("No limit for metric: %s setting to default: %v", prefix, limit)
 
 		err := r.Client.Set(r.LimitKey(prefix), fmt.Sprintf("%v", limit))
 		if err != nil {
