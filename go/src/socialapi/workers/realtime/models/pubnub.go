@@ -129,8 +129,17 @@ func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 	return p.grant.Grant(settings)
 }
 
+func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
 	// read and write access can be optional later on.
+	settings := &pubnub.AuthSettings{
+		ChannelName: c.PrepareName(),
+		CanRead:     false,
+		CanWrite:    false,
+		TTL:         -1,
+		Token:       a.Account.Token,
+	}
 
+	return p.grant.Grant(settings)
 }
 
 func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
