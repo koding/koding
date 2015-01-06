@@ -29,8 +29,11 @@ do ->
 
     kallback = (workspaces) ->
 
+      for machine in KD.userMachines when machine.slug is machineLabel
+        machineUId = machine.uid
+
       for workspace in workspaces
-        continue  unless workspace.machineLabel is machineLabel
+        continue  unless workspace.machineUId is machineUId
         continue  unless workspace.slug is workspaceSlug
 
         return callback workspace

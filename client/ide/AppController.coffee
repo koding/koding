@@ -448,10 +448,10 @@ class IDEAppController extends AppController
 
       if rootPath and not isDefault
         path = rootPath
-    
+
     # options can be an Event instance if the initiator is
     # a shortcut, and that can have a `path` property
-    # which is an Array. This check is to make sure that the 
+    # which is an Array. This check is to make sure that the
     # `path` is always the one we send explicitly here - SY
     path = null  unless typeof path is 'string'
 
