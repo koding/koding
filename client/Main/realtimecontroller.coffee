@@ -130,6 +130,9 @@ class RealtimeController extends KDController
       return callback err  if err
 
       realtimeToken = Cookies.get("realtimeToken")
+
+      return callback { message : 'Could not find realtime token'}  unless realtimeToken
+
       @pubnub.auth realtimeToken
 
       channelInstance = new PubnubChannel name: pubnubChannelName
