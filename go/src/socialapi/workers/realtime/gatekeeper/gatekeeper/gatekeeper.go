@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"socialapi/workers/common/handler"
@@ -127,13 +126,8 @@ func checkParticipation(u *url.URL, header http.Header, cr *models.Channel) (*mo
 		return nil, fmt.Errorf(resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	var cpr models.CheckParticipationResponse
-	err = json.Unmarshal(body, &cpr)
+	err = json.NewDecoder(resp.Body).Decode(&cpr)
 	if err != nil {
 		return nil, err
 	}
@@ -160,13 +154,8 @@ func getAccountInfo(u *url.URL, header http.Header) (*models.Account, error) {
 		return nil, fmt.Errorf(resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	var a models.Account
-	err = json.Unmarshal(body, &a)
+	err = json.NewDecoder(resp.Body).Decode(&a)
 	if err != nil {
 		return nil, err
 	}
