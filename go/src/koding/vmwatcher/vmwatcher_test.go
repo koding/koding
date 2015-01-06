@@ -52,7 +52,8 @@ func TestOverlimitMachines(t *testing.T) {
 			err := queueUsernamesForMetricGet()
 			So(err, ShouldBeNil)
 
-			usernames, err := redisStorage.Client.GetSetMembers(redisStorage.QueueKey(NetworkOut))
+			redisClient := controller.Redis.Client
+			usernames, err := redisClient.GetSetMembers(controller.Redis.QueueKey(NetworkOut))
 			So(err, ShouldBeNil)
 
 			So(len(usernames), ShouldEqual, 1)
@@ -102,8 +103,10 @@ func TestStoppingMachines(t *testing.T) {
 
 func insertRunningMachine() (*models.Machine, error) {
 	machine := &models.Machine{
-		ObjectId:   bson.NewObjectId(),
-		Meta:       bson.M{"instance_id": magicInstanceId, "region": usEastRegion},
+		ObjectId: bson.NewObjectId(),
+		Meta: models.MachineMeta{
+			InstanceId: magicInstanceId, Region: usEastRegion,
+		},
 		Credential: testUsername,
 	}
 
