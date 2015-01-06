@@ -26,8 +26,8 @@ func NewBroker(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Broker, error) {
 	}, nil
 }
 
-func (b *Broker) Push(pm *PushMessage) error {
-	//convert data into json message
+func (b *Broker) UpdateChannel(pm *PushMessage) error {
+	// convert data into json message
 	byteMessage, err := json.Marshal(pm.Body)
 	if err != nil {
 		return err

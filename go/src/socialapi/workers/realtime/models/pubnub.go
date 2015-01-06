@@ -42,7 +42,7 @@ func NewPubnub(conf config.Pubnub, log logging.Logger) *Pubnub {
 	return pb
 }
 
-func (p *Pubnub) Push(pm *PushMessage) error {
+func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	pmc := NewPrivateMessageChannel(*pm.Channel)
 
 	pm.Channel.SecretNames = []string{}

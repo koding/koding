@@ -48,12 +48,12 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 
 	// TODO later on Pubnub needs its own queue
 	go func() {
-		if err := c.Pubnub.Push(pm); err != nil {
+		if err := c.Pubnub.UpdateChannel(pm); err != nil {
 			c.logger.Error("Could not push update channel message to pubnub: %s", err)
 		}
 	}()
 
-	return c.Broker.Push(pm)
+	return c.Broker.UpdateChannel(pm)
 }
 
 func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
