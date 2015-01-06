@@ -57,6 +57,7 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
+  rack       = createSalt.rack 64
 
   @share()
 
@@ -572,9 +573,6 @@ Team Koding
 
 
   @createGuestUsername = (callback) ->
-
-    hat   = require 'hat'
-    rack  = hat.rack 64
 
     callback null, "guest-#{rack()}"
 
