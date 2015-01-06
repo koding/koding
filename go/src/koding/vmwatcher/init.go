@@ -6,6 +6,7 @@ import (
 	"socialapi/workers/helper"
 	"time"
 
+	"github.com/jinzhu/now"
 	kiteConfig "github.com/koding/kite/config"
 
 	"github.com/crowdmob/goamz/aws"
@@ -45,6 +46,9 @@ func init() {
 	// save defaults
 	saveExemptUsers()
 	saveLimitsUnlessExists()
+
+	// pkg default is sunday, use monday instead
+	now.FirstDayMonday = true
 }
 
 func initializeRedis(c *VmController) {
