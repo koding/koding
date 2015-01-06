@@ -11,7 +11,7 @@
             "access_key": "{{user `aws_access_key`}}",
             "secret_key": "{{user `aws_secret_key`}}",
             "ami_name": "koding-base-latest-{{timestamp}}",
-	    "ami_description":"Koding Base Image",
+            "ami_description":"Koding Base Image",
             "instance_type": "m3.medium",
             "region": "us-east-1",
             "source_ami": "ami-680fd500",
@@ -19,11 +19,14 @@
             "vpc_id": "vpc-bf65dada",
             "ssh_username": "ubuntu",
             "type": "amazon-ebs",
-	    "ami_regions": [
+            "ami_regions": [
 		    "eu-west-1", 
 		    "us-west-2", 
 		    "ap-southeast-1"
-	    ]
+	    ],
+	    "tags": {
+	      "Name": "koding-test"
+	    }
         }
     ],
     "provisioners": [
