@@ -51,3 +51,9 @@ type Account struct {
 	Nickname string `json:"nick"`
 	Token    string `json:"token"`
 }
+
+type RevokeChannelAccess struct {
+	Id           int64    `json:"id,string"`
+	Tokens       []string `json:"tokens"`
+	ChannelToken string   `json:"channelToken"`
+}
