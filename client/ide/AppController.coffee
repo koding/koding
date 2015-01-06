@@ -1501,10 +1501,10 @@ class IDEAppController extends AppController
 
   setMachineUser: (accounts, share = yes, callback = noop) ->
 
-    return  unless @mountedMachine.jMachine.credential is KD.nick()
-
     usernames = accounts.map (account) -> account.profile.nickname
-    usernames = usernames.filter (username) -> username isnt KD.nick()
+
+    if @amIHost
+      usernames = usernames.filter (username) -> username isnt KD.nick()
 
     return  unless usernames.length
 
@@ -1570,7 +1570,7 @@ class IDEAppController extends AppController
 
       when 'ParticipantWantsToLeave'
 
-        @unshareMachineAndKlient data.origin  if @amIHost
+        @statusBar.removeParticipantAvatar origin
 
       when 'ParticipantKicked'
 
@@ -1644,11 +1644,14 @@ class IDEAppController extends AppController
 
     @showModal options, =>
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
-      @removeMachineNode()
       @modal.destroy()
       @rtm = null
-      KD.singletons.socialapi.channel.leave channelId: @socialChannel.getId()
-      KD.singletons.router.handleRoute '/IDE'
+
+      options = channelId: @socialChannel.getId()
+      KD.singletons.socialapi.channel.leave options, (err) =>
+        return KD.showError err  if err
+        @setMachineUser [KD.whoami()], no, ->
+          KD.singletons.router.handleRoute '/IDE'
 
 
   removeMachineNode: ->
