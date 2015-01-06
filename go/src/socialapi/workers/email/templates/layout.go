@@ -6,7 +6,7 @@ const Layout = `
 	  <meta charset="UTF-8">
 	  <title>[Koding] {{.Title}}</title>
 	</head>
-	<body style="color: #656565; margin: 0; font-family: Helvetica, sans-serif;">
+	<body style="color: #656565; margin: 0; font-family: 'HelveticaNeue-Light', 'Helvetica Neue Light', Helvetica, Arial, 'Lucida Grande', sans-serif;">
 		<style>
       a {
         text-decoration: none;
@@ -24,7 +24,7 @@ const Layout = `
           </a>
         </div>
         <p style="padding: 22px 0 28px; margin: 0; font-size: 14px; letter-spacing: 0.02em">
-          <span style="font-size: 18px; color: #52A840; font-weight: bold; margin-bottom:7px; display: block">
+          <span style="color: #52A840; font-weight: bold; margin-bottom:7px; display: block">
             Hey {{.FirstName}},
           </span>
           {{.Information}}
@@ -34,7 +34,7 @@ const Layout = `
 
 
         <!-- FOOTER -->
-        <div class="footer" style="font-size: 10px; color: #9A9A9A; line-height: 15px; margin: 21px 0 0 0;">
+        <div class="footer" style="font-size: 12px; color: #9A9A9A; line-height: 15px; margin: 29px 0 0 0;">
           {{if .ShowLink }}
             Unsubscribe from <a href="{{.Hostname}}/Unsubscribe/{{.Token}}/{{.RecipientEmail}}" style="color: #61B351; font-weight: bold; text-decoration: none;">{{.ContentType}}</a> notifications /
           {{end}}
@@ -44,7 +44,7 @@ const Layout = `
 
         <div style="height: 2px; background: #EAEAEA; margin: 29px 0 41px 0;"></div>
 
-        <div style="text-align: center; font-size: 12px; color: #9A9A9A; line-height: 24px;">
+        <div style="text-align: center; font-size: 12px; color: #9A9A9A; line-height: 16px;">
           <a href="{{.Hostname}}" style="color: #9A9A9A; text-decoration: none;" title="Koding.com">Koding, Inc</a>
           •
           <a href="https://twitter.com/koding" title="Twitter" style="color: #9A9A9A; text-decoration: none;" title="Follow us on Twitter">
