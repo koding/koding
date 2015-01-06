@@ -31,7 +31,7 @@ var (
 	Log = helper.CreateLogger(WorkerName, false)
 )
 
-func init() {
+func initialize() {
 	Log.Info("Starting...")
 
 	controller = &VmController{}

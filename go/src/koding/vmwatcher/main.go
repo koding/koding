@@ -30,6 +30,8 @@ var (
 )
 
 func main() {
+	initialize()
+
 	startTime := time.Now()
 	defer func() {
 		Log.Info("Exited...ran for: %s", time.Since(startTime))

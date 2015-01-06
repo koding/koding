@@ -17,6 +17,10 @@ var (
 	usEastRegion    = "us-east-1"
 )
 
+func init() {
+	initialize()
+}
+
 func TestRunningMachine(t *testing.T) {
 	var machine *models.Machine
 
