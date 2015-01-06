@@ -20,7 +20,7 @@ func CreateCustomer(accId string) (*paymentmodels.Customer, error) {
 	customerModel := &paymentmodels.Customer{
 		OldId:              accId,
 		ProviderCustomerId: accId,
-		Provider:           ProviderName,
+		Provider:           PROVIDER_NAME,
 		Username:           username,
 	}
 
