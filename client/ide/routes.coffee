@@ -216,6 +216,7 @@ do ->
     '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
 
       {params} = routeInfo
+      {machineLabel} = params
 
       refreshWorkspaces ->
 
@@ -225,4 +226,8 @@ do ->
 
           if workspace
           then loadWorkspace params, workspace
-          else routeToLatestWorkspace {params}
+          else
+            for machine in KD.userMachines when machine.label is machineLabel
+              return loadWorkspace params
+
+            routeToLatestWorkspace {params}
