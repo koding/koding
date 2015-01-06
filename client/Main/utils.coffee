@@ -67,10 +67,10 @@ utils.extend utils,
     #      http://localhost:8090/-/userproxy/54.164.243.111/kite
 
     proxy = {
-      dev        : 'devproxy'
-      production : 'prodproxy'
-      sandbox    : 'sandboxproxy'
-    }[KD.config.environment] or 'devproxy'
+      dev        : 'dev-vm'
+      production : 'prod-vm'
+      sandbox    : 'sandbox-vm'
+    }[KD.config.environment] or 'dev-vm'
 
     {protocol} = document.location
 
