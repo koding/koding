@@ -111,3 +111,10 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 
 	return c.Broker.NotifyUser(nm)
 }
+
+func (c *Controller) GrantMessagePublicAccess(um *models.UpdateInstanceMessage) error {
+	muc := models.NewMessageUpdateChannel(*um)
+
+	return c.Pubnub.GrantPublicAccess(muc)
+}
+
