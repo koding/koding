@@ -257,18 +257,18 @@ type PaypalWebhook struct {
 	PayerId         string `json:"payer_id"`
 }
 
-var PaypalActionCancel = "cancel"
+var PaypalActionExpire = "cancel"
 
 var PaypalStatusActionMap = map[string]string{
-	"Denied":   PaypalActionCancel,
-	"Expired":  PaypalActionCancel,
-	"Failed":   PaypalActionCancel,
-	"Reversed": PaypalActionCancel,
-	"Voided":   PaypalActionCancel,
+	"Denied":   PaypalActionExpire,
+	"Expired":  PaypalActionExpire,
+	"Failed":   PaypalActionExpire,
+	"Reversed": PaypalActionExpire,
+	"Voided":   PaypalActionExpire,
 }
 
 var PaypalTransactionActionMap = map[string]string{
-	"recurring_payment_profile_cancel": PaypalActionCancel,
+	"recurring_payment_profile_cancel": PaypalActionExpire,
 }
 
 func (p *PaypalWebhook) Do() (interface{}, error) {
@@ -283,8 +283,8 @@ func (p *PaypalWebhook) Do() (interface{}, error) {
 	var err error
 
 	switch action {
-	case PaypalActionCancel:
-		err = paypal.CancelSubscription(p.PayerId)
+	case PaypalActionExpire:
+		err = paypal.ExpireSubscription(p.PayerId)
 	}
 
 	return nil, err
