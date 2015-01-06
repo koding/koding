@@ -9,6 +9,7 @@ import (
 	"github.com/crowdmob/goamz/aws"
 	"github.com/crowdmob/goamz/cloudwatch"
 	"github.com/jinzhu/now"
+	"github.com/koding/redis"
 )
 
 var (
@@ -173,5 +174,5 @@ func (c *Cloudwatch) RemoveUsername(username string) error {
 }
 
 func isRedisRecordNil(err error) bool {
-	return err != nil && err.Error() == "redigo: nil returned"
+	return err != nil && err != redis.ErrNil
 }
