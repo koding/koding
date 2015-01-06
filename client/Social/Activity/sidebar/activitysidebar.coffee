@@ -555,7 +555,7 @@ class ActivitySidebar extends KDCustomHTMLView
             else
               return
 
-          unless workspace.isDefault
+          if not workspace.isDefault or workspace.slug isnt 'my-workspace'
             title += "<span class='ws-settings-icon'></span>"
 
           treeData.push

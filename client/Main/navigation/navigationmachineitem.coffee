@@ -28,7 +28,10 @@ class NavigationMachineItem extends JView
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
       href             : KD.utils.groupifyLink ideRoute
-      title            : "Open IDE for #{@alias} (shared by @#{Encoder.htmlDecode machineOwner})"
+      title            : "Open IDE for #{@alias}"
+
+    unless machineOwner is KD.nick()
+      options.attributes.href += " (shared by @#{Encoder.htmlDecode machineOwner})"
 
     super options, data
 
