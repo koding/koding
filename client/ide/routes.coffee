@@ -131,18 +131,21 @@ do ->
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
 
     machineLabel    = machine.slug or machine.label
+    workspace       = null
     workspaceSlug   = 'my-workspace'
     username        = machine.data.credential
 
     if latestWorkspace and latestWorkspace.machineLabel is machineLabel
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
+        workspace       = ws
         {workspaceSlug} = latestWorkspace
 
-    if workspaceSlug is 'my-workspace'
-      loadWorkspace {machineLabel, workspaceSlug, username}
-
-    KD.utils.defer ->
-      KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+    if username is KD.nick()
+    then loadWorkspace {machineLabel, workspaceSlug, username}, workspace
+    else
+      path = workspace.channelId or "#{machineLabel}/#{workspaceSlug}"
+      KD.utils.defer ->
+        KD.getSingleton('router').handleRoute "/IDE/#{path}"
 
 
   routeToLatestWorkspace = (options = {}) ->
