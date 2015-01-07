@@ -715,27 +715,31 @@ Team Koding
               userInfo  : {username, email, firstName, lastName}
             }
 
-  @validateAll = (userFormData, callback) =>
 
-    validate = require './validators'
+  @validateAll = (userFormData, callback)=>
 
-    isError = no
-    errors = {}
+    validator  = require './validators'
 
-    queue = Object.keys(userFormData).map (field) => =>
-      if field of validate
-        validate[field].call this, userFormData, (err) =>
-          if err?
-            errors[field] = err
-            isError = yes
-          queue.fin()
-      else queue.fin()
+    isError    = no
+    errors     = {}
+    queue      = []
 
-    dash queue, -> callback(
-      if isError
-      then { message: "Errors were encountered during validation", errors }
+    (key for key of validator).forEach (field)=>
+
+      queue.push => validator[field].call this, userFormData, (err)->
+
+        if err?
+          errors[field] = err
+          isError = yes
+
+        queue.fin()
+
+    dash queue, ->
+
+      callback if isError
+        { message: "Errors were encountered during validation", errors }
       else null
-    )
+
 
   @changePasswordByUsername = (username, password, callback) ->
     salt = createSalt()
@@ -798,11 +802,8 @@ Team Koding
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
-    console.log "Client IP during registration:", clientIP
-
     if clientIP
       { ip, country, region } = Regions.findLocation clientIP
-      console.log "Found region:", {country, region}
 
     newToken       = null
     invite         = null
