@@ -132,6 +132,6 @@ func popMachinesForMetricGet(metricName string) ([]*models.Machine, error) {
 	return machines, nil
 }
 
-func getRunningVms() ([]*models.Machine, error) {
+func getRunningVms() ([]models.Machine, error) {
 	return modelhelper.GetRunningVms()
 }

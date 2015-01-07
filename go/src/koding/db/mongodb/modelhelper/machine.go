@@ -54,13 +54,13 @@ var (
 	VmRunningState = "Running"
 )
 
-func GetRunningVms() ([]*models.Machine, error) {
-	machines := []*models.Machine{}
+func GetRunningVms() ([]models.Machine, error) {
+	machines := []models.Machine{}
 
 	query := func(c *mgo.Collection) error {
 		iter := c.Find(bson.M{"status.state": VmRunningState}).Iter()
 
-		var machine *models.Machine
+		var machine models.Machine
 		for iter.Next(&machine) {
 			machines = append(machines, machine)
 		}
