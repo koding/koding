@@ -29,8 +29,9 @@ do ->
 
     kallback = (workspaces) ->
 
-      for machine in KD.userMachines when machine.slug is machineLabel
-        machineUId = machine.uid
+      for machine in KD.userMachines \
+        when (machine.slug or machine.label) is machineLabel
+          machineUId = machine.uid
 
       for workspace in workspaces
         continue  unless workspace.machineUId is machineUId
