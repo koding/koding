@@ -10,9 +10,9 @@ import (
 
 type LimitResponse struct {
 	CanStart     bool    `json:"canStart"`
+	Reason       string  `json:"reason,omitempty"`
 	CurrentUsage float64 `json:"currentUsage,omitempty"`
 	AllowedUsage float64 `json:"allowedUsage,omitempty"`
-	Reason       string  `json:"reason,omitempty"`
 }
 
 type ErrorResponse struct {
