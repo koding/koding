@@ -120,7 +120,7 @@ func (p *PlanChecker) NetworkUsage() error {
 		p.Log.Debug("[%s] Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
 			p.Machine.Id, usageResponse.AllowedUsage, usageResponse.CurrentUsage)
 
-		err := fmt.Errorf("%s; allowed: %d, current: %d",
+		err := fmt.Errorf("%s; allowed: %v, current: %v",
 			usageResponse.Reason, usageResponse.AllowedUsage,
 			usageResponse.CurrentUsage,
 		)
