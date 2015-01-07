@@ -37,11 +37,11 @@ bootcmd:
 users:
   - default
   - name: '{{.Username}}'
-    groups: sudo
+    lock_passwd: True
+    gecos: Koding
+    groups: docker,sudo
+    sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     shell: /bin/bash
-    gecos: koding user
-    lock-password: true
-    sudo: ALL=(ALL) NOPASSWD:ALL
 
 {{ user_keys .UserSSHKeys }}
 
