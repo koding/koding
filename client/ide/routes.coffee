@@ -153,8 +153,11 @@ do ->
     # we assume that if machineLabel is all numbers it is the channelId - SY
     return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
 
-    machine = KD.userMachines.first
-    return putVMInWorkspace machine  if machine
+    localStorage   = KD.getSingleton("localStorageController").storage "IDE"
+    {machineLabel} = localStorage.getValue 'LatestWorkspace'
+
+    machine = m for m in KD.userMachines when m.label is machineLabel
+    return putVMInWorkspace (machine or KD.userMachines.first)
 
     KD.singletons.computeController.fetchMachines (err, machines)->
 
