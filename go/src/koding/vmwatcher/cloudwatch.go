@@ -62,13 +62,13 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 
 		region, ok := meta["region"].(string)
 		if !ok || isEmpty(region) {
-			Log.Error("queued machine has no `region`", machine.ObjectId)
+			Log.Error("queued machine has no `region`: %v", machine.ObjectId)
 			continue
 		}
 
-		instanceId, ok := meta["instance_id"].(string)
+		instanceId, ok := meta["instanceId"].(string)
 		if !ok || isEmpty(instanceId) {
-			Log.Error("queued machine has no `instanceId`", machine.ObjectId)
+			Log.Error("queued machine has no `instanceId`: %v", machine.ObjectId)
 			continue
 		}
 
@@ -183,5 +183,5 @@ func (c *Cloudwatch) RemoveUsername(username string) error {
 }
 
 func isRedisRecordNil(err error) bool {
-	return err != nil && err != redis.ErrNil
+	return err != nil && err == redis.ErrNil
 }
