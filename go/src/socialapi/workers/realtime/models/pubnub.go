@@ -26,6 +26,7 @@ func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
 	cs := NewClientSettings(conf)
 	cs.ID = strconv.Itoa(ServerId)
 	client := pubnub.NewPubNubClient(cs)
+	client.SetAuthToken(conf.ServerAuthKey)
 
 	// when secretkey is used all the messages are signed.
 	// we only need to sign grant access messages
@@ -52,9 +53,9 @@ func NewClientSettings(conf config.Pubnub) *pubnub.ClientSettings {
 func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	pmc := NewPrivateMessageChannel(*pm.Channel)
 
-	pm.Channel.SecretNames = []string{}
+	// TODO do not send these secret names
+	// pm.Channel.SecretNames = []string{}
 
-	// TODO channel access must be granted with channel creation
 	// channel grant public access for public channels
 	typeConstant := pmc.Type
 	if typeConstant == "privatemessage" || typeConstant == "pinnedactivity" {
@@ -87,7 +88,6 @@ func (p *PubNub) Close() {
 func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 	mc := NewMessageUpdateChannel(*um)
 
-	// TODO grant access when the message is created instead of here
 	if err := p.GrantPublicAccess(mc); err != nil {
 		return err
 	}
