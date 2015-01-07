@@ -1,0 +1,640 @@
+@import "lib/core.fn"
+
+html
+body
+  height                100%
+
+body
+  font-weight           400
+  font-family           OpenSansFamily
+  font-size             16px
+
+.kdview
+  overflow              visible
+
+#main-tab-view.kdscrollview
+  overflow              visible
+
+header.main-header
+  size                  100%, 78px
+  line-height           78px
+  abs                   0px 0 0 0px
+  z-index               5
+  padding               0 45px 0 34px
+  borderBox()
+
+  a.logo
+    display             inline-block
+    size                23px, 21px
+    background          url(imagePath 'logo.svg') no-repeat center left
+
+  nav
+    fr()
+
+  nav a
+    color               #fff
+    font-weight         300
+    line-height         22px
+    letter-spacing      .5px
+    margin-left         14px
+    noTextDeco()
+
+
+.subscribe-form-wrapper
+  width                 372px
+  margin                51px auto 14px
+  font-weight           400
+  text-align            center
+
+  .input-wrapper
+    margin-bottom       0 !important
+
+  .formline.description
+    line-height         22px
+    color               #A1A1A1
+    margin-bottom       16px
+
+  .formline.email
+    padding             0
+    margin              0
+    width               270px
+    fl()
+
+  .formline.thankyou
+    font-size           22px
+    line-height         28px
+    font-weight         300
+    color               #fff
+
+  .kdinput.email
+    display             block
+    size                100%, auto
+    padding             9px
+    line-height         22px
+    border              1px solid #585858
+    outline             none
+    shadow              none
+    text-align          center
+    background          #282828
+    rounded             4px
+    font-size           16px
+    color               #fff
+    borderBox()
+
+  .formline.button-field
+    border              none
+    padding             0
+    margin              0
+    width               96px
+    fr()
+
+  .kdbutton
+    width               100%
+    height              42px
+    display             block
+    background          #F7E747
+    line-height         43px
+    text-align          center
+    padding             0
+    border              none
+    outline             none
+    rounded             4px
+    font-size           14px
+    font-weight         600
+    color               #333331
+
+    .kdloader
+      left              0 !important
+      top               0 !important
+      line-height       42px !important
+
+      canvas
+        vertical-align  middle
+
+
+
+.content-page.results > section
+  position              relative
+  z-index               2
+
+.inner-container
+  max-width             1155px
+  margin                0 auto
+  padding               0 45px
+  border-top            1px solid transparent
+
+.std-section
+  padding-bottom        88px
+
+  &:nth-of-type(2n + 1)
+    background          #fafafa
+
+  .section-title
+    display             block
+    font-size           34px
+    line-height         46px
+    text-align          center
+    font-weight         300
+    margin              48px 0 54px
+    color               #384651
+
+.content-page.results section.intro
+  padding               104px 0 150px
+  overflow              hidden
+  color                 #fff
+  text-align            center
+
+  &:before
+    content             ''
+    z-index             -3
+    min-width           100%
+    min-height          100%
+    size                auto auto
+    background          url(imagePath 'space.jpg') #000 no-repeat top center
+    bg                  size, cover
+    abs                 0px 0px 0 0
+
+  &:after
+    content             ''
+    z-index             -1
+    min-width           100%
+    min-height          100%
+    size                auto auto
+    background          rgba(43, 43, 43, .8)
+    bg                  size, cover
+    abs                 0px 0px 0 0
+
+  #bgVideo
+    z-index             -2
+    min-width           100%
+    min-height          100%
+    size                auto auto
+    bg                  color black
+    bg                  size cover
+    abs                 0px 0px 0 0
+    opacity             0.001
+    vendor              transition, opacity .5s ease
+
+    &.in
+      opacity           1
+
+  .cup-figure
+    r-sprite            'home', 'cup-icon'
+    margin              0 auto
+
+  h1
+    font-size           36px
+    font-weight         300
+    letter-spacing      4.63px
+    line-height         49px
+    margin-bottom       -4px
+
+  h2
+    font-size           38px
+    font-weight         600
+    letter-spacing      14.11px
+    line-height         52px
+
+.content-page.results section.results
+  .category
+    margin              86px 0 20px
+
+  .category h3
+    display             block
+    line-height         33px
+    font-size           24px
+    color               #384651
+    margin              0 0 39px
+    position            relative
+    padding-left        51px
+
+    &:after
+      content           ''
+      display           inline-block
+      size              19px, 2px
+      background        #C9C9C9
+      vertical-align    middle
+      margin            0 0 0 16px
+
+    &:before
+      content           ''
+      size              35px, 35px
+      display           block
+      bg                size, contain
+      bg                repeat, no-repeat
+      bg                position, center center
+      opacity           .5
+      abs               2px 0 0 0px
+
+    &.top-hackers:before
+      bg                image, url(imagePath 'top-hackers-icon.svg')
+
+    &.student-hackers:before
+      bg                image, url(imagePath 'student-hackers-icon.svg')
+
+    &.apprentice-hackers:before
+      bg                image, url(imagePath 'apprentice-hackers-icon.svg')
+
+  .team
+    padding             38px 0 38px 154px
+    position            relative
+
+  .team ~ .team
+    border-top          1px solid #E5E5E5
+
+  .team-preview-image
+    size                300px, 166px
+    bg                  color, #f4f4f4
+    bg                  size, cover
+    bg                  repeat, no-repeat
+    bg                  position, top left
+    margin              0 41px 0 0
+    position            relative
+    fl()
+
+    a
+      size              100%, 100%
+      position          absolute
+
+  .team-preview-image:before
+    content             ''
+    abs                 31px 0 0 -106px
+    bg                  size, cover
+    bg                  repeat, no-repeat
+    bg                  position, center center
+
+  .first .team-preview-image:before
+    r-sprite            'home', 'gold-medal'
+
+  .second .team-preview-image:before
+    r-sprite            'home', 'silver-medal'
+
+  .third .team-preview-image:before
+    r-sprite            'home', 'bronze-medal'
+
+  .team-title
+    display             block
+    font-size           26px
+    line-height         36px
+    color               #384651
+    font-weight         400
+    margin              26px 0 10px
+
+    a
+      color             inherit
+      noTextDeco()
+
+  .flags
+    display             inline-block
+    vertical-align      middle
+    margin              0 0 0 20px
+
+    figure
+      size              25px, 25px
+      margin-top        -6px
+      rounded           50%
+      bg                repeat, no-repeat
+      bg                size, cover
+      bg                position, center center
+
+  .team-description
+    display             inline-block
+    max-width           359px
+    color               #999999
+    line-height         24px
+
+  .team-heads
+    fr()
+
+    figure
+      border            1px solid #D7D7D7
+      display           inline-block
+      size              35px, 35px
+      rounded           50%
+      margin            -20px 0 0 6px
+      bg                repeat, no-repeat
+      bg                size, 40px 40px
+      bg                position, center center
+
+.content-page.results section.prizes
+  .prize-box
+    width               31%
+    margin              0 0 34px 3.5%
+    background          #fff
+    border              1px solid #DCDCDC
+    rounded             6px
+    text-align          center
+    padding             0 16px 34px
+    position            relative
+    borderBox()
+    fl()
+
+    &:first-of-type
+      margin-left       0
+
+    h4
+      font-size         20px
+      font-weight       600
+      color             #384651
+      letter-spacing    2.57px
+      line-height       27px
+      margin            42px 0 10px
+
+    ul li
+      line-height       37px
+      font-weight       700
+      font-size         27px
+      color             #384651
+      display           block
+      width             100%
+      text-align        left
+
+    ul li span
+      font-size         14px
+      color             #A4ACB0
+      font-weight       400
+      display           block
+      width             50%
+      text-align        right
+      padding           0 9px 0 0
+      margin            0 9px 0 0
+      fl()
+
+    i
+      background        #fff
+      abs               -37px 0 0 50%
+      margin-left       -37px
+      size              74px, 74px
+      rounded           50%
+      border            1px solid #DCDCDC
+      bg                size, 45px
+      bg                repeat, no-repeat
+      bg                position, center center
+      borderBox()
+
+      &.top-hackers
+        bg              image, url(imagePath 'top-hackers-icon.svg')
+
+      &.student-hackers
+        bg              image, url(imagePath 'student-hackers-icon.svg')
+
+      &.apprentice-hackers
+        bg              image, url(imagePath 'apprentice-hackers-icon.svg')
+
+  .note
+    font-size           12px
+    max-width           303px
+    line-height         18px
+    color               #A4ACB0
+    margin              0 auto
+    text-align          center
+
+.content-page.results section.themes ul li
+  line-height           26px
+  color                 #384651
+  font-size             18px
+  margin                33px 0 0 35px
+
+  &:first-of-type
+    margin-top          0
+
+.content-page.results section.judges
+  padding-bottom        23px
+
+  .judge
+    width               13.9%
+    margin              0 0 65px 2.7%
+    text-align          center
+    font-size           14px
+    line-height         19px
+    fl()
+
+    figure
+      size              100%, 0
+      padding-bottom    100%
+      rounded           4px
+      background-repeat no-repeat
+      background-size   cover
+
+    a
+      color             #384651
+      font-weight       600
+      margin-top        16px
+      display           block
+      overflow          hidden
+      white-space       nowrap
+      text-overflow     ellipsis
+      noTextDeco()
+
+    .details
+      font-size         12px
+      color             #A4ACB0
+
+      span, cite
+        overflow        hidden
+        white-space     nowrap
+        display         block
+        text-overflow   ellipsis
+
+.content-page.results section.sponsors
+  text-align            center
+  padding-bottom        66px
+
+  .sponsor
+    display             inline-block
+    width               15%
+    vertical-align      middle
+    margin-bottom       22px
+
+    img
+      width             80%
+
+.content-page.results section.subscribe
+  padding               63px 0 98px
+
+  &:before
+    content             ''
+    z-index             -3
+    min-width           100%
+    min-height          100%
+    size                auto auto
+    background          url(imagePath 'space.jpg') #000 no-repeat center center
+    bg                  size, cover
+    abs                 0px 0px 0 0
+
+  &:after
+    content             ''
+    z-index             -1
+    min-width           100%
+    min-height          100%
+    size                auto auto
+    background          rgba(43, 43, 43, .8)
+    bg                  size, cover
+    abs                 0px 0px 0 0
+
+footer.main-footer
+  height                160px
+  line-height           160px
+  background            #181818
+  color                 #979797
+
+  nav
+    fr()
+
+  a
+    color               inherit
+    font-weight         300
+    line-height         22px
+    letter-spacing      .5px
+    margin-left         14px
+    position            relative
+    noTextDeco()
+
+    & ~ a:before
+      content           ''
+      size              3px 3px
+      background        currentColor
+      rounded           50%
+      abs               10px 0 0 -10px
+
+/* Smartphones (portrait and landscape) ----------- */
+@media only screen and (min-width : 320px) and (max-width : 480px)
+  header.main-header
+    size                100%, auto
+    line-height         35px
+    abs                 20px 0 0 0px
+    padding             0 20px
+    text-align          center
+
+  .subscribe-form-wrapper
+    width               100%
+    margin              18px auto 14px
+
+    .formline.email
+      width             100%
+
+    .formline.button-field
+      margin-top        12px
+      width             100%
+
+  .inner-container
+    padding             0 20px
+
+  .std-section
+    padding-bottom      24px
+
+    .section-title
+      font-size         24px
+      margin            48px 0 44px
+
+  .content-page.results section.intro
+    padding             122px 20px 32px 20px
+
+    h1
+      font-size         20px
+      line-height       28px
+      letter-spacing    2.63px
+
+    h2
+      font-size         22px
+      letter-spacing    1.11px
+
+    .cup-figure
+      vendor            transform, scale(.7)
+
+  .content-page.results section.results
+    .category
+      margin            36px 0 20px
+
+    .category h3
+      margin            0 0 9px
+      font-size         18px
+      line-height       24px
+      padding-left      37px
+      margin-bottom     19px
+
+      &:after
+        display         none
+
+      &:before
+        size            25px, 25px
+
+    .team
+      padding           28px 0
+
+      .team-preview-image
+        width           100%
+        float           none
+
+        &:before
+          left          -17px
+          top           -28px
+          vendor        transform, scale(.8)
+
+      .team-title
+        font-size       16px
+        line-height     24px
+        margin          16px 0 10px
+
+      .team-heads
+        float           none
+        margin          10px 0 0
+
+      .team-description
+        font-size       14px
+        line-height     22px
+
+      .team-heads figure
+        size            30px, 30px
+        bg              size, 35px 35px
+        margin          0 6px 0 0
+        vertical-align  middle
+
+  .content-page.results section.prizes
+    .prize-box
+      width             100%
+      margin            0 0 44px 0
+      padding           0 16px 20px
+      float             none
+
+      i
+        size            54px, 54px
+        top             -27px
+        margin          0 0 0 -27px
+        bg              size, 27px
+
+      h4
+        font-size       18px
+
+      ul li
+        font-size       22px
+
+    .note
+      margin            -14px auto 4px
+
+  .content-page.results section.themes
+    ul li
+      font-size         14px
+      margin            24px 0 0
+
+  .content-page.results section.sponsors
+    padding-bottom      26px
+
+    .sponsor
+      width             50%
+
+  .content-page.results section.judges .judge
+    width               47.3%
+    margin-bottom       35px
+
+  .content-page.results section.subscribe
+    padding             33px 0
+
+  footer.main-footer
+    padding             33px 0
+    height              auto
+    line-height         28px
+    text-align          center
+
+    nav
+      float             none

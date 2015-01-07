@@ -1,4 +1,4 @@
-TopNavigation  = require './topnavigation'
+# TopNavigation  = require './topnavigation'
 CustomLinkView = require './customlinkview'
 MainTabView    = require './maintabview'
 
@@ -18,29 +18,29 @@ module.exports = class MainView extends KDView
 
     {mainController} = KD.singletons
 
-    @createHeader()
+    # @createHeader()
     @createPanelWrapper()
     @createMainTabView()
 
     @emit 'ready'
 
-  createHeader:->
+  # createHeader:->
 
-    @addSubView @header = new KDView
-      tagName    : 'header'
-      domId      : 'main-header'
-      attributes :
-        testpath : 'main-header'
+  #   @addSubView @header = new KDView
+  #     tagName    : 'header'
+  #     domId      : 'main-header'
+  #     attributes :
+  #       testpath : 'main-header'
 
-    @header.addSubView @logo = new KDCustomHTMLView
-      tagName    : 'a'
-      domId      : 'koding-logo'
-      partial    : '<cite></cite>'
-      attributes :
-        href     : 'https://koding.com'
-        target   : '_blank'
+  #   @header.addSubView @logo = new KDCustomHTMLView
+  #     tagName    : 'a'
+  #     domId      : 'koding-logo'
+  #     partial    : '<cite></cite>'
+  #     attributes :
+  #       href     : 'https://koding.com'
+  #       target   : '_blank'
 
-    @header.addSubView @header.nav = new TopNavigation
+  #   @header.addSubView @header.nav = new TopNavigation
 
   createPanelWrapper:->
 

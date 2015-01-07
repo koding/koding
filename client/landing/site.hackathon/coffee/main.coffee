@@ -4,7 +4,7 @@ require './core/KD.extend.coffee'
 
 # register appclasses
 Home  = require './home/AppController'
-Login = require './login/AppController'
+# Login = require './login/AppController'
 
 # bootstrap app
 MainController = require './core/maincontrollerloggedout'
@@ -21,7 +21,7 @@ do ->
   registerRoutes = ->
 
     require './core/routes.coffee'
-    require './login/routes.coffee'
+    # require './login/routes.coffee'
 
 
   setConfig()
