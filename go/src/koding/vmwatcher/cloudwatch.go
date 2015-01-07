@@ -118,12 +118,13 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 	machines := []*models.Machine{}
 
 	for _, username := range usernames {
-		yes, err := exemptFromStopping(c.GetName(), username)
+		lr, err := c.IsUserOverLimit(username)
 		if err != nil {
-			return nil, err
+			Log.Error(err.Error())
+			continue
 		}
 
-		if !yes {
+		if !lr.CanStart {
 			ms, err := modelhelper.GetMachinesForUsername(username)
 			if err != nil {
 				Log.Error(err.Error())
