@@ -1,6 +1,7 @@
 package pubnub
 
 import (
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -10,6 +11,24 @@ func createClient(id string) *PubNubClient {
 	cs := newClientSettings(id)
 
 	return NewPubNubClient(cs)
+}
+
+func newClientSettings(id string) *ClientSettings {
+	subscribeKey := os.Getenv("PUBNUB_SUBSCRIBE_KEY")
+	publishKey := os.Getenv("PUBNUB_PUBLISH_KEY")
+	secretKey := os.Getenv("PUBNUB_SECRET_KEY")
+
+	cs := new(ClientSettings)
+	if id == "" {
+		uuid := os.Getenv("PUBNUB_UUID")
+		cs.ID = uuid
+	}
+
+	cs.SubscribeKey = subscribeKey
+	cs.PublishKey = publishKey
+	cs.SecretKey = secretKey
+
+	return cs
 }
 
 func createMessage(body string) map[string]string {
@@ -206,23 +225,4 @@ func TestClosedChannel(t *testing.T) {
 	if err := client.Grant(&AuthSettings{}); err == nil {
 		t.Errorf("Expected %s error but got nil", ErrConnectionClosed)
 	}
-}
-
-func TestGrantAccess(t *testing.T) {
-	gc := createClient("tester")
-	defer func() {
-		gc.Close()
-	}()
-
-	a := new(AuthSettings)
-	a.ChannelName = "testme"
-	a.Token = "123"
-	a.CanWrite = true
-	a.CanRead = true
-	err := gc.Grant(a)
-
-	if err != nil {
-		t.Errorf("Expected nil but got error while granting access: %s", err)
-	}
-
 }

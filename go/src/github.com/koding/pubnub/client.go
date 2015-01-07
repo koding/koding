@@ -98,6 +98,12 @@ func (p *PubNubClient) Close() {
 	for _, channel := range p.channels {
 		channel.Close()
 	}
+
+	p.closed = true
+}
+
+func (p *PubNubClient) SetAuthToken(token string) {
+	p.pub.SetAuthenticationKey(token)
 }
 
 func (p *PubNubClient) fetchOrCreateChannel(channelName string) (*Channel, error) {
