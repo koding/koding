@@ -14,9 +14,10 @@ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/source
 sudo apt-get update
 sudo apt-get install -y lxc-docker
 
-
+# remove installed packages to free up space
 sudo apt-get clean
 
+# website template
 sudo a2enmod cgi
 sudo a2enmod rewrite
 sudo a2enmod proxy
