@@ -6,6 +6,8 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
+	"labix.org/v2/mgo/bson"
+
 	"github.com/crowdmob/goamz/aws"
 	"github.com/crowdmob/goamz/cloudwatch"
 	"github.com/jinzhu/now"
@@ -52,22 +54,30 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	var sum float64
 
 	for _, machine := range userMachines {
-		if isEmpty(machine.Meta.Region) {
+		meta, ok := machine.Meta.(bson.M)
+		if !ok {
+			Log.Error("queued machine has no `meta`", machine.ObjectId)
+			continue
+		}
+
+		region, ok := meta["region"].(string)
+		if !ok || isEmpty(region) {
 			Log.Error("queued machine has no `region`", machine.ObjectId)
 			continue
 		}
 
-		if isEmpty(machine.Meta.InstanceId) {
+		instanceId, ok := meta["instance_id"].(string)
+		if !ok || isEmpty(instanceId) {
 			Log.Error("queued machine has no `instanceId`", machine.ObjectId)
 			continue
 		}
 
 		dimension := &cloudwatch.Dimension{
 			Name:  "InstanceId",
-			Value: machine.Meta.InstanceId,
+			Value: instanceId,
 		}
 
-		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[machine.Meta.Region].CloudWatchServicepoint)
+		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[region].CloudWatchServicepoint)
 		if err != nil {
 			Log.Error("Failed to initialize cloudwatch client", err)
 			continue

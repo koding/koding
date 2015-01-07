@@ -6,15 +6,6 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-type MachineMeta struct {
-	InstanceId   string `bson:"instanceId" json:"instanceId"`
-	InstanceName string `bson:"instanceName" json:"instanceName"`
-	InstanceType string `bson:"instance_type", json:"instance_type"`
-	Region       string `bson:"region", json:"region"`
-	SourceAmi    string `bson:"source_ami", json:"source_ami"`
-	Type         string `bson:"type", json:"type"`
-}
-
 type Machine struct {
 	ObjectId    bson.ObjectId   `bson:"_id" json:"_id"`
 	Uid         string          `bson:"uid" json:"uid"`
@@ -39,7 +30,7 @@ type Machine struct {
 		State      string    `bson:"state" json:"state"`
 		ModifiedAt time.Time `bson:"modifiedAt" json:"modifiedAt"`
 	} `bson:"status" json:"status"`
-	Meta     MachineMeta `bson:"meta" json:"meta"`
+	Meta     interface{} `bson:"meta" json:"meta"`
 	Assignee struct {
 		AssignedAt time.Time `bson:"assignedAt" json:"assignedAt"`
 		InProgress bool      `bson:"inProgress" json:"inProgress"`
