@@ -393,18 +393,20 @@ func TestHashMultipleSet(t *testing.T) {
 func TestSortedSet(t *testing.T) {
 	set1Key, set2Key, destination := "set1", "set2", "combined-set"
 
+	defer func() {
+		session.Del(set1Key)
+		session.Del(set2Key)
+		session.Del(destination)
+	}()
+
 	_, err := session.SortedSetIncrBy(set1Key, 1, "item1")
 	if err != nil {
-		t.Errorf("Error creating set1", err)
-		return
+		t.Fatalf("Error creating set1", err)
 	}
 
 	_, err = session.SortedSetIncrBy(set2Key, 1, "item2")
 	if err != nil {
-		t.Errorf("Error creating set2", err)
-
-		session.Del(set1Key)
-		return
+		t.Fatalf("Error creating set2", err)
 	}
 
 	keys := []string{set1Key, set2Key}
@@ -412,40 +414,52 @@ func TestSortedSet(t *testing.T) {
 
 	reply, err := session.SortedSetsUnion(destination, keys, weights, "SUM")
 	if err != nil {
-		t.Errorf("Error creating combined sets", err)
-
-		session.Del(set1Key)
-		session.Del(set2Key)
-		return
+		t.Fatalf("Error creating combined sets", err)
 	}
 
 	if reply < 2 {
-		t.Errorf("Wrong number of elements added to combined set", err, reply)
+		t.Fatalf("Wrong number of elements added to combined set", err, reply)
 	}
 
 	score, err := session.SortedSetScore(destination, "item1")
 	if err != nil {
-		t.Errorf("Couldn't get score of item from sorted set: %s", err)
-		return
+		t.Fatalf("Couldn't get score of item from sorted set: %s", err)
 	}
 
 	if score != 1 {
-		t.Errorf("Wrong number of elements added to combined set", err, reply)
+		t.Fatalf("Wrong number of elements added to combined set", err, reply)
 	}
 
 	_, err = session.SortedSetRem(destination, "item1")
 	if err != nil {
-		t.Errorf("Couldn't remove item from sorted set: %s", err)
-		return
+		t.Fatalf("Couldn't remove item from sorted set: %s", err)
 	}
 
 	_, err = session.SortedSetScore(destination, "item1")
 	if err == nil {
-		t.Errorf("Didn't remove item from sorted set")
-		return
+		t.Fatalf("Didn't remove item from sorted set")
 	}
 
-	session.Del(set1Key)
-	session.Del(set2Key)
-	session.Del(destination)
+	err = session.SortedSetAddSingle(destination, "item1", 1)
+	if err != nil {
+		t.Fatalf("Couldn't remove item from sorted set: %s", err)
+	}
+
+	score, err = session.SortedSetScore(destination, "item1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if score != 1 {
+		t.Fatalf("Didn't set score for item in sorted set")
+	}
+
+	scores, err := session.SortedSetRangebyScore(destination, NegativeInf, PositiveInf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(scores) != 2 {
+		t.Fatalf("Wrong length of results when ranging by scores in sorted set")
+	}
 }

@@ -335,7 +335,7 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 	}
 
 	// validate the userdata first before sending
-	if err = yaml.Unmarshal(userdata.Bytes(), struct{}{}); err != nil {
+	if cloudErr := yaml.Unmarshal(userdata.Bytes(), struct{}{}); cloudErr != nil {
 		// write to temporary file so we can see the yaml file that is not
 		// formatted in a good way.
 		f, err := ioutil.TempFile("", "kloud-cloudinit")
@@ -345,7 +345,7 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 			}
 		}
 
-		b.log.Error("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", err,
+		b.log.Error("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", cloudErr,
 			f.Name())
 		return nil, errors.New("Cloudinit template is not a valid YAML file.")
 	}

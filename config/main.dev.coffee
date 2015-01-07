@@ -85,6 +85,8 @@ Configuration = (options={}) ->
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
+  kloudPort           = 5500
+
   KONFIG              =
     configName                     : configName
     environment                    : environment
@@ -108,6 +110,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"  , kloudAddr         : "http://localhost:#{kloudPort}/kite" }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -122,7 +125,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
-    kloud                          : {port          : 5500                , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
+    kloud                          : {port          : kloudPort           , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -247,7 +250,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.kloud.port}"
       supervisord       :
-        command         : "#{GOBIN}/kloud -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
+        command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
         locations       : ["~^/kloud/.*"]
@@ -362,6 +365,15 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
+    vmwatcher           :
+      group             : "environment"
+      instances         : 1
+      ports             :
+        incoming        : "#{KONFIG.vmwatcher.port}"
+      supervisord       :
+        command         : "#{GOBIN}/goldorf -run koding/vmwatcher -c #{configName}"
+      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
+      versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
@@ -646,8 +658,8 @@ Configuration = (options={}) ->
         echo "  run printconfig           : to print koding config environment variables (output in json via --json flag)"
         echo "  run worker [worker]       : to run a single worker"
         echo "  run supervisor [env]      : to show status of workers in that environment"
-        echo "  run help                  : to show this list"
         echo "  run migrate [command]     : to apply/revert database changes (command: [create|up|down|version|reset|redo|to|goto])"
+        echo "  run help                  : to show this list"
         echo ""
 
       }
@@ -994,7 +1006,6 @@ Configuration = (options={}) ->
           make install-migrate
           migrate $2 $3
         fi
-
 
       elif [ "$#" == "0" ]; then
 

@@ -57,7 +57,7 @@ module.exports = class JWorkspace extends Module
     # to prevent storing any kind of data in it. -- acetz!
     data.layout = {}
 
-    generateUniqueName { originId, name }, (err, res)->
+    generateUniqueName { originId, name, machineUId }, (err, res)->
 
       return callback err  if err?
 
@@ -73,12 +73,12 @@ module.exports = class JWorkspace extends Module
         return callback null, workspace
 
 
-  generateUniqueName = ({originId, name, index}, callback)->
+  generateUniqueName = ({originId, machineUId, name, index}, callback)->
 
     slug = if index? then "#{name}-#{index}" else name
     slug = slugify slug
 
-    JWorkspace.count { originId, slug }, (err, count)->
+    JWorkspace.count { originId, slug, machineUId }, (err, count)->
 
       return callback err  if err?
 
@@ -92,7 +92,7 @@ module.exports = class JWorkspace extends Module
         index ?= 0
         index += 1
 
-        generateUniqueName { originId, name, index }, callback
+        generateUniqueName { originId, machineUId, name, index }, callback
 
 
   @fetch = secure (client, query = {}, callback) ->
