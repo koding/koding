@@ -52,7 +52,9 @@ module.exports = class JSession extends Model
         JSession.remove username: oldUsername, (err) ->
           console.error err  if err?
 
+
   @createSession =(callback) ->
+
     JUser = require './user'
     clientId = createId()
 
@@ -89,15 +91,20 @@ module.exports = class JSession extends Model
         @createSession callback
 
   @fetchGuestUserSession = (callback) ->
-    username = 'guestuser'
-    @one {username}, (err, session) ->
-      return callback err  if err?
-      return callback null, session  if session?
-      clientId = createId()
-      session = new JSession { clientId, username }
-      session.save (err)->
+
+    JUser = require './user'
+    JUser.createGuestUsername (err, username)=>
+
+      @one {username}, (err, session) ->
         return callback err  if err?
-        callback null, session
+        return callback null, session  if session?
+
+        clientId = createId()
+
+        session = new JSession { clientId, username }
+        session.save (err)->
+          return callback err  if err?
+          callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->
 
