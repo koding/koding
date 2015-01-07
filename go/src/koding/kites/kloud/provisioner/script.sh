@@ -5,6 +5,16 @@ wget -O - http://nodejs.org/dist/v0.10.26/node-v0.10.26-linux-x64.tar.gz | sudo 
 
 sudo apt-get install -y ruby-dev ri rake python mercurial subversion cvs bzr default-jdk golang-go
 sudo apt-get install --only-upgrade bash
+
+
+# docker
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+sudo mkdir -p /etc/apt/sources.list.d
+sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+sudo apt-get update
+sudo apt-get install -y lxc-docker
+
+
 sudo apt-get clean
 
 sudo a2enmod cgi
