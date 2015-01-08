@@ -1764,11 +1764,7 @@ class IDEAppController extends AppController
   removeParticipantCursorWidget: (targetUser) ->
 
     @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
-      userLineWidget = editorPane.lineWidgets?[targetUser]
-
-      if userLineWidget
-        widgetManager = editorPane.getAce().lineWidgetManager
-        widgetManager.removeLineWidget userLineWidget
+      editorPane.removeParticipantCursorWidget targetUser
 
 
   makeReadOnly: ->

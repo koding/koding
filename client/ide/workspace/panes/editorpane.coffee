@@ -221,6 +221,26 @@ class IDE.EditorPane extends IDE.Pane
       @lineWidgets[username] = lineWidgetOptions
 
 
+  removeAllCursorWidgets: ->
+
+    widgetManager = @getAce().lineWidgetManager
+
+    for username, widget of @lineWidgets
+      widgetManager.removeLineWidget widget
+
+    @lineWidgets = {}
+
+
+  removeParticipantCursorWidget: (targetUser) ->
+
+    userLineWidget = @lineWidgets?[targetUser]
+
+    if userLineWidget
+      widgetManager = @getAce().lineWidgetManager
+      widgetManager.removeLineWidget userLineWidget
+      delete @lineWidgets[targetUser]
+
+
   handleChange: (change) ->
 
     {context, type, origin} = change
