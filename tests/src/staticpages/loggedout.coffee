@@ -12,6 +12,10 @@ activityPageUrl = rootPath + '/Activity/Public/Recent'
 
 module.exports =
 
+
+  suiteName: 'staticpages'
+
+
   homePage: (browser) ->
 
     browser.url(rootPath).maximizeWindow()
@@ -78,3 +82,5 @@ module.exports =
       .waitForElementVisible  '#main-sidebar .sidebar-bottom-links',25000
       .end()
 
+
+require('../helpers/hooks.js').init(module.exports)

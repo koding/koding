@@ -36,6 +36,7 @@ module.exports = [
   "linkcontroller.coffee",
   "widgetcontroller.coffee",
   "localsynccontroller.coffee",
+  "kitelogger.coffee",
 
   # onboarding
   "onboarding/onboardingviewcontroller.coffee",
@@ -287,7 +288,6 @@ module.exports = [
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
-  "errorlog.coffee",
   "metric.coffee",
 
   # ---------- Main APP ENDS ---------- #

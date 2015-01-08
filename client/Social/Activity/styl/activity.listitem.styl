@@ -300,7 +300,7 @@ activity.listitem.styl
 
       .comment-input-wrapper
         margin-left       37px
-        padding           0 7px
+        padding           0 54px 0 7px
         height            auto
         min-height        30px
         kalc              width (100% \- 37px)
@@ -333,6 +333,25 @@ activity.listitem.styl
             &:hover
               color         #9a9a9a
               border-color  #EAEAEA
+
+      .kdbutton.submit-button
+        abs               0 5px 5px 0
+        size              45px, 23px
+        line-height       23px
+        padding           0 0 0 1px
+        z-index           100
+        rounded           3px
+
+        .button-title
+          line-height   23px
+          font-size     10px
+          font-weight   600
+
+        &[disabled=disabled]
+          background      #EDEDED
+
+          .button-title
+            color         #939393
 
     .list-previous-link
       size                100%, auto
@@ -446,7 +465,6 @@ activity.listitem.styl
 
 
         p
-          display       inline
           a
             color         inherit
             noTextDeco()
@@ -516,6 +534,9 @@ activity.listitem.styl
   &.editing
     .edit-widget-wrapper
       display             block
+
+      .input-view
+        min-height        50px
 
     .activity-content-wrapper
       > article

@@ -16,7 +16,11 @@ class Ace extends KDView
     super
     @hide()
     @appStorage.fetchStorage (storage)=>
-      requirejs ['ace/ace'], (ace)=>
+
+      requirejs ['ace/ace'], =>
+
+        @keyHandlers = {}
+
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
@@ -35,6 +39,9 @@ class Ace extends KDView
           
           # remove cmd+L binding. we have already defined cmd+g for this purpose
           @editor.commands.removeCommand 'gotoline'
+          
+          # we are using ctrl+alt+s for 'Save All' action
+          @editor.commands.removeCommand 'sortlines'
 
           @focus()
           @show()
@@ -43,22 +50,14 @@ class Ace extends KDView
 
           KD.mixpanel 'Open Ace, success'
 
-      requirejs ['ace/keyboard/vim'], (vimMode) =>
-        @vimKeyboardHandler = vimMode.handler
-
-      @emacsKeyboardHandler = 'ace/keyboard/emacs'
-
-      requirejs ['ace/range'], (range) =>
         @once 'ace.ready', =>
-          {@Range} = range
+          LineWidgets = ace.require('ace/line_widgets').LineWidgets
+          @Range      = ace.require('ace/range').Range
+          @Anchor     = ace.require('ace/anchor').Anchor
 
-      requirejs [ 'ace/line_widgets' ], (lineWidgets) =>
-        @once 'ace.ready', =>
-          @lineWidgetManager = new lineWidgets.LineWidgets @editor.getSession()
+          @lineWidgetManager = new LineWidgets @editor.session
           @lineWidgetManager.attach @editor
 
-      requirejs ['ace/anchor'], (anchor) =>
-        {@Anchor} = anchor
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
     @suppressListeners = yes  unless emitFileContentChangedEvent
@@ -86,7 +85,7 @@ class Ace extends KDView
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
 
-    requirejs ['ace/ext/language_tools'], =>
+    requirejs ['ace/ext-language_tools'], =>
       @editor.setOptions
         enableBasicAutocompletion: yes
         enableSnippets: yes
@@ -125,7 +124,6 @@ class Ace extends KDView
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
       @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
-      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
@@ -293,13 +291,15 @@ class Ace extends KDView
       syntaxChoice = @appStorage.getValue "syntax_#{ext}"
       mode = syntaxChoice or mode or 'text'
 
-    requirejs ["ace/mode/#{mode}"], ({Mode})=>
+    requirejs ["ace/mode-#{mode}"], =>
+      {Mode} = ace.require "ace/mode/#{mode}"
       @editor.getSession().setMode new Mode
       @syntaxMode = mode
 
   setTheme:(themeName, save = yes)->
     themeName or= @appStorage.getValue('theme') or 'base16'
-    requirejs ["ace/theme/#{themeName}"], (callback) =>
+    requirejs ["ace/theme-#{themeName}"], =>
+      callback = ace.require "ace/theme/#{themeName}"
       @editor.setTheme "ace/theme/#{themeName}"
       return  unless save
       @appStorage.setValue 'theme', themeName, =>
@@ -337,14 +337,25 @@ class Ace extends KDView
     return  unless save
     @appStorage.setValue 'showInvisibles', value
 
-  setKeyboardHandler: (value = 'default') ->
-    handlers =
-      default : null
-      vim     : @vimKeyboardHandler
-      emacs   : @emacsKeyboardHandler
+  setKeyboardHandler: (name = 'default') ->
+    done = (handler) =>
+      @editor.setKeyboardHandler handler
+      @appStorage.setValue 'keyboardHandler', name
 
-    @editor.setKeyboardHandler handlers[value]
-    @appStorage.setValue 'keyboardHandler', value
+    next = (path) =>
+      binding = ace.require path
+      @keyHandlers[name] = binding.handler
+      done binding.handler
+
+    if name is 'default'
+      done null
+    else
+      path = "ace/keyboard/#{name}"
+      unless name of @keyHandlers
+        requirejs [path.replace('board/', 'binding-')], ->
+          next path
+      else
+        done @keyHandlers[name]
 
   setScrollPastEnd: (value = yes) ->
     @editor.setOption 'scrollPastEnd', value
@@ -419,6 +430,7 @@ class Ace extends KDView
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
+  #obsolete: Now we are using IDE saveAllFiles method
   saveAllFiles: ->
     aceApp = KD.singletons.appManager.get 'Ace'
     return unless aceApp

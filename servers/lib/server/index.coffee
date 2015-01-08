@@ -347,7 +347,16 @@ app.post '/:name?/Register', (req, res) ->
     client.clientIP = (clientIPAddress.split ',')[0]
 
     JUser.convert client, req.body, (err, result) ->
-      return res.status(400).send err.message  if err?
+
+      if err?
+
+        {message} = err
+
+        if err.errors?
+          message = "#{message}: #{Object.keys err.errors}"
+
+        return res.status(400).send message
+
 
       res.cookie 'clientId', result.newToken, path : '/'
       # handle the request as an XHR response:

@@ -32,6 +32,7 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasAdded',     @bound 'messageAdded'
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
+    list.on 'ItemWasExpanded',  @bound 'messageExpanded'
 
     @input.input.on 'InputHeightChanged', @bound 'handleAutoGrow'
 
@@ -141,6 +142,24 @@ class PrivateMessagePane extends MessagePane
     return [prevSibling, nextSibling]
 
 
+  resetPadding: ->
+      
+    listView = @listController.getView()
+
+    if (listView.hasClass 'padded') and (@scrollView.getHeight() < listView.getHeight())
+      listView.unsetClass 'padded'
+      return yes
+      
+    return no
+
+  
+  messageExpanded: () ->
+    
+    @scrollDown()  if @resetPadding()
+
+    @scrollView.wrapper.emit 'MutationHappened'
+
+  
   messageAdded: (item, index) ->
 
     data         = item.getData()
@@ -492,20 +511,6 @@ class PrivateMessagePane extends MessagePane
     @newMessagesMark = null
 
 
-  resetPadding: ->
-
-    listView = @listController.getView()
-
-    freeAreaHeight = @getHeight() - @excludedAreaHeight
-    contentHeight  = listView.getHeight()
-
-    if freeAreaHeight < contentHeight
-      listView.unsetClass 'padded'
-
-
-  excludedAreaHeight: 85
-
-
   fetchAccounts: PrivateMessageForm::fetchAccounts
 
 
@@ -542,4 +547,3 @@ class PrivateMessagePane extends MessagePane
           datetime : date.toUTCString()
 
     parse : (args...) -> args.map (item) -> parseInt item
-
