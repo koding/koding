@@ -550,7 +550,7 @@ class IDEAppController extends AppController
       @registerPane pane
 
     ideView.on 'ChangeHappened', (change) =>
-      @syncChange change
+      @syncChange change  if @rtm
 
 
   registerPane: (pane) ->
@@ -563,7 +563,7 @@ class IDEAppController extends AppController
     @generatedPanes[view.hash] = yes
 
     view.on 'ChangeHappened', (change) =>
-      @syncChange change
+      @syncChange change  if @rtm
 
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
@@ -1136,6 +1136,8 @@ class IDEAppController extends AppController
 
   createPaneFromChange: (change) ->
 
+    return unless @rtm
+
     {context} = change
     return unless context
 
@@ -1505,8 +1507,11 @@ class IDEAppController extends AppController
       @chat.emit 'CollaborationEnded'
       @chat = null
       @modal.destroy()
+      @rtm.dispose()
       @rtm = null
+      KD.utils.killRepeat @pingInterval
       KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+      @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
 
     @mySnapshot.clear()
     @rtm.deleteFile @getRealTimeFileName()
@@ -1599,7 +1604,6 @@ class IDEAppController extends AppController
         return  unless data.origin is @collaborationHost
 
         if data.target is KD.nick()
-          KD.getSingleton('router').handleRoute '/IDE'
           @removeMachineNode()
           @showKickedModal()
         else
@@ -1635,7 +1639,18 @@ class IDEAppController extends AppController
           callback : => @modal.destroy()
 
     @showModal options
+    @quit()
+
+
+  quit: ->
+
+    KD.utils.killRepeat @autoSaveInterval
+    KD.utils.killRepeat @pingInterval
+    @rtm?.dispose()
     @rtm = null
+
+    KD.singletons.router.handleRoute '/IDE'
+    KD.singletons.appManager.quit this
 
 
   showSessionEndedModal: (content) ->
@@ -1649,13 +1664,11 @@ class IDEAppController extends AppController
       buttons      :
         quit       :
           title    : 'LEAVE'
-          callback : =>
-            @modal.destroy()
-            KD.singletons.router.handleRoute '/IDE'
+          callback : => @modal.destroy()
 
     @showModal options
     @removeMachineNode()
-    @rtm = null
+    @quit()
 
 
   handleParticipantLeaveAction: ->
@@ -1667,13 +1680,11 @@ class IDEAppController extends AppController
     @showModal options, =>
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
       @modal.destroy()
-      @rtm = null
 
       options = channelId: @socialChannel.getId()
       KD.singletons.socialapi.channel.leave options, (err) =>
         return KD.showError err  if err
-        @setMachineUser [KD.whoami()], no, ->
-          KD.singletons.router.handleRoute '/IDE'
+        @setMachineUser [KD.whoami()], no, => @quit()
 
 
   removeMachineNode: ->
@@ -1729,9 +1740,10 @@ class IDEAppController extends AppController
     diffInterval = KD.config.collaboration.timeout
 
     if @amIHost
-      KD.utils.repeat pingInterval, => @pingTime.setText Date.now().toString()
+      @pingInterval = KD.utils.repeat pingInterval, =>
+        @pingTime.setText Date.now().toString()
     else
-      repeat = KD.utils.repeat pongInterval, =>
+      @pingInterval = KD.utils.repeat pongInterval, =>
         lastPing = @pingTime.getText()
 
         return  if Date.now() - lastPing < diffInterval
@@ -1740,22 +1752,19 @@ class IDEAppController extends AppController
           if err
           then console.warn err
           else
-            KD.utils.killRepeat repeat
+            KD.utils.killRepeat @pingInterval
             @stopCollaborationSession =>
+              @quit()
+
               new KDNotificationView
                 title    : "@#{@collaborationHost} has left the session."
                 duration : 3000
-              KD.singletons.router.handleRoute '/IDE'
 
 
   removeParticipantCursorWidget: (targetUser) ->
 
     @forEachSubViewInIDEViews_ 'editor', (editorPane) =>
-      userLineWidget = editorPane.lineWidgets?[targetUser]
-
-      if userLineWidget
-        widgetManager = editorPane.getAce().lineWidgetManager
-        widgetManager.removeLineWidget userLineWidget
+      editorPane.removeParticipantCursorWidget targetUser
 
 
   makeReadOnly: ->

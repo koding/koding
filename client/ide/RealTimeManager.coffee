@@ -97,13 +97,13 @@ class RealTimeManager extends KDObject
 
     onLoadedCallback = (doc) =>
       doc.addEventListener gapi.drive.realtime.EventType.COLLABORATOR_JOINED, (c) =>
-        @emit 'CollaboratorJoined', doc, c
+        @emit 'CollaboratorJoined', doc, c  unless @isDisposed
 
       doc.addEventListener gapi.drive.realtime.EventType.COLLABORATOR_LEFT, (c) =>
-        @emit 'CollaboratorLeft', doc, c
+        @emit 'CollaboratorLeft', doc, c  unless @isDisposed
 
       doc.addEventListener gapi.drive.realtime.EventType.DOCUMENT_SAVE_STATE_CHANGED, (c) =>
-        @emit 'DocumentSaveStateChanged', doc, c
+        @emit 'DocumentSaveStateChanged', doc, c  unless @isDisposed
 
       @emit 'FileLoaded', doc
 
@@ -118,6 +118,8 @@ class RealTimeManager extends KDObject
 
   getFromModel: (key) ->
 
+    return null  if @isDisposed
+
     doc = @getRealtimeDoc()
 
     return throw new Error 'Missing arguments'  if not doc or not key
@@ -131,6 +133,8 @@ class RealTimeManager extends KDObject
 
 
   create: (type, key, initialValue) ->
+
+    return null  if @isDisposed
 
     doc = @getRealtimeDoc()
 
@@ -157,7 +161,7 @@ class RealTimeManager extends KDObject
 
     (instance, type) ->
 
-      return  if instance in instances
+      return  if instances.indexOf(instance) > -1 or @isDisposed
 
       instances.push instance
 
@@ -174,29 +178,34 @@ class RealTimeManager extends KDObject
   bindStringListeners: (string) ->
 
     string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, (e) =>
-      @emit 'TextInsertedIntoString', string, e
+      @emit 'TextInsertedIntoString', string, e  unless @isDisposed
 
     string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, (e) =>
-      @emit 'TextDeletedFromString', string, e
+      @emit 'TextDeletedFromString', string, e  unless @isDisposed
 
 
   bindMapListeners: (map) ->
 
     map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, (v) =>
-      @emit 'MapValueChanged', map, v
+      @emit 'MapValueChanged', map, v  unless @isDisposed
 
 
   bindListListeners: (list) ->
 
     list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, (v) =>
-      @emit 'ValuesAddedToList', list, v
+      @emit 'ValuesAddedToList', list, v  unless @isDisposed
 
     list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, (v) =>
-      @emit 'ValuesRemovedFromList', list, v
+      @emit 'ValuesRemovedFromList', list, v  unless @isDisposed
 
     list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, (v) =>
-      @emit 'ListValuesSet', list, v
+      @emit 'ListValuesSet', list, v  unless @isDisposed
 
 
-  getCollaborators: ->
-    return @getRealtimeDoc().getCollaborators()
+  getCollaborators: -> return @getRealtimeDoc().getCollaborators()
+
+
+  dispose: ->
+
+    @isDisposed = yes
+    @destroy()

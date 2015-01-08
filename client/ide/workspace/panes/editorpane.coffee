@@ -221,6 +221,26 @@ class IDE.EditorPane extends IDE.Pane
       @lineWidgets[username] = lineWidgetOptions
 
 
+  removeAllCursorWidgets: ->
+
+    widgetManager = @getAce().lineWidgetManager
+
+    for username, widget of @lineWidgets
+      widgetManager.removeLineWidget widget
+
+    @lineWidgets = {}
+
+
+  removeParticipantCursorWidget: (targetUser) ->
+
+    userLineWidget = @lineWidgets?[targetUser]
+
+    if userLineWidget
+      widgetManager = @getAce().lineWidgetManager
+      widgetManager.removeLineWidget userLineWidget
+      delete @lineWidgets[targetUser]
+
+
   handleChange: (change) ->
 
     {context, type, origin} = change
@@ -232,6 +252,8 @@ class IDE.EditorPane extends IDE.Pane
 
 
   setContentFromCollaborativeString: ->
+
+    return  if @rtm.isDisposed
 
     {path} = @getFile()
 
@@ -247,13 +269,14 @@ class IDE.EditorPane extends IDE.Pane
 
   listenCollaborativeStringChanges: ->
 
+    return  if @rtm.isDisposed
     return  unless string = @rtm.getFromModel @getFile().path
 
     @rtm.bindRealtimeListeners string, 'string'
 
     @rtm
       .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
-      .on 'TextDeletedFromString', @bound 'handleCollaborativeStringEvent'
+      .on 'TextDeletedFromString',  @bound 'handleCollaborativeStringEvent'
 
 
   handleCollaborativeStringEvent: (changedString, change) ->
