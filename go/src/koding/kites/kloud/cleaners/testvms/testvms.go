@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"koding/kites/kloud/multiec2"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
@@ -76,14 +78,27 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 
 // Process fetches all instances defined with the tags
 func (t *testvms) Process() {
-	client, _ := t.clients.Region("us-west-2")
+	var wg sync.WaitGroup
 
-	instances, err := t.Instances(client)
-	if err != nil {
-		log.Println("err", err)
+	for region, client := range t.clients.Regions() {
+		wg.Add(1)
+		go func(region string, client *ec2.EC2) {
+			fmt.Printf("[%s] fetching instances ...\n", region)
+			start := time.Now()
+			instances, err := t.Instances(client)
+			if err != nil {
+				log.Println("err", err)
+				return
+			}
+
+			elapsed := time.Since(start)
+			fmt.Printf("[%s]: total instances: %+v (time: %s)\n", region, len(instances), elapsed)
+
+			wg.Done()
+		}(region, client)
 	}
 
-	fmt.Printf("total instances: %+v\n", len(instances))
+	wg.Wait()
 }
 
 func (t *testvms) Summary() {}
