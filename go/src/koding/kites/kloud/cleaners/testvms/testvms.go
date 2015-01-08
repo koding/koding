@@ -3,8 +3,10 @@ package testvms
 import (
 	"fmt"
 	"koding/kites/kloud/multiec2"
+	"log"
 
 	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/ec2"
 )
 
 type testvms struct {
@@ -35,16 +37,53 @@ func New() *testvms {
 	}
 }
 
-// Process fetches all instances defined with the tags
-func (t *testvms) Process() {
+// Instances returns all instances that belongs to the given client/region
+func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
+	instances := make([]ec2.Instance, 0)
 
-	for region, client := range t.clients.Regions() {
-		fmt.Printf("region = %+v\n", region)
-		fmt.Printf("client = %+v\n", client)
+	opts := &ec2.InstancesOpts{MaxResults: 500}
+	resp, err := client.InstancesWithOpts([]string{}, ec2.NewFilter(), opts)
+	if err != nil {
+		return nil, err
 	}
 
+	for _, res := range resp.Reservations {
+		instances = append(instances, res.Instances...)
+	}
+
+	nextToken := resp.NextToken
+
+	// get all results until nextToken is empty
+	for nextToken != "" {
+		opts := &ec2.InstancesOpts{
+			MaxResults: 500,
+			NextToken:  nextToken,
+		}
+
+		resp, err := client.InstancesWithOpts([]string{}, ec2.NewFilter(), opts)
+		if err != nil {
+			return nil, err
+		}
+
+		nextToken = resp.NextToken
+		for _, res := range resp.Reservations {
+			instances = append(instances, res.Instances[0])
+		}
+	}
+
+	return instances, nil
 }
 
-func (t *testvms) Summary() {
+// Process fetches all instances defined with the tags
+func (t *testvms) Process() {
+	client, _ := t.clients.Region("us-west-2")
 
+	instances, err := t.Instances(client)
+	if err != nil {
+		log.Println("err", err)
+	}
+
+	fmt.Printf("total instances: %+v\n", len(instances))
 }
+
+func (t *testvms) Summary() {}
