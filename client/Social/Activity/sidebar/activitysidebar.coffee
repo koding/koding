@@ -479,6 +479,8 @@ class ActivitySidebar extends KDCustomHTMLView
           userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
 
           KD.userMachines.forEach (machine) ->
+            return  if machine.data.credential isnt KD.nick()
+
             for workspace in KD.userWorkspaces \
               when workspace.slug is 'my-workspace' \
               and workspace.machineUId is machine.uid
