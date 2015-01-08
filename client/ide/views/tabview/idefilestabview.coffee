@@ -58,7 +58,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       name       : 'Settings'
       closable   : no
 
-    settingsPane.addSubView new IDE.SettingsPane
+    settingsPane.addSubView @settingsPane = new IDE.SettingsPane
     @tabView.addPane settingsPane
 
 

@@ -66,7 +66,7 @@ class IDEAppController extends AppController
         @createInitialView()
         @bindCollapseEvents()
 
-        {@finderPane} = @workspace.panel.getPaneByName 'filesPane'
+        {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
 
         @bindRouteHandler()
 
