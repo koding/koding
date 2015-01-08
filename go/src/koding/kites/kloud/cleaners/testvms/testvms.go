@@ -11,15 +11,18 @@ import (
 )
 
 type testvms struct {
-	// tags contains a list of instance tags that are identified as test
+	// olderThan defines the duration in which instances are fetched. By
+	// default all instances (new and old) are fetched.
+	olderThan time.Duration
+
+	// values contains a list of instance tags that are identified as test
 	// instances
-	tag    string
 	values []string
 
 	clients *multiec2.Clients
 }
 
-func New() *testvms {
+func New(envs []string, olderThan time.Duration) *testvms {
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
 		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
@@ -27,8 +30,8 @@ func New() *testvms {
 	}
 
 	return &testvms{
-		tag:    "koding-env",
-		values: []string{"sandbox", "dev"},
+		olderThan: olderThan,
+		values:    envs,
 		clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -39,11 +42,11 @@ func New() *testvms {
 }
 
 // Instances returns all instances that belongs to the given client/region
-func (t *testvms) Instances(client *ec2.EC2, env string) ([]ec2.Instance, error) {
+func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	instances := make([]ec2.Instance, 0)
 
 	filter := ec2.NewFilter()
-	filter.Add("tag-value", env)
+	filter.Add("tag-value", t.values...)
 
 	resp, err := client.InstancesWithOpts([]string{}, filter, nil)
 	if err != nil {
@@ -73,7 +76,18 @@ func (t *testvms) Instances(client *ec2.EC2, env string) ([]ec2.Instance, error)
 		}
 	}
 
-	return instances, nil
+	filtered := make([]ec2.Instance, 0)
+
+	for _, instance := range instances {
+		oldDate := time.Now().UTC().Add(-t.olderThan)
+		if instance.LaunchTime.Before(oldDate) {
+			filtered = append(filtered, instance)
+		}
+	}
+
+	instances = nil
+
+	return filtered, nil
 }
 
 // Terminate terminates the given instances
@@ -100,7 +114,8 @@ func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) error {
 // Process fetches all instances defined with the tags
 func (t *testvms) Process() {
 	var wg sync.WaitGroup
-	env := "sandbox"
+
+	fmt.Printf("Searching for instances tagged with %+v and older than: %s\n\n", t.values, t.olderThan)
 
 	for region, client := range t.clients.Regions() {
 		wg.Add(1)
@@ -108,20 +123,15 @@ func (t *testvms) Process() {
 			defer wg.Done()
 
 			start := time.Now()
-			instances, err := t.Instances(client, env)
+			instances, err := t.Instances(client)
 			if err != nil {
 				fmt.Printf("[%s] fetching error: %s\n", region, err)
 				return
 			}
 
 			elapsed := time.Since(start)
-			fmt.Printf("[%s] instances tagged with '%s': %+v (time: %s)\n",
-				region, env, len(instances), elapsed)
-
-			if err := t.Terminate(client, instances); err != nil {
-				fmt.Printf("[%s] terminate error: %s\n", region, err)
-			}
-
+			fmt.Printf("[%s] total instances: %+v (time: %s)\n",
+				region, len(instances), elapsed)
 		}(region, client)
 	}
 
