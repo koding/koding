@@ -91,7 +91,7 @@ module.exports = class LoginView extends JView
         cssClass    : "github-login"
         partial     : "Sign in using <strong>GitHub</strong>"
         click       : -> KD.singletons.oauthController.openPopup "github"
-    
+
     else
       @github = new KDCustomHTMLView
         tagName     : "a"
@@ -410,8 +410,11 @@ module.exports = class LoginView extends JView
 
     if /duplicate key error/.test message
       form.emit 'EmailError'
-    else if message is 'Errors were encountered during validation'
-      form.emit 'UsernameError'
+    else if /^Errors were encountered during validation/.test message
+      if /email/.test message
+        form.emit 'EmailError'
+      else
+        form.emit 'UsernameError'
     else
       new KDNotificationView title: message
 
