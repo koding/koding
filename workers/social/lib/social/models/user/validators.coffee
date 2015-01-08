@@ -1,3 +1,5 @@
+isEmailValid = require './emailchecker'
+
 module.exports = new class
 
   createKodingError = (err) ->
@@ -25,6 +27,15 @@ module.exports = new class
     callback \
       unless agree is 'on'
         createKodingError 'You have to agree to the TOS'
+      else
+        null
+
+
+  email: ({email}, callback)->
+
+    callback \
+      unless isEmailValid email
+        createKodingError 'Email is not valid.'
       else
         null
 
