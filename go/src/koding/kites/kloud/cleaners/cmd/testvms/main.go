@@ -18,7 +18,7 @@ func main() {
 
 	envs := []string{"sandbox", "dev"}
 
-	t := testvms.New(envs, time.Hour*24*7)
+	t := testvms.New(envs, time.Hour*24)
 
 	fmt.Printf("Searching for instances tagged with %+v and older than 7 days\n", envs)
 
@@ -53,8 +53,8 @@ func main() {
 	w.Flush()
 
 	if *flagTerminate {
-		fmt.Printf("Terminating '%d' instances\n", total)
 		t.TerminateAll()
+		fmt.Printf("Terminated '%d' instances\n", total)
 	} else if total > 0 {
 		fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
 	}
