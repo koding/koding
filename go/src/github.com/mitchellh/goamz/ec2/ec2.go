@@ -818,8 +818,6 @@ func (ec2 *EC2) TerminateInstances(instIds []string) (resp *TerminateInstancesRe
 	params := makeParams("TerminateInstances")
 	addParamsList(params, "InstanceId", instIds)
 
-	params["DryRun"] = "True"
-
 	resp = &TerminateInstancesResp{}
 	err = ec2.query(params, resp)
 	if err != nil {
