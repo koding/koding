@@ -25,13 +25,4 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			Endpoint:       "/subscribe/notification",
 			CollectMetrics: true,
 		})
-
-	m.AddSessionlessHandler(
-		handler.Request{
-			Handler:        h.SubscribeMessage,
-			Name:           "message-subscribe",
-			Type:           handler.PostRequest,
-			Endpoint:       "/subscribe/message",
-			CollectMetrics: true,
-		})
 }

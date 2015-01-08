@@ -70,21 +70,6 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 	return responseWithCookie(temp, account.Token)
 }
 
-func (h *Handler) SubscribeMessage(u *url.URL, header http.Header, um *models.UpdateInstanceMessage) (int, http.Header, interface{}, error) {
-	if um.Token == "" {
-		return response.NewBadRequest(models.ErrTokenNotSet)
-	}
-
-	a := new(models.Authenticate)
-	a.Channel = models.NewMessageUpdateChannel(*um)
-	err := h.pubnub.Authenticate(a)
-	if err != nil {
-		return response.NewBadRequest(err)
-	}
-
-	return response.NewOK(um)
-}
-
 func responseWithCookie(req interface{}, token string) (int, http.Header, interface{}, error) {
 	expires := time.Now().AddDate(5, 0, 0)
 	cookie := &http.Cookie{
