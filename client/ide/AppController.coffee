@@ -69,9 +69,7 @@ class IDEAppController extends AppController
         {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
 
         @bindRouteHandler()
-
-        KD.utils.repeat 5000, =>
-          @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
+        @initiateAutoSave()
 
     KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
@@ -589,12 +587,32 @@ class IDEAppController extends AppController
     Class  = if component is 'editor' then IDE.EditorPane else IDE.TerminalPane
     method = "set#{key.capitalize()}"
 
+    if key is 'useAutosave' # autosave is special case, handled by app manager.
+      return if value then @enableAutoSave() else @disableAutoSave()
+
     @forEachSubViewInIDEViews_ (view) ->
       if view instanceof Class
         if component is 'editor'
-          view.aceView.ace[method] value
+          view.aceView.ace[method]? value
         else
           view.webtermView.updateSettings()
+
+
+  initiateAutoSave: ->
+
+    {editorSettingsView} = @settingsPane
+
+    editorSettingsView.on 'SettingsFetched', =>
+      @enableAutoSave()  if editorSettingsView.settings.useAutosave
+
+
+  enableAutoSave: ->
+
+    @autoSaveInterval = KD.utils.repeat 1000, =>
+      @forEachSubViewInIDEViews_ 'editor', (ep) => ep.handleAutoSave()
+
+
+  disableAutoSave: -> KD.utils.killRepeat @autoSaveInterval
 
 
   showShortcutsView: ->
