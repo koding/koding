@@ -52,6 +52,9 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	filter := ec2.NewFilter()
 	filter.Add("tag-value", t.values...)
 
+	// Anything except "terminated" and "shutting-down"
+	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
+
 	resp, err := client.InstancesWithOpts([]string{}, filter, nil)
 	if err != nil {
 		return nil, err
@@ -107,10 +110,10 @@ func (t *testvms) TerminateAll() {
 	for client, instances := range t.FoundInstances {
 		wg.Add(1)
 
-		go func() {
+		go func(client *ec2.EC2, instances []ec2.Instance) {
 			t.Terminate(client, instances)
 			wg.Done()
-		}()
+		}(client, instances)
 	}
 
 	wg.Wait()
@@ -128,13 +131,13 @@ func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) {
 		ids[i] = instance.InstanceId
 	}
 
-	// we split the ids because AWS doesn't allow us to terminate more than
-	// 1000 instances, so for example if we have 2570 instances, we'll going to
-	// make three API calls with ids of 1000, 1000 and 570
+	// we split the ids because AWS doesn't allow us to terminate more than 500
+	// instances, so for example if we have 1890 instances, we'll going to make
+	// four API calls with ids of 500, 500, 500 and 390
 	var splitted [][]string
-	for len(ids) >= 1000 {
-		splitted = append(splitted, ids[:1000])
-		ids = ids[1000:]
+	for len(ids) >= 500 {
+		splitted = append(splitted, ids[:500])
+		ids = ids[500:]
 	}
 	splitted = append(splitted, ids) // remaining
 

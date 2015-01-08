@@ -55,7 +55,7 @@ func main() {
 	if *flagTerminate {
 		fmt.Printf("Terminating '%d' instances\n", total)
 		t.TerminateAll()
-	} else {
+	} else if total > 0 {
 		fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
 	}
 }
