@@ -19,8 +19,8 @@ type testvms struct {
 	// instances. By default all instances are fetched.
 	values []string
 
-	// foundInstances is a list of instances that are fetched and stored
-	foundInstances map[*ec2.EC2][]ec2.Instance
+	// FoundInstances is a list of instances that are fetched and stored
+	FoundInstances map[*ec2.EC2][]ec2.Instance
 
 	clients *multiec2.Clients
 }
@@ -41,7 +41,7 @@ func New(envs []string, olderThan time.Duration) *testvms {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		foundInstances: make(map[*ec2.EC2][]ec2.Instance),
+		FoundInstances: make(map[*ec2.EC2][]ec2.Instance),
 	}
 }
 
@@ -83,6 +83,7 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 
 	filtered := make([]ec2.Instance, 0)
 
+	// filter out instances that are older
 	for _, instance := range instances {
 		oldDate := time.Now().UTC().Add(-t.olderThan)
 		if instance.LaunchTime.Before(oldDate) {
@@ -95,14 +96,15 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	return filtered, nil
 }
 
+// TerminateAll terminates all found instances
 func (t *testvms) TerminateAll() {
-	if t.foundInstances == nil {
+	if t.FoundInstances == nil {
 		return
 	}
 
 	var wg sync.WaitGroup
 
-	for client, instances := range t.foundInstances {
+	for client, instances := range t.FoundInstances {
 		wg.Add(1)
 
 		go func() {
@@ -153,18 +155,13 @@ func (t *testvms) Process() {
 		go func(region string, client *ec2.EC2) {
 			defer wg.Done()
 
-			start := time.Now()
 			instances, err := t.Instances(client)
 			if err != nil {
 				fmt.Printf("[%s] fetching error: %s\n", region, err)
 				return
 			}
 
-			elapsed := time.Since(start)
-			fmt.Printf("[%s] total instances: %+v (time: %s)\n",
-				region, len(instances), elapsed)
-
-			t.foundInstances[client] = instances
+			t.FoundInstances[client] = instances
 		}(region, client)
 	}
 
