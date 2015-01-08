@@ -109,3 +109,8 @@ class Machine extends KDObject
     switch @provider
       when 'koding'
         return @data.credential
+
+
+  isMine: ->
+
+    @getOwner() is KD.nick()
