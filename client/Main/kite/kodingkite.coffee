@@ -31,18 +31,9 @@ class KodingKite extends KDObject
 
     return {reason, code, wasClean, timestamp, type}
 
-  logTransportFailures:->
-    return  unless @transport?.ws?
-
-    @transport.ws.addEventListener 'close', (event)->
-      params = extractInfoFromWsEvent event
-      ErrorLog.create 'ws closed', params
-
-    @transport.ws.addEventListener 'error', (event)->
-      params = extractInfoFromWsEvent event
-      ErrorLog.create 'ws error', params
 
   getTransport: -> @transport
+
 
   setTransport: (@transport) ->
     if @transport?.ws?
@@ -52,6 +43,7 @@ class KodingKite extends KDObject
     @forwardEvent @transport, 'open'
 
     @emit 'ready'
+
 
   tell: (rpcMethod, params, callback) ->
 
@@ -69,12 +61,24 @@ class KodingKite extends KDObject
         _resolve = resolve
         _args    = [rpcMethod, [params], callback]
 
+        KiteLogger.queued name, rpcMethod
+
         @waitForConnection _args
 
           .then (args)=>
-            resolve @transport?.tell args...
+            KiteLogger.started name, rpcMethod
+            resolve (
+              @transport?.tell args...
+                .then (res)->
+                  KiteLogger.success name, rpcMethod
+                  return res
+                .catch (err)->
+                  KiteLogger.failed name, rpcMethod
+                  throw err
+            )
 
           .catch =>
+            KiteLogger.failed name, rpcMethod
             reject @_kiteInvalidError
 
       unless @_state is CONNECTED
@@ -84,6 +88,7 @@ class KodingKite extends KDObject
 
     else
 
+      KiteLogger.failed name, rpcMethod
       Promise.reject @_kiteInvalidError
 
 

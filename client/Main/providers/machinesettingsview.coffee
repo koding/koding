@@ -53,7 +53,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
                 width   : 14
                 height  : 14
               loaderOptions :
-                color   : '#FFFFFF'
+                color   : '#333333'
               showLoader: yes
         publicIp        :
           label         : "Public IP"

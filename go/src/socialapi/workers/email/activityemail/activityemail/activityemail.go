@@ -7,6 +7,7 @@ import (
 	socialmodels "socialapi/models"
 	"socialapi/workers/email/activityemail/models"
 	"socialapi/workers/email/emailmodels"
+	"socialapi/workers/email/templates"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
 	"time"
@@ -135,7 +136,7 @@ func prepareInformation(mc *models.MailerContainer) string {
 		return ""
 	}
 
-	return fmt.Sprintf("You have a new %s on Koding.com", t.GetDefinition())
+	return fmt.Sprintf("You have a new %s on %s.", t.GetDefinition(), templates.KodingLink)
 }
 
 func (c *Controller) validNotification(a *notificationmodels.NotificationActivity, n *notificationmodels.Notification) bool {

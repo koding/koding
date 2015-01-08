@@ -1,0 +1,5 @@
+== About ==
+
+The Sets package provides implementations of hash-based Sets for all of Go's basic types. Currently there's no documentation but the extensive test suite Includes numerous examples of how to use slices to solve common tasks.
+
+The package has its origins in research for the GoLightly virtual machine project. I hope you will find it useful.

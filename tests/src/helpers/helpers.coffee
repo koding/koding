@@ -46,11 +46,15 @@ module.exports =
       .click                  '[testpath=login-button]'
       .pause                  5000
 
-  waitForVMRunning: (browser) ->
-    vmSelector           = '.vm.running.koding'
-    modalSelector        = '.env-modal.env-machine-state'
-    loaderSelector       = modalSelector + ' .kdloader'
-    buildingLabel        = modalSelector + ' .state-label.building'
+  waitForVMRunning: (browser, machineName) ->
+    vmSelector = '.vm.running.koding'
+
+    if machineName
+      vmSelector   = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
+
+    modalSelector  = '.env-modal.env-machine-state'
+    loaderSelector = modalSelector + ' .kdloader'
+    buildingLabel  = modalSelector + ' .state-label.building'
     turnOnButtonSelector = modalSelector + ' .turn-on.state-button'
 
     browser.element 'css selector', vmSelector, (result) =>
@@ -169,8 +173,12 @@ module.exports =
 
   doPostComment: (browser, comment, shouldAssert = yes) ->
     browser
-      .click        '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]'
-      .setValue     '[testpath=ActivityListItemView]:first-child [testpath=CommentInputView]', comment + '\n'
+      .click                    activitySelector + ' [testpath=CommentInputView]'
+      .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
+      .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
+      .click                    activitySelector + ' .has-markdown' # blur
+      .pause                    3000 # content preview
+      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
 
     if shouldAssert
       browser
@@ -184,7 +192,6 @@ module.exports =
       .waitForElementVisible  '[testpath=ActivityInputView]', 10000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
       .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
-
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', post
       .click                  '.channel-title'
@@ -248,7 +255,10 @@ module.exports =
       .click                   webSelector + ' + .chevron'
 
 
-  createFile: (browser, user) ->
+  createFile: (browser, user, selector) ->
+
+    if not selector
+      selector = 'li.new-file'
 
     @openFolderContextMenu(browser, user, 'Web')
 
@@ -257,8 +267,8 @@ module.exports =
     filename  = paragraph.split(' ')[0] + '.txt'
 
     browser
-      .waitForElementVisible    'li.new-file', 50000
-      .click                    'li.new-file'
+      .waitForElementVisible    selector, 50000
+      .click                    selector
       .waitForElementVisible    'li.selected .rename-container .hitenterview', 50000
       .clearValue               'li.selected .rename-container .hitenterview'
       .setValue                 'li.selected .rename-container .hitenterview', filename + '\n'
@@ -381,6 +391,36 @@ module.exports =
 
     if assertLoginLink
       browser.waitForElementVisible loginLinkSelector, 25000
+
+
+  changeName: (browser, inputSelector, shouldAssertSidebar) ->
+
+    paragraph           = @getFakeText()
+    newName             = paragraph.split(' ')[0]
+    avatarSelector      = '.avatar-area a.profile'
+    accountPageSelector = '#main-panel-wrapper .user-profile'
+    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
+
+    browser
+      .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
+      .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
+      .waitForElementVisible   '.avatararea-popup .content', 20000
+      .click                   '.avatararea-popup .content [testpath=AccountSettingsLink]'
+      .waitForElementVisible   accountPageSelector, 20000
+      .waitForElementVisible   inputSelector, 20000
+      .clearValue              inputSelector
+      .setValue                inputSelector, newName + '\n'
+      .waitForElementVisible   saveButtonSelector, 20000
+      .click                   saveButtonSelector
+      .refresh()
+      .waitForElementVisible   inputSelector, 20000
+      .getValue                inputSelector, (result) ->
+        assert.equal           result.value, newName
+
+        if shouldAssertSidebar
+          browser
+            .waitForElementVisible   avatarSelector, 20000
+            .assert.containsText     avatarSelector, newName
 
 
   getUrl: ->
