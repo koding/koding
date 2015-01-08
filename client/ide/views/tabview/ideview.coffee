@@ -311,11 +311,11 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @emit 'PaneRemoved', pane
 
 
-  getDummyFilePath: (uniquePath = yes) -> 
-    
+  getDummyFilePath: (uniquePath = yes) ->
+
     filePath = "localfile:/Untitled.txt"
     filePath += "@#{Date.now()}"  if uniquePath
-    
+
     return filePath
 
 
@@ -344,9 +344,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       return unless isFsFile
 
       isLocal  = pane.data.path.indexOf('localfile:/') > -1
-      isEmpty  = pane.view.getEditor()?.getSession()?.getValue() # intentional `?` checks
+      isEmpty  = pane.view.getEditor()?.getSession()?.getValue() is '' # intentional `?` checks
 
-      @tabView.removePane pane  if isFsFile and isLocal and isEmpty
+      @tabView.removePane pane  if isLocal and isEmpty
 
 
   getPlusMenuItems: ->
