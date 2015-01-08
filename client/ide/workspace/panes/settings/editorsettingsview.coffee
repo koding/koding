@@ -2,6 +2,10 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
 
   createElements: ->
 
+    @useAutosave         = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) => @emit 'SettingsChanged', 'useAutosave', state
+
     @useSoftTabs         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'useSoftTabs', state
@@ -72,12 +76,13 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
-      'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
+      'keyboardHandler', 'scrollPastEnd', 'openRecentFiles', 'useAutosave'
     ]
 
 
   defaults:
     useSoftTabs          : yes
+    useAutosave          : no
     showGutter           : yes
     highlightActiveLine  : yes
     scrollPastEnd        : yes
@@ -94,6 +99,7 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
 
     """
       <div class="settings-header">Editor Settings</div>
+      <p>Enable autosave                 {{> @useAutosave}}</p>
       <p>Use soft tabs                   {{> @useSoftTabs}}</p>
       <p>Line numbers                    {{> @showGutter}}</p>
       <p>Use word wrapping               {{> @useWordWrap}}</p>
