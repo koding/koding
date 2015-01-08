@@ -518,7 +518,7 @@ class SocialApiController extends KDController
     fetchActivities      : (options = {}, callback = ->)->
 
       # show exempt content if only requester is admin or exempt herself
-      showExempt = KD.checkFlag? "super-admin" or KD.whoami()?.isExempt
+      showExempt = KD.checkFlag?("super-admin") or KD.whoami()?.isExempt
 
       options.showExempt or= showExempt
 
