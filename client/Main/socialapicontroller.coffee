@@ -515,7 +515,7 @@ class SocialApiController extends KDController
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
 
-    fetchActivities      : (options = {}, callback = ->)->
+    fetchActivities      : (options = {}, callback = noop)->
 
       # show exempt content if only requester is admin or exempt herself
       showExempt = KD.checkFlag?("super-admin") or KD.whoami()?.isExempt
