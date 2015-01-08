@@ -1572,7 +1572,7 @@ class IDEAppController extends AppController
       when 'ParticipantWantsToLeave'
 
         @statusBar.removeParticipantAvatar origin
-        @removeParticipantCursorWidget targetUser
+        @removeParticipantCursorWidget data.target
 
       when 'ParticipantKicked'
 
