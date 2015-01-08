@@ -162,6 +162,13 @@ type Config struct {
 	SocialApi struct {
 		ProxyUrl string
 	}
+	Vmwatcher struct {
+		Port           string
+		AwsKey         string
+		AwsSecret      string
+		KloudSecretKey string
+		KloudAddr      string
+	}
 }
 
 type RuntimeOptions struct {
