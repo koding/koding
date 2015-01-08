@@ -206,7 +206,10 @@ do ->
 
   refreshWorkspaces = (callback) ->
 
-    KD.singletons.mainView.activitySidebar.fetchWorkspaces callback
+    {mainView, computeController} = KD.singletons
+
+    computeController.ready ->
+      mainView.activitySidebar.fetchWorkspaces callback
 
 
   KD.registerRoutes 'IDE',
