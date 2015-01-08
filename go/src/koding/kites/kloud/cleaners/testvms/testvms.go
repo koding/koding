@@ -3,7 +3,6 @@ package testvms
 import (
 	"fmt"
 	"koding/kites/kloud/multiec2"
-	"log"
 	"sync"
 	"time"
 
@@ -82,18 +81,18 @@ func (t *testvms) Process() {
 	for region, client := range t.clients.Regions() {
 		wg.Add(1)
 		go func(region string, client *ec2.EC2) {
+			defer wg.Done()
+
 			fmt.Printf("[%s] fetching instances ...\n", region)
 			start := time.Now()
 			instances, err := t.Instances(client)
 			if err != nil {
-				log.Println("err", err)
+				fmt.Printf("[%s] error: %s\n", err)
 				return
 			}
 
 			elapsed := time.Since(start)
 			fmt.Printf("[%s]: total instances: %+v (time: %s)\n", region, len(instances), elapsed)
-
-			wg.Done()
 		}(region, client)
 	}
 
