@@ -1599,7 +1599,6 @@ class IDEAppController extends AppController
         return  unless data.origin is @collaborationHost
 
         if data.target is KD.nick()
-          KD.getSingleton('router').handleRoute '/IDE'
           @removeMachineNode()
           @showKickedModal()
         else
@@ -1635,6 +1634,9 @@ class IDEAppController extends AppController
           callback : => @modal.destroy()
 
     @showModal options
+    @quit()
+
+
   quit: ->
 
     KD.utils.killRepeat @autoSaveInterval
@@ -1657,13 +1659,11 @@ class IDEAppController extends AppController
       buttons      :
         quit       :
           title    : 'LEAVE'
-          callback : =>
-            @modal.destroy()
-            KD.singletons.router.handleRoute '/IDE'
+          callback : => @modal.destroy()
 
     @showModal options
     @removeMachineNode()
-    @rtm = null
+    @quit()
 
 
   handleParticipantLeaveAction: ->
@@ -1675,13 +1675,11 @@ class IDEAppController extends AppController
     @showModal options, =>
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
       @modal.destroy()
-      @rtm = null
 
       options = channelId: @socialChannel.getId()
       KD.singletons.socialapi.channel.leave options, (err) =>
         return KD.showError err  if err
-        @setMachineUser [KD.whoami()], no, ->
-          KD.singletons.router.handleRoute '/IDE'
+        @setMachineUser [KD.whoami()], no, => @quit()
 
 
   removeMachineNode: ->
@@ -1750,10 +1748,11 @@ class IDEAppController extends AppController
           else
             KD.utils.killRepeat repeat
             @stopCollaborationSession =>
+              @quit()
+
               new KDNotificationView
                 title    : "@#{@collaborationHost} has left the session."
                 duration : 3000
-              KD.singletons.router.handleRoute '/IDE'
 
 
   removeParticipantCursorWidget: (targetUser) ->
