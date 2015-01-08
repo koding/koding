@@ -12,10 +12,7 @@ import (
 )
 
 func CreateAccount(a *models.Account) (*models.Account, error) {
-	if a.Nick == "" {
-		a.Nick = a.OldId
-	}
-
+	a.Nick = a.OldId
 	acc, err := sendModel("POST", "/account", a)
 	if err != nil {
 		return nil, err
