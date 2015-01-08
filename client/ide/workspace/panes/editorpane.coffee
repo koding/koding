@@ -233,6 +233,8 @@ class IDE.EditorPane extends IDE.Pane
 
   setContentFromCollaborativeString: ->
 
+    return  if @rtm.isDisposed
+
     {path} = @getFile()
 
     unless string = @rtm.getFromModel path
@@ -247,13 +249,14 @@ class IDE.EditorPane extends IDE.Pane
 
   listenCollaborativeStringChanges: ->
 
+    return  if @rtm.isDisposed
     return  unless string = @rtm.getFromModel @getFile().path
 
     @rtm.bindRealtimeListeners string, 'string'
 
     @rtm
       .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
-      .on 'TextDeletedFromString', @bound 'handleCollaborativeStringEvent'
+      .on 'TextDeletedFromString',  @bound 'handleCollaborativeStringEvent'
 
 
   handleCollaborativeStringEvent: (changedString, change) ->

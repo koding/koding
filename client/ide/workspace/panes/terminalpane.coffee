@@ -60,6 +60,7 @@ class IDE.TerminalPane extends IDE.Pane
     KD.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
 
     @once 'RealTimeManagerSet', =>
+      return  if @rtm.isDisposed
       myPermission = @rtm.getFromModel('permissions').get KD.nick()
       @makeReadOnly()  if myPermission is 'read'
 

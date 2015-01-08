@@ -550,7 +550,7 @@ class IDEAppController extends AppController
       @registerPane pane
 
     ideView.on 'ChangeHappened', (change) =>
-      @syncChange change
+      @syncChange change  if @rtm
 
 
   registerPane: (pane) ->
@@ -563,7 +563,7 @@ class IDEAppController extends AppController
     @generatedPanes[view.hash] = yes
 
     view.on 'ChangeHappened', (change) =>
-      @syncChange change
+      @syncChange change  if @rtm
 
 
   forEachSubViewInIDEViews_: (callback = noop, paneType) ->
@@ -1135,6 +1135,8 @@ class IDEAppController extends AppController
 
 
   createPaneFromChange: (change) ->
+
+    return unless @rtm
 
     {context} = change
     return unless context
