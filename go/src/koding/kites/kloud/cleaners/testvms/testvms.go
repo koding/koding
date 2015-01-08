@@ -19,14 +19,13 @@ type testvms struct {
 	// instances. By default all instances are fetched.
 	values []string
 
-	// dryRun runs the process but doesn't do anything. It's usefull to check
-	// before terminating all instances. By default it's disabled.
-	dryRun bool
+	// foundInstances is a list of instances that are fetched and stored
+	foundInstances map[*ec2.EC2][]ec2.Instance
 
 	clients *multiec2.Clients
 }
 
-func New(envs []string, olderThan time.Duration, dryRun bool) *testvms {
+func New(envs []string, olderThan time.Duration) *testvms {
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
 		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
@@ -36,13 +35,13 @@ func New(envs []string, olderThan time.Duration, dryRun bool) *testvms {
 	return &testvms{
 		olderThan: olderThan,
 		values:    envs,
-		dryRun:    dryRun,
 		clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
 			"us-west-2",
 			"eu-west-1",
 		}),
+		foundInstances: make(map[*ec2.EC2][]ec2.Instance),
 	}
 }
 
@@ -96,10 +95,29 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	return filtered, nil
 }
 
+func (t *testvms) TerminateAll() {
+	if t.foundInstances == nil {
+		return
+	}
+
+	var wg sync.WaitGroup
+
+	for client, instances := range t.foundInstances {
+		wg.Add(1)
+
+		go func() {
+			t.Terminate(client, instances)
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+}
+
 // Terminate terminates the given instances
-func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) error {
+func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) {
 	if len(instances) == 0 {
-		return nil // nothing to terminate
+		return
 	}
 
 	ids := make([]string, len(instances))
@@ -121,18 +139,14 @@ func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) error {
 	for _, split := range splitted {
 		_, err := client.TerminateInstances(split)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
 		}
 	}
-
-	return nil
 }
 
 // Process fetches all instances defined with the tags
 func (t *testvms) Process() {
 	var wg sync.WaitGroup
-
-	fmt.Printf("Searching for instances tagged with %+v and older than: %s\n\n", t.values, t.olderThan)
 
 	for region, client := range t.clients.Regions() {
 		wg.Add(1)
@@ -150,16 +164,9 @@ func (t *testvms) Process() {
 			fmt.Printf("[%s] total instances: %+v (time: %s)\n",
 				region, len(instances), elapsed)
 
-			if err := t.Terminate(client, instances); err != nil {
-				fmt.Printf("[%s] terminate error: %s\n", region, err)
-			}
+			t.foundInstances[client] = instances
 		}(region, client)
 	}
 
 	wg.Wait()
-}
-
-// Summary prints a summary of the process
-func (t *testvms) Summary() {
-
 }
