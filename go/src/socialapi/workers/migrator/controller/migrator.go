@@ -70,6 +70,8 @@ func (mwc *Controller) Start() {
 
 	mwc.migrateAllGroups()
 
+	mwc.createChangelogChannel()
+
 	mwc.GrantPublicAccess()
 
 	mwc.log.Notice("Migration finished")
