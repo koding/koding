@@ -1,6 +1,7 @@
 class IDE.EditorSettingsView extends IDE.IDESettingsView
 
   createElements: ->
+
     @useSoftTabs         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'useSoftTabs', state
@@ -62,15 +63,18 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       selectOptions      : IDE.settings.editor.tabSizes
       callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
-  getStorageInformation: ->
-    return { name: 'Ace', version: '1.0.1' }
+
+  getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
+
 
   getSettingKeys: ->
+
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
       'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
     ]
+
 
   defaults:
     useSoftTabs          : yes
@@ -85,7 +89,9 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
     tabSize              : 4
     keyboardHandler      : 'default'
 
+
   pistachio: ->
+
     """
       <div class="settings-header">Editor Settings</div>
       <p>Use soft tabs                   {{> @useSoftTabs}}</p>
