@@ -75,10 +75,11 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 			return nil, err
 		}
 
-		nextToken = resp.NextToken
 		for _, res := range resp.Reservations {
-			instances = append(instances, res.Instances[0])
+			instances = append(instances, res.Instances...)
 		}
+
+		nextToken = resp.NextToken
 	}
 
 	filtered := make([]ec2.Instance, 0)
@@ -107,12 +108,23 @@ func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) error {
 		ids[i] = instance.InstanceId
 	}
 
-	resp, err := client.TerminateInstances(ids, t.dryRun)
-	if err != nil {
-		return err
+	// we split the ids because AWS doesn't allow us to terminate more than
+	// 1000 instances, so for example if we have 2570 instances, we'll going to
+	// make three API calls with ids of 1000, 1000 and 570
+	var splitted [][]string
+	for len(ids) >= 1000 {
+		splitted = append(splitted, ids[:1000])
+		ids = ids[1000:]
+	}
+	splitted = append(splitted, ids) // remaining
+
+	for _, split := range splitted {
+		_, err := client.TerminateInstances(split)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 
-	fmt.Printf("resp = %+v\n", resp)
 	return nil
 }
 

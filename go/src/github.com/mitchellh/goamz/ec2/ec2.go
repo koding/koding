@@ -814,13 +814,11 @@ type InstanceStateChange struct {
 // TerminateInstances requests the termination of instances when the given ids.
 //
 // See http://goo.gl/3BKHj for more details.
-func (ec2 *EC2) TerminateInstances(instIds []string, dryRun bool) (resp *TerminateInstancesResp, err error) {
+func (ec2 *EC2) TerminateInstances(instIds []string) (resp *TerminateInstancesResp, err error) {
 	params := makeParams("TerminateInstances")
 	addParamsList(params, "InstanceId", instIds)
 
-	if dryRun {
-		params["DryRun"] = "True"
-	}
+	params["DryRun"] = "True"
 
 	resp = &TerminateInstancesResp{}
 	err = ec2.query(params, resp)
