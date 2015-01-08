@@ -16,13 +16,17 @@ type testvms struct {
 	olderThan time.Duration
 
 	// values contains a list of instance tags that are identified as test
-	// instances
+	// instances. By default all instances are fetched.
 	values []string
+
+	// dryRun runs the process but doesn't do anything. It's usefull to check
+	// before terminating all instances. By default it's disabled.
+	dryRun bool
 
 	clients *multiec2.Clients
 }
 
-func New(envs []string, olderThan time.Duration) *testvms {
+func New(envs []string, olderThan time.Duration, dryRun bool) *testvms {
 	// Credential belongs to the `koding-kloud` user in AWS IAM's
 	auth := aws.Auth{
 		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
@@ -32,6 +36,7 @@ func New(envs []string, olderThan time.Duration) *testvms {
 	return &testvms{
 		olderThan: olderThan,
 		values:    envs,
+		dryRun:    dryRun,
 		clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -102,7 +107,7 @@ func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) error {
 		ids[i] = instance.InstanceId
 	}
 
-	resp, err := client.TerminateInstances(ids)
+	resp, err := client.TerminateInstances(ids, t.dryRun)
 	if err != nil {
 		return err
 	}
@@ -132,6 +137,10 @@ func (t *testvms) Process() {
 			elapsed := time.Since(start)
 			fmt.Printf("[%s] total instances: %+v (time: %s)\n",
 				region, len(instances), elapsed)
+
+			if err := t.Terminate(client, instances); err != nil {
+				fmt.Printf("[%s] terminate error: %s\n", region, err)
+			}
 		}(region, client)
 	}
 
