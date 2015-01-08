@@ -415,7 +415,8 @@ class ActivitySidebar extends KDCustomHTMLView
     @addFollowedTopics()
     @addConversations()
 
-    @fetchWorkspaces => @addMessages()
+    KD.getSingleton 'computeController'
+      .ready @lazyBound 'fetchWorkspaces', @lazyBound 'addMessages'
 
 
   initiateFakeCounter: ->
