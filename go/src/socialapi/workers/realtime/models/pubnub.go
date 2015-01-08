@@ -3,6 +3,7 @@ package models
 import (
 	"socialapi/config"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/koding/logging"
@@ -10,10 +11,12 @@ import (
 )
 
 type PubNub struct {
-	pub   *pubnub.PubNubClient
-	grant *pubnub.AccessGrant
-	log   logging.Logger
-	token string
+	pub       *pubnub.PubNubClient
+	grant     *pubnub.AccessGrant
+	log       logging.Logger
+	token     string
+	channels  map[string]struct{}
+	channelMu sync.RWMutex
 }
 
 const (
@@ -34,10 +37,11 @@ func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
 	ag := pubnub.NewAccessGrant(pubnub.NewAccessGrantOptions(), cs)
 
 	pb := &PubNub{
-		pub:   client,
-		grant: ag,
-		log:   log,
-		token: conf.ServerAuthKey,
+		pub:      client,
+		grant:    ag,
+		log:      log,
+		token:    conf.ServerAuthKey,
+		channels: make(map[string]struct{}),
 	}
 
 	return pb
@@ -73,12 +77,40 @@ func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 }
 
 func (p *PubNub) grantServerAccess(c ChannelInterface) error {
+	ok := p.isAccessGranted(c)
+	if ok {
+		return nil
+	}
+
 	a := &Authenticate{
 		Account: &Account{Id: ServerId, Token: p.token},
 		Channel: c,
 	}
 
-	return p.GrantAccess(a, c)
+	if err := p.GrantAccess(a, c); err != nil {
+		return err
+	}
+
+	p.cacheAccessGranted(c)
+
+	return nil
+}
+
+func (p *PubNub) isAccessGranted(c ChannelInterface) bool {
+	p.channelMu.RLock()
+	channelName := c.PrepareName()
+
+	_, ok := p.channels[channelName]
+
+	p.channelMu.RUnlock()
+
+	return ok
+}
+
+func (p *PubNub) cacheAccessGranted(c ChannelInterface) {
+	p.channelMu.Lock()
+	p.channels[c.PrepareName()] = struct{}{}
+	p.channelMu.Unlock()
 }
 
 func (p *PubNub) Close() {
@@ -142,10 +174,20 @@ func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
 }
 
 func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
+	if ok := p.isAccessGranted(c); ok {
+		return nil
+	}
+
 	a := &Authenticate{}
 	a.Account = &Account{Token: ""}
 
-	return p.GrantAccess(a, c)
+	if err := p.GrantAccess(a, c); err != nil {
+		return err
+	}
+
+	p.channels[c.PrepareName()] = struct{}{}
+
+	return nil
 }
 
 func (p *PubNub) publish(c ChannelInterface, message interface{}) error {
