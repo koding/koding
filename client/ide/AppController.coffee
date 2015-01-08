@@ -1635,7 +1635,15 @@ class IDEAppController extends AppController
           callback : => @modal.destroy()
 
     @showModal options
+  quit: ->
+
+    KD.utils.killRepeat @autoSaveInterval
+    KD.utils.killRepeat @pingInterval
+    @rtm?.dispose()
     @rtm = null
+
+    KD.singletons.router.handleRoute '/IDE'
+    KD.singletons.appManager.quit this
 
 
   showSessionEndedModal: (content) ->
