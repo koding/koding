@@ -1,52 +1,66 @@
 module.exports = new class
 
   createKodingError = (err) ->
-    message:
-      if 'string' is typeof err
-      then err
-      else err.message
+
+    message: if 'string' is typeof err then err else err.message
+
 
   required = (field) =>
-    @::[field] = (userData, callback) ->
-      callback(
+
+    this::[field] = (userData, callback) ->
+
+      callback \
         unless userData[field]?
-        then { message: "Missed a required field: #{field}" }
-        else null
-      )
+          createKodingError "Missed a required field: #{field}"
+        else
+          null
 
-  ['firstName', 'lastName'].forEach required
+  # Since we removed first and last name requirement
+  #
+  # ['firstName', 'lastName'].forEach required
 
-  # TODO: do we support invitation codes yet/at all/only for other groups
-  ###
-  inviteCode:
-  ###
 
   agree: ({agree}, callback) ->
-    callback(
-      if agree isnt 'on'
-      then createKodingError 'You have to agree to the TOS'
-      else null
-    )
+
+    callback \
+      unless agree is 'on'
+        createKodingError 'You have to agree to the TOS'
+      else
+        null
+
 
   username: ({username}, callback) ->
 
+    unless username?
+      return callback createKodingError 'Missed a required field: username'
+
     @usernameAvailable username, (err, r) =>
+
       # r =
       #   forbidden    : yes/no
       #   kodingenUser : yes/no
       #   kodingUser   : yes/no
-      callback(
+
+      callback \
+
         if err then err
-        else if r.forbidden then createKodingError 'That username is forbidden!'
-        else if r.kodingUser then callback createKodingError 'That username is taken!'
-        else callback null
-      )
+        else if r.forbidden
+          createKodingError 'That username is forbidden!'
+        else if r.kodingUser
+          createKodingError 'That username is taken!'
+        else
+          null
+
 
   password: ({password, passwordConfirm}, callback) ->
-    callback(
-      if password isnt passwordConfirm
-      then createKodingError "Passwords must match"
+
+    callback \
+
+      if not password? or not passwordConfirm?
+        createKodingError 'Missed a required field: password / passwordConfirm'
+      else if password isnt passwordConfirm
+        createKodingError 'Passwords must match'
       else if password.length < 8
-      then createKodingError "Password must be at least 8 characters"
-      else null
-    )
+        createKodingError 'Password must be at least 8 characters'
+      else
+        null
