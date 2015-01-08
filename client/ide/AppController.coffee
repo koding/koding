@@ -288,6 +288,8 @@ class IDEAppController extends AppController
         else
           @createNewTerminal { machine }
           @setActiveTabView @ideViews.first.tabView
+          @forEachSubViewInIDEViews_ (pane) ->
+            pane.isInitial = yes
 
 
   getMountedMachine: (callback = noop) ->
@@ -896,7 +898,9 @@ class IDEAppController extends AppController
     @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
     @pingTime          or= @rtm.create 'string', 'pingTime'
     @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, @getWorkspaceSnapshot()
+
+    initialSnapshot      = if @amIHost then @getWorkspaceSnapshot() else {}
+    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, initialSnapshot
 
 
   registerCollaborationSessionId: ->
@@ -927,7 +931,7 @@ class IDEAppController extends AppController
     panes = {}
 
     @forEachSubViewInIDEViews_ (pane) ->
-      return unless pane.serialize
+      return  if not pane.serialize or (@isInSession and pane.isInitial)
 
       data = pane.serialize()
       panes[data.hash] =
@@ -941,26 +945,21 @@ class IDEAppController extends AppController
 
     return  if @collaborationJustInitialized or @fakeTabView
 
-    snapshot = @mySnapshot.values()
+    mySnapshot   = @mySnapshot.values().filter (item) -> return not item.isInitial
+    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
+    snapshot     = if hostSnapshot then mySnapshot.concat hostSnapshot else mySnapshot
 
-    if snapshot.length
-      @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
+    @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
 
-      for change in snapshot when change.context
-        {paneType} = change.context
+    for change in snapshot when change.context
+      {paneType} = change.context
 
-        if paneType is 'terminal'
-          @setActiveTabView @ideViews.last.tabView
-        else
-          @setActiveTabView @ideViews.first.tabView
+      if paneType is 'terminal'
+        @setActiveTabView @ideViews.last.tabView
+      else
+        @setActiveTabView @ideViews.first.tabView
 
-        @createPaneFromChange change
-    else
-      @mySnapshot.clear()
-      currentSnapshot = @getWorkspaceSnapshot()
-
-      for key, value of currentSnapshot
-        @mySnapshot.set key, value
+      @createPaneFromChange change
 
 
   syncChange: (change) ->
@@ -1123,6 +1122,9 @@ class IDEAppController extends AppController
     return unless context
 
     paneHash = context.paneHash or context.hash
+    currentSnapshot = @getWorkspaceSnapshot()
+
+    return  if currentSnapshot[paneHash]
 
     switch context.paneType
       when 'terminal'
