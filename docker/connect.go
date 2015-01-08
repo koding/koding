@@ -72,5 +72,5 @@ func (s *Server) Close(d *dnode.Partial) {
 }
 
 func (s *Server) Terminate(d *dnode.Partial) {
-	s.Close(nil)
+	s.Close(d)
 }
