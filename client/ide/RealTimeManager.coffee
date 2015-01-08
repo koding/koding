@@ -197,6 +197,9 @@ class RealTimeManager extends KDObject
     list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, (v) =>
       @emit 'ListValuesSet', list, v
 
+  dispose: ->
 
   getCollaborators: ->
     return @getRealtimeDoc().getCollaborators()
+    @isDisposed = yes
+    @destroy()
