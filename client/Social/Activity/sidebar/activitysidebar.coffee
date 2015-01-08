@@ -453,14 +453,13 @@ class ActivitySidebar extends KDCustomHTMLView
       .then (workspaces) ->
         fetchingWorkspaces = no
 
-        nick        = KD.nick()
         {socialapi} = KD.singletons
 
         otherMachineUIds = []
         myMachineUIds    = []
 
         KD.userMachines.forEach (m) ->
-          if m.data.credential is nick
+          if m.isMine()
           then myMachineUIds.push m.uid
           else otherMachineUIds.push m.uid
 
@@ -516,24 +515,19 @@ class ActivitySidebar extends KDCustomHTMLView
 
     for machine in machines
 
-      unless machine?.bongo_?.constructorName is 'JMachine'
-        machine = machine.getData()
-
-      treeData.push item = new Machine {machine}
-
-      id = item.getId()
+      treeData.push machine
 
       treeData.push
         title        : 'Workspaces'
         type         : 'title'
-        parentId     : id
-        id           : machine._id
+        parentId     : machine.getId()
+        id           : machine.getData().getId()
         machineUId   : machine.uid
         machineLabel : machine.slug or machine.label
 
       ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
-      machineOwner = machine.credential
-      isMyMachine  = machineOwner is KD.nick()
+      machineOwner = machine.getOwner()
+      isMyMachine  = machine.isMine()
       ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
       hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
@@ -543,7 +537,7 @@ class ActivitySidebar extends KDCustomHTMLView
           type         : 'workspace'
           href         : ideRoute
           id           : "#{machine.slug or machine.label}-workspace"
-          parentId     : id
+          parentId     : machine.getId()
           machineLabel : machine.slug or machine.label
 
       KD.userWorkspaces.forEach (workspace) ->
@@ -568,7 +562,7 @@ class ActivitySidebar extends KDCustomHTMLView
             machineLabel : machine.slug or machine.label
             data         : workspace
             id           : workspace._id
-            parentId     : id
+            parentId     : machine.getId()
 
     for data in treeData
 
@@ -694,7 +688,7 @@ class ActivitySidebar extends KDCustomHTMLView
       machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
     if KD.userMachines.length
-    then @listMachines (KD.remote.revive machine for machine in KD.userMachines)
+    then @listMachines (new Machine machine: (KD.remote.revive machine) for machine in KD.userMachines)
     else @fetchMachines @bound 'listMachines'
 
 
@@ -929,11 +923,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
   renderMachines: (machines, callback = noop)->
 
-    jMachines = []
-    jMachines.push machine.data for machine in machines
-
     @machineTree.removeAllNodes()
-    @listMachines jMachines
+    @listMachines machines
 
     @selectWorkspace()
     callback()
