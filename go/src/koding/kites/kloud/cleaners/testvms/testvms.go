@@ -28,7 +28,7 @@ func New() *testvms {
 
 	return &testvms{
 		tag:    "koding-env",
-		values: []string{"sandbox", "development"},
+		values: []string{"sandbox", "dev"},
 		clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -39,11 +39,13 @@ func New() *testvms {
 }
 
 // Instances returns all instances that belongs to the given client/region
-func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
+func (t *testvms) Instances(client *ec2.EC2, env string) ([]ec2.Instance, error) {
 	instances := make([]ec2.Instance, 0)
 
-	opts := &ec2.InstancesOpts{}
-	resp, err := client.InstancesWithOpts([]string{}, ec2.NewFilter(), opts)
+	filter := ec2.NewFilter()
+	filter.Add("tag-value", env)
+
+	resp, err := client.InstancesWithOpts([]string{}, filter, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +62,7 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 			NextToken: nextToken,
 		}
 
-		resp, err := client.InstancesWithOpts([]string{}, ec2.NewFilter(), opts)
+		resp, err := client.InstancesWithOpts([]string{}, filter, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -74,29 +76,59 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	return instances, nil
 }
 
+// Terminate terminates the given instances
+func (t *testvms) Terminate(client *ec2.EC2, instances []ec2.Instance) error {
+	if len(instances) == 0 {
+		return nil // nothing to terminate
+	}
+
+	ids := make([]string, len(instances))
+
+	for i, instance := range instances {
+		ids[i] = instance.InstanceId
+	}
+
+	resp, err := client.TerminateInstances(ids)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("resp = %+v\n", resp)
+	return nil
+}
+
 // Process fetches all instances defined with the tags
 func (t *testvms) Process() {
 	var wg sync.WaitGroup
+	env := "sandbox"
 
 	for region, client := range t.clients.Regions() {
 		wg.Add(1)
 		go func(region string, client *ec2.EC2) {
 			defer wg.Done()
 
-			fmt.Printf("[%s] fetching instances ...\n", region)
 			start := time.Now()
-			instances, err := t.Instances(client)
+			instances, err := t.Instances(client, env)
 			if err != nil {
-				fmt.Printf("[%s] error: %s\n", err)
+				fmt.Printf("[%s] fetching error: %s\n", region, err)
 				return
 			}
 
 			elapsed := time.Since(start)
-			fmt.Printf("[%s]: total instances: %+v (time: %s)\n", region, len(instances), elapsed)
+			fmt.Printf("[%s] instances tagged with '%s': %+v (time: %s)\n",
+				region, env, len(instances), elapsed)
+
+			if err := t.Terminate(client, instances); err != nil {
+				fmt.Printf("[%s] terminate error: %s\n", region, err)
+			}
+
 		}(region, client)
 	}
 
 	wg.Wait()
 }
 
-func (t *testvms) Summary() {}
+// Summary prints a summary of the process
+func (t *testvms) Summary() {
+
+}
