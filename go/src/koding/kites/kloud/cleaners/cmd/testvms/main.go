@@ -38,18 +38,22 @@ func main() {
 	<-done
 	ticker.Stop()
 
-	fmt.Println("")
+	fmt.Printf("\n\n")
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+
+	total := 0
 	for client, instances := range t.FoundInstances {
 		region := client.Region.Name
 		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", region, len(instances))
+		total += len(instances)
 	}
 
 	fmt.Fprintln(w)
 	w.Flush()
 
 	if *flagTerminate {
+		fmt.Printf("Terminating '%d' instances\n", total)
 		t.TerminateAll()
 	} else {
 		fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
