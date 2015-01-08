@@ -1,0 +1,62 @@
+{
+    "variables": {
+        "aws_access_key": "{{env `AWS_ACCESS_KEY`}}",
+        "aws_secret_key": "{{env `AWS_SECRET_KEY`}}",
+        "template_dir": "website/",
+        "bash_dir": "bash/",
+        "kodingart_dir": "kodingart/"
+    },
+    "builders": [
+        {
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "ami_name": "koding-base-latest-{{timestamp}}",
+            "ami_description":"Koding Base Image",
+            "instance_type": "m3.medium",
+            "region": "us-east-1",
+            "source_ami": "ami-680fd500",
+            "subnet_id": "subnet-98d30fef",
+            "vpc_id": "vpc-bf65dada",
+            "ssh_username": "ubuntu",
+            "type": "amazon-ebs",
+            "ami_regions": [
+		    "eu-west-1", 
+		    "us-west-2", 
+		    "ap-southeast-1"
+	    ],
+	    "tags": {
+	      "Name": "koding-test"
+	    }
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "script": "script.sh",
+            "pause_before": "30s"
+        },
+        {
+            "type": "file",
+            "source": "{{user `template_dir`}}",
+            "destination": "/tmp/userdata/Web"
+        },
+        {
+            "type": "file",
+            "source": "{{user `bash_dir`}}",
+            "destination": "/tmp/userdata/bash"
+        },
+        {
+            "type": "file",
+            "source": "{{user `kodingart_dir`}}",
+            "destination": "/tmp/userdata/kodingart"
+        },
+        {
+            "type": "shell",
+            "inline": [
+                "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
+                "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
+                "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
+            ]
+        }
+    ]
+}
