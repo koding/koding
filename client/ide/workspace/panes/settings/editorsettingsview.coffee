@@ -1,6 +1,11 @@
 class IDE.EditorSettingsView extends IDE.IDESettingsView
 
   createElements: ->
+
+    @useAutosave         = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) => @emit 'SettingsChanged', 'useAutosave', state
+
     @useSoftTabs         = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'useSoftTabs', state
@@ -62,18 +67,22 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       selectOptions      : IDE.settings.editor.tabSizes
       callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
-  getStorageInformation: ->
-    return { name: 'Ace', version: '1.0.1' }
+
+  getStorageInformation: -> return { name: 'Ace', version: '1.0.1' }
+
 
   getSettingKeys: ->
+
     return [
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
-      'keyboardHandler', 'scrollPastEnd', 'openRecentFiles'
+      'keyboardHandler', 'scrollPastEnd', 'openRecentFiles', 'useAutosave'
     ]
+
 
   defaults:
     useSoftTabs          : yes
+    useAutosave          : no
     showGutter           : yes
     highlightActiveLine  : yes
     scrollPastEnd        : yes
@@ -85,9 +94,12 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
     tabSize              : 4
     keyboardHandler      : 'default'
 
+
   pistachio: ->
+
     """
       <div class="settings-header">Editor Settings</div>
+      <p>Enable autosave                 {{> @useAutosave}}</p>
       <p>Use soft tabs                   {{> @useSoftTabs}}</p>
       <p>Line numbers                    {{> @showGutter}}</p>
       <p>Use word wrapping               {{> @useWordWrap}}</p>

@@ -33,7 +33,9 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       cssClass : 'kd-logo'
       click    : -> KD.singletons.mainView.toggleSidebar()
 
+
   createFilesPane: ->
+
     filesPane  = new KDTabPaneView
       name     : 'Files'
       closable : no
@@ -49,12 +51,14 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
     @on 'MachineUnmountRequested', (machineData) =>
       @finderPane.emit 'MachineUnmountRequested', machineData
 
+
   createSettingsPane: ->
+
     settingsPane = new KDTabPaneView
       name       : 'Settings'
       closable   : no
 
-    settingsPane.addSubView new IDE.SettingsPane
+    settingsPane.addSubView @settingsPane = new IDE.SettingsPane
     @tabView.addPane settingsPane
 
 

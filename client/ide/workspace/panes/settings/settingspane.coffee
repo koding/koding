@@ -8,5 +8,8 @@ class IDE.SettingsPane extends IDE.Pane
 
     @addSubView scrollView = new KDCustomScrollView
 
-    scrollView.wrapper.addSubView new IDE.EditorSettingsView
-    scrollView.wrapper.addSubView new IDE.TerminalSettingsView
+    @editorSettingsView   = new IDE.EditorSettingsView
+    @terminalSettingsView = new IDE.TerminalSettingsView
+
+    scrollView.wrapper.addSubView @editorSettingsView
+    scrollView.wrapper.addSubView @terminalSettingsView

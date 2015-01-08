@@ -16,7 +16,9 @@ class IDE.IDESettingsView extends JView
     @on 'SettingsFetched', @bound 'setSettings'
     @on 'SettingsChanged', @bound 'handleSettingsChanged'
 
+
   getSettings: ->
+
     settingKeys = @getSettingKeys()
 
     @appStorage.fetchStorage =>
@@ -28,10 +30,14 @@ class IDE.IDESettingsView extends JView
 
       @emit 'SettingsFetched'
 
+
   setSettings: ->
+
     @[key].setDefaultValue value  for own key, value of @settings
 
+
   handleSettingsChanged: (key, value) ->
+
     @appStorage.setValue key, value
 
     appManager = KD.getSingleton 'appManager'
