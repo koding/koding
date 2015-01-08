@@ -1507,8 +1507,11 @@ class IDEAppController extends AppController
       @chat.emit 'CollaborationEnded'
       @chat = null
       @modal.destroy()
+      @rtm.dispose()
       @rtm = null
+      KD.utils.killRepeat @pingInterval
       KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+      @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
 
     @mySnapshot.clear()
     @rtm.deleteFile @getRealTimeFileName()
@@ -1737,9 +1740,10 @@ class IDEAppController extends AppController
     diffInterval = KD.config.collaboration.timeout
 
     if @amIHost
-      KD.utils.repeat pingInterval, => @pingTime.setText Date.now().toString()
+      @pingInterval = KD.utils.repeat pingInterval, =>
+        @pingTime.setText Date.now().toString()
     else
-      repeat = KD.utils.repeat pongInterval, =>
+      @pingInterval = KD.utils.repeat pongInterval, =>
         lastPing = @pingTime.getText()
 
         return  if Date.now() - lastPing < diffInterval
@@ -1748,7 +1752,7 @@ class IDEAppController extends AppController
           if err
           then console.warn err
           else
-            KD.utils.killRepeat repeat
+            KD.utils.killRepeat @pingInterval
             @stopCollaborationSession =>
               @quit()
 
