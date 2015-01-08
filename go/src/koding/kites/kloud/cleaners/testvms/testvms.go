@@ -43,7 +43,7 @@ func New() *testvms {
 func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	instances := make([]ec2.Instance, 0)
 
-	opts := &ec2.InstancesOpts{MaxResults: 500}
+	opts := &ec2.InstancesOpts{}
 	resp, err := client.InstancesWithOpts([]string{}, ec2.NewFilter(), opts)
 	if err != nil {
 		return nil, err
@@ -58,8 +58,7 @@ func (t *testvms) Instances(client *ec2.EC2) ([]ec2.Instance, error) {
 	// get all results until nextToken is empty
 	for nextToken != "" {
 		opts := &ec2.InstancesOpts{
-			MaxResults: 500,
-			NextToken:  nextToken,
+			NextToken: nextToken,
 		}
 
 		resp, err := client.InstancesWithOpts([]string{}, ec2.NewFilter(), opts)
