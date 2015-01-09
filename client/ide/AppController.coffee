@@ -1611,8 +1611,7 @@ class IDEAppController extends AppController
 
       when 'ParticipantWantsToLeave'
 
-        @statusBar.removeParticipantAvatar origin
-        @removeParticipantCursorWidget data.target
+        @handleParticipantKicked data.origin
 
       when 'ParticipantKicked'
 
@@ -1711,7 +1710,8 @@ class IDEAppController extends AppController
   handleParticipantKicked: (username) ->
 
     @chat.emit 'ParticipantLeft', username
-    @statusBar.emit 'ParticipantLeft', username
+    @statusBar.removeParticipantAvatar username
+    @removeParticipantCursorWidget username
 
 
   getCollaborationData: (callback = noop) =>
@@ -1744,7 +1744,7 @@ class IDEAppController extends AppController
           target   : targetUser
 
         @broadcastMessages.push message
-        @removeParticipantCursorWidget targetUser
+        @handleParticipantKicked targetUser
 
 
   listenPings: ->
