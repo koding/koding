@@ -73,6 +73,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @state = status
 
       if error?.length > 0
+
         if /NetworkOut overlimit/i.test event.message
           @customErrorMessage = """
             <p>You've reached your outbound network usage limit for this week.</p>
@@ -81,7 +82,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
             assistance.</span>
           """
 
-        @hasError = yes
+        unless error.code is ComputeController.Error.NotVerified
+          @hasError = yes
 
       if not percentage?
         @switchToIDEIfNeeded()
@@ -161,10 +163,12 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
           if response.State is NotInitialized
             KD.utils.defer => @turnOnMachine()
 
-        .catch (err)=>
+        .catch ({err})=>
 
-          warn "Failed to fetch initial info:", err
-          @hasError = yes
+          unless err?.code is ComputeController.Error.NotVerified
+            warn "Failed to fetch initial info:", err
+            @hasError = yes
+
           @buildViews()
 
     else
@@ -355,8 +359,11 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       methodName = 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{@machineId}", (err)=>
-      @hasError = yes
+    computeController.once "error-#{@machineId}", ({err})=>
+
+      unless err?.code is ComputeController.Error.NotVerified
+        @hasError = yes
+
       @buildViews State: @machine.status.state
 
     KD.singletons.computeController[methodName] @machine
