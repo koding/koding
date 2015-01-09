@@ -102,3 +102,15 @@ class Machine extends KDObject
         connect    : noop
         disconnect : noop
       }
+
+
+  getOwner: ->
+
+    switch @provider
+      when 'koding'
+        return @data.credential
+
+
+  isMine: ->
+
+    @getOwner() is KD.nick()

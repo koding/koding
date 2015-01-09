@@ -68,6 +68,11 @@ func New(auth aws.Auth, regions []string) *Clients {
 	return clients
 }
 
+// Regions returns a list of Regions with their names and coressponding clients
+func (c *Clients) Regions() map[string]*ec2.EC2 {
+	return c.regions
+}
+
 // Region returns an *ec2.EC2 reference that is used to make API calls to this
 // particular region.
 func (c *Clients) Region(region string) (*ec2.EC2, error) {
