@@ -45,7 +45,7 @@ userData =
 
 options              =
   params             :
-    ImageId          : 'ami-f464e69c'
+    ImageId          : 'ami-66bbca0e'
     InstanceType     : 'c3.xlarge'
     MinCount         : 1
     MaxCount         : 1
