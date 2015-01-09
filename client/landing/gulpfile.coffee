@@ -3,6 +3,7 @@ gulp    = require 'gulp'
 shell   = require 'gulp-shell'
 prompt  = require 'gulp-prompt'
 nodemon = require 'gulp-nodemon'
+argv    = require('minimist') process.argv
 req     = (module) -> require "./gulptasks/#{module}"
 
 # CONSTANTS
@@ -33,7 +34,7 @@ gulp.task 'watch-server', -> watchLogger 'cyan', gulp.watch SERVER_PATH, ['serve
 
 # BUILD
 
-gulp.task 'build-all-sites', req 'task.build.all'
+gulp.task 'build-all-sites', (req 'task.build.all').bind this, argv['koding-version']
 
 
 # DEFAULT
