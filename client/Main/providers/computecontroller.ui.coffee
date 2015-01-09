@@ -118,7 +118,7 @@ class ComputeController.UI
         title   : "Resize VM?"
         message : "
           If you choose to proceed, this VM will be resized from 3GB to 10GB.
-          During the resize process, you will not be able to use the VM but 
+          During the resize process, you will not be able to use the VM but
           all your files, workspaces and data will be safe.
         "
         button  : "Proceed"
@@ -158,6 +158,31 @@ class ComputeController.UI
         callback  : ->
           modal.destroy()
           callback()
+
+
+  @showPinEntryModal: (callback)->
+
+    @_verifyModal = new VerifyPINModal 'Verify Account', (pin)=>
+
+      KD.remote.api.JUser.verifyByPin {pin}, (err)=>
+
+        @_verifyModal = null
+        callback err
+
+
+  @requestVerify: (callback = noop)->
+
+    if @_verifyModal?
+      return @_verifyModal.show()
+
+    if @_pinSentOnce
+      @showPinEntryModal callback
+
+    else
+      KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+        return  if KD.showError err
+        @_pinSentOnce = yes
+        @showPinEntryModal callback
 
 
   @askMachineForApp: (app, callback)->
