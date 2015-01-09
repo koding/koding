@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"os"
 	"time"
 
 	"github.com/koding/multiconfig"
@@ -36,14 +37,18 @@ func main() {
 	instances = instances.OlderThan(time.Hour * 24)
 	instances = instances.WithTag("koding-env", "sandbox", "dev")
 
-	fmt.Println(instances)
+	if instances.Total() == 0 {
+		fmt.Print("No VMs matching")
+		os.Exit(1)
+	}
 
+	fmt.Println(instances)
 	fmt.Printf("All regions total: %+v\n", instances.Total())
 
-	// if conf.Terminate {
-	// 	l.TerminateAll()
-	// 	fmt.Printf("Terminated '%d' instances\n", total)
-	// } else if total > 0 {
-	// 	fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
-	// }
+	if conf.Terminate {
+		instances.Terminate()
+		fmt.Printf("Terminated '%d' instances\n", instances.Total())
+	} else {
+		fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
+	}
 }
