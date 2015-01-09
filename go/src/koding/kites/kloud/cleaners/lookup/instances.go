@@ -1,6 +1,7 @@
 package lookup
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -13,12 +14,36 @@ type Instances []ec2.Instance
 func (i Instances) OlderThan(duration time.Duration) Instances {
 	filtered := make(Instances, 0)
 
-	// filter out instances that are older
 	for _, instance := range i {
 		oldDate := time.Now().UTC().Add(-duration)
 
 		if instance.LaunchTime.Before(oldDate) {
 			filtered = append(filtered, instance)
+		}
+	}
+
+	return filtered
+}
+
+// WithTag filters out instances which contains that particular tag's key and
+// value
+func (i Instances) WithTag(key string, value ...string) Instances {
+	filtered := make(Instances, 0)
+
+	valueIn := func(user string, users ...string) bool {
+		for _, u := range users {
+			if u == user {
+				return true
+			}
+		}
+		return false
+	}
+
+	for _, instance := range i {
+		for _, tag := range instance.Tags {
+			if tag.Key == key && tag.Value == value {
+				filtered = append(filtered, instance)
+			}
 		}
 	}
 
@@ -34,6 +59,20 @@ func (i Instances) Ids() []string {
 	}
 
 	return ids
+}
+
+// Terminate terminates all instances
+func (i Instances) Terminate(client *ec2.EC2) {
+	if len(i) == 0 {
+		return
+	}
+
+	for _, split := range i.SplittedIds(500) {
+		_, err := client.TerminateInstances(split)
+		if err != nil {
+			fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
+		}
+	}
 }
 
 // SplittedIds splits the instances ids into a list of ids each with the given

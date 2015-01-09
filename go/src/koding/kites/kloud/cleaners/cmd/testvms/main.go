@@ -3,13 +3,9 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
-	"os"
-	"text/tabwriter"
-	"time"
 
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 type Config struct {
@@ -31,37 +27,21 @@ func main() {
 		SecretKey: conf.SecretKey,
 	}
 
-	t := lookup.New(auth)
+	l := lookup.New(auth)
 
 	fmt.Printf("Searching for instances tagged with [sandbox, dev] and older than 1 day ...\n")
 
-	filter := ec2.NewFilter()
-	filter.Add("tag-value", "sandbox", "dev")
-	// Anything except "terminated" and "shutting-down"
-	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
+	allInstances := l.FetchInstances()
 
-	t.Filter = filter
-	t.OlderThan = time.Hour * 24
-	t.FetchInstances()
+	a := allInstances.WithTag("koding-env", "sandbox", "dev")
 
-	fmt.Printf("\n\n")
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+	fmt.Printf("a = %s\n", a)
+	fmt.Printf("a.Total() = %+v\n", a.Total())
 
-	total := 0
-	for client, instances := range t.FoundInstances {
-		region := client.Region.Name
-		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", region, len(instances))
-		total += len(instances)
-	}
-
-	fmt.Fprintln(w)
-	w.Flush()
-
-	if conf.Terminate {
-		t.TerminateAll()
-		fmt.Printf("Terminated '%d' instances\n", total)
-	} else if total > 0 {
-		fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
-	}
+	// if conf.Terminate {
+	// 	l.TerminateAll()
+	// 	fmt.Printf("Terminated '%d' instances\n", total)
+	// } else if total > 0 {
+	// 	fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
+	// }
 }

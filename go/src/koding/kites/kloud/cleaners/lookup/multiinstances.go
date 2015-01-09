@@ -1,0 +1,85 @@
+package lookup
+
+import (
+	"fmt"
+	"os"
+	"sync"
+	"text/tabwriter"
+
+	"github.com/mitchellh/goamz/ec2"
+)
+
+// MultiInstances represents a map of Instances bound to a region.
+type MultiInstances map[*ec2.EC2]Instances
+
+// WithTag filters out instances which contains that particular tag's key and
+// value
+func (m MultiInstances) WithTag(key string, value ...string) MultiInstances {
+	filtered := make(MultiInstances, 0)
+
+	for client, instances := range m {
+		filtered[client] = instances.WithTag(key, value)
+	}
+
+	return filtered
+}
+
+// Terminate terminates all instances
+func (m MultiInstances) Terminate() {
+	if len(m) == 0 {
+		return
+	}
+
+	var wg sync.WaitGroup
+
+	for client, instances := range m {
+		wg.Add(1)
+
+		go func(client *ec2.EC2, instances Instances) {
+			instances.Terminate(client)
+			wg.Done()
+		}(client, instances)
+	}
+
+	wg.Wait()
+}
+
+// String representation
+func (m MultiInstances) String() string {
+	fmt.Printf("\n\n")
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+
+	total := 0
+	for client, instances := range m {
+		region := client.Region.Name
+		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", region, len(instances))
+		total += len(instances)
+	}
+
+	fmt.Fprintln(w)
+	w.Flush()
+}
+
+// Total retursn the number of al instances
+func (m MultiInstances) Total() int {
+	total := 0
+	for _, instances := range m {
+		total += len(instances)
+	}
+	return total
+}
+
+// Combine combines multiple MultiInstances into a single MultiInstances struct
+func Combine(ms ...MultiInstances) MultiInstances {
+	combined := make(MultiInstances, 0)
+
+	for _, multiInstance := range ms {
+		for client, instances := range multiInstance {
+			combined[client] = instances
+
+		}
+	}
+
+	return combined
+}

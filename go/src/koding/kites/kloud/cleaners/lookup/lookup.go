@@ -19,12 +19,6 @@ type Lookup struct {
 	// instances. By default all instances are fetched.
 	values []string
 
-	// FoundInstances is a list of instances that are fetched and stored
-	FoundInstances map[*ec2.EC2]Instances
-
-	// filter is used to filter instances
-	Filter *ec2.Filter
-
 	clients *multiec2.Clients
 }
 
@@ -36,7 +30,6 @@ func New(auth aws.Auth) *Lookup {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		FoundInstances: make(map[*ec2.EC2]Instances),
 	}
 }
 
@@ -44,17 +37,11 @@ func New(auth aws.Auth) *Lookup {
 func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 	instances := make(Instances, 0)
 
-	opts := &ec2.InstancesOpts{}
-
-	// Otherwise we get (InvalidParameterCombination), we can't use Filter and
-	// MaxResults on the same time
-	if l.Filter == nil {
-		opts = &ec2.InstancesOpts{
-			MaxResults: 500,
-		}
+	opts := &ec2.InstancesOpts{
+		MaxResults: 900,
 	}
 
-	resp, err := client.InstancesWithOpts([]string{}, l.Filter, opts)
+	resp, err := client.InstancesWithOpts([]string{}, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +58,7 @@ func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 			NextToken: nextToken,
 		}
 
-		resp, err := client.InstancesWithOpts([]string{}, l.Filter, opts)
+		resp, err := client.InstancesWithOpts([]string{}, opts)
 		if err != nil {
 			return nil, err
 		}
@@ -90,43 +77,11 @@ func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 	return instances, nil
 }
 
-// TerminateAll terminates all found instances
-func (l *Lookup) TerminateAll() {
-	if l.FoundInstances == nil {
-		return
-	}
-
-	var wg sync.WaitGroup
-
-	for client, instances := range l.FoundInstances {
-		wg.Add(1)
-
-		go func(client *ec2.EC2, instances []ec2.Instance) {
-			l.Terminate(client, instances)
-			wg.Done()
-		}(client, instances)
-	}
-
-	wg.Wait()
-}
-
-// Terminate terminates the given instances
-func (l *Lookup) Terminate(client *ec2.EC2, instances Instances) {
-	if len(instances) == 0 {
-		return
-	}
-
-	for _, split := range instances.SplittedIds(500) {
-		_, err := client.TerminateInstances(split)
-		if err != nil {
-			fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
-		}
-	}
-}
-
 // FetchInstances fetches all instances from all regions
-func (l *Lookup) FetchInstances() {
+func (l *Lookup) FetchInstances() MultiInstances {
 	var wg sync.WaitGroup
+
+	allInstances := make(MultiInstances, 0)
 
 	for region, client := range l.clients.Regions() {
 		wg.Add(1)
@@ -139,9 +94,11 @@ func (l *Lookup) FetchInstances() {
 				return
 			}
 
-			l.FoundInstances[client] = instances
+			allInstances[client] = instances
 		}(region, client)
 	}
 
 	wg.Wait()
+
+	return allInstances
 }

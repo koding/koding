@@ -27,7 +27,7 @@ func main() {
 		SecretKey: conf.SecretKey,
 	}
 
-	t := lookup.New(auth)
+	l := lookup.New(auth)
 
 	fmt.Printf("Searching for user VMs in production ...\n")
 
@@ -37,14 +37,30 @@ func main() {
 	// // filter.Add("architecture", "x86_64")
 	//
 	// t.Filter = filter
-	t.FetchInstances()
+	l.FetchInstances()
+
+	before := 0
+	for _, instances := range l.FoundInstances {
+		before += len(instances)
+	}
+	fmt.Printf("before = %+v\n", before)
+
+	for client, instances := range l.FoundInstances {
+		l.FoundInstances[client] = instances.WithTag("koding-env", "production")
+	}
+
+	after := 0
+	for _, instances := range l.FoundInstances {
+		after += len(instances)
+	}
+	fmt.Printf("after = %+v\n", after)
 
 	fmt.Printf("\n\n")
 	w := new(tabwriter.Writer)
 	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
 
 	total := 0
-	for client, instances := range t.FoundInstances {
+	for client, instances := range l.FoundInstances {
 		region := client.Region.Name
 		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", region, len(instances))
 		total += len(instances)

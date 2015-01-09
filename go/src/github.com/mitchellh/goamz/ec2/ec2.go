@@ -851,13 +851,14 @@ type InstancesOpts struct {
 	NextToken  string
 }
 
-// InstancesWithOpts returns details about instances in EC2.  Both parameters
-// are optional, and if provided will limit the instances returned to those
-// matching the given instance ids or filtering rules. Options is used to fetch
-// results in batches, this is useful if you have many instances.
+// InstancesWithOpts returns details about instances in EC2.  Both
+// parameters are optional, and if provided will limit the instances
+// returned to those matching the given instance ids. Options is used
+// to fetch results in batches, this is useful if you have many
+// instances.
 //
 // See http://goo.gl/4No7c for more details.
-func (ec2 *EC2) InstancesWithOpts(instIds []string, filter *Filter, options *InstancesOpts) (resp *InstancesResp, err error) {
+func (ec2 *EC2) InstancesWithOpts(instIds []string, options *InstancesOpts) (resp *InstancesResp, err error) {
 	params := makeParams("DescribeInstances")
 	addParamsList(params, "InstanceId", instIds)
 
@@ -866,10 +867,6 @@ func (ec2 *EC2) InstancesWithOpts(instIds []string, filter *Filter, options *Ins
 	}
 	if options.NextToken != "" {
 		params["NextToken"] = options.NextToken
-	}
-
-	if filter != nil {
-		filter.addParams(params)
 	}
 
 	resp = &InstancesResp{}
