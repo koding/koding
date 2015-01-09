@@ -125,7 +125,7 @@ class Builder
           queue.next()
       ,
       ->
-        exec 'cd client/landing && gulp build-all-sites', (err, stdout, stderr)->
+        exec "cd client/landing && gulp build-all-sites --koding-version=#{args.version}", (err, stdout, stderr)->
           if err
           then console.error err
           else console.log """
