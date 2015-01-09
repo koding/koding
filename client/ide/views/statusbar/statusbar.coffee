@@ -98,7 +98,10 @@ class IDE.StatusBar extends KDView
       avatar.unsetClass 'online'
 
 
-  removeParticipantAvatar: (nickname) -> @participantAvatars[nickname]?.destroy()
+  removeParticipantAvatar: (nickname) ->
+
+    @participantAvatars[nickname]?.destroy()
+    delete @participantAvatars[nickname]
 
 
   addParticipantAvatar: (nickname) ->
