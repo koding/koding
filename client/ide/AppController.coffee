@@ -1322,6 +1322,12 @@ class IDEAppController extends AppController
       @initPrivateMessage callback
 
 
+  stopChatSession: ->
+
+    @chat.emit 'CollaborationEnded'
+    @chat = null
+
+
   getRealTimeFileName: (id) ->
 
     unless id
@@ -1427,6 +1433,28 @@ class IDEAppController extends AppController
       callback @socialChannel
 
 
+  deletePrivateMessage: (callback = noop) ->
+
+    {channel}    = KD.getSingleton 'socialapi'
+    {JWorkspace} = KD.remote.api
+
+    options = channelId: @socialChannel.getId()
+    channel.delete options, (err) =>
+
+      return KD.showError err  if err
+
+      @channelId = @socialChannel = null
+
+      options = $unset: channelId: 1
+      JWorkspace.update @workspaceData._id, options, (err) =>
+
+        return KD.showError err  if err
+
+        @workspaceData.channelId = null
+
+        callback()
+
+
   # FIXME: This method is called more than once. It should cache the result and
   # return if result set exists.
   listChatParticipants: (callback) ->
@@ -1486,20 +1514,11 @@ class IDEAppController extends AppController
     {message} = KD.singletons.socialapi
     nick      = KD.nick()
 
-    message.sendPrivateMessage
-      body       : "@#{nick} stopped collaboration. Access to the shared assets is no more possible. However you can continue chatting here with your peers."
-      channelId  : @socialChannel.id
-      payload    :
-         'system-message' : 'stop'
-         collaboration    : yes
-    , callback
-
     @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
 
     @rtm.once 'FileDeleted', =>
       @statusBar.emit 'CollaborationEnded'
-      @chat.emit 'CollaborationEnded'
-      @chat = null
+      @stopChatSession()
       @modal.destroy()
       @rtm.dispose()
       @rtm = null
@@ -1512,6 +1531,7 @@ class IDEAppController extends AppController
 
     if @amIHost
       @setMachineSharingStatus off
+      @deletePrivateMessage callback
 
 
   setMachineSharingStatus: (status) ->
@@ -1674,6 +1694,7 @@ class IDEAppController extends AppController
 
     @showModal options, =>
       @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
+      @stopChatSession()
       @modal.destroy()
 
       options = channelId: @socialChannel.getId()
