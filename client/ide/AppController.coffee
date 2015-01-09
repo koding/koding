@@ -1386,13 +1386,6 @@ class IDEAppController extends AppController
         kallback originOrAccount
 
 
-    @socialChannel.on 'RemovedFromChannel', (account) =>
-
-      {nickname} = account.profile
-      @statusBar.removeParticipantAvatar nickname
-
-
-
   initPrivateMessage: (callback) ->
 
     {message} = KD.singletons.socialapi
@@ -1722,8 +1715,6 @@ class IDEAppController extends AppController
       KD.singletons.socialapi.channel.kickParticipants options, (err, result) =>
 
         return KD.showError err  if err
-
-        @socialChannel.emit 'RemovedFromChannel', account
 
         targetUser = account.profile.nickname
         message    =
