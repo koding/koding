@@ -1516,7 +1516,8 @@ class IDEAppController extends AppController
     @mySnapshot.clear()
     @rtm.deleteFile @getRealTimeFileName()
 
-    @setMachineSharingStatus off
+    if @amIHost
+      @setMachineSharingStatus off
 
 
   setMachineSharingStatus: (status) ->
