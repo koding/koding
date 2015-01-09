@@ -23,12 +23,19 @@ module.exports = class DataDog extends Base
   }
 
 
-  Events               =
-    MachineStateFailed :
-      title            : "vms.failed"
-      text             : "VM start failed for user: %nickname%"
-      notify           : "@slack-alerts"
-      tags             : ["user:%nickname%", "context:vms"]
+  Events =
+
+    MachineStateFailed:
+      title  : "vms.failed"
+      text   : "VM start failed for user: %nickname%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:vms"]
+
+    TerminalConnectionFailed:
+      title  : "terminal.failed"
+      text   : "Terminal connection failed for user: %nickname%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:terminal"]
 
 
   tagReplace = (sourceTag, nickname)->

@@ -180,7 +180,9 @@ func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, even
 		return
 	}
 
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE && c.TypeConstant != models.Channel_TYPE_TOPIC {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
+		c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return
 	}
 
@@ -219,14 +221,18 @@ func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.P
 
 	// When a user is removed from a private channel notify all channel participants to
 	// make them update their sidebar channel list.
-	if c.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE && eventName == RemovedFromChannelEventName {
-		participantIds, err := c.FetchParticipantIds(&request.Query{})
-		if err != nil {
-			return notifiedParticipantIds, err
-		}
-		notifiedParticipantIds = append(notifiedParticipantIds, participantIds...)
-	}
+	if eventName == RemovedFromChannelEventName {
 
+		if c.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE ||
+			c.TypeConstant == models.Channel_TYPE_COLLABORATION {
+
+			participantIds, err := c.FetchParticipantIds(&request.Query{})
+			if err != nil {
+				return notifiedParticipantIds, err
+			}
+			notifiedParticipantIds = append(notifiedParticipantIds, participantIds...)
+		}
+	}
 	return notifiedParticipantIds, nil
 }
 

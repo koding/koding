@@ -169,7 +169,8 @@ func DeleteDesertedChannelMessages(channelId int64) error {
 		return err
 	}
 
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE ||
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil
 	}
 
@@ -260,7 +261,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 
 	// return early for non private message channels
 	// no need to continue from here for other channels
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE || c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil
 	}
 
@@ -290,7 +291,7 @@ func addJoinActivity(channelId, participantId, addedBy int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participantId}
 
 	return pmr.AddJoinActivity(c, addedBy)
 }
@@ -305,11 +306,12 @@ func addLeaveActivity(channelId, participantId int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participantId}
 
 	return pmr.AddLeaveActivity(c)
 }
 
+// this function is tested via integration tests
 func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
 	if err := c.ById(channelId); err != nil {
@@ -317,7 +319,9 @@ func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	}
 
 	// add activity information for private message channel
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil, ErrSkipActivity
 	}
 
