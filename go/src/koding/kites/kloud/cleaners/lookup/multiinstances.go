@@ -32,6 +32,15 @@ func (m MultiInstances) OlderThan(duration time.Duration) MultiInstances {
 	return filtered
 }
 
+// States filters out instances which that particular state
+func (m MultiInstances) States(states ...string) MultiInstances {
+	filtered := make(MultiInstances, 0)
+	for client, instances := range m {
+		filtered[client] = instances.States(states...)
+	}
+	return filtered
+}
+
 // Terminate terminates all instances
 func (m MultiInstances) Terminate() {
 	if len(m) == 0 {
@@ -73,7 +82,7 @@ func (m MultiInstances) String() string {
 	return buf.String()
 }
 
-// Total retursn the number of al instances
+// Total return the number of al instances
 func (m MultiInstances) Total() int {
 	total := 0
 	for _, instances := range m {

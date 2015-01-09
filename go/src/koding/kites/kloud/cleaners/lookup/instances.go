@@ -25,23 +25,29 @@ func (i Instances) OlderThan(duration time.Duration) Instances {
 	return filtered
 }
 
+// States filters out instances which that particular state
+func (i Instances) States(states ...string) Instances {
+	filtered := make(Instances, 0)
+
+	// possible state names:
+	//  (pending | running | shutting-down | terminated | stopping | stopped).
+	for _, instance := range i {
+		if has(instance.State.Name, states...) {
+			filtered = append(filtered, instance)
+		}
+	}
+
+	return filtered
+}
+
 // WithTag filters out instances which contains that particular tag's key and
 // corresponding values
 func (i Instances) WithTag(key string, values ...string) Instances {
 	filtered := make(Instances, 0)
 
-	valueIn := func(value string, values ...string) bool {
-		for _, v := range values {
-			if v == value {
-				return true
-			}
-		}
-		return false
-	}
-
 	for _, instance := range i {
 		for _, tag := range instance.Tags {
-			if tag.Key == key && valueIn(tag.Value, values...) {
+			if tag.Key == key && has(tag.Value, values...) {
 				filtered = append(filtered, instance)
 			}
 		}
@@ -111,4 +117,14 @@ func (i Instances) SplittedIds(split int) [][]string {
 	splitted = append(splitted, ids) // remaining
 
 	return splitted
+}
+
+// has checks wether the given value existing inside the values
+func has(value string, values ...string) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }

@@ -36,6 +36,7 @@ func main() {
 	instances := l.FetchInstances()
 	instances = instances.OlderThan(time.Hour * 24)
 	instances = instances.WithTag("koding-env", "sandbox", "dev")
+	instances = instances.States("pending", "running", "stopping", "stopped")
 
 	if instances.Total() == 0 {
 		fmt.Print("No VMs matching")
