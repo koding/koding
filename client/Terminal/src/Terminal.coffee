@@ -190,7 +190,11 @@ class WebTerm.Terminal extends KDObject
 
   updateSize: (force = no) ->
 
+    return  unless @parent
+
     @updateAppSize()
+
+    return  unless @parent
 
     [swidth, sheight] = [@parent.getWidth(), @parent.getHeight()]
 
@@ -211,6 +215,8 @@ class WebTerm.Terminal extends KDObject
 
     { appView } = @getOptions()
     {width: charWidth, height: charHeight} = @getCharSizes()
+
+    return  unless appView.parent
 
     height = appView.parent.getHeight() - 24 # padding
 

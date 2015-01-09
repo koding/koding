@@ -81,6 +81,7 @@ class Builder
     @canBuildSprites().then ->
       log.info "Building sprites... (it may take a while) (if it fails, try `ulimit -n 1024` first)"
       sprite
+        version   : args.version
         srcPath   : './sprites'
         destPath  : './website/a/sprites'
         httpPath  : '/a/sprites'
@@ -124,7 +125,7 @@ class Builder
           queue.next()
       ,
       ->
-        exec 'cd client/landing && gulp build-all-sites', (err, stdout, stderr)->
+        exec "cd client/landing && gulp build-all-sites --koding-version=#{args.version}", (err, stdout, stderr)->
           if err
           then console.error err
           else console.log """
