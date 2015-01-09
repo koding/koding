@@ -7,7 +7,7 @@ base        = "#{__dirname}/.."
 { BUILD_PATH } = require './helper.constants'
 { log } = require './helper.logger'
 
-module.exports = (pixelRatio = 1) ->
+module.exports = (pixelRatio = 1, version = '') ->
 
   suffix = if pixelRatio > 1 then "__#{pixelRatio}x" else ''
 
@@ -15,7 +15,7 @@ module.exports = (pixelRatio = 1) ->
     .pipe spritesmith
       imgName   : "sprite@#{pixelRatio}x.png"
       cssName   : "sprite@#{pixelRatio}x.styl"
-      imgPath   : "/a/site.#{site}/images/sprite@#{pixelRatio}x.png"
+      imgPath   : "/a/site.#{site}/images/sprite@#{pixelRatio}x.png?#{ version }"
       algorithm : 'binary-tree'
       padding   : 5
       cssFormat : 'stylus'
