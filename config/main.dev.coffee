@@ -607,7 +607,7 @@ Configuration = (options={}) ->
 
         migrate up
         # a temporary migration line
-        env PGPASSWORD=socialapplication psql -tA -h 192.168.59.103 social -U socialapplication -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
