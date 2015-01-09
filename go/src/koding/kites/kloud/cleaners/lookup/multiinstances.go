@@ -87,3 +87,10 @@ func Combine(ms ...MultiInstances) MultiInstances {
 
 	return combined
 }
+
+// UniqueSort sorts all instances
+func (m MultiInstances) UniqueSort() {
+	for client, instances := range m {
+		m[client] = instances.UniqueSort()
+	}
+}

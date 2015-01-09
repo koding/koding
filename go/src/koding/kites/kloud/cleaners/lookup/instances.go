@@ -61,6 +61,22 @@ func (i Instances) Ids() []string {
 	return ids
 }
 
+// UniqueSort sorts out the instances according to the given Ids
+func (i Instances) UniqueSort() Instances {
+	uniq := make(map[string]ec2.Instance, 0)
+
+	for _, instance := range i {
+		uniq[instance.InstanceId] = instance
+	}
+
+	filtered := make(Instances, 0)
+	for _, instance := range uniq {
+		filtered = append(filtered, instance)
+	}
+
+	return filtered
+}
+
 // Terminate terminates all instances
 func (i Instances) Terminate(client *ec2.EC2) {
 	if len(i) == 0 {
