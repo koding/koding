@@ -39,28 +39,28 @@ func main() {
 
 	c := cron.New()
 
-	// queue to get metrics at top of every hour; uses redis set to queue
+	// queue to get metrics at 0,20,40th minute; uses redis set to queue
 	// the usernames so multiple workers don't queue the same usernames.
 	// this needs to be done at top of hour, so running multiple workers
 	// won't cause a problem.
-	c.AddFunc("0 0 * * * *", func() {
+	c.AddFunc("0 0,20,40 * * * *", func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
 	})
 
-	// get and save metrics at 15th minute of every hour
-	c.AddFunc("0 15 * * * *", func() {
+	// get and save metrics at 5,25,45th minute of every hour
+	c.AddFunc("0 5,25,45 * * * *", func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
 	})
 
-	// stop machines overlimit at 20th & 40th of every hour; there's no reason
+	// stop machines overlimit at 15,30,45th minute ; there's no reason
 	// for running it at a certain point except not having overlap in logs
-	c.AddFunc("0 20,40 * * * *", func() {
+	c.AddFunc("0 15,30,45 * * * *", func() {
 		err := stopMachinesOverLimit()
 		if err != nil {
 			Log.Fatal(err.Error())
