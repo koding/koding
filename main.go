@@ -63,6 +63,12 @@ var (
 		"klient.share":        true,
 		"klient.unshare":      true,
 		"klient.shared":       true,
+		"docker.create":       true,
+		"docker.connect":      true,
+		"docker.stop":         true,
+		"docker.start":        true,
+		"docker.remove":       true,
+		"docker.list":         true,
 	})
 
 	// this is used to allow other users to call any klient method.
@@ -190,14 +196,12 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.copy", fs.Copy)
 
 	// Docker
-	dock := docker.New("unix:///var/run/docker.sock")
-	k.HandleFunc("docker.build", dock.Build)
+	dock := docker.New("unix:///var/run/docker.sock", k.Log)
 	k.HandleFunc("docker.create", dock.Create)
 	k.HandleFunc("docker.connect", dock.Connect)
 	k.HandleFunc("docker.stop", dock.Stop)
 	k.HandleFunc("docker.start", dock.Start)
-	k.HandleFunc("docker.kill", dock.Kill)
-	k.HandleFunc("docker.destroy", dock.Destroy)
+	k.HandleFunc("docker.remove", dock.RemoveContainer)
 	k.HandleFunc("docker.list", dock.List)
 
 	// Execution

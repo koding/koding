@@ -35,12 +35,9 @@ type StartExecOptions struct {
 
 	Tty bool `json:"Tty,omitempty" yaml:"Tty,omitempty"`
 
-	InputStream  io.Reader `qs:"-"`
-	OutputStream io.Writer `qs:"-"`
-	ErrorStream  io.Writer `qs:"-"`
-
-	// Use raw terminal? Usually true when the container contains a TTY.
-	RawTerminal bool `qs:"-"`
+	InputStream  io.Reader `qs:"-" json:"-"`
+	OutputStream io.Writer `qs:"-" json:"-"`
+	ErrorStream  io.Writer `qs:"-" json:"-"`
 
 	// If set, after a successful connect, a sentinel will be sent and then the
 	// client will block on receive before continuing.
@@ -101,7 +98,7 @@ func (c *Client) StartExec(id string, opts StartExecOptions) error {
 		return nil
 	}
 
-	return c.hijack("POST", path, opts.Success, opts.RawTerminal, opts.InputStream, opts.ErrorStream, opts.OutputStream, opts)
+	return c.hijack("POST", path, opts.Success, opts.Tty, opts.InputStream, opts.ErrorStream, opts.OutputStream, opts)
 }
 
 // ResizeExecTTY resizes the tty session used by the exec command id. This API

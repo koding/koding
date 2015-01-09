@@ -1,10 +1,11 @@
-package terminal
+package docker
 
 import (
-	"syscall"
+	"fmt"
+	"io"
 
+	dockerclient "github.com/koding/klient/Godeps/_workspace/src/github.com/fsouza/go-dockerclient"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/dnode"
-	"github.com/koding/klient/terminal/pty"
 )
 
 // Server is the type of object that is sent to the connected client.
@@ -15,16 +16,16 @@ type Server struct {
 	// never expose the following fields as we return them back to the client.
 	// Dnode is decoding it and client side get mad about it.
 	remote Remote
-	pty    *pty.PTY
 
-	currentSecond    int64
-	messageCounter   int
-	byteCounter      int
-	lineFeeedCounter int
-	throttling       bool
+	out             io.Reader
+	in              io.Writer
+	controlSequence io.Writer
 
 	// inputHook is called whenever an input is received
 	inputHook func()
+
+	closeChan chan bool
+	client    *dockerclient.Client
 }
 
 type Remote struct {
@@ -42,30 +43,34 @@ func (s *Server) Input(d *dnode.Partial) {
 
 	// There is no need to protect the Write() with a mutex because
 	// Kite Library guarantees that only one message is processed at a time.
-	s.pty.Master.Write([]byte(data))
+	s.in.Write([]byte(data))
 }
 
 // ControlSequence is called when a non-printable key is pressed on the terminal.
 func (s *Server) ControlSequence(d *dnode.Partial) {
 	data := d.MustSliceOfLength(1)[0].MustString()
-	s.pty.MasterEncoded.Write([]byte(data))
+	s.controlSequence.Write([]byte(data))
 }
 
 func (s *Server) SetSize(d *dnode.Partial) {
 	args := d.MustSliceOfLength(2)
 	x := args[0].MustFloat64()
 	y := args[1].MustFloat64()
-	s.setSize(x, y)
-}
 
-func (s *Server) setSize(x, y float64) {
-	s.pty.SetSize(uint16(x), uint16(y))
+	err := s.client.ResizeExecTTY(s.Session, int(y), int(x))
+	if err != nil {
+		fmt.Println("error resizing", err)
+	}
 }
 
 func (s *Server) Close(d *dnode.Partial) {
-	s.pty.Signal(syscall.SIGHUP)
+	select {
+	case <-s.closeChan:
+	default:
+		close(s.closeChan)
+	}
 }
 
 func (s *Server) Terminate(d *dnode.Partial) {
-	s.Close(nil)
+	s.Close(d)
 }
