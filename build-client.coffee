@@ -81,6 +81,7 @@ class Builder
     @canBuildSprites().then ->
       log.info "Building sprites... (it may take a while) (if it fails, try `ulimit -n 1024` first)"
       sprite
+        version   : args.version
         srcPath   : './sprites'
         destPath  : './website/a/sprites'
         httpPath  : '/a/sprites'
