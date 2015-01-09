@@ -8,6 +8,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"net"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -38,15 +39,23 @@ func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
 	outputter.OnItem <- &Item{Name: "Workspaces", Data: workspaces}
 }
 
-func fetchSocial(socialApiId string, outputter *Outputter) {
+func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
+	socialApiId := userInfo.SocialApiId
+
+	showExempt := "false"
+	// show troll content if only user is admin or requester is marked as troll
+	if userInfo.Account != nil &&
+		(userInfo.Account.HasFlag(models.SUPER_ADMIN_FLAG) || userInfo.Account.IsExempt) {
+		showExempt = "true"
+	}
+
 	var wg sync.WaitGroup
-	urls := socialUrls(socialApiId)
+	urls := socialUrls(socialApiId, "showExempt="+showExempt)
 
 	onSocialItem := make(chan *Item, len(urls))
 
 	for name, url := range urls {
 		wg.Add(1)
-
 		go func(name, url string) {
 			defer wg.Done()
 
@@ -113,17 +122,17 @@ func fetchSocialItem(url string) (interface{}, error) {
 	return data, nil
 }
 
-func socialUrls(id string) map[string]string {
+func socialUrls(id string, extras ...string) map[string]string {
 	var urls = map[string]string{
-		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id),
-		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id),
-		"popularPosts":     buildUrl("%s/popular/posts/public?accountId=%s", id),
-		"pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id),
+		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id, extras...),
+		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id, extras...),
+		"popularPosts":     buildUrl("%s/popular/posts/public?accountId=%s", id, extras...),
+		"pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id, extras...),
 	}
 
 	return urls
 }
 
-func buildUrl(path, socialApiId string) string {
-	return fmt.Sprintf(path, conf.SocialApi.ProxyUrl, socialApiId)
+func buildUrl(path, socialApiId string, extras ...string) string {
+	return fmt.Sprintf(path, conf.SocialApi.ProxyUrl, socialApiId) + "&" + strings.Join(extras, "&")
 }

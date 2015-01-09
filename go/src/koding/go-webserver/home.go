@@ -31,7 +31,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	// since it'll return empty
 	if !isSocialIdEmpty(userInfo.SocialApiId) {
 		collectItemCount = 4
-		go fetchSocial(userInfo.SocialApiId, outputter)
+		go fetchSocial(userInfo, outputter)
 	}
 
 	user := NewLoggedInUser()
