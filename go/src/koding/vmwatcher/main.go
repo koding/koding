@@ -77,6 +77,8 @@ func main() {
 
 	Log.Info("Listening on port: %s", port)
 
-	http.ListenAndServe(":"+port, nil)
-
+	err := http.ListenAndServe(":"+port, nil)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
 }
