@@ -39,3 +39,16 @@ func (a *Account) GetSocialApiId() (int64, error) {
 
 	return strconv.ParseInt(a.SocialApiId, 10, 64)
 }
+
+const SUPER_ADMIN_FLAG = "super-admin"
+
+// HasFlag checks if the user has given flag
+func (a *Account) HasFlag(flag string) bool {
+	for _, f := range a.GlobalFlags {
+		if f == flag {
+			return true
+		}
+	}
+
+	return false
+}
