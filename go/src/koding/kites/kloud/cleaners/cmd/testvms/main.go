@@ -35,7 +35,7 @@ func main() {
 
 	a := allInstances.WithTag("koding-env", "sandbox", "dev")
 
-	fmt.Printf("a = %s\n", a)
+	fmt.Printf("%s\n", a)
 	fmt.Printf("a.Total() = %+v\n", a.Total())
 
 	// if conf.Terminate {

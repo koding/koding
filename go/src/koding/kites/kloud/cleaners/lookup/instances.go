@@ -26,13 +26,13 @@ func (i Instances) OlderThan(duration time.Duration) Instances {
 }
 
 // WithTag filters out instances which contains that particular tag's key and
-// value
-func (i Instances) WithTag(key string, value ...string) Instances {
+// corresponding values
+func (i Instances) WithTag(key string, values ...string) Instances {
 	filtered := make(Instances, 0)
 
-	valueIn := func(user string, users ...string) bool {
-		for _, u := range users {
-			if u == user {
+	valueIn := func(value string, values ...string) bool {
+		for _, v := range values {
+			if v == value {
 				return true
 			}
 		}
@@ -41,7 +41,7 @@ func (i Instances) WithTag(key string, value ...string) Instances {
 
 	for _, instance := range i {
 		for _, tag := range instance.Tags {
-			if tag.Key == key && tag.Value == value {
+			if tag.Key == key && valueIn(tag.Value, values...) {
 				filtered = append(filtered, instance)
 			}
 		}

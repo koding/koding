@@ -1,8 +1,8 @@
 package lookup
 
 import (
+	"bytes"
 	"fmt"
-	"os"
 	"sync"
 	"text/tabwriter"
 
@@ -14,11 +14,11 @@ type MultiInstances map[*ec2.EC2]Instances
 
 // WithTag filters out instances which contains that particular tag's key and
 // value
-func (m MultiInstances) WithTag(key string, value ...string) MultiInstances {
+func (m MultiInstances) WithTag(key string, values ...string) MultiInstances {
 	filtered := make(MultiInstances, 0)
 
 	for client, instances := range m {
-		filtered[client] = instances.WithTag(key, value)
+		filtered[client] = instances.WithTag(key, values...)
 	}
 
 	return filtered
@@ -44,11 +44,13 @@ func (m MultiInstances) Terminate() {
 	wg.Wait()
 }
 
-// String representation
+// String representation of MultiInstances
 func (m MultiInstances) String() string {
 	fmt.Printf("\n\n")
 	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, 0, 8, 0, '\t', 0)
+
+	buf := new(bytes.Buffer)
+	w.Init(buf, 0, 8, 0, '\t', 0)
 
 	total := 0
 	for client, instances := range m {
@@ -59,6 +61,8 @@ func (m MultiInstances) String() string {
 
 	fmt.Fprintln(w)
 	w.Flush()
+
+	return buf.String()
 }
 
 // Total retursn the number of al instances
