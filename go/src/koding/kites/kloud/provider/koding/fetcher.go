@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/protocol"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -72,6 +73,11 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan,
 
 		return 0, fmt.Errorf("[%s] could not fetch subscription. status code: %d",
 			m.Id, resp.StatusCode)
+	}
+
+	// if the plan is expired there is no need to return the plan anymore
+	if subscription.State != "" && strings.ToLower(subscription.State) == "expired" {
+		return 0, fmt.Errorf("[%s] Plan is expired", m.Id)
 	}
 
 	plan, ok := plans[subscription.PlanTitle]
