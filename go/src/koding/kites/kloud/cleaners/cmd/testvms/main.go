@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"time"
 
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
@@ -31,12 +32,13 @@ func main() {
 
 	fmt.Printf("Searching for instances tagged with [sandbox, dev] and older than 1 day ...\n")
 
-	allInstances := l.FetchInstances()
+	instances := l.FetchInstances()
+	instances.OlderThan(time.Hour * 24)
+	instances.WithTag("koding-env", "sandbox", "dev")
 
-	a := allInstances.WithTag("koding-env", "sandbox", "dev")
+	fmt.Println(instances)
 
-	fmt.Printf("%s\n", a)
-	fmt.Printf("a.Total() = %+v\n", a.Total())
+	fmt.Printf("All regions total: %+v\n", instances.Total())
 
 	// if conf.Terminate {
 	// 	l.TerminateAll()

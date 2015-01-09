@@ -30,7 +30,7 @@ func main() {
 	fmt.Printf("Searching for user VMs in production ...\n")
 
 	instances := l.FetchInstances()
-	instances = instances.WithTag("koding-env", "production")
+	instances.WithTag("koding-env", "production")
 	fmt.Println(instances)
 
 	fmt.Printf("All regions total: %+v\n", instances.Total())
