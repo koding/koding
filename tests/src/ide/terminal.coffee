@@ -71,3 +71,25 @@ module.exports =
 
 
 
+  openOldTerminalSession: (browser) ->
+
+    openSelector    = '.context-list-wrapper li.new-terminal + ul li + ul li.open:first-child'
+    elementSelector = '.context-list-wrapper li.new-terminal + ul li.has-sub-items:not(.disabled)'
+    user            = helpers.beginTest(browser)
+    userName        = user.username
+
+    helpers.waitForVMRunning(browser)
+
+    openNewTerminalMenu(browser)
+
+    browser
+      .waitForElementVisible   elementSelector, 20000
+      .moveToElement           elementSelector, 25, 20
+      .pause  2000
+      .waitForElementVisible   openSelector, 200000
+      .moveToElement           openSelector, 25, 20
+      .click                   openSelector
+      .pause 6000 # required
+      .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
+      .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
+      .end()
