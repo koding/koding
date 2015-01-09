@@ -861,13 +861,11 @@ func (ec2 *EC2) InstancesWithOpts(instIds []string, filter *Filter, options *Ins
 	params := makeParams("DescribeInstances")
 	addParamsList(params, "InstanceId", instIds)
 
-	if options != nil {
-		if options.MaxResults > 0 {
-			params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
-		}
-		if options.NextToken != "" {
-			params["NextToken"] = options.NextToken
-		}
+	if options.MaxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
+	}
+	if options.NextToken != "" {
+		params["NextToken"] = options.NextToken
 	}
 
 	if filter != nil {

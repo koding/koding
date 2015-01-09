@@ -44,7 +44,17 @@ func New(auth aws.Auth) *Lookup {
 func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 	instances := make(Instances, 0)
 
-	resp, err := client.InstancesWithOpts([]string{}, l.Filter, nil)
+	opts := &ec2.InstancesOpts{}
+
+	// Otherwise we get (InvalidParameterCombination), we can't use Filter and
+	// MaxResults on the same time
+	if l.Filter == nil {
+		opts = &ec2.InstancesOpts{
+			MaxResults: 500,
+		}
+	}
+
+	resp, err := client.InstancesWithOpts([]string{}, l.Filter, opts)
 	if err != nil {
 		return nil, err
 	}

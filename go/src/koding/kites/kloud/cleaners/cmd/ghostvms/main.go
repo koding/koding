@@ -8,7 +8,6 @@ import (
 
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
-	"github.com/mitchellh/goamz/ec2"
 )
 
 type Config struct {
@@ -30,14 +29,14 @@ func main() {
 
 	t := lookup.New(auth)
 
-	fmt.Printf("Searching for production instances ...\n")
+	fmt.Printf("Searching for user VMs in production ...\n")
 
-	filter := ec2.NewFilter()
-	filter.Add("tag-value", "production")
-	// Anything except "terminated" and "shutting-down"
-	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
-
-	t.Filter = filter
+	// filter := ec2.NewFilter()
+	// // filter.Add("tag-value", "production")
+	// // filter.Add("key-name", "kloud-deployment")
+	// // filter.Add("architecture", "x86_64")
+	//
+	// t.Filter = filter
 	t.FetchInstances()
 
 	fmt.Printf("\n\n")
@@ -50,6 +49,8 @@ func main() {
 		fmt.Fprintf(w, "[%s]\t total instances: %+v \n", region, len(instances))
 		total += len(instances)
 	}
+
+	fmt.Fprintf(w, "\nTotal instances in all regions: %d", total)
 
 	fmt.Fprintln(w)
 	w.Flush()
