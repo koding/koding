@@ -817,6 +817,7 @@ type InstanceStateChange struct {
 func (ec2 *EC2) TerminateInstances(instIds []string) (resp *TerminateInstancesResp, err error) {
 	params := makeParams("TerminateInstances")
 	addParamsList(params, "InstanceId", instIds)
+
 	resp = &TerminateInstancesResp{}
 	err = ec2.query(params, resp)
 	if err != nil {
@@ -829,6 +830,7 @@ func (ec2 *EC2) TerminateInstances(instIds []string) (resp *TerminateInstancesRe
 //
 // See http://goo.gl/mLbmw for more details.
 type InstancesResp struct {
+	NextToken    string        `xml:"nextToken"`
 	RequestId    string        `xml:"requestId"`
 	Reservations []Reservation `xml:"reservationSet>item"`
 }
@@ -842,6 +844,42 @@ type Reservation struct {
 	RequesterId    string          `xml:"requesterId"`
 	SecurityGroups []SecurityGroup `xml:"groupSet>item"`
 	Instances      []Instance      `xml:"instancesSet>item"`
+}
+
+type InstancesOpts struct {
+	MaxResults int64
+	NextToken  string
+}
+
+// InstancesWithOpts returns details about instances in EC2.  Both parameters
+// are optional, and if provided will limit the instances returned to those
+// matching the given instance ids or filtering rules. Options is used to fetch
+// results in batches, this is useful if you have many instances.
+//
+// See http://goo.gl/4No7c for more details.
+func (ec2 *EC2) InstancesWithOpts(instIds []string, filter *Filter, options *InstancesOpts) (resp *InstancesResp, err error) {
+	params := makeParams("DescribeInstances")
+	addParamsList(params, "InstanceId", instIds)
+
+	if options != nil {
+		if options.MaxResults > 0 {
+			params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
+		}
+		if options.NextToken != "" {
+			params["NextToken"] = options.NextToken
+		}
+	}
+
+	if filter != nil {
+		filter.addParams(params)
+	}
+
+	resp = &InstancesResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
 }
 
 // Instances returns details about instances in EC2.  Both parameters

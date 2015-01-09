@@ -88,7 +88,7 @@ func fetchAccount(username string) (*models.Account, error) {
 	}
 
 	if account.Type != "registered" {
-		err := errors.New(fmt.Sprintf("Account is not register: %s", username))
+		err := errors.New(fmt.Sprintf("Account is not registered: %s", username))
 		return nil, err
 	}
 

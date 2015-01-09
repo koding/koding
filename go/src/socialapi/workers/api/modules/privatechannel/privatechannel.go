@@ -1,4 +1,4 @@
-package privatemessage
+package privatechannel
 
 import (
 	"errors"
@@ -12,18 +12,18 @@ import (
 	"github.com/koding/bongo"
 )
 
-func Init(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
+func Init(u *url.URL, h http.Header, req *models.PrivateChannelRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndError(req.Create())
 }
 
-func Send(u *url.URL, h http.Header, req *models.PrivateMessageRequest) (int, http.Header, interface{}, error) {
+func Send(u *url.URL, h http.Header, req *models.PrivateChannelRequest) (int, http.Header, interface{}, error) {
 	return response.HandleResultAndError(req.Send())
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
 
-	channelList, err := getPrivateMessageChannels(q)
+	channelList, err := getPrivateChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -38,7 +38,7 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 		return response.NewBadRequest(errors.New("search string not set"))
 	}
 
-	channelList, err := getPrivateMessageChannels(q)
+	channelList, err := getPrivateChannels(q)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -86,6 +86,10 @@ func buildContainer(channelList []models.Channel, q *request.Query) (*models.Cha
 func getUserChannelsQuery(q *request.Query) *gorm.DB {
 	c := models.NewChannel()
 
+	if q.Type == "" {
+		q.Type = models.Channel_TYPE_PRIVATE_MESSAGE
+	}
+
 	return bongo.B.DB.
 		Model(c).
 		Table(c.BongoName()).
@@ -97,11 +101,11 @@ func getUserChannelsQuery(q *request.Query) *gorm.DB {
 		"api.channel_participant.status_constant = ?",
 		q.AccountId,
 		q.GroupName,
-		models.Channel_TYPE_PRIVATE_MESSAGE,
+		q.Type,
 		models.ChannelParticipant_STATUS_ACTIVE)
 }
 
-func getPrivateMessageChannels(q *request.Query) ([]models.Channel, error) {
+func getPrivateChannels(q *request.Query) ([]models.Channel, error) {
 	// build query for
 	if q.AccountId == 0 || q.GroupName == "" {
 		return nil, errors.New("request is not valid")

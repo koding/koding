@@ -606,6 +606,8 @@ Configuration = (options={}) ->
         cd #{projectRoot}
 
         migrate up
+        # a temporary migration line
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
