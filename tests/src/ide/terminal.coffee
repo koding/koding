@@ -59,3 +59,15 @@ module.exports =
 
     terminateAll(browser)
     browser.end()
+
+
+  createNewTerminalSession: (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    createTerminalSession(browser, user)
+    browser.end()
+
+
+
