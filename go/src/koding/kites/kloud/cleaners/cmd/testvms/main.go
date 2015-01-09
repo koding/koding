@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"koding/kites/kloud/cleaners/testvms"
+	"koding/kites/kloud/cleaners/lookup"
 	"os"
 	"text/tabwriter"
 	"time"
 
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/ec2"
 )
 
 type Config struct {
@@ -25,32 +26,23 @@ func main() {
 	// Load the config, it's reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	envs := []string{"sandbox", "dev"}
-
 	auth := aws.Auth{
 		AccessKey: conf.AccessKey,
 		SecretKey: conf.SecretKey,
 	}
 
-	t := testvms.New(auth, envs, time.Hour*24)
+	t := lookup.New(auth)
 
-	fmt.Printf("Searching for instances tagged with %+v and older than 7 days\n", envs)
+	fmt.Printf("Searching for instances tagged with [sandbox, dev] and older than 1 day ...\n")
 
-	done := make(chan bool)
-	go func() {
-		t.Process()
-		done <- true
-	}()
+	filter := ec2.NewFilter()
+	filter.Add("tag-value", "sandbox", "dev")
+	// Anything except "terminated" and "shutting-down"
+	filter.Add("instance-state-name", "pending", "running", "stopping", "stopped")
 
-	// check the result every two seconds
-	ticker := time.NewTicker(2 * time.Second)
-	go func() {
-		for _ = range ticker.C {
-			fmt.Printf(".  ")
-		}
-	}()
-	<-done
-	ticker.Stop()
+	t.Filter = filter
+	t.OlderThan = time.Hour * 24
+	t.FetchInstances()
 
 	fmt.Printf("\n\n")
 	w := new(tabwriter.Writer)
