@@ -20,7 +20,11 @@ which             = Promise.promisify require 'which'
 buildAPI          = require 'bongo-api-builder'
 bongo             = require 'bongo'
 
-KONFIG = JSON.parse process.env.KONFIG_JSON or {}
+try
+  KONFIG = JSON.parse(process.env.KONFIG_JSON)
+catch error
+  console.log "buildclient: Error when trying to parse 'KONFIG_JSON'"
+  return
 
 args =
   watchDuration : argv.watchDuration  or 5000
@@ -43,6 +47,7 @@ formatByte = (bytes) ->
     minus  = '-'
     bytes *= -1
   thresh    = 1024
+
   units     = ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]
   unitIndex = -1
   return "#{bytes} B"  if bytes < thresh
@@ -580,7 +585,7 @@ class Builder
   getProjects:->
 
     rp = (address)=>
-      "#{ address?.replace /^website\//, '/' }?#{ args.version }"
+      "#{ address?.replace(/^website\//, '/') }?#{ args.version }"
 
     apps = {}
     {projects, bundles} = require './projects'
