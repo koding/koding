@@ -33,8 +33,8 @@ func main() {
 	fmt.Printf("Searching for instances tagged with [sandbox, dev] and older than 1 day ...\n")
 
 	instances := l.FetchInstances()
-	instances.OlderThan(time.Hour * 24)
-	instances.WithTag("koding-env", "sandbox", "dev")
+	instances = instances.OlderThan(time.Hour * 24)
+	instances = instances.WithTag("koding-env", "sandbox", "dev")
 
 	fmt.Println(instances)
 

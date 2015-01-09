@@ -15,17 +15,21 @@ type MultiInstances map[*ec2.EC2]Instances
 
 // WithTag filters out instances which contains that particular tag's key and
 // value
-func (m MultiInstances) WithTag(key string, values ...string) {
+func (m MultiInstances) WithTag(key string, values ...string) MultiInstances {
+	filtered := make(MultiInstances, 0)
 	for client, instances := range m {
-		m[client] = instances.WithTag(key, values...)
+		filtered[client] = instances.WithTag(key, values...)
 	}
+	return filtered
 }
 
 // OlderThan filters out instances that are older than the given duration.
-func (m MultiInstances) OlderThan(duration time.Duration) {
+func (m MultiInstances) OlderThan(duration time.Duration) MultiInstances {
+	filtered := make(MultiInstances, 0)
 	for client, instances := range m {
-		m[client] = instances.OlderThan(duration)
+		filtered[client] = instances.OlderThan(duration)
 	}
+	return filtered
 }
 
 // Terminate terminates all instances
