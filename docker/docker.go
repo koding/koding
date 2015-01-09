@@ -196,6 +196,7 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 	var once sync.Once
 
 	// Read the STDOUT from shell process and send to the connected client.
+	// https://github.com/koding/koding/commit/50cbd3609af93334150f7951dae49a23f71078f6
 	go func() {
 		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
 		for {
@@ -228,10 +229,10 @@ func (d *Docker) Connect(r *kite.Request) (interface{}, error) {
 				break
 			}
 		}
-		d.log.Info("Breaking out of for loop")
+		d.log.Debug("Breaking out of for loop")
 	}()
 
-	d.log.Info("Returning server")
+	d.log.Debug("Returning server")
 	return server, nil
 }
 
