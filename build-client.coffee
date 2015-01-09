@@ -20,13 +20,15 @@ which             = Promise.promisify require 'which'
 buildAPI          = require 'bongo-api-builder'
 bongo             = require 'bongo'
 
+KONFIG = JSON.parse process.env.KONFIG_JSON or {}
 
 args =
   watchDuration : argv.watchDuration  or 5000
-  watch         : argv.watch          or process.env.KONFIG_CLIENT_WATCH or false
-  version       : argv.version        or process.env.KONFIG_VERSION      or "0.0.1"
-  sourceMapsUri : argv.sourceMapsUri  or process.env.KONFIG_CLIENT_RUNTIMEOPTIONS_SOURCEMAPSURI or "koding.com/sourcemaps"
+  watch         : argv.watch          or KONFIG.client.watch or false
+  version       : argv.version        or KONFIG.version      or "0.0.1"
+  sourceMapsUri : argv.sourceMapsUri  or KONFIG.client.runtimeOptions.sourceMapsUri or "koding.com/sourcemaps"
   verbose       : argv.verbose        or false
+
 console.log "building client with options:",args
 
 log =
