@@ -1,1 +1,1 @@
-ALTER TABLE payment.customer DROP COLUMN username VARCHAR(25);
+ALTER TABLE payment.customer DROP COLUMN username;
