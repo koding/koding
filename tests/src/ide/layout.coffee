@@ -71,3 +71,18 @@ module.exports =
       .click                     '.application-tab-handle-holder .plus'
       .waitForElementNotPresent  '.context-list-wrapper li.undo-split', 20000 # Assertion
       .end()
+
+
+  openDrawingBoard: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible   '.application-tab-handle-holder', 20000
+      .click                   '.application-tab-handle-holder .plus'
+      .waitForElementVisible   '.context-list-wrapper', 20000
+      .click                   '.context-list-wrapper li.new-drawing-board'
+      .pause                   2000
+      .waitForElementVisible   '.drawing-pane .drawing-board-toolbar', 20000 # Assertion
+      .end()
