@@ -74,8 +74,9 @@ do ->
     machine = null
 
     for m in KD.userMachines
+
       hasSameLabel = (m.label is label) or (m.slug is label)
-      hasSameUser  = m.data.credential is username
+      hasSameUser  = m.getOwner() is username
 
       if hasSameLabel and hasSameUser
         machine = m
@@ -132,7 +133,7 @@ do ->
 
     machineLabel    = machine.slug or machine.label
     workspaceSlug   = 'my-workspace'
-    username        = machine.data.credential
+    username        = machine.getOwner()
 
     if latestWorkspace and latestWorkspace.machineLabel is machineLabel
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
@@ -206,7 +207,10 @@ do ->
 
   refreshWorkspaces = (callback) ->
 
-    KD.singletons.mainView.activitySidebar.fetchWorkspaces callback
+    {mainView, computeController} = KD.singletons
+
+    computeController.ready ->
+      mainView.activitySidebar.fetchWorkspaces callback
 
 
   KD.registerRoutes 'IDE',
