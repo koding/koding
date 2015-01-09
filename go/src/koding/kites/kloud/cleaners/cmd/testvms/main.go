@@ -1,24 +1,38 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"koding/kites/kloud/cleaners/testvms"
 	"os"
 	"text/tabwriter"
 	"time"
+
+	"github.com/koding/multiconfig"
+	"github.com/mitchellh/goamz/aws"
 )
 
-var (
-	flagTerminate = flag.Bool("terminate", false, "Terminate all instances")
-)
+type Config struct {
+	Terminate bool
+
+	// AWS Access and Secret Key
+	AccessKey string `required:"true"`
+	SecretKey string `required:"true"`
+}
 
 func main() {
-	flag.Parse()
+	conf := new(Config)
+
+	// Load the config, it's reads environment variables or from flags
+	multiconfig.New().MustLoad(conf)
 
 	envs := []string{"sandbox", "dev"}
 
-	t := testvms.New(envs, time.Hour*24)
+	auth := aws.Auth{
+		AccessKey: conf.AccessKey,
+		SecretKey: conf.SecretKey,
+	}
+
+	t := testvms.New(auth, envs, time.Hour*24)
 
 	fmt.Printf("Searching for instances tagged with %+v and older than 7 days\n", envs)
 
@@ -52,7 +66,7 @@ func main() {
 	fmt.Fprintln(w)
 	w.Flush()
 
-	if *flagTerminate {
+	if conf.Terminate {
 		t.TerminateAll()
 		fmt.Printf("Terminated '%d' instances\n", total)
 	} else if total > 0 {

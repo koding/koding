@@ -25,13 +25,7 @@ type testvms struct {
 	clients *multiec2.Clients
 }
 
-func New(envs []string, olderThan time.Duration) *testvms {
-	// Credential belongs to the `koding-kloud` user in AWS IAM's
-	auth := aws.Auth{
-		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey: "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",
-	}
-
+func New(auth aws.Auth, envs []string, olderThan time.Duration) *testvms {
 	return &testvms{
 		olderThan: olderThan,
 		values:    envs,
