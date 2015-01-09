@@ -11,8 +11,8 @@ class NavigationMachineItem extends JView
     machine      = data
     @alias       = machine.slug or machine.label
     ideRoute     = "/IDE/#{@alias}/my-workspace"
-    machineOwner = machine.jMachine.credential
-    isMyMachine  = machineOwner is KD.nick()
+    machineOwner = machine.getOwner()
+    isMyMachine  = machine.isMine()
     channelId    = ''
 
     if not isMyMachine and KD.userWorkspaces
