@@ -858,6 +858,7 @@ utils.extend utils,
   sendDataDogEvent: (eventName, options = {})->
 
     options.eventName = eventName
+    options.sendLogs ?= yes
 
     sendEvent = (logs)->
 
@@ -868,7 +869,7 @@ utils.extend utils,
 
     # If there is enough log to send, no more checks required
     # just send them away, first to s3 then datadog
-    if kdlogs.length > 100
+    if kdlogs.length > 100 and options.sendLogs
 
       KD.utils.s3upload
         name    : "logs_#{new Date().toISOString()}.txt"
