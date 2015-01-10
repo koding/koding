@@ -855,16 +855,21 @@ utils.extend utils,
     parts.join ''
 
 
-  sendDataDogEvent: (eventName)->
+  sendDataDogEvent: (eventName, options = {})->
+
+    options.eventName = eventName
+    options.sendLogs ?= yes
 
     sendEvent = (logs)->
-      KD.remote.api.DataDog.sendEvent { eventName, logs }
+
+      options.logs = logs
+      KD.remote.api.DataDog.sendEvent options
 
     kdlogs = KD.parseLogs()
 
     # If there is enough log to send, no more checks required
     # just send them away, first to s3 then datadog
-    if kdlogs.length > 100
+    if kdlogs.length > 100 and options.sendLogs
 
       KD.utils.s3upload
         name    : "logs_#{new Date().toISOString()}.txt"
