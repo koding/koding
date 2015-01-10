@@ -38,12 +38,26 @@ module.exports = class DataDog extends Base
       tags   : ["user:%nickname%", "context:terminal"]
 
 
-  tagReplace = (sourceTag, nickname)->
+
+  tagReplace = (sourceTag, userTags)->
+
+    parseTag = (tag) ->
+
+      # check if tag contains any variable
+      tagMatch = tag.match /%(.*)%$/m
+
+      return tag  unless tagMatch?.length
+
+      # check if tag variable value is set in userTags
+      tagValue = userTags[tagMatch[1]]
+      return tag  unless tagValue
+
+      return tag.replace /%(.*)%$/g, tagValue
 
     tags = []
 
     for tag in sourceTag
-      tags.push tag.replace '%nickname%', nickname
+      tags.push parseTag tag
 
     return tags
 
@@ -74,8 +88,8 @@ module.exports = class DataDog extends Base
     tags['nickname'] = nickname
 
     title = ev.title
-    tags  = tagReplace ev.tags, nickname
     text = parseText ev.text, tags
+    tags  = tagReplace ev.tags, tags
 
     if logs?
       if logs.length < 400
