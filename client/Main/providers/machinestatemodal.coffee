@@ -268,9 +268,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   buildVerifyView: ->
 
-    KD.utils.defer ->
-      KD.remote.api.JUser.verifyByPin resendIfExists: yes, noop
-
     @container.destroySubViews()
 
     @codeEntryView = new KDInputView
@@ -304,16 +301,13 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @container.addSubView new KDCustomHTMLView
       cssClass : 'verify-message'
       partial  : """
-        <p>To access your VM, we need to verify your account.
-        Please enter the code that we've sent you via email.
+        <p>Before you can access your VM, we need to verify your account.
+        A verification email should already be in your inbox.
+        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
       """
+      click    : (event)=>
 
-    @container.addSubView @_resendLink = new CustomLinkView
-      title    : 'Resend Code'
-      cssClass : 'verify-resend-link'
-      click    : =>
-
-        @_resendLink.destroy()
+        return  unless $(event.target).is 'cite'
 
         KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
 
