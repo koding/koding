@@ -216,8 +216,6 @@ class ComputeController extends KDController
           if err.code is Error.Pending
             retried = retryIfNeeded task, machine
             safeToSuspend = yes
-          else if err.code is Error.NotVerified
-            ComputeController.UI.requestVerify()
           else
             warn "[CC] error:", err
 

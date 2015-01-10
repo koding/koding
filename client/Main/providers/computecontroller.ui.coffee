@@ -160,31 +160,6 @@ class ComputeController.UI
           callback()
 
 
-  @showPinEntryModal: (callback)->
-
-    @_verifyModal = new VerifyPINModal 'Verify Account', (pin)=>
-
-      KD.remote.api.JUser.verifyByPin {pin}, (err)=>
-
-        @_verifyModal = null
-        callback err
-
-
-  @requestVerify: (callback = noop)->
-
-    if @_verifyModal?
-      return @_verifyModal.show()
-
-    if @_pinSentOnce
-      @showPinEntryModal callback
-
-    else
-      KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
-        return  if KD.showError err
-        @_pinSentOnce = yes
-        @showPinEntryModal callback
-
-
   @askMachineForApp: (app, callback)->
 
     modal = new MachineListModal
