@@ -24,26 +24,15 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @machineId   = jMachine._id
     {@state}     = @machine.status
 
-    @buildInitial()
+    KD.whoami().isEmailVerified (err, verified)=>
 
-    computeController = KD.getSingleton 'computeController'
+      warn err  if err?
 
-    computeController.on "start-#{@machineId}", @bound 'updateStatus'
-    computeController.on "build-#{@machineId}", @bound 'updateStatus'
-    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+      if verified
+      then @buildInitial()
+      else @buildVerifyView()
 
-    computeController.on "reinit-#{@machineId}",(event)=>
-      @updateStatus event, 'reinit'
-
-    computeController.on "resize-#{@machineId}",(event)=>
-      @updateStatus event, 'resize'
-
-    @show()
-
-    computeController.followUpcomingEvents @machine
-
-    @eventTimer = null
-    @_lastPercentage = 0
+      @show()
 
 
   triggerEventTimer: (percentage)->
@@ -135,6 +124,23 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   buildInitial:->
 
+    computeController = KD.getSingleton 'computeController'
+
+    computeController.on "start-#{@machineId}", @bound 'updateStatus'
+    computeController.on "build-#{@machineId}", @bound 'updateStatus'
+    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+
+    computeController.on "reinit-#{@machineId}",(event)=>
+      @updateStatus event, 'reinit'
+
+    computeController.on "resize-#{@machineId}",(event)=>
+      @updateStatus event, 'resize'
+
+    computeController.followUpcomingEvents @machine
+
+    @eventTimer = null
+    @_lastPercentage = 0
+
     @container.destroySubViews()
 
     @createStateLabel "Checking state for <strong>#{@machineName or ''}</strong>..."
@@ -163,7 +169,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
           if response.State is NotInitialized
             KD.utils.defer => @turnOnMachine()
 
-        .catch ({err})=>
+        .catch (err)=>
 
           unless err?.code is ComputeController.Error.NotVerified
             warn "Failed to fetch initial info:", err
@@ -258,6 +264,72 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         height   : 40
 
     @container.addSubView @loader
+
+
+  buildVerifyView: ->
+
+    KD.utils.defer ->
+      KD.remote.api.JUser.verifyByPin resendIfExists: yes, noop
+
+    @container.destroySubViews()
+
+    @codeEntryView = new KDInputView
+      cssClass    : 'verify-pin-input'
+      placeholder : 'Enter code here'
+
+    @button       = new KDButtonView
+      title       : 'Verify account'
+      cssClass    : 'solid green medium'
+      callback    : =>
+
+        code = Encoder.XSSEncode @codeEntryView.getValue()
+        unless code then return new KDNotificationView
+          title: "Please enter a code"
+
+        KD.remote.api.JUser.verifyByPin pin: code, (err)=>
+
+          @pinIsValid?.destroy()
+
+          if err
+            @container.addSubView @pinIsValid = new KDCustomHTMLView
+              cssClass : 'error-message'
+              partial  : """
+                <p>The pin entered is not valid.</p>
+              """
+
+          else
+            KD.utils.defer @bound 'buildInitial'
+
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'verify-message'
+      partial  : """
+        <p>To access your VM, we need to verify your account.
+        Please enter the code that we've sent you via email.
+      """
+
+    @container.addSubView @_resendLink = new CustomLinkView
+      title    : 'Resend Code'
+      cssClass : 'verify-resend-link'
+      click    : =>
+
+        @_resendLink.destroy()
+
+        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+
+          unless KD.showError err
+
+            @container.addSubView @retryView = new KDCustomHTMLView
+              cssClass : 'error-message warning'
+              partial  : """
+                <p>Email sent, please check your inbox.</p>
+              """
+
+            KD.utils.wait 3000, @retryView.bound 'destroy'
+
+    @container.addSubView @codeEntryView
+    @container.addSubView @button
+
 
 
   createProgressBar: (initial = 10)->
