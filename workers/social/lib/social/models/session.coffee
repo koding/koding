@@ -52,7 +52,9 @@ module.exports = class JSession extends Model
         JSession.remove username: oldUsername, (err) ->
           console.error err  if err?
 
+
   @createSession =(callback) ->
+
     JUser = require './user'
     clientId = createId()
 
@@ -88,8 +90,9 @@ module.exports = class JSession extends Model
       else
         @createSession callback
 
-  @fetchGuestUserSession = (callback) ->
-    username = 'guestuser'
+
+  @fetchSessionByUsername = (username, callback) ->
+
     @one {username}, (err, session) ->
       return callback err  if err?
       return callback null, session  if session?

@@ -17,10 +17,10 @@ fetchProfileContent = (models, options, callback) ->
   {JAccount, SocialChannel} = models
   JAccount.one "profile.nickname": name, (err, account) ->
     return callback err  if err or not account
-    
-    feed.createProfileFeed models, account, options, (err, content) -> 
+
+    feed.createProfileFeed models, account, options, (err, content) ->
       return callback err  if err
-      
+
       return callback null, profile account, content
 
 
@@ -89,7 +89,7 @@ fetchGroupContent = (models, options, callback) ->
 
 fetchGuestUserSession = (models, callback) ->
   {JSession} = models
-  JSession.fetchGuestUserSession (err, session) ->
+  JSession.fetchSessionByUsername 'guestuser', (err, session) ->
     return callback err if err?
     return callback notFoundError "session" unless session?.clientId?
     callback null, session.clientId
