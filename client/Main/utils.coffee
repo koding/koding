@@ -855,10 +855,14 @@ utils.extend utils,
     parts.join ''
 
 
-  sendDataDogEvent: (eventName)->
+  sendDataDogEvent: (eventName, options = {})->
+
+    options.eventName = eventName
 
     sendEvent = (logs)->
-      KD.remote.api.DataDog.sendEvent { eventName, logs }
+
+      options.logs = logs
+      KD.remote.api.DataDog.sendEvent options
 
     kdlogs = KD.parseLogs()
 
