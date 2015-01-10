@@ -54,22 +54,17 @@ module.exports = class JVerificationToken extends Module
       @one {username, action}, (err, confirmation)=>
 
         if confirmation
+          createdAt = Math.round((Date.now()-confirmation.createdAt)/60000)
 
-          if Math.round((Date.now()-confirmation.createdAt)/60000) < 20
-
-            unless resendIfExists
-
+          if createdAt < 20 # min
+            if resendIfExists
+              confirmation.sendEmail {subject, firstName}, callback
+            else
               callback if err then err else new PINExistsError \
                 "PIN exists and not expired,
                 try again after 20 min for new PIN."
 
-
-            else
-
-              confirmation.sendEmail {subject, firstName}, callback
-
             return
-
 
         # Remove all waiting pins for given action and email
         @remove {username, action}, (err, count)->
@@ -102,7 +97,7 @@ module.exports = class JVerificationToken extends Module
         callback null, Math.round((Date.now()-confirmation.createdAt)/60000) < 20
         confirmation.remove()
       else
-        callback null
+        callback null, false
 
 
   sendEmail: ({subject, firstName}, callback)->
@@ -115,6 +110,8 @@ module.exports = class JVerificationToken extends Module
       subject : subject
       content : @getTextBody firstName, @pin
       force   : yes
+
+    console.log "Pin (#{@pin}) sent to #{@email} for #{@action} action."
 
     email.save callback
 
