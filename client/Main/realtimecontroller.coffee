@@ -6,6 +6,13 @@ class RealtimeController extends KDController
     # make another caching here
     @channels = {}
 
+    @localStorage  = KD.getSingleton("localStorageController").storage "realtime"
+
+    # each forbidden channel name is stored in local storage
+    # this is used for preventing datadog
+    unless @localStorage.getValue 'ForbiddenChannels'
+      @localStorage.setValue 'ForbiddenChannels', {}
+
     super options, data
 
     {subscribekey} = KD.config.pubnub
@@ -150,8 +157,23 @@ class RealtimeController extends KDController
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           callback null, channelInstance
-        error   : (err) -> callback err # not sure if it is really sending an error
+        error   : (err) =>
+          @handleError err
+          callback err
         restore : yes
+
+
+  handleError: (err) ->
+    {message, payload: {channels}} = err
+
+    forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
+
+    for channel in channels
+      unless forbiddenChannels[channel]
+        channelToken = channel.replace "channel-", ""
+        forbiddenChannels[channel] = yes
+        @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
+        KD.utils.sendDataDogEvent "ForbiddenChannel", tags: {channelToken}, sendLogs: no
 
 
   # subscribeBroker subscribes the broker channels when it is enabled.
