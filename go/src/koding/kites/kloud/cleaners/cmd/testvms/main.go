@@ -29,7 +29,7 @@ func main() {
 		SecretKey: conf.SecretKey,
 	}
 
-	l := lookup.New(auth)
+	l := lookup.NewAWS(auth)
 
 	fmt.Printf("Searching for instances tagged with [sandbox, dev] and older than 1 day ...\n")
 

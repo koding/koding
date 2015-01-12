@@ -22,7 +22,7 @@ type Lookup struct {
 	clients *multiec2.Clients
 }
 
-func New(auth aws.Auth) *Lookup {
+func NewAWS(auth aws.Auth) *Lookup {
 	return &Lookup{
 		clients: multiec2.New(auth, []string{
 			"us-east-1",
