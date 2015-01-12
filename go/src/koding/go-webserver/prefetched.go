@@ -125,7 +125,7 @@ func fetchSocialItem(url string) (interface{}, error) {
 func socialUrls(id string, extras ...string) map[string]string {
 	var urls = map[string]string{
 		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id, extras...),
-		"privateMessages":  buildUrl("%s/privatemessage/list?accountId=%s", id, extras...),
+		"privateMessages":  buildUrl("%s/privatechannel/list?accountId=%s", id, extras...),
 		"popularPosts":     buildUrl("%s/popular/posts/public?accountId=%s", id, extras...),
 		"pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id, extras...),
 	}
