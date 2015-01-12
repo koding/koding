@@ -40,17 +40,10 @@ func main() {
 		instances = l.FetchInstances().WithTag("koding-env", "production")
 		fmt.Println(instances)
 
-		fmt.Printf("All regions total: %+v (time: %s)\n",
+		fmt.Printf("AWS instances total: %+v (time: %s)\n",
 			instances.Total(), time.Since(start))
 
 		close(done)
-	}()
-
-	go func() {
-		<-done
-		count := len(instances.Ids())
-		fmt.Printf("Total instances count = %+v\n", count)
-
 	}()
 
 	m := lookup.NewMongoDB(conf.MongoURL)
@@ -79,7 +72,7 @@ func main() {
 
 	<-done // wait for AWS
 
-	fmt.Printf("len(mongodbIds) = %+v (time: %s)\n",
+	fmt.Printf("MongoDB documents with InstanceId field: %+v (time: %s)\n",
 		len(mongodbIds), time.Since(start))
 
 	ghostIds := make(map[string]struct{}, 0)
@@ -97,19 +90,5 @@ func main() {
 		}
 	})
 
-	fmt.Printf("len(ghostIds) = %+v\n", len(ghostIds))
-
-	b := make(map[string]struct{}, 0)
-
-	for _, i := range instances.Instances() {
-		for id := range i {
-			_, ok := mongodbIds[id]
-			// so we have a id that is available on AWS but is not available in
-			// MongodB
-			if !ok {
-				b[id] = struct{}{}
-			}
-		}
-	}
-	fmt.Printf("len(b) = %+v\n", len(b))
+	fmt.Printf("Instances without any MongoDB document: %d\n", len(ghostIds))
 }
