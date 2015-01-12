@@ -50,6 +50,13 @@ func main() {
 	fmt.Printf("Fetching user VMs from MongoDB ...\n")
 	mongodbIds := make(map[string]struct{}, 0)
 
+	go func() {
+		for {
+			time.Sleep(time.Second * 10)
+			fmt.Printf("currently len(mongodbIds) = %+v\n", len(mongodbIds))
+		}
+	}()
+
 	iter := func(l lookup.MachineDocument) error {
 		i, ok := l.Meta["instanceId"]
 		if !ok {
@@ -65,12 +72,12 @@ func main() {
 		return nil
 	}
 
-	<-done // wait for AWS
-
 	start := time.Now()
 	if err := m.Iter(iter); err != nil {
 		fmt.Printf("err = %+v\n", err)
 	}
+
+	<-done // wait for AWS
 
 	fmt.Printf("len(mongodbIds) = %+v (time: %s)\n",
 		len(mongodbIds), time.Since(start))
