@@ -31,14 +31,15 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
         KD.remote.api.JWorkspace.deleteById workspace.id, (err)=>
 
           return  if KD.showError err
+          
+          KD.getSingleton('mainController').emit "WorkspaceWasDeleted", workspace.data.machineUId, workspace.data.rootPath
 
           navItem.destroy()
           @destroy()
 
           KD.singletons
             .router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
-
-
+            
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position : top : 34
