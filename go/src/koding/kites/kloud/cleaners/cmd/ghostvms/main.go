@@ -25,8 +25,8 @@ func main() {
 	// Load the config, it's reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	var instances lookup.MultiInstances
-	done := make(chan bool, 0)
+	var instances *lookup.MultiInstances
+	done := make(chan bool, 1)
 	go func() {
 		auth := aws.Auth{
 			AccessKey: conf.AccessKey,
@@ -37,25 +37,25 @@ func main() {
 		start := time.Now()
 		fmt.Printf("Searching for user VMs in production ...\n")
 
-		instances := l.FetchInstances().WithTag("koding-env", "production")
+		instances = l.FetchInstances().WithTag("koding-env", "production")
 		fmt.Println(instances)
 
 		fmt.Printf("All regions total: %+v (time: %s)\n",
 			instances.Total(), time.Since(start))
 
-		done <- true
+		close(done)
+	}()
+
+	go func() {
+		<-done
+		count := len(instances.Ids())
+		fmt.Printf("Total instances count = %+v\n", count)
+
 	}()
 
 	m := lookup.NewMongoDB(conf.MongoURL)
 	fmt.Printf("Fetching user VMs from MongoDB ...\n")
 	mongodbIds := make(map[string]struct{}, 0)
-
-	go func() {
-		for {
-			time.Sleep(time.Second * 10)
-			fmt.Printf("currently len(mongodbIds) = %+v\n", len(mongodbIds))
-		}
-	}()
 
 	iter := func(l lookup.MachineDocument) error {
 		i, ok := l.Meta["instanceId"]
@@ -98,4 +98,18 @@ func main() {
 	})
 
 	fmt.Printf("len(ghostIds) = %+v\n", len(ghostIds))
+
+	b := make(map[string]struct{}, 0)
+
+	for _, i := range instances.Instances() {
+		for id := range i {
+			_, ok := mongodbIds[id]
+			// so we have a id that is available on AWS but is not available in
+			// MongodB
+			if !ok {
+				b[id] = struct{}{}
+			}
+		}
+	}
+	fmt.Printf("len(b) = %+v\n", len(b))
 }
