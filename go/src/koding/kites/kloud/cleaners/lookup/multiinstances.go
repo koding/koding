@@ -170,3 +170,14 @@ func (m *MultiInstances) Total() int {
 	}
 	return total
 }
+
+// Ids returns the list of ids of the instances,
+func (m *MultiInstances) Ids() []string {
+	ids := make([]string, 0)
+
+	for _, instances := range m.m {
+		ids = append(ids, instances.Ids()...)
+	}
+
+	return ids
+}

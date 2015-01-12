@@ -61,6 +61,10 @@ func main() {
 			return fmt.Errorf("MongoDB meta.instanceId is malformed %v", i)
 		}
 
+		if id == "" {
+			return errors.New("instanceId is empty")
+		}
+
 		mongodbIds[id] = struct{}{}
 		return nil
 	}
@@ -75,9 +79,7 @@ func main() {
 	fmt.Printf("MongoDB documents with InstanceId field: %+v (time: %s)\n",
 		len(mongodbIds), time.Since(start))
 
-	ghostIds := make(map[string]struct{}, 0)
-
-	fmt.Println("Checking if AWS instances exists in MongoDB")
+	fmt.Printf("\nInstances without any MongoDB document: \n")
 
 	instances.Iter(func(client *ec2.EC2, vms lookup.Instances) {
 		for id := range vms {
@@ -85,10 +87,9 @@ func main() {
 			// so we have a id that is available on AWS but is not available in
 			// MongodB
 			if !ok {
-				ghostIds[id] = struct{}{}
+				fmt.Printf("\t[%s] %s\n", client.Region.Name, id)
 			}
 		}
 	})
 
-	fmt.Printf("Instances without any MongoDB document: %d\n", len(ghostIds))
 }
