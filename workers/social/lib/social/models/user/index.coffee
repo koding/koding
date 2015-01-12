@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
 Regions   = require 'koding-regions'
-
+{argv}    = require 'optimist'
+KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable = require '../../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
@@ -465,7 +466,7 @@ Team Koding
       return callback new Error "User not found"  unless user
 
       if (user.getAt 'status') is 'confirmed'
-        return callback new Error "Already confirmed"
+        return callback null
 
       JVerificationToken = require '../verificationtoken'
 
@@ -945,7 +946,17 @@ Team Koding
           return callback err  if err?
           queue.next()
 
-      =>
+      ->
+        # Auto confirm accounts for development environment
+        # This config should be no for production! ~ GG
+        if KONFIG.autoConfirmAccounts
+          user.confirmEmail (err)->
+            console.warn err  if err?
+            queue.next()
+        else
+          queue.next()
+
+      ->
         JPasswordRecovery = require '../passwordrecovery'
 
         passwordOptions =
