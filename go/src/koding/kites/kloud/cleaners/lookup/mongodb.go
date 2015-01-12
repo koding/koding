@@ -54,7 +54,7 @@ func (m *mongodbInstances) Iter(fn func(MachineDocument) error) error {
 		}
 
 		machine := MachineDocument{}
-		iter := c.Find(machinesWithIds).Batch(50).Iter()
+		iter := c.Find(machinesWithIds).Batch(150).Iter()
 		for iter.Next(&machine) {
 			if err := fn(machine); err != nil {
 				fmt.Printf("iter err: %s\n", err)
