@@ -33,7 +33,7 @@ func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 	instances := make([]ec2.Instance, 0)
 
 	opts := &ec2.InstancesOpts{
-		MaxResults: 900,
+		MaxResults: 500,
 	}
 
 	resp, err := client.InstancesWithOpts([]string{}, opts)
