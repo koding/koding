@@ -8,17 +8,17 @@ import (
 )
 
 // Instances represents a list of ec2.Instances
-type Instances []ec2.Instance
+type Instances map[string]ec2.Instance
 
 // OlderThan filters out instances that are older than the given duration.
 func (i Instances) OlderThan(duration time.Duration) Instances {
 	filtered := make(Instances, 0)
 
-	for _, instance := range i {
+	for id, instance := range i {
 		oldDate := time.Now().UTC().Add(-duration)
 
 		if instance.LaunchTime.Before(oldDate) {
-			filtered = append(filtered, instance)
+			filtered[id] = instance
 		}
 	}
 
@@ -31,13 +31,24 @@ func (i Instances) States(states ...string) Instances {
 
 	// possible state names:
 	//  (pending | running | shutting-down | terminated | stopping | stopped).
-	for _, instance := range i {
+	for id, instance := range i {
 		if has(instance.State.Name, states...) {
-			filtered = append(filtered, instance)
+			filtered[id] = instance
 		}
 	}
 
 	return filtered
+}
+
+// Has returns true if the given ids exists.
+func (i Instances) Has(id string) bool {
+	_, ok := i[id]
+	return ok
+}
+
+// Delete deletes the instance with the given Id from the instances list
+func (i Instances) Delete(id string) {
+	delete(i, id)
 }
 
 // WithTag filters out instances which contains that particular tag's key and
@@ -45,10 +56,10 @@ func (i Instances) States(states ...string) Instances {
 func (i Instances) WithTag(key string, values ...string) Instances {
 	filtered := make(Instances, 0)
 
-	for _, instance := range i {
+	for id, instance := range i {
 		for _, tag := range instance.Tags {
 			if tag.Key == key && has(tag.Value, values...) {
-				filtered = append(filtered, instance)
+				filtered[id] = instance
 			}
 		}
 	}
@@ -58,33 +69,17 @@ func (i Instances) WithTag(key string, values ...string) Instances {
 
 // Ids returns the list of ids of the instances,
 func (i Instances) Ids() []string {
-	ids := make([]string, len(i))
+	ids := make([]string, 0)
 
-	for i, instance := range i {
-		ids[i] = instance.InstanceId
+	for id := range i {
+		ids = append(ids, id)
 	}
 
 	return ids
 }
 
-// UniqueSort sorts out the instances according to the given Ids
-func (i Instances) UniqueSort() Instances {
-	uniq := make(map[string]ec2.Instance, 0)
-
-	for _, instance := range i {
-		uniq[instance.InstanceId] = instance
-	}
-
-	filtered := make(Instances, 0)
-	for _, instance := range uniq {
-		filtered = append(filtered, instance)
-	}
-
-	return filtered
-}
-
 // Terminate terminates all instances
-func (i Instances) Terminate(client *ec2.EC2) {
+func (i Instances) TerminateAll(client *ec2.EC2) {
 	if len(i) == 0 {
 		return
 	}
@@ -94,6 +89,18 @@ func (i Instances) Terminate(client *ec2.EC2) {
 		if err != nil {
 			fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
 		}
+	}
+}
+
+// Terminate terminates the given instance specified with the id
+func (i Instances) Terminate(client *ec2.EC2, id string) {
+	if id == "" {
+		return
+	}
+
+	_, err := client.TerminateInstances([]string{id})
+	if err != nil {
+		fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
 	}
 }
 

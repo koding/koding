@@ -4,17 +4,12 @@ import (
 	"fmt"
 	"koding/kites/kloud/multiec2"
 	"sync"
-	"time"
 
 	"github.com/mitchellh/goamz/aws"
 	"github.com/mitchellh/goamz/ec2"
 )
 
 type Lookup struct {
-	// olderThan defines the duration in which instances are fetched. By
-	// default all instances (new and old) are fetched.
-	OlderThan time.Duration
-
 	// values contains a list of instance tags that are identified as test
 	// instances. By default all instances are fetched.
 	values []string
@@ -35,7 +30,7 @@ func NewAWS(auth aws.Auth) *Lookup {
 
 // Instances returns all instances that belongs to the given client/region if
 func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
-	instances := make(Instances, 0)
+	instances := make([]ec2.Instance, 0)
 
 	opts := &ec2.InstancesOpts{
 		MaxResults: 900,
@@ -70,18 +65,20 @@ func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 		nextToken = resp.NextToken
 	}
 
-	if l.OlderThan != 0 {
-		return instances.OlderThan(l.OlderThan), nil
+	m := make(Instances, len(instances))
+
+	for _, instance := range instances {
+		m[instance.InstanceId] = instance
 	}
 
-	return instances, nil
+	return m, nil
 }
 
 // FetchInstances fetches all instances from all regions
-func (l *Lookup) FetchInstances() MultiInstances {
+func (l *Lookup) FetchInstances() *MultiInstances {
 	var wg sync.WaitGroup
 
-	allInstances := make(MultiInstances, 0)
+	allInstances := NewMultiInstanes(l.clients)
 
 	for region, client := range l.clients.Regions() {
 		wg.Add(1)
@@ -94,7 +91,7 @@ func (l *Lookup) FetchInstances() MultiInstances {
 				return
 			}
 
-			allInstances[client] = instances
+			allInstances.Add(client, instances)
 		}(region, client)
 	}
 

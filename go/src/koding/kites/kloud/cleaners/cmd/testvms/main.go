@@ -47,7 +47,7 @@ func main() {
 	fmt.Printf("All regions total: %+v\n", instances.Total())
 
 	if conf.Terminate {
-		instances.Terminate()
+		instances.TerminateAll()
 		fmt.Printf("Terminated '%d' instances\n", instances.Total())
 	} else {
 		fmt.Printf("To delete all VMs run the command again with the flag -terminate\n")
