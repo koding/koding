@@ -9,7 +9,7 @@ import (
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/popular"
-	"socialapi/workers/api/modules/privatemessage"
+	"socialapi/workers/api/modules/privatechannel"
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
@@ -431,44 +431,44 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        privatemessage.Init,
-			Name:           "privatemessage-init",
+			Handler:        privatechannel.Init,
+			Name:           "privatechannel-init",
 			Type:           handler.PostRequest,
-			Endpoint:       "/privatemessage/init",
+			Endpoint:       "/privatechannel/init",
 			CollectMetrics: true,
 		})
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        privatemessage.Send,
-			Name:           "privatemessage-send",
+			Handler:        privatechannel.Send,
+			Name:           "privatechannel-send",
 			Type:           handler.PostRequest,
-			Endpoint:       "/privatemessage/send",
+			Endpoint:       "/privatechannel/send",
 			CollectMetrics: true,
 		})
 
 	// exempt contents are filtered
 	m.AddHandler(
 		handler.Request{
-			Handler:  privatemessage.List,
-			Name:     "privatemessage-list",
+			Handler:  privatechannel.List,
+			Name:     "privatechannel-list",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatemessage/list",
+			Endpoint: "/privatechannel/list",
 		})
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  privatemessage.Search,
-			Name:     "privatemessage-search",
+			Handler:  privatechannel.Search,
+			Name:     "privatechannel-search",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatemessage/search",
+			Endpoint: "/privatechannel/search",
 		})
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  privatemessage.Count,
-			Name:     "privatemessage-count",
+			Handler:  privatechannel.Count,
+			Name:     "privatechannel-count",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatemessage/count",
+			Endpoint: "/privatechannel/count",
 		})
 }

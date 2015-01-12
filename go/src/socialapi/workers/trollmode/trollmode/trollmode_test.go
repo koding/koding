@@ -834,7 +834,7 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(privatemessageChannelId, ShouldBeGreaterThan, 0)
 
-			channelContainers, err := rest.GetPrivateMessages(
+			channelContainers, err := rest.GetPrivateChannels(
 				&request.Query{
 					GroupName:  groupName,
 					AccountId:  trollUser.Id,
@@ -885,7 +885,7 @@ func TestMarkedAsTroll(t *testing.T) {
 
 			So(otherUser, ShouldNotEqual, 0)
 
-			channelContainers, err := rest.GetPrivateMessages(
+			channelContainers, err := rest.GetPrivateChannels(
 				&request.Query{
 					AccountId:  trollUser.Id,
 					ShowExempt: true,
@@ -916,14 +916,14 @@ func TestMarkedAsTroll(t *testing.T) {
 }
 
 func createPrivateMessageChannel(accountId int64, groupName string) (int64, error) {
-	pmr := models.PrivateMessageRequest{}
+	pmr := models.PrivateChannelRequest{}
 	pmr.AccountId = accountId
 	pmr.Body = "this is a body for private message @sinan"
 	pmr.GroupName = groupName
 	pmr.Recipients = []string{"sinan"}
 
 	// create first private channel
-	cmc, err := rest.SendPrivateMessage(pmr)
+	cmc, err := rest.SendPrivateChannelRequest(pmr)
 	if err != nil {
 		return 0, err
 	}
