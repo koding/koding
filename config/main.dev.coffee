@@ -347,6 +347,7 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
       nginx             :
         locations       : [ "= /payments/stripe/webhook" ]
+        # internalOnly    : yes
 
     gatekeeper          :
       group             : "socialapi"

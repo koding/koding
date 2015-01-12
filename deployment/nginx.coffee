@@ -24,7 +24,15 @@ basicAuth = """
 auth_basic            "Restricted";
       auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
-createWebLocation = ({name, location, auth, proxyPass}) ->
+allowInternal = """
+  allow                 127.0.0.1;
+        allow                 192.168.0.0/16;
+        allow                 172.16.0.0/12;
+        allow                 10.0.0.0/8;
+        deny                  all;
+"""
+
+createWebLocation = ({name, location, auth, proxyPass, internalOnly}) ->
   auth ?= no
   return """\n
       location #{location} {
@@ -33,6 +41,7 @@ createWebLocation = ({name, location, auth, proxyPass}) ->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+        #{if internalOnly then allowInternal else ''}
         #{if auth then basicAuth else ''}
       }
   \n"""
@@ -120,8 +129,8 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      { proxyPass } = options.nginx
-      locations += fn {name, location, auth, proxyPass}
+      { proxyPass, internalOnly } = options.nginx
+      locations += fn {name, location, auth, proxyPass, internalOnly}
 
   return locations
 
@@ -285,6 +294,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+        #{allowInternal}
       }
 
       location = / {
