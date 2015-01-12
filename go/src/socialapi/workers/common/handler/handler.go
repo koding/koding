@@ -64,6 +64,10 @@ func getAccount(r *http.Request) *models.Account {
 		return nil
 	}
 
+	if strings.Contains(session.Username, "guest-") {
+		session.Username = "guestuser"
+	}
+
 	// if session doesnt have username, return nil
 	if session.Username == "" {
 		return nil
