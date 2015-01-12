@@ -137,6 +137,10 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	if err := checker.PlanState(); err != nil {
+		return nil, err
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err

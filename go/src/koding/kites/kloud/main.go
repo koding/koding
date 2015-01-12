@@ -210,7 +210,7 @@ func newKite(conf *Config) *kite.Kite {
 		}
 
 		// check current plan
-		plan, err := kodingProvider.Fetcher(conf.PlanEndpoint, m)
+		fetcherResp, err := kodingProvider.Fetcher(conf.PlanEndpoint, m)
 		if err != nil {
 			return nil, err
 		}
@@ -223,7 +223,7 @@ func newKite(conf *Config) *kite.Kite {
 			Log:                  kodingProvider.Log,
 			Username:             m.Username,
 			Machine:              m,
-			Plan:                 plan,
+			Plan:                 fetcherResp,
 			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		}, nil
 	}
