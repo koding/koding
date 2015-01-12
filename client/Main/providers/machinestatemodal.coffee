@@ -153,7 +153,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if currentState is NotInitialized
         @buildViews State: currentState
-        KD.utils.defer => @turnOnMachine()
         return
 
       @triggerEventTimer 10
@@ -165,9 +164,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
           info "Initial info result:", response
 
           @buildViews response
-
-          if response.State is NotInitialized
-            KD.utils.defer => @turnOnMachine()
 
         .catch (err)=>
 
@@ -270,33 +266,16 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.destroySubViews()
 
-    @codeEntryView = new KDInputView
-      cssClass    : 'verify-pin-input'
-      placeholder : 'Enter code here'
+    @codeEntryView = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'verify-pin-input'
+      placeholder  : 'Enter code here'
+      callback     : @bound 'verifyAccount'
 
-    @button       = new KDButtonView
-      title       : 'Verify account'
-      cssClass    : 'solid green medium'
-      callback    : =>
-
-        code = Encoder.XSSEncode @codeEntryView.getValue()
-        unless code then return new KDNotificationView
-          title: "Please enter a code"
-
-        KD.remote.api.JUser.verifyByPin pin: code, (err)=>
-
-          @pinIsValid?.destroy()
-
-          if err
-            @container.addSubView @pinIsValid = new KDCustomHTMLView
-              cssClass : 'error-message'
-              partial  : """
-                <p>The pin entered is not valid.</p>
-              """
-
-          else
-            KD.utils.defer @bound 'buildInitial'
-
+    @button    = new KDButtonView
+      title    : 'Verify account'
+      cssClass : 'solid green medium'
+      callback : @bound 'verifyAccount'
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'verify-message'
@@ -459,3 +438,24 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @buildViews()
     @createFooter()
     return @show()
+
+
+  verifyAccount: ->
+
+    code = Encoder.XSSEncode @codeEntryView.getValue()
+    unless code then return new KDNotificationView
+      title: "Please enter a code"
+
+    KD.remote.api.JUser.verifyByPin pin: code, (err)=>
+
+      @pinIsValid?.destroy()
+
+      if err
+        @container.addSubView @pinIsValid = new KDCustomHTMLView
+          cssClass : 'error-message'
+          partial  : """
+            <p>The pin entered is not valid.</p>
+          """
+
+      else
+        KD.utils.defer @bound 'buildInitial'
