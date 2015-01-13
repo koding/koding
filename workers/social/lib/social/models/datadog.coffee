@@ -23,22 +23,51 @@ module.exports = class DataDog extends Base
   }
 
 
-  Events               =
-    MachineStateFailed :
-      title            : "vms.failed"
-      text             : "VM start failed for user: %nickname%"
-      notify           : "@slack-alerts"
-      tags             : ["user:%nickname%", "context:vms"]
+  Events =
+
+    MachineStateFailed:
+      title  : "vms.failed"
+      text   : "VM start failed for user: %nickname%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:vms"]
+
+    TerminalConnectionFailed:
+      title  : "terminal.failed"
+      text   : "Terminal connection failed for user: %nickname%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:terminal"]
 
 
-  tagReplace = (sourceTag, nickname)->
+
+  tagReplace = (sourceTag, userTags)->
+
+    parseTag = (tag) ->
+
+      # check if tag contains any variable
+      tagMatch = tag.match /%(.*)%$/m
+
+      return tag  unless tagMatch?.length
+
+      # check if tag variable value is set in userTags
+      tagValue = userTags[tagMatch[1]]
+      return tag  unless tagValue
+
+      return tag.replace /%(.*)%$/g, tagValue
 
     tags = []
 
     for tag in sourceTag
-      tags.push tag.replace '%nickname%', nickname
+      tags.push parseTag tag
 
     return tags
+
+
+  parseText = (text, tags)->
+    updatedText = text
+    for tag, value of tags
+      updatedText = updatedText.replace "%#{tag}%", value
+
+    return updatedText
 
 
   @sendEvent = secure (client, data, callback = ->)->
@@ -48,18 +77,19 @@ module.exports = class DataDog extends Base
     unless delegate.type is 'registered'
       return callback new KodingError "Not allowed"
 
-    {eventName, logs} = data
-
+    {eventName, logs, tags} = data
+    tags ?= {}
     ev = Events[eventName]
 
     unless ev
       return callback new KodingError "Unknown event name"
 
     {nickname} = delegate.profile
+    tags['nickname'] = nickname
 
     title = ev.title
-    text  = ev.text.replace '%nickname%', nickname
-    tags  = tagReplace ev.tags, nickname
+    text = parseText ev.text, tags
+    tags  = tagReplace ev.tags, tags
 
     if logs?
       if logs.length < 400

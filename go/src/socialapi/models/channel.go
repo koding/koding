@@ -7,6 +7,7 @@ import (
 
 	"socialapi/request"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -38,6 +39,9 @@ type Channel struct {
 	// MetaBits holds meta bit information about the channel
 	MetaBits MetaBits `json:"metaBits"`
 
+	// Extra data storage
+	Payload gorm.Hstore `json:"payload,omitempty"`
+
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
 
@@ -58,6 +62,7 @@ const (
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
 	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
+	Channel_TYPE_COLLABORATION   = "collaboration"
 	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
@@ -85,11 +90,29 @@ func NewChannel() *Channel {
 //
 // Tests are done
 func NewPrivateMessageChannel(creatorId int64, groupName string) *Channel {
+	return NewPrivateChannel(creatorId, groupName, Channel_TYPE_PRIVATE_MESSAGE)
+}
+
+// NewCollaborationChannel takes the creator id and group name of the channel as arguments
+// sets required content of the channel
+// and sets constants as 'private'
+//
+// Tests are done
+func NewCollaborationChannel(creatorId int64, groupName string) *Channel {
+	return NewPrivateChannel(creatorId, groupName, Channel_TYPE_COLLABORATION)
+}
+
+// NewPrivateChannel takes the creator id, group name of the channel and channel type as arguments
+// sets required content of the channel
+// and sets constants as 'private'
+//
+// Tests are done
+func NewPrivateChannel(creatorId int64, groupName string, typeConstant string) *Channel {
 	c := NewChannel()
 	c.GroupName = groupName
 	c.CreatorId = creatorId
 	c.Name = RandomName()
-	c.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+	c.TypeConstant = typeConstant
 	c.PrivacyConstant = Channel_PRIVACY_PRIVATE
 	c.Purpose = ""
 	return c
