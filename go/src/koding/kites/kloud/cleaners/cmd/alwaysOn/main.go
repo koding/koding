@@ -50,7 +50,6 @@ func realMain() error {
 
 	m := lookup.NewMongoDB(conf.MongoURL)
 
-	fmt.Println("Fetching paying customers")
 	payingIds, err := p.PayingCustomers()
 	if err != nil {
 		return err
@@ -71,8 +70,6 @@ func realMain() error {
 		return ok
 	}
 
-	fmt.Println("Fetching free user accounts")
-
 	alwaysOnMachines, err := m.AlwaysOn()
 	if err != nil {
 		return err
@@ -80,14 +77,19 @@ func realMain() error {
 
 	fmt.Println("Free users with alwaysOn VMs:")
 
+	nonvalidUsers := make([]string, 0)
+
 	for _, machine := range alwaysOnMachines {
 		username := machine.Credential
 
 		// if user is not a paying customer
 		if !isPaid(username) {
-			fmt.Printf("\t%s\n", username)
+			nonvalidUsers = append(nonvalidUsers, username)
 		}
+	}
 
+	for _, user := range nonvalidUsers {
+		fmt.Printf("\t%s\n", user)
 	}
 
 	return nil
