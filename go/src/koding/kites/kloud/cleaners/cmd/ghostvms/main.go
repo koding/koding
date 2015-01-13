@@ -28,7 +28,7 @@ func main() {
 	// Load the config, it's reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	var instances *lookup.MultiInstances
+	var instances lookup.MultiInstances
 	done := make(chan bool, 1)
 	go func() {
 		auth := aws.Auth{
@@ -82,32 +82,34 @@ func main() {
 
 	<-done // wait for AWS
 
-	ghostIds := make(map[string]*ec2.EC2, 0)
+	ghostInstances := make(lookup.MultiInstances, 0)
 	instances.Iter(func(client *ec2.EC2, vms lookup.Instances) {
-		for id := range vms {
+		ghostIds := make(lookup.Instances, 0)
+
+		for id, instance := range vms {
 			_, ok := mongodbIds[id]
 			// so we have a id that is available on AWS but is not available in
 			// MongodB
 			if !ok {
-				ghostIds[id] = client
+				ghostIds[id] = instance
 			}
 		}
+
+		ghostInstances[client] = ghostIds
 	})
 
-	fmt.Printf("\nFound %d instances without any MongoDB document\n", len(ghostIds))
+	fmt.Printf("\nFound %d instances without any MongoDB document\n", ghostInstances.Total())
 
 	if !conf.Terminate {
+		fmt.Printf("To terminate the instances run the command again with the flag -terminate\n")
 		os.Exit(0)
 	}
 
-	if len(ghostIds) > 100 {
-		fmt.Fprintf(os.Stderr, "Instance count is more than 100 (have '%d'), aborting termination\n", len(ghostIds))
+	if ghostInstances.Total() > 100 {
+		fmt.Fprintf(os.Stderr, "Instance count is more than 100 (have '%d'), aborting termination\n", ghostInstances.Total())
 		os.Exit(1)
 	}
 
-	for id, client := range ghostIds {
-		client.TerminateInstances([]string{id})
-	}
-
-	fmt.Printf("Terminated '%d' instances\n", len(ghostIds))
+	ghostInstances.TerminateAll()
+	fmt.Printf("Terminated '%d' instances\n", ghostInstances.Total())
 }
