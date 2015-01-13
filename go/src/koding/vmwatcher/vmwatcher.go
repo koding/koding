@@ -69,17 +69,16 @@ func stopMachinesOverLimit() error {
 
 			err = stopVm(machine.ObjectId.Hex(), reason)
 			if err != nil {
-				Log.Error(err.Error())
 				continue
 			}
 
 			stopSuccess += 1
 
-			err := metric.RemoveUsername(machine.Credential)
-			if err != nil {
-				Log.Error(err.Error())
-				continue
-			}
+			// err := metric.RemoveUsername(machine.Credential)
+			// if err != nil {
+			//   Log.Error(err.Error())
+			//   continue
+			// }
 		}
 
 		Log.Debug(
