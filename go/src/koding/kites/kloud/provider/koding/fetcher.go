@@ -7,7 +7,6 @@ import (
 	"koding/kites/kloud/protocol"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -31,12 +30,13 @@ type FetcherResponse struct {
 }
 
 func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *FetcherResponse, planErr error) {
+
 	defer func() {
 		if planErr != nil {
 			p.Log.Warning("[%s] username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
 				m.Id, m.Username, planErr)
 
-			fetcherResp.Plan = Free
+			fetcherResp = &FetcherResponse{Plan: Free}
 			planErr = nil
 		}
 	}()
@@ -79,11 +79,6 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *F
 
 		return nil, fmt.Errorf("[%s] could not fetch subscription. status code: %d",
 			m.Id, resp.StatusCode)
-	}
-
-	// if the plan is expired there is no need to return the plan anymore
-	if subscription.State != "" && strings.ToLower(subscription.State) == "expired" {
-		return nil, fmt.Errorf("[%s] Plan is expired", m.Id)
 	}
 
 	plan, ok := plans[subscription.PlanTitle]
