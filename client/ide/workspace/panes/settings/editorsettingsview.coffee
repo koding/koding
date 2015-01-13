@@ -108,7 +108,7 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
       <p class="with-select">Key binding {{> @keyboardHandler}}</p>
-      <p class="with-select">Font        {{> @fontSize}}</p>
+      <p class="with-select">Font size   {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
       <p class="with-select">Tab size    {{> @tabSize}}</p>
     """
