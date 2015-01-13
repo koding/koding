@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"os"
 	"time"
 
 	"github.com/koding/multiconfig"
@@ -17,6 +18,8 @@ type Config struct {
 	SecretKey string `required:"true"`
 
 	MongoURL string `required:"true"`
+
+	Terminate bool
 }
 
 func main() {
@@ -74,22 +77,37 @@ func main() {
 		fmt.Printf("err = %+v\n", err)
 	}
 
-	<-done // wait for AWS
-
 	fmt.Printf("MongoDB documents with InstanceId field: %+v (time: %s)\n",
 		len(mongodbIds), time.Since(start))
 
-	fmt.Printf("\nInstances without any MongoDB document: \n")
+	<-done // wait for AWS
 
+	ghostIds := make(map[string]*ec2.EC2, 0)
 	instances.Iter(func(client *ec2.EC2, vms lookup.Instances) {
 		for id := range vms {
 			_, ok := mongodbIds[id]
 			// so we have a id that is available on AWS but is not available in
 			// MongodB
 			if !ok {
-				fmt.Printf("\t[%s] %s\n", client.Region.Name, id)
+				ghostIds[id] = client
 			}
 		}
 	})
 
+	fmt.Printf("\nFound %d instances without any MongoDB document\n", len(ghostIds))
+
+	if !conf.Terminate {
+		os.Exit(0)
+	}
+
+	if len(ghostIds) > 100 {
+		fmt.Fprintf(os.Stderr, "Instance count is more than 100 (have '%d'), aborting termination\n", len(ghostIds))
+		os.Exit(1)
+	}
+
+	for id, client := range ghostIds {
+		client.TerminateInstances([]string{id})
+	}
+
+	fmt.Printf("Terminated '%d' instances\n", len(ghostIds))
 }
