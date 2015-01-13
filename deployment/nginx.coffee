@@ -32,8 +32,8 @@ allowInternal = """
         deny                  all;
 """
 
-createWebLocation = ({name, location, auth, proxyPass, internalOnly}) ->
-  auth ?= no
+createWebLocation = ({name, locationConf}) ->
+  { location, proxyPass, internalOnly, auth } = locationConf
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -46,7 +46,8 @@ createWebLocation = ({name, location, auth, proxyPass, internalOnly}) ->
       }
   \n"""
 
-createWebsocketLocation = ({name, location, proxyPass}) ->
+createWebsocketLocation = ({name, locationConf, proxyPass}) ->
+  {location, proxyPass} = locationConf
   return """\n
       location #{location} {
         proxy_pass            #{proxyPass};
@@ -110,13 +111,14 @@ createLocations = (KONFIG) ->
     continue if options.nginx?.disableLocation?
 
     options.nginx = {}  unless options.nginx
-    location = ""
+    location = {}
 
-    options.nginx.locations or= ["/#{name}"]
-    options.nginx.proxyPass or= "http://#{name}"
-
+    options.nginx.locations or= [
+      location: "/#{name}"
+    ]
 
     for location in options.nginx.locations
+      location.proxyPass or= "http://#{name}"
       # if this is a websocket proxy, add required configs
       fn = if options.nginx.websocket
         createWebsocketLocation
@@ -129,8 +131,7 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      { proxyPass, internalOnly } = options.nginx
-      locations += fn {name, location, auth, proxyPass, internalOnly}
+      locations += fn {name, locationConf: location, auth}
 
   return locations
 
@@ -280,21 +281,12 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
-      location ~ /api/social/channel/(.*)/history {
+      location /api/social/channel/(.*)/history {
         proxy_pass            http://socialapi/channel/$1/history$is_args$args;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
-      }
-
-      location /api/social/ {
-        proxy_pass            http://socialapi/;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-        #{allowInternal}
       }
 
       location = / {
