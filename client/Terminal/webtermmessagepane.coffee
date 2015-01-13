@@ -66,6 +66,8 @@ class WebTermMessagePane extends KDCustomScrollView
         "Failed to connect your terminal,
         click here to try again.", 'RequestReconnect'
 
+      KD.utils.sendDataDogEvent "TerminalConnectionFailed"
+
       return yes
 
     return no

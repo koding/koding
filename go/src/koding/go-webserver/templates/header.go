@@ -46,4 +46,16 @@ var Header = `
     <link rel="shortcut icon" href="/a/images/favicon.ico" />
     <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
     <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
+
+    <script>
+    var _prum = [['id', '54a5cf1eabe53d1d20d455ec'],
+                 ['mark', 'firstbyte', (new Date()).getTime()]];
+    (function() {
+        var s = document.getElementsByTagName('script')[0]
+          , p = document.createElement('script');
+        p.async = 'async';
+        p.src = '//rum-static.pingdom.net/prum.min.js';
+        s.parentNode.insertBefore(p, s);
+    })();
+    </script>
 `

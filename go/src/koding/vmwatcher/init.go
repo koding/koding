@@ -57,7 +57,7 @@ func initializeRedis(c *VmController) {
 		Log.Fatal(err.Error())
 	}
 
-	Log.Info("Connected to redis: %s", conf.Redis)
+	// Log.Info("Connected to redis: %s", conf.Redis)
 
 	c.Redis = &RedisStorage{Client: redisClient}
 }
@@ -65,7 +65,7 @@ func initializeRedis(c *VmController) {
 func initializeMongo() {
 	modelhelper.Initialize(conf.Mongo)
 
-	Log.Info("Connected to mongo: %s", conf.Mongo)
+	// Log.Info("Connected to mongo: %s", conf.Mongo)
 }
 
 func saveExemptUsers() {

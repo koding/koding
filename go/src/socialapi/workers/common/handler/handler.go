@@ -6,6 +6,7 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
+	"strings"
 
 	kmetrics "github.com/koding/metrics"
 
@@ -51,6 +52,10 @@ func getAccount(r *http.Request) *models.Account {
 	session, err := models.Cache.Session.ById(cookie.Value)
 	if err != nil {
 		return nil
+	}
+
+	if strings.Contains(session.Username, "guest-") {
+		session.Username = "guestuser"
 	}
 
 	// if session doesnt have username, return nil
