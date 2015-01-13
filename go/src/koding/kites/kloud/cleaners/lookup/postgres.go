@@ -26,8 +26,6 @@ func NewPostgres(conf *PostgresConfig) *Postgres {
 		conf.Host, conf.Port, conf.DBName, conf.Username, conf.Password,
 	)
 
-	fmt.Printf("connString = %+v\n", connString)
-
 	db, err := sql.Open("postgres", connString)
 	if err != nil {
 		panic(err)
@@ -38,7 +36,7 @@ func NewPostgres(conf *PostgresConfig) *Postgres {
 	}
 }
 
-// PayingCustomers returns the list of MongoDB account ids of all paying
+// PayingCustomers returns the list of MongoDB account ids of all active paying
 // customers
 func (p *Postgres) PayingCustomers() ([]string, error) {
 	// The SQL query below returns us a list of all 'active' paying custormers

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
 	"log"
+	"os"
 
 	"github.com/koding/multiconfig"
 )
@@ -25,6 +26,15 @@ type Config struct {
 }
 
 func main() {
+	if err := realMain(); err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+
+func realMain() error {
 	conf := new(Config)
 
 	// Load the config, it's reads environment variables or from flags
@@ -38,11 +48,47 @@ func main() {
 		DBName:   conf.DBName,
 	})
 
-	oids, err := p.PayingCustomers()
+	m := lookup.NewMongoDB(conf.MongoURL)
+
+	fmt.Println("Fetching paying customers")
+	payingIds, err := p.PayingCustomers()
 	if err != nil {
-		log.Fatalln(err)
+		return err
 	}
 
-	fmt.Printf("len(oids) = %+v\n", len(oids))
+	accounts, err := m.Accounts(payingIds...)
+	if err != nil {
+		return err
+	}
 
+	set := make(map[string]struct{}, 0)
+	for _, account := range accounts {
+		set[account.Profile.Nickname] = struct{}{}
+	}
+
+	isPaid := func(username string) bool {
+		_, ok := set[username]
+		return ok
+	}
+
+	fmt.Println("Fetching free user accounts")
+
+	alwaysOnMachines, err := m.AlwaysOn()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Free users with alwaysOn VMs:")
+
+	for _, machine := range alwaysOnMachines {
+		username := machine.Credential
+
+		// if user is not a paying customer
+		if !isPaid(username) {
+			fmt.Printf("\t%s\n", username)
+		}
+
+	}
+
+	return nil
 }
