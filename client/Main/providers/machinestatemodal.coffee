@@ -177,6 +177,48 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @buildViews()
 
 
+  buildVerifyView: ->
+
+    @container.destroySubViews()
+
+    @codeEntryView = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'verify-pin-input'
+      placeholder  : 'Enter code here'
+      callback     : @bound 'verifyAccount'
+
+    @button    = new KDButtonView
+      title    : 'Verify account'
+      cssClass : 'solid green medium'
+      callback : @bound 'verifyAccount'
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'verify-message'
+      partial  : """
+        <p>Before you can access your VM, we need to verify your account.
+        A verification email should already be in your inbox.
+        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
+      """
+      click    : (event)=>
+
+        return  unless $(event.target).is 'cite'
+
+        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+
+          unless KD.showError err
+
+            @container.addSubView @retryView = new KDCustomHTMLView
+              cssClass : 'error-message warning'
+              partial  : """
+                <p>Email sent, please check your inbox.</p>
+              """
+
+            KD.utils.wait 3000, @retryView.bound 'destroy'
+
+    @container.addSubView @codeEntryView
+    @container.addSubView @button
+
+
   buildViews: (response)->
 
     if response?.State?
@@ -260,49 +302,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         height   : 40
 
     @container.addSubView @loader
-
-
-  buildVerifyView: ->
-
-    @container.destroySubViews()
-
-    @codeEntryView = new KDHitEnterInputView
-      type         : 'text'
-      cssClass     : 'verify-pin-input'
-      placeholder  : 'Enter code here'
-      callback     : @bound 'verifyAccount'
-
-    @button    = new KDButtonView
-      title    : 'Verify account'
-      cssClass : 'solid green medium'
-      callback : @bound 'verifyAccount'
-
-    @container.addSubView new KDCustomHTMLView
-      cssClass : 'verify-message'
-      partial  : """
-        <p>Before you can access your VM, we need to verify your account.
-        A verification email should already be in your inbox.
-        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
-      """
-      click    : (event)=>
-
-        return  unless $(event.target).is 'cite'
-
-        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
-
-          unless KD.showError err
-
-            @container.addSubView @retryView = new KDCustomHTMLView
-              cssClass : 'error-message warning'
-              partial  : """
-                <p>Email sent, please check your inbox.</p>
-              """
-
-            KD.utils.wait 3000, @retryView.bound 'destroy'
-
-    @container.addSubView @codeEntryView
-    @container.addSubView @button
-
 
 
   createProgressBar: (initial = 10)->
@@ -390,6 +389,15 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @hasError = null
 
 
+  handleNoMachineFound: ->
+
+    {@state} = @getOptions()
+    @setClass 'no-machine'
+    @buildViews()
+    @createFooter()
+    return @show()
+
+
   turnOnMachine: ->
 
     computeController = KD.getSingleton 'computeController'
@@ -429,15 +437,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @setData m
 
       @emit 'IDEBecameReady', m
-
-
-  handleNoMachineFound: ->
-
-    {@state} = @getOptions()
-    @setClass 'no-machine'
-    @buildViews()
-    @createFooter()
-    return @show()
 
 
   verifyAccount: ->
