@@ -1,0 +1,1 @@
+GRANT DELETE ON "api"."channel_message" TO "social";
