@@ -4,6 +4,11 @@ class ComputeController extends KDController
 
   @timeout = 30000
 
+  @Error = {
+    'TimeoutError', 'KiteError',
+    Pending: '107', NotVerified: '500'
+  }
+
   constructor:->
 
     super
@@ -175,11 +180,7 @@ class ComputeController extends KDController
 
   errorHandler: (call, task, machine)->
 
-    ComputeErrors = {
-      "TimeoutError", "KiteError", Pending: "107"
-    }
-
-    { timeout }   = ComputeController
+    { timeout, Error } = ComputeController
 
     retryIfNeeded = KD.utils.throttle 500, (task, machine)=>
 
@@ -203,16 +204,16 @@ class ComputeController extends KDController
 
       switch err.name
 
-        when ComputeErrors.TimeoutError
+        when Error.TimeoutError
 
           safeToSuspend = task is 'info'
           retryIfNeeded task, machine
           info "Cancelling... #{task} ..."
           call.cancel()
 
-        when ComputeErrors.KiteError
+        when Error.KiteError
 
-          if err.code is ComputeErrors.Pending
+          if err.code is Error.Pending
             retried = retryIfNeeded task, machine
             safeToSuspend = yes
           else

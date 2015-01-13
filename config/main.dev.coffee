@@ -80,6 +80,7 @@ Configuration = (options={}) ->
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
+  autoConfirmAccounts = yes
 
   kloudPort           = 5500
 
@@ -96,6 +97,7 @@ Configuration = (options={}) ->
     broker                         : broker
     uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
+    autoConfirmAccounts            : autoConfirmAccounts
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
