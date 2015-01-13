@@ -67,6 +67,7 @@ func (m *MongoDB) Iter(fn func(MachineDocument) error) error {
 	return m.DB.Run("jMachines", query)
 }
 
+// AlwaysOn returns all alwaysOn Machines
 func (m *MongoDB) AlwaysOn() ([]MachineDocument, error) {
 	machines := make([]MachineDocument, 0)
 
@@ -91,6 +92,7 @@ func (m *MongoDB) AlwaysOn() ([]MachineDocument, error) {
 	return machines, nil
 }
 
+// Accounts returns a list of accounts for the give objectIds in non hex form
 func (m *MongoDB) Accounts(ids ...string) ([]models.Account, error) {
 	b := make([]bson.ObjectId, len(ids))
 	for i, id := range ids {
@@ -118,4 +120,18 @@ func (m *MongoDB) Accounts(ids ...string) ([]models.Account, error) {
 	}
 
 	return accounts, nil
+}
+
+// RemoveAlwaysOn removes the alwaysOn flag for the given usernames
+func (m *MongoDB) RemoveAlwaysOn(usernames ...string) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(
+			bson.M{"credential": bson.M{"$in": usernames}},
+			bson.M{"$set": bson.M{"meta.alwaysOn": false}},
+		)
+
+		return err
+	}
+
+	return m.DB.Run("jMachines", query)
 }

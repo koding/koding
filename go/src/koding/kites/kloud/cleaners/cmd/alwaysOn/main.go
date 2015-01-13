@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
-	"log"
 	"os"
 
 	"github.com/koding/multiconfig"
@@ -23,11 +23,14 @@ type Config struct {
 	Username string `required:"true"`
 	Password string `required:"true"`
 	DBName   string `required:"true" `
+
+	//  Update alwaysOn flag
+	Update bool
 }
 
 func main() {
 	if err := realMain(); err != nil {
-		log.Println(err)
+		fmt.Println(err)
 		os.Exit(1)
 	}
 
@@ -75,8 +78,6 @@ func realMain() error {
 		return err
 	}
 
-	fmt.Println("Free users with alwaysOn VMs:")
-
 	nonvalidUsers := make([]string, 0)
 
 	for _, machine := range alwaysOnMachines {
@@ -88,8 +89,25 @@ func realMain() error {
 		}
 	}
 
+	if len(nonvalidUsers) == 0 {
+		return errors.New("No users are available. Everything is ok.")
+
+	}
+
+	fmt.Printf("Free users with alwaysOn VMs: %d\n", len(nonvalidUsers))
+
 	for _, user := range nonvalidUsers {
 		fmt.Printf("\t%s\n", user)
+	}
+
+	if conf.Update {
+		if err := m.RemoveAlwaysOn(nonvalidUsers...); err != nil {
+			return err
+		}
+
+		fmt.Printf("Updated '%d' jMachines alwaysOn fields to 'false'\n", len(nonvalidUsers))
+	} else {
+		fmt.Printf("To update the alwaysOn field and set it to false, run again with -update\n")
 	}
 
 	return nil
