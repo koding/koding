@@ -1,0 +1,1 @@
+REVOKE DELETE ON "api"."channel_message" FROM "social";

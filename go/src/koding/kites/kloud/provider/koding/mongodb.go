@@ -49,6 +49,10 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 		if err := p.checkUser(user.ObjectId, machine.Users); err != nil && !p.Test {
 			return nil, err
 		}
+
+		if user.Status != "confirmed" {
+			return nil, kloud.NewError(kloud.ErrUserNotConfirmed)
+		}
 	}
 
 	credential := p.GetCredential(machine.Credential)

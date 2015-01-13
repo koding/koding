@@ -499,22 +499,6 @@ app.post "/recaptcha", (req, res)->
 
     res.send "verified"
 
-app.get "/sitemap.xml", (req, res)->
-  getSiteMap "/sitemap.xml", req, res
-
-app.get "/sitemap/:sitemapName", (req, res)->
-  getSiteMap "/sitemap/#{req.params.sitemapName}", req, res
-
-getSiteMap = (name, req, res)->
-  {
-    bareRequest
-  } = require "../../../workers/social/lib/social/models/socialapi/helper"
-
-  bareRequest "getSiteMap", {name:name}, (err, result)->
-    res.setHeader "Content-Type", "text/xml"
-    res.send result
-    res.end
-
 app.get "/-/presence/:service", (req, res) ->
   # if services[service] and services[service].count > 0
   res.status(200).end()

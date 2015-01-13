@@ -74,7 +74,6 @@ module.exports =
               console.log 'turn on button is clicked, waiting for VM turn on'
 
               browser
-                .waitForElementNotVisible  loaderSelector, 50000
                 .waitForElementVisible     turnOnButtonSelector, 50000
                 .click                     turnOnButtonSelector
                 .waitForElementNotVisible  modalSelector, 300000
