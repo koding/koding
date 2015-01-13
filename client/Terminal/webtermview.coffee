@@ -48,7 +48,6 @@ class WebTermView extends KDCustomScrollView
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
 
-
     @listenWindowResize()
 
     @on "ReceivedClickElsewhere", =>
@@ -100,6 +99,8 @@ class WebTermView extends KDCustomScrollView
 
 
   getMachine: -> @getOption 'machine'
+
+
   getKite: -> @getMachine().getBaseKite()
 
 

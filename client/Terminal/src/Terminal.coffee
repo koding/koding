@@ -145,13 +145,19 @@ class WebTerm.Terminal extends KDObject
     (event.ctrlKey or event.metaKey) and event.shiftKey and event.keyCode is 13
 
   keyDown: (event) ->
+    return  if @isReadOnly
     return  if ignoreKeyDownEvent event
+
     @inputHandler.keyDown event
 
   keyPress: (event) ->
+    return  if @isReadOnly
+
     @inputHandler.keyPress event
 
   keyUp: (event) ->
+    return  if @isReadOnly
+
     @inputHandler.keyUp event
 
   setKeyFocus: ->
@@ -184,7 +190,11 @@ class WebTerm.Terminal extends KDObject
 
   updateSize: (force = no) ->
 
+    return  unless @parent
+
     @updateAppSize()
+
+    return  unless @parent
 
     [swidth, sheight] = [@parent.getWidth(), @parent.getHeight()]
 
@@ -205,6 +215,8 @@ class WebTerm.Terminal extends KDObject
 
     { appView } = @getOptions()
     {width: charWidth, height: charHeight} = @getCharSizes()
+
+    return  unless appView.parent
 
     height = appView.parent.getHeight() - 24 # padding
 
@@ -326,6 +338,8 @@ class WebTerm.Terminal extends KDObject
 
 
   paste: (event) =>
+
+    return  if @isReadOnly
 
     KD.utils.stopDOMEvent event
     @server.input event.originalEvent.clipboardData.getData "text/plain"

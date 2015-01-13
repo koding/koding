@@ -11,8 +11,8 @@ class NavigationMachineItem extends JView
     machine      = data
     @alias       = machine.slug or machine.label
     ideRoute     = "/IDE/#{@alias}/my-workspace"
-    machineOwner = machine.jMachine.credential
-    isMyMachine  = machineOwner is KD.nick()
+    machineOwner = machine.getOwner()
+    isMyMachine  = machine.isMine()
     channelId    = ''
 
     if not isMyMachine and KD.userWorkspaces
@@ -28,7 +28,10 @@ class NavigationMachineItem extends JView
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
       href             : KD.utils.groupifyLink ideRoute
-      title            : "Open IDE for #{@alias} (shared by @#{Encoder.htmlDecode machineOwner})"
+      title            : "Open IDE for #{@alias}"
+
+    unless machineOwner is KD.nick()
+      options.attributes.title += " (shared by @#{Encoder.htmlDecode machineOwner})"
 
     super options, data
 

@@ -10,8 +10,8 @@ PID=`echo $TOPPROCESS | awk '{print $1}'`
 LOAD=`echo $TOPPROCESS | awk '{print $9}'`
 NAME=`echo $TOPPROCESS | awk '{print $12}'`
 
-# java is conflicting with our script
-if [[ "$NAME" == "java" ]]; then
+# only kill social worker and kloud
+if [[ "$NAME" != "koding-socialwo" && "$NAME" != "kloud" ]]; then
   exit 0
 fi
 

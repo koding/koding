@@ -63,7 +63,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
         specs           :
           label         : "Specs"
           itemClass     : KDView
-          partial       : "1GB Ram, 1Core, #{storage}GB Disk"
+          partial       : "1GB RAM, 1Core, #{storage}GB Disk"
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
