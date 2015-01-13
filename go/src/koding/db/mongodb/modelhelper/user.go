@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"koding/db/models"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -74,6 +75,38 @@ func UpdateEmailFrequency(username string, e models.EmailFrequency) error {
 
 	query := func(c *mgo.Collection) error {
 		_, err := c.UpdateAll(selector, updateQuery)
+		return err
+	}
+
+	return Mongo.Run("jUsers", query)
+}
+
+var (
+	UserStatusConfirmed   = "confirmed"
+	UserStatusUnConfirmed = "unconfirmed"
+	UserStatusBlocked     = "blocked"
+)
+
+func BlockUser(username, reason string, duration time.Duration) error {
+	selector := bson.M{"username": username}
+	updateQuery := bson.M{"$set": bson.M{
+		"status":        UserStatusBlocked,
+		"blockedReason": reason, "blockedUntil": time.Now().Add(duration),
+	}}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Update(selector, updateQuery)
+		return err
+	}
+
+	return Mongo.Run("jUsers", query)
+}
+
+func RemoveUser(username string) error {
+	selector := bson.M{"username": username}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Remove(selector)
 		return err
 	}
 

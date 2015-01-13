@@ -12,6 +12,7 @@ type User struct {
 	Email         string        `bson:"email" json:"email"`
 	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
 	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
+	BlockedUntil  time.Time     `bson:"blockedUntil" json:"blockedUntil"`
 
 	// TODO left this for consistency, but should be converted into Username
 	Name string `bson:"username" json:"username"`
@@ -25,6 +26,8 @@ type User struct {
 		Title string `bson:"title"`
 		Key   string `bson:"key"`
 	} `bson:"sshKeys"`
+
+	BlockedReason string `bson:"blockedReason" json:"blockedReason"`
 
 	EmailFrequency EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
 }
