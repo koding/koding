@@ -34,7 +34,6 @@ IDE.settings.editor =
       { title: 'Eclipse',               value: 'eclipse' }
       { title: 'GitHub',                value: 'github' }
       { title: 'Solarized Light',       value: 'solarized_light' }
-      { title: 'TextMate',              value: 'textmate' }
       { title: 'Tomorrow',              value: 'tomorrow' }
       { title: 'XCode',                 value: 'xcode' }
     ].sort (a, b) -> if a.title < b.title then -1 else 1
@@ -53,6 +52,7 @@ IDE.settings.editor =
       { title: 'Monokai',               value: 'monokai' }
       { title: 'Pastel on Dark',        value: 'pastel_on_dark' }
       { title: 'Solarized Dark',        value: 'solarized_dark' }
+      { title: 'TextMate',              value: 'textmate' }
       { title: 'Twilight',              value: 'twilight' }
       { title: 'Tomorrow Night',        value: 'tomorrow_night' }
       { title: 'Tomorrow Night Blue',   value: 'tomorrow_night_blue' }
