@@ -132,21 +132,18 @@ do ->
     latestWorkspace = localStorage.getValue 'LatestWorkspace'
 
     machineLabel    = machine.slug or machine.label
-    workspace       = null
     workspaceSlug   = 'my-workspace'
     username        = machine.getOwner()
 
     if latestWorkspace and latestWorkspace.machineLabel is machineLabel
       for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
-        workspace       = ws
         {workspaceSlug} = latestWorkspace
 
-    if username is KD.nick()
-    then loadWorkspace {machineLabel, workspaceSlug, username}, workspace
-    else
-      path = workspace.channelId or "#{machineLabel}/#{workspaceSlug}"
-      KD.utils.defer ->
-        KD.getSingleton('router').handleRoute "/IDE/#{path}"
+    if workspaceSlug is 'my-workspace'
+      loadWorkspace {machineLabel, workspaceSlug, username}
+
+    KD.utils.defer ->
+      KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
   routeToLatestWorkspace = (options = {}) ->
@@ -157,11 +154,8 @@ do ->
     # we assume that if machineLabel is all numbers it is the channelId - SY
     return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
 
-    localStorage   = KD.getSingleton("localStorageController").storage "IDE"
-    {machineLabel} = localStorage.getValue 'LatestWorkspace'
-
-    machine = m for m in KD.userMachines when m.label is machineLabel
-    return putVMInWorkspace (machine or KD.userMachines.first)
+    machine = KD.userMachines.first
+    return putVMInWorkspace machine  if machine
 
     KD.singletons.computeController.fetchMachines (err, machines)->
 
