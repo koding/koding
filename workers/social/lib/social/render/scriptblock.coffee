@@ -50,6 +50,7 @@ module.exports = (options = {}, callback)->
     <script>KD.userWorkspaces=#{userWorkspaces}</script>
     <script>KD.userAccount=#{userAccount}</script>
     <script>KD.currentGroup=#{currentGroup}</script>
+    <script src="//cdn.pubnub.com/pubnub-3.7.1.min.js"></script>
     <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
     <script src='/a/js/kd.js?#{KONFIG.version}'></script>
     <script src='/a/js/koding.js?#{KONFIG.version}'></script>
