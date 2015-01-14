@@ -117,12 +117,13 @@ func realMain() error {
 			// have instnaceIds in it
 			instanceId := machine.Meta["instanceId"].(string)
 			volumeId := volIds[instanceId]
+			size := volumes[volumeId].Size
 			username := machine.Credential
 
 			// if user is not a paying customer
 			if !isPaid(username) {
-				fmt.Printf("[%s] username: %s volumeId: %s instanceId: %s\n",
-					client.Region.Name, username, volumeId, instanceId)
+				fmt.Printf("[%s] size: %s username: %s volumeId: %s instanceId: %s\n",
+					client.Region.Name, size, username, volumeId, instanceId)
 			}
 
 		}
