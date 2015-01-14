@@ -24,26 +24,15 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @machineId   = jMachine._id
     {@state}     = @machine.status
 
-    @buildInitial()
+    KD.whoami().isEmailVerified (err, verified)=>
 
-    computeController = KD.getSingleton 'computeController'
+      warn err  if err?
 
-    computeController.on "start-#{@machineId}", @bound 'updateStatus'
-    computeController.on "build-#{@machineId}", @bound 'updateStatus'
-    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+      if verified
+      then @buildInitial()
+      else @buildVerifyView()
 
-    computeController.on "reinit-#{@machineId}",(event)=>
-      @updateStatus event, 'reinit'
-
-    computeController.on "resize-#{@machineId}",(event)=>
-      @updateStatus event, 'resize'
-
-    @show()
-
-    computeController.followUpcomingEvents @machine
-
-    @eventTimer = null
-    @_lastPercentage = 0
+      @show()
 
 
   triggerEventTimer: (percentage)->
@@ -73,6 +62,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @state = status
 
       if error?.length > 0
+
         if /NetworkOut overlimit/i.test event.message
           @customErrorMessage = """
             <p>You've reached your outbound network usage limit for this week.</p>
@@ -81,7 +71,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
             assistance.</span>
           """
 
-        @hasError = yes
+        unless error.code is ComputeController.Error.NotVerified
+          @hasError = yes
 
       if not percentage?
         @switchToIDEIfNeeded()
@@ -133,6 +124,23 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   buildInitial:->
 
+    computeController = KD.getSingleton 'computeController'
+
+    computeController.on "start-#{@machineId}", @bound 'updateStatus'
+    computeController.on "build-#{@machineId}", @bound 'updateStatus'
+    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+
+    computeController.on "reinit-#{@machineId}",(event)=>
+      @updateStatus event, 'reinit'
+
+    computeController.on "resize-#{@machineId}",(event)=>
+      @updateStatus event, 'resize'
+
+    computeController.followUpcomingEvents @machine
+
+    @eventTimer = null
+    @_lastPercentage = 0
+
     @container.destroySubViews()
 
     @createStateLabel "Checking state for <strong>#{@machineName or ''}</strong>..."
@@ -145,7 +153,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if currentState is NotInitialized
         @buildViews State: currentState
-        KD.utils.defer => @turnOnMachine()
         return
 
       @triggerEventTimer 10
@@ -158,13 +165,12 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
           @buildViews response
 
-          if response.State is NotInitialized
-            KD.utils.defer => @turnOnMachine()
-
         .catch (err)=>
 
-          warn "Failed to fetch initial info:", err
-          @hasError = yes
+          unless err?.code is ComputeController.Error.NotVerified
+            warn "Failed to fetch initial info:", err
+            @hasError = yes
+
           @buildViews()
 
     else
@@ -254,6 +260,49 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         height   : 40
 
     @container.addSubView @loader
+
+
+  buildVerifyView: ->
+
+    @container.destroySubViews()
+
+    @codeEntryView = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'verify-pin-input'
+      placeholder  : 'Enter code here'
+      callback     : @bound 'verifyAccount'
+
+    @button    = new KDButtonView
+      title    : 'Verify account'
+      cssClass : 'solid green medium'
+      callback : @bound 'verifyAccount'
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'verify-message'
+      partial  : """
+        <p>Before you can access your VM, we need to verify your account.
+        A verification email should already be in your inbox.
+        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
+      """
+      click    : (event)=>
+
+        return  unless $(event.target).is 'cite'
+
+        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+
+          unless KD.showError err
+
+            @container.addSubView @retryView = new KDCustomHTMLView
+              cssClass : 'error-message warning'
+              partial  : """
+                <p>Email sent, please check your inbox.</p>
+              """
+
+            KD.utils.wait 3000, @retryView.bound 'destroy'
+
+    @container.addSubView @codeEntryView
+    @container.addSubView @button
+
 
 
   createProgressBar: (initial = 10)->
@@ -355,8 +404,11 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       methodName = 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{@machineId}", (err)=>
-      @hasError = yes
+    computeController.once "error-#{@machineId}", ({err})=>
+
+      unless err?.code is ComputeController.Error.NotVerified
+        @hasError = yes
+
       @buildViews State: @machine.status.state
 
     KD.singletons.computeController[methodName] @machine
@@ -386,3 +438,24 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @buildViews()
     @createFooter()
     return @show()
+
+
+  verifyAccount: ->
+
+    code = Encoder.XSSEncode @codeEntryView.getValue()
+    unless code then return new KDNotificationView
+      title: "Please enter a code"
+
+    KD.remote.api.JUser.verifyByPin pin: code, (err)=>
+
+      @pinIsValid?.destroy()
+
+      if err
+        @container.addSubView @pinIsValid = new KDCustomHTMLView
+          cssClass : 'error-message'
+          partial  : """
+            <p>The pin entered is not valid.</p>
+          """
+
+      else
+        KD.utils.defer @bound 'buildInitial'

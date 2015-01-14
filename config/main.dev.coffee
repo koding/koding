@@ -80,6 +80,7 @@ Configuration = (options={}) ->
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
+  autoConfirmAccounts = yes
 
   kloudPort           = 5500
 
@@ -96,6 +97,7 @@ Configuration = (options={}) ->
     broker                         : broker
     uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
+    autoConfirmAccounts            : autoConfirmAccounts
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo
@@ -606,6 +608,8 @@ Configuration = (options={}) ->
         cd #{projectRoot}
 
         migrate up
+        # a temporary migration line
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
 
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 

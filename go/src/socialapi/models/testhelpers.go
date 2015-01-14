@@ -167,7 +167,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 			LastName  string `bson:"lastName" json:"lastName"`
 			Hash      string `bson:"hash" json:"hash"`
 		}{
-			Nickname: accHex,
+			Nickname: nick,
 		},
 	}
 
@@ -180,8 +180,8 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 		ObjectId:       bson.NewObjectId(),
 		Password:       accHex,
 		Salt:           accHex,
-		Name:           accHex,
-		Email:          accHex,
+		Name:           nick,
+		Email:          accHex + "@koding.com",
 		EmailFrequency: kodingmodels.EmailFrequency{},
 	}
 
@@ -191,7 +191,7 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	}
 
 	a := NewAccount()
-	a.Nick = accHex
+	a.Nick = nick
 	a.OldId = accId.Hex()
 	if err := a.Create(); err != nil {
 		return nil, err
