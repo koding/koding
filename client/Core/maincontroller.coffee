@@ -83,7 +83,6 @@ class MainController extends KDController
     KD.registerSingleton 'computeController',         new ComputeController
     KD.registerSingleton 'locationController',        new LocationController
     KD.registerSingleton 'helpController',            new HelpController
-    KD.registerSingleton 'troubleshoot',              new Troubleshoot
     KD.registerSingleton 'appStorageController',      new AppStorageController
     KD.registerSingleton 'localSync',                 new LocalSyncController
     KD.registerSingleton 'mainView',             mv = new MainView
