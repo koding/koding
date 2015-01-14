@@ -101,7 +101,8 @@
     "validator": "0.2.0",
     "ws": "0.4.25",
     "xml2js": "0.2.6",
-    "yield-siftscience": "0.0.8"
+    "yield-siftscience": "0.0.8",
+    "curlrequest": "^0.5.1"
   },
   "devDependencies": {
     "crypto": "0.0.3",
