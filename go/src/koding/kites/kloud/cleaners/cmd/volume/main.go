@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
 	"os"
+	"time"
 
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
@@ -39,8 +40,6 @@ func main() {
 
 func realMain() error {
 	conf := new(Config)
-
-	// Load the config, it's reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
 	m := lookup.NewMongoDB(conf.MongoURL)
@@ -81,14 +80,18 @@ func realMain() error {
 	fmt.Println(volumes)
 	fmt.Printf("Total volumes greater than 3GB: %+v\n", volumes.Total())
 
-	available := volumes.Status("available")
+	available := volumes.Status("available").OlderThan(24 * time.Hour * 30)
 	fmt.Printf("Volumes that are no used by anyone: %+v\n", available.Total())
+
+	for client, volumes := range available {
+		for id, volume := range volumes {
+			fmt.Printf("[%s] %s (id :%s)\n",
+				client.Region.Name, volume.CreateTime.UTC(), id)
+		}
+	}
 
 	inUse := volumes.Status("in-use")
 	fmt.Printf("Volumes which are used: %+v\n", inUse.Total())
-
-	fmt.Printf("inUse.Total() + available.Total() = %+v\n",
-		inUse.Total()+available.Total())
 
 	for _, ids := range volumes.InstanceIds() {
 		machines, err := m.Machines(ids...)

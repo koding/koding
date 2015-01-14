@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"text/tabwriter"
+	"time"
 
 	"github.com/mitchellh/goamz/ec2"
 )
@@ -14,6 +15,15 @@ func (m MultiVolumes) GreaterThan(storage int) MultiVolumes {
 	filtered := make(MultiVolumes, 0)
 	for client, volumes := range m {
 		filtered[client] = volumes.GreaterThan(storage)
+	}
+	return filtered
+}
+
+// OlderThan filters out volumes that are older than the given duration.
+func (m MultiVolumes) OlderThan(duration time.Duration) MultiVolumes {
+	filtered := make(MultiVolumes, 0)
+	for client, volumes := range m {
+		filtered[client] = volumes.OlderThan(duration)
 	}
 	return filtered
 }
@@ -37,7 +47,7 @@ func (m MultiVolumes) InstanceIds() map[*ec2.EC2][]string {
 	return instances
 }
 
-// Total return the number of al instances
+// Total return the number of all instances
 func (m MultiVolumes) Total() int {
 	total := 0
 	for _, volumes := range m {

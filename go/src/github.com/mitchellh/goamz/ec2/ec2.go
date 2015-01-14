@@ -940,6 +940,7 @@ type Volume struct {
 	SnapshotId  string             `xml:"snapshotId"`
 	AvailZone   string             `xml:"availabilityZone"`
 	Status      string             `xml:"status"`
+	CreateTime  time.Time          `xml:"createTime"`
 	Attachments []VolumeAttachment `xml:"attachmentSet>item"`
 	VolumeType  string             `xml:"volumeType"`
 	IOPS        int64              `xml:"iops"`

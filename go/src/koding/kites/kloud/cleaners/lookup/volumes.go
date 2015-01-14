@@ -3,6 +3,7 @@ package lookup
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/mitchellh/goamz/ec2"
 )
@@ -21,6 +22,21 @@ func (v Volumes) GreaterThan(storage int) Volumes {
 		}
 
 		if volSize > storage {
+			filtered[id] = volume
+		}
+	}
+
+	return filtered
+}
+
+// OlderThan filters out volumes that are older than the given duration.
+func (v Volumes) OlderThan(duration time.Duration) Volumes {
+	filtered := make(Volumes, 0)
+
+	for id, volume := range v {
+		oldDate := time.Now().UTC().Add(-duration)
+
+		if volume.CreateTime.Before(oldDate) {
 			filtered[id] = volume
 		}
 	}
