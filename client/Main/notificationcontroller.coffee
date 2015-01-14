@@ -18,25 +18,26 @@ class NotificationController extends KDObject
 
   setListeners:->
 
-    @notificationChannel = KD.remote.subscribe 'notification',
-      serviceType : 'notification'
-      isExclusive : yes
+    @notificationChannel = null
 
+    {realtime} = KD.singletons
+    realtime.subscribeNotification (err, @notificationChannel) =>
 
+      return warn "notification subscription error", err  if err
 
-    @notificationChannel.off()
-    @notificationChannel.on 'message', (notification)=>
-      @emit "NotificationHasArrived", notification
-      if notification.contents
+      @notificationChannel.off()
+      @notificationChannel.on 'message', (notification)=>
+        @emit "NotificationHasArrived", notification
+        if notification.contents
 
-        unless notification.context
-          @emit notification.event, notification.contents
+          unless notification.context
+            @emit notification.event, notification.contents
 
-        if notification.context is KD.getGroup().slug
-          @emit notification.event, notification.contents
+          if notification.context is KD.getGroup().slug
+            @emit notification.event, notification.contents
 
-        else
-          @emit "#{notification.event}-off-context", notification.contents
+          else
+            @emit "#{notification.event}-off-context", notification.contents
 
     @on 'ChannelUpdateHappened', (notification) =>
       @emit notification.event, notification  if notification.event
