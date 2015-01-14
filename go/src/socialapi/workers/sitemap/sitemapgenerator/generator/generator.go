@@ -2,6 +2,7 @@ package generator
 
 import (
 	"encoding/xml"
+	"fmt"
 
 	"socialapi/config"
 	"socialapi/workers/sitemap/common"
@@ -18,13 +19,14 @@ type Controller struct {
 	fileSelector FileSelector
 	fileName     string
 	redisConn    *redis.RedisSession
+	timeInterval int
 }
 
 const (
 	// before sending this interval, beware that you have to change
 	// TIMERANGE in cache key file
-	// run cron job every 30 minutes starting from 0
-	SCHEDULE = "0 0-59/30 * * * *"
+	// run cron job every n minutes starting from 0
+	SCHEDULE = "0 0-59/%d * * * *"
 )
 
 var (
@@ -36,14 +38,16 @@ func New(log logging.Logger, redisConn *redis.RedisSession) (*Controller, error)
 		log:          log,
 		fileSelector: CachedFileSelector{},
 		redisConn:    redisConn,
+		timeInterval: config.MustGet().Sitemap.TimeInterval,
 	}
 
 	return c, c.initCron()
 }
 
 func (c *Controller) initCron() error {
+	schedule := fmt.Sprintf(SCHEDULE, c.timeInterval)
 	cronJob = cron.New()
-	if err := cronJob.AddFunc(SCHEDULE, c.generate); err != nil {
+	if err := cronJob.AddFunc(schedule, c.generate); err != nil {
 		return err
 	}
 	cronJob.Start()
@@ -102,13 +106,13 @@ func (c *Controller) generate() {
 // handleError re-adds updated items to next file update queue
 func (c *Controller) handleError(items []*models.SitemapItem) {
 	// re-add filename to next queue
-	key := common.PrepareNextFileNameCacheKey()
+	key := common.PrepareNextFileNameSetCacheKey(c.timeInterval)
 	if _, err := c.redisConn.AddSetMembers(key, c.fileName); err != nil {
 		c.log.Critical("Could not re-add the filename: %s", err)
 		return
 	}
 
-	key = common.PrepareNextFileCacheKey(c.fileName)
+	key = common.PrepareNextFileCacheKey(c.fileName, c.timeInterval)
 	values := make([]interface{}, len(items))
 	for k := range items {
 		values[k] = items[k].PrepareSetValue()
@@ -121,7 +125,7 @@ func (c *Controller) handleError(items []*models.SitemapItem) {
 }
 
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
-	key := common.PrepareCurrentFileCacheKey(c.fileName)
+	key := common.PrepareCurrentFileCacheKey(c.fileName, c.timeInterval)
 	els := make([]*models.SitemapItem, 0)
 
 	members, err := c.redisConn.GetSetMembers(key)

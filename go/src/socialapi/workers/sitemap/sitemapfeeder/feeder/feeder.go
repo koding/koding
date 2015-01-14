@@ -15,9 +15,10 @@ import (
 )
 
 type Controller struct {
-	log         logging.Logger
-	nameFetcher FileNameFetcher
-	redisConn   *redis.RedisSession
+	log          logging.Logger
+	nameFetcher  FileNameFetcher
+	redisConn    *redis.RedisSession
+	timeInterval int
 }
 
 var ErrIgnore = errors.New("ignore")
@@ -34,9 +35,10 @@ func New(log logging.Logger) *Controller {
 	// TODO later on seperate config structs could be better for each helper
 	redisConn := helper.MustInitRedisConn(&conf)
 	c := &Controller{
-		log:         log,
-		nameFetcher: ModNameFetcher{},
-		redisConn:   redisConn,
+		log:          log,
+		nameFetcher:  ModNameFetcher{},
+		redisConn:    redisConn,
+		timeInterval: conf.Sitemap.TimeInterval,
 	}
 
 	return c
@@ -195,7 +197,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 }
 
 func (f *Controller) updateFileNameCache(fileName string) error {
-	key := common.PrepareNextFileNameCacheKey()
+	key := common.PrepareNextFileNameSetCacheKey(f.timeInterval)
 	if _, err := f.redisConn.AddSetMembers(key, fileName); err != nil {
 		return err
 	}
@@ -205,7 +207,7 @@ func (f *Controller) updateFileNameCache(fileName string) error {
 
 func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
-	key := common.PrepareNextFileCacheKey(fileName)
+	key := common.PrepareNextFileCacheKey(fileName, f.timeInterval)
 	value := i.PrepareSetValue()
 	if _, err := f.redisConn.AddSetMembers(key, value); err != nil {
 		return err
