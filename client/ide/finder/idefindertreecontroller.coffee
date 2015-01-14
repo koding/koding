@@ -1,5 +1,16 @@
 class IDE.FinderTreeController extends NFinderTreeController
 
+  constructor: (options = {}, data) ->
+      
+      super options, data
+      
+      @appManager    = KD.getSingleton "appManager"
+      mainController = KD.getSingleton "mainController"
+      
+      mainController.on "WorkspaceFilesNeedToBeDeleted", (machineUId, rootPath)=>
+          node = @nodes["[#{machineUId}]#{rootPath}"]
+          @deleteFiles [node] if node
+
 
   cmCreateWorkspace: (node) -> @createWorkspace node
 
