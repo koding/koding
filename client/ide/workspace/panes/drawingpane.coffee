@@ -27,7 +27,7 @@ class IDE.DrawingPane extends IDE.Pane
         width    : @getWidth()
         height   : @getHeight()
 
-    @addSubView @canvas
+    @scrollView.wrapper.addSubView @canvas
 
 
   createToolbar: ->
@@ -51,7 +51,7 @@ class IDE.DrawingPane extends IDE.Pane
       @colorMenuView   = view  if command is 'color'
       @penSizeMenuView = view  if command is 'penSize'
 
-    @addSubView @toolbar
+    @scrollView.wrapper.addSubView @toolbar
 
     @colorMenuView.on   'click', =>
       @penSizeMenuView.unsetClass 'selected'
@@ -92,7 +92,7 @@ class IDE.DrawingPane extends IDE.Pane
 
     @toolbarMenu?.destroy()
 
-    @addSubView @toolbarMenu = new KDCustomHTMLView
+    @scrollView.wrapper.addSubView @toolbarMenu = new KDCustomHTMLView
       cssClass : 'drawing-board-toolbar menu'
 
     @toolbarMenu.addSubView item  for item in items
@@ -218,6 +218,8 @@ class IDE.DrawingPane extends IDE.Pane
   viewAppended: ->
 
     super
+    
+    @addSubView @scrollView = new KDCustomScrollView
 
     @createCanvas()
     @createToolbar()
