@@ -164,8 +164,12 @@ func handleChannelResponse(c models.Channel, q *request.Query) (int, http.Header
 	return response.HandleResultAndError(cc, cc.Err)
 }
 
-func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
+	if context.Client != nil && context.Client.Account != nil {
+		q.AccountId = context.Client.Account.Id
+	}
+
 	if q.Type == "" || q.AccountId == 0 {
 		return response.NewBadRequest(errors.New("type or accountid is not set"))
 	}
@@ -173,6 +177,15 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
 		return response.NewBadRequest(err)
+	}
+
+	res := models.NewCheckParticipationResponse()
+	res.Channel = &channel
+	res.Account = context.Client.Account
+
+	// it looks like this is public channel and no need to check for participation
+	if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+		return response.NewOK(res)
 	}
 
 	canOpen, err := channel.CanOpen(q.AccountId)
@@ -189,7 +202,7 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}) (int, http.Hea
 			))
 	}
 
-	return response.NewOK(channel)
+	return response.NewOK(res)
 }
 
 func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {

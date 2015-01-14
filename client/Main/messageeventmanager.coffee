@@ -4,11 +4,15 @@ class MessageEventManager extends KDObject
 
     super options, data
 
-    data
-      .on 'InteractionAdded', @bound 'addInteraction'
-      .on 'InteractionRemoved', @bound 'removeInteraction'
-      .on 'ReplyAdded', @bound 'addReply'
-      .on 'ReplyRemoved', @bound 'removeReply'
+    KD.singletons.realtime.subscribeMessage data, (err, messageChannel) =>
+
+      return warn err  if err
+
+      messageChannel
+        .on 'InteractionAdded', @bound 'addInteraction'
+        .on 'InteractionRemoved', @bound 'removeInteraction'
+        .on 'ReplyAdded', @bound 'addReply'
+        .on 'ReplyRemoved', @bound 'removeReply'
 
 
   addInteraction: (event) ->
