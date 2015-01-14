@@ -2,33 +2,50 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
 	"socialapi/workers/helper"
 	"time"
 
 	"github.com/jinzhu/now"
 	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/multiconfig"
 
 	"github.com/crowdmob/goamz/aws"
 	"github.com/koding/kite"
 	"github.com/koding/redis"
 )
 
-var (
-	conf = config.MustConfig("")
-	port = conf.Vmwatcher.Port
+type Konfig struct {
+	Mongo                    string `required:"true"`
+	Redis                    string `required:"true"`
+	Vmwatcher_AwsKey         string `required:"true"`
+	Vmwatcher_AwsSecret      string `required:"true"`
+	Vmwatcher_KloudSecretKey string `required:"true"`
+	Vmwatcher_KloudAddr      string `required:"true"`
+	Vmwatcher_Port           string `required:"true"`
+	Vmwatcher_Debug          bool
+}
 
-	AWS_KEY    = conf.Vmwatcher.AwsKey
-	AWS_SECRET = conf.Vmwatcher.AwsSecret
+var (
+	conf = func() *Konfig {
+		conf := new(Konfig)
+		multiconfig.New().MustLoad(conf)
+
+		return conf
+	}()
+
+	port = conf.Vmwatcher_Port
+
+	AWS_KEY    = conf.Vmwatcher_AwsKey
+	AWS_SECRET = conf.Vmwatcher_AwsSecret
 
 	// This secret key is here because this worker will be bypassed from the
 	// token authentication in kloud.
-	KloudSecretKey = conf.Vmwatcher.KloudSecretKey
-	KloudAddr      = conf.Vmwatcher.KloudAddr
+	KloudSecretKey = conf.Vmwatcher_KloudSecretKey
+	KloudAddr      = conf.Vmwatcher_KloudAddr
 
 	controller *VmController
 
-	Log = helper.CreateLogger(WorkerName, true)
+	Log = helper.CreateLogger(WorkerName, conf.Vmwatcher_Debug)
 )
 
 func initialize() {
@@ -52,12 +69,15 @@ func initialize() {
 }
 
 func initializeRedis(c *VmController) {
-	redisClient, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	redisClient, err := redis.NewRedisSession(&redis.RedisConf{
+		Server: conf.Redis,
+	})
+
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
 
-	// Log.Info("Connected to redis: %s", conf.Redis)
+	// Log.Debug("Connected to redis: %s", conf.Redis)
 
 	c.Redis = &RedisStorage{Client: redisClient}
 }
@@ -65,7 +85,7 @@ func initializeRedis(c *VmController) {
 func initializeMongo() {
 	modelhelper.Initialize(conf.Mongo)
 
-	// Log.Info("Connected to mongo: %s", conf.Mongo)
+	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
 func saveExemptUsers() {

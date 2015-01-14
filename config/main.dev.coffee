@@ -391,7 +391,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/vmwatcher -c #{configName}"
+        command         : "#{GOBIN}/goldorf -run koding/vmwatcher"
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
