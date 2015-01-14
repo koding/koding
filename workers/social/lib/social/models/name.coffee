@@ -132,6 +132,14 @@ module.exports = class JName extends Model
   @validateName = (candidate)->
     2 < candidate.length < 26 and /^[a-z0-9][a-z0-9-]+$/.test candidate
 
+  @validateEmail = (candidate)->
+
+    isEmailValid = require './user/emailchecker'
+    {check}      = require 'validator'
+
+    return check(candidate).isEmail and isEmailValid candidate
+
+
   @claimNames = secure (client, callback=->)->
     unless client.connection.delegate.can 'administer names'
       callback new KodingError 'Access denied'
