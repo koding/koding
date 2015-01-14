@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"strings"
 )
 
 // pops username from set in db and gets metrics for machines belonging
@@ -69,16 +70,14 @@ func stopMachinesOverLimit() error {
 
 			err = stopVm(machine.ObjectId.Hex(), reason)
 			if err != nil {
+				if !strings.Contains(err.Error(), "not allowed for current state") {
+					Log.Error("Error: %s for username: %s", err.Error(), machine.Credential)
+				}
+
 				continue
 			}
 
 			stopSuccess += 1
-
-			// err := metric.RemoveUsername(machine.Credential)
-			// if err != nil {
-			//   Log.Error(err.Error())
-			//   continue
-			// }
 		}
 
 		Log.Debug(
