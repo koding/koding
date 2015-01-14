@@ -987,6 +987,17 @@ utils.extend utils,
     return channel.purpose.slice(0, prefix.length) is prefix
 
 
+  isElementInViewport: (el) ->
+
+    { left, right, top, bottom } = el.getBoundingClientRect()
+
+    return \
+      top >= 0 and
+      left >= 0 and
+      bottom <= (window.innerHeight or document.documentElement.clientHeight) and
+      right <= (window.innerWidth or document.documentElement.clientWidth)
+
+
   ###*
   Decimal adjustment of a number
   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil

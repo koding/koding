@@ -169,10 +169,10 @@ build:
         name: run ide general test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test ide general'
-    # - script:
-    #     name: run static page loggedout test suite
-    #     code: |
-    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test staticpages loggedout'
+    - script:
+        name: run static page loggedout test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test staticpages loggedout'
     - script:
         name: testing client finished
         code: |

@@ -304,6 +304,16 @@ module.exports.create = (KONFIG, environment)->
         #{if environment is "sandbox" then basicAuth else ""}
       }
 
+      # TODO after custom location support PR is merged, remove this from here
+      location ~ /sitemap(.*).xml {
+        proxy_pass            http://socialapi/sitemap$1.xml;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+
+      }
+
       # special case for kontrol to support additional paths, like /kontrol/heartbeat
       location ~^/kontrol/(.*) {
         proxy_pass            http://kontrol/$1$is_args$args;
