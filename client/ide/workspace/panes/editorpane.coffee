@@ -193,21 +193,25 @@ class IDE.EditorPane extends IDE.Pane
     charWidth      = renderer.characterWidth
     color          = KD.utils.getColorFromString username
     widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;"
-    lineCssClass   = "ace-line-widget ace-line-widget-#{KD.nick()}"
-    cursorCssClass = 'ace-participant-cursor'
+    userWidgetCss  = "ace-line-widget-#{username}"
+    lineCssClass   = "ace-line-widget #{userWidgetCss}"
     cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
     lineWidgetHTML = """
       <div class='#{lineCssClass}' style='#{widgetStyle}'>
         <span class="username">#{username}</span>
-        <span class="#{cursorCssClass}" style="#{cursorStyle}"></span>
+        <span class="ace-participant-cursor" style="#{cursorStyle}"></span>
       </div>
     """
 
     if oldWidget
       widgetManager.removeLineWidget oldWidget
 
-    elements = document.getElementsByClassName "ace-line-widget-#{KD.nick()}"
-    elements[0].parentNode.removeChild elements[0]  if elements.length
+    oldWidgetElements = @getElement().querySelectorAll ".#{userWidgetCss}"
+
+    if oldWidgetElements.length
+      for el in oldWidgetElements
+        parent = el.parentNode
+        parent.parentNode.removeChild parent
 
     lineWidgetOptions =
       row        : row
