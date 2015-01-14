@@ -17,6 +17,7 @@ type NewStorage interface {
 	GetScore(string, string) (float64, error)
 	SaveScore(string, string, float64) error
 	UpsertScore(string, string, float64) error
+	GetFromScore(string, float64) ([]string, error)
 }
 
 type NewRedisStorage struct {
@@ -68,6 +69,20 @@ func (r *NewRedisStorage) UpsertScore(key, member string, score float64) error {
 	}
 
 	return nil
+}
+
+func (r *NewRedisStorage) GetFromScore(key string, from float64) ([]string, error) {
+	rawMembers, err := r.Client.SortedSetRangebyScore(r.weekPrefix(key), from, redis.PositiveInf)
+	if err != nil {
+		return nil, err
+	}
+
+	members := []string{}
+	for _, member := range rawMembers {
+		members = append(members, string(member.([]uint8)))
+	}
+
+	return members, nil
 }
 
 //----------------------------------------------------------

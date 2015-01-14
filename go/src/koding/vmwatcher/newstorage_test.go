@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -54,6 +55,22 @@ func TestNewStorage(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				So(fetchedScore, ShouldEqual, score)
+			})
+
+			Convey("Then it should get from score", func() {
+				scores := []float64{1, 2, 3}
+
+				for index, score := range scores {
+					member := fmt.Sprintf("score.%d", index)
+
+					err := newStorage.SaveScore(key, member, score)
+					So(err, ShouldBeNil)
+				}
+
+				scoreMembers, err := newStorage.GetFromScore(key, 2)
+				So(err, ShouldBeNil)
+
+				So(len(scoreMembers), ShouldEqual, 2)
 			})
 
 			Convey("Then it should save only if key doesn't exist", func() {
