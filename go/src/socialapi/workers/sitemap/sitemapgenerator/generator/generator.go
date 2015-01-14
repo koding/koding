@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"socialapi/config"
+	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 
@@ -16,7 +17,6 @@ import (
 
 type Controller struct {
 	log          logging.Logger
-	fileSelector FileSelector
 	fileName     string
 	redisConn    *redis.RedisSession
 	timeInterval int
@@ -36,7 +36,6 @@ var (
 func New(log logging.Logger, redisConn *redis.RedisSession) (*Controller, error) {
 	c := &Controller{
 		log:          log,
-		fileSelector: CachedFileSelector{},
 		redisConn:    redisConn,
 		timeInterval: config.MustGet().Sitemap.TimeInterval,
 	}
@@ -62,7 +61,7 @@ func (c *Controller) Shutdown() {
 func (c *Controller) generate() {
 	c.log.Info("Sitemap update started")
 	for {
-		name, err := c.fileSelector.Select()
+		name, err := c.fetchName()
 		if err == redis.ErrNil {
 			c.log.Info("Sitemap update finished")
 			return
@@ -210,4 +209,16 @@ func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemCon
 	}
 
 	return container
+}
+
+func (c *Controller) fetchName() (string, error) {
+	redisConn := helper.MustGetRedisConn()
+
+	item, err := redisConn.PopSetMember(common.PrepareCurrentFileNameSetCacheKey(c.timeInterval))
+
+	if err != nil {
+		return "", err
+	}
+
+	return item, nil
 }
