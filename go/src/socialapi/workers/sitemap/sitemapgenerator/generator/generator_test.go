@@ -29,9 +29,9 @@ var (
 const TESTFILE = "test"
 
 func prepareItems() {
-	firstItem = buildSitemapItem(models.TYPE_ACCOUNT, models.STATUS_ADD)
-	secondItem = buildSitemapItem(models.TYPE_ACCOUNT, models.STATUS_ADD)
-	thirdItem = buildSitemapItem(models.TYPE_ACCOUNT, models.STATUS_ADD)
+	firstItem = buildSitemapItem(models.TYPE_CHANNEL, models.STATUS_ADD)
+	secondItem = buildSitemapItem(models.TYPE_CHANNEL, models.STATUS_ADD)
+	thirdItem = buildSitemapItem(models.TYPE_CHANNEL, models.STATUS_ADD)
 }
 
 func TestSitemapGeneration(t *testing.T) {
@@ -39,12 +39,12 @@ func TestSitemapGeneration(t *testing.T) {
 
 	Convey("While testing sitemap generation", t, func() {
 		Convey("We should be able to set up suite", func() {
-			Convey("runner should be able to initialized", func() {
-				r = runner.New("SitemapGeneratorTester")
-				// test file helper can be added
-				err := r.InitWithConfigFile("../../../../config/test.toml")
-				So(err, ShouldBeNil)
-			})
+			r := runner.New("test")
+			if err := r.Init(); err != nil {
+				t.Fatalf("couldnt start bongo %s", err.Error())
+			}
+			defer r.Close()
+
 			Convey("redis should be able to initialized", func() {
 				redisConf := r.Conf
 				redisConn = helper.MustInitRedisConn(redisConf)
@@ -76,7 +76,7 @@ func TestSitemapGeneration(t *testing.T) {
 
 							hostname := config.MustGet().Hostname
 							protocol := config.MustGet().Protocol
-							location := fmt.Sprintf("%s//%s/%s", protocol, hostname, firstItem.Slug)
+							location := fmt.Sprintf("%s//%s/Activity/%s", protocol, hostname, firstItem.Slug)
 							So(container.Add[0].Location, ShouldEqual, location)
 							Convey("item should be able to added to sitemap", func() {
 								err = controller.updateFile(container)
@@ -118,7 +118,6 @@ func TestSitemapGeneration(t *testing.T) {
 			})
 			Convey("first item should be able to updated", func() {
 				Convey("updated item must be added by feeder", func() {
-					fmt.Printf("id neli %+v \n", firstItem)
 					firstItem.Status = models.STATUS_UPDATE
 					err := addSitemapItem(firstItem)
 					So(err, ShouldBeNil)
@@ -186,11 +185,12 @@ func TestSitemapGeneration(t *testing.T) {
 						controller.buildContainer(els)
 						Convey("generator should be able to re-add to next queue in error case", func() {
 							controller.handleError(els)
-							key := common.PrepareNextFileNameCacheKey()
+							interval := config.MustGet().Sitemap.TimeInterval
+							key := common.PrepareNextFileNameSetCacheKey(interval)
 							member, err := controller.redisConn.PopSetMember(key)
 							So(err, ShouldBeNil)
 							So(member, ShouldEqual, TESTFILE)
-							key = common.PrepareNextFileCacheKey(TESTFILE)
+							key = common.PrepareNextFileCacheKey(TESTFILE, interval)
 							member, err = controller.redisConn.PopSetMember(key)
 							So(err, ShouldBeNil)
 							So(member, ShouldNotBeNil)
@@ -232,7 +232,8 @@ func createSitemapItem(id int64, typeConstant, status string) *models.SitemapIte
 }
 
 func addSitemapItem(i *models.SitemapItem) error {
-	key := common.PrepareCurrentFileCacheKey(TESTFILE)
+	interval := config.MustGet().Sitemap.TimeInterval
+	key := common.PrepareCurrentFileCacheKey(TESTFILE, interval)
 	value := i.PrepareSetValue()
 
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {

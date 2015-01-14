@@ -252,6 +252,10 @@ testapi:
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./realtime.test
 
+	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
+	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./generator.test
+
 doc:
 	@for package in $(PACKAGES); \
 	do \
