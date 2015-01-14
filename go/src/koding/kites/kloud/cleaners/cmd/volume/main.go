@@ -63,11 +63,17 @@ func realMain() error {
 	volumes := l.FetchVolumes().GreaterThan(3)
 
 	fmt.Println(volumes)
-	fmt.Printf("Volumes greater than 3GB: %+v\n", volumes.Total())
+	fmt.Printf("Total volumes greater than 3GB: %+v\n", volumes.Total())
 
 	for _, vols := range volumes {
 		for id, volume := range vols {
-			fmt.Printf("[%s] %s\n", id, volume.Size)
+			fmt.Printf("[%s] Size: %s State: %s Attach: %+v\n", id, volume.Size, volume.Status, volume.Attachments)
+		}
+	}
+
+	for client, ids := range volumes.InstanceIds() {
+		for _, id := range ids {
+			fmt.Printf("[%s] %s\n", client.Region.Name, id)
 		}
 	}
 

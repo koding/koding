@@ -14,14 +14,39 @@ type Volumes map[string]ec2.Volume
 func (v Volumes) GreaterThan(storage int) Volumes {
 	filtered := make(Volumes, 0)
 
-	size := strconv.Itoa(storage)
 	for id, volume := range v {
-		if volume.Size > size {
+		volSize, err := strconv.Atoi(volume.Size)
+		if err != nil {
+			fmt.Printf("volume err = %+v\n", err)
+			continue
+		}
+
+		if volSize > storage {
 			filtered[id] = volume
 		}
 	}
 
 	return filtered
+}
+
+// InstanceIds returns a
+func (v Volumes) InstaceIds() []string {
+	ids := make([]string, 0)
+
+	for _, volume := range v {
+		if volume.Attachments == nil {
+			continue
+		}
+
+		if len(volume.Attachments) == 1 {
+			ids = append(ids, volume.Attachments[0].InstanceId)
+		} else if len(volume.Attachments) > 1 {
+			fmt.Printf("volume = %+v\n", volume)
+			panic("No VM should have more than one volume. Something is wrong!!!")
+		}
+	}
+
+	return ids
 }
 
 type MultiVolumes map[*ec2.EC2]Volumes
@@ -32,6 +57,17 @@ func (m MultiVolumes) GreaterThan(storage int) MultiVolumes {
 		filtered[client] = volumes.GreaterThan(storage)
 	}
 	return filtered
+}
+
+// InstanceIds returns a map of instanceIds per region
+func (m MultiVolumes) InstanceIds() map[*ec2.EC2][]string {
+	instances := make(map[*ec2.EC2][]string, 0)
+
+	for client, volumes := range m {
+		instances[client] = volumes.InstaceIds()
+	}
+
+	return instances
 }
 
 // Total return the number of al instances
