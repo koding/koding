@@ -5,15 +5,11 @@ module.exports = [
   # This is not ready for now
   # "ContentDisplays/avatarchangeview.coffee"
 
-  "ContentDisplays/avatarchangeheaderview.coffee"
   "ContentDisplays/profilecontenteditableview.coffee"
   "ContentDisplays/profileview.coffee"
   "ContentDisplays/contentdisplayscrollableview.coffee"
 
   "groupmemberspagelistitemview.coffee"
-  "newmemberactivitylistitem.coffee"
-
-  "AppController.coffee"
 
   "styl/resurrection.profile.styl"
 

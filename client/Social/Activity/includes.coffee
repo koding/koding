@@ -72,7 +72,6 @@ module.exports = [
   "views/embedbox/embedboxlinkviewprovider.coffee"
   "views/embedbox/embedboxlinkview.coffee"
   "views/embedbox/embedboxlinkviewtitle.coffee"
-  "views/embedbox/embedboxlinkviewauthor.coffee"
   "views/embedbox/embedboxlinkviewcontent.coffee"
 
   "views/tags/TagViews.coffee"
