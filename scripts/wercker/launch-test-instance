@@ -41,6 +41,7 @@ userData =
     - #{git_checkout}
     - git submodule update --recursive
     - /opt/koding/scripts/wercker/init-test-instance
+    - echo $(git rev-parse HEAD) > REVISION
   """
 
 options              =
