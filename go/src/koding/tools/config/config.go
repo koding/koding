@@ -274,6 +274,10 @@ type RuntimeOptions struct {
 	Paypal      struct {
 		FormUrl string `json:"formUrl"`
 	} `json:"paypal"`
+	Pubnub struct {
+		SubscribeKey string `json:"subscribekey"`
+		Enabled      bool   `json:"enabled"`
+	} `json:"pubnub"`
 	Collaboration struct {
 		Timeout int `json:"timeout"`
 	} `json:"collaboration"`

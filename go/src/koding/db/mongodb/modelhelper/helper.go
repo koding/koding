@@ -2,6 +2,7 @@ package modelhelper
 
 import (
 	"strings"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/koding/bongo"
+	"github.com/nu7hatch/gouuid"
 )
 
 func NewAccount() *Account {
@@ -16,6 +17,26 @@ func (a Account) GetId() int64 {
 
 func (a Account) BongoName() string {
 	return "api.account"
+}
+
+func (a *Account) BeforeCreate() error {
+	return a.createToken()
+}
+
+func (a *Account) BeforeUpdate() error {
+	return a.createToken()
+}
+
+func (a *Account) createToken() error {
+	if a.Token == "" {
+		token, err := uuid.NewV4()
+		if err != nil {
+			return err
+		}
+		a.Token = token.String()
+	}
+
+	return nil
 }
 
 func (a *Account) AfterUpdate() {

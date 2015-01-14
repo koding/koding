@@ -14,7 +14,6 @@ module.exports = class JUser extends jraphical.Module
   JGroup          = require '../group'
   JLog            = require '../log'
   JMail           = require '../email'
-  JSessionHistory = require '../sessionhistory'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
   Sendgrid        = require '../sendgrid'
@@ -427,8 +426,7 @@ Team Koding
             else unless user.getAt('password') is hashPassword password, user.getAt('salt')
               logAndReturnLoginError username, 'Access denied!', callback
             else
-              JSessionHistory.create {username}, ->
-                afterLogin user, clientId, session, callback
+              afterLogin user, clientId, session, callback
 
   @verifyPassword = secure (client, options, callback)->
     {connection: {delegate}} = client

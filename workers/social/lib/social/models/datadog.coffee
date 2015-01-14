@@ -37,6 +37,11 @@ module.exports = class DataDog extends Base
       notify : "@slack-alerts"
       tags   : ["user:%nickname%", "context:terminal"]
 
+    ForbiddenChannel:
+      title  : "channel.forbidden"
+      text   : "Access is prohibited for channel with token: %channelToken%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:pubnub-channel", "channel-token:%channelToken%"]
 
 
   tagReplace = (sourceTag, userTags)->
