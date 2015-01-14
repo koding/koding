@@ -71,6 +71,9 @@ Configuration = (options={}) ->
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
 
+  # do not change this for production keep it as `no`, `false`, `not true` ok? ~ GG
+  autoConfirmAccounts = no
+
   kloudPort           = 5500
 
   KONFIG              =
@@ -86,6 +89,7 @@ Configuration = (options={}) ->
     broker                         : broker
     uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
+    autoConfirmAccounts            : autoConfirmAccounts
     projectRoot                    : projectRoot
     socialapi                      : socialapi
     mongo                          : mongo

@@ -52,11 +52,11 @@ func TestChannelParticipantOperations(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(forthAccount, ShouldNotBeNil)
 
-			CreatePrivateMessageUser("devrim")
+			CreatePrivateChannelUser("devrim")
 
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 
 			pmr.AccountId = ownerAccount.Id
 
@@ -64,7 +64,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"devrim"}
 
-			channelContainer, err := rest.SendPrivateMessage(pmr)
+			channelContainer, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(channelContainer, ShouldNotBeNil)
 

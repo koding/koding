@@ -33,26 +33,38 @@ module.exports = class JVerificationToken extends Module
         enum      : [
           'invalid action type'
           # Add verification required action types here before use
-          ['update-email','test-verify']
+          ['update-email', 'verify-account', 'test-verify']
         ]
 
   @requestNewPin = (options, callback)->
 
-    {action, email, subject, user, firstName} = options
+    {action, email, subject, user, firstName, resendIfExists} = options
     subject   or= "Here is your code"
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
 
     if not email
+
       KodingError = require '../error'
       callback new KodingError "E-mail is not provided!"
+
     else
-      @one {username, action}, (err, verify)=>
-        if verify
-          if Math.round((Date.now()-verify.createdAt)/60000) < 20
-            callback if err then err else new PINExistsError "PIN exists and not expired, try again after 20 min for new PIN."
-            return no
+
+      @one {username, action}, (err, confirmation)=>
+
+        if confirmation
+          createdAt = Math.round((Date.now()-confirmation.createdAt)/60000)
+
+          if createdAt < 20 # min
+            if resendIfExists
+              confirmation.sendEmail {subject, firstName}, callback
+            else
+              callback if err then err else new PINExistsError \
+                "PIN exists and not expired,
+                try again after 20 min for new PIN."
+
+            return
 
         # Remove all waiting pins for given action and email
         @remove {username, action}, (err, count)->
@@ -62,8 +74,7 @@ module.exports = class JVerificationToken extends Module
             else console.log "No such waiting PIN found."
 
             # Create a random pin
-            plainPin = hat 16
-            pin      = crypto.createHash('sha1').update(plainPin+'').digest('hex')
+            pin = hat 16
 
             # Create and send new pin
             confirmation = new JVerificationToken {username, action, email, pin}
@@ -71,29 +82,39 @@ module.exports = class JVerificationToken extends Module
               if err
                 callback err
               else
-                JMail = require './email'
-                email = new JMail
-                  from    : 'hello@koding.com'
-                  email   : email
-                  subject : subject
-                  content : confirmation.getTextBody firstName, plainPin
-                  force   : yes
+                confirmation.sendEmail {subject, firstName}, callback
 
-                email.save callback
 
   @confirmByPin = (options, callback)->
 
     {pin, email, action, username} = options
 
-    # re-hash the pin
-    pin = crypto.createHash('sha1').update(pin+'').digest('hex')
+    @one {email, action, pin, username}, (err, confirmation)->
 
-    @one {email, action, pin, username}, (err, verify)->
-      if verify
-        callback null, Math.round((Date.now()-verify.createdAt)/60000) < 20
-        verify.remove()
+      return callback err  if err
+
+      if confirmation
+        callback null, Math.round((Date.now()-confirmation.createdAt)/60000) < 20
+        confirmation.remove()
       else
-        callback err, false
+        callback null, false
+
+
+  sendEmail: ({subject, firstName}, callback)->
+
+    JMail = require './email'
+
+    email = new JMail
+      from    : 'hello@koding.com'
+      email   : @email
+      subject : subject
+      content : @getTextBody firstName, @pin
+      force   : yes
+
+    console.log "Pin (#{@pin}) sent to #{@email} for #{@action} action."
+
+    email.save callback
+
 
   getTextBody:(firstName, plainPin)->
     """

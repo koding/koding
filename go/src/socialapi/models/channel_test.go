@@ -50,6 +50,83 @@ func TestChannelNewChannel(t *testing.T) {
 	})
 }
 
+func TestChannelNewCollaborationChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	var creatorId int64 = 123
+	groupName := "testGroup"
+	c := NewPrivateChannel(creatorId, groupName, Channel_TYPE_DEFAULT)
+
+	Convey("given a NewPrivateMessageChannel", t, func() {
+		Convey("it should have group name", func() {
+			So(c.GroupName, ShouldEqual, groupName)
+		})
+
+		Convey("it should have creator id", func() {
+			So(c.CreatorId, ShouldEqual, creatorId)
+		})
+
+		Convey("it should have a name", func() {
+			So(c.Name, ShouldNotBeBlank)
+		})
+
+		Convey("it should have the give type constant", func() {
+			So(c.TypeConstant, ShouldEqual, Channel_TYPE_DEFAULT)
+		})
+
+		Convey("it should have privacy constant", func() {
+			So(c.PrivacyConstant, ShouldEqual, Channel_PRIVACY_PRIVATE)
+		})
+
+		Convey("it should not have purpose", func() {
+			So(c.Purpose, ShouldBeBlank)
+		})
+	})
+}
+
+func TestChannelNewPrivateChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	var creatorId int64 = 123
+	groupName := "testGroup"
+	c := NewCollaborationChannel(creatorId, groupName)
+
+	Convey("given a NewPrivateMessageChannel", t, func() {
+		Convey("it should have group name", func() {
+			So(c.GroupName, ShouldEqual, groupName)
+		})
+
+		Convey("it should have creator id", func() {
+			So(c.CreatorId, ShouldEqual, creatorId)
+		})
+
+		Convey("it should have a name", func() {
+			So(c.Name, ShouldNotBeBlank)
+		})
+
+		Convey("it should have type constant", func() {
+			So(c.TypeConstant, ShouldEqual, Channel_TYPE_COLLABORATION)
+		})
+
+		Convey("it should have privacy constant", func() {
+			So(c.PrivacyConstant, ShouldEqual, Channel_PRIVACY_PRIVATE)
+		})
+
+		Convey("it should have purpose", func() {
+			So(c.Purpose, ShouldBeBlank)
+		})
+
+	})
+}
+
 func TestChannelNewPrivateMessageChannel(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
