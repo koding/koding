@@ -201,7 +201,7 @@ Configuration = (options={}) ->
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : '3305771626'
     paypal            : { formUrl: 'https://www.paypal.com/incontext' }
-    pubnub            : { subscribekey: pubnub.subscribekey , enabled: no     }
+    pubnub            : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
     collaboration     : KONFIG.collaboration
 
 
