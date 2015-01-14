@@ -63,6 +63,6 @@ func realMain() error {
 	volumes := l.FetchVolumes()
 
 	fmt.Println(volumes)
-
+	fmt.Printf("All volumes total: %+v\n", volumes.Total())
 	return nil
 }

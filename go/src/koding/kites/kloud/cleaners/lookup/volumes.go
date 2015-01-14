@@ -12,6 +12,14 @@ type Volumes map[string]ec2.Volume
 
 type MultiVolumes map[*ec2.EC2]Volumes
 
+func (m MultiVolumes) Total() int {
+	total := 0
+	for _, volumes := range m {
+		total += len(volumes)
+	}
+	return total
+}
+
 // String representation of MultiVolumes
 func (m MultiVolumes) String() string {
 	fmt.Printf("\n\n")

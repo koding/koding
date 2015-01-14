@@ -1049,6 +1049,7 @@ func (ec2 *EC2) VolumesWithOpts(volIds []string, options *VolumesOpts) (resp *Vo
 	if options.MaxResults > 0 {
 		params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
 	}
+
 	if options.NextToken != "" {
 		params["NextToken"] = options.NextToken
 	}
