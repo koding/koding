@@ -99,3 +99,75 @@ func (l *Lookup) FetchInstances() MultiInstances {
 
 	return allInstances
 }
+
+// Volumes returns all volumes that belongs to the given client/region if
+func (l *Lookup) Volumes(client *ec2.EC2) (Volumes, error) {
+	volumes := make([]ec2.Volume, 0)
+
+	opts := &ec2.VolumesOpts{
+		MaxResults: 500,
+	}
+
+	resp, err := client.VolumesWithOpts([]string{}, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, volume := range resp.Volumes {
+		volumes = append(volumes, volume)
+	}
+
+	nextToken := resp.NextToken
+
+	// get all results until nextToken is empty
+	for nextToken != "" {
+		opts := &ec2.VolumesOpts{
+			NextToken: nextToken,
+		}
+
+		resp, err := client.VolumesWithOpts([]string{}, opts)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, volume := range resp.Volumes {
+			volumes = append(volumes, volume)
+		}
+
+		nextToken = resp.NextToken
+	}
+
+	m := make(Volumes, len(volumes))
+
+	for _, volume := range volumes {
+		m[volume.VolumeId] = volume
+	}
+
+	return m, nil
+}
+
+// FetchVolumes fetches all instances from all regions
+func (l *Lookup) FetchVolumes() MultiVolumes {
+	var wg sync.WaitGroup
+
+	allVolumes := make(MultiVolumes, 0)
+
+	for region, client := range l.clients.Regions() {
+		wg.Add(1)
+		go func(region string, client *ec2.EC2) {
+			defer wg.Done()
+
+			volumes, err := l.Volumes(client)
+			if err != nil {
+				fmt.Printf("[%s] fetching error: %s\n", region, err)
+				return
+			}
+
+			allVolumes[client] = volumes
+		}(region, client)
+	}
+
+	wg.Wait()
+
+	return allVolumes
+}

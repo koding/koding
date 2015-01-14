@@ -127,7 +127,7 @@ type xmlErrors struct {
 var timeNow = time.Now
 
 func (ec2 *EC2) query(params map[string]string, resp interface{}) error {
-	params["Version"] = "2014-06-15"
+	params["Version"] = "2014-10-01"
 	params["Timestamp"] = timeNow().In(time.UTC).Format(time.RFC3339)
 	endpoint, err := url.Parse(ec2.Region.EC2Endpoint)
 	if err != nil {
@@ -956,6 +956,7 @@ type VolumeAttachment struct {
 
 // Response to a DescribeVolumes request
 type VolumesResp struct {
+	NextToken string   `xml:"nextToken"`
 	RequestId string   `xml:"requestId"`
 	Volumes   []Volume `xml:"volumeSet>item"`
 }
@@ -1028,6 +1029,31 @@ func (ec2 *EC2) DetachVolume(id string) (resp *SimpleResp, err error) {
 	params["VolumeId"] = id
 
 	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+type VolumesOpts struct {
+	MaxResults int64
+	NextToken  string
+}
+
+// Finds or lists all volumes via NextToken
+func (ec2 *EC2) VolumesWithOpts(volIds []string, options *VolumesOpts) (resp *VolumesResp, err error) {
+	params := makeParams("DescribeVolumes")
+	addParamsList(params, "VolumeId", volIds)
+
+	if options.MaxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
+	}
+	if options.NextToken != "" {
+		params["NextToken"] = options.NextToken
+	}
+
+	resp = &VolumesResp{}
 	err = ec2.query(params, resp)
 	if err != nil {
 		return nil, err
