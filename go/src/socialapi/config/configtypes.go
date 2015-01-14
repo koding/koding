@@ -100,7 +100,8 @@ type (
 
 	// Sitemap holds Sitemap Workers' config
 	Sitemap struct {
-		RedisDB int `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
+		RedisDB      int `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
+		TimeInterval int `env:"key=KONFIG_SOCIALAPI_SITEMAP_TIMEINTERVAL"`
 	}
 
 	// Algolia holds Algolia service credentials
