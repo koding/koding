@@ -1,0 +1,104 @@
+package models
+
+import (
+	"encoding/xml"
+	"errors"
+	"time"
+
+	"github.com/koding/bongo"
+	"github.com/koding/cache"
+)
+
+var (
+	ErrTypeCast     = errors.New("type cast error")
+	ErrNotFound     = errors.New("not found")
+	ErrEmptyContent = errors.New("empty content")
+)
+
+type SitemapFileCache struct {
+	cache    *cache.MemoryTTL
+	hostname string
+}
+
+func NewSitemapFileCache(ttl, gcInterval time.Duration, hostname string) *SitemapFileCache {
+	sitemapCache := cache.NewMemoryWithTTL(ttl)
+	sitemapCache.StartGC(gcInterval)
+
+	return &SitemapFileCache{
+		cache:    sitemapCache,
+		hostname: hostname,
+	}
+}
+
+func (fc *SitemapFileCache) FetchRoot() ([]byte, error) {
+
+	rootSitemapKey := "root"
+	filesByte, err := fc.fetchFromCache(rootSitemapKey)
+	if err == nil {
+		return filesByte, nil
+	}
+
+	if err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	sf := NewSitemapFile()
+
+	files, err := sf.FetchAll()
+	if err != nil {
+		return nil, err
+	}
+
+	set := NewSitemapSet(files, fc.hostname)
+
+	res, err := xml.Marshal(set)
+	if err != nil {
+		return nil, err
+	}
+
+	fc.cache.Set(rootSitemapKey, res)
+
+	return res, nil
+}
+
+func (fc *SitemapFileCache) FetchByName(fileName string) ([]byte, error) {
+	file, err := fc.fetchFromCache(fileName)
+	if err == nil {
+		return file, nil
+	}
+
+	if err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	sf := NewSitemapFile()
+	if err := sf.ByName(fileName); err != nil {
+		if err == bongo.RecordNotFound {
+			return nil, ErrNotFound
+		}
+
+		return nil, err
+	}
+
+	if sf.Blob == nil || len(sf.Blob) == 0 {
+		return nil, ErrEmptyContent
+	}
+
+	fc.cache.Set(fileName, sf.Blob)
+
+	return sf.Blob, nil
+}
+
+func (fc *SitemapFileCache) fetchFromCache(fileName string) ([]byte, error) {
+	file, err := fc.cache.Get(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	res, ok := file.([]byte)
+	if !ok {
+		return nil, ErrTypeCast
+	}
+
+	return res, nil
+}

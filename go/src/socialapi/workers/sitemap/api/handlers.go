@@ -11,16 +11,11 @@ import (
 	"socialapi/workers/sitemap/models"
 	"strings"
 	"time"
-
-	"github.com/koding/bongo"
-	"github.com/koding/cache"
 )
 
 var (
-	ErrFetch       = errors.New("could not fetch files")
-	ErrTypeCast    = errors.New("type cast error")
-	ErrCacheNotHit = errors.New("cache not hit")
-	sitemapCache   *cache.MemoryTTL
+	ErrFetch = errors.New("could not fetch files")
+	cache    *models.SitemapFileCache
 )
 
 const (
@@ -55,41 +50,20 @@ func NewDefaultError(err error) []byte {
 	return res
 }
 
-func init() {
-	sitemapCache = cache.NewMemoryWithTTL(CacheTTL)
-	sitemapCache.StartGC(GCInterval)
+func getCache() *models.SitemapFileCache {
+	if cache == nil {
+		cache = models.NewSitemapFileCache(CacheTTL, GCInterval, config.MustGet().Hostname)
+	}
+
+	return cache
 }
 
 func FetchRoot(w http.ResponseWriter, _ *http.Request) {
-	rootSitemapKey := "root"
-	filesByte, err := getFromCache(rootSitemapKey)
-	if err == nil {
-		handleSuccess(w, filesByte)
-		return
-	}
-
-	if err != cache.ErrNotFound {
-		handleError(w, err, "An error occurred while fetching sitemap from cache")
-		return
-	}
-
-	sf := models.NewSitemapFile()
-
-	files, err := sf.FetchAll()
+	res, err := getCache().FetchRoot()
 	if err != nil {
-		handleError(w, err, "An error occurred while fetching sitemap root")
+		handleError(w, err, "An error occurred while fetching sitemap")
 		return
 	}
-
-	set := models.NewSitemapSet(files, config.MustGet().Hostname)
-
-	res, err := xml.Marshal(set)
-	if err != nil {
-		handleError(w, err, "An error occurred while marshalling sitemap root")
-		return
-	}
-
-	sitemapCache.Set(rootSitemapKey, res)
 
 	handleSuccess(w, res)
 }
@@ -105,50 +79,13 @@ func FetchByName(w http.ResponseWriter, r *http.Request) {
 
 	fileName = names[0]
 
-	file, err := getFromCache(fileName)
-	if err == nil {
-		handleSuccess(w, file)
-		return
-	}
-
-	if err != cache.ErrNotFound {
-		handleError(w, err, "An error occurred while fetching sitemap from cache")
-		return
-	}
-
-	sf := models.NewSitemapFile()
-	if err := sf.ByName(fileName); err != nil {
-		if err == bongo.RecordNotFound {
-			handleError(w, errors.New(fileName), "File not found")
-			return
-		}
-
+	res, err := getCache().FetchByName(fileName)
+	if err != nil {
 		handleError(w, err, "An error occurred while fetching sitemap")
 		return
 	}
 
-	if sf.Blob == nil || len(sf.Blob) == 0 {
-		handleError(w, errors.New(fileName), "Empty sitemap content")
-		return
-	}
-
-	sitemapCache.Set(fileName, sf.Blob)
-
-	handleSuccess(w, sf.Blob)
-}
-
-func getFromCache(fileName string) ([]byte, error) {
-	file, err := sitemapCache.Get(fileName)
-	if err != nil {
-		return nil, err
-	}
-
-	res, ok := file.([]byte)
-	if !ok {
-		return nil, ErrTypeCast
-	}
-
-	return res, nil
+	handleSuccess(w, res)
 }
 
 func appendXmlHeader(data []byte) []byte {
