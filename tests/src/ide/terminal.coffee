@@ -28,6 +28,7 @@ createTerminalSession = (browser, user) ->
     .pause 6000 # required
     .waitForElementVisible   paneSelector + ' .terminal:not(.active)',20000 # Assertion
     .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
+    .pause 6000 # required
     .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
 
 
@@ -38,7 +39,7 @@ terminateAll = (browser) ->
   browser
     .waitForElementVisible   'li.terminate-all', 20000
     .click                   'li.terminate-all'
-    .pause  3000
+    .pause 3000 # required
 
   openNewTerminalMenu(browser)
 
@@ -70,7 +71,6 @@ module.exports =
     browser.end()
 
 
-
   openOldTerminalSession: (browser) ->
 
     openSelector    = '.context-list-wrapper li.new-terminal + ul li + ul li.open:first-child'
@@ -80,12 +80,14 @@ module.exports =
 
     helpers.waitForVMRunning(browser)
 
+    createTerminalSession(browser, user)
+
     openNewTerminalMenu(browser)
 
     browser
       .waitForElementVisible   elementSelector, 20000
       .moveToElement           elementSelector, 25, 20
-      .pause  2000
+      .pause  2000 # required
       .waitForElementVisible   openSelector, 200000
       .moveToElement           openSelector, 25, 20
       .click                   openSelector
