@@ -38,34 +38,6 @@ func (c *Controller) deleteSitemaps() error {
 	return f.Purge()
 }
 
-func (c *Controller) createAccounts() error {
-	a := socialmodels.NewAccount()
-
-	query := &bongo.Query{
-		Pagination: bongo.Pagination{
-			Limit: LIMIT,
-			Skip:  0,
-		},
-	}
-	for {
-		var accounts []socialmodels.Account
-		err := a.Some(&accounts, query)
-		if err != nil {
-			return err
-		}
-
-		if len(accounts) == 0 {
-			return nil
-		}
-
-		c.queueAccounts(accounts)
-
-		query.Pagination.Skip += LIMIT
-	}
-
-	return nil
-}
-
 func (c *Controller) createPosts() error {
 	cm := socialmodels.NewChannelMessage()
 
