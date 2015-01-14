@@ -24,15 +24,21 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @machineId   = jMachine._id
     {@state}     = @machine.status
 
+    @showBusy()
+    @show()
+
     KD.whoami().isEmailVerified (err, verified)=>
 
       warn err  if err?
 
-      if verified
-      then @buildInitial()
-      else @buildVerifyView()
-
-      @show()
+      if not verified
+      then @buildVerifyView()
+      else
+        KD.singletons.paymentController.subscriptions (err, subscription)=>
+          warn err  if err?
+          if subscription?.state is 'expired'
+          then @buildExpiredView subscription
+          else @buildInitial()
 
 
   triggerEventTimer: (percentage)->
@@ -122,7 +128,17 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     KD.utils.wait 500, => @buildViews()
 
 
+  showBusy: (message = "Loading...") ->
+
+    @container.destroySubViews()
+
+    @createStateLabel message
+    @createLoading()
+
+
   buildInitial:->
+
+    return @buildViews()  if @_initialBuiltOnce
 
     computeController = KD.getSingleton 'computeController'
 
@@ -140,6 +156,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @eventTimer = null
     @_lastPercentage = 0
+    @_initialBuiltOnce = yes
 
     @container.destroySubViews()
 
@@ -217,6 +234,58 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.addSubView @codeEntryView
     @container.addSubView @button
+
+
+  buildExpiredView: (subscription, destroyVMState = no)->
+
+    plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
+
+    @container.destroySubViews()
+
+    @upgradeButton = new KDButtonView
+      title    : 'Upgrade Plan'
+      cssClass : 'solid green medium plan-change-button'
+      callback : -> KD.singletons.router.handleRoute '/Pricing'
+
+    actionTitle = if destroyVMState then 'Delete All VMs' else 'Downgrade Plan'
+
+    @actionButton = new KDButtonView
+      title    : actionTitle
+      cssClass : 'solid green medium plan-change-button downgrade'
+      callback : =>
+
+        @showBusy "Downgrading..."
+
+        if destroyVMState
+
+          new KDNotificationView title: "Coming soon..."
+
+        else
+
+          @downgradePlan (err)=> if err? \
+            then @buildExpiredView subscription, yes
+            else @buildInitial()
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'expired-message'
+      partial  : if destroyVMState then """
+        <h1>Delete all existing VMs</h1>
+        <p>To be able to downgrade your current plan #{plan} to <b>Free</b>
+        plan, you need to delete all your existing VMs. This action will
+        <b>destroy all your existing VMs, (including your files) and cannot
+        be undone!</b> Do you want to continue?</p>
+      """ else """
+        <h1>Plan Expired</h1>
+        <p>Your current plan #{plan} is expired. For accessing
+        your vm you need to upgrade your plan first. Or you can downgrade
+        to <b>Free</b> plan which will destroy all your existing vms and
+        files in it.</p>
+      """
+
+    unless destroyVMState
+      @container.addSubView @upgradeButton
+
+    @container.addSubView @actionButton
 
 
   buildViews: (response)->
@@ -458,3 +527,14 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       else
         KD.utils.defer @bound 'buildInitial'
+
+
+  downgradePlan: (callback)->
+
+    me = KD.whoami()
+    me.fetchEmail (err, email)->
+
+      KD.singletons.paymentController
+        .subscribe "token", "free", "month", { email }, (err, resp)->
+          return callback err  if err?
+          callback null
