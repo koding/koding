@@ -3,6 +3,7 @@ package lookup
 import (
 	"bytes"
 	"fmt"
+	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -45,6 +46,26 @@ func (m MultiVolumes) InstanceIds() map[*ec2.EC2][]string {
 	}
 
 	return instances
+}
+
+// TerminateAll terminates all instances
+func (m MultiVolumes) TerminateAll() {
+	if len(m) == 0 {
+		return
+	}
+
+	var wg sync.WaitGroup
+
+	for client, volumes := range m {
+		wg.Add(1)
+
+		go func(client *ec2.EC2, vols Volumes) {
+			vols.TerminateAll(client)
+			wg.Done()
+		}(client, volumes)
+	}
+
+	wg.Wait()
 }
 
 // Total return the number of all instances

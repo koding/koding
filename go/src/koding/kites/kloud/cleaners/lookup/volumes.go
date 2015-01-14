@@ -3,6 +3,7 @@ package lookup
 import (
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -44,6 +45,17 @@ func (v Volumes) OlderThan(duration time.Duration) Volumes {
 	return filtered
 }
 
+// Ids returns the list of volumeIds of the volumes
+func (v Volumes) Ids() []string {
+	ids := make([]string, 0)
+
+	for id := range v {
+		ids = append(ids, id)
+	}
+
+	return ids
+}
+
 // Status filters out volumes which are equal to the given status
 func (v Volumes) Status(status string) Volumes {
 	filtered := make(Volumes, 0)
@@ -56,6 +68,24 @@ func (v Volumes) Status(status string) Volumes {
 
 	return filtered
 
+}
+
+// Terminate terminates the given volume specified with the volume id
+func (v Volumes) TerminateAll(client *ec2.EC2) {
+	if len(v) == 0 {
+		return
+	}
+
+	var wg sync.WaitGroup
+	for id := range v {
+		wg.Add(1)
+		go func(id string) {
+			client.DeleteVolume(id)
+			wg.Done()
+		}(id)
+	}
+
+	wg.Wait()
 }
 
 // InstanceIds returns the list of instances ids for the respective volumes

@@ -25,8 +25,8 @@ type Config struct {
 	Password string `required:"true"`
 	DBName   string `required:"true" `
 
-	//  Update alwaysOn flag
-	Update bool
+	// Terminate terminates not used Volumes
+	Terminate bool
 }
 
 func main() {
@@ -77,21 +77,23 @@ func realMain() error {
 
 	volumes := l.FetchVolumes().GreaterThan(3)
 
-	fmt.Println(volumes)
 	fmt.Printf("Total volumes greater than 3GB: %+v\n", volumes.Total())
-
-	available := volumes.Status("available").OlderThan(24 * time.Hour * 30)
-	fmt.Printf("Volumes that are no used by anyone: %+v\n", available.Total())
-
-	for client, volumes := range available {
-		for id, volume := range volumes {
-			fmt.Printf("[%s] %s (id :%s)\n",
-				client.Region.Name, volume.CreateTime.UTC(), id)
-		}
-	}
+	fmt.Println(volumes)
 
 	inUse := volumes.Status("in-use")
-	fmt.Printf("Volumes which are used: %+v\n", inUse.Total())
+	fmt.Printf("Total volumes that are used: %+v\n", inUse.Total())
+
+	// we select one hour old volumes to avoid currently running resize operations
+	available := volumes.Status("available").OlderThan(time.Hour)
+	if available.Total() > 0 {
+		fmt.Printf("Total volumes that are not used: %+v.\n",
+			available.Total())
+		if conf.Terminate {
+			available.TerminateAll()
+		} else {
+			fmt.Printf("To delete all Volumes run the command again with the flag -terminate\n")
+		}
+	}
 
 	for _, ids := range volumes.InstanceIds() {
 		machines, err := m.Machines(ids...)

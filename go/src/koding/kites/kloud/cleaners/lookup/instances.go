@@ -84,7 +84,7 @@ func (i Instances) TerminateAll(client *ec2.EC2) {
 		return
 	}
 
-	for _, split := range i.SplittedIds(500) {
+	for _, split := range splittedIds(i.Ids(), 500) {
 		_, err := client.TerminateInstances(split)
 		if err != nil {
 			fmt.Printf("[%s] terminate error: %s\n", client.Region.Name, err)
@@ -104,14 +104,12 @@ func (i Instances) Terminate(client *ec2.EC2, id string) {
 	}
 }
 
-// SplittedIds splits the instances ids into a list of ids each with the given
-// split capacity
-func (i Instances) SplittedIds(split int) [][]string {
+// splittedIds splits the ids into a list of ids each with the given split
+// capacity
+func splittedIds(ids []string, split int) [][]string {
 	if split == 0 {
 		panic("split number must be greater than 0")
 	}
-
-	ids := i.Ids()
 
 	// we split the ids because AWS doesn't allow us to terminate more than 500
 	// instances, so for example if we have 1890 instances, we'll going to make
@@ -122,7 +120,6 @@ func (i Instances) SplittedIds(split int) [][]string {
 		ids = ids[split:]
 	}
 	splitted = append(splitted, ids) // remaining
-
 	return splitted
 }
 
