@@ -528,6 +528,8 @@ class ActivitySidebar extends KDCustomHTMLView
       unless hasWorkspace
         KD.userWorkspaces.push @getDummyWorkspace machine
 
+      @sortWorkspaces KD.userWorkspaces
+
       KD.userWorkspaces.forEach (workspace) ->
 
         unless workspace instanceof KD.remote.api.JWorkspace
@@ -575,6 +577,17 @@ class ActivitySidebar extends KDCustomHTMLView
       machineUId   : machine.uid
       machineLabel : machine.label
       name         : 'My Workspace'
+
+
+  sortWorkspaces: (workspaces) ->
+
+    workspaces.sort (a, b) ->
+      switch
+        when a.slug is 'my-workspace' then -1
+        when b.slug is 'my-workspace' then 1
+        when a.slug < b.slug then -1
+        when a.slug > b.slug then 1
+        else 0
 
 
   mapWorkspaceWithChannel: (data, node) ->
