@@ -1,6 +1,7 @@
 jraphical = require 'jraphical'
 Regions   = require 'koding-regions'
-
+{argv}    = require 'optimist'
+KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable = require '../../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
@@ -98,6 +99,7 @@ module.exports = class JUser extends jraphical.Module
         unregister              : (signature String, Function)
         finishRegistration      : (signature Object, Function)
         verifyPassword          : (signature Object, Function)
+        verifyByPin             : (signature Object, Function)
 
     schema          :
       username      :
@@ -110,8 +112,8 @@ module.exports = class JUser extends jraphical.Module
         set         : Math.floor
       email         :
         type        : String
+        validate    : require('../name').validateEmail
         set         : (value) -> value.toLowerCase()
-        email       : yes
       password      : String
       salt          : String
       blockedUntil  : Date
@@ -452,6 +454,42 @@ Team Koding
       confirmed = user.getAt('password') is hashPassword password, user.getAt('salt')
       return callback null, yes  if confirmed
       return handleError null, user
+
+
+  @verifyByPin = secure (client, options, callback)->
+
+    account = client.connection.delegate
+    account.fetchUser (err, user)=>
+
+      return callback new Error "User not found"  unless user
+
+      if (user.getAt 'status') is 'confirmed'
+        return callback null
+
+      JVerificationToken = require '../verificationtoken'
+
+      {pin, resendIfExists} = options
+      {username, email} = user
+
+      options = {
+        action: 'verify-account'
+        resendIfExists, user, pin, username, email
+      }
+
+      unless pin?
+
+        JVerificationToken.requestNewPin options, (err)-> callback err
+
+      else
+
+        JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+          if err
+            callback err
+          else if confirmed
+            user.confirmEmail (err)-> callback err
+          else
+            callback createKodingError 'PIN is not confirmed.'
 
 
   logAndReturnLoginError = (username, error, callback)->
@@ -906,7 +944,17 @@ Team Koding
           return callback err  if err?
           queue.next()
 
-      =>
+      ->
+        # Auto confirm accounts for development environment
+        # This config should be no for production! ~ GG
+        if KONFIG.autoConfirmAccounts
+          user.confirmEmail (err)->
+            console.warn err  if err?
+            queue.next()
+        else
+          queue.next()
+
+      ->
         JPasswordRecovery = require '../passwordrecovery'
 
         passwordOptions =

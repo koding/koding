@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/artifact"
 	"net/http"
-	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/handler"
 
@@ -13,22 +12,35 @@ import (
 	"github.com/rcrowley/go-tigertonic"
 )
 
+type Config struct {
+	Name  string
+	Host  string
+	Port  int
+	Debug bool
+}
+
+func NewConfig(name, host string, port int) *Config {
+	return &Config{
+		Name: name,
+		Host: host,
+		Port: port,
+	}
+}
+
 type Mux struct {
 	Metrics *metrics.Metrics
 
 	mux    *tigertonic.TrieServeMux
 	nsMux  *tigertonic.TrieServeMux
 	server *tigertonic.Server
-	name   string
-	conf   *config.Config
+	config *Config
 	log    logging.Logger
 }
 
-func NewMux(name string, conf *config.Config, log logging.Logger) *Mux {
+func New(mc *Config, log logging.Logger) *Mux {
 	m := &Mux{
 		mux:   tigertonic.NewTrieServeMux(),
 		nsMux: tigertonic.NewTrieServeMux(),
-		name:  name,
 	}
 
 	// add namespace support into
@@ -37,8 +49,8 @@ func NewMux(name string, conf *config.Config, log logging.Logger) *Mux {
 	m.nsMux.HandleNamespace("/1.0", m.mux)
 	tigertonic.SnakeCaseHTTPEquivErrors = true
 
-	m.conf = conf
 	m.log = log
+	m.config = mc
 
 	m.addDefaultHandlers()
 
@@ -48,7 +60,7 @@ func NewMux(name string, conf *config.Config, log logging.Logger) *Mux {
 func (m *Mux) AddHandler(request handler.Request) {
 	request.Metrics = m.Metrics
 	hHandler := handler.Wrapper(request)
-	hHandler = handler.BuildHandlerWithContext(hHandler, request)
+	hHandler = handler.BuildHandlerWithContext(hHandler)
 
 	m.mux.Handle(request.Type, request.Endpoint, hHandler)
 }
@@ -74,14 +86,14 @@ func (m *Mux) addDefaultHandlers() *tigertonic.TrieServeMux {
 	m.AddUnscopedHandler(handler.Request{
 		Type:     handler.GetRequest,
 		Endpoint: "/healthCheck",
-		Handler:  artifact.HealthCheckHandler(m.name),
+		Handler:  artifact.HealthCheckHandler(m.config.Name),
 	})
 
 	m.AddUnscopedHandler(handler.Request{
 		Type:     handler.GetRequest,
 		Endpoint: "/",
 		Handler: func(w http.ResponseWriter, r *http.Request) {
-			fmt.Fprintf(w, "Hello from %s", m.name)
+			fmt.Fprintf(w, "Hello from %s", m.config.Name)
 		},
 	})
 
@@ -97,13 +109,13 @@ func (m *Mux) Listen() {
 
 	var handler http.Handler
 	handler = tigertonic.WithContext(m.nsMux, models.Context{})
-	if m.conf.Debug {
+	if m.config.Debug {
 		h := tigertonic.Logged(handler, nil)
 		h.Logger = NewTigerTonicLogger(m.log)
 		handler = h
 	}
 
-	addr := m.conf.Host + ":" + m.conf.Port
+	addr := fmt.Sprintf("%s:%d", m.config.Host, m.config.Port)
 
 	m.server = tigertonic.NewServer(addr, handler)
 	go m.listener()
