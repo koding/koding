@@ -38,11 +38,11 @@ func (m MultiVolumes) Status(status string) MultiVolumes {
 }
 
 // InstanceIds returns a map of instanceIds per region
-func (m MultiVolumes) InstanceIds() map[*ec2.EC2][]string {
-	instances := make(map[*ec2.EC2][]string, 0)
+func (m MultiVolumes) InstanceIds() map[*ec2.EC2]map[string]string {
+	instances := make(map[*ec2.EC2]map[string]string, 0)
 
 	for client, volumes := range m {
-		instances[client] = volumes.InstaceIds()
+		instances[client] = volumes.InstanceIds()
 	}
 
 	return instances

@@ -89,16 +89,16 @@ func (v Volumes) TerminateAll(client *ec2.EC2) {
 }
 
 // InstanceIds returns the list of instances ids for the respective volumes
-func (v Volumes) InstaceIds() []string {
-	ids := make([]string, 0)
+func (v Volumes) InstanceIds() map[string]string {
+	ids := make(map[string]string, 0)
 
-	for _, volume := range v {
+	for id, volume := range v {
 		if volume.Attachments == nil {
 			continue
 		}
 
 		if len(volume.Attachments) == 1 {
-			ids = append(ids, volume.Attachments[0].InstanceId)
+			ids[volume.Attachments[0].InstanceId] = id
 		} else if len(volume.Attachments) > 1 {
 			fmt.Printf("volume = %+v\n", volume)
 			panic("No VM should have more than one volume. Something is wrong!!!")

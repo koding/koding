@@ -75,41 +75,58 @@ func realMain() error {
 		return ok
 	}
 
-	volumes := l.FetchVolumes().GreaterThan(3)
+	largeVolumes := l.FetchVolumes().GreaterThan(3)
 
-	fmt.Printf("Total volumes greater than 3GB: %+v\n", volumes.Total())
-	fmt.Println(volumes)
+	fmt.Printf("Total volumes greater than 3GB: %+v\n", largeVolumes.Total())
+	fmt.Println(largeVolumes)
 
-	inUse := volumes.Status("in-use")
+	inUse := largeVolumes.Status("in-use")
 	fmt.Printf("Total volumes that are used: %+v\n", inUse.Total())
 
 	// we select one hour old volumes to avoid currently running resize operations
-	available := volumes.Status("available").OlderThan(time.Hour)
+	available := largeVolumes.Status("available").OlderThan(time.Hour)
 	if available.Total() > 0 {
-		fmt.Printf("Total volumes that are not used: %+v.\n",
+		fmt.Printf("Total volumes that are not used: %+v. ",
 			available.Total())
+
 		if conf.Terminate {
 			available.TerminateAll()
+			fmt.Println("")
 		} else {
-			fmt.Printf("To delete all Volumes run the command again with the flag -terminate\n")
+			fmt.Printf("To delete all non used volumes run the command again with the flag -terminate\n")
 		}
 	}
 
-	for _, ids := range volumes.InstanceIds() {
-		machines, err := m.Machines(ids...)
+	fmt.Printf("\nVolumes which belongs to non paying customers:\n")
+
+	for client, volumes := range inUse {
+		volIds := volumes.InstanceIds()
+
+		instanceIds := make([]string, 0)
+		for instanceId := range volIds {
+			instanceIds = append(instanceIds, instanceId)
+		}
+
+		machines, err := m.Machines(instanceIds...)
 		if err != nil {
 			return err
 		}
 
 		for _, machine := range machines {
+			// there is no way this can panic because we fetch documents which
+			// have instnaceIds in it
+			instanceId := machine.Meta["instanceId"].(string)
+			volumeId := volIds[instanceId]
 			username := machine.Credential
 
 			// if user is not a paying customer
 			if !isPaid(username) {
-				fmt.Printf("username = %+v\n", username)
+				fmt.Printf("[%s] username: %s volumeId: %s instanceId: %s\n",
+					client.Region.Name, username, volumeId, instanceId)
 			}
 
 		}
+
 	}
 
 	return nil
