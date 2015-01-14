@@ -221,8 +221,10 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
-        locations       : ["~^/IDE/.*"]
-        auth            : yes
+        locations       : [
+          location      : "~^/IDE/.*"
+          auth          : yes
+      ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
 
@@ -245,7 +247,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : ["~^/kloud/.*"]
+        locations       : [ location: "~^/kloud/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
@@ -262,7 +264,10 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/broker -c #{configName}"
       nginx             :
         websocket       : yes
-        locations       : ["/websocket", "~^/subscribe/.*"]
+        locations       : [
+          { location    : "/websocket" }
+          { location    : "~^/subscribe/.*" }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
       versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
 
@@ -311,8 +316,10 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        locations       : ["/"]
-        auth            : yes
+        locations       : [
+          location      : "/"
+          auth          : yes
+        ]
 
     socialworker        :
       group             : "webserver"
@@ -323,7 +330,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        locations       : ["/xhr"]
+        locations       : [ location: "/xhr" ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
@@ -355,7 +362,14 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
       nginx             :
-        locations       : [ "= /payments/stripe/webhook" ]
+        locations       : [
+          { location    : "= /payments/stripe/webhook" },
+          {
+            location    : "/api/social/"
+            proxyPass   : "http://socialapi/"
+            internalOnly: yes
+          }
+        ]
 
     dailyemail          :
       group             : "socialapi"
@@ -437,8 +451,10 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{gatekeeper.port}/healthCheck"
       versionURL        : "http://localhost:#{gatekeeper.port}/version"
       nginx             :
-        locations         : [ "~ /api/gatekeeper/(.*)" ]
-        proxyPass         : "http://gatekeeper/$1$is_args$args"
+        locations       : [
+          location      : "~ /api/gatekeeper/(.*)"
+          proxyPass     : "http://gatekeeper/$1$is_args$args"
+        ]
 
     dispatcher          :
       group             : "socialapi"
