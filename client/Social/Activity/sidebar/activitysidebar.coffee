@@ -450,7 +450,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     KD.remote.api.JWorkspace.fetchByMachines()
 
-      .then (workspaces) ->
+      .then (workspaces) =>
         fetchingWorkspaces = no
 
         {socialapi} = KD.singletons
@@ -474,27 +474,19 @@ class ActivitySidebar extends KDCustomHTMLView
               myChannels.push channel.id  if channel
               queue.fin()
 
-        Bongo.dash queue, ->
+        Bongo.dash queue, =>
           workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
           userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
 
-          KD.userMachines.forEach (machine) ->
+          KD.userMachines.forEach (machine) =>
             return  unless machine.isMine()
 
-            for workspace in KD.userWorkspaces \
+            for workspace in userWorkspaces \
               when workspace.slug is 'my-workspace' \
               and workspace.machineUId is machine.uid
                 return
 
-            userWorkspaces.push new KD.remote.api.JWorkspace
-              _id          : 'my-workspace'
-              isDummy      : yes
-              isDefault    : yes
-              originId     : KD.whoami()._id # In case JAccount is not revived yet
-              slug         : 'my-workspace'
-              machineUId   : machine.uid
-              machineLabel : machine.label
-              name         : 'My Workspace'
+            userWorkspaces.push @getDummyWorkspace machine
 
           KD.userWorkspaces     = userWorkspaces
           # workspacesFetched     = yes
@@ -534,13 +526,7 @@ class ActivitySidebar extends KDCustomHTMLView
       hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
       unless hasWorkspace
-        treeData.push
-          title        : 'My Workspace'
-          type         : 'workspace'
-          href         : ideRoute
-          id           : "#{machine.slug or machine.label}-workspace"
-          parentId     : machine.getId()
-          machineLabel : machine.slug or machine.label
+        KD.userWorkspaces.push @getDummyWorkspace machine
 
       KD.userWorkspaces.forEach (workspace) ->
 
@@ -573,6 +559,19 @@ class ActivitySidebar extends KDCustomHTMLView
       @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
 
     @emit 'MachinesListed'
+
+
+  getDummyWorkspace: (machine) ->
+
+    new KD.remote.api.JWorkspace
+      _id          : "#{machine.getId()}-my-workspace"
+      isDummy      : yes
+      isDefault    : yes
+      originId     : KD.whoami()._id # In case JAccount is not revived yet
+      slug         : 'my-workspace'
+      machineUId   : machine.uid
+      machineLabel : machine.label
+      name         : 'My Workspace'
 
 
   mapWorkspaceWithChannel: (data, node) ->
