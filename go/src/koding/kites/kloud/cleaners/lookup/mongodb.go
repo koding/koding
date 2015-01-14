@@ -92,6 +92,31 @@ func (m *MongoDB) AlwaysOn() ([]MachineDocument, error) {
 	return machines, nil
 }
 
+// Machines returns a list of machines for the given instanceIds
+func (m *MongoDB) Machines(instanceIds ...string) ([]MachineDocument, error) {
+	machines := make([]MachineDocument, 0)
+
+	query := func(c *mgo.Collection) error {
+		all := bson.M{
+			"meta.instanceId": bson.M{"$in": instanceIds},
+		}
+
+		machine := MachineDocument{}
+		iter := c.Find(all).Batch(150).Iter()
+		for iter.Next(&machine) {
+			machines = append(machines, machine)
+		}
+
+		return iter.Close()
+	}
+
+	if err := m.DB.Run("jMachines", query); err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
+
 // Accounts returns a list of accounts for the give objectIds in non hex form
 func (m *MongoDB) Accounts(ids ...string) ([]models.Account, error) {
 	b := make([]bson.ObjectId, len(ids))

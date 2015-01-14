@@ -43,37 +43,67 @@ func realMain() error {
 	// Load the config, it's reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
-	// p := lookup.NewPostgres(&lookup.PostgresConfig{
-	// 	Host:     conf.Host,
-	// 	Port:     conf.Port,
-	// 	Username: conf.Username,
-	// 	Password: conf.Password,
-	// 	DBName:   conf.DBName,
-	// })
-	//
-	// m := lookup.NewMongoDB(conf.MongoURL)
-
-	auth := aws.Auth{
+	m := lookup.NewMongoDB(conf.MongoURL)
+	l := lookup.NewAWS(aws.Auth{
 		AccessKey: conf.AccessKey,
 		SecretKey: conf.SecretKey,
+	})
+	p := lookup.NewPostgres(&lookup.PostgresConfig{
+		Host:     conf.Host,
+		Port:     conf.Port,
+		Username: conf.Username,
+		Password: conf.Password,
+		DBName:   conf.DBName,
+	})
+
+	payingIds, err := p.PayingCustomers()
+	if err != nil {
+		return err
 	}
 
-	l := lookup.NewAWS(auth)
+	accounts, err := m.Accounts(payingIds...)
+	if err != nil {
+		return err
+	}
+
+	set := make(map[string]struct{}, 0)
+	for _, account := range accounts {
+		set[account.Profile.Nickname] = struct{}{}
+	}
+
+	isPaid := func(username string) bool {
+		_, ok := set[username]
+		return ok
+	}
 
 	volumes := l.FetchVolumes().GreaterThan(3)
 
 	fmt.Println(volumes)
 	fmt.Printf("Total volumes greater than 3GB: %+v\n", volumes.Total())
 
-	for _, vols := range volumes {
-		for id, volume := range vols {
-			fmt.Printf("[%s] Size: %s State: %s Attach: %+v\n", id, volume.Size, volume.Status, volume.Attachments)
-		}
-	}
+	available := volumes.Status("available")
+	fmt.Printf("Volumes that are no used by anyone: %+v\n", available.Total())
 
-	for client, ids := range volumes.InstanceIds() {
-		for _, id := range ids {
-			fmt.Printf("[%s] %s\n", client.Region.Name, id)
+	inUse := volumes.Status("in-use")
+	fmt.Printf("Volumes which are used: %+v\n", inUse.Total())
+
+	fmt.Printf("inUse.Total() + available.Total() = %+v\n",
+		inUse.Total()+available.Total())
+
+	for _, ids := range volumes.InstanceIds() {
+		machines, err := m.Machines(ids...)
+		if err != nil {
+			return err
+		}
+
+		for _, machine := range machines {
+			username := machine.Credential
+
+			// if user is not a paying customer
+			if !isPaid(username) {
+				fmt.Printf("username = %+v\n", username)
+			}
+
 		}
 	}
 
