@@ -35,7 +35,4 @@ func registerHandlers(r *runner.Runner) {
 	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*feeder.Controller).ChannelMessageListAdded)
 	r.Register(models.ChannelMessageList{}).OnUpdate().Handle((*feeder.Controller).ChannelMessageListUpdated)
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*feeder.Controller).ChannelMessageListDeleted)
-	r.Register(models.Account{}).OnCreate().Handle((*feeder.Controller).AccountAdded)
-	r.Register(models.Account{}).OnUpdate().Handle((*feeder.Controller).AccountUpdated)
-	r.Register(models.Account{}).OnDelete().Handle((*feeder.Controller).AccountDeleted)
 }

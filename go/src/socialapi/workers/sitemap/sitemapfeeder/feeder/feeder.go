@@ -71,16 +71,7 @@ func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status
 		return err
 	}
 
-	// when a message is added, creator's profile page must also be updated
-	a := socialmodels.NewAccount()
-	if err := a.ById(cm.AccountId); err != nil {
-		return err
-	}
-
-	// update account's sitemap url
-	_, err = f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
-
-	return err
+	return nil
 }
 
 func (f *Controller) ChannelMessageListUpdated(c *socialmodels.ChannelMessageList) error {
@@ -113,21 +104,6 @@ func (f *Controller) queueChannelMessageList(c *socialmodels.ChannelMessageList,
 
 	_, err = f.queueItem(newItemByChannel(ch, status))
 
-	return err
-}
-
-func (f *Controller) AccountAdded(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
-	return err
-}
-
-func (f *Controller) AccountUpdated(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
-	return err
-}
-
-func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_DELETE))
 	return err
 }
 
