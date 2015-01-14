@@ -65,7 +65,7 @@ func main() {
 
 func createFilter() helper.Selector {
 	return helper.Selector{
-		"path": helper.Selector{"$regex": bson.RegEx{"/^guest-/", ""}},
+		"name": helper.Selector{"$regex": bson.RegEx{"^guest-", ""}},
 	}
 }
 
