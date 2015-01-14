@@ -78,12 +78,6 @@ func stopMachinesOverLimit() error {
 			}
 
 			stopSuccess += 1
-
-			// err := metric.RemoveUsername(machine.Credential)
-			// if err != nil {
-			//   Log.Error(err.Error())
-			//   continue
-			// }
 		}
 
 		Log.Debug(
