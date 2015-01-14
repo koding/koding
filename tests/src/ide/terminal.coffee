@@ -44,7 +44,7 @@ terminateAll = (browser) ->
   openNewTerminalMenu(browser)
 
   browser
-    .pause 3000 # required
+    .pause 30000 # required
     .assert.elementNotPresent   'li.terminate-all' # Assertion
 
 
