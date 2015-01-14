@@ -73,11 +73,11 @@ class SidebarSearchModal extends KDModalView
     @fetch {}, @bound 'populate'
 
 
-  populate: (items) ->
+  populate: (items, options) ->
 
     return  unless items?.length?
 
-    @listController.removeAllItems()
+    @listController.removeAllItems()  unless options.skip
       
     @listController.addItem itemData for itemData in items
 
@@ -116,6 +116,8 @@ class SidebarSearchModal extends KDModalView
 
     options      = @getSearchOptions val
     options.name = val
+    
+    @reachedEndOfTheList = no  unless options.limit
 
     @setClass 'search-active'
     @searchActive = yes
@@ -137,6 +139,7 @@ class SidebarSearchModal extends KDModalView
 
   reset: ->
 
+    @reachedEndOfTheList = no
     @searchActive = no
     @lastTerm = ''
 
@@ -164,7 +167,7 @@ class SidebarSearchModal extends KDModalView
 
       @reachedEndOfTheList = yes  unless items.length
 
-      callback items
+      callback items, options
 
 
   fetch: (options = {}, callback) ->
@@ -183,7 +186,7 @@ class SidebarSearchModal extends KDModalView
 
       return  if err
 
-      callback items
+      callback items, options
       @reachedEndOfTheList = yes  unless items.length
 
 

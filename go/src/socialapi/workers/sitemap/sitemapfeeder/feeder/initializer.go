@@ -19,11 +19,6 @@ func (c *Controller) Start() error {
 		return fmt.Errorf("old sitemaps are not purged: %s", err)
 	}
 
-	// iterate accounts
-	if err := c.createAccounts(); err != nil {
-		return fmt.Errorf("account sitemap not created: %s", err)
-	}
-
 	// iterate posts
 	if err := c.createPosts(); err != nil {
 		return fmt.Errorf("post sitemap not created: %s", err)

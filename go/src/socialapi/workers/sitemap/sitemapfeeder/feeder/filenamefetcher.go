@@ -20,8 +20,6 @@ type ModNameFetcher struct{}
 
 func (r ModNameFetcher) Fetch(i *models.SitemapItem) string {
 	switch i.TypeConstant {
-	case models.TYPE_ACCOUNT:
-		return fetchAccountFileName(i.Id)
 	case models.TYPE_CHANNEL_MESSAGE:
 		return fetchChannelMessageName(i.Id)
 	case models.TYPE_CHANNEL:
@@ -29,10 +27,6 @@ func (r ModNameFetcher) Fetch(i *models.SitemapItem) string {
 	}
 
 	return ""
-}
-
-func fetchAccountFileName(id int64) string {
-	return fmt.Sprintf("account_%d", id/int64(10000))
 }
 
 func fetchChannelMessageName(id int64) string {
