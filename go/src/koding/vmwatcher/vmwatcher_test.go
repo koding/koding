@@ -107,11 +107,11 @@ func TestStoppingMachines(t *testing.T) {
 
 func insertRunningMachine() (*models.Machine, error) {
 	machine := &models.Machine{
-		ObjectId: bson.NewObjectId(),
-		Meta: models.MachineMeta{
-			InstanceId: magicInstanceId, Region: usEastRegion,
-		},
+		ObjectId:   bson.NewObjectId(),
 		Credential: testUsername,
+		Meta: map[string]string{
+			"instance_id": magicInstanceId, "region": usEastRegion,
+		},
 	}
 
 	machine.Status.State = modelhelper.VmRunningState
