@@ -71,6 +71,17 @@ func (f *SitemapFile) Update() error {
 	return bongo.B.Update(f)
 }
 
+func (f *SitemapFile) FetchAll() ([]SitemapFile, error) {
+	files := make([]SitemapFile, 0)
+
+	err := bongo.B.DB.Table(f.BongoName()).Select("name, updated_at").Find(&files).Error
+	if err != nil {
+		return files, err
+	}
+
+	return files, nil
+}
+
 func (f *SitemapFile) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(f, data, q)
 }
