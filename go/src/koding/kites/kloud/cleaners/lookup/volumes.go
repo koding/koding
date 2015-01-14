@@ -3,6 +3,7 @@ package lookup
 import (
 	"bytes"
 	"fmt"
+	"strconv"
 	"text/tabwriter"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -10,8 +11,30 @@ import (
 
 type Volumes map[string]ec2.Volume
 
+func (v Volumes) GreaterThan(storage int) Volumes {
+	filtered := make(Volumes, 0)
+
+	size := strconv.Itoa(storage)
+	for id, volume := range v {
+		if volume.Size > size {
+			filtered[id] = volume
+		}
+	}
+
+	return filtered
+}
+
 type MultiVolumes map[*ec2.EC2]Volumes
 
+func (m MultiVolumes) GreaterThan(storage int) MultiVolumes {
+	filtered := make(MultiVolumes, 0)
+	for client, volumes := range m {
+		filtered[client] = volumes.GreaterThan(storage)
+	}
+	return filtered
+}
+
+// Total return the number of al instances
 func (m MultiVolumes) Total() int {
 	total := 0
 	for _, volumes := range m {

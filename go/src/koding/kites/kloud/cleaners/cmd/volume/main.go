@@ -60,9 +60,16 @@ func realMain() error {
 
 	l := lookup.NewAWS(auth)
 
-	volumes := l.FetchVolumes()
+	volumes := l.FetchVolumes().GreaterThan(3)
 
 	fmt.Println(volumes)
-	fmt.Printf("All volumes total: %+v\n", volumes.Total())
+	fmt.Printf("Volumes greater than 3GB: %+v\n", volumes.Total())
+
+	for _, vols := range volumes {
+		for id, volume := range vols {
+			fmt.Printf("[%s] %s\n", id, volume.Size)
+		}
+	}
+
 	return nil
 }
