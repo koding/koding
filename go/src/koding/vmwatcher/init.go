@@ -15,14 +15,15 @@ import (
 )
 
 type Konfig struct {
-	Mongo                    string `required:"true"`
-	Redis                    string `required:"true"`
-	Vmwatcher_AwsKey         string `required:"true"`
-	Vmwatcher_AwsSecret      string `required:"true"`
-	Vmwatcher_KloudSecretKey string `required:"true"`
-	Vmwatcher_KloudAddr      string `required:"true"`
-	Vmwatcher_Port           string `required:"true"`
-	Vmwatcher_Debug          bool
+	Mongo                     string `required:"true"`
+	Redis                     string `required:"true"`
+	Vmwatcher_AwsKey          string `required:"true"`
+	Vmwatcher_AwsSecret       string `required:"true"`
+	Vmwatcher_KloudSecretKey  string `required:"true"`
+	Vmwatcher_KloudAddr       string `required:"true"`
+	Vmwatcher_Port            string `required:"true"`
+	Vmwatcher_Debug           bool
+	Vmwatcher_ConnectToKlient bool
 }
 
 var (
@@ -54,7 +55,10 @@ func initialize() {
 	controller = &VmController{}
 
 	initializeRedis(controller)
-	initializeKlient(controller)
+
+	if conf.Vmwatcher_ConnectToKlient {
+		initializeKlient(controller)
+	}
 
 	initializeMongo()
 
