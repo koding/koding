@@ -37,8 +37,7 @@ func (c *Cloudwatch) GetName() string {
 }
 
 func (c *Cloudwatch) GetLimit() float64 {
-	limit, _ := storage.GetLimit(c.GetName(), c.Limit)
-	return limit
+	return c.Limit
 }
 
 func isEmpty(s string) bool {
@@ -112,7 +111,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 }
 
 func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
-	usernames, err := storage.Range(c.Name, c.GetLimit())
+	usernames, err := storage.Range(c.Name, c.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -166,9 +165,9 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	switch planTitle {
 	case FreePlan:
-		limit = c.GetLimit()
+		limit = c.Limit
 	default:
-		limit = c.GetLimit() * PaidPlanMultiplier
+		limit = c.Limit * PaidPlanMultiplier
 	}
 
 	lr := &LimitResponse{

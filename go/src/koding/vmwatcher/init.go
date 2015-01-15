@@ -67,7 +67,6 @@ func initialize() {
 
 	// save defaults
 	saveExemptUsers()
-	saveLimitsUnlessExists()
 
 	// pkg default is sunday, use monday instead
 	now.FirstDayMonday = true
@@ -108,20 +107,6 @@ func saveExemptUsers() {
 	}
 
 	Log.Debug("Saved: %v users as exempt", len(ExemptUsers))
-}
-
-func saveLimitsUnlessExists() {
-	for _, metric := range metricsToSave {
-		err := storage.SaveLimitUnlessExists(metric.GetName(), metric.GetLimit())
-		if err != nil {
-			Log.Fatal(err.Error())
-		}
-
-		err = newStorage.Upsert(metric.GetName(), LimitKey, metric.GetLimit())
-		if err != nil {
-			Log.Fatal(err.Error())
-		}
-	}
 }
 
 func initializeKlient(c *VmController) {
