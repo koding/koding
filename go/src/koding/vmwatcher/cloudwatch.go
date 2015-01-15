@@ -113,8 +113,10 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	return c.Save(username, sum)
 }
 
-func (c *Cloudwatch) GetMachinesOverLimit(limit float64) ([]*models.Machine, error) {
-	usernames, err := storage.GetFromScore(c.Name, limit)
+func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, error) {
+	limitAmount := c.Limits[limitName]
+
+	usernames, err := storage.GetFromScore(c.Name, limitAmount)
 	if err != nil {
 		return nil, err
 	}
