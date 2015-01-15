@@ -11,22 +11,22 @@ func TestNewStorage(t *testing.T) {
 	newStorage = &NewRedisStorage{Client: controller.Redis.Client}
 
 	Convey("Given key", t, func() {
-		var key = "limit"
+		var key, subkey = "testmetric", "limit"
 		var score, newScore float64 = 1, 2
 
 		Convey("Then it should save key ", func() {
-			err := newStorage.Upsert(key, score)
+			err := newStorage.Upsert(key, subkey, score)
 			So(err, ShouldBeNil)
 
-			fetchedScore, err := newStorage.Get(key)
+			fetchedScore, err := newStorage.Get(key, subkey)
 			So(err, ShouldBeNil)
 
 			So(score, ShouldEqual, fetchedScore)
 
-			err = newStorage.Upsert(key, newScore)
+			err = newStorage.Upsert(key, subkey, newScore)
 			So(err, ShouldBeNil)
 
-			fetchedScore, err = newStorage.Get(key)
+			fetchedScore, err = newStorage.Get(key, subkey)
 			So(err, ShouldBeNil)
 
 			So(fetchedScore, ShouldEqual, score)
@@ -38,10 +38,10 @@ func TestNewStorage(t *testing.T) {
 	})
 
 	Convey("Given key", t, func() {
-		Convey("Then it should check for existence", func() {
-			key, member := "metric", "newstorage"
+		key, subkey, member := "metric", "exempt", "indianajones"
 
-			yes, err := newStorage.Exists(key, member)
+		Convey("Then it should check for existence", func() {
+			yes, err := newStorage.Exists(key, subkey, member)
 			So(err, ShouldBeNil)
 
 			So(yes, ShouldBeFalse)
@@ -52,20 +52,18 @@ func TestNewStorage(t *testing.T) {
 		})
 
 		Convey("Then it should save", func() {
-			key, member := "metric", "newstorage"
-
-			err := newStorage.Save(key, member)
+			err := newStorage.Save(key, subkey, member)
 			So(err, ShouldBeNil)
 
 			Convey("Then it should check for existence", func() {
-				yes, err := newStorage.Exists(key, member)
+				yes, err := newStorage.Exists(key, subkey, member)
 				So(err, ShouldBeNil)
 
 				So(yes, ShouldBeTrue)
 			})
 
 			Convey("Then it should pop", func() {
-				poppedMember, err := newStorage.Pop(key)
+				poppedMember, err := newStorage.Pop(key, subkey)
 				So(err, ShouldBeNil)
 
 				So(poppedMember, ShouldEqual, member)

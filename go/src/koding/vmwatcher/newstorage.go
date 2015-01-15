@@ -10,18 +10,17 @@ import (
 
 type NewStorage interface {
 	//string
-	Upsert(string, float64) error
-	Get(string) (float64, error)
+	Upsert(string, string, float64) error
+	Get(string, string) (float64, error)
 
 	//set
-	Save(string, ...interface{}) error
-	Pop(string) (string, error)
-	Exists(string, string) (bool, error)
+	Save(string, string, ...interface{}) error
+	Pop(string, string) (string, error)
+	Exists(string, string, string) (bool, error)
 
-	// zset
+	//zset
 	GetScore(string, string) (float64, error)
 	SaveScore(string, string, float64) error
-	UpsertScore(string, string, float64) error
 	GetFromScore(string, float64) ([]string, error)
 }
 
@@ -33,21 +32,21 @@ type NewRedisStorage struct {
 // STRING
 //----------------------------------------------------------
 
-func (r *NewRedisStorage) Upsert(key string, value float64) error {
-	_, err := r.Client.Get(r.prefix(key))
+func (r *NewRedisStorage) Upsert(key, subkey string, value float64) error {
+	_, err := r.Client.Get(r.prefix(key, subkey))
 	if err != nil && !isRedisRecordNil(err) {
 		return err
 	}
 
 	if isRedisRecordNil(err) {
-		return r.Client.Set(r.prefix(key), fmt.Sprintf("%v", value))
+		return r.Client.Set(r.prefix(key, subkey), fmt.Sprintf("%v", value))
 	}
 
 	return nil
 }
 
-func (r *NewRedisStorage) Get(key string) (float64, error) {
-	existingLimitStr, err := r.Client.Get(r.prefix(key))
+func (r *NewRedisStorage) Get(key, subkey string) (float64, error) {
+	existingLimitStr, err := r.Client.Get(r.prefix(key, subkey))
 	if err != nil && !isRedisRecordNil(err) {
 		return 0, err
 	}
@@ -64,17 +63,17 @@ func (r *NewRedisStorage) Get(key string) (float64, error) {
 // SET
 //----------------------------------------------------------
 
-func (r *NewRedisStorage) Save(key string, members ...interface{}) error {
-	_, err := r.Client.AddSetMembers(r.prefix(key), members...)
+func (r *NewRedisStorage) Save(key, subkey string, members ...interface{}) error {
+	_, err := r.Client.AddSetMembers(r.prefix(key, subkey), members...)
 	return err
 }
 
-func (r *NewRedisStorage) Pop(key string) (string, error) {
-	return r.Client.PopSetMember(r.prefix(key))
+func (r *NewRedisStorage) Pop(key, subkey string) (string, error) {
+	return r.Client.PopSetMember(r.prefix(key, subkey))
 }
 
-func (r *NewRedisStorage) Exists(key, member string) (bool, error) {
-	yes, err := r.Client.IsSetMember(r.prefix(key), member)
+func (r *NewRedisStorage) Exists(key, subkey, member string) (bool, error) {
+	yes, err := r.Client.IsSetMember(r.prefix(key, subkey), member)
 	if err != nil {
 		return false, err
 	}
@@ -125,8 +124,8 @@ func (r *NewRedisStorage) GetFromScore(key string, from float64) ([]string, erro
 // Prefix helpers
 //----------------------------------------------------------
 
-func (r *NewRedisStorage) prefix(key string) string {
-	return fmt.Sprintf("%s:%s", WorkerName, key)
+func (r *NewRedisStorage) prefix(key, subkey string) string {
+	return fmt.Sprintf("%s:%s:%s", WorkerName, key, subkey)
 }
 
 func (r *NewRedisStorage) weekPrefix(key string) string {

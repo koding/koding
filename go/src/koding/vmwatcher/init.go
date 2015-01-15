@@ -117,7 +117,7 @@ func saveLimitsUnlessExists() {
 			Log.Fatal(err.Error())
 		}
 
-		err = newStorage.UpsertScore(metric.GetName(), LimitKey, metric.GetLimit())
+		err = newStorage.Upsert(metric.GetName(), LimitKey, metric.GetLimit())
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
