@@ -292,16 +292,16 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       cssClass : 'expired-message'
       partial  : if destroyVMs then """
         <h1>Delete all existing VMs</h1>
-        <p>To be able to downgrade your current plan #{plan} to <b>Free</b>
+        <p>To be able to downgrade your current plan #{plan} to the <b>Free</b>
         plan, you need to delete all your existing VMs. This action will
-        <b>destroy all your existing VMs, (including your files) and cannot
-        be undone!</b> Do you want to continue?</p>
+        <b>destroy all your VMs, (including YOUR FILES) and cannot
+        be UNDONE!</b> Are you sure you want to continue?</p>
       """ else """
         <h1>Plan Expired</h1>
         <p>Your current plan #{plan} is expired. For accessing
-        your vm you need to upgrade your plan first. Or you can downgrade
-        to <b>Free</b> plan which will destroy all your existing vms and
-        files in it.</p>
+        your VM you need to upgrade your plan first. Or you can downgrade
+        to the <b>Free</b> plan which will <b>destroy</b> all your existing VMs and their
+        files.</p>
       """
 
     unless destroyVMs
