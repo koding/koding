@@ -7,23 +7,53 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-var newStorage *NewRedisStorage
-
 func TestNewStorage(t *testing.T) {
-	var newStorage NewStorage
 	newStorage = &NewRedisStorage{Client: controller.Redis.Client}
 
-	key, member := "metric", "newstorage"
+	Convey("Given key", t, func() {
+		var key = "limit"
+		var score, newScore float64 = 1, 2
+
+		Convey("Then it should save key ", func() {
+			err := newStorage.Upsert(key, score)
+			So(err, ShouldBeNil)
+
+			fetchedScore, err := newStorage.Get(key)
+			So(err, ShouldBeNil)
+
+			So(score, ShouldEqual, fetchedScore)
+
+			err = newStorage.Upsert(key, newScore)
+			So(err, ShouldBeNil)
+
+			fetchedScore, err = newStorage.Get(key)
+			So(err, ShouldBeNil)
+
+			So(fetchedScore, ShouldEqual, score)
+
+			Reset(func() {
+				controller.Redis.Client.Del(key)
+			})
+		})
+	})
 
 	Convey("Given key", t, func() {
 		Convey("Then it should check for existence", func() {
+			key, member := "metric", "newstorage"
+
 			yes, err := newStorage.Exists(key, member)
 			So(err, ShouldBeNil)
 
 			So(yes, ShouldBeFalse)
+
+			Reset(func() {
+				controller.Redis.Client.Del(key)
+			})
 		})
 
 		Convey("Then it should save", func() {
+			key, member := "metric", "newstorage"
+
 			err := newStorage.Save(key, member)
 			So(err, ShouldBeNil)
 
@@ -40,11 +70,16 @@ func TestNewStorage(t *testing.T) {
 
 				So(poppedMember, ShouldEqual, member)
 			})
+
+			Reset(func() {
+				controller.Redis.Client.Del(key)
+			})
 		})
 	})
 
 	Convey("Given key and score", t, func() {
 		Convey("Then it should save even if key exists", func() {
+			var key, member = "metric", "newstorage"
 			var score float64 = 1
 
 			err := newStorage.SaveScore(key, member, score)
@@ -73,25 +108,8 @@ func TestNewStorage(t *testing.T) {
 				So(len(scoreMembers), ShouldEqual, 2)
 			})
 
-			Convey("Then it should save only if key doesn't exist", func() {
-				var newScore float64 = 2
-
-				err := newStorage.UpsertScore(key, member, newScore)
-				So(err, ShouldBeNil)
-
-				fetchedScore, err := newStorage.GetScore(key, member)
-				So(err, ShouldBeNil)
-
-				So(fetchedScore, ShouldEqual, score)
-
-				newMember := "newnewstorage"
-				err = newStorage.UpsertScore(key, newMember, newScore)
-				So(err, ShouldBeNil)
-
-				fetchedScore, err = newStorage.GetScore(key, newMember)
-				So(err, ShouldBeNil)
-
-				So(fetchedScore, ShouldEqual, newScore)
+			Reset(func() {
+				controller.Redis.Client.Del(key)
 			})
 		})
 	})

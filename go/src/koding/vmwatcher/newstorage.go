@@ -2,12 +2,17 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/jinzhu/now"
 	"github.com/koding/redis"
 )
 
 type NewStorage interface {
+	//string
+	Upsert(string, float64) error
+	Get(string) (float64, error)
+
 	//set
 	Save(string, ...interface{}) error
 	Pop(string) (string, error)
@@ -22,6 +27,37 @@ type NewStorage interface {
 
 type NewRedisStorage struct {
 	Client *redis.RedisSession
+}
+
+//----------------------------------------------------------
+// STRING
+//----------------------------------------------------------
+
+func (r *NewRedisStorage) Upsert(key string, value float64) error {
+	_, err := r.Client.Get(r.prefix(key))
+	if err != nil && !isRedisRecordNil(err) {
+		return err
+	}
+
+	if isRedisRecordNil(err) {
+		return r.Client.Set(r.prefix(key), fmt.Sprintf("%v", value))
+	}
+
+	return nil
+}
+
+func (r *NewRedisStorage) Get(key string) (float64, error) {
+	existingLimitStr, err := r.Client.Get(r.prefix(key))
+	if err != nil && !isRedisRecordNil(err) {
+		return 0, err
+	}
+
+	existingLimit, err := strconv.ParseFloat(existingLimitStr, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return existingLimit, nil
 }
 
 //----------------------------------------------------------
