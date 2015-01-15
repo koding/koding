@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"strings"
 )
+
+var limitsToAction = map[string]func(string, string) error{
+	StopLimitKey:  stopVm,
+	BlockLimitKey: blockUserAndDestroyVm,
+}
 
 // pops username from set in db and gets metrics for machines belonging
 // to that user; it uses pop instead of find so multiple workers can
@@ -44,62 +47,31 @@ func getAndSaveQueueMachineMetrics() error {
 	return nil
 }
 
-func stopMachinesOverLimit() error {
+func dealWithMachinesOverLimit() error {
 	for _, metric := range metricsToSave {
-		machines, err := metric.GetMachinesOverLimit(StopLimitKey)
-		if err != nil {
-			Log.Error(err.Error())
-			continue
-		}
-
-		Log.Debug(
-			"Fetched: %d machines that are overlimit for metric: %s",
-			len(machines), metric.GetName(),
-		)
-
-		if len(machines) == 0 {
-			continue
-		}
-
-		var stopSuccess = 0
-
-		for _, machine := range machines {
-			reason := fmt.Sprintf(
-				"%v overlimit, allowed: %d", metric.GetName(), metric.GetLimit(StopLimitKey),
-			)
-
-			err = stopVm(machine.ObjectId.Hex(), reason)
-			if err != nil {
-				if !strings.Contains(err.Error(), "not allowed for current state") {
-					Log.Error("Error: %s for username: %s", err.Error(), machine.Credential)
+		for limit, action := range limitsToAction {
+			for {
+				machines, err := popMachinesOverLimit(metric.GetName(), limit)
+				if err != nil {
+					Log.Error(err.Error())
+					continue
 				}
 
-				continue
+				Log.Debug(
+					"Fetched: %d machines that are overlimit: %s for metric: %s#%s",
+					len(machines), metric.GetName(), limit,
+				)
+
+				act(machines, limit, action)
 			}
-
-			stopSuccess += 1
 		}
-
-		Log.Debug(
-			"Successfully stopped: %d/%d overlimit machines for metric: %s",
-			stopSuccess, len(machines), metric.GetName(),
-		)
 	}
 
 	return nil
 }
 
-func popFromQueue(key, subkey string) (string, error) {
-	return storage.Pop(key, subkey)
-}
-
 func getRunningVms() ([]models.Machine, error) {
 	return modelhelper.GetRunningVms()
-}
-
-var limitsToAction = map[string]func(string, string) error{
-	StopLimitKey:  stopVm,
-	BlockLimitKey: blockUserAndDestroyVm,
 }
 
 func extractUsernames(machines []*models.Machine) []interface{} {
@@ -109,4 +81,16 @@ func extractUsernames(machines []*models.Machine) []interface{} {
 	}
 
 	return usernames
+}
+
+func act(machines []*models.Machine, limit string, fn func(string, string) error) error {
+	for _, machine := range machines {
+		err := fn(machine.ObjectId.Hex(), limit)
+		if err != nil {
+			Log.Error(err.Error())
+			continue
+		}
+	}
+
+	return nil
 }

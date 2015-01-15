@@ -14,7 +14,7 @@ func popMachinesOverLimit(metric, limit string) ([]*models.Machine, error) {
 }
 
 func popMachine(key, subkey string) ([]*models.Machine, error) {
-	username, err := popFromQueue(key, subkey)
+	username, err := storage.Pop(key, subkey)
 	if err != nil {
 		return nil, err
 	}

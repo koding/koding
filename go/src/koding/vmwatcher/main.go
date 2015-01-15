@@ -60,7 +60,12 @@ func main() {
 			Log.Fatal(err.Error())
 		}
 
-		err = stopMachinesOverLimit()
+		err = queueOverlimitUsers()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+
+		err = dealWithMachinesOverLimit()
 		if err != nil {
 			Log.Fatal(err.Error())
 		}

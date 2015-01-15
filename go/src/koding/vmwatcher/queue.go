@@ -27,7 +27,7 @@ func queueUsernamesForMetricGet() error {
 	return nil
 }
 
-func queueOverlimitUsers() {
+func queueOverlimitUsers() error {
 	for _, metric := range metricsToSave {
 		for limitName, _ := range limitsToAction {
 			machines, err := metric.GetMachinesOverLimit(limitName)
@@ -44,6 +44,8 @@ func queueOverlimitUsers() {
 			}
 		}
 	}
+
+	return nil
 }
 
 func queue(key, subkey string, members []interface{}) error {
