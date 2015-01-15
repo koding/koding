@@ -96,7 +96,7 @@ class ComputeStateChecker extends KDObject
       .catch (err)->
 
         # Ignore pending event and timeout errors but log others
-        unless (err?.code is "107") or (err?.name is "TimeoutError")
+        unless (err?.code in ['107', '500']) or (err?.name is "TimeoutError")
           log "csc: info error happened:", err
 
     @tickInProgress = no

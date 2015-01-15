@@ -24,22 +24,33 @@ basicAuth = """
 auth_basic            "Restricted";
       auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
-createWebLocation = (name, location, auth = no) ->
+allowInternal = """
+  allow                 127.0.0.1;
+        allow                 192.168.0.0/16;
+        allow                 172.16.0.0/12;
+        allow                 10.0.0.0/8;
+        deny                  all;
+"""
+
+createWebLocation = ({name, locationConf}) ->
+  { location, proxyPass, internalOnly, auth } = locationConf
   return """\n
       location #{location} {
-        proxy_pass            http://#{name};
+        proxy_pass            #{proxyPass};
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+        #{if internalOnly then allowInternal else ''}
         #{if auth then basicAuth else ''}
       }
   \n"""
 
-createWebsocketLocation = (name, location) ->
+createWebsocketLocation = ({name, locationConf, proxyPass}) ->
+  {location, proxyPass} = locationConf
   return """\n
       location #{location} {
-        proxy_pass            http://#{name};
+        proxy_pass            #{proxyPass};
 
         # needed for websocket handshake
         proxy_http_version    1.1;
@@ -95,18 +106,19 @@ createLocations = (KONFIG) ->
 
   locations = ""
   for name, options of workers when options.ports?
-
     # don't add those who whish not to be generated, probably because those are
     # using manually written locations
     continue if options.nginx?.disableLocation?
 
     options.nginx = {}  unless options.nginx
-    location = ""
+    location = {}
 
-    options.nginx.locations or= ["/#{name}"]
-
+    options.nginx.locations or= [
+      location: "/#{name}"
+    ]
 
     for location in options.nginx.locations
+      location.proxyPass or= "http://#{name}"
       # if this is a websocket proxy, add required configs
       fn = if options.nginx.websocket
         createWebsocketLocation
@@ -119,7 +131,7 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      locations += fn name, location, auth
+      locations += fn {name, locationConf: location, auth}
 
   return locations
 
@@ -269,7 +281,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
-      location ~ /api/social/channel/(.*)/history {
+      location /api/social/channel/(.*)/history {
         proxy_pass            http://socialapi/channel/$1/history$is_args$args;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -290,6 +302,16 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
 
         #{if environment is "sandbox" then basicAuth else ""}
+      }
+
+      # TODO after custom location support PR is merged, remove this from here
+      location ~ /sitemap(.*).xml {
+        proxy_pass            http://socialapi/sitemap$1.xml;
+        proxy_set_header      X-Real-IP       $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_next_upstream   error timeout   invalid_header http_500;
+        proxy_connect_timeout 1;
+
       }
 
       # special case for kontrol to support additional paths, like /kontrol/heartbeat

@@ -96,7 +96,7 @@ class PrivateMessagePane extends MessagePane
   # ADDING MESSAGES
   #
 
-  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
+  appendMessage: (message, index) -> @listController.addItem message, index or @listController.getItemCount()
 
 
   prependMessage: (message) -> @listController.addItem message, 0

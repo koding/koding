@@ -22,6 +22,9 @@ type Account struct {
 
 	// unique account nicknames
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
+
+	// unique account tokens used for pubnub authentication
+	Token string `json:"token"`
 }
 
 func ValidateAccount(a *Account) error {

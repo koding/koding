@@ -987,6 +987,17 @@ utils.extend utils,
     return channel.purpose.slice(0, prefix.length) is prefix
 
 
+  isElementInViewport: (el) ->
+
+    { left, right, top, bottom } = el.getBoundingClientRect()
+
+    return \
+      top >= 0 and
+      left >= 0 and
+      bottom <= (window.innerHeight or document.documentElement.clientHeight) and
+      right <= (window.innerWidth or document.documentElement.clientWidth)
+
+
   ###*
   Decimal adjustment of a number
   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/ceil
@@ -1013,3 +1024,37 @@ utils.extend utils,
     # Shift back
     value = value.toString().split("e")
     +(value[0] + "e" + ((if value[1] then (+value[1] + exp) else exp)))
+
+
+  doXhrRequest: (options = {}, callback) ->
+    {type, endPoint, data, async} = options
+    type = 'POST'  unless type
+
+    return callback {message: "endPoint not set"}  unless endPoint
+
+    xhr = new XMLHttpRequest()
+    xhr.open type, endPoint, async
+    xhr.setRequestHeader "Content-Type", "application/json;"
+    xhr.onreadystatechange = (result) =>
+      try
+        response = JSON.parse xhr.responseText
+      catch e
+        return callback { message : "invalid json: could not parse response", code: xhr.status }
+
+      # 0     - connection failed
+      # >=400 - http errors
+      if xhr.status is 0 or xhr.status >= 400
+        return callback { message: response.description}
+
+
+      return if xhr.readyState isnt 4
+
+      if xhr.status not in [200, 304]
+        return callback { message: response.description}
+
+      return callback null, response
+
+    requestData = JSON.stringify data  if data
+
+    return xhr.send requestData
+
