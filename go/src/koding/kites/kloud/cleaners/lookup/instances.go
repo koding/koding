@@ -104,6 +104,20 @@ func (i Instances) Terminate(client *ec2.EC2, id string) {
 	}
 }
 
+// Stop stop all instances
+func (i Instances) StopAll(client *ec2.EC2) {
+	if len(i) == 0 {
+		return
+	}
+
+	for _, split := range splittedIds(i.Ids(), 500) {
+		_, err := client.StopInstances(split...)
+		if err != nil {
+			fmt.Printf("[%s] stop error: %s\n", client.Region.Name, err)
+		}
+	}
+}
+
 // splittedIds splits the ids into a list of ids each with the given split
 // capacity
 func splittedIds(ids []string, split int) [][]string {

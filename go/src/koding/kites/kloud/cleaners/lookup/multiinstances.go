@@ -76,6 +76,26 @@ func (m MultiInstances) TerminateAll() {
 	wg.Wait()
 }
 
+// TerminateAll terminates all instances
+func (m MultiInstances) StopAll() {
+	if len(m) == 0 {
+		return
+	}
+
+	var wg sync.WaitGroup
+
+	for client, instances := range m {
+		wg.Add(1)
+
+		go func(client *ec2.EC2, instances Instances) {
+			instances.StopAll(client)
+			wg.Done()
+		}(client, instances)
+	}
+
+	wg.Wait()
+}
+
 // String representation of MultiInstances
 func (m MultiInstances) String() string {
 	fmt.Printf("\n\n")

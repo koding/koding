@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
 	"os"
@@ -75,7 +76,7 @@ func realMain() error {
 		return ok
 	}
 
-	fmt.Printf("Searching for [running] instances tagged with [production] and older than 12 hours ...\n")
+	fmt.Printf("Searching for [running] instances tagged with [production] older than [12 hours] ...\n")
 
 	instances := l.FetchInstances().
 		OlderThan(12*time.Hour).
@@ -89,8 +90,7 @@ func realMain() error {
 		return err
 	}
 
-	longRunningVMS := make(map[string]string, 0)
-
+	ids := make([]string, 0)
 	for _, machine := range machines {
 		// there is no way this can panic because we fetch documents which
 		// have instanceIds in it
@@ -99,22 +99,26 @@ func realMain() error {
 
 		// if user is not a paying customer
 		if !isPaid(username) {
-			longRunningVMS[instanceId] = username
+			// fmt.Printf("[%s] %s\n", username, instanceId)
+			ids = append(ids, instanceId)
 		}
 	}
 
-	ids := make([]string, 0)
-	for instanceId, username := range longRunningVMS {
-		fmt.Printf("[%s] %s\n", username, instanceId)
-		ids = append(ids, instanceId)
+	// contains free user VMs running for more than 12 hours
+	longRunningInstances := instances.Only(ids...)
+	if longRunningInstances.Total() == 0 {
+		return errors.New("No VMs found.")
 	}
 
-	longRunningInstances := instances.Only(ids...)
-
-	fmt.Printf("total = %+v\n", longRunningInstances.Total())
-
 	fmt.Printf("\nFound '%d' machines belonging to free users which are running more than 12 hours\n",
-		len(longRunningVMS))
+		len(longRunningInstances))
+
+	if conf.Stop {
+		longRunningInstances.StopAll()
+		fmt.Printf("\nStopped '%d' instances\n", longRunningInstances.Total())
+	} else {
+		fmt.Printf("To stop all running free VMS run the command again with the flag -stop\n")
+	}
 
 	return nil
 }
