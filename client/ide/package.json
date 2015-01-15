@@ -1,0 +1,34 @@
+{
+  "name": "ide",
+  "version": "1.0.0",
+  "description": "Koding's IDE",
+  "main": "index.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:koding/IDE.git"
+  },
+  "keywords": [
+    "IDE",
+    "online",
+    "IDE",
+    "cloud",
+    "IDE",
+    "development",
+    "environment",
+    "code",
+    "editor"
+  ],
+  "author": "Koding, Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/koding/IDE/issues"
+  },
+  "homepage": "https://github.com/koding/IDE",
+  "dependencies": {
+    "gapi": "0.0.3",
+    "ndpane": "^0.1.2"
+  }
+}
