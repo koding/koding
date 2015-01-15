@@ -1,3 +1,4 @@
+DummyMachine = require '../../kdmainapp/providers/dummymachine'
 FSBrokenLink = require './fsbrokenlink'
 FSFile       = require './fsfile'
 FSFolder     = require './fsfolder'

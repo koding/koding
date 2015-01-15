@@ -1,4 +1,5 @@
 FSHelper      = require '../../fs/fshelper'
+Machine       = require '../../../kdmainapp/providers/machine'
 NFileItemView = require './nfileitemview'
 
 

@@ -1,6 +1,8 @@
-FSHelper             = require '../../fs/fshelper'
-KodingAppsController = require '../../../core/kodingappscontroller'
-NFinderDeleteDialog  = require '../itemsubviews/nfinderdeletedialog'
+CloneRepoModal          = require '../../../kdmainapp/commonviews/clonerepomodal'
+DropboxDownloadItemView = require '../../../kdmainapp/commonviews/dropboxdownloaditemview'
+FSHelper                = require '../../fs/fshelper'
+KodingAppsController    = require '../../../core/kodingappscontroller'
+NFinderDeleteDialog     = require '../itemsubviews/nfinderdeletedialog'
 
 
 class NFinderTreeController extends JTreeViewController

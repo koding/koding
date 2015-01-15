@@ -1,4 +1,5 @@
-JView = require '../../../core/jview'
+JView        = require '../../../core/jview'
+KodingSwitch = require '../../../kdmainapp/commonviews/kodingswitch'
 
 
 class NSetPermissionsView extends JView

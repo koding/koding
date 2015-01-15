@@ -1,4 +1,5 @@
 FSHelper                     = require '../../fs/fshelper'
+Machine                      = require '../../../kdmainapp/providers/machine'
 NFinderContextMenuController = require './nfindercontextmenucontroller'
 NFinderItem                  = require '../itemviews/nfinderitem'
 NFinderTreeController        = require './nfindertreecontroller'
