@@ -46,7 +46,7 @@ func getAndSaveQueueMachineMetrics() error {
 
 func stopMachinesOverLimit() error {
 	for _, metric := range metricsToSave {
-		machines, err := metric.GetMachinesOverLimit()
+		machines, err := metric.GetMachinesOverLimit(NetworkOutLimit)
 		if err != nil {
 			Log.Error(err.Error())
 			continue
