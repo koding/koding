@@ -51,14 +51,14 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 }
 
 var (
-	VmRunningState = "Running"
+	MachineStateRunning = "Running"
 )
 
 func GetRunningVms() ([]models.Machine, error) {
 	machines := []models.Machine{}
 
 	query := func(c *mgo.Collection) error {
-		iter := c.Find(bson.M{"status.state": VmRunningState}).Iter()
+		iter := c.Find(bson.M{"status.state": MachineStateRunning}).Iter()
 
 		var machine models.Machine
 		for iter.Next(&machine) {
@@ -96,4 +96,12 @@ func GetMachinesForUsername(username string) ([]*models.Machine, error) {
 	}
 
 	return machines, nil
+}
+
+func CreateMachine(m *models.Machine) error {
+	query := func(c *mgo.Collection) error {
+		return c.Insert(m)
+	}
+
+	return Mongo.Run(MachineColl, query)
 }
