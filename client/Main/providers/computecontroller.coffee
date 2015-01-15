@@ -230,9 +230,9 @@ class ComputeController extends KDController
       return err
 
 
-  destroy: (machine)->
+  destroy: (machine, force = @_force)->
 
-    ComputeController.UI.askFor 'destroy', machine, @_force, =>
+    destroy = (machine)=>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -256,6 +256,12 @@ class ComputeController extends KDController
       .catch (err)=>
 
         (@errorHandler call, 'destroy', machine) err
+
+    return destroy machine  if force?
+
+    ComputeController
+      .UI.askFor 'destroy', machine, force, =>
+        destroy machine
 
 
   reinit: (machine)->
