@@ -141,7 +141,6 @@ func (m MultiInstances) Ids() []string {
 func (m MultiInstances) Only(ids ...string) MultiInstances {
 	filtered := make(MultiInstances, 0)
 	for client, instances := range m {
-
 		filteredInstances := make(Instances, 0)
 
 		for _, id := range ids {

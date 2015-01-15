@@ -83,8 +83,6 @@ func realMain() error {
 		States("running").
 		WithTag("koding-env", "production")
 
-	fmt.Printf("Found '%d' instances, fetching MongoDB documents of those instances\n", instances.Total())
-
 	machines, err := m.Machines(instances.Ids()...)
 	if err != nil {
 		return err
@@ -99,6 +97,7 @@ func realMain() error {
 
 		// if user is not a paying customer
 		if !isPaid(username) {
+			// debug
 			// fmt.Printf("[%s] %s\n", username, instanceId)
 			ids = append(ids, instanceId)
 		}
@@ -111,7 +110,7 @@ func realMain() error {
 	}
 
 	fmt.Printf("\nFound '%d' machines belonging to free users which are running more than 12 hours\n",
-		len(longRunningInstances))
+		longRunningInstances.Total())
 
 	if conf.Stop {
 		longRunningInstances.StopAll()
