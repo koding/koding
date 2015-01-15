@@ -240,39 +240,57 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @container.addSubView @button
 
 
-  buildExpiredView: (subscription, destroyVMState = no)->
+  buildExpiredView: (subscription, nextState)->
 
     plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
 
     @container.destroySubViews()
+
+    if nextState is "downgrade"
+
+      @showBusy "Downgrading..."
+      @downgradePlan (err)=>
+
+        if err?
+          KD.utils.wait 10000, =>
+            @buildExpiredView subscription, "downgrade"
+        else
+          ComputeHelpers.handleNewMachineRequest (err)=>
+            location.reload yes
+
+      return
+
+    destroyVMs = nextState is "destroy-vms"
 
     @upgradeButton = new KDButtonView
       title    : 'Upgrade Plan'
       cssClass : 'solid green medium plan-change-button'
       callback : -> KD.singletons.router.handleRoute '/Pricing'
 
-    actionTitle = if destroyVMState then 'Delete All VMs' else 'Downgrade Plan'
+    actionTitle = if destroyVMs then 'Delete All VMs' else 'Downgrade Plan'
 
     @actionButton = new KDButtonView
       title    : actionTitle
       cssClass : 'solid green medium plan-change-button downgrade'
       callback : =>
 
-        @showBusy "Downgrading..."
+        if destroyVMs
 
-        if destroyVMState
-
-          new KDNotificationView title: "Coming soon..."
+          @showBusy "Destroying machines..."
+          ComputeHelpers.destroyExistingMachines (err)=>
+            KD.utils.wait 5000, =>
+              @buildExpiredView subscription, "downgrade"
 
         else
 
+          @showBusy "Downgrading..."
           @downgradePlan (err)=> if err? \
-            then @buildExpiredView subscription, yes
+            then @buildExpiredView subscription, "destroy-vms"
             else @buildInitial()
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'expired-message'
-      partial  : if destroyVMState then """
+      partial  : if destroyVMs then """
         <h1>Delete all existing VMs</h1>
         <p>To be able to downgrade your current plan #{plan} to <b>Free</b>
         plan, you need to delete all your existing VMs. This action will
@@ -286,7 +304,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         files in it.</p>
       """
 
-    unless destroyVMState
+    unless destroyVMs
       @container.addSubView @upgradeButton
 
     @container.addSubView @actionButton
