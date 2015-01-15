@@ -19,7 +19,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'ShortcutsViewRequested',   @bound 'createShortcutsView'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
-    #absolete: 'preview file' feature was removed (bug #82710798)
+    # obsolete: 'preview file' feature was removed (bug #82710798)
     @tabView.on 'PreviewPaneRequested',     (url) -> window.open "http://#{url}"
     @tabView.on 'DrawingPaneRequested',     @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',       @bound 'showView'
