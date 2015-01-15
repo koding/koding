@@ -27,17 +27,20 @@ var (
 	PaidPlanMultiplier float64 = 2
 )
 
+type Limits map[string]float64
+
 type Cloudwatch struct {
-	Name  string
-	Limit float64
+	Name   string
+	Limits Limits
 }
 
 func (c *Cloudwatch) GetName() string {
 	return c.Name
 }
 
-func (c *Cloudwatch) GetLimit() float64 {
-	return c.Limit
+func (c *Cloudwatch) GetLimit(name string) float64 {
+	limit, _ := c.Limits[name]
+	return limit
 }
 
 func (c *Cloudwatch) Save(username string, value float64) error {
@@ -103,7 +106,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 		}
 	}
 
-	if sum > c.Limit {
+	if sum > c.Limits[StopLimitKey] {
 		Log.Debug("'%s' has used: %v '%s'", username, sum, c.Name)
 	}
 
@@ -170,9 +173,9 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	switch planTitle {
 	case FreePlan:
-		limit = c.Limit
+		limit = c.Limits[StopLimitKey]
 	default:
-		limit = c.Limit * PaidPlanMultiplier
+		limit = c.Limits[StopLimitKey] * PaidPlanMultiplier
 	}
 
 	lr := &LimitResponse{

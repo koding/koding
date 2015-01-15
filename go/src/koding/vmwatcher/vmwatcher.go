@@ -65,7 +65,7 @@ func stopMachinesOverLimit() error {
 
 		for _, machine := range machines {
 			reason := fmt.Sprintf(
-				"%v overlimit, allowed: %d", metric.GetName(), metric.GetLimit(),
+				"%v overlimit, allowed: %d", metric.GetName(), metric.GetLimit(StopLimitKey),
 			)
 
 			err = stopVm(machine.ObjectId.Hex(), reason)

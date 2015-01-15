@@ -25,7 +25,10 @@ var (
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
-		&Cloudwatch{Name: NetworkOut, Limit: NetworkOutLimit},
+		&Cloudwatch{Name: NetworkOut, Limits: Limits{
+			StopLimitKey: NetworkOutLimit, BlockLimitKey: NetworkOutLimit * 3,
+		},
+		},
 	}
 )
 

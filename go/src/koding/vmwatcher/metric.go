@@ -7,6 +7,6 @@ type Metric interface {
 	GetMachinesOverLimit(float64) ([]*models.Machine, error)
 	IsUserOverLimit(string) (*LimitResponse, error)
 	GetName() string
-	GetLimit() float64
+	GetLimit(string) float64
 	Save(string, float64) error
 }

@@ -12,10 +12,12 @@ var (
 	storage Storage
 
 	// redis key prefixes
-	GroupBy   = "users"
-	QueueName = "queue"
-	ExemptKey = "exempt"
-	LimitKey  = "limit"
+	GroupBy       = "users"
+	QueueName     = "queue"
+	ExemptKey     = "exempt"
+	LimitKey      = "limit"
+	StopLimitKey  = "stoplimit"
+	BlockLimitKey = "blocklimit"
 )
 
 type Storage interface {
