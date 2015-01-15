@@ -530,6 +530,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
       KD.userWorkspaces.forEach (workspace) ->
 
+        unless workspace instanceof KD.remote.api.JWorkspace
+          workspace = KD.remote.revive workspace
+
         if workspace.machineUId is machine.uid
           ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
           title    = "#{workspace.name}"
