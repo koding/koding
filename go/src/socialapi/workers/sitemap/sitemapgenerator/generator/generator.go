@@ -20,6 +20,7 @@ type Controller struct {
 	fileName     string
 	redisConn    *redis.RedisSession
 	timeInterval int
+	cron         *cron.Cron
 }
 
 const (
@@ -27,35 +28,42 @@ const (
 	// TIMERANGE in cache key file
 	// run cron job every n minutes starting from 0
 	SCHEDULE = "0 0-59/%d * * * *"
-)
 
-var (
-	cronJob *cron.Cron
+	DefaultInterval = 30
 )
 
 func New(log logging.Logger, redisConn *redis.RedisSession) (*Controller, error) {
 	c := &Controller{
 		log:          log,
 		redisConn:    redisConn,
-		timeInterval: config.MustGet().Sitemap.TimeInterval,
+		timeInterval: getInterval(),
 	}
 
 	return c, c.initCron()
 }
 
+func getInterval() int {
+	timeInterval := config.MustGet().Sitemap.TimeInterval
+	if timeInterval == 0 {
+		timeInterval = DefaultInterval
+	}
+
+	return timeInterval
+}
+
 func (c *Controller) initCron() error {
 	schedule := fmt.Sprintf(SCHEDULE, c.timeInterval)
-	cronJob = cron.New()
-	if err := cronJob.AddFunc(schedule, c.generate); err != nil {
+	c.cron = cron.New()
+	if err := c.cron.AddFunc(schedule, c.generate); err != nil {
 		return err
 	}
-	cronJob.Start()
+	c.cron.Start()
 
 	return nil
 }
 
 func (c *Controller) Shutdown() {
-	cronJob.Stop()
+	c.cron.Stop()
 }
 
 func (c *Controller) generate() {
