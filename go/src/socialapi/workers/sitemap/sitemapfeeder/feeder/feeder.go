@@ -3,6 +3,7 @@ package feeder
 import (
 	"errors"
 	"fmt"
+	"math"
 	"socialapi/config"
 	socialmodels "socialapi/models"
 	"socialapi/workers/helper"
@@ -15,13 +16,16 @@ import (
 )
 
 type Controller struct {
-	log          logging.Logger
-	nameFetcher  FileNameFetcher
-	redisConn    *redis.RedisSession
-	timeInterval int
+	log            logging.Logger
+	redisConn      *redis.RedisSession
+	updateInterval time.Duration
 }
 
 var ErrIgnore = errors.New("ignore")
+
+const (
+	MaxItemSizeInFile = 1000
+)
 
 func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	f.log.Error("an error occurred deleting realtime event", err)
@@ -36,7 +40,6 @@ func New(log logging.Logger) *Controller {
 	redisConn := helper.MustInitRedisConn(&conf)
 	c := &Controller{
 		log:          log,
-		nameFetcher:  ModNameFetcher{},
 		redisConn:    redisConn,
 		timeInterval: conf.Sitemap.TimeInterval,
 	}
@@ -171,7 +174,7 @@ func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapIte
 // queueItem push an item to cache and returns related file name
 func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 	// fetch file name
-	n := f.nameFetcher.Fetch(i)
+	n := f.fetchFileName(i)
 
 	if err := f.updateFileNameCache(n); err != nil {
 		return "", err
@@ -202,4 +205,25 @@ func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem)
 	}
 
 	return nil
+}
+
+func (f *Controller) fetchFileName(i *models.SitemapItem) string {
+	switch i.TypeConstant {
+	case models.TYPE_CHANNEL_MESSAGE:
+		return fetchChannelMessageName(i.Id)
+	case models.TYPE_CHANNEL:
+		return fetchChannelName(i.Id)
+	}
+
+	return ""
+}
+
+func fetchChannelMessageName(id int64) string {
+	remainder := math.Mod(float64(id), float64(MaxItemSizeInFile))
+	return fmt.Sprintf("channel_message_%d", int64(remainder))
+}
+
+func fetchChannelName(id int64) string {
+	remainder := math.Mod(float64(id), float64(MaxItemSizeInFile))
+	return fmt.Sprintf("channel_%d", int64(remainder))
 }
