@@ -9,6 +9,7 @@ import (
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
@@ -24,6 +25,7 @@ type Controller struct {
 var ErrIgnore = errors.New("ignore")
 
 const (
+	DefaultInterval   = 30 * time.Minute
 	MaxItemSizeInFile = 1000
 )
 
@@ -38,10 +40,20 @@ func New(log logging.Logger) *Controller {
 	conf.Redis.DB = conf.Sitemap.RedisDB
 	// TODO later on seperate config structs could be better for each helper
 	redisConn := helper.MustInitRedisConn(&conf)
+
+	updateInterval := DefaultInterval
+	if conf.Sitemap.UpdateInterval != "" {
+		t, err := time.ParseDuration(conf.Sitemap.UpdateInterval)
+		if err != nil {
+			panic(err)
+		}
+		updateInterval = t
+	}
+
 	c := &Controller{
-		log:          log,
-		redisConn:    redisConn,
-		timeInterval: conf.Sitemap.TimeInterval,
+		log:            log,
+		redisConn:      redisConn,
+		updateInterval: updateInterval,
 	}
 
 	return c
@@ -188,7 +200,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 }
 
 func (f *Controller) updateFileNameCache(fileName string) error {
-	key := common.PrepareNextFileNameSetCacheKey(f.timeInterval)
+	key := common.PrepareNextFileNameSetCacheKey(int(f.updateInterval.Minutes()))
 	if _, err := f.redisConn.AddSetMembers(key, fileName); err != nil {
 		return err
 	}
@@ -198,7 +210,7 @@ func (f *Controller) updateFileNameCache(fileName string) error {
 
 func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
-	key := common.PrepareNextFileCacheKey(fileName, f.timeInterval)
+	key := common.PrepareNextFileCacheKey(fileName, int(f.updateInterval.Minutes()))
 	value := i.PrepareSetValue()
 	if _, err := f.redisConn.AddSetMembers(key, value); err != nil {
 		return err

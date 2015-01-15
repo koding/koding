@@ -178,12 +178,11 @@ func TestSitemapGeneration(t *testing.T) {
 							controller.buildContainer(els)
 							Convey("generator should be able to re-add to next queue in error case", func() {
 								controller.handleError(els)
-								interval := getInterval()
-								key := common.PrepareNextFileNameSetCacheKey(interval)
+								key := common.PrepareNextFileNameSetCacheKey(int(controller.timeInterval.Minutes()))
 								member, err := controller.redisConn.PopSetMember(key)
 								So(err, ShouldBeNil)
 								So(member, ShouldEqual, TESTFILE)
-								key = common.PrepareNextFileCacheKey(TESTFILE, interval)
+								key = common.PrepareNextFileCacheKey(TESTFILE, int(controller.timeInterval.Minutes()))
 								member, err = controller.redisConn.PopSetMember(key)
 								So(err, ShouldBeNil)
 								So(member, ShouldNotBeNil)
@@ -232,7 +231,7 @@ func createSitemapItem(id int64, typeConstant, status string) *models.SitemapIte
 
 func addSitemapItem(i *models.SitemapItem) error {
 	interval := getInterval()
-	key := common.PrepareCurrentFileCacheKey(TESTFILE, interval)
+	key := common.PrepareCurrentFileCacheKey(TESTFILE, int(interval.Minutes()))
 	value := i.PrepareSetValue()
 
 	if _, err := redisConn.AddSetMembers(key, value); err != nil {

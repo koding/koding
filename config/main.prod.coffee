@@ -57,7 +57,7 @@ Configuration = (options={}) ->
     hostname          : hostname
     protocol          : protocol
     email             : email
-    sitemap           : { redisDB: 0 }
+    sitemap           : { redisDB: 0, updateInterval : "30m" }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
     limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
