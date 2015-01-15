@@ -7,8 +7,6 @@ import (
 )
 
 func TestExempt(t *testing.T) {
-	newStorage = &NewRedisStorage{Client: controller.Redis.Client}
-
 	Convey("Given exempt users", t, func() {
 		Convey("Then it should save them", func() {
 			saveExemptUsers()

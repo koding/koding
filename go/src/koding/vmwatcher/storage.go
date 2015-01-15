@@ -8,22 +8,8 @@ import (
 	"github.com/koding/redis"
 )
 
-type Storage interface {
-	Queue(string, []interface{}) error
-	Pop(string) (string, error)
-	Remove(string, string) error
-	Range(string, float64) ([]string, error)
-	Save(string, string, float64) error
-	Get(string, string) (float64, error)
-	ExemptGet(string, string) (bool, error)
-	ExemptSave(string, []interface{}) error
-	SaveLimitUnlessExists(string, float64) error
-	GetLimit(string, float64) (float64, error)
-}
-
 var (
-	storage    Storage
-	newStorage NewStorage
+	storage Storage
 
 	// redis key prefixes
 	GroupBy   = "users"
@@ -32,125 +18,138 @@ var (
 	LimitKey  = "limit"
 )
 
+type Storage interface {
+	//string
+	Upsert(string, string, float64) error
+	Get(string, string) (float64, error)
+
+	//set
+	Save(string, string, []interface{}) error
+	Pop(string, string) (string, error)
+	Exists(string, string, string) (bool, error)
+
+	//zset
+	GetScore(string, string) (float64, error)
+	SaveScore(string, string, float64) error
+	GetFromScore(string, float64) ([]string, error)
+}
+
 type RedisStorage struct {
 	Client *redis.RedisSession
 }
 
-func (r *RedisStorage) Queue(metricName string, usernames []interface{}) error {
-	_, err := r.Client.AddSetMembers(r.QueueKey(metricName), usernames...)
-	return err
-}
+//----------------------------------------------------------
+// STRING
+//----------------------------------------------------------
 
-func (r *RedisStorage) Pop(metricName string) (string, error) {
-	return r.Client.PopSetMember(r.QueueKey(metricName))
-}
-
-func (r *RedisStorage) Save(metricName, username string, value float64) error {
-	return r.Client.SortedSetAddSingle(r.Key(metricName), username, value)
-}
-
-func (r *RedisStorage) Get(metricName, username string) (float64, error) {
-	return r.Client.SortedSetScore(r.Key(metricName), username)
-}
-
-func (r *RedisStorage) Range(metricName string, min float64) ([]string, error) {
-	raw, err := r.Client.SortedSetRangebyScore(r.Key(metricName), min, redis.PositiveInf)
-	if err != nil {
-		return nil, err
-	}
-
-	usernames := []string{}
-	for _, username := range raw {
-		usernames = append(usernames, string(username.([]uint8)))
-	}
-
-	return usernames, nil
-}
-
-func (r *RedisStorage) ExemptSave(prefix string, usernames []interface{}) error {
-	_, err := r.Client.AddSetMembers(r.ExemptKey(prefix), usernames...)
-	return err
-}
-
-func (r *RedisStorage) ExemptGet(prefix, username string) (bool, error) {
-	yes, err := r.Client.IsSetMember(r.ExemptKey(prefix), username)
-	if err != nil {
-		return false, err
-	}
-
-	switch yes {
-	case 0:
-		return false, nil
-	case 1:
-		return true, nil
-	}
-
-	return false, nil
-}
-
-func (r *RedisStorage) Remove(prefix, username string) error {
-	_, err := r.Client.RemoveSetMembers(r.Key(prefix), username)
-	return err
-}
-
-func (r *RedisStorage) GetLimit(prefix string, defaultLimit float64) (float64, error) {
-	existingLimitStr, err := r.Client.Get(r.LimitKey(prefix))
-	if err != nil && !isRedisRecordNil(err) {
-		return defaultLimit, err
-	}
-
-	if isRedisRecordNil(err) {
-		Log.Error("Fetching limit for metric: %s returned nil", prefix)
-		return defaultLimit, nil
-	}
-
-	existingLimit, err := strconv.ParseFloat(existingLimitStr, 64)
-	if err != nil {
-		Log.Error("Marshalling limit fetched by db failed: %v", existingLimit)
-		return defaultLimit, nil
-	}
-
-	return existingLimit, nil
-}
-
-func (r *RedisStorage) SaveLimitUnlessExists(prefix string, limit float64) error {
-	_, err := r.Client.Get(r.LimitKey(prefix))
+func (r *RedisStorage) Upsert(key, subkey string, value float64) error {
+	_, err := r.Client.Get(r.prefix(key, subkey))
 	if err != nil && !isRedisRecordNil(err) {
 		return err
 	}
 
 	if isRedisRecordNil(err) {
-		Log.Debug("No limit for metric: %s setting to default: %v", prefix, limit)
-
-		err := r.Client.Set(r.LimitKey(prefix), fmt.Sprintf("%v", limit))
-		if err != nil {
-			return err
-		}
+		return r.Client.Set(r.prefix(key, subkey), fmt.Sprintf("%v", value))
 	}
 
 	return nil
 }
 
-func (r *RedisStorage) LimitKey(prefix string) string {
-	return fmt.Sprintf("%s:%s:%s", WorkerName, prefix, LimitKey)
+func (r *RedisStorage) Get(key, subkey string) (float64, error) {
+	existingLimitStr, err := r.Client.Get(r.prefix(key, subkey))
+	if err != nil && !isRedisRecordNil(err) {
+		return 0, err
+	}
+
+	existingLimit, err := strconv.ParseFloat(existingLimitStr, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return existingLimit, nil
 }
 
-func (r *RedisStorage) ExemptKey(prefix string) string {
-	return fmt.Sprintf("%s:%s:%s", WorkerName, prefix, ExemptKey)
+//----------------------------------------------------------
+// SET
+//----------------------------------------------------------
+
+func (r *RedisStorage) Save(key, subkey string, members []interface{}) error {
+	_, err := r.Client.AddSetMembers(r.prefix(key, subkey), members...)
+	return err
 }
 
-func (r *RedisStorage) Key(prefix string) string {
+func (r *RedisStorage) Pop(key, subkey string) (string, error) {
+	return r.Client.PopSetMember(r.prefix(key, subkey))
+}
+
+func (r *RedisStorage) Exists(key, subkey, member string) (bool, error) {
+	yes, err := r.Client.IsSetMember(r.prefix(key, subkey), member)
+	if err != nil {
+		return false, err
+	}
+
+	return yes == 1, nil
+}
+
+//----------------------------------------------------------
+// ZSET
+//----------------------------------------------------------
+
+func (r *RedisStorage) SaveScore(key, member string, score float64) error {
+	return r.Client.SortedSetAddSingle(r.weekPrefix(key), member, score)
+}
+
+func (r *RedisStorage) GetScore(key, member string) (float64, error) {
+	return r.Client.SortedSetScore(r.weekPrefix(key), member)
+}
+
+func (r *RedisStorage) UpsertScore(key, member string, score float64) error {
+	_, err := r.GetScore(key, member)
+	if err != nil && !isRedisRecordNil(err) {
+		return err
+	}
+
+	if isRedisRecordNil(err) {
+		return r.SaveScore(key, member, score)
+	}
+
+	return nil
+}
+
+func (r *RedisStorage) GetFromScore(key string, from float64) ([]string, error) {
+	rawMembers, err := r.Client.SortedSetRangebyScore(r.weekPrefix(key), from, redis.PositiveInf)
+	if err != nil {
+		return nil, err
+	}
+
+	members := []string{}
+	for _, member := range rawMembers {
+		members = append(members, string(member.([]uint8)))
+	}
+
+	return members, nil
+}
+
+//----------------------------------------------------------
+// Prefix helpers
+//----------------------------------------------------------
+
+func (r *RedisStorage) prefix(key, subkey string) string {
+	return fmt.Sprintf("%s:%s:%s", WorkerName, key, subkey)
+}
+
+func (r *RedisStorage) weekPrefix(key string) string {
 	year, week := now.BeginningOfWeek().ISOWeek()
-	return fmt.Sprintf("%s:%s:%s:%d-%d", WorkerName, prefix, GroupBy, year, week)
+	return fmt.Sprintf("%s:%d:%d:%s", WorkerName, year, week, key)
 }
 
-func (r *RedisStorage) QueueKey(prefix string) string {
+func (r *RedisStorage) hourPrefix(key string) string {
 	t := now.BeginningOfHour()
 
 	year, month, day := t.Date()
 	hour := t.Hour()
 
-	return fmt.Sprintf("%s:%s:%s:%d-%s-%d-%d",
-		WorkerName, prefix, QueueName, year, month, day, hour,
+	return fmt.Sprintf("%s:%d:%s:%d-%d-%s",
+		WorkerName, year, month, day, hour, key,
 	)
 }

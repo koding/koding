@@ -80,7 +80,7 @@ func TestStoppingMachines(t *testing.T) {
 
 		Convey("Then it should return machine", func() {
 			networkOutMetric := metricsToSave[0]
-			err := newStorage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*3)
+			err := storage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*3)
 			So(err, ShouldBeNil)
 
 			for _, metric := range metricsToSave {

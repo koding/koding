@@ -63,7 +63,6 @@ func initialize() {
 	initializeMongo()
 
 	storage = controller.Redis
-	newStorage = controller.NewRedis
 
 	// save defaults
 	saveExemptUsers()
@@ -84,7 +83,6 @@ func initializeRedis(c *VmController) {
 	// Log.Debug("Connected to redis: %s", conf.Redis)
 
 	c.Redis = &RedisStorage{Client: redisClient}
-	c.NewRedis = &NewRedisStorage{Client: redisClient}
 }
 
 func initializeMongo() {

@@ -41,7 +41,7 @@ func (c *Cloudwatch) GetLimit() float64 {
 }
 
 func (c *Cloudwatch) Save(username string, value float64) error {
-	return newStorage.SaveScore(c.Name, username, value)
+	return storage.SaveScore(c.Name, username, value)
 }
 
 func (c *Cloudwatch) GetAndSaveData(username string) error {
@@ -111,7 +111,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 }
 
 func (c *Cloudwatch) GetMachinesOverLimit(limit float64) ([]*models.Machine, error) {
-	usernames, err := newStorage.GetFromScore(c.Name, limit)
+	usernames, err := storage.GetFromScore(c.Name, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (c *Cloudwatch) GetMachinesOverLimit(limit float64) ([]*models.Machine, err
 func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	canStart := &LimitResponse{CanStart: true}
 
-	value, err := newStorage.GetScore(c.Name, username)
+	value, err := storage.GetScore(c.Name, username)
 	if err != nil && !isRedisRecordNil(err) {
 		return nil, err
 	}
