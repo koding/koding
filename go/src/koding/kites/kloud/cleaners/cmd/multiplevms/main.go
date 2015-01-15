@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
 	"os"
-	"time"
 
 	"github.com/koding/multiconfig"
 )
@@ -70,14 +69,7 @@ func realMain() error {
 	fmt.Println("Fetching user VMs from MongoDB ...")
 
 	users := make(map[string][]lookup.MachineDocument, 0) // users mapped to their machines
-	duplicates := make(map[string]struct{}, 0)            // list of users with machines more than one
-
-	go func() {
-		for {
-			time.Sleep(time.Second * 20)
-			fmt.Printf("Users: %d Duplicates: %d\n", len(users), len(duplicates))
-		}
-	}()
+	usersWithMultipleVms := make(map[string]struct{}, 0)  // list of users with machines more than one
 
 	iter := func(l lookup.MachineDocument) {
 		username := l.Credential
@@ -90,24 +82,21 @@ func realMain() error {
 		// we found a duplicate!
 		machines = append(machines, l)
 		users[username] = machines
-		duplicates[username] = struct{}{}
+		usersWithMultipleVms[username] = struct{}{}
 	}
 	if err := m.Iter(iter); err != nil {
 		return err
 	}
 
-	fmt.Println("Listing non paid users with more than one VMs")
-	count := 0
-	for user := range duplicates {
+	freeUsersWithMultipleVMs := make(map[string]struct{}, 0)
+
+	for user := range usersWithMultipleVms {
 		if !isPaid(user) {
-			count++
-			fmt.Printf("Username: '%s'. Machine: %d\n", user, len(users[user]))
+			freeUsersWithMultipleVMs[user] = struct{}{}
 		}
 	}
 
-	fmt.Println("")
-	fmt.Printf("%d users with more than one VM found\n", len(duplicates))
-	fmt.Printf("%d of them are non paid users\n", count)
-
+	fmt.Printf("%d users with more than one VM found\n", len(usersWithMultipleVms))
+	fmt.Printf("%d of them are non paid users\n", len(freeUsersWithMultipleVMs))
 	return nil
 }
