@@ -116,3 +116,24 @@ func (m MultiInstances) Ids() []string {
 
 	return ids
 }
+
+// Only returns a new filtered MultiInstances struct with the given ids only.
+func (m MultiInstances) Only(ids ...string) MultiInstances {
+	filtered := make(MultiInstances, 0)
+	for client, instances := range m {
+
+		filteredInstances := make(Instances, 0)
+
+		for _, id := range ids {
+			instance, ok := instances[id]
+			if !ok {
+				continue
+			}
+
+			filteredInstances[id] = instance
+		}
+
+		filtered[client] = filteredInstances
+	}
+	return filtered
+}

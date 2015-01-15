@@ -24,6 +24,9 @@ type Config struct {
 	Username string `required:"true"`
 	Password string `required:"true"`
 	DBName   string `required:"true" `
+
+	// Stop long running machines
+	Stop bool
 }
 
 func main() {
@@ -100,9 +103,15 @@ func realMain() error {
 		}
 	}
 
+	ids := make([]string, 0)
 	for instanceId, username := range longRunningVMS {
 		fmt.Printf("[%s] %s\n", username, instanceId)
+		ids = append(ids, instanceId)
 	}
+
+	longRunningInstances := instances.Only(ids...)
+
+	fmt.Printf("total = %+v\n", longRunningInstances.Total())
 
 	fmt.Printf("\nFound '%d' machines belonging to free users which are running more than 12 hours\n",
 		len(longRunningVMS))
