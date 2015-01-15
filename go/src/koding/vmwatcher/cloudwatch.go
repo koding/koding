@@ -20,11 +20,7 @@ var (
 
 	GB_TO_MB float64 = 1024
 
-	rightNow = time.Now()
-
 	auth aws.Auth
-
-	PaidPlanMultiplier float64 = 2
 )
 
 type Limits map[string]float64

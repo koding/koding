@@ -22,13 +22,16 @@ var (
 	NetworkOut              = "NetworkOut"
 	NetworkOutLimit float64 = 7 * 1024 // 7GB/week
 
+	PaidPlanMultiplier float64 = 2
+	LimitMultiplier    float64 = 4
+
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
 		&Cloudwatch{Name: NetworkOut, Limits: Limits{
-			StopLimitKey: NetworkOutLimit, BlockLimitKey: NetworkOutLimit * 3,
-		},
-		},
+			StopLimitKey:  NetworkOutLimit,
+			BlockLimitKey: NetworkOutLimit * LimitMultiplier,
+		}},
 	}
 )
 
