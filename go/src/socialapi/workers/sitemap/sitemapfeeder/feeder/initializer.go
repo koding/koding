@@ -102,18 +102,6 @@ func (c *Controller) createChannels() error {
 	return nil
 }
 
-func (c *Controller) queueAccounts(accounts []socialmodels.Account) {
-	for _, a := range accounts {
-		si := newItemByAccount(&a, models.STATUS_ADD)
-		name, err := c.queueItem(si)
-		if err != nil {
-			c.log.Error("Could not add account item %s: %s", a.Nick, err)
-		}
-
-		fileMap[name] = struct{}{}
-	}
-}
-
 func (c *Controller) queuePosts(posts []socialmodels.ChannelMessage) {
 	channelPrivacyMap := make(map[int64]string)
 

@@ -151,18 +151,6 @@ func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *mo
 	}
 }
 
-func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapItem {
-	i := &models.SitemapItem{
-		Id:           a.Id,
-		TypeConstant: models.TYPE_ACCOUNT,
-		Status:       status,
-	}
-
-	i.Slug = a.Nick
-
-	return i
-}
-
 func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapItem {
 	slug := "Public"
 	switch c.TypeConstant {
