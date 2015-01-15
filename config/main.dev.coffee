@@ -360,6 +360,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
           }
+          {
+            location    : "~ /sitemap(.*).xml"
+            proxyPass   : "http://socialapi/sitemap$1.xml"
+          }
         ]
 
     gatekeeper          :

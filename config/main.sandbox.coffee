@@ -57,7 +57,7 @@ Configuration = (options={}) ->
     hostname          : hostname
     protocol          : protocol
     email             : email
-    sitemap           : { redisDB: 0, timeInterval: 30 }
+    sitemap           : { redisDB: 0 }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
     limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
@@ -366,6 +366,10 @@ Configuration = (options={}) ->
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
+          }
+          {
+            location    : "~ /sitemap(.*).xml"
+            proxyPass   : "http://socialapi/sitemap$1.xml"
           }
         ]
 
