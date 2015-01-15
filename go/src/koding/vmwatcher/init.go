@@ -93,22 +93,6 @@ func initializeMongo() {
 	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
-func saveExemptUsers() {
-	for _, metric := range metricsToSave {
-		err := storage.ExemptSave(metric.GetName(), ExemptUsers)
-		if err != nil {
-			Log.Fatal(err.Error())
-		}
-
-		err = newStorage.Save(metric.GetName(), ExemptKey, ExemptUsers)
-		if err != nil {
-			Log.Fatal(err.Error())
-		}
-	}
-
-	Log.Debug("Saved: %v users as exempt", len(ExemptUsers))
-}
-
 func initializeKlient(c *VmController) {
 	var err error
 
