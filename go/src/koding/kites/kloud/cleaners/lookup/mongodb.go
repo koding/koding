@@ -1,7 +1,6 @@
 package lookup
 
 import (
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"time"
@@ -47,7 +46,7 @@ func NewMongoDB(url string) *MongoDB {
 
 // Iter iterates over all machine documents and executes fn for each new
 // iteration.
-func (m *MongoDB) Iter(fn func(MachineDocument) error) error {
+func (m *MongoDB) Iter(fn func(MachineDocument)) error {
 	query := func(c *mgo.Collection) error {
 		machinesWithIds := bson.M{
 			"meta.instanceId": bson.M{"$exists": true, "$ne": ""},
@@ -56,9 +55,7 @@ func (m *MongoDB) Iter(fn func(MachineDocument) error) error {
 		machine := MachineDocument{}
 		iter := c.Find(machinesWithIds).Batch(150).Iter()
 		for iter.Next(&machine) {
-			if err := fn(machine); err != nil {
-				fmt.Printf("iter err: %s\n", err)
-			}
+			fn(machine)
 		}
 
 		return iter.Close()

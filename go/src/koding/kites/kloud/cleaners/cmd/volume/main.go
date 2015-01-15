@@ -90,8 +90,8 @@ func realMain() error {
 			available.Total())
 
 		if conf.Terminate {
-			available.TerminateAll()
 			fmt.Println("")
+			fmt.Printf("\nTerminated '%d' volumes\n", available.Total())
 		} else {
 			fmt.Printf("To delete all non used volumes run the command again with the flag -terminate\n")
 		}

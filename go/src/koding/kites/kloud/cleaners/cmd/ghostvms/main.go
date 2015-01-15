@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
 	"os"
@@ -53,23 +52,25 @@ func main() {
 	fmt.Printf("Fetching user VMs from MongoDB ...\n")
 	mongodbIds := make(map[string]struct{}, 0)
 
-	iter := func(l lookup.MachineDocument) error {
+	iter := func(l lookup.MachineDocument) {
 		i, ok := l.Meta["instanceId"]
 		if !ok {
-			return errors.New("instanceId doesn't exist")
+			fmt.Println("instanceId doesn't exist")
+			return
 		}
 
 		id, ok := i.(string)
 		if !ok {
-			return fmt.Errorf("MongoDB meta.instanceId is malformed %v", i)
+			fmt.Printf("MongoDB meta.instanceId is malformed %v", i)
+			return
 		}
 
 		if id == "" {
-			return errors.New("instanceId is empty")
+			fmt.Println("instanceId is empty")
+			return
 		}
 
 		mongodbIds[id] = struct{}{}
-		return nil
 	}
 
 	start := time.Now()
