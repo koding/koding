@@ -73,8 +73,10 @@ func realMain() error {
 	duplicates := make(map[string]struct{}, 0)            // list of users with machines more than one
 
 	go func() {
-		time.Sleep(time.Second * 20)
-		fmt.Printf("Users: %d Duplicates: %d\n", len(users), len(duplicates))
+		for {
+			time.Sleep(time.Second * 20)
+			fmt.Printf("Users: %d Duplicates: %d\n", len(users), len(duplicates))
+		}
 	}()
 
 	iter := func(l lookup.MachineDocument) {
@@ -90,18 +92,22 @@ func realMain() error {
 		users[username] = machines
 		duplicates[username] = struct{}{}
 	}
-	start := time.Now()
 	if err := m.Iter(iter); err != nil {
 		return err
 	}
-	fmt.Println("Mongodb fetching finished", time.Since(start))
 
 	fmt.Println("Listing non paid users with more than one VMs")
+	count := 0
 	for user := range duplicates {
 		if !isPaid(user) {
-			fmt.Printf("Username: '%s'. Total machine count: %d\n", user, len(users[user]))
+			count++
+			fmt.Printf("Username: '%s'. Machine: %d\n", user, len(users[user]))
 		}
 	}
+
+	fmt.Println("")
+	fmt.Printf("%d users with more than one VM found\n", len(duplicates))
+	fmt.Printf("%d of them are non paid users\n", count)
 
 	return nil
 }
