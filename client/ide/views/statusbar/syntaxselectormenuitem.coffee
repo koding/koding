@@ -1,4 +1,7 @@
-class IDE.SyntaxSelectorMenuItem extends KDView
+editorSettings = require '../../workspace/panes/settings/editorSettings'
+
+
+class SyntaxSelectorMenuItem extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -12,5 +15,8 @@ class IDE.SyntaxSelectorMenuItem extends KDView
 
     @addSubView @select = new KDSelectBox
       cssClass          : 'dark'
-      selectOptions     : IDE.settings.editor.getSyntaxOptions()
+      selectOptions     : editorSettings.getSyntaxOptions()
       callback          : (value) => @emit 'SelectionMade', value
+
+
+module.exports = SyntaxSelectorMenuItem

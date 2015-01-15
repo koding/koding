@@ -1,4 +1,8 @@
-class IDE.EditorSettingsView extends IDE.IDESettingsView
+IDESettingsView = require './idesettingsview'
+editorSettings  = require './editorSettings'
+
+
+class EditorSettingsView extends IDESettingsView
 
   createElements: ->
 
@@ -44,27 +48,27 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
 
     @keyboardHandler     = new KDSelectBox
       cssClass           : 'dark'
-      selectOptions      : IDE.settings.editor.keyboardHandlers
+      selectOptions      : editorSettings.keyboardHandlers
       callback           : (state) => @emit 'SettingsChanged', 'keyboardHandler', state
 
     @syntax              = new KDSelectBox
       cssClass           : 'dark'
-      selectOptions      : IDE.settings.editor.getSyntaxOptions()
+      selectOptions      : editorSettings.getSyntaxOptions()
       callback           : (state) => @emit 'SettingsChanged', 'syntax', state
 
     @fontSize            = new KDSelectBox
       cssClass           : 'dark'
-      selectOptions      : IDE.settings.editor.fontSizes
+      selectOptions      : editorSettings.fontSizes
       callback           : (state) => @emit 'SettingsChanged', 'fontSize', state
 
     @theme               = new KDSelectBox
       cssClass           : 'dark'
-      selectOptions      : IDE.settings.editor.themes
+      selectOptions      : editorSettings.themes
       callback           : (state) => @emit 'SettingsChanged', 'theme', state
 
     @tabSize             = new KDSelectBox
       cssClass           : 'dark'
-      selectOptions      : IDE.settings.editor.tabSizes
+      selectOptions      : editorSettings.tabSizes
       callback           : (state) => @emit 'SettingsChanged', 'tabSize', state
 
 
@@ -112,3 +116,6 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       <p class="with-select">Theme       {{> @theme}}</p>
       <p class="with-select">Tab size    {{> @tabSize}}</p>
     """
+
+
+module.exports = EditorSettingsView

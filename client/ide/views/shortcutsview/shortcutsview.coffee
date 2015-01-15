@@ -1,4 +1,7 @@
-class IDE.ShortcutsView extends KDCustomScrollView
+ShortcutView = require './shortcutview'
+
+
+class ShortcutsView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
@@ -25,7 +28,7 @@ class IDE.ShortcutsView extends KDCustomScrollView
         shortcut  = shortcut[key]  if typeof shortcut is 'object'
         shortcut  = shortcut.replace 'Meta', metaKey
 
-        container.addSubView new IDE.ShortcutView {}, { shortcut, description }
+        container.addSubView new ShortcutView {}, { shortcut, description }
 
       @wrapper.addSubView container
 
@@ -120,3 +123,6 @@ class IDE.ShortcutsView extends KDCustomScrollView
       'Select word left'       : { Others: 'Ctrl-Shift-Left',  Apple: 'Alt-Shift-Left'   }
       'Select word right'      : { Others: 'Ctrl-Shift-Right', Apple: 'Alt-Shift-Right'  }
       'Toggle comment'         : 'Meta-/'
+
+
+module.exports = ShortcutsView

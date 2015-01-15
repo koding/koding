@@ -1,4 +1,4 @@
-class IDE.FinderTreeController extends NFinderTreeController
+class FinderTreeController extends NFinderTreeController
 
 
   cmCreateWorkspace: (node) -> @createWorkspace node
@@ -43,3 +43,6 @@ class IDE.FinderTreeController extends NFinderTreeController
     return  if @dontEmitChangeEvent
 
     @emit 'FolderExpanded', nodeView.getData().path
+
+
+module.exports = FinderTreeController

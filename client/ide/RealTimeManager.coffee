@@ -1,3 +1,5 @@
+require 'gapi'
+
 class RealTimeManager extends KDObject
 
   constructor: (options = {}, data) ->
@@ -209,3 +211,6 @@ class RealTimeManager extends KDObject
 
     @isDisposed = yes
     @destroy()
+
+
+module.exports = RealTimeManager

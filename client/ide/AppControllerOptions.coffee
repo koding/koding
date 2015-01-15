@@ -1,4 +1,4 @@
-class IDE.AppControllerOptions
+class AppControllerOptions
 
   name        : 'IDE'
   behavior    : 'application'
@@ -63,3 +63,6 @@ class IDE.AppControllerOptions
     { command: 'move tab left',       binding: 'mod+alt+shift+left',   global: yes }
     { command: 'move tab right',      binding: 'mod+alt+shift+right',  global: yes }
   ]
+
+
+module.exports = AppControllerOptions

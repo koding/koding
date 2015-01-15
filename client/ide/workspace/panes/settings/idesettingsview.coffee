@@ -1,4 +1,7 @@
-class IDE.IDESettingsView extends JView
+EditorSettingsView = require './editorsettingsview'
+
+
+class IDESettingsView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -41,6 +44,9 @@ class IDE.IDESettingsView extends JView
     @appStorage.setValue key, value
 
     appManager = KD.getSingleton 'appManager'
-    component  = if this instanceof IDE.EditorSettingsView then 'editor' else 'terminal'
+    component  = if this instanceof EditorSettingsView then 'editor' else 'terminal'
 
     appManager.tell 'IDE', 'updateSettings', component, key, value
+
+
+module.exports = IDESettingsView

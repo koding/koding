@@ -1,4 +1,9 @@
-class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
+FinderPane       = require '../../workspace/panes/finderpane'
+SettingsPane     = require '../../workspace/panes/settings/settingspane'
+WorkspaceTabView = require '../../workspace/workspacetabview'
+
+
+class IDEFilesTabView extends WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
@@ -40,7 +45,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       name     : 'Files'
       closable : no
 
-    @finderPane = new IDE.FinderPane
+    @finderPane = new FinderPane
     filesPane.addSubView @finderPane
 
     @tabView.addPane filesPane
@@ -58,7 +63,7 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
       name       : 'Settings'
       closable   : no
 
-    settingsPane.addSubView @settingsPane = new IDE.SettingsPane
+    settingsPane.addSubView @settingsPane = new SettingsPane
     @tabView.addPane settingsPane
 
 
@@ -106,3 +111,6 @@ class IDE.IDEFilesTabView extends IDE.WorkspaceTabView
           KD.singletons.windowController.notifyWindowResizeListeners()
 
     @tabView.addSubView handle
+
+
+module.exports = IDEFilesTabView

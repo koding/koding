@@ -1,24 +1,28 @@
-class IDE.TerminalSettingsView extends IDE.IDESettingsView
+IDESettingsView  = require './idesettingsview'
+terminalSettings = require './terminalSettings'
+
+
+class TerminalSettingsView extends IDESettingsView
 
   createElements: ->
     @font           = new KDSelectBox
       cssClass      : 'dark'
-      selectOptions : IDE.settings.terminal.fonts
+      selectOptions : terminalSettings.fonts
       callback      : (state) => @emit 'SettingsChanged', 'font', state
 
     @fontSize       = new KDSelectBox
       cssClass      : 'dark'
-      selectOptions : IDE.settings.terminal.fontSizes
+      selectOptions : terminalSettings.fontSizes
       callback      : (state) => @emit 'SettingsChanged', 'fontSize', state
 
     @theme          = new KDSelectBox
       cssClass      : 'dark'
-      selectOptions : IDE.settings.terminal.themes
+      selectOptions : terminalSettings.themes
       callback      : (state) => @emit 'SettingsChanged', 'theme', state
 
     @scrollback     = new KDSelectBox
       cssClass      : 'dark'
-      selectOptions : IDE.settings.terminal.scrollback
+      selectOptions : terminalSettings.scrollback
       callback      : (state) => @emit 'SettingsChanged', 'scrollback', state
 
     @visualBell     = new KodingSwitch
@@ -52,3 +56,6 @@ class IDE.TerminalSettingsView extends IDE.IDESettingsView
       <p>Use visual bell                 {{> @visualBell}}</p>
       <p>Blinking cursor                 {{> @blinkingCursor}}</p>
     """
+
+
+module.exports = TerminalSettingsView

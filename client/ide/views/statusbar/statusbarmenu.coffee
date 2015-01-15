@@ -1,4 +1,8 @@
-class IDE.StatusBarMenu extends KDContextMenu
+StatusBarMenuItem      = require './statusbarmenuitem'
+SyntaxSelectorMenuItem = require './syntaxselectormenuitem'
+
+
+class StatusBarMenu extends KDContextMenu
 
   constructor: (options = {}) ->
 
@@ -8,7 +12,7 @@ class IDE.StatusBarMenu extends KDContextMenu
     options.x             = delegate.getX() - 5
     options.y             = delegate.getY() + 20
     options.cssClass      = 'status-bar-menu'
-    options.treeItemClass = IDE.StatusBarMenuItem
+    options.treeItemClass = StatusBarMenuItem
 
     super options, menuItems
 
@@ -19,7 +23,7 @@ class IDE.StatusBarMenu extends KDContextMenu
   getMenuItems: ->
     isNavigatorApple = KD.utils.isNavigatorApple()
 
-    @syntaxSelector = new IDE.SyntaxSelectorMenuItem
+    @syntaxSelector = new SyntaxSelectorMenuItem
 
     list = [
       # name                   # shortcut      # cmd
@@ -74,3 +78,6 @@ class IDE.StatusBarMenu extends KDContextMenu
           view: item[1]
 
     return items
+
+
+module.exports = StatusBarMenu

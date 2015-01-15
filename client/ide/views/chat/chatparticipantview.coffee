@@ -1,4 +1,4 @@
-class IDE.ChatParticipantView extends JView
+class ChatParticipantView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -81,3 +81,6 @@ class IDE.ChatParticipantView extends JView
         {{> @permissions}}
       <div>
     """
+
+
+module.exports = ChatParticipantView

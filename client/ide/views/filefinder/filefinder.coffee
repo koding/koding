@@ -1,4 +1,7 @@
-class IDE.FileFinder extends KDCustomHTMLView
+FileFinderItem = require './filefinderitem'
+
+
+class FileFinder extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
@@ -58,7 +61,7 @@ class IDE.FileFinder extends KDCustomHTMLView
     items.push path: file  for file in files when file
 
     listOptions        =
-      itemChildClass   : IDE.FileFinderItem
+      itemChildClass   : FileFinderItem
       itemChildOptions :
         cssClass       : 'file-item'
       scrollView       : no
@@ -124,3 +127,6 @@ class IDE.FileFinder extends KDCustomHTMLView
   viewAppended: ->
     super
     @input.setFocus()
+
+
+module.exports = FileFinder

@@ -1,4 +1,7 @@
-class IDE.EditorPane extends IDE.Pane
+Pane = require './pane'
+
+
+class EditorPane extends Pane
 
   shortcutsShown = no
 
@@ -34,7 +37,7 @@ class IDE.EditorPane extends IDE.Pane
       throw new TypeError 'File must be an instance of FSFile'
 
     unless content?
-      throw new TypeError 'You must pass file content to IDE.EditorPane'
+      throw new TypeError 'You must pass file content to EditorPane'
 
     aceOptions =
       delegate                 : @getDelegate()
@@ -193,25 +196,21 @@ class IDE.EditorPane extends IDE.Pane
     charWidth      = renderer.characterWidth
     color          = KD.utils.getColorFromString username
     widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;"
-    userWidgetCss  = "ace-line-widget-#{username}"
-    lineCssClass   = "ace-line-widget #{userWidgetCss}"
+    lineCssClass   = "ace-line-widget ace-line-widget-#{KD.nick()}"
+    cursorCssClass = 'ace-participant-cursor'
     cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
     lineWidgetHTML = """
       <div class='#{lineCssClass}' style='#{widgetStyle}'>
         <span class="username">#{username}</span>
-        <span class="ace-participant-cursor" style="#{cursorStyle}"></span>
+        <span class="#{cursorCssClass}" style="#{cursorStyle}"></span>
       </div>
     """
 
     if oldWidget
       widgetManager.removeLineWidget oldWidget
 
-    oldWidgetElements = @getElement().querySelectorAll ".#{userWidgetCss}"
-
-    if oldWidgetElements.length
-      for el in oldWidgetElements
-        parent = el.parentNode
-        parent.parentNode.removeChild parent
+    elements = document.getElementsByClassName "ace-line-widget-#{KD.nick()}"
+    elements[0].parentNode.removeChild elements[0]  if elements.length
 
     lineWidgetOptions =
       row        : row
@@ -360,3 +359,6 @@ class IDE.EditorPane extends IDE.Pane
   makeEditable: ->
 
     @getEditor()?.setReadOnly no
+
+
+module.exports = EditorPane

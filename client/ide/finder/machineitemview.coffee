@@ -1,4 +1,4 @@
-class IDE.MachineItemView extends NFileItemView
+class MachineItemView extends NFileItemView
 
 
   constructor: (options = {}, data) ->
@@ -29,3 +29,6 @@ class IDE.MachineItemView extends NFileItemView
         </div>
       </div>
     """
+
+
+module.exports = MachineItemView

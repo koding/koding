@@ -1,4 +1,8 @@
-class IDE.ChatView extends KDTabView
+ChatMessagePane  = require './chatmessagepane'
+ChatSettingsPane = require './chatsettingspane'
+
+
+class ChatView extends KDTabView
 
   constructor: (options = {}, data)->
 
@@ -84,8 +88,8 @@ class IDE.ChatView extends KDTabView
     chatOptions     = { name, type, channelId, @isInSession }
     settingsOptions = { @rtm, @isInSession }
 
-    @addPane @chatPane     = new IDE.ChatMessagePane  chatOptions, channel
-    @addPane @settingsPane = new IDE.ChatSettingsPane settingsOptions, channel
+    @addPane @chatPane     = new ChatMessagePane  chatOptions, channel
+    @addPane @settingsPane = new ChatSettingsPane settingsOptions, channel
 
     @settingsPane.forwardEvents this, [
       'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
@@ -115,3 +119,6 @@ class IDE.ChatView extends KDTabView
 
     @showChatPane()
     @chatPane.refresh()
+
+
+module.exports = ChatView

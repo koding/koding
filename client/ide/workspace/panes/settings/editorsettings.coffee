@@ -1,6 +1,4 @@
-IDE.settings or= {}
-
-IDE.settings.editor =
+module.exports =
 
   fontSizes: [
     { value: 10,         title: '10px'     }
@@ -136,7 +134,7 @@ IDE.settings.editor =
     yaml        : ["YAML"         , "yaml|yml"]
 
   getAllExts : ->
-    exts = (IDE.settings.editor.syntaxAssociations[key][1].split "|" for key in Object.keys IDE.settings.editor.syntaxAssociations)
+    exts = (@syntaxAssociations[key][1].split "|" for key in Object.keys @syntaxAssociations)
     exts = [].concat exts...
     exts = (v.toLowerCase() for v in exts)
     exts = _.unique exts

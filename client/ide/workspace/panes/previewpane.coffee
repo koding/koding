@@ -1,4 +1,7 @@
-class IDE.PreviewPane extends IDE.Pane
+Pane = require './pane'
+
+
+class PreviewPane extends Pane
 
   constructor: (options = {}, data) ->
 
@@ -24,3 +27,6 @@ class IDE.PreviewPane extends IDE.Pane
     {url, paneType} = @getOptions()
 
     return { url, paneType, @hash }
+
+
+module.exports = PreviewPane

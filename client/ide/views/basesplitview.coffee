@@ -1,4 +1,4 @@
-class IDE.BaseSplitView extends KDSplitView
+class BaseSplitView extends KDSplitView
 
   viewAppended: ->
 
@@ -23,3 +23,6 @@ class IDE.BaseSplitView extends KDSplitView
     # even if the first pane reaches the value.
     @resizePanel first, 0, noop, yes
 
+
+
+module.exports = BaseSplitView

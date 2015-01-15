@@ -1,6 +1,4 @@
-IDE.settings or= {}
-
-IDE.settings.terminal =
+module.exports =
   fonts     : [
     { value : 'source-code-pro', title : 'Source Code Pro' }
     { value : 'ubuntu-mono'    , title : 'Ubuntu Mono'     }

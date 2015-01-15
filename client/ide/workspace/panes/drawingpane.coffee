@@ -1,4 +1,8 @@
-class IDE.DrawingPane extends IDE.Pane
+require 'jquery-sketchpad'
+Pane = require './pane'
+
+
+class DrawingPane extends Pane
 
 
   penSizes = [ 3, 5, 8, 12, 15, 20 ]
@@ -27,7 +31,7 @@ class IDE.DrawingPane extends IDE.Pane
         width    : @getWidth()
         height   : @getHeight()
 
-    @scrollView.wrapper.addSubView @canvas
+    @addSubView @canvas
 
 
   createToolbar: ->
@@ -51,7 +55,7 @@ class IDE.DrawingPane extends IDE.Pane
       @colorMenuView   = view  if command is 'color'
       @penSizeMenuView = view  if command is 'penSize'
 
-    @scrollView.wrapper.addSubView @toolbar
+    @addSubView @toolbar
 
     @colorMenuView.on   'click', =>
       @penSizeMenuView.unsetClass 'selected'
@@ -92,7 +96,7 @@ class IDE.DrawingPane extends IDE.Pane
 
     @toolbarMenu?.destroy()
 
-    @scrollView.wrapper.addSubView @toolbarMenu = new KDCustomHTMLView
+    @addSubView @toolbarMenu = new KDCustomHTMLView
       cssClass : 'drawing-board-toolbar menu'
 
     @toolbarMenu.addSubView item  for item in items
@@ -218,9 +222,10 @@ class IDE.DrawingPane extends IDE.Pane
   viewAppended: ->
 
     super
-    
-    @addSubView @scrollView = new KDCustomScrollView
 
     @createCanvas()
     @createToolbar()
     @init()
+
+
+module.exports = DrawingPane

@@ -1,4 +1,4 @@
-class IDE.ContentSearchResultView extends KDScrollView
+class ContentSearchResultView extends KDScrollView
 
   constructor: (options = {}, data) ->
 
@@ -48,3 +48,6 @@ class IDE.ContentSearchResultView extends KDScrollView
     file.fetchContents (err, contents) ->
       KD.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
         editorPane.goToLine lineNumber
+
+
+module.exports = ContentSearchResultView

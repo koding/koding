@@ -1,4 +1,4 @@
-class IDE.ShortcutView extends JView
+class ShortcutView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -21,3 +21,6 @@ class IDE.ShortcutView extends JView
         #{@description}
       </div>
     """
+
+
+module.exports = ShortcutView

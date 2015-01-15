@@ -1,3 +1,22 @@
+ndpane = require 'ndpane'
+
+RealTimeManager = require './realtimemanager'
+splashMarkups   = require './splashMarkups'
+
+AppControllerOptions = require './appcontrolleroptions'
+IDEFilesTabView      = require './views/tabview/idefilestabview'
+IDEView              = require './views/tabview/ideview'
+Workspace            = require './workspace/workspace'
+EditorPane           = require './workspace/panes/editorpane'
+TerminalPane         = require './workspace/panes/terminalpane'
+ShortcutsView        = require './views/shortcutsview/shortcutsview'
+StatusBarMenu        = require './views/statusbar/statusbarmenu'
+FileFinder           = require './views/filefinder/filefinder'
+ContentSearch        = require './views/contentsearch/contentsearch'
+StatusBar            = require './views/statusbar/statusbar'
+ChatView             = require './views/chat/chatview'
+
+
 class IDEAppController extends AppController
 
   {
@@ -6,7 +25,7 @@ class IDEAppController extends AppController
   } = Machine.State
 
 
-  KD.registerAppClass this, new IDE.AppControllerOptions
+  KD.registerAppClass this, new AppControllerOptions
 
   constructor: (options = {}, data) ->
     options.appInfo =
@@ -25,19 +44,19 @@ class IDEAppController extends AppController
           {
             type      : 'custom'
             name      : 'filesPane'
-            paneClass : IDE.IDEFilesTabView
+            paneClass : IDEFilesTabView
           },
           {
             type      : 'custom'
             name      : 'editorPane'
-            paneClass : IDE.IDEView
+            paneClass : IDEView
           }
         ]
 
     $('body').addClass 'dark' # for theming
 
     appView   = @getView()
-    workspace = @workspace = new IDE.Workspace { layoutOptions }
+    workspace = @workspace = new Workspace { layoutOptions }
     @ideViews = []
 
     # todo:
@@ -135,7 +154,7 @@ class IDEAppController extends AppController
 
     ideView        = @activeTabView.parent
     ideParent      = ideView.parent
-    newIDEView     = new IDE.IDEView ideViewOptions
+    newIDEView     = new IDEView ideViewOptions
 
     splitViewPanel = @activeTabView.parent.parent
     if splitViewPanel instanceof KDSplitViewPanel
@@ -201,7 +220,7 @@ class IDEAppController extends AppController
 
   handleSplitMerge: (views, container, parentSplitView, panelIndexInParent) ->
 
-    ideView = new IDE.IDEView createNewEditor: no
+    ideView = new IDEView createNewEditor: no
     panes   = []
 
     for view in views
@@ -275,7 +294,7 @@ class IDEAppController extends AppController
         if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
           nickname     = KD.nick()
           machineLabel = machine.slug or machine.label
-          splashs      = IDE.splashMarkups
+          splashs      = splashMarkups
 
           @fakeTabView      = @activeTabView
           @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
@@ -585,7 +604,7 @@ class IDEAppController extends AppController
   updateSettings: (component, key, value) ->
 
     # TODO: Refactor this method by passing component type to helper method.
-    Class  = if component is 'editor' then IDE.EditorPane else IDE.TerminalPane
+    Class  = if component is 'editor' then EditorPane else TerminalPane
     method = "set#{key.capitalize()}"
 
     if key is 'useAutosave' # autosave is special case, handled by app manager.
@@ -621,7 +640,7 @@ class IDEAppController extends AppController
     paneView = null
 
     @forEachSubViewInIDEViews_ (view) ->
-      paneView = view.parent  if view instanceof IDE.ShortcutsView
+      paneView = view.parent  if view instanceof ShortcutsView
 
     return paneView.parent.showPane paneView if paneView
 
@@ -695,7 +714,7 @@ class IDEAppController extends AppController
     paneView = @getActivePaneView()
     paneType = paneView?.getOptions().paneType or null
     delegate = button
-    menu     = new IDE.StatusBarMenu { paneType, paneView, delegate }
+    menu     = new StatusBarMenu { paneType, paneView, delegate }
 
     ideView.menu = menu
 
@@ -713,7 +732,7 @@ class IDEAppController extends AppController
 
     return @fileFinder.input.setFocus()  if @fileFinder
 
-    @fileFinder = new IDE.FileFinder
+    @fileFinder = new FileFinder
     @fileFinder.once 'KDObjectWillBeDestroyed', => @fileFinder = null
 
 
@@ -721,7 +740,7 @@ class IDEAppController extends AppController
 
     return @contentSearch.findInput.setFocus()  if @contentSearch
 
-    @contentSearch = new IDE.ContentSearch
+    @contentSearch = new ContentSearch
     @contentSearch.once 'KDObjectWillBeDestroyed', => @contentSearch = null
     @contentSearch.once 'ViewNeedsToBeShown', (view) =>
       @activeTabView.emit 'ViewNeedsToBeShown', view
@@ -729,7 +748,7 @@ class IDEAppController extends AppController
 
   createStatusBar: (splitViewPanel) ->
 
-    splitViewPanel.addSubView @statusBar = new IDE.StatusBar
+    splitViewPanel.addSubView @statusBar = new StatusBar
 
 
   createFindAndReplaceView: (splitViewPanel) ->
@@ -823,7 +842,7 @@ class IDEAppController extends AppController
 
     for ideView in @ideViews
       pane = ideView.tabView.getActivePane()
-      if pane and pane.view instanceof IDE.TerminalPane
+      if pane and pane.view instanceof TerminalPane
         pane.view.webtermView.terminal?.updateSize()
 
 
@@ -1222,7 +1241,7 @@ class IDEAppController extends AppController
   createChatPaneView: (channel) ->
 
     options = { @rtm, @isInSession }
-    @getView().addSubView @chat = new IDE.ChatView options, channel
+    @getView().addSubView @chat = new ChatView options, channel
     @chat.show()
 
     @on 'RTMIsReady', =>
@@ -1801,3 +1820,6 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()
     @getView().unsetClass 'read-only'
+
+
+module.exports = IDEAppController

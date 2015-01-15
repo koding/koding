@@ -1,4 +1,7 @@
-class IDE.StatusBar extends KDView
+StatusBarAvatarView = require './statusbaravatarview'
+
+
+class StatusBar extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -61,7 +64,7 @@ class IDE.StatusBar extends KDView
 
     return  if @participantAvatars[nickname]
 
-    view       = new IDE.StatusBarAvatarView
+    view       = new StatusBarAvatarView
       origin   : nickname
       size     : width: 24, height: 24
       cssClass : if isOnline then 'online' else 'offline'
@@ -126,3 +129,6 @@ class IDE.StatusBar extends KDView
   handleCollaborationStarted: ->
 
     @share.updatePartial 'Chat'
+
+
+module.exports = StatusBar

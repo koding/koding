@@ -1,4 +1,7 @@
-class IDE.ChatSettingsPane extends KDTabPaneView
+ChatParticipantView = require './chatparticipantview'
+
+
+class ChatSettingsPane extends KDTabPaneView
 
   JView.mixin @constructor
 
@@ -186,7 +189,7 @@ class IDE.ChatSettingsPane extends KDTabPaneView
     channel           = @getData()
     options           = { isOnline, @isInSession, isWatching, permission }
     data              = { account, channel }
-    participantView   = new IDE.ChatParticipantView options, data
+    participantView   = new ChatParticipantView options, data
 
     @participantViews[nickname] = participantView
     @everyone.addSubView participantView, null, isOnline
@@ -261,3 +264,6 @@ class IDE.ChatSettingsPane extends KDTabPaneView
         {{> @startSession}} {{> @endSession}}
       </div>
     """
+
+
+module.exports = ChatSettingsPane

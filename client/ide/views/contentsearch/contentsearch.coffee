@@ -1,4 +1,8 @@
-class IDE.ContentSearch extends KDModalViewWithForms
+ContentSearchResultView = require './contentsearchresultview'
+editorSettings          = require '../../workspace/panes/settings/editorSettings'
+
+
+class ContentSearch extends KDModalViewWithForms
 
   constructor: (options = {}, data) ->
 
@@ -64,9 +68,9 @@ class IDE.ContentSearch extends KDModalViewWithForms
     isWholeWord     = @wholeWordToggle.getValue()
     isRegExp        = @regExpToggle.getValue()
 
-    exts            = IDE.settings.editor.getAllExts()
+    exts            = editorSettings.getAllExts()
     include         = "\\*{#{exts.join ','}}"
-    exclureDirs     = Object.keys IDE.settings.editor.ignoreDirectories
+    exclureDirs     = Object.keys editorSettings.ignoreDirectories
     exclureDirs     = " --exclude-dir=#{exclureDirs.join ' --exclude-dir='}"
     searchText      = @searchText
 
@@ -163,7 +167,7 @@ class IDE.ContentSearch extends KDModalViewWithForms
   createResultsView: (result, stats) ->
     {searchText}    = this
     isCaseSensitive = @caseToggle.getValue()
-    resultsView     = new IDE.ContentSearchResultView { result, stats, searchText, isCaseSensitive, @machine }
+    resultsView     = new ContentSearchResultView { result, stats, searchText, isCaseSensitive, @machine }
 
     @emit 'ViewNeedsToBeShown', resultsView
     @destroy()
@@ -189,3 +193,6 @@ class IDE.ContentSearch extends KDModalViewWithForms
     {@caseToggle, @regExpToggle, @wholeWordToggle} = searchForm.inputs
 
     @findInput.setFocus()
+
+
+module.exports = ContentSearch

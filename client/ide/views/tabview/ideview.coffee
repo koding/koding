@@ -1,4 +1,12 @@
-class IDE.IDEView extends IDE.WorkspaceTabView
+EditorPane       = require '../../workspace/panes/editorpane'
+ShortcutsView    = require '../shortcutsview/shortcutsview'
+TerminalPane     = require '../../workspace/panes/terminalpane'
+DrawingPane      = require '../../workspace/panes/drawingpane'
+PreviewPane      = require '../../workspace/panes/previewpane'
+WorkspaceTabView = require '../../workspace/workspacetabview'
+
+
+class IDEView extends WorkspaceTabView
 
   constructor: (options = {}, data) ->
 
@@ -19,7 +27,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
     @tabView.on 'ShortcutsViewRequested',   @bound 'createShortcutsView'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
-    # obsolete: 'preview file' feature was removed (bug #82710798)
+    #absolete: 'preview file' feature was removed (bug #82710798)
     @tabView.on 'PreviewPaneRequested',     (url) -> window.open "http://#{url}"
     @tabView.on 'DrawingPaneRequested',     @bound 'createDrawingBoard'
     @tabView.on 'ViewNeedsToBeShown',       @bound 'showView'
@@ -57,7 +65,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     unless view instanceof KDView
       return new Error 'View must be an instance of KDView'
 
-    if view instanceof IDE.EditorPane
+    if view instanceof EditorPane
       paneOptions.name = @trimUntitledFileName paneOptions.name
 
     pane = new KDTabPaneView paneOptions, paneData
@@ -82,7 +90,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
-    editorPane  = new IDE.EditorPane { file, content, delegate: this }
+    editorPane  = new EditorPane { file, content, delegate: this }
     paneOptions =
       name      : file.name
       editor    : editorPane
@@ -119,7 +127,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   createShortcutsView: ->
 
-    @createPane_ new IDE.ShortcutsView, { name: 'Shortcuts' }
+    @createPane_ new ShortcutsView, { name: 'Shortcuts' }
 
   createTerminal: (options) ->
 
@@ -136,7 +144,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     { machine, joinUser } = options
 
-    terminalPane = new IDE.TerminalPane options
+    terminalPane = new TerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
@@ -168,7 +176,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   createDrawingBoard: (paneHash) ->
 
-    drawingPane = new IDE.DrawingPane { hash: paneHash }
+    drawingPane = new DrawingPane { hash: paneHash }
     @createPane_ drawingPane, { name: 'Drawing' }
 
     unless paneHash
@@ -177,7 +185,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
   createPreview: (url) ->
 
-    previewPane = new IDE.PreviewPane { url }
+    previewPane = new PreviewPane { url }
     @createPane_ previewPane, { name: 'Browser' }
 
     previewPane.on 'LocationChanged', (newLocation) =>
@@ -454,3 +462,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     .catch (err)->
       warn "Failed to terminate session, possibly it's already dead.", err
+
+
+module.exports = IDEView

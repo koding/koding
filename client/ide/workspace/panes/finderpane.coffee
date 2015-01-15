@@ -1,4 +1,10 @@
-class IDE.FinderPane extends IDE.Pane
+FinderItem                  = require '../../finder/finderitem'
+FinderTreeController        = require '../../finder/findertreecontroller'
+FinderContextMenuController = require '../../finder/findercontextmenucontroller'
+Pane                        = require './pane'
+
+
+class FinderPane extends Pane
 
   constructor: (options = {}, data) ->
 
@@ -12,9 +18,9 @@ class IDE.FinderPane extends IDE.Pane
       fc = @finderController = finderApp.create
         addAppTitle          : no
         bindMachineEvents    : no
-        treeItemClass        : IDE.FinderItem
-        treeControllerClass  : IDE.FinderTreeController
-        contextMenuClass     : IDE.FinderContextMenuController
+        treeItemClass        : FinderItem
+        treeControllerClass  : FinderTreeController
+        contextMenuClass     : FinderContextMenuController
 
       @addSubView fc.getView()
       @bindListeners()
@@ -82,3 +88,6 @@ class IDE.FinderPane extends IDE.Pane
     else if action is 'Collapsed' then tc.collapseFolder tc.nodes[context.path]
 
     tc.dontEmitChangeEvent = no
+
+
+module.exports = FinderPane

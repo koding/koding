@@ -1,4 +1,9 @@
-class IDE.SettingsPane extends IDE.Pane
+EditorSettingsView   = require './editorsettingsview'
+TerminalSettingsView = require './terminalsettingsview'
+Pane                 = require '../pane'
+
+
+class SettingsPane extends Pane
 
   constructor: (options = {}, data) ->
 
@@ -8,8 +13,11 @@ class IDE.SettingsPane extends IDE.Pane
 
     @addSubView scrollView = new KDCustomScrollView
 
-    @editorSettingsView   = new IDE.EditorSettingsView
-    @terminalSettingsView = new IDE.TerminalSettingsView
+    @editorSettingsView   = new EditorSettingsView
+    @terminalSettingsView = new TerminalSettingsView
 
     scrollView.wrapper.addSubView @editorSettingsView
     scrollView.wrapper.addSubView @terminalSettingsView
+
+
+module.exports = SettingsPane

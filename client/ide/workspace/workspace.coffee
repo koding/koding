@@ -1,4 +1,7 @@
-class IDE.Workspace extends KDController
+Panel = require './panel'
+
+
+class Workspace extends KDController
 
   constructor: (options = {}, data) ->
 
@@ -10,10 +13,13 @@ class IDE.Workspace extends KDController
 
   createPanel: ->
     options    = @getOptions()
-    panelClass = options.panelClass or IDE.Panel
+    panelClass = options.panelClass or Panel
     @panel     = new panelClass layoutOptions: options.layoutOptions
 
     KD.utils.defer => @emit 'ready'
 
   getView: ->
     return @panel
+
+
+module.exports = Workspace

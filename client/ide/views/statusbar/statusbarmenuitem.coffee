@@ -1,4 +1,4 @@
-class IDE.StatusBarMenuItem extends JContextMenuItem
+class StatusBarMenuItem extends JContextMenuItem
 
   viewAppended:->
     { title, type, shortcut } = @getData()
@@ -9,3 +9,6 @@ class IDE.StatusBarMenuItem extends JContextMenuItem
       <span class='name'>#{title}</span>
       <span class='shortcut'>#{shortcut}</span>
       """
+
+
+module.exports = StatusBarMenuItem

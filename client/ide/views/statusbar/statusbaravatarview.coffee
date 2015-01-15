@@ -1,4 +1,7 @@
-class IDE.StatusBarAvatarView extends AvatarView
+ChatHeadWatchItemView = require './chatheadwatchitemview'
+
+
+class StatusBarAvatarView extends AvatarView
 
   INTENT_DELAY = 177
   MENU         = null
@@ -95,7 +98,7 @@ class IDE.StatusBarAvatarView extends AvatarView
       unless @hasClass 'offline'
         menuItems.Watch =
           type         : 'customView'
-          view         : new IDE.ChatHeadWatchItemView
+          view         : new ChatHeadWatchItemView
             isWatching : isWatching
             nickname   : @nickname
             delegate   : this
@@ -147,3 +150,6 @@ class IDE.StatusBarAvatarView extends AvatarView
     MENU?.destroy()
 
     super
+
+
+module.exports = StatusBarAvatarView

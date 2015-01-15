@@ -1,4 +1,4 @@
-class IDE.ChatMessagePane extends PrivateMessagePane
+class ChatMessagePane extends PrivateMessagePane
 
   constructor: (options = {}, data)->
 
@@ -177,3 +177,5 @@ class IDE.ChatMessagePane extends PrivateMessagePane
     item.checkIfItsTooTall()  for item in @listController.getListItems()
     @scrollView.wrapper.emit 'MutationHappened'
     @scrollDown()
+
+module.exports = ChatMessagePane

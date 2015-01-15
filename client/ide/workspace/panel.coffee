@@ -1,4 +1,12 @@
-class IDE.Panel extends KDView
+WorkspaceLayoutBuilder = require './workspacelayoutbuilder'
+TerminalPane           = require './panes/terminalpane'
+EditorPane             = require './panes/editorpane'
+PreviewPane            = require './panes/previewpane'
+FinderPane             = require './panes/finderpane'
+DrawingPane            = require './panes/drawingpane'
+
+
+class Panel extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -20,7 +28,7 @@ class IDE.Panel extends KDView
 
     layoutOptions.delegate = this
 
-    @layout = new IDE.WorkspaceLayoutBuilder layoutOptions
+    @layout = new WorkspaceLayoutBuilder layoutOptions
     @addSubView @layout
 
   createPane: (paneOptions) ->
@@ -44,13 +52,16 @@ class IDE.Panel extends KDView
 
   findPaneClass: (paneType) ->
     paneClasses =
-      terminal  : IDE.TerminalPane
-      editor    : IDE.EditorPane
-      preview   : IDE.PreviewPane
-      finder    : IDE.FinderPane
-      drawing   : IDE.DrawingPane
+      terminal  : TerminalPane
+      editor    : EditorPane
+      preview   : PreviewPane
+      finder    : FinderPane
+      drawing   : DrawingPane
 
     return paneClasses[paneType]
 
   getPaneByName: (name) ->
     return @panesByName[name] or null
+
+
+module.exports = Panel

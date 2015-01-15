@@ -1,4 +1,4 @@
-class IDE.FinderContextMenuController extends NFinderContextMenuController
+class FinderContextMenuController extends NFinderContextMenuController
 
   getFolderMenu: (fileView) ->
 
@@ -51,3 +51,6 @@ class IDE.FinderContextMenuController extends NFinderContextMenuController
       delete items.Collapse
 
     return items
+
+
+module.exports = FinderContextMenuController

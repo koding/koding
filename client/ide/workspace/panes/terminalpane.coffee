@@ -1,4 +1,7 @@
-class IDE.TerminalPane extends IDE.Pane
+Pane = require './pane'
+
+
+class TerminalPane extends Pane
 
   constructor: (options = {}, data) ->
 
@@ -130,3 +133,6 @@ class IDE.TerminalPane extends IDE.Pane
 
 
   makeReadOnly: -> @setEditMode no
+
+
+module.exports = TerminalPane

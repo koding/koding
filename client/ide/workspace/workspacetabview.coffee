@@ -1,4 +1,4 @@
-class IDE.WorkspaceTabView extends JView
+class WorkspaceTabView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -26,3 +26,6 @@ class IDE.WorkspaceTabView extends JView
       {{> @holderView}}
       {{> @tabView}}
     """
+
+
+module.exports = WorkspaceTabView

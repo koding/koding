@@ -1,4 +1,4 @@
-class IDE.FileFinderItem extends KDListItemView
+class FileFinderItem extends KDListItemView
 
   partial: ->
     {path}   = @getData()
@@ -12,3 +12,6 @@ class IDE.FileFinderItem extends KDListItemView
 
   click: ->
     @emit 'FileNeedsToBeOpened', @getData().path
+
+
+module.exports = FileFinderItem

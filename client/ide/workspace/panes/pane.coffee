@@ -1,4 +1,4 @@
-class IDE.Pane extends JView
+class Pane extends JView
 
   constructor: (options = {}, data) ->
 
@@ -10,3 +10,6 @@ class IDE.Pane extends JView
 
 
   setFocus: (state) ->
+
+
+module.exports = Pane

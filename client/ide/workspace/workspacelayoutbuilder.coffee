@@ -1,4 +1,7 @@
-class IDE.WorkspaceLayoutBuilder extends KDSplitComboView
+BaseSplitView = require '../views/basesplitview'
+
+
+class WorkspaceLayoutBuilder extends KDSplitComboView
 
   init: ->
     @splitViews    = {}
@@ -20,7 +23,7 @@ class IDE.WorkspaceLayoutBuilder extends KDSplitComboView
         wrapper.once 'viewAppended', =>
           wrapper.addSubView @getDelegate().createPane config
 
-    SplitViewClass = options.splitViewClass or IDE.BaseSplitView
+    SplitViewClass = options.splitViewClass or BaseSplitView
     options.views  = views
     splitView      = new SplitViewClass options
 
@@ -68,3 +71,5 @@ layoutOptions        =
 layout = new WorkspaceLayoutBuilder layoutOptions
 
 ###
+
+module.exports = WorkspaceLayoutBuilder

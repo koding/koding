@@ -1,4 +1,4 @@
-class IDE.ChatHeadWatchItemView extends KDCustomHTMLView
+class ChatHeadWatchItemView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
@@ -23,3 +23,6 @@ class IDE.ChatHeadWatchItemView extends KDCustomHTMLView
 
 
 
+
+
+module.exports = ChatHeadWatchItemView

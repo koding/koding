@@ -1,4 +1,4 @@
-class IDE.OnboardingModalContent extends JView
+class OnboardingModalContent extends JView
 
   constructor: (options = {}, data) ->
 
@@ -23,3 +23,6 @@ class IDE.OnboardingModalContent extends JView
         {{> @getStartedButton }}
       </div>
     """
+
+
+module.exports = OnboardingModalContent

@@ -1,4 +1,7 @@
-class IDE.OnboardingModal extends EnvironmentsModalView
+OnboardingModalContent = require './onboardingmodalcontent'
+
+
+class OnboardingModal extends EnvironmentsModalView
 
   constructor: (options = {}, data) ->
 
@@ -8,7 +11,7 @@ class IDE.OnboardingModal extends EnvironmentsModalView
 
     super options, data
 
-    @content = new IDE.OnboardingModalContent
+    @content = new OnboardingModalContent
     @content.on 'GetStartedButtonClicked', @bound 'handleGetStarted'
 
     @addSubView @content
@@ -26,3 +29,6 @@ class IDE.OnboardingModal extends EnvironmentsModalView
     @destroy()
 
     @emit 'OnboardingModalDismissed'
+
+
+module.exports = OnboardingModal
