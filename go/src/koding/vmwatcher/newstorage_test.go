@@ -14,7 +14,7 @@ func TestNewStorage(t *testing.T) {
 		var key, subkey = "testmetric", "limit"
 		var score, newScore float64 = 1, 2
 
-		Convey("Then it should save key ", func() {
+		Convey("Then it should save key", func() {
 			err := newStorage.Upsert(key, subkey, score)
 			So(err, ShouldBeNil)
 
@@ -38,10 +38,10 @@ func TestNewStorage(t *testing.T) {
 	})
 
 	Convey("Given key", t, func() {
-		key, subkey, member := "metric", "exempt", "indianajones"
+		key, subkey, members := "metric", "exempt", []interface{}{"indianajones"}
 
 		Convey("Then it should check for existence", func() {
-			yes, err := newStorage.Exists(key, subkey, member)
+			yes, err := newStorage.Exists(key, subkey, members[0].(string))
 			So(err, ShouldBeNil)
 
 			So(yes, ShouldBeFalse)
@@ -52,11 +52,11 @@ func TestNewStorage(t *testing.T) {
 		})
 
 		Convey("Then it should save", func() {
-			err := newStorage.Save(key, subkey, member)
+			err := newStorage.Save(key, subkey, members)
 			So(err, ShouldBeNil)
 
 			Convey("Then it should check for existence", func() {
-				yes, err := newStorage.Exists(key, subkey, member)
+				yes, err := newStorage.Exists(key, subkey, members[0].(string))
 				So(err, ShouldBeNil)
 
 				So(yes, ShouldBeTrue)
@@ -66,7 +66,7 @@ func TestNewStorage(t *testing.T) {
 				poppedMember, err := newStorage.Pop(key, subkey)
 				So(err, ShouldBeNil)
 
-				So(poppedMember, ShouldEqual, member)
+				So(poppedMember, ShouldEqual, members[0].(string))
 			})
 
 			Reset(func() {

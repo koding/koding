@@ -14,7 +14,7 @@ type NewStorage interface {
 	Get(string, string) (float64, error)
 
 	//set
-	Save(string, string, ...interface{}) error
+	Save(string, string, []interface{}) error
 	Pop(string, string) (string, error)
 	Exists(string, string, string) (bool, error)
 
@@ -63,7 +63,7 @@ func (r *NewRedisStorage) Get(key, subkey string) (float64, error) {
 // SET
 //----------------------------------------------------------
 
-func (r *NewRedisStorage) Save(key, subkey string, members ...interface{}) error {
+func (r *NewRedisStorage) Save(key, subkey string, members []interface{}) error {
 	_, err := r.Client.AddSetMembers(r.prefix(key, subkey), members...)
 	return err
 }
