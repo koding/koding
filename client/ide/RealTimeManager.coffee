@@ -1,4 +1,4 @@
-require 'gapi'
+# require 'gapi'
 
 class RealTimeManager extends KDObject
 

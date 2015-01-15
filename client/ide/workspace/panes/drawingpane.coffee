@@ -1,4 +1,4 @@
-require 'jquery-sketchpad'
+# require 'jquery-sketchpad'
 Pane = require './pane'
 
 
