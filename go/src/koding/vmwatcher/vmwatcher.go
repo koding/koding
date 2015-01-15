@@ -102,30 +102,6 @@ var limitsToAction = map[string]func(string, string) error{
 	"Terminate": blockUserAndDestroyVm,
 }
 
-func queueOverlimitUsers() {
-	for _, metric := range metricsToSave {
-		for limitName, _ := range limitsToAction {
-			machines, err := metric.GetMachinesOverLimit(limitName)
-			if err != nil {
-				Log.Error(err.Error())
-				continue
-			}
-
-			usernames := extractUsernames(machines)
-			err = storage.Save(metric.GetName(), QueueKey+StopLimitKey, usernames)
-			if err != nil {
-				Log.Error(err.Error())
-				continue
-			}
-
-			Log.Debug("Queued %d for users for %s#%s", len(usernames),
-				metric.GetName(), limitName,
-			)
-		}
-	}
-
-}
-
 func extractUsernames(machines []*models.Machine) []interface{} {
 	usernames := []interface{}{}
 	for _, machine := range machines {

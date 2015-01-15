@@ -5,8 +5,16 @@ import (
 	"koding/db/mongodb/modelhelper"
 )
 
-func popMachinesForMetricGet(metricName string) ([]*models.Machine, error) {
-	username, err := popFromQueue(metricName, GetQueueKey)
+func popMachinesForMetricGet(metric string) ([]*models.Machine, error) {
+	return popMachine(metric, GetQueueKey)
+}
+
+func popMachinesOverLimit(metric, limit string) ([]*models.Machine, error) {
+	return popMachine(metric, limit)
+}
+
+func popMachine(key, subkey string) ([]*models.Machine, error) {
+	username, err := popFromQueue(key, subkey)
 	if err != nil {
 		return nil, err
 	}

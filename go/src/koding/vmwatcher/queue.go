@@ -16,13 +16,40 @@ func queueUsernamesForMetricGet() error {
 	}
 
 	for _, metric := range metricsToSave {
-		err := storage.Save(metric.GetName(), GetQueueKey, usernames)
+		err := queue(metric.GetName(), GetQueueKey, usernames)
 		if err != nil {
 			Log.Error(err.Error())
 			continue
 		}
 
-		Log.Debug("Queued: %d usernames for metric: %s", len(usernames), metric.GetName())
+	}
+
+	return nil
+}
+
+func queueOverlimitUsers() {
+	for _, metric := range metricsToSave {
+		for limitName, _ := range limitsToAction {
+			machines, err := metric.GetMachinesOverLimit(limitName)
+			if err != nil {
+				Log.Error(err.Error())
+				continue
+			}
+
+			usernames := extractUsernames(machines)
+			err = storage.Save(metric.GetName(), StopQueueKey, usernames)
+			if err != nil {
+				Log.Error(err.Error())
+				continue
+			}
+		}
+	}
+}
+
+func queue(key, subkey string, members []interface{}) error {
+	err := storage.Save(key, subkey, members)
+	if err == nil {
+		Log.Debug("Queued: %d members for metric: %s#%s", len(members), key, subkey)
 	}
 
 	return nil

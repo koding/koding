@@ -84,7 +84,7 @@ func TestStoppingMachines(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			for _, metric := range metricsToSave {
-				machines, err := metric.GetMachinesOverLimit(NetworkOutLimit)
+				machines, err := metric.GetMachinesOverLimit(StopLimitKey)
 				So(err, ShouldBeNil)
 
 				So(len(machines), ShouldEqual, 1)
@@ -96,6 +96,10 @@ func TestStoppingMachines(t *testing.T) {
 		})
 	})
 }
+
+//----------------------------------------------------------
+// Helpers
+//----------------------------------------------------------
 
 func insertRunningMachine() (*models.Machine, error) {
 	user := &models.User{

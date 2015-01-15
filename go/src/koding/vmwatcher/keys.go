@@ -5,7 +5,7 @@ var (
 
 	QueueKey     = "queue"
 	GetQueueKey  = QueueKey + ":get"
-	StopQueuKey  = QueueKey + ":stop"
+	StopQueueKey = QueueKey + ":stop"
 	BLockQueuKey = QueueKey + ":block"
 
 	StopLimitKey  = "stoplimit"
