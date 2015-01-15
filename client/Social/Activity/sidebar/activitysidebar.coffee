@@ -923,9 +923,15 @@ class ActivitySidebar extends KDCustomHTMLView
             for key, node of @machineTree.nodes when node.type is 'title'
               list = node.getDelegate()
 
-          @machineTree.addNode data
-
           KD.userWorkspaces.push workspace
+          @sortWorkspaces KD.userWorkspaces
+
+          index = 1 + KD.userWorkspaces
+            .filter (w) -> w.machineUId is machine.uid
+            .map    (w) -> w.slug
+            .indexOf workspace.slug
+
+          @machineTree.addNode data, index
 
           router.handleRoute data.href
           @emit 'WorkspaceCreated', workspace
