@@ -300,10 +300,6 @@ module.exports = class JAccount extends jraphical.Module
         as          : 'skill'
         targetType  : "JTag"
 
-      vm            :
-        as          : 'owner'
-        targetType  : 'JVM'
-
       domain        :
         as          : 'owner'
         targetType  : 'JProposedDomain'
