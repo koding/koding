@@ -22,7 +22,8 @@ type Storage interface {
 }
 
 var (
-	storage Storage
+	storage    Storage
+	newStorage NewStorage
 
 	// redis key prefixes
 	GroupBy   = "users"

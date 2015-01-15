@@ -63,6 +63,7 @@ func initialize() {
 	initializeMongo()
 
 	storage = controller.Redis
+	newStorage = controller.NewRedis
 
 	// save defaults
 	saveExemptUsers()
@@ -84,6 +85,7 @@ func initializeRedis(c *VmController) {
 	// Log.Debug("Connected to redis: %s", conf.Redis)
 
 	c.Redis = &RedisStorage{Client: redisClient}
+	c.NewRedis = &NewRedisStorage{Client: redisClient}
 }
 
 func initializeMongo() {
@@ -98,6 +100,11 @@ func saveExemptUsers() {
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
+
+		err = newStorage.Save(metric.GetName(), ExemptKey, ExemptUsers)
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
 	}
 
 	Log.Debug("Saved: %v users as exempt", len(ExemptUsers))
@@ -106,6 +113,11 @@ func saveExemptUsers() {
 func saveLimitsUnlessExists() {
 	for _, metric := range metricsToSave {
 		err := storage.SaveLimitUnlessExists(metric.GetName(), metric.GetLimit())
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+
+		err = newStorage.UpsertScore(metric.GetName(), LimitKey, metric.GetLimit())
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
