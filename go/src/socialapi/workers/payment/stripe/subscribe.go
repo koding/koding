@@ -28,7 +28,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
-	subscriptions, err := FindCustomerActiveSubscriptions(customer)
+	subscriptions, err := customer.FindSubscriptions()
 	if err != nil {
 		return err
 	}
