@@ -1,3 +1,7 @@
+FSHelper          = require '../../../fs/fshelper'
+OpenWithModalItem = require './openwithmodalitem'
+
+
 class OpenWithModal extends KDObject
 
   constructor: (options = {}, data)->
@@ -57,3 +61,5 @@ class OpenWithModal extends KDObject
 
     modal.buttonHolder.addSubView @alwaysOpenWith
     modal.buttonHolder.addSubView label
+
+module.exports = OpenWithModal

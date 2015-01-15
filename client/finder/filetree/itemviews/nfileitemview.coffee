@@ -1,3 +1,7 @@
+FSHelper = require '../../fs/fshelper'
+JView    = require '../../../core/jview'
+
+
 class NFileItemView extends KDCustomHTMLView
 
   JView.mixin @prototype
@@ -87,3 +91,6 @@ class NFileItemView extends KDCustomHTMLView
       <span class='title' title="#{path}">#{name}</span>
       <span class='chevron'></span>
     """
+
+
+module.exports = NFileItemView

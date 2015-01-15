@@ -46,3 +46,6 @@ class NFinderDeleteDialog extends KDModalView
     KD.getSingleton("windowController").revertKeyView()
     super
 
+
+
+module.exports = NFinderDeleteDialog

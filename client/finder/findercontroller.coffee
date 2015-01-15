@@ -1,3 +1,7 @@
+DNDUploader       = require './commonviews/dnduploader'
+NFinderController = require './filetree/controllers/nfindercontroller'
+
+
 class FinderController extends KDController
 
   KD.registerAppClass this,
@@ -77,3 +81,6 @@ class FinderController extends KDController
         uploaderPlaceholder.hide()
 
     return uploaderPlaceholder
+
+
+module.exports = FinderController

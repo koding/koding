@@ -1,3 +1,6 @@
+JView = require '../../../core/jview'
+
+
 class NoMachinesFoundWidget extends JView
 
   constructor:->
@@ -57,3 +60,6 @@ class NoMachinesFoundWidget extends JView
   hide:->
     @unsetClass 'visible'
     @loader.hide()
+
+
+module.exports = NoMachinesFoundWidget

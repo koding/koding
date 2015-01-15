@@ -1,3 +1,14 @@
+FSHelper              = require '../../fs/fshelper'
+NBrokenLinkItemView   = require './nbrokenlinkitemview'
+NFileItemView         = require './nfileitemview'
+NFinderItemDeleteView = require '../itemsubviews/nfinderitemdeleteview'
+NFinderItemRenameView = require '../itemsubviews/nfinderitemrenameview'
+NFolderItemView       = require './nfolderitemview'
+NMachineItemView      = require './nmachineitemview'
+NMountItemView        = require './nmountitemview'
+NSectionItemView      = require './nsectionitemview'
+
+
 class NFinderItem extends JTreeItemView
 
   constructor:(options = {},data)->
@@ -130,3 +141,6 @@ class NFinderItem extends JTreeItemView
 
       @showProgressView
         percentage : 100 * lastUploadedChunk / totalChunks
+
+
+module.exports = NFinderItem

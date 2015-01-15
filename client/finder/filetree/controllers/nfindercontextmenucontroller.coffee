@@ -1,3 +1,7 @@
+FSHelper            = require '../../fs/fshelper'
+NSetPermissionsView = require '../itemsubviews/nsetpermissionsview'
+
+
 class NFinderContextMenuController extends KDController
 
   ###
@@ -450,3 +454,6 @@ class NFinderContextMenuController extends KDController
 # 'New Folder'                : action : 'createFolder'
 # 'Upload file...'            : action : 'upload', disabled : yes
 # 'Clone from Github...'      : action : 'gitHubClone', disabled : yes
+
+
+module.exports = NFinderContextMenuController

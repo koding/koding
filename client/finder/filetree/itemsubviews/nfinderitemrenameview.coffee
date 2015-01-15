@@ -1,3 +1,7 @@
+JView              = require '../../../core/jview'
+NFinderRenameInput = require '../../nfinderrenameinput'
+
+
 class NFinderItemRenameView extends JView
 
   constructor:(options, data)->
@@ -28,10 +32,6 @@ class NFinderItemRenameView extends JView
     {{> @cancel}}
     """
 
-class NFinderRenameInput extends KDHitEnterInputView
-  constructor: (options = {}, data) ->
-    super options, data
-    @once "viewAppended", @bound "selectAll"
 
-  click    : -> no
-  dblClick : -> no
+
+module.exports = NFinderItemRenameView

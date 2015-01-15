@@ -1,3 +1,6 @@
+JView = require '../../../core/jview'
+
+
 class NSetPermissionsView extends JView
 
   constructor: ->
@@ -102,3 +105,6 @@ class NSetPermissionsView extends JView
       @displayOctalPermissions()
       @displayOldOctalPermissions()
     , 0
+
+
+module.exports = NSetPermissionsView

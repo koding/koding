@@ -1,3 +1,6 @@
+FSHelper = require './fshelper'
+
+
 
 # Base class for file instances
 # Requires to work with Klient Kite
@@ -282,3 +285,6 @@ class FSItem extends KDObject
 
     .then =>
       @emit "fs.job.started"
+
+
+module.exports = FSItem

@@ -1,3 +1,6 @@
+JView = require '../../../core/jview'
+
+
 class NFinderItemDeleteView extends JView
 
   constructor:->
@@ -43,3 +46,6 @@ class NFinderItemDeleteView extends JView
         unless @button.$().is(":focus")
           @button.$().focus()
           no
+
+
+module.exports = NFinderItemDeleteView

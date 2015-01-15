@@ -1,3 +1,6 @@
+FSHelper = require './fshelper'
+
+
 class FSWatcher extends KDObject
 
   @watchers = {}
@@ -84,3 +87,6 @@ class FSWatcher extends KDObject
     FSWatcher.stopWatching @getFullPath()
 
   getFullPath:-> "[#{@vmName}]#{@path}"
+
+
+module.exports = FSWatcher

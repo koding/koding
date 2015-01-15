@@ -1,3 +1,7 @@
+FSHelper = require '../fs/fshelper'
+FSItem   = require '../fs/fsitem'
+
+
 class DNDUploader extends KDView
 
   constructor: (options={}, data)->
@@ -294,3 +298,5 @@ class DNDUploader extends KDView
   getMachine: ->
 
     @getDelegate().machines.first.machine
+
+module.exports = DNDUploader

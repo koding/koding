@@ -1,3 +1,7 @@
+FSHelper      = require '../../fs/fshelper'
+NFileItemView = require './nfileitemview'
+
+
 class NMachineItemView extends NFileItemView
 
   constructor:(options = {},data)->
@@ -82,3 +86,6 @@ class NMachineItemView extends NFileItemView
       {{> @machineInfo}}
       <span class='chevron'></span>
     """
+
+
+module.exports = NMachineItemView

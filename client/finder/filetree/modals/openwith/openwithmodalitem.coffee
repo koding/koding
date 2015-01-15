@@ -1,3 +1,6 @@
+JView = require '../../../../core/jview'
+
+
 class OpenWithModalItem extends JView
 
   constructor: (options= {}, data) ->
@@ -21,3 +24,5 @@ class OpenWithModalItem extends JView
       {{> @img }}
       <div class='app-name'>#{@getData()}</div>
     """
+
+module.exports = OpenWithModalItem

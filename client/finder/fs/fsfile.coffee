@@ -1,3 +1,7 @@
+FSHelper = require './fshelper'
+FSItem   = require './fsitem'
+
+
 class FSFile extends FSItem
 
   constructor:->
@@ -221,3 +225,6 @@ class FSFile extends FSItem
         @emit "fs.save.finished", null, response
 
         return response
+
+
+module.exports = FSFile

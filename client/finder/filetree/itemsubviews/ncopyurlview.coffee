@@ -1,3 +1,8 @@
+CustomLinkView = require '../../../core/customlinkview'
+FSHelper       = require '../../fs/fshelper'
+JView          = require '../../../core/jview'
+
+
 class NCopyUrlView extends JView
 
   constructor: ->
@@ -64,3 +69,5 @@ class NCopyUrlView extends JView
       {{> @inputUrlLabel}}
       {{> @inputUrl}}
       """
+
+module.exports = NCopyUrlView

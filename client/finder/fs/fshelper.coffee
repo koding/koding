@@ -1,3 +1,10 @@
+FSBrokenLink = require './fsbrokenlink'
+FSFile       = require './fsfile'
+FSFolder     = require './fsfolder'
+FSMachine    = require './fsmachine'
+FSMount      = require './fsmount'
+
+
 
 class FSHelper
 
@@ -311,3 +318,6 @@ class FSHelper
 
 
 KD.classes.FSHelper = FSHelper
+
+
+module.exports = FSHelper
