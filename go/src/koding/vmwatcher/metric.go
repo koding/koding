@@ -9,4 +9,5 @@ type Metric interface {
 	RemoveUsername(string) error
 	GetName() string
 	GetLimit() float64
+	Save(string, float64) error
 }

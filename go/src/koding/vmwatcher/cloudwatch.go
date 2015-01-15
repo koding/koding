@@ -40,8 +40,8 @@ func (c *Cloudwatch) GetLimit() float64 {
 	return c.Limit
 }
 
-func isEmpty(s string) bool {
-	return s == ""
+func (c *Cloudwatch) Save(username string, value float64) error {
+	return newStorage.SaveScore(c.Name, username, value)
 }
 
 func (c *Cloudwatch) GetAndSaveData(username string) error {
@@ -107,11 +107,11 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 		Log.Debug("'%s' has used: %v '%s'", username, sum, c.Name)
 	}
 
-	return storage.Save(c.Name, username, sum)
+	return c.Save(username, sum)
 }
 
 func (c *Cloudwatch) GetMachinesOverLimit(limit float64) ([]*models.Machine, error) {
-	usernames, err := storage.Range(c.Name, limit)
+	usernames, err := newStorage.GetFromScore(c.Name, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -142,12 +142,12 @@ func (c *Cloudwatch) GetMachinesOverLimit(limit float64) ([]*models.Machine, err
 func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	canStart := &LimitResponse{CanStart: true}
 
-	value, err := storage.Get(c.GetName(), username)
+	value, err := newStorage.GetScore(c.Name, username)
 	if err != nil && !isRedisRecordNil(err) {
 		return nil, err
 	}
 
-	yes, err := exemptFromStopping(c.GetName(), username)
+	yes, err := exemptFromStopping(c.Name, username)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,12 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	planTitle, err := getPlanForUser(username)
 	if err != nil {
-		return nil, err
+		Log.Error(
+			"Fetching plan for username: %s failed: %v, defaulting to paid",
+			username, err,
+		)
+
+		planTitle = PaidPlan
 	}
 
 	var limit float64
@@ -186,4 +191,8 @@ func (c *Cloudwatch) RemoveUsername(username string) error {
 
 func isRedisRecordNil(err error) bool {
 	return err != nil && err == redis.ErrNil
+}
+
+func isEmpty(s string) bool {
+	return s == ""
 }
