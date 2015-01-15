@@ -277,6 +277,7 @@ type RuntimeOptions struct {
 	Pubnub struct {
 		SubscribeKey string `json:"subscribekey"`
 		Enabled      bool   `json:"enabled"`
+		SSL          bool   `json:"ssl"`
 	} `json:"pubnub"`
 	Collaboration struct {
 		Timeout int `json:"timeout"`

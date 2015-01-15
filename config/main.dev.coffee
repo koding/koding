@@ -210,7 +210,7 @@ Configuration = (options={}) ->
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
     paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub            : { subscribekey: pubnub.subscribekey , enabled: no     }
+    pubnub            : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: no     }
     collaboration     : KONFIG.collaboration
 
 
@@ -273,8 +273,8 @@ Configuration = (options={}) ->
       nginx             :
         websocket       : yes
         locations       : [
-          { location      : "/websocket" }
-          { location      : "~^/subscribe/.*" }
+          { location    : "/websocket" }
+          { location    : "~^/subscribe/.*" }
         ]
       healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
       versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
@@ -352,11 +352,11 @@ Configuration = (options={}) ->
       versionURL        : "http://localhost:#{socialapiProxy.port}/version"
       nginx             :
         locations       : [
-          { location      : "= /payments/stripe/webhook" },
+          { location    : "= /payments/stripe/webhook" },
           {
-            location      : "/api/social/"
-            proxyPass    : "http://socialapi/"
-            internalOnly  : yes
+            location    : "/api/social/"
+            proxyPass   : "http://socialapi/"
+            internalOnly: yes
           }
         ]
 
