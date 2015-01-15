@@ -59,6 +59,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   updateStatus: (event, task) ->
 
+    return  if @_busy
+
     {status, percentage, error} = event
 
     if status is @state
@@ -128,11 +130,13 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     KD.utils.wait 500, => @buildViews()
 
 
-  showBusy: (message = "Loading...") ->
+  showBusy: (message) ->
+
+    @_busy = message?
 
     @container.destroySubViews()
 
-    @createStateLabel message
+    @createStateLabel message ? "Loading..."
     @createLoading()
 
 
@@ -289,6 +293,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
 
   buildViews: (response)->
+
+    return  if @_busy
 
     if response?.State?
       @state = response.State
