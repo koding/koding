@@ -6,7 +6,7 @@ import (
 )
 
 func popMachinesForMetricGet(metric string) ([]*models.Machine, error) {
-	return popMachine(metric, GetQueueKey)
+	return popMachine(metric, getQueueKey(GetKey))
 }
 
 func popMachinesOverLimit(metric, limit string) ([]*models.Machine, error) {

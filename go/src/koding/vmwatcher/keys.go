@@ -1,13 +1,13 @@
 package main
 
 var (
-	ExemptKey = "exempt"
-
-	QueueKey     = "queue"
-	GetQueueKey  = QueueKey + ":get"
-	StopQueueKey = QueueKey + ":stop"
-	BLockQueuKey = QueueKey + ":block"
-
-	StopLimitKey  = "stoplimit"
-	BlockLimitKey = "blocklimit"
+	ExemptKey     = "exempt"
+	QueueKey      = "queue"
+	GetKey        = "stop"
+	StopLimitKey  = "stop"
+	BlockLimitKey = "block"
 )
+
+func getQueueKey(s string) string {
+	return QueueKey + ":" + s
+}

@@ -98,8 +98,8 @@ func getRunningVms() ([]models.Machine, error) {
 }
 
 var limitsToAction = map[string]func(string, string) error{
-	"Stop":      stopVm,
-	"Terminate": blockUserAndDestroyVm,
+	StopLimitKey:  stopVm,
+	BlockLimitKey: blockUserAndDestroyVm,
 }
 
 func extractUsernames(machines []*models.Machine) []interface{} {

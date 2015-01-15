@@ -50,7 +50,7 @@ func TestQueueOverLimitUsers(t *testing.T) {
 			queueOverlimitUsers()
 
 			Convey("Then it should pop machine", func() {
-				queuedMachines, err := popMachinesOverLimit(NetworkOut, StopQueueKey)
+				queuedMachines, err := popMachinesOverLimit(NetworkOut, getQueueKey(StopLimitKey))
 				So(err, ShouldBeNil)
 				So(len(queuedMachines), ShouldEqual, 1)
 
