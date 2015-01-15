@@ -185,10 +185,6 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	return lr, nil
 }
 
-func (c *Cloudwatch) RemoveUsername(username string) error {
-	return storage.Remove(c.GetName(), username)
-}
-
 func isRedisRecordNil(err error) bool {
 	return err != nil && err == redis.ErrNil
 }
