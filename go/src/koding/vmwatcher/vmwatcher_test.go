@@ -38,7 +38,7 @@ func TestRunningMachine(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeMachine(machine)
+			removeUserMachine(testUsername)
 		})
 	})
 }
@@ -52,19 +52,10 @@ func TestOverlimitMachines(t *testing.T) {
 		machine, err = insertRunningMachine()
 		So(err, ShouldBeNil)
 
-		Convey("Then it should queue the machine", func() {
+		Convey("Then it should queue & pop the machine", func() {
 			err := queueUsernamesForMetricGet()
 			So(err, ShouldBeNil)
 
-			redisClient := controller.Redis.Client
-			usernames, err := redisClient.GetSetMembers(controller.Redis.QueueKey(NetworkOut))
-			So(err, ShouldBeNil)
-
-			So(len(usernames), ShouldEqual, 1)
-			So((string(usernames[0].([]uint8))), ShouldEqual, machine.Credential)
-		})
-
-		Convey("Then it should pop the machine", func() {
 			queuedMachines, err := popMachinesForMetricGet(NetworkOut)
 			So(err, ShouldBeNil)
 			So(len(queuedMachines), ShouldEqual, 1)
@@ -73,7 +64,7 @@ func TestOverlimitMachines(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeMachine(machine)
+			removeUserMachine(testUsername)
 		})
 	})
 }
@@ -87,12 +78,13 @@ func TestStoppingMachines(t *testing.T) {
 		machine, err = insertRunningMachine()
 		So(err, ShouldBeNil)
 
-		err = queueUsernamesForMetricGet()
-		So(err, ShouldBeNil)
-
 		Convey("Then it should return machine", func() {
+			networkOutMetric := metricsToSave[0]
+			err := newStorage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*3)
+			So(err, ShouldBeNil)
+
 			for _, metric := range metricsToSave {
-				machines, err := metric.GetMachinesOverLimit()
+				machines, err := metric.GetMachinesOverLimit(NetworkOutLimit)
 				So(err, ShouldBeNil)
 
 				So(len(machines), ShouldEqual, 1)
@@ -100,32 +92,42 @@ func TestStoppingMachines(t *testing.T) {
 		})
 
 		Reset(func() {
-			removeMachine(machine)
+			removeUserMachine(testUsername)
 		})
 	})
 }
 
 func insertRunningMachine() (*models.Machine, error) {
-	machine := &models.Machine{
-		ObjectId:   bson.NewObjectId(),
-		Credential: testUsername,
-		Meta: map[string]string{
-			"instance_id": magicInstanceId, "region": usEastRegion,
+	user := &models.User{
+		Name: testUsername, ObjectId: bson.NewObjectId(),
+	}
+
+	users := []models.MachineUser{
+		models.MachineUser{
+			Id: user.ObjectId, Sudo: true,
 		},
 	}
 
-	machine.Status.State = modelhelper.VmRunningState
+	modelhelper.CreateUser(user)
 
-	query := func(c *mgo.Collection) error {
-		return c.Insert(machine)
+	machine := &models.Machine{
+		ObjectId:   bson.NewObjectId(),
+		Credential: user.Name,
+		Meta: map[string]string{
+			"instance_id": magicInstanceId, "region": usEastRegion,
+		},
+		Users:  users,
+		Status: models.MachineStatus{State: modelhelper.MachineStateRunning},
 	}
 
-	return machine, modelhelper.Mongo.Run(modelhelper.MachineColl, query)
+	return machine, modelhelper.CreateMachine(machine)
 }
 
-func removeMachine(machine *models.Machine) {
+func removeUserMachine(username string) {
+	modelhelper.RemoveUser(username)
+
 	query := func(c *mgo.Collection) error {
-		return c.Remove(bson.M{"_id": machine.ObjectId})
+		return c.Remove(bson.M{"credential": username})
 	}
 
 	modelhelper.Mongo.Run(modelhelper.MachineColl, query)

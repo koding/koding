@@ -107,7 +107,7 @@ func queueUsernamesForMetricGet() error {
 	for _, metric := range metricsToSave {
 		Log.Debug("Queued: %d usernames for metric: %s", len(usernames), metric.GetName())
 
-		err := storage.Queue(metric.GetName(), usernames)
+		err := newStorage.Save(metric.GetName(), QueueName, usernames)
 		if err != nil {
 			return err
 		}
@@ -117,7 +117,7 @@ func queueUsernamesForMetricGet() error {
 }
 
 func popMachinesForMetricGet(metricName string) ([]*models.Machine, error) {
-	username, err := storage.Pop(metricName)
+	username, err := newStorage.Pop(metricName, QueueName)
 	if err != nil {
 		return nil, err
 	}
