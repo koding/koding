@@ -366,6 +366,11 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {
+
+	if m.State == machinestate.NotInitialized {
+		return nil
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
 		return err
