@@ -52,9 +52,13 @@ func dealWithMachinesOverLimit() error {
 		for limit, action := range limitsToAction {
 			for {
 				machines, err := popMachinesOverLimit(metric.GetName(), limit)
-				if err != nil {
+				if err != nil && !isRedisRecordNil(err) {
 					Log.Error(err.Error())
 					continue
+				}
+
+				if isRedisRecordNil(err) {
+					break
 				}
 
 				Log.Debug(
