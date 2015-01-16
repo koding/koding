@@ -8,7 +8,6 @@ module.exports = class JGroupBundle extends JBundle
 
   JPaymentPlan         = require '../payment'
   JPaymentSubscription = require '../payment/subscription'
-  JVM                  = require '../vm'
   async                = require 'async'
 
   @share()

@@ -352,9 +352,6 @@ module.exports = class JGroup extends Module
       invitation:
         targetType  : 'JInvitation'
         as          : 'owner'
-      vm            :
-        targetType  : 'JVM'
-        as          : 'owner'
       paymentMethod :
         targetType  : 'JPaymentMethod'
         as          : 'linked payment method'
@@ -1158,10 +1155,9 @@ module.exports = class JGroup extends Module
     queue = roles.map (role)=>=>
       @addMember member, role, queue.fin.bind queue
 
-    dash queue, =>
-      if @slug not in ["koding", "guests"]
-      then @createMemberVm member, kallback
-      else kallback()
+    # We were creating group member VMs here before
+    # I've deleted them, ask me if you need more information ~ GG
+    dash queue, => kallback()
 
   each:(selector, rest...)->
     selector.visibility = 'visible'
@@ -1269,24 +1265,6 @@ module.exports = class JGroup extends Module
               @updateCounts()
               @cycleChannel()
               queue.fin()
-
-          queue.push =>
-            JVM = require "../vm"
-            selector = groups: $elemMatch: id: @getId()
-            JVM.fetchAccountVmsBySelector account, selector, (err, hostnameAliases) =>
-              return callback err  if err
-              JVM.some hostnameAlias: $in: hostnameAliases, null, (err, vms) =>
-                return callback err  if err
-                vmSuspendQueue = vms.map (vm) ->
-                  ->
-                    vm.suspend (err) ->
-                      console.warn "VM couldn't be suspended #{vm.hostnameAlias}", err  if err
-                      vmSuspendQueue.fin()
-
-                dash vmSuspendQueue, =>
-                  @creditPack tag: "vm", multiplyFactor: vms.length, (err) ->
-                    console.warn "VM pack couldn't be credited for group #{@slug}", err  if err
-                    queue.fin()
 
           dash queue, callback
 
@@ -1632,14 +1610,6 @@ module.exports = class JGroup extends Module
     @_fetchSubscription (err, subscription) ->
       return callback err  if err
       subscription.creditPack options, callback
-
-  createMemberVm: (account, callback) ->
-    @debitPack tag: "vm", (err) =>
-      return callback err  if err
-      JVM = require '../vm'
-      JVM.createVm {account, groupSlug: @slug, @planCode}, (err) =>
-        console.warn "Group #{@slug} member #{account.profile.nickname} VM is not created: #{err}"  if err
-        callback()
 
   createSocialApiChannels: (callback) ->
 
