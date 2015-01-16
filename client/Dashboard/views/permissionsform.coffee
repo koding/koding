@@ -73,7 +73,6 @@ class PermissionsForm extends KDFormViewWithFields
       "JNewApp"        : "Apps"
       "JGroup"         : "Groups"
       "SocialMessage"  : "Social API"
-      "JVM"            : "Compute"
       "JGroupBundle"   : "Group Bundles"
       "JProposedDomain": "Domains"
       "JProxyFilter"   : "Proxy Filters"

@@ -2,7 +2,7 @@ jraphical = require 'jraphical'
 
 JAccount = require '../account'
 JUser = require '../user'
-JVM = require '../vm'
+
 KodingError = require '../../error'
 {argv}   = require 'optimist'
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
@@ -38,10 +38,6 @@ module.exports = class JReferral extends jraphical.Message
           (signature Object, Function)
         redeem:
           (signature Object, Function)
-        changeBaseVMForUsers:[
-          (signature Function)
-          (signature Object, Function)
-        ]
         resetVMDefaults:
           (signature Function)
         fetchRedeemableReferrals:
@@ -54,10 +50,6 @@ module.exports = class JReferral extends jraphical.Message
       static          : []
       instance        : []
     schema            : schema
-    relationships     :
-      redeemedOn      :
-        targetType    : 'JVM'
-        as            : 'redeemedOn'
 
 
   @getReferralEarningLimits = (type) ->
@@ -190,31 +182,8 @@ module.exports = class JReferral extends jraphical.Message
     JAccount.some { referrerUsername : username }, options, callback
 
   @redeem = secure (client, data, callback)->
-    {vmName, size, type} = data
-    return callback new KodingError "Request is not valid" unless vmName and size
+    callback new KodingError "JReferral::redeem disabled"
 
-    # get redeemable referals
-    @fetchRedeemableReferrals client, {type}, (err, referrals)=>
-      return callback err if err
-
-      # check user has enough credit
-      # for loop also checks for 0 length referrals
-      totalCredit = 0
-      totalCredit += referral.amount for referral in referrals
-
-      # if not return an error
-      return callback new KodingError "You dont have enough credit to redeem" if size > totalCredit
-
-      # fetch user's vmName which will be upgraded
-      @fetchUserVM client, vmName, (err, vm)=>
-        return callback err if err
-        options =
-          referrals :referrals
-          vm        :vm
-          size      :size
-          type      :type
-
-        @relateReferalsToJVM options, callback
 
   @createUpdateQueryForRedeem = (type, amount) ->
     switch type
@@ -222,55 +191,6 @@ module.exports = class JReferral extends jraphical.Message
       else
         return console.error "Invalid type provided"
 
-  @relateReferalsToJVM = (options, callback) ->
-    {referrals, vm, size, type} = options
-    # generate the referals to be used for upgrade process
-    referralsToBeUsed = []
-    addedSize = 0
-    for referral in referrals
-      break if addedSize >= size
-      addedSize += referral.amount
-      referralsToBeUsed.push referral
-
-    # wrap the callback
-    kallback = (err)=>
-      return callback err if err
-
-      returnValue =
-        addedSize    : addedSize
-        vm           : vm.hostnameAlias
-        type         : type
-        unit         : referrals.first.unit
-
-      updateQuery = @createUpdateQueryForRedeem type, addedSize
-
-      vm.update { $inc: updateQuery }, (err) ->
-        return callback err if err
-        callback null, returnValue
-
-    queue = referralsToBeUsed.map (ref)=>=>
-      ref.addRedeemedOn vm, (err)->
-        return kallback err if err
-        queue.fin()
-
-    dash queue, kallback
-
-  @fetchUserVM = (client, vmName, callback)->
-    account = client.connection.delegate
-
-    # get the user to fetch his/her VMs
-    account.fetchUser (err, user) ->
-      return callback err  if err
-      selector =
-        users:
-          $elemMatch:
-            id: user.getId()
-        hostnameAlias: vmName
-      # get user's vms
-      JVM.one selector, (err, vm)->
-        return callback err  if err
-        return callback new KodingError "#{vm} is not found" unless vm
-        callback null, vm
 
   @addExtraReferral: secure (client, options, callback)->
     {delegate} = client.connection
@@ -333,35 +253,3 @@ module.exports = class JReferral extends jraphical.Message
         delegate.addReferrer referral, (err)->
           return callback err if err
           return callback null, yes
-
-  @changeBaseVMForUsers = secure (client, callback)->
-    {delegate} = client.connection
-    unless delegate.profile.nickname is "cihangirsavas"
-      return callback {message: "youcannotcallthisfunction"}
-
-    selector = {
-      diskSizeInMB : $gte : 4096
-      vmType       : "user"
-      webHome      : $not : new RegExp "guest-"
-    }
-
-    JVM.someData selector, {webHome:1}, {}, (err, cursor)=>
-      if err then callback err
-      else
-        cursor.each (err, vm)=>
-          if err then callback err
-          else if vm?
-            nickname = vm.webHome
-            JAccount.one {'profile.nickname':nickname}, (err, account)=>
-              if err then console.error err
-              else if account?
-                @add1GBDisk account, (err, res)=>
-                  if err then console.error err
-                  else if res then console.info "decreaseVMsize point is added for", nickname
-                  else console.info "decreaseVMsize point is not added for", nickname
-              else
-                console.warn "couldnt find account", nickname
-          else
-            return callback null, "done"
-
-

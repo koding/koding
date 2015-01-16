@@ -20,7 +20,6 @@ module.exports = class JProposedDomain extends jraphical.Module
 
   domainManager     = new DomainManager
   JAccount          = require './account'
-  JVM               = require './vm'
 
   @share()
 

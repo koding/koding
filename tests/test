@@ -4,6 +4,9 @@ cd $(dirname $0)
 
 MAX_TRY_COUNT=3
 
+REVISION=$(cat ../REVISION)
+export REVISION=${REVISION:0:7}
+
 runTests() {
   SUITE=$1
   SUBSUITE=$2
