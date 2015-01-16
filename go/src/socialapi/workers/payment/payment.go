@@ -339,11 +339,11 @@ func isUsernameEmpty(username string) bool {
 
 func errUsernameEmpty(customerId string) error {
 	return fmt.Errorf(
-		"Stopping machine for paypal customer: %s failed since username is empty",
+		"stopping machine for paypal customer: %s failed since username is empty",
 		customerId,
 	)
 }
 
 func errUnmarshalFailed(data interface{}) error {
-	return fmt.Errorf("Error unmarshalling webhook: %v", data)
+	return fmt.Errorf("unmarshalling webhook failed: %v", data)
 }
