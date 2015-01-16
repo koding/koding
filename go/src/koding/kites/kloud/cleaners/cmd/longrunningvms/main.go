@@ -162,7 +162,14 @@ func realMain() error {
 
 			// delete ipAdress, stopped instances doesn't have any ipAdresses
 			m.DB.Run("jMachines", func(c *mgo.Collection) error {
-				return c.UpdateId(d.id, bson.M{"$set": bson.M{"ipAddress": ""}})
+				return c.UpdateId(d.id,
+					bson.M{"$set": bson.M{
+						"ipAddress":         "",
+						"status.state":      "Stopped",
+						"status.modifiedAt": time.Now().UTC(),
+						"status.reason":     "Non free user, VM is running for more than 12 hours",
+					}},
+				)
 			})
 		}
 
