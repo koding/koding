@@ -29,7 +29,7 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 	// create context
-	context := popularpost.New(r.Log)
+	context := popularpost.New(r.Log, redisConn)
 
 	go func() {
 		for {
