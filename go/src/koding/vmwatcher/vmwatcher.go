@@ -16,34 +16,36 @@ var limitsToAction = map[string]func(string, string) error{
 func getAndSaveQueueMachineMetrics() error {
 	var index = 0
 	defer func() {
-		Log.Debug("Fetched: %d entries for queued usernames", index)
+		Log.Debug("Fetched: %d machine entries for queued usernames", index)
 	}()
 
-	for {
-		for _, metric := range metricsToSave {
+	for _, metric := range metricsToSave {
+		for {
 			machines, err := popMachinesForMetricGet(metric.GetName())
 			if err != nil {
-				// ran out of usernames in queue, so return
-				if isRedisRecordNil(err) {
-					break
+				if !isRedisRecordNil(err) {
+					Log.Error("Failed to fetching machines for %s, %v", metric.GetName(), err)
 				}
 
-				Log.Error("Failed to fetching machines for %s, %v", metric.GetName(), err)
+				// ran out of usernames in queue, so go next metric
+				break
 			}
 
+			// username has no machine, possibly due to it being deleted since the
+			// machine was queued, go to next queued username
 			if len(machines) == 0 {
 				continue
 			}
 
 			for _, machine := range machines {
+				index += 1
+
 				err := metric.GetAndSaveData(machine.Credential)
 				if err != nil {
 					Log.Error(err.Error())
 				}
 			}
 		}
-
-		index += 1
 	}
 
 	return nil
