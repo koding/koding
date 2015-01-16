@@ -45,6 +45,9 @@ class IDE.FinderPane extends IDE.Pane
 
     @on 'MachineUnmountRequested', (machine) ->
       fc.unmountMachine machine.uid
+      
+    @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
+      @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
 
 
   makeReadOnly: -> @finderController.setReadOnly yes

@@ -1804,4 +1804,4 @@ class IDEAppController extends AppController
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
       
-    @finderPane.finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
+    @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
