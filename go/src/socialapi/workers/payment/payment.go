@@ -237,12 +237,12 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 
 		subsObj, ok := s.Data.Object.(map[string]interface{})
 		if !ok {
-			return nil, nil
+			return nil, errUnmarshalFailed(s.Data.Object)
 		}
 
-		subscribeId, ok := subsObj["ID"].(string)
+		subscribeId, ok := subsObj["id"].(string)
 		if !ok {
-			return nil, nil
+			return nil, errUnmarshalFailed(s.Data.Object)
 		}
 
 		customer := paymentmodels.NewCustomer()
@@ -360,5 +360,12 @@ func isUsernameEmpty(username string) bool {
 }
 
 func errUsernameEmpty(customerId string) error {
-	return fmt.Errorf("Stopping machine for paypal customer: %s failed since username is empty", customerId)
+	return fmt.Errorf(
+		"Stopping machine for paypal customer: %s failed since username is empty",
+		customerId,
+	)
+}
+
+func errUnmarshalFailed(data interface{}) error {
+	return fmt.Errorf("Error unmarshalling webhook: %v", data)
 }
