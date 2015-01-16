@@ -1,3 +1,5 @@
+{ log } = require './helper.logger'
+
 module.exports = (suffix, sprite) ->
 
   arr   = sprite.source_image.split '/'
