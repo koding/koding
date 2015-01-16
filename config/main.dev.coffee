@@ -35,7 +35,11 @@ Configuration = (options={}) ->
     _port  = if publicPort is '80' then '' else publicPort
     host   = options.host or "#{options.hostname}:#{_port}"
 
-  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+  local = "127.0.0.1"
+  if publicPort isnt '80'
+    local = "#{local}:#{publicPort}"
+
+  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"      , forcedRecipient: "foome@koding.com"                       }
@@ -53,12 +57,10 @@ Configuration = (options={}) ->
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
-  socialapiProxy      =
-    hostname          : "localhost"
-    port              : "7000"
 
   socialapi =
-    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
+    proxyUrl          : "#{customDomain.local}/api/social"
+    port              : "7000"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres          : postgres
     mq                : mq
@@ -343,19 +345,19 @@ Configuration = (options={}) ->
 
     socialapi:
       group             : "socialapi"
-      instances         : 3
+      instances         : 1
       ports             :
-        incoming        : "#{socialapiProxy.port}"
+        incoming        : "#{socialapi.port}"
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
-      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
-      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
+      healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
+      versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
         locations       : [
           { location    : "= /payments/stripe/webhook" },
           {
-            location    : "/api/social/"
-            proxyPass   : "http://socialapi/"
+            location    : "~ /api/social/(.*)"
+            proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
           }
         ]
@@ -366,8 +368,8 @@ Configuration = (options={}) ->
         incoming        : "#{gatekeeper.port}"
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
-      healthCheckURL    : "http://localhost:#{gatekeeper.port}/healthCheck"
-      versionURL        : "http://localhost:#{gatekeeper.port}/version"
+      healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
+      versionURL        : "#{customDomain.local}/api/gatekeeper/version"
       nginx             :
         locations       : [
           location      : "~ /api/gatekeeper/(.*)"

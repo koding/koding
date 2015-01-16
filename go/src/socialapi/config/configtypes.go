@@ -154,5 +154,6 @@ type (
 
 	CustomDomain struct {
 		Public string `env:"key=KONFIG_CUSTOMDOMAIN_PUBLIC"`
+		Local  string `env:"key=KONFIG_CUSTOMDOMAIN_LOCAL"`
 	}
 )

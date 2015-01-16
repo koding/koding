@@ -25,10 +25,9 @@ auth_basic            "Restricted";
       auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
 allowInternal = """
-  allow                 127.0.0.1;
+  allow                 127.0.0.0/8;
         allow                 192.168.0.0/16;
         allow                 172.16.0.0/12;
-        allow                 10.0.0.0/8;
         deny                  all;
 """
 
@@ -281,7 +280,7 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
-      location /api/social/channel/(.*)/history {
+      location ~ /api/social/channel/(.*)/history {
         proxy_pass            http://socialapi/channel/$1/history$is_args$args;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
