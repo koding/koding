@@ -127,7 +127,7 @@ func realMain() error {
 		datas = append(datas, data)
 
 		// debug
-		fmt.Printf("[%s] %s %s %s\n", data.username, data.instanceId, data.domain, data.ipAddress)
+		// fmt.Printf("[%s] %s %s %s\n", data.username, data.instanceId, data.domain, data.ipAddress)
 	}
 
 	ids := make([]string, 0)
@@ -168,6 +168,8 @@ func realMain() error {
 
 		fmt.Printf("\nStopped '%d' instances\n", longRunningInstances.Total())
 	} else {
+		fmt.Printf("Found '%d' free user machines which are running more than 12 hours\n",
+			longRunningInstances.Total())
 		fmt.Printf("To stop all running free VMS run the command again with the flag -stop\n")
 	}
 
