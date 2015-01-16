@@ -1801,3 +1801,7 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()
     @getView().unsetClass 'read-only'
+
+  deleteWorkspaceRootFolder: (machineUId, rootPath) ->
+      
+    @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath

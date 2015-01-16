@@ -1,6 +1,5 @@
 class IDE.FinderTreeController extends NFinderTreeController
 
-
   cmCreateWorkspace: (node) -> @createWorkspace node
 
 
@@ -43,3 +42,9 @@ class IDE.FinderTreeController extends NFinderTreeController
     return  if @dontEmitChangeEvent
 
     @emit 'FolderExpanded', nodeView.getData().path
+    
+  
+  deleteWorkspaceRootFolder: (machineUId, rootPath) ->
+
+    node = @nodes["[#{machineUId}]#{rootPath}"]
+    @deleteFiles [node] if node
