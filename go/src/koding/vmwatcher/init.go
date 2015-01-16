@@ -55,6 +55,7 @@ func initialize() {
 	controller = &VmController{}
 
 	initializeRedis(controller)
+	initializeAws(controller)
 
 	if conf.Vmwatcher_ConnectToKlient {
 		initializeKlient(controller)
@@ -91,7 +92,7 @@ func initializeMongo() {
 	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
-func initializeKlient(c *VmController) {
+func initializeAws(c *VmController) {
 	var err error
 
 	// initialize cloudwatch api client
@@ -100,6 +101,12 @@ func initializeKlient(c *VmController) {
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
+
+	c.Aws = auth
+}
+
+func initializeKlient(c *VmController) {
+	var err error
 
 	// create new kite
 	k := kite.New(WorkerName, WorkerVersion)
