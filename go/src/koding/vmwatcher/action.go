@@ -1,9 +1,6 @@
 package main
 
-import (
-	"koding/db/mongodb/modelhelper"
-	"time"
-)
+import "koding/db/mongodb/modelhelper"
 
 // request arguments
 type requestArgs struct {
@@ -23,8 +20,6 @@ func stopVm(machineId, username, reason string) error {
 
 	return err
 }
-
-var BlockDuration = time.Hour * 24 * 365
 
 func blockUserAndDestroyVm(machineId, username, reason string) error {
 	machines, err := modelhelper.GetMachinesForUsername(username)

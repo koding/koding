@@ -8,8 +8,6 @@ import (
 	"github.com/koding/redis"
 )
 
-var storage Storage
-
 type Storage interface {
 	//string
 	Upsert(string, string, float64) error

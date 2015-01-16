@@ -45,6 +45,7 @@ var (
 	KloudAddr      = conf.Vmwatcher_KloudAddr
 
 	controller *VmController
+	storage    Storage
 
 	Log = helper.CreateLogger(WorkerName, conf.Vmwatcher_Debug)
 )

@@ -37,7 +37,7 @@ func queueOverlimitUsers() error {
 			}
 
 			usernames := extractUsernames(machines)
-			err = storage.Save(metric.GetName(), getQueueKey(limitName), usernames)
+			err = queue(metric.GetName(), getQueueKey(limitName), usernames)
 			if err != nil {
 				Log.Error(err.Error())
 				continue
