@@ -35,7 +35,11 @@ Configuration = (options={}) ->
     _port  = if publicPort is '80' then '' else publicPort
     host   = options.host or "#{options.hostname}:#{_port}"
 
-  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+  local = "127.0.0.1"
+  if publicPort isnt '80'
+    local = "#{local}:#{publicPort}"
+
+  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"      , forcedRecipient: "foome@koding.com"                       }
