@@ -65,6 +65,7 @@ Signature = "AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z"
 ReturnUrl = "/-/payments/paypal/return"
 CancelUrl = "/-/payments/paypal/cancel"
 
-[kloud]
-SecretKey = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
-Address   = "http://localhost:5500"
+[stopvm]
+SecretKey  = "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"
+Address    = "http://localhost:5500"
+initialize = false

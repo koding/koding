@@ -18,7 +18,9 @@ func Initialize(conf *config.Config) {
 	stripe.InitializeClientKey(conf.Stripe.SecretToken)
 	paypal.InitializeClientKey(conf.Paypal)
 
-	KiteClient = initializeKiteClient(conf.Kloud.SecretKey, conf.Kloud.Address)
+	if conf.Stopvm.Initialize {
+		KiteClient = initializeKiteClient(conf.Stopvm.SecretKey, conf.Stopvm.Address)
+	}
 
 	go func() {
 		err := stripe.CreateDefaultPlans()
