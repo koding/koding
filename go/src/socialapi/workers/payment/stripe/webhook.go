@@ -61,7 +61,7 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	}
 
 	if !IsLineCountAllowed(req.Lines.Count) {
-		Log.Error("'invoice.created': Line count: %s not allowed", req.Lines.Count)
+		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil
 	}
 
