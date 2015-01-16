@@ -50,7 +50,7 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
         
     title = new KDCustomHTMLView
         tagName  : 'label'
-        partial  : 'Delete related files also'
+        partial  : 'also delete its files'
         cssClass : "kdlabel"
 
     fieldSwitch = new KodingSwitch
