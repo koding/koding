@@ -8,6 +8,9 @@ import (
 	"os"
 	"time"
 
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
 )
@@ -95,53 +98,74 @@ func realMain() error {
 		return err
 	}
 
-	ids := make([]string, 0)
-	for _, machine := range machines {
-		// there is no way this can panic because we fetch documents which
-		// have instanceIds in it
-		id := machine.Id
-		instanceId := machine.Meta["instanceId"].(string)
-		domain := machine.Domain
-		ipAddress := machine.IpAddress
-		username := machine.Credential
+	type stopData struct {
+		id         bson.ObjectId
+		instanceId string
+		domain     string
+		ipAddress  string
+		username   string
+	}
 
+	datas := make([]stopData, 0)
+	for _, machine := range machines {
+		username := machine.Credential
 		// if user is a paying customer skip it
 		if isPaid(username) {
 			continue
 		}
 
+		data := stopData{
+			id: machine.Id,
+			// there is no way this can panic because we fetch documents which
+			// have instanceIds in it
+			instanceId: machine.Meta["instanceId"].(string),
+			domain:     machine.Domain,
+			ipAddress:  machine.IpAddress,
+			username:   username,
+		}
+
+		datas = append(datas, data)
+
 		// debug
-		// fmt.Printf("[%s] %s\n", username, instanceId)
-		ids = append(ids, instanceId)
-
-		if err := dns.Delete(domain, ipAddress); err != nil {
-			fmt.Printf("[%s] couldn't delete domain %s\n", id, err)
-		}
-
-		// also get all domain aliases that belongs to this machine and unset
-		domains, err := domainStorage.GetByMachine(id.Hex())
-		if err != nil {
-			fmt.Errorf("[%s] fetching domains for unseting err: %s\n", id, err.Error())
-		}
-
-		for _, domain := range domains {
-			if err := dns.Delete(domain.Name, ipAddress); err != nil {
-				fmt.Errorf("[%s] couldn't delete domain: %s", id, err.Error())
-			}
-		}
+		fmt.Printf("[%s] %s %s %s\n", data.username, data.instanceId, data.domain, data.ipAddress)
 	}
 
-	// contains free user VMs running for more than 12 hours
+	ids := make([]string, 0)
+	for _, d := range datas {
+		ids = append(ids, d.instanceId)
+	}
+
 	longRunningInstances := instances.Only(ids...)
+	// contains free user VMs running for more than 12 hours
 	if longRunningInstances.Total() == 0 {
 		return errors.New("No VMs found.")
 	}
 
-	fmt.Printf("\nFound '%d' machines belonging to free users which are running more than 12 hours\n",
-		longRunningInstances.Total())
-
 	if conf.Stop {
 		longRunningInstances.StopAll()
+		for _, d := range datas {
+			if err := dns.Delete(d.domain, d.ipAddress); err != nil {
+				fmt.Printf("[%s] couldn't delete domain %s\n", d.id, err)
+			}
+
+			// also get all domain aliases that belongs to this machine and unset
+			domains, err := domainStorage.GetByMachine(d.id.Hex())
+			if err != nil {
+				fmt.Errorf("[%s] fetching domains for unseting err: %s\n", d.id, err.Error())
+			}
+
+			for _, ds := range domains {
+				if err := dns.Delete(ds.Name, d.ipAddress); err != nil {
+					fmt.Errorf("[%s] couldn't delete domain: %s", d.id, err.Error())
+				}
+			}
+
+			// delete ipAdress, stopped instances doesn't have any ipAdresses
+			m.DB.Run("jMachines", func(c *mgo.Collection) error {
+				return c.UpdateId(d.id, bson.M{"$set": bson.M{"ipAddress": ""}})
+			})
+		}
+
 		fmt.Printf("\nStopped '%d' instances\n", longRunningInstances.Total())
 	} else {
 		fmt.Printf("To stop all running free VMS run the command again with the flag -stop\n")
