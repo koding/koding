@@ -146,10 +146,7 @@ def main():
 
     while True:
 
-        try:
-            checks()
-        except (KeyboardInterrupt, SystemExit):
-            pass
+        checks()
 
         counter += 1
 
@@ -161,4 +158,8 @@ def main():
 
 if __name__ == '__main__':
     print "Assassin started..."
-    main()
+
+    try:
+        main()
+    except (KeyboardInterrupt, SystemExit):
+        pass
