@@ -97,3 +97,14 @@ func GetMachinesForUsername(username string) ([]*models.Machine, error) {
 
 	return machines, nil
 }
+
+func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"_id": machineId},
+			bson.M{"$set": bson.M{"meta.alwaysOn": alwaysOn}},
+		)
+	}
+
+	return Mongo.Run("jMachines", query)
+}
