@@ -41,19 +41,10 @@ func New(log logging.Logger) *Controller {
 	// TODO later on seperate config structs could be better for each helper
 	redisConn := helper.MustInitRedisConn(&conf)
 
-	updateInterval := DefaultInterval
-	if conf.Sitemap.UpdateInterval != "" {
-		t, err := time.ParseDuration(conf.Sitemap.UpdateInterval)
-		if err != nil {
-			panic(err)
-		}
-		updateInterval = t
-	}
-
 	c := &Controller{
 		log:            log,
 		redisConn:      redisConn,
-		updateInterval: updateInterval,
+		updateInterval: common.GetInterval(),
 	}
 
 	return c

@@ -230,7 +230,7 @@ func createSitemapItem(id int64, typeConstant, status string) *models.SitemapIte
 }
 
 func addSitemapItem(i *models.SitemapItem) error {
-	interval := getInterval()
+	interval := common.GetInterval()
 	key := common.PrepareCurrentFileCacheKey(TESTFILE, int(interval.Minutes()))
 	value := i.PrepareSetValue()
 
