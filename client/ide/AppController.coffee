@@ -367,6 +367,9 @@ class IDEAppController extends AppController
 
   createMachineStateModal: (options = {}) ->
 
+    { mainView } = KD.singletons
+    mainView.toggleSidebar()  if mainView.isSidebarCollapsed
+
     { state, container, machineItem, initial } = options
     modalOptions = { state, container, initial }
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
