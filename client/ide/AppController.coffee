@@ -1488,6 +1488,7 @@ class IDEAppController extends AppController
 
     @collaborationJustInitialized = yes
 
+    @rtm = new RealTimeManager  unless @rtm
     @rtm.once 'FileCreated', (file) =>
       @loadCollaborationFile file.id
 
@@ -1803,5 +1804,5 @@ class IDEAppController extends AppController
     @getView().unsetClass 'read-only'
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
-      
+
     @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
