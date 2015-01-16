@@ -8,17 +8,15 @@ import (
 	"socialapi/workers/payment/stripe"
 	"time"
 
-	kiteConfig "github.com/koding/kite/config"
-
 	"github.com/koding/bongo"
 	"github.com/koding/kite"
 )
 
-func Initialize(conf *config.Config) {
+func Initialize(conf *config.Config, k *kite.Kite) {
 	stripe.InitializeClientKey(conf.Stripe.SecretToken)
 	paypal.InitializeClientKey(conf.Paypal)
 
-	KiteClient = initializeKiteClient(conf.Kloud.SecretKey, conf.Kloud.Address)
+	KiteClient = initializeKiteClient(k, conf.Kloud.SecretKey, conf.Kloud.Address)
 
 	go func() {
 		err := stripe.CreateDefaultPlans()
@@ -69,20 +67,7 @@ func CheckForLeakedSubscriptions() error {
 	return nil
 }
 
-func initializeKiteClient(kloudSecretKey, kloudAddr string) *kite.Client {
-	var err error
-
-	// create new kite
-	k := kite.New(WorkerName, WorkerVersion)
-	config, err := kiteConfig.Get()
-	if err != nil {
-		Log.Error("%s. initializing kite failed", err.Error())
-		return nil
-	}
-
-	// set skeleton config
-	k.Config = config
-
+func initializeKiteClient(k *kite.Kite, kloudSecretKey, kloudAddr string) *kite.Client {
 	// create a new connection to the cloud
 	kiteClient := k.NewClient(kloudAddr)
 	kiteClient.Auth = &kite.Auth{
