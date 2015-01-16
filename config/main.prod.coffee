@@ -43,12 +43,10 @@ Configuration = (options={}) ->
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
-  socialapiProxy      =
-    hostname          : "localhost"
-    port              : "7000"
 
   socialapi =
     proxyUrl          : "#{customDomain.local}/api/social"
+    port              : "7000"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
     postgres          : postgres
     mq                : mq
@@ -331,8 +329,8 @@ Configuration = (options={}) ->
         command         : "node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
         locations       : [ location: "/xhr" ]
-      healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.social.port}/version"
+      healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
+      versionURL        : "#{customDomain.local}/api/gatekeeper/version"
 
     vmwatcher           :
       group             : "environment"
@@ -356,11 +354,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       instances         : 2
       ports             :
-        incoming        : "#{socialapiProxy.port}"
+        incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapiProxy.port}"
-      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
-      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
+        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapi.port}"
+      healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
+      versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
         locations       : [
           { location    : "= /payments/stripe/webhook" }
