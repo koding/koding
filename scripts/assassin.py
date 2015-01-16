@@ -9,9 +9,12 @@ import json
 import psutil
 import pycurl
 
-THRESHOLD      = 90.0 # percentage
-REPEAT_EVERY   = 5    # seconds
+THRESHOLD      = 1.0 # percentage
+KILL_THRESHOLD = 3.0 # average percentage before deciding to kill
+REPEAT_EVERY   = 1    # seconds
 MAX_OCCURRENCE = 5    # times
+MAX_REPEAT     = 10   # times ~ 0 to infinite
+
 KILL_ENABLED   = False
 SLACK_ENABLED  = False
 
@@ -63,11 +66,27 @@ def get_top_processes():
     return sorted(procs, key=lambda p: p.dict['cpu_percent'], reverse = True)
 
 
-def kill(proc):
+def kill(proc, usage):
 
-    slack_it("Killing: %s (PID %s)" % (proc.name(), proc.pid))
-    if KILL_ENABLED:
-        proc.kill()
+    usage = usage / MAX_OCCURRENCE # get average CPU usage
+
+    if usage > KILL_THRESHOLD:
+
+        if KILL_ENABLED:
+            slack_it("Killing: %s (PID %s) usage was: %s" %
+                    (proc.name(), proc.pid, usage))
+            proc.kill()
+
+        else:
+            slack_it("If I was able to, I would like to kill: %s (PID %s) "
+                     "since it's using %s cpu on average..." %
+                        (proc.name(), proc.pid, usage))
+
+    else:
+        slack_it("Giving another chance to %s since "
+                 "its usage average (%s) below kill "
+                 "threshold: %s " % (proc.name(), usage, KILL_THRESHOLD))
+
     del bad_guys[proc.pid]
 
 
@@ -84,10 +103,11 @@ def checks():
     for proc in top_process[0:5]:
         if proc.pid in bad_guys:
             bad_guys[proc.pid]['counter'] += 1
+            bad_guys[proc.pid]['cpu'] += proc.dict['cpu_percent']
             if bad_guys[proc.pid]['counter'] >= MAX_OCCURRENCE:
-                kill(proc)
+                kill(proc, bad_guys[proc.pid]['cpu'])
         else:
-            bad_guys[proc.pid] = dict( proc = proc, counter = 0 )
+            bad_guys[proc.pid] = dict( proc = proc, counter = 0, cpu = 0 )
 
     PROCESS_OUT = "Process '%s' (PID %s) is using more than %s " \
                   "CPU (%s) in last %d seconds for the %d times."
@@ -100,13 +120,22 @@ def checks():
 
 def main():
 
-    try:
-        while True:
-            checks()
-            time.sleep(REPEAT_EVERY)
+    counter = 0
 
-    except (KeyboardInterrupt, SystemExit):
-        pass
+    while True:
+
+        try:
+            checks()
+        except (KeyboardInterrupt, SystemExit):
+            pass
+
+        counter += 1
+
+        if counter == MAX_REPEAT:
+            print("Done.")
+            sys.exit()
+
+        time.sleep(REPEAT_EVERY)
 
 if __name__ == '__main__':
     print "Assassin started..."
