@@ -132,3 +132,13 @@ func (c *Customer) ByActiveSubscription() ([]Customer, error) {
 
 	return customers, err
 }
+
+func (c *Customer) ByProviderSubscription(id, providerName string) error {
+	subscription := NewSubscription()
+	err := subscription.ByProviderId(id, providerName)
+	if err != nil {
+		return err
+	}
+
+	return c.ById(subscription.CustomerId)
+}

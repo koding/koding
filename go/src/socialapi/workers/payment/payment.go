@@ -3,6 +3,7 @@ package payment
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
@@ -22,7 +23,7 @@ var (
 	WorkerName    = "socialapi-payment"
 	WorkerVersion = "1.0.0"
 
-	Klient *kite.Client
+	KiteClient *kite.Client
 )
 
 //----------------------------------------------------------
@@ -230,6 +231,32 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 	switch s.Name {
 	case "customer.subscription.deleted":
 		err = stripe.SubscriptionDeletedWebhook(raw)
+		if err != nil {
+			return nil, err
+		}
+
+		subsObj, ok := s.Data.Object.(map[string]interface{})
+		if !ok {
+			return nil, nil
+		}
+
+		subscribeId, ok := subsObj["ID"].(string)
+		if !ok {
+			return nil, nil
+		}
+
+		customer := paymentmodels.NewCustomer()
+		err := customer.ByProviderSubscription(subscribeId, stripe.ProviderName)
+		if err != nil {
+			return nil, err
+		}
+
+		username := customer.Username
+		if username == "" {
+			return nil, nil
+		}
+
+		err = stopMachinesForUser(username)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
 	case "customer.deleted":
@@ -307,6 +334,22 @@ func (p *PaypalWebhook) Do() (interface{}, error) {
 	switch action {
 	case PaypalActionExpire:
 		err = paypal.ExpireSubscription(p.PayerId)
+		if err != nil {
+			return nil, err
+		}
+
+		customer := paymentmodels.NewCustomer()
+		err := customer.ByProviderCustomerId(p.PayerId)
+		if err != nil {
+			return nil, err
+		}
+
+		username := customer.Username
+		if username == "" {
+			return nil, fmt.Errorf("Stopping machine for paypal customer: %s failed", p.PayerId)
+		}
+
+		err = stopMachinesForUser(username)
 	}
 
 	return nil, err
