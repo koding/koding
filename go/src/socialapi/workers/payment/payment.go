@@ -240,23 +240,12 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 			return nil, errUnmarshalFailed(s.Data.Object)
 		}
 
-		subscribeId, ok := subsObj["id"].(string)
+		customerId, ok := subsObj["customer"].(string)
 		if !ok {
 			return nil, errUnmarshalFailed(s.Data.Object)
 		}
 
-		customer := paymentmodels.NewCustomer()
-		err := customer.ByProviderSubscription(subscribeId, stripe.ProviderName)
-		if err != nil {
-			return nil, err
-		}
-
-		username := customer.Username
-		if isUsernameEmpty(username) {
-			return nil, errUsernameEmpty(customer.ProviderCustomerId)
-		}
-
-		err = stopMachinesForUser(username)
+		err = stopMachinesForUser(customerId)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
 	case "customer.deleted":
@@ -338,18 +327,7 @@ func (p *PaypalWebhook) Do() (interface{}, error) {
 			return nil, err
 		}
 
-		customer := paymentmodels.NewCustomer()
-		err := customer.ByProviderCustomerId(p.PayerId)
-		if err != nil {
-			return nil, err
-		}
-
-		username := customer.Username
-		if isUsernameEmpty(username) {
-			return nil, errUsernameEmpty(p.PayerId)
-		}
-
-		err = stopMachinesForUser(username)
+		err = stopMachinesForUser(p.PayerId)
 	}
 
 	return nil, err

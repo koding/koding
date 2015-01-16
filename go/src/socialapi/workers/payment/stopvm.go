@@ -1,13 +1,27 @@
 package payment
 
-import "koding/db/mongodb/modelhelper"
+import (
+	"koding/db/mongodb/modelhelper"
+	"socialapi/workers/payment/paymentmodels"
+)
 
 type requestArgs struct {
 	MachineId string `json:"machineId"`
 	Reason    string `json:"reason"`
 }
 
-func stopMachinesForUser(username string) error {
+func stopMachinesForUser(providerCustomerId string) error {
+	customer := paymentmodels.NewCustomer()
+	err := customer.ByProviderCustomerId(providerCustomerId)
+	if err != nil {
+		return err
+	}
+
+	username := customer.Username
+	if isUsernameEmpty(username) {
+		return errUsernameEmpty(username)
+	}
+
 	machines, err := modelhelper.GetMachinesForUsername(username)
 	if err != nil {
 		return err
