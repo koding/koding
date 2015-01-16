@@ -10,102 +10,99 @@ import (
 	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/models"
 	"strings"
-
-	"github.com/koding/bongo"
+	"time"
 )
 
 var ErrFetch = errors.New("could not fetch files")
 
-type SitemapHandler struct{}
+const (
+	CacheTTL   = 5 * time.Minute
+	GCInterval = 30 * time.Second
+)
 
 type ErrorResponse struct {
 	XMLName xml.Name `xml:"response"`
 	Error   string   `xml:"error"`
 }
 
+type SitemapHandler struct {
+	fetcher *models.SitemapFetcher
+}
+
+func NewSitemapHandler() *SitemapHandler {
+	return &SitemapHandler{
+		fetcher: models.NewSitemapFetcher(CacheTTL, GCInterval, config.MustGet().Hostname),
+	}
+}
+
 func AddHandlers(m *mux.Mux) {
+	sh := NewSitemapHandler()
+
 	m.AddUnscopedHandler(
 		handler.Request{
-			Handler:  Generate,
+			Handler:  sh.FetchRoot,
 			Type:     handler.GetRequest,
 			Endpoint: "/sitemap.xml",
 		})
 
 	m.AddUnscopedHandler(
 		handler.Request{
-			Handler:  Fetch,
+			Handler:  sh.FetchByName,
 			Type:     handler.GetRequest,
 			Endpoint: "/sitemap/{name}",
 		})
 }
 
 func NewDefaultError(err error) []byte {
-	res, _ := marshal(&ErrorResponse{Error: err.Error()})
+	res, _ := xml.Marshal(&ErrorResponse{Error: err.Error()})
+
 	return res
 }
 
-func Generate(w http.ResponseWriter, _ *http.Request) {
-	sf := models.NewSitemapFile()
-
-	files := make([]models.SitemapFile, 0)
-	query := &bongo.Query{}
-
-	if err := sf.Some(&files, query); err != nil {
-		helper.MustGetLogger().Error("An error occurred while fetching files: %s", err)
-		w.Write(NewDefaultError(ErrFetch))
-		return
-	}
-
-	set := models.NewSitemapSet(files, config.MustGet().Hostname)
-
-	res, err := marshal(set)
+func (sh *SitemapHandler) FetchRoot(w http.ResponseWriter, _ *http.Request) {
+	res, err := sh.fetcher.FetchRoot()
 	if err != nil {
-		helper.MustGetLogger().Error("An error occurred while marshalling files: %s", err)
-		w.Write(NewDefaultError(ErrFetch))
+		handleError(w, err, "An error occurred while fetching sitemap")
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/xml")
-	w.Write(res)
+	handleSuccess(w, res)
 }
 
-func Fetch(w http.ResponseWriter, r *http.Request) {
+func (sh *SitemapHandler) FetchByName(w http.ResponseWriter, r *http.Request) {
 	fileName := r.URL.Query().Get("name")
+
 	names := strings.Split(fileName, ".")
 	if len(names) == 0 {
-		helper.MustGetLogger().Error("Name does not validated: %s", fileName)
-		w.Write(NewDefaultError(ErrFetch))
+		handleError(w, errors.New(fileName), "Invalid sitemap name")
 		return
 	}
 
 	fileName = names[0]
-	sf := models.NewSitemapFile()
-	if err := sf.ByName(fileName); err != nil {
-		if err == bongo.RecordNotFound {
-			helper.MustGetLogger().Error("File not found: %s", fileName)
-			w.Write(NewDefaultError(ErrFetch))
-			return
-		}
-	}
 
-	if sf.Blob == nil || len(sf.Blob) == 0 {
-		helper.MustGetLogger().Error("Blob empty: %s", fileName)
-		w.Write(NewDefaultError(ErrFetch))
+	res, err := sh.fetcher.FetchByName(fileName)
+	if err != nil {
+		handleError(w, err, "An error occurred while fetching sitemap")
 		return
 	}
 
-	// append default xml header to the result set with UTF-8 encoding
-	header := []byte(xml.Header)
-	w.Header().Set("Content-Type", "application/xml")
-	w.Write(append(header, sf.Blob...))
+	handleSuccess(w, res)
 }
 
-func marshal(i interface{}) ([]byte, error) {
+func appendXmlHeader(data []byte) []byte {
 	header := []byte(xml.Header)
-	res, err := xml.Marshal(i)
-	if err != nil {
-		return nil, err
-	}
-	// append header to xml file
-	return append(header, res...), nil
+
+	return append(header, data...)
+}
+
+func handleError(w http.ResponseWriter, err error, errMessage string) {
+	helper.MustGetLogger().Error("%s: %s", errMessage, err)
+	w.Header().Set("Content-Type", "application/xml")
+	w.Write(NewDefaultError(ErrFetch))
+}
+
+func handleSuccess(w http.ResponseWriter, data []byte) {
+	w.Header().Set("Content-Type", "application/xml")
+	// append default xml header to the result set with UTF-8 encoding
+	w.Write(appendXmlHeader(data))
 }

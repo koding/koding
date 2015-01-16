@@ -35,6 +35,7 @@ class SidebarTopicItem extends SidebarItem
       # and navigate to there
       for route in visitedRoutes by -1 when route.search('/Public') isnt -1
         KD.utils.stopDOMEvent event
+        @setUnreadCount 0
         router.handleRoute route
         return no
 
