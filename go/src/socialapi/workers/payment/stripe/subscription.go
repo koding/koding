@@ -74,7 +74,7 @@ func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentm
 
 	err := stripeSub.Cancel(subscription.ProviderSubscriptionId, subParams)
 	if err != nil {
-		return handleStripeError(err)
+		Log.Error(err.Error())
 	}
 
 	err = subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
