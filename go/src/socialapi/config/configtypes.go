@@ -49,7 +49,7 @@ type (
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
-		Stopvm Stopvm
+		Kloud Kloud
 
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
@@ -160,9 +160,8 @@ type (
 		Local  string `env:"key=KONFIG_CUSTOMDOMAIN_LOCAL"`
 	}
 
-	Stopvm struct {
-		SecretKey  string `env:"key=KONFIG_STOPVM_SECRETKEY"`
-		Address    string `env:"key=KONFIG_STOPVM_ADDRESS"`
-		Initialize bool   `env:"key=KONFIG_STOPVM_INITIALIZE"`
+	Kloud struct {
+		SecretKey string `env:"key=KONFIG_KLOUD_SECRETKEY"`
+		Address   string `env:"key=KONFIG_KLOUD_ADDRESS"`
 	}
 )
