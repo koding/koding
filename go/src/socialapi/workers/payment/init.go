@@ -68,6 +68,11 @@ func CheckForLeakedSubscriptions() error {
 }
 
 func initializeKiteClient(k *kite.Kite, kloudSecretKey, kloudAddr string) *kite.Client {
+	if k == nil {
+		Log.Error("kite not initialized in runner")
+		return nil
+	}
+
 	// create a new connection to the cloud
 	kiteClient := k.NewClient(kloudAddr)
 	kiteClient.Auth = &kite.Auth{

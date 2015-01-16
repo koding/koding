@@ -353,7 +353,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "cd #{projectRoot}/go/src/socialapi && make develop kite=true -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
