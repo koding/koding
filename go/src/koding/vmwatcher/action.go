@@ -34,7 +34,7 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 
 	if controller.Klient != nil {
 		for _, machine := range machines {
-			_, err := controller.Klient.Tell("destroy", &requestArgs{
+			_, err := controller.Klient.Tell("stop", &requestArgs{
 				MachineId: machine.ObjectId.Hex()},
 			)
 
