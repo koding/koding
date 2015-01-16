@@ -6,8 +6,12 @@ import sys
 import time
 import json
 
-import psutil
-import pycurl
+try:
+    import psutil
+    import pycurl
+except ImportError:
+    print "Install required packages first: pip install psutil pycurl"
+    sys.exit(1)
 
 THRESHOLD      = 1.0 # percentage
 KILL_THRESHOLD = 3.0 # average percentage before deciding to kill
