@@ -13,6 +13,7 @@ THRESHOLD      = 90.0 # percentage
 REPEAT_EVERY   = 5    # seconds
 MAX_OCCURRENCE = 5    # times
 KILL_ENABLED   = False
+SLACK_ENABLED  = False
 
 my_pid   = os.getpid()
 bad_guys = {}
@@ -30,6 +31,9 @@ slack.setopt(pycurl.POST, 1)
 def slack_it(message):
 
     print message
+
+    if not SLACK_ENABLED:
+        return
 
     PAYLOAD['text'] = message
     slack.setopt(pycurl.POSTFIELDS, "payload=%s" % json.dumps(PAYLOAD))
