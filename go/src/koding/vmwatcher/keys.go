@@ -3,7 +3,7 @@ package main
 var (
 	ExemptKey     = "exempt"
 	QueueKey      = "queue"
-	GetKey        = "stop"
+	GetKey        = "get"
 	StopLimitKey  = "stop"
 	BlockLimitKey = "block"
 )
