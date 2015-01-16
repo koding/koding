@@ -23,12 +23,28 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		}
 	}
 
+	if IsFreePlan(plan) {
+		subscriptions, err := customer.FindSubscriptions()
+		if err != nil {
+			return err
+		}
+
+		for _, sub := range subscriptions {
+			err = CancelSubscriptionAndRemoveCC(customer, &sub)
+			if err != nil {
+				Log.Error(err.Error())
+			}
+		}
+
+		return nil
+	}
+
 	err = UpdateCreditCardIfEmpty(accId, token)
 	if err != nil {
 		return err
 	}
 
-	subscriptions, err := customer.FindSubscriptions()
+	subscriptions, err := FindCustomerActiveSubscriptions(customer)
 	if err != nil {
 		return err
 	}
@@ -54,20 +70,14 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return paymenterrors.ErrCustomerAlreadySubscribedToPlan
 	}
 
-	if !IsFreePlan(plan) {
-		err := UpdateSubscriptionForCustomer(customer, subscriptions, plan)
+	err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
 
-		if err != nil {
-			removeCreditCardHelper(customer)
-			return err
-		}
-
-		return nil
+	if err != nil {
+		removeCreditCardHelper(customer)
+		return err
 	}
 
-	err = CancelSubscriptionAndRemoveCC(customer, &currentSubscription)
-
-	return err
+	return nil
 }
 
 func removeCreditCardHelper(customer *paymentmodels.Customer) {
