@@ -25,8 +25,10 @@ func getAndSaveQueueMachineMetrics() error {
 			if err != nil {
 				// ran out of usernames in queue, so return
 				if isRedisRecordNil(err) {
-					return nil
+					break
 				}
+
+				Log.Error("Failed to fetching machines for %s, %v", metric.GetName(), err)
 			}
 
 			if len(machines) == 0 {

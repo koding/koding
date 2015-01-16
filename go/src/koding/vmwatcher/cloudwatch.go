@@ -77,7 +77,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 
 		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[region].CloudWatchServicepoint)
 		if err != nil {
-			Log.Error("Failed to initialize cloudwatch client", err)
+			Log.Error("Failed to initialize cloudwatch client:", err)
 			continue
 		}
 
@@ -93,7 +93,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 
 		response, err := cw.GetMetricStatistics(request)
 		if err != nil {
-			Log.Error("Failed to get request for machine: %v", machine.ObjectId)
+			Log.Error("Failed to get request for machine: %s, %v", machine.ObjectId, err)
 			continue
 		}
 
