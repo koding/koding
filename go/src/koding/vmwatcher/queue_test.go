@@ -44,13 +44,13 @@ func TestQueueOverLimitUsers(t *testing.T) {
 
 		Convey("Then it should queue machine for stopping", func() {
 			networkOutMetric := metricsToSave[0]
-			err := storage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*3)
+			err := storage.SaveScore(networkOutMetric.GetName(), testUsername, NetworkOutLimit*5)
 			So(err, ShouldBeNil)
 
 			queueOverlimitUsers()
 
 			Convey("Then it should pop machine", func() {
-				queuedMachines, err := popMachinesOverLimit(NetworkOut, getQueueKey(StopLimitKey))
+				queuedMachines, err := popMachinesOverLimit(NetworkOut, StopLimitKey)
 				So(err, ShouldBeNil)
 				So(len(queuedMachines), ShouldEqual, 1)
 
