@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"socialapi/config"
 	socialmodels "socialapi/models"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 	"time"
@@ -38,12 +36,7 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(log logging.Logger) *Controller {
-	conf := *config.MustGet()
-	conf.Redis.DB = conf.Sitemap.RedisDB
-	// TODO later on seperate config structs could be better for each helper
-	redisConn := helper.MustInitRedisConn(&conf)
-
+func New(log logging.Logger, redisConn *redis.RedisSession) *Controller {
 	c := &Controller{
 		log:            log,
 		redisConn:      redisConn,
