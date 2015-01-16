@@ -1031,8 +1031,8 @@ Team Koding
                     ->
                       return queue.fin()  unless group
                       return queue.fin()  if group.slug in ["koding", "guests"]
-                      group.createMemberVm account, ->
-                        queue.fin()
+
+                      queue.fin()
 
                   dash queue, ->
                     callback null, { account, replacementToken }

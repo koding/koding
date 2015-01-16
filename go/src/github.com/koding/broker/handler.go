@@ -57,17 +57,19 @@ func (c *Consumer) Start() func(delivery amqp.Delivery) {
 			return
 		}
 
-		var err error
-		for _, handler := range c.handlers[delivery.Type] {
-			// do not continue, if one of the handler gives error
-			if err != nil {
-				break
+		go func() {
+			var err error
+			for _, handler := range c.handlers[delivery.Type] {
+				// do not continue, if one of the handler gives error
+				if err != nil {
+					break
+				}
+
+				err = c.withMetrics(handler, delivery)
 			}
+			c.handleError(err, delivery)
+		}()
 
-			err = c.withMetrics(handler, delivery)
-		}
-
-		c.handleError(err, delivery)
 	}
 }
 

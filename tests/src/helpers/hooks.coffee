@@ -59,8 +59,12 @@ methods =
     [strDay, month, day, year, time] = new Date(Date.now()).toString().split ' '
     date = month + '-' + day + '-' + year + '-' + time
 
+    revision = process.env['REVISION'] or ''
+
+    filename = "#{revision}-#{browser.suite}-#{date}.csv"
+
     s3 = new AWS.S3 params:
-      Key    : browser.suite + '-' + date + '.csv'
+      Key    : filename
       Bucket : 'koding-test-data'
 
     s3.createBucket ->
