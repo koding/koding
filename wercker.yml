@@ -97,9 +97,6 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
     - script:
         name: testing backend finished
         code: |
@@ -238,6 +235,12 @@ deploy:
           $WERCKER_ROOT/scripts/notify-cebeci.sh "deploy" "triggered $EB_ENV_NAME EB" "deploying" 95
 
   after-steps:
+    - script:
+        name: cat socialapi
+        code: |
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN
