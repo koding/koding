@@ -11,7 +11,7 @@ type requestArgs struct {
 	Reason    string `json:"reason"`
 }
 
-func stopVm(machineId, reason string) error {
+func stopVm(machineId, username, reason string) error {
 	if controller.Klient == nil {
 		Log.Debug("Klient not initialized. Not stopping: %s", machineId)
 		return nil
@@ -26,24 +26,21 @@ func stopVm(machineId, reason string) error {
 
 var BlockDuration = time.Hour * 24 * 365
 
-func blockUserAndDestroyVm(username, reason string) error {
+func blockUserAndDestroyVm(machineId, username, reason string) error {
 	machines, err := modelhelper.GetMachinesForUsername(username)
 	if err != nil {
 		return err
 	}
 
-	if controller.Klient == nil {
-		Log.Debug("Klient not initialized. Not stopping: %d", len(machines))
-		return nil
-	}
+	if controller.Klient != nil {
+		for _, machine := range machines {
+			_, err := controller.Klient.Tell("destroy", &requestArgs{
+				MachineId: machine.ObjectId.Hex()},
+			)
 
-	for _, machine := range machines {
-		_, err := controller.Klient.Tell("destroy", &requestArgs{
-			MachineId: machine.ObjectId.Hex()},
-		)
-
-		if err != nil {
-			Log.Error(err.Error())
+			if err != nil {
+				Log.Error(err.Error())
+			}
 		}
 	}
 

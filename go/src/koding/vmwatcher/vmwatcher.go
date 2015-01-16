@@ -5,7 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 )
 
-var limitsToAction = map[string]func(string, string) error{
+var limitsToAction = map[string]func(string, string, string) error{
 	StopLimitKey:  stopVm,
 	BlockLimitKey: blockUserAndDestroyVm,
 }
@@ -91,9 +91,9 @@ func extractUsernames(machines []*models.Machine) []interface{} {
 	return usernames
 }
 
-func act(machines []*models.Machine, limit string, fn func(string, string) error) error {
+func act(machines []*models.Machine, limit string, fn func(string, string, string) error) error {
 	for _, machine := range machines {
-		err := fn(machine.ObjectId.Hex(), limit)
+		err := fn(machine.ObjectId.Hex(), machine.Credential, limit)
 		if err != nil {
 			Log.Error(err.Error())
 			continue
