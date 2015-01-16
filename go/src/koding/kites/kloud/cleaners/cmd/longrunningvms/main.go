@@ -141,44 +141,49 @@ func realMain() error {
 		return errors.New("No VMs found.")
 	}
 
-	if conf.Stop {
-		longRunningInstances.StopAll()
-		for _, d := range datas {
-			if err := dns.Delete(d.domain, d.ipAddress); err != nil {
-				fmt.Printf("[%s] couldn't delete domain %s\n", d.id, err)
-			}
-
-			// also get all domain aliases that belongs to this machine and unset
-			domains, err := domainStorage.GetByMachine(d.id.Hex())
-			if err != nil {
-				fmt.Errorf("[%s] fetching domains for unseting err: %s\n", d.id, err.Error())
-			}
-
-			for _, ds := range domains {
-				if err := dns.Delete(ds.Name, d.ipAddress); err != nil {
-					fmt.Errorf("[%s] couldn't delete domain: %s", d.id, err.Error())
-				}
-			}
-
-			// delete ipAdress, stopped instances doesn't have any ipAdresses
-			m.DB.Run("jMachines", func(c *mgo.Collection) error {
-				return c.UpdateId(d.id,
-					bson.M{"$set": bson.M{
-						"ipAddress":         "",
-						"status.state":      "Stopped",
-						"status.modifiedAt": time.Now().UTC(),
-						"status.reason":     "Non free user, VM is running for more than 12 hours",
-					}},
-				)
-			})
-		}
-
-		fmt.Printf("\nStopped '%d' instances\n", longRunningInstances.Total())
-	} else {
+	if !conf.Stop {
 		fmt.Printf("Found '%d' free user machines which are running more than 12 hours\n",
 			longRunningInstances.Total())
 		fmt.Printf("To stop all running free VMS run the command again with the flag -stop\n")
 	}
+
+	// first stop all machines, this is a batch API call so it's more efficient
+	longRunningInstances.StopAll()
+
+	// next we are going to delete any domain that was bound to this machine,
+	// because the IP is no more. Also we update the IP adress and state in
+	// mongodb.
+	for _, d := range datas {
+		if err := dns.Delete(d.domain, d.ipAddress); err != nil {
+			fmt.Printf("[%s] couldn't delete domain %s\n", d.id, err)
+		}
+
+		// also get all domain aliases that belongs to this machine and unset
+		domains, err := domainStorage.GetByMachine(d.id.Hex())
+		if err != nil {
+			fmt.Errorf("[%s] fetching domains for unseting err: %s\n", d.id, err.Error())
+		}
+
+		for _, ds := range domains {
+			if err := dns.Delete(ds.Name, d.ipAddress); err != nil {
+				fmt.Errorf("[%s] couldn't delete domain: %s", d.id, err.Error())
+			}
+		}
+
+		// delete ipAdress, stopped instances doesn't have any ipAdresses
+		m.DB.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(d.id,
+				bson.M{"$set": bson.M{
+					"ipAddress":         "",
+					"status.state":      "Stopped",
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     "Non free user, VM is running for more than 12 hours",
+				}},
+			)
+		})
+	}
+
+	fmt.Printf("\nStopped '%d' instances\n", longRunningInstances.Total())
 
 	return nil
 }
