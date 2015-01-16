@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	PROVIDER_NAME = "paypal"
-	Month         = "Month"
-	Year          = "Year"
+	ProviderName = "paypal"
+	Month        = "Month"
+	Year         = "Year"
 )
 
 var (
