@@ -89,14 +89,14 @@ func realMain() error {
 	}
 
 	freeUsersWithMultipleVMs := make(map[string]struct{}, 0)
-
 	for user := range usersWithMultipleVms {
 		if !isPaid(user) {
 			freeUsersWithMultipleVMs[user] = struct{}{}
 		}
 	}
 
-	fmt.Printf("%d users with more than one VM found\n", len(usersWithMultipleVms))
-	fmt.Printf("%d of them are non paid users\n", len(freeUsersWithMultipleVMs))
+	fmt.Printf("Found '%d' free user machines with more than one VM\n",
+		len(freeUsersWithMultipleVMs))
+
 	return nil
 }
