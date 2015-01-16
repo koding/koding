@@ -10,7 +10,7 @@ func popMachinesForMetricGet(metric string) ([]*models.Machine, error) {
 }
 
 func popMachinesOverLimit(metric, limit string) ([]*models.Machine, error) {
-	return popMachine(metric, limit)
+	return popMachine(metric, getQueueKey(limit))
 }
 
 func popMachine(key, subkey string) ([]*models.Machine, error) {
