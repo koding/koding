@@ -9,13 +9,20 @@ import (
 	"socialapi/workers/payment/stripe"
 	"time"
 
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 )
 
 var (
 	ProviderNotFound       = errors.New("provider not found")
 	ProviderNotImplemented = errors.New("provider not implemented")
-	Log                    = logging.NewLogger("payment")
+
+	Log = logging.NewLogger("payment")
+
+	WorkerName    = "socialapi-payment"
+	WorkerVersion = "1.0.0"
+
+	Klient *kite.Client
 )
 
 //----------------------------------------------------------
