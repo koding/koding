@@ -15,22 +15,22 @@ var (
 	ErrEmptyContent = errors.New("empty content")
 )
 
-type SitemapFileCache struct {
+type SitemapFetcher struct {
 	cache    *cache.MemoryTTL
 	hostname string
 }
 
-func NewSitemapFileCache(ttl, gcInterval time.Duration, hostname string) *SitemapFileCache {
+func NewSitemapFetcher(ttl, gcInterval time.Duration, hostname string) *SitemapFetcher {
 	sitemapCache := cache.NewMemoryWithTTL(ttl)
 	sitemapCache.StartGC(gcInterval)
 
-	return &SitemapFileCache{
+	return &SitemapFetcher{
 		cache:    sitemapCache,
 		hostname: hostname,
 	}
 }
 
-func (fc *SitemapFileCache) FetchRoot() ([]byte, error) {
+func (fc *SitemapFetcher) FetchRoot() ([]byte, error) {
 
 	rootSitemapKey := "root"
 	filesByte, err := fc.fetchFromCache(rootSitemapKey)
@@ -61,7 +61,7 @@ func (fc *SitemapFileCache) FetchRoot() ([]byte, error) {
 	return res, nil
 }
 
-func (fc *SitemapFileCache) FetchByName(fileName string) ([]byte, error) {
+func (fc *SitemapFetcher) FetchByName(fileName string) ([]byte, error) {
 	file, err := fc.fetchFromCache(fileName)
 	if err == nil {
 		return file, nil
@@ -89,7 +89,7 @@ func (fc *SitemapFileCache) FetchByName(fileName string) ([]byte, error) {
 	return sf.Blob, nil
 }
 
-func (fc *SitemapFileCache) fetchFromCache(fileName string) ([]byte, error) {
+func (fc *SitemapFetcher) fetchFromCache(fileName string) ([]byte, error) {
 	file, err := fc.cache.Get(fileName)
 	if err != nil {
 		return nil, err
