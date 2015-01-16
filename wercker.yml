@@ -97,6 +97,9 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
     - script:
         name: testing backend finished
         code: |
