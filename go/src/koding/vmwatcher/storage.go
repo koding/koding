@@ -66,6 +66,10 @@ func (r *RedisStorage) Get(key, subkey string) (float64, error) {
 //----------------------------------------------------------
 
 func (r *RedisStorage) Save(key, subkey string, members []interface{}) error {
+	if len(members) == 0 {
+		return nil
+	}
+
 	_, err := r.Client.AddSetMembers(r.prefix(key, subkey), members...)
 	return err
 }
