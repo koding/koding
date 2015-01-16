@@ -74,7 +74,7 @@ Configuration = (options={}) ->
     paypal            : { username: 'kodingpaypal_api1.koding.com', password: 'P6FCAXAVSLZGMLG2', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AWdUhFbklVEIzx29fcKDqYO0tbzM', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: no }
     gatekeeper        : gatekeeper
     customDomain      : customDomain
-    kloud             : { secretKey : kloud.secretKey, address : kloud.address }
+    kloud             : { secretKey: kloud.secretKey, address: kloud.address }
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
