@@ -76,7 +76,8 @@ func initializeKiteClient(kloudSecretKey, kloudAddr string) *kite.Client {
 	k := kite.New(WorkerName, WorkerVersion)
 	config, err := kiteConfig.Get()
 	if err != nil {
-		Log.Fatal(err.Error())
+		Log.Error("%s. initializing kite failed", err.Error())
+		return nil
 	}
 
 	// set skeleton config
