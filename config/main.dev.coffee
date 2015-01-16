@@ -62,7 +62,7 @@ Configuration = (options={}) ->
     port              : "7000"
 
   socialapi =
-    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
+    proxyUrl          : "#{customDomain.local}/api/social"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres          : postgres
     mq                : mq
@@ -347,7 +347,7 @@ Configuration = (options={}) ->
 
     socialapi:
       group             : "socialapi"
-      instances         : 3
+      instances         : 1
       ports             :
         incoming        : "#{socialapiProxy.port}"
       supervisord       :
