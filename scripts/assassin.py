@@ -14,8 +14,8 @@ except ImportError:
     print "Install required packages first: pip install psutil pycurl"
     sys.exit(1)
 
-THRESHOLD      = 1.0 # percentage
-KILL_THRESHOLD = 3.0 # average percentage before deciding to kill
+THRESHOLD      = 1.0  # percentage
+KILL_THRESHOLD = 3.0  # average percentage before deciding to kill
 REPEAT_EVERY   = 1    # seconds
 MAX_OCCURRENCE = 5    # times
 MAX_REPEAT     = 10   # times ~ 0 to infinite
@@ -24,10 +24,16 @@ KILL_ENABLED   = False
 SLACK_ENABLED  = False
 
 WHITE_LIST     = [
-    "kloud"
-    "koding-webserver"
-    "koding-socialworker"
-    "koding-authworker"
+    "kloud",
+    "vmwatcher",
+    "trollmode",
+    "topicfeed",
+    "go-webserver",
+    "koding-appsproxy",
+    "koding-webserver",
+    "koding-authworker",
+    "koding-socialworker",
+    "privatemessageemailsender"
 ]
 
 (status, hostaddr) = commands.getstatusoutput(
@@ -38,7 +44,9 @@ hostname = socket.gethostname()
 
 if status == 0:
     hostaddr = "ssh://ec2-user@%s" % hostaddr.split(':')[-1].strip()
-    hostname = "<%s|%s>" % (hostname, hostaddr)
+    hostname = "<%s|%s>" % (hostaddr, hostname)
+else:
+    hostname = "*%s*" % hostname
 
 my_pid   = os.getpid()
 bad_guys = {}
@@ -95,19 +103,23 @@ def kill(proc, usage):
     if usage > KILL_THRESHOLD:
 
         if KILL_ENABLED and proc.name() in WHITE_LIST:
+
             slack_it("Killing: *%s* (*PID %s*) usage was: %s" %
                     (proc.name(), proc.pid, usage))
+
             proc.kill()
 
         else:
-            slack_it("If I was able to, I would like to kill: *%s* (*PID %s*) "
-                     "since it's using %s cpu on average..." %
-                        (proc.name(), proc.pid, usage))
+
+            print("If I was able to, I would like to kill: *%s* (*PID %s*) "
+                  "since it's using %s cpu on average..." %
+                    (proc.name(), proc.pid, usage))
 
     else:
-        slack_it("Giving another chance to *%s* since "
-                 "its usage average (*%s*) below kill "
-                 "threshold: *%s* " % (proc.name(), usage, KILL_THRESHOLD))
+
+        print("Giving another chance to *%s* since "
+              "its usage average (*%s*) below kill "
+              "threshold: *%s* " % (proc.name(), usage, KILL_THRESHOLD))
 
     del bad_guys[proc.pid]
 
@@ -136,7 +148,7 @@ def checks():
 
     for pid, p in bad_guys.iteritems():
         [p, counter] = [p['proc'].dict, p['counter']]
-        slack_it(PROCESS_OUT % (
+        print(PROCESS_OUT % (
             p['name'], pid, THRESHOLD, p['cpu_percent'], REPEAT_EVERY, counter
         ))
 
