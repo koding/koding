@@ -365,8 +365,8 @@ Configuration = (options={}) ->
         locations       : [
           { location    : "= /payments/stripe/webhook" }
           {
-            location    : "/api/social/"
-            proxyPass   : "http://socialapi/"
+            location    : "~ /api/social/(.*)"
+            proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
           }
         ]
