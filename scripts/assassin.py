@@ -22,6 +22,13 @@ MAX_REPEAT     = 10   # times ~ 0 to infinite
 KILL_ENABLED   = False
 SLACK_ENABLED  = False
 
+WHITE_LIST     = [
+    "kloud"
+    "koding-webserver"
+    "koding-socialworker"
+    "koding-authworker"
+]
+
 my_pid   = os.getpid()
 bad_guys = {}
 
@@ -76,20 +83,20 @@ def kill(proc, usage):
 
     if usage > KILL_THRESHOLD:
 
-        if KILL_ENABLED:
-            slack_it("Killing: %s (PID %s) usage was: %s" %
+        if KILL_ENABLED and proc.name() in WHITE_LIST:
+            slack_it("Killing: *%s* (*PID %s*) usage was: %s" %
                     (proc.name(), proc.pid, usage))
             proc.kill()
 
         else:
-            slack_it("If I was able to, I would like to kill: %s (PID %s) "
+            slack_it("If I was able to, I would like to kill: *%s* (*PID %s*) "
                      "since it's using %s cpu on average..." %
                         (proc.name(), proc.pid, usage))
 
     else:
-        slack_it("Giving another chance to %s since "
-                 "its usage average (%s) below kill "
-                 "threshold: %s " % (proc.name(), usage, KILL_THRESHOLD))
+        slack_it("Giving another chance to *%s* since "
+                 "its usage average (*%s*) below kill "
+                 "threshold: *%s* " % (proc.name(), usage, KILL_THRESHOLD))
 
     del bad_guys[proc.pid]
 
