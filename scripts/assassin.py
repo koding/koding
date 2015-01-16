@@ -2,9 +2,10 @@
 
 import os
 import sys
-
 import time
 import json
+import socket
+import commands
 
 try:
     import psutil
@@ -29,6 +30,16 @@ WHITE_LIST     = [
     "koding-authworker"
 ]
 
+(status, hostaddr) = commands.getstatusoutput(
+    "/opt/aws/bin/ec2-metadata --public-hostname"
+)
+
+hostname = socket.gethostname()
+
+if status == 0:
+    hostaddr = "ssh://ec2-user@%s" % hostaddr.split(':')[-1].strip()
+    hostname = "<%s|%s>" % (hostname, hostaddr)
+
 my_pid   = os.getpid()
 bad_guys = {}
 
@@ -49,7 +60,7 @@ def slack_it(message):
     if not SLACK_ENABLED:
         return
 
-    PAYLOAD['text'] = message
+    PAYLOAD['text'] = "[%s] %s" % (hostname, message)
     slack.setopt(pycurl.POSTFIELDS, "payload=%s" % json.dumps(PAYLOAD))
     slack.perform()
 
