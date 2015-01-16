@@ -252,8 +252,8 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 		}
 
 		username := customer.Username
-		if username == "" {
-			return nil, nil
+		if isUsernameEmpty(username) {
+			return nil, errUsernameEmpty(customer.ProviderCustomerId)
 		}
 
 		err = stopMachinesForUser(username)
@@ -345,12 +345,20 @@ func (p *PaypalWebhook) Do() (interface{}, error) {
 		}
 
 		username := customer.Username
-		if username == "" {
-			return nil, fmt.Errorf("Stopping machine for paypal customer: %s failed", p.PayerId)
+		if isUsernameEmpty(username) {
+			return nil, errUsernameEmpty(p.PayerId)
 		}
 
 		err = stopMachinesForUser(username)
 	}
 
 	return nil, err
+}
+
+func isUsernameEmpty(username string) bool {
+	return username == ""
+}
+
+func errUsernameEmpty(customerId string) error {
+	return fmt.Errorf("Stopping machine for paypal customer: %s failed since username is empty", customerId)
 }
