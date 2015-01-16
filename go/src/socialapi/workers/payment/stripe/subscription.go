@@ -176,7 +176,7 @@ func handleDowngrade(currentSubscription paymentmodels.Subscription, customer *p
 		return handleStripeError(err)
 	}
 
-	err = currentSubscription.UpdateTimeForDowngrade(time.Now())
+	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
 
 	return err
 }
