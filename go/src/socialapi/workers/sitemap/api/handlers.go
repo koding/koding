@@ -13,10 +13,7 @@ import (
 	"time"
 )
 
-var (
-	ErrFetch = errors.New("could not fetch files")
-	cache    *models.SitemapFileCache
-)
+var ErrFetch = errors.New("could not fetch files")
 
 const (
 	CacheTTL   = 5 * time.Minute
@@ -28,17 +25,29 @@ type ErrorResponse struct {
 	Error   string   `xml:"error"`
 }
 
+type SitemapHandler struct {
+	fetcher *models.SitemapFetcher
+}
+
+func NewSitemapHandler() *SitemapHandler {
+	return &SitemapHandler{
+		fetcher: models.NewSitemapFetcher(CacheTTL, GCInterval, config.MustGet().Hostname),
+	}
+}
+
 func AddHandlers(m *mux.Mux) {
+	sh := NewSitemapHandler()
+
 	m.AddUnscopedHandler(
 		handler.Request{
-			Handler:  FetchRoot,
+			Handler:  sh.FetchRoot,
 			Type:     handler.GetRequest,
 			Endpoint: "/sitemap.xml",
 		})
 
 	m.AddUnscopedHandler(
 		handler.Request{
-			Handler:  FetchByName,
+			Handler:  sh.FetchByName,
 			Type:     handler.GetRequest,
 			Endpoint: "/sitemap/{name}",
 		})
@@ -50,16 +59,8 @@ func NewDefaultError(err error) []byte {
 	return res
 }
 
-func getCache() *models.SitemapFileCache {
-	if cache == nil {
-		cache = models.NewSitemapFileCache(CacheTTL, GCInterval, config.MustGet().Hostname)
-	}
-
-	return cache
-}
-
-func FetchRoot(w http.ResponseWriter, _ *http.Request) {
-	res, err := getCache().FetchRoot()
+func (sh *SitemapHandler) FetchRoot(w http.ResponseWriter, _ *http.Request) {
+	res, err := sh.fetcher.FetchRoot()
 	if err != nil {
 		handleError(w, err, "An error occurred while fetching sitemap")
 		return
@@ -68,7 +69,7 @@ func FetchRoot(w http.ResponseWriter, _ *http.Request) {
 	handleSuccess(w, res)
 }
 
-func FetchByName(w http.ResponseWriter, r *http.Request) {
+func (sh *SitemapHandler) FetchByName(w http.ResponseWriter, r *http.Request) {
 	fileName := r.URL.Query().Get("name")
 
 	names := strings.Split(fileName, ".")
@@ -79,7 +80,7 @@ func FetchByName(w http.ResponseWriter, r *http.Request) {
 
 	fileName = names[0]
 
-	res, err := getCache().FetchByName(fileName)
+	res, err := sh.fetcher.FetchByName(fileName)
 	if err != nil {
 		handleError(w, err, "An error occurred while fetching sitemap")
 		return
