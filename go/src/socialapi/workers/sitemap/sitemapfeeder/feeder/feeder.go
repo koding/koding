@@ -22,7 +22,10 @@ type Controller struct {
 	updateInterval time.Duration
 }
 
-var ErrIgnore = errors.New("ignore")
+var (
+	ErrIgnore      = errors.New("ignore")
+	ErrInvalidType = errors.New("invalid type")
+)
 
 const (
 	DefaultInterval   = 30 * time.Minute
@@ -216,9 +219,9 @@ func (f *Controller) fetchFileName(i *models.SitemapItem) string {
 		return fetchChannelMessageName(i.Id)
 	case models.TYPE_CHANNEL:
 		return fetchChannelName(i.Id)
+	default:
+		panic(ErrInvalidType)
 	}
-
-	return ""
 }
 
 func fetchChannelMessageName(id int64) string {
