@@ -50,7 +50,7 @@ def get_top_processes():
             continue
 
         try:
-            p.dict = p.as_dict(['get_cpu_percent', 'name', 'status'])
+            p.dict = p.as_dict(['cpu_percent', 'name', 'status'])
 
         except:
             pass
