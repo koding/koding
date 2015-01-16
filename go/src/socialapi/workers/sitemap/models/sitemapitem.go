@@ -7,7 +7,6 @@ import (
 )
 
 const (
-	TYPE_ACCOUNT         = "account"
 	TYPE_CHANNEL_MESSAGE = "channelmessage"
 	TYPE_CHANNEL         = "channel"
 	STATUS_ADD           = "add"
@@ -61,8 +60,6 @@ func (s *SitemapItem) Definition(protocol, rootURL string) *ItemDefinition {
 
 func (s *SitemapItem) composeLocation(protocol, rootURL string) string {
 	switch s.TypeConstant {
-	case TYPE_ACCOUNT:
-		return fmt.Sprintf("%s//%s/%s", protocol, rootURL, s.Slug)
 	case TYPE_CHANNEL_MESSAGE:
 		return fmt.Sprintf("%s//%s/%s/%s", protocol, rootURL, "Activity", s.Slug)
 	case TYPE_CHANNEL:
