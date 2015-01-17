@@ -107,8 +107,15 @@ class PaymentModal extends PaymentBaseModal
 
   handleError: (error) ->
 
-    msg = error?.description or error?.message or "Something went wrong."
-    KD.showError msg
+    { FRAUDULENT } = ERRORS
+
+    return switch error.type
+      when FRAUDULENT
+        @setTitle 'Fraudulent user detected! <SENTHIL UPDATE THIS>'
+        @form.showFraudulentError()
+      else
+        msg = error?.description or error?.message or "Something went wrong."
+        KD.showError msg
 
 
   handleSuccess: ->
