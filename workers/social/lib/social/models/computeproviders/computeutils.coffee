@@ -96,12 +96,20 @@ revive = do -> ({
     shouldReviveProvider
     shouldReviveProvisioners
     shouldLockProcess
+    hasOptions
   }, fn) ->
 
   (client, options, _callback) ->
 
+    hasOptions ?= yes
+
+    unless hasOptions
+      [options, _callback] = [_callback, options]
+      options = {}
+
     unless typeof _callback is 'function'
-      _callback = (err)-> console.error "Unhandled error:", err.message
+      _callback = (err)->
+        console.error "Unhandled error:", err?.message or err
 
     if shouldLockProcess
 
@@ -117,8 +125,8 @@ revive = do -> ({
 
       callback = _callback
 
-
     shouldReviveProvider ?= yes
+
     {provider, credential, provisioners} = options
 
     if shouldReviveProvider
@@ -155,7 +163,10 @@ revive = do -> ({
         reviveProvisioners client, provisioners, (err, provisioners)=>
 
           options.provisioners = provisioners  if provisioners?
-          fn.call this, client, options, callback
+
+          if hasOptions
+          then fn.call this, client, options, callback
+          else fn.call this, client, callback
 
         , shouldReviveProvisioners
 
