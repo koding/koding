@@ -162,7 +162,7 @@ module.exports = class JMachine extends Module
     userId = user.getId()
 
     owner  = no
-    owner |= u.owner and u.id.equals userId  for u, i in machine.users
+    owner |= u.sudo and u.owner and u.id.equals userId  for u in machine.users
 
     return owner
 
