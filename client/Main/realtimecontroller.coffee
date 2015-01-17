@@ -165,7 +165,11 @@ class RealtimeController extends KDController
 
 
   handleError: (err) ->
-    {message, payload: {channels}} = err
+    {message, payload} = err
+
+    return warn err  unless payload
+
+    {channels} = payload
 
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
