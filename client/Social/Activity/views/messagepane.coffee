@@ -52,11 +52,18 @@ class MessagePane extends KDTabPaneView
 
     @setFilter @getDefaultFilter()
 
-    {socialapi} = KD.singletons
+    {
+      socialapi
+      notificationController
+    } = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
+
+    notificationController
+      .on 'AddedToChannel',     @bound 'accountAddedToChannel'
+      .on 'RemovedFromChannel', @bound 'accountRemovedFromChannel'
 
 
   refreshContent: ->
@@ -184,7 +191,8 @@ class MessagePane extends KDTabPaneView
         testpath : 'channel-title'
 
     if typeConstant not in ['group', 'announcement']
-      @channelTitleView.addSubView new TopicFollowButton null, @getData()
+      @followButton = new TopicFollowButton null, @getData()
+      @channelTitleView.addSubView @followButton
 
   createInputWidget: (placeholder) ->
 
@@ -423,3 +431,19 @@ class MessagePane extends KDTabPaneView
     if socialapi.isAnnouncementItem @getData().id
     then 'Most Recent'
     else 'Most Liked'
+
+
+  accountAddedToChannel: (update) ->
+
+    { id } = update.channel
+
+    if @followButton and id is @followButton.getData().id
+      @followButton.setFollowingState yes
+
+
+  accountRemovedFromChannel: (update) ->
+
+    { id } = update.channel
+
+    if @followButton and id is @followButton.getData().id
+      @followButton.setFollowingState no

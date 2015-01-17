@@ -96,7 +96,7 @@ class PrivateMessagePane extends MessagePane
   # ADDING MESSAGES
   #
 
-  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
+  appendMessage: (message, index) -> @listController.addItem message, index or @listController.getItemCount()
 
 
   prependMessage: (message) -> @listController.addItem message, 0
@@ -143,23 +143,23 @@ class PrivateMessagePane extends MessagePane
 
 
   resetPadding: ->
-      
+
     listView = @listController.getView()
 
     if (listView.hasClass 'padded') and (@scrollView.getHeight() < listView.getHeight())
       listView.unsetClass 'padded'
       return yes
-      
+
     return no
 
-  
+
   messageExpanded: () ->
-    
+
     @scrollDown()  if @resetPadding()
 
     @scrollView.wrapper.emit 'MutationHappened'
 
-  
+
   messageAdded: (item, index) ->
 
     data         = item.getData()
@@ -266,7 +266,6 @@ class PrivateMessagePane extends MessagePane
 
       channel = @getData()
       channel.replies = data
-      @listPreviousLink.updateView data
       callback err, data
 
 
@@ -303,7 +302,7 @@ class PrivateMessagePane extends MessagePane
 
         if items.length is 0
         then @listPreviousLink.hide()
-        else @listPreviousLink.updatePartial 'Pull or click here to view more'
+        else @listPreviousLink.updatePartial 'Pull to view more'
 
         inProgress = false
 
@@ -349,7 +348,6 @@ class PrivateMessagePane extends MessagePane
 
     @listPreviousLink = new ReplyPreviousLink
       delegate : @listController
-      click    : @bound 'listPreviousReplies'
       linkCopy : 'Show previous replies'
     , @getData()
 

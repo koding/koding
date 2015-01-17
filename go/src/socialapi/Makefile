@@ -52,7 +52,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -112,6 +112,14 @@ popularpostdev:
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
 	@$(GOBINDIR)/goldorf -run socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
+
+dispatcherdev:
+	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(METRICS)
+
+gatekeeperdev:
+	@echo "$(OK_COLOR)==> Running Gatekeeper Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
@@ -240,9 +248,15 @@ testapi:
 	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
+	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/realtime/*.go
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./realtime.test
+
+	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
+	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
+	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./generator.test
 
 doc:
 	@for package in $(PACKAGES); \

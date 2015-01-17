@@ -42,24 +42,24 @@ module.exports =
     browser.end()
 
 
-  followTopic: (browser) ->
+  # followTopic: (browser) ->
 
-    helpers.doFollowTopic(browser)
-    browser.end()
+  #   helpers.doFollowTopic(browser)
+  #   browser.end()
 
 
-  unfollowTopic: (browser) ->
+  # unfollowTopic: (browser) ->
 
-    hashtag    = helpers.doFollowTopic(browser)
-    selector   = '.activity-sidebar .followed.topics'
-    publicLink = '[testpath="public-feed-link/Activity/Topic/public"]'
+  #   hashtag    = helpers.doFollowTopic(browser)
+  #   selector   = '.activity-sidebar .followed.topics'
+  #   publicLink = '[testpath="public-feed-link/Activity/Topic/public"]'
 
-    browser
-      .click                   '[testpath=channel-title]' + ' .following'
-      .waitForElementVisible   publicLink, 25000
-      .click                   publicLink
-      .refresh()
-      .getText selector, (result) =>
-        index = result.value.indexOf(hashtag.replace('#', ''))
-        assert.equal(index, -1)
-        browser.end()
+  #   browser
+  #     .click                   '[testpath=channel-title]' + ' .following'
+  #     .waitForElementVisible   publicLink, 25000
+  #     .click                   publicLink
+  #     .refresh()
+  #     .getText selector, (result) =>
+  #       index = result.value.indexOf(hashtag.replace('#', ''))
+  #       assert.equal(index, -1)
+  #       browser.end()

@@ -35,7 +35,11 @@ Configuration = (options={}) ->
     _port  = if publicPort is '80' then '' else publicPort
     host   = options.host or "#{options.hostname}:#{_port}"
 
-  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://lvh.me", local_: "lvh.me", host: "http://lvh.me", port: 8090 }
+  local = "127.0.0.1"
+  if publicPort isnt '80'
+    local = "#{local}:#{publicPort}"
+
+  customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
   sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
   email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"      , forcedRecipient: "foome@koding.com"                       }
@@ -48,15 +52,15 @@ Configuration = (options={}) ->
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
+  pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
+  gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
-  socialapiProxy      =
-    hostname          : "localhost"
-    port              : "7000"
 
   socialapi =
-    proxyUrl          : "http://#{socialapiProxy.hostname}:#{socialapiProxy.port}"
+    proxyUrl          : "#{customDomain.local}/api/social"
+    port              : "7000"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres          : postgres
     mq                : mq
@@ -67,7 +71,7 @@ Configuration = (options={}) ->
     hostname          : host
     protocol          : protocol
     email             : email
-    sitemap           : { redisDB: 0 }
+    sitemap           : { redisDB: 0, updateInterval:  "1m" }
     algolia           : algoliaSecret
     mixpanel          : mixpanel
     limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
@@ -76,6 +80,8 @@ Configuration = (options={}) ->
     debug             : no
     stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
     paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
+    gatekeeper        : gatekeeper
+    customDomain      : customDomain
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -128,6 +134,7 @@ Configuration = (options={}) ->
 
     kontrol                        : kontrol
     newkontrol                     : kontrol
+    gatekeeper                     : gatekeeper
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
@@ -205,6 +212,7 @@ Configuration = (options={}) ->
     entryPoint        : {slug:'koding'       , type:'group'}
     siftScience       : 'f270274999'
     paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
+    pubnub            : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: no     }
     collaboration     : KONFIG.collaboration
 
 
@@ -226,7 +234,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/goldorf -run koding/go-webserver -c #{configName}"
       nginx             :
-        locations       : ["~^/IDE/.*"]
+        locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
 
@@ -249,7 +257,7 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/kloud -networkusageendpoint http://localhost:#{KONFIG.vmwatcher.port} -planendpoint #{socialapi.proxyUrl}/payments/subscriptions  -hostedzone #{userSitesDomain} -region #{region} -environment #{environment} -port #{KONFIG.kloud.port} -publickey #{kontrol.publicKeyFile} -privatekey #{kontrol.privateKeyFile} -kontrolurl #{kontrol.url}  -registerurl #{KONFIG.kloud.registerUrl} -mongourl #{KONFIG.mongo} -prodmode=#{configName is "prod"}"
       nginx             :
         websocket       : yes
-        locations       : ["~^/kloud/.*"]
+        locations       : [ location: "~^/kloud/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.kloud.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.kloud.port}/version"
 
@@ -266,7 +274,10 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/goldorf -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
-        locations       : ["/websocket", "~^/subscribe/.*"]
+        locations       : [
+          { location    : "/websocket" }
+          { location    : "~^/subscribe/.*" }
+        ]
       healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
       versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
 
@@ -313,7 +324,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port}                 --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        locations       : ["/"]
+        locations       : [ location: "/" ]
 
     socialworker        :
       group             : "webserver"
@@ -323,7 +334,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "./watch-node #{projectRoot}/workers/social/index.js -c #{configName} -p #{KONFIG.social.port} -r #{region} --disable-newrelic --kite-port=#{KONFIG.social.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        locations       : ["/xhr"]
+        locations       : [ location: "/xhr" ]
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
@@ -334,15 +345,45 @@ Configuration = (options={}) ->
 
     socialapi:
       group             : "socialapi"
-      instances         : 3
+      instances         : 1
       ports             :
-        incoming        : "#{socialapiProxy.port}"
+        incoming        : "#{socialapi.port}"
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
-      healthCheckURL    : "http://localhost:#{socialapiProxy.port}/healthCheck"
-      versionURL        : "http://localhost:#{socialapiProxy.port}/version"
+      healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
+      versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
-        locations       : [ "= /payments/stripe/webhook" ]
+        locations       : [
+          { location    : "= /payments/stripe/webhook" },
+          {
+            location    : "~ /api/social/(.*)"
+            proxyPass   : "http://socialapi/$1$is_args$args"
+            internalOnly: yes
+          }
+          {
+            location    : "~ /sitemap(.*).xml"
+            proxyPass   : "http://socialapi/sitemap$1.xml"
+          }
+        ]
+
+    gatekeeper          :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{gatekeeper.port}"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make gatekeeperdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
+      versionURL        : "#{customDomain.local}/api/gatekeeper/version"
+      nginx             :
+        locations       : [
+          location      : "~ /api/gatekeeper/(.*)"
+          proxyPass     : "http://gatekeeper/$1$is_args$args"
+        ]
+
+    dispatcher          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
     vmwatcher           :
       group             : "environment"
@@ -818,6 +859,7 @@ Configuration = (options={}) ->
         ./scripts/clear-algolia-index.sh -i "topics$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
         ./scripts/clear-algolia-index.sh -i "messages$KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX"
 
+        migrate up
       }
 
       function services () {
