@@ -30,7 +30,7 @@ func main() {
 
 	h.AddHandlers(m)
 
-	// consume messages form RMQ
+	// consume messages from RMQ
 	go r.Listen()
 
 	m.Listen()
