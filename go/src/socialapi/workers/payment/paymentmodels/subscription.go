@@ -161,3 +161,15 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 
 	return subscriptions, err
 }
+
+func (s *Subscription) ByStateCustomerUsernames(state string) ([]Customer, error) {
+	customers := []Customer{}
+
+	err := bongo.B.DB.
+		Table(s.BongoName()).
+		Where(
+		"state = ?", state,
+	).Select("payment.customer.*").Joins("right join payment.customer on payment.customer.id = payment.subscription.customer_id").Find(&customers).Error
+
+	return customers, err
+}

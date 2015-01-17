@@ -383,6 +383,9 @@ checkOwnership = (data, callback) ->
   url = "/account/#{data.accountId}/owns"
   get url, data, callback
 
+getCustomers = (data, callback) ->
+  url = "/payments/customers"
+  get url, data, callback
 
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
@@ -502,6 +505,7 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
+  getCustomers
   post
   get
   deleteReq

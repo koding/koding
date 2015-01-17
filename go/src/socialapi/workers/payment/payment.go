@@ -153,6 +153,21 @@ func (a *AccountRequest) Delete() (interface{}, error) {
 	return nil, err
 }
 
+func (a *AccountRequest) ActiveUsernames() ([]string, error) {
+	customer := paymentmodels.NewCustomer()
+	customers, err := customer.ByActiveSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	usernames := []string{}
+	for _, customer := range customers {
+		usernames = append(usernames, customer.Username)
+	}
+
+	return usernames, nil
+}
+
 //----------------------------------------------------------
 // UpdateCreditCard
 //----------------------------------------------------------
