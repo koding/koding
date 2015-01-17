@@ -264,6 +264,36 @@ class PaymentForm extends JView
     @successMessage.show()
 
 
+  showFraudulentError: ->
+
+    [
+      @form
+      @existingCreditCardMessage
+      @securityNote
+      @yearPriceMessage
+      @submitButton
+      @paypalForm
+    ].forEach (view) -> view.destroy()
+
+    [
+      @$('.divider')
+      @$('.summary')
+    ].forEach (element) -> element.detach()
+
+    emailLink = [
+      "mailto:support@koding.com?"
+      "subject=Fraudulent user&"
+      "body=<SENTHIL MAIL BODY IS HERE>"
+      "\nusername: #{KD.nick()}"
+    ].join ''
+
+    @successMessage.updatePartial "
+      <SENTHIL MESSAGE IS HERE>
+      <a href='#{emailLink}'>support@koding.com</a>
+    "
+    @successMessage.show()
+
+
   getPricePartial: (planInterval) ->
 
     { monthPrice, reducedMonth } = @state
