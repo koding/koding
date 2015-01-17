@@ -175,10 +175,12 @@ module.exports = class JMachine extends Module
     return newUsers
 
 
-  addUser = (users, user, asOwner)->
+  addUser = (users, options)->
+
+    {user, asOwner, permanent} = options
 
     newUsers = excludeUser users, user
-    newUsers.push { id: user.getId(), owner: asOwner }
+    newUsers.push { id: user.getId(), owner: asOwner, approved: no, permanent }
 
     return newUsers
 
@@ -247,12 +249,14 @@ module.exports = class JMachine extends Module
 
   # Instance Methods
 
-  addUsers: (usersToAdd, asOwner, callback)->
+  addUsers: (options, callback)->
+
+    {targets, asOwner, permanent} = options
 
     users = @users.splice 0
 
-    for user in usersToAdd
-      users = addUser users, user, asOwner
+    for user in targets
+      users = addUser users, {user, asOwner, permanent}
 
     if users.length > 10
       callback new KodingError \
@@ -273,9 +277,11 @@ module.exports = class JMachine extends Module
 
   shareWith: (options, callback)->
 
-    { target, asUser, asOwner } = options
-    asUser  ?= yes
-    asOwner ?= no
+    { target, asUser, asOwner, permanent } = options
+
+    asUser    ?= yes
+    asOwner   ?= no
+    permanent ?= no
 
     unless target?
       return callback new KodingError "Target required."
@@ -295,7 +301,7 @@ module.exports = class JMachine extends Module
       if target instanceof JUser
 
         if asUser
-        then @addUsers targets, asOwner, callback
+        then @addUsers {targets, asOwner, permanent}, callback
         else @removeUsers targets, callback
 
       else
@@ -443,9 +449,12 @@ module.exports = class JMachine extends Module
   # .shareWith can be used like this:
   #
   # JMachineInstance.shareWith {
-  #   asUser: yes, asOwner: no, target: ["gokmen", "dicle"]}, cb
+  #   asUser: yes, asOwner: no, target: ["gokmen", "dicle"], permanent: no}, cb
   # }
   #                        user slugs ->  ^^^^^^ ,  ^^^^^
+  #
+  # ps. permanent option requires a valid paid subscription
+  #
 
   shareWith$: permit 'populate users',
 
@@ -461,7 +470,7 @@ module.exports = class JMachine extends Module
       unless isOwner user, this
         return callback new KodingError "Access denied"
 
-      { target } = options
+      { target, permanent } = options
 
       if target.length > 9
         return callback new KodingError \
@@ -477,8 +486,24 @@ module.exports = class JMachine extends Module
         return callback \
           new KodingError "It is not allowed to change owner state!"
 
-      JMachine::shareWith.call this, options, callback
+      # Permanent option is only valid for paid accounts
+      # if its passed then we need to check payment
+      #
+      if permanent # and @provider is 'koding'
+                   # TODO: we can limit this for koding provider only ~ GG
 
+        Payment = require '../payment'
+        Payment.subscriptions client, {}, (err, subscription)=>
+
+          if err? or not subscription? or subscription.planTitle is 'free'
+            return callback \
+              new KodingError "You don't have a paid subscription!"
+
+          JMachine::shareWith.call this, options, callback
+
+      else
+
+        JMachine::shareWith.call this, options, callback
 
 
   share: secure (client, users, callback) ->
