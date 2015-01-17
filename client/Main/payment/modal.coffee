@@ -5,6 +5,9 @@ class PaymentModal extends PaymentBaseModal
 
   { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
 
+  ERRORS =
+    FRAUDULENT : 'fraudulent'
+
   getInitialState: ->
     planInterval : PaymentWorkflow.planInterval.MONTH
     planTitle    : PaymentWorkflow.planTitle.HOBBYIST
