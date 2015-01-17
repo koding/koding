@@ -37,6 +37,8 @@ module.exports = class JMachine extends Module
         some            :
           (signature Object, Function)
       instance          :
+        deny            :
+          (signature Function)
         approve         :
           (signature Function)
         reviveUsers     :
@@ -572,3 +574,23 @@ module.exports = class JMachine extends Module
     , $set       : "users.$.approved" : yes
     , (err)-> callback err
 
+
+  deny: secure revive
+
+    shouldReviveClient   : yes
+    shouldLockProcess    : yes
+    shouldReviveProvider : no
+    hasOptions           : no
+
+  , (client, callback)->
+
+    { r: { user } } = client
+
+    # An owner cannot deny their own machine
+    if isOwner user, this
+      return callback null
+
+    options = target: [user.username], asUser: no
+
+    @shareWith options, (err)->
+      callback err
