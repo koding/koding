@@ -221,7 +221,6 @@ Configuration = (options={}) ->
         command         : "#{GOBIN}/go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
-        auth            : no
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.gowebserver.port}/version"
 
@@ -314,10 +313,7 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "node #{projectRoot}/servers/index.js -c #{configName} -p #{KONFIG.webserver.port} --disable-newrelic --kite-port=#{KONFIG.webserver.kitePort} --kite-key=#{kiteHome}/kite.key"
       nginx             :
-        locations       : [
-          location      : "/"
-          auth          : yes
-        ]
+        locations       : [ location : "/" ]
 
     socialworker        :
       group             : "webserver"
