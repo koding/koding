@@ -267,7 +267,7 @@ module.exports = class JMachine extends Module
       callback new KodingError \
         "Machine sharing is limited up to 10 users."
     else
-      @update $set: { users }, callback
+      @update $set: { users }, (err)-> callback err
 
 
   removeUsers: (usersToRemove, callback)->
@@ -277,7 +277,7 @@ module.exports = class JMachine extends Module
     for user in usersToRemove
       users = excludeUser users, user
 
-    @update $set: { users }, callback
+    @update $set: { users }, (err)-> callback err
 
 
   shareWith: (options, callback)->
@@ -472,11 +472,17 @@ module.exports = class JMachine extends Module
 
       { r: { user } } = client
 
+      # Only an owner of this machine can modify it
       unless isOwner user, this
         return callback new KodingError "Access denied"
 
       { target, permanent } = options
 
+      # At least one target is required
+      if not target or target.length is 0
+        return callback new KodingError "A target required."
+
+      # Max 9 target can be passed
       if target.length > 9
         return callback new KodingError \
           "It is not allowed to change more than 9 state at once."
@@ -487,6 +493,8 @@ module.exports = class JMachine extends Module
         return callback \
           new KodingError "You are not allowed to change your own state!"
 
+      # For Koding provider credential field is username
+      # and we don't allow them to be removed from users
       if @provider is 'koding' and @credential in target
         return callback \
           new KodingError "It is not allowed to change owner state!"
@@ -513,7 +521,7 @@ module.exports = class JMachine extends Module
 
   share: secure (client, users, callback) ->
 
-    options = target : users, asUser : yes
+    options = target: users, asUser: yes
     @shareWith$ client, options, callback
 
 
