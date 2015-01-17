@@ -467,6 +467,7 @@ module.exports = class JMachine extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
+      shouldLockProcess    : yes
 
     , (client, options, callback)->
 
