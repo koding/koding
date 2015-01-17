@@ -51,7 +51,8 @@ module.exports = class Payment extends Base
 
           if score >= ALLOWED_FRAUD_SCORE
             return callback {
-              message: "Your account has been marked as fradulent"
+              type: 'fraudulent'
+              message: 'Your account has been marked as fraudulent'
             }
 
           post url, data, (err, response)->
