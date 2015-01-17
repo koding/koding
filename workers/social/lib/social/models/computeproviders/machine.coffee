@@ -37,6 +37,8 @@ module.exports = class JMachine extends Module
         some            :
           (signature Object, Function)
       instance          :
+        approve         :
+          (signature Function)
         reviveUsers     :
           (signature Function)
         shareWith       :
@@ -548,4 +550,25 @@ module.exports = class JMachine extends Module
   #   options = target: users, asUser: yes, asOwner: no
   #   @shareWith$ client, options, callback
 
+
+  approve: secure revive
+
+    shouldReviveClient   : yes
+    shouldLockProcess    : yes
+    shouldReviveProvider : no
+    hasOptions           : no
+
+  , (client, callback)->
+
+    { r: { user } } = client
+
+    # An owner cannot approve their own machine
+    if isOwner user, this
+      return callback null
+
+    JMachine.update
+      "_id"      : @getId()
+      "users.id" : user._id
+    , $set       : "users.$.approved" : yes
+    , (err)-> callback err
 
