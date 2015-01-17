@@ -49,10 +49,13 @@ module.exports = class JMachine extends Module
           (signature Object, Function)
         unshare         :
           (signature Object, Function)
-        setAsOwner      :
-          (signature Object, Function)
-        unsetAsOwner    :
-          (signature Object, Function)
+
+        # Disabled for now ~ GG
+        # setAsOwner      :
+        #   (signature Object, Function)
+        # unsetAsOwner    :
+        #   (signature Object, Function)
+
 
     permissions         :
       'list machines'   : ['member']
@@ -177,10 +180,12 @@ module.exports = class JMachine extends Module
 
   addUser = (users, options)->
 
+    # asOwner option is disabled for now ~ GG
+    # passing False for owner
     {user, asOwner, permanent} = options
 
     newUsers = excludeUser users, user
-    newUsers.push { id: user.getId(), owner: asOwner, approved: no, permanent }
+    newUsers.push { id: user.getId(), owner: no, approved: no, permanent }
 
     return newUsers
 
@@ -524,13 +529,14 @@ module.exports = class JMachine extends Module
     else @shareWith$ client, options, callback
 
 
-  setAsOwner: secure (client, users, callback) ->
+  # setting owner disabled for now ~ GG
 
-    options = target : users, asUser : yes, asOwner : yes
-    @shareWith$ client, options, callback
+  # setAsOwner: secure (client, users, callback) ->
+  #   options = target: users, asUser: yes, asOwner: yes
+  #   @shareWith$ client, options, callback
+
+  # unsetAsOwner: secure (client, users, callback) ->
+  #   options = target: users, asUser: yes, asOwner: no
+  #   @shareWith$ client, options, callback
 
 
-  unsetAsOwner: secure (client, users, callback) ->
-
-    options = target : users, asUser : yes, asOwner : no
-    @shareWith$ client, options, callback
