@@ -126,8 +126,9 @@ func (c *Customer) ByActiveSubscription() ([]Customer, error) {
 	err := bongo.B.DB.
 		Table(s.BongoName()).
 		Where(
-		"state = ?", SubscriptionStateActive,
-	).Select("payment.customer.*").Joins("right join payment.customer on payment.customer.id = payment.subscription.customer_id").Find(&customers).Error
+		"state = ?", SubscriptionStateActive).
+		Select("payment.customer.*").
+		Joins("right join payment.customer on payment.customer.id = payment.subscription.customer_id").Find(&customers).Error
 
 	return customers, err
 }

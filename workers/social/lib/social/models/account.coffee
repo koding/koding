@@ -1385,7 +1385,7 @@ module.exports = class JAccount extends jraphical.Module
       callback null
 
   fetchCustomers: secure ({connection}, options, callback) ->
-    if !isDummyAdmin connection.delegate.profile.nickname
+    if not isDummyAdmin connection.delegate.profile.nickname
       return callback new KodingError "permission denied"
 
     {getCustomers} = require './socialapi/requests'

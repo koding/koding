@@ -46,7 +46,7 @@ func TestGetAllCustomers(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return their usernames", func() {
-			req := GetCustomersRequest{}
+			req := AccountRequest{}
 			usernames, err := req.ActiveUsernames()
 			So(err, ShouldBeNil)
 
