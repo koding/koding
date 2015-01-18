@@ -36,7 +36,9 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
 
           return  if KD.showError err
           
-          KD.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", workspace.data.machineUId, workspace.data.rootPath if deleteRelatedFiles
+          { machineUId, rootPath } = workspace.data
+          if deleteRelatedFiles
+            KD.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", machineUId, rootPath 
 
           navItem.destroy()
           @destroy()
