@@ -149,6 +149,17 @@ do ->
       KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
+  routeToMachineWorkspace = (machine) ->
+
+    if {machineLabel} = latestWorkspace = getLatestWorkspace()
+      if machineLabel is machine.label
+        workspaceSlug = latestWorkspace.workspaceSlug
+
+    workspaceSlug ?= 'my-workspace'
+
+    KD.getSingleton('router').handleRoute "/IDE/#{machine.label}/#{workspaceSlug}"
+
+
   routeToLatestWorkspace = ->
 
     router = KD.getSingleton 'router'
