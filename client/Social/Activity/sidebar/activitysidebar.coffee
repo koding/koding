@@ -630,8 +630,12 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @latestWorkspaceData = data
 
-    localStorage         = KD.getSingleton("localStorageController").storage "IDE"
-    minimumDataToStore   = machineLabel: (machine.slug or machine.label), workspaceSlug: workspace.slug
+    localStorage = KD.getSingleton("localStorageController").storage "IDE"
+
+    minimumDataToStore =
+      machineLabel     : machine.slug or machine.label
+      workspaceSlug    : workspace.slug
+      channelId        : data.channelId
 
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
