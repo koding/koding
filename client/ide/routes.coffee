@@ -151,16 +151,26 @@ do ->
 
   routeToLatestWorkspace = ->
 
-    machine = KD.userMachines.first
-    return putVMInWorkspace machine  if machine
+    router = KD.getSingleton 'router'
 
-    KD.singletons.computeController.fetchMachines (err, machines)->
+    if latestWorkspace = getLatestWorkspace()
+      {machineLabel, workspaceSlug, channelId} = latestWorkspace
+    else
+      return routeToFallback()
 
-      if err or not machines.length
-        KD.getSingleton('router').handleRoute "/IDE/koding-vm-0/my-workspace"
-        return
+    if channelId
+      for workspace in KD.userWorkspaces when workspace.channelId is channelId
+        return router.handleRoute "/IDE/#{channelId}"
+      routeToFallback()
 
-      putVMInWorkspace machines.first
+    else if machineLabel and workspaceSlug
+      return routeToFallback()  unless machine = getMachine machineLabel
+
+      findWorkspace {workspaceSlug, machineLabel}, (workspace) ->
+
+        if workspace
+        then router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+        else routeToMachineWorkspace machine
 
 
   loadCollaborativeIDE = (id) ->
