@@ -48,30 +48,24 @@ func realMain() error {
 	multiconfig.New().MustLoad(conf)
 
 	c := NewCleaner(conf)
-	isPaid, err := c.IsPaid()
-	if err != nil {
-		return err
-	}
-
-	instances := c.AWS.FetchInstances()
-	alwaysOnMachines, err := c.MongoDB.AlwaysOn()
+	artifacts, err := c.Collect()
 	if err != nil {
 		return err
 	}
 
 	c.run(
 		&TestVMS{
-			Instances: instances,
+			Instances: artifacts.Instances,
 		},
 		&AlwaysOn{
 			MongoDB:          c.MongoDB,
-			IsPaid:           isPaid,
-			AlwaysOnMachines: alwaysOnMachines,
+			IsPaid:           artifacts.IsPaid,
+			AlwaysOnMachines: artifacts.AlwaysOnMachines,
 		},
 		&LongRunning{
 			MongoDB:   c.MongoDB,
-			IsPaid:    isPaid,
-			Instances: instances,
+			IsPaid:    artifacts.IsPaid,
+			Instances: artifacts.Instances,
 			Cleaner:   c,
 		},
 	)

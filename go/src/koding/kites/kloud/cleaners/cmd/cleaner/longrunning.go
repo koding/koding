@@ -54,7 +54,7 @@ func (l *LongRunning) Process() {
 		ids = append(ids, instanceId)
 
 		// debug
-		fmt.Printf("[%s] %s %s %s\n", data.username, data.instanceId, data.domain, data.ipAddress)
+		// fmt.Printf("[%s] %s %s %s\n", data.username, data.instanceId, data.domain, data.ipAddress)
 	}
 
 	// contains free user VMs running for more than 12 hours

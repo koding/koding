@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
 	"koding/kites/kloud/provider/koding"
+	"sync"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -126,4 +127,46 @@ func (c *Cleaner) StopMachine(data *StopData) {
 		)
 	})
 
+}
+
+type Artifacts struct {
+	Instances        lookup.MultiInstances
+	AlwaysOnMachines []lookup.MachineDocument
+	IsPaid           func(string) bool
+}
+
+func (c *Cleaner) Collect() (*Artifacts, error) {
+	c.Log.Info("Collecting artifacts to be used by cleaners")
+	start := time.Now().UTC()
+	var wg sync.WaitGroup
+	wg.Add(3)
+
+	a := &Artifacts{}
+	var err error
+
+	go func() {
+		a.IsPaid, err = c.IsPaid()
+		wg.Done()
+	}()
+
+	go func() {
+		a.Instances = c.AWS.FetchInstances()
+		wg.Done()
+	}()
+
+	go func() {
+		a.AlwaysOnMachines, err = c.MongoDB.AlwaysOn()
+		wg.Done()
+	}()
+
+	wg.Wait()
+
+	// return if there is any error, it doesn't matter which one, because we
+	// are going to fix all of them in any way.
+	if err != nil {
+		return nil, err
+	}
+
+	c.Log.Info("Collecting finished (total time: %s)", time.Since(start))
+	return a, nil
 }

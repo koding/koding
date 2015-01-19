@@ -26,6 +26,6 @@ func (t *TestVMS) Process() {
 }
 
 func (t *TestVMS) Result() string {
-	return fmt.Sprintf("testvms: terminated '%d' instances",
+	return fmt.Sprintf("testvms: terminated '%d' instances tagged with [sandbox, dev]",
 		t.testInstances.Total())
 }
