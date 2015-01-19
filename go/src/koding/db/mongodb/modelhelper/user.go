@@ -92,7 +92,7 @@ func BlockUser(username, reason string, duration time.Duration) error {
 	selector := bson.M{"username": username}
 	updateQuery := bson.M{"$set": bson.M{
 		"status":        UserStatusBlocked,
-		"blockedReason": reason, "blockedUntil": time.Now().Add(duration),
+		"blockedReason": reason, "blockedUntil": time.Now().UTC().Add(duration),
 	}}
 
 	query := func(c *mgo.Collection) error {
