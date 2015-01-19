@@ -60,6 +60,13 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
+      
+    @terminal.ringBellCallback = do (bell = try new Audio '/a/audio/bell.wav') -> (event) ->
+      event?.preventDefault()
+      
+      if not bell? or @controlCodeReader.visualBell
+      then new KDNotificationView title: 'Bell!', duration: 100
+      else bell.play()
 
     @listenWindowResize()
 
