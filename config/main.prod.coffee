@@ -24,6 +24,8 @@ Configuration = (options={}) ->
   etcd                = "10.0.0.172:4001"
 
   redis               = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com"     , port:               "6379"                                , db:              0                    }
+  redis.url           = "#{redis.host}:#{redis.url}"
+
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
@@ -50,7 +52,7 @@ Configuration = (options={}) ->
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
     postgres          : postgres
     mq                : mq
-    redis             : url: "#{redis.host}:#{redis.port}"
+    redis             : url: redis.url
     mongo             : mongo
     environment       : environment
     region            : region
@@ -96,13 +98,13 @@ Configuration = (options={}) ->
     socialapi                      : socialapi
     mongo                          : mongo
     kiteHome                       : kiteHome
-    redis                          : "#{redis.host}:#{redis.port}"
+    redis                          : redis.url
     monitoringRedis                : "10.0.0.123:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe" , kloudAddr : "http://localhost:#{kloudPort}/kite", connectToKlient : true, debug : true}
+    vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe" , kloudAddr : "http://localhost:#{kloudPort}/kite", connectToKlient : true, debug : true, mongo : mongo, redis : redis.url}
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }

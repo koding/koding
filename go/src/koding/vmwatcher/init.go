@@ -14,40 +14,46 @@ import (
 	"github.com/koding/redis"
 )
 
-type Konfig struct {
-	Mongo                     string `required:"true"`
-	Redis                     string `required:"true"`
-	Vmwatcher_AwsKey          string `required:"true"`
-	Vmwatcher_AwsSecret       string `required:"true"`
-	Vmwatcher_KloudSecretKey  string `required:"true"`
-	Vmwatcher_KloudAddr       string `required:"true"`
-	Vmwatcher_Port            string `required:"true"`
-	Vmwatcher_Debug           bool
-	Vmwatcher_ConnectToKlient bool
+type Vmwatcher struct {
+	Mongo           string `required:"true"`
+	Redis           string `required:"true"`
+	AwsKey          string `required:"true"`
+	AwsSecret       string `required:"true"`
+	KloudSecretKey  string `required:"true"`
+	KloudAddr       string `required:"true"`
+	Port            string `required:"true"`
+	Debug           bool
+	ConnectToKlient bool
 }
 
 var (
-	conf = func() *Konfig {
-		conf := new(Konfig)
-		multiconfig.New().MustLoad(conf)
+	conf = func() *Vmwatcher {
+		conf := new(Vmwatcher)
+		d := &multiconfig.DefaultLoader{
+			Loader: multiconfig.MultiLoader(
+				&multiconfig.EnvironmentLoader{Prefix: "KONFIG_VMWATCHER"},
+			),
+		}
+
+		d.MustLoad(conf)
 
 		return conf
 	}()
 
-	port = conf.Vmwatcher_Port
+	port = conf.Port
 
-	AWS_KEY    = conf.Vmwatcher_AwsKey
-	AWS_SECRET = conf.Vmwatcher_AwsSecret
+	AWS_KEY    = conf.AwsKey
+	AWS_SECRET = conf.AwsSecret
 
 	// This secret key is here because this worker will be bypassed from the
 	// token authentication in kloud.
-	KloudSecretKey = conf.Vmwatcher_KloudSecretKey
-	KloudAddr      = conf.Vmwatcher_KloudAddr
+	KloudSecretKey = conf.KloudSecretKey
+	KloudAddr      = conf.KloudAddr
 
 	controller *VmController
 	storage    Storage
 
-	Log = helper.CreateLogger(WorkerName, conf.Vmwatcher_Debug)
+	Log = helper.CreateLogger(WorkerName, conf.Debug)
 )
 
 func initialize() {
@@ -58,7 +64,7 @@ func initialize() {
 	initializeRedis(controller)
 	initializeAws(controller)
 
-	if conf.Vmwatcher_ConnectToKlient {
+	if conf.ConnectToKlient {
 		initializeKlient(controller)
 	}
 
