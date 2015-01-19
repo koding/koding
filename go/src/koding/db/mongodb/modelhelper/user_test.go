@@ -28,6 +28,10 @@ func TestBlockUser(t *testing.T) {
 		Name: username, ObjectId: bson.NewObjectId(), Status: UserStatusBlocked,
 	}
 
+	defer func() {
+		RemoveUser(username)
+	}()
+
 	err := CreateUser(user)
 	if err != nil {
 		t.Error(err)
@@ -44,23 +48,16 @@ func TestBlockUser(t *testing.T) {
 	}
 
 	if user.Status != UserStatusBlocked {
-		t.Log("User status is not blocked")
-		t.Fail()
+		t.Errorf("User status is not blocked")
 	}
 
 	if user.BlockedReason != blockedReason {
-		t.Logf("User blocked reason is not: %s", blockedReason)
-		t.Fail()
+		t.Errorf("User blocked reason is not: %s", blockedReason)
 	}
 
 	if user.BlockedUntil.IsZero() {
-		t.Log("User blocked until date is not set")
-		t.Fail()
+		t.Errorf("User blocked until date is not set")
 	}
-
-	defer func() {
-		RemoveUser(username)
-	}()
 }
 
 func TestRemoveUser(t *testing.T) {
@@ -81,7 +78,6 @@ func TestRemoveUser(t *testing.T) {
 
 	user, err = GetUser(username)
 	if err == nil {
-		t.Log("User should've been deleted, but wasn't")
-		t.Fail()
+		t.Errorf("User should've been deleted, but wasn't")
 	}
 }
