@@ -31,6 +31,30 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
+func TestGetAllCustomers(t *testing.T) {
+	Convey("Given two actively subscribed users", t, func() {
+		token, accId, email := generateFakeUserInfo()
+		err := stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
+		So(err, ShouldBeNil)
+
+		token, accId, email = generateFakeUserInfo()
+		err = stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
+		So(err, ShouldBeNil)
+
+		Convey("Then it should return their usernames", func() {
+			req := AccountRequest{}
+			usernames, err := req.ActiveUsernames()
+			So(err, ShouldBeNil)
+
+			So(len(usernames), ShouldBeGreaterThan, 1)
+		})
+	})
+}
+
 func TestSubscriptionsRequest(t *testing.T) {
 	Convey("Given nonexistent user", t, func() {
 		req := AccountRequest{AccountId: "indianajones"}

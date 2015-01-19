@@ -29,6 +29,14 @@ func SubscriptionRequest(u *url.URL, h http.Header, _ interface{}) (int, http.He
 	)
 }
 
+func GetCustomersRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	req := &payment.AccountRequest{}
+
+	return response.HandleResultAndClientError(
+		req.ActiveUsernames(),
+	)
+}
+
 func DeleteCustomerRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),
