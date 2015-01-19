@@ -73,7 +73,7 @@ class SidebarSearchModal extends KDModalView
     @fetch {}, @bound 'populate'
 
 
-  populate: (items, options) ->
+  populate: (items, options = {}) ->
 
     return  unless items?.length?
 

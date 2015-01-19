@@ -73,6 +73,10 @@ class UserPolicyView extends JView
         </li>
 
         <li>
+          Any type of proxy services including but not exclusively VPN servers, TOR servers, etc.
+        </li>
+
+        <li>
           BitTorrenting or Filesharing;
         </li>
 
@@ -244,6 +248,10 @@ class UserPolicyView extends JView
       </ul>
 
       Koding reserves the right to suspend or terminate accounts found in violation of these items with or without prior notice given and without liability.
+      <p>
+      In addition, Koding reserves the right to terminate unused VMs after a period of inactivity (Usually 45-60 days). Inactive accounts will
+      be notified before any such action is taken.
+      </p>
 
       <p>
         (This document is an adaptation of the Google App Engine Program Policies

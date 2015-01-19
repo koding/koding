@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/realtime/gatekeeper/gatekeeper"
+	api "socialapi/workers/realtime/gatekeeper/gatekeeper"
 	"socialapi/workers/realtime/models"
 )
 
@@ -29,6 +29,9 @@ func main() {
 	h := api.NewHandler(pubnub, r.Log)
 
 	h.AddHandlers(m)
+
+	// consume messages from RMQ
+	go r.Listen()
 
 	m.Listen()
 	defer m.Close()
