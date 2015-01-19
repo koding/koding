@@ -1,26 +1,9 @@
 do ->
 
-  loadWorkspace = (options, workspace) ->
-
-    {machineLabel, workspaceSlug, username} = options
+  loadWorkspace = ({machineLabel, username}, workspace) ->
 
     machine = getMachine machineLabel, username
-
-    if workspace
-      loadIDE { machine, workspace, username }
-
-    else if workspaceSlug is 'my-workspace'
-      workspace = new KD.remote.api.JWorkspace
-        _id          : 'my-workspace'
-        isDummy      : yes
-        isDefault    : yes
-        slug         : 'my-workspace'
-        machineLabel : machine?.slug or machine?.label
-
-      loadIDE { machine, workspace, username }
-
-    else
-      routeToLatestWorkspace()
+    loadIDE { machine, workspace, username }
 
 
   findWorkspace = (options, callback) ->
