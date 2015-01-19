@@ -48,6 +48,7 @@ func (l *LongRunning) Process() {
 			domain:     machine.Domain,
 			ipAddress:  machine.IpAddress,
 			username:   username,
+			reason:     "Non free user, VM is running for more than 12 hours",
 		}
 
 		datas = append(datas, data)

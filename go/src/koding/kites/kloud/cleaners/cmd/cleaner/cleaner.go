@@ -25,12 +25,21 @@ type Cleaner struct {
 	Log  logging.Logger
 }
 
+type Artifacts struct {
+	Instances        lookup.MultiInstances
+	AlwaysOnMachines []lookup.MachineDocument
+	UsersMultiple    map[string][]lookup.MachineDocument
+	MongodbIDs       map[string]struct{}
+	IsPaid           func(string) bool
+}
+
 type StopData struct {
 	id         bson.ObjectId
 	instanceId string
 	domain     string
 	ipAddress  string
 	username   string
+	reason     string
 }
 
 func NewCleaner(conf *Config) *Cleaner {
@@ -122,18 +131,11 @@ func (c *Cleaner) StopMachine(data *StopData) {
 				"ipAddress":         "",
 				"status.state":      "Stopped",
 				"status.modifiedAt": time.Now().UTC(),
-				"status.reason":     "Non free user, VM is running for more than 12 hours",
+				"status.reason":     data.reason,
 			}},
 		)
 	})
 
-}
-
-type Artifacts struct {
-	Instances        lookup.MultiInstances
-	AlwaysOnMachines []lookup.MachineDocument
-	MongodbIDs       map[string]struct{}
-	IsPaid           func(string) bool
 }
 
 func (c *Cleaner) Collect() (*Artifacts, error) {
@@ -143,7 +145,8 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	wg.Add(4)
 
 	a := &Artifacts{
-		MongodbIDs: make(map[string]struct{}, 0),
+		MongodbIDs:    make(map[string]struct{}, 0),
+		UsersMultiple: make(map[string][]lookup.MachineDocument, 0),
 	}
 
 	var err error
@@ -164,6 +167,9 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	}()
 
 	go func() {
+		// users mapped to their machines
+		users := make(map[string][]lookup.MachineDocument, 0)
+
 		iter := func(l lookup.MachineDocument) {
 			i, ok := l.Meta["instanceId"]
 			if !ok {
@@ -183,9 +189,29 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 			}
 
 			a.MongodbIDs[id] = struct{}{}
+
+			// fetch duplicate users
+			username := l.Credential
+			machines, ok := users[username]
+			if !ok {
+				users[username] = []lookup.MachineDocument{l}
+				return
+			}
+
+			// we found another machine
+			machines = append(machines, l)
+			users[username] = machines
 		}
 
 		err = c.MongoDB.Iter(iter)
+
+		// list of users with more than one machine
+		for user, machines := range users {
+			if len(machines) > 1 {
+				a.UsersMultiple[user] = machines
+			}
+		}
+
 		wg.Done()
 	}()
 

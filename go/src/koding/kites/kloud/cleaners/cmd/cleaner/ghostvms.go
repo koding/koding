@@ -47,7 +47,7 @@ func (g *GhostVMs) Process() {
 		return
 	}
 
-	// g.ghostInstances.TerminateAll()
+	g.ghostInstances.TerminateAll()
 }
 
 func (g *GhostVMs) Result() string {

@@ -73,6 +73,12 @@ func realMain() error {
 			Instances: artifacts.Instances,
 			Ids:       artifacts.MongodbIDs,
 		},
+		&MultipleVMs{
+			Instances:     artifacts.Instances,
+			UsersMultiple: artifacts.UsersMultiple,
+			IsPaid:        artifacts.IsPaid,
+			Cleaner:       c,
+		},
 	)
 
 	return nil
