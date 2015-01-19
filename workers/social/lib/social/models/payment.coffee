@@ -2,6 +2,8 @@ Bongo = require "bongo"
 {secure, signature, Base} = Bongo
 
 module.exports = class Payment extends Base
+  ALLOWED_FRAUD_SCORE = 80
+
   @share()
 
   @set
@@ -42,14 +44,24 @@ module.exports = class Payment extends Base
         data.accountId = getAccountId client
         url = "/payments/subscribe"
 
-        post url, data, (err, response)->
-          callback err, response
+        SiftScience = require "./siftscience"
+        SiftScience.score client, (err, score) ->
+          if err
+            log "getting score from SiftScience failed: ", err
 
-          data.status = if err then "$failed" else "$success"
+          if score >= ALLOWED_FRAUD_SCORE
+            return callback {
+              type: 'fraudulent'
+              message: 'Your account has been marked as fraudulent'
+            }
 
-          SiftScience = require "./siftscience"
-          SiftScience.transaction client, data, (err)->
-            log "logging to SiftScience failed", err  if err
+          post url, data, (err, response)->
+            callback err, response
+
+            data.status = if err then "$failed" else "$success"
+
+            SiftScience.transaction client, data, (err)->
+              log "logging to SiftScience failed", err  if err
 
 
   @subscriptions$ = secure (client, data, callback)->

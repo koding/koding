@@ -59,6 +59,17 @@ module.exports = class SiftScience
 
     @send client, "create_account", data, callback
 
+  @score: (client, callback)->
+    @fetchUserInfo client, (err, {username})->
+      siftScience = require('yield-siftscience') KONFIG.siftScience
+      siftScience.score username, (err, response)->
+        return callback err, 0  if err
+
+        {body} = response
+        if body["error_message"] is "OK"
+          return callback null, body["score"]
+
+        callback body["error_message"], 0
 
   @send = (client, event, data, callback)->
     siftScience = require('yield-siftscience') KONFIG.siftScience

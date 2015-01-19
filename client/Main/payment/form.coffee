@@ -244,6 +244,7 @@ class PaymentForm extends JView
       @securityNote
       @yearPriceMessage
       @submitButton
+      @paypalForm
     ].forEach (view) -> view.destroy()
 
     [
@@ -259,6 +260,36 @@ class PaymentForm extends JView
       <a href='mailto:support@koding.com'>support@koding.com</a>
       (don't forget to include your username and the plan name
       you were trying to purchase).
+    "
+    @successMessage.show()
+
+
+  showFraudulentError: ->
+
+    [
+      @form
+      @existingCreditCardMessage
+      @securityNote
+      @yearPriceMessage
+      @submitButton
+      @paypalForm
+    ].forEach (view) -> view.destroy()
+
+    [
+      @$('.divider')
+      @$('.summary')
+    ].forEach (element) -> element.detach()
+
+    emailLink = [
+      "mailto:support@koding.com?"
+      "subject=Fraudulent user&"
+      "body=<SENTHIL MAIL BODY IS HERE>"
+      "\nusername: #{KD.nick()}"
+    ].join ''
+
+    @successMessage.updatePartial "
+      <SENTHIL MESSAGE IS HERE>
+      <a href='#{emailLink}'>support@koding.com</a>
     "
     @successMessage.show()
 
@@ -292,4 +323,5 @@ class PaymentForm extends JView
     {{> @paypalForm}}
     {{> @securityNote}}
     """
+
 
