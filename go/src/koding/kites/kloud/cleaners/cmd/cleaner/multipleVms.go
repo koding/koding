@@ -33,7 +33,6 @@ func (m *MultipleVMs) Process() {
 
 	for username, machines := range freeUsersWithMultipleVMs {
 		for _, machine := range machines {
-
 			// there is no way this can panic because we fetch documents which
 			// have instanceIds in it
 			instanceId := machine.Meta["instanceId"].(string)
