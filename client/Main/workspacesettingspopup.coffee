@@ -58,7 +58,7 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
     fieldSwitch = new KodingSwitch
         defaultValue  : deleteRelatedFiles
         cssClass      : 'tiny'
-        callback      : (state) => deleteRelatedFiles = state
+        callback      : (state) -> deleteRelatedFiles = state
     
     field.addSubView title
     field.addSubView fieldSwitch
