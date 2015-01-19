@@ -79,6 +79,13 @@ func realMain() error {
 			IsPaid:        artifacts.IsPaid,
 			Cleaner:       c,
 		},
+		&Volumes{
+			MongoDB:   c.MongoDB,
+			IsPaid:    artifacts.IsPaid,
+			Instances: artifacts.Instances,
+			Volumes:   artifacts.Volumes,
+			Cleaner:   c,
+		},
 	)
 
 	return nil

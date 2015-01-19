@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"time"
 )
 
 type MultipleVMs struct {
@@ -18,6 +19,7 @@ type MultipleVMs struct {
 func (m *MultipleVMs) Process() {
 	instances := m.Instances.
 		States("running").
+		OlderThan(time.Hour).
 		WithTag("koding-env", "production")
 
 	freeUsersWithMultipleVMs := make(map[string][]lookup.MachineDocument, 0)

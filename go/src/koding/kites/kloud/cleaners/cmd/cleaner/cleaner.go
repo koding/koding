@@ -27,6 +27,7 @@ type Cleaner struct {
 
 type Artifacts struct {
 	Instances        lookup.MultiInstances
+	Volumes          lookup.MultiVolumes
 	AlwaysOnMachines []lookup.MachineDocument
 	UsersMultiple    map[string][]lookup.MachineDocument
 	MongodbIDs       map[string]struct{}
@@ -59,6 +60,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		Password: conf.Password,
 		DBName:   conf.DBName,
 	})
+	// TODO: change once the code is moved to koding/monitoring
 	hook := Hook{
 		URL:      conf.SlackURL,
 		Channel:  "#reports",
@@ -142,7 +144,7 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	c.Log.Info("Collecting artifacts to be used by cleaners")
 	start := time.Now().UTC()
 	var wg sync.WaitGroup
-	wg.Add(4)
+	wg.Add(5)
 
 	a := &Artifacts{
 		MongodbIDs:    make(map[string]struct{}, 0),
@@ -163,6 +165,11 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 
 	go func() {
 		a.AlwaysOnMachines, err = c.MongoDB.AlwaysOn()
+		wg.Done()
+	}()
+
+	go func() {
+		a.Volumes = c.AWS.FetchVolumes()
 		wg.Done()
 	}()
 
