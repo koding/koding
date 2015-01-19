@@ -171,13 +171,16 @@ module.exports = class JMachine extends Module
     return owner
 
 
-  excludeUser = (users, user)->
+  excludeUser = (options)->
+
+    { users, user, permanent } = options
 
     userId   = user.getId()
     newUsers = []
 
     for u in users
-      newUsers.push u  unless userId.equals u.id
+      if u.permanent isnt permanent or not userId.equals u.id
+        newUsers.push u
 
     return newUsers
 
@@ -188,7 +191,7 @@ module.exports = class JMachine extends Module
     # passing False for owner
     {user, asOwner, permanent} = options
 
-    newUsers = excludeUser users, user
+    newUsers = excludeUser { users, user, permanent }
     newUsers.push { id: user.getId(), owner: no, approved: no, permanent }
 
     return newUsers
@@ -274,12 +277,14 @@ module.exports = class JMachine extends Module
       @update $set: { users }, (err)-> callback err
 
 
-  removeUsers: (usersToRemove, callback)->
+  removeUsers: (options, callback)->
+
+    {targets, permanent} = options
 
     users = @users.splice 0
 
-    for user in usersToRemove
-      users = excludeUser users, user
+    for user in targets
+      users = excludeUser { users, user, permanent }
 
     @update $set: { users }, (err)-> callback err
 
@@ -311,7 +316,7 @@ module.exports = class JMachine extends Module
 
         if asUser
         then @addUsers {targets, asOwner, permanent}, callback
-        else @removeUsers targets, callback
+        else @removeUsers {targets, permanent}, callback
 
       else
         callback new KodingError "Target does not support machines."
@@ -481,7 +486,7 @@ module.exports = class JMachine extends Module
       unless isOwner user, this
         return callback new KodingError "Access denied"
 
-      { target, permanent } = options
+      { target, permanent, asUser } = options
 
       # At least one target is required
       if not target or target.length is 0
@@ -503,6 +508,13 @@ module.exports = class JMachine extends Module
       if @provider is 'koding' and @credential in target
         return callback \
           new KodingError "It is not allowed to change owner state!"
+
+      # If it's a call for unshare then no need to check
+      # any other state for it
+      if asUser is no
+        JMachine::shareWith.call this, options, callback
+
+        return
 
       # Permanent option is only valid for paid accounts
       # if its passed then we need to check payment
@@ -590,7 +602,7 @@ module.exports = class JMachine extends Module
     if isOwner user, this
       return callback null
 
-    options = target: [user.username], asUser: no
+    options = target: [user.username], asUser: no, permanent: yes
 
     @shareWith options, (err)->
       callback err
