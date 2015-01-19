@@ -146,13 +146,7 @@ do ->
       KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
 
 
-  routeToLatestWorkspace = (options = {}) ->
-
-    {params}       = options
-    {machineLabel} = params  if params
-
-    # we assume that if machineLabel is all numbers it is the channelId - SY
-    return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
+  routeToLatestWorkspace = ->
 
     machine = KD.userMachines.first
     return putVMInWorkspace machine  if machine
@@ -215,15 +209,23 @@ do ->
 
   KD.registerRoutes 'IDE',
 
-    '/:name?/IDE': (rest...) ->
-      refreshWorkspaces -> routeToLatestWorkspace rest...
+    '/:name?/IDE': ->
+      refreshWorkspaces -> routeToLatestWorkspace()
 
-    '/:name?/IDE/:machineLabel': (rest...) ->
-      refreshWorkspaces -> routeToLatestWorkspace rest...
+    '/:name?/IDE/:machineLabel': ({params}) ->
 
-    '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
+      {machineLabel} = params
 
-      {params} = routeInfo
+      # we assume that if machineLabel is all numbers it is the channelId - SY
+      if /^[0-9]+$/.test machineLabel
+        refreshWorkspaces -> loadCollaborativeIDE machineLabel
+      else if machine = getMachine machineLabel
+        putVMInWorkspace machine
+      else
+        routeToLatestWorkspace()
+
+    '/:name?/IDE/:machineLabel/:workspaceSlug': ({params}) ->
+
       {machineLabel} = params
 
       refreshWorkspaces ->
@@ -233,9 +235,13 @@ do ->
           params.username = KD.nick()
 
           if workspace
-          then loadWorkspace params, workspace
+            return loadWorkspace params, workspace
           else
             for machine in KD.userMachines when machine.label is machineLabel
-              return loadWorkspace params
+              break
 
-            routeToLatestWorkspace {params}
+            if machine
+            then putVMInWorkspace machine
+            else loadWorkspace params
+
+          routeToLatestWorkspace()
