@@ -54,17 +54,13 @@ do ->
 
 
   getMachine = (label, username) ->
-    machine = null
 
     for m in KD.userMachines
 
-      hasSameLabel = (m.label is label) or (m.slug is label)
-      hasSameUser  = m.getOwner() is username
+      sameLabel = (m.label is label) or (m.slug is label)
+      sameUser  = m.getOwner() is username
 
-      if hasSameLabel and hasSameUser
-        machine = m
-
-    return machine
+      return m  if sameLabel and sameUser
 
 
   loadIDE = (data) ->
