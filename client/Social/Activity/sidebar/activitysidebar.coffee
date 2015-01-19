@@ -525,7 +525,7 @@ class ActivitySidebar extends KDCustomHTMLView
       ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
       hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
-      unless hasWorkspace
+      if machine.isMine() and not hasWorkspace
         KD.userWorkspaces.push @getDummyWorkspace machine
 
       @sortWorkspaces KD.userWorkspaces
