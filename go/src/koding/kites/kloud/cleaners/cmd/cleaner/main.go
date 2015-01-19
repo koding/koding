@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/koding/multiconfig"
 )
@@ -40,6 +41,16 @@ func realMain() error {
 	multiconfig.New().MustLoad(conf)
 
 	cleaner := NewCleaner(conf)
-	cleaner.GhostVMS()
+
+	instances := cleaner.AWS.FetchInstances()
+
+	testInstances := instances.
+		OlderThan(time.Hour*24).
+		WithTag("koding-env", "sandbox", "dev").
+		States("pending", "running", "stopping", "stopped")
+
+	t := &TestVMS{instances: testInstances}
+	t.Process()
+
 	return nil
 }

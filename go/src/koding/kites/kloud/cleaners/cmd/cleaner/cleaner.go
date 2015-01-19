@@ -41,7 +41,3 @@ func NewCleaner(conf *Config) *Cleaner {
 		Domains:  domains,
 	}
 }
-
-func (c *Cleaner) GhostVMS() {
-
-}
