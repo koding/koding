@@ -37,6 +37,8 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 				Log.Error(err.Error())
 			}
 		}
+	} else {
+		Log.Debug("Klient not initialized. Not stopping: %s...but blocking user", machineId)
 	}
 
 	return modelhelper.BlockUser(username, reason, BlockDuration)
