@@ -20,29 +20,27 @@ var (
 
 	GB_TO_MB float64 = 1024
 
-	rightNow = time.Now()
-
 	auth aws.Auth
-
-	PaidPlanMultiplier float64 = 2
 )
 
+type Limits map[string]float64
+
 type Cloudwatch struct {
-	Name  string
-	Limit float64
+	Name   string
+	Limits Limits
 }
 
 func (c *Cloudwatch) GetName() string {
 	return c.Name
 }
 
-func (c *Cloudwatch) GetLimit() float64 {
-	limit, _ := storage.GetLimit(c.GetName(), c.Limit)
+func (c *Cloudwatch) GetLimit(name string) float64 {
+	limit, _ := c.Limits[name]
 	return limit
 }
 
-func isEmpty(s string) bool {
-	return s == ""
+func (c *Cloudwatch) Save(username string, value float64) error {
+	return storage.SaveScore(c.Name, username, value)
 }
 
 func (c *Cloudwatch) GetAndSaveData(username string) error {
@@ -79,7 +77,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 
 		cw, err := cloudwatch.NewCloudWatch(auth, aws.Regions[region].CloudWatchServicepoint)
 		if err != nil {
-			Log.Error("Failed to initialize cloudwatch client", err)
+			Log.Error("Failed to initialize cloudwatch client:", err)
 			continue
 		}
 
@@ -95,7 +93,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 
 		response, err := cw.GetMetricStatistics(request)
 		if err != nil {
-			Log.Error("Failed to get request for machine: %v", machine.ObjectId)
+			Log.Error("Failed to get request for machine: %s, %v", machine.ObjectId, err)
 			continue
 		}
 
@@ -104,15 +102,17 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 		}
 	}
 
-	if sum > c.Limit {
+	if sum > c.Limits[StopLimitKey] {
 		Log.Debug("'%s' has used: %v '%s'", username, sum, c.Name)
 	}
 
-	return storage.Save(c.Name, username, sum)
+	return c.Save(username, sum)
 }
 
-func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
-	usernames, err := storage.Range(c.Name, c.GetLimit())
+func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, error) {
+	limitAmount := c.Limits[limitName]
+
+	usernames, err := storage.GetFromScore(c.Name, limitAmount)
 	if err != nil {
 		return nil, err
 	}
@@ -143,12 +143,12 @@ func (c *Cloudwatch) GetMachinesOverLimit() ([]*models.Machine, error) {
 func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	canStart := &LimitResponse{CanStart: true}
 
-	value, err := storage.Get(c.GetName(), username)
+	value, err := storage.GetScore(c.Name, username)
 	if err != nil && !isRedisRecordNil(err) {
 		return nil, err
 	}
 
-	yes, err := exemptFromStopping(c.GetName(), username)
+	yes, err := exemptFromStopping(c.Name, username)
 	if err != nil {
 		return nil, err
 	}
@@ -159,16 +159,21 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	planTitle, err := getPlanForUser(username)
 	if err != nil {
-		return nil, err
+		Log.Error(
+			"Fetching plan for username: %s failed: %v, defaulting to paid",
+			username, err,
+		)
+
+		planTitle = PaidPlan
 	}
 
 	var limit float64
 
 	switch planTitle {
 	case FreePlan:
-		limit = c.GetLimit()
+		limit = c.Limits[StopLimitKey]
 	default:
-		limit = c.GetLimit() * PaidPlanMultiplier
+		limit = c.Limits[StopLimitKey] * PaidPlanMultiplier
 	}
 
 	lr := &LimitResponse{
@@ -181,10 +186,10 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 	return lr, nil
 }
 
-func (c *Cloudwatch) RemoveUsername(username string) error {
-	return storage.Remove(c.GetName(), username)
-}
-
 func isRedisRecordNil(err error) bool {
 	return err != nil && err == redis.ErrNil
+}
+
+func isEmpty(s string) bool {
+	return s == ""
 }

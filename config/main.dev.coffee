@@ -24,6 +24,8 @@ Configuration = (options={}) ->
   etcd                = "#{boot2dockerbox}:4001"
 
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
+  redis.url           = "#{redis.host}:#{redis.port}"
+
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
 
@@ -64,7 +66,7 @@ Configuration = (options={}) ->
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres          : postgres
     mq                : mq
-    redis             :  url: "#{redis.host}:#{redis.port}"
+    redis             :  url: redis.url
     mongo             : mongo
     environment       : environment
     region            : region
@@ -108,13 +110,13 @@ Configuration = (options={}) ->
     socialapi                      : socialapi
     mongo                          : mongo
     kiteHome                       : kiteHome
-    redis                          : "#{redis.host}:#{redis.port}"
-    monitoringRedis                : "#{redis.host}:#{redis.port}"
+    redis                          : redis.url
+    monitoringRedis                : redis.url
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"  , kloudAddr         : "http://localhost:#{kloudPort}/kite" }
+    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"  , kloudAddr         : "http://localhost:#{kloudPort}/kite", connectToKlient: true, debug : true, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -391,7 +393,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/vmwatcher -c #{configName}"
+        command         : "#{GOBIN}/goldorf -run koding/vmwatcher"
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 

@@ -117,6 +117,7 @@ module.exports = class JUser extends jraphical.Module
       password      : String
       salt          : String
       blockedUntil  : Date
+      blockedReason : String
       status        :
         type        : String
         enum        : [

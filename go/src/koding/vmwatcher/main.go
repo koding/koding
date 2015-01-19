@@ -22,10 +22,18 @@ var (
 	NetworkOut              = "NetworkOut"
 	NetworkOutLimit float64 = 7 * 1024 // 7GB/week
 
+	PaidPlanMultiplier float64 = 2
+	LimitMultiplier    float64 = 4
+
+	BlockDuration = time.Hour * 24 * 365
+
 	// defines list of metrics, all queue/fetch/save operations
 	// must iterate this list and not use metric directly
 	metricsToSave = []Metric{
-		&Cloudwatch{Name: NetworkOut, Limit: NetworkOutLimit},
+		&Cloudwatch{Name: NetworkOut, Limits: Limits{
+			StopLimitKey:  NetworkOutLimit,
+			BlockLimitKey: NetworkOutLimit * LimitMultiplier,
+		}},
 	}
 )
 
@@ -51,13 +59,20 @@ func main() {
 	})
 
 	// get and save metrics every 4 mins, starting at 1st minute
+	// queue overlimit users for either stop or block depending
+	// on their usage
 	c.AddFunc("0 1-59/4 * * * *", func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
 
-		err = stopMachinesOverLimit()
+		err = queueOverlimitUsers()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+
+		err = dealWithMachinesOverLimit()
 		if err != nil {
 			Log.Fatal(err.Error())
 		}
