@@ -1,24 +1,31 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"time"
 )
 
 type TestVMS struct {
-	instances lookup.MultiInstances
+	Instances lookup.MultiInstances
+
+	testInstances lookup.MultiInstances
 }
 
-func (t *TestVMS) Process() error {
-	if t.instances.Total() == 0 {
-		return errors.New("testvms: no VMs found")
+func (t *TestVMS) Process() {
+	t.testInstances = t.Instances.
+		OlderThan(time.Hour*24).
+		WithTag("koding-env", "sandbox", "dev").
+		States("pending", "running", "stopping", "stopped")
+
+	if t.testInstances.Total() == 0 {
+		return
 	}
 
-	t.instances.TerminateAll()
-	return nil
+	t.testInstances.TerminateAll()
 }
 
-func (t *TestVMS) Print() {
-	fmt.Printf("testvms: terminated '%d' instances\n", t.instances.Total())
+func (t *TestVMS) Result() string {
+	return fmt.Sprintf("testvms: terminated '%d' instances",
+		t.testInstances.Total())
 }

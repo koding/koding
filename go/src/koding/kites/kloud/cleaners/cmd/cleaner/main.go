@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
+	"sync"
 
 	"github.com/koding/multiconfig"
 )
@@ -25,6 +25,13 @@ type Config struct {
 
 	// HostedZone for production machines
 	HostedZone string `default:"koding.io"`
+
+	SlackURL string
+}
+
+type task interface {
+	Process()
+	Result() string
 }
 
 func main() {
@@ -40,17 +47,54 @@ func realMain() error {
 	conf := new(Config)
 	multiconfig.New().MustLoad(conf)
 
-	cleaner := NewCleaner(conf)
+	c := NewCleaner(conf)
+	isPaid, err := c.IsPaid()
+	if err != nil {
+		return err
+	}
 
-	instances := cleaner.AWS.FetchInstances()
+	instances := c.AWS.FetchInstances()
+	alwaysOnMachines, err := c.MongoDB.AlwaysOn()
+	if err != nil {
+		return err
+	}
 
-	testInstances := instances.
-		OlderThan(time.Hour*24).
-		WithTag("koding-env", "sandbox", "dev").
-		States("pending", "running", "stopping", "stopped")
-
-	t := &TestVMS{instances: testInstances}
-	t.Process()
+	c.run(
+		&TestVMS{
+			Instances: instances,
+		},
+		&AlwaysOn{
+			MongoDB:          c.MongoDB,
+			IsPaid:           isPaid,
+			alwaysOnMachines: alwaysOnMachines,
+		},
+	)
 
 	return nil
+}
+
+func (c *Cleaner) run(tasks ...task) {
+	var wg sync.WaitGroup
+
+	out := make(chan task)
+
+	for _, t := range tasks {
+		wg.Add(1)
+		go func(t task) {
+			t.Process()
+			out <- t
+			wg.Done()
+		}(t)
+	}
+
+	go func() {
+		wg.Wait()
+		close(out)
+	}()
+
+	for t := range out {
+		if msg := t.Result(); msg != "" {
+			c.Slack(msg) // send to slack channel
+		}
+	}
 }

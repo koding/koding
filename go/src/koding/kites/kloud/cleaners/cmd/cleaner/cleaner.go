@@ -13,6 +13,8 @@ type Cleaner struct {
 	Postgres *lookup.Postgres
 	DNS      *koding.DNS
 	Domains  *koding.Domains
+
+	Hook Hook
 }
 
 func NewCleaner(conf *Config) *Cleaner {
@@ -32,6 +34,11 @@ func NewCleaner(conf *Config) *Cleaner {
 		Password: conf.Password,
 		DBName:   conf.DBName,
 	})
+	hook := Hook{
+		URL:      conf.SlackURL,
+		Channel:  "#reports",
+		Username: "cleaner",
+	}
 
 	return &Cleaner{
 		AWS:      l,
@@ -39,5 +46,37 @@ func NewCleaner(conf *Config) *Cleaner {
 		Postgres: p,
 		DNS:      dns,
 		Domains:  domains,
+		Hook:     hook,
 	}
+}
+
+func (c *Cleaner) IsPaid() (func(string) bool, error) {
+	payingIds, err := c.Postgres.PayingCustomers()
+	if err != nil {
+		return nil, err
+	}
+
+	accounts, err := c.MongoDB.Accounts(payingIds...)
+	if err != nil {
+		return nil, err
+	}
+
+	set := make(map[string]struct{}, 0)
+	for _, account := range accounts {
+		set[account.Profile.Nickname] = struct{}{}
+	}
+
+	return func(username string) bool {
+		_, ok := set[username]
+		return ok
+	}, nil
+}
+
+func (c *Cleaner) Slack(msg string) error {
+	return c.Hook.Post(Message{
+		Channel:   c.Hook.Channel,
+		Username:  c.Hook.Username,
+		Text:      msg,
+		IconEmoji: ":cl:",
+	})
 }
