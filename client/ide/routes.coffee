@@ -151,26 +151,19 @@ do ->
 
         KD.userWorkspaces.forEach (workspace, index) =>
 
-          if workspace.channelId is channel.id
+          return  if workspace.channelId isnt channel.id
 
-            machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-            query   = socialApiId: channel.creatorId
+          machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+          query   = socialApiId: channel.creatorId
 
-            KD.remote.api.JAccount.some query, {}, (err, account) =>
+          KD.remote.api.JAccount.some query, {}, (err, account) =>
 
-              return throw new Error err  if err
+            return throw new Error err  if err
 
-              username  = account.first.profile.nickname
-              channelId = channel.id
+            username  = account.first.profile.nickname
+            channelId = channel.id
 
-              return loadIDE { machine, workspace, username, channelId }
-
-          # Commented out because of the side effects. ~Umut
-          # (e.g can't select random vms/workspaces)
-
-          # else
-          #   if index + 1 is KD.userWorkspaces.length
-          #     routeToLatestWorkspace()
+            return loadIDE { machine, workspace, username, channelId }
 
       catch e
 
