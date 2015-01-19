@@ -54,5 +54,5 @@ func queue(key, subkey string, members []interface{}) error {
 		Log.Debug("Queued: %d members for metric: %s#%s", len(members), key, subkey)
 	}
 
-	return nil
+	return err
 }
