@@ -57,7 +57,7 @@ do ->
     mainView.activitySidebar.selectWorkspace data
 
 
-  getMachine = (label, username) ->
+  getMachine = (label, username = KD.nick()) ->
 
     for m in KD.userMachines
 
