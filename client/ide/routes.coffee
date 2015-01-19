@@ -129,26 +129,6 @@ do ->
       else routeToMachineWorkspace machines.first
 
 
-  putVMInWorkspace = (machine) ->
-
-    localStorage    = KD.getSingleton("localStorageController").storage "IDE"
-    latestWorkspace = localStorage.getValue 'LatestWorkspace'
-
-    machineLabel    = machine.slug or machine.label
-    workspaceSlug   = 'my-workspace'
-    username        = machine.getOwner()
-
-    if latestWorkspace and latestWorkspace.machineLabel is machineLabel
-      for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
-        {workspaceSlug} = latestWorkspace
-
-    if workspaceSlug is 'my-workspace'
-      loadWorkspace {machineLabel, workspaceSlug, username}
-
-    KD.utils.defer ->
-      KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
-
-
   routeToMachineWorkspace = (machine) ->
 
     if {machineLabel} = latestWorkspace = getLatestWorkspace()
@@ -237,7 +217,7 @@ do ->
       if /^[0-9]+$/.test machineLabel
         refreshWorkspaces -> loadCollaborativeIDE machineLabel
       else if machine = getMachine machineLabel
-        putVMInWorkspace machine
+        routeToMachineWorkspace machine
       else
         routeToLatestWorkspace()
 
@@ -258,7 +238,7 @@ do ->
               break
 
             if machine
-            then putVMInWorkspace machine
+            then routeToMachineWorkspace machine
             else loadWorkspace null, params
 
           routeToLatestWorkspace()
