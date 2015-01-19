@@ -109,6 +109,20 @@ do ->
       callback()
 
 
+  routeToFallback = ->
+
+    router = KD.getSingleton 'router'
+
+    for machine in KD.userMachines when machine.isMine()
+      return routeToMachineWorkspace machine
+
+    KD.singletons.computeController.fetchMachines (err, machines) ->
+
+      if err or not machines.length
+      then router.handleRoute "/IDE/koding-vm-0/my-workspace"
+      else routeToMachineWorkspace machines.first
+
+
   putVMInWorkspace = (machine) ->
 
     localStorage    = KD.getSingleton("localStorageController").storage "IDE"
