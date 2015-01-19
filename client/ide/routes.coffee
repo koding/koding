@@ -2,6 +2,7 @@ do ->
 
   loadWorkspace = ({machineLabel, username}, workspace) ->
 
+    username or= KD.nick()
     machine = getMachine machineLabel, username
     loadIDE { machine, workspace, username }
 
@@ -200,11 +201,11 @@ do ->
 
       {machineLabel} = params
 
+      params.username = KD.nick()
+
       refreshWorkspaces ->
 
         findWorkspace params, (workspace) ->
-
-          params.username = KD.nick()
 
           if workspace
             return loadWorkspace params, workspace
