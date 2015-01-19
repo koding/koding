@@ -1,9 +1,12 @@
 do ->
 
-  loadWorkspace = ({machineLabel, username}, workspace) ->
+  loadWorkspace = (workspace, options) ->
+
+    {machine, machineLabel, username} = options
 
     username or= KD.nick()
-    machine = getMachine machineLabel, username
+    machine  or= getMachine machineLabel, username
+
     loadIDE { machine, workspace, username }
 
 
@@ -208,13 +211,13 @@ do ->
         findWorkspace params, (workspace) ->
 
           if workspace
-            return loadWorkspace params, workspace
+            return loadWorkspace workspace, params
           else
             for machine in KD.userMachines when machine.label is machineLabel
               break
 
             if machine
             then putVMInWorkspace machine
-            else loadWorkspace params
+            else loadWorkspace null, params
 
           routeToLatestWorkspace()
