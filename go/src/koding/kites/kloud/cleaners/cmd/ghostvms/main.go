@@ -39,7 +39,7 @@ func main() {
 		start := time.Now()
 		fmt.Printf("Searching for user VMs in production ...\n")
 
-		instances = l.FetchInstances().WithTag("koding-env", "production")
+		instances = l.FetchInstances().WithTag("koding-env", "production").OlderThan(time.Hour)
 		fmt.Println(instances)
 
 		fmt.Printf("AWS instances total: %+v (time: %s)\n",
