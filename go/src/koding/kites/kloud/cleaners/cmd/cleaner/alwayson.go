@@ -6,10 +6,9 @@ import (
 )
 
 type AlwaysOn struct {
-	MongoDB *lookup.MongoDB
-	IsPaid  func(username string) bool
-
-	alwaysOnMachines []lookup.MachineDocument
+	MongoDB          *lookup.MongoDB
+	IsPaid           func(username string) bool
+	AlwaysOnMachines []lookup.MachineDocument
 
 	nonvalidUsers []string
 	err           error
@@ -18,7 +17,7 @@ type AlwaysOn struct {
 func (a *AlwaysOn) Process() {
 	a.nonvalidUsers = make([]string, 0)
 
-	for _, machine := range a.alwaysOnMachines {
+	for _, machine := range a.AlwaysOnMachines {
 		username := machine.Credential
 
 		// if user is not a paying customer

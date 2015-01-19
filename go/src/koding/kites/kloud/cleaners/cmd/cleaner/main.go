@@ -66,7 +66,13 @@ func realMain() error {
 		&AlwaysOn{
 			MongoDB:          c.MongoDB,
 			IsPaid:           isPaid,
-			alwaysOnMachines: alwaysOnMachines,
+			AlwaysOnMachines: alwaysOnMachines,
+		},
+		&LongRunning{
+			MongoDB:   c.MongoDB,
+			IsPaid:    isPaid,
+			Instances: instances,
+			Cleaner:   c,
 		},
 	)
 
@@ -74,6 +80,8 @@ func realMain() error {
 }
 
 func (c *Cleaner) run(tasks ...task) {
+	c.Log.Info("Running '%d' cleaners", len(tasks))
+
 	var wg sync.WaitGroup
 
 	out := make(chan task)
@@ -94,6 +102,7 @@ func (c *Cleaner) run(tasks ...task) {
 
 	for t := range out {
 		if msg := t.Result(); msg != "" {
+			fmt.Println(msg)
 			c.Slack(msg) // send to slack channel
 		}
 	}
