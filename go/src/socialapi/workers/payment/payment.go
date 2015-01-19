@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"socialapi/workers/helper"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
@@ -11,17 +12,16 @@ import (
 	"time"
 
 	"github.com/koding/kite"
-	"github.com/koding/logging"
 )
 
 var (
 	ProviderNotFound       = errors.New("provider not found")
 	ProviderNotImplemented = errors.New("provider not implemented")
 
-	Log = logging.NewLogger("payment")
-
 	WorkerName    = "socialapi-payment"
 	WorkerVersion = "1.0.0"
+
+	Log = helper.CreateLogger(WorkerName, false)
 
 	KiteClient *kite.Client
 )
