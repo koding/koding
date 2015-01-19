@@ -132,6 +132,7 @@ func (c *Cleaner) StopMachine(data *StopData) {
 type Artifacts struct {
 	Instances        lookup.MultiInstances
 	AlwaysOnMachines []lookup.MachineDocument
+	MongodbIDs       map[string]struct{}
 	IsPaid           func(string) bool
 }
 
@@ -139,9 +140,12 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	c.Log.Info("Collecting artifacts to be used by cleaners")
 	start := time.Now().UTC()
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(4)
 
-	a := &Artifacts{}
+	a := &Artifacts{
+		MongodbIDs: make(map[string]struct{}, 0),
+	}
+
 	var err error
 
 	go func() {
@@ -156,6 +160,32 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 
 	go func() {
 		a.AlwaysOnMachines, err = c.MongoDB.AlwaysOn()
+		wg.Done()
+	}()
+
+	go func() {
+		iter := func(l lookup.MachineDocument) {
+			i, ok := l.Meta["instanceId"]
+			if !ok {
+				fmt.Println("instanceId doesn't exist")
+				return
+			}
+
+			id, ok := i.(string)
+			if !ok {
+				fmt.Printf("MongoDB meta.instanceId is malformed %v", i)
+				return
+			}
+
+			if id == "" {
+				fmt.Println("instanceId is empty")
+				return
+			}
+
+			a.MongodbIDs[id] = struct{}{}
+		}
+
+		err = c.MongoDB.Iter(iter)
 		wg.Done()
 	}()
 

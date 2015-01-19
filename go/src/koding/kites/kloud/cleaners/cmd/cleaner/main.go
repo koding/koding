@@ -68,6 +68,11 @@ func realMain() error {
 			Instances: artifacts.Instances,
 			Cleaner:   c,
 		},
+		&GhostVMs{
+			MongoDB:   c.MongoDB,
+			Instances: artifacts.Instances,
+			Ids:       artifacts.MongodbIDs,
+		},
 	)
 
 	return nil
@@ -96,7 +101,7 @@ func (c *Cleaner) run(tasks ...task) {
 
 	for t := range out {
 		if msg := t.Result(); msg != "" {
-			fmt.Println(msg)
+			c.Log.Info(msg)
 			c.Slack(msg) // send to slack channel
 		}
 	}
