@@ -59,7 +59,7 @@ func checkerHTTP(w http.ResponseWriter, r *http.Request) {
 // metric, return true if yes, go onto next metric if not
 func checker(username string) *LimitResponse {
 	for _, metric := range metricsToSave {
-		response, err := metric.IsUserOverLimit(username)
+		response, err := metric.IsUserOverLimit(username, StopLimitKey)
 		if err != nil {
 			Log.Error(err.Error())
 			continue

@@ -12,7 +12,6 @@ import (
 )
 
 const (
-	CurrencyCode = "USD"
 	ProviderName = "paypal"
 	Month        = "Month"
 	Year         = "Year"

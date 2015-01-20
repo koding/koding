@@ -117,6 +117,7 @@ module.exports = class JUser extends jraphical.Module
       password      : String
       salt          : String
       blockedUntil  : Date
+      blockedReason : String
       status        :
         type        : String
         enum        : [
@@ -836,6 +837,9 @@ Team Koding
 
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
+
+    if username is "guestuser"
+      return callback createKodingError "Reserved username."
 
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"

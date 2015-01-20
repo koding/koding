@@ -74,7 +74,7 @@ func CancelSubscription(customer *paymentmodels.Customer, subscription *paymentm
 
 	err := stripeSub.Cancel(subscription.ProviderSubscriptionId, subParams)
 	if err != nil {
-		return handleStripeError(err)
+		Log.Error(err.Error())
 	}
 
 	err = subscription.UpdateState(paymentmodels.SubscriptionStateCanceled)
@@ -176,7 +176,7 @@ func handleDowngrade(currentSubscription paymentmodels.Subscription, customer *p
 		return handleStripeError(err)
 	}
 
-	err = currentSubscription.UpdateTimeForDowngrade(time.Now())
+	err = currentSubscription.UpdatePlan(plan.Id, plan.AmountInCents)
 
 	return err
 }
