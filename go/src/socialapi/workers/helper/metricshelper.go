@@ -39,10 +39,10 @@ func CreateMetrics(appName string, log logging.Logger, outputMetrics bool) *kodi
 		go metrics.Syslog(metric.Registry, 30e10, w)
 	}
 
-	// statsd, err := kodingmetrics.NewDogStatsD(appName)
-	// if err == nil {
-	// 	go kodingmetrics.Collect(metric.Registry, statsd, 24e10)
-	// }
+	statsd, err := kodingmetrics.NewDogStatsD(appName)
+	if err == nil {
+		go kodingmetrics.Collect(metric.Registry, statsd, 24e10)
+	}
 
 	return metric
 }
