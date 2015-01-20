@@ -263,10 +263,17 @@ class IDE.EditorPane extends IDE.Pane
 
     {context, type, origin} = change
 
-    if type is 'CursorActivity'
+    switch type
 
-      {row, column} = context.cursor
-      @setLineWidgets row, column, origin
+      when 'CursorActivity'
+
+        {row, column} = context.cursor
+        @setLineWidgets row, column, origin
+
+      when 'FileSaved'
+
+
+        @parent.tabHandle.unsetClass 'modified'
 
 
   setContentFromCollaborativeString: ->
