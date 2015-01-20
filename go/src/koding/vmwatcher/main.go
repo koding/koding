@@ -23,7 +23,7 @@ var (
 	NetworkOutLimit float64 = 7 * 1024 // 7GB/week
 
 	PaidPlanMultiplier float64 = 2
-	LimitMultiplier    float64 = 4
+	LimitMultiplier    float64 = 2
 
 	BlockDuration = time.Hour * 24 * 365
 
