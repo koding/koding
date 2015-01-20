@@ -64,7 +64,7 @@ default: configure
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c config/dev.toml $(PORT) $(DBG) $(METRICS) $(KITE)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS) $(KITE)
 
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
