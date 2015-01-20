@@ -91,20 +91,10 @@ func (v *Volumes) Run() {
 		close(done)
 	}()
 
-	if v.largeInstances.Total() == 0 {
-		return
-	}
+	v.largeInstances.StopAll()
 
-	// TODO: enable once we have a filter to stop Koding based users
-	// v.largeInstances.StopAll()
-	//
-	// for _, data := range v.stopData {
-	// 	v.Cleaner.StopMachine(data)
-	// }
-
-	fmt.Printf("found = %+v\n", v.largeInstances.Total())
 	for _, data := range v.stopData {
-		fmt.Printf("[%s] username = %+v\n", data.id, data.username)
+		v.Cleaner.StopMachine(data)
 	}
 
 	<-done // wait for terminating not unused volumes
