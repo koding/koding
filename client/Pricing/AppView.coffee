@@ -16,6 +16,9 @@ class PricingAppView extends KDView
 
     @state = KD.utils.extend @getInitialState(), options.state
 
+    # it's going to be assigned by 'PricingAppController'.
+    @appStorage = null
+
     @loadPlan()  if KD.isLoggedIn()
     @initViews()
     @initEvents()
