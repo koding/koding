@@ -29,7 +29,7 @@ func (l *LongRunning) Process() {
 		return
 	}
 
-	datas := make([]*StopData, 0)
+	stopData := make([]*StopData, 0)
 	ids := make([]string, 0)
 	for _, machine := range machines {
 		username := machine.Credential
@@ -51,7 +51,7 @@ func (l *LongRunning) Process() {
 			reason:     "Non free user, VM is running for more than 12 hours",
 		}
 
-		datas = append(datas, data)
+		stopData = append(stopData, data)
 		ids = append(ids, instanceId)
 
 		// debug
@@ -67,7 +67,7 @@ func (l *LongRunning) Process() {
 	// first stop all machines, this is a batch API call so it's more efficient
 	l.longRunningInstances.StopAll()
 
-	for _, data := range datas {
+	for _, data := range stopData {
 		l.Cleaner.StopMachine(data)
 	}
 }
