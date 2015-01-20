@@ -40,7 +40,7 @@ func IsSubscribedToPlan(subscription paymentmodels.Subscription, plan *paymentmo
 }
 
 func IsNoCreditCards(cardList *stripe.CardList) bool {
-	return cardList.Count == 0
+	return cardList == nil || cardList.Count == 0
 }
 
 func IsTooManyCreditCards(cardList *stripe.CardList) bool {
