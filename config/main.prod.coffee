@@ -365,6 +365,14 @@ Configuration = (options={}) ->
         locations       : [
           { location    : "= /payments/stripe/webhook" }
           {
+            location    : "~ /api/social/channel/(.*)/history"
+            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/(.*)/history/count"
+            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
@@ -372,14 +380,6 @@ Configuration = (options={}) ->
           {
             location    : "~ /sitemap(.*).xml"
             proxyPass   : "http://socialapi/sitemap$1.xml"
-          }
-          {
-            location    : "~ /api/social/channel/(.*)/history"
-            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
-          }
-          {
-            location    : "~ /api/social/channel/(.*)/history/count"
-            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
           }
         ]
     dailyemailnotifier  :
