@@ -67,14 +67,25 @@ class KodingKite extends KDObject
 
           .then (args)=>
             KiteLogger.started name, rpcMethod
-            resolve (
-              @transport?.tell args...
-                .then (res)->
-                  KiteLogger.success name, rpcMethod
-                  return res
-                .catch (err)->
-                  KiteLogger.failed name, rpcMethod
-                  throw err
+            resolve (@transport?.tell args...
+
+              .then (res)->
+
+                KiteLogger.success name, rpcMethod
+                return res
+
+              .catch (err)=>
+
+                if err.name is 'KiteError' and \
+                   err.message is 'token is expired'
+
+                  return new Promise (resolve, reject)=>
+                    @transport?.expireToken =>
+                      resolve @transport.tell args...
+
+                KiteLogger.failed name, rpcMethod
+                throw err
+
             )
 
           .catch =>
