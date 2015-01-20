@@ -122,7 +122,7 @@ func (s State) ValidMethods() []string {
 
 	switch s {
 	case NotInitialized:
-		return []string{"build"}
+		return []string{"build", "destroy"}
 	case Running:
 		return []string{"stop", "resize", "destroy", "restart", "reinit"}
 	case Stopped:

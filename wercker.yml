@@ -179,6 +179,12 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
+        name: cat socialapi
+        code: |
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
+    - script:
         name: terminate test instance
         code: |
           INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')

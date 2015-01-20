@@ -25,7 +25,7 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	controller := feeder.New(r.Log)
+	controller := feeder.New(r.Log, redisConn)
 
 	if err := controller.Start(); err != nil {
 		r.Log.Fatal("Could not finish sitemap initialization: %s", err)

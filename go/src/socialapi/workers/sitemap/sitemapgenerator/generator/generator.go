@@ -28,32 +28,16 @@ const (
 	// TIMERANGE in cache key file
 	// run cron job every n minutes starting from 0
 	SCHEDULE = "0 0-59/%d * * * *"
-
-	DefaultInterval = 30 * time.Minute
 )
 
 func New(log logging.Logger, redisConn *redis.RedisSession) (*Controller, error) {
 	c := &Controller{
 		log:          log,
 		redisConn:    redisConn,
-		timeInterval: getInterval(),
+		timeInterval: common.GetInterval(),
 	}
 
 	return c, c.initCron()
-}
-
-func getInterval() time.Duration {
-	updateInterval := config.MustGet().Sitemap.UpdateInterval
-	if updateInterval == "" {
-		return DefaultInterval
-	}
-
-	t, err := time.ParseDuration(updateInterval)
-	if err != nil {
-		panic(err)
-	}
-
-	return t
 }
 
 func (c *Controller) initCron() error {

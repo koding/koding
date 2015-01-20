@@ -29,10 +29,10 @@ func SubscriptionDeletedWebhook(raw []byte) error {
 	}
 
 	if subscription.State == paymentmodels.SubscriptionStateActive {
-		err = subscription.UpdateState(paymentmodels.SubscriptionStateExpired)
+		return subscription.Expire()
 	}
 
-	return err
+	return nil
 }
 
 //----------------------------------------------------------
@@ -65,7 +65,7 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	}
 
 	if !IsLineCountAllowed(req.Lines.Count) {
-		Log.Error("'invoice.created': Line count: %s not allowed", req.Lines.Count)
+		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil
 	}
 

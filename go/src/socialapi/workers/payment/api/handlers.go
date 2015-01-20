@@ -33,6 +33,14 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:  GetCustomersRequest,
+			Name:     "payment-getcustomer",
+			Type:     handler.GetRequest,
+			Endpoint: "/payments/customers",
+		})
+
+	m.AddHandler(
+		handler.Request{
 			Handler:  DeleteCustomerRequest,
 			Name:     "payment-deletecustomer",
 			Type:     handler.DeleteRequest,
