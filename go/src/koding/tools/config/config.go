@@ -162,6 +162,13 @@ type Config struct {
 	SocialApi struct {
 		ProxyUrl string
 	}
+	Vmwatcher struct {
+		Port           string
+		AwsKey         string
+		AwsSecret      string
+		KloudSecretKey string
+		KloudAddr      string
+	}
 }
 
 type RuntimeOptions struct {
@@ -267,6 +274,14 @@ type RuntimeOptions struct {
 	Paypal      struct {
 		FormUrl string `json:"formUrl"`
 	} `json:"paypal"`
+	Pubnub struct {
+		SubscribeKey string `json:"subscribekey"`
+		Enabled      bool   `json:"enabled"`
+		SSL          bool   `json:"ssl"`
+	} `json:"pubnub"`
+	Collaboration struct {
+		Timeout int `json:"timeout"`
+	} `json:"collaboration"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

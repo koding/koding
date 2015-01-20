@@ -9,9 +9,8 @@ import (
 
 var (
 	// global flags variables
-	flagRandomKite  bool
 	flagWatchEvents bool
-	flagKloudQuery  string
+	flagKloudAddr   string
 	flagUsername    string
 )
 
@@ -20,6 +19,8 @@ type Flag struct {
 	name     string
 	synopsis string
 	action   Actioner
+
+	totalDefaultFlag int
 }
 
 func NewFlag(name, synopsis string) *Flag {
@@ -27,9 +28,8 @@ func NewFlag(name, synopsis string) *Flag {
 	flagSet.SetOutput(ioutil.Discard)
 
 	// global subcommand flags
-	flagSet.StringVar(&flagUsername, "user", "koding", "Respective use of the given machine id")
-	flagSet.StringVar(&flagKloudQuery, "kontrol-query", "/koding/dev/kloud", "Define first three query keys in username/environment/kitename format ...")
-	flagSet.BoolVar(&flagRandomKite, "random-kite", false, "Choose random kloud instance if there are multiple instances available.")
+	flagSet.StringVar(&flagKloudAddr, "kloud-addr", "http://127.0.0.1:5500/kite",
+		"Kloud addr to connect")
 	flagSet.BoolVar(&flagWatchEvents, "watch", false, "Watch the events coming by.")
 
 	f := &Flag{
@@ -38,6 +38,7 @@ func NewFlag(name, synopsis string) *Flag {
 	}
 
 	f.FlagSet = flagSet
+	f.totalDefaultFlag = f.NumberOfFlags()
 	return f
 }
 
@@ -68,7 +69,9 @@ func (f *Flag) NumberOfFlags() int {
 func (f *Flag) ParseArgs(args []string) error {
 	// If there are some flags defined and the user didnt' provide any flag
 	// let us report it
-	if f.NumberOfFlags() != 0 && len(args) == 0 {
+	cmdFlagCount := f.NumberOfFlags() - f.totalDefaultFlag
+
+	if cmdFlagCount > len(args) {
 		fmt.Print(f.Help())
 		return errors.New("no arguments")
 	}

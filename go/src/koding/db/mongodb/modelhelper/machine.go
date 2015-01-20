@@ -49,3 +49,70 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 
 	return containers, nil
 }
+
+var (
+	MachineStateRunning = "Running"
+)
+
+func GetRunningVms() ([]models.Machine, error) {
+	machines := []models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		iter := c.Find(bson.M{"status.state": MachineStateRunning}).Iter()
+
+		var machine models.Machine
+		for iter.Next(&machine) {
+			machines = append(machines, machine)
+		}
+
+		return nil
+	}
+
+	err := Mongo.Run(MachineColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
+
+func GetMachinesForUsername(username string) ([]*models.Machine, error) {
+	user, err := GetUser(username)
+	if err != nil {
+		return nil, err
+	}
+
+	machines := []*models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(
+			bson.M{"users.id": user.ObjectId, "users.sudo": true},
+		).All(&machines)
+	}
+
+	err = Mongo.Run(MachineColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
+
+func CreateMachine(m *models.Machine) error {
+	query := func(c *mgo.Collection) error {
+		return c.Insert(m)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
+func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"_id": machineId},
+			bson.M{"$set": bson.M{"meta.alwaysOn": alwaysOn}},
+		)
+	}
+
+	return Mongo.Run("jMachines", query)
+}

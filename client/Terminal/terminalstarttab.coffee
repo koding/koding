@@ -27,7 +27,6 @@ class TerminalStartTab extends JView
     computeController.fetchMachines (err, machines)=>
 
       if err
-        ErrorLog.create "terminal: Couldn't fetch machines", reason:err
         return new KDNotificationView title : "Couldn't fetch your Machines"
 
       machines = machines.filter (machine)-> machine.status.state is "Running"

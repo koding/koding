@@ -10,7 +10,7 @@ class ActivityContentPane extends KDTabPaneView
       viewOptions   :
         itemOptions : { channelId }
       scrollView    : no
-      wrapper
+      wrapper       : no
       itemClass
       lastToFirst
     }

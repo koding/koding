@@ -92,7 +92,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(unreadCount, ShouldEqual, 0)
 		})
 
-		Convey("pinned message's unread count could be calculated", func() {
+		SkipConvey("pinned message's unread count could be calculated", func() {
 			// create an account
 			account, err := createAccount()
 			So(err, ShouldBeNil)
@@ -168,6 +168,53 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 
 			// create private message channel
 			c := models.NewPrivateMessageChannel(account.Id, groupName)
+			So(c.Create(), ShouldBeNil)
+
+			// add participant into channel
+			cp, err := c.AddParticipant(account.Id)
+			So(err, ShouldBeNil)
+			So(cp, ShouldNotBeNil)
+
+			// create message
+			cm := models.NewChannelMessage()
+			cm.AccountId = account.Id
+			cm.InitialChannelId = c.Id
+			cm.Body = "hello all from test"
+			So(cm.Create(), ShouldBeNil)
+
+			// add message to the list
+			cml, err := c.AddMessage(cm.Id)
+			So(err, ShouldBeNil)
+			So(cml, ShouldNotBeNil)
+
+			cue := &channelUpdatedEvent{
+				Channel:              c,
+				ChannelParticipant:   cp,
+				ParentChannelMessage: cm,
+			}
+
+			// calculate unread count
+			unreadCount, err := cue.calculateUnreadItemCount()
+			So(err, ShouldBeNil)
+			So(unreadCount, ShouldEqual, 1)
+
+			cp.LastSeenAt = time.Now().UTC()
+			So(cp.Update(), ShouldBeNil)
+
+			// calculate unread count
+			unreadCount, err = cue.calculateUnreadItemCount()
+			So(err, ShouldBeNil)
+			So(unreadCount, ShouldEqual, 0)
+		})
+
+		Convey("collaboration channel's unread count could be calculated", func() {
+			// create an account
+			account, err := createAccount()
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+
+			// create private message channel
+			c := models.NewCollaborationChannel(account.Id, groupName)
 			So(c.Create(), ShouldBeNil)
 
 			// add participant into channel

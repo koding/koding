@@ -114,7 +114,8 @@ body.activity
 .activity-pane
 
   &.single-activity
-    padding-top       34px
+    .kdlistitemview-activity
+      margin-top      34px
 
   main.kdscrollview
     padding-left      34px
@@ -124,7 +125,7 @@ body.activity
     padding           0
 
   .kdtabhandlecontainer.filters
-    background        none
+    background-color  transparent !important
     border            none
     margin            0 0 13px 0
     max-width         600px
@@ -167,11 +168,16 @@ body.activity
         background        none
 
 
+.topic-pane
+  .lazy-loader
+    top                 -137px !important
+
 .content-page.activity
 .member.content-display
   .lazy-loader
-    bottom              25px
-    left                50%
+    top                 -201px
+    left                -21px
+    z-index             100
     abs()
 
   .no-item-found
@@ -181,7 +187,7 @@ body.activity
     font-size             16px
     font-weight           300
     letter-spacing        .02em
-
+    
 .status.content-display
   article
     max-height          100%
@@ -285,8 +291,6 @@ body.activity
   .lazy-loader
     text-align        center
     margin            22px 0
-    &.do-not-show
-      hidden()
 
   .kdmodal-inner
     margin            22px 15px 22px 30px
@@ -664,6 +668,12 @@ span.collapsedtext
 
     .sub-header
       margin-left         -78px
+
+  .kdcustomscrollview
+    styleScrollBars       rgba(0,0,0,.15)
+  
+    .kdview.kdscrolltrack:hover
+      background          rgba(0,0,0,0.05)
 
 
 /* Bug reports */

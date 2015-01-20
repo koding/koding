@@ -54,6 +54,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         fetchProfileFeed     :
           (signature Object, Function)
+        fetchProfileFeedCount:
+          (signature Object, Function)
         updateLastSeenTime   :
           (signature Object, Function)
         glancePinnedPost     :
@@ -84,9 +86,8 @@ module.exports = class SocialChannel extends Base
   Validators = require '../group/validators'
   {permit}   = require '../group/permissionset'
 
-  { fetchGroup, secureRequest,
-    doRequest, permittedRequest,
-    ensureGroupChannel, fetchGroup } = require "./helper"
+  { secureRequest, ensureGroupChannel,
+    doRequest, permittedRequest } = require "./helper"
 
   @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
     return "socialapi-\
@@ -146,6 +147,10 @@ module.exports = class SocialChannel extends Base
   # within a specified group
   @fetchProfileFeed      = secureRequest fnName: 'fetchProfileFeed'
 
+  # fetchProfileFeedCount - fetches all activity count of an account
+  # within a specified group
+  @fetchProfileFeedCount = secureRequest fnName: 'fetchProfileFeedCount'
+
   # fetchPopularTopics - lists group specific popular topics
   # it can be daily, weekly, monthly
   @fetchPopularTopics    = secureRequest fnName: 'fetchPopularTopics'
@@ -184,7 +189,7 @@ module.exports = class SocialChannel extends Base
     return callback message: "channel id is required for leaving a channel"  unless data.channelId
 
     { delegate } = client.connection
-    data.accountIds = [ delegate.socialApiId ]
+    data.accountIds = [ delegate.socialApiId ]  unless data.accountIds
 
     doRequest 'removeParticipants', client, data, callback
 
@@ -213,7 +218,7 @@ module.exports = class SocialChannel extends Base
   # fetchActivities - fetch activities of a channel
   @fetchActivities = secure (client, options, callback)->
     {connection:{delegate}} = client
-    options.showExempt = delegate.checkFlag "super-admin"
+    options.showExempt = delegate.checkFlag("super-admin") or delegate.isExempt
     options.channelId = options.id
     # just to create social channels
     ensureGroupChannel client, (err, socialApiChannelId)->

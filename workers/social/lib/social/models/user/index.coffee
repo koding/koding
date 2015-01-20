@@ -1,5 +1,7 @@
 jraphical = require 'jraphical'
-
+Regions   = require 'koding-regions'
+{argv}    = require 'optimist'
+KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable = require '../../traits/flaggable'
 
 module.exports = class JUser extends jraphical.Module
@@ -12,9 +14,9 @@ module.exports = class JUser extends jraphical.Module
   JGroup          = require '../group'
   JLog            = require '../log'
   JMail           = require '../email'
-  JSessionHistory = require '../sessionhistory'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
+  Sendgrid        = require '../sendgrid'
 
   { v4: createId } = require 'node-uuid'
 
@@ -55,6 +57,7 @@ module.exports = class JUser extends jraphical.Module
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
+  rack       = createSalt.rack 64
 
   @share()
 
@@ -76,9 +79,12 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.twitter.foreignId'  : 'ascending'
 
     sharedEvents    :
+      # do not share any events
       static        : []
       instance      : []
     sharedMethods   :
+      # do not share any instance methods
+      # instances     :
       static        :
         login                   : (signature Object, Function)
         logout                  : (signature Function)
@@ -96,6 +102,7 @@ module.exports = class JUser extends jraphical.Module
         unregister              : (signature String, Function)
         finishRegistration      : (signature Object, Function)
         verifyPassword          : (signature Object, Function)
+        verifyByPin             : (signature Object, Function)
 
     schema          :
       username      :
@@ -108,11 +115,12 @@ module.exports = class JUser extends jraphical.Module
         set         : Math.floor
       email         :
         type        : String
+        validate    : require('../name').validateEmail
         set         : (value) -> value.toLowerCase()
-        email       : yes
       password      : String
       salt          : String
       blockedUntil  : Date
+      blockedReason : String
       status        :
         type        : String
         enum        : [
@@ -186,9 +194,14 @@ module.exports = class JUser extends jraphical.Module
   @unregister = secure (client, toBeDeletedUsername, callback) ->
     {delegate} = client.connection
 
+    console.log "#{delegate.profile.nickname} requested to delete: #{toBeDeletedUsername}"
+
     # deleter should be registered one
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
+
+    if toBeDeletedUsername is "guestuser"
+      return callback createKodingError "It's not allowed to delete this user!"
 
     # only owner and the dummy admins can delete a user
     unless toBeDeletedUsername is delegate.profile.nickname or
@@ -201,6 +214,8 @@ module.exports = class JUser extends jraphical.Module
       @one { username: toBeDeletedUsername }, (err, user) =>
         return callback err  if err?
         return callback createKodingError "User not found #{toBeDeletedUsername}"  unless user
+
+        oldEmail = user.email
 
         userValues = {
           username
@@ -252,20 +267,19 @@ module.exports = class JUser extends jraphical.Module
                   isRegistration : false
                   username
                 }
-                ((require 'koding-counter') {
-                  db          : JAccount.getClient()
-                  counterName : "koding~#{toBeDeletedUsername}~"
-                  offset      : 0
-                }).reinitialize ->
+
                 user.unlinkOAuths =>
+
                   Payment = require "../payment"
-                  deletedClient = {
-                    connection: {
-                      delegate: account
-                    }
-                  }
+
+                  deletedClient = connection: delegate: account
+
                   Payment.deleteAccount deletedClient, (err)=>
-                    @logout deletedClient, callback
+
+                    @logout deletedClient, (err) =>
+                      callback err
+                      Sendgrid.deleteUser oldEmail, ->
+
 
   @isRegistrationEnabled = (callback)->
 
@@ -308,6 +322,8 @@ module.exports = class JUser extends jraphical.Module
             callback createKodingError "no username found, logged out."
 
           return
+
+        username = 'guestuser'  if /^guest-/.test username
 
         JUser.one {username}, (err, user)=>
 
@@ -414,8 +430,7 @@ Team Koding
             else unless user.getAt('password') is hashPassword password, user.getAt('salt')
               logAndReturnLoginError username, 'Access denied!', callback
             else
-              JSessionHistory.create {username}, ->
-                afterLogin user, clientId, session, callback
+              afterLogin user, clientId, session, callback
 
   @verifyPassword = secure (client, options, callback)->
     {connection: {delegate}} = client
@@ -443,6 +458,42 @@ Team Koding
       confirmed = user.getAt('password') is hashPassword password, user.getAt('salt')
       return callback null, yes  if confirmed
       return handleError null, user
+
+
+  @verifyByPin = secure (client, options, callback)->
+
+    account = client.connection.delegate
+    account.fetchUser (err, user)=>
+
+      return callback new Error "User not found"  unless user
+
+      if (user.getAt 'status') is 'confirmed'
+        return callback null
+
+      JVerificationToken = require '../verificationtoken'
+
+      {pin, resendIfExists} = options
+      {username, email} = user
+
+      options = {
+        action: 'verify-account'
+        resendIfExists, user, pin, username, email
+      }
+
+      unless pin?
+
+        JVerificationToken.requestNewPin options, (err)-> callback err
+
+      else
+
+        JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+          if err
+            callback err
+          else if confirmed
+            user.confirmEmail (err)-> callback err
+          else
+            callback createKodingError 'PIN is not confirmed.'
 
 
   logAndReturnLoginError = (username, error, callback)->
@@ -562,33 +613,33 @@ Team Koding
       else
         callback null
 
+
   @createGuestUsername = (callback) ->
-    ((require 'koding-counter') {
-      db          : @getClient()
-      counterName : 'guest'
-      offset      : 0
-    }).next (err, guestId) ->
-      return callback err  if err?
-      callback null, "guest-#{guestId}"
 
-  @createTemporaryUser = (callback) ->
+    callback null, "guest-#{rack()}"
+
+
+  @fetchGuestUser = (callback)->
+
     @createGuestUsername (err, username) =>
+
       return callback err  if err?
 
-      options     =
-        username        : username
-        email           : "#{username}@koding.com"
-        password        : createId()
-        passwordStatus  : 'autogenerated'
+      JUser.one 'username': 'guestuser', (err, user) =>
 
-
-      @createUser options, (err, user, account) =>
         return callback err  if err?
 
-        @addToGroup account, 'guests', null, null, (err) =>
+        user.username = username
+        user.password = createId()
+        user.email    = "#{username}@koding.com"
+
+        user.fetchOwnAccount (err, account) =>
           return callback err  if err?
 
+          account.profile.nickname = username
+
           @configureNewAcccount account, user, createId(), callback
+
 
   @createUser = (userInfo, callback)->
     { username, email, password, passwordStatus, firstName, lastName, foreignAuth,
@@ -623,6 +674,7 @@ Team Koding
             groupJoined    : on
             groupLeft      : off
             mention        : on
+            marketing      : on
           }
         }
 
@@ -705,27 +757,31 @@ Team Koding
               userInfo  : {username, email, firstName, lastName}
             }
 
-  @validateAll = (userFormData, callback) =>
 
-    validate = require './validators'
+  @validateAll = (userFormData, callback)=>
 
-    isError = no
-    errors = {}
+    validator  = require './validators'
 
-    queue = Object.keys(userFormData).map (field) => =>
-      if field of validate
-        validate[field].call this, userFormData, (err) =>
-          if err?
-            errors[field] = err
-            isError = yes
-          queue.fin()
-      else queue.fin()
+    isError    = no
+    errors     = {}
+    queue      = []
 
-    dash queue, -> callback(
-      if isError
-      then { message: "Errors were encountered during validation", errors }
+    (key for key of validator).forEach (field)=>
+
+      queue.push => validator[field].call this, userFormData, (err)->
+
+        if err?
+          errors[field] = err
+          isError = yes
+
+        queue.fin()
+
+    dash queue, ->
+
+      callback if isError
+        { message: "Errors were encountered during validation", errors }
       else null
-    )
+
 
   @changePasswordByUsername = (username, password, callback) ->
     salt = createSalt()
@@ -769,11 +825,11 @@ Team Koding
       guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
-    { connection, sessionToken : clientId } = client
+    { connection, sessionToken : clientId, clientIP } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
-    { username, email, firstName, lastName, locationData
-      agree, inviteCode, referrer, password, passwordConfirm } = userFormData
+    { username, email, firstName, lastName, agree,
+      inviteCode, referrer, password, passwordConfirm } = userFormData
 
     if not firstName or firstName is "" then firstName = username
     if not lastName then lastName = ""
@@ -785,11 +841,14 @@ Team Koding
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
+    if username is "guestuser"
+      return callback createKodingError "Reserved username."
+
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
-    if locationData?
-      try { ip, country, region } = JSON.parse locationData
+    if clientIP
+      { ip, country, region } = Regions.findLocation clientIP
 
     newToken       = null
     invite         = null
@@ -798,78 +857,111 @@ Team Koding
     recoveryToken  = null
     error          = null
 
+    aNewRegister   = oldUsername is 'guestuser'
+
     queue = [
       =>
         @validateAll userFormData, (err) =>
           return callback err  if err
           queue.next()
+
       =>
-        # password is autogenerated before here
-        # user should reset his/her password
-        operation = { $set: passwordStatus: 'needs set' }
-        @update { username: oldUsername }, operation, (err, res)=>
-          return callback err  if err
+        if aNewRegister
+
+          userInfo = { username, firstName, lastName, email, password }
+
+          @createUser userInfo, (err, _user, _account)=>
+            return callback err  if err
+
+            if _user? and _account?
+
+              [account, user] = [_account, _user]
+              queue.next()
+
+            else
+
+              return callback createKodingError "Failed to create user!"
+
+        else
           queue.next()
+
       =>
-        if username? and email?
+        if not aNewRegister and username? and email?
           options = { account, oldUsername, email, username }
           @changeEmailByUsername options, (err) =>
             return callback err  if err
             queue.next()
-        else process.nextTick -> queue.next()
-      ->
-        account.fetchUser (err, user_) ->
-          return callback err  if err
-          user = user_
+        else
           queue.next()
+
+      ->
+        if not aNewRegister
+          account.fetchUser (err, user_) ->
+            return callback err  if err
+            user = user_
+            queue.next()
+        else
+          queue.next()
+
       ->
         if ip? and country? and region?
           locationModifier = $set    :
             "registeredFrom.ip"      : ip
             "registeredFrom.country" : country
             "registeredFrom.region"  : region
-          user.update locationModifier, ->
-            queue.next()
-        else process.nextTick -> queue.next()
+          user.update locationModifier, -> queue.next()
+        else
+          queue.next()
+
       =>
-        @persistOauthInfo oldUsername, client.sessionToken, (err)=>
+        oauthUser = if aNewRegister then username else oldUsername
+
+        @persistOauthInfo oauthUser, client.sessionToken, (err)=>
           return callback err  if err
           queue.next()
+
       =>
-        if username?
+        if aNewRegister and username?
           options = { account, username, clientId, isRegistration: yes }
           @changeUsernameByAccount options, (err, newToken_) =>
             return callback err  if err
             newToken = newToken_
             queue.next()
-        else process.nextTick -> queue.next()
+        else
+          queue.next()
+
       =>
         @verifyEnrollmentEligibility {email: user.email, inviteCode}, (err, { isEligible, invite: invite_ }) =>
           return callback err  if err
           invite = invite_
           queue.next()
+
       =>
         @addToGroups account, invite, user.email, (err) =>
           error = err
           queue.next()
-      =>
-        @removeFromGuestsGroup account, (err) =>
-          return callback err  if err
-          queue.next()
-      ->
-        accountModifier = $set:
-          'profile.firstName' : firstName
-          'profile.lastName'  : lastName
-          type                : 'registered'
 
-        account.update accountModifier, (err) ->
+      ->
+        account.update $set: type: 'registered', (err) ->
           return callback err  if err?
           queue.next()
+
       ->
         user.setPassword password, (err) ->
           return callback err  if err?
           queue.next()
-      =>
+
+      ->
+        # Auto confirm accounts for development environment
+        # This config should be no for production! ~ GG
+        if KONFIG.autoConfirmAccounts
+          user.confirmEmail (err)->
+            console.warn err  if err?
+            queue.next()
+        else
+          queue.next()
+
+      ->
         JPasswordRecovery = require '../passwordrecovery'
 
         passwordOptions =
@@ -881,17 +973,28 @@ Team Koding
         JPasswordRecovery.create passwordOptions, (err, token)->
           recoveryToken = token
           queue.next()
+
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
+
       ->
+        callback error, {account, recoveryToken, newToken}
+        queue.next()
+
+      ->
+        # rest are 3rd party api calls, not important to block register
+
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
         queue.next()
+
       ->
-        callback error, {account, recoveryToken, newToken}
+
+        Sendgrid.addNewUser user.email, user.username, ->
         queue.next()
+
     ]
 
     daisy queue
@@ -935,8 +1038,8 @@ Team Koding
                     ->
                       return queue.fin()  unless group
                       return queue.fin()  if group.slug in ["koding", "guests"]
-                      group.createMemberVm account, ->
-                        queue.fin()
+
+                      queue.fin()
 
                   dash queue, ->
                     callback null, { account, replacementToken }
@@ -1028,27 +1131,9 @@ Team Koding
         res.forbidden = if username in @bannedUserList then yes else no
         callback null, res
 
-  confirmEmail:(callback)->
-    @update {$set:email:'confirmed'}, callback
-
-  fetchContextualAccount:(context, rest..., callback)->
-    # Relationship.one {
-    #   as          : 'owner'
-    #   sourceId    : @getId()
-    #   targetName  : 'JAccount'
-    #   'data.context': context
-    # }, (err, account)=>
-    #   if err
-    #     callback err
-    #   else if account?
-    #     callback null, account
-    #   else
-    #     @fetchOwnAccount rest..., callback
 
   fetchAccount:(context, rest...)->
     @fetchOwnAccount rest...
-    # if context is 'koding' then @fetchOwnAccount rest...
-    # else @fetchContextualAccount context, rest...
 
   setPassword:(password, callback)->
     salt = createSalt()

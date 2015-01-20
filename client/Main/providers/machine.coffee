@@ -53,7 +53,7 @@ class Machine extends KDObject
         @jMachine = machine
         @updateLocalData()
       else
-        @status = Machine.State.Terminated
+        @status = state: Machine.State.Terminated
         @queryString = null
         computeController.reset yes
 
@@ -102,3 +102,15 @@ class Machine extends KDObject
         connect    : noop
         disconnect : noop
       }
+
+
+  getOwner: ->
+
+    switch @provider
+      when 'koding'
+        return @data.credential
+
+
+  isMine: ->
+
+    @getOwner() is KD.nick()

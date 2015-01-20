@@ -73,7 +73,7 @@ class WebTerm.InputHandler
           return
 
     unless (event.ctrlKey and not event.altKey) or event.charCode is 0
-      @terminal.server.input String.fromCharCode(event.charCode)
+      @terminal.server?.input String.fromCharCode(event.charCode)
 
     event.preventDefault()
 

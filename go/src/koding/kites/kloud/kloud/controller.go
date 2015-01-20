@@ -265,16 +265,30 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		return nil, fmt.Errorf("no state pair available for %s", r.Method)
 	}
 
+	// check if the argument has any Reason, and add it to the existing reason.
+	var args struct {
+		Reason string
+	}
+	r.Args.One().Unmarshal(&args) // no need to check for err, we already did it in prepareMachine
+
+	initialReason := fmt.Sprintf("Machine is '%s' due user command: '%s'.", s.initial, r.Method)
+	if args.Reason != "" {
+		initialReason += "Custom reason: " + args.Reason
+	}
+
 	// now mark that we are starting...
-	initialReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.initial, r.Method)
 	k.Storage.UpdateState(machine.Id, initialReason, s.initial)
 
 	// each method has his own unique eventer
-	machine.Eventer = k.NewEventer(r.Method + "-" + machine.Id)
+	eventId := r.Method + "-" + machine.Id
+	machine.Eventer = k.NewEventer(eventId)
 
 	// push the first event so it's filled with it, let people know that we're
 	// starting.
-	machine.Eventer.Push(&eventer.Event{Message: fmt.Sprintf("Starting %s", r.Method), Status: s.initial})
+	machine.Eventer.Push(&eventer.Event{
+		Message: fmt.Sprintf("Starting %s", r.Method),
+		Status:  s.initial,
+	})
 
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
@@ -284,7 +298,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		defer k.idlock.Get(machine.Id).Unlock()
 
 		k.Log.Info("[%s] ========== %s started (user: %s) ==========",
-			machine.Id, strings.ToUpper(r.Method), r.Username)
+			machine.Id, strings.ToUpper(r.Method), machine.Username)
 
 		start := time.Now()
 
@@ -299,17 +313,35 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 				machine.Id, r.Method, machine.State, err.Error())
 
 			status = machine.State
+
 			msg = ""
+
+			// special case `NetworkOut` error since client relies on this
+			// to show a modal
+			if strings.Contains(err.Error(), "NetworkOut") {
+				msg = err.Error()
+			}
+
+			// special case `plan is expired` error since client relies on this
+			// to show a modal
+			if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
+				msg = err.Error()
+			}
+
 			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
 			finishReason = fmt.Sprintf("User command: '%s' failed. Setting back to state: %s",
 				r.Method, machine.State)
 
 			k.Log.Info("[%s] ========== %s failed (user: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), r.Username)
+				machine.Id, strings.ToUpper(r.Method), machine.Username)
 		} else {
 			totalDuration := time.Since(start)
 			k.Log.Info("[%s] ========== %s finished with success (user: %s, duration: %s) ==========",
-				machine.Id, strings.ToUpper(r.Method), r.Username, totalDuration)
+				machine.Id, strings.ToUpper(r.Method), machine.Username, totalDuration)
+		}
+
+		if args.Reason != "" {
+			finishReason += "Custom reason: " + args.Reason
 		}
 
 		// update final status in storage
@@ -328,7 +360,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 	}()
 
 	return ControlResult{
-		EventId: machine.Eventer.Id(),
+		EventId: eventId,
 		State:   s.initial,
 	}, nil
 }

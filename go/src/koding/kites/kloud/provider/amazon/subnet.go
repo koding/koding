@@ -35,7 +35,7 @@ func (s Subnets) AvailabilityZone(zone string) (ec2.Subnet, error) {
 
 func (a *AmazonClient) SubnetsWithTag(tag string) (Subnets, error) {
 	filter := ec2.NewFilter()
-	filter.Add("tag-key", tag)
+	filter.Add("tag-value", tag)
 
 	resp, err := a.Client.DescribeSubnets([]string{}, filter)
 	if err != nil {

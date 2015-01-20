@@ -136,15 +136,13 @@ class PricingAppView extends KDView
 
       return KD.showError err  if err?
 
-      { planTitle, provider } = subscription
+      { planTitle, provider, planInterval } = subscription
 
-      @state.currentPlan = planTitle
-      @state.provider    = provider
+      @state.currentPlan         = planTitle
+      @state.provider            = provider
+      @state.currentPlanInterval = planInterval
 
-      @plans.planViews[planTitle].disable()
-
-      if planTitle is 'free'
-        @plans.planViews[@state.promotedPlan].setClass 'promoted'
+      @plans.setState @state
 
       callback()
 
@@ -157,8 +155,11 @@ class PricingAppView extends KDView
 
     return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
 
-    if options.planTitle is @state.currentPlan
-      return KD.showError "That's already your current plan."
+    isCurrentPlan =
+      options.planTitle    is @state.currentPlan and
+      options.planInterval is @state.currentPlanInterval
+
+    return KD.showError "That's already your current plan."  if isCurrentPlan
 
     @setState options
 
@@ -166,12 +167,8 @@ class PricingAppView extends KDView
 
     @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
-      plan.enable()  for own _, plan of @plans.planViews
-
-      { planTitle } = state
-      @plans.planViews[planTitle].disable()
-
       @state.currentPlan = state.planTitle
+      @plans.setState @state
 
       KD.singletons
         .router

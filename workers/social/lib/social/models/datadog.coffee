@@ -14,7 +14,7 @@ module.exports = class DataDog extends Base
     sharedMethods      :
       static           :
         sendEvent      : (signature Object, Function)
-        increment      : (signature String, Function)
+        sendMetrics    : (signature Object, Function)
 
 
   {api_key, app_key}   = KONFIG.datadog
@@ -23,31 +23,56 @@ module.exports = class DataDog extends Base
   }
 
 
-  Events               =
-    MachineStateFailed :
-      title            : "vms.failed"
-      text             : "VM start failed for user: %nickname%"
-      notify           : "@slack-alerts"
-      tags             : ["user:%nickname%", "context:vms"]
+  Events =
+
+    MachineStateFailed:
+      title  : "vms.failed"
+      text   : "VM start failed for user: %nickname%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:vms"]
+
+    TerminalConnectionFailed:
+      title  : "terminal.failed"
+      text   : "Terminal connection failed for user: %nickname%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:terminal"]
+
+    ForbiddenChannel:
+      title  : "channel.forbidden"
+      text   : "Access is prohibited for channel with token: %channelToken%"
+      notify : "@slack-alerts"
+      tags   : ["user:%nickname%", "context:pubnub-channel", "channel-token:%channelToken%"]
 
 
-  Metrics      =
-    KloudInfo  :
-      metric   : "kloud.info.gauge"
-      tags     : ["user:%nickname%"]
-    KlientInfo :
-      metric   : "klient.info.gauge"
-      tags     : ["user:%nickname%"]
+  tagReplace = (sourceTag, userTags)->
 
+    parseTag = (tag) ->
 
-  tagReplace = (sourceTag, nickname)->
+      # check if tag contains any variable
+      tagMatch = tag.match /%(.*)%$/m
+
+      return tag  unless tagMatch?.length
+
+      # check if tag variable value is set in userTags
+      tagValue = userTags[tagMatch[1]]
+      return tag  unless tagValue
+
+      return tag.replace /%(.*)%$/g, tagValue
 
     tags = []
 
     for tag in sourceTag
-      tags.push tag.replace '%nickname%', nickname
+      tags.push parseTag tag
 
     return tags
+
+
+  parseText = (text, tags)->
+    updatedText = text
+    for tag, value of tags
+      updatedText = updatedText.replace "%#{tag}%", value
+
+    return updatedText
 
 
   @sendEvent = secure (client, data, callback = ->)->
@@ -57,18 +82,19 @@ module.exports = class DataDog extends Base
     unless delegate.type is 'registered'
       return callback new KodingError "Not allowed"
 
-    {eventName, logs} = data
-
+    {eventName, logs, tags} = data
+    tags ?= {}
     ev = Events[eventName]
 
     unless ev
       return callback new KodingError "Unknown event name"
 
     {nickname} = delegate.profile
+    tags['nickname'] = nickname
 
     title = ev.title
-    text  = ev.text.replace '%nickname%', nickname
-    tags  = tagReplace ev.tags, nickname
+    text = parseText ev.text, tags
+    tags  = tagReplace ev.tags, tags
 
     if logs?
       if logs.length < 400
@@ -88,24 +114,40 @@ module.exports = class DataDog extends Base
       callback err
 
 
-  @increment = secure (client, metric, callback = ->)->
+  @sendMetrics = secure (client, _metrics, callback = ->)->
 
     { connection: { delegate } } = client
 
     unless delegate.type is 'registered'
       return callback new KodingError "Not allowed"
 
-    metric = Metrics[metric]
-
-    unless metric
-      return callback new KodingError "Unknown metric"
+    if not _metrics or _metrics.length is 0
+      return callback new KodingError "Metrics required."
 
     {nickname} = delegate.profile
+    metrics    = []
+    userTag    = "user:#{nickname}"
+    now        = Date.now()/1000
 
-    metric.points = [[Date.now()/1000, 1]]
-    metric.tags   = tagReplace metric.tags, nickname
+    for metric in _metrics
 
-    DogApi.add_metrics series: [metric], (err)->
+      # From client side we are sending array of following:
+      #
+      # eg. "kloud.info:failed:3" -> kloud.info method failed 3 times
+      #
+
+      [metric, state, points] = metric.split ':'
+
+      unless metric or state or points?
+        return callback new KodingError "Corrupted metrics"
+
+      metric = "client.#{metric}"
+      tags   = [userTag, "state:#{state}"]
+      points = [[now, points]]
+
+      metrics.push { metric, tags, points }
+
+    DogApi.add_metrics series: metrics, (err)->
 
       if err?
         console.error "[DataDog] Failed to create event:", err

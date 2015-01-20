@@ -18,6 +18,7 @@ import (
 	permissionapi "socialapi/workers/permission/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
+	"strconv"
 )
 
 var (
@@ -31,7 +32,12 @@ func main() {
 		return
 	}
 
-	m := mux.NewMux(Name, r.Conf, r.Log)
+	port, _ := strconv.Atoi(r.Conf.Port)
+
+	mc := mux.NewConfig(Name, r.Conf.Host, port)
+	mc.Debug = r.Conf.Debug
+	m := mux.New(mc, r.Log)
+
 	m.Metrics = r.Metrics
 	handlers.AddHandlers(m)
 	m.Listen()
@@ -57,7 +63,7 @@ func main() {
 		go setDefaults(r.Log)
 	}
 
-	payment.Initialize(config.MustGet())
+	payment.Initialize(config.MustGet(), r.Kite)
 
 	r.Listen()
 	r.Wait()

@@ -64,7 +64,7 @@ func ToUint(x interface{}) uint {
 	case string:
 		s, err := strconv.Atoi(i)
 		if err != nil {
-			log.Println("cannot convert %v", i)
+			log.Println("cannot convert", i)
 			return 0
 		}
 

@@ -77,7 +77,20 @@ class ActivityListItemView extends KDListItemView
       else new KDView
 
     @editWidgetWrapper = new KDCustomHTMLView
-      cssClass         : 'edit-widget-wrapper'
+      cssClass         : 'edit-widget-wrapper clearfix'
+
+    @editWidgetWrapper.addSubView new KDButtonView
+      style     : 'solid green mini fr done-button'
+      title     : 'DONE'
+      callback  : =>
+        @editWidget.submit @editWidget.input.getValue()
+
+    @editWidgetWrapper.addSubView new KDButtonView
+      style     : 'solid mini fr'
+      cssClass  : 'cancel-editing'
+      title     : 'CANCEL'
+      callback  : =>
+        @editWidget.input.emit 'EscapePerformed'
 
     @resend = new KDCustomHTMLView cssClass: 'resend hidden'
 
@@ -119,7 +132,6 @@ class ActivityListItemView extends KDListItemView
       @editWidget = new editWidgetClass { delegate:this }, @getData()
       @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
-      @editWidget.input.on 'blur', @bound 'resetEditing'
       @editWidgetWrapper.addSubView @editWidget, null, yes
 
     KD.utils.defer =>
@@ -269,24 +281,31 @@ class ActivityListItemView extends KDListItemView
     if scrollHeight > height
 
       @showMore?.destroy()
+      list = @getDelegate()
       @showMore = new KDCustomHTMLView
         tagName  : 'a'
         cssClass : 'show-more'
         href     : '#'
         partial  : 'Show more'
         click    : ->
-          article.style['max-height'] = "#{scrollHeight}px"
+          article.style.maxHeight = "#{scrollHeight}px"
           article.classList.remove 'tall'
-          # FIXME: this is a hack to cause a mutation
-          # for scrollview to readjust - SY
-          KD.utils.wait 500, -> article.innerHTML += ' '
+          
+          KD.utils.wait 500, -> list.emit 'ItemWasExpanded'
+
           @destroy()
 
       article.classList.add 'tall'
-      @addSubView @showMore, '.activity-content-wrapper'
+      
+      selector = if @hasShowMoreMark
+      then '.mark-for-show-more'
+      else '.activity-content-wrapper'
+      
+      @addSubView @showMore, selector
 
 
   pistachio: ->
+    @hasShowMoreMark = yes
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}
@@ -300,6 +319,7 @@ class ActivityListItemView extends KDListItemView
       {{> @resend}}
       {{> @embedBox}}
       {{> @actionLinks}}
+      <mark class="mark-for-show-more"> </mark>
       {{> @likeSummaryView}}
     </div>
     {{> @commentBox}}

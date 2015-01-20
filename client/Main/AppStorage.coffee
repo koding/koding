@@ -1,6 +1,6 @@
 class AppStorage extends KDObject
 
-  constructor: (appId, version)->
+  constructor: (appId, version = '1.0')->
     @_applicationID = appId
     @_applicationVersion = version
     @reset()
@@ -51,6 +51,13 @@ class AppStorage extends KDObject
       storage?.update {
         $set: pack
       }, -> callback?()
+
+
+  setDefaults: (defaults)->
+
+    for own key, value of defaults
+     @setValue key, value  unless (@getValue key)?
+
 
   unsetKey: (key, callback, group = 'bucket')->
 

@@ -43,5 +43,8 @@ var (
 
 	ErrAccessDenied = errors.New("access denied")
 
-	ErrRoleNotSet = errors.New("role not set")
+	ErrRoleNotSet          = errors.New("role not set")
+	ErrAccountNotFound     = errors.New("account not found")
+	ErrChannelNotFound     = errors.New("channel not found")
+	ErrParticipantNotFound = errors.New("participant not found")
 )

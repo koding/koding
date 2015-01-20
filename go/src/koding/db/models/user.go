@@ -12,6 +12,7 @@ type User struct {
 	Email         string        `bson:"email" json:"email"`
 	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
 	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
+	BlockedUntil  time.Time     `bson:"blockedUntil" json:"blockedUntil"`
 
 	// TODO left this for consistency, but should be converted into Username
 	Name string `bson:"username" json:"username"`
@@ -26,20 +27,23 @@ type User struct {
 		Key   string `bson:"key"`
 	} `bson:"sshKeys"`
 
+	BlockedReason string `bson:"blockedReason" json:"blockedReason"`
+
 	EmailFrequency EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
 }
 
 type EmailFrequency struct {
-	Global         bool `bson:"global"`
-	Daily          bool `bson:"daily"`
-	PrivateMessage bool `bson:"privateMessage"`
-	Follow         bool `bson:"followActions"`
-	Comment        bool `bson:"comment"`
-	Like           bool `bson:"likeActivities"`
-	GroupInvite    bool `bson:"groupInvite"`
-	GroupRequest   bool `bson:"groupRequest"`
-	GroupApproved  bool `bson:"groupApproved"`
-	Join           bool `bson:"groupJoined"`
-	Leave          bool `bson:"groupLeft"`
-	Mention        bool `bson:"mention"`
+	Global            bool   `bson:"global"`
+	Daily             bool   `bson:"daily"`
+	PrivateMessage    bool   `bson:"privateMessage"`
+	Follow            bool   `bson:"followActions"`
+	Comment           bool   `bson:"comment"`
+	Like              bool   `bson:"likeActivities"`
+	GroupInvite       bool   `bson:"groupInvite"`
+	GroupRequest      bool   `bson:"groupRequest"`
+	GroupApproved     bool   `bson:"groupApproved"`
+	Join              bool   `bson:"groupJoined"`
+	Leave             bool   `bson:"groupLeft"`
+	Mention           bool   `bson:"mention"`
+	NotificationDelay string `bson:"pmNotificationDelay"`
 }

@@ -16,29 +16,56 @@ class Ace extends KDView
     super
     @hide()
     @appStorage.fetchStorage (storage)=>
-      requirejs ['ace/ace'], (ace)=>
+
+      requirejs ['ace/ace'], =>
+
+        @keyHandlers = {}
+
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
           return  unless document.getElementById id
           @editor = ace.edit id
           @prepareEditor()
-          @utils.defer => @emit 'ace.ready'
           if contents
             @setContents contents
             @lastSavedContents = contents
+
           @editor.on 'change', =>
-            if @isCurrentContentChanged() then @emit 'FileContentChanged' else @emit 'FileContentSynced'
+            @emit 'FileContentChanged'  unless @suppressListeners
+            @emit 'FileContentRestored'  unless @isCurrentContentChanged()
+
           @editor.gotoLine 0
+          
+          # remove cmd+L binding. we have already defined cmd+g for this purpose
+          @editor.commands.removeCommand 'gotoline'
+          
+          # we are using ctrl+alt+s for 'Save All' action
+          @editor.commands.removeCommand 'sortlines'
+
           @focus()
           @show()
 
+          @utils.defer => @emit 'ace.ready'
+
           KD.mixpanel 'Open Ace, success'
 
-      requirejs ['ace/keyboard/vim'], (vimMode) =>
-        @vimKeyboardHandler = vimMode.handler
+        @once 'ace.ready', =>
+          LineWidgets = ace.require('ace/line_widgets').LineWidgets
+          @Range      = ace.require('ace/range').Range
+          @Anchor     = ace.require('ace/anchor').Anchor
 
-      @emacsKeyboardHandler = 'ace/keyboard/emacs'
+          @lineWidgetManager = new LineWidgets @editor.session
+          @lineWidgetManager.attach @editor
+
+
+  setContent: (content, emitFileContentChangedEvent = yes) ->
+    @suppressListeners = yes  unless emitFileContentChangedEvent
+
+    @editor.setValue content, -1
+
+    @suppressListeners = no   unless emitFileContentChangedEvent
+
 
   prepareEditor:->
 
@@ -58,7 +85,7 @@ class Ace extends KDView
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
 
-    requirejs ['ace/ext/language_tools'], =>
+    requirejs ['ace/ext-language_tools'], =>
       @editor.setOptions
         enableBasicAutocompletion: yes
         enableSnippets: yes
@@ -68,9 +95,8 @@ class Ace extends KDView
 
   saveFinished:(err, res)->
     unless err
-      @notify 'Successfully saved!', 'success'
       @lastSavedContents = @lastContentsSentForSave
-      @emit 'FileContentSynced'
+      @emit 'FileContentRestored'
       # unless @askedForSave
         # log "this file has changed, put a modal and block editing @fatihacet!"
         # fatihacet - this case works buggy.
@@ -79,12 +105,13 @@ class Ace extends KDView
       @notify "You don't have enough permission to save!", 'error'
 
   saveAsFinished:->
-    @emit 'FileContentSynced'
+    @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 
   setEditorListeners:->
 
-    @editor.getSession().selection.on 'changeCursor', (cursor)=>
+    @editor.getSession().selection.on 'changeCursor', (cursor) =>
+      return if @suppressListeners
       @emit 'ace.change.cursor', @editor.getSession().getSelection().getCursor()
 
     @editor.commands.on 'afterExec', (e) =>
@@ -97,7 +124,6 @@ class Ace extends KDView
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
       @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
-      @addKeyCombo 'saveAll',    'Ctrl-Alt-S',       @bound 'saveAllFiles'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
@@ -179,7 +205,6 @@ class Ace extends KDView
   fetchContents:(callback)->
     file = @getData()
     unless /localfile:/.test file.path
-      @notify 'Loading...', null, null, 10000
       file.fetchContents callback
       # {vmName, path} = file
       # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
@@ -266,13 +291,15 @@ class Ace extends KDView
       syntaxChoice = @appStorage.getValue "syntax_#{ext}"
       mode = syntaxChoice or mode or 'text'
 
-    requirejs ["ace/mode/#{mode}"], ({Mode})=>
+    requirejs ["ace/mode-#{mode}"], =>
+      {Mode} = ace.require "ace/mode/#{mode}"
       @editor.getSession().setMode new Mode
       @syntaxMode = mode
 
   setTheme:(themeName, save = yes)->
     themeName or= @appStorage.getValue('theme') or 'base16'
-    requirejs ["ace/theme/#{themeName}"], (callback) =>
+    requirejs ["ace/theme-#{themeName}"], =>
+      callback = ace.require "ace/theme/#{themeName}"
       @editor.setTheme "ace/theme/#{themeName}"
       return  unless save
       @appStorage.setValue 'theme', themeName, =>
@@ -310,14 +337,25 @@ class Ace extends KDView
     return  unless save
     @appStorage.setValue 'showInvisibles', value
 
-  setKeyboardHandler: (value = 'default') ->
-    handlers =
-      default : null
-      vim     : @vimKeyboardHandler
-      emacs   : @emacsKeyboardHandler
+  setKeyboardHandler: (name = 'default') ->
+    done = (handler) =>
+      @editor.setKeyboardHandler handler
+      @appStorage.setValue 'keyboardHandler', name
 
-    @editor.setKeyboardHandler handlers[value]
-    @appStorage.setValue 'keyboardHandler', value
+    next = (path) =>
+      binding = ace.require path
+      @keyHandlers[name] = binding.handler
+      done binding.handler
+
+    if name is 'default'
+      done null
+    else
+      path = "ace/keyboard/#{name}"
+      unless name of @keyHandlers
+        requirejs [path.replace('board/', 'binding-')], ->
+          next path
+      else
+        done @keyHandlers[name]
 
   setScrollPastEnd: (value = yes) ->
     @editor.setOption 'scrollPastEnd', value
@@ -392,6 +430,7 @@ class Ace extends KDView
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
+  #obsolete: Now we are using IDE saveAllFiles method
   saveAllFiles: ->
     aceApp = KD.singletons.appManager.get 'Ace'
     return unless aceApp
@@ -400,12 +439,21 @@ class Ace extends KDView
 
     for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
       aceView.ace.requestSave()
-      aceView.ace.once 'FileContentSynced', -> @removeModifiedFromTab aceView
+      aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
 
-  removeModifiedFromTab:(aceView)->
-    {name} = aceView.ace.data
-    for handle in aceView.delegate.tabView.handles when handle.options.title is name
-      handle.unsetClass 'modified'
+  removeModifiedFromTab: ->
+    aceView      = @parent
+    {name}       = aceView.ace.data
+    {handles}    = aceView.delegate.tabView
+    targetHandle = null
+
+    for handle in handles when handle.getOptions().title is name
+      targetHandle = handle
+      targetHandle.setClass 'saved'
+
+      KD.utils.wait 500, ->
+        targetHandle.unsetClass 'modified'
+        targetHandle.unsetClass 'saved'
 
   showGotoLine: ->
     unless @gotoLineModal

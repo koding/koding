@@ -84,7 +84,8 @@ class ActivityAppController extends AppController
     return router.getCurrentPath().search(routeToLookUp) > 0
 
 
-  fetch: ({channelId, from, limit, skip, mostLiked}, callback = noop) ->
+  fetch: (options, callback = noop) ->
+    {channelId, from, limit, skip, mostLiked} = options
 
     prefetchedKey = if mostLiked then "popularPosts" else "navigated"
     id = channelId

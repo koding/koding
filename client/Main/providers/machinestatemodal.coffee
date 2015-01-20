@@ -24,26 +24,21 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @machineId   = jMachine._id
     {@state}     = @machine.status
 
-    @buildInitial()
-
-    computeController = KD.getSingleton 'computeController'
-
-    computeController.on "start-#{@machineId}", @bound 'updateStatus'
-    computeController.on "build-#{@machineId}", @bound 'updateStatus'
-    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
-
-    computeController.on "reinit-#{@machineId}",(event)=>
-      @updateStatus event, 'reinit'
-
-    computeController.on "resize-#{@machineId}",(event)=>
-      @updateStatus event, 'resize'
-
+    @showBusy()
     @show()
 
-    computeController.followUpcomingEvents @machine
+    KD.whoami().isEmailVerified (err, verified)=>
 
-    @eventTimer = null
-    @_lastPercentage = 0
+      warn err  if err?
+
+      if not verified
+      then @buildVerifyView()
+      else
+        KD.singletons.paymentController.subscriptions (err, subscription)=>
+          warn err  if err?
+          if subscription?.state is 'expired'
+          then @buildExpiredView subscription
+          else @buildInitial()
 
 
   triggerEventTimer: (percentage)->
@@ -64,14 +59,28 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
   updateStatus: (event, task) ->
 
+    return  if @_busy
+
     {status, percentage, error} = event
 
     if status is @state
       @updatePercentage percentage  if percentage?
 
     else
-      @state    = status
-      @hasError = error?.length > 0
+      @state = status
+
+      if error?.length > 0
+
+        if /NetworkOut overlimit/i.test event.message
+          @customErrorMessage = """
+            <p>You've reached your outbound network usage limit for this week.</p>
+            <span>Please upgrade your <a href="/Pricing">plan</a> or <span
+            class="contact-support">contact support</span> for further
+            assistance.</span>
+          """
+
+        unless error.code is ComputeController.Error.NotVerified
+          @hasError = yes
 
       if not percentage?
         @switchToIDEIfNeeded()
@@ -121,7 +130,37 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     KD.utils.wait 500, => @buildViews()
 
 
+  showBusy: (message) ->
+
+    @_busy = message?
+
+    @container.destroySubViews()
+
+    @createStateLabel message ? "Loading..."
+    @createLoading()
+
+
   buildInitial:->
+
+    return @buildViews()  if @_initialBuiltOnce
+
+    computeController = KD.getSingleton 'computeController'
+
+    computeController.on "start-#{@machineId}", @bound 'updateStatus'
+    computeController.on "build-#{@machineId}", @bound 'updateStatus'
+    computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
+
+    computeController.on "reinit-#{@machineId}",(event)=>
+      @updateStatus event, 'reinit'
+
+    computeController.on "resize-#{@machineId}",(event)=>
+      @updateStatus event, 'resize'
+
+    computeController.followUpcomingEvents @machine
+
+    @eventTimer = null
+    @_lastPercentage = 0
+    @_initialBuiltOnce = yes
 
     @container.destroySubViews()
 
@@ -135,33 +174,145 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       if currentState is NotInitialized
         @buildViews State: currentState
-        KD.utils.defer => @turnOnMachine()
         return
 
-      @triggerEventTimer 0
+      @triggerEventTimer 10
 
       KD.getSingleton 'computeController'
-        .kloud.info { @machineId, currentState }
+        .getKloud().info { @machineId, currentState }
         .then (response)=>
 
           info "Initial info result:", response
 
           @buildViews response
 
-          if response.State is NotInitialized
-            KD.utils.defer => @turnOnMachine()
-
         .catch (err)=>
 
-          warn "Failed to fetch initial info:", err
-          @hasError = yes
+          unless err?.code is ComputeController.Error.NotVerified
+            warn "Failed to fetch initial info:", err
+            @hasError = yes
+
           @buildViews()
 
     else
       @buildViews()
 
 
+  buildVerifyView: ->
+
+    @container.destroySubViews()
+
+    @codeEntryView = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'verify-pin-input'
+      placeholder  : 'Enter code here'
+      callback     : @bound 'verifyAccount'
+
+    @button    = new KDButtonView
+      title    : 'Verify account'
+      cssClass : 'solid green medium'
+      callback : @bound 'verifyAccount'
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'verify-message'
+      partial  : """
+        <p>Before you can access your VM, we need to verify your account.
+        A verification email should already be in your inbox.
+        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
+      """
+      click    : (event)=>
+
+        return  unless $(event.target).is 'cite'
+
+        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+
+          unless KD.showError err
+
+            @container.addSubView @retryView = new KDCustomHTMLView
+              cssClass : 'error-message warning'
+              partial  : """
+                <p>Email sent, please check your inbox.</p>
+              """
+
+            KD.utils.wait 3000, @retryView.bound 'destroy'
+
+    @container.addSubView @codeEntryView
+    @container.addSubView @button
+
+
+  buildExpiredView: (subscription, nextState)->
+
+    plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
+
+    @container.destroySubViews()
+
+    if nextState is "downgrade"
+
+      @showBusy "Downgrading..."
+      @downgradePlan (err)=>
+
+        if err?
+          KD.utils.wait 10000, =>
+            @buildExpiredView subscription, "downgrade"
+        else
+          ComputeHelpers.handleNewMachineRequest (err)=>
+            location.reload yes
+
+      return
+
+    destroyVMs = nextState is "destroy-vms"
+
+    @upgradeButton = new KDButtonView
+      title    : 'Upgrade Plan'
+      cssClass : 'solid green medium plan-change-button'
+      callback : -> KD.singletons.router.handleRoute '/Pricing'
+
+    actionTitle = if destroyVMs then 'Delete All VMs' else 'Downgrade Plan'
+
+    @actionButton = new KDButtonView
+      title    : actionTitle
+      cssClass : 'solid green medium plan-change-button downgrade'
+      callback : =>
+
+        if destroyVMs
+
+          @showBusy "Destroying machines..."
+          ComputeHelpers.destroyExistingMachines (err)=>
+            KD.utils.wait 5000, =>
+              @buildExpiredView subscription, "downgrade"
+
+        else
+
+          @showBusy "Downgrading..."
+          @downgradePlan (err)=> if err? \
+            then @buildExpiredView subscription, "destroy-vms"
+            else @buildInitial()
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'expired-message'
+      partial  : if destroyVMs then """
+        <h1>Delete all existing VMs</h1>
+        <p>To be able to downgrade your current plan #{plan} to the <b>Free</b>
+        plan, you need to delete all your existing VMs. This action will
+        <b>destroy all your VMs, (including YOUR FILES) and cannot
+        be UNDONE!</b> Are you sure you want to continue?</p>
+      """ else """
+        <h1>Plan Expired</h1>
+        <p>Your current plan #{plan} is expired. For accessing
+        your VM you need to upgrade your plan first. Or you can downgrade
+        to the <b>Free</b> plan which will <b>destroy</b> all your existing VMs and their
+        files.</p>
+      """
+
+    unless destroyVMs
+      @container.addSubView @upgradeButton
+
+    @container.addSubView @actionButton
+
+
   buildViews: (response)->
+
+    return  if @_busy
 
     if response?.State?
       @state = response.State
@@ -184,14 +335,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
         Please select a new VM to operate on from the VMs list or create a new one.
       """
-
-      if @machine.status.state is Terminated
-        KD.getSingleton 'computeController'
-          .kloud.info { @machineId, currentState: @machine.status.state }
-          .then (response)=>
-            if response.State is Terminated
-              @createStateButton()
-          .catch noop
     else if @state is Running
       @prepareIDE()
       @destroy()
@@ -288,7 +431,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         if plan is "free"
           message = "
             Your VM was automatically turned off after 60 minutes
-            of inactivity as you are in <strong>Free</strong> plan."
+            of inactivity as you are on the free plan."
           upgradeMessage = """
             <a href="/Pricing" class="upgrade-link">
               Upgrade to make your VMs always-on.
@@ -324,7 +467,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @errorMessage = new KDCustomHTMLView
       cssClass    : 'error-message'
-      partial     : """
+      partial     : @customErrorMessage or """
         <p>There was an error when initializing your VM.</p>
         <span>Please try reloading this page or <span
         class="contact-support">contact support</span> for further
@@ -337,6 +480,15 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.addSubView @errorMessage
     @hasError = null
+
+
+  handleNoMachineFound: ->
+
+    {@state} = @getOptions()
+    @setClass 'no-machine'
+    @buildViews()
+    @createFooter()
+    return @show()
 
 
   turnOnMachine: ->
@@ -353,8 +505,11 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       methodName = 'build'
       nextState  = 'Building'
 
-    computeController.once "error-#{@machineId}", (err)=>
-      @hasError = yes
+    computeController.once "error-#{@machineId}", ({err})=>
+
+      unless err?.code is ComputeController.Error.NotVerified
+        @hasError = yes
+
       @buildViews State: @machine.status.state
 
     KD.singletons.computeController[methodName] @machine
@@ -377,10 +532,33 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @emit 'IDEBecameReady', m
 
 
-  handleNoMachineFound: ->
+  verifyAccount: ->
 
-    {@state} = @getOptions()
-    @setClass 'no-machine'
-    @buildViews()
-    @createFooter()
-    return @show()
+    code = Encoder.XSSEncode @codeEntryView.getValue()
+    unless code then return new KDNotificationView
+      title: "Please enter a code"
+
+    KD.remote.api.JUser.verifyByPin pin: code, (err)=>
+
+      @pinIsValid?.destroy()
+
+      if err
+        @container.addSubView @pinIsValid = new KDCustomHTMLView
+          cssClass : 'error-message'
+          partial  : """
+            <p>The pin entered is not valid.</p>
+          """
+
+      else
+        KD.utils.defer @bound 'buildInitial'
+
+
+  downgradePlan: (callback)->
+
+    me = KD.whoami()
+    me.fetchEmail (err, email)->
+
+      KD.singletons.paymentController
+        .subscribe "token", "free", "month", { email }, (err, resp)->
+          return callback err  if err?
+          callback null

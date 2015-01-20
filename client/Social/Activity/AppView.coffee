@@ -17,10 +17,17 @@ class ActivityAppView extends KDView
       appStorageController
       windowController
       mainView
-    }             = KD.singletons
-    {entryPoint}  = KD.config
-
+    }            = KD.singletons
+    {entryPoint} = KD.config
+    # this is also assigned in viewAppended
+    # when you land on a privateMessage directly
+    # sidebar here becomes undefined
+    # and once view is appended we make sure
+    # that the sidebar property is set.
+    # a terrible hack, should be addressed later. - SY
+    @sidebar     = mainView.activitySidebar
     @appStorage  = appStorageController.storage 'Activity', '2.0'
+    @panePathMap = {}
 
     @tabs = new KDTabView
       tagName             : 'main'
@@ -31,22 +38,31 @@ class ActivityAppView extends KDView
       if type = pane.getData()?.typeConstant
         @tabs.setAttribute 'class', KD.utils.curry 'kdview kdtabview', type
 
+    { router } = KD.singletons
+
+    router.on 'AlreadyHere', (path, options) =>
+
+      [slug] = options.frags
+
+      return  if slug isnt 'Activity'
+
+      path = helper.sanitizePath path
+      pane = @panePathMap[path]
+
+      pane?.refreshContent? path
+
 
   viewAppended: ->
 
-    # @addSubView @groupHeader  unless isKoding()
-    # @addSubView @sidebar
-    { mainView } = KD.singletons
-    @sidebar     = mainView.activitySidebar
+    # see above for the terrible hack note - SY
+    @sidebar ?= KD.singletons.mainView.activitySidebar
     @addSubView @tabs
 
     @parent.on 'KDTabPaneActive', =>
 
       return  unless pane = @tabs.getActivePane()
 
-      KD.utils.defer ->
-        pane.applyScrollTops()
-
+      KD.utils.defer -> pane.applyScrollTops()
       KD.utils.wait 50, -> pane.scrollView.wrapper.emit 'MutationHappened'
 
     @parent.on 'KDTabPaneInactive', =>
@@ -87,8 +103,10 @@ class ActivityAppView extends KDView
         if err then router.handleNotFound router.getCurrentPath()
         else
           # put after #koding #changelog
-          @sidebar.addItem data, 2
-          kallback data
+          unless KD.utils.isChannelCollaborative data
+            @sidebar.whenMachinesRendered().then =>
+              @sidebar.addItem data, 2
+              kallback data
     else
       kallback item.getData()
 
@@ -137,6 +155,10 @@ class ActivityAppView extends KDView
         else ActivityPane
 
     @tabs.addPane pane = new paneClass {name, type, channelId}, data
+
+    path = helper.sanitizePath KD.singletons.router.getCurrentPath()
+
+    @panePathMap[path] = pane
 
     pane.on 'LeftChannel', => @tabs.removePane pane
 
@@ -203,3 +225,13 @@ class ActivityAppView extends KDView
       top = window.innerHeight - 220
 
     return {top, left}
+
+
+  helper =
+
+    sanitizePath: (path) ->
+
+      if /\/Activity\/Public/.test path
+      then '/Activity/Public'
+      else path
+

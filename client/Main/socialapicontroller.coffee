@@ -66,12 +66,10 @@ class SocialApiController extends KDController
 
     {typeConstant, id} = channel
     delete socialapi._cache[typeConstant][id]
-    # unsubscribe from the channel.
-    # When a user leaves, and then rejoins a private channel, broker sends
-    # related channel from cache, but this channel contains old secret name.
-    # For this reason I have added this unsubscribe call.
-    # !!! This cache invalidation must be handled when cycleChannel event is received
-    KD.remote.mq.unsubscribe channelName
+
+    {realtime} = KD.singletons
+
+    realtime.unsubscribeChannel channel
 
 
   mapActivity = (data) ->
@@ -113,7 +111,7 @@ class SocialApiController extends KDController
             try JSON.parse Encoder.htmlDecode payload.link_embed
             catch e then null
 
-      if payload.initialParticipants
+      if payload.initialParticipants and typeof payload.initialParticipants is 'string'
         payload.initialParticipants =
           try JSON.parse Encoder.htmlDecode payload.initialParticipants
           catch e then null
@@ -269,27 +267,30 @@ class SocialApiController extends KDController
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
+        {name, typeConstant, token} = socialApiChannel
+
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
-          channelType: socialApiChannel.typeConstant
-          channelName: socialApiChannel.name
+          channelType: typeConstant
+          channelName: name
           isExclusive: yes
           connectDirectly: yes
+          brokerChannelName: channelName
+          token      : token
 
-        # do not use callbacks while subscribing, KD.remote.subscribe already
-        # returns the required channel object. Use it. Callbacks are called
-        # twice in the subscribe function
-        brokerChannel = KD.remote.subscribe channelName, subscriptionData
+        KD.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
 
-        # add opened channel to the openedChannels list, for later use
-        socialapi.openedChannels[channelName] = {delegate: brokerChannel, channel: socialApiChannel}
+          return warn err  if err
 
-        # start forwarding private channel evetns to the original social channel
-        forwardMessageEvents brokerChannel, socialApiChannel, getMessageEvents()
+          # add opened channel to the openedChannels list, for later use
+          socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
 
-        # notify listener
-        socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
+          # start forwarding private channel evetns to the original social channel
+          forwardMessageEvents realtimeChannel, socialApiChannel, getMessageEvents()
+
+          # notify listener
+          socialapi.emit "ChannelRegistered-#{channelName}", socialApiChannel
 
 
   generateChannelName = ({name, typeConstant, groupName}) ->
@@ -486,16 +487,6 @@ class SocialApiController extends KDController
       validateOptionsWith: ['body', 'channelId']
       mapperFn           : mapPrivateMessages
 
-    initPrivateMessageFromBot : messageRequesterFn
-      fnName                  : 'initPrivateMessageFromBot'
-      validateOptionsWith     : ['body']
-      mapperFn                : mapPrivateMessages
-
-    sendPrivateMessageFromBot : messageRequesterFn
-      fnName                  : 'sendPrivateMessageFromBot'
-      validateOptionsWith     : ['body', 'channelId']
-      mapperFn                : mapPrivateMessages
-
     search               : messageRequesterFn
       fnName             : 'search'
       validateOptionsWith: ['name']
@@ -525,27 +516,21 @@ class SocialApiController extends KDController
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
 
-    fetchActivities      : (options, callback)->
+    fetchActivities      : (options = {}, callback = noop)->
+
+      # show exempt content if only requester is admin or exempt herself
+      showExempt = KD.checkFlag?("super-admin") or KD.whoami()?.isExempt
+
+      options.showExempt or= showExempt
+
       err = {message: "An error occurred"}
 
-      xhr = new XMLHttpRequest
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      xhr.open 'GET', endPoint
-      xhr.onreadystatechange = =>
-        # 0     - connection failed
-        # >=400 - http errors
-        return if xhr.status is 0 or xhr.status >= 400
-          return callback err
+      KD.utils.doXhrRequest {type: 'GET', endPoint, async: no}, (err, response) ->
+        return callback err  if err
 
-        return if xhr.readyState isnt 4
-
-        if xhr.status not in [200, 304]
-          return callback err
-
-        response = JSON.parse xhr.responseText
         return callback null, mapActivities response
 
-      xhr.send()
 
     fetchPopularPosts    : channelRequesterFn
       fnName             : 'fetchPopularPosts'
@@ -579,6 +564,10 @@ class SocialApiController extends KDController
       fnName             : 'removeParticipants'
       validateOptionsWith: ['channelId']
 
+    listParticipants     : channelRequesterFn
+      fnName             : 'listParticipants'
+      validateOptionsWith: ['channelIds']
+
     addParticipants      : channelRequesterFn
       fnName             : 'addParticipants'
       validateOptionsWith: ['channelId', "accountIds"]
@@ -591,6 +580,10 @@ class SocialApiController extends KDController
       fnName              : 'leave'
       validateOptionsWith : ['channelId']
       successFn           : leaveChannel
+
+    kickParticipants     : channelRequesterFn
+      fnName             : 'leave'
+      validateOptionsWith: ['channelId', 'accountIds']
 
     fetchFollowedChannels: channelRequesterFn
       fnName             : 'fetchFollowedChannels'

@@ -18,6 +18,7 @@ module.exports = class JSession extends Model
     indexes         :
       clientId      : 'unique'
       username      : 'descending'
+      clientIP      : 'sparse'
     schema          :
       clientId      : String
       clientIP      : String
@@ -52,10 +53,13 @@ module.exports = class JSession extends Model
         JSession.remove username: oldUsername, (err) ->
           console.error err  if err?
 
+
   @createSession =(callback) ->
+
     JUser = require './user'
     clientId = createId()
-    JUser.createTemporaryUser (err, resp) =>
+
+    JUser.fetchGuestUser (err, resp) =>
 
       if not resp
         console.error message = "Failed to create guest user :/ ~ This is critical!"
@@ -73,7 +77,8 @@ module.exports = class JSession extends Model
           else
             callback null, { session, account }
 
-  @fetchSession =(clientId, callback)->
+
+  @fetchSession = (clientId, callback)->
     # if clientId is undefined or null
     return @createSession callback  unless clientId
 
@@ -87,16 +92,27 @@ module.exports = class JSession extends Model
         @createSession callback
 
   @fetchGuestUserSession = (callback) ->
-    username = 'guestuser'
-    @one {username}, (err, session) ->
-      return callback err if err?
-      return callback null, session if session?
-      clientId = createId()
-      session = new JSession { clientId, username }
-      session.save (err)->
-        return callback err if err?
-        callback null, session
+
+    JUser = require './user'
+    JUser.createGuestUsername (err, username)=>
+
+      @one {username}, (err, session) ->
+        return callback err  if err?
+        return callback null, session  if session?
+
+        clientId = createId()
+
+        session = new JSession { clientId, username }
+        session.save (err)->
+          return callback err  if err?
+          callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->
+
+    unless ipAddress
+      return callback 'IP Address is missing'
+
+    ipAddress = (ipAddress.split ',')[0]
+
     JSession.update {clientId: clientId}, {$set: clientIP: ipAddress}, (err)->
       callback err

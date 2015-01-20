@@ -143,6 +143,8 @@ validationRed = rgba(217, 58, 55, 0.65)
   overflow                  hidden
   display                   block
   vertical-align            top
+  background                rgba(0, 0, 0, .05)
+  rounded                   3px
   img
     rounded                 3px
 
@@ -337,13 +339,18 @@ a.custom-link-view.border-only-green
         right               8px
         bg                  color, transparent
         r-sprite              app '20-close-tab'
+
     &.modified:before
       content               ""
       size                  5px, 5px
       rounded               50%
-      background            #616f74
+      bg                    color, #616f74
       abs                   14px 0 0 5px
       fl()
+      vendor                transition, background-color .33s
+
+    &.modified.saved:before
+      bg                    color, #24b463
 
 
 .header-facets

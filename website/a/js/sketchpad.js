@@ -1,7 +1,14 @@
+// Dec 25, 2014 -- fatihacet
+// I made some changes to implement readOnly canvas. Here I proposed a PR to
+// project owner. https://github.com/trsanders/responsive-sketchpad/pull/5
+// If you want to update the library with it's latest master, make sure my PR
+// is accepted by project owner.
+
 (function ($) {
     $.fn.sketchpad = function (options) {
         // Canvas info
         var canvas = this;
+        canvas.readOnly = false;
         var ctx = $(this)[0].getContext('2d');
 
         // Default aspect ratio
@@ -61,6 +68,10 @@
         // On mouse down, create new stroke, push start location
         var startEvent = 'mousedown touchstart ';
         canvas.on(startEvent, function (e) {
+            if (canvas.readOnly) {
+                return false;
+            }
+
             if (e.type == 'touchstart') {
                 e.preventDefault();
             } else {
@@ -79,11 +90,11 @@
                 miterLimit: lineMiterLimit
             });
 
-            var canvas = getCursor(this, e);
+            var cursor = getCursor(this, e);
 
             strokes[strokes.length - 1].stroke.push({
-                x: canvas.x,
-                y: canvas.y
+                x: cursor.x,
+                y: cursor.y
             });
 
             redraw();
@@ -92,12 +103,16 @@
         // On mouse move, record movements
         var moveEvent = 'mousemove touchmove ';
         canvas.on(moveEvent, function (e) {
-            var canvas = getCursor(this, e);
+            if (canvas.readOnly) {
+                return false;
+            }
+
+            var cursor = getCursor(this, e);
 
             if (sketching) {
                 strokes[strokes.length - 1].stroke.push({
-                    x: canvas.x,
-                    y: canvas.y
+                    x: cursor.x,
+                    y: cursor.y
                 });
                 redraw();
             }
@@ -214,6 +229,16 @@
         this.clear = function () {
             strokes = [];
             redraw();
+        };
+
+        this.setReadOnly = function(state) {
+            this.readOnly = state;
+            if (state) {
+                canvas.css('cursor', 'default');
+            }
+            else {
+                canvas.css('cursor', 'crosshair');
+            }
         };
 
         return this;

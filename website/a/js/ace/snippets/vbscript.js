@@ -1,7 +1,1 @@
-define(function(require, exports, module) {
-"use strict";
-
-exports.snippetText = require("../requirejs/text!./vbscript.snippets");
-exports.scope = "vbscript";
-
-});
+ace.define("ace/snippets/vbscript",["require","exports","module"],function(e,t,n){t.snippetText="",t.scope="vbscript"})

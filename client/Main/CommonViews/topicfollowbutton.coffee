@@ -12,12 +12,12 @@ class TopicFollowButton extends KDToggleButton
       title     : "Follow"
       cssClass  : "follow"
       apiMethod : "follow"
-      callback  : @bound "setFollowingState"
+      callback  : @bound "toggleFollowingState"
     ,
       title     : "Unfollow"
       cssClass  : "following"
       apiMethod : "unfollow"
-      callback  : @bound "setFollowingState"
+      callback  : @bound "toggleFollowingState"
 
     ]
 
@@ -30,7 +30,7 @@ class TopicFollowButton extends KDToggleButton
     super
 
 
-  setFollowingState : ->
+  toggleFollowingState : ->
 
     KD.requireMembership
 
@@ -55,3 +55,10 @@ class TopicFollowButton extends KDToggleButton
           @toggleState()
 
           @setClass @getState().cssClass
+
+
+  setFollowingState: (isFollowing) ->
+
+    name = if isFollowing then "Unfollow" else "Follow"
+    @setState name
+    @setClass @getState().cssClass

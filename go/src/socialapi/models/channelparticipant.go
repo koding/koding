@@ -24,9 +24,6 @@ type ChannelParticipant struct {
 	// Status of the participant in the channel
 	StatusConstant string `json:"statusConstant"   sql:"NOT NULL;TYPE:VARCHAR(100);"`
 
-	// Role of the participant in the channel
-	RoleConstant string `json:"roleConstant"`
-
 	// holds troll, unsafe, etc
 	MetaBits MetaBits `json:"metaBits"`
 
@@ -53,7 +50,6 @@ const (
 func NewChannelParticipant() *ChannelParticipant {
 	return &ChannelParticipant{
 		StatusConstant: ChannelParticipant_STATUS_ACTIVE,
-		RoleConstant:   Permission_ROLE_MEMBER,
 		LastSeenAt:     time.Now().UTC(),
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
@@ -180,6 +176,10 @@ func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error
 			"channel_id":      c.ChannelId,
 			"status_constant": ChannelParticipant_STATUS_ACTIVE,
 		},
+	}
+
+	if q.Limit > 0 {
+		query.Pagination.Limit = q.Limit
 	}
 
 	// add filter for troll content
@@ -477,30 +477,14 @@ func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
 	return bongo.B.DB.Exec(query, t, c.Id).Error
 }
 
-func (c *ChannelParticipant) FetchRole() (string, error) {
-	// mark guests as guest
-	if c.AccountId == 0 {
-		return Permission_ROLE_GUEST, nil
+func (c *ChannelParticipant) Glance() error {
+	c.LastSeenAt = time.Now().UTC()
+
+	if err := c.Update(); err != nil {
+		return err
 	}
 
-	if c.ChannelId == 0 {
-		return Permission_ROLE_GUEST, nil
-	}
+	go bongo.B.PublishEvent("channel_glanced", c)
 
-	// fetch participant
-	err := c.FetchParticipant()
-	if err != nil && err != bongo.RecordNotFound {
-		return "", err
-	}
-
-	// if not a member, mark as guest
-	if err == bongo.RecordNotFound {
-		return Permission_ROLE_GUEST, nil
-	}
-
-	if c.RoleConstant == "" {
-		return Permission_ROLE_GUEST, nil
-	}
-
-	return c.RoleConstant, nil
+	return nil
 }

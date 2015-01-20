@@ -10,7 +10,7 @@ var LoggedInHome = `
     <link rel="stylesheet" href="/a/css/koding.css?{{.Version}}" />
   </head>
 
-  <body class='logged-in'>
+  <body class='logged-in dark ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
     <script>var KD={}</script>
@@ -38,6 +38,7 @@ var LoggedInHome = `
 
     <script>KD.socialApiData={{.User.GetWithDefault "SocialApiData" "null"}};</script>
 
+    <script src="//cdn.pubnub.com/pubnub-3.7.1.min.js"></script>
     <script src='/a/js/kd.libs.js?{{.Version}}'></script>
     <script src='/a/js/kd.js?{{.Version}}'></script>
     <script src='/a/js/koding.js?{{.Version}}'></script>

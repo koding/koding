@@ -29,7 +29,6 @@ class AccountBilling extends KDView
 
 
     @initSubscription()
-    @initPaymentMethod()
     @initPaymentHistory()
 
 
@@ -51,6 +50,8 @@ class AccountBilling extends KDView
         KD.singletons.router.handleRoute '/Pricing'
 
       @subscriptionWrapper.addSubView @subscription
+
+      @initPaymentMethod subscription
 
 
   noItemView = (partial) ->
@@ -75,16 +76,32 @@ class AccountBilling extends KDView
     @paymentMethodWrapper.addSubView @paymentMethod
 
 
-  initPaymentMethod: ->
+  initPaymentMethod: (subscription) ->
 
     { paymentController } = KD.singletons
 
     @paymentMethodWrapper.addSubView new KDHeaderView
       title : 'Payment Method'
 
-    paymentController.creditCard (err, card) =>
+
+
+    paymentController.creditCard (err, cc) =>
 
       card = null  if err?
+      
+      # intentional if/else ifs
+      # to denote the edge cases - SY
+      if subscription.provider is 'paypal'
+        card = null
+
+      else if subscription.provider is 'stripe' and subscription.planTitle is 'free'
+        card = null
+
+      else if subscription.provider is 'koding'
+        card = null
+
+      else
+        card = cc
 
       @putPaymentMethodView card
 

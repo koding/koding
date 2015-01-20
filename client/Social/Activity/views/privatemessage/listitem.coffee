@@ -11,18 +11,12 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     super options, data
 
-    {typeConstant} = @getData()
-
-    if typeConstant in ['join', 'leave']
-      data.body = @prepareActivityMessage()
-      @setClass 'join-leave'
-
-    {createdAt, deletedAt, updatedAt} = data
-
-    @likeView = new ReplyLikeView {}, data
-    @timeView = new CommentTimeView timeFormat : 'h:MM TT', createdAt
-
     @decorate()
+
+    {typeConstant, createdAt} = @getData()
+
+    @likeView = new ReplyLikeView {}, @getData()
+    @timeView = new CommentTimeView timeFormat : 'h:MM TT', createdAt
 
     @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
 
@@ -47,8 +41,8 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     # when it contains initial participants it contains all the accounts
     # initially added to the conversation
-    if initialParticipants?.length
-      if initialParticipants.length is 1
+    if initialParticipants
+      if initialParticipants.length is 0
         body = "started this conversation"
       else
         body = "started the conversation and invited "
@@ -57,9 +51,17 @@ class PrivateMessageListItemView extends ActivityListItemView
 
     return body
 
+
   decorate: ->
 
-    {repliesCount} = @getData()
+    {repliesCount, payload, typeConstant} = @getData()
+
+    if typeConstant in ['join', 'leave']
+      @getData().body = @prepareActivityMessage()
+      @setClass 'join-leave'
+
+    if payload?['system-message']
+      @setClass 'join-leave'
 
     @showParentPost()  if repliesCount < 3
 

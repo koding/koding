@@ -6,6 +6,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 
 	"socialapi/request"
+	"strconv"
 
 	"github.com/koding/cache"
 )
@@ -20,6 +21,7 @@ func init() {
 		Account: &AccountCache{
 			oldId: cache.NewLRU(cacheSize),
 			nick:  cache.NewLRU(cacheSize),
+			id:    cache.NewLRU(cacheSize),
 		},
 		Session: &SessionCache{
 			session: cache.NewLRU(cacheSize),
@@ -36,6 +38,7 @@ type StaticCache struct {
 type AccountCache struct {
 	oldId cache.Cache
 	nick  cache.Cache
+	id    cache.Cache
 }
 
 func (a *AccountCache) ByNick(nick string) (*Account, error) {
@@ -63,6 +66,31 @@ func (a *AccountCache) ByNick(nick string) (*Account, error) {
 	return account, nil
 }
 
+func (a *AccountCache) ById(id int64) (*Account, error) {
+	data, err := a.id.Get(strconv.FormatInt(id, 10))
+	if err != nil && err != cache.ErrNotFound {
+		return nil, err
+	}
+
+	if err == nil {
+		acc, ok := data.(*Account)
+		if ok {
+			return acc, nil
+		}
+	}
+
+	account := NewAccount()
+	if err := account.ById(id); err != nil {
+		return nil, err
+	}
+
+	if err := a.SetToCache(account); err != nil {
+		return nil, err
+	}
+
+	return account, nil
+}
+
 func (a *AccountCache) SetToCache(acc *Account) error {
 	if err := a.nick.Set(acc.Nick, acc); err != nil {
 		return err
@@ -71,6 +99,11 @@ func (a *AccountCache) SetToCache(acc *Account) error {
 	if err := a.oldId.Set(acc.OldId, acc); err != nil {
 		return err
 	}
+
+	if err := a.id.Set(strconv.FormatInt(acc.Id, 10), acc); err != nil {
+		return err
+	}
+
 	return nil
 }
 

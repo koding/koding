@@ -1,0 +1,5 @@
+== About ==
+
+The Slices package provides implementations of slice-based datatypes for all of Go's basic types, as well as two separate implementations for handling slices in the context of reflection values. Currently there's no documentation but the extensive test suite includes numerous examples of how to use slices to solve common tasks.
+
+The package has its origins in research for the GoLightly virtual machine project but has since taken on a life of its own. I hope you will find it useful.

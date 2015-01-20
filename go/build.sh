@@ -22,7 +22,6 @@ services=(
   github.com/koding/kite/kitectl
   koding/kites/kontrol
   github.com/coreos/etcd
-  koding/kites/klient
   koding/kites/kloud
   koding/kites/kloud/kloudctl
   koding/virt/vmproxy
@@ -37,22 +36,27 @@ services=(
   github.com/canthefason/goldorf
   github.com/mattes/migrate
   koding/go-webserver
+  koding/vmwatcher
 
   socialapi/workers/api
-  socialapi/workers/emailnotifier
-  socialapi/workers/dailyemailnotifier
+  socialapi/workers/email/activityemail
+  socialapi/workers/email/dailyemail
   socialapi/workers/notification
   socialapi/workers/pinnedpost
   socialapi/workers/popularpost
   socialapi/workers/trollmode
   socialapi/workers/populartopic
   socialapi/workers/realtime
+  socialapi/workers/realtime/gatekeeper
+  socialapi/workers/realtime/dispatcher
   socialapi/workers/topicfeed
   socialapi/workers/migrator
   socialapi/workers/sitemap/sitemapfeeder
   socialapi/workers/sitemap/sitemapgenerator
   socialapi/workers/sitemap/sitemapinitializer
   socialapi/workers/algoliaconnector
+  socialapi/workers/email/privatemessageemail/privatemessageemailfeeder
+  socialapi/workers/email/privatemessageemail/privatemessageemailsender
 )
 
 

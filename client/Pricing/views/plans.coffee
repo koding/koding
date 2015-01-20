@@ -25,6 +25,44 @@ class PricingPlansView extends KDView
   switchTo: (planInterval) ->
 
     plan.setPlanInterval(planInterval)  for _, plan of @planViews
+    @state.planInterval = planInterval
+    @refresh()
+
+
+  setState: (state) ->
+
+    KD.utils.extend @state, state
+
+    @refresh()
+
+
+  setPromotedPlan: (promotedPlan) ->
+
+    for title, planView of @planViews
+
+      planView.enable()
+
+      if title is promotedPlan
+      then planView.setClass 'promoted'
+      else planView.unsetClass 'promoted'
+
+
+  refresh: ->
+
+    { planInterval, currentPlanInterval,
+      planTitle, currentPlan } = @state
+
+    isSameInterval    = planInterval is currentPlanInterval
+    isCurrentPlanFree = currentPlan is 'free'
+
+    if isCurrentPlanFree
+      @setPromotedPlan @state.promotedPlan
+      @planViews['free'].disable()
+    else if isSameInterval
+      @setPromotedPlan null
+      @planViews[currentPlan].disable()
+    else
+      @setPromotedPlan @state.promotedPlan
 
 
   plans: [

@@ -35,6 +35,8 @@ const (
 	ErrBadResponse            = 404
 	ErrProviderAvailable      = 405
 	ErrProviderNotImplemented = 406
+
+	ErrUserNotConfirmed = 500
 )
 
 var errors = map[int]string{
@@ -69,6 +71,9 @@ var errors = map[int]string{
 	ErrBadResponse:            "Provider has a bad response.",
 	ErrProviderAvailable:      "Provider is already available",
 	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
+
+	// User errors
+	ErrUserNotConfirmed: "User account is not confirmed",
 }
 
 func NewErrorMessage(errMsg string) *kite.Error {

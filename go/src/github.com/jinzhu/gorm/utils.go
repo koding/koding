@@ -37,7 +37,7 @@ func newSafeMap() *safeMap {
 var smap = newSafeMap()
 var umap = newSafeMap()
 
-func toSnake(u string) string {
+func ToSnake(u string) string {
 	if v := smap.Get(u); v != "" {
 		return v
 	}
@@ -131,7 +131,7 @@ func convertInterfaceToMap(values interface{}) map[string]interface{} {
 	switch value := values.(type) {
 	case map[string]interface{}:
 		for k, v := range value {
-			attrs[toSnake(k)] = v
+			attrs[ToSnake(k)] = v
 		}
 	case []interface{}:
 		for _, v := range value {
@@ -145,7 +145,7 @@ func convertInterfaceToMap(values interface{}) map[string]interface{} {
 		switch reflectValue.Kind() {
 		case reflect.Map:
 			for _, key := range reflectValue.MapKeys() {
-				attrs[toSnake(key.Interface().(string))] = reflectValue.MapIndex(key).Interface()
+				attrs[ToSnake(key.Interface().(string))] = reflectValue.MapIndex(key).Interface()
 			}
 		default:
 			scope := Scope{Value: values}

@@ -37,8 +37,10 @@ class ComputePlansModal.Paid extends ComputePlansModal
     regionContainer.addSubView @regionSelector = new KDSelectBox
       name          : "region"
       selectOptions : [
-        { title: "United States", value: "us-east-1" }
+        { title: "United States (North Virginia)", value: "us-east-1" }
+        { title: "United States (Oregon)", value: "us-west-2" }
         { title: "Singapore",     value: "ap-southeast-1" }
+        { title: "Ireland",     value: "eu-west-1" }
       ]
 
     regionContainer.addSubView @regionTextView = new KDView

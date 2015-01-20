@@ -8,15 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"koding/kite-handler/command"
-	"koding/kites/klient/usage"
-
 	"github.com/koding/kite"
 	"github.com/koding/kite/protocol"
 	"github.com/koding/logging"
 )
 
-var ErrDialingKlientFailed = errors.New("Dialing klient failed.")
+var ErrDialingFailed = errors.New("Dialing klient failed.")
 
 // KlientPool represents a pool of connected klients
 type KlientPool struct {
@@ -24,6 +21,11 @@ type KlientPool struct {
 	klients map[string]*Klient
 	log     logging.Logger
 	sync.Mutex
+}
+
+type Usage struct {
+	// InactiveDuration reports the minimum duration since the latest activity.
+	InactiveDuration time.Duration `json:"inactive_duration"`
 }
 
 // Klient represents a remote klient instance
@@ -103,6 +105,13 @@ func Exists(k *kite.Kite, queryString string) error {
 // klient is ready to use. It's connected and needs to be closed once the task
 // is finished with it.
 func Connect(k *kite.Kite, queryString string) (*Klient, error) {
+	return ConnectTimeout(k, queryString, 0)
+}
+
+// ConnectTimeout returns a new connected klient instance to the given
+// queryString. The klient is ready to use. It's tries to connect for the given
+// timeout duration
+func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	query, err := protocol.KiteFromString(queryString)
 	if err != nil {
 		return nil, err
@@ -116,8 +125,10 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 	}
 
 	remoteKite := kites[0]
-	if err := remoteKite.Dial(); err != nil {
-		return nil, ErrDialingKlientFailed
+	remoteKite.ReadBufferSize = 512
+	remoteKite.WriteBufferSize = 512
+	if err := remoteKite.DialTimeout(t); err != nil {
+		return nil, ErrDialingFailed
 	}
 
 	// klient connection is ready now
@@ -126,11 +137,8 @@ func Connect(k *kite.Kite, queryString string) (*Klient, error) {
 		client:   remoteKite,
 		Username: remoteKite.Username,
 	}, nil
-
 }
 
-// Klient returns a new connected klient instance to the given queryString. The
-// klient is ready to use. It's tries to connect for the given timeout duration
 func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient, error) {
 	timeout := time.After(t)
 
@@ -143,7 +151,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 			}
 
 		case <-timeout:
-			return nil, fmt.Errorf("timeout while connection for kite")
+			return nil, ErrDialingFailed
 		}
 	}
 }
@@ -153,39 +161,18 @@ func (k *Klient) Close() {
 }
 
 // Usage calls the usage method of remote and get's the result back
-func (k *Klient) Usage() (*usage.Usage, error) {
-	resp, err := k.client.Tell(usage.MethodName)
+func (k *Klient) Usage() (*Usage, error) {
+	resp, err := k.client.Tell("klient.usage")
 	if err != nil {
 		return nil, err
 	}
 
-	var usg *usage.Usage
+	var usg *Usage
 	if err := resp.Unmarshal(&usg); err != nil {
 		return nil, err
 	}
 
 	return usg, nil
-}
-
-// Exec runs a shell command on remote klient machinek
-func (k *Klient) Exec(cmd string) (*command.Output, error) {
-	var params = struct {
-		Command string
-	}{
-		Command: cmd,
-	}
-
-	resp, err := k.client.Tell("exec", params)
-	if err != nil {
-		return nil, err
-	}
-
-	var out *command.Output
-	if err := resp.Unmarshal(&out); err != nil {
-		return nil, err
-	}
-
-	return out, nil
 }
 
 // Ping checks if the given klient response with "pong" to the "ping" we send.

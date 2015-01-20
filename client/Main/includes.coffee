@@ -6,6 +6,7 @@ module.exports = [
   "libs/uuid.js",
   'libs/underscore-min.js'
   "libs/accounting.js",
+
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
@@ -31,10 +32,12 @@ module.exports = [
   "activitycontroller.coffee",
   "messageeventmanager.coffee",
   "socialapicontroller.coffee",
+  "realtimecontroller.coffee",
   "notificationcontroller.coffee",
   "linkcontroller.coffee",
   "widgetcontroller.coffee",
   "localsynccontroller.coffee",
+  "kitelogger.coffee",
 
   # onboarding
   "onboarding/onboardingviewcontroller.coffee",
@@ -146,6 +149,7 @@ module.exports = [
   "providers/computecontroller.ui.coffee",
   "providers/computeeventlistener.coffee",
   "providers/computestatechecker.coffee",
+  "providers/computehelpers.coffee",
 
   "providers/dummymachine.coffee",
   "providers/machineitem.coffee",
@@ -180,6 +184,7 @@ module.exports = [
   "searchcontroller.coffee",
 
   "navigation/navigationlink.coffee",
+  "navigation/navigationworkspaceitem.coffee",
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
@@ -233,7 +238,6 @@ module.exports = [
 
   "troubleshoot/liveupdatechecker.coffee",
   "troubleshoot/brokerrecovery.coffee",
-  "troubleshoot/vmchecker.coffee",
   "troubleshoot/troubleshootresultview.coffee",
   "troubleshoot/troubleshootmessageview.coffee",
 
@@ -272,17 +276,13 @@ module.exports = [
 
   "pinger.coffee",
 
-  # KITE CONTROLLER
-  "kite/kitecontroller.coffee",
-
   # NEW KITES (extending kite.js)
+  "kite/kitecache.coffee",
   "kite/kodingkite.coffee",
   "kite/kodingkontrol.coffee",
   "kite/kites/klient.coffee",
   "kite/kites/kloud.coffee",
 
-  # Virtualization CONTROLLER
-  "VirtualizationController.coffee",
   "CommonViews/modalappslistitemview.coffee",
 
   "status.coffee",
@@ -290,7 +290,6 @@ module.exports = [
   "rollbar.coffee",
   "mixpanel.coffee",
   "analytic.coffee",
-  "errorlog.coffee",
   "metric.coffee",
 
   # ---------- Main APP ENDS ---------- #

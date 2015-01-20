@@ -32,8 +32,16 @@ class PrivateMessagePane extends MessagePane
     list.on 'ItemWasAdded',     @bound 'messageAdded'
     list.on 'ItemWasRemoved',   @bound 'messageRemoved'
     list.on 'EditMessageReset', @input.bound 'focus'
+    list.on 'ItemWasExpanded',  @bound 'messageExpanded'
 
     @input.input.on 'InputHeightChanged', @bound 'handleAutoGrow'
+
+    @input.input.on 'focus', =>
+      @scrollView.wrapper.emit 'MutationHappened'
+      # sometimes el.scrollHeight gives false values
+      # thus this terrible hack to reflow and get the correct values - SY
+      @scrollView.wrapper.addSubView v = new KDCustomHTMLView
+      KD.utils.defer -> v.destroy()
 
     @input.input.on 'blur', => @setCss 'height', 'none'
 
@@ -44,8 +52,15 @@ class PrivateMessagePane extends MessagePane
 
     headerHeight = @participantsView.getHeight()
     inputHeight  = @input.getHeight()
-    windowHeight = window.innerHeight
-    @scrollView.setHeight windowHeight - inputHeight - headerHeight
+    paneHeight   = @getHeight()
+
+    # 50 smaller than two lines
+    # bigger than a single line
+    # eventually needs an initial height - SY
+    if inputHeight > 50
+    then @scrollView.setHeight paneHeight - inputHeight - headerHeight
+    else @scrollView.setAttribute 'style', ''
+
     @scrollDown()
     @_windowDidResize()
 
@@ -81,13 +96,19 @@ class PrivateMessagePane extends MessagePane
   # ADDING MESSAGES
   #
 
-  appendMessage: (message) -> @listController.addItem message, @listController.getItemCount()
+  appendMessage: (message, index) -> @listController.addItem message, index or @listController.getItemCount()
 
 
   prependMessage: (message) -> @listController.addItem message, 0
 
 
   addMessageDeferred: (item, i, total) ->
+
+    # temp.
+    # until we have a separate message type for collaboration messages
+    # we need to do this to be able to distinguish them - SY
+    if item.payload?.collaboration then @setOption 'collaboration', yes
+
     # Super method defers adding list items to minimize page load
     # congestion. This function is overrides super function to render
     # all conversation messages to be displayed at the same time
@@ -121,16 +142,32 @@ class PrivateMessagePane extends MessagePane
     return [prevSibling, nextSibling]
 
 
+  resetPadding: ->
+
+    listView = @listController.getView()
+
+    if (listView.hasClass 'padded') and (@scrollView.getHeight() < listView.getHeight())
+      listView.unsetClass 'padded'
+      return yes
+
+    return no
+
+
+  messageExpanded: () ->
+
+    @scrollDown()  if @resetPadding()
+
+    @scrollView.wrapper.emit 'MutationHappened'
+
+
   messageAdded: (item, index) ->
 
     data         = item.getData()
     listView     = @listController.getView()
-    headerHeight = @heads?.getHeight() or 0
 
     {applyConsequency, hasSameOwner} = helper
 
-    if window.innerHeight - headerHeight < listView.getHeight()
-      listView.unsetClass 'padded'
+    @resetPadding()
 
     # TODO: This is a temporary fix,
     # we need to revisit this part.
@@ -229,7 +266,6 @@ class PrivateMessagePane extends MessagePane
 
       channel = @getData()
       channel.replies = data
-      @listPreviousLink.updateView data
       callback err, data
 
 
@@ -266,7 +302,7 @@ class PrivateMessagePane extends MessagePane
 
         if items.length is 0
         then @listPreviousLink.hide()
-        else @listPreviousLink.updatePartial 'Pull or click here to view more'
+        else @listPreviousLink.updatePartial 'Pull to view more'
 
         inProgress = false
 
@@ -312,7 +348,6 @@ class PrivateMessagePane extends MessagePane
 
     @listPreviousLink = new ReplyPreviousLink
       delegate : @listController
-      click    : @bound 'listPreviousReplies'
       linkCopy : 'Show previous replies'
     , @getData()
 
@@ -338,15 +373,21 @@ class PrivateMessagePane extends MessagePane
     @participantsView.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
-      callback    : =>
-        @autoCompleteForm.toggleClass 'active'
-        @newParticipantButton.toggleClass 'active'
-        @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
+      callback    : @bound 'showAutoCompleteInput'
 
-        @autoComplete.getView().once 'blur',=>
-          @autoCompleteForm.toggleClass 'active'
-          @newParticipantButton.toggleClass 'active'
-          @input.input.setFocus()
+
+  showAutoCompleteInput: ->
+
+    @emit 'NewParticipantButtonClicked'
+
+    @autoCompleteForm.toggleClass 'active'
+    @newParticipantButton.toggleClass 'active'
+    @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
+
+    @autoComplete.getView().once 'blur',=>
+      @autoCompleteForm.toggleClass 'active'
+      @newParticipantButton.toggleClass 'active'
+      @input.input.setFocus()
 
 
   createAddParticipantForm: ->
@@ -384,6 +425,8 @@ class PrivateMessagePane extends MessagePane
           @autoComplete.reset()
           return
 
+        @emit 'AddedParticipant', participant
+
 
   viewAppended: ->
 
@@ -408,7 +451,10 @@ class PrivateMessagePane extends MessagePane
 
     {wrapper} = @scrollView
     wrapper.on 'TopLazyLoadThresholdReached', KD.utils.throttle 200, @bound 'listPreviousReplies'
-    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleFocus'
+    wrapper.on 'LazyLoadThresholdReached', KD.utils.throttle 200, @bound 'handleThresholdReached'
+
+
+  handleThresholdReached: -> @handleFocus()
 
 
   editLastMessage: ->
@@ -499,4 +545,3 @@ class PrivateMessagePane extends MessagePane
           datetime : date.toUTCString()
 
     parse : (args...) -> args.map (item) -> parseInt item
-

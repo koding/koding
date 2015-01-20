@@ -1,17 +1,17 @@
 package realtime
 
 import (
-	"encoding/json"
-	"fmt"
 	mongomodels "koding/db/models"
 	"socialapi/models"
 	"socialapi/request"
+	"socialapi/workers/api/realtimehelper"
 	notificationmodels "socialapi/workers/notification/models"
+
+	"labix.org/v2/mgo"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
-	"labix.org/v2/mgo"
 )
 
 const (
@@ -94,7 +94,7 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 		}
 	}
 
-	if err := f.sendInstanceEvent(cm.Token, cm, "updateInstance"); err != nil {
+	if err := f.sendInstanceEvent(cm, cm, "updateInstance"); err != nil {
 		f.log.Error(err.Error())
 		return err
 	}
@@ -131,9 +131,6 @@ func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipan
 
 // ChannelParticipantRemoved is fired when we remove any info of channel participant
 func (f *Controller) ChannelParticipantRemoved(pe *models.ParticipantEvent) error {
-	// send notification to the user(added user)
-	go f.notifyChannelParticipants(pe)
-
 	return f.sendChannelParticipantEvent(pe, RemovedFromChannelEventName)
 }
 
@@ -146,6 +143,9 @@ func (f *Controller) ChannelParticipantsAdded(pe *models.ParticipantEvent) error
 // information
 // TODO we can send this information with just a single message
 func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, eventName string) error {
+
+	// send notification to the user(added user)
+	go f.notifyChannelParticipants(pe, eventName)
 
 	// channel must be notified with newly added/removed participants
 	for _, participant := range pe.Participants {
@@ -170,49 +170,70 @@ func (f *Controller) sendChannelParticipantEvent(pe *models.ParticipantEvent, ev
 	return nil
 }
 
-// notifyParticipants notifies current private channel participants and
-// removed participants included in ParticipantEvent.Participants about removed users
+// notifyParticipants notifies related participants when they join/leave private channel
+// or follow/unfollow a topic.
 // this is used for updating sidebar.
-func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent) {
+func (f *Controller) notifyChannelParticipants(pe *models.ParticipantEvent, eventName string) {
 	c, err := models.ChannelById(pe.Id)
 	if err != nil {
 		f.log.Error("Could not notify participant %d: %s", pe.Id, err)
 		return
 	}
 
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
+		c.TypeConstant != models.Channel_TYPE_TOPIC {
 		return
 	}
 
-	// fetch current participants
-	participantIds, err := c.FetchParticipantIds(&request.Query{})
+	notifiedParticipantIds, err := f.fetchNotifiedParticipantIds(c, pe, eventName)
 	if err != nil {
 		f.log.Error("Could not fetch participants: %s", err)
 		return
 	}
 
-	// append removed participants
-	for _, removedParticipant := range pe.Participants {
-		participantIds = append(participantIds, removedParticipant.AccountId)
-	}
-
-	for _, participant := range participantIds {
+	for _, participantId := range notifiedParticipantIds {
 		cc := models.NewChannelContainer()
-		err = cc.PopulateWith(*c, participant)
+		err = cc.PopulateWith(*c, participantId)
 		if err != nil {
 			f.log.Error("Could not create channel container for participant %d: %s", pe.Id, err)
 			continue
 		}
 
 		if err = f.sendNotification(
-			participant,
+			participantId,
 			c.GroupName,
-			RemovedFromChannelEventName,
+			eventName,
 			cc,
 		); err != nil {
 			f.log.Error("Ignoring err %s ", err.Error())
 		}
 	}
+}
+
+func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.ParticipantEvent, eventName string) ([]int64, error) {
+	notifiedParticipantIds := make([]int64, 0)
+
+	// notify added/removed participants
+	for _, participant := range pe.Participants {
+		notifiedParticipantIds = append(notifiedParticipantIds, participant.AccountId)
+	}
+
+	// When a user is removed from a private channel notify all channel participants to
+	// make them update their sidebar channel list.
+	if eventName == RemovedFromChannelEventName {
+
+		if c.TypeConstant == models.Channel_TYPE_PRIVATE_MESSAGE ||
+			c.TypeConstant == models.Channel_TYPE_COLLABORATION {
+
+			participantIds, err := c.FetchParticipantIds(&request.Query{})
+			if err != nil {
+				return notifiedParticipantIds, err
+			}
+			notifiedParticipantIds = append(notifiedParticipantIds, participantIds...)
+		}
+	}
+	return notifiedParticipantIds, nil
 }
 
 // InteractionSaved runs when interaction is added
@@ -266,7 +287,7 @@ func (f *Controller) handleInteractionEvent(eventName string, i *models.Interact
 		return err
 	}
 
-	err = f.sendInstanceEvent(m.Token, res, eventName)
+	err = f.sendInstanceEvent(m, res, eventName)
 	if err != nil {
 		return err
 	}
@@ -301,7 +322,7 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(parent.Token, cmc, "ReplyAdded")
+	err = f.sendInstanceEvent(parent, cmc, "ReplyAdded")
 	if err != nil {
 		return err
 	}
@@ -367,7 +388,7 @@ func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 		return err
 	}
 
-	if err := f.sendInstanceEvent(m.Token, mr, "ReplyRemoved"); err != nil {
+	if err := f.sendInstanceEvent(m, mr, "ReplyRemoved"); err != nil {
 		return err
 	}
 
@@ -605,45 +626,8 @@ func (f *Controller) NotifyUser(notification *notificationmodels.Notification) e
 	return f.sendNotification(notification.AccountId, "koding", NotificationEventName, content)
 }
 
-func (f *Controller) sendInstanceEvent(instanceToken string, message interface{}, eventName string) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
-	routingKey := "oid." + instanceToken + ".event." + eventName
-	updateMessage, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
-	updateArr := make([]string, 1)
-	if eventName == "updateInstance" {
-		updateArr[0] = fmt.Sprintf("{\"$set\":%s}", string(updateMessage))
-	} else {
-		updateArr[0] = string(updateMessage)
-	}
-
-	msg, err := json.Marshal(updateArr)
-	if err != nil {
-		return err
-	}
-
-	f.log.Debug(
-		"Sending Instance Event Id:%s Message:%s EventName:%s",
-		instanceToken,
-		updateMessage,
-		eventName,
-	)
-
-	return channel.Publish(
-		"updateInstances", // exchange name
-		routingKey,        // routing key
-		false,             // mandatory
-		false,             // immediate
-		amqp.Publishing{Body: msg}, // message
-	)
+func (f *Controller) sendInstanceEvent(cm *models.ChannelMessage, body interface{}, eventName string) error {
+	return realtimehelper.UpdateInstance(cm, eventName, body)
 }
 
 func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models.ChannelMessage, eventName string) error {
@@ -660,78 +644,33 @@ func (f *Controller) sendChannelEvent(cml *models.ChannelMessageList, cm *models
 // message is sent as a json message
 // this function is not idempotent
 func (f *Controller) publishToChannel(channelId int64, eventName string, data interface{}) error {
-	// fetch secret names of the channel
-	secretNames, err := models.SecretNamesByChannelId(channelId)
-	if err != nil && err != mgo.ErrNotFound {
-		return err
-	}
-
-	if err == mgo.ErrNotFound || len(secretNames) < 1 {
-		f.log.Info("Channel %d doest have any secret name", channelId)
-		return nil
-	}
-
-	//convert data into json message
-	byteMessage, err := json.Marshal(data)
+	ch, err := models.ChannelById(channelId)
 	if err != nil {
 		return err
 	}
 
-	// get a new channel for publishing a message
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
+	// TODO broker related stuff. We do not need this for pubnub.
+	// When no one connected via broker, channel secret names are not created
+	// therefore we can ignore secret name fetch
+	names, err := models.SecretNamesByChannelId(channelId)
+	if err == mgo.ErrNotFound {
+		f.log.Info("Channel %d doesn't have any secret name", channelId)
+	} else if len(names) < 1 {
+		f.log.Info("Channel %d doesn't have any secret name", channelId)
+	} else if err != nil {
+		f.log.Info("Could not fetch channel %d secret names", channelId)
 	}
-	// do not forget to close the channel
-	defer channel.Close()
 
-	for _, secretName := range secretNames {
-		routingKey := "socialapi.channelsecret." + secretName + "." + eventName
-
-		if err := channel.Publish(
-			"broker",   // exchange name
-			routingKey, // routing key
-			false,      // mandatory
-			false,      // immediate
-			amqp.Publishing{Body: byteMessage}, // message
-		); err != nil {
-			return err
-		}
-	}
-	return nil
-
+	return realtimehelper.PushMessage(ch, eventName, data, names)
 }
 
 func (f *Controller) sendNotification(
 	accountId int64, groupName string, eventName string, data interface{},
 ) error {
-	channel, err := f.rmqConn.Channel()
-	if err != nil {
-		return err
-	}
-	defer channel.Close()
-
 	account, err := models.FetchAccountFromCache(accountId)
 	if err != nil {
 		return err
 	}
 
-	notification := map[string]interface{}{
-		"event":    eventName,
-		"context":  groupName,
-		"contents": data,
-	}
-
-	byteNotification, err := json.Marshal(notification)
-	if err != nil {
-		return err
-	}
-
-	return channel.Publish(
-		"notification",
-		account.Nick, // this is routing key
-		false,
-		false,
-		amqp.Publishing{Body: byteNotification},
-	)
+	return realtimehelper.NotifyUser(account, eventName, data, groupName)
 }

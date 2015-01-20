@@ -259,22 +259,28 @@ initPrivateMessage = (data, callback)->
   if not data.body or not data.recipients or data.recipients.length < 1
     return callback { message: "Request is not valid"}
 
-  url = "/privatemessage/init"
+  url = "/privatechannel/init"
   post url, data, callback
 
 sendPrivateMessage = (data, callback)->
   if not data.body or not data.channelId
     return callback { message: "Request is not valid"}
 
-  url = "/privatemessage/send"
+  url = "/privatechannel/send"
   post url, data, callback
 
 fetchPrivateMessages = (data, callback)->
-  url = "/privatemessage/list"
+  url = "/privatechannel/list"
   get url, data, callback
 
 fetchPrivateMessageCount = (data, callback)->
-  url = "/privatemessage/count"
+  url = "/privatechannel/count"
+  get url, data, callback
+
+searchChats = (data, callback)->
+  if not data.name
+    return callback { message: "Name should be set for chat search"}
+  url = "/privatechannel/search"
   get url, data, callback
 
 followUser = (data, callback)->
@@ -308,16 +314,16 @@ searchTopics = (data, callback)->
   url = "/channel/search"
   get url, data, callback
 
-searchChats = (data, callback)->
-  if not data.name
-    return callback { message: "Name should be set for chat search"}
-  url = "/privatemessage/search"
-  get url, data, callback
-
 fetchProfileFeed = (data, callback)->
   if not data.targetId
     return callback { message: "targetId should be set"}
   url = "/account/#{data.targetId}/posts"
+  get url, data, callback
+
+fetchProfileFeedCount = (data, callback)->
+  if not data.targetId
+    return callback { message: "targetId should be set"}
+  url = "/account/#{data.targetId}/posts/count"
   get url, data, callback
 
 messageById = (data, callback)->
@@ -377,6 +383,9 @@ checkOwnership = (data, callback) ->
   url = "/account/#{data.accountId}/owns"
   get url, data, callback
 
+getCustomers = (data, callback) ->
+  url = "/payments/customers"
+  get url, data, callback
 
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
@@ -458,6 +467,7 @@ module.exports = {
   listNotifications
   updateLastSeenTime
   fetchProfileFeed
+  fetchProfileFeedCount
   searchTopics
   searchChats
   fetchPrivateMessages
@@ -495,6 +505,7 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
+  getCustomers
   post
   get
   deleteReq

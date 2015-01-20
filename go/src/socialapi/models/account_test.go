@@ -2,7 +2,12 @@ package models
 
 import (
 	"socialapi/workers/common/runner"
+	"strings"
 	"testing"
+
+	"math/rand"
+
+	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
@@ -79,7 +84,7 @@ func TestAccountFetchAccountById(t *testing.T) {
 	Convey("while fetching an account by id", t, func() {
 		Convey("it should not have error while fething", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// fetch the account by id of account
@@ -120,7 +125,7 @@ func TestAccountByNick(t *testing.T) {
 	Convey("while fetching an account by nick", t, func() {
 		Convey("it should not have error while fething", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			fa := NewAccount()
@@ -170,7 +175,7 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 
 		Convey("it should not have error if account is exist in db", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 			// we created slice to send to FetchOldIdsByAccountIds as argument
 			idd := []int64{acc.Id}
@@ -185,15 +190,13 @@ func TestAccountFetchOldIdsByAccountIds(t *testing.T) {
 
 		Convey("it should append successfully", func() {
 			acc1 := NewAccount()
-			acc1.Id = 1
-			acc1.OldId = "11"
-			acc1.Nick = "acc1"
+			acc1.OldId = bson.NewObjectId().Hex()
+			acc1.Nick = bson.NewObjectId().Hex()
 			So(acc1.Create(), ShouldBeNil)
 
 			acc2 := NewAccount()
-			acc2.Id = 2
-			acc2.OldId = "22"
-			acc2.Nick = "acc2"
+			acc2.OldId = bson.NewObjectId().Hex()
+			acc2.Nick = bson.NewObjectId().Hex()
 			So(acc2.Create(), ShouldBeNil)
 
 			idd := []int64{acc1.Id, acc2.Id}
@@ -227,7 +230,7 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 		Convey("it should have creator id as account id", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
@@ -238,19 +241,18 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 		Convey("it should have channel name as required", func() {
 			// create account
 			acc := NewAccount()
-			acc.Id = 1
-			acc.OldId = "11"
-			acc.Nick = "acc1"
+			acc.OldId = bson.NewObjectId().Hex()
+			acc.Nick = bson.NewObjectId().Hex()
 			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
 			So(err, ShouldBeNil)
-			So(cff.Name, ShouldEqual, "1-FollowingFeedChannel")
+			So(strings.HasSuffix(cff.Name, "-FollowingFeedChannel"), ShouldBeTrue)
 		})
 
 		Convey("it should have group name as Channel_KODING_NAME", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
@@ -260,7 +262,7 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 		Convey("it should have purpose as Following Feed for me", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
@@ -270,7 +272,7 @@ func TestAccountCreateFollowingFeedChannel(t *testing.T) {
 
 		Convey("it should have type constant as Channel_TYPE_FOLLOWERS", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			cff, err := acc.CreateFollowingFeedChannel()
@@ -299,8 +301,7 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 
 		Convey("it should have account in db", func() {
 			acc := NewAccount()
-			acc.Id = 112233
-
+			acc.Id = rand.Int63()
 			err := acc.UnMarkAsTroll()
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, bongo.RecordNotFound)
@@ -308,7 +309,7 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 
 		// Convey("it should have error if not troll", func() {
 		// 	// create account
-		// 	acc := createAccountWithTest()
+		// 	acc := CreateAccountWithTest()
 		// 	So(acc.Create(), ShouldBeNil)
 
 		// 	err := acc.UnMarkAsTroll()
@@ -318,7 +319,7 @@ func TestAccountUnMarkAsTroll(t *testing.T) {
 
 		Convey("it should not have error if troll is mark as not a troll", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			acc.IsTroll = true
 			So(acc.Create(), ShouldBeNil)
 
@@ -355,7 +356,7 @@ func TestAccountMarkAsTroll(t *testing.T) {
 
 		// Convey("it should have error if account is already troll", func() {
 		// 	// create account
-		// 	acc := createAccountWithTest()
+		// 	acc := CreateAccountWithTest()
 		// 	acc.IsTroll = true
 		// 	So(acc.Create(), ShouldBeNil)
 
@@ -366,7 +367,7 @@ func TestAccountMarkAsTroll(t *testing.T) {
 
 		Convey("it should not have error if non-troll account is marked as troll", func() {
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			acc.IsTroll = false
 			So(acc.Create(), ShouldBeNil)
 
@@ -406,7 +407,7 @@ func TestAccountFetchChannel(t *testing.T) {
 		Convey("it should not have error if channel type is exist", func() {
 
 			// create account
-			acc := createAccountWithTest()
+			acc := CreateAccountWithTest()
 			So(acc.Create(), ShouldBeNil)
 
 			// create channel
@@ -440,8 +441,8 @@ func TestAccountsByNick(t *testing.T) {
 		})
 
 		Convey("it should fetch accounts by nicknames", func() {
-			acc1 := createAccountWithTest()
-			acc2 := createAccountWithTest()
+			acc1 := CreateAccountWithTest()
+			acc2 := CreateAccountWithTest()
 			nicknames := make([]string, 0)
 			nicknames = append(nicknames, acc1.Nick, acc2.Nick)
 			accounts, err := FetchAccountsByNicks(nicknames)

@@ -5,7 +5,8 @@ class ActivityInputView extends KDHitEnterInputView
     options.cssClass              = KD.utils.curry "input-view", options.cssClass
     options.autogrow             ?= yes
     options.minHeight            ?= 54
-    options.placeholder          ?= "What's new #{KD.whoami().profile.firstName}?"
+    options.showButton           ?= yes
+    options.placeholder          ?= "Hey #{Encoder.htmlDecode KD.whoami().profile.firstName}, share something interesting or ask a question."
     options.attributes          or= {}
     options.attributes.testpath or= "ActivityInputView"
     options.attributes.rows     or= 1
@@ -27,3 +28,9 @@ class ActivityInputView extends KDHitEnterInputView
   empty: ->
     @setValue ''
     @resize()
+
+  keyDown: (event) ->
+    super event
+
+    if event.which is 13 and event.metaKey
+      @emit 'EnterPerformed'

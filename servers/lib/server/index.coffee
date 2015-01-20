@@ -33,6 +33,7 @@ http       = require "https"
 helmet     = require 'helmet'
 request    = require 'request'
 bodyParser = require 'body-parser'
+usertracker = require('../../../workers/usertracker')
 
 {JSession} = koding.models
 app        = express()
@@ -53,7 +54,7 @@ app        = express()
   addReferralCode
   handleClientIdNotFound
   getClientId
-}          = require './helpers'
+} = require './helpers'
 
 { generateFakeClient, updateCookie } = require "./client"
 { generateHumanstxt } = require "./humanstxt"
@@ -89,21 +90,15 @@ if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
 process.on 'uncaughtException', (err) ->
-  console.error " ------ FIX ME ------ @chris"
+  console.error " ------ FIX ME ------ @gokmen"
   console.error " there was an uncaught exception", err
   console.error err.stack
-  console.error " ------ FIX ME ------ @chris"
-  # process.exit 1
+  console.error " ------ FIX ME ------ @gokmen"
 
-
-# app.post "/inbound",(req,res)->
-#   console.log  "ok"
-#   console.log req.body
-#   res.send "ok"
-#   return
 
 # this is for creating session for incoming user if it doesnt have
 app.use (req, res, next) ->
+
   {JSession} = koding.models
   {clientId} = req.cookies
 
@@ -115,31 +110,28 @@ app.use (req, res, next) ->
     return next()  if err
     return next()  unless result?.session
 
+    # add referral code into session if there is one
+    addReferralCode req, res
+
     updateCookie req, res, result.session
 
-    next()
+    remoteIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    return next()  unless remoteIp
 
-app.use (req, res, next) ->
-  # add referral code into session if there is one
-  addReferralCode req, res
+    res.cookie "clientIPAddress", remoteIp, { maxAge: 900000, httpOnly: no }
 
-  {JSession} = koding.models
-  {clientId} = req.cookies
-  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-  res.cookie "clientIPAddress", clientIPAddress, { maxAge: 900000, httpOnly: no }
-  JSession.updateClientIP clientId, clientIPAddress, (err)->
-    if err then console.log err
-    next()
+    if result?.session?.username
+      usertracker.track result.session.username
+
+    JSession.updateClientIP result.session.clientId, remoteIp, (err)->
+      console.log err  if err?
+      next()
 
 
-app.get "/-/google-api",(req, res)->
-  ggl = require("googleapis")
-  gsc = KONFIG.googleapiServiceAccount
-  eml = gsc.serviceAccountEmail
-  key = gsc.serviceAccountKeyFile
-  scp = ['https://www.googleapis.com/auth/drive']
-  jwt = new ggl.auth.JWT(eml, key, null, scp).authorize (err,authToken)->
-
+app.get '/-/google-api/authorize/drive', (req, res) ->
+  options = subject: 'https://www.googleapis.com/auth/drive'
+  google_utils = require 'koding-googleapis'
+  google_utils.authorize options, (err, authToken) ->
     return res.status(401).send err if err
     res.status(200).send authToken
 
@@ -305,6 +297,7 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
     JUser.login clientId, { username : email, password }, (err, info) ->
 
+
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
@@ -316,6 +309,9 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
           else res.status(400).send 'Email is taken!'
 
         return
+
+      unless info
+        return res.status(500).send 'An error occurred'
 
       res.cookie 'clientId', info.replacementToken, path : '/'
       return res.status(200).send 'User is logged in!'
@@ -340,14 +336,27 @@ app.post '/:name?/Register', (req, res) ->
 
   return handleClientIdNotFound res, req unless clientId
 
+  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+
   koding.fetchClient clientId, context, (client) ->
     # when there is an error in the fetchClient, it returns message in it
     if client.message
       console.error JSON.stringify {req, client}
       return res.status(500).send client.message
 
+    client.clientIP = (clientIPAddress.split ',')[0]
+
     JUser.convert client, req.body, (err, result) ->
-      return res.status(400).send err.message  if err?
+
+      if err?
+
+        {message} = err
+
+        if err.errors?
+          message = "#{message}: #{Object.keys err.errors}"
+
+        return res.status(400).send message
+
 
       res.cookie 'clientId', result.newToken, path : '/'
       # handle the request as an XHR response:
@@ -364,7 +373,11 @@ app.post "/:name?/Login", (req, res) ->
   return handleClientIdNotFound res, req unless clientId
 
   JUser.login clientId, { username, password }, (err, info) ->
-    return res.status(403).send err.message  if err?
+    if err
+      return res.status(403).send err.message
+    else if not info
+      return res.status(500).send 'An error occurred'
+
     res.cookie 'clientId', info.replacementToken, path : '/'
     res.status(200).end()
 
@@ -486,22 +499,6 @@ app.post "/recaptcha", (req, res)->
 
     res.send "verified"
 
-app.get "/sitemap.xml", (req, res)->
-  getSiteMap "/sitemap.xml", req, res
-
-app.get "/sitemap/:sitemapName", (req, res)->
-  getSiteMap "/sitemap/#{req.params.sitemapName}", req, res
-
-getSiteMap = (name, req, res)->
-  {
-    bareRequest
-  } = require "../../../workers/social/lib/social/models/socialapi/helper"
-
-  bareRequest "getSiteMap", {name:name}, (err, result)->
-    res.setHeader "Content-Type", "text/xml"
-    res.send result
-    res.end
-
 app.get "/-/presence/:service", (req, res) ->
   # if services[service] and services[service].count > 0
   res.status(200).end()
@@ -558,6 +555,24 @@ isInAppRoute = (name)->
   return false if intRegex.test firstLetter
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
+
+
+app.post '/-/emails/subscribe', (req, res)->
+
+  {Sendgrid}          = koding.models
+  {email, type, name} = req.body
+
+  return res.status(400).send 'not ok'  unless /@/.test email
+
+  type or= 'marketing'
+  name or= email.split('@')[0]
+
+  switch type
+    when 'all'       then Sendgrid.addToAllUsers  email, name
+    when 'marketing' then Sendgrid.addToMarketing email, name
+    else res.status(400).send 'not ok'
+
+  res.status(200).send 'ok'
 
 
 app.post '/Hackathon/Apply', (req, res, next)->
@@ -630,6 +645,13 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
   path = "#{path}/#{section}"  if section
   path = "#{path}/#{slug}"     if slug
 
+  # When we try to access /Activity/Message/New route, it is trying to
+  # fetch message history with channel id = 'New' and returning:
+  # Bad Request: strconv.ParseInt: parsing "New": invalid syntax error.
+  # Did not like the way I resolve this, but this handler function is already
+  # saying 'Refactor me' :)
+  return next()  if section is 'Message' and slug is 'New'
+
   return res.redirect 301, req.url.substring 7  if name in ['koding', 'guests']
   # Checks if its an internal request like /Activity, /Terminal ...
   #
@@ -639,7 +661,7 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
     if name is 'Develop'
       return res.redirect 301, '/IDE'
 
-    if name in ['Activity']
+    if name is 'Activity'
       isLoggedIn req, res, (err, loggedIn, account)->
 
         return  serveHome req, res, next  if loggedIn
@@ -734,6 +756,10 @@ app.get '*', (req,res)->
 
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
+
+# start user tracking
+usertracker.start()
+
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.

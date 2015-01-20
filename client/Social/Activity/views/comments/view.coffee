@@ -162,6 +162,10 @@ class CommentView extends KDView
     @unsetClass 'no-comment commented'
     @setClass   'active-comment'
 
+    isInViewPort = KD.utils.isElementInViewport element = @getElement()
+
+    element.scrollIntoView no  unless isInViewPort
+
 
   setFixedHeight: (maxHeight) ->
 

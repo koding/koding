@@ -55,23 +55,6 @@ class Troubleshoot extends KDObject
     @registerConnections()
     @registerBrokers()
 
-    if localStorage.useNewKites is '1'
-      @registerItem "newKite",
-        troubleshoot: (callback) ->
-          KD.singletons.kontrol.fetchKite({ query: { name: 'kontrol' }})
-          .then(callback)
-          .catch (err) ->
-            warn err
-        recover: ->
-          ErrorLog.create "Troubleshoot toggled kite stack"
-          KD.toggleKiteStack()
-
-    # register osKite
-    # vc = KD.singleton "vmController"
-    # @registerItem "osKite",
-    #   troubleshoot : vc.bound 'ping'
-    #   recover      : vc.bound 'ping'
-
     # register bongo
     KD.remote.once "modelsReady", =>
       bongoStatus = KD.remote.api.JSystemStatus
@@ -88,14 +71,6 @@ class Troubleshoot extends KDObject
     @registerItem "version",
       speedCheck   : no
       troubleshoot : checkVersion.bind this
-
-    # vmChecker = new VMChecker
-    # @registerItem "vm",
-    #   speedCheck   : no
-    #   troubleshoot : vmChecker.bound 'healthCheck'
-
-    # @registerItem "terminal",
-    #   troubleshoot : vmChecker.bound 'terminalHealthCheck'
 
   registerConnections: ->
     #register connection

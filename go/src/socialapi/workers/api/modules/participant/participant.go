@@ -9,7 +9,6 @@ import (
 	"socialapi/request"
 	"socialapi/workers/common/response"
 	"socialapi/workers/helper"
-	"time"
 
 	"github.com/koding/bongo"
 )
@@ -55,6 +54,12 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 		return response.NewBadRequest(err)
 	}
 
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
 		participant := models.NewChannelParticipant()
 		participant.ChannelId = query.Id
@@ -83,18 +88,28 @@ func AddMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipa
 
 	}
 
-	go notifyParticipants(query.Id, models.ChannelParticipant_Added_To_Channel_Event, participants)
+	go notifyParticipants(ch, models.ChannelParticipant_Added_To_Channel_Event, participants)
 
 	return response.NewOK(participants)
 }
 
-func notifyParticipants(channelId int64, event string, participants []*models.ChannelParticipant) {
+func notifyParticipants(channel *models.Channel, event string, participants []*models.ChannelParticipant) {
 	pe := models.NewParticipantEvent()
-	pe.Id = channelId
+	pe.Id = channel.Id
 	pe.Participants = participants
+	pe.ChannelToken = channel.Token
+	logger := helper.MustGetLogger()
+
+	for _, participant := range participants {
+		acc, err := models.Cache.Account.ById(participant.AccountId)
+		if err != nil {
+			logger.Error("Could not fetch account: %s", err)
+		}
+		pe.Tokens = append(pe.Tokens, acc.Token)
+	}
 
 	if err := bongo.B.PublishEvent(event, pe); err != nil {
-		helper.MustGetLogger().Error("Could not notify channel participants: %s", err.Error())
+		logger.Error("Could not notify channel participants: %s", err.Error())
 	}
 
 }
@@ -110,7 +125,19 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
 	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to kick other users"))
+		}
+
 		participants[i].ChannelId = query.Id
 		if err := participants[i].Delete(); err != nil {
 			return response.NewBadRequest(err)
@@ -129,7 +156,7 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 		}
 	}()
 
-	go notifyParticipants(query.Id, models.ChannelParticipant_Removed_From_Channel_Event, participants)
+	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, participants)
 
 	return response.NewOK(participants)
 }
@@ -142,7 +169,8 @@ func DeleteDesertedChannelMessages(channelId int64) error {
 		return err
 	}
 
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE ||
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil
 	}
 
@@ -182,9 +210,8 @@ func UpdatePresence(u *url.URL, h http.Header, participant *models.ChannelPartic
 		return response.NewBadRequest(err)
 	}
 
-	participant.LastSeenAt = time.Now().UTC()
-
-	if err := participant.Update(); err != nil {
+	// glance the channel
+	if err := participant.Glance(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
@@ -234,7 +261,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 
 	// return early for non private message channels
 	// no need to continue from here for other channels
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE || c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil
 	}
 
@@ -264,7 +291,7 @@ func addJoinActivity(channelId, participantId, addedBy int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participantId}
 
 	return pmr.AddJoinActivity(c, addedBy)
 }
@@ -279,11 +306,12 @@ func addLeaveActivity(channelId, participantId int64) error {
 		return err
 	}
 
-	pmr := &models.PrivateMessageRequest{AccountId: participantId}
+	pmr := &models.PrivateChannelRequest{AccountId: participantId}
 
 	return pmr.AddLeaveActivity(c)
 }
 
+// this function is tested via integration tests
 func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	c := models.NewChannel()
 	if err := c.ById(channelId); err != nil {
@@ -291,7 +319,9 @@ func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	}
 
 	// add activity information for private message channel
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return nil, ErrSkipActivity
 	}
 

@@ -8,22 +8,7 @@
 
 KD.extend
 
-  useNewKites  : do ->
-    useNewKites = switch
-      when KD.config.kites.stack.force
-        Boolean KD.config.kites.stack.newKites
-      when localStorage.useNewKites?
-        Boolean Number localStorage.useNewKites
-    localStorage.useNewKites = if useNewKites then '1' else ''
-    return useNewKites
   useWebSockets : yes
-
-  toggleKiteStack: ->
-    localStorage.useNewKites =
-      if @useNewKites
-      then ''
-      else '1'
-    location.reload()
 
   socketConnected:->
     @backendIsConnected = yes
@@ -271,6 +256,17 @@ KD.extend
       return callback err  if err
       return callback {message: "Account not found", name: "NotFound"} unless owner
       callback null, owner
+
+  togglePubnub: ->
+    isPubnubEnabled = localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
+    try
+      localStorage.isPubnubEnabled = !isPubnubEnabled
+      location.reload()
+    catch e
+      warn "could not toggle pubnub: #{e}"
+
+  isPubnubEnabled: ->
+    localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
 
 
 Object.defineProperty KD, "defaultSlug",

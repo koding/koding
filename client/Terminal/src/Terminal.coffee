@@ -29,9 +29,6 @@ class WebTerm.Terminal extends KDObject
       for keyHandler in ['keyDown', 'keyPress', 'keyUp', 'paste']
         @[keyHandler] = noop
 
-    localStorage?["WebTerm.logRawOutput"] ?= "false"
-    localStorage?["WebTerm.slowDrawing"]  ?= "false"
-
     @parent               = containerView
     @container            = containerView.$()
     @server               = null
@@ -148,13 +145,19 @@ class WebTerm.Terminal extends KDObject
     (event.ctrlKey or event.metaKey) and event.shiftKey and event.keyCode is 13
 
   keyDown: (event) ->
+    return  if @isReadOnly
     return  if ignoreKeyDownEvent event
+
     @inputHandler.keyDown event
 
   keyPress: (event) ->
+    return  if @isReadOnly
+
     @inputHandler.keyPress event
 
   keyUp: (event) ->
+    return  if @isReadOnly
+
     @inputHandler.keyUp event
 
   setKeyFocus: ->
@@ -166,16 +169,16 @@ class WebTerm.Terminal extends KDObject
 
   setSize: (x, y) ->
 
-    return if x is @sizeX and y is @sizeY
+    return  if x is @sizeX and y is @sizeY
 
     cursorLineIndex  = @screenBuffer.toLineIndex(@cursor.y)
     [@sizeX, @sizeY] = [x, y]
     @screenBuffer.scrollingRegion = [0, y - 1]
 
     @cursor.moveTo @cursor.x, cursorLineIndex - @screenBuffer.toLineIndex(0)
-    @server.setSize x, y if @server
+    @server.setSize x, y  if @server
 
-  getCharSizes:->
+  getCharSizes: ->
     sizes =
       width  : @measurebox.getWidth()  or @_mbWidth  or 7
       height : @measurebox.getHeight() or @_mbHeight or 14
@@ -187,7 +190,11 @@ class WebTerm.Terminal extends KDObject
 
   updateSize: (force = no) ->
 
+    return  unless @parent
+
     @updateAppSize()
+
+    return  unless @parent
 
     [swidth, sheight] = [@parent.getWidth(), @parent.getHeight()]
 
@@ -207,10 +214,13 @@ class WebTerm.Terminal extends KDObject
   updateAppSize: ->
 
     { appView } = @getOptions()
+    {width: charWidth, height: charHeight} = @getCharSizes()
+
+    return  unless appView.parent
 
     height = appView.parent.getHeight() - 24 # padding
 
-    newHeight = Math.floor(height / @_mbHeight) * @_mbHeight
+    newHeight = Math.floor(height / charHeight) * charHeight
 
     appView.setHeight newHeight
 
@@ -328,6 +338,8 @@ class WebTerm.Terminal extends KDObject
 
 
   paste: (event) =>
+
+    return  if @isReadOnly
 
     KD.utils.stopDOMEvent event
     @server.input event.originalEvent.clipboardData.getData "text/plain"

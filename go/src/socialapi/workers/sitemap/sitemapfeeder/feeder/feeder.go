@@ -3,11 +3,11 @@ package feeder
 import (
 	"errors"
 	"fmt"
-	"socialapi/config"
+	"math"
 	socialmodels "socialapi/models"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/redis"
@@ -15,12 +15,20 @@ import (
 )
 
 type Controller struct {
-	log         logging.Logger
-	nameFetcher FileNameFetcher
-	redisConn   *redis.RedisSession
+	log            logging.Logger
+	redisConn      *redis.RedisSession
+	updateInterval time.Duration
 }
 
-var ErrIgnore = errors.New("ignore")
+var (
+	ErrIgnore      = errors.New("ignore")
+	ErrInvalidType = errors.New("invalid type")
+)
+
+const (
+	DefaultInterval   = 30 * time.Minute
+	MaxItemSizeInFile = 1000
+)
 
 func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	f.log.Error("an error occurred deleting realtime event", err)
@@ -28,15 +36,11 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(log logging.Logger) *Controller {
-	conf := *config.MustGet()
-	conf.Redis.DB = conf.Sitemap.RedisDB
-	// TODO later on seperate config structs could be better for each helper
-	redisConn := helper.MustInitRedisConn(&conf)
+func New(log logging.Logger, redisConn *redis.RedisSession) *Controller {
 	c := &Controller{
-		log:         log,
-		nameFetcher: ModNameFetcher{},
-		redisConn:   redisConn,
+		log:            log,
+		redisConn:      redisConn,
+		updateInterval: common.GetInterval(),
 	}
 
 	return c
@@ -71,16 +75,7 @@ func (f *Controller) queueChannelMessage(cm *socialmodels.ChannelMessage, status
 		return err
 	}
 
-	// when a message is added, creator's profile page must also be updated
-	a := socialmodels.NewAccount()
-	if err := a.ById(cm.AccountId); err != nil {
-		return err
-	}
-
-	// update account's sitemap url
-	_, err = f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
-
-	return err
+	return nil
 }
 
 func (f *Controller) ChannelMessageListUpdated(c *socialmodels.ChannelMessageList) error {
@@ -113,21 +108,6 @@ func (f *Controller) queueChannelMessageList(c *socialmodels.ChannelMessageList,
 
 	_, err = f.queueItem(newItemByChannel(ch, status))
 
-	return err
-}
-
-func (f *Controller) AccountAdded(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
-	return err
-}
-
-func (f *Controller) AccountUpdated(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_UPDATE))
-	return err
-}
-
-func (f *Controller) AccountDeleted(a *socialmodels.Account) error {
-	_, err := f.queueItem(newItemByAccount(a, models.STATUS_DELETE))
 	return err
 }
 
@@ -173,18 +153,6 @@ func newItemByChannelMessage(cm *socialmodels.ChannelMessage, status string) *mo
 	}
 }
 
-func newItemByAccount(a *socialmodels.Account, status string) *models.SitemapItem {
-	i := &models.SitemapItem{
-		Id:           a.Id,
-		TypeConstant: models.TYPE_ACCOUNT,
-		Status:       status,
-	}
-
-	i.Slug = a.Nick
-
-	return i
-}
-
 func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapItem {
 	slug := "Public"
 	switch c.TypeConstant {
@@ -205,7 +173,7 @@ func newItemByChannel(c *socialmodels.Channel, status string) *models.SitemapIte
 // queueItem push an item to cache and returns related file name
 func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 	// fetch file name
-	n := f.nameFetcher.Fetch(i)
+	n := f.fetchFileName(i)
 
 	if err := f.updateFileNameCache(n); err != nil {
 		return "", err
@@ -219,7 +187,7 @@ func (f *Controller) queueItem(i *models.SitemapItem) (string, error) {
 }
 
 func (f *Controller) updateFileNameCache(fileName string) error {
-	key := common.PrepareNextFileNameCacheKey()
+	key := common.PrepareNextFileNameSetCacheKey(int(f.updateInterval.Minutes()))
 	if _, err := f.redisConn.AddSetMembers(key, fileName); err != nil {
 		return err
 	}
@@ -229,11 +197,32 @@ func (f *Controller) updateFileNameCache(fileName string) error {
 
 func (f *Controller) updateFileItemCache(fileName string, i *models.SitemapItem) error {
 	// prepare cache key
-	key := common.PrepareNextFileCacheKey(fileName)
+	key := common.PrepareNextFileCacheKey(fileName, int(f.updateInterval.Minutes()))
 	value := i.PrepareSetValue()
 	if _, err := f.redisConn.AddSetMembers(key, value); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (f *Controller) fetchFileName(i *models.SitemapItem) string {
+	switch i.TypeConstant {
+	case models.TYPE_CHANNEL_MESSAGE:
+		return fetchChannelMessageName(i.Id)
+	case models.TYPE_CHANNEL:
+		return fetchChannelName(i.Id)
+	default:
+		panic(ErrInvalidType)
+	}
+}
+
+func fetchChannelMessageName(id int64) string {
+	remainder := math.Mod(float64(id), float64(MaxItemSizeInFile))
+	return fmt.Sprintf("channel_message_%d", int64(remainder))
+}
+
+func fetchChannelName(id int64) string {
+	remainder := math.Mod(float64(id), float64(MaxItemSizeInFile))
+	return fmt.Sprintf("channel_%d", int64(remainder))
 }

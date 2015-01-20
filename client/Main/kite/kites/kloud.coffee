@@ -61,39 +61,48 @@ class KodingKite_KloudKite extends KodingKite
   askInfoFromKlient: (machineId, callback) ->
 
     {kontrol, computeController} = KD.singletons
-    {klient}   = kontrol.kites
-    machineUid = computeController.findUidFromMachineId machineId
+    {klient} = kontrol.kites
+    machine  = computeController.findMachineFromMachineId machineId
 
-    if not klient? or not machineId?
+    unless machineId?
       return callback null
 
-    klientKite = klient[machineUid]
+    klientKite = klient?[machine.uid]
 
-    if not klientKite?
-      return callback null
+    unless klientKite?
 
-    KD.remote.api.DataDog.increment "KlientInfo", noop
+      if machine.status.state is Machine.State.Running
+
+        klientKite = kontrol.getKite
+          name            : 'klient'
+          queryString     : machine.queryString
+          correlationName : machine.uid
+
+      else
+        return callback null
 
     klientKite.ping()
 
       .then (res)->
 
-        if res is "pong"
-        then callback State: Machine.State.Running, via: "klient"
-        else callback null
+        if res is 'pong'
+        then callback State: Machine.State.Running, via: 'klient'
+        else
+          computeController.invalidateCache machineId
+          callback null
 
       .timeout 5000
 
       .catch ->
+
+        KiteLogger.failed 'klient', 'kite.ping'
 
         callback null
 
 
   askInfoFromKloud: (machineId, currentState) ->
 
-    {kontrol} = KD.singletons
-
-    KD.remote.api.DataDog.increment "KloudInfo", noop
+    {kontrol, computeController} = KD.singletons
 
     @tell 'info', { machineId }
 
@@ -101,14 +110,21 @@ class KodingKite_KloudKite extends KodingKite
 
         @resolveRequestingInfos machineId, info
 
+        unless info.State is Machine.State.Running
+          computeController.invalidateCache machineId
+
       .timeout ComputeController.timeout
 
       .catch (err) =>
 
-        if err.name is "TimeoutError" and not @_reconnectedOnce
-          warn "First time timeout, reconnecting to kloud..."
-          kontrol.kites.kloud.singleton.reconnect()
-          @_reconnectedOnce = yes
+        if err.name is 'TimeoutError'
 
-        warn "[kloud:info] failed, sending current state back:", { currentState, err }
+          unless @_reconnectedOnce
+            warn 'First time timeout, reconnecting to kloud...'
+            kontrol.kites.kloud.singleton?.reconnect?()
+            @_reconnectedOnce = yes
+
+          KiteLogger.failed 'kloud', 'info'
+
+        warn '[kloud:info] failed, sending current state back:', { currentState, err }
         @resolveRequestingInfos machineId, State: currentState

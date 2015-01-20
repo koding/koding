@@ -85,8 +85,8 @@ class HelpSupportModal extends KDModalViewWithForms
         <a href="http://learn.koding.com/faq/#vm-poweroff" target="_blank">
           How do I turn off my VM?</a><br/>
 
-        <a href="http://learn.koding.com/migrate" target="_blank">
-          How do I migrate my old VM(s)?</a><br/>
+        <a href="http://learn.koding.com/guides/change-theme/" target="_blank">
+          Changing IDE and Terminal themes</a><br/>
 
         <div class="message-footer">
           Head over to <a href="http://learn.koding.com/faq/" target="_blank">Koding University</a> for more...

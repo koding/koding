@@ -109,7 +109,7 @@ class EditorMacroView extends KDModalView
     return  markdown
 
   getUserPlatformId:->
-    if navigator.platform in ["MacIntel", "MacPPC", "Mac68K", "Macintosh", "iPad"]
+    if KD.utils.isNavigatorApple()
       return  2
     return 1
 

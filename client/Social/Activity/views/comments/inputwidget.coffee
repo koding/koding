@@ -5,7 +5,7 @@ class CommentInputWidget extends ActivityInputWidget
     options.type         or= 'new-comment'
     options.cssClass       = KD.utils.curry 'comment-input-widget', options.cssClass
     options.showAvatar    ?= yes
-    options.placeholder    = 'Type your comment and hit enter...'
+    options.placeholder    = 'Type your comment'
     options.inputViewClass = CommentInputView
 
     options.showAvatar    ?= yes
@@ -20,6 +20,17 @@ class CommentInputWidget extends ActivityInputWidget
     @input    = new inputViewClass { defaultValue, placeholder }
     @embedBox = new EmbedBoxWidget delegate: @input, data
 
+    @submitButton = new KDButtonView
+      type        : "submit"
+      title       : "SEND"
+      style       : "solid green mini hidden"
+      cssClass    : "submit-button"
+      loader      : yes
+      disabled    : yes
+      attributes  :
+        testpath  : "post-activity-button"
+      callback    : => @submit @input.getValue()
+
 
   initEvents: ->
     @input.on 'Escape', @bound 'reset'
@@ -31,11 +42,9 @@ class CommentInputWidget extends ActivityInputWidget
     @input.on 'keyup', =>
       @showPreview  if @preview
 
-
-  lockSubmit: -> @locked = yes
-
-
-  unlockSubmit: -> @locked = no
+      if @input.getValue().trim()
+      then @submitButton.enable()
+      else @submitButton.disable()
 
 
   setFocus: -> @input.setFocus()
@@ -86,11 +95,20 @@ class CommentInputWidget extends ActivityInputWidget
     @emit 'Focused'
     KD.mixpanel 'Comment activity, focus'
 
+    @submitButton.show()
+
+    if @input.getValue().trim()
+    then @submitButton.enable()
+    else @submitButton.disable()
+
 
   inputBlured: ->
 
     return  unless @input.getValue() is ''
     @emit 'Blured'
+
+    @submitButton.disable()
+    @submitButton.hide()
 
 
   mention: (username) ->
@@ -135,4 +153,5 @@ class CommentInputWidget extends ActivityInputWidget
     inputWrapper.addSubView @input
     @addSubView inputWrapper
     @addSubView @embedBox
+    @addSubView @submitButton
 

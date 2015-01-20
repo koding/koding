@@ -10,6 +10,8 @@ class ActivityLikeLink extends CustomLinkView
 
     { @isInteracted } = data.interactions.like
 
+    @update()
+
     data
       .on 'LikeAdded',   @bound 'update'
       .on 'LikeRemoved', @bound 'update'
@@ -41,7 +43,9 @@ class ActivityLikeLink extends CustomLinkView
 
     fn {id}, (err) =>
       @locked = no
-      @showError err  if err
+      if err
+        data.emit 'LikeChanged', isInteracted
+        warn err
 
 
   update: ->
@@ -51,21 +55,8 @@ class ActivityLikeLink extends CustomLinkView
     @setTemplate @pistachio()
 
     if @isInteracted
-      @trackLike()
-      @setClass 'liked'
-    else
-      @trackUnlike()
-      @unsetClass 'liked'
-
-
-  trackLike: ->
-
-    KD.mixpanel "Activity like, success"
-
-
-  trackUnlike: ->
-
-    KD.mixpanel "Activity unlike, success"
+    then @setClass 'liked'
+    else @unsetClass 'liked'
 
 
   showError: (err) ->

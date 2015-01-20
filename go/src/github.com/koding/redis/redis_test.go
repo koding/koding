@@ -124,6 +124,37 @@ func TestExpire(t *testing.T) {
 	}
 }
 
+func TestTTL(t *testing.T) {
+	key := "rainbow"
+	_, err := session.TTL(key)
+	if err == nil {
+		t.Errorf("Expected %s error but got nil", "ttl is not set")
+	}
+
+	err = session.Set(key, "connection")
+	if err != nil {
+		t.Errorf("Could not set value of key: %s", err)
+		t.FailNow()
+	}
+	defer session.Del(key)
+
+	err = session.Expire(key, 1*time.Second)
+	if err != nil {
+		t.Errorf("Could not set expire date of the key: %s", err)
+		t.FailNow()
+	}
+
+	ttl, err := session.TTL(key)
+	if err != nil {
+		t.Errorf("Could not get TTL value of the key: %s", err)
+		t.FailNow()
+	}
+
+	if ttl.Seconds() > 1 || ttl.Seconds() < 0 {
+		t.Errorf("Expected TTL between 0 and 1 but got: %d", ttl.Seconds())
+	}
+}
+
 func TestSetWithExpire(t *testing.T) {
 	err := session.Setex("swedish", 1*time.Second, "chef")
 	if err != nil {
@@ -285,15 +316,26 @@ func TestHashMultipleSet(t *testing.T) {
 		t.Errorf("Could create hash set: %s", err)
 		return
 	}
+	defer session.Del("mayhem")
+
+	length, err := session.GetHashLength("mayhem")
+	if err != nil {
+		t.Errorf("Could not get hash set length: %s", err)
+		return
+	}
+
+	if length != len(item) {
+		t.Errorf("Expected %d but got %d as hash length: ", len(item), length)
+	}
+
 	reply, err := session.GetHashMultipleSet("mayhem", "zoot")
 	if err != nil {
 		t.Errorf("Could not get hash set: %s", err)
-		session.Del("mayhem")
 		return
 	}
+
 	if len(reply) != 1 {
 		t.Errorf("Wrong return value count: %d", len(reply))
-		session.Del("mayhem")
 		return
 	}
 
@@ -301,5 +343,123 @@ func TestHashMultipleSet(t *testing.T) {
 	if response != "sax" {
 		t.Errorf("Wrong hashset value of the element: %s", response)
 	}
-	session.Del("mayhem")
+
+	value, err := session.GetHashSetField("mayhem", "zoot")
+	if err != nil {
+		t.Errorf("Could not get hash set field value: %s", err)
+	}
+
+	if value != "sax" {
+		t.Errorf("Wrong hashset field value: %s", err)
+	}
+
+	result, err := session.HashSetIfNotExists("mayhem", "janice", "ukulele")
+	if err != nil {
+		t.Errorf("Could not set hash field: %s", err)
+	}
+
+	if result != false {
+		t.Error("Expected false from hash set but got true")
+	}
+
+	result, err = session.HashSetIfNotExists("mayhem", "kermit", "frog")
+	if err != nil {
+		t.Errorf("Could not set hash field: %s", err)
+	}
+
+	if result != true {
+		t.Error("Expected true from hash set but got false")
+	}
+
+	deleteCount, err := session.DeleteHashSetField("mayhem", "kermit")
+	if err != nil {
+		t.Errorf("Could not delete hash field: %s", err)
+	}
+
+	if deleteCount != 1 {
+		t.Errorf("Expected 1 but got %d from hash set field deletion", deleteCount)
+	}
+
+	length, err = session.GetHashLength("mayhem")
+	if err != nil {
+		t.Errorf("Could not get hash set length: %s", err)
+	}
+
+	if length != len(item) {
+		t.Errorf("Expected %d but got %d as hash length: ", len(item), length)
+	}
+}
+
+func TestSortedSet(t *testing.T) {
+	set1Key, set2Key, destination := "set1", "set2", "combined-set"
+
+	defer func() {
+		session.Del(set1Key)
+		session.Del(set2Key)
+		session.Del(destination)
+	}()
+
+	_, err := session.SortedSetIncrBy(set1Key, 1, "item1")
+	if err != nil {
+		t.Fatalf("Error creating set1", err)
+	}
+
+	_, err = session.SortedSetIncrBy(set2Key, 1, "item2")
+	if err != nil {
+		t.Fatalf("Error creating set2", err)
+	}
+
+	keys := []string{set1Key, set2Key}
+	weights := []interface{}{1, 1}
+
+	reply, err := session.SortedSetsUnion(destination, keys, weights, "SUM")
+	if err != nil {
+		t.Fatalf("Error creating combined sets", err)
+	}
+
+	if reply < 2 {
+		t.Fatalf("Wrong number of elements added to combined set", err, reply)
+	}
+
+	score, err := session.SortedSetScore(destination, "item1")
+	if err != nil {
+		t.Fatalf("Couldn't get score of item from sorted set: %s", err)
+	}
+
+	if score != 1 {
+		t.Fatalf("Wrong number of elements added to combined set", err, reply)
+	}
+
+	_, err = session.SortedSetRem(destination, "item1")
+	if err != nil {
+		t.Fatalf("Couldn't remove item from sorted set: %s", err)
+	}
+
+	_, err = session.SortedSetScore(destination, "item1")
+	if err == nil {
+		t.Fatalf("Didn't remove item from sorted set")
+	}
+
+	err = session.SortedSetAddSingle(destination, "item1", 1)
+	if err != nil {
+		t.Fatalf("Couldn't remove item from sorted set: %s", err)
+	}
+
+	score, err = session.SortedSetScore(destination, "item1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if score != 1 {
+		t.Fatalf("Didn't set score for item in sorted set")
+	}
+
+	scores, err := session.SortedSetRangebyScore(destination, NegativeInf, PositiveInf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(scores) != 2 {
+		t.Fatalf("Wrong length of results when ranging by scores in sorted set")
+	}
 }

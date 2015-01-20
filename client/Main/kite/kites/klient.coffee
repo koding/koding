@@ -20,41 +20,93 @@ class KodingKite_KlientKite extends KodingKite
     fsMove             : 'fs.move'
     fsCreateDirectory  : 'fs.createDirectory'
 
+    webtermKillSessions: 'webterm.killSessions'
     webtermGetSessions : 'webterm.getSessions'
-    webtermConnect     : 'webterm.connect'
-    webtermKillSession : 'webterm.killSession'
     webtermPing        : 'webterm.ping'
 
+    klientShare        : 'klient.share'
+    klientUnshare      : 'klient.unshare'
+    klientShared       : 'klient.shared'
+
+
+  constructor:->
+
+    super
+
+    @terminalSessions = []
+
+
   init: ->
-    @connect()
-    Promise.resolve()
+
+    @connect()  unless @_connectAttempted
+
+    if @terminalSessions.length is 0 and not @_fetchingSessions
+    then @fetchTerminalSessions()
+    else Promise.resolve()
+
 
   # setTransport is used to override the setTransport method in KodingKite
   # prior to connection so we can have a custom URL. This is used so Klient
   # Kite can go over our internal userproxy
   setTransport: (@transport) ->
-    # let's use DOM for parsing the url
-    parser = document.createElement("a")
-    parser.href = @transport.options.url
 
-    # build our new url, example:
-    # old: http://54.164.174.218:3000/kite
-    # new: https://koding.com/-/userproxy/54.164.243.111/kite
-    #           or
-    #      http://localhost:8090/-/userproxy/54.164.243.111/kite
-
-    {hostname, protocol, port} = document.location
-
-    changedUrl = "#{protocol}//#{hostname}#{if port then ":#{port}" else ""}/-/userproxy/#{parser.hostname}/kite"
-
-    @transport.options.url = changedUrl
+    {url} = @transport.options
+    @transport.options.url = KD.utils.proxifyTransportUrl url
 
     # now call @connect in super, which will connect to our new URL
-    super transport
+    super @transport
 
 
   disconnect: ->
-
     super
 
     KD.singletons.kontrol.kites?.klient?[@getOption 'correlationName'] = null
+
+
+  webtermConnect: (options)->
+
+    @tell 'webterm.connect', options
+
+      .then (remote) =>
+
+        if @terminalSessions.length is 0
+          @fetchTerminalSessions()
+        else
+          unless remote.session in @terminalSessions
+            @terminalSessions.push remote.session
+
+        return remote
+
+
+  webtermKillSession: (options)->
+
+    {session} = options
+
+    @tell 'webterm.killSession', options
+
+      .then (state) =>
+
+        @terminalSessions = @terminalSessions.filter (currentSession)->
+          session isnt currentSession
+
+        return state
+
+
+  fetchTerminalSessions: ->
+
+    @_fetchingSessions = yes
+
+    @webtermGetSessions()
+
+    .then (sessions)=>
+
+      @terminalSessions = sessions
+      @_fetchingSessions = no
+
+    .timeout 10000
+
+    .catch (err)=>
+
+      # Reset current sessions if fails
+      @terminalSessions = []
+      @_fetchingSessions = no

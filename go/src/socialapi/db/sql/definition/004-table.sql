@@ -22,7 +22,8 @@ CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'pinnedactivity',
     'privatemessage',
     'announcement',
-    'default'
+    'default',
+    'collaboration'
 );
 ALTER TYPE "api"."channel_type_constant_enum" OWNER TO "social";
 
@@ -45,7 +46,8 @@ CREATE TABLE "api"."channel" (
     "meta_bits" SMALLINT NOT NULL DEFAULT 0::SMALLINT,
     "created_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" TIMESTAMP (6) WITH TIME ZONE NOT NULL DEFAULT now(),
-    "deleted_at" TIMESTAMP (6) WITH TIME ZONE
+    "deleted_at" TIMESTAMP (6) WITH TIME ZONE,
+    "payload" hstore
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."channel" OWNER TO "social";

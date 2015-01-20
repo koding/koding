@@ -91,9 +91,9 @@ class AceView extends JView
         message : 'You have unsaved changes. You will lose them if you close this tab.'
         title   : 'Do you want to close this tab?'
 
-    @ace.on 'FileContentSynced', =>
+    @ace.on 'FileContentRestored', =>
       @ace.contentChanged = no
-      @getActiveTabHandle().unsetClass 'modified'
+      @ace.removeModifiedFromTab()
       delete @getDelegate().quitOptions
 
     @on 'KDObjectWillBeDestroyed', =>
@@ -176,7 +176,7 @@ class AceView extends JView
         {tabView} = @getDelegate()
         return  if tabView.willClose
 
-        @getDelegate().openFile newFile, contents
+        @getDelegate().openSavedFile newFile, contents
 
     , { inputDefaultValue: file.name }
 

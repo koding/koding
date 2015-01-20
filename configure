@@ -1,5 +1,6 @@
 #!/usr/bin/env coffee
 
+
 argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
 fs         = require 'fs'
@@ -80,6 +81,7 @@ git.long (str) ->
     rest()
   else if os.type() is "Darwin"
     options.hostname = "lvh.me"
+    options.ngrok = yes
     rest()
   else
     log "lemme find your IP"

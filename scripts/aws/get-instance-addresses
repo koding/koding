@@ -1,0 +1,26 @@
+#!/usr/bin/env coffee
+
+argv = require('minimist')(process.argv.slice(2))
+AWS  = require 'aws-sdk'
+
+AWS.config.region = 'us-east-1'
+AWS.config.update
+  accessKeyId     : 'AKIAI7RHT42HWAA652LA'
+  secretAccessKey : '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'
+
+EC2  = new AWS.EC2()
+
+{environment} = argv
+
+params =
+  Filters: [
+    {
+      Name: 'tag:Name'
+      Values: [environment]
+    }
+  ]
+
+EC2.describeInstances params, (err, data) ->
+  data.Reservations.forEach (reservation) ->
+    reservation.Instances.forEach (instance) ->
+      console.log instance.PublicDnsName

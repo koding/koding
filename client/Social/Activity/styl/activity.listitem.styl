@@ -30,7 +30,7 @@ activity.listitem.styl
     rel()
 
     .show-more
-      abs                   489px 25px 0 0
+      abs                   inherit 25px 0 0
       padding               0
       color                 #adaeb1
       font-weight           300
@@ -65,6 +65,7 @@ activity.listitem.styl
           r-sprite          activity chevron-icon
 
     .author-avatar
+      size                  37px 37px
       fl()
 
       img
@@ -300,7 +301,7 @@ activity.listitem.styl
 
       .comment-input-wrapper
         margin-left       37px
-        padding           0 7px
+        padding           0 54px 0 7px
         height            auto
         min-height        30px
         kalc              width (100% \- 37px)
@@ -333,6 +334,25 @@ activity.listitem.styl
             &:hover
               color         #9a9a9a
               border-color  #EAEAEA
+
+      .kdbutton.submit-button
+        abs               0 5px 5px 0
+        size              45px, 23px
+        line-height       23px
+        padding           0 0 0 1px
+        z-index           100
+        rounded           3px
+
+        .button-title
+          line-height   23px
+          font-size     10px
+          font-weight   600
+
+        &[disabled=disabled]
+          background      #EDEDED
+
+          .button-title
+            color         #939393
 
     .list-previous-link
       size                100%, auto
@@ -446,7 +466,6 @@ activity.listitem.styl
 
 
         p
-          display       inline
           a
             color         inherit
             noTextDeco()
@@ -514,12 +533,25 @@ activity.listitem.styl
           margin          4px 10px 0 0
 
   &.editing
+    .edit-widget-wrapper
+      display             block
+
+      .input-view
+        min-height        50px
+
     .activity-content-wrapper
       > article
         display           none
 
       .activity-actions
         display           none
+
+      .cancel-editing
+        background        transparent
+        shadow            none
+
+        .button-title
+          color           #999
 
 
 .kdlistitemview-activity.preview
@@ -587,55 +619,112 @@ activity.listitem.styl
     rounded                 3px 3px 0 0
     borderBox()
 
-  .activity-content-wrapper > .link-embed-box
-    padding                 0 0 15px
-    overflow                visible
+  .edit-widget-wrapper
+    display                 none
+
+.link-embed-box
+  width                     auto
+  position                  relative
+  background                #fff
+  margin-bottom             14px
+  border                    1px solid #efefef
+
+  .embed-link-view
+    margin                  0
+    border                  none
+    width                   auto
+    height                  100px
+    padding                 0
+
+  .preview-image
+    size                    100px, 100px
+    border                  none
+    fl()
+
+  .preview-text
+    kalc                    width (100% \- 124px)
+    height                  100px
+    padding                 10px
+    overflow                hidden
     borderBox()
+    fl()
 
-    .embed-link-view
+    a
+      text-decoration       none
 
-      .preview-image
-        display             block
-        margin              0
-        padding             0
-        z-index             10
+    h4
+      display               inline-block
+      font-size             12px
+      font-weight           600
+      margin-bottom         8px
+      margin-right          60px
+      color                 #636363
+      white-space           nowrap
+      text-overflow         ellipsis
 
-        img
-          display           block
-          margin            0
-          padding           0
-          width             100%
-          min-height        153px
+    .description
+      display               block
+      height                50px
+      overflow              hidden
+      font-size             12px
+      color                 #3b3b3b
+      line-height           16px
 
-      .preview-text
-        padding             17px
-        border              1px solid #e5e5e5
-        z-index             9
-        borderBox()
+    .provider-info
+      height                14px
+      color                 #acacac
+      font-size             12px
+      abs                   0 0 12px 10px
 
-        a.preview-text-link
-          noTextDeco()
+  // .activity-content-wrapper > .link-embed-box
+  //   padding                 0 0 15px
+  //   overflow                visible
+  //   borderBox()
 
-          h4
-            font-size       14px
-            line-height     19px
-            color           #4f4f4f
-            display         block
+  //   .embed-link-view
 
-        a.description
-          padding           14px 0
-          color             #727272
-          font-size         12px
-          line-height       18px
-          display           block
-          opacity           .99
+  //     .preview-image
+  //       display             block
+  //       margin              0
+  //       padding             0
+  //       z-index             10
 
-        .provider-info
-          overflow          visible
-          color             #bdbdbd
-          opacity           .99
-          font-size         12px
-          line-height       16px
+  //       img
+  //         display           block
+  //         margin            0
+  //         padding           0
+  //         width             100%
+  //         min-height        153px
 
-      .preview-image + .preview-text
-        border-top-color    #d2d2d2
+  //     .preview-text
+  //       padding             17px
+  //       border              1px solid #e5e5e5
+  //       z-index             9
+  //       borderBox()
+
+  //       a.preview-text-link
+  //         noTextDeco()
+
+  //         h4
+  //           font-size       14px
+  //           line-height     19px
+  //           color           #4f4f4f
+  //           display         block
+
+  //       a.description
+  //         padding           14px 0
+  //         color             #727272
+  //         font-size         12px
+  //         line-height       18px
+  //         display           block
+  //         opacity           .99
+
+  //       .provider-info
+  //         overflow          visible
+  //         color             #bdbdbd
+  //         opacity           .99
+  //         font-size         12px
+  //         line-height       16px
+
+  //     .preview-image + .preview-text
+  //       border-top-color    #d2d2d2

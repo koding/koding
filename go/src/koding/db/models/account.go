@@ -28,9 +28,27 @@ type Account struct {
 		CreatedAt  time.Time `bson:"createdAt" json:"createdAt"`
 		Likes      int       `json:"likes" bson:"likes"`
 	} `bson:"meta" json:"meta"`
-	IsExempt bool `json:"isExempt" bson:"isExempt"`
+	IsExempt                bool `json:"isExempt" bson:"isExempt"`
+	LastLoginTimezoneOffset int  `json:"lastLoginTimezoneOffset" bson:"lastLoginTimezoneOffset"`
 }
 
 func (a *Account) GetSocialApiId() (int64, error) {
+	if a.SocialApiId == "" {
+		return 0, nil
+	}
+
 	return strconv.ParseInt(a.SocialApiId, 10, 64)
+}
+
+const SUPER_ADMIN_FLAG = "super-admin"
+
+// HasFlag checks if the user has given flag
+func (a *Account) HasFlag(flag string) bool {
+	for _, f := range a.GlobalFlags {
+		if f == flag {
+			return true
+		}
+	}
+
+	return false
 }

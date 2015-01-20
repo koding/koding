@@ -19,11 +19,6 @@ func (c *Controller) Start() error {
 		return fmt.Errorf("old sitemaps are not purged: %s", err)
 	}
 
-	// iterate accounts
-	if err := c.createAccounts(); err != nil {
-		return fmt.Errorf("account sitemap not created: %s", err)
-	}
-
 	// iterate posts
 	if err := c.createPosts(); err != nil {
 		return fmt.Errorf("post sitemap not created: %s", err)
@@ -41,34 +36,6 @@ func (c *Controller) deleteSitemaps() error {
 	f := models.NewSitemapFile()
 
 	return f.Purge()
-}
-
-func (c *Controller) createAccounts() error {
-	a := socialmodels.NewAccount()
-
-	query := &bongo.Query{
-		Pagination: bongo.Pagination{
-			Limit: LIMIT,
-			Skip:  0,
-		},
-	}
-	for {
-		var accounts []socialmodels.Account
-		err := a.Some(&accounts, query)
-		if err != nil {
-			return err
-		}
-
-		if len(accounts) == 0 {
-			return nil
-		}
-
-		c.queueAccounts(accounts)
-
-		query.Pagination.Skip += LIMIT
-	}
-
-	return nil
 }
 
 func (c *Controller) createPosts() error {
@@ -133,18 +100,6 @@ func (c *Controller) createChannels() error {
 	}
 
 	return nil
-}
-
-func (c *Controller) queueAccounts(accounts []socialmodels.Account) {
-	for _, a := range accounts {
-		si := newItemByAccount(&a, models.STATUS_ADD)
-		name, err := c.queueItem(si)
-		if err != nil {
-			c.log.Error("Could not add account item %s: %s", a.Nick, err)
-		}
-
-		fileMap[name] = struct{}{}
-	}
 }
 
 func (c *Controller) queuePosts(posts []socialmodels.ChannelMessage) {

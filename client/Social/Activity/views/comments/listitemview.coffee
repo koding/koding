@@ -54,6 +54,8 @@ class CommentListItemView extends KDListItemView
     @formWrapper.addSubView @editInput
     @formWrapper.show()
 
+    KD.utils.defer => @editInput.input.resize()
+
     @editInput
       .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'

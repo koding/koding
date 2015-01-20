@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
@@ -10,7 +9,7 @@ import (
 	"socialapi/workers/api/modules/messagelist"
 	"socialapi/workers/api/modules/participant"
 	"socialapi/workers/api/modules/popular"
-	"socialapi/workers/api/modules/privatemessage"
+	"socialapi/workers/api/modules/privatechannel"
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
@@ -380,6 +379,14 @@ func AddHandlers(m *mux.Mux) {
 		},
 	)
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  account.FetchPostCount,
+			Name:     "account-post-count",
+			Type:     handler.GetRequest,
+			Endpoint: "/account/{id}/posts/count",
+		})
+
 	// follow the account
 	m.AddHandler(
 		handler.Request{
@@ -414,6 +421,14 @@ func AddHandlers(m *mux.Mux) {
 			Securer:  models.AccountReadSecurer,
 		},
 	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  account.GetAccountFromSession,
+			Name:     "account-info",
+			Type:     handler.GetRequest,
+			Endpoint: "/account",
+		})
 
 	// fetch profile feed
 	// m.AddHandler("GET", "/account/{id}/profile/feed"
@@ -509,10 +524,10 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        privatemessage.Init,
-			Name:           "privatemessage-init",
+			Handler:        privatechannel.Init,
+			Name:           "privatechannel-init",
 			Type:           handler.PostRequest,
-			Endpoint:       "/privatemessage/init",
+			Endpoint:       "/privatechannel/init",
 			CollectMetrics: true,
 			Securer:        models.PrivateMessageSecurer,
 		},
@@ -520,10 +535,10 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:        privatemessage.Send,
-			Name:           "privatemessage-send",
+			Handler:        privatechannel.Send,
+			Name:           "privatechannel-send",
 			Type:           handler.PostRequest,
-			Endpoint:       "/privatemessage/send",
+			Endpoint:       "/privatechannel/send",
 			CollectMetrics: true,
 			Securer:        models.PrivateMessageSecurer,
 		},
@@ -532,31 +547,25 @@ func AddHandlers(m *mux.Mux) {
 	// exempt contents are filtered
 	m.AddHandler(
 		handler.Request{
-			Handler:  privatemessage.List,
-			Name:     "privatemessage-list",
+			Handler:  privatechannel.List,
+			Name:     "privatechannel-list",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatemessage/list",
-			Securer:  models.PrivateMessageReadSecurer,
-		},
-	)
+			Endpoint: "/privatechannel/list",
+		})
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  privatemessage.Search,
-			Name:     "privatemessage-search",
+			Handler:  privatechannel.Search,
+			Name:     "privatechannel-search",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatemessage/search",
-			Securer:  models.PrivateMessageReadSecurer,
-		},
-	)
+			Endpoint: "/privatechannel/search",
+		})
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  privatemessage.Count,
-			Name:     "privatemessage-count",
+			Handler:  privatechannel.Count,
+			Name:     "privatechannel-count",
 			Type:     handler.GetRequest,
-			Endpoint: "/privatemessage/count",
-			Securer:  models.PrivateMessageReadSecurer,
-		},
-	)
+			Endpoint: "/privatechannel/count",
+		})
 }

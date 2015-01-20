@@ -29,8 +29,6 @@ func (k *Kloud) Event(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrEventArgsEmpty)
 	}
 
-	k.Log.Debug("[event] received argument: %v", args)
-
 	events := make([]EventResponse, len(args))
 
 	for i, event := range args {
@@ -59,7 +57,6 @@ func (k *Kloud) Event(r *kite.Request) (interface{}, error) {
 		events[i] = EventResponse{EventId: event.EventId, Event: ev}
 	}
 
-	k.Log.Debug("[event] returning %+v to user: %s", events, r.Username)
 	return events, nil
 }
 
@@ -79,7 +76,7 @@ func (k *Kloud) NewEventer(id string) eventer.Eventer {
 }
 
 func (k *Kloud) GetEvent(eventId string) (*eventer.Event, error) {
-	k.Log.Debug("[event] searching eventer for id: %s", eventId)
+	// k.Log.Debug("[event] searching eventer for id: %s", eventId)
 	ev, ok := k.Eventers[eventId]
 	if !ok {
 		k.Log.Debug("[event] couldn't find eventer for id: %s", eventId)

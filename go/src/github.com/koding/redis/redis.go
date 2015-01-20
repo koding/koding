@@ -179,6 +179,25 @@ func (r *RedisSession) Expire(key string, timeout time.Duration) error {
 	return nil
 }
 
+// TTL returns remaining TTL value of the given key. An error is returned
+// when TTL is not existed or key is not found
+func (r *RedisSession) TTL(key string) (time.Duration, error) {
+	reply, err := redis.Int(r.Do("TTL", r.AddPrefix(key)))
+	if err != nil {
+		return 0, err
+	}
+
+	if reply == -1 {
+		return 0, errors.New("ttl is not set")
+	}
+
+	if reply == -2 {
+		return 0, errors.New("key does not exist")
+	}
+
+	return time.Duration(reply) * time.Second, nil
+}
+
 // Set key to hold the string value and set key to timeout after a given
 // number of seconds. This command is equivalent to executing the following commands:
 // SET mykey value
@@ -310,10 +329,39 @@ func (r *RedisSession) GetHashMultipleSet(key string, rest ...interface{}) ([]in
 	return redis.Values(r.Do("HMGET", prefixedReq...))
 }
 
+// GetHashSetField returns value of the given field of the hash set
+func (r *RedisSession) GetHashSetField(key string, field string) (string, error) {
+	return redis.String(r.Do("HGET", r.AddPrefix(key), field))
+}
+
 // HashGetAll returns all of the fields of a hash value
 // Usage: HashGetAll(key)
 func (r *RedisSession) HashGetAll(key string) ([]interface{}, error) {
 	return redis.Values(r.Do("HGETALL", r.AddPrefix(key)))
+}
+
+// HashSetIfNotExists adds the item to given field, when the field
+// does not exist. Returns the result of set operation
+func (r *RedisSession) HashSetIfNotExists(key, field string, item interface{}) (bool, error) {
+	reply, err := redis.Int(r.Do("HSETNX", r.AddPrefix(key), field, item))
+	if err != nil {
+		return false, err
+	}
+
+	return reply == 1, nil
+}
+
+// GetHashLength returns the item count of a hash set.
+func (r *RedisSession) GetHashLength(key string) (int, error) {
+	return redis.Int(r.Do("HLEN", r.AddPrefix(key)))
+}
+
+// DeleteHashSetField deletes a given field from hash set and returns number
+// of deleted fields count
+func (r *RedisSession) DeleteHashSetField(key string, rest ...interface{}) (int, error) {
+	prefixedReq := r.prepareArgsWithKey(key, rest...)
+
+	return redis.Int(r.Do("HDEL", prefixedReq...))
 }
 
 // AddSetMembers adds given elements to the set stored at key. Given elements
@@ -467,4 +515,30 @@ func (r *RedisSession) SortedSetRem(key string, members ...interface{}) (int64, 
 	prefixed = append(prefixed, members...)
 
 	return redis.Int64(r.Do("ZREM", prefixed...))
+}
+
+// SortedSetAdds adds updates the element score, and as a side effect, its
+// position on the sorted set.
+//
+// See: http://redis.io/commands/zadd
+func (r *RedisSession) SortedSetAddSingle(key, member string, score interface{}) error {
+	_, err := r.Do("ZADD", r.AddPrefix(key), score, member)
+	return err
+}
+
+var (
+	NegativeInf = "-inf"
+	PositiveInf = "+inf"
+)
+
+// SortedSetRangebyScore key min max
+// returns all the elements in the sorted set at key with a score
+// between min and max.
+//
+// See: http://redis.io/commands/zrangebyscore
+func (r *RedisSession) SortedSetRangebyScore(key string, rest ...interface{}) ([]interface{}, error) {
+	prefixed := []interface{}{r.AddPrefix(key)}
+	prefixed = append(prefixed, rest...)
+
+	return redis.Values(r.Do("ZRANGEBYSCORE", prefixed...))
 }

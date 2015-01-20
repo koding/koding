@@ -29,26 +29,24 @@ body.terminal
         outline  none
 
   .message-pane
-    color       #aaa
-    top         50%
-    margin-top  5px
+
     z-index     1
+    top         0
+
     width       100%
-    text-align  center
+    height      100%
+
+    word-wrap   break-word
+    white-space normal !important
+
+    cursor      pointer
+
     abs()
 
-    &.light
-      color        #eee
-      a
-        color      #fff
-        &:visited
-          color    #eee
     a
-      color      #eee
-      &:hover
-        color    #fff
-      &:visited
-        color    #eee
+      color     inherit
+      noTextDeco()
+
 
   .kdtabpaneview.intro
     overflow        auto

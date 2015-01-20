@@ -35,6 +35,14 @@ func ListChannels(u *url.URL, h http.Header, _ interface{}, c *models.Context) (
 	return response.HandleResultAndError(cc, cc.Err())
 }
 
+func GetAccountFromSession(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
+	if c.Client == nil || c.Client.Account == nil {
+		return response.NewNotFound()
+	}
+
+	return response.NewOK(c.Client.Account)
+}
+
 func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {
 	query := request.GetQuery(u)
 
@@ -84,6 +92,54 @@ func ListPosts(u *url.URL, h http.Header, _ interface{}) (int, http.Header, inte
 	return response.HandleResultAndError(
 		cm.BuildMessages(buildMessageQuery, messages),
 	)
+}
+
+func FetchPostCount(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	accountId, err := request.GetId(u)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// Get Group Channel
+	selector := map[string]interface{}{
+		"group_name":    query.GroupName,
+		"type_constant": models.Channel_TYPE_GROUP,
+	}
+
+	// first check channel existence
+	c := models.NewChannel()
+	if err := c.One(bongo.NewQS(selector)); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	// check if user can open the channel
+	ok, err := c.CanOpen(accountId)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	if !ok {
+		return response.NewAccessDenied(nil)
+	}
+
+	// fetch user post count in koding channel
+	q := request.NewQuery()
+	q.AccountId = accountId
+	q.Type = models.ChannelMessage_TYPE_POST
+	q.GroupChannelId = c.Id
+	cm := models.NewChannelMessage()
+
+	count, err := cm.FetchTotalMessageCount(q)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	res := new(models.CountResponse)
+	res.TotalCount = count
+
+	return response.NewOK(res)
 }
 
 func Follow(u *url.URL, h http.Header, req *models.Account) (int, http.Header, interface{}, error) {

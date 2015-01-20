@@ -36,6 +36,10 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 		return response.NewBadRequest(err)
 	}
 
+	if !query.ShowExempt {
+		query.ShowExempt = context.Client.Account.IsTroll
+	}
+
 	// if channel is exempt and
 	// user should see the content, return not found err
 	if c.MetaBits.Is(models.Troll) && !query.ShowExempt {

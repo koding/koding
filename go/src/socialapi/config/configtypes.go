@@ -46,14 +46,22 @@ type (
 
 		Paypal Paypal
 
+		// Holds access information for realtime message authenticator
+		GateKeeper GateKeeper
+
+		Kloud Kloud
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
 		Debug             bool   `env:"key=KONFIG_SOCIALAPI_DEBUG 					       		      default=false"`
 
 		// just a temp hack
-		Host string
-		Port string
+		Host     string
+		Port     string
+		ProxyURL string
+
+		CustomDomain CustomDomain
 	}
 
 	// Postgres holds Postgresql database related configuration
@@ -94,7 +102,8 @@ type (
 
 	// Sitemap holds Sitemap Workers' config
 	Sitemap struct {
-		RedisDB int `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
+		RedisDB        int    `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
+		UpdateInterval string `env:"key=KONFIG_SOCIALAPI_SITEMAP_UPDATEINTERVAL"`
 	}
 
 	// Algolia holds Algolia service credentials
@@ -129,5 +138,30 @@ type (
 		ReturnUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_RETURNURL"`
 		CancelUrl string `env:"key=KONFIG_SOCIALAPI_PAYPAL_CANCELURL"`
 		IsSandbox bool   `env:"key=KONFIG_SOCIALAPI_PAYPAL_ISANDBOX"`
+	}
+
+	GateKeeper struct {
+		Host   string `env:"key=KONFIG_GATEKEEPER_HOST"`
+		Port   int    `env:"key=KONFIG_GATEKEEPER_PORT"`
+		Pubnub Pubnub
+	}
+
+	Pubnub struct {
+		PublishKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_PUBLISHKEY"`
+		SubscribeKey  string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
+		SecretKey     string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
+		ServerAuthKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SERVERAUTHKEY"`
+		Enabled       bool   `env:"key=KONFIG_GATEKEEPER_PUBNUB_ENABLED"`
+		Origin        string `env:"key=KONFIG_GATEKEEPER_PUBNUB_ORIGIN"`
+	}
+
+	CustomDomain struct {
+		Public string `env:"key=KONFIG_CUSTOMDOMAIN_PUBLIC"`
+		Local  string `env:"key=KONFIG_CUSTOMDOMAIN_LOCAL"`
+	}
+
+	Kloud struct {
+		SecretKey string `env:"key=KONFIG_KLOUD_SECRETKEY"`
+		Address   string `env:"key=KONFIG_KLOUD_ADDRESS"`
 	}
 )

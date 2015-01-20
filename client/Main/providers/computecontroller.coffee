@@ -4,27 +4,31 @@ class ComputeController extends KDController
 
   @timeout = 30000
 
+  @Error = {
+    'TimeoutError', 'KiteError',
+    Pending: '107', NotVerified: '500'
+  }
+
   constructor:->
 
     super
 
-    { mainController, kontrol, router } = KD.singletons
+    { mainController, router } = KD.singletons
 
     do @reset
 
     mainController.ready =>
 
-      @kloud         = kontrol.getKite
-        name         : "kloud"
-        environment  : KD.config.environment
-
-      @eventListener = new ComputeEventListener
-      @stateChecker  = new ComputeStateChecker
-
       @on "MachineBuilt",     => do @reset
       @on "MachineDestroyed", => do @reset
 
       @fetchStacks =>
+
+        @eventListener = new ComputeEventListener
+        @stateChecker  = new ComputeStateChecker
+
+        @stateChecker.machines = @machines
+        @stateChecker.start()
 
         KD.singletons
           .paymentController.on 'UserPlanUpdated', =>
@@ -37,6 +41,14 @@ class ComputeController extends KDController
         @emit 'ready'
 
         @info machine for machine in @machines
+
+  getKloud: ->
+
+    KD.singletons.kontrol.getKite
+      name         : "kloud"
+      environment  : KD.config.environment
+      version      : KD.config.kites.kloud.version
+      username     : KD.config.kites.kontrol.username
 
 
   fetchStacks: do (queue=[])->
@@ -71,8 +83,8 @@ class ComputeController extends KDController
           @stacks   = stacks
           @machines = machines
 
-          @stateChecker.machines = machines
-          @stateChecker.start()
+          @stateChecker?.machines = machines
+          @stateChecker?.start()
 
           KD.userMachines = machines
           @emit "MachineDataUpdated"
@@ -168,11 +180,7 @@ class ComputeController extends KDController
 
   errorHandler: (call, task, machine)->
 
-    ComputeErrors = {
-      "TimeoutError", "KiteError", Pending: "107"
-    }
-
-    { timeout }   = ComputeController
+    { timeout, Error } = ComputeController
 
     retryIfNeeded = KD.utils.throttle 500, (task, machine)=>
 
@@ -196,16 +204,16 @@ class ComputeController extends KDController
 
       switch err.name
 
-        when ComputeErrors.TimeoutError
+        when Error.TimeoutError
 
           safeToSuspend = task is 'info'
           retryIfNeeded task, machine
           info "Cancelling... #{task} ..."
           call.cancel()
 
-        when ComputeErrors.KiteError
+        when Error.KiteError
 
-          if err.code is ComputeErrors.Pending
+          if err.code is Error.Pending
             retried = retryIfNeeded task, machine
             safeToSuspend = yes
           else
@@ -222,9 +230,9 @@ class ComputeController extends KDController
       return err
 
 
-  destroy: (machine)->
+  destroy: (machine, force = @_force)->
 
-    ComputeController.UI.askFor 'destroy', machine, @_force, =>
+    destroy = (machine)=>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -232,7 +240,7 @@ class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      call = @kloud.destroy { machineId: machine._id }
+      call = @getKloud().destroy { machineId: machine._id }
 
       .then (res)=>
 
@@ -249,6 +257,12 @@ class ComputeController extends KDController
 
         (@errorHandler call, 'destroy', machine) err
 
+    return destroy machine  if force?
+
+    ComputeController
+      .UI.askFor 'destroy', machine, force, =>
+        destroy machine
+
 
   reinit: (machine)->
 
@@ -260,7 +274,7 @@ class ComputeController extends KDController
 
       machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      call = @kloud.reinit { machineId: machine._id }
+      call = @getKloud().reinit { machineId: machine._id }
 
       .then (res)=>
 
@@ -297,7 +311,7 @@ class ComputeController extends KDController
 
         machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-        call = @kloud.resize { machineId: machine._id }
+        call = @getKloud().resize { machineId: machine._id }
 
         .then (res)=>
 
@@ -323,7 +337,7 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @kloud.build { machineId: machine._id }
+    call = @getKloud().build { machineId: machine._id }
 
     .then (res)=>
 
@@ -347,7 +361,7 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfNotExists = no ).isDisconnected = no
 
-    call = @kloud.start { machineId: machine._id }
+    call = @getKloud().start { machineId: machine._id }
 
     .then (res)=>
 
@@ -372,7 +386,7 @@ class ComputeController extends KDController
 
     machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @kloud.stop { machineId: machine._id }
+    call = @getKloud().stop { machineId: machine._id }
 
     .then (res)=>
 
@@ -426,7 +440,7 @@ class ComputeController extends KDController
     machineId = machine._id
     currentState = machine.status.state
 
-    call = @kloud.info { machineId, currentState }
+    call = @getKloud().info { machineId, currentState }
 
     .then (response)=>
 
@@ -508,62 +522,6 @@ class ComputeController extends KDController
       if err? or not subscription?
       then callback 'free'
       else callback @lastKnownUserPlan = subscription.planTitle
-
-
-  handleNewMachineRequest: (callback = noop)->
-
-    return  if @_inprogress
-    @_inprogress = yes
-
-    @fetchPlanCombo "koding", (err, info)=>
-
-      if KD.showError err
-        return @_inprogress = no
-
-      { plan, plans, usage } = info
-
-      limits  = plans[plan]
-      options = { plan, limits, usage }
-
-      if limits.total > 1
-
-        new ComputePlansModal.Paid options
-        @_inprogress = no
-
-        callback()
-        return
-
-      @fetchMachines (err, machines)=>
-
-        warn err  if err?
-
-        if err? or machines.length > 0
-          new ComputePlansModal.Free options
-          @_inprogress = no
-
-          callback()
-
-        else if machines.length is 0
-
-          stack   = @stacks.first._id
-          storage = plans[plan]?.storage or 3
-
-          KD.utils.getLocationInfo (err, location)=>
-
-            if not err? and location
-              regionIp = location.ip
-
-            @create {
-              provider : "koding"
-              regionIp, stack, storage
-            }, (err, machine)=>
-
-              @_inprogress = no
-
-              callback()
-
-              unless KD.showError err
-                KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->
@@ -709,7 +667,7 @@ class ComputeController extends KDController
 
   setDomain: (machine, newDomain, callback = noop) ->
 
-    @kloud.setDomain { machineId: machine._id, newDomain }
+    @getKloud().setDomain { machineId: machine._id, newDomain }
     .nodeify callback
 
 
@@ -723,7 +681,25 @@ class ComputeController extends KDController
         callback err, { plan, plans, usage }
 
 
-  findUidFromMachineId: (machineId)->
+  findMachineFromMachineId: (machineId)->
 
     for machine in @machines
-      return machine.uid  if machine._id is machineId
+      return machine  if machine._id is machineId
+
+  findMachineFromQueryString: (queryString)->
+
+    for machine in @machines
+      return machine  if machine.queryString is queryString
+
+  invalidateCache: (machineId)->
+
+    machine = @findMachineFromMachineId machineId
+
+    unless machine?
+      return warn \
+        "Unable to invalidate cache, machine not found with #{machineId}"
+
+    {kontrol} = KD.singletons
+
+    KiteCache.unset machine.queryString
+    delete kontrol.kites?.klient?[machine.uid]

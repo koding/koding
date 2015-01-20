@@ -53,7 +53,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
                 width   : 14
                 height  : 14
               loaderOptions :
-                color   : '#FFFFFF'
+                color   : '#333333'
               showLoader: yes
         publicIp        :
           label         : "Public IP"
@@ -63,7 +63,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
         specs           :
           label         : "Specs"
           itemClass     : KDView
-          partial       : "1GB Ram, 1Core, #{storage}GB Disk"
+          partial       : "1GB RAM, 1Core, #{storage}GB Disk"
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
@@ -143,11 +143,13 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     statusToggle.hide()
 
-    machineId = @machine._id
+    machineId    = @machine._id
     currentState = @machine.status.state
+    baseKite     = @machine.getBaseKite()
 
-    computeController
-      .kloud.info { machineId, currentState }
+    computeController.getKloud()
+
+      .info { machineId, currentState }
       .then (response)->
 
         if response.State is Running
@@ -262,3 +264,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
         if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
           @resizeButton.show()
+
+
+  shareMachineWithUser: (username) ->
+    @machine.jMachine.shareWith target: username
+    @machine.getBaseKite().klientShare { username }

@@ -9,7 +9,10 @@ import (
 	"github.com/koding/bongo"
 )
 
-var ErrContentNotFound = errors.New("content not found")
+var (
+	ErrContentNotFound = errors.New("content not found")
+	ErrNotImplemented  = errors.New("not implemented")
+)
 
 // NewBadRequest is creating a new http response with predifined
 // http response properties
@@ -22,7 +25,9 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	helper.MustGetLogger().Error("Bad Request: %s", err)
 
 	// do not expose errors to the client
-	if config.MustGet().Environment != "dev" {
+	env := config.MustGet().Environment
+	// do not expose errors to the client.
+	if env != "dev" && env != "test" {
 		err = genericError
 	}
 
@@ -66,6 +71,21 @@ func HandleResultAndClientError(res interface{}, err error) (int, http.Header, i
 // NewOK returns http StatusOK response
 func NewOK(res interface{}) (int, http.Header, interface{}, error) {
 	return http.StatusOK, nil, res, nil
+}
+
+func NewNotImplemented() (int, http.Header, interface{}, error) {
+	return http.StatusNotImplemented, nil, nil, ErrNotImplemented
+}
+
+func NewOKWithCookie(res interface{}, cookies []*http.Cookie) (int, http.Header, interface{}, error) {
+	h := http.Header{}
+	if len(cookies) > 0 {
+		for _, cookie := range cookies {
+			h.Add("Set-Cookie", cookie.String())
+		}
+	}
+
+	return http.StatusOK, h, res, nil
 }
 
 // NewNotFound returns http StatusNotFound response

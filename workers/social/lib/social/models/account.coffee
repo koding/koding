@@ -16,6 +16,7 @@ module.exports = class JAccount extends jraphical.Module
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
+  Sendgrid         = require './sendgrid'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -170,10 +171,6 @@ module.exports = class JAccount extends jraphical.Module
         ]
         unlinkOauth:
           (signature String, Function)
-        changeUsername: [
-          (signature Object)
-          (signature Object, Function)
-        ]
         markUserAsExempt:
           (signature Boolean, Function)
         userIsExempt:
@@ -216,6 +213,10 @@ module.exports = class JAccount extends jraphical.Module
           (signature Object, Function)
         fetchMetaInformation :
           (signature Function)
+        setLastLoginTimezoneOffset:
+          (signature Object, Function)
+        fetchCustomers:
+          (signature Object, Function)
 
     schema                  :
       socialApiId           : String
@@ -300,10 +301,6 @@ module.exports = class JAccount extends jraphical.Module
       tag:
         as          : 'skill'
         targetType  : "JTag"
-
-      vm            :
-        as          : 'owner'
-        targetType  : 'JVM'
 
       domain        :
         as          : 'owner'
@@ -398,36 +395,45 @@ module.exports = class JAccount extends jraphical.Module
         return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
-    if 'string' is typeof options
-      username = options
-    else
-      { username, mustReauthenticate, isRegistration } = options
-
+    { username, isRegistration } = options
     oldUsername = @profile.nickname
 
+    if "guestuser" in [oldUsername, username]
+      return callback new KodingError "guestuser can not be updated"
+
     if username is oldUsername
-    then return callback new KodingError "Username was not changed!"
 
-    freeOldUsername = ->
-      JName.remove name: oldUsername, (err) ->
-        return callback err  if err
-        callback null
+      if isRegistration
 
-    handleErr = (err) ->
-      JName.remove name: username, (err) ->
-        return callback err  if err
+        # To keep safe all other listeners of 'UsernameChanged' event
+        # we are checking for the `isRegistration` flag before returning
+        # error here. Instead in here we are faking like we did the
+        # username change sucessfully. ~ GG
 
-      if err.code is 11000
-      then return callback new KodingError 'Username is not available!'
-      else if err?
-      then return callback err
+        @constructor.emit 'UsernameChanged', {
+          oldUsername, username, isRegistration
+        }
+        return callback null
 
+      else
+        return callback new KodingError "Username was not changed!"
+
+    # Validate username
     unless @constructor.validateAt 'profile.nickname', username
-    then return callback new KodingError 'Invalid username!'
+      return callback new KodingError 'Invalid username!'
 
-    name = new JName
-      name: username
-      slugs: [
+    # Custom error helper, we are using it to free up new JName
+    # for given username, if any error happens after JName creation.
+    hasError = (err) ->
+      if err?
+        JName.remove name: username, ->
+          callback err
+        return yes
+
+    # Create JName for new username
+    name    = new JName
+      name  : username
+      slugs : [
         constructorName : 'JUser'
         collectionName  : 'jUsers'
         slug            : username
@@ -435,36 +441,37 @@ module.exports = class JAccount extends jraphical.Module
       ]
 
     name.save (err) =>
-      return handleErr err  if err
 
+      return  if err?
+
+        # If failed to save with duplicate error, return a custom error
+        if err?.code is 11000
+          callback new KodingError 'Username is not available!'
+        else
+          callback err
+
+      # Find the JUser assigned to this JAccount
       @fetchUser (err, user) =>
-        return callback err  if err
+        return  if hasError err
 
+        # Update it's username field too
         user.update { $set: { username, oldUsername } }, (err) =>
-          if err then handleErr err, callback
-          else
-            @update { $set: 'profile.nickname': username }, (err) =>
-              if err then handleErr err
-              else
-                change = {
-                  oldUsername, username, mustReauthenticate, isRegistration
-                }
-                @sendNotification 'UsernameChanged', change  if mustReauthenticate
-                @constructor.emit 'UsernameChanged', change
-                freeOldUsername()
+          return  if hasError err
 
-  changeUsername$: secure (client, options, callback) ->
+          # Update profile.nickname
+          @update { $set: 'profile.nickname': username }, (err) =>
+            return  if hasError err
 
-    {delegate} = client.connection
+            # Emit the change, let the whole system knows
+            change = { oldUsername, username, isRegistration }
+            @constructor.emit 'UsernameChanged', change
 
-    if @type is 'unregistered' or not delegate.equals this
-    then return callback new KodingError 'Access denied'
+            callback null
 
-    options = username: options  if 'string' is typeof options
+            # Free up the old username
+            JName.remove name: oldUsername, (err) ->
+              console.warn "[JAccount.changeUsername]", err  if err?
 
-    options.mustReauthenticate = yes
-
-    @changeUsername options, callback
 
   checkPermission: (target, permission, callback)->
     JPermissionSet = require './group/permissionset'
@@ -686,9 +693,23 @@ module.exports = class JAccount extends jraphical.Module
     current = user.getAt('emailFrequency') or {}
     Object.keys(prefs).forEach (granularity)->
       state = prefs[granularity]
-      state = false if state not in [true, false]
       current[granularity] = state# then 'instant' else 'never'
-    user.update {$set: emailFrequency: current}, callback
+
+    updateUserPref =->
+      user.update {$set: emailFrequency: current}, (err)->
+        return callback err  if err
+
+    if current["marketing"] is no or current["global"] is no
+      return Sendgrid.deleteFromMarketing user.email, (err)->
+        return callback err  if err
+        updateUserPref()
+
+    if current["marketing"] is yes and current["global"] is yes
+      return Sendgrid.addToMarketing user.email, user.username, (err)->
+        return callback err  if err
+        updateUserPref()
+
+    updateUserPref()
 
   setEmailPreferences$: secure (client, prefs, callback)->
     JUser = require './user'
@@ -729,9 +750,9 @@ module.exports = class JAccount extends jraphical.Module
         @update ($set: 'counts.twitterFollowers': followerCount), ->
 
 
-  dummyAdmins = [ "sinan", "devrim", "gokmen", "chris", "fatihacet", "arslan",
+  dummyAdmins = [ "sinan", "devrim", "gokmen", "fatihacet", "arslan",
                   "sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
-                  "szkl", "canthefason", "nitin"]
+                  "szkl", "canthefason", "nitin", "usirin"]
 
   userIsExempt: (callback)->
     # console.log @isExempt, this
@@ -1354,3 +1375,19 @@ module.exports = class JAccount extends jraphical.Module
           as          : 'like'
 
         rel.save (err)-> callback err
+
+  setLastLoginTimezoneOffset: secure (client, options, callback) ->
+    {lastLoginTimezoneOffset} = options
+
+    return callback new KodingError "timezone offset is not set"  unless lastLoginTimezoneOffset?
+
+    @update $set: {lastLoginTimezoneOffset}, (err) ->
+      return callback new KodingError "Could not update last login timezone offset" if err
+      callback null
+
+  fetchCustomers: secure ({connection}, options, callback) ->
+    if not isDummyAdmin connection.delegate.profile.nickname
+      return callback new KodingError "permission denied"
+
+    {getCustomers} = require './socialapi/requests'
+    getCustomers options, callback

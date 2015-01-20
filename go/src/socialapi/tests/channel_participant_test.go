@@ -52,11 +52,11 @@ func TestChannelParticipantOperations(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(forthAccount, ShouldNotBeNil)
 
-			CreatePrivateMessageUser("devrim")
+			CreatePrivateChannelUser("devrim")
 
 			groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
-			pmr := models.PrivateMessageRequest{}
+			pmr := models.PrivateChannelRequest{}
 
 			pmr.AccountId = ownerAccount.Id
 
@@ -64,7 +64,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 			pmr.GroupName = groupName
 			pmr.Recipients = []string{"devrim"}
 
-			channelContainer, err := rest.SendPrivateMessage(pmr)
+			channelContainer, err := rest.SendPrivateChannelRequest(pmr)
 			So(err, ShouldBeNil)
 			So(channelContainer, ShouldNotBeNil)
 
@@ -88,7 +88,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				})
 
 				Convey("Second user should be able to leave conversation", func() {
-					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, secondAccount.Id)
 					So(err, ShouldBeNil)
 
 					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
@@ -105,6 +105,21 @@ func TestChannelParticipantOperations(t *testing.T) {
 						So(participants, ShouldNotBeNil)
 						So(len(participants), ShouldEqual, 3)
 					})
+				})
+
+				Convey("Channel owner should be able to kick another conversation participant", func() {
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, ownerAccount.Id, secondAccount.Id)
+					So(err, ShouldBeNil)
+
+					participants, err := rest.ListChannelParticipants(channelContainer.Channel.Id, ownerAccount.Id)
+					So(err, ShouldBeNil)
+					So(participants, ShouldNotBeNil)
+					So(len(participants), ShouldEqual, 3)
+				})
+
+				Convey("Second user should not be able to kick another conversation participant", func() {
+					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, thirdAccount.Id)
+					So(err, ShouldNotBeNil)
 				})
 
 			})

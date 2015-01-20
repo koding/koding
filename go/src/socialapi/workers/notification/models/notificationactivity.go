@@ -35,6 +35,8 @@ type NotificationActivity struct {
 // NotificationContentId pair, old one is set as obsolete, and
 // new one is created
 func (a *NotificationActivity) Create() error {
+	activity := NewNotificationActivity()
+	*activity = *a
 	s := map[string]interface{}{
 		"notification_content_id": a.NotificationContentId,
 		"actor_id":                a.ActorId,
@@ -44,7 +46,7 @@ func (a *NotificationActivity) Create() error {
 
 	q := bongo.NewQS(s)
 	found := true
-	if err := a.One(q); err != nil {
+	if err := activity.One(q); err != nil {
 		if err != bongo.RecordNotFound {
 			return err
 		}
@@ -52,7 +54,7 @@ func (a *NotificationActivity) Create() error {
 	}
 
 	if found {
-		if err := bongo.B.Update(a); err != nil {
+		if err := bongo.B.Update(activity); err != nil {
 			return err
 		}
 		a.Id = 0
@@ -101,7 +103,7 @@ func (a *NotificationActivity) LastActivity() error {
 
 	q := bongo.NewQS(s)
 	q.Sort = map[string]string{
-		"id": "DESC",
+		"created_at": "DESC",
 	}
 
 	return a.One(q)

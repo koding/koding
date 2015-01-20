@@ -1,11 +1,16 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
 
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
+	"strings"
 
 	kmetrics "github.com/koding/metrics"
 
@@ -34,7 +39,12 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
-	Securer        interface{}
+	// used for external requests
+	Params  map[string]string
+	Cookie  string
+	Cookies []*http.Cookie
+	Body    interface{}
+	Headers map[string]string
 }
 
 // todo add prooper logging
@@ -52,6 +62,10 @@ func getAccount(r *http.Request) *models.Account {
 	session, err := models.Cache.Session.ById(cookie.Value)
 	if err != nil {
 		return nil
+	}
+
+	if strings.Contains(session.Username, "guest-") {
+		session.Username = "guestuser"
 	}
 
 	// if session doesnt have username, return nil
@@ -106,7 +120,7 @@ func buildHandlerWithTimeTracking(handler http.Handler, r Request) http.Handler 
 	)
 }
 
-func BuildHandlerWithContext(handler http.Handler, r Request) http.Handler {
+func BuildHandlerWithContext(handler http.Handler) http.Handler {
 	// add context
 	return tigertonic.If(
 		func(r *http.Request) (http.Header, error) {
@@ -175,4 +189,112 @@ func CountedByStatus(handler http.Handler, name string, collectMetrics bool) *Co
 		handler:        handler,
 		collectMetrics: collectMetrics,
 	}
+}
+
+//
+func MakeRequest(request *Request) (*http.Response, error) {
+	if request.Cookie != "" {
+		request.Cookies = parseCookiesToArray(request.Cookie)
+	}
+
+	request.Endpoint = prepareQueryString(request.Endpoint, request.Params)
+
+	client := new(http.Client)
+	hostname := config.MustGet().CustomDomain.Local
+	endpoint := fmt.Sprintf("%s/%s", hostname, request.Endpoint)
+
+	var byteData io.Reader
+	if request.Body != nil {
+		body, err := json.Marshal(request.Body)
+		if err != nil {
+			return nil, err
+		}
+		byteData = bytes.NewReader(body)
+	}
+
+	req, err := http.NewRequest(request.Type, endpoint, byteData)
+	req = prepareHeaders(req, request.Headers)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Add cookies
+	for _, cookie := range request.Cookies {
+		req.AddCookie(cookie)
+	}
+
+	return client.Do(req)
+}
+
+func prepareQueryString(endpoint string, params map[string]string) string {
+	if len(params) == 0 {
+		return endpoint
+	}
+
+	fullPath := fmt.Sprintf("%s?", endpoint)
+
+	for key, value := range params {
+		fullPath = fmt.Sprintf("%s%s=%s&", fullPath, key, value)
+	}
+
+	return fullPath[0 : len(fullPath)-1]
+}
+
+func prepareHeaders(req *http.Request, headers map[string]string) *http.Request {
+	newReq := new(http.Request)
+	*newReq = *req
+	for k, v := range headers {
+		newReq.Header.Set(k, v)
+	}
+
+	return newReq
+}
+
+func parseCookiesToArray(cookie string) []*http.Cookie {
+	pairs := strings.Split(cookie, "; ")
+	cookies := make([]*http.Cookie, 0)
+
+	if len(pairs) == 0 {
+		return cookies
+	}
+
+	for _, val := range pairs {
+		cp := strings.Split(val, "=")
+		if len(cp) != 2 {
+			continue
+		}
+
+		c := new(http.Cookie)
+		c.Name = cp[0]
+		c.Value = cp[1]
+
+		cookies = append(cookies, c)
+	}
+
+	return cookies
+}
+
+func ParseCookiesToMap(cookie string) map[string]*http.Cookie {
+	pairs := strings.Split(cookie, "; ")
+	cookies := make(map[string]*http.Cookie, 0)
+
+	if len(pairs) == 0 {
+		return cookies
+	}
+
+	for _, val := range pairs {
+		cp := strings.Split(val, "=")
+		if len(cp) != 2 {
+			continue
+		}
+
+		c := new(http.Cookie)
+		c.Name = cp[0]
+		c.Value = cp[1]
+
+		cookies[cp[0]] = c
+	}
+
+	return cookies
 }

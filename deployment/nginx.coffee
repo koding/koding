@@ -24,22 +24,32 @@ basicAuth = """
 auth_basic            "Restricted";
       auth_basic_user_file  /etc/nginx/conf.d/.htpasswd;"""
 
-createWebLocation = (name, location, auth = no) ->
+allowInternal = """
+  allow                 127.0.0.0/8;
+        allow                 192.168.0.0/16;
+        allow                 172.16.0.0/12;
+        deny                  all;
+"""
+
+createWebLocation = ({name, locationConf}) ->
+  { location, proxyPass, internalOnly, auth } = locationConf
   return """\n
       location #{location} {
-        proxy_pass            http://#{name};
+        proxy_pass            #{proxyPass};
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+        #{if internalOnly then allowInternal else ''}
         #{if auth then basicAuth else ''}
       }
   \n"""
 
-createWebsocketLocation = (name, location) ->
+createWebsocketLocation = ({name, locationConf, proxyPass}) ->
+  {location, proxyPass} = locationConf
   return """\n
       location #{location} {
-        proxy_pass            http://#{name};
+        proxy_pass            #{proxyPass};
 
         # needed for websocket handshake
         proxy_http_version    1.1;
@@ -56,12 +66,6 @@ createWebsocketLocation = (name, location) ->
 
         # try again with another upstream if there is an error
         proxy_next_upstream   error timeout   invalid_header http_500;
-
-        # Default is 60 seconds, means nginx will close it after 60 seconds
-        # inactivity which is a bad thing for long standing connections
-        # like websocket. Make it 6 hours.
-        proxy_read_timeout 21600s;
-        proxy_send_timeout 21600s;
       }
   \n"""
 
@@ -101,12 +105,19 @@ createLocations = (KONFIG) ->
 
   locations = ""
   for name, options of workers when options.ports?
-    options.nginx = {}  unless options.nginx
-    location = ""
+    # don't add those who whish not to be generated, probably because those are
+    # using manually written locations
+    continue if options.nginx?.disableLocation?
 
-    options.nginx.locations or= ["/#{name}"]
+    options.nginx = {}  unless options.nginx
+    location = {}
+
+    options.nginx.locations or= [
+      location: "/#{name}"
+    ]
 
     for location in options.nginx.locations
+      location.proxyPass or= "http://#{name}"
       # if this is a websocket proxy, add required configs
       fn = if options.nginx.websocket
         createWebsocketLocation
@@ -119,7 +130,7 @@ createLocations = (KONFIG) ->
       else
         auth = options.nginx.auth
 
-      locations += fn name, location, auth
+      locations += fn {name, locationConf: location, auth}
 
   return locations
 
@@ -174,8 +185,10 @@ module.exports.create = (KONFIG, environment)->
   # start http
   http {
 
+    access_log off;
+
     # log how long requests take
-    log_format timed_combined '$request $request_time $upstream_response_time $pipe';
+    log_format timed_combined 'RA: $remote_addr H: $host R: "$request" S: $status RS: $body_bytes_sent R: "$http_referer" UA: "$http_user_agent" RT: $request_time URT: $upstream_response_time';
     #{if environment is 'dev' then '' else 'access_log /var/log/nginx/access.log timed_combined;'}
 
     # batch response body
@@ -226,6 +239,10 @@ module.exports.create = (KONFIG, environment)->
     # start server
     server {
 
+      # close alive connections after 20 seconds
+      # http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout
+      keepalive_timeout 20s;
+
       # do not add hostname here!
       listen #{if environment is "dev" then 8090 else 80};
       # root /usr/share/nginx/html;
@@ -263,14 +280,6 @@ module.exports.create = (KONFIG, environment)->
         proxy_connect_timeout 1;
       }
 
-      location ~ /api/social/channel/(.*)/history {
-        proxy_pass            http://socialapi/channel/$1/history$is_args$args;
-        proxy_set_header      X-Real-IP       $remote_addr;
-        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_next_upstream   error timeout   invalid_header http_500;
-        proxy_connect_timeout 1;
-      }
-
       location = / {
         if ($args ~ "_escaped_fragment_=/(.*)") {
           set $fragment $1;
@@ -286,9 +295,34 @@ module.exports.create = (KONFIG, environment)->
         #{if environment is "sandbox" then basicAuth else ""}
       }
 
+      # special case for kontrol to support additional paths, like /kontrol/heartbeat
+      location ~^/kontrol/(.*) {
+        proxy_pass            http://kontrol/$1$is_args$args;
+
+        # needed for websocket handshake
+        proxy_http_version    1.1;
+        proxy_set_header      Upgrade         $http_upgrade;
+        proxy_set_header      Connection      $connection_upgrade;
+
+        proxy_set_header      Host $host;
+        proxy_set_header      X-Real-IP $remote_addr;
+        proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_redirect        off;
+
+        # Don't buffer WebSocket connections
+        proxy_buffering off;
+
+        # try again with another upstream if there is an error
+        proxy_next_upstream   error timeout   invalid_header http_500;
+      }
+
       #{createLocations(KONFIG)}
 
       #{createUserMachineLocation("userproxy")}
+      #{createUserMachineLocation("prodproxy")}
+      #{createUserMachineLocation("sandboxproxy")}
+      #{createUserMachineLocation("latestproxy")}
+      #{createUserMachineLocation("devproxy")}
     # close server
     }
 

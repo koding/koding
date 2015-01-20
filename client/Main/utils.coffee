@@ -2,10 +2,14 @@ utils.extend utils,
 
   groupifyLink: (href, withOrigin = no) ->
 
-    {slug}   = KD.config.entryPoint
-    {origin} = window.location
-    href     = if slug is 'koding' then href else "#{slug}/#{href}"
-    href     = "#{origin}/#{href}"  if withOrigin
+    {slug, type} = KD.config.entryPoint
+    {origin}     = window.location
+
+    href = if type is 'group' and slug isnt 'koding'
+    then "#{slug}/#{href}"
+    else href
+
+    href         = "#{origin}/#{href}"  if withOrigin
 
     return href
 
@@ -48,6 +52,30 @@ utils.extend utils,
 
     return fullurl
 
+  proxifyTransportUrl: (url)->
+
+    return url  if /p.koding.com/.test url
+
+    # let's use DOM for parsing the url
+    parser = document.createElement("a")
+    parser.href = url
+
+    # build our new url, example:
+    # old: http://54.164.174.218:3000/kite
+    # new: https://koding.com/-/userproxy/54.164.243.111/kite
+    #           or
+    #      http://localhost:8090/-/userproxy/54.164.243.111/kite
+
+    proxy = {
+      dev        : 'devproxy'
+      production : 'prodproxy'
+      sandbox    : 'sandboxproxy'
+    }[KD.config.environment] or 'devproxy'
+
+    {protocol} = document.location
+
+    return "#{protocol}//p.koding.com/-/#{proxy}/#{parser.hostname}/kite"
+
 
   applyMarkdown: (text, options = {})->
 
@@ -59,6 +87,8 @@ utils.extend utils,
     options.pedantic  ?= false
     options.sanitize  ?= true
     options.breaks    ?= true
+    options.paragraphs?= true
+    options.tables    ?= true
     options.highlight ?= (text, lang) ->
       if hljs.getLanguage lang
       then hljs.highlight(lang,text).value
@@ -326,7 +356,6 @@ utils.extend utils,
 
   warnAndLog: (msg, params)->
     warn msg, params
-    ErrorLog.create msg, params
 
   # Version Compare
   # https://github.com/balupton/bal-util/blob/master/src/lib/compare.coffee
@@ -536,12 +565,17 @@ utils.extend utils,
         return 'error'
 
   getColorFromString:(str)->
-    return [
-      "#37B298", "#BA4B3A", "#F1C42C", "#DB4B00"
-      "#009BCB", "#37B298", "#35485F", "#D35219"
-      "#FDAB2E", "#19A2C4", "#37B298", "#BA4B3A"
-      "#F1C42C", "#DB4B00", "#009BCB", "#B82F68"
-    ][parseInt (md5.digest str)[0], 16]
+    hash  = 0
+    color = '#'
+
+    for i in [0...str.length]
+      hash = str.charCodeAt(i) + ((hash << 5) - hash)
+
+    for i in [0...3]
+      value = (hash >> (i * 8)) & 0xFF
+      color += ('00' + value.toString(16)).substr(-2)
+
+    return color
 
   formatMoney: accounting.formatMoney
 
@@ -616,7 +650,7 @@ utils.extend utils,
   #
   # Structure taken from github.com/koding/kite/protocol/protocol.go
 
-  splitKiteQuery: (query)->
+  splitKiteQuery: (query = "")->
 
     keys = [ "username", "environment", "name",
              "version", "region", "hostname", "id" ]
@@ -729,7 +763,7 @@ utils.extend utils,
     ]
 
     body = fn body for fn in fns
-    body = KD.utils.expandUsernames body, 'code'
+    body = KD.utils.expandUsernames body, 'code, a'
 
     return body
 
@@ -821,16 +855,21 @@ utils.extend utils,
     parts.join ''
 
 
-  sendDataDogEvent: (eventName)->
+  sendDataDogEvent: (eventName, options = {})->
+
+    options.eventName = eventName
+    options.sendLogs ?= yes
 
     sendEvent = (logs)->
-      KD.remote.api.DataDog.sendEvent { eventName, logs }
+
+      options.logs = logs
+      KD.remote.api.DataDog.sendEvent options
 
     kdlogs = KD.parseLogs()
 
     # If there is enough log to send, no more checks required
     # just send them away, first to s3 then datadog
-    if kdlogs.length > 100
+    if kdlogs.length > 100 and options.sendLogs
 
       KD.utils.s3upload
         name    : "logs_#{new Date().toISOString()}.txt"
@@ -852,9 +891,10 @@ utils.extend utils,
 
   getLocationInfo: do (queue=[])->
 
-    ip      = null
-    country = null
-    region  = null
+    ip       = null
+    country  = null
+    region   = null
+    timezone = null
 
     fail = ->
 
@@ -866,7 +906,7 @@ utils.extend utils,
     (callback = noop)->
 
       if ip? and country? and region?
-        callback null, { ip, country, region }
+        callback null, { ip, country, region, timezone }
         return
 
       return  if (queue.push callback) > 1
@@ -874,17 +914,18 @@ utils.extend utils,
       $.ajax
         url      : '//freegeoip.net/json/?callback=?'
         error    : fail
-        timeout  : 1500
+        timeout  : 5000
         dataType : 'json'
         success  : (data)->
 
-          { ip, country_code, region_code } = data
+          { ip, country_code, region_code, time_zone } = data
 
-          country = country_code
-          region  = region_code
+          country  = country_code
+          region   = region_code
+          timezone = time_zone
 
           for cb in queue
-            cb null, { ip, country, region }
+            cb null, { ip, country, region, timezone }
 
           queue = []
 
@@ -936,6 +977,26 @@ utils.extend utils,
         success     : ->
           callback null, "#{policy.req_url}/#{policy.upload_url}/#{name}"
 
+  getCollaborativeChannelPrefix: -> '___collaborativeSession.'
+
+  isChannelCollaborative: (channel) ->
+
+    return no  unless channel.purpose?
+
+    prefix = KD.utils.getCollaborativeChannelPrefix()
+    return channel.purpose.slice(0, prefix.length) is prefix
+
+
+  isElementInViewport: (el) ->
+
+    { left, right, top, bottom } = el.getBoundingClientRect()
+
+    return \
+      top >= 0 and
+      left >= 0 and
+      bottom <= (window.innerHeight or document.documentElement.clientHeight) and
+      right <= (window.innerWidth or document.documentElement.clientWidth)
+
 
   ###*
   Decimal adjustment of a number
@@ -963,3 +1024,37 @@ utils.extend utils,
     # Shift back
     value = value.toString().split("e")
     +(value[0] + "e" + ((if value[1] then (+value[1] + exp) else exp)))
+
+
+  doXhrRequest: (options = {}, callback) ->
+    {type, endPoint, data, async} = options
+    type = 'POST'  unless type
+
+    return callback {message: "endPoint not set"}  unless endPoint
+
+    xhr = new XMLHttpRequest()
+    xhr.open type, endPoint, async
+    xhr.setRequestHeader "Content-Type", "application/json;"
+    xhr.onreadystatechange = (result) =>
+      try
+        response = JSON.parse xhr.responseText
+      catch e
+        return callback { message : "invalid json: could not parse response", code: xhr.status }
+
+      # 0     - connection failed
+      # >=400 - http errors
+      if xhr.status is 0 or xhr.status >= 400
+        return callback { message: response.description}
+
+
+      return if xhr.readyState isnt 4
+
+      if xhr.status not in [200, 304]
+        return callback { message: response.description}
+
+      return callback null, response
+
+    requestData = JSON.stringify data  if data
+
+    return xhr.send requestData
+

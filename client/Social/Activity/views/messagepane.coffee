@@ -11,6 +11,8 @@ class MessagePane extends KDTabPaneView
 
     super options, data
 
+    @fetching = no
+
     @lastScrollTops =
       window        : 0
       parent        : 0
@@ -50,11 +52,26 @@ class MessagePane extends KDTabPaneView
 
     @setFilter @getDefaultFilter()
 
-    {socialapi} = KD.singletons
+    {
+      socialapi
+      notificationController
+    } = KD.singletons
     @once 'ChannelReady', @bound 'bindChannelEvents'
     socialapi.onChannelReady data, @lazyBound 'emit', 'ChannelReady'
 
     KD.singletons.windowController.addFocusListener @bound 'handleFocus'
+
+    notificationController
+      .on 'AddedToChannel',     @bound 'accountAddedToChannel'
+      .on 'RemovedFromChannel', @bound 'accountRemovedFromChannel'
+
+
+  refreshContent: ->
+
+    return  if @fetching
+
+    @listController.showLazyLoader()
+    @populate()
 
 
   createScrollView: ->
@@ -174,7 +191,8 @@ class MessagePane extends KDTabPaneView
         testpath : 'channel-title'
 
     if typeConstant not in ['group', 'announcement']
-      @channelTitleView.addSubView new TopicFollowButton null, @getData()
+      @followButton = new TopicFollowButton null, @getData()
+      @channelTitleView.addSubView @followButton
 
   createInputWidget: (placeholder) ->
 
@@ -203,6 +221,7 @@ class MessagePane extends KDTabPaneView
       default: filters[0]
 
     @filterLinks.on 'FilterSelected', (filter) =>
+
       @listController.removeAllItems()
       @listController.showLazyLoader()
       @setFilter filter
@@ -259,14 +278,9 @@ class MessagePane extends KDTabPaneView
       item.delete()
 
 
-  setScrollTops: ->
+  setScrollTops: -> @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
 
-    @lastScrollTops.scrollView = @scrollView.wrapper.getScrollTop()
-
-
-  applyScrollTops: ->
-
-    @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
+  applyScrollTops: -> @scrollView.wrapper.setScrollTop @lastScrollTops.scrollView
 
 
   viewAppended: ->
@@ -285,7 +299,6 @@ class MessagePane extends KDTabPaneView
 
     KD.utils.wait 1000, @bound 'glance'
     KD.utils.wait 50, => @scrollView.wrapper.emit 'MutationHappened'
-
 
 
   glance: ->
@@ -314,9 +327,7 @@ class MessagePane extends KDTabPaneView
     @separator?.destroy()
     @separator = null
 
-
   focus: ->
-
 
   populate: (callback = noop) ->
 
@@ -325,12 +336,13 @@ class MessagePane extends KDTabPaneView
     @fetch null, (err, items = []) =>
 
       return KD.showError err  if err
-
       return  if @currentFilter isnt filter
 
+      @listController.removeAllItems()  if @listController.getItemCount()
       @addItems items
 
       callback()
+      @fetching = no
 
 
   addMessageDeferred: (item, i, total) ->
@@ -363,6 +375,8 @@ class MessagePane extends KDTabPaneView
     options.type      = type
     options.channelId = channelId
 
+    @fetching = yes
+
     @whenSubmitted().then ->
       # if it is a post it means we already have the data
       if type is 'post'
@@ -379,9 +393,7 @@ class MessagePane extends KDTabPaneView
       return  if loading
 
       listController ?= @listController
-
       listController.showLazyLoader()
-
       {appManager} = KD.singletons
       last         = listController.getListItems().last
 
@@ -396,7 +408,6 @@ class MessagePane extends KDTabPaneView
         from = last.getData().createdAt
 
       @fetch {from, skip}, (err, items = []) =>
-
         loading = no
         listController.hideLazyLoader()
 
@@ -420,3 +431,19 @@ class MessagePane extends KDTabPaneView
     if socialapi.isAnnouncementItem @getData().id
     then 'Most Recent'
     else 'Most Liked'
+
+
+  accountAddedToChannel: (update) ->
+
+    { id } = update.channel
+
+    if @followButton and id is @followButton.getData().id
+      @followButton.setFollowingState yes
+
+
+  accountRemovedFromChannel: (update) ->
+
+    { id } = update.channel
+
+    if @followButton and id is @followButton.getData().id
+      @followButton.setFollowingState no
