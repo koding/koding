@@ -151,10 +151,15 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 		UsersMultiple: make(map[string][]lookup.MachineDocument, 0),
 	}
 
+	var collectErr error
 	var err error
 
 	go func() {
 		a.IsPaid, err = c.IsPaid()
+		if err != nil {
+			collectErr = err
+		}
+
 		wg.Done()
 	}()
 
@@ -165,6 +170,9 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 
 	go func() {
 		a.AlwaysOnMachines, err = c.MongoDB.AlwaysOn()
+		if err != nil {
+			collectErr = err
+		}
 		wg.Done()
 	}()
 
@@ -211,6 +219,9 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 		}
 
 		err = c.MongoDB.Iter(iter)
+		if err != nil {
+			collectErr = err
+		}
 
 		// list of users with more than one machine
 		for user, machines := range users {
@@ -226,8 +237,8 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 
 	// return if there is any error, it doesn't matter which one, because we
 	// are going to fix all of them in any way.
-	if err != nil {
-		return nil, err
+	if collectErr != nil {
+		return nil, collectErr
 	}
 
 	c.Log.Info("Collecting finished (total time: %s)", time.Since(start))
