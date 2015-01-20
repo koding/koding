@@ -130,7 +130,7 @@ class IDE.EditorPane extends IDE.Pane
     return @aceView.getData()
 
 
-  bindChangeListeners: ->
+  getInitialChangeObject: ->
 
     change        =
       origin      : KD.nick()
@@ -142,9 +142,16 @@ class IDE.EditorPane extends IDE.Pane
           machine :
             uid   : @file.machine.uid
 
+    return change
+
+
+  bindChangeListeners: ->
+
+    change = @getInitialChangeObject()
+
     @getAce()
-      .on 'ace.change.cursor', @lazyBound 'handleCursorChange', change
-      .on 'FileContentChanged', @lazyBound 'handleFileContentChange', change
+      .on 'ace.change.cursor',   @lazyBound 'handleCursorChange',      change
+      .on 'FileContentChanged',  @lazyBound 'handleFileContentChange', change
       .on 'FileContentRestored', @lazyBound 'handleFileContentChange', change
 
 
