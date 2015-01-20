@@ -108,6 +108,10 @@ func (c *Cleaner) Slack(title, desc, msg string) error {
 		pretext = "*" + title + "*"
 	}
 
+	if desc != "" {
+		pretext = fmt.Sprintf("%s: _%s_", pretext, desc)
+	}
+
 	text := msg
 	if text != "" {
 		text = "`" + msg + "`"
@@ -117,7 +121,6 @@ func (c *Cleaner) Slack(title, desc, msg string) error {
 		{
 			Fallback: title,
 			PreText:  pretext,
-			Title:    desc,
 			Text:     text,
 			MrkdwnIn: []string{"text", "title", "pretext", "fallback"},
 		},

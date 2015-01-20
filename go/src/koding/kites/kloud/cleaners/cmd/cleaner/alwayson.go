@@ -47,6 +47,6 @@ func (a *AlwaysOn) Result() string {
 func (a *AlwaysOn) Info() *taskInfo {
 	return &taskInfo{
 		Title: "AlwaysOn",
-		Desc:  "Change jMachine documents 'alwaysOn' field to 'false' of paying customers",
+		Desc:  "Update free users jMachine 'alwaysOn' field to false",
 	}
 }

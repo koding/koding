@@ -114,7 +114,7 @@ func (v *Volumes) Result() string {
 		return fmt.Sprintf("volumes: error '%s'", v.err.Error())
 	}
 
-	notUsed := fmt.Sprintf("terminated '%d' not used volumes\n",
+	notUsed := fmt.Sprintf("terminated '%d' not used volumes. ",
 		v.notusedVolumes.Total())
 
 	stopped := fmt.Sprintf("stopped '%d' free machines with volumes larger than 3GB",

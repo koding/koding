@@ -22,7 +22,6 @@ type Fields struct {
 type Attachment struct {
 	Fallback string   `json:"fallback,omitempty"`
 	PreText  string   `json:"pretext,omitempty"`
-	Title    string   `json:"title,omitempty"`
 	Text     string   `json:"text,omitempty"`
 	Color    string   `json:"color,omitempty"`
 	Fields   []Fields `json:"fields"`
