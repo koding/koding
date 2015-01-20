@@ -28,7 +28,7 @@ func (t *TestVMS) Run() {
 }
 
 func (t *TestVMS) Result() string {
-	return fmt.Sprintf("terminated '%d' instances tagged with [sandbox, dev]",
+	return fmt.Sprintf("terminated '%d' instances",
 		t.testInstances.Total())
 }
 

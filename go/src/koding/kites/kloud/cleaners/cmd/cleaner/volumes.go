@@ -58,8 +58,6 @@ func (v *Volumes) Process() {
 			// there is no way this can panic because we fetch documents which
 			// have instnaceIds in it
 			instanceId := machine.Meta["instanceId"].(string)
-			volumeId := volIds[instanceId]
-			size := volumes[volumeId].Size
 
 			data := &StopData{
 				id:         machine.Id,
@@ -69,9 +67,6 @@ func (v *Volumes) Process() {
 				username:   username,
 				reason:     "Free user has more than one machines.",
 			}
-
-			fmt.Printf("username = %+v size: %s volId: %v instanceId: %s\n",
-				username, size, volumeId, instanceId)
 
 			ids = append(ids, instanceId)
 			v.stopData = append(v.stopData, data)
