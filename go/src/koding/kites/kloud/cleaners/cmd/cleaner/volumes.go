@@ -75,7 +75,7 @@ func (v *Volumes) Process() {
 				domain:     machine.Domain,
 				ipAddress:  machine.IpAddress,
 				username:   username,
-				reason:     "Free user has more than two machines.",
+				reason:     "Free user has more than one machines.",
 			}
 
 			fmt.Printf("username = %+v size: %s volId: %v\n", username, size, volumeId)
