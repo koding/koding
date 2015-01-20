@@ -35,6 +35,8 @@ class PaymentWorkflow extends KDController
 
   FAILED_ATTEMPT_LIMIT = 3
 
+  TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
+
   @getOperation = (current, selected) ->
 
     arr = [
@@ -189,7 +191,20 @@ class PaymentWorkflow extends KDController
 
   failedAttemptLimitReached: ->
 
+    KD.utils.defer => @blockUserForTooManyAttempts()
+
     @modal.emit 'FailedAttemptLimitReached'
+
+
+  blockUserForTooManyAttempts: ->
+
+    { appStorageController } = KD.singletons
+
+    pricingStorage = appStorageController.storage 'Pricing', '2.0.0'
+
+    value = { timestamp: Date.now() }
+
+    pricingStorage.setValue TOO_MANY_ATTEMPT_BLOCK_KEY, value
 
 
   finish: (state) ->
