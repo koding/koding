@@ -48,6 +48,7 @@ func (p *PubNubClient) Push(channelName string, body interface{}) error {
 	}
 
 	pr := NewPubNubRequest(channelName, nil, nil)
+	defer pr.Close()
 
 	go pr.handleResponse()
 
@@ -67,6 +68,8 @@ func (p *PubNubClient) Grant(a *AuthSettings) error {
 	}
 
 	pr := NewPubNubRequest(a.ChannelName, nil, nil)
+	defer pr.Close()
+
 	p.pub.SetAuthenticationKey(a.Token)
 
 	go pr.handleResponse()
