@@ -2,6 +2,9 @@ class PricingAppView extends KDView
 
   JView.mixin @prototype
 
+  TOO_MANY_ATTEMPT_BLOCK_DURATION = 24 * 60 * 1000
+  TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
+
   getInitialState : ->
     {
       planInterval : 'year'
@@ -150,7 +153,35 @@ class PricingAppView extends KDView
       callback()
 
 
-  planSelected: (options) ->
+  preventBlockedUser: (options, callback) ->
+
+    @appStorage.fetchValue TOO_MANY_ATTEMPT_BLOCK_KEY, (result) =>
+
+      return callback()  unless result
+
+      now = Date.now()
+      difference = now - result.timestamp
+
+      if difference < TOO_MANY_ATTEMPT_BLOCK_DURATION
+
+        @workflowController = new PaymentWorkflow { state: options, delegate: this }
+
+        @workflowController.on 'WorkflowStarted', =>
+          @workflowController.failedAttemptLimitReached()
+
+        return
+
+      @removeBlockFromUser()
+
+      return callback()
+
+
+  removeBlockFromUser: ->
+
+    KD.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
+
+
+  planSelected: (options) -> @preventBlockedUser options, =>
 
     return KD.singletons
       .router
