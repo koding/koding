@@ -244,6 +244,7 @@ class PaymentForm extends JView
       @securityNote
       @yearPriceMessage
       @submitButton
+      @paypalForm
     ].forEach (view) -> view.destroy()
 
     [
