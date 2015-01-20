@@ -75,10 +75,10 @@ func (l *Lookup) Instances(client *ec2.EC2) (Instances, error) {
 }
 
 // FetchInstances fetches all instances from all regions
-func (l *Lookup) FetchInstances() MultiInstances {
+func (l *Lookup) FetchInstances() *MultiInstances {
 	var wg sync.WaitGroup
 
-	allInstances := make(MultiInstances, 0)
+	allInstances := NewMultiInstances()
 
 	for region, client := range l.clients.Regions() {
 		wg.Add(1)
@@ -91,7 +91,7 @@ func (l *Lookup) FetchInstances() MultiInstances {
 				return
 			}
 
-			allInstances[client] = instances
+			allInstances.Add(client, instances)
 		}(region, client)
 	}
 

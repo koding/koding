@@ -9,11 +9,11 @@ import (
 )
 
 type GhostVMs struct {
-	Instances lookup.MultiInstances
+	Instances *lookup.MultiInstances
 	MongoDB   *lookup.MongoDB
 	Ids       map[string]struct{}
 
-	ghostInstances lookup.MultiInstances
+	ghostInstances *lookup.MultiInstances
 	err            error
 }
 
@@ -22,7 +22,8 @@ func (g *GhostVMs) Process() {
 		WithTag("koding-env", "production").
 		OlderThan(time.Hour)
 
-	g.ghostInstances = make(lookup.MultiInstances, 0)
+	g.ghostInstances = lookup.NewMultiInstances()
+
 	prodInstances.Iter(func(client *ec2.EC2, vms lookup.Instances) {
 		ghostIds := make(lookup.Instances, 0)
 
@@ -35,7 +36,7 @@ func (g *GhostVMs) Process() {
 			}
 		}
 
-		g.ghostInstances[client] = ghostIds
+		g.ghostInstances.Add(client, ghostIds)
 	})
 
 	if g.ghostInstances.Total() > 100 {

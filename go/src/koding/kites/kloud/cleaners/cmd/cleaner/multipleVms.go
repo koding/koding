@@ -10,9 +10,9 @@ type MultipleVMs struct {
 	Cleaner       *Cleaner
 	IsPaid        func(username string) bool
 	UsersMultiple map[string][]lookup.MachineDocument
-	Instances     lookup.MultiInstances
+	Instances     *lookup.MultiInstances
 
-	multipleInstances lookup.MultiInstances
+	multipleInstances *lookup.MultiInstances
 	err               error
 }
 

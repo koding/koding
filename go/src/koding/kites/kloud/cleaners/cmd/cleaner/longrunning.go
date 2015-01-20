@@ -7,13 +7,13 @@ import (
 )
 
 type LongRunning struct {
-	Instances lookup.MultiInstances
+	Instances *lookup.MultiInstances
 	MongoDB   *lookup.MongoDB
 	IsPaid    func(username string) bool
 	Cleaner   *Cleaner
 
-	runningInstances     lookup.MultiInstances
-	longRunningInstances lookup.MultiInstances
+	runningInstances     *lookup.MultiInstances
+	longRunningInstances *lookup.MultiInstances
 	err                  error
 }
 

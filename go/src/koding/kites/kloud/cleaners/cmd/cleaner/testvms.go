@@ -7,9 +7,9 @@ import (
 )
 
 type TestVMS struct {
-	Instances lookup.MultiInstances
+	Instances *lookup.MultiInstances
 
-	testInstances lookup.MultiInstances
+	testInstances *lookup.MultiInstances
 }
 
 func (t *TestVMS) Process() {

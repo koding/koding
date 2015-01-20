@@ -26,7 +26,7 @@ type Cleaner struct {
 }
 
 type Artifacts struct {
-	Instances        lookup.MultiInstances
+	Instances        *lookup.MultiInstances
 	Volumes          lookup.MultiVolumes
 	AlwaysOnMachines []lookup.MachineDocument
 	UsersMultiple    map[string][]lookup.MachineDocument

@@ -9,12 +9,12 @@ import (
 type Volumes struct {
 	Cleaner   *Cleaner
 	IsPaid    func(username string) bool
-	Instances lookup.MultiInstances
+	Instances *lookup.MultiInstances
 	Volumes   lookup.MultiVolumes
 	MongoDB   *lookup.MongoDB
 
 	notusedVolumes lookup.MultiVolumes
-	largeInstances lookup.MultiInstances
+	largeInstances *lookup.MultiInstances
 	err            error
 }
 
