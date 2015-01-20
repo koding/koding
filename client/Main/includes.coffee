@@ -149,6 +149,7 @@ module.exports = [
   "providers/computecontroller.ui.coffee",
   "providers/computeeventlistener.coffee",
   "providers/computestatechecker.coffee",
+  "providers/computehelpers.coffee",
 
   "providers/dummymachine.coffee",
   "providers/machineitem.coffee",

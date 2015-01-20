@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+var (
+	MaxFailedPayments = "1"
+	BillingFrequency  = "1"
+	BillingAmount     = "AddToNextBilling"
+	CurrencyCode      = "USD"
+)
+
 func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymentmodels.Customer) error {
 	client, err := Client()
 	if err != nil {
@@ -16,11 +23,11 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 		"SUBSCRIBERNAME":    customer.OldId,
 		"BILLINGPERIOD":     getInterval(plan.Interval),
 		"AMT":               normalizeAmount(plan.AmountInCents),
-		"BILLINGFREQUENCY":  "1",
-		"CURRENCYCODE":      CurrencyCode,
 		"DESC":              goodName(plan),
-		"AUTOBILLOUTAMT":    "AddToNextBilling",
-		"MAXFAILEDPAYMENTS": "3",
+		"CURRENCYCODE":      CurrencyCode,
+		"BILLINGFREQUENCY":  BillingFrequency,
+		"AUTOBILLOUTAMT":    BillingAmount,
+		"MAXFAILEDPAYMENTS": MaxFailedPayments,
 	}
 
 	response, err := client.CreateRecurringPaymentsProfile(token, params)
@@ -45,7 +52,7 @@ func CreateSubscription(token string, plan *paymentmodels.Plan, customer *paymen
 		CustomerId:             customer.Id,
 		ProviderSubscriptionId: profileId,
 		Provider:               ProviderName,
-		State:                  "active",
+		State:                  paymentmodels.SubscriptionStateActive,
 		CurrentPeriodStart:     time.Now(),
 		AmountInCents:          plan.AmountInCents,
 	}

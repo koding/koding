@@ -3,19 +3,27 @@ package payment
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"socialapi/workers/helper"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
 	"socialapi/workers/payment/stripe"
 	"time"
 
-	"github.com/koding/logging"
+	"github.com/koding/kite"
 )
 
 var (
 	ProviderNotFound       = errors.New("provider not found")
 	ProviderNotImplemented = errors.New("provider not implemented")
-	Log                    = logging.NewLogger("payment")
+
+	WorkerName    = "socialapi-payment"
+	WorkerVersion = "1.0.0"
+
+	Log = helper.CreateLogger(WorkerName, false)
+
+	KiteClient *kite.Client
 )
 
 //----------------------------------------------------------
@@ -153,6 +161,21 @@ func (a *AccountRequest) Delete() (interface{}, error) {
 	return nil, err
 }
 
+func (a *AccountRequest) ActiveUsernames() ([]string, error) {
+	customer := paymentmodels.NewCustomer()
+	customers, err := customer.ByActiveSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	usernames := []string{}
+	for _, customer := range customers {
+		usernames = append(usernames, customer.Username)
+	}
+
+	return usernames, nil
+}
+
 //----------------------------------------------------------
 // UpdateCreditCard
 //----------------------------------------------------------
@@ -208,6 +231,21 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 	switch s.Name {
 	case "customer.subscription.deleted":
 		err = stripe.SubscriptionDeletedWebhook(raw)
+		if err != nil {
+			return nil, err
+		}
+
+		subsObj, ok := s.Data.Object.(map[string]interface{})
+		if !ok {
+			return nil, errUnmarshalFailed(s.Data.Object)
+		}
+
+		customerId, ok := subsObj["customer"].(string)
+		if !ok {
+			return nil, errUnmarshalFailed(s.Data.Object)
+		}
+
+		err = stopMachinesForUser(customerId)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
 	case "customer.deleted":
@@ -257,18 +295,18 @@ type PaypalWebhook struct {
 	PayerId         string `json:"payer_id"`
 }
 
-var PaypalActionCancel = "cancel"
+var PaypalActionExpire = "cancel"
 
 var PaypalStatusActionMap = map[string]string{
-	"Denied":   PaypalActionCancel,
-	"Expired":  PaypalActionCancel,
-	"Failed":   PaypalActionCancel,
-	"Reversed": PaypalActionCancel,
-	"Voided":   PaypalActionCancel,
+	"Denied":   PaypalActionExpire,
+	"Expired":  PaypalActionExpire,
+	"Failed":   PaypalActionExpire,
+	"Reversed": PaypalActionExpire,
+	"Voided":   PaypalActionExpire,
 }
 
 var PaypalTransactionActionMap = map[string]string{
-	"recurring_payment_profile_cancel": PaypalActionCancel,
+	"recurring_payment_profile_cancel": PaypalActionExpire,
 }
 
 func (p *PaypalWebhook) Do() (interface{}, error) {
@@ -283,9 +321,29 @@ func (p *PaypalWebhook) Do() (interface{}, error) {
 	var err error
 
 	switch action {
-	case PaypalActionCancel:
-		err = paypal.CancelSubscription(p.PayerId)
+	case PaypalActionExpire:
+		err = paypal.ExpireSubscription(p.PayerId)
+		if err != nil {
+			return nil, err
+		}
+
+		err = stopMachinesForUser(p.PayerId)
 	}
 
 	return nil, err
+}
+
+func isUsernameEmpty(username string) bool {
+	return username == ""
+}
+
+func errUsernameEmpty(customerId string) error {
+	return fmt.Errorf(
+		"stopping machine for paypal customer: %s failed since username is empty",
+		customerId,
+	)
+}
+
+func errUnmarshalFailed(data interface{}) error {
+	return fmt.Errorf("unmarshalling webhook failed: %v", data)
 }
