@@ -27,6 +27,19 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
       protocols_whitelist : ['xhr-polling'] # , 'xhr-streaming']
 
 
+  renewToken: (kite, query) ->
+
+    KiteCache.unset query
+
+    if @kite?
+      KontrolJS::renewToken.call this, kite, query
+
+    else
+      @reauthenticate()
+      @once 'open', =>
+        KontrolJS::renewToken.call this, kite, query
+
+
   reauthenticate: (initial)->
 
     if @_lastUsedKey?

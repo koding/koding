@@ -4,9 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"socialapi/config"
 	socialmodels "socialapi/models"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 	"time"
@@ -22,7 +20,10 @@ type Controller struct {
 	updateInterval time.Duration
 }
 
-var ErrIgnore = errors.New("ignore")
+var (
+	ErrIgnore      = errors.New("ignore")
+	ErrInvalidType = errors.New("invalid type")
+)
 
 const (
 	DefaultInterval   = 30 * time.Minute
@@ -35,25 +36,11 @@ func (f *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(log logging.Logger) *Controller {
-	conf := *config.MustGet()
-	conf.Redis.DB = conf.Sitemap.RedisDB
-	// TODO later on seperate config structs could be better for each helper
-	redisConn := helper.MustInitRedisConn(&conf)
-
-	updateInterval := DefaultInterval
-	if conf.Sitemap.UpdateInterval != "" {
-		t, err := time.ParseDuration(conf.Sitemap.UpdateInterval)
-		if err != nil {
-			panic(err)
-		}
-		updateInterval = t
-	}
-
+func New(log logging.Logger, redisConn *redis.RedisSession) *Controller {
 	c := &Controller{
 		log:            log,
 		redisConn:      redisConn,
-		updateInterval: updateInterval,
+		updateInterval: common.GetInterval(),
 	}
 
 	return c
@@ -225,9 +212,9 @@ func (f *Controller) fetchFileName(i *models.SitemapItem) string {
 		return fetchChannelMessageName(i.Id)
 	case models.TYPE_CHANNEL:
 		return fetchChannelName(i.Id)
+	default:
+		panic(ErrInvalidType)
 	}
-
-	return ""
 }
 
 func fetchChannelMessageName(id int64) string {

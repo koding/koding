@@ -24,6 +24,8 @@ Configuration = (options={}) ->
   etcd                = "#{boot2dockerbox}:4001"
 
   redis               = { host:     "#{boot2dockerbox}"                           , port:               "6379"                                  , db:                 0                         }
+  redis.url           = "#{redis.host}:#{redis.port}"
+
   rabbitmq            = { host:     "#{boot2dockerbox}"                           , port:               5672                                    , apiPort:            15672                       , login:           "guest"                              , password: "guest"                     , vhost:         "/"                                    }
   mq                  = { host:     "#{rabbitmq.host}"                            , port:               rabbitmq.port                           , apiAddress:         "#{rabbitmq.host}"          , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"         , componentUser: "#{rabbitmq.login}"                      , password:       "#{rabbitmq.password}"                   , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
 
@@ -58,13 +60,16 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
+  kloudPort           = 5500
+  kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+
   socialapi =
     proxyUrl          : "#{customDomain.local}/api/social"
     port              : "7000"
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
     postgres          : postgres
     mq                : mq
-    redis             :  url: "#{redis.host}:#{redis.port}"
+    redis             :  url: redis.url
     mongo             : mongo
     environment       : environment
     region            : region
@@ -82,13 +87,12 @@ Configuration = (options={}) ->
     paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
     gatekeeper        : gatekeeper
     customDomain      : customDomain
+    kloud             : { secretKey: kloud.secretKey, address: kloud.address }
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
   logQueueName        = socialQueueName+'log'
   autoConfirmAccounts = yes
-
-  kloudPort           = 5500
 
   KONFIG              =
     configName                     : configName
@@ -108,13 +112,13 @@ Configuration = (options={}) ->
     socialapi                      : socialapi
     mongo                          : mongo
     kiteHome                       : kiteHome
-    redis                          : "#{redis.host}:#{redis.port}"
-    monitoringRedis                : "#{redis.host}:#{redis.port}"
+    redis                          : redis.url
+    monitoringRedis                : redis.url
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe"  , kloudAddr         : "http://localhost:#{kloudPort}/kite" }
+    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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"                                                                 , kloudSecretKey : kloud.secretKey                                           , kloudAddr : kloud.address, connectToKlient: true, debug: true, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -129,7 +133,7 @@ Configuration = (options={}) ->
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
-    kloud                          : {port          : kloudPort           , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile                       , kontrolUrl: "#{customDomain.public}/kontrol/kite" , registerUrl : "#{customDomain.public}/kloud/kite"}
+    kloud                          : kloud
     emailConfirmationCheckerWorker : {enabled: no                         , login : "#{rabbitmq.login}"            , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                                      , usageLimitInMinutes  : 60}
 
     kontrol                        : kontrol
@@ -349,7 +353,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "cd #{projectRoot}/go/src/socialapi && make develop kite=true -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
@@ -363,6 +367,14 @@ Configuration = (options={}) ->
           {
             location    : "~ /sitemap(.*).xml"
             proxyPass   : "http://socialapi/sitemap$1.xml"
+          }
+          {
+            location    : "~ /api/social/channel/(.*)/history"
+            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/(.*)/history/count"
+            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
           }
         ]
 
@@ -391,7 +403,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/vmwatcher -c #{configName}"
+        command         : "#{GOBIN}/goldorf -run koding/vmwatcher"
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 

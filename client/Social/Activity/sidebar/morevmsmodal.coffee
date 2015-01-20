@@ -21,7 +21,7 @@ class MoreVMsModal extends SidebarSearchModal
       loader   : yes
       callback : =>
         @addButton.showLoader()
-        KD.singletons.computeController.handleNewMachineRequest @bound 'destroy'
+        ComputeHelpers.handleNewMachineRequest @bound 'destroy'
 
     @addSubView @addButton, '.kdmodal-title'
 

@@ -734,7 +734,7 @@ class ActivitySidebar extends KDCustomHTMLView
     KD.utils.stopDOMEvent ev
 
     if 'add-icon' in ev.target.classList
-    then KD.singletons.computeController.handleNewMachineRequest()
+    then ComputeHelpers.handleNewMachineRequest()
     else new MoreVMsModal {}, KD.userMachines
 
 
