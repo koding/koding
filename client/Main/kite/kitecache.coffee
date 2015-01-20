@@ -55,6 +55,8 @@ class KiteCache
 
   @unset = (query) ->
 
+    return  unless query
+
     if typeof query is 'object'
       query = @generateQueryString query
 
