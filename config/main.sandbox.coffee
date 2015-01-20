@@ -373,6 +373,14 @@ Configuration = (options={}) ->
             location    : "~ /sitemap(.*).xml"
             proxyPass   : "http://socialapi/sitemap$1.xml"
           }
+          {
+            location    : "~ /api/social/channel/(.*)/history"
+            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/(.*)/history/count"
+            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
+          }
         ]
 
     dailyemail          :
