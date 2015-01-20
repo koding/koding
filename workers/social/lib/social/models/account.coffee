@@ -393,10 +393,11 @@ module.exports = class JAccount extends jraphical.Module
         return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
-
     { username, isRegistration } = options
-
     oldUsername = @profile.nickname
+
+    if "guestuser" in [oldUsername, username]
+      return callback new KodingError "guestuser can not be updated"
 
     if username is oldUsername
 

@@ -837,6 +837,9 @@ Team Koding
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
+    if username is "guestuser"
+      return callback createKodingError "Reserved username."
+
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
