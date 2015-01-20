@@ -51,7 +51,7 @@ func (v *Volumes) Process() {
 			username := machine.Credential
 
 			// if user is not a paying customer just continue, we don't care
-			if !v.IsPaid(username) {
+			if v.IsPaid(username) {
 				continue
 			}
 
@@ -70,7 +70,8 @@ func (v *Volumes) Process() {
 				reason:     "Free user has more than one machines.",
 			}
 
-			fmt.Printf("username = %+v size: %s volId: %v\n", username, size, volumeId)
+			fmt.Printf("username = %+v size: %s volId: %v instanceId: %s\n",
+				username, size, volumeId, instanceId)
 
 			ids = append(ids, instanceId)
 			v.stopData = append(v.stopData, data)
@@ -117,7 +118,7 @@ func (v *Volumes) Result() string {
 	notUsed := fmt.Sprintf("terminated '%d' not used volumes. ",
 		v.notusedVolumes.Total())
 
-	stopped := fmt.Sprintf("stopped '%d' free machines with volumes larger than 3GB",
+	stopped := fmt.Sprintf("stopped '%d' free machines",
 		v.largeInstances.Total())
 
 	return notUsed + stopped
