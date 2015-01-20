@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"socialapi/models"
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"

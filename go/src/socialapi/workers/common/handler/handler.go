@@ -39,6 +39,10 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
+
+	// Securer holds the secure functions for handlers
+	Securer interface{}
+
 	// used for external requests
 	Params  map[string]string
 	Cookie  string
