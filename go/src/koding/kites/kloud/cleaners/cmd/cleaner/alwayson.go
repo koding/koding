@@ -25,7 +25,9 @@ func (a *AlwaysOn) Process() {
 			a.nonvalidUsers = append(a.nonvalidUsers, username)
 		}
 	}
+}
 
+func (a *AlwaysOn) Run() {
 	if len(a.nonvalidUsers) == 0 {
 		return
 	}

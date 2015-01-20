@@ -17,7 +17,9 @@ func (t *TestVMS) Process() {
 		OlderThan(time.Hour*24).
 		WithTag("koding-env", "sandbox", "dev").
 		States("pending", "running", "stopping", "stopped")
+}
 
+func (t *TestVMS) Run() {
 	if t.testInstances.Total() == 0 {
 		return
 	}

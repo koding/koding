@@ -16,6 +16,7 @@ type Volumes struct {
 	notusedVolumes lookup.MultiVolumes
 	largeInstances *lookup.MultiInstances
 	err            error
+	stopData       []*StopData
 }
 
 func (v *Volumes) Process() {
@@ -24,22 +25,13 @@ func (v *Volumes) Process() {
 	inUse := largeVolumes.Status("in-use")
 	v.notusedVolumes = largeVolumes.Status("available").OlderThan(time.Hour)
 
-	done := make(chan bool)
-	go func() {
-		if v.notusedVolumes.Total() > 0 {
-			v.notusedVolumes.TerminateAll()
-		}
-
-		close(done)
-	}()
-
 	instances := v.Instances.
 		States("running").
 		OlderThan(time.Hour).
 		WithTag("koding-env", "production")
 
 	ids := make([]string, 0)
-	datas := make([]*StopData, 0)
+	v.stopData = make([]*StopData, 0)
 
 	for _, volumes := range inUse {
 		volIds := volumes.InstanceIds()
@@ -81,11 +73,23 @@ func (v *Volumes) Process() {
 			fmt.Printf("username = %+v size: %s volId: %v\n", username, size, volumeId)
 
 			ids = append(ids, instanceId)
-			datas = append(datas, data)
+			v.stopData = append(v.stopData, data)
 		}
 	}
 
 	v.largeInstances = instances.Only(ids...)
+}
+
+func (v *Volumes) Run() {
+	done := make(chan bool)
+	go func() {
+		if v.notusedVolumes.Total() > 0 {
+			v.notusedVolumes.TerminateAll()
+		}
+
+		close(done)
+	}()
+
 	if v.largeInstances.Total() == 0 {
 		return
 	}
@@ -93,16 +97,16 @@ func (v *Volumes) Process() {
 	// TODO: enable once we have a filter to stop Koding based users
 	// v.largeInstances.StopAll()
 	//
-	// for _, data := range datas {
+	// for _, data := range v.stopData {
 	// 	v.Cleaner.StopMachine(data)
 	// }
 
 	fmt.Printf("found = %+v\n", v.largeInstances.Total())
-	for _, data := range datas {
+	for _, data := range v.stopData {
 		fmt.Printf("[%s] username = %+v\n", data.id, data.username)
 	}
 
-	<-done // wait for terminatin not unused volumes
+	<-done // wait for terminating not unused volumes
 }
 
 func (v *Volumes) Result() string {

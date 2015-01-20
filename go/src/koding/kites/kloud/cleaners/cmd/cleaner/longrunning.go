@@ -15,6 +15,7 @@ type LongRunning struct {
 	runningInstances     *lookup.MultiInstances
 	longRunningInstances *lookup.MultiInstances
 	err                  error
+	stopData             []*StopData
 }
 
 func (l *LongRunning) Process() {
@@ -29,7 +30,7 @@ func (l *LongRunning) Process() {
 		return
 	}
 
-	stopData := make([]*StopData, 0)
+	l.stopData = make([]*StopData, 0)
 	ids := make([]string, 0)
 	for _, machine := range machines {
 		username := machine.Credential
@@ -61,7 +62,7 @@ func (l *LongRunning) Process() {
 			reason:     "Non free user, VM is running for more than 12 hours",
 		}
 
-		stopData = append(stopData, data)
+		l.stopData = append(l.stopData, data)
 		ids = append(ids, instanceId)
 
 		// debug
@@ -70,6 +71,9 @@ func (l *LongRunning) Process() {
 
 	// contains free user VMs running for more than 12 hours
 	l.longRunningInstances = l.runningInstances.Only(ids...)
+}
+
+func (l *LongRunning) Run() {
 	if l.longRunningInstances.Total() == 0 {
 		return
 	}
@@ -77,7 +81,7 @@ func (l *LongRunning) Process() {
 	// first stop all machines, this is a batch API call so it's more efficient
 	l.longRunningInstances.StopAll()
 
-	for _, data := range stopData {
+	for _, data := range l.stopData {
 		l.Cleaner.StopMachine(data)
 	}
 }

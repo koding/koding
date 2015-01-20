@@ -20,6 +20,7 @@ type Cleaner struct {
 	Postgres *lookup.Postgres
 	DNS      *koding.DNS
 	Domains  *koding.Domains
+	DryRun   bool
 
 	Hook Hook
 	Log  logging.Logger
@@ -75,6 +76,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		Domains:  domains,
 		Hook:     hook,
 		Log:      logging.NewLogger("cleaner"),
+		DryRun:   conf.DryRun,
 	}
 }
 

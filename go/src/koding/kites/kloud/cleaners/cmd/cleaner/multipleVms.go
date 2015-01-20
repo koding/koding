@@ -14,6 +14,7 @@ type MultipleVMs struct {
 
 	multipleInstances *lookup.MultiInstances
 	err               error
+	stopData          []*StopData
 }
 
 func (m *MultipleVMs) Process() {
@@ -30,7 +31,7 @@ func (m *MultipleVMs) Process() {
 		}
 	}
 
-	datas := make([]*StopData, 0)
+	m.stopData = make([]*StopData, 0)
 	ids := make([]string, 0)
 
 	for username, machines := range freeUsersWithMultipleVMs {
@@ -50,11 +51,14 @@ func (m *MultipleVMs) Process() {
 			}
 
 			ids = append(ids, instanceId)
-			datas = append(datas, data)
+			m.stopData = append(m.stopData, data)
 		}
 	}
 
 	m.multipleInstances = instances.Only(ids...)
+}
+
+func (m *MultipleVMs) Run() {
 	if m.multipleInstances.Total() == 0 {
 		return
 	}
@@ -62,7 +66,7 @@ func (m *MultipleVMs) Process() {
 	// first stop all machines, this is a batch API call so it's more efficient
 	m.multipleInstances.StopAll()
 
-	for _, data := range datas {
+	for _, data := range m.stopData {
 		m.Cleaner.StopMachine(data)
 	}
 }

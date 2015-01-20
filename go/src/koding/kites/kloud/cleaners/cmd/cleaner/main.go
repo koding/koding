@@ -27,10 +27,19 @@ type Config struct {
 	HostedZone string `default:"koding.io"`
 
 	SlackURL string
+
+	DryRun bool
 }
 
 type task interface {
+	// Process processes the data and generated the final data to be executed
 	Process()
+
+	// Run runs the required action from the generated data. For example it
+	// terminates the instances, stops the machines and so on
+	Run()
+
+	// Results returns the result from the generated data and executed action.
 	Result() string
 }
 
@@ -48,6 +57,10 @@ func realMain() error {
 	multiconfig.New().MustLoad(conf)
 
 	c := NewCleaner(conf)
+	if c.DryRun {
+		c.Log.Warning("Dry run is enabled.")
+	}
+
 	artifacts, err := c.Collect()
 	if err != nil {
 		return err
@@ -102,6 +115,9 @@ func (c *Cleaner) run(tasks ...task) {
 		wg.Add(1)
 		go func(t task) {
 			t.Process()
+			if !c.DryRun {
+				t.Run()
+			}
 			out <- t
 			wg.Done()
 		}(t)

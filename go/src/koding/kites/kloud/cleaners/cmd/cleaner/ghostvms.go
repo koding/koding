@@ -38,7 +38,9 @@ func (g *GhostVMs) Process() {
 
 		g.ghostInstances.Add(client, ghostIds)
 	})
+}
 
+func (g *GhostVMs) Run() {
 	if g.ghostInstances.Total() > 100 {
 		g.err = fmt.Errorf("didn't terminate anything, found more than '%d' host instances. Go and terminate it manually!", g.ghostInstances.Total())
 		return
