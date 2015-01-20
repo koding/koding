@@ -26,7 +26,7 @@ func init() {
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
 
-	Initialize(config.MustGet())
+	Initialize(config.MustGet(), r.Kite)
 
 	rand.Seed(time.Now().UTC().UnixNano())
 }

@@ -137,6 +137,10 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	if err := checker.PlanState(); err != nil {
+		return nil, err
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
@@ -362,6 +366,11 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 }
 
 func (p *Provider) Destroy(m *protocol.Machine) error {
+
+	if m.State == machinestate.NotInitialized {
+		return nil
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
 		return err

@@ -46,7 +46,7 @@ func (c *Customer) FindActiveSubscription() (*Subscription, error) {
 	}
 
 	subscription := NewSubscription()
-	err := subscription.ByCustomerIdAndState(c.Id, "active")
+	err := subscription.ByCustomerIdAndState(c.Id, SubscriptionStateActive)
 
 	return subscription, err
 }
@@ -131,4 +131,14 @@ func (c *Customer) ByActiveSubscription() ([]Customer, error) {
 		Joins("right join payment.customer on payment.customer.id = payment.subscription.customer_id").Find(&customers).Error
 
 	return customers, err
+}
+
+func (c *Customer) ByProviderSubscription(id, providerName string) error {
+	subscription := NewSubscription()
+	err := subscription.ByProviderId(id, providerName)
+	if err != nil {
+		return err
+	}
+
+	return c.ById(subscription.CustomerId)
 }
