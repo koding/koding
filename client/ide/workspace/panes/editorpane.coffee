@@ -26,6 +26,13 @@ class IDE.EditorPane extends IDE.Pane
     @once 'RealTimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
 
+    @getAce().on 'ace.requests.save', =>
+      change = @getInitialChangeObject()
+      change.type = 'FileSaved'
+
+      @emit 'ChangeHappened', change
+
+
   createEditor: ->
 
     {file, content} = @getOptions()
