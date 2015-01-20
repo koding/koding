@@ -120,7 +120,7 @@ func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, 
 	machines := []*models.Machine{}
 
 	for _, username := range usernames {
-		lr, err := c.IsUserOverLimit(username)
+		lr, err := c.IsUserOverLimit(username, limitName)
 		if err != nil {
 			Log.Error(err.Error())
 			continue
@@ -140,7 +140,7 @@ func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, 
 	return machines, nil
 }
 
-func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
+func (c *Cloudwatch) IsUserOverLimit(username, limitKey string) (*LimitResponse, error) {
 	canStart := &LimitResponse{CanStart: true}
 
 	value, err := storage.GetScore(c.Name, username)
@@ -171,9 +171,9 @@ func (c *Cloudwatch) IsUserOverLimit(username string) (*LimitResponse, error) {
 
 	switch planTitle {
 	case FreePlan:
-		limit = c.Limits[StopLimitKey]
+		limit = c.Limits[limitKey]
 	default:
-		limit = c.Limits[StopLimitKey] * PaidPlanMultiplier
+		limit = c.Limits[limitKey] * PaidPlanMultiplier
 	}
 
 	lr := &LimitResponse{
