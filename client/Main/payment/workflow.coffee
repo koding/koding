@@ -79,6 +79,8 @@ class PaymentWorkflow extends KDController
       when DOWNGRADE                then @startDowngradeFlow()
       when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
 
+    @emit 'WorkflowStarted'
+
 
   startRegularFlow: ->
 
