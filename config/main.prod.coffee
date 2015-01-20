@@ -24,7 +24,7 @@ Configuration = (options={}) ->
   etcd                = "10.0.0.172:4001"
 
   redis               = { host:     "prod0.1ia3pb.0001.use1.cache.amazonaws.com"     , port:               "6379"                                , db:              0                    }
-  redis.url           = "#{redis.host}:#{redis.url}"
+  redis.url           = "#{redis.host}:#{redis.port}"
 
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
@@ -358,7 +358,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "#{GOBIN}/api  kite=true -c #{socialapi.configFilePath} -port=#{socialapi.port}"
+        command         : "#{GOBIN}/api  -kite-init=true -c #{socialapi.configFilePath} -port=#{socialapi.port}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
