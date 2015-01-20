@@ -13,6 +13,30 @@ type Hook struct {
 	Username string `json:"username,omitempty"`
 }
 
+type Fields struct {
+	Title string `json:"title"`
+	Value string `json:"value"`
+	Short bool   `json:"short"`
+}
+
+type Attachment struct {
+	Fallback string   `json:"fallback,omitempty"`
+	PreText  string   `json:"pretext,omitempty"`
+	Title    string   `json:"title,omitempty"`
+	Text     string   `json:"text,omitempty"`
+	Color    string   `json:"color,omitempty"`
+	Fields   []Fields `json:"fields"`
+	MrkdwnIn []string `json:"mrkdwn_in,omitempty"`
+}
+
+type Message struct {
+	Channel     string       `json:"channel,omitempty"`
+	Username    string       `json:"username,omitempty"`
+	Text        string       `json:"text"`
+	IconEmoji   string       `json:"icon_emoji,omitempty"`
+	Attachments []Attachment `json:"attachments,omitempty"`
+}
+
 func (h Hook) Post(m Message) error {
 	encoded, err := m.Encode()
 	if err != nil {
@@ -29,13 +53,6 @@ func (h Hook) Post(m Message) error {
 	}
 
 	return nil
-}
-
-type Message struct {
-	Channel   string `json:"channel,omitempty"`
-	Username  string `json:"username,omitempty"`
-	Text      string `json:"text"`
-	IconEmoji string `json:"icon_emoji,omitempty"`
 }
 
 func (m Message) Encode() (string, error) {

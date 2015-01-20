@@ -58,6 +58,13 @@ func (g *GhostVMs) Result() string {
 		return fmt.Sprintf("ghostVMs: error '%s'", g.err.Error())
 	}
 
-	return fmt.Sprintf("ghostVMs: terminated '%d' instances",
+	return fmt.Sprintf("terminated '%d' instances",
 		g.ghostInstances.Total())
+}
+
+func (g *GhostVMs) Info() *taskInfo {
+	return &taskInfo{
+		Title: "GhostVMs",
+		Desc:  "Terminate production instances without any jMachine document",
+	}
 }

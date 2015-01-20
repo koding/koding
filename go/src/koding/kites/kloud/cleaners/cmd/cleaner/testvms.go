@@ -28,6 +28,13 @@ func (t *TestVMS) Run() {
 }
 
 func (t *TestVMS) Result() string {
-	return fmt.Sprintf("testVms: terminated '%d' instances tagged with [sandbox, dev]",
+	return fmt.Sprintf("terminated '%d' instances tagged with [sandbox, dev]",
 		t.testInstances.Total())
+}
+
+func (t *TestVMS) Info() *taskInfo {
+	return &taskInfo{
+		Title: "TestVMS",
+		Desc:  "Terminate instances older than 24 hours andd tagged with [sandbox, dev]",
+	}
 }

@@ -76,6 +76,13 @@ func (m *MultipleVMs) Result() string {
 		return fmt.Sprintf("multipleVMs: error '%s'", m.err.Error())
 	}
 
-	return fmt.Sprintf("multipleVMs: stopped '%d' machines",
+	return fmt.Sprintf("stopped '%d' machines",
 		m.multipleInstances.Total())
+}
+
+func (m *MultipleVMs) Info() *taskInfo {
+	return &taskInfo{
+		Title: "MultipleVMs",
+		Desc:  "Stop VMs of non paying customers with more than one machine",
+	}
 }

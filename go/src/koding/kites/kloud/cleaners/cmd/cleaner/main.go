@@ -41,6 +41,14 @@ type task interface {
 
 	// Results returns the result from the generated data and executed action.
 	Result() string
+
+	// Info returns information about the task itself and the taks responsibilites.
+	Info() *taskInfo
+}
+
+type taskInfo struct {
+	Title string
+	Desc  string
 }
 
 func main() {
@@ -59,6 +67,7 @@ func realMain() error {
 	c := NewCleaner(conf)
 	if c.DryRun {
 		c.Log.Warning("Dry run is enabled.")
+		c.Slack("Cleaner started in dry-run mode", "", "")
 	}
 
 	artifacts, err := c.Collect()
@@ -131,7 +140,8 @@ func (c *Cleaner) run(tasks ...task) {
 	for t := range out {
 		if msg := t.Result(); msg != "" {
 			c.Log.Info(msg)
-			c.Slack(msg) // send to slack channel
+			info := t.Info()
+			c.Slack(info.Title, info.Desc, msg) // send to slack channel
 		}
 	}
 }

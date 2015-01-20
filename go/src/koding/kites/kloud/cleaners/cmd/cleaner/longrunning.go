@@ -91,6 +91,13 @@ func (l *LongRunning) Result() string {
 		return fmt.Sprintf("longRunningVMs: error '%s'", l.err.Error())
 	}
 
-	return fmt.Sprintf("longRunningVMS: stopped '%d' free user instances",
+	return fmt.Sprintf("stopped '%d' free user instances",
 		l.longRunningInstances.Total())
+}
+
+func (l *LongRunning) Info() *taskInfo {
+	return &taskInfo{
+		Title: "LongRunningVms",
+		Desc:  "Stop free VMs running for more than 12 hours",
+	}
 }

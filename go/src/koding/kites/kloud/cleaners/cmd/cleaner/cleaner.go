@@ -102,12 +102,33 @@ func (c *Cleaner) IsPaid() (func(string) bool, error) {
 	}, nil
 }
 
-func (c *Cleaner) Slack(msg string) error {
+func (c *Cleaner) Slack(title, desc, msg string) error {
+	pretext := title
+	if pretext != "" {
+		pretext = "*" + title + "*"
+	}
+
+	text := msg
+	if text != "" {
+		text = "`" + msg + "`"
+	}
+
+	attachments := []Attachment{
+		{
+			Fallback: title,
+			PreText:  pretext,
+			Title:    desc,
+			Text:     text,
+			MrkdwnIn: []string{"text", "title", "pretext", "fallback"},
+		},
+	}
+
 	return c.Hook.Post(Message{
-		Channel:   c.Hook.Channel,
-		Username:  c.Hook.Username,
-		Text:      msg,
-		IconEmoji: ":cl:",
+		Channel:     c.Hook.Channel,
+		Username:    c.Hook.Username,
+		Text:        "",
+		IconEmoji:   ":cl:",
+		Attachments: attachments,
 	})
 }
 

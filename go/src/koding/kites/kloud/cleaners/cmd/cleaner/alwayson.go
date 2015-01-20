@@ -41,5 +41,12 @@ func (a *AlwaysOn) Result() string {
 	if a.err != nil {
 		return fmt.Sprintf("alwaysOn: error '%s'", a.err.Error())
 	}
-	return fmt.Sprintf("alwaysOn: disabled '%d' free machines", len(a.nonvalidUsers))
+	return fmt.Sprintf("disabled '%d' free machines", len(a.nonvalidUsers))
+}
+
+func (a *AlwaysOn) Info() *taskInfo {
+	return &taskInfo{
+		Title: "AlwaysOn",
+		Desc:  "Change jMachine documents 'alwaysOn' field to 'false' of paying customers",
+	}
 }

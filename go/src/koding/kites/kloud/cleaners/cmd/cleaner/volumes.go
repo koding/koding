@@ -110,6 +110,22 @@ func (v *Volumes) Run() {
 }
 
 func (v *Volumes) Result() string {
-	return fmt.Sprintf("volumes: terminated '%d' not used volumes",
+	if v.err != nil {
+		return fmt.Sprintf("volumes: error '%s'", v.err.Error())
+	}
+
+	notUsed := fmt.Sprintf("terminated '%d' not used volumes\n",
 		v.notusedVolumes.Total())
+
+	stopped := fmt.Sprintf("stopped '%d' free machines with volumes larger than 3GB",
+		v.largeInstances.Total())
+
+	return notUsed + stopped
+}
+
+func (v *Volumes) Info() *taskInfo {
+	return &taskInfo{
+		Title: "Volumes",
+		Desc:  "Terminate non used volumes. Stop VMs of non paying customers with volumes larger than 3GB",
+	}
 }
