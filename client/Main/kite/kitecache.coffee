@@ -1,8 +1,7 @@
 class KiteCache
 
-
-  storage = LocalStorage.getStorage()
-
+  storage   = LocalStorage.getStorage()
+  signature = 'KITE_'
 
   @generateQueryString = (options) ->
 
@@ -37,7 +36,7 @@ class KiteCache
     return now < exp
 
 
-  signed = (queryString) -> "KITE_#{queryString}"
+  signed = (queryString) -> "#{signature}#{queryString}"
 
 
   proxifyTransport = (kite) ->
@@ -50,7 +49,7 @@ class KiteCache
 
   @clearAll = ->
 
-    for kite in (Object.keys storage) when /^KITE_/.test kite
+    for kite in (Object.keys storage) when ///^#{signature}///.test kite
       delete storage[kite]
 
 
