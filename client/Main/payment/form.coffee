@@ -252,14 +252,17 @@ class PaymentForm extends JView
       @$('.summary')
     ].forEach (element) -> element.detach()
 
+    subject = "User: #{KD.nick()} blocked from upgrades due to too many failed attempts"
+    body = "Plan Name: #{@state.planTitle}, Plan Interval: #{@state.planInterval}"
+
     @successMessage.updatePartial "
-      We are sorry that you are having trouble upgrading.
-      Looks like there is an issue with the card you are
-      attempting to use. If you feel the error is on our end,
-      please send us relevant details at
-      <a href='mailto:support@koding.com'>support@koding.com</a>
-      (don't forget to include your username and the plan name
-      you were trying to purchase).
+      Your access to upgrades has been locked for 24 hours
+      due to too many failed attempts. Please try again in 24 hours.
+      If you believe this is an error on our end, please send us a note at
+      <a href='mailto:support@koding.com?subject=#{subject}&body=#{body}'>
+      support@koding.com</a> with
+      relevant details (your username,
+      plan you want to purchase, etc.).
     "
     @successMessage.show()
 
