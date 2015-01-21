@@ -198,6 +198,16 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : @machine.alwaysOn
           cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        sharedWith     :
+          label        : "
+            VM Shared With
+            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+              <span class='help'></span>
+            </a>
+            <span class='toggle'></span>
+          "
+          itemClass    : ManageSharedView
+          machine      : @machine
         domains        :
           label        : "
             Domains
@@ -212,7 +222,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
 
-    {advancedView, domains} = @moreForm.inputs
+    {advancedView, domains, sharedWith} = @moreForm.inputs
     advancedLabel = advancedView.getOption 'label'
 
     advancedLabel.on 'click', =>
@@ -228,6 +238,16 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     domains.on 'DomainInputCancelled', ->
       domainLabel.unsetClass 'expanded'
+
+    shareVMLabel = sharedWith.getOption 'label'
+
+    shareVMLabel.on 'click', (event)->
+      return  unless $(event.target).hasClass 'toggle'
+      shareVMLabel.toggleClass 'expanded'
+      sharedWith.toggleInput()
+
+    sharedWith.on 'UserInputCancelled', ->
+      shareVMLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'
@@ -265,7 +285,3 @@ class MachineSettingsPopup extends KDModalViewWithForms
         if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
           @resizeButton.show()
 
-
-  shareMachineWithUser: (username) ->
-    @machine.jMachine.shareWith target: username
-    @machine.getBaseKite().klientShare { username }

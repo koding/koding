@@ -603,6 +603,7 @@ div.nominateicon
       cursor          pointer
 
     &.domains
+    &.sharedwith
 
       label.kdlabel
 
@@ -689,7 +690,7 @@ div.nominateicon
     &.button-field
       margin              0 !important
 
-
+  .users-view
   .domains-view
 
     padding               2px 0
@@ -710,13 +711,16 @@ div.nominateicon
       abs()
 
     .input-view
+      border              1px solid #ddd
       border-radius       4px
       background          white
       height              22px
+      overflow            hidden
 
       input
         padding           0
         margin-right      0
+        margin-left       -10px
         text-align        right
         background        none
         border            none
@@ -733,12 +737,14 @@ div.nominateicon
         float             left
         box-shadow        none
         ellipsis()
+        abs()
 
     .listview-wrapper
       margin-top          4px
       height              auto
       padding             0 4px
 
+    .kdlistitemview-user
     .kdlistitemview-domain
       a
         text-decoration   none !important
@@ -759,6 +765,35 @@ div.nominateicon
         cursor            pointer
         vertical-align    middle
         margin-left       8px
+
+    .kdlistitemview-user
+
+      width               auto
+      position            relative
+      float               left
+
+      a.avatarview
+        float             left
+        height            22px
+        margin-right      5px
+        background        none
+
+      .name
+        float             left
+        width             auto
+        margin-right      6px
+        cursor            pointer
+
+      span.remove
+        float             left
+        top               5px
+        right             8px
+        position          relative
+
+  .users-view
+    .listview-wrapper
+      margin-top          10px
+      margin-bottom       15px
 
   label.kdlabel
 
