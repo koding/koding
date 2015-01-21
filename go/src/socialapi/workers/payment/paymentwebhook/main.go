@@ -36,9 +36,3 @@ func initialize() *config.Config {
 
 	return r.Conf
 }
-
-func stripeHandler(w http.ResponseWriter, r *http.Request) {
-}
-
-func paypalHandler(w http.ResponseWriter, r *http.Request) {
-}
