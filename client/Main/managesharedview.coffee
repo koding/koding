@@ -23,6 +23,17 @@ class ManageSharedView extends KDView
     @addSubView @inputView = @autoComplete.getView()
     @inputView.setClass 'input-view'
 
+    @autoComplete.on 'ItemListChanged', (count) =>
+
+      user = @autoComplete.getSelectedItemData()?.last
+
+      if user?
+        @addUser user
+        @toggleInput yes
+
+        @autoComplete.selectedItemCounter = 0
+        @autoComplete.selectedItemData    = []
+
 
     @usersController    = new KDListViewController
       viewOptions       :
@@ -61,7 +72,9 @@ class ManageSharedView extends KDView
     @machine.jMachine.reviveUsers permanentOnly: yes, (err, users)=>
       warn err  if err?
 
-      users ?= []
+      users  ?= []
+      @updateInMemoryListOfUsers users
+
       @usersController.replaceAllItems users
       @userListView[if users.length > 0 then 'show' else 'hide']()
 
@@ -91,9 +104,14 @@ class ManageSharedView extends KDView
         if @usersController.itemsOrdered.length is 1
         then @listUsers()
         else @usersController.removeItem userItem
+  updateInMemoryListOfUsers: (users)->
+
+    # For blacklisting the users in auto complete fetcher
+    users  ?= (item.getData() for item in @usersController.getListItems())
+    @_users = [KD.nick()].concat (user.profile.nickname for user in users)
 
 
-  toggleInput:->
+  toggleInput: (informOthers = no)->
 
     @inputView.toggleClass 'hidden'
 
@@ -102,6 +120,7 @@ class ManageSharedView extends KDView
     windowController.addLayer @inputView
     @inputView.setFocus()
 
+    @emit "UserInputCancelled"  if informOthers
     @inputView.off  "ReceivedClickElsewhere"
     @inputView.once "ReceivedClickElsewhere", (event)=>
       return  if $(event.target).hasClass 'toggle'
