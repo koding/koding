@@ -51,6 +51,8 @@ type (
 
 		Kloud Kloud
 
+		PaymentWebhook PaymentWebhook
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
@@ -163,5 +165,9 @@ type (
 	Kloud struct {
 		SecretKey string `env:"key=KONFIG_KLOUD_SECRETKEY"`
 		Address   string `env:"key=KONFIG_KLOUD_ADDRESS"`
+	}
+
+	PaymentWebhook struct {
+		Port string `env:"key=KONFIG_PAYMENTWEBHOOK_PORT"`
 	}
 )
