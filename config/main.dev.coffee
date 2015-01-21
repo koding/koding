@@ -658,6 +658,9 @@ Configuration = (options={}) ->
 
         check
         npm i --silent
+        # this is a temporary adition, normally file watcher should delete the created file later on
+        cd #{projectRoot}/go/bin
+        rm goldorf-main-*
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure
