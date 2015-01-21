@@ -127,7 +127,7 @@ type xmlErrors struct {
 var timeNow = time.Now
 
 func (ec2 *EC2) query(params map[string]string, resp interface{}) error {
-	params["Version"] = "2014-06-15"
+	params["Version"] = "2014-10-01"
 	params["Timestamp"] = timeNow().In(time.UTC).Format(time.RFC3339)
 	endpoint, err := url.Parse(ec2.Region.EC2Endpoint)
 	if err != nil {
@@ -851,27 +851,22 @@ type InstancesOpts struct {
 	NextToken  string
 }
 
-// InstancesWithOpts returns details about instances in EC2.  Both parameters
-// are optional, and if provided will limit the instances returned to those
-// matching the given instance ids or filtering rules. Options is used to fetch
-// results in batches, this is useful if you have many instances.
+// InstancesWithOpts returns details about instances in EC2.  Both
+// parameters are optional, and if provided will limit the instances
+// returned to those matching the given instance ids. Options is used
+// to fetch results in batches, this is useful if you have many
+// instances.
 //
 // See http://goo.gl/4No7c for more details.
-func (ec2 *EC2) InstancesWithOpts(instIds []string, filter *Filter, options *InstancesOpts) (resp *InstancesResp, err error) {
+func (ec2 *EC2) InstancesWithOpts(instIds []string, options *InstancesOpts) (resp *InstancesResp, err error) {
 	params := makeParams("DescribeInstances")
 	addParamsList(params, "InstanceId", instIds)
 
-	if options != nil {
-		if options.MaxResults > 0 {
-			params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
-		}
-		if options.NextToken != "" {
-			params["NextToken"] = options.NextToken
-		}
+	if options.MaxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
 	}
-
-	if filter != nil {
-		filter.addParams(params)
+	if options.NextToken != "" {
+		params["NextToken"] = options.NextToken
 	}
 
 	resp = &InstancesResp{}
@@ -945,6 +940,7 @@ type Volume struct {
 	SnapshotId  string             `xml:"snapshotId"`
 	AvailZone   string             `xml:"availabilityZone"`
 	Status      string             `xml:"status"`
+	CreateTime  time.Time          `xml:"createTime"`
 	Attachments []VolumeAttachment `xml:"attachmentSet>item"`
 	VolumeType  string             `xml:"volumeType"`
 	IOPS        int64              `xml:"iops"`
@@ -961,6 +957,7 @@ type VolumeAttachment struct {
 
 // Response to a DescribeVolumes request
 type VolumesResp struct {
+	NextToken string   `xml:"nextToken"`
 	RequestId string   `xml:"requestId"`
 	Volumes   []Volume `xml:"volumeSet>item"`
 }
@@ -1033,6 +1030,32 @@ func (ec2 *EC2) DetachVolume(id string) (resp *SimpleResp, err error) {
 	params["VolumeId"] = id
 
 	resp = &SimpleResp{}
+	err = ec2.query(params, resp)
+	if err != nil {
+		return nil, err
+	}
+	return
+}
+
+type VolumesOpts struct {
+	MaxResults int64
+	NextToken  string
+}
+
+// Finds or lists all volumes via NextToken
+func (ec2 *EC2) VolumesWithOpts(volIds []string, options *VolumesOpts) (resp *VolumesResp, err error) {
+	params := makeParams("DescribeVolumes")
+	addParamsList(params, "VolumeId", volIds)
+
+	if options.MaxResults > 0 {
+		params["MaxResults"] = strconv.FormatInt(options.MaxResults, 10)
+	}
+
+	if options.NextToken != "" {
+		params["NextToken"] = options.NextToken
+	}
+
+	resp = &VolumesResp{}
 	err = ec2.query(params, resp)
 	if err != nil {
 		return nil, err
