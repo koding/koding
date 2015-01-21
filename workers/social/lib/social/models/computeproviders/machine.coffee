@@ -42,7 +42,7 @@ module.exports = class JMachine extends Module
         approve         :
           (signature Function)
         reviveUsers     :
-          (signature Function)
+          (signature Object, Function)
         shareWith       :
           (signature Object, Function)
         setProvisioner  :
@@ -412,9 +412,10 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, callback)->
+    , (client, options, callback)->
 
       { r: { user } } = client
+      {permanentOnly} = options
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -425,6 +426,9 @@ module.exports = class JMachine extends Module
       queue    = []
 
       (@users ? []).forEach (_user)->
+
+        return  if permanentOnly and not _user.permanent
+
         queue.push -> JUser.one _id: _user.id, (err, user)->
           if not err? and user
             user.fetchOwnAccount (err, account)->
