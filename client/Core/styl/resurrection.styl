@@ -594,11 +594,12 @@ div.nominateicon
       display         inline-block
       cursor          pointer
 
-    span.domain-toggle
+    span.toggle
       display         inline-block
       r-sprite        app 'add-12'
       vertical-align  middle
       opacity         .4
+      cursor          pointer
 
     &.domains
 
@@ -607,13 +608,13 @@ div.nominateicon
         a
           text-decoration none
 
-        span.domain-help
+        span.help
           display         inline-block
           vertical-align  middle
           r-sprite        app 'what-12'
 
         &.expanded
-          span.domain-toggle
+          span.toggle
             r-sprite      app 'cancel-12'
 
       .input-wrapper
@@ -748,10 +749,10 @@ div.nominateicon
         abs()
 
       &:hover
-        span.remove-domain
+        span.remove
           display         inline-block
 
-      span.remove-domain
+      span.remove
         display           none
         r-sprite          app 'delete-12'
         cursor            pointer

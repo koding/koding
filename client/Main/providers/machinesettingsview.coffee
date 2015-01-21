@@ -202,9 +202,9 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label        : "
             Domains
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
-              <span class='domain-help'></span>
+              <span class='help'></span>
             </a>
-            <span class='domain-toggle'></span>
+            <span class='toggle'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine
@@ -219,15 +219,15 @@ class MachineSettingsPopup extends KDModalViewWithForms
       advancedLabel.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
-    {label} = domains.getOptions()
+    domainLabel = domains.getOption 'label'
 
-    label.on 'click', (event)->
-      return  unless $(event.target).hasClass 'domain-toggle'
-      label.toggleClass 'expanded'
+    domainLabel.on 'click', (event)->
+      return  unless $(event.target).hasClass 'toggle'
+      domainLabel.toggleClass 'expanded'
       domains.toggleInput()
 
     domains.on 'DomainInputCancelled', ->
-      label.unsetClass 'expanded'
+      domainLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'
