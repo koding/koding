@@ -179,7 +179,9 @@ module.exports = class JMachine extends Module
     newUsers = []
 
     for u in users
-      if u.permanent isnt permanent or not userId.equals u.id
+      unless userId.equals u.id
+        newUsers.push u
+      else if not permanent? and u.permanent
         newUsers.push u
 
     return newUsers
@@ -192,7 +194,18 @@ module.exports = class JMachine extends Module
     {user, asOwner, permanent} = options
 
     newUsers = excludeUser { users, user, permanent }
-    newUsers.push { id: user.getId(), owner: no, approved: no, permanent }
+
+    userId = user.getId()
+    for u in newUsers
+      break  if inList = userId.equals u.id
+
+    unless inList
+      newUsers.push {
+        id       : user.getId()
+        owner    : no
+        approved : no
+        permanent
+      }
 
     return newUsers
 
@@ -295,7 +308,6 @@ module.exports = class JMachine extends Module
 
     asUser    ?= yes
     asOwner   ?= no
-    permanent ?= no
 
     unless target?
       return callback new KodingError "Target required."
