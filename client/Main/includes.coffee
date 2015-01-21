@@ -191,6 +191,8 @@ module.exports = [
   "domains/managedomainsview.coffee",
   "domains/domainitem.coffee",
 
+  "useritem.coffee",
+
   "guideslinksview.coffee",
   "workspacesettingspopup.coffee",
 
