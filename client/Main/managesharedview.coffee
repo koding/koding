@@ -8,13 +8,21 @@ class ManageSharedView extends KDView
 
     {@machine} = @getOptions()
 
-    @addSubView @inputView = new KDView
-      cssClass          : 'input-view'
+    @_users = []
 
-    @inputView.addSubView @input = new KDHitEnterInputView
-      type              : 'text'
-      attributes        :
-        spellcheck      : no
+    @autoComplete = new KDAutoCompleteController
+      name                : 'userController'
+      placeholder         : 'Type a username...'
+      itemClass           : ActivityAutoCompleteUserItemView
+      itemDataPath        : 'profile.nickname'
+      outputWrapper       : new KDView cssClass: 'hidden'
+      listWrapperCssClass : 'private-message hidden'
+      submitValuesAsText  : yes
+      dataSource          : @bound 'fetchAccounts'
+
+    @addSubView @inputView = @autoComplete.getView()
+    @inputView.setClass 'input-view'
+
 
     @usersController    = new KDListViewController
       viewOptions       :
@@ -91,12 +99,21 @@ class ManageSharedView extends KDView
 
     {windowController} = KD.singletons
 
-    windowController.addLayer @input
-    @input.setFocus()
+    windowController.addLayer @inputView
+    @inputView.setFocus()
 
-    @input.off  "ReceivedClickElsewhere"
-    @input.once "ReceivedClickElsewhere", (event)=>
+    @inputView.off  "ReceivedClickElsewhere"
+    @inputView.once "ReceivedClickElsewhere", (event)=>
       return  if $(event.target).hasClass 'toggle'
       @emit "UserInputCancelled"
       @inputView.hide()
       @warning.hide()
+
+
+  fetchAccounts: ({inputValue}, callback) ->
+
+    KD.singletons.search.searchAccounts inputValue
+      .filter (it) => it.profile.nickname not in @_users
+      .then callback
+      .timeout 1e4
+      .catch Promise.TimeoutError, callback.bind this, []
