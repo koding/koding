@@ -67,6 +67,12 @@ do ->
       return m  if sameLabel and sameUser
 
 
+  getLatestWorkspace = ->
+
+    storage = KD.getSingleton('localStorageController').storage 'IDE'
+    return storage.getValue 'LatestWorkspace'
+
+
   loadIDE = (data) ->
 
     { machine, workspace, username, channelId } = data
