@@ -81,17 +81,17 @@ class ManageSharedView extends KDView
       @loader.hide()
 
 
-  kickUser: (userItem)->
+  modifyUsers: (user, task, userItem)->
 
     @loader.show()
     @warning.hide()
 
-    {profile:{nickname}} = userItem.getData()
+    {profile:{nickname}} = user
 
     @machine.jMachine.shareWith
       target    : [nickname]
       permanent : yes
-      asUser    : no
+      asUser    : task is 'add'
     , (err)=>
 
       @loader.hide()
@@ -101,9 +101,28 @@ class ManageSharedView extends KDView
         @warning.show()
 
       else
-        if @usersController.itemsOrdered.length is 1
-        then @listUsers()
-        else @usersController.removeItem userItem
+
+        if @usersController.getItemCount() > 1
+
+          if task is 'add'
+          then @usersController.addItem user
+          else @usersController.removeItem userItem
+
+          @updateInMemoryListOfUsers()
+
+        else
+
+          @listUsers()
+
+
+  addUser: (user)->
+    @modifyUsers user, 'add'
+
+
+  kickUser: (userItem)->
+    @modifyUsers userItem.getData(), 'kick', userItem
+
+
   updateInMemoryListOfUsers: (users)->
 
     # For blacklisting the users in auto complete fetcher
