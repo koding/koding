@@ -94,3 +94,39 @@ module.exports =
       .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
       .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
       .end()
+
+
+  terminateSession: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    openNewTerminalMenu(browser)
+
+    getSessionData = =>
+
+      selector = '.kdcontextmenu:visible ul + li:not(.disabled)'
+      matcher  = /session-(\w+)\S+/
+
+      return $(selector).eq(0).attr('class').match(matcher)
+
+    browser.execute getSessionData, [], (result) =>
+
+      [cssClass, sessionId] = result.value
+      sessionListSelector   = '.kdcontextmenu ul ul:nth-of-type(1).expanded'
+
+      browser
+        .waitForElementVisible  '.' + cssClass, 25000
+        .moveToElement          '.' + cssClass, 10, 10
+        .pause                  1000
+        .click                  '.context-list-wrapper ul > ul.expanded ul.expanded .terminate'
+        .pause                  5000
+
+        openNewTerminalMenu(browser)
+
+        browser
+          .pause   1000
+          .getText sessionListSelector, (result) =>
+            assert.equal(result.value.indexOf(sessionId), -1)
+
+            browser.end()
