@@ -168,7 +168,7 @@ func (c *Cleaner) collectAndProcess() error {
 }
 
 func (c *Cleaner) process(tasks ...task) {
-	c.Log.Info("Running '%d' cleaners", len(tasks))
+	c.Log.Info("Processing and running tasks")
 
 	var wg sync.WaitGroup
 
@@ -193,9 +193,13 @@ func (c *Cleaner) process(tasks ...task) {
 
 	for t := range out {
 		if msg := t.Result(); msg != "" {
-			c.Log.Info(msg)
 			info := t.Info()
+			c.Log.Info("%s: %s", info.Title, msg)
 			c.Slack(info.Title, info.Desc, msg) // send to slack channel
+
+			t = nil
 		}
 	}
+
+	out = nil
 }
