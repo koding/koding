@@ -243,6 +243,9 @@ class IDEAppController extends AppController
 
   mountMachine: (machineData) ->
 
+    # interrupt if workspace was changed
+    return if machineData.uid isnt @workspaceData.machineUId
+    
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
