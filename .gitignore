@@ -97,4 +97,4 @@ website/a/out
 /tests/output/
 supervisor.html
 
-paymentwebhook
+go/src/socialapi/workers/payment/paymentwebhook/paymentwebhook
