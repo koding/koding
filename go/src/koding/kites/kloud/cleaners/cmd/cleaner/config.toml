@@ -1,4 +1,4 @@
-mongo      = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
+mongourl   = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
 dryrun     = true
 hostedzone = "koding.io"
 
@@ -13,7 +13,7 @@ password = "socialapplication"
 dbname = "social"
 
 [aws]
-access = "AKIAJFKDHRJ7Q5G4MOUQ"
-secret = "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"
+accesskey = "AKIAJFKDHRJ7Q5G4MOUQ"
+secretkey = "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"
 
 

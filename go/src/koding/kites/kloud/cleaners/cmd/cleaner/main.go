@@ -77,7 +77,18 @@ func realMain() error {
 	// If a file is provided use it first
 	m := multiconfig.New()
 	if *flagConfigFile != "" {
-		m = multiconfig.NewWithPath(*flagConfigFile)
+		// we need to create a separate loader because our own flag conflicts
+		// with the flagLoader, so we create a new loader wit
+		m = &multiconfig.DefaultLoader{
+			Loader: multiconfig.MultiLoader(
+				&multiconfig.TOMLLoader{Path: *flagConfigFile},
+				&multiconfig.TagLoader{},
+				&multiconfig.EnvironmentLoader{},
+			),
+			Validator: multiconfig.MultiValidator(
+				&multiconfig.RequiredValidator{},
+			),
+		}
 	}
 
 	conf := new(Config)
