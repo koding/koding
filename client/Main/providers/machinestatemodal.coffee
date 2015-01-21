@@ -24,15 +24,21 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @machineId   = jMachine._id
     {@state}     = @machine.status
 
+    @showBusy()
+    @show()
+
     KD.whoami().isEmailVerified (err, verified)=>
 
       warn err  if err?
 
-      if verified
-      then @buildInitial()
-      else @buildVerifyView()
-
-      @show()
+      if not verified
+      then @buildVerifyView()
+      else
+        KD.singletons.paymentController.subscriptions (err, subscription)=>
+          warn err  if err?
+          if subscription?.state is 'expired'
+          then @buildExpiredView subscription
+          else @buildInitial()
 
 
   triggerEventTimer: (percentage)->
@@ -52,6 +58,8 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
 
   updateStatus: (event, task) ->
+
+    return  if @_busy
 
     {status, percentage, error} = event
 
@@ -122,7 +130,19 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     KD.utils.wait 500, => @buildViews()
 
 
+  showBusy: (message) ->
+
+    @_busy = message?
+
+    @container.destroySubViews()
+
+    @createStateLabel message ? "Loading..."
+    @createLoading()
+
+
   buildInitial:->
+
+    return @buildViews()  if @_initialBuiltOnce
 
     computeController = KD.getSingleton 'computeController'
 
@@ -140,6 +160,7 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @eventTimer = null
     @_lastPercentage = 0
+    @_initialBuiltOnce = yes
 
     @container.destroySubViews()
 
@@ -177,7 +198,121 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @buildViews()
 
 
+  buildVerifyView: ->
+
+    @container.destroySubViews()
+
+    @codeEntryView = new KDHitEnterInputView
+      type         : 'text'
+      cssClass     : 'verify-pin-input'
+      placeholder  : 'Enter code here'
+      callback     : @bound 'verifyAccount'
+
+    @button    = new KDButtonView
+      title    : 'Verify account'
+      cssClass : 'solid green medium'
+      callback : @bound 'verifyAccount'
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'verify-message'
+      partial  : """
+        <p>Before you can access your VM, we need to verify your account.
+        A verification email should already be in your inbox.
+        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
+      """
+      click    : (event)=>
+
+        return  unless $(event.target).is 'cite'
+
+        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
+
+          unless KD.showError err
+
+            @container.addSubView @retryView = new KDCustomHTMLView
+              cssClass : 'error-message warning'
+              partial  : """
+                <p>Email sent, please check your inbox.</p>
+              """
+
+            KD.utils.wait 3000, @retryView.bound 'destroy'
+
+    @container.addSubView @codeEntryView
+    @container.addSubView @button
+
+
+  buildExpiredView: (subscription, nextState)->
+
+    plan = if subscription? then "(<b>#{subscription.planTitle}</b>)" else ""
+
+    @container.destroySubViews()
+
+    if nextState is "downgrade"
+
+      @showBusy "Downgrading..."
+      @downgradePlan (err)=>
+
+        if err?
+          KD.utils.wait 10000, =>
+            @buildExpiredView subscription, "downgrade"
+        else
+          ComputeHelpers.handleNewMachineRequest (err)=>
+            location.reload yes
+
+      return
+
+    destroyVMs = nextState is "destroy-vms"
+
+    @upgradeButton = new KDButtonView
+      title    : 'Upgrade Plan'
+      cssClass : 'solid green medium plan-change-button'
+      callback : -> KD.singletons.router.handleRoute '/Pricing'
+
+    actionTitle = if destroyVMs then 'Delete All VMs' else 'Downgrade Plan'
+
+    @actionButton = new KDButtonView
+      title    : actionTitle
+      cssClass : 'solid green medium plan-change-button downgrade'
+      callback : =>
+
+        if destroyVMs
+
+          @showBusy "Destroying machines..."
+          ComputeHelpers.destroyExistingMachines (err)=>
+            KD.utils.wait 5000, =>
+              @buildExpiredView subscription, "downgrade"
+
+        else
+
+          @showBusy "Downgrading..."
+          @downgradePlan (err)=> if err? \
+            then @buildExpiredView subscription, "destroy-vms"
+            else @buildInitial()
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'expired-message'
+      partial  : if destroyVMs then """
+        <h1>Delete all existing VMs</h1>
+        <p>To be able to downgrade your current plan #{plan} to the <b>Free</b>
+        plan, you need to delete all your existing VMs. This action will
+        <b>destroy all your VMs, (including YOUR FILES) and cannot
+        be UNDONE!</b> Are you sure you want to continue?</p>
+      """ else """
+        <h1>Plan Expired</h1>
+        <p>Your current plan #{plan} is expired. For accessing
+        your VM you need to upgrade your plan first. Or you can downgrade
+        to the <b>Free</b> plan which will <b>destroy</b> all your existing VMs and their
+        files.</p>
+      """
+
+    unless destroyVMs
+      @container.addSubView @upgradeButton
+
+    @container.addSubView @actionButton
+
+
   buildViews: (response)->
+
+    return  if @_busy
 
     if response?.State?
       @state = response.State
@@ -260,49 +395,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         height   : 40
 
     @container.addSubView @loader
-
-
-  buildVerifyView: ->
-
-    @container.destroySubViews()
-
-    @codeEntryView = new KDHitEnterInputView
-      type         : 'text'
-      cssClass     : 'verify-pin-input'
-      placeholder  : 'Enter code here'
-      callback     : @bound 'verifyAccount'
-
-    @button    = new KDButtonView
-      title    : 'Verify account'
-      cssClass : 'solid green medium'
-      callback : @bound 'verifyAccount'
-
-    @container.addSubView new KDCustomHTMLView
-      cssClass : 'verify-message'
-      partial  : """
-        <p>Before you can access your VM, we need to verify your account.
-        A verification email should already be in your inbox.
-        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
-      """
-      click    : (event)=>
-
-        return  unless $(event.target).is 'cite'
-
-        KD.remote.api.JUser.verifyByPin resendIfExists: yes, (err)=>
-
-          unless KD.showError err
-
-            @container.addSubView @retryView = new KDCustomHTMLView
-              cssClass : 'error-message warning'
-              partial  : """
-                <p>Email sent, please check your inbox.</p>
-              """
-
-            KD.utils.wait 3000, @retryView.bound 'destroy'
-
-    @container.addSubView @codeEntryView
-    @container.addSubView @button
-
 
 
   createProgressBar: (initial = 10)->
@@ -390,6 +482,15 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     @hasError = null
 
 
+  handleNoMachineFound: ->
+
+    {@state} = @getOptions()
+    @setClass 'no-machine'
+    @buildViews()
+    @createFooter()
+    return @show()
+
+
   turnOnMachine: ->
 
     computeController = KD.getSingleton 'computeController'
@@ -431,15 +532,6 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       @emit 'IDEBecameReady', m
 
 
-  handleNoMachineFound: ->
-
-    {@state} = @getOptions()
-    @setClass 'no-machine'
-    @buildViews()
-    @createFooter()
-    return @show()
-
-
   verifyAccount: ->
 
     code = Encoder.XSSEncode @codeEntryView.getValue()
@@ -459,3 +551,14 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       else
         KD.utils.defer @bound 'buildInitial'
+
+
+  downgradePlan: (callback)->
+
+    me = KD.whoami()
+    me.fetchEmail (err, email)->
+
+      KD.singletons.paymentController
+        .subscribe "token", "free", "month", { email }, (err, resp)->
+          return callback err  if err?
+          callback null

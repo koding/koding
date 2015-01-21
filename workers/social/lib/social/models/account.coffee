@@ -215,6 +215,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
+        fetchCustomers:
+          (signature Object, Function)
 
     schema                  :
       socialApiId           : String
@@ -393,10 +395,11 @@ module.exports = class JAccount extends jraphical.Module
         return callback null, relation?
 
   changeUsername: (options, callback = (->)) ->
-
     { username, isRegistration } = options
-
     oldUsername = @profile.nickname
+
+    if "guestuser" in [oldUsername, username]
+      return callback new KodingError "guestuser can not be updated"
 
     if username is oldUsername
 
@@ -1382,3 +1385,9 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError "Could not update last login timezone offset" if err
       callback null
 
+  fetchCustomers: secure ({connection}, options, callback) ->
+    if not isDummyAdmin connection.delegate.profile.nickname
+      return callback new KodingError "permission denied"
+
+    {getCustomers} = require './socialapi/requests'
+    getCustomers options, callback

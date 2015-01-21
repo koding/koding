@@ -2,6 +2,8 @@ package generator
 
 import (
 	"encoding/xml"
+	"fmt"
+	"time"
 
 	"socialapi/config"
 	"socialapi/workers/sitemap/common"
@@ -15,52 +17,50 @@ import (
 
 type Controller struct {
 	log          logging.Logger
-	fileSelector FileSelector
 	fileName     string
 	redisConn    *redis.RedisSession
+	timeInterval time.Duration
+	cron         *cron.Cron
 }
 
 const (
 	// before sending this interval, beware that you have to change
 	// TIMERANGE in cache key file
-	// run cron job every 30 minutes starting from 0
-	SCHEDULE = "0 0-59/30 * * * *"
-)
-
-var (
-	cronJob *cron.Cron
+	// run cron job every n minutes starting from 0
+	SCHEDULE = "0 0-59/%d * * * *"
 )
 
 func New(log logging.Logger, redisConn *redis.RedisSession) (*Controller, error) {
 	c := &Controller{
 		log:          log,
-		fileSelector: CachedFileSelector{},
 		redisConn:    redisConn,
+		timeInterval: common.GetInterval(),
 	}
 
 	return c, c.initCron()
 }
 
 func (c *Controller) initCron() error {
-	cronJob = cron.New()
-	if err := cronJob.AddFunc(SCHEDULE, c.generate); err != nil {
+	schedule := fmt.Sprintf(SCHEDULE, int(c.timeInterval.Minutes()))
+	c.cron = cron.New()
+	if err := c.cron.AddFunc(schedule, c.generate); err != nil {
 		return err
 	}
-	cronJob.Start()
+	c.cron.Start()
 
 	return nil
 }
 
 func (c *Controller) Shutdown() {
-	cronJob.Stop()
+	c.cron.Stop()
 }
 
 func (c *Controller) generate() {
-	c.log.Info("Sitemap update started")
+	c.log.Debug("Sitemap update started")
 	for {
-		name, err := c.fileSelector.Select()
+		name, err := c.fetchName()
 		if err == redis.ErrNil {
-			c.log.Info("Sitemap update finished")
+			c.log.Debug("Sitemap update finished")
 			return
 		}
 
@@ -102,13 +102,13 @@ func (c *Controller) generate() {
 // handleError re-adds updated items to next file update queue
 func (c *Controller) handleError(items []*models.SitemapItem) {
 	// re-add filename to next queue
-	key := common.PrepareNextFileNameCacheKey()
+	key := common.PrepareNextFileNameSetCacheKey(int(c.timeInterval.Minutes()))
 	if _, err := c.redisConn.AddSetMembers(key, c.fileName); err != nil {
 		c.log.Critical("Could not re-add the filename: %s", err)
 		return
 	}
 
-	key = common.PrepareNextFileCacheKey(c.fileName)
+	key = common.PrepareNextFileCacheKey(c.fileName, int(c.timeInterval.Minutes()))
 	values := make([]interface{}, len(items))
 	for k := range items {
 		values[k] = items[k].PrepareSetValue()
@@ -121,7 +121,7 @@ func (c *Controller) handleError(items []*models.SitemapItem) {
 }
 
 func (c *Controller) fetchElements() ([]*models.SitemapItem, error) {
-	key := common.PrepareCurrentFileCacheKey(c.fileName)
+	key := common.PrepareCurrentFileCacheKey(c.fileName, int(c.timeInterval.Minutes()))
 	els := make([]*models.SitemapItem, 0)
 
 	members, err := c.redisConn.GetSetMembers(key)
@@ -206,4 +206,13 @@ func (c *Controller) buildContainer(items []*models.SitemapItem) *models.ItemCon
 	}
 
 	return container
+}
+
+func (c *Controller) fetchName() (string, error) {
+	item, err := c.redisConn.PopSetMember(common.PrepareCurrentFileNameSetCacheKey(int(c.timeInterval.Minutes())))
+	if err != nil {
+		return "", err
+	}
+
+	return item, nil
 }

@@ -73,15 +73,13 @@ class SidebarSearchModal extends KDModalView
     @fetch {}, @bound 'populate'
 
 
-  populate: (items, options) ->
+  populate: (items, options = {}) ->
 
     return  unless items?.length?
 
     @listController.removeAllItems()  unless options.skip
       
     @listController.addItem itemData for itemData in items
-
-    @listController.lazyLoader.setClass 'do-not-show'
 
 
   handleLazyLoad: ->

@@ -9,15 +9,15 @@ import (
 
 const (
 	CACHEPREFIX = "sitemap"
-	TIMERANGE   = 30
 )
 
-func PrepareCurrentFileCacheKey(fileName string) string {
-	return prepareFileCacheKey(getCurrentSegment(), fileName)
+func PrepareCurrentFileCacheKey(fileName string, timeInterval int) string {
+	return prepareFileCacheKey(getCurrentSegment(timeInterval), fileName)
 }
 
-func PrepareNextFileCacheKey(fileName string) string {
-	return prepareFileCacheKey(getNextSegment(), fileName)
+// PrepareNextFileCacheKey gets the cache key for upcoming updates
+func PrepareNextFileCacheKey(fileName string, timeInterval int) string {
+	return prepareFileCacheKey(getNextSegment(timeInterval), fileName)
 }
 
 func prepareFileCacheKey(segment, fileName string) string {
@@ -29,15 +29,15 @@ func prepareFileCacheKey(segment, fileName string) string {
 	)
 }
 
-func PrepareNextFileNameCacheKey() string {
-	return prepareFileNameCacheKey(getNextSegment())
+func PrepareNextFileNameSetCacheKey(timeInterval int) string {
+	return prepareFileNameSetCacheKey(getNextSegment(timeInterval))
 }
 
-func PrepareCurrentFileNameCacheKey() string {
-	return prepareFileNameCacheKey(getCurrentSegment())
+func PrepareCurrentFileNameSetCacheKey(timeInterval int) string {
+	return prepareFileNameSetCacheKey(getCurrentSegment(timeInterval))
 }
 
-func prepareFileNameCacheKey(segment string) string {
+func prepareFileNameSetCacheKey(segment string) string {
 	return fmt.Sprintf("%s:%s:%s:%s",
 		config.MustGet().Environment,
 		CACHEPREFIX,
@@ -46,16 +46,17 @@ func prepareFileNameCacheKey(segment string) string {
 	)
 }
 
-func getCurrentSegment() string {
-	segment := time.Now().Minute() / TIMERANGE
+func getCurrentSegment(timeInterval int) string {
+	segment := time.Now().Minute() / timeInterval
 
 	return strconv.Itoa(segment)
 }
 
-func getNextSegment() string {
+func getNextSegment(timeInterval int) string {
 	// divide time range into segments (for 30m range segment can be 0 or 1)
-	segment := time.Now().Minute() / TIMERANGE
-	segment = (segment + 1) % (60 / TIMERANGE)
+
+	segment := time.Now().Minute() / timeInterval
+	segment = (segment + 1) % (60 / timeInterval)
 
 	return strconv.Itoa(segment)
 }

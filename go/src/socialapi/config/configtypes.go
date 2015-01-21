@@ -49,6 +49,8 @@ type (
 		// Holds access information for realtime message authenticator
 		GateKeeper GateKeeper
 
+		Kloud Kloud
+
 		// random access configs
 		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
 		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
@@ -100,7 +102,8 @@ type (
 
 	// Sitemap holds Sitemap Workers' config
 	Sitemap struct {
-		RedisDB int `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
+		RedisDB        int    `env:"key=KONFIG_SOCIALAPI_SITEMAP_REDISDB"`
+		UpdateInterval string `env:"key=KONFIG_SOCIALAPI_SITEMAP_UPDATEINTERVAL"`
 	}
 
 	// Algolia holds Algolia service credentials
@@ -155,5 +158,10 @@ type (
 	CustomDomain struct {
 		Public string `env:"key=KONFIG_CUSTOMDOMAIN_PUBLIC"`
 		Local  string `env:"key=KONFIG_CUSTOMDOMAIN_LOCAL"`
+	}
+
+	Kloud struct {
+		SecretKey string `env:"key=KONFIG_KLOUD_SECRETKEY"`
+		Address   string `env:"key=KONFIG_KLOUD_ADDRESS"`
 	}
 )
