@@ -272,8 +272,8 @@ class IDE.EditorPane extends IDE.Pane
 
       when 'FileSaved'
 
-
         @parent.tabHandle.unsetClass 'modified'
+        @getAce().contentChanged = no
 
 
   setContentFromCollaborativeString: ->
