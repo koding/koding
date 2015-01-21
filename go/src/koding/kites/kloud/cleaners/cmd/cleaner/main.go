@@ -100,6 +100,11 @@ func realMain() error {
 		c.Slack("Cleaner started in dry-run mode", "", "")
 	}
 
+	return c.collectAndRun()
+}
+
+// collectAndRun collects any necessary resource and runs all task
+func (c *Cleaner) collectAndRun() error {
 	artifacts, err := c.Collect()
 	if err != nil {
 		return err
