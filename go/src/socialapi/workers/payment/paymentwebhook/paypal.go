@@ -2,5 +2,7 @@ package main
 
 import "net/http"
 
-func paypalHandler(w http.ResponseWriter, r *http.Request) {
+type paypalMux struct{}
+
+func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }

@@ -12,14 +12,19 @@ import (
 func main() {
 	conf := initialize()
 
-	http.HandleFunc("/stripe", stripeHandler)
-	http.HandleFunc("/paypal", paypalHandler)
+	mux := http.NewServeMux()
+
+	st := &stripeMux{}
+	pp := &paypalMux{}
+
+	mux.Handle("/stripe", st)
+	mux.Handle("/paypal", pp)
 
 	port := conf.PaymentWebhook.Port
 
 	log.Printf("Listening on port: %s", port)
 
-	err := http.ListenAndServe(":"+port, nil)
+	err := http.ListenAndServe(":"+port, mux)
 	if err != nil {
 		log.Fatal(err.Error())
 	}

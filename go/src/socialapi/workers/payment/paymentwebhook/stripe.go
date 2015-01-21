@@ -2,5 +2,7 @@ package main
 
 import "net/http"
 
-func stripeHandler(w http.ResponseWriter, r *http.Request) {
+type stripeMux struct{}
+
+func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
