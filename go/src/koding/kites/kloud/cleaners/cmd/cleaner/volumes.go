@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"strings"
 	"time"
 )
 
@@ -16,7 +17,7 @@ type Volumes struct {
 	notusedVolumes lookup.MultiVolumes
 	largeInstances *lookup.MultiInstances
 	err            error
-	stopData       []*StopData
+	stopData       map[string]*StopData
 }
 
 func (v *Volumes) Process() {
@@ -31,7 +32,7 @@ func (v *Volumes) Process() {
 		WithTag("koding-env", "production")
 
 	ids := make([]string, 0)
-	v.stopData = make([]*StopData, 0)
+	stopData := make(map[string]*StopData, 0)
 
 	for _, volumes := range inUse {
 		volIds := volumes.InstanceIds()
@@ -69,11 +70,20 @@ func (v *Volumes) Process() {
 			}
 
 			ids = append(ids, instanceId)
-			v.stopData = append(v.stopData, data)
+			stopData[instanceId] = data
 		}
 	}
 
 	v.largeInstances = instances.Only(ids...)
+	v.stopData = make(map[string]*StopData, 0)
+	for _, id := range v.largeInstances.Ids() {
+		data, ok := stopData[id]
+		if !ok {
+			continue
+		}
+
+		v.stopData[id] = data
+	}
 }
 
 func (v *Volumes) Run() {
@@ -100,11 +110,16 @@ func (v *Volumes) Result() string {
 		return fmt.Sprintf("volumes: error '%s'", v.err.Error())
 	}
 
+	usernames := make([]string, 0)
+	for _, data := range v.stopData {
+		usernames = append(usernames, data.username)
+	}
+
 	notUsed := fmt.Sprintf("terminated '%d' not used volumes. ",
 		v.notusedVolumes.Total())
 
-	stopped := fmt.Sprintf("stopped '%d' free machines",
-		v.largeInstances.Total())
+	stopped := fmt.Sprintf("stopped '%d' free machines. users: %s",
+		v.largeInstances.Total(), strings.Join(usernames, ","))
 
 	return notUsed + stopped
 }
