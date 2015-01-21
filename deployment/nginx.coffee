@@ -26,7 +26,6 @@ auth_basic            "Restricted";
 
 allowInternal = """
   allow                 127.0.0.0/8;
-        allow                 10.0.0.0/16;
         allow                 192.168.0.0/16;
         allow                 172.16.0.0/12;
         deny                  all;

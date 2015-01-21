@@ -79,9 +79,12 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.twitter.foreignId'  : 'ascending'
 
     sharedEvents    :
+      # do not share any events
       static        : []
       instance      : []
     sharedMethods   :
+      # do not share any instance methods
+      # instances     :
       static        :
         login                   : (signature Object, Function)
         logout                  : (signature Function)
@@ -837,6 +840,9 @@ Team Koding
 
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
+
+    if username is "guestuser"
+      return callback createKodingError "Reserved username."
 
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
