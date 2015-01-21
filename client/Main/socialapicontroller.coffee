@@ -120,6 +120,8 @@ class SocialApiController extends KDController
 
     KD.singletons.socialapi.cacheItem m
 
+    addToScreenMap {channelId: m.initialChannelId, body: m.body}
+
     return m
 
 
