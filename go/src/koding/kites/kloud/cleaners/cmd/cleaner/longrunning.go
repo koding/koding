@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"strings"
 	"time"
 )
 
@@ -15,7 +16,7 @@ type LongRunning struct {
 	runningInstances     *lookup.MultiInstances
 	longRunningInstances *lookup.MultiInstances
 	err                  error
-	stopData             []*StopData
+	stopData             map[string]*StopData
 }
 
 func (l *LongRunning) Process() {
@@ -30,7 +31,7 @@ func (l *LongRunning) Process() {
 		return
 	}
 
-	l.stopData = make([]*StopData, 0)
+	stopData := make(map[string]*StopData, 0)
 	ids := make([]string, 0)
 	for _, machine := range machines {
 		username := machine.Credential
@@ -62,7 +63,7 @@ func (l *LongRunning) Process() {
 			reason:     "Non free user, VM is running for more than 12 hours",
 		}
 
-		l.stopData = append(l.stopData, data)
+		stopData[instanceId] = data
 		ids = append(ids, instanceId)
 
 		// debug
@@ -71,6 +72,17 @@ func (l *LongRunning) Process() {
 
 	// contains free user VMs running for more than 12 hours
 	l.longRunningInstances = l.runningInstances.Only(ids...)
+
+	// filter out data from instances that are not running anymore
+	l.stopData = make(map[string]*StopData, 0)
+	for _, id := range l.longRunningInstances.Ids() {
+		data, ok := stopData[id]
+		if !ok {
+			continue
+		}
+
+		l.stopData[id] = data
+	}
 }
 
 func (l *LongRunning) Run() {
@@ -91,8 +103,18 @@ func (l *LongRunning) Result() string {
 		return fmt.Sprintf("longRunningVMs: error '%s'", l.err.Error())
 	}
 
-	return fmt.Sprintf("stopped '%d' free user instances",
-		l.longRunningInstances.Total())
+	if l.longRunningInstances.Total() == 0 {
+		return ""
+	}
+
+	usernames := make([]string, 0)
+	for _, data := range l.stopData {
+		usernames = append(usernames, data.username)
+	}
+
+	return fmt.Sprintf("stopped '%d' free user instances. users: '%s'",
+		l.longRunningInstances.Total(), strings.Join(usernames, ","))
+
 }
 
 func (l *LongRunning) Info() *taskInfo {

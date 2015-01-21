@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"strings"
 	"time"
 )
 
@@ -14,7 +15,7 @@ type MultipleVMs struct {
 
 	multipleInstances *lookup.MultiInstances
 	err               error
-	stopData          []*StopData
+	stopData          map[string]*StopData
 }
 
 func (m *MultipleVMs) Process() {
@@ -31,7 +32,7 @@ func (m *MultipleVMs) Process() {
 		}
 	}
 
-	m.stopData = make([]*StopData, 0)
+	stopData := make(map[string]*StopData, 0)
 	ids := make([]string, 0)
 
 	for username, machines := range freeUsersWithMultipleVMs {
@@ -50,12 +51,21 @@ func (m *MultipleVMs) Process() {
 				reason:     "Free user has more than two machines.",
 			}
 
+			stopData[instanceId] = data
 			ids = append(ids, instanceId)
-			m.stopData = append(m.stopData, data)
 		}
 	}
 
 	m.multipleInstances = instances.Only(ids...)
+	m.stopData = make(map[string]*StopData, 0)
+	for _, id := range m.multipleInstances.Ids() {
+		data, ok := stopData[id]
+		if !ok {
+			continue
+		}
+
+		m.stopData[id] = data
+	}
 }
 
 func (m *MultipleVMs) Run() {
@@ -76,8 +86,17 @@ func (m *MultipleVMs) Result() string {
 		return fmt.Sprintf("multipleVMs: error '%s'", m.err.Error())
 	}
 
-	return fmt.Sprintf("stopped '%d' machines",
-		m.multipleInstances.Total())
+	if m.multipleInstances.Total() == 0 {
+		return ""
+	}
+
+	usernames := make([]string, 0)
+	for _, data := range m.stopData {
+		usernames = append(usernames, data.username)
+	}
+
+	return fmt.Sprintf("stopped '%d' machines. users: '%s'",
+		m.multipleInstances.Total(), strings.Join(usernames, ","))
 }
 
 func (m *MultipleVMs) Info() *taskInfo {
