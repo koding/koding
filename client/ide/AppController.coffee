@@ -1012,7 +1012,8 @@ class IDEAppController extends AppController
           string = @rtm.getFromModel path
           string.setText content  if string
 
-        delete context.file?.content?
+        if context.file?.content
+          delete context.file.content
 
       @changes.push change
 
