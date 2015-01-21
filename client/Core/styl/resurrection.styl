@@ -756,6 +756,9 @@ div.nominateicon
         abs()
 
       &:hover
+        div.name
+        a.avatarview
+          opacity         .7
         span.remove
           display         inline-block
 
@@ -771,6 +774,8 @@ div.nominateicon
       width               auto
       position            relative
       float               left
+      padding-right       20px
+      margin-bottom       5px
 
       a.avatarview
         float             left
@@ -785,12 +790,19 @@ div.nominateicon
         cursor            pointer
 
       span.remove
-        float             left
         top               5px
         right             8px
-        position          relative
+        abs()
 
   .users-view
+
+    .input-view
+      width               100%
+      input
+        width             100%
+        text-align        left
+        margin-left       10px
+
     .listview-wrapper
       margin-top          10px
       margin-bottom       15px
