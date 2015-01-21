@@ -16,9 +16,18 @@ do ->
 
     kallback = (workspaces) ->
 
-      for machine in KD.userMachines \
-        when (machine.slug or machine.label) is machineLabel
+      username ?= KD.nick()
+
+      for machine in KD.userMachines
+        unless machine instanceof Machine
+          machine = new Machine machine: KD.remote.revive machine
+
+        sameLabel = (machine.slug or machine.label) is machineLabel
+        sameOwner = machine.getOwner() is username
+
+        if sameLabel and sameOwner
           machineUId = machine.uid
+          break
 
       for workspace in workspaces
         continue  unless workspace.machineUId is machineUId
@@ -61,8 +70,11 @@ do ->
 
     for m in KD.userMachines
 
-      sameLabel = (m.label is label) or (m.slug is label)
+      unless m instanceof Machine
+        m = new Machine machine: KD.remote.revive m
+
       sameUser  = m.getOwner() is username
+      sameLabel = (m.label or m.slug) is label
 
       return m  if sameLabel and sameUser
 
