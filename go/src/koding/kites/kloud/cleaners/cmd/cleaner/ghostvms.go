@@ -59,6 +59,10 @@ func (g *GhostVMs) Result() string {
 		return fmt.Sprintf("ghostVMs: error '%s'", g.err.Error())
 	}
 
+	if g.ghostInstances.Total() == 0 {
+		return ""
+	}
+
 	return fmt.Sprintf("terminated '%d' instances. instances: %s",
 		g.ghostInstances.Total(), strings.Join(g.ghostInstances.Ids(), ","))
 }

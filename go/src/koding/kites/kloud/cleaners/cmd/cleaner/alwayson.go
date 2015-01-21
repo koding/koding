@@ -44,6 +44,10 @@ func (a *AlwaysOn) Result() string {
 		return fmt.Sprintf("alwaysOn: error '%s'", a.err.Error())
 	}
 
+	if len(a.nonvalidUsers) == 0 {
+		return ""
+	}
+
 	return fmt.Sprintf("disabled '%d' free machines. users: %s",
 		len(a.nonvalidUsers), strings.Join(a.nonvalidUsers, ","))
 }

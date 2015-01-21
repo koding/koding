@@ -103,6 +103,10 @@ func (l *LongRunning) Result() string {
 		return fmt.Sprintf("longRunningVMs: error '%s'", l.err.Error())
 	}
 
+	if l.longRunningInstances.Total() == 0 {
+		return ""
+	}
+
 	usernames := make([]string, 0)
 	for _, data := range l.stopData {
 		usernames = append(usernames, data.username)
@@ -110,6 +114,7 @@ func (l *LongRunning) Result() string {
 
 	return fmt.Sprintf("stopped '%d' free user instances. users: '%s'",
 		l.longRunningInstances.Total(), strings.Join(usernames, ","))
+
 }
 
 func (l *LongRunning) Info() *taskInfo {

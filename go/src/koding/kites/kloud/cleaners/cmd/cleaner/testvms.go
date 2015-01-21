@@ -29,6 +29,10 @@ func (t *TestVMS) Run() {
 }
 
 func (t *TestVMS) Result() string {
+	if t.testInstances.Total() == 0 {
+		return ""
+	}
+
 	return fmt.Sprintf("terminated '%d' instances. instances: %s",
 		t.testInstances.Total(), strings.Join(t.testInstances.Ids(), ","))
 }

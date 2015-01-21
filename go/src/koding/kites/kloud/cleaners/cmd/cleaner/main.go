@@ -192,13 +192,20 @@ func (c *Cleaner) process(tasks ...task) {
 	}()
 
 	for t := range out {
-		if msg := t.Result(); msg != "" {
-			info := t.Info()
-			c.Log.Info("%s: %s", info.Title, msg)
-			c.Slack(info.Title, info.Desc, msg) // send to slack channel
-
-			t = nil
+		msg := t.Result()
+		if msg == "" {
+			continue
 		}
+
+		info := t.Info()
+		c.Log.Info("%s: %s", info.Title, msg)
+
+		if c.DryRun {
+			info.Title += info.Title + " (dry-run)"
+		}
+
+		c.Slack(info.Title, info.Desc, msg) // send to slack channel
+		t = nil
 	}
 
 	out = nil

@@ -110,18 +110,23 @@ func (v *Volumes) Result() string {
 		return fmt.Sprintf("volumes: error '%s'", v.err.Error())
 	}
 
-	usernames := make([]string, 0)
-	for _, data := range v.stopData {
-		usernames = append(usernames, data.username)
+	var result string
+	if v.notusedVolumes.Total() != 0 {
+		result = fmt.Sprintf("terminated '%d' not used volumes. ",
+			v.notusedVolumes.Total())
 	}
 
-	notUsed := fmt.Sprintf("terminated '%d' not used volumes. ",
-		v.notusedVolumes.Total())
+	if v.largeInstances.Total() != 0 {
+		usernames := make([]string, 0)
+		for _, data := range v.stopData {
+			usernames = append(usernames, data.username)
+		}
 
-	stopped := fmt.Sprintf("stopped '%d' free machines. users: %s",
-		v.largeInstances.Total(), strings.Join(usernames, ","))
+		result += fmt.Sprintf("stopped '%d' free machines. users: '%s'",
+			v.largeInstances.Total(), strings.Join(usernames, ","))
+	}
 
-	return notUsed + stopped
+	return result
 }
 
 func (v *Volumes) Info() *taskInfo {

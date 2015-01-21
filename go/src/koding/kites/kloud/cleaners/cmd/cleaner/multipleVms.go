@@ -86,12 +86,16 @@ func (m *MultipleVMs) Result() string {
 		return fmt.Sprintf("multipleVMs: error '%s'", m.err.Error())
 	}
 
+	if m.multipleInstances.Total() == 0 {
+		return ""
+	}
+
 	usernames := make([]string, 0)
 	for _, data := range m.stopData {
 		usernames = append(usernames, data.username)
 	}
 
-	return fmt.Sprintf("stopped '%d' machines. users: %s",
+	return fmt.Sprintf("stopped '%d' machines. users: '%s'",
 		m.multipleInstances.Total(), strings.Join(usernames, ","))
 }
 
