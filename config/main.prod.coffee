@@ -42,6 +42,7 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"   , subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe", secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                                           , enabled:  yes                         }
   gatekeeper          = { host:       "localhost"                                    , port:               7200                                  , pubnub: pubnub                                }
+  paymentwebhook      = { port : 6500 }
 
 
   kloudPort           = 5500
@@ -75,6 +76,7 @@ Configuration = (options={}) ->
     gatekeeper        : gatekeeper
     customDomain      : customDomain
     kloud             : { secretKey: kloud.secretKey, address: kloud.address }
+    paymentwebhook    : { port : "#{paymentwebhook.port}"}
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -338,6 +340,20 @@ Configuration = (options={}) ->
         locations       : [ location: "/xhr" ]
       healthCheckURL    : "#{customDomain.local}/api/gatekeeper/healthCheck"
       versionURL        : "#{customDomain.local}/api/gatekeeper/version"
+
+    paymentwebhook      :
+      group             : "socialapi"
+      ports             :
+        incoming        : "#{paymentwebhook.port}"
+      supervisord       :
+        command         : "#{GOBIN}/paymentwebhook -c #{configName}"
+      healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
+      versionURL        : "http://localhost:#{paymentwebhook.port}/version"
+      nginx             :
+        locations       : [
+          { location    : "= /-/payments/stripe/webhook" },
+          { location    : "= /-/payments/paypal/webhook" }
+        ]
 
     vmwatcher           :
       group             : "environment"

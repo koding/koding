@@ -57,9 +57,14 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev paymentwebhookdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
+
+paymentwebhookdev:
+	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
+	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
+	@$(GOBINDIR)/goldorf -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) $(DBG) $(METRICS) $(KITE)
 
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
