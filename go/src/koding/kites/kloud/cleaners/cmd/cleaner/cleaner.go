@@ -46,8 +46,8 @@ type StopData struct {
 
 func NewCleaner(conf *Config) *Cleaner {
 	auth := aws.Auth{
-		AccessKey: conf.AccessKey,
-		SecretKey: conf.SecretKey,
+		AccessKey: conf.Aws.AccessKey,
+		SecretKey: conf.Aws.SecretKey,
 	}
 
 	l := lookup.NewAWS(auth)
@@ -55,15 +55,15 @@ func NewCleaner(conf *Config) *Cleaner {
 	dns := koding.NewDNSClient(conf.HostedZone, auth)
 	domains := koding.NewDomainStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
-		Host:     conf.Host,
-		Port:     conf.Port,
-		Username: conf.Username,
-		Password: conf.Password,
-		DBName:   conf.DBName,
+		Host:     conf.Postgres.Host,
+		Port:     conf.Postgres.Port,
+		Username: conf.Postgres.Username,
+		Password: conf.Postgres.Password,
+		DBName:   conf.Postgres.DBName,
 	})
 	// TODO: change once the code is moved to koding/monitoring
 	hook := Hook{
-		URL:      conf.SlackURL,
+		URL:      conf.Slack.URL,
 		Channel:  "#reports",
 		Username: "cleaner",
 	}

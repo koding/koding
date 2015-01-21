@@ -1,0 +1,19 @@
+mongo      = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
+dryrun     = true
+hostedzone = "koding.io"
+
+[slack]
+url = "https://hooks.slack.com/services/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"
+
+[postgres]
+host = "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com"
+port = 5432
+username = "socialapplication"
+password = "socialapplication"
+dbname = "social"
+
+[aws]
+access = "AKIAJFKDHRJ7Q5G4MOUQ"
+secret = "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"
+
+

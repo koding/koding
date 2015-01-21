@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 	"sync"
@@ -8,25 +9,35 @@ import (
 	"github.com/koding/multiconfig"
 )
 
+var (
+	flagConfigFile = flag.String("c", "", "Configuration TOML file")
+)
+
 type Config struct {
 	// AWS Access and Secret Key
-	AccessKey string `required:"true"`
-	SecretKey string `required:"true"`
+	Aws struct {
+		AccessKey string `required:"true"`
+		SecretKey string `required:"true"`
+	}
 
 	// MongoDB
 	MongoURL string `required:"true"`
 
 	// Postgres
-	Host     string `default:"localhost"`
-	Port     int    `default:"5432"`
-	Username string `required:"true"`
-	Password string `required:"true"`
-	DBName   string `required:"true" `
+	Postgres struct {
+		Host     string `default:"localhost"`
+		Port     int    `default:"5432"`
+		Username string `required:"true"`
+		Password string `required:"true"`
+		DBName   string `required:"true" `
+	}
 
 	// HostedZone for production machines
 	HostedZone string `default:"koding.io"`
 
-	SlackURL string
+	Slack struct {
+		URL string
+	}
 
 	DryRun bool
 }
@@ -61,8 +72,16 @@ func main() {
 }
 
 func realMain() error {
+	flag.Parse()
+
+	// If a file is provided use it first
+	m := multiconfig.New()
+	if *flagConfigFile != "" {
+		m = multiconfig.NewWithPath(*flagConfigFile)
+	}
+
 	conf := new(Config)
-	multiconfig.New().MustLoad(conf)
+	m.MustLoad(conf)
 
 	c := NewCleaner(conf)
 	if c.DryRun {
