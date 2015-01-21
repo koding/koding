@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"time"
 
 	"github.com/koding/multiconfig"
 )
@@ -39,7 +40,8 @@ type Config struct {
 		URL string
 	}
 
-	DryRun bool
+	DryRun   bool
+	Interval string `required:"true"`
 }
 
 type task interface {
@@ -94,23 +96,40 @@ func realMain() error {
 	conf := new(Config)
 	m.MustLoad(conf)
 
-	c := NewCleaner(conf)
-	if c.DryRun {
-		c.Log.Warning("Dry run is enabled.")
-		c.Slack("Cleaner started in dry-run mode", "", "")
+	cl := NewCleaner(conf)
+	if cl.DryRun {
+		cl.Log.Warning("Dry run is enabled.")
+		cl.Slack("Cleaner started in dry-run mode", "", "")
 	}
 
-	return c.collectAndRun()
+	interval, err := time.ParseDuration(conf.Interval)
+	if err != nil {
+		return err
+	}
+
+	for {
+		cl.Run()
+		time.Sleep(interval)
+	}
+
+	return nil
 }
 
-// collectAndRun collects any necessary resource and runs all task
-func (c *Cleaner) collectAndRun() error {
+func (c *Cleaner) Run() {
+	c.Log.Info("Cleaner start to collect artifacts...")
+	if err := c.collectAndProcess(); err != nil {
+		c.Log.Error(err.Error())
+	}
+}
+
+// collectAndRun collects any necessary resource and processes all task
+func (c *Cleaner) collectAndProcess() error {
 	artifacts, err := c.Collect()
 	if err != nil {
 		return err
 	}
 
-	c.run(
+	c.process(
 		&TestVMS{
 			Instances: artifacts.Instances,
 		},
@@ -148,7 +167,7 @@ func (c *Cleaner) collectAndRun() error {
 	return nil
 }
 
-func (c *Cleaner) run(tasks ...task) {
+func (c *Cleaner) process(tasks ...task) {
 	c.Log.Info("Running '%d' cleaners", len(tasks))
 
 	var wg sync.WaitGroup

@@ -1,6 +1,7 @@
 mongourl   = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
 dryrun     = true
 hostedzone = "koding.io"
+interval   = "6h"
 
 [slack]
 url = "https://hooks.slack.com/services/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"
