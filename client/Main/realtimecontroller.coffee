@@ -22,6 +22,11 @@ class RealtimeController extends KDController
       uuid          : KD.whoami()._id
       ssl           : ssl
 
+    realtimeToken = Cookies.get("realtimeToken")
+
+    @pubnub.auth realtimeToken  if realtimeToken?
+
+
   # channel authentication is needed for notification channel and
   # private channels
   authenticate: (options, callback) ->
@@ -31,7 +36,17 @@ class RealtimeController extends KDController
     { endPoint, data } = options
     return callback { message : "endPoint is not set"}  unless endPoint
 
-    KD.utils.doXhrRequest {endPoint, data}, callback
+    KD.utils.doXhrRequest {endPoint, data}, (err) =>
+
+      return callback err  if err
+
+      realtimeToken = Cookies.get("realtimeToken")
+
+      return callback { message : 'Could not find realtime token'}  unless realtimeToken
+
+      @pubnub.auth realtimeToken
+
+      callback null
 
 
   # subscriptionData =
@@ -136,12 +151,6 @@ class RealtimeController extends KDController
     @authenticate options.authenticate, (err) =>
 
       return callback err  if err
-
-      realtimeToken = Cookies.get("realtimeToken")
-
-      return callback { message : 'Could not find realtime token'}  unless realtimeToken
-
-      @pubnub.auth realtimeToken
 
       channelInstance = new PubnubChannel name: pubnubChannelName
 
