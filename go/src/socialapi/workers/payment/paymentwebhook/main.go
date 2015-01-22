@@ -7,6 +7,7 @@ import (
 	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/payment"
+	"socialapi/workers/payment/paymentmodels"
 )
 
 func main() {
@@ -30,6 +31,10 @@ func main() {
 	}
 }
 
+//----------------------------------------------------------
+// Helpers
+//----------------------------------------------------------
+
 func initialize() *config.Config {
 	r := runner.New("paymenttest")
 	if err := r.Init(); err != nil {
@@ -40,4 +45,9 @@ func initialize() *config.Config {
 	payment.Initialize(config.MustGet(), r.Kite)
 
 	return r.Conf
+}
+
+func getEmailForCustomer(customerId string) (string, error) {
+	customer := paymentmodels.NewCustomer()
+	return customer.GetEmail(customerId)
 }

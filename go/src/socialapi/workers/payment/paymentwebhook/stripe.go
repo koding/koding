@@ -11,18 +11,19 @@ import (
 type stripeActionType func([]byte) error
 
 var stripeActions = map[string][]stripeActionType{
+	"customer.subscription.created": []stripeActionType{
+		sendSubscriptionCreatedEmail,
+	},
+
 	"customer.subscription.deleted": []stripeActionType{
 		stripe.SubscriptionDeletedWebhook,
-		// stopMachines,
+		sendSubscriptionDeletedEmail,
 	},
 
-	"invoice.created": []stripeActionType{
-		stripe.InvoiceCreatedWebhook,
-	},
-
-	"customer.deleted": []stripeActionType{
-		stripe.CustomerDeletedWebhook,
-	},
+	"invoice.created":  []stripeActionType{stripe.InvoiceCreatedWebhook},
+	"customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
+	"charge.refunded":  []stripeActionType{sendChargeRefundedEmail},
+	"charge.failed":    []stripeActionType{sendChargeFailedEmail},
 }
 
 type stripeWebhookRequest struct {
