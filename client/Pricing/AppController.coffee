@@ -18,10 +18,21 @@ class PricingAppController extends KDViewController
       identifier : 'paypal'
       url        : 'https://www.paypalobjects.com/js/external/dg.js'
 
+    @initAppStorage()
+
     KodingAppsController.appendHeadElement 'script', stripeOptions, =>
       Stripe.setPublishableKey KD.config.stripe.token
       KodingAppsController.appendHeadElement 'script', paypalOptions, =>
         @emit 'ready'
+
+
+  initAppStorage: ->
+
+    { appStorageController } = KD.singletons
+
+    appStorage = appStorageController.storage 'Pricing', '2.0.0'
+
+    @ready => @mainView.appStorage = appStorage
 
 
   loadPaymentProvider: (callback) -> @ready callback
@@ -36,4 +47,5 @@ class PricingAppController extends KDViewController
     return  unless planTitle and planInterval
 
     @loadPaymentProvider -> view.continueFrom planTitle, planInterval
+
 
