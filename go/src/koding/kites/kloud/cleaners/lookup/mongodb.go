@@ -1,7 +1,6 @@
 package lookup
 
 import (
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"time"
