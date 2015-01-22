@@ -159,8 +159,7 @@ class PricingAppView extends KDView
 
       return callback()  unless result
 
-      now = Date.now()
-      difference = now - result.timestamp
+      difference = Date.now() - result.timestamp
 
       if difference < TOO_MANY_ATTEMPT_BLOCK_DURATION
 
