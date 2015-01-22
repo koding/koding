@@ -69,6 +69,7 @@ class PaymentForm extends JView
       style     : 'solid medium green'
       title     : buttonPartial
       loader    : yes
+      disabled  : yes
       cssClass  : 'submit-btn'
       callback  : => @emit 'PaymentSubmitted', @form.getFormData()
 
@@ -116,6 +117,8 @@ class PaymentForm extends JView
     if currentPlan is FREE
       @form.show()
       @existingCreditCardMessage.hide()
+    else
+      @submitButton.enable()
 
     @paypalForm.destroy()  unless provider is KODING
 
