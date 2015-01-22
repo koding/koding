@@ -192,7 +192,10 @@ class PricingAppView extends KDView
       .router
       .handleRoute '/Login'  unless KD.isLoggedIn()
 
-    return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
+    # wait for loading the current plan,
+    # call this method until it's ready.
+    unless @state.currentPlan?
+      return @loadPlan => @planSelected options
 
     isCurrentPlan =
       options.planTitle    is @state.currentPlan and
