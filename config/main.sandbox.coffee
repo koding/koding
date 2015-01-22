@@ -168,6 +168,8 @@ Configuration = (options={}) ->
     client                         : {watch: yes , version: version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
+  # NOTE: when you add to runtime options below, be sure to modify
+  # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
   KONFIG.client.runtimeOptions =
     kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
     algolia              : algolia
@@ -209,9 +211,12 @@ Configuration = (options={}) ->
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
     collaboration        : KONFIG.collaboration
-    paymentBlockDuration : 2 * 60 * 1000
+    paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
 
-      # END: PROPERTIES SHARED WITH BROWSER #
+    # NOTE: when you add to runtime options above, be sure to modify
+    # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
+
+    # END: PROPERTIES SHARED WITH BROWSER #
 
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#

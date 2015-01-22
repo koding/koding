@@ -174,7 +174,7 @@ Configuration = (options={}) ->
     client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
-  # NOTE: when you add to runtime options above, be sure to modify
+  # NOTE: when you add to runtime options below, be sure to modify
   # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
 
   KONFIG.client.runtimeOptions =
@@ -218,7 +218,7 @@ Configuration = (options={}) ->
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: no     }
     collaboration        : KONFIG.collaboration
-    paymentBlockDuration : 2 * 60 * 1000
+    paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
