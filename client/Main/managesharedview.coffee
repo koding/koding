@@ -88,31 +88,44 @@ class ManageSharedView extends KDView
 
     {profile:{nickname}} = user
 
+    updateUserList = =>
+
+      if @usersController.getItemCount() > 1
+
+        if task is 'add'
+        then @usersController.addItem user
+        else @usersController.removeItem userItem
+
+        @updateInMemoryListOfUsers()
+
+      else
+
+        @listUsers()
+
+
     @machine.jMachine.shareWith
       target    : [nickname]
       permanent : yes
       asUser    : task is 'add'
+
     , (err)=>
 
-      @loader.hide()
+      return @showError err  if err
 
-      if err
-        @warning.setTooltip title: err.message
-        @warning.show()
+      kite   = @machine.getBaseKite()
+      method = if task is 'add' then 'klientShare' else 'klientUnshare'
 
-      else
+      kite[method] username: nickname
 
-        if @usersController.getItemCount() > 1
+        .then => @updateUserList()
 
-          if task is 'add'
-          then @usersController.addItem user
-          else @usersController.removeItem userItem
+        .error (err)=>
+          if err.message in ['user is already in the shared list.'
+                             'user is not in the shared list.']
+          then @updateUserList()
+          else @showError err
 
-          @updateInMemoryListOfUsers()
-
-        else
-
-          @listUsers()
+        .finally => @loader.hide()
 
 
   addUser: (user)->
@@ -155,3 +168,10 @@ class ManageSharedView extends KDView
       .then callback
       .timeout 1e4
       .catch Promise.TimeoutError, callback.bind this, []
+
+
+  showError: (err)->
+
+    @warning.setTooltip title: err.message
+    @warning.show()
+    @loader.hide()
