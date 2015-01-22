@@ -3,50 +3,77 @@ package main
 import (
 	"encoding/json"
 	"socialapi/workers/payment/paymentemail"
-	"socialapi/workers/payment/stripe"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
+
+	"github.com/coreos/go-log/log"
 )
 
-func sendSubscriptionCreatedEmail(raw []byte) error {
-	email, opts, err := _subWebhook(raw)
-	if err != nil {
-		return err
+type subscriptionActionType func(*webhookmodels.StripeSubscription) error
+
+func StripeSubscriptionCreated(raw []byte) error {
+	actions := []subscriptionActionType{
+		sendSubscriptionCreatedEmail,
 	}
 
-	return paymentemail.Send(paymentemail.SubscriptionCreated, email, opts)
+	return _subscription(raw, actions)
 }
 
-func sendSubscriptionDeletedEmail(raw []byte) error {
-	email, opts, err := _subWebhook(raw)
-	if err != nil {
-		return err
+func StripeSubscriptionDeleted(raw []byte) error {
+	actions := []subscriptionActionType{
+		sendSubscriptionDeletedEmail,
 	}
 
-	return paymentemail.Send(paymentemail.SubscriptionDeleted, email, opts)
+	return _subscription(raw, actions)
 }
 
-func _subWebhook(raw []byte) (string, *paymentemail.Options, error) {
-	// subscription created, deleted sends 'subscription' type in webhook
-	// can make this more generic
-	var req *stripe.SubscriptionDeletedWebhookRequest
+func _subscription(raw []byte, actions []subscriptionActionType) error {
+	var req *webhookmodels.StripeSubscription
 
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
-		return "", nil, err
+		return err
 	}
 
+	for _, action := range actions {
+		err := action(req)
+		if err != nil {
+			log.Error("Stripe webhook: subscription failed: %s", err)
+		}
+	}
+
+	return nil
+}
+
+func sendSubscriptionCreatedEmail(req *webhookmodels.StripeSubscription) error {
 	email, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
-		return "", nil, err
+		return err
 	}
 
 	opts := &paymentemail.Options{
 		PlanName: req.Plan.Name,
 	}
 
-	return email, opts, nil
+	return paymentemail.Send(paymentemail.SubscriptionCreated, email, opts)
 }
 
+func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription) error {
+	email, err := getEmailForCustomer(req.CustomerId)
+	if err != nil {
+		return err
+	}
+
+	opts := &paymentemail.Options{
+		PlanName: req.Plan.Name,
+	}
+
+	return paymentemail.Send(paymentemail.SubscriptionDeleted, email, opts)
+}
+
+//----------------------------------------------------------
 // TODO: move to stripe package
+//----------------------------------------------------------
+
 type stripeCard struct {
 	Id      string `json:"id"`
 	ExpYear string `json:"exp_year"`

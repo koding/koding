@@ -3,27 +3,25 @@ package main
 import (
 	"encoding/json"
 	"net/http"
-	"socialapi/workers/payment/stripe"
 
 	"github.com/coreos/go-log/log"
 )
 
 type stripeActionType func([]byte) error
 
-var stripeActions = map[string][]stripeActionType{
-	"customer.subscription.created": []stripeActionType{
-		sendSubscriptionCreatedEmail,
-	},
+var stripeActions = map[string]stripeActionType{
+	"customer.subscription.created": StripeSubscriptionCreated,
+	"customer.subscription.deleted": StripeSubscriptionDeleted,
 
-	"customer.subscription.deleted": []stripeActionType{
-		stripe.SubscriptionDeletedWebhook,
-		sendSubscriptionDeletedEmail,
-	},
+	// "customer.subscription.deleted": []stripeActionType{
+	//   stripe.SubscriptionDeletedWebhook,
+	//   sendSubscriptionDeletedEmail,
+	// },
 
-	"invoice.created":  []stripeActionType{stripe.InvoiceCreatedWebhook},
-	"customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
-	"charge.refunded":  []stripeActionType{sendChargeRefundedEmail},
-	"charge.failed":    []stripeActionType{sendChargeFailedEmail},
+	// "invoice.created":  []stripeActionType{stripe.InvoiceCreatedWebhook},
+	// "customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
+	// "charge.refunded":  []stripeActionType{sendChargeRefundedEmail},
+	// "charge.failed":    []stripeActionType{sendChargeFailedEmail},
 }
 
 type stripeWebhookRequest struct {
@@ -47,7 +45,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	actions, ok := stripeActions[req.Name]
+	action, ok := stripeActions[req.Name]
 	if !ok {
 		log.Error("Stripe webhook: %s not implemented", req.Name)
 		return
@@ -59,11 +57,10 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, action := range actions {
-		err := action(data)
-		if err != nil {
-			log.Error("Stripe webhook: %s action failed: %s", req.Name, err)
-		}
+	err = action(data)
+	if err != nil {
+		log.Error("Stripe webhook: %s action failed: %s", req.Name, err)
+		return
 	}
 
 	// return 200 to webhook
