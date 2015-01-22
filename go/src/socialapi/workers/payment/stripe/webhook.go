@@ -10,8 +10,14 @@ import (
 // SubscriptionDeleted
 //----------------------------------------------------------
 
+type PlanWebhook struct {
+	Name string `json:"name"`
+}
+
 type SubscriptionDeletedWebhookRequest struct {
-	ID string `json:"id"`
+	ID         string      `json:"id"`
+	CustomerId string      `json:"customer"`
+	Plan       PlanWebhook `json:"plan"`
 }
 
 func SubscriptionDeletedWebhook(raw []byte) error {
