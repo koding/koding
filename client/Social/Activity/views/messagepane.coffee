@@ -140,6 +140,7 @@ class MessagePane extends KDTabPaneView
     fakeData = KD.utils.generateDummyMessage value
 
     item = @putMessage fakeData
+    item.setClass 'fake-item'
 
     # save it to a map so that we have a reference
     # to it to be deleted.
