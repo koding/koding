@@ -12,6 +12,7 @@ class StripeFormView extends KDFormViewWithFields
       input.unsetTooltip()
       input.validationNotifications = {}
       input.clearValidationFeedback()
+      return no
 
     notificationOptions = { type: 'tooltip', placement: 'top' }
 
@@ -30,27 +31,25 @@ class StripeFormView extends KDFormViewWithFields
         rules        :
           clear      : clearValidationErrors
 
-          checkCC    : (input, event) ->
+          checkCC    : KD.utils.debounce 100, (input, event) =>
             val = $.trim input.getValue().replace(/-|\s/g,"")
-            result = Stripe.card.validateCardNumber val
-            result = if result
-            then no
-            else 'Card number is not valid'
+            returnResult = result = Stripe.card.validateCardNumber val
+            result = if result then no else 'Card number is not valid'
             input.setValidationResult 'checkCC', result
-
+            return returnResult
           cardType   : do =>
             cssClass = null
             return (input, event) =>
               @unsetClass cssClass  if cssClass
               val = $.trim input.getValue().replace(/-|\s/g,"")
-              cssClass = (Stripe.card.cardType val).toLowerCase()
+              cssClass = Stripe.card.cardType(val).toLowerCase()
               cssClass = KD.utils.slugify cssClass
               @setClass cssClass
 
         events       :
           cardType   : 'keyup'
-          checkCC    : 'blur'
-          clear      : 'focus'
+          checkCC    : ['keyup', 'blur']
+          clear      : ['keydown']
     }
 
     fields.cardCVC = {
@@ -60,16 +59,13 @@ class StripeFormView extends KDFormViewWithFields
         rules         :
           clear       : clearValidationErrors
           checkCVC    : (input, event) ->
-            val    = $.trim input.getValue().replace(/-|\s/g, '')
-            result = Stripe.card.validateCVC val
-            result = if result
-            then no
-            else 'CVC is not valid'
+            val = $.trim input.getValue().replace(/-|\s/g, '')
+            returnResult = result = Stripe.card.validateCVC val
+            result = if result then no else 'CVC is not valid'
             input.setValidationResult 'checkCVC', result
-
         events        :
-          clear       : 'focus'
-          checkCVC    : 'blur'
+          clear       : ['keydown']
+          checkCVC    : ['blur', 'keyup']
     }
 
     fields.cardName = {
@@ -82,8 +78,8 @@ class StripeFormView extends KDFormViewWithFields
           clear       : clearValidationErrors
           required    : yes
         events        :
-          required    : 'blur'
-          clear       : 'focus'
+          clear       : ['keydown']
+          required    : ['blur', 'keyup']
     }
 
     fields.cardMonth = {
@@ -93,21 +89,20 @@ class StripeFormView extends KDFormViewWithFields
         maxlength     : 2
       validate        :
         notifications : notificationOptions
-        event         : 'blur'
         rules         :
           clear       : clearValidationErrors
           checkMonth  : (input, event) ->
             val = $.trim input.getValue().replace(/-|\s/g, '')
             # just to check for month, we are setting
             # a happy value to the year.
-            result = Stripe.card.validateExpiry val, 2015
-            result = if result
-            then no
-            else 'Invalid month!'
+            happyYear = (new Date).getFullYear() + 1
+            returnResult = result = Stripe.card.validateExpiry val, happyYear
+            result = if result then no else 'Invalid month!'
             input.setValidationResult 'checkMonth', result
+            return returnResult
         events       :
-          checkMonth : 'blur'
-          clear      : 'focus'
+          clear      : ['keydown']
+          checkMonth : ['blur', 'keyup']
     }
 
     fields.cardYear = {
@@ -122,15 +117,14 @@ class StripeFormView extends KDFormViewWithFields
           checkYear      : (yearInput, event) =>
             yearVal    = $.trim yearInput.getValue().replace(/-|\s/g, '')
             validMonth = (new Date).getMonth() + 1
-            result = Stripe.card.validateExpiry validMonth, yearVal
-            result = if result
-            then no
-            else 'Invalid year!'
+            returnResult = result = Stripe.card.validateExpiry validMonth, yearVal
+            result = if result then no else 'Invalid year!'
             yearInput.setValidationResult 'checkYear', result
+            return returnResult
 
         events           :
-          checkYear      : 'blur'
-          clear          : 'focus'
+          checkYear      : ['keyup', 'blur']
+          clear          : ['keydown']
     }
 
     { planTitle, planInterval, currentPlan
