@@ -120,7 +120,7 @@ class SocialApiController extends KDController
 
     KD.singletons.socialapi.cacheItem m
 
-    addToScreenMap {channelId: m.initialChannelId, body: m.body}
+    addToScreenMap { messageId: m.id, clientRequestId: m.clientRequestId }
 
     return m
 
@@ -229,12 +229,9 @@ class SocialApiController extends KDController
     {message} = message  unless message.typeConstant?
     {_inScreenMap}  = KD.singletons.socialapi
 
-    {messageId, body, initialChannelId} = message
+    {id, clientRequestId} = message
 
-    type = messageId or initialChannelId
-    token = getScreenMapToken body, type
-
-    inside = _inScreenMap[token]
+    inside = _inScreenMap[id] or _inScreenMap[clientRequestId]
 
     return not inside
 
@@ -306,14 +303,11 @@ class SocialApiController extends KDController
 
 
   addToScreenMap = (options) ->
-
-    {messageId, body, channelId} = options
+    {messageId, clientRequestId} = options
     {_inScreenMap} = KD.singletons.socialapi
 
-    type  = messageId or channelId
-    token = getScreenMapToken body, type
-
-    _inScreenMap[token] = yes
+    _inScreenMap[clientRequestId] = yes  if clientRequestId
+    _inScreenMap[messageId]       = yes  if messageId
 
 
   messageRequesterFn = (options) ->
