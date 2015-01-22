@@ -2,7 +2,7 @@ class PricingAppView extends KDView
 
   JView.mixin @prototype
 
-  TOO_MANY_ATTEMPT_BLOCK_DURATION = 24 * 60 * 1000
+  TOO_MANY_ATTEMPT_BLOCK_DURATION = KD.config.paymentBlockDuration
   TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
 
   getInitialState : ->

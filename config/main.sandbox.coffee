@@ -169,46 +169,47 @@ Configuration = (options={}) ->
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
   KONFIG.client.runtimeOptions =
-    kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
-    algolia           : algolia
-    logToExternal     : no                                 # rollbar , mixpanel etc.
-    suppressLogs      : no
-    logToInternal     : no                                 # log worker
-    authExchange      : "auth"
-    environment       : environment                        # this is where browser knows what kite environment to query for
-    version           : version
-    resourceName      : socialQueueName
-    userSitesDomain   : userSitesDomain
-    logResourceName   : logQueueName
-    socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
-    sourceMapsUri     : "/sourcemaps"
-    broker            : {uri          : "/subscribe" }
-    appsUri           : "/appsproxy"
-    uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
-    uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-    fileFetchTimeout  : 1000 * 15
-    userIdleMs        : 1000 * 60 * 5
-    embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github            : {clientId     : "d3b586defd01c24bb294" }
-    newkontrol        : {url          : "#{kontrol.url}"}
-    sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
-    troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
-    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
-    externalProfiles  :
-      google          : {nicename: 'Google'  }
-      linkedin        : {nicename: 'LinkedIn'}
-      twitter         : {nicename: 'Twitter' }
-      odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
-      facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
-      github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
-    entryPoint        : {slug:'koding'       , type:'group'}
-    siftScience       : 'f270274999'
-    paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub            : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
-    collaboration     : KONFIG.collaboration
+    kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
+    algolia              : algolia
+    logToExternal        : no                                 # rollbar , mixpanel etc.
+    suppressLogs         : no
+    logToInternal        : no                                 # log worker
+    authExchange         : "auth"
+    environment          : environment                        # this is where browser knows what kite environment to query for
+    version              : version
+    resourceName         : socialQueueName
+    userSitesDomain      : userSitesDomain
+    logResourceName      : logQueueName
+    socialApiUri         : "/xhr"
+    apiUri               : "/"
+    mainUri              : "/"
+    sourceMapsUri        : "/sourcemaps"
+    broker               : {uri          : "/subscribe" }
+    appsUri              : "/appsproxy"
+    uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
+    uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
+    fileFetchTimeout     : 1000 * 15
+    userIdleMs           : 1000 * 60 * 5
+    embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
+    github               : {clientId     : "d3b586defd01c24bb294" }
+    newkontrol           : {url          : "#{kontrol.url}"}
+    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
+    recaptcha            : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
+    stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
+    externalProfiles     :
+      google             : {nicename: 'Google'  }
+      linkedin           : {nicename: 'LinkedIn'}
+      twitter            : {nicename: 'Twitter' }
+      odesk              : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
+      facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
+      github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint           : {slug:'koding'       , type:'group'}
+    siftScience          : 'f270274999'
+    paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
+    collaboration        : KONFIG.collaboration
+    paymentBlockDuration : 2 * 60 * 1000
 
       # END: PROPERTIES SHARED WITH BROWSER #
 
