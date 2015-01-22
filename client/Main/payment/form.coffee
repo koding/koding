@@ -36,7 +36,8 @@ class PaymentForm extends JView
 
   observeForm: ->
 
-    isVisible = (key) => @form.inputs[key]?.getOption('cssClass') isnt 'hidden'
+    isVisible = (key) =>
+      if input = @form.inputs[key] then input.getOption('cssClass') isnt 'hidden' else no
 
     Object.keys(@form.inputs).filter(isVisible).map (name) =>
 
