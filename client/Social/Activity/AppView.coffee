@@ -80,7 +80,7 @@ class ActivityAppView extends KDView
 
     # if type is 'topic' then @widgetsBar.show() else @widgetsBar.hide()
 
-    kallback = (data) =>
+    callback = (data) =>
       name = if slug then "#{type}-#{slug}" else type
       pane = @tabs.getPaneByName name
 
@@ -106,9 +106,9 @@ class ActivityAppView extends KDView
           unless KD.utils.isChannelCollaborative data
             @sidebar.whenMachinesRendered().then =>
               @sidebar.addItem data, 2
-              kallback data
+              callback data
     else
-      kallback item.getData()
+      callback item.getData()
 
 
   openNext: ->
