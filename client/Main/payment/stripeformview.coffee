@@ -31,7 +31,7 @@ class StripeFormView extends KDFormViewWithFields
         rules        :
           clear      : clearValidationErrors
 
-          checkCC    : KD.utils.debounce 100, (input, event) =>
+          checkCC    : KD.utils.debounce 100, (input, event) ->
             val = $.trim input.getValue().replace(/-|\s/g,"")
             returnResult = result = Stripe.card.validateCardNumber val
             result = if result then no else 'Card number is not valid'
