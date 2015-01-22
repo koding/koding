@@ -102,11 +102,9 @@ class ActivityInputWidget extends KDView
     if err
       @showError err
       @emit 'SubmitFailed', err, activity.clientRequestId  if activity
-      return
-
-    @emit 'SubmitSucceeded', activity
-
-    KD.mixpanel "Status update create, success", { length: activity?.body?.length }
+    else
+      @emit 'SubmitSucceeded', activity
+      KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
     queueIndex = (index for item, index in @activityQueue when item.options.clientRequestId is activity?.clientRequestId)[0]
 
