@@ -167,7 +167,7 @@ class PricingAppView extends KDView
         @workflowController = new PaymentWorkflow { state: options, delegate: this }
 
         @workflowController.on 'WorkflowStarted', =>
-          @workflowController.failedAttemptLimitReached()
+          @workflowController.failedAttemptLimitReached no
 
         return
 
@@ -181,6 +181,11 @@ class PricingAppView extends KDView
     KD.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
 
 
+  ###*
+   * This method uses `preventBlockedUser` method as a
+   * before filter, that filter will decide
+   * if this method will be called or not.
+  ###
   planSelected: (options) -> @preventBlockedUser options, =>
 
     return KD.singletons

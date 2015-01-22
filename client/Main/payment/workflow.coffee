@@ -189,9 +189,9 @@ class PaymentWorkflow extends KDController
           @modal.emit 'PaymentSucceeded'
 
 
-  failedAttemptLimitReached: ->
+  failedAttemptLimitReached: (blockUser = yes)->
 
-    KD.utils.defer => @blockUserForTooManyAttempts()
+    KD.utils.defer => @blockUserForTooManyAttempts()  if blockUser
 
     @modal.emit 'FailedAttemptLimitReached'
 
