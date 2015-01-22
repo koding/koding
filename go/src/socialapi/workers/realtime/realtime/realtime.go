@@ -19,6 +19,9 @@ const (
 	ChannelUpdateEventName      = "ChannelUpdateHappened"
 	RemovedFromChannelEventName = "RemovedFromChannel"
 	AddedToChannelEventName     = "AddedToChannel"
+	MessageAddedEventName       = "MessageAdded"
+	MessageRemovedEventName     = "MessageRemoved"
+	ChannelDeletedEventName     = "ChannelDeleted"
 )
 
 var mongoAccounts map[int64]*mongomodels.Account
@@ -424,7 +427,7 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		return err
 	}
 
-	if err := f.sendChannelEvent(cml, cm, "MessageAdded"); err != nil {
+	if err := f.sendChannelEvent(cml, cm, MessageAddedEventName); err != nil {
 		return err
 	}
 
@@ -584,7 +587,7 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 
 	// f.sendNotification(cp.AccountId, ChannelUpdateEventName, cue)
 
-	if err := f.sendChannelEvent(cml, cm, "MessageRemoved"); err != nil {
+	if err := f.sendChannelEvent(cml, cm, MessageRemovedEventName); err != nil {
 		return err
 	}
 
@@ -592,7 +595,7 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 }
 
 func (f *Controller) ChannelDeletedEvent(c *models.Channel) error {
-	return f.publishToChannel(c.Id, "ChannelDeleted", &models.ChannelContainer{Channel: c})
+	return f.publishToChannel(c.Id, ChannelDeletedEventName, &models.ChannelContainer{Channel: c})
 }
 
 func (f *Controller) NotifyUser(notification *notificationmodels.Notification) error {
