@@ -148,7 +148,10 @@ func (m *MongoDB) Accounts(ids ...string) ([]models.Account, error) {
 func (m *MongoDB) RemoveAlwaysOn(usernames ...string) error {
 	query := func(c *mgo.Collection) error {
 		_, err := c.UpdateAll(
-			bson.M{"credential": bson.M{"$in": usernames}},
+			bson.M{
+				"credential": bson.M{"$in": usernames},
+				"provider":   "koding",
+			},
 			bson.M{"$set": bson.M{"meta.alwaysOn": false}},
 		)
 
