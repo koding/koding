@@ -114,3 +114,11 @@ class Machine extends KDObject
   isMine: ->
 
     @getOwner() is KD.nick()
+
+
+  isPermanent: ->
+
+    for user in @jMachine.users
+      return yes  if user.id is KD.userId and user.permanent
+
+    return no
