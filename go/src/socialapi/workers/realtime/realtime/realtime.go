@@ -332,6 +332,8 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 		return err
 	}
 
+	cmc.Message.ClientRequestId = mr.ClientRequestId
+
 	err = f.sendInstanceEvent(parent, cmc, ReplyAddedEventName)
 	if err != nil {
 		return err
