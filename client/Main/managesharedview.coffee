@@ -117,12 +117,12 @@ class ManageSharedView extends KDView
 
       kite[method] username: nickname
 
-        .then => @updateUserList()
+        .then -> updateUserList()
 
-        .error (err)=>
+        .catch (err)=>
           if err.message in ['user is already in the shared list.'
                              'user is not in the shared list.']
-          then @updateUserList()
+          then updateUserList()
           else @showError err
 
         .finally => @loader.hide()

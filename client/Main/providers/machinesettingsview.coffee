@@ -81,6 +81,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     { computeController } = KD.singletons
 
+    @isPaidAccount = no
     @machine = @getData()
 
     @on 'StateChange', (state)=>
@@ -241,10 +242,19 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     shareVMLabel = sharedWith.getOption 'label'
 
-    shareVMLabel.on 'click', (event)->
+    shareVMLabel.on 'click', (event)=>
       return  unless $(event.target).hasClass 'toggle'
-      shareVMLabel.toggleClass 'expanded'
-      sharedWith.toggleInput()
+
+      unless @isPaidAccount
+        KD.utils.defer =>
+          new ComputeErrorModal.Usage
+            plan    : 'free'
+            message : 'VM share feature is only available for paid accounts.'
+        @destroy()
+
+      else
+        shareVMLabel.toggleClass 'expanded'
+        sharedWith.toggleInput()
 
     sharedWith.on 'UserInputCancelled', ->
       shareVMLabel.unsetClass 'expanded'
@@ -278,6 +288,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
       position : top : 20
 
     computeController.fetchUserPlan (plan)=>
+
+      @isPaidAccount = plan isnt 'free'
 
       if plan in ['free', 'hobbyist']
         @terminateButton.hide()
