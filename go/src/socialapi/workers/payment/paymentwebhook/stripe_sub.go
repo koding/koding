@@ -10,23 +10,23 @@ import (
 
 type subscriptionActionType func(*webhookmodels.StripeSubscription) error
 
-func StripeSubscriptionCreated(raw []byte) error {
+func stripeSubscriptionCreated(raw []byte) error {
 	actions := []subscriptionActionType{
 		sendSubscriptionCreatedEmail,
 	}
 
-	return _subscription(raw, actions)
+	return _stripeSubscription(raw, actions)
 }
 
-func StripeSubscriptionDeleted(raw []byte) error {
+func stripeSubscriptionDeleted(raw []byte) error {
 	actions := []subscriptionActionType{
 		sendSubscriptionDeletedEmail,
 	}
 
-	return _subscription(raw, actions)
+	return _stripeSubscription(raw, actions)
 }
 
-func _subscription(raw []byte, actions []subscriptionActionType) error {
+func _stripeSubscription(raw []byte, actions []subscriptionActionType) error {
 	var req *webhookmodels.StripeSubscription
 
 	err := json.Unmarshal(raw, &req)
@@ -37,7 +37,7 @@ func _subscription(raw []byte, actions []subscriptionActionType) error {
 	for _, action := range actions {
 		err := action(req)
 		if err != nil {
-			log.Error("Stripe webhook: subscription failed: %s", err)
+			log.Println("Stripe webhook: subscription failed: %s", err)
 		}
 	}
 

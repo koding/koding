@@ -10,8 +10,8 @@ import (
 type stripeActionType func([]byte) error
 
 var stripeActions = map[string]stripeActionType{
-	"customer.subscription.created": StripeSubscriptionCreated,
-	"customer.subscription.deleted": StripeSubscriptionDeleted,
+	"customer.subscription.created": stripeSubscriptionCreated,
+	"customer.subscription.deleted": stripeSubscriptionDeleted,
 
 	// "customer.subscription.deleted": []stripeActionType{
 	//   stripe.SubscriptionDeletedWebhook,
@@ -37,9 +37,9 @@ type stripeWebhookRequest struct {
 type stripeMux struct{}
 
 func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var req stripeWebhookRequest
+	var req *stripeWebhookRequest
 
-	err := json.NewDecoder(r.Body).Decode(req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
 		return
