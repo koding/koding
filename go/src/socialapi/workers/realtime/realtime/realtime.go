@@ -411,6 +411,8 @@ func (f *Controller) MessageListSaved(cml *models.ChannelMessageList) error {
 		return err
 	}
 
+	cm.ClientRequestId = cml.ClientRequestId
+
 	cm, err = cm.PopulateAddedBy()
 	if err != nil {
 		return err
