@@ -155,7 +155,13 @@ func newKite() *kite.Kite {
 			if err != nil {
 				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
 			}
-			allowedUsers = append(allowedUsers, sharedUsers...)
+
+			sharedUsernames := make([]string, 0)
+			for username := range sharedUsers {
+				sharedUsernames = append(sharedUsernames, username)
+			}
+
+			allowedUsers = append(allowedUsers, sharedUsernames...)
 
 			if !userIn(r.Username, allowedUsers...) {
 				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
@@ -266,12 +272,16 @@ func newKite() *kite.Kite {
 				}
 
 				k.Log.Info("Unsharing users '%s'", sharedUsers)
-				for _, user := range sharedUsers {
+				for user, option := range sharedUsers {
+					// dont touch permanent users
+					if option.Permanent {
+						continue
+					}
+
 					if err := collab.Delete(user); err != nil {
 						k.Log.Warning("Couldn't delete user from storage: '%s'", err)
 					}
 					term.CloseSessions(user)
-
 				}
 			}
 		}()
