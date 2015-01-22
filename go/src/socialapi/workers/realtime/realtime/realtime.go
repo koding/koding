@@ -22,6 +22,13 @@ const (
 	MessageAddedEventName       = "MessageAdded"
 	MessageRemovedEventName     = "MessageRemoved"
 	ChannelDeletedEventName     = "ChannelDeleted"
+
+	// instance events
+	ReplyRemovedEventName       = "ReplyRemoved"
+	ReplyAddedEventName         = "ReplyAdded"
+	UpdateInstanceEventName     = "updateInstance"
+	InteractionAddedEventName   = "InteractionAdded"
+	InteractionRemovedEventName = "InteractionRemoved"
 )
 
 var mongoAccounts map[int64]*mongomodels.Account
@@ -97,7 +104,7 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 		}
 	}
 
-	if err := f.sendInstanceEvent(cm, cm, "updateInstance"); err != nil {
+	if err := f.sendInstanceEvent(cm, cm, UpdateInstanceEventName); err != nil {
 		f.log.Error(err.Error())
 		return err
 	}
@@ -241,12 +248,12 @@ func (f *Controller) fetchNotifiedParticipantIds(c *models.Channel, pe *models.P
 
 // InteractionSaved runs when interaction is added
 func (f *Controller) InteractionSaved(i *models.Interaction) error {
-	return f.handleInteractionEvent("InteractionAdded", i)
+	return f.handleInteractionEvent(InteractionAddedEventName, i)
 }
 
 // InteractionSaved runs when interaction is removed
 func (f *Controller) InteractionDeleted(i *models.Interaction) error {
-	return f.handleInteractionEvent("InteractionRemoved", i)
+	return f.handleInteractionEvent(InteractionRemovedEventName, i)
 }
 
 // here inorder to solve overflow
@@ -325,7 +332,7 @@ func (f *Controller) sendReplyAddedEvent(mr *models.MessageReply) error {
 		return err
 	}
 
-	err = f.sendInstanceEvent(parent, cmc, "ReplyAdded")
+	err = f.sendInstanceEvent(parent, cmc, ReplyAddedEventName)
 	if err != nil {
 		return err
 	}
@@ -391,7 +398,7 @@ func (f *Controller) MessageReplyDeleted(mr *models.MessageReply) error {
 		return err
 	}
 
-	if err := f.sendInstanceEvent(m, mr, "ReplyRemoved"); err != nil {
+	if err := f.sendInstanceEvent(m, mr, ReplyRemovedEventName); err != nil {
 		return err
 	}
 
