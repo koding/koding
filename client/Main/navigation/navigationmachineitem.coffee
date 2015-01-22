@@ -22,7 +22,11 @@ class NavigationMachineItem extends JView
         if ws.machineUId is machine.uid and ws.channelId
           channelId = ws.channelId
 
-      ideRoute = "/IDE/#{channelId}"
+      ideRoute = if channelId
+        "/IDE/#{channelId}"
+      else
+        "/IDE/#{machine.uid}/my-workspace"
+
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
