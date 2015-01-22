@@ -28,8 +28,35 @@ class PaymentForm extends JView
 
     @state = KD.utils.extend @getInitialState(), state
 
+    @isInputValidMap = {}
+
     @initViews()
     @initEvents()
+
+
+  observeForm: ->
+
+    isVisible = (key) => @form.inputs[key]?.getOption('cssClass') isnt 'hidden'
+
+    Object.keys(@form.inputs).filter(isVisible).map (name) =>
+
+      input = @form.inputs[name]
+
+      @isInputValidMap[name] = no
+
+      input.on 'ValidationResult', (isValid) =>
+
+        @handleFormInputValidation name, isValid
+
+
+  handleFormInputValidation: (name, isValid) ->
+
+    @isInputValidMap[name] = isValid
+
+    formIsValid = yes
+    formIsValid = formIsValid and value  for own key, value of @isInputValidMap
+
+    @emit 'GotValidationResult', formIsValid
 
 
   initViews: ->
@@ -49,6 +76,8 @@ class PaymentForm extends JView
       partial  : pricePartial
 
     @form = @initForm()
+
+    @observeForm()
 
     @existingCreditCardMessage = new KDCustomHTMLView
       cssClass : 'existing-cc-msg'
@@ -162,6 +191,15 @@ class PaymentForm extends JView
       cardNumber.setClass type.toLowerCase()
 
     @paypalForm.on 'PaypalTokenLoaded', @bound 'initPaypalClient'
+
+    @on 'GotValidationResult', @bound 'handleValidationResult'
+
+
+  handleValidationResult: (isValid) ->
+
+    if isValid
+    then @submitButton.enable()
+    else @submitButton.disable()
 
 
   showValidationErrorsOnInputs: (error) ->
