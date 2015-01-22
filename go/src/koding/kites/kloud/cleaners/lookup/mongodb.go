@@ -71,6 +71,7 @@ func (m *MongoDB) AlwaysOn() ([]MachineDocument, error) {
 	query := func(c *mgo.Collection) error {
 		alwaysOn := bson.M{
 			"meta.alwaysOn": true,
+			"provider":      "koding",
 		}
 
 		machine := MachineDocument{}
