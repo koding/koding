@@ -3,6 +3,7 @@ package paymentmodels
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -141,4 +142,22 @@ func (c *Customer) ByProviderSubscription(id, providerName string) error {
 	}
 
 	return c.ById(subscription.CustomerId)
+}
+
+func (c *Customer) GetEmail(providerCustomerId string) (string, error) {
+	err := c.ByProviderCustomerId(providerCustomerId)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := modelhelper.GetUserById(c.OldId)
+	if err != nil {
+		return "", err
+	}
+
+	if user.Email == "" {
+		return "", paymenterrors.ErrCustomerEmailIsEmpty(c.OldId)
+	}
+
+	return user.Email, nil
 }
