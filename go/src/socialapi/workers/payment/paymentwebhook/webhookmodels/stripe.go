@@ -30,3 +30,17 @@ type StripeInvoice struct {
 		Count int `json:"count"`
 	} `json:"lines"`
 }
+
+type StripeCard struct {
+	Id      string `json:"id"`
+	ExpYear string `json:"exp_year"`
+	Last4   string `json:"last4"`
+	Brand   string `json:"brand"`
+}
+
+type StripeCharge struct {
+	Card       *StripeCard `json:"card"`
+	Currency   string      `json:"currency"`
+	Amount     float64     `json:"amount"`
+	CustomerId string      `json:"customer"`
+}

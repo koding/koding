@@ -3,34 +3,64 @@ package main
 import (
 	"encoding/json"
 	"socialapi/workers/payment/paymentemail"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
-func sendChargeRefundedEmail(raw []byte) error {
-	email, opts, err := _chargeWebhook(raw)
-	if err != nil {
-		return err
+type stripeChargeActionType func(*webhookmodels.StripeCharge) error
+
+func stripeChargeRefunded(raw []byte) error {
+	actions := []stripeChargeActionType{
+		sendChargeRefundedEmail,
 	}
 
-	return paymentemail.Send(paymentemail.ChargeRefunded, email, opts)
+	return _stripeCharge(raw, actions)
 }
 
-func sendChargeFailedEmail(raw []byte) error {
-	email, opts, err := _chargeWebhook(raw)
-	if err != nil {
-		return err
+func stripeChargeFailed(raw []byte) error {
+	actions := []stripeChargeActionType{
+		sendChargeFailedEmail,
 	}
 
-	return paymentemail.Send(paymentemail.ChargeRefunded, email, opts)
+	return _stripeCharge(raw, actions)
 }
 
-func _chargeWebhook(raw []byte) (string, *paymentemail.Options, error) {
-	var req *stripeChargeRefundWebhookReq
+func _stripeCharge(raw []byte, actions []stripeChargeActionType) error {
+	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
-		return "", nil, err
+		return err
 	}
 
+	for _, action := range actions {
+		err := action(req)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func sendChargeRefundedEmail(req *webhookmodels.StripeCharge) error {
+	email, opts, err := _chargeWebhook(req)
+	if err != nil {
+		return err
+	}
+
+	return paymentemail.Send(paymentemail.ChargeRefunded, email, opts)
+}
+
+func sendChargeFailedEmail(req *webhookmodels.StripeCharge) error {
+	email, opts, err := _chargeWebhook(req)
+	if err != nil {
+		return err
+	}
+
+	return paymentemail.Send(paymentemail.ChargeFailed, email, opts)
+}
+
+func _chargeWebhook(req *webhookmodels.StripeCharge) (string, *paymentemail.Options, error) {
 	email, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return "", nil, err

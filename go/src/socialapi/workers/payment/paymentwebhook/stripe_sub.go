@@ -69,21 +69,3 @@ func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription) error {
 
 	return paymentemail.Send(paymentemail.SubscriptionDeleted, email, opts)
 }
-
-//----------------------------------------------------------
-// TODO: move to stripe package
-//----------------------------------------------------------
-
-type stripeCard struct {
-	Id      string `json:"id"`
-	ExpYear string `json:"exp_year"`
-	Last4   string `json:"last4"`
-	Brand   string `json:"brand"`
-}
-
-type stripeChargeRefundWebhookReq struct {
-	Card       *stripeCard `json:"card"`
-	Currency   string      `json:"currency"`
-	Amount     float64     `json:"amount"`
-	CustomerId string      `json:"customer"`
-}

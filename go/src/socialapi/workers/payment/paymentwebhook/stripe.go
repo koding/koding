@@ -12,9 +12,9 @@ var stripeActions = map[string]stripeActionType{
 	"customer.subscription.created": stripeSubscriptionCreated,
 	"customer.subscription.deleted": stripeSubscriptionDeleted,
 	"invoice.created":               stripeInvoiceCreated,
+	"charge.refunded":               stripeChargeRefunded,
+	"charge.failed":                 stripeChargeFailed,
 	// "customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
-	// "charge.refunded":  []stripeActionType{sendChargeRefundedEmail},
-	// "charge.failed":    []stripeActionType{sendChargeFailedEmail},
 }
 
 type stripeWebhookRequest struct {
