@@ -210,6 +210,14 @@ module.exports = class JMachine extends Module
     return newUsers
 
 
+  informAccounts = (users, machineUid)->
+
+    users.forEach (user)->
+      user.fetchOwnAccount (err, account)->
+        return if err or not account
+        account.sendNotification 'MachineListUpdated', machineUid
+
+
   # Private Methods
   # ---------------
 
@@ -287,7 +295,9 @@ module.exports = class JMachine extends Module
       callback new KodingError \
         "Machine sharing is limited up to 10 users."
     else
-      @update $set: { users }, (err)-> callback err
+      @update $set: { users }, (err)->
+        informAccounts targets, @getAt 'uid'
+        callback err
 
 
   removeUsers: (options, callback)->
@@ -299,7 +309,9 @@ module.exports = class JMachine extends Module
     for user in targets
       users = excludeUser { users, user, permanent }
 
-    @update $set: { users }, (err)-> callback err
+    @update $set: { users }, (err)->
+      informAccounts targets, @getAt 'uid'
+      callback err
 
 
   shareWith: (options, callback)->
