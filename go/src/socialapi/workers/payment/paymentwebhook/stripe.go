@@ -14,7 +14,7 @@ var stripeActions = map[string]stripeActionType{
 	"invoice.created":               stripeInvoiceCreated,
 	"charge.refunded":               stripeChargeRefunded,
 	"charge.failed":                 stripeChargeFailed,
-	// "customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
+	"customer.deleted":              stripeCustomerDeleted,
 }
 
 type stripeWebhookRequest struct {

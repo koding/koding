@@ -1,7 +1,6 @@
 package stripe
 
 import (
-	"encoding/json"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"time"
@@ -90,20 +89,9 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 // CustomerDeleted
 //----------------------------------------------------------
 
-type CustomerDeletedWebhookRequest struct {
-	ID string `json:"id"`
-}
-
-func CustomerDeletedWebhook(raw []byte) error {
-	var req *CustomerDeletedWebhookRequest
-
-	err := json.Unmarshal(raw, &req)
-	if err != nil {
-		return err
-	}
-
+func CustomerDeletedWebhook(req *webhookmodels.StripeCustomer) error {
 	customer := paymentmodels.NewCustomer()
-	err = customer.ByProviderCustomerId(req.ID)
+	err := customer.ByProviderCustomerId(req.ID)
 	if err != nil {
 		return err
 	}

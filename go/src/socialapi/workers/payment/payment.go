@@ -1,7 +1,6 @@
 package payment
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"socialapi/workers/helper"
@@ -200,48 +199,6 @@ func (u *UpdateCreditCardRequest) Do() (interface{}, error) {
 	default:
 		return nil, ProviderNotFound
 	}
-}
-
-//----------------------------------------------------------
-// StripeWebhook
-//----------------------------------------------------------
-
-type StripeWebhook struct {
-	Name     string `json:"type"`
-	Created  int    `json:"created"`
-	Livemode bool   `json:"livemode"`
-	Id       string `json:"id"`
-	Data     struct {
-		Object interface{} `json:"object"`
-	} `json:"data"`
-}
-
-func (s *StripeWebhook) Do() (interface{}, error) {
-	var err error
-
-	if !s.Livemode {
-		Log.Error("Received test Stripe webhook: %v", s)
-		return nil, nil
-	}
-
-	raw, err := json.Marshal(s.Data.Object)
-	if err != nil {
-		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
-		return nil, err
-	}
-
-	switch s.Name {
-	case "customer.subscription.deleted":
-	case "invoice.created":
-	case "customer.deleted":
-		err = stripe.CustomerDeletedWebhook(raw)
-	}
-
-	if err != nil {
-		Log.Error("Error handling Stripe webhook '%v' : %v", s, err)
-	}
-
-	return nil, err
 }
 
 //----------------------------------------------------------

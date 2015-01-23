@@ -44,3 +44,7 @@ type StripeCharge struct {
 	Amount     float64     `json:"amount"`
 	CustomerId string      `json:"customer"`
 }
+
+type StripeCustomer struct {
+	ID string `json:"id"`
+}
