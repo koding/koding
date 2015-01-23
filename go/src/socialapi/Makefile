@@ -193,7 +193,14 @@ testpermission:
 	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./permission.test
 
+testmoderation:
+	@echo "$(OK_COLOR)--> moderation tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/*.go
+	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topic.test
+
 testapi:
+
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
@@ -269,6 +276,11 @@ testapi:
 	@`which go` test -c workers/realtime/realtime/*.go
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./realtime.test
+
+	@echo "$(OK_COLOR)--> moderation tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/*.go
+	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topic.test
 
 	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
 	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
