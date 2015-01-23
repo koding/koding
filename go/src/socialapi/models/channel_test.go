@@ -583,7 +583,9 @@ func TestChannelAddMessage(t *testing.T) {
 
 		Convey("it should have channel id", func() {
 			c := NewChannel()
-			_, err := c.AddMessage(123)
+			cm := NewChannelMessage()
+			cm.Id = 123
+			_, err := c.AddMessage(cm)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
@@ -591,7 +593,7 @@ func TestChannelAddMessage(t *testing.T) {
 		Convey("it should have message id", func() {
 			c := NewChannel()
 			c.Id = 123
-			_, err := c.AddMessage(0)
+			_, err := c.AddMessage(NewChannelMessage())
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrMessageIdIsNotSet)
 		})
@@ -602,7 +604,7 @@ func TestChannelAddMessage(t *testing.T) {
 			c.Id = 123
 
 			// try to add message
-			ch, err := c.AddMessage(0)
+			ch, err := c.AddMessage(NewChannelMessage())
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrMessageIdIsNotSet)
 			So(ch, ShouldBeNil)
@@ -615,8 +617,7 @@ func TestChannelAddMessage(t *testing.T) {
 			cm := createMessageWithTest()
 			cm.Body = "five5"
 			So(cm.Create(), ShouldBeNil)
-
-			ch, err := c.AddMessage(cm.Id)
+			ch, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(ch, ShouldNotBeEmpty)
 		})
@@ -629,14 +630,29 @@ func TestChannelAddMessage(t *testing.T) {
 			cm.Body = "five5"
 			So(cm.Create(), ShouldBeNil)
 
-			ch, err := c.AddMessage(cm.Id)
+			ch, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(ch, ShouldNotBeEmpty)
 
 			// try to add the same message again
-			ch, err = c.AddMessage(cm.Id)
+			ch, err = c.AddMessage(cm)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrMessageAlreadyInTheChannel)
+		})
+
+		Convey("it should return clientRequestId in response when message is created with clientRequestId", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			cm := createMessageWithTest()
+			cm.Body = "five5"
+			cm.ClientRequestId = "ctf-123456"
+			So(cm.Create(), ShouldBeNil)
+
+			ch, err := c.AddMessage(cm)
+			So(err, ShouldBeNil)
+			So(ch, ShouldNotBeEmpty)
+			So(ch.ClientRequestId, ShouldEqual, "ctf-123456")
 		})
 	})
 }
@@ -675,7 +691,7 @@ func TestChannelRemoveMessage(t *testing.T) {
 			cm.Body = "five5"
 			So(cm.Create(), ShouldBeNil)
 
-			_, err := c.AddMessage(cm.Id)
+			_, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 
 			ch, err := c.RemoveMessage(cm.Id)
@@ -694,7 +710,7 @@ func TestChannelRemoveMessage(t *testing.T) {
 			cm.Body = "five5"
 			So(cm.Create(), ShouldBeNil)
 
-			_, err := c.AddMessage(cm.Id)
+			_, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 
 			ch, err := c.RemoveMessage(cm.Id)
@@ -752,7 +768,7 @@ func TestChannelFetchMessageList(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the channel
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -843,7 +859,7 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the channel
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -864,7 +880,7 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add first message  to the channel
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -874,7 +890,7 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(cm2.Create(), ShouldBeNil)
 
 			// add second message to the same channel
-			cml2, err := c.AddMessage(cm2.Id)
+			cml2, err := c.AddMessage(cm2)
 			So(err, ShouldBeNil)
 			So(cml2, ShouldNotBeNil)
 
@@ -904,7 +920,7 @@ func TestChannelFetchLastMessage(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message  to channel
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -1087,11 +1103,11 @@ func setupDeleteTest() (*Channel, *ChannelMessage, *ChannelMessage, *ChannelMess
 	So(cm1.Create(), ShouldBeNil)
 
 	// add cm0 and cm1:
-	cml0, err := c.AddMessage(cm0.Id)
+	cml0, err := c.AddMessage(cm0)
 	So(err, ShouldBeNil)
 	So(cml0, ShouldNotBeNil)
 
-	cml1, err := c.AddMessage(cm1.Id)
+	cml1, err := c.AddMessage(cm1)
 	So(err, ShouldBeNil)
 	So(cml1, ShouldNotBeNil)
 
@@ -1149,7 +1165,7 @@ func TestChannelDelete(t *testing.T) {
 			So(c1.Create(), ShouldBeNil)
 
 			// only add the second message to the second channel:
-			cml0, err := c1.AddMessage(cm1.Id)
+			cml0, err := c1.AddMessage(cm1)
 			So(err, ShouldBeNil)
 			So(cml0, ShouldNotBeNil)
 
