@@ -302,7 +302,7 @@ module.exports = class JMachine extends Module
 
   removeUsers: (options, callback)->
 
-    {targets, permanent} = options
+    {targets, permanent, inform} = options
 
     users = @users.splice 0
 
@@ -310,16 +310,17 @@ module.exports = class JMachine extends Module
       users = excludeUser { users, user, permanent }
 
     @update $set: { users }, (err)->
-      informAccounts targets, @getAt 'uid'
+      informAccounts targets, @getAt 'uid'  if inform
       callback err
 
 
   shareWith: (options, callback)->
 
-    { target, asUser, asOwner, permanent } = options
+    { target, asUser, asOwner, permanent, inform } = options
 
-    asUser    ?= yes
-    asOwner   ?= no
+    asUser  ?= yes
+    asOwner ?= no
+    inform  ?= yes
 
     unless target?
       return callback new KodingError "Target required."
@@ -340,7 +341,7 @@ module.exports = class JMachine extends Module
 
         if asUser
         then @addUsers {targets, asOwner, permanent}, callback
-        else @removeUsers {targets, permanent}, callback
+        else @removeUsers {targets, permanent, inform}, callback
 
       else
         callback new KodingError "Target does not support machines."
@@ -630,7 +631,11 @@ module.exports = class JMachine extends Module
     if isOwner user, this
       return callback null
 
-    options = target: [user.username], asUser: no, permanent: yes
+    options =
+      target    : [user.username]
+      asUser    : no
+      inform    : no
+      permanent : yes
 
     @shareWith options, (err)->
       callback err
