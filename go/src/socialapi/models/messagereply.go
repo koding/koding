@@ -23,6 +23,9 @@ type MessageReply struct {
 
 	// Creation of the MessageReply
 	CreatedAt time.Time `json:"createdAt"         sql:"NOT NULL"`
+
+	// is required to identify to request in client side
+	ClientRequestId string `json:"clientRequestId,omitempty" sql:"-"`
 }
 
 func (m *MessageReply) MarkIfExempt() error {

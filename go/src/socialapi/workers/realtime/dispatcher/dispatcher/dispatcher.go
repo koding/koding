@@ -49,7 +49,7 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 	// TODO later on Pubnub needs its own queue
 	go func() {
 		if err := c.Pubnub.UpdateChannel(pm); err != nil {
-			c.logger.Error("Could not push update channel message to pubnub: %s", err)
+			c.logger.Error("Could not push update channel message with body %s to pubnub: %s", pm.Message.Body, err)
 		}
 	}()
 
@@ -86,7 +86,7 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 	go func() {
 		err := c.Pubnub.UpdateInstance(um)
 		if err != nil {
-			c.logger.Error("Could not push update instance message to pubnub: %s", err)
+			c.logger.Error("Could not push update instance message with id %d to pubnub: %s", um.Message.Id, err)
 		}
 	}()
 
@@ -105,7 +105,7 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	go func() {
 		err := c.Pubnub.NotifyUser(nm)
 		if err != nil {
-			c.logger.Error("Could not push notification message to pubnub: %s", err)
+			c.logger.Error("Could not send push notification message %s to user %s pubnub: %s", nm.EventName, nm.Account.Nickname, err)
 		}
 	}()
 

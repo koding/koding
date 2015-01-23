@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
+	"time"
 )
 
 // Binary name used for built package
@@ -41,12 +43,23 @@ func (p *Params) CloneRun() {
 
 // GetBinaryName prepares binary name with GOPATH if it is set
 func getBinaryName() string {
+	rand.Seed(time.Now().UnixNano())
+	randName := rand.Int31n(999999)
+
+	return fmt.Sprintf("%s-%d", getBinaryNameRoot(), randName)
+}
+
+func getBinaryNameRoot() string {
 	path := os.Getenv("GOPATH")
 	if path != "" {
 		return fmt.Sprintf("%s/bin/%s", path, binaryName)
 	}
 
-	return binaryName
+	return path
+}
+
+func removeOldFiles() {
+	exec.Command("rm", fmt.Sprintf("%s-*", getBinaryNameRoot()))
 }
 
 // runCommand runs the command with given name and arguments. It copies the

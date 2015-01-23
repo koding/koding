@@ -56,11 +56,11 @@ func (c *Controller) Shutdown() {
 }
 
 func (c *Controller) generate() {
-	c.log.Info("Sitemap update started")
+	c.log.Debug("Sitemap update started")
 	for {
 		name, err := c.fetchName()
 		if err == redis.ErrNil {
-			c.log.Info("Sitemap update finished")
+			c.log.Debug("Sitemap update finished")
 			return
 		}
 

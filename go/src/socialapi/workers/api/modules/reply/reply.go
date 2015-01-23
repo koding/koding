@@ -37,6 +37,7 @@ func Create(u *url.URL, h http.Header, reply *models.ChannelMessage) (int, http.
 	mr.MessageId = parentId
 	mr.ReplyId = reply.Id
 	mr.CreatedAt = reply.CreatedAt
+	mr.ClientRequestId = reply.ClientRequestId
 	if err := mr.Create(); err != nil {
 		// todo this should be internal server error
 		return response.NewBadRequest(err)
