@@ -115,7 +115,7 @@ class ManageSharedView extends KDView
       kite   = @machine.getBaseKite()
       method = if task is 'add' then 'klientShare' else 'klientUnshare'
 
-      kite[method] username: nickname
+      kite[method] { username: nickname, permanent: yes }
 
         .then -> updateUserList()
 
