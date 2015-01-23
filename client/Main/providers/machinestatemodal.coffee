@@ -309,11 +309,11 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
     destroyVMs = nextState is "destroy-vms"
 
     @upgradeButton = new KDButtonView
-      title    : 'Upgrade Plan'
+      title    : 'Make Payment'
       cssClass : 'solid green medium plan-change-button'
       callback : -> KD.singletons.router.handleRoute '/Pricing'
 
-    actionTitle = if destroyVMs then 'Delete All VMs' else 'Downgrade Plan'
+    actionTitle = if destroyVMs then 'Delete All VMs' else 'Downgrade to Free'
 
     @actionButton = new KDButtonView
       title    : actionTitle
@@ -343,11 +343,11 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
         <b>destroy all your VMs, (including YOUR FILES) and cannot
         be UNDONE!</b> Are you sure you want to continue?</p>
       """ else """
-        <h1>Plan Expired</h1>
-        <p>Your current plan #{plan} is expired. For accessing
-        your VM you need to upgrade your plan first. Or you can downgrade
-        to the <b>Free</b> plan which will <b>destroy</b> all your existing VMs and their
-        files.</p>
+        <h1>Your Koding Paid Plan Has Expired</h1>
+        <p>This happens when we cannot collect a payment. As a result, access to your VM is restricted.</p>
+        <p>To continue, you can either make a payment to lift the restriction or
+        downgrade to a free account. Downgrading will delete your existing VM(s) (and all the data inside them)
+        and give you a new default VM.</p>
       """
 
     unless destroyVMs

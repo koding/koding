@@ -155,8 +155,6 @@ class CommentListItemView extends KDListItemView
 
     if canEdit or (owner and canEditOwn)
       @addMenuView edit: yes, delete: yes
-    else if postOwner
-      @addMenuView delete: yes
 
 
   addMenuView: (options) ->
