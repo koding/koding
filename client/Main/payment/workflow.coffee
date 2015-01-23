@@ -144,7 +144,11 @@ class PaymentWorkflow extends KDController
 
     @state.provider = STRIPE  if @state.provider is KODING
 
-    if currentPlan is PaymentWorkflow.planTitle.FREE
+    shouldRegisterNewPlan = \
+      currentPlan is PaymentWorkflow.planTitle.FREE or
+      @state.subscriptionState is 'expired'
+
+    if shouldRegisterNewPlan
 
       Stripe.card.createToken {
         number    : cardNumber
