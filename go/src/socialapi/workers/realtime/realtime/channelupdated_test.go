@@ -117,7 +117,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -183,7 +183,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -230,7 +230,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -278,7 +278,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 
@@ -326,7 +326,7 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add message to the list
-			cml, err := c.AddMessage(cm.Id)
+			cml, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 			So(cml, ShouldNotBeNil)
 

@@ -314,16 +314,16 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 // you can call many times, but message will be in the channel list once
 //
 // has full test suit
-func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
+func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 	if c.Id == 0 {
 		return nil, ErrChannelIdIsNotSet
 	}
 
-	if messageId == 0 {
+	if cm.Id == 0 {
 		return nil, ErrMessageIdIsNotSet
 	}
 
-	cml, err := c.FetchMessageList(messageId)
+	cml, err := c.FetchMessageList(cm.Id)
 	if err == nil {
 		return nil, ErrMessageAlreadyInTheChannel
 	}
@@ -334,7 +334,7 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 	}
 
 	cml.ChannelId = c.Id
-	cml.MessageId = messageId
+	cml.MessageId = cm.Id
 
 	if err := cml.Create(); err != nil {
 		return nil, err
@@ -346,9 +346,11 @@ func (c *Channel) AddMessage(messageId int64) (*ChannelMessageList, error) {
 func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageList, error) {
 	cml := NewChannelMessageList()
 	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, messageId).First(cml).Error
+	cm := NewChannelMessage()
+	cm.Id = messageId
 
 	if err == bongo.RecordNotFound {
-		return c.AddMessage(messageId)
+		return c.AddMessage(cm)
 	}
 
 	if err != nil {
@@ -368,7 +370,7 @@ func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageLis
 		return nil, err
 	}
 
-	_, err = c.AddMessage(messageId)
+	_, err = c.AddMessage(cm)
 	if err == ErrMessageAlreadyInTheChannel {
 		return cml, nil
 	}
