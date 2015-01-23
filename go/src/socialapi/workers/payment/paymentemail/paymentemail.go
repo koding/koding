@@ -1,23 +1,23 @@
 package paymentemail
 
-import "koding/kodingemail"
+import (
+	"fmt"
+	"koding/kodingemail"
+)
 
-type ActionFuncType func(string) error
-
-var Actions = map[Action][]ActionFuncType{
-	SubscriptionCreated: []ActionFuncType{},
+var Templates = map[Action]string{
+	SubscriptionCreated: "",
+	ChargeRefunded:      "",
+	ChargeFailed:        "",
+	SubscriptionDeleted: "",
+	InvoiceCreated:      "",
 }
 
-type Options struct {
-	PlanName  string
-	Currency  string
-	CardBrand string
-	CardLast4 string
+func Send(client *kodingemail.SG, actionName Action, to string, subs map[string]string) error {
+	templateId, ok := Templates[actionName]
+	if !ok {
+		return fmt.Errorf("%s has no template", actionName)
+	}
 
-	AmountRefunded float64
-	AmountDue      float64
-}
-
-func Send(client *kodingemail.SG, actionName Action, email string, opts *Options) error {
-	return nil
+	return client.SendTemplateEmail(to, templateId, subs)
 }
