@@ -296,12 +296,6 @@ class SocialApiController extends KDController
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
 
-  getScreenMapToken = (body, type) ->
-
-    {_id} = KD.whoami()
-    md5.digest "#{type}-#{body}-#{_id}"
-
-
   addToScreenMap = (options) ->
     {messageId, clientRequestId} = options
     {_inScreenMap} = KD.singletons.socialapi
