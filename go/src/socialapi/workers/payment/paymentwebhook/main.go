@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingemail"
 	"log"
@@ -10,6 +11,8 @@ import (
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
 )
+
+var WorkerName = "paymentwebhook"
 
 func main() {
 	conf := initialize()
@@ -25,6 +28,9 @@ func main() {
 
 	mux.Handle("/stripe", st)
 	mux.Handle("/paypal", pp)
+
+	http.HandleFunc("/version", artifact.VersionHandler())
+	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
 	port := conf.PaymentWebhook.Port
 

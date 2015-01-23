@@ -51,11 +51,11 @@ func sendSubscriptionCreatedEmail(req *webhookmodels.StripeSubscription, client 
 		return err
 	}
 
-	opts := &paymentemail.Options{
-		PlanName: req.Plan.Name,
-	}
+	opts := map[string]string{"planName": req.Plan.Name}
 
-	return paymentemail.Send(client, paymentemail.SubscriptionCreated, email, opts)
+	return paymentemail.Send(
+		client, paymentemail.SubscriptionCreated, email, opts,
+	)
 }
 
 func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription, client *kodingemail.SG) error {
@@ -64,9 +64,9 @@ func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription, client 
 		return err
 	}
 
-	opts := &paymentemail.Options{
-		PlanName: req.Plan.Name,
-	}
+	opts := map[string]string{"planName": req.Plan.Name}
 
-	return paymentemail.Send(client, paymentemail.SubscriptionDeleted, email, opts)
+	return paymentemail.Send(
+		client, paymentemail.SubscriptionDeleted, email, opts,
+	)
 }

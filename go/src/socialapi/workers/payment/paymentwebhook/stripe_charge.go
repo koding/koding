@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
@@ -61,17 +62,17 @@ func sendChargeFailedEmail(req *webhookmodels.StripeCharge, client *kodingemail.
 	return paymentemail.Send(client, paymentemail.ChargeFailed, email, opts)
 }
 
-func _chargeWebhook(req *webhookmodels.StripeCharge) (string, *paymentemail.Options, error) {
+func _chargeWebhook(req *webhookmodels.StripeCharge) (string, map[string]string, error) {
 	email, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return "", nil, err
 	}
 
-	opts := &paymentemail.Options{
-		Currency:       req.Currency,
-		AmountRefunded: req.Amount,
-		CardBrand:      req.Card.Brand,
-		CardLast4:      req.Card.Last4,
+	opts := map[string]string{
+		"currency":       req.Currency,
+		"amountRefunded": fmt.Sprintf("%v", req.Amount),
+		"cardBrand":      req.Card.Brand,
+		"cardLast4":      req.Card.Last4,
 	}
 
 	return email, opts, nil
