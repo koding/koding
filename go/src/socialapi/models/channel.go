@@ -335,6 +335,7 @@ func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 
 	cml.ChannelId = c.Id
 	cml.MessageId = cm.Id
+	cml.ClientRequestId = cm.ClientRequestId
 
 	if err := cml.Create(); err != nil {
 		return nil, err
