@@ -459,7 +459,7 @@ class ActivitySidebar extends KDCustomHTMLView
         myMachineUIds    = []
 
         KD.userMachines.forEach (m) ->
-          if m.isMine()
+          if m.isMine() or m.isPermanent()
           then myMachineUIds.push m.uid
           else otherMachineUIds.push m.uid
 
