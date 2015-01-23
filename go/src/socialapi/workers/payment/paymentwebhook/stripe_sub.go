@@ -5,8 +5,6 @@ import (
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
-
-	"github.com/coreos/go-log/log"
 )
 
 type subscriptionActionType func(*webhookmodels.StripeSubscription) error
@@ -39,7 +37,7 @@ func _stripeSubscription(raw []byte, actions []subscriptionActionType) error {
 	for _, action := range actions {
 		err := action(req)
 		if err != nil {
-			log.Println("Stripe webhook: subscription failed: %s", err)
+			return err
 		}
 	}
 

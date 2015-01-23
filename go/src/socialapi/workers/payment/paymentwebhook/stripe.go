@@ -11,8 +11,7 @@ type stripeActionType func([]byte) error
 var stripeActions = map[string]stripeActionType{
 	"customer.subscription.created": stripeSubscriptionCreated,
 	"customer.subscription.deleted": stripeSubscriptionDeleted,
-
-	// "invoice.created":  []stripeActionType{stripe.InvoiceCreatedWebhook},
+	"invoice.created":               stripeInvoiceCreated,
 	// "customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
 	// "charge.refunded":  []stripeActionType{sendChargeRefundedEmail},
 	// "charge.failed":    []stripeActionType{sendChargeFailedEmail},

@@ -7,11 +7,13 @@ var Actions = map[Action][]ActionFuncType{
 }
 
 type Options struct {
-	PlanName       string
-	Currency       string
-	CardBrand      string
-	CardLast4      string
+	PlanName  string
+	Currency  string
+	CardBrand string
+	CardLast4 string
+
 	AmountRefunded float64
+	AmountDue      float64
 }
 
 func Send(actionName Action, email string, opts *Options) error {

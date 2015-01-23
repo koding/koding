@@ -46,14 +46,7 @@ type InvoiceCreatedWebhookRequest struct {
 	} `json:"lines"`
 }
 
-func InvoiceCreatedWebhook(raw []byte) error {
-	var req *InvoiceCreatedWebhookRequest
-
-	err := json.Unmarshal(raw, &req)
-	if err != nil {
-		return err
-	}
-
+func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	if !IsLineCountAllowed(req.Lines.Count) {
 		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil
@@ -62,13 +55,13 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	item := req.Lines.Data[0]
 
 	subscription := paymentmodels.NewSubscription()
-	err = subscription.ByProviderId(item.SubscriptionId, ProviderName)
+	err := subscription.ByProviderId(item.SubscriptionId, ProviderName)
 	if err != nil {
 		return err
 	}
 
 	plan := paymentmodels.NewPlan()
-	plan.ByProviderId(item.Plan.PlanId, ProviderName)
+	plan.ByProviderId(item.Plan.Id, ProviderName)
 	if err != nil {
 		return err
 	}
