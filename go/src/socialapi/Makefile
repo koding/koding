@@ -33,6 +33,11 @@ ifdef port
 	PORT="-port=$(port)"
 endif
 
+# set kite
+ifdef kite
+	KITE="-kite-init=true"
+endif
+
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -59,7 +64,7 @@ default: configure
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c config/dev.toml $(PORT) $(DBG) $(METRICS)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS) $(KITE)
 
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
@@ -181,7 +186,21 @@ build:
 	@echo "building with ../../build.sh"
 	../../build.sh
 
+
+testpermission:
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
+
+testmoderation:
+	@echo "$(OK_COLOR)--> moderation tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/*.go
+	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topic.test
+
 testapi:
+
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
@@ -206,6 +225,11 @@ testapi:
 	@`which go` test -c workers/trollmode/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
+
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
 
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
 	@`which go` test -c workers/topicfeed/topicfeed/*.go
@@ -252,6 +276,11 @@ testapi:
 	@`which go` test -c workers/realtime/realtime/*.go
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./realtime.test
+
+	@echo "$(OK_COLOR)--> moderation tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/*.go
+	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topic.test
 
 	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
 	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go

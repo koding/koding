@@ -186,7 +186,7 @@ func TestCreateLink(t *testing.T) {
 
 			So(controller.CreateLink(cl), ShouldBeNil)
 
-			Convey("leaf node should not have any participants ", func() {
+			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
 				cp.ChannelId = cl.LeafId
 				cpc, err := cp.FetchParticipantCount()

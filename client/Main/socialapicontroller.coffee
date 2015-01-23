@@ -132,7 +132,9 @@ class SocialApiController extends KDController
     messages = [].concat(messages)
     revivedMessages = []
     {SocialMessage} = KD.remote.api
-    revivedMessages = (mapActivity message for message in messages)
+    revivedMessages = for message in messages
+      addToScreenMap { messageId: message.id, clientRequestId: message.clientRequestId }
+      mapActivity message
     return revivedMessages
 
 
@@ -227,12 +229,9 @@ class SocialApiController extends KDController
     {message} = message  unless message.typeConstant?
     {_inScreenMap}  = KD.singletons.socialapi
 
-    {messageId, body, initialChannelId} = message
+    {id, clientRequestId} = message
 
-    type = messageId or initialChannelId
-    token = getScreenMapToken body, type
-
-    inside = _inScreenMap[token]
+    inside = _inScreenMap[id] or _inScreenMap[clientRequestId]
 
     return not inside
 
@@ -297,21 +296,15 @@ class SocialApiController extends KDController
     return "socialapi.#{groupName}-#{typeConstant}-#{name}"
 
 
-  getScreenMapToken = (body, type) ->
-
-    {_id} = KD.whoami()
-    md5.digest "#{type}-#{body}-#{_id}"
-
-
   addToScreenMap = (options) ->
-
-    {messageId, body, channelId} = options
+    {messageId, clientRequestId} = options
     {_inScreenMap} = KD.singletons.socialapi
 
-    type  = messageId or channelId
-    token = getScreenMapToken body, type
+    _inScreenMap[clientRequestId] = yes  if clientRequestId
+    _inScreenMap[messageId]       = yes  if messageId
 
-    _inScreenMap[token] = yes
+
+  addToScreenMap : addToScreenMap
 
 
   messageRequesterFn = (options) ->

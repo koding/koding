@@ -15,6 +15,7 @@ import (
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
+	permissionapi "socialapi/workers/permission/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 	"strconv"
@@ -48,6 +49,7 @@ func main() {
 	notificationapi.AddHandlers(m)
 	trollmodeapi.AddHandlers(m)
 	sitemapapi.AddHandlers(m)
+	permissionapi.AddHandlers(m)
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
@@ -61,7 +63,7 @@ func main() {
 		go setDefaults(r.Log)
 	}
 
-	payment.Initialize(config.MustGet())
+	payment.Initialize(config.MustGet(), r.Kite)
 
 	r.Listen()
 	r.Wait()

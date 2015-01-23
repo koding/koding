@@ -5,24 +5,40 @@ import (
 	"strings"
 
 	"github.com/smartystreets/goconvey/convey/reporting"
+	"github.com/smartystreets/goconvey/web/server/messaging"
 )
 
 type Package struct {
-	Active bool
-	Path   string
-	Name   string
-	Error  error
-	Output string
-	Result *PackageResult
+	Path          string
+	Name          string
+	Ignored       bool
+	Disabled      bool
+	TestArguments []string
+	Error         error
+	Output        string
+	Result        *PackageResult
+
+	HasImportCycle bool
 }
 
-func NewPackage(path string) *Package {
+func NewPackage(folder *messaging.Folder, hasImportCycle bool) *Package {
 	self := new(Package)
-	self.Active = true
-	self.Path = path
-	self.Name = resolvePackageName(path)
+	self.Path = folder.Path
+	self.Name = resolvePackageName(self.Path)
 	self.Result = NewPackageResult(self.Name)
+	self.Ignored = folder.Ignored
+	self.Disabled = folder.Disabled
+	self.TestArguments = folder.TestArguments
+	self.HasImportCycle = hasImportCycle
 	return self
+}
+
+func (self *Package) Active() bool {
+	return !self.Disabled && !self.Ignored
+}
+
+func (self *Package) HasUsableResult() bool {
+	return self.Active() && (self.Error == nil || (self.Output != ""))
 }
 
 type CompleteOutput struct {
@@ -33,6 +49,7 @@ type CompleteOutput struct {
 
 var ( // PackageResult.Outcome values:
 	Ignored         = "ignored"
+	Disabled        = "disabled"
 	Passed          = "passed"
 	Failed          = "failed"
 	Panicked        = "panicked"
@@ -40,6 +57,8 @@ var ( // PackageResult.Outcome values:
 	NoTestFiles     = "no test files"
 	NoTestFunctions = "no test functions"
 	NoGoFiles       = "no go code"
+
+	TestRunAbortedUnexpectedly = "test run aborted unexpectedly"
 )
 
 type PackageResult struct {

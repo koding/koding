@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"koding/db/models"
 	"koding/db/mongodb"
@@ -51,6 +52,9 @@ type Checker interface {
 	// NetworkUsage checks whether the given machine has exceeded the network
 	// outbound limit
 	NetworkUsage() error
+
+	// PlanState checks whether the given plan is valid or expired
+	PlanState() error
 }
 
 type PlanChecker struct {
@@ -61,7 +65,7 @@ type PlanChecker struct {
 	Kite                 *kite.Kite
 	Username             string
 	Log                  logging.Logger
-	Plan                 Plan
+	Plan                 *FetcherResponse
 	NetworkUsageEndpoint string
 }
 
@@ -131,7 +135,7 @@ func (p *PlanChecker) NetworkUsage() error {
 }
 
 func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
-	allowedInstances := p.Plan.Limits().AllowedInstances
+	allowedInstances := p.Plan.Plan.Limits().AllowedInstances
 
 	if _, ok := allowedInstances[wantInstance]; ok {
 		return nil
@@ -141,7 +145,7 @@ func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
 }
 
 func (p *PlanChecker) AlwaysOn() error {
-	alwaysOnLimit := p.Plan.Limits().AlwaysOn
+	alwaysOnLimit := p.Plan.Plan.Limits().AlwaysOn
 
 	// get all alwaysOn machines that belongs to this user
 	alwaysOnMachines := 0
@@ -159,17 +163,17 @@ func (p *PlanChecker) AlwaysOn() error {
 	}
 
 	p.Log.Debug("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, alwaysOnMachines, alwaysOnLimit, p.Plan)
+		p.Machine.Id, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
 
 	// the user has still not reached the limit
 	if alwaysOnMachines <= alwaysOnLimit {
 		p.Log.Debug("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan)
+			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
 		return nil // allow user, it didn't reach the limit
 	}
 
 	p.Log.Info("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan)
+		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
 }
@@ -206,7 +210,7 @@ func (p *PlanChecker) Timeout() error {
 	}
 
 	// get the timeout from the plan in which the user belongs to
-	planTimeout := p.Plan.Limits().Timeout
+	planTimeout := p.Plan.Plan.Limits().Timeout
 
 	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, p.Plan)
@@ -239,8 +243,17 @@ func (p *PlanChecker) Timeout() error {
 	return p.Provider.Stop(p.Machine)
 }
 
+func (p *PlanChecker) PlanState() error {
+	// if the plan is expired there is no need to return the plan anymore
+	if p.Plan.State != "" && strings.ToLower(p.Plan.State) == "expired" {
+		return fmt.Errorf("[%s] Plan is expired", p.Machine.Id)
+	}
+
+	return nil
+}
+
 func (p *PlanChecker) Total() error {
-	allowedMachines := p.Plan.Limits().Total
+	allowedMachines := p.Plan.Plan.Limits().Total
 
 	instances, err := p.userInstances()
 
@@ -256,8 +269,6 @@ func (p *PlanChecker) Total() error {
 		return err
 	}
 
-	go p.checkGhostMachines(instances)
-
 	if len(instances) >= allowedMachines {
 		p.Log.Debug("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 			p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
@@ -271,36 +282,8 @@ func (p *PlanChecker) Total() error {
 	return nil
 }
 
-func (p *PlanChecker) checkGhostMachines(instances []ec2.Instance) {
-	for _, instance := range instances {
-		for _, tag := range instance.Tags {
-			if tag.Key != "koding-machineId" {
-				continue
-			}
-
-			machineId := tag.Value
-
-			// this is just for logging, so we don't care about handling
-			// the error
-			p.DB.Run("jMachines", func(c *mgo.Collection) error {
-				n, err := c.FindId(bson.ObjectIdHex(machineId)).Count()
-				if err != nil {
-					return err
-				}
-
-				if n != 0 {
-					return nil
-				}
-
-				p.Log.Warning("Detected a Ghost Machine in AWS! Instance id: %s", instance.InstanceId)
-				return nil
-			})
-		}
-	}
-}
-
 func (p *PlanChecker) Storage(wantStorage int) error {
-	totalStorage := p.Plan.Limits().Storage
+	totalStorage := p.Plan.Plan.Limits().Storage
 
 	// no need for errors because instances will be empty in case of an error
 	instances, _ := p.userInstances()
@@ -357,7 +340,7 @@ func (p *PlanChecker) userInstances() ([]ec2.Instance, error) {
 
 	// we don't use filters because they are timing out for us due to high
 	// instances count we have. However it seems the filter `tag-value` has an
-	// index internally inside AWS so somewhot that one is not timing out.
+	// index internally inside AWS so somehow that one is not timing out.
 	for _, instance := range instances {
 		for _, tag := range instance.Tags {
 			if tag.Key == "koding-user" && tag.Value == p.Username {

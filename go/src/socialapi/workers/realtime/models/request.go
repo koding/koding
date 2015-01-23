@@ -25,6 +25,7 @@ type NotificationMessage struct {
 }
 
 type Message struct {
+	Id        int64       `json:"messageId, string"`
 	EventName string      `json:"eventName"`
 	Body      interface{} `json:"body"`
 }

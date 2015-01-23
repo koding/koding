@@ -1,10 +1,14 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 )
+
+var limitsToAction = map[string]func(string, string, string) error{
+	StopLimitKey:  stopVm,
+	BlockLimitKey: blockUserAndDestroyVm,
+}
 
 // pops username from set in db and gets metrics for machines belonging
 // to that user; it uses pop instead of find so multiple workers can
@@ -12,125 +16,89 @@ import (
 func getAndSaveQueueMachineMetrics() error {
 	var index = 0
 	defer func() {
-		Log.Debug("Fetched: %d entries for queued usernames", index)
+		Log.Debug("Fetched: %d machine entries for queued usernames", index)
 	}()
 
-	for {
-		for _, metric := range metricsToSave {
+	for _, metric := range metricsToSave {
+		for {
 			machines, err := popMachinesForMetricGet(metric.GetName())
 			if err != nil {
-				// ran out of usernames in queue, so return
-				if isRedisRecordNil(err) {
-					return nil
+				if !isRedisRecordNil(err) {
+					Log.Error("Failed to fetching machines for %s, %v", metric.GetName(), err)
 				}
+
+				// ran out of usernames in queue, so go next metric
+				break
 			}
 
+			// username has no machine, possibly due to it being deleted since the
+			// machine was queued, go to next queued username
 			if len(machines) == 0 {
 				continue
 			}
 
 			for _, machine := range machines {
+				index += 1
+
 				err := metric.GetAndSaveData(machine.Credential)
 				if err != nil {
 					Log.Error(err.Error())
 				}
 			}
 		}
-
-		index += 1
 	}
 
 	return nil
 }
 
-func stopMachinesOverLimit() error {
+func dealWithMachinesOverLimit() error {
 	for _, metric := range metricsToSave {
-		machines, err := metric.GetMachinesOverLimit()
-		if err != nil {
-			Log.Error(err.Error())
-			continue
-		}
+		for limit, action := range limitsToAction {
+			for {
+				machines, err := popMachinesOverLimit(metric.GetName(), limit)
+				if err != nil && !isRedisRecordNil(err) {
+					Log.Error(err.Error())
+					continue
+				}
 
-		Log.Debug(
-			"Fetched: %d machines that are overlimit for metric: %s",
-			len(machines), metric.GetName(),
-		)
+				if isRedisRecordNil(err) {
+					break
+				}
 
-		if len(machines) == 0 {
-			continue
-		}
+				Log.Debug(
+					"Fetched: %d machines that are overlimit: %s for metric: %s#%s",
+					len(machines), metric.GetName(), limit,
+				)
 
-		var stopSuccess = 0
-
-		for _, machine := range machines {
-			reason := fmt.Sprintf(
-				"%v overlimit, allowed: %d", metric.GetName(), metric.GetLimit(),
-			)
-
-			err = stopVm(machine.ObjectId.Hex(), reason)
-			if err != nil {
-				continue
+				act(machines, limit, action)
 			}
-
-			stopSuccess += 1
-
-			// err := metric.RemoveUsername(machine.Credential)
-			// if err != nil {
-			//   Log.Error(err.Error())
-			//   continue
-			// }
 		}
-
-		Log.Debug(
-			"Successfully stopped: %d/%d overlimit machines for metric: %s",
-			stopSuccess, len(machines), metric.GetName(),
-		)
 	}
 
 	return nil
 }
 
-func queueUsernamesForMetricGet() error {
-	machines, err := getRunningVms()
-	if err != nil {
-		return err
-	}
+func getRunningVms() ([]models.Machine, error) {
+	return modelhelper.GetRunningVms()
+}
 
-	if len(machines) == 0 {
-		return nil
-	}
-
+func extractUsernames(machines []*models.Machine) []interface{} {
 	usernames := []interface{}{}
 	for _, machine := range machines {
 		usernames = append(usernames, machine.Credential)
 	}
 
-	for _, metric := range metricsToSave {
-		Log.Debug("Queued: %d usernames for metric: %s", len(usernames), metric.GetName())
+	return usernames
+}
 
-		err := storage.Queue(metric.GetName(), usernames)
+func act(machines []*models.Machine, limit string, fn func(string, string, string) error) error {
+	for _, machine := range machines {
+		err := fn(machine.ObjectId.Hex(), machine.Credential, limit)
 		if err != nil {
-			return err
+			Log.Error(err.Error())
+			continue
 		}
 	}
 
 	return nil
-}
-
-func popMachinesForMetricGet(metricName string) ([]*models.Machine, error) {
-	username, err := storage.Pop(metricName)
-	if err != nil {
-		return nil, err
-	}
-
-	machines, err := modelhelper.GetMachinesForUsername(username)
-	if err != nil {
-		return nil, err
-	}
-
-	return machines, nil
-}
-
-func getRunningVms() ([]models.Machine, error) {
-	return modelhelper.GetRunningVms()
 }
