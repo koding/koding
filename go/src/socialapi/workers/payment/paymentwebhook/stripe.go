@@ -2,9 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-
-	"github.com/coreos/go-log/log"
 )
 
 type stripeActionType func([]byte) error
@@ -41,27 +40,25 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
+		fmt.Printf("Error marshalling Stripe webhook '%v' : %v", s, err)
 		return
 	}
 
 	action, ok := stripeActions[req.Name]
 	if !ok {
-		log.Error("Stripe webhook: %s not implemented", req.Name)
+		fmt.Printf("Stripe webhook: %s not implemented", req.Name)
 		return
 	}
 
 	data, err := json.Marshal(req.Data.Object)
 	if err != nil {
-		log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
+		fmt.Printf("Error marshalling Stripe webhook '%v' : %v", s, err)
 		return
 	}
 
 	err = action(data)
 	if err != nil {
-		log.Error("Stripe webhook: %s action failed: %s", req.Name, err)
+		fmt.Printf("Stripe webhook: %s action failed: %s", req.Name, err)
 		return
 	}
-
-	// return 200 to webhook
 }

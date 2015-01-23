@@ -48,6 +48,5 @@ func initialize() *config.Config {
 }
 
 func getEmailForCustomer(customerId string) (string, error) {
-	customer := paymentmodels.NewCustomer()
-	return customer.GetEmail(customerId)
+	return paymentmodels.NewCustomer().GetEmail(customerId)
 }
