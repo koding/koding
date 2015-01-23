@@ -111,14 +111,17 @@ class Machine extends KDObject
         return @data.credential
 
 
-  isMine: ->
-
-    @getOwner() is KD.nick()
-
-
-  isPermanent: ->
+  _ruleChecker: (rules)->
 
     for user in @jMachine.users
-      return yes  if user.id is KD.userId and user.permanent
+      if user.id is KD.userId
+        for rule in rules
+          return no  unless user[rule]
+        return yes
 
     return no
+
+
+  isMine      : -> @_ruleChecker ['owner', 'sudo']
+  isApproved  : -> @isMine() or @_ruleChecker ['approved']
+  isPermanent : -> @_ruleChecker ['permanent']
