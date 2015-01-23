@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"testing"
 	"time"
 
@@ -22,8 +23,8 @@ func TestSubscriptionDeletedWebhook(t *testing.T) {
 		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
 			subscriptionProviderId := subscription.ProviderSubscriptionId
 
-			data := rawSubscriptionDeletedData(subscriptionProviderId)
-			err := SubscriptionDeletedWebhook(data)
+			req := &webhookmodels.StripeSubscription{ID: subscriptionProviderId}
+			err := SubscriptionDeletedWebhook(req)
 
 			Convey("When webhook is fired after third failed invoice", func() {
 				Convey("Then customer subscription is marked as expired", func() {

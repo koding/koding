@@ -232,22 +232,6 @@ func (s *StripeWebhook) Do() (interface{}, error) {
 
 	switch s.Name {
 	case "customer.subscription.deleted":
-		err = stripe.SubscriptionDeletedWebhook(raw)
-		if err != nil {
-			return nil, err
-		}
-
-		subsObj, ok := s.Data.Object.(map[string]interface{})
-		if !ok {
-			return nil, errUnmarshalFailed(s.Data.Object)
-		}
-
-		customerId, ok := subsObj["customer"].(string)
-		if !ok {
-			return nil, errUnmarshalFailed(s.Data.Object)
-		}
-
-		err = stopMachinesForUser(customerId)
 	case "invoice.created":
 		err = stripe.InvoiceCreatedWebhook(raw)
 	case "customer.deleted":

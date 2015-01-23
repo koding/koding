@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
+	"socialapi/workers/payment/stripe"
 
 	"github.com/coreos/go-log/log"
 )
@@ -20,6 +21,7 @@ func stripeSubscriptionCreated(raw []byte) error {
 
 func stripeSubscriptionDeleted(raw []byte) error {
 	actions := []subscriptionActionType{
+		stripe.SubscriptionDeletedWebhook,
 		sendSubscriptionDeletedEmail,
 	}
 

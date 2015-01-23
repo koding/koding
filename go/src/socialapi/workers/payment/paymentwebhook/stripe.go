@@ -12,11 +12,6 @@ var stripeActions = map[string]stripeActionType{
 	"customer.subscription.created": stripeSubscriptionCreated,
 	"customer.subscription.deleted": stripeSubscriptionDeleted,
 
-	// "customer.subscription.deleted": []stripeActionType{
-	//   stripe.SubscriptionDeletedWebhook,
-	//   sendSubscriptionDeletedEmail,
-	// },
-
 	// "invoice.created":  []stripeActionType{stripe.InvoiceCreatedWebhook},
 	// "customer.deleted": []stripeActionType{stripe.CustomerDeletedWebhook},
 	// "charge.refunded":  []stripeActionType{sendChargeRefundedEmail},

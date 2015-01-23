@@ -3,6 +3,7 @@ package stripe
 import (
 	"encoding/json"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"time"
 )
 
@@ -10,26 +11,9 @@ import (
 // SubscriptionDeleted
 //----------------------------------------------------------
 
-type PlanWebhook struct {
-	Name string `json:"name"`
-}
-
-type SubscriptionDeletedWebhookRequest struct {
-	ID         string      `json:"id"`
-	CustomerId string      `json:"customer"`
-	Plan       PlanWebhook `json:"plan"`
-}
-
-func SubscriptionDeletedWebhook(raw []byte) error {
-	var req *SubscriptionDeletedWebhookRequest
-
-	err := json.Unmarshal(raw, &req)
-	if err != nil {
-		return err
-	}
-
+func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 	subscription := paymentmodels.NewSubscription()
-	err = subscription.ByProviderId(req.ID, ProviderName)
+	err := subscription.ByProviderId(req.ID, ProviderName)
 	if err != nil {
 		return err
 	}
