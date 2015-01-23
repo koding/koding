@@ -3,17 +3,18 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
-type stripeInvoiceActionType func(*webhookmodels.StripeInvoice) error
+type stripeInvoiceActionType func(*webhookmodels.StripeInvoice, *kodingemail.SG) error
 
-func stripeInvoiceCreated(raw []byte) error {
+func stripeInvoiceCreated(raw []byte, email *kodingemail.SG) error {
 	actions := []stripeInvoiceActionType{
 		stripe.InvoiceCreatedWebhook,
-		// sendInvoiceCreatedEmail,
+		sendInvoiceCreatedEmail,
 	}
 
 	var req *webhookmodels.StripeInvoice
@@ -24,7 +25,7 @@ func stripeInvoiceCreated(raw []byte) error {
 	}
 
 	for _, action := range actions {
-		err := action(req)
+		err := action(req, email)
 		if err != nil {
 			return err
 		}
@@ -33,7 +34,7 @@ func stripeInvoiceCreated(raw []byte) error {
 	return nil
 }
 
-func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice) error {
+func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, client *kodingemail.SG) error {
 	email, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return err
@@ -53,5 +54,5 @@ func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice) error {
 		PlanName:  planName,
 	}
 
-	return paymentemail.Send(paymentemail.SubscriptionDeleted, email, opts)
+	return paymentemail.Send(client, paymentemail.SubscriptionDeleted, email, opts)
 }

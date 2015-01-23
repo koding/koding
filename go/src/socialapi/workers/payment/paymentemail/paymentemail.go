@@ -1,5 +1,7 @@
 package paymentemail
 
+import "koding/kodingemail"
+
 type ActionFuncType func(string) error
 
 var Actions = map[Action][]ActionFuncType{
@@ -16,6 +18,6 @@ type Options struct {
 	AmountDue      float64
 }
 
-func Send(actionName Action, email string, opts *Options) error {
+func Send(client *kodingemail.SG, actionName Action, email string, opts *Options) error {
 	return nil
 }

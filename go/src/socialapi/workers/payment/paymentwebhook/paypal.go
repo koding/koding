@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"koding/kodingemail"
 	"net/http"
 	"socialapi/workers/payment/paypal"
 
@@ -29,7 +30,9 @@ type paypalWebhookRequest struct {
 	PayerId         string `json:"payer_id"`
 }
 
-type paypalMux struct{}
+type paypalMux struct {
+	EmailClient *kodingemail.SG
+}
 
 func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var req paypalWebhookRequest

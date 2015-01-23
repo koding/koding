@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"koding/kodingemail"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"time"
@@ -10,7 +11,7 @@ import (
 // SubscriptionDeleted
 //----------------------------------------------------------
 
-func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
+func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription, _ *kodingemail.SG) error {
 	subscription := paymentmodels.NewSubscription()
 	err := subscription.ByProviderId(req.ID, ProviderName)
 	if err != nil {
@@ -45,7 +46,7 @@ type InvoiceCreatedWebhookRequest struct {
 	} `json:"lines"`
 }
 
-func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
+func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice, _ *kodingemail.SG) error {
 	if !IsLineCountAllowed(req.Lines.Count) {
 		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil

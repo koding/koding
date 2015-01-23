@@ -2,6 +2,7 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"koding/kodingemail"
 	"log"
 	"net/http"
 	"socialapi/config"
@@ -15,8 +16,12 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	st := &stripeMux{}
-	pp := &paypalMux{}
+	email := kodingemail.InitializeSG(conf.Email.Username, conf.Email.Password)
+	email.FromAddress = conf.Email.DefaultFromMail
+	email.FromName = conf.Email.DefaultFromMail
+
+	st := &stripeMux{EmailClient: email}
+	pp := &paypalMux{EmailClient: email}
 
 	mux.Handle("/stripe", st)
 	mux.Handle("/paypal", pp)

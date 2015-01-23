@@ -2,13 +2,14 @@ package main
 
 import (
 	"encoding/json"
+	"koding/kodingemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
 type stripeCustomerActionType func(*webhookmodels.StripeCustomer) error
 
-func stripeCustomerDeleted(raw []byte) error {
+func stripeCustomerDeleted(raw []byte, email *kodingemail.SG) error {
 	actions := []stripeCustomerActionType{
 		stripe.CustomerDeletedWebhook,
 	}

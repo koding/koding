@@ -2,31 +2,32 @@ package main
 
 import (
 	"encoding/json"
+	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
-type subscriptionActionType func(*webhookmodels.StripeSubscription) error
+type subscriptionActionType func(*webhookmodels.StripeSubscription, *kodingemail.SG) error
 
-func stripeSubscriptionCreated(raw []byte) error {
+func stripeSubscriptionCreated(raw []byte, email *kodingemail.SG) error {
 	actions := []subscriptionActionType{
 		sendSubscriptionCreatedEmail,
 	}
 
-	return _stripeSubscription(raw, actions)
+	return _stripeSubscription(raw, actions, email)
 }
 
-func stripeSubscriptionDeleted(raw []byte) error {
+func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
 	actions := []subscriptionActionType{
 		stripe.SubscriptionDeletedWebhook,
 		sendSubscriptionDeletedEmail,
 	}
 
-	return _stripeSubscription(raw, actions)
+	return _stripeSubscription(raw, actions, email)
 }
 
-func _stripeSubscription(raw []byte, actions []subscriptionActionType) error {
+func _stripeSubscription(raw []byte, actions []subscriptionActionType, email *kodingemail.SG) error {
 	var req *webhookmodels.StripeSubscription
 
 	err := json.Unmarshal(raw, &req)
@@ -35,7 +36,7 @@ func _stripeSubscription(raw []byte, actions []subscriptionActionType) error {
 	}
 
 	for _, action := range actions {
-		err := action(req)
+		err := action(req, email)
 		if err != nil {
 			return err
 		}
@@ -44,7 +45,7 @@ func _stripeSubscription(raw []byte, actions []subscriptionActionType) error {
 	return nil
 }
 
-func sendSubscriptionCreatedEmail(req *webhookmodels.StripeSubscription) error {
+func sendSubscriptionCreatedEmail(req *webhookmodels.StripeSubscription, client *kodingemail.SG) error {
 	email, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return err
@@ -54,10 +55,10 @@ func sendSubscriptionCreatedEmail(req *webhookmodels.StripeSubscription) error {
 		PlanName: req.Plan.Name,
 	}
 
-	return paymentemail.Send(paymentemail.SubscriptionCreated, email, opts)
+	return paymentemail.Send(client, paymentemail.SubscriptionCreated, email, opts)
 }
 
-func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription) error {
+func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription, client *kodingemail.SG) error {
 	email, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return err
@@ -67,5 +68,5 @@ func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription) error {
 		PlanName: req.Plan.Name,
 	}
 
-	return paymentemail.Send(paymentemail.SubscriptionDeleted, email, opts)
+	return paymentemail.Send(client, paymentemail.SubscriptionDeleted, email, opts)
 }
