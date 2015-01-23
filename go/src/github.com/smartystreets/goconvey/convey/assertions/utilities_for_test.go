@@ -38,10 +38,6 @@ func format(message string) string {
 	return message
 }
 
-func so(actual interface{}, assert func(interface{}, ...interface{}) string, expected ...interface{}) string {
-	return assert(actual, expected...)
-}
-
 type Thing1 struct {
 	a string
 }
@@ -67,6 +63,10 @@ type StringStringMapAlias map[string]string
 type fakeSerializer struct{}
 
 func (self *fakeSerializer) serialize(expected, actual interface{}, message string) string {
+	return fmt.Sprintf("%v|%v|%s", expected, actual, message)
+}
+
+func (self *fakeSerializer) serializeDetailed(expected, actual interface{}, message string) string {
 	return fmt.Sprintf("%v|%v|%s", expected, actual, message)
 }
 
