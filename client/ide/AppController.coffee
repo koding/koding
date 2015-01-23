@@ -285,7 +285,7 @@ class IDEAppController extends AppController
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
         else
-          @createNewTerminal { machine }
+          @createNewTerminal { machine, resurrectSessions: yes }
           @setActiveTabView @ideViews.first.tabView
           @forEachSubViewInIDEViews_ (pane) ->
             pane.isInitial = yes
@@ -441,7 +441,7 @@ class IDEAppController extends AppController
 
   createNewTerminal: (options) ->
 
-    { machine, path } = options
+    { machine, path, resurrectSessions } = options
 
     unless machine instanceof Machine
       machine = @mountedMachine
@@ -458,6 +458,16 @@ class IDEAppController extends AppController
     # which is an Array. This check is to make sure that the
     # `path` is always the one we send explicitly here - SY
     path = null  unless typeof path is 'string'
+
+    if resurrectSessions and @workspaceData?.isDefault
+
+      sessions = machine.getBaseKite().getActiveSessions()
+
+      if sessions.length > 0
+        sessions.forEach (session)=>
+          options.session = session
+          @activeTabView.emit 'TerminalPaneRequested', options
+        return
 
     @activeTabView.emit 'TerminalPaneRequested', options
 
@@ -547,6 +557,9 @@ class IDEAppController extends AppController
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
       delete @generatedPanes[pane.view.hash]
+
+      if session = pane.view.remote?.session
+        @mountedMachine.getBaseKite().removeFromActiveSessions session
 
       @statusBar.showInformation()  if ideViewLength is 0
 
@@ -790,7 +803,7 @@ class IDEAppController extends AppController
     unless @fakeViewsDestroyed
       @fakeFinderView?.destroy()
       @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal { machine }
+      @createNewTerminal { machine, resurrectSessions: yes }
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
 
