@@ -5,9 +5,17 @@ import (
 	"encoding/hex"
 	"fmt"
 	"koding/db/models"
+	"time"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+)
+
+var (
+	UserColl              = "jUsers"
+	UserStatusConfirmed   = "confirmed"
+	UserStatusUnConfirmed = "unconfirmed"
+	UserStatusBlocked     = "blocked"
 )
 
 // CheckAndGetUser validates the user with the given password. If not
@@ -36,7 +44,7 @@ func GetUser(username string) (*models.User, error) {
 		return c.Find(bson.M{"username": username}).One(&user)
 	}
 
-	err := Mongo.Run("jUsers", query)
+	err := Mongo.Run(UserColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +54,7 @@ func GetUser(username string) (*models.User, error) {
 
 func GetUserById(id string) (*models.User, error) {
 	user := new(models.User)
-	err := Mongo.One("jUsers", id, user)
+	err := Mongo.One(UserColl, id, user)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +68,12 @@ func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
 		return c.Find(s).All(&users)
 	}
 
-	return users, Mongo.Run("jUsers", query)
+	return users, Mongo.Run(UserColl, query)
 }
 
 func CreateUser(a *models.User) error {
 	query := insertQuery(a)
-	return Mongo.Run("jUsers", query)
+	return Mongo.Run(UserColl, query)
 }
 
 func UpdateEmailFrequency(username string, e models.EmailFrequency) error {
@@ -77,5 +85,31 @@ func UpdateEmailFrequency(username string, e models.EmailFrequency) error {
 		return err
 	}
 
-	return Mongo.Run("jUsers", query)
+	return Mongo.Run(UserColl, query)
+}
+
+func BlockUser(username, reason string, duration time.Duration) error {
+	selector := bson.M{"username": username}
+	updateQuery := bson.M{"$set": bson.M{
+		"status":        UserStatusBlocked,
+		"blockedReason": reason, "blockedUntil": time.Now().UTC().Add(duration),
+	}}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Update(selector, updateQuery)
+		return err
+	}
+
+	return Mongo.Run(UserColl, query)
+}
+
+func RemoveUser(username string) error {
+	selector := bson.M{"username": username}
+
+	query := func(c *mgo.Collection) error {
+		err := c.Remove(selector)
+		return err
+	}
+
+	return Mongo.Run(UserColl, query)
 }

@@ -229,7 +229,8 @@ func (p *PrivateChannelRequest) createActivity(c *Channel, ca ChatActivity) (*Ch
 	}
 
 	// add message to the channel
-	_, err = c.AddMessage(cm.Id)
+	cm.ClientRequestId = p.ClientRequestId
+	_, err = c.AddMessage(cm)
 
 	return cm, err
 }

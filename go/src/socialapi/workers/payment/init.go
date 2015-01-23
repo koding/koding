@@ -9,11 +9,14 @@ import (
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/kite"
 )
 
-func Initialize(conf *config.Config) {
+func Initialize(conf *config.Config, k *kite.Kite) {
 	stripe.InitializeClientKey(conf.Stripe.SecretToken)
 	paypal.InitializeClientKey(conf.Paypal)
+
+	KiteClient = initializeKiteClient(k, conf.Kloud.SecretKey, conf.Kloud.Address)
 
 	go func() {
 		err := stripe.CreateDefaultPlans()
@@ -62,4 +65,28 @@ func CheckForLeakedSubscriptions() error {
 	}
 
 	return nil
+}
+
+func initializeKiteClient(k *kite.Kite, kloudSecretKey, kloudAddr string) *kite.Client {
+	if k == nil {
+		Log.Error("kite not initialized in runner")
+		return nil
+	}
+
+	// create a new connection to the cloud
+	kiteClient := k.NewClient(kloudAddr)
+	kiteClient.Auth = &kite.Auth{
+		Type: "kloudctl",
+		Key:  kloudSecretKey,
+	}
+
+	// dial the kloud address
+	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
+		Log.Error("%s. Is kloud/kontrol running?", err.Error())
+		return nil
+	}
+
+	Log.Info("Connected to klient: %s", kloudAddr)
+
+	return kiteClient
 }

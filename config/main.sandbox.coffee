@@ -24,6 +24,8 @@ Configuration = (options={}) ->
   etcd                = "#{prod_simulation_server}:4001"
 
   redis               = { host:     "#{prod_simulation_server}"              , port:               6379                                  , db:              0                    }
+  redis.url           = "#{redis.host}:#{redis.port}"
+
   rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
@@ -41,6 +43,11 @@ Configuration = (options={}) ->
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
 
+
+  kloudPort           = 5500
+  kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
+
+
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
@@ -50,7 +57,7 @@ Configuration = (options={}) ->
     configFilePath    : "#{projectRoot}/go/src/socialapi/config/sandbox.toml"
     postgres          : postgres
     mq                : mq
-    redis             : url: "#{redis.host}:#{redis.port}"
+    redis             : url: redis.url
     mongo             : mongo
     environment       : environment
     region            : region
@@ -68,6 +75,8 @@ Configuration = (options={}) ->
     paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
     gatekeeper        : gatekeeper
     customDomain      : customDomain
+    kloud             : { secretKey: kloud.secretKey, address: kloud.address }
+
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -96,13 +105,12 @@ Configuration = (options={}) ->
     socialapi                      : socialapi
     mongo                          : mongo
     kiteHome                       : kiteHome
-    redis                          : "#{redis.host}:#{redis.port}"
+    redis                          : redis.url
     monitoringRedis                : "10.0.0.123:#{redis.port}"
     misc                           : {claimGlobalNamesForUsers: no , updateAllSlugs : no , debugConnectionErrors: yes}
 
     # -- WORKER CONFIGURATION -- #
-
-    vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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", kloudSecretKey : "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", kloudAddr : "http://localhost:#{kloudPort}/kite" }
+    vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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"                                                      , kloudSecretKey : kloud.secretKey                      , kloudAddr : kloud.address, connectToKlient: true, debug: true, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
     authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
@@ -118,7 +126,7 @@ Configuration = (options={}) ->
     appsproxy                      : {port          : 3500 }
     rerouting                      : {port          : 9500 }
 
-    kloud                          : {port          : kloudPort , privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile , kontrolUrl: kontrol.url , registerUrl : "#{customDomain.public}/kloud/kite"}
+    kloud                          : kloud
 
     emailConfirmationCheckerWorker : {enabled: no                                 , login : "#{rabbitmq.login}"             , queueName: socialQueueName+'emailConfirmationCheckerWorker' , cronSchedule: '0 * * * * *'                           , usageLimitInMinutes  : 60}
 
@@ -160,49 +168,55 @@ Configuration = (options={}) ->
     client                         : {watch: yes , version: version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
+  # NOTE: when you add to runtime options below, be sure to modify
+  # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
   KONFIG.client.runtimeOptions =
-    kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
-    algolia           : algolia
-    logToExternal     : no                                 # rollbar , mixpanel etc.
-    suppressLogs      : no
-    logToInternal     : no                                 # log worker
-    authExchange      : "auth"
-    environment       : environment                        # this is where browser knows what kite environment to query for
-    version           : version
-    resourceName      : socialQueueName
-    userSitesDomain   : userSitesDomain
-    logResourceName   : logQueueName
-    socialApiUri      : "/xhr"
-    apiUri            : "/"
-    mainUri           : "/"
-    sourceMapsUri     : "/sourcemaps"
-    broker            : {uri          : "/subscribe" }
-    appsUri           : "/appsproxy"
-    uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
-    uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-    fileFetchTimeout  : 1000 * 15
-    userIdleMs        : 1000 * 60 * 5
-    embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github            : {clientId     : "d3b586defd01c24bb294" }
-    newkontrol        : {url          : "#{kontrol.url}"}
-    sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
-    troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha         : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
-    stripe            : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
-    externalProfiles  :
-      google          : {nicename: 'Google'  }
-      linkedin        : {nicename: 'LinkedIn'}
-      twitter         : {nicename: 'Twitter' }
-      odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
-      facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
-      github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
-    entryPoint        : {slug:'koding'       , type:'group'}
-    siftScience       : 'f270274999'
-    paypal            : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub            : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
-    collaboration     : KONFIG.collaboration
+    kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
+    algolia              : algolia
+    logToExternal        : no                                 # rollbar , mixpanel etc.
+    suppressLogs         : no
+    logToInternal        : no                                 # log worker
+    authExchange         : "auth"
+    environment          : environment                        # this is where browser knows what kite environment to query for
+    version              : version
+    resourceName         : socialQueueName
+    userSitesDomain      : userSitesDomain
+    logResourceName      : logQueueName
+    socialApiUri         : "/xhr"
+    apiUri               : "/"
+    mainUri              : "/"
+    sourceMapsUri        : "/sourcemaps"
+    broker               : {uri          : "/subscribe" }
+    appsUri              : "/appsproxy"
+    uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
+    uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
+    fileFetchTimeout     : 1000 * 15
+    userIdleMs           : 1000 * 60 * 5
+    embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
+    github               : {clientId     : "d3b586defd01c24bb294" }
+    newkontrol           : {url          : "#{kontrol.url}"}
+    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
+    recaptcha            : '6LfZL_kSAAAAABDrxNU5ZAQk52jx-2sJENXRFkTO'
+    stripe               : { token: 'pk_test_S0cUtuX2QkSa5iq0yBrPNnJF' }
+    externalProfiles     :
+      google             : {nicename: 'Google'  }
+      linkedin           : {nicename: 'LinkedIn'}
+      twitter            : {nicename: 'Twitter' }
+      odesk              : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
+      facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
+      github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint           : {slug:'koding'       , type:'group'}
+    siftScience          : 'f270274999'
+    paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
+    collaboration        : KONFIG.collaboration
+    paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
 
-      # END: PROPERTIES SHARED WITH BROWSER #
+    # NOTE: when you add to runtime options above, be sure to modify
+    # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
+
+    # END: PROPERTIES SHARED WITH BROWSER #
 
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#
@@ -356,12 +370,23 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "#{GOBIN}/api  -c #{socialapi.configFilePath} -port=#{socialapi.port}"
+        command         : "#{GOBIN}/api  -kite-init=true -c #{socialapi.configFilePath} -port=#{socialapi.port}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
         locations       : [
           { location    : "= /payments/stripe/webhook" },
+          # location ordering is important here. if you are going to need to change it or
+          # add something new, thoroughly test it in sandbox. Most of the problems are not occuring
+          # in dev environment
+          {
+            location    : "~ /api/social/channel/(.*)/history/count"
+            proxyPass   : "http://socialapi/channel/$1/history/count$is_args$args"
+          }
+          {
+            location    : "~ /api/social/channel/(.*)/history"
+            proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
+          }
           {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"

@@ -119,6 +119,13 @@ func (s *Subscription) Cancel() error {
 	return customer.Delete()
 }
 
+func (s *Subscription) Expire() error {
+	s.ExpiredAt = time.Now()
+	s.State = SubscriptionStateExpired
+
+	return bongo.B.Update(s)
+}
+
 func (s *Subscription) UpdateTimeForDowngrade(t time.Time) error {
 	s.CanceledAt = t
 	err := bongo.B.Update(s)

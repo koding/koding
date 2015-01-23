@@ -33,15 +33,15 @@ func TestChannelMessageListFetchMessageChannels(t *testing.T) {
 			So(cm.Create(), ShouldBeNil)
 
 			// add to first channel
-			_, err := c1.AddMessage(cm.Id)
+			_, err := c1.AddMessage(cm)
 			So(err, ShouldBeNil)
 
 			// add to second channel
-			_, err = c2.AddMessage(cm.Id)
+			_, err = c2.AddMessage(cm)
 			So(err, ShouldBeNil)
 
 			// add to 3rd channel
-			_, err = c3.AddMessage(cm.Id)
+			_, err = c3.AddMessage(cm)
 			So(err, ShouldBeNil)
 
 			channels, err := NewChannelMessageList().FetchMessageChannels(cm.Id)
@@ -84,7 +84,7 @@ func TestChannelMessageListCount(t *testing.T) {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
 
-			_, err := c.AddMessage(cm.Id)
+			_, err := c.AddMessage(cm)
 			So(err, ShouldBeNil)
 
 			cml := NewChannelMessageList()
@@ -118,10 +118,10 @@ func TestChannelMessageListCount(t *testing.T) {
 
 			// add message to the channel
 			// account is troll !!
-			_, erro := c.AddMessage(msg.Id)
+			_, erro := c.AddMessage(msg)
 			So(erro, ShouldBeNil)
 
-			_, erre := c.AddMessage(msg2.Id)
+			_, erre := c.AddMessage(msg2)
 			So(erre, ShouldBeNil)
 
 			cml := NewChannelMessageList()
@@ -292,7 +292,7 @@ func TestChannelMessageListUpdateAddedAt(t *testing.T) {
 			msg.AccountId = acc.Id
 			So(msg.Create(), ShouldBeNil)
 
-			_, erro := c.AddMessage(msg.Id)
+			_, erro := c.AddMessage(msg)
 			So(erro, ShouldBeNil)
 
 			cml := NewChannelMessageList()
@@ -374,7 +374,7 @@ func TestChannelMessageListUnreadCount(t *testing.T) {
 			cp.ChannelId = c.Id
 			cp.AccountId = accTroll.Id
 
-			_, erre := c.AddMessage(msg.Id)
+			_, erre := c.AddMessage(msg)
 			So(erre, ShouldBeNil)
 
 			cnt, err := cml.UnreadCount(cp)
@@ -457,7 +457,7 @@ func TestChannelMessageListIsInChannel(t *testing.T) {
 			msg.AccountId = acc.Id
 			So(msg.Create(), ShouldBeNil)
 
-			_, err := c.AddMessage(msg.Id)
+			_, err := c.AddMessage(msg)
 			So(err, ShouldBeNil)
 
 			cml := NewChannelMessageList()

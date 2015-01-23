@@ -18,6 +18,7 @@ module.exports = class JSession extends Model
     indexes         :
       clientId      : 'unique'
       username      : 'descending'
+      clientIP      : 'sparse'
     schema          :
       clientId      : String
       clientIP      : String

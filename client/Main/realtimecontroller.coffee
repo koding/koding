@@ -22,6 +22,11 @@ class RealtimeController extends KDController
       uuid          : KD.whoami()._id
       ssl           : ssl
 
+    realtimeToken = Cookies.get("realtimeToken")
+
+    @pubnub.auth realtimeToken  if realtimeToken?
+
+
   # channel authentication is needed for notification channel and
   # private channels
   authenticate: (options, callback) ->
@@ -31,7 +36,20 @@ class RealtimeController extends KDController
     { endPoint, data } = options
     return callback { message : "endPoint is not set"}  unless endPoint
 
-    KD.utils.doXhrRequest {endPoint, data}, callback
+    KD.utils.doXhrRequest {endPoint, data}, (err) =>
+
+      return callback err  if err
+
+      # when we make an authentication request, server responses with realtimeToken
+      # in cookie here. If it is not set, then there is no need to subscription attempt
+      # to pubnub
+      realtimeToken = Cookies.get("realtimeToken")
+
+      return callback { message : 'Could not find realtime token'}  unless realtimeToken
+
+      @pubnub.auth realtimeToken
+
+      callback null
 
 
   # subscriptionData =
@@ -84,6 +102,9 @@ class RealtimeController extends KDController
 
 
   unsubscribePubnub: (channel) ->
+
+    return  unless channel
+
     {token} = channel
     channelName = "channel-#{token}"
     @pubnub.unsubscribe({
@@ -137,12 +158,6 @@ class RealtimeController extends KDController
 
       return callback err  if err
 
-      realtimeToken = Cookies.get("realtimeToken")
-
-      return callback { message : 'Could not find realtime token'}  unless realtimeToken
-
-      @pubnub.auth realtimeToken
-
       channelInstance = new PubnubChannel name: pubnubChannelName
 
       @pubnub.subscribe
@@ -150,6 +165,11 @@ class RealtimeController extends KDController
         message : (message, env, channel) =>
           return  unless message
           {eventName, body} = message
+          # when a user is connected in two browsers, and leaves a channel, in second one
+          # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
+          # user from all connected devices.
+          if eventName is 'RemovedFromChannel' and body.accountId is KD.whoami().socialApiId
+            return @unsubscribePubnub message.channel
 
           # no need to emit any events when not subscribed
           return  unless @channels[channel]
@@ -165,7 +185,11 @@ class RealtimeController extends KDController
 
 
   handleError: (err) ->
-    {message, payload: {channels}} = err
+    {message, payload} = err
+
+    return warn err  unless payload
+
+    {channels} = payload
 
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 

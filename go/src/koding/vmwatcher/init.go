@@ -2,33 +2,58 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"koding/tools/config"
 	"socialapi/workers/helper"
 	"time"
 
 	"github.com/jinzhu/now"
 	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/multiconfig"
 
 	"github.com/crowdmob/goamz/aws"
 	"github.com/koding/kite"
 	"github.com/koding/redis"
 )
 
-var (
-	conf = config.MustConfig("")
-	port = conf.Vmwatcher.Port
+type Vmwatcher struct {
+	Mongo           string `required:"true"`
+	Redis           string `required:"true"`
+	AwsKey          string `required:"true"`
+	AwsSecret       string `required:"true"`
+	KloudSecretKey  string `required:"true"`
+	KloudAddr       string `required:"true"`
+	Port            string `required:"true"`
+	Debug           bool
+	ConnectToKlient bool
+}
 
-	AWS_KEY    = conf.Vmwatcher.AwsKey
-	AWS_SECRET = conf.Vmwatcher.AwsSecret
+var (
+	conf = func() *Vmwatcher {
+		conf := new(Vmwatcher)
+		d := &multiconfig.DefaultLoader{
+			Loader: multiconfig.MultiLoader(
+				&multiconfig.EnvironmentLoader{Prefix: "KONFIG_VMWATCHER"},
+			),
+		}
+
+		d.MustLoad(conf)
+
+		return conf
+	}()
+
+	port = conf.Port
+
+	AWS_KEY    = conf.AwsKey
+	AWS_SECRET = conf.AwsSecret
 
 	// This secret key is here because this worker will be bypassed from the
 	// token authentication in kloud.
-	KloudSecretKey = conf.Vmwatcher.KloudSecretKey
-	KloudAddr      = conf.Vmwatcher.KloudAddr
+	KloudSecretKey = conf.KloudSecretKey
+	KloudAddr      = conf.KloudAddr
 
 	controller *VmController
+	storage    Storage
 
-	Log = helper.CreateLogger(WorkerName, true)
+	Log = helper.CreateLogger(WorkerName, conf.Debug)
 )
 
 func initialize() {
@@ -37,7 +62,11 @@ func initialize() {
 	controller = &VmController{}
 
 	initializeRedis(controller)
-	initializeKlient(controller)
+	initializeAws(controller)
+
+	if conf.ConnectToKlient {
+		initializeKlient(controller)
+	}
 
 	initializeMongo()
 
@@ -45,19 +74,21 @@ func initialize() {
 
 	// save defaults
 	saveExemptUsers()
-	saveLimitsUnlessExists()
 
 	// pkg default is sunday, use monday instead
 	now.FirstDayMonday = true
 }
 
 func initializeRedis(c *VmController) {
-	redisClient, err := redis.NewRedisSession(&redis.RedisConf{Server: conf.Redis})
+	redisClient, err := redis.NewRedisSession(&redis.RedisConf{
+		Server: conf.Redis,
+	})
+
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
 
-	// Log.Info("Connected to redis: %s", conf.Redis)
+	// Log.Debug("Connected to redis: %s", conf.Redis)
 
 	c.Redis = &RedisStorage{Client: redisClient}
 }
@@ -65,30 +96,10 @@ func initializeRedis(c *VmController) {
 func initializeMongo() {
 	modelhelper.Initialize(conf.Mongo)
 
-	// Log.Info("Connected to mongo: %s", conf.Mongo)
+	// Log.Debug("Connected to mongo: %s", conf.MongoURL)
 }
 
-func saveExemptUsers() {
-	for _, metric := range metricsToSave {
-		err := storage.ExemptSave(metric.GetName(), ExemptUsers)
-		if err != nil {
-			Log.Fatal(err.Error())
-		}
-	}
-
-	Log.Debug("Saved: %v users as exempt", len(ExemptUsers))
-}
-
-func saveLimitsUnlessExists() {
-	for _, metric := range metricsToSave {
-		err := storage.SaveLimitUnlessExists(metric.GetName(), metric.GetLimit())
-		if err != nil {
-			Log.Fatal(err.Error())
-		}
-	}
-}
-
-func initializeKlient(c *VmController) {
+func initializeAws(c *VmController) {
 	var err error
 
 	// initialize cloudwatch api client
@@ -97,6 +108,12 @@ func initializeKlient(c *VmController) {
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
+
+	c.Aws = auth
+}
+
+func initializeKlient(c *VmController) {
+	var err error
 
 	// create new kite
 	k := kite.New(WorkerName, WorkerVersion)

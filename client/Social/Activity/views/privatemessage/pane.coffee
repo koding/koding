@@ -175,8 +175,9 @@ class PrivateMessagePane extends MessagePane
     # condition problem. ~Umut
     if data.clientRequestId and not data.isFake
       fakeItem = @fakeMessageMap[data.clientRequestId]
-      applyConsequency fakeItem.hasClass('consequent'), item
-      return
+      if fakeItem
+        applyConsequency fakeItem.hasClass('consequent'), item
+        return
 
     @applyDayMark item, index
     @putNewMessageMark()

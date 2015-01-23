@@ -7,7 +7,6 @@ import (
 	"koding/kites/kloud/protocol"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -25,26 +24,33 @@ type SubscriptionsResponse struct {
 	Error              string    `json:"error"`
 }
 
-func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan, planErr error) {
+type FetcherResponse struct {
+	Plan  Plan
+	State string
+}
+
+func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *FetcherResponse, planErr error) {
+
 	defer func() {
 		if planErr != nil {
 			p.Log.Warning("[%s] username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
 				m.Id, m.Username, planErr)
-			planResp = Free
+
+			fetcherResp = &FetcherResponse{Plan: Free}
 			planErr = nil
 		}
 	}()
 
 	userEndpoint, err := url.Parse(endpoint)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	var account *models.Account
 	if err := p.Session.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": m.Username}).One(&account)
 	}); err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	q := userEndpoint.Query()
@@ -54,38 +60,36 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (planResp Plan,
 	p.Log.Debug("[%s] fetching plan via URL: '%s'", m.Id, userEndpoint.String())
 	resp, err := http.Get(userEndpoint.String())
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	var subscription *SubscriptionsResponse
 	e := json.NewDecoder(resp.Body)
 	if err := e.Decode(&subscription); err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	// return an error back for a non 200 status
 	if resp.StatusCode != 200 {
 		if subscription.Error != "" {
-			return 0, fmt.Errorf("[%s] could not fetch subscription. err: '%s'",
+			return nil, fmt.Errorf("[%s] could not fetch subscription. err: '%s'",
 				m.Id, subscription.Description)
 		}
 
-		return 0, fmt.Errorf("[%s] could not fetch subscription. status code: %d",
+		return nil, fmt.Errorf("[%s] could not fetch subscription. status code: %d",
 			m.Id, resp.StatusCode)
-	}
-
-	// if the plan is expired there is no need to return the plan anymore
-	if subscription.State != "" && strings.ToLower(subscription.State) == "expired" {
-		return 0, fmt.Errorf("[%s] Plan is expired", m.Id)
 	}
 
 	plan, ok := plans[subscription.PlanTitle]
 	if !ok {
-		return 0, fmt.Errorf("[%s] could not find plan. There is no plan called '%s'",
+		return nil, fmt.Errorf("[%s] could not find plan. There is no plan called '%s'",
 			m.Id, subscription.PlanTitle)
 	}
 
 	p.Log.Debug("[%s] user has plan: %s", m.Id, plan)
-	return plan, nil
+	return &FetcherResponse{
+		Plan:  plan,
+		State: subscription.State,
+	}, nil
 }

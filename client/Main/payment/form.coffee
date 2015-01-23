@@ -28,8 +28,36 @@ class PaymentForm extends JView
 
     @state = KD.utils.extend @getInitialState(), state
 
+    @isInputValidMap = {}
+
     @initViews()
     @initEvents()
+
+
+  observeForm: ->
+
+    isVisible = (key) =>
+      if input = @form.inputs[key] then input.getOption('cssClass') isnt 'hidden' else no
+
+    Object.keys(@form.inputs).filter(isVisible).map (name) =>
+
+      input = @form.inputs[name]
+
+      @isInputValidMap[name] = no
+
+      input.on 'ValidationResult', (isValid) =>
+
+        @handleFormInputValidation name, isValid
+
+
+  handleFormInputValidation: (name, isValid) ->
+
+    @isInputValidMap[name] = isValid
+
+    formIsValid = yes
+    formIsValid = formIsValid and value  for own key, value of @isInputValidMap
+
+    @emit 'GotValidationResult', formIsValid
 
 
   initViews: ->
@@ -50,6 +78,8 @@ class PaymentForm extends JView
 
     @form = @initForm()
 
+    @observeForm()
+
     @existingCreditCardMessage = new KDCustomHTMLView
       cssClass : 'existing-cc-msg'
       partial  : '
@@ -69,6 +99,7 @@ class PaymentForm extends JView
       style     : 'solid medium green'
       title     : buttonPartial
       loader    : yes
+      disabled  : yes
       cssClass  : 'submit-btn'
       callback  : => @emit 'PaymentSubmitted', @form.getFormData()
 
@@ -116,6 +147,8 @@ class PaymentForm extends JView
     if currentPlan is FREE
       @form.show()
       @existingCreditCardMessage.hide()
+    else
+      @submitButton.enable()
 
     @paypalForm.destroy()  unless provider is KODING
 
@@ -159,6 +192,15 @@ class PaymentForm extends JView
       cardNumber.setClass type.toLowerCase()
 
     @paypalForm.on 'PaypalTokenLoaded', @bound 'initPaypalClient'
+
+    @on 'GotValidationResult', @bound 'handleValidationResult'
+
+
+  handleValidationResult: (isValid) ->
+
+    if isValid
+    then @submitButton.enable()
+    else @submitButton.disable()
 
 
   showValidationErrorsOnInputs: (error) ->
@@ -244,6 +286,7 @@ class PaymentForm extends JView
       @securityNote
       @yearPriceMessage
       @submitButton
+      @paypalForm
     ].forEach (view) -> view.destroy()
 
     [
@@ -251,14 +294,17 @@ class PaymentForm extends JView
       @$('.summary')
     ].forEach (element) -> element.detach()
 
+    subject = "User: #{KD.nick()} blocked from upgrades due to too many failed attempts"
+    body = "Plan Name: #{@state.planTitle}, Plan Interval: #{@state.planInterval}"
+
     @successMessage.updatePartial "
-      We are sorry that you are having trouble upgrading.
-      Looks like there is an issue with the card you are
-      attempting to use. If you feel the error is on our end,
-      please send us relevant details at
-      <a href='mailto:support@koding.com'>support@koding.com</a>
-      (don't forget to include your username and the plan name
-      you were trying to purchase).
+      Your access to upgrades has been locked for 24 hours
+      due to too many failed attempts. Please try again in 24 hours.
+      If you believe this is an error on our end, please send us a note at
+      <a href='mailto:support@koding.com?subject=#{subject}&body=#{body}'>
+      support@koding.com</a> with
+      relevant details (your username,
+      plan you want to purchase, etc.).
     "
     @successMessage.show()
 

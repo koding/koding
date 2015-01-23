@@ -197,7 +197,7 @@ removeParticipants = (data, callback)->
       return callback err if err
       cycleChannelHelper {leftUsers, channel}, callback
 
-# TODO we can move this to realtime worker later on
+# TODO when we remove broker we will no longer need this
 cycleChannelHelper = ({leftUsers, channel}, callback)->
   return callback { message: "user could not leave the channel" } unless leftUsers?.length
 
@@ -208,6 +208,8 @@ cycleChannelHelper = ({leftUsers, channel}, callback)->
 
   return callback { message: "user could not leave the channel" } unless isUserRemoved leftUsers
 
+  callback null, leftUsers
+
   {channel} = channel
   options =
     groupSlug     : channel.groupName
@@ -215,8 +217,7 @@ cycleChannelHelper = ({leftUsers, channel}, callback)->
     apiChannelName: channel.name
   SocialChannel = require './channel'
   SocialChannel.cycleChannel options, (err)->
-    return callback err if err?
-    callback null, leftUsers
+    console.warn err  if err?
 
 
 doChannelParticipantOperation = (data, url, callback)->
@@ -383,6 +384,9 @@ checkOwnership = (data, callback) ->
   url = "/account/#{data.accountId}/owns"
   get url, data, callback
 
+getCustomers = (data, callback) ->
+  url = "/payments/customers"
+  get url, data, callback
 
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
@@ -502,6 +506,7 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
+  getCustomers
   post
   get
   deleteReq

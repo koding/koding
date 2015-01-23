@@ -230,9 +230,9 @@ class ComputeController extends KDController
       return err
 
 
-  destroy: (machine)->
+  destroy: (machine, force = @_force)->
 
-    ComputeController.UI.askFor 'destroy', machine, @_force, =>
+    destroy = (machine)=>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -256,6 +256,12 @@ class ComputeController extends KDController
       .catch (err)=>
 
         (@errorHandler call, 'destroy', machine) err
+
+    return destroy machine  if force?
+
+    ComputeController
+      .UI.askFor 'destroy', machine, force, =>
+        destroy machine
 
 
   reinit: (machine)->
@@ -516,57 +522,6 @@ class ComputeController extends KDController
       if err? or not subscription?
       then callback 'free'
       else callback @lastKnownUserPlan = subscription.planTitle
-
-
-  handleNewMachineRequest: (callback = noop)->
-
-    return  if @_inprogress
-    @_inprogress = yes
-
-    @fetchPlanCombo "koding", (err, info)=>
-
-      if KD.showError err
-        return @_inprogress = no
-
-      { plan, plans, usage } = info
-
-      limits  = plans[plan]
-      options = { plan, limits, usage }
-
-      if limits.total > 1
-
-        new ComputePlansModal.Paid options
-        @_inprogress = no
-
-        callback()
-        return
-
-      @fetchMachines (err, machines)=>
-
-        warn err  if err?
-
-        if err? or machines.length > 0
-          new ComputePlansModal.Free options
-          @_inprogress = no
-
-          callback()
-
-        else if machines.length is 0
-
-          stack   = @stacks.first._id
-          storage = plans[plan]?.storage or 3
-
-          @create {
-            provider : "koding"
-            stack, storage
-          }, (err, machine)=>
-
-            @_inprogress = no
-
-            callback()
-
-            unless KD.showError err
-              KD.userMachines.push machine
 
 
   triggerReviveFor:(machineId)->

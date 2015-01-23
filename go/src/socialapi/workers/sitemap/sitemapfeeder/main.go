@@ -19,10 +19,12 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	conf := *r.Conf
+	conf.Redis.DB = conf.Sitemap.RedisDB
+	redisConn := helper.MustInitRedisConn(&conf)
 	defer redisConn.Close()
 
-	r.SetContext(feeder.New(r.Log))
+	r.SetContext(feeder.New(r.Log, redisConn))
 	registerHandlers(r)
 	r.Listen()
 	r.Wait()
