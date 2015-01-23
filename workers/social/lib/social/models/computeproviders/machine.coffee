@@ -295,7 +295,7 @@ module.exports = class JMachine extends Module
       callback new KodingError \
         "Machine sharing is limited up to 10 users."
     else
-      @update $set: { users }, (err)->
+      @update $set: { users }, (err) =>
         informAccounts targets, @getAt 'uid'
         callback err
 
@@ -309,7 +309,7 @@ module.exports = class JMachine extends Module
     for user in targets
       users = excludeUser { users, user, permanent }
 
-    @update $set: { users }, (err)->
+    @update $set: { users }, (err) =>
       informAccounts targets, @getAt 'uid'  if inform
       callback err
 
