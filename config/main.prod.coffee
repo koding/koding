@@ -166,50 +166,55 @@ Configuration = (options={}) ->
     client                         : {watch: yes , version       : version , includesPath:'client' , indexMaster: "index-master.html" , index: "default.html" , useStaticFileServer: no , staticFilesBaseUrl: "#{customDomain.public}:#{customDomain.port}"}
 
   #-------- runtimeOptions: PROPERTIES SHARED WITH BROWSER --------#
+  # NOTE: when you add to runtime options below, be sure to modify
+  # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
   KONFIG.client.runtimeOptions =
-    kites             : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
-    algolia           : algolia
-    logToExternal     : yes                                # rollbar , mixpanel etc.
-    suppressLogs      : yes
-    logToInternal     : no                                 # log worker
-    authExchange      : "auth"
-    environment       : environment                        # this is where browser knows what kite environment to query for
-    version           : version
-    resourceName      : socialQueueName
-    userSitesDomain   : userSitesDomain
-    logResourceName   : logQueueName
-    socialApiUri      : "/xhr"
-    apiUri            : "#{customDomain.public}/"
-    mainUri           : "#{customDomain.public}/"
-    sourceMapsUri     : "/sourcemaps"
-    broker            : {uri          : "/subscribe" }
-    appsUri           : "/appsproxy"
-    uploadsUri        : 'https://koding-uploads.s3.amazonaws.com'
-    uploadsUriForGroup: 'https://koding-groups.s3.amazonaws.com'
-    fileFetchTimeout  : 1000 * 15
-    userIdleMs        : 1000 * 60 * 5
-    embedly           : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
-    github            : {clientId     : "5891e574253e65ddb7ea" }
-    newkontrol        : {url          : kontrol.url}
-    sessionCookie     : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
-    troubleshoot      : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
-    recaptcha         : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
-    stripe            : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
-    externalProfiles  :
-      google          : {nicename: 'Google'  }
-      linkedin        : {nicename: 'LinkedIn'}
-      twitter         : {nicename: 'Twitter' }
-      odesk           : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
-      facebook        : {nicename: 'Facebook', urlLocation: 'link'             }
-      github          : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
-    entryPoint        : {slug:'koding'       , type:'group'}
-    siftScience       : '3305771626'
-    paypal            : { formUrl: 'https://www.paypal.com/incontext' }
-    pubnub            : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
-    collaboration     : KONFIG.collaboration
+    kites                : require './kites.coffee'           # browser passes this version information to kontrol , so it connects to correct version of the kite.
+    algolia              : algolia
+    logToExternal        : yes                                # rollbar , mixpanel etc.
+    suppressLogs         : yes
+    logToInternal        : no                                 # log worker
+    authExchange         : "auth"
+    environment          : environment                        # this is where browser knows what kite environment to query for
+    version              : version
+    resourceName         : socialQueueName
+    userSitesDomain      : userSitesDomain
+    logResourceName      : logQueueName
+    socialApiUri         : "/xhr"
+    apiUri               : "#{customDomain.public}/"
+    mainUri              : "#{customDomain.public}/"
+    sourceMapsUri        : "/sourcemaps"
+    broker               : {uri          : "/subscribe" }
+    appsUri              : "/appsproxy"
+    uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
+    uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
+    fileFetchTimeout     : 1000 * 15
+    userIdleMs           : 1000 * 60 * 5
+    embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
+    github               : {clientId     : "5891e574253e65ddb7ea" }
+    newkontrol           : {url          : kontrol.url}
+    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
+    recaptcha            : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
+    stripe               : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
+    externalProfiles     :
+      google             : {nicename: 'Google'  }
+      linkedin           : {nicename: 'LinkedIn'}
+      twitter            : {nicename: 'Twitter' }
+      odesk              : {nicename: 'oDesk'   , urlLocation: 'info.profile_url' }
+      facebook           : {nicename: 'Facebook', urlLocation: 'link'             }
+      github             : {nicename: 'GitHub'  , urlLocation: 'html_url'         }
+    entryPoint           : {slug:'koding'       , type:'group'}
+    siftScience          : '3305771626'
+    paypal               : { formUrl: 'https://www.paypal.com/incontext' }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
+    collaboration        : KONFIG.collaboration
+    paymentBlockDuration : 24 * 60 * 60 * 1000 # 24 hours
 
+    # NOTE: when you add to runtime options above, be sure to modify
+    # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
 
-      # END: PROPERTIES SHARED WITH BROWSER #
+    # END: PROPERTIES SHARED WITH BROWSER #
 
 
   #--- RUNTIME CONFIGURATION: WORKERS AND KITES ---#

@@ -71,6 +71,7 @@ func (m *MongoDB) AlwaysOn() ([]MachineDocument, error) {
 	query := func(c *mgo.Collection) error {
 		alwaysOn := bson.M{
 			"meta.alwaysOn": true,
+			"provider":      "koding",
 		}
 
 		machine := MachineDocument{}
@@ -146,9 +147,24 @@ func (m *MongoDB) Accounts(ids ...string) ([]models.Account, error) {
 
 // RemoveAlwaysOn removes the alwaysOn flag for the given usernames
 func (m *MongoDB) RemoveAlwaysOn(usernames ...string) error {
+	users, err := m.Users(usernames...)
+	if err != nil {
+		return err
+	}
+
+	userIds := make([]bson.ObjectId, len(users))
+	for i, user := range users {
+		userIds[i] = user.ObjectId
+	}
+
 	query := func(c *mgo.Collection) error {
 		_, err := c.UpdateAll(
-			bson.M{"credential": bson.M{"$in": usernames}},
+			bson.M{
+				"provider":    "koding",
+				"users.id":    bson.M{"$in": userIds},
+				"users.sudo":  true,
+				"users.owner": true,
+			},
 			bson.M{"$set": bson.M{"meta.alwaysOn": false}},
 		)
 
@@ -156,4 +172,28 @@ func (m *MongoDB) RemoveAlwaysOn(usernames ...string) error {
 	}
 
 	return m.DB.Run("jMachines", query)
+}
+
+func (m *MongoDB) Users(usernames ...string) ([]models.User, error) {
+	users := make([]models.User, 0)
+
+	query := func(c *mgo.Collection) error {
+		all := bson.M{
+			"username": bson.M{"$in": usernames},
+		}
+
+		user := models.User{}
+		iter := c.Find(all).Batch(150).Iter()
+		for iter.Next(&user) {
+			users = append(users, user)
+		}
+
+		return iter.Close()
+	}
+
+	if err := m.DB.Run("jUsers", query); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }
