@@ -129,7 +129,7 @@ class PaymentForm extends JView
     { FREE }   = PaymentWorkflow.planTitle
     { MONTH }  = PaymentWorkflow.planInterval
     { KODING } = PaymentWorkflow.provider
-    { currentPlan, planTitle, planInterval, provider } = @state
+    { currentPlan, planTitle, planInterval, provider, paymentMethod } = @state
 
     operation = PaymentWorkflow.getOperation currentPlan, planTitle
 
@@ -143,15 +143,11 @@ class PaymentForm extends JView
       @existingCreditCardMessage.hide()
       @yearPriceMessage.hide()
 
-    # if their currentPlan is not free it means that
-    # we already have their credit card,
-    # don't show existing cc message, show
-    # cc form.
-    if currentPlan is FREE
+    if paymentMethod
+      @submitButton.enable()
+    else
       @form.show()
       @existingCreditCardMessage.hide()
-    else
-      @submitButton.enable()
 
     @paypalForm.destroy()  unless provider is KODING
 
