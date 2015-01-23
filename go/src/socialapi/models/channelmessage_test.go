@@ -149,7 +149,7 @@ func TestChannelMessageUpdate(t *testing.T) {
 			So(cm.Update().Error(), ShouldContainSubstring, "message body length should be greater than")
 		})
 
-		Convey("valid length body can  be updated ", func() {
+		Convey("valid length body can be updated", func() {
 			// create message in the db
 			cm := createMessageWithTest()
 			So(cm.Create(), ShouldBeNil)
