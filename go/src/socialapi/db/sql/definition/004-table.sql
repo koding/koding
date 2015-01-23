@@ -216,3 +216,19 @@ CREATE TABLE "api"."permission" (
     "updated_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
 ) WITH (OIDS=FALSE);
 GRANT SELECT, INSERT, UPDATE ON "api"."permission" TO "social";
+
+
+-- ----------------------------
+--  Table structure for channel_link
+-- ----------------------------
+DROP TABLE IF EXISTS "api"."channel_link";
+CREATE TABLE "api"."channel_link" (
+    "id" BIGINT NOT NULL DEFAULT nextval(
+        'api.channel_link_id_seq' :: regclass
+    ),
+    "root_id" BIGINT NOT NULL,
+    "leaf_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMP(6) WITH TIME ZONE NOT NULL
+) WITH (OIDS=FALSE);
+-- give required channel_link permissions
+GRANT SELECT, INSERT, DELETE ON "api"."channel_link" TO "social";

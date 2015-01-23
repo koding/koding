@@ -186,3 +186,24 @@ ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_name_channel_id_role_c
 -- ----------------------------
 ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 
+
+
+-- ----------------------------
+--  Structure for table ChannelLink
+-- ----------------------------
+--
+-- ----------------------------
+--  Primary key structure for table channel_link
+-- ----------------------------
+ALTER TABLE "api"."channel_link" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Uniques structure for table channel_link
+-- ----------------------------
+ALTER TABLE "api"."channel_link" ADD CONSTRAINT "channel_link_root_id_leaf_id_key" UNIQUE ("rot_id","leaf_id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Foreign keys structure for table channel_link
+-- ----------------------------
+ALTER TABLE "api"."channel_link" ADD  CONSTRAINT "channel_link_root_id_fkey" FOREIGN KEY ("root_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."channel_link" ADD  CONSTRAINT "channel_link_leaf_id_fkey" FOREIGN KEY ("leaf_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
