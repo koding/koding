@@ -141,12 +141,7 @@ func (c *ChannelParticipant) fetchParticipant(selector map[string]interface{}) e
 	}
 
 	// TODO do we need to add isExempt scope here?
-	err := c.One(bongo.NewQS(selector))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return c.One(bongo.NewQS(selector))
 }
 
 // Tests are done in channelmessagelist.
