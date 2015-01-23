@@ -95,8 +95,6 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldNotBeNil)
 		})
 
-		Convey("non-member can not post status update", nil)
-
 		Convey("member can post status update", nil)
 
 		Convey("non-member can not post status update", nil)
