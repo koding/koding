@@ -26,3 +26,10 @@ const (
 	REQUEST_NAME_MESSAGE_DELETE = "message-delete"
 	REQUEST_NAME_MESSAGE_GET    = "message-get"
 )
+
+const (
+	ModerationChannelCreateLink = "moderation-channel-create-link"
+	ModerationChannelGetLink    = "moderation-channel-get-link"
+	ModerationChannelDeleteLink = "moderation-channel-delete-link"
+	ModerationChannelBlacklist  = "moderation-channel-blacklist"
+)
