@@ -639,6 +639,21 @@ func TestChannelAddMessage(t *testing.T) {
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrMessageAlreadyInTheChannel)
 		})
+
+		Convey("it should return clientRequestId in response when message is created with clientRequestId", func() {
+			c := createNewChannelWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			cm := createMessageWithTest()
+			cm.Body = "five5"
+			cm.ClientRequestId = "ctf-123456"
+			So(cm.Create(), ShouldBeNil)
+
+			ch, err := c.AddMessage(cm)
+			So(err, ShouldBeNil)
+			So(ch, ShouldNotBeEmpty)
+			So(ch.ClientRequestId, ShouldEqual, "ctf-123456")
+		})
 	})
 }
 
