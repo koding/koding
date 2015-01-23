@@ -29,8 +29,9 @@ func InitializeSG(username, password string) *SG {
 func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 	message := sendgrid.NewMail()
 
-	// sendgrid api requries not empty value, but I decided to put
-	// all the required info in template itself
+	// sendgrid api requries non empty values, but I decided to put
+	// all the required info in template itself since it's easier to
+	// edit in sendgrid ui than to edit in code and redeploy
 	message.SetSubject(" ")
 	message.SetHTML(" ")
 
