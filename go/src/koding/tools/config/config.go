@@ -282,6 +282,7 @@ type RuntimeOptions struct {
 	Collaboration struct {
 		Timeout int `json:"timeout"`
 	} `json:"collaboration"`
+	PaymentBlockDuration float64 `json:"paymentBlockDuration"`
 }
 
 // TODO: THIS IS ADDED SO ALL GO PACKAGES CLEANLY EXIT EVEN WHEN

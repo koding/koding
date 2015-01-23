@@ -351,7 +351,7 @@ func TestChannelParticipantMarkIfExempt(t *testing.T) {
 			msg.AccountId = acc.Id
 			So(msg.Create(), ShouldBeNil)
 
-			_, errs := c.AddMessage(msg.Id)
+			_, errs := c.AddMessage(msg)
 			So(errs, ShouldBeNil)
 
 			cp := NewChannelParticipant()
