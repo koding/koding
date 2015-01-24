@@ -11,7 +11,7 @@ import (
 // SubscriptionDeleted
 //----------------------------------------------------------
 
-func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription, _ *kodingemail.SG) error {
+func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 	subscription := paymentmodels.NewSubscription()
 	err := subscription.ByProviderId(req.ID, ProviderName)
 	if err != nil {

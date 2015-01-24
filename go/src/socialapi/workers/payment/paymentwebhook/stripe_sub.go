@@ -3,70 +3,40 @@ package main
 import (
 	"encoding/json"
 	"koding/kodingemail"
-	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
-type subscriptionActionType func(*webhookmodels.StripeSubscription, *kodingemail.SG) error
-
 func stripeSubscriptionCreated(raw []byte, email *kodingemail.SG) error {
-	actions := []subscriptionActionType{
-		sendSubscriptionCreatedEmail,
+	sub, err := _stripeSubscription(raw)
+	if err != nil {
+		return err
 	}
 
-	return _stripeSubscription(raw, actions, email)
+	return stripeSubscriptionCreatedEmail(sub, email)
 }
 
 func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
-	actions := []subscriptionActionType{
-		stripe.SubscriptionDeletedWebhook,
-		sendSubscriptionDeletedEmail,
+	sub, err := _stripeSubscription(raw)
+	if err != nil {
+		return err
 	}
 
-	return _stripeSubscription(raw, actions, email)
+	err = stripe.SubscriptionDeletedWebhook(sub)
+	if err != nil {
+		return err
+	}
+
+	return stripeSubscriptionDeletedEmail(sub, email)
 }
 
-func _stripeSubscription(raw []byte, actions []subscriptionActionType, email *kodingemail.SG) error {
+func _stripeSubscription(raw []byte) (*webhookmodels.StripeSubscription, error) {
 	var req *webhookmodels.StripeSubscription
 
 	err := json.Unmarshal(raw, &req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	for _, action := range actions {
-		err := action(req, email)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func sendSubscriptionCreatedEmail(req *webhookmodels.StripeSubscription, client *kodingemail.SG) error {
-	email, err := getEmailForCustomer(req.CustomerId)
-	if err != nil {
-		return err
-	}
-
-	opts := map[string]string{"planName": req.Plan.Name}
-
-	return paymentemail.Send(
-		client, paymentemail.SubscriptionCreated, email, opts,
-	)
-}
-
-func sendSubscriptionDeletedEmail(req *webhookmodels.StripeSubscription, client *kodingemail.SG) error {
-	email, err := getEmailForCustomer(req.CustomerId)
-	if err != nil {
-		return err
-	}
-
-	opts := map[string]string{"planName": req.Plan.Name}
-
-	return paymentemail.Send(
-		client, paymentemail.SubscriptionDeleted, email, opts,
-	)
+	return req, nil
 }

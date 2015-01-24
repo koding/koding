@@ -2,32 +2,20 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"koding/kodingemail"
 	"net/http"
-	"socialapi/workers/payment/paypal"
-
-	"github.com/coreos/go-log/log"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
-type paypalActionType func(string) error
+type paypalActionType func(*webhookmodels.PaypalGenericWebhook, *kodingemail.SG) error
 
-var paypalActionExpire = []paypalActionType{
-	paypal.ExpireSubscription,
-}
-
-var paypalActions = map[string][]paypalActionType{
-	"Denied":   paypalActionExpire,
-	"Expired":  paypalActionExpire,
-	"Failed":   paypalActionExpire,
-	"Reversed": paypalActionExpire,
-	"Voided":   paypalActionExpire,
-	"recurring_payment_profile_cancel": paypalActionExpire,
-}
-
-type paypalWebhookRequest struct {
-	TransactionType string `json:"txn_type"`
-	Status          string `json:"payment_status"`
-	PayerId         string `json:"payer_id"`
+var paypalActions = map[string]paypalActionType{
+	"recurring_payment_profile_created": paypalSubscriptionCreated,
+	"recurring_payment_profile_cancel":  paypalSubscriptionDeleted,
+	"recurring_payment_failed":          paypalPaymentFailed,
+	"recurring_payment":                 paypalPaymentSucceeded,
+	"recurring_payment_skipped":         paypalPaymentFailed,
 }
 
 type paypalMux struct {
@@ -35,26 +23,27 @@ type paypalMux struct {
 }
 
 func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var req paypalWebhookRequest
+	var req *webhookmodels.PaypalGenericWebhook
 
-	err := json.NewDecoder(r.Body).Decode(req)
+	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		log.Error("Error marshalling Paypal webhook '%v' : %v", p, err)
+		fmt.Println("Error marshalling Paypal webhook '%v' : %v", p, err)
 		return
 	}
 
-	actions, ok := paypalActions[req.Status]
+	action, ok := paypalActions[req.Status]
 	if !ok {
-		actions, ok = paypalActions[req.TransactionType]
+		action, ok = paypalActions[req.TransactionType]
 		if !ok {
+			fmt.Printf("Paypal webhook: %s, %s not implemented",
+				req.Status, req.TransactionType)
+
 			return
 		}
 	}
 
-	for _, action := range actions {
-		err := action(req.PayerId)
-		if err != nil {
-			log.Error("Paypal webhook: %s action failed: %s", req.PayerId, err)
-		}
+	err = action(req, p.EmailClient)
+	if err != nil {
+		fmt.Println("Paypal webhook: %s action failed: %s", req.PayerId, err)
 	}
 }

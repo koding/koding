@@ -264,12 +264,12 @@ func (p *PaypalWebhook) Do() (interface{}, error) {
 
 	switch action {
 	case PaypalActionExpire:
-		err = paypal.ExpireSubscription(p.PayerId)
-		if err != nil {
-			return nil, err
-		}
+		// err = paypal.ExpireSubscription(p.PayerId)
+		// if err != nil {
+		//   return nil, err
+		// }
 
-		err = stopMachinesForUser(p.PayerId)
+		// err = stopMachinesForUser(p.PayerId)
 	}
 
 	return nil, err
