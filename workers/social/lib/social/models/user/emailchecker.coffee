@@ -768,15 +768,16 @@ syncWithRedis = (callback)->
 
   redisClient.smembers REDIS_KEY, (err, domains)->
 
+    console.warn err  if err?
+    domains ?= []
+
     DOMAINS.push domain for domain in domains when domain not in DOMAINS
 
+    callback null
 
-syncWithRedis()
 
 module.exports = (email, callback = ->)->
 
-  syncWithRedis()
+  syncWithRedis -> callback check email
 
-  callback result = check email
-
-  return result
+  return check email
