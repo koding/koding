@@ -75,13 +75,19 @@ class PaymentWorkflow extends KDController
 
     @state.operation = operation
 
-    { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+    { paymentController } = KD.singletons
 
-    switch operation
-      when DOWNGRADE                then @startDowngradeFlow()
-      when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
+    paymentController.creditCard (err, card) =>
 
-    @emit 'WorkflowStarted'
+      @state.paymentMethod = card
+
+      { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+
+      switch operation
+        when DOWNGRADE                then @startDowngradeFlow()
+        when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
+
+      @emit 'WorkflowStarted'
 
 
   startRegularFlow: ->
@@ -138,7 +144,11 @@ class PaymentWorkflow extends KDController
 
     @state.provider = STRIPE  if @state.provider is KODING
 
-    if currentPlan is PaymentWorkflow.planTitle.FREE
+    shouldRegisterNewPlan = \
+      currentPlan is PaymentWorkflow.planTitle.FREE or
+      @state.subscriptionState is 'expired'
+
+    if shouldRegisterNewPlan
 
       Stripe.card.createToken {
         number    : cardNumber
