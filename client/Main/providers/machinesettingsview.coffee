@@ -44,6 +44,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue  : running
           itemClass     : KodingSwitch
           cssClass      : "tiny"
+          disabled      : data.isPermanent?()
           callback      : (state) => @emit 'StateChange', state
           nextElement   :
             statusLoader:
@@ -76,6 +77,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
         moreView        :
           label         : "More"
           itemClass     : KDCustomHTMLView
+          cssClass      : if data.isPermanent() then 'hidden'
 
     super options, data
 
@@ -83,6 +85,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     @isPaidAccount = no
     @machine = @getData()
+
+    @setClass 'read-only'  if @machine.isPermanent()
 
     @on 'StateChange', (state)=>
       if state then computeController.start @machine
@@ -167,6 +171,12 @@ class MachineSettingsPopup extends KDModalViewWithForms
         statusToggle.setOff no
         statusToggle.show()
 
+    if @machine.isPermanent()
+      statusToggle.setTooltip
+        title     : 'Only owners can change machine state.'
+        placement : 'right'
+
+      return
 
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
 
