@@ -23,17 +23,15 @@ func main() {
 
 	// later on broker support must be removed
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-	broker, err := models.NewBroker(rmq, r.Log)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	rmqD := helper.NewRabbitMQ(r.Conf, r.Log)
-	c, err := dispatcher.NewController(rmqD, pubnub, broker)
+	rmqConn, err := rmq.Connect("NewDispatcher")
 	if err != nil {
 		panic(err)
 	}
+	defer rmqConn.Conn().Close()
+
+	broker := models.NewBroker(rmqConn, r.Log)
+
+	c := dispatcher.NewController(rmqConn, pubnub, broker)
 
 	r.SetContext(c)
 	r.ListenFor("dispatcher_channel_updated", (*dispatcher.Controller).UpdateChannel)

@@ -14,16 +14,12 @@ type Broker struct {
 	log     logging.Logger
 }
 
-func NewBroker(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Broker, error) {
-	rmqConn, err := rmq.Connect("NewGatekeeperBroker")
-	if err != nil {
-		return nil, err
-	}
+func NewBroker(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Broker {
 
 	return &Broker{
-		rmqConn: rmqConn.Conn(),
+		rmqConn: rmq.Conn(),
 		log:     log,
-	}, nil
+	}
 }
 
 func (b *Broker) UpdateChannel(pm *PushMessage) error {
