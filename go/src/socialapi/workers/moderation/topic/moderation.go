@@ -112,22 +112,22 @@ func (c *Controller) validateRequest(cl *models.ChannelLink) error {
 // participation with the new root node's channel id
 func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 	var processCount = 100
-	var skip = 0
 	var erroredChannelParticipants []models.ChannelParticipant
 
-	cp := models.NewChannelParticipant()
-	q := &bongo.Query{
-		Selector: map[string]interface{}{
-			"channel_id": cl.LeafId,
-		},
-		Pagination: *bongo.NewPagination(processCount, 0),
-	}
-
 	for {
-		// set skip everytime here
-		q.Pagination.Skip = skip
+
 		var channelParticipants []models.ChannelParticipant
-		if err := cp.Some(&channelParticipants, q); err != nil {
+
+		// fetch all records, even deleted ones, because we are not gonna need
+		// them anymore
+		err := bongo.B.DB.
+			Model(models.ChannelParticipant{}).
+			Unscoped().
+			Limit(processCount).
+			Where("channel_id = ?", cl.LeafId).
+			Find(&channelParticipants).Error
+
+		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
@@ -171,9 +171,6 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 				erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
 			}
 		}
-
-		// increment skip count
-		skip = processCount + skip
 	}
 
 	// if error happens, return it, next time it will be re-tried
@@ -255,7 +252,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 			}
 
 			// replace all occurences of the leaf node hashbangs with the root
-			// nodes. We can't determina if the multiple occurences of the same
+			// nodes. We can't determine if the multiple occurences of the same
 			// `Name` constitues a meaningful sentence - yes we can but it is
 			// not feasible for now...
 			cm.Body = strings.Replace(cm.Body, "#"+leafChannel.Name, "#"+rootChannel.Name, -1)
