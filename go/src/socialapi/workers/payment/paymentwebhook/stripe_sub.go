@@ -2,30 +2,29 @@ package main
 
 import (
 	"encoding/json"
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
-func stripeSubscriptionCreated(raw []byte, email *kodingemail.SG) error {
+func stripeSubscriptionCreated(raw []byte, c *Controller) error {
 	sub, err := unmarshalSubscription(raw)
 	if err != nil {
 		return err
 	}
 
 	return subscriptionEmail(
-		sub.CustomerId, sub.Plan.Name, paymentemail.SubscriptionCreated, email,
+		sub.CustomerId, sub.Plan.Name, paymentemail.SubscriptionCreated, c.Email,
 	)
 }
 
-func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
+func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 	sub, err := unmarshalSubscription(raw)
 	if err != nil {
 		return err
 	}
 
-	err = stopMachinesForUser(sub.CustomerId)
+	err = stopMachinesForUser(sub.CustomerId, c.Kite)
 	if err != nil {
 		return err
 	}
@@ -36,7 +35,7 @@ func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
 	}
 
 	return subscriptionEmail(
-		sub.CustomerId, sub.Plan.Name, paymentemail.SubscriptionDeleted, email,
+		sub.CustomerId, sub.Plan.Name, paymentemail.SubscriptionDeleted, c.Email,
 	)
 }
 

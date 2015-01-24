@@ -1,34 +1,35 @@
 package main
 
 import (
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/paypal"
+
+	"github.com/koding/kite"
 )
 
-func paypalSubscriptionCreated(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
+func paypalSubscriptionCreated(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
 	return subscriptionEmail(
-		req.PayerId, req.Plan, paymentemail.SubscriptionCreated, email,
+		req.PayerId, req.Plan, paymentemail.SubscriptionCreated, c.Email,
 	)
 }
 
-func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
-	err := paypalExpireSubscription(req.PayerId)
+func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
+	err := paypalExpireSubscription(req.PayerId, c.Kite)
 	if err != nil {
 		return err
 	}
 
 	return subscriptionEmail(
-		req.PayerId, req.Plan, paymentemail.SubscriptionDeleted, email,
+		req.PayerId, req.Plan, paymentemail.SubscriptionDeleted, c.Email,
 	)
 }
 
-func paypalExpireSubscription(customerId string) error {
+func paypalExpireSubscription(customerId string, k *kite.Kite) error {
 	err := paypal.ExpireSubscription(customerId)
 	if err != nil {
 		return err
 	}
 
-	return stopMachinesForUser(customerId)
+	return stopMachinesForUser(customerId, k)
 }

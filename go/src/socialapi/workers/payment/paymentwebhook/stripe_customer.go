@@ -2,12 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
-func stripeCustomerDeleted(raw []byte, _ *kodingemail.SG) error {
+func stripeCustomerDeleted(raw []byte, _ *Controller) error {
 	var customer *webhookmodels.StripeCustomer
 
 	err := json.Unmarshal(raw, &customer)

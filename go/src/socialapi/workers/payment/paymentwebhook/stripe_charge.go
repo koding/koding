@@ -3,20 +3,19 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
-func stripeChargeRefunded(raw []byte, email *kodingemail.SG) error {
-	return _stripeChargeHelper(raw, email, paymentemail.ChargeRefunded)
+func stripeChargeRefunded(raw []byte, c *Controller) error {
+	return _stripeChargeHelper(raw, c, paymentemail.ChargeRefunded)
 }
 
-func stripeChargeFailed(raw []byte, email *kodingemail.SG) error {
-	return _stripeChargeHelper(raw, email, paymentemail.ChargeFailed)
+func stripeChargeFailed(raw []byte, c *Controller) error {
+	return _stripeChargeHelper(raw, c, paymentemail.ChargeFailed)
 }
 
-func _stripeChargeHelper(raw []byte, email *kodingemail.SG, action paymentemail.Action) error {
+func _stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) error {
 	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)
@@ -36,5 +35,5 @@ func _stripeChargeHelper(raw []byte, email *kodingemail.SG, action paymentemail.
 		"cardLast4":      req.Card.Last4,
 	}
 
-	return paymentemail.Send(email, action, emailAddress, opts)
+	return paymentemail.Send(c.Email, action, emailAddress, opts)
 }

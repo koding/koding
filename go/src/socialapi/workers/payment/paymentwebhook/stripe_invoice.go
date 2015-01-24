@@ -3,13 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
 
-func stripeInvoiceCreated(raw []byte, email *kodingemail.SG) error {
+func stripeInvoiceCreated(raw []byte, c *Controller) error {
 	var invoice *webhookmodels.StripeInvoice
 
 	err := json.Unmarshal(raw, &invoice)
@@ -22,10 +21,10 @@ func stripeInvoiceCreated(raw []byte, email *kodingemail.SG) error {
 		return err
 	}
 
-	return sendInvoiceCreatedEmail(invoice, email)
+	return sendInvoiceCreatedEmail(invoice, c)
 }
 
-func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, email *kodingemail.SG) error {
+func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, c *Controller) error {
 	emailAddress, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return err
@@ -44,6 +43,6 @@ func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, email *kodingemai
 	}
 
 	return paymentemail.Send(
-		email, paymentemail.InvoiceCreated, emailAddress, opts,
+		c.Email, paymentemail.InvoiceCreated, emailAddress, opts,
 	)
 }

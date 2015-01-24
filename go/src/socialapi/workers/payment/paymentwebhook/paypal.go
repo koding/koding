@@ -3,12 +3,11 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/kodingemail"
 	"net/http"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
-type paypalActionType func(*webhookmodels.PaypalGenericWebhook, *kodingemail.SG) error
+type paypalActionType func(*webhookmodels.PaypalGenericWebhook, *Controller) error
 
 var paypalActions = map[string]paypalActionType{
 	"recurring_payment_profile_created": paypalSubscriptionCreated,
@@ -19,7 +18,7 @@ var paypalActions = map[string]paypalActionType{
 }
 
 type paypalMux struct {
-	EmailClient *kodingemail.SG
+	Controller *Controller
 }
 
 func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -39,7 +38,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = action(req, p.EmailClient)
+	err = action(req, p.Controller)
 	if err != nil {
 		fmt.Println("Paypal webhook: %s action failed: %s", req.PayerId, err)
 		return

@@ -3,11 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"koding/kodingemail"
 	"net/http"
 )
 
-type stripeActionType func([]byte, *kodingemail.SG) error
+type stripeActionType func([]byte, *Controller) error
 
 var stripeActions = map[string]stripeActionType{
 	"customer.subscription.created": stripeSubscriptionCreated,
@@ -29,7 +28,7 @@ type stripeWebhookRequest struct {
 }
 
 type stripeMux struct {
-	EmailClient *kodingemail.SG
+	Controller *Controller
 }
 
 func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +52,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = action(data, s.EmailClient)
+	err = action(data, s.Controller)
 	if err != nil {
 		fmt.Printf("Stripe webhook: %s action failed: %s", req.Name, err)
 		return
