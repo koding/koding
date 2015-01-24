@@ -1,4 +1,8 @@
-domains = [
+{argv} = require 'optimist'
+KONFIG = require('koding-config-manager').load("main.#{argv.c}")
+redis  = require "redis"
+REDIS_KEY = "social:disposable-email-addresses"
+DOMAINS = [
   "0-mail.com",
   "0815.ru",
   "0815.su",
@@ -497,6 +501,7 @@ domains = [
   "reallymymail.com",
   "recode.me",
   "recursor.net",
+  "reconmail.com",
   "recyclemail.dk",
   "regbypass.com",
   "regbypass.comsafe-mail.net",
@@ -745,9 +750,36 @@ domains = [
 endsWith = (str, suffix) ->
   str.indexOf(suffix, str.length - suffix.length) != -1
 
-module.exports = (email) ->
+redisClient = null
 
-  for domain in domains
+check = (email)->
+  for domain in DOMAINS
     return no  if endsWith email, "@#{domain}"
-
   return yes
+
+syncWithRedis = (callback)->
+
+  unless redisClient
+    redisClient = redis.createClient(
+      KONFIG.monitoringRedis.split(":")[1]
+      KONFIG.monitoringRedis.split(":")[0]
+      {}
+    )
+
+  redisClient.smembers REDIS_KEY, (err, domains)->
+
+    if not err and domains.length is 0
+      redisClient.sadd REDIS_KEY, DOMAINS
+
+    DOMAINS = domains
+
+
+syncWithRedis()
+
+module.exports = (email, callback = ->)->
+
+  syncWithRedis()
+
+  callback result = check email
+
+  return result
