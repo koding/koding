@@ -20,7 +20,7 @@ func stripeTest(body []byte) (*httptest.ResponseRecorder, error) {
 
 	recorder := httptest.NewRecorder()
 
-	st := &stripeMux{}
+	st := &stripeMux{Controller: controller}
 	st.ServeHTTP(recorder, r)
 
 	return recorder, nil
