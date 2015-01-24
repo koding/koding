@@ -20,10 +20,13 @@ class PaymentModal extends PaymentBaseModal
 
     operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
 
-    options.title = switch operation
-      when UPGRADE         then 'Upgrades are awesome. Let\'s do this!'
-      when INTERVAL_CHANGE then 'Change your billing cycle'
-      when DOWNGRADE       then 'Downgrade your plan'
+    if @state.subscriptionState is 'expired'
+      options.title = 'Reactivate your account'
+    else
+      options.title = switch operation
+        when UPGRADE         then 'Upgrades are awesome. Let\'s do this!'
+        when INTERVAL_CHANGE then 'Change your billing cycle'
+        when DOWNGRADE       then 'Downgrade your plan'
 
     options.subtitle = ''
 

@@ -33,11 +33,13 @@ module.exports = new class
 
   email: ({email}, callback)->
 
-    callback \
-      unless isEmailValid email
-        createKodingError 'Email is not valid.'
-      else
-        null
+    isEmailValid email, (valid)->
+
+      callback \
+        unless valid
+          createKodingError 'Email is not valid.'
+        else
+          null
 
 
   username: ({username}, callback) ->
