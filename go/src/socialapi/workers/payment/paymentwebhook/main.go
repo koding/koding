@@ -24,20 +24,24 @@ type Controller struct {
 }
 
 func main() {
-	r := initialize()
+	// initialize runner
+	r := initializeRunner()
 	conf := r.Conf
 
+	// initialize client to talk to kloud
 	kiteClient := initializeKiteClient(r.Kite, conf.Kloud.SecretKey, conf.Kloud.Address)
 
-	email := kodingemail.InitializeSG(conf.Email.Username, conf.Email.Password)
-	email.FromAddress = conf.Email.DefaultFromMail
-	email.FromName = conf.Email.DefaultFromMail
+	// initialize client to send email
+	email := initializeEmail(conf.Email)
 
+	// initialize controller to inject dependencies
 	cont := &Controller{Kite: kiteClient, Email: email}
 
+	// initialize mux for two implement vendor webhooks
 	st := &stripeMux{Controller: cont}
 	pp := &paypalMux{Controller: cont}
 
+	// initialize http server
 	mux := http.NewServeMux()
 	mux.Handle("/stripe", st)
 	mux.Handle("/paypal", pp)
@@ -47,7 +51,7 @@ func main() {
 
 	port := conf.PaymentWebhook.Port
 
-	log.Printf("Listening on port: %s", port)
+	fmt.Printf("Listening on port: %s\n", port)
 
 	err := http.ListenAndServe(":"+port, mux)
 	if err != nil {
@@ -59,7 +63,7 @@ func main() {
 // Helpers
 //----------------------------------------------------------
 
-func initialize() *runner.Runner {
+func initializeRunner() *runner.Runner {
 	r := runner.New("paymenttest")
 	if err := r.Init(); err != nil {
 		log.Fatal(err)
@@ -93,6 +97,14 @@ func initializeKiteClient(k *kite.Kite, kloudSecretKey, kloudAddr string) *kite.
 	fmt.Println("Connected to klient: %s", kloudAddr)
 
 	return kiteClient
+}
+
+func initializeEmail(conf config.Email) *kodingemail.SG {
+	email := kodingemail.InitializeSG(conf.Username, conf.Password)
+	email.FromAddress = conf.DefaultFromMail
+	email.FromName = conf.DefaultFromMail
+
+	return email
 }
 
 func getEmailForCustomer(customerId string) (string, error) {
