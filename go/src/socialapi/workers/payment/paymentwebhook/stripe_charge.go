@@ -9,14 +9,14 @@ import (
 )
 
 func stripeChargeRefunded(raw []byte, email *kodingemail.SG) error {
-	return _stripeCharge(raw, email, paymentemail.ChargeRefunded)
+	return _stripeChargeHelper(raw, email, paymentemail.ChargeRefunded)
 }
 
 func stripeChargeFailed(raw []byte, email *kodingemail.SG) error {
-	return _stripeCharge(raw, email, paymentemail.ChargeFailed)
+	return _stripeChargeHelper(raw, email, paymentemail.ChargeFailed)
 }
 
-func _stripeCharge(raw []byte, email *kodingemail.SG, action paymentemail.Action) error {
+func _stripeChargeHelper(raw []byte, email *kodingemail.SG, action paymentemail.Action) error {
 	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)

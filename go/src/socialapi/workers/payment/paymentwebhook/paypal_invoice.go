@@ -7,14 +7,14 @@ import (
 )
 
 func paypalPaymentSucceeded(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
-	return _paypalPayment(req, paymentemail.InvoiceCreated, email)
+	return _paypalPaymentHelper(req, paymentemail.InvoiceCreated, email)
 }
 
 func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
-	return _paypalPayment(req, paymentemail.ChargeFailed, email)
+	return _paypalPaymentHelper(req, paymentemail.ChargeFailed, email)
 }
 
-func _paypalPayment(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, email *kodingemail.SG) error {
+func _paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, email *kodingemail.SG) error {
 	opts := map[string]string{
 		"amount":   req.Amount,
 		"currency": req.CurrencyCode,

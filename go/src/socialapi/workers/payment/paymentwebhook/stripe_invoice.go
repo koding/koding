@@ -37,13 +37,13 @@ func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, email *kodingemai
 		)
 	}
 
-	planName := req.Lines.Data[0].Plan.Name
-
 	opts := map[string]string{
 		"amountDue": fmt.Sprintf("%v", req.AmountDue),
 		"currency":  req.Currency,
-		"planName":  planName,
+		"planName":  req.Lines.Data[0].Plan.Name,
 	}
 
-	return paymentemail.Send(email, paymentemail.InvoiceCreated, emailAddress, opts)
+	return paymentemail.Send(
+		email, paymentemail.InvoiceCreated, emailAddress, opts,
+	)
 }

@@ -2,12 +2,15 @@ package main
 
 import (
 	"koding/kodingemail"
+	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/paypal"
 )
 
 func paypalSubscriptionCreated(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
-	return paypalSubscriptionCreatedEmail(req, email)
+	return subscriptionEmail(
+		req.PayerId, req.Plan, paymentemail.SubscriptionCreated, email,
+	)
 }
 
 func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
@@ -16,5 +19,7 @@ func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, email *k
 		return err
 	}
 
-	return paypalSubscriptionDeletedEmail(req, email)
+	return subscriptionEmail(
+		req.PayerId, req.Plan, paymentemail.SubscriptionDeleted, email,
+	)
 }
