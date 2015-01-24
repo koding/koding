@@ -90,13 +90,12 @@ class PaymentForm extends JView
       cssClass : 'success-msg hidden'
       partial  : ''
 
-    if @state.subscriptionState is 'expired'
-      buttonPartial = 'CONTINUE'
-    else
-      buttonPartial = switch operation
-        when  1 then 'UPGRADE YOUR PLAN'
-        when  0 then 'MAKE CHANGE'
-        when -1 then 'DOWNGRADE'
+    buttonPartial = if @state.subscriptionState is 'expired'
+    then 'CONTINUE'
+    else switch operation
+      when  1 then 'UPGRADE YOUR PLAN'
+      when  0 then 'MAKE CHANGE'
+      when -1 then 'DOWNGRADE'
 
     @submitButton = new KDButtonView
       style     : 'solid medium green'
