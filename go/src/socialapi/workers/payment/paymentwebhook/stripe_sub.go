@@ -9,7 +9,7 @@ import (
 )
 
 func stripeSubscriptionCreated(raw []byte, email *kodingemail.SG) error {
-	sub, err := _stripeSubscription(raw)
+	sub, err := _stripeSubscriptionHelper(raw)
 	if err != nil {
 		return err
 	}
@@ -20,7 +20,7 @@ func stripeSubscriptionCreated(raw []byte, email *kodingemail.SG) error {
 }
 
 func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
-	sub, err := _stripeSubscription(raw)
+	sub, err := _stripeSubscriptionHelper(raw)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
 	)
 }
 
-func _stripeSubscription(raw []byte) (*webhookmodels.StripeSubscription, error) {
+func _stripeSubscriptionHelper(raw []byte) (*webhookmodels.StripeSubscription, error) {
 	var req *webhookmodels.StripeSubscription
 
 	err := json.Unmarshal(raw, &req)

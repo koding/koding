@@ -31,19 +31,17 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	action, ok := paypalActions[req.Status]
+	action, ok := paypalActions[req.TransactionType]
 	if !ok {
-		action, ok = paypalActions[req.TransactionType]
-		if !ok {
-			fmt.Printf("Paypal webhook: %s, %s not implemented",
-				req.Status, req.TransactionType)
+		fmt.Printf("Paypal webhook: %s, %s not implemented",
+			req.Status, req.TransactionType)
 
-			return
-		}
+		return
 	}
 
 	err = action(req, p.EmailClient)
 	if err != nil {
 		fmt.Println("Paypal webhook: %s action failed: %s", req.PayerId, err)
+		return
 	}
 }
