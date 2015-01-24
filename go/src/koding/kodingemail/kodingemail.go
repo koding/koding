@@ -11,18 +11,26 @@ var (
 )
 
 type Client interface {
+	SendTemplateEmail(string, string, Options) error
+}
+
+type SenderClient interface {
 	Send(*sendgrid.SGMail) error
 }
 
 type SG struct {
 	FromAddress, FromName string
-	Client                Client
+	SenderClient          SenderClient
+}
+
+func Initialize(username, password string) Client {
+	return InitializeSG(username, password)
 }
 
 func InitializeSG(username, password string) *SG {
 	return &SG{
 		FromAddress: DefaultFromAddress, FromName: DefaultFromName,
-		Client: sendgrid.NewSendGridClient(username, password),
+		SenderClient: sendgrid.NewSendGridClient(username, password),
 	}
 }
 
@@ -47,5 +55,5 @@ func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 	message.SetFrom(s.FromAddress)
 	message.AddTo(to)
 
-	return s.Client.Send(message)
+	return s.SenderClient.Send(message)
 }

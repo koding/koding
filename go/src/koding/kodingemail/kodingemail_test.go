@@ -6,7 +6,7 @@ func TestSendTemplateEmail(t *testing.T) {
 	testSenderClient := &SenderTestClient{}
 
 	sgclient := InitializeSG("", "")
-	sgclient.Client = testSenderClient
+	sgclient.SenderClient = testSenderClient
 
 	toEmail := "indiana@koding.com"
 	templateId := "random"
