@@ -511,13 +511,14 @@ class ActivitySidebar extends KDCustomHTMLView
 
       treeData.push machine
 
-      treeData.push
-        title        : 'Workspaces'
-        type         : 'title'
-        parentId     : machine.getId()
-        id           : machine.getData().getId()
-        machineUId   : machine.uid
-        machineLabel : machine.slug or machine.label
+      unless machine.isPermanent()
+        treeData.push
+          title        : 'Workspaces'
+          type         : 'title'
+          parentId     : machine.getId()
+          id           : machine.getData().getId()
+          machineUId   : machine.uid
+          machineLabel : machine.slug or machine.label
 
       ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
       machineOwner = machine.getOwner()
