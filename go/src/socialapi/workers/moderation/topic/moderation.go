@@ -40,7 +40,12 @@ func (c *Controller) CreateLink(cl *models.ChannelLink) error {
 	}
 
 	if err := c.moveMessages(cl); err != nil {
-		c.log.Error("Error while processing messages, err: %s ", err.Error())
+		c.log.Error("Error while moving messages, err: %s ", err.Error())
+		return err
+	}
+
+	if err := c.updateInitialChannelIds(cl); err != nil {
+		c.log.Error("Error while updating the initial channel ids, err: %s ", err.Error())
 		return err
 	}
 
@@ -284,6 +289,81 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 
 	if len(erroredMessageLists) != 0 {
 		return errors.New(fmt.Sprintf("some errors: %v", erroredMessageLists))
+	}
+
+	return nil
+}
+
+// updateInitialChannelIds updates the message's initial channel id properties
+func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
+	var processCount = 100
+
+	var erroredMessages []models.ChannelMessage
+
+	rootChannel, err := models.ChannelById(cl.RootId)
+	if err != nil {
+		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
+		c.log.Critical("closing the circuit")
+		return nil
+	}
+
+	leafChannel, err := models.ChannelById(cl.LeafId)
+	if err != nil {
+		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
+		c.log.Critical("closing the circuit")
+		return nil
+	}
+
+	for {
+		var messages []models.ChannelMessage
+
+		// fetch all records, even deleted ones, because we are not gonna need
+		// them anymore
+		err := bongo.B.DB.
+			Model(models.ChannelMessage{}).
+			Unscoped().
+			Limit(processCount).
+			Where("initial_channel_id = ?", cl.LeafId).
+			Find(&messages).Error
+
+		if err != nil && err != bongo.RecordNotFound {
+			return err
+		}
+
+		// we processed all channel messages. or no message exits
+		if len(messages) <= 0 {
+			break
+		}
+
+		for i, message := range messages {
+			// fetch the regarding message
+			cm := models.NewChannelMessage()
+			err := cm.UnscopedById(message.Id)
+			if err != nil && err != bongo.RecordNotFound {
+				return err
+			}
+
+			if err == bongo.RecordNotFound {
+				// message can be deleted in the mean time
+				continue
+			}
+
+			cm.InitialChannelId = cl.RootId
+			// this may be a useless operation but, in any case while updating
+			// the message, update the body too
+			cm.Body = strings.Replace(cm.Body, "#"+leafChannel.Name, "#"+rootChannel.Name, -1)
+
+			// update the message itself. Used bongo.Update because
+			// ChannelMessage's Update method is overwritten
+			if err := bongo.B.Update(cm); err != nil {
+				c.log.Error("Err while updating the mesage %s", err.Error())
+				erroredMessages = append(erroredMessages, messages[i])
+			}
+		}
+	}
+
+	if len(erroredMessages) != 0 {
+		return errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
 	}
 
 	return nil
