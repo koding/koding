@@ -386,7 +386,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "#{GOBIN}/api  -kite-init=true -c #{socialapi.configFilePath} -port=#{socialapi.port}"
+        command         : "#{GOBIN}/api -c #{socialapi.configFilePath} -port=#{socialapi.port}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :

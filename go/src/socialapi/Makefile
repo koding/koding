@@ -33,11 +33,6 @@ ifdef port
 	PORT="-port=$(port)"
 endif
 
-# set kite
-ifdef kite
-	KITE="-kite-init=true"
-endif
-
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -64,12 +59,12 @@ default: configure
 paymentwebhookdev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) $(DBG) $(METRICS) $(KITE)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(METRICS)
 
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS) $(KITE)
+	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS)
 
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"

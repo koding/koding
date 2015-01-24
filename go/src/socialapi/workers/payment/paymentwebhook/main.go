@@ -70,7 +70,7 @@ func initializeRunner() *runner.Runner {
 	}
 
 	modelhelper.Initialize(r.Conf.Mongo)
-	payment.Initialize(config.MustGet(), r.Kite)
+	payment.Initialize(config.MustGet())
 
 	return r
 }
