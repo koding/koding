@@ -228,52 +228,8 @@ func (p *PaypalGetTokenRequest) Do() (interface{}, error) {
 }
 
 //----------------------------------------------------------
-// Webhook
+// Helpers
 //----------------------------------------------------------
-
-type PaypalWebhook struct {
-	TransactionType string `json:"txn_type"`
-	Status          string `json:"payment_status"`
-	PayerId         string `json:"payer_id"`
-}
-
-var PaypalActionExpire = "cancel"
-
-var PaypalStatusActionMap = map[string]string{
-	"Denied":   PaypalActionExpire,
-	"Expired":  PaypalActionExpire,
-	"Failed":   PaypalActionExpire,
-	"Reversed": PaypalActionExpire,
-	"Voided":   PaypalActionExpire,
-}
-
-var PaypalTransactionActionMap = map[string]string{
-	"recurring_payment_profile_cancel": PaypalActionExpire,
-}
-
-func (p *PaypalWebhook) Do() (interface{}, error) {
-	action, ok := PaypalStatusActionMap[p.Status]
-	if !ok {
-		action, ok = PaypalTransactionActionMap[p.TransactionType]
-		if !ok {
-			return nil, nil
-		}
-	}
-
-	var err error
-
-	switch action {
-	case PaypalActionExpire:
-		// err = paypal.ExpireSubscription(p.PayerId)
-		// if err != nil {
-		//   return nil, err
-		// }
-
-		// err = stopMachinesForUser(p.PayerId)
-	}
-
-	return nil, err
-}
 
 func isUsernameEmpty(username string) bool {
 	return username == ""

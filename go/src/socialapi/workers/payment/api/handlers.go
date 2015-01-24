@@ -111,13 +111,4 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint:       "/payments/paypal/token",
 			CollectMetrics: true,
 		})
-
-	m.AddHandler(
-		handler.Request{
-			Handler:        PaypalWebhook,
-			Name:           "payment-paypalwebhook",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/paypal/webhook",
-			CollectMetrics: true,
-		})
 }
