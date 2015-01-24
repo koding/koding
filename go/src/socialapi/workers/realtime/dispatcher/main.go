@@ -29,7 +29,8 @@ func main() {
 		return
 	}
 
-	c, err := dispatcher.NewController(rmq, pubnub, broker)
+	rmqD := helper.NewRabbitMQ(r.Conf, r.Log)
+	c, err := dispatcher.NewController(rmqD, pubnub, broker)
 	if err != nil {
 		panic(err)
 	}
