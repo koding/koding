@@ -7,26 +7,13 @@ import (
 	"socialapi/workers/payment/stripe"
 )
 
-type stripeCustomerActionType func(*webhookmodels.StripeCustomer) error
+func stripeCustomerDeleted(raw []byte, _ *kodingemail.SG) error {
+	var customer *webhookmodels.StripeCustomer
 
-func stripeCustomerDeleted(raw []byte, email *kodingemail.SG) error {
-	actions := []stripeCustomerActionType{
-		stripe.CustomerDeletedWebhook,
-	}
-
-	var req *webhookmodels.StripeCustomer
-
-	err := json.Unmarshal(raw, &req)
+	err := json.Unmarshal(raw, &customer)
 	if err != nil {
 		return err
 	}
 
-	for _, action := range actions {
-		err := action(req)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return stripe.CustomerDeletedWebhook(customer)
 }
