@@ -9,6 +9,7 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -131,10 +132,6 @@ func TestCreateLink(t *testing.T) {
 		})
 
 		Convey("should process participated channels with no messages", func() {
-			i := 0
-
-			i++
-			fmt.Println("-->", i)
 
 			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
 			// add participants with tests
@@ -150,9 +147,6 @@ func TestCreateLink(t *testing.T) {
 			So(controller.CreateLink(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
-				i++
-				fmt.Println("-->", i)
-
 				cp := models.NewChannelParticipant()
 				cp.ChannelId = cl.LeafId
 				cpc, err := cp.FetchParticipantCount()
@@ -162,9 +156,6 @@ func TestCreateLink(t *testing.T) {
 			})
 
 			Convey("root node should have 2 participants", func() {
-				i++
-				fmt.Println("-->", i)
-
 				cp := models.NewChannelParticipant()
 				cp.ChannelId = cl.RootId
 				cpc, err := cp.FetchParticipantCount()
@@ -203,6 +194,119 @@ func TestCreateLink(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(cpc, ShouldEqual, 2)
 			})
+		})
+
+		Convey("should process messages that are in multiple channels - when origin is linked channel", func() {
+			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			// add participants with tests
+			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+
+			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			// add participants with tests
+			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			// add same messages to the otherChannel
+
+			leaf, err := models.ChannelById(cl.LeafId)
+			So(err, ShouldBeNil)
+			body := fmt.Sprintf("#%s and #%s are my topics", leaf.Name, otherChannel.Name)
+
+			// create messages to the regarding leaf channel
+			cm1 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			_, err = otherChannel.EnsureMessage(cm1.Id, true)
+			So(err, ShouldBeNil)
+
+			_, err = otherChannel.EnsureMessage(cm2.Id, true)
+			So(err, ShouldBeNil)
+
+			_, err = otherChannel.EnsureMessage(cm3.Id, true)
+			So(err, ShouldBeNil)
+
+			// make sure we added messages to the otherChannel
+			cmlc, err := models.NewChannelMessageList().Count(otherChannel.Id)
+			So(err, ShouldBeNil)
+			So(cmlc, ShouldEqual, 3)
+
+			// do the switch
+			So(controller.CreateLink(cl), ShouldBeNil)
+
+			Convey("leaf node should not have any messages", func() {
+				//check leaf channel
+				cmlc, err = models.NewChannelMessageList().Count(cl.LeafId)
+				So(err, ShouldBeNil)
+				So(cmlc, ShouldEqual, 0)
+			})
+
+			Convey("root node should have 3 messages", func() {
+				// check root channel
+				cmlc, err = models.NewChannelMessageList().Count(cl.RootId)
+				So(err, ShouldBeNil)
+				So(cmlc, ShouldEqual, 3)
+			})
+
+			Convey("otherChannel should have 3 messages", func() {
+				// check other channel
+				cmlc, err = models.NewChannelMessageList().Count(otherChannel.Id)
+				So(err, ShouldBeNil)
+				So(cmlc, ShouldEqual, 3)
+			})
+		})
+
+		Convey("should process messages that are initiated in leaf channels", func() {
+			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			// add participants with tests
+			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+
+			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			// add participants with tests
+			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			// add same messages to the otherChannel
+
+			leaf, err := models.ChannelById(cl.LeafId)
+			So(err, ShouldBeNil)
+			body := fmt.Sprintf("#%s and #%s are my topics", leaf.Name, otherChannel.Name)
+
+			// create messages to the regarding leaf channel
+			cm1 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			_, err = otherChannel.EnsureMessage(cm1.Id, true)
+			So(err, ShouldBeNil)
+
+			_, err = otherChannel.EnsureMessage(cm2.Id, true)
+			So(err, ShouldBeNil)
+
+			_, err = otherChannel.EnsureMessage(cm3.Id, true)
+			So(err, ShouldBeNil)
+
+			// just to be sure that messages will not belong to leaf node anymore
+			updatedBody := fmt.Sprintf("#%s are my topics", otherChannel.Name)
+			cm1.Body = updatedBody
+			So(cm1.Update(), ShouldBeNil)
+
+			cm2.Body = updatedBody
+			So(cm2.Update(), ShouldBeNil)
+
+			cm3.Body = updatedBody
+			So(cm3.Update(), ShouldBeNil)
+
+			// do the switch
+			So(controller.CreateLink(cl), ShouldBeNil)
+
+			//check leaf channel
+
+			var messages []models.ChannelMessage
+			err = bongo.B.DB.
+				Model(models.ChannelMessage{}).
+				Unscoped().
+				Where("initial_channel_id = ?", cl.LeafId).
+				Find(&messages).Error
+
+			So(err, ShouldEqual, bongo.RecordNotFound)
+			So(len(messages), ShouldEqual, 0)
 		})
 	})
 }
