@@ -768,10 +768,7 @@ syncWithRedis = (callback)->
 
   redisClient.smembers REDIS_KEY, (err, domains)->
 
-    if not err and domains.length is 0
-      redisClient.sadd REDIS_KEY, DOMAINS
-
-    DOMAINS = domains
+    DOMAINS.push domain for domain in domains when domain not in DOMAINS
 
 
 syncWithRedis()
