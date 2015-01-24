@@ -5,7 +5,7 @@ import (
 	"socialapi/workers/payment/paymentemail"
 )
 
-func subscriptionEmail(customerId, planName string, action paymentemail.Action, email *kodingemail.SG) error {
+func subscriptionEmail(customerId, planName string, action paymentemail.Action, email kodingemail.Client) error {
 	emailAddress, err := getEmailForCustomer(customerId)
 	if err != nil {
 		return err

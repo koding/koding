@@ -20,7 +20,7 @@ var WorkerName = "paymentwebhook"
 
 type Controller struct {
 	Kite  *kite.Client
-	Email *kodingemail.SG
+	Email kodingemail.Client
 }
 
 func main() {
@@ -99,7 +99,7 @@ func initializeKiteClient(k *kite.Kite, kloudSecretKey, kloudAddr string) *kite.
 	return kiteClient
 }
 
-func initializeEmail(conf config.Email) *kodingemail.SG {
+func initializeEmail(conf config.Email) kodingemail.Client {
 	email := kodingemail.InitializeSG(conf.Username, conf.Password)
 	email.FromAddress = conf.DefaultFromMail
 	email.FromName = conf.DefaultFromMail

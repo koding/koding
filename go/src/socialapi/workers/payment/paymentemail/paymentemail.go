@@ -16,7 +16,7 @@ var SendgridTemplates = map[Action]string{
 	InvoiceCreated:      "a12d3f77-d2a9-443e-92b0-5ed034ac9345",
 }
 
-func Send(client *kodingemail.SG, action Action, to string, subs map[string]string) error {
+func Send(client kodingemail.Client, action Action, to string, subs map[string]string) error {
 	templateId, ok := SendgridTemplates[action]
 	if !ok {
 		return fmt.Errorf("%s has no template", action)
