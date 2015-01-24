@@ -25,6 +25,11 @@ func stripeSubscriptionDeleted(raw []byte, email *kodingemail.SG) error {
 		return err
 	}
 
+	err = stopMachinesForUser(sub.CustomerId)
+	if err != nil {
+		return err
+	}
+
 	err = stripe.SubscriptionDeletedWebhook(sub)
 	if err != nil {
 		return err

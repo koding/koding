@@ -11,6 +11,11 @@ func paypalPaymentSucceeded(req *webhookmodels.PaypalGenericWebhook, email *kodi
 }
 
 func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
+	err := paypalExpireSubscription(req.PayerId)
+	if err != nil {
+		return err
+	}
+
 	return _paypalPaymentHelper(req, paymentemail.ChargeFailed, email)
 }
 

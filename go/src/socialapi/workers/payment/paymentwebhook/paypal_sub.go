@@ -14,7 +14,7 @@ func paypalSubscriptionCreated(req *webhookmodels.PaypalGenericWebhook, email *k
 }
 
 func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, email *kodingemail.SG) error {
-	err := paypal.ExpireSubscription(req.PayerId)
+	err := paypalExpireSubscription(req.PayerId)
 	if err != nil {
 		return err
 	}
@@ -22,4 +22,13 @@ func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, email *k
 	return subscriptionEmail(
 		req.PayerId, req.Plan, paymentemail.SubscriptionDeleted, email,
 	)
+}
+
+func paypalExpireSubscription(customerId string) error {
+	err := paypal.ExpireSubscription(customerId)
+	if err != nil {
+		return err
+	}
+
+	return stopMachinesForUser(customerId)
 }
