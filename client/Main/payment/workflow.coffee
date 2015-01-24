@@ -110,7 +110,7 @@ class PaymentWorkflow extends KDController
     # and 4 digit year, and different types of month
     # we are enforcing those, other than length problems
     # Stripe will take care of the rest. ~U
-    cardYear  = null  if cardYear.length isnt 4
+    cardYear  = null  unless cardYear.length in [2, 4]
     cardMonth = null  if cardMonth.length isnt 2
 
     binNumber = cardNumber.slice 0, 6
