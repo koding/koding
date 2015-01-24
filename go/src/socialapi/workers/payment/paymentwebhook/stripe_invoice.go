@@ -17,7 +17,7 @@ func stripeInvoiceCreated(raw []byte, email *kodingemail.SG) error {
 		return err
 	}
 
-	err = stripe.InvoiceCreatedWebhook(invoice, email)
+	err = stripe.InvoiceCreatedWebhook(invoice)
 	if err != nil {
 		return err
 	}

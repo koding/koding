@@ -1,7 +1,6 @@
 package stripe
 
 import (
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"time"
@@ -46,7 +45,7 @@ type InvoiceCreatedWebhookRequest struct {
 	} `json:"lines"`
 }
 
-func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice, _ *kodingemail.SG) error {
+func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	if !IsLineCountAllowed(req.Lines.Count) {
 		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil
