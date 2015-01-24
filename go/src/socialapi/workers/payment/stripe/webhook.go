@@ -60,7 +60,7 @@ func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	}
 
 	plan := paymentmodels.NewPlan()
-	plan.ByProviderId(item.Plan.Id, ProviderName)
+	plan.ByProviderId(item.Plan.ID, ProviderName)
 	if err != nil {
 		return err
 	}
