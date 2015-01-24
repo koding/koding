@@ -269,20 +269,6 @@ class MachineSettingsPopup extends KDModalViewWithForms
         computeController.reinit @machine
         @destroy()
 
-    @buttonContainer.addSubView @resizeButton = new KDButtonView
-      style    : 'solid compact green resize hidden'
-      title    : 'Resize VM'
-      callback : =>
-        computeController.resize @machine, 10
-        @destroy()
-
-    @buttonContainer.addSubView @terminateButton = new KDButtonView
-      style    : 'solid compact red'
-      title    : 'Terminate VM'
-      callback : =>
-        computeController.destroy @machine
-        @destroy()
-
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position : top : 20
@@ -291,9 +277,18 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
       @isPaidAccount = plan isnt 'free'
 
-      if plan in ['free', 'hobbyist']
-        @terminateButton.hide()
+      if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
+        @buttonContainer.addSubView @resizeButton = new KDButtonView
+          style    : 'solid compact green resize'
+          title    : 'Resize VM'
+          callback : =>
+            computeController.resize @machine, 10
+            @destroy()
 
-        if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
-          @resizeButton.show()
-
+      unless plan is 'free'
+        @buttonContainer.addSubView @terminateButton = new KDButtonView
+          style    : 'solid compact red'
+          title    : 'Terminate VM'
+          callback : =>
+            computeController.destroy @machine
+            @destroy()
