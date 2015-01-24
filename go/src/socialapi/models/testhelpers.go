@@ -35,6 +35,10 @@ func CreateChannelWithTest(accountId int64) *Channel {
 }
 
 func CreateMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
+	return CreateMessageWithBody(channelId, accountId, typeConstant, "testing message")
+}
+
+func CreateMessageWithBody(channelId, accountId int64, typeConstant, body string) *ChannelMessage {
 	cm := NewChannelMessage()
 
 	cm.AccountId = accountId
@@ -42,10 +46,15 @@ func CreateMessage(channelId, accountId int64, typeConstant string) *ChannelMess
 	cm.InitialChannelId = channelId
 	cm.TypeConstant = typeConstant
 	// set body
-	cm.Body = "testing message"
+	cm.Body = body
 
 	err := cm.Create()
 	So(err, ShouldBeNil)
+
+	cml := NewChannelMessageList()
+	cml.MessageId = cm.Id
+	cml.ChannelId = channelId
+	So(cml.Create(), ShouldBeNil)
 
 	return cm
 }
