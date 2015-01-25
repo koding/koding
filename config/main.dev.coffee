@@ -239,7 +239,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/go-webserver -c #{configName}"
+        command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -278,7 +278,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/broker -c #{configName}"
+        command         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -291,7 +291,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/rerouting -c #{configName}"
+        command         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -409,7 +409,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/vmwatcher"
+        command         : "#{GOBIN}/watcher -run koding/vmwatcher"
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
@@ -664,6 +664,7 @@ Configuration = (options={}) ->
         # this is a temporary adition, normally file watcher should delete the created file later on
         cd #{projectRoot}/go/bin
         rm goldorf-main-*
+        rm watcher-*
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure
