@@ -263,27 +263,34 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 			cm.Body = strings.Replace(cm.Body, "#"+leafChannel.Name, "#"+rootChannel.Name, -1)
 
 			// update the message itself
-			if err := cm.Update(); err != nil {
+			if err := bongo.B.Update(cm); err != nil {
 				c.log.Error("Err while updating the mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				continue
 			}
 
-			// update message ends
-
-			// make sure message is in rootChannel
-			if _, err := rootChannel.EnsureMessage(cm.Id, true); err != nil {
-				c.log.Error("Err while ensuring message in the channel %s", err.Error())
-				erroredMessageLists = append(erroredMessageLists, messageLists[i])
+			isInChannel, _ := models.NewChannelMessageList().IsInChannel(cm.Id, rootChannel.Id)
+			if isInChannel {
+				// we are deleting with an unscoped because we dont need the
+				// data in our db anymore
+				if err := bongo.B.Unscoped().Delete(messageList).Error; err != nil {
+					//
+					// TODO do we need to send an event here?
+					//
+					c.log.Error("Err while deleting the channel message list %s", err.Error())
+					erroredMessageLists = append(erroredMessageLists, messageLists[i])
+				}
+			} else {
+				// update the message itself, without callbacks, because while updating
+				// TODO we may need to send events here
+				// if err := bongo.B.Unscoped().Model(&messageList).UpdateColumn("channel_id", cl.RootId).Error; err != nil {
+				if err := bongo.B.Unscoped().Model(&messageList).UpdateColumn("channel_id", cl.RootId).Error; err != nil {
+					c.log.Error("Err while updating the mesage %s", err.Error())
+					erroredMessageLists = append(erroredMessageLists, messageLists[i])
+					continue
+				}
 			}
 
-			if err := bongo.B.Unscoped().Delete(messageList).Error; err != nil {
-				//
-				// TODO do we need to send an event here?
-				//
-				c.log.Error("Err while deleting the channel message list %s", err.Error())
-				erroredMessageLists = append(erroredMessageLists, messageLists[i])
-			}
 		}
 	}
 
