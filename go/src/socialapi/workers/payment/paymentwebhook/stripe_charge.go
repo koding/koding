@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
@@ -29,10 +28,7 @@ func _stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) 
 	}
 
 	opts := map[string]string{
-		"currency":       req.Currency,
-		"amountRefunded": fmt.Sprintf("%v", req.Amount),
-		"cardBrand":      req.Card.Brand,
-		"cardLast4":      req.Card.Last4,
+		"price": formatAmount(req.Amount, req.Currency),
 	}
 
 	return paymentemail.Send(c.Email, action, emailAddress, opts)

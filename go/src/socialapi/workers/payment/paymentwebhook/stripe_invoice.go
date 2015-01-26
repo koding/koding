@@ -37,9 +37,8 @@ func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, c *Controller) er
 	}
 
 	opts := map[string]string{
-		"price":    fmt.Sprintf("%v", req.AmountDue/100),
-		"currency": req.Currency,
 		"planName": req.Lines.Data[0].Plan.Name,
+		"price":    formatAmount(req.AmountDue, req.Currency),
 	}
 
 	return paymentemail.Send(
