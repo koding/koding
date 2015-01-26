@@ -268,6 +268,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
+    
+    @updateStatusBar()
 
 
   openSavedFile: (file, content) ->
