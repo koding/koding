@@ -863,7 +863,6 @@ Team Koding
     invite         = null
     user           = null
     quotaExceedErr = null
-    recoveryToken  = null
     error          = null
 
     aNewRegister   = oldUsername is 'guestuser'
@@ -968,27 +967,16 @@ Team Koding
             console.warn err  if err?
             queue.next()
         else
-          queue.next()
-
-      ->
-        JPasswordRecovery = require '../passwordrecovery'
-
-        passwordOptions =
-          email         : user.email
-          verb          : unless username? then 'Register' else 'Verify'
-          resetPassword : no
-          expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
-
-        JPasswordRecovery.create passwordOptions, (err, token)->
-          recoveryToken = token
-          queue.next()
+          user.verifyByPin resendIfExists: yes, (err)->
+            console.warn "Failed to send verification token:", err  if err
+            queue.next()
 
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
 
       ->
-        callback error, {account, recoveryToken, newToken}
+        callback error, {account, newToken}
         queue.next()
 
       ->
