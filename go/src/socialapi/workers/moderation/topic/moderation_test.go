@@ -6,10 +6,11 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math"
 	"socialapi/models"
+	"socialapi/request"
+	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"testing"
 
-	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -307,6 +308,56 @@ func TestCreateLink(t *testing.T) {
 
 			So(err, ShouldEqual, bongo.RecordNotFound)
 			So(len(messages), ShouldEqual, 0)
+		})
+		Convey("make sure message order still same", func() {
+			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
+			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+
+			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			// add participants with tests
+			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			// add same messages to the otherChannel
+
+			body := "hey yo!"
+			// add 3 message for each channel one by one
+			cm1Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			// do the switch
+			So(controller.CreateLink(cl), ShouldBeNil)
+
+			//
+			// fetch the history
+			//
+			ses, err := models.FetchOrCreateSession(acc1.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cl.RootId,
+				&request.Query{
+					AccountId: acc1.Id,
+				},
+				ses.ClientId,
+			)
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 6)
+
+			// History returns messages in reversed order
+			// That is why we are checking with the following indexes
+			So(history.MessageList[5].Message.Id, ShouldEqual, cm1Leaf.Id)
+			So(history.MessageList[3].Message.Id, ShouldEqual, cm2Leaf.Id)
+			So(history.MessageList[1].Message.Id, ShouldEqual, cm3Leaf.Id)
+
+			So(history.MessageList[4].Message.Id, ShouldEqual, cm1Root.Id)
+			So(history.MessageList[2].Message.Id, ShouldEqual, cm2Root.Id)
+			So(history.MessageList[0].Message.Id, ShouldEqual, cm3Root.Id)
 		})
 	})
 }
