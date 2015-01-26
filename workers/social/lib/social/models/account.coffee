@@ -1192,16 +1192,28 @@ module.exports = class JAccount extends jraphical.Module
 
       kallback = (err, roles)=>
         return callback err  if err
-        {flatten} = require 'underscore'
-        if "admin" in roles
-          perms = Protected.permissionsByModule
-          callback null, { permissions: (flatten perms), roles }
-        else
-          group.fetchPermissionSetOrDefault (err, permissionSet)->
-            return callback err if err
-            perms = (perm.permissions.slice() for perm in permissionSet.permissions \
-              when perm.role in roles or 'admin' in roles)
-            callback null, { permissions: (flatten perms), roles }
+
+        @fetchUser (err, user)=>
+          return callback err  if err
+
+          userId = user._id
+
+          {flatten} = require 'underscore'
+
+          if "admin" in roles
+
+            perms = Protected.permissionsByModule
+            callback null, { permissions: (flatten perms), roles, userId }
+
+          else
+
+            group.fetchPermissionSetOrDefault (err, permissionSet)->
+              return callback err if err
+
+              perms = (perm.permissions.slice() for perm in permissionSet.permissions \
+                when perm.role in roles or 'admin' in roles)
+
+              callback null, { permissions: (flatten perms), roles, userId }
 
       group.fetchMyRoles client, kallback
 

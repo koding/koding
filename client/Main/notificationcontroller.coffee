@@ -62,6 +62,9 @@ class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
+    @on 'MachineListUpdated', ->
+      KD.singletons.computeController.reset yes
+
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
       deleteUserCookie()
