@@ -18,7 +18,6 @@ type GhostVMs struct {
 }
 
 func (g *GhostVMs) Process() {
-	g.ghostInstances = lookup.NewMultiInstances()
 	gi := lookup.NewMultiInstances()
 	ut := lookup.NewMultiInstances()
 
