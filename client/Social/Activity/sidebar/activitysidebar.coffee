@@ -49,8 +49,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     # @appsList = new DockController
 
-    router
-      .on "RouteInfoHandled",          @bound 'deselectAllItems'
+    # router
+    #   .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -399,19 +399,19 @@ class ActivitySidebar extends KDCustomHTMLView
 
   deselectAllItems: ->
 
-    @selectedItem = null
+    # @selectedItem = null
 
-    @machineTree.deselectAllNodes()
+    # @machineTree.deselectAllNodes()
 
-    for own name, {listController} of @sections
-      listController.deselectAllItems()
+    # for own name, {listController} of @sections
+    #   listController.deselectAllItems()
 
 
   viewAppended: ->
 
     super
 
-    @addVMTree()
+    @addMachineList()
     @addFollowedTopics()
     @addConversations()
 
@@ -558,11 +558,11 @@ class ActivitySidebar extends KDCustomHTMLView
             id           : workspace._id
             parentId     : machine.getId()
 
-    for data in treeData
+    # for data in treeData
 
-      node = @machineTree.addNode data
+    #   node = @machineTree.addNode data
 
-      @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
+    #   @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
 
     @emit 'MachinesListed'
 
@@ -602,43 +602,43 @@ class ActivitySidebar extends KDCustomHTMLView
 
   selectWorkspace: (data) ->
 
-    data = @latestWorkspaceData or {}  unless data
-    { workspace, machine } = data
+    # data = @latestWorkspaceData or {}  unless data
+    # { workspace, machine } = data
 
-    return if not machine or not workspace
+    # return if not machine or not workspace
 
-    tree = @machineTree
+    # tree = @machineTree
 
-    for key, node of tree.nodes
-      nodeData         = node.getData()
-      isSameMachine    = nodeData.uid is machine.uid
-      isMachineRunning = machine.status.state is Machine.State.Running
+    # for key, node of tree.nodes
+    #   nodeData         = node.getData()
+    #   isSameMachine    = nodeData.uid is machine.uid
+    #   isMachineRunning = machine.status.state is Machine.State.Running
 
-      if node.type is 'machine'
-        if isSameMachine
-          if isMachineRunning
-            tree.expand node
-          else
-            tree.selectNode node
-            @watchMachineState workspace, machine
-        else
-          tree.collapse node
+    #   if node.type is 'machine'
+    #     if isSameMachine
+    #       if isMachineRunning
+    #         tree.expand node
+    #       else
+    #         tree.selectNode node
+    #         @watchMachineState workspace, machine
+    #     else
+    #       tree.collapse node
 
-      else if node.type is 'workspace'
-        if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
-          slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
-          tree.selectNode node  if slug is workspace.slug
+    #   else if node.type is 'workspace'
+    #     if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
+    #       slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
+    #       tree.selectNode node  if slug is workspace.slug
 
-    @latestWorkspaceData = data
+    # @latestWorkspaceData = data
 
-    localStorage = KD.getSingleton("localStorageController").storage "IDE"
+    # localStorage = KD.getSingleton("localStorageController").storage "IDE"
 
-    minimumDataToStore =
-      machineLabel     : machine.slug or machine.label
-      workspaceSlug    : workspace.slug
-      channelId        : data.channelId
+    # minimumDataToStore =
+    #   machineLabel     : machine.slug or machine.label
+    #   workspaceSlug    : workspace.slug
+    #   channelId        : data.channelId
 
-    localStorage.setValue 'LatestWorkspace', minimumDataToStore
+    # localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
   watchMachineState: (workspace, machine) ->
@@ -674,44 +674,49 @@ class ActivitySidebar extends KDCustomHTMLView
       callback machines
 
 
-  addVMTree: ->
+  # addVMTree: ->
 
-    @addSubView section = new KDCustomHTMLView
-      tagName  : 'section'
-      cssClass : 'vms'
+  #   @addSubView section = new KDCustomHTMLView
+  #     tagName  : 'section'
+  #     cssClass : 'vms'
 
-    @machineTree = new JTreeViewController
-      type                : 'main-nav'
-      treeItemClass       : NavigationItem
-      addListsCollapsed   : yes
+  #   @machineTree = new JTreeViewController
+  #     type                : 'main-nav'
+  #     treeItemClass       : NavigationItem
+  #     addListsCollapsed   : yes
 
-    @machineTree.getView().unsetClass 'kdscrollview'
+  #   @machineTree.getView().unsetClass 'kdscrollview'
 
-    # This is temporary, we will create a separate TreeViewController
-    # for this and put this logic into there ~ FIXME ~ GG
-    @machineTree.dblClick = (nodeView, event)->
-      machine = nodeView.getData()
-      if machine.status?.state is Machine.State.Running
-        @toggle nodeView
+  #   # This is temporary, we will create a separate TreeViewController
+  #   # for this and put this logic into there ~ FIXME ~ GG
+  #   @machineTree.dblClick = (nodeView, event)->
+  #     machine = nodeView.getData()
+  #     if machine.status?.state is Machine.State.Running
+  #       @toggle nodeView
 
-    section.addSubView header = new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'sidebar-title'
-      partial  : 'VMs'
-      click    : @bound 'handleMoreVMsClick'
+  #   section.addSubView header = new KDCustomHTMLView
+  #     tagName  : 'h3'
+  #     cssClass : 'sidebar-title'
+  #     partial  : 'VMs'
+  #     click    : @bound 'handleMoreVMsClick'
 
-    header.addSubView new CustomLinkView
-      cssClass : 'add-icon buy-vm'
-      title    : ' '
+  #   header.addSubView new CustomLinkView
+  #     cssClass : 'add-icon buy-vm'
+  #     title    : ' '
 
-    section.addSubView @machineTree.getView()
+  #   section.addSubView @machineTree.getView()
 
-    @machineTree.on 'NodeWasAdded', (machineItem) =>
-      machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
+  #   @machineTree.on 'NodeWasAdded', (machineItem) =>
+  #     machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
 
-    if KD.userMachines.length
-    then @listMachines (new Machine machine: (KD.remote.revive machine) for machine in KD.userMachines)
-    else @fetchMachines @bound 'listMachines'
+  #   if KD.userMachines.length
+  #   then @listMachines (new Machine machine: (KD.remote.revive machine) for machine in KD.userMachines)
+  #   else @fetchMachines @bound 'listMachines'
+
+
+   addMachineList: ->
+
+    @addSubView new SidebarOwnMachinesList
 
 
   handleMachineItemClick: (machineItem, event) ->
@@ -734,13 +739,13 @@ class ActivitySidebar extends KDCustomHTMLView
       return
 
 
-  handleMoreVMsClick: (ev) ->
+  # handleMoreVMsClick: (ev) ->
 
-    KD.utils.stopDOMEvent ev
+  #   KD.utils.stopDOMEvent ev
 
-    if 'add-icon' in ev.target.classList
-    then ComputeHelpers.handleNewMachineRequest()
-    else new MoreVMsModal {}, KD.userMachines
+  #   if 'add-icon' in ev.target.classList
+  #   then ComputeHelpers.handleNewMachineRequest()
+  #   else new MoreVMsModal {}, KD.userMachines
 
 
   handleMoreWorkspacesClick: (data) ->
@@ -951,10 +956,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
   renderMachines: (machines, callback = noop)->
 
-    @machineTree.removeAllNodes()
-    @listMachines machines
+    # @machineTree.removeAllNodes()
+    # @listMachines machines
 
-    @selectWorkspace()
+    # @selectWorkspace()
     callback()
 
 
@@ -973,8 +978,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   removeMachineNode: (machine) ->
-    {nodes}    = @machineTree
-    {jMachine} = machine
+    # {nodes}    = @machineTree
+    # {jMachine} = machine
 
-    for nodeId, node of nodes when node.data?.jMachine is jMachine
-      @machineTree.removeNode nodeId
+    # for nodeId, node of nodes when node.data?.jMachine is jMachine
+    #   @machineTree.removeNode nodeId
