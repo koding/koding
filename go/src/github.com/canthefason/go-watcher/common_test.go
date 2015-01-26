@@ -35,7 +35,7 @@ func TestParamsClone(t *testing.T) {
 }
 
 func TestPrepareArgs(t *testing.T) {
-	args := []string{"goldorf", "-run", "balcony", "-p", "11880", "--watch", "show", "--host", "localhost"}
+	args := []string{"watcher", "-run", "balcony", "-p", "11880", "--watch", "show", "--host", "localhost"}
 
 	params := PrepareArgs(args)
 	if len(params.Package) != 4 {
@@ -59,7 +59,7 @@ func TestPrepareArgs(t *testing.T) {
 	}
 
 	// TODO check this fatal error case
-	// args = []string{"goldorf", "-run", "balcony", "-p", "11880", "--watch"}
+	// args = []string{"watcher", "-run", "balcony", "-p", "11880", "--watch"}
 	// params = PrepareArgs(args)
 
 }

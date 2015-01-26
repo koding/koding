@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"gopkg.in/fsnotify.v1"
+	fsnotify "gopkg.in/fsnotify.v1"
 )
 
 // Watcher watches the file change events from fsnotify and
@@ -19,7 +19,8 @@ import (
 type Watcher struct {
 	rootdir string
 	watcher *fsnotify.Watcher
-	update  chan struct{}
+	// when file is changed a message is sent to update channel
+	update chan bool
 }
 
 // GoPath not set error
@@ -30,7 +31,7 @@ var ErrPathNotSet = errors.New("gopath not set")
 func MustRegisterWatcher(params *Params) *Watcher {
 
 	w := &Watcher{
-		update:  make(chan struct{}),
+		update:  make(chan bool),
 		rootdir: params.Get("watch"),
 	}
 
@@ -46,48 +47,48 @@ func MustRegisterWatcher(params *Params) *Watcher {
 	return w
 }
 
-// ListenChanges listens file updates, and sends signal to
+// Watch listens file updates, and sends signal to
 // update channel when go files are updated
-func (w *Watcher) ListenChanges() {
+func (w *Watcher) Watch() {
 	eventSent := false
+
 	for {
 		select {
 		case event := <-w.watcher.Events:
+			// discard chmod events
 			if event.Op&fsnotify.Chmod != fsnotify.Chmod {
 				ext := filepath.Ext(event.Name)
 				if ext == ".go" || ext == ".tmpl" {
 					if !eventSent {
 
-						// prevent consecuent build
+						// prevent consequent build
 						eventSent = true
 						go func() {
 							time.Sleep(200 * time.Millisecond)
 							eventSent = false
 						}()
-						w.update <- struct{}{}
+						w.update <- true
 					}
 				}
 
 			}
 		case err := <-w.watcher.Errors:
-			log.Fatalf("Watcher error: %s", err)
+			if err != nil {
+				log.Fatalf("Watcher error: %s", err)
+			}
+			return
 		}
 	}
+}
+
+func (w *Watcher) Wait() <-chan bool {
+	return w.update
 }
 
 // Close closes the fsnotify watcher channel
 func (w *Watcher) Close() {
 	w.watcher.Close()
-}
-
-// Wait waits till a message is sent via update channel
-func (w *Watcher) Wait() {
-	<-w.update
-}
-
-// ForceUpdate sends a forced update signal for initial package build
-func (w *Watcher) ForceUpdate() {
-	w.update <- struct{}{}
+	// close(w.update)
 }
 
 // watchFolders recursively adds folders that will be watched for changes,
