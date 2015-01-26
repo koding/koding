@@ -13,19 +13,15 @@ type TagInstances struct {
 }
 
 func (t *TagInstances) Process() {
-	untaggedInstances := make(lookup.Instances, 0)
 	t.untagged = lookup.NewMultiInstances()
 
 	t.Instances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
-		for id, instance := range instances {
-			for _, tag := range instance.Tags {
-				if tag.Key != "Name" {
-					continue
-				}
+		untaggedInstances := make(lookup.Instances, 0)
 
-				if tag.Value == "" {
-					untaggedInstances[id] = instance
-				}
+		for id, instance := range instances {
+			// no tags available
+			if len(instance.Tags) == 0 {
+				untaggedInstances[id] = instance
 			}
 		}
 
