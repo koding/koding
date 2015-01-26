@@ -135,18 +135,20 @@ class PaymentForm extends JView
     @yearPriceMessage.hide()  if planInterval is MONTH
     @yearPriceMessage.hide()  if operation is PaymentConstants.operation.INTERVAL_CHANGE
 
-    # no need to show those views when they are
-    # downgrading to free account.
-    if planTitle is FREE
-      @securityNote.hide()
-      @existingCreditCardMessage.hide()
-      @yearPriceMessage.hide()
-
     if paymentMethod
       @submitButton.enable()
+      @form.hide()
     else
-      @form.show()
       @existingCreditCardMessage.hide()
+      @form.show()
+
+      # no need to show those views when they are
+      # downgrading to free account.
+      if planTitle is FREE
+        @securityNote.hide()
+        @yearPriceMessage.hide()
+        @form.hide()
+        @submitButton.enable()
 
     @paypalForm.destroy()  unless provider is KODING
 
