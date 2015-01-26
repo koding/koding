@@ -2,7 +2,6 @@ module.exports = [
   "AppController.coffee"
   "AppView.coffee"
   "activitylistcontroller.coffee"
-  "pinnedactivitylistcontroller.coffee"
 
 
   "sidebar/morelink.coffee"
@@ -20,9 +19,7 @@ module.exports = [
   "sidebar/vmitem.coffee"
   "sidebar/modalworkspaceitem.coffee"
   "sidebar/messageitem.coffee"
-  "sidebar/memberitem.coffee"
   "sidebar/messageitemtext.coffee"
-  "sidebar/messageitemicon.coffee"
   "sidebar/messageitem.coffee"
   "sidebar/topicitem.coffee"
   "sidebar/pinneditem.coffee"
@@ -43,7 +40,6 @@ module.exports = [
   "views/filterlinks.coffee"
 
   # Activity commons
-  "views/feedcoverphotoview.coffee"
   "views/likelink.coffee"
   "views/replylikeview.coffee"
   "views/likecount.coffee"
@@ -72,11 +68,7 @@ module.exports = [
   "views/embedbox/embedboxlinkviewprovider.coffee"
   "views/embedbox/embedboxlinkview.coffee"
   "views/embedbox/embedboxlinkviewtitle.coffee"
-  "views/embedbox/embedboxlinkviewauthor.coffee"
   "views/embedbox/embedboxlinkviewcontent.coffee"
-
-  "views/tags/TagViews.coffee"
-  "views/tags/TagAutoCompleteController.coffee"
 
   "views/inputview.coffee"
   "views/inputwidget.coffee"
@@ -118,17 +110,13 @@ module.exports = [
 
   "views/privatemessage/listitem.coffee"
   "views/privatemessage/form.coffee"
-  "views/privatemessage/kodingbot.coffee"
   "views/privatemessage/pane.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
   "views/privatemessage/replyinputwidget.coffee"
   "views/privatemessage/replyinputeditwidget.coffee"
   "views/privatemessage/inputwidget.coffee"
-  "views/privatemessage/loadtest.coffee"
   "views/privatemessage/settingsview.coffee"
-
-  "views/buymachinemodal.coffee"
 
   "styl/activity.styl"
   "styl/activity.pm.styl"

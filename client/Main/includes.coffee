@@ -23,7 +23,6 @@ module.exports = [
   "utils.coffee"
   "KD.extend.coffee" # our extensions to KD global
   "log.config.coffee",
-  "algoliaresult.coffee",
 
   # jview
   "jcustomhtmlview.coffee",
@@ -62,24 +61,18 @@ module.exports = [
   "CommonViews/linkviews/autocompleteprofiletextview.coffee",
   "CommonViews/linkviews/linkgroup.coffee",
   "CommonViews/splitview.coffee",
-  "CommonViews/bidirectionalnavigation.coffee"
   "CommonViews/kodingswitch.coffee",
   "CommonViews/animatedmodalview.coffee",
   "CommonViews/footerview.coffee",
 
   "CommonViews/tokenview.coffee",
-  "CommonViews/suggestedtokenview.coffee",
-
-  "CommonViews/tagcontextmenuitem.coffee",
 
   "CommonViews/avatarviews/avatarview.coffee",
   "CommonViews/avatarviews/avatartooltipview.coffee",
-  "CommonViews/avatarviews/avatarimage.coffee",
   "CommonViews/avatarviews/avatarstaticview.coffee",
 
   "CommonViews/activitywidgetitem.coffee",
   "CommonViews/activitywidget.coffee",
-  "CommonViews/uploadimagemodalview.coffee",
   "CommonViews/helpsupportmodal.coffee",
 
   # idle detection
@@ -111,7 +104,6 @@ module.exports = [
   "CommonViews/CommonInnerNavigation.coffee",
   "CommonViews/headers.coffee",
   "CommonViews/HelpBox.coffee",
-  "CommonViews/KeyboardHelper.coffee",
   "CommonViews/VerifyPINModal.coffee",
   "CommonViews/VerifyPasswordModal.coffee",
 
@@ -121,21 +113,9 @@ module.exports = [
   "CommonViews/trollbutton.coffee",
   "CommonViews/metainfobuttonview.coffee",
 
-  "CommonViews/markdownmodal.coffee",
   "CommonViews/dropboxdownloaditemview.coffee",
 
   "addworkspaceview.coffee",
-
-  # FATIH
-  # "CommonViews/fatih/plugins/fatihpluginabstract.coffee",
-  # "CommonViews/fatih/plugins/fatihlistitem.coffee",
-  # "CommonViews/fatih/plugins/fatihfilelistitem.coffee",
-  # "CommonViews/fatih/plugins/fatihfilefinderplugin.coffee",
-  # "CommonViews/fatih/plugins/fatihcontentsearchplugin.coffee",
-  # "CommonViews/fatih/plugins/fatihopenappplugin.coffee",
-  # "CommonViews/fatih/plugins/fatihusersearchplugin.coffee",
-  # "CommonViews/fatih/fatihprefpane.coffee",
-  # "CommonViews/fatih/fatih.coffee",
 
   "CommonViews/ModalViewWithTerminal.coffee",
   "CommonViews/clonerepomodal.coffee",
@@ -172,7 +152,6 @@ module.exports = [
   "providers/modalview.coffee"
   "providers/machinestatemodal.coffee"
   "providers/computeplansmodal.coffee",
-  "providers/computeplansmodalloading.coffee",
   "providers/computeplansmodalfree.coffee",
   "providers/computeplansmodalpaid.coffee",
   "providers/computeerrormodal.coffee",
@@ -183,7 +162,6 @@ module.exports = [
   # Algolia-based search:
   "searchcontroller.coffee",
 
-  "navigation/navigationlink.coffee",
   "navigation/navigationworkspaceitem.coffee",
   "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
@@ -205,15 +183,6 @@ module.exports = [
   # # views
   "payment/paymentmethodview.coffee",
   "payment/subscriptionview.coffee",
-  # "payment/paymentmethodentryform.coffee",
-  # "payment/paymentchoiceform.coffee",
-  # "payment/paymentformmodal.coffee",
-  # "payment/paymentworkflow.coffee",
-  # "payment/paymentconfirmform.coffee",
-  # "payment/genericplanview.coffee",
-  # "payment/planupgradeconfirmform.coffee",
-  # "payment/planproductlist.coffee",
-  # "payment/existingaccountworkflow.coffee",
 
   "payment/workflow.coffee",
   "payment/updatecreditcardworkflow.coffee",
@@ -228,19 +197,6 @@ module.exports = [
 
   # global notifications
   "globalnotification.coffee",
-
-  # trouble shooter
-  "troubleshoot/troubleshoot.coffee",
-  "troubleshoot/healthchecker.coffee",
-  "troubleshoot/connectionchecker.coffee",
-  "troubleshoot/troubleshootmodal.coffee",
-  "troubleshoot/troubleshootitemview.coffee",
-  "troubleshoot/troubleshootstatusview.coffee",
-
-  "troubleshoot/liveupdatechecker.coffee",
-  "troubleshoot/brokerrecovery.coffee",
-  "troubleshoot/troubleshootresultview.coffee",
-  "troubleshoot/troubleshootmessageview.coffee",
 
   # avatararea
   "avatararea/avatararea.coffee",
@@ -274,8 +230,6 @@ module.exports = [
   # CONTENT DISPLAY VIEWS
   "ContentDisplay/ContentDisplay.coffee",
   "ContentDisplay/ContentDisplayController.coffee",
-
-  "pinger.coffee",
 
   # NEW KITES (extending kite.js)
   "kite/kitecache.coffee",

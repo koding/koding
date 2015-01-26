@@ -5,7 +5,6 @@ module.exports = [
   "AppController.coffee",
 
   "chrometerminalbanner.coffee"
-  "vmitem.coffee",
   "terminalstarttab.coffee",
   "webtermview.coffee",
   "terminalwrapper.coffee",

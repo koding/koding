@@ -15,8 +15,6 @@ module.exports = [
   "views/sshkeys.coffee",
   "views/kodingkeys.coffee",
   "views/paymenthistorylistitem.coffee",
-  "views/paymentmethods.coffee",
-  "views/subscriptions.coffee",
   "views/referralsystem.coffee",
   "views/deleteaccountview.coffee",
   "views/referrermodal.coffee",

@@ -4,7 +4,7 @@
 colors     = require 'colors'
 fs         = require 'fs'
 
-command    = """grep -e "^class \s*" * -R | grep -v Framework"""
+command    = """grep -e "^class \s*" * -R | grep -v Framework | grep -v landing"""
 
 files      = {}
 fileNames  = []
