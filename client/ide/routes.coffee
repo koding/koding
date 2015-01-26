@@ -143,7 +143,8 @@ do ->
 
   routeToMachineWorkspace = (machine) ->
 
-    if {machineLabel} = latestWorkspace = getLatestWorkspace()
+    if latestWorkspace = getLatestWorkspace()
+      {machineLabel} = latestWorkspace
       if machineLabel is machine.label
         workspaceSlug = latestWorkspace.workspaceSlug
 
