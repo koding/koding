@@ -7,52 +7,30 @@
 #
 # Necessary options when you instantiate it.
 #
-# planTitle  : string (see PaymentWorkflow.planTitle)
+# planTitle  : string (see PaymentConstants.planTitle)
 # monthPrice : int (e.g 1900 for $19)
 # yearPrice  : int (e.g 19000 for $190)
 class PaymentWorkflow extends KDController
 
-  @planInterval =
-    MONTH       : 'month'
-    YEAR        : 'year'
-
-  @planTitle =
-    FREE         : 'free'
-    HOBBYIST     : 'hobbyist'
-    DEVELOPER    : 'developer'
-    PROFESSIONAL : 'professional'
-
-  @provider =
-    STRIPE : 'stripe'
-    PAYPAL : 'paypal'
-    KODING : 'koding'
-
-  @operation =
-    UPGRADE         : 1
-    INTERVAL_CHANGE : 0
-    DOWNGRADE       : -1
-
-
-  FAILED_ATTEMPT_LIMIT = 3
-
-  TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
+  { TOO_MANY_ATTEMPT_BLOCK_KEY,
+    TOO_MANY_ATTEMPT_BLOCK_DURATION } = PaymentConstants
 
   @getOperation = (current, selected) ->
 
     arr = [
-      PaymentWorkflow.planTitle.FREE
-      PaymentWorkflow.planTitle.HOBBYIST
-      PaymentWorkflow.planTitle.DEVELOPER
-      PaymentWorkflow.planTitle.PROFESSIONAL
+      PaymentConstants.planTitle.FREE
+      PaymentConstants.planTitle.HOBBYIST
+      PaymentConstants.planTitle.DEVELOPER
+      PaymentConstants.planTitle.PROFESSIONAL
     ]
 
     current  = arr.indexOf current
     selected = arr.indexOf selected
 
     return switch
-      when selected >  current then PaymentWorkflow.operation.UPGRADE
-      when selected is current then PaymentWorkflow.operation.INTERVAL_CHANGE
-      when selected <  current then PaymentWorkflow.operation.DOWNGRADE
+      when selected >  current then PaymentConstants.operation.UPGRADE
+      when selected is current then PaymentConstants.operation.INTERVAL_CHANGE
+      when selected <  current then PaymentConstants.operation.DOWNGRADE
 
 
   getInitialState: -> {
@@ -81,7 +59,7 @@ class PaymentWorkflow extends KDController
 
       @state.paymentMethod = card
 
-      { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+      { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
 
       switch operation
         when DOWNGRADE                then @startDowngradeFlow()
@@ -98,7 +76,7 @@ class PaymentWorkflow extends KDController
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
 
     @modal.on 'PaypalButtonClicked', =>
-      @state.provider = PaymentWorkflow.provider.PAYPAL
+      @state.provider = PaymentConstants.provider.PAYPAL
 
 
   startDowngradeFlow: ->
@@ -117,7 +95,10 @@ class PaymentWorkflow extends KDController
 
   handlePaymentSubmit: (formData) ->
 
-    return @failedAttemptLimitReached()  if @state.failedAttemptCount >= FAILED_ATTEMPT_LIMIT
+    { FAILED_ATTEMPT_LIMIT } = PaymentConstants
+
+    if @state.failedAttemptCount >= FAILED_ATTEMPT_LIMIT
+      return @failedAttemptLimitReached()
 
     {
       cardNumber, cardCVC, cardMonth,
@@ -129,7 +110,7 @@ class PaymentWorkflow extends KDController
     # and 4 digit year, and different types of month
     # we are enforcing those, other than length problems
     # Stripe will take care of the rest. ~U
-    cardYear  = null  if cardYear.length isnt 4
+    cardYear  = null  unless cardYear.length in [2, 4]
     cardMonth = null  if cardMonth.length isnt 2
 
     binNumber = cardNumber.slice 0, 6
@@ -140,7 +121,7 @@ class PaymentWorkflow extends KDController
         planTitle, planAmount, binNumber, lastFour, cardName
       }, noop
 
-    { KODING, STRIPE } = PaymentWorkflow.provider
+    { KODING, STRIPE } = PaymentConstants.provider
 
     @state.provider = STRIPE  if @state.provider is KODING
 
