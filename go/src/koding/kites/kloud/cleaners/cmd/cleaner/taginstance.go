@@ -106,7 +106,7 @@ func (t *TagInstances) Result() string {
 	}
 
 	if len(ids) == 0 {
-		return
+		return ""
 	}
 
 	return fmt.Sprintf("tagged '%d' untagged instances: %s", len(ids), strings.Join(ids, ","))
