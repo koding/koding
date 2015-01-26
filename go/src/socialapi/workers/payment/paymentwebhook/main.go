@@ -46,8 +46,8 @@ func main() {
 
 	// initialize http server
 	mux := http.NewServeMux()
-	mux.Handle("/stripe", st)
-	mux.Handle("/paypal", pp)
+	mux.Handle("/-/payments/stripe/webhook", st)
+	mux.Handle("/-/payments/paypal/webhook", pp)
 
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
