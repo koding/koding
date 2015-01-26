@@ -16,21 +16,14 @@ type Controller struct {
 	rmqConn *amqp.Connection
 }
 
-func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) (*Controller, error) {
+func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) *Controller {
 
-	rmqConn, err := rmqConn.Connect("NewDispatcherController")
-	if err != nil {
-		return nil, err
-	}
-
-	handler := &Controller{
+	return &Controller{
 		Pubnub:  pubnub,
 		Broker:  broker,
 		logger:  helper.MustGetLogger(),
 		rmqConn: rmqConn.Conn(),
 	}
-
-	return handler, nil
 }
 
 // DefaultErrHandler controls the errors, return false if an error occurred
