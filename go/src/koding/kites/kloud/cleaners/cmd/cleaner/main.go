@@ -137,11 +137,6 @@ func (c *Cleaner) collectAndProcess() error {
 			Instances: artifacts.Instances,
 			Machines:  artifacts.MongodbUsers,
 		},
-		&UnVerified{
-			Instances: artifacts.Instances,
-			Machines:  artifacts.MongodbUsers,
-			Cleaner:   c,
-		},
 		&TestVMS{
 			Instances: artifacts.Instances,
 		},
