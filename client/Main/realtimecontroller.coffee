@@ -6,6 +6,9 @@ class RealtimeController extends KDController
     # make another caching here
     @channels = {}
 
+    # this is used for discarding events that are received multiple times
+    @eventCache = {}
+
     @localStorage  = KD.getSingleton("localStorageController").storage "realtime"
 
     # each forbidden channel name is stored in local storage
@@ -163,8 +166,15 @@ class RealtimeController extends KDController
       @pubnub.subscribe
         channel : pubnubChannelName
         message : (message, env, channel) =>
+
           return  unless message
-          {eventName, body} = message
+
+          {eventName, body, eventId} = message
+
+          return  if @eventCache[eventId]
+
+          @eventCache[eventId] = yes
+
           # when a user is connected in two browsers, and leaves a channel, in second one
           # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
           # user from all connected devices.
