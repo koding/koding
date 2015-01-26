@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
@@ -26,13 +25,13 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		fmt.Println("Error marshalling Paypal webhook '%v' : %v", p, err)
+		Log.Error("Error marshalling Paypal webhook '%v' : %v", p, err)
 		return
 	}
 
 	action, ok := paypalActions[req.TransactionType]
 	if !ok {
-		fmt.Printf("Paypal webhook: %s, %s not implemented",
+		Log.Error("Paypal webhook: %s, %s not implemented",
 			req.Status, req.TransactionType)
 
 		return
@@ -40,7 +39,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err = action(req, p.Controller)
 	if err != nil {
-		fmt.Println("Paypal webhook: %s action failed: %s", req.PayerId, err)
+		Log.Error("Paypal webhook: %s action failed: %s", req.PayerId, err)
 		return
 	}
 }

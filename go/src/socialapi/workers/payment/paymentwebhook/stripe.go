@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -36,25 +35,25 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		fmt.Printf("Error marshalling Stripe webhook '%v' : %v", s, err)
+		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
 		return
 	}
 
 	action, ok := stripeActions[req.Name]
 	if !ok {
-		fmt.Printf("Stripe webhook: %s not implemented", req.Name)
+		Log.Error("Stripe webhook: %s not implemented", req.Name)
 		return
 	}
 
 	data, err := json.Marshal(req.Data.Object)
 	if err != nil {
-		fmt.Printf("Error marshalling Stripe webhook '%v' : %v", s, err)
+		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
 		return
 	}
 
 	err = action(data, s.Controller)
 	if err != nil {
-		fmt.Printf("Stripe webhook: %s action failed: %s", req.Name, err)
+		Log.Error("Stripe webhook: %s action failed: %s", req.Name, err)
 		return
 	}
 }

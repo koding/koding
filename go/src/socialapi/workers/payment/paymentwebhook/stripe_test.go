@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,10 +9,10 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func stripeTest(body []byte) (*httptest.ResponseRecorder, error) {
-	url := fmt.Sprintf("/stripe")
+var stripeWebhookUrl = "/stripe"
 
-	r, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+func stripeTest(body []byte) (*httptest.ResponseRecorder, error) {
+	r, err := http.NewRequest("POST", stripeWebhookUrl, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}

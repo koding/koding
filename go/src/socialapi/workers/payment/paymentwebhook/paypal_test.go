@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -9,11 +8,11 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var paypalWebhookUrl = "/paypal"
+
 func TestPaypal(t *testing.T) {
 	SkipConvey("Given webhook from paypal", t, func() {
-		url := fmt.Sprintf("/paypal")
-
-		r, err := http.NewRequest("POST", url, nil)
+		r, err := http.NewRequest("POST", paypalWebhookUrl, nil)
 		So(err, ShouldBeNil)
 
 		recorder := httptest.NewRecorder()

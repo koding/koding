@@ -31,7 +31,7 @@ func stopMachinesForUser(customerId string, k *kite.Client) error {
 	}
 
 	if k == nil {
-		fmt.Println("Klient not initialized. Not stopping machines for user: %s",
+		Log.Info("Klient not initialized. Not stopping machines for user: %s",
 			username,
 		)
 
@@ -44,7 +44,7 @@ func stopMachinesForUser(customerId string, k *kite.Client) error {
 		})
 
 		if err != nil {
-			fmt.Println("Error stopping machine:%s for username: %s, %v", username, machine, err)
+			Log.Error("Error stopping machine:%s for username: %s, %v", username, machine, err)
 		}
 	}
 

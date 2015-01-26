@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kodingemail"
-	"log"
 	"net/http"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
+	"socialapi/workers/helper"
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
@@ -16,7 +15,10 @@ import (
 	"github.com/koding/kite"
 )
 
-var WorkerName = "paymentwebhook"
+var (
+	WorkerName = "paymentwebhook"
+	Log        = helper.CreateLogger(WorkerName, false)
+)
 
 type Controller struct {
 	Kite  *kite.Client
@@ -24,12 +26,13 @@ type Controller struct {
 }
 
 func main() {
-	// initialize runner
 	r := initializeRunner()
+
 	conf := r.Conf
+	kloud := conf.Kloud
 
 	// initialize client to talk to kloud
-	kiteClient := initializeKiteClient(r.Kite, conf.Kloud.SecretKey, conf.Kloud.Address)
+	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
 
 	// initialize client to send email
 	email := initializeEmail(conf.Email)
@@ -51,11 +54,11 @@ func main() {
 
 	port := conf.PaymentWebhook.Port
 
-	fmt.Printf("Listening on port: %s\n", port)
+	Log.Info("Listening on port: %s\n", port)
 
 	err := http.ListenAndServe(":"+port, mux)
 	if err != nil {
-		log.Fatal(err.Error())
+		Log.Fatal(err.Error())
 	}
 }
 
@@ -66,7 +69,7 @@ func main() {
 func initializeRunner() *runner.Runner {
 	r := runner.New("paymenttest")
 	if err := r.Init(); err != nil {
-		log.Fatal(err)
+		Log.Fatal(err.Error())
 	}
 
 	modelhelper.Initialize(r.Conf.Mongo)
@@ -75,26 +78,23 @@ func initializeRunner() *runner.Runner {
 	return r
 }
 
-func initializeKiteClient(k *kite.Kite, kloudSecretKey, kloudAddr string) *kite.Client {
+func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client {
 	if k == nil {
-		fmt.Println("kite not initialized in runner")
+		Log.Info("kite not initialized in runner")
 		return nil
 	}
 
 	// create a new connection to the cloud
 	kiteClient := k.NewClient(kloudAddr)
-	kiteClient.Auth = &kite.Auth{
-		Type: "kloudctl",
-		Key:  kloudSecretKey,
-	}
+	kiteClient.Auth = &kite.Auth{Type: "kloudctl", Key: kloudKey}
 
 	// dial the kloud address
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
-		fmt.Println("%s. Is kloud/kontrol running?", err.Error())
+		Log.Info("%s. Is kloud/kontrol running?", err.Error())
 		return nil
 	}
 
-	fmt.Println("Connected to klient: %s", kloudAddr)
+	Log.Debug("Connected to klient: %s", kloudAddr)
 
 	return kiteClient
 }
