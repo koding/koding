@@ -11,6 +11,8 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/bongo"
+
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -309,6 +311,7 @@ func TestCreateLink(t *testing.T) {
 			So(err, ShouldEqual, bongo.RecordNotFound)
 			So(len(messages), ShouldEqual, 0)
 		})
+
 		Convey("make sure message order still same", func() {
 			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
 			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
