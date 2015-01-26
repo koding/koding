@@ -22,12 +22,14 @@ type NotificationMessage struct {
 	Account   *Account            `json:"account"`
 	Body      NotificationContent `json:"body"`
 	EventName string              `json:"eventName"`
+	EventId   string              `json:"eventId"`
 }
 
 type Message struct {
 	Id        int64       `json:"messageId, string"`
 	EventName string      `json:"eventName"`
 	Body      interface{} `json:"body"`
+	EventId   string      `json:"eventId"`
 }
 
 type Authenticate struct {
