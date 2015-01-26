@@ -12,5 +12,5 @@ func formatAmount(amount float64, currencyStr string) string {
 		Log.Error("Unknown currency: %v", currencyStr)
 	}
 
-	return fmt.Sprintf("%s %v", currency, amount/100)
+	return fmt.Sprintf("%s%v", currency, amount/100)
 }
