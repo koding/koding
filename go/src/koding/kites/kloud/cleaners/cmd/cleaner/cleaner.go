@@ -32,7 +32,7 @@ type Artifacts struct {
 	Volumes          lookup.MultiVolumes
 	AlwaysOnMachines []lookup.MachineDocument
 	UsersMultiple    map[string][]lookup.MachineDocument
-	MongodbIDs       map[string]struct{}
+	MongodbUsers     map[string]lookup.MachineDocument
 	IsPaid           func(string) bool
 }
 
@@ -180,7 +180,7 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	wg.Add(5)
 
 	a := &Artifacts{
-		MongodbIDs:    make(map[string]struct{}, 0),
+		MongodbUsers:  make(map[string]lookup.MachineDocument, 0),
 		UsersMultiple: make(map[string][]lookup.MachineDocument, 0),
 	}
 
@@ -236,7 +236,7 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 				return
 			}
 
-			a.MongodbIDs[id] = struct{}{}
+			a.MongodbUsers[id] = l
 
 			// fetch duplicate users
 			username := l.Credential
