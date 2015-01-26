@@ -25,7 +25,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
-		Log.Error("Error marshalling Paypal webhook '%v' : %v", p, err)
+		Log.Error("Error marshalling Paypal webhook : %v", err)
 		return
 	}
 
