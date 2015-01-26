@@ -53,6 +53,8 @@ func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 
 	message.SetFilter("templates", filter)
 	message.SetFrom(s.FromAddress)
+	message.SetFromName(s.FromName)
+
 	message.AddTo(to)
 
 	return s.SenderClient.Send(message)

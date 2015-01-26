@@ -100,11 +100,7 @@ func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client
 }
 
 func initializeEmail(conf config.Email) kodingemail.Client {
-	email := kodingemail.InitializeSG(conf.Username, conf.Password)
-	email.FromAddress = conf.DefaultFromMail
-	email.FromName = conf.DefaultFromMail
-
-	return email
+	return kodingemail.InitializeSG(conf.Username, conf.Password)
 }
 
 func getEmailForCustomer(customerId string) (string, error) {
