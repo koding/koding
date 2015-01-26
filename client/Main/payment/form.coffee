@@ -234,6 +234,7 @@ class PaymentForm extends JView
       We are sorry #{word} are disabled for Paypal.
       Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>
     "
+    @existingCreditCardMessage.show()
 
 
   showSuccess: (operation) ->
@@ -272,6 +273,7 @@ class PaymentForm extends JView
         "
         @successMessage.show()
 
+    @submitButton.enable()
     @submitButton.setTitle 'CONTINUE'
     @submitButton.setCallback =>
       @submitButton.hideLoader()
