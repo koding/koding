@@ -150,7 +150,7 @@ func (c *Customer) GetEmail(providerCustomerId string) (string, error) {
 		return "", err
 	}
 
-	user, err := modelhelper.GetUserById(c.OldId)
+	user, err := modelhelper.GetUserByAccountId(c.OldId)
 	if err != nil {
 		return "", err
 	}
