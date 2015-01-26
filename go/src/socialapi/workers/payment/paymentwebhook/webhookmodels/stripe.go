@@ -43,10 +43,9 @@ type StripeCard struct {
 }
 
 type StripeCharge struct {
-	Card       *StripeCard `json:"card"`
-	Currency   string      `json:"currency"`
-	Amount     float64     `json:"amount"`
-	CustomerId string      `json:"customer"`
+	Currency   string  `json:"currency"`
+	Amount     float64 `json:"amount"`
+	CustomerId string  `json:"customer"`
 }
 
 type StripeCustomer struct {
