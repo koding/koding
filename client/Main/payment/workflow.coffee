@@ -126,7 +126,7 @@ class PaymentWorkflow extends KDController
     @state.provider = STRIPE  if @state.provider is KODING
 
     shouldRegisterNewPlan = \
-      currentPlan is PaymentWorkflow.planTitle.FREE or
+      currentPlan is PaymentConstants.planTitle.FREE or
       @state.subscriptionState is 'expired'
 
     if shouldRegisterNewPlan
