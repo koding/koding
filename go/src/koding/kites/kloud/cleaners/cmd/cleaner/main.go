@@ -42,6 +42,7 @@ type Config struct {
 
 	DryRun   bool
 	Interval string `required:"true"`
+	Debug    bool
 }
 
 type task interface {
@@ -99,7 +100,9 @@ func realMain() error {
 	cl := NewCleaner(conf)
 	if cl.DryRun {
 		cl.Log.Warning("Dry run is enabled.")
-		cl.Slack("Cleaner started in dry-run mode", "", "")
+		if !cl.Debug {
+			cl.Slack("Cleaner started in dry-run mode", "", "")
+		}
 	}
 
 	interval, err := time.ParseDuration(conf.Interval)
@@ -130,6 +133,9 @@ func (c *Cleaner) collectAndProcess() error {
 	}
 
 	c.process(
+		&TagInstances{
+			Instances: artifacts.Instances,
+		},
 		&TestVMS{
 			Instances: artifacts.Instances,
 		},
@@ -204,7 +210,10 @@ func (c *Cleaner) process(tasks ...task) {
 			info.Title += info.Title + " (dry-run)"
 		}
 
-		c.Slack(info.Title, info.Desc, msg) // send to slack channel
+		if !c.Debug {
+			c.Slack(info.Title, info.Desc, msg) // send to slack channel
+		}
+
 		t = nil
 	}
 

@@ -21,6 +21,7 @@ type Cleaner struct {
 	DNS      *koding.DNS
 	Domains  *koding.Domains
 	DryRun   bool
+	Debug    bool
 
 	Hook Hook
 	Log  logging.Logger
@@ -68,6 +69,11 @@ func NewCleaner(conf *Config) *Cleaner {
 		Username: "cleaner",
 	}
 
+	log := logging.NewLogger("cleaner")
+	if conf.Debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
 	return &Cleaner{
 		AWS:      l,
 		MongoDB:  m,
@@ -77,6 +83,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		Hook:     hook,
 		Log:      logging.NewLogger("cleaner"),
 		DryRun:   conf.DryRun,
+		Debug:    conf.Debug,
 	}
 }
 
