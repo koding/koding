@@ -11,7 +11,7 @@ class IDE.ShortcutsView extends KDCustomScrollView
 
     for title, mapping of shortcuts
       container = new KDCustomHTMLView
-        cssClass: 'container'
+        cssClass: 'container clearfix'
         partial : "<p>#{title}</p>"
 
       for description, shortcut of mapping

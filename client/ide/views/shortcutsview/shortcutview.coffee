@@ -16,8 +16,8 @@ class IDE.ShortcutView extends JView
 
   pistachio: ->
     """
-      {{> @wrapper}}
       <div class="description">
         #{@description}
       </div>
+      {{> @wrapper}}
     """
