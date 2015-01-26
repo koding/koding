@@ -181,6 +181,7 @@ class RealtimeController extends KDController
         error   : (err) =>
           @handleError err
           callback err
+        timetoken: ((new Date()).getTime() - 1500) * 10000
         restore : yes
 
 
