@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"strings"
 
 	"github.com/mitchellh/goamz/ec2"
 )
@@ -43,9 +44,11 @@ func (t *TagInstances) Process() {
 	emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
 		regionUntagged := make([]tagData, 0)
 		for id := range instances {
+			// probably a ghost vm (an instance without a MongoDB document), we
+			// don't care about it (this will be handled by the GhostVMs task
+			// already)
 			machine, ok := t.Machines[id]
 			if !ok {
-				fmt.Println("not found in mongodb", id)
 				continue
 			}
 
@@ -82,7 +85,10 @@ func (t *TagInstances) Process() {
 func (t *TagInstances) Run() {
 	for client, untaggedInstances := range t.untagged {
 		for _, instance := range untaggedInstances {
-			client.CreateTags([]string{instance.id}, instance.tags)
+			_, err := client.CreateTags([]string{instance.id}, instance.tags)
+			if err != nil {
+				fmt.Printf("tagInstances: creating tags err %s\n", err.Error())
+			}
 		}
 	}
 }
@@ -92,14 +98,18 @@ func (t *TagInstances) Result() string {
 		return fmt.Sprintf("tagInstances: error '%s'", t.err.Error())
 	}
 
-	count := 0
-	for _, tags := range t.untagged {
-		for _, _ = range tags {
-			count++
+	ids := []string{}
+	for _, instances := range t.untagged {
+		for _, instance := range instances {
+			ids = append(ids, instance.id)
 		}
 	}
 
-	return fmt.Sprintf("tagged '%d' untagged instances", count)
+	if len(ids) == 0 {
+		return
+	}
+
+	return fmt.Sprintf("tagged '%d' untagged instances: %s", len(ids), strings.Join(ids, ","))
 }
 
 func (t *TagInstances) Info() *taskInfo {
