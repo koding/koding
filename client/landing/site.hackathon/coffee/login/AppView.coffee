@@ -505,9 +505,6 @@ module.exports = class LoginView extends JView
         form.emit 'SubmitFailed', responseText
 
 
-  doFinishRegistration: (formData) ->
-    (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
-
   doLogin: (formData)->
 
     formData.redirectTo ?= 'Hackathon'
@@ -618,7 +615,7 @@ module.exports = class LoginView extends JView
 
   animateToForm: (name)->
 
-    @unsetClass 'register recover login reset home resendEmail finishRegistration'
+    @unsetClass 'register recover login reset home resendEmail'
     @emit 'LoginViewAnimated', name
     @setClass name
     @$('.flex-wrapper').removeClass 'three one'
