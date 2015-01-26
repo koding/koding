@@ -135,6 +135,12 @@ func (c *Cleaner) collectAndProcess() error {
 	c.process(
 		&TagInstances{
 			Instances: artifacts.Instances,
+			Machines:  artifacts.MongodbUsers,
+		},
+		&UnVerified{
+			Instances: artifacts.Instances,
+			Machines:  artifacts.MongodbUsers,
+			Cleaner:   c,
 		},
 		&TestVMS{
 			Instances: artifacts.Instances,
@@ -151,9 +157,8 @@ func (c *Cleaner) collectAndProcess() error {
 			Cleaner:   c,
 		},
 		&GhostVMs{
-			MongoDB:   c.MongoDB,
 			Instances: artifacts.Instances,
-			Ids:       artifacts.MongodbIDs,
+			Ids:       artifacts.MongodbUsers,
 		},
 		&MultipleVMs{
 			Instances:     artifacts.Instances,
