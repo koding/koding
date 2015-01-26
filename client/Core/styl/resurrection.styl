@@ -504,6 +504,7 @@ div.nominateicon
 
   background              #fafafa !important
   border-color            #fafafa !important
+  overflow-y              scroll
 
   .kdmodal-title
     hidden()
@@ -526,6 +527,12 @@ div.nominateicon
   &.activity-modal
     .kdmodal-inner
       margin              21px
+
+  &.read-only
+    .kdformview .formline
+      &.nickname .custom-link-view
+        cite
+          display           none
 
   .kdformview .formline
 
@@ -574,10 +581,6 @@ div.nominateicon
 
       input
         padding           0 0 0 2px
-        position          absolute
-        width             170px
-        top               -3px
-        left              140px
 
 
     &.specs
@@ -594,26 +597,28 @@ div.nominateicon
       display         inline-block
       cursor          pointer
 
-    span.domain-toggle
+    span.toggle
       display         inline-block
       r-sprite        app 'add-12'
       vertical-align  middle
       opacity         .4
+      cursor          pointer
 
     &.domains
+    &.sharedwith
 
       label.kdlabel
 
         a
           text-decoration none
 
-        span.domain-help
+        span.help
           display         inline-block
           vertical-align  middle
           r-sprite        app 'what-12'
 
         &.expanded
-          span.domain-toggle
+          span.toggle
             r-sprite      app 'cancel-12'
 
       .input-wrapper
@@ -687,7 +692,7 @@ div.nominateicon
     &.button-field
       margin              0 !important
 
-
+  .users-view
   .domains-view
 
     padding               2px 0
@@ -708,13 +713,16 @@ div.nominateicon
       abs()
 
     .input-view
+      border              1px solid #ddd
       border-radius       4px
       background          white
       height              22px
+      overflow            hidden
 
       input
         padding           0
         margin-right      0
+        margin-left       -10px
         text-align        right
         background        none
         border            none
@@ -731,12 +739,14 @@ div.nominateicon
         float             left
         box-shadow        none
         ellipsis()
+        abs()
 
     .listview-wrapper
       margin-top          4px
       height              auto
       padding             0 4px
 
+    .kdlistitemview-user
     .kdlistitemview-domain
       a
         text-decoration   none !important
@@ -748,15 +758,56 @@ div.nominateicon
         abs()
 
       &:hover
-        span.remove-domain
+        div.name
+        a.avatarview
+          opacity         .7
+        span.remove
           display         inline-block
 
-      span.remove-domain
+      span.remove
         display           none
         r-sprite          app 'delete-12'
         cursor            pointer
         vertical-align    middle
         margin-left       8px
+
+    .kdlistitemview-user
+
+      width               auto
+      position            relative
+      float               left
+      padding-right       20px
+      margin-bottom       5px
+
+      a.avatarview
+        float             left
+        height            22px
+        margin-right      5px
+        background        none
+
+      .name
+        float             left
+        width             auto
+        margin-right      6px
+        cursor            pointer
+
+      span.remove
+        top               5px
+        right             8px
+        abs()
+
+  .users-view
+
+    .input-view
+      width               100%
+      input
+        width             100%
+        text-align        left
+        margin-left       10px
+
+    .listview-wrapper
+      margin-top          10px
+      margin-bottom       15px
 
   label.kdlabel
 
@@ -779,14 +830,14 @@ div.nominateicon
     text-align            center
 
     button
-      margin              10px 10px 0 10px !important
+      margin              10px 10px 10px 5px !important
       width               124px
 
 
   .kdbutton.subdomain-toggler
-    padding-right           0
+    padding-right         0
     .button-title
-      color                 #aaa
+      color               #aaa
 
   .more-form
     padding-top           18px
@@ -794,13 +845,13 @@ div.nominateicon
   .delete-files
 
     label
-      float           left
-      margin-left     37px
-      margin-bottom   7px
+      float               left
+      margin-left         37px
+      margin-bottom       7px
 
     .kdinput
-      float           left
-      margin-left     10px
+      float               left
+      margin-left         10px
 
 .kdmodal.ws-settings
 

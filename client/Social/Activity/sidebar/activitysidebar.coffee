@@ -459,7 +459,7 @@ class ActivitySidebar extends KDCustomHTMLView
         myMachineUIds    = []
 
         KD.userMachines.forEach (m) ->
-          if m.isMine()
+          if m.isMine() or m.isPermanent()
           then myMachineUIds.push m.uid
           else otherMachineUIds.push m.uid
 
@@ -511,13 +511,14 @@ class ActivitySidebar extends KDCustomHTMLView
 
       treeData.push machine
 
-      treeData.push
-        title        : 'Workspaces'
-        type         : 'title'
-        parentId     : machine.getId()
-        id           : machine.getData().getId()
-        machineUId   : machine.uid
-        machineLabel : machine.slug or machine.label
+      unless machine.isPermanent()
+        treeData.push
+          title        : 'Workspaces'
+          type         : 'title'
+          parentId     : machine.getId()
+          id           : machine.getData().getId()
+          machineUId   : machine.uid
+          machineLabel : machine.slug or machine.label
 
       ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
       machineOwner = machine.getOwner()

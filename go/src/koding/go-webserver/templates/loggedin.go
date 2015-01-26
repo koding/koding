@@ -13,18 +13,18 @@ var LoggedInHome = `
   <body class='logged-in dark ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    <script>var KD={}</script>
-    <script>var KD={"config":{{.Runtime}}}</script>
+    <script>
 
-    <script>KD.isLoggedInOnLoad=true;</script>
+      var KD={"config":{{.Runtime}}};
 
-    <script>KD.userAccount={{.User.GetWithDefault "Account" "null" }};</script>
+      KD.isLoggedInOnLoad=true;
+      KD.userId={{.User.GetWithDefault "UserId" "null" }};
+      KD.userAccount={{.User.GetWithDefault "Account" "null" }};
+      KD.userMachines={{.User.GetWithDefault "Machines" "null"}};
+      KD.userWorkspaces={{.User.GetWithDefault "Workspaces" "null"}};
+      KD.currentGroup={{.User.GetWithDefault "Group" "null"}};
 
-    <script>KD.userMachines={{.User.GetWithDefault "Machines" "null"}};</script>
-
-    <script>KD.userWorkspaces={{.User.GetWithDefault "Workspaces" "null"}};</script>
-
-    <script>KD.currentGroup={{.User.GetWithDefault "Group" "null"}};</script>
+    </script>
 
     <script>
       (function(d) {
