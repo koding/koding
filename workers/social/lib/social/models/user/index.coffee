@@ -460,6 +460,40 @@ Team Koding
       return handleError null, user
 
 
+  verifyByPin: (options, callback)->
+
+    if (@getAt 'status') is 'confirmed'
+      return callback null
+
+    JVerificationToken = require '../verificationtoken'
+
+    {pin, resendIfExists} = options
+
+    username = @getAt 'username'
+    email    = @getAt 'email'
+
+    options  = {
+      user   : this
+      action : 'verify-account'
+      resendIfExists, pin, username, email
+    }
+
+    unless pin?
+
+      JVerificationToken.requestNewPin options, (err)-> callback err
+
+    else
+
+      JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+        if err
+          callback err
+        else if confirmed
+          @confirmEmail (err)-> callback err
+        else
+          callback createKodingError 'PIN is not confirmed.'
+
+
   @verifyByPin = secure (client, options, callback)->
 
     account = client.connection.delegate
@@ -467,33 +501,8 @@ Team Koding
 
       return callback new Error "User not found"  unless user
 
-      if (user.getAt 'status') is 'confirmed'
-        return callback null
+      user.verifyByPin options, callback
 
-      JVerificationToken = require '../verificationtoken'
-
-      {pin, resendIfExists} = options
-      {username, email} = user
-
-      options = {
-        action: 'verify-account'
-        resendIfExists, user, pin, username, email
-      }
-
-      unless pin?
-
-        JVerificationToken.requestNewPin options, (err)-> callback err
-
-      else
-
-        JVerificationToken.confirmByPin options, (err, confirmed)=>
-
-          if err
-            callback err
-          else if confirmed
-            user.confirmEmail (err)-> callback err
-          else
-            callback createKodingError 'PIN is not confirmed.'
 
 
   logAndReturnLoginError = (username, error, callback)->
