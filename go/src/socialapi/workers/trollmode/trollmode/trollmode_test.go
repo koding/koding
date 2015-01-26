@@ -105,12 +105,6 @@ func TestMarkedAsTroll(t *testing.T) {
 			So(controller.MarkedAsTroll(a), ShouldBeNil)
 		})
 
-		Convey("non existing account should not give error", func() {
-			a := models.NewAccount()
-			a.Id = math.MaxInt64
-			So(controller.MarkedAsTroll(a), ShouldBeNil)
-		})
-
 		/////////////////////////  marking all content ////////////////////////
 		// mark channel
 		Convey("private channels of a troll should be marked as exempt", func() {
@@ -362,7 +356,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		})
 
 		// update channel_message data while creating
-		Convey("when a troll replies to a status update, meta_bits should be set", func() {
+		Convey("when a troll replies to a status update, meta_bits should be set for channel_message", func() {
 			// create post form a normal user
 			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
@@ -384,7 +378,7 @@ func TestMarkedAsTroll(t *testing.T) {
 		})
 
 		// update message_reply data while creating
-		Convey("when a troll replies to a status update, meta_bits should be set", func() {
+		Convey("when a troll replies to a status update, meta_bits should be set for message_reply", func() {
 			// create post form a normal user
 			post, err := rest.CreatePost(groupChannel.Id, normalUser.Id)
 			tests.ResultedWithNoErrorCheck(post, err)
