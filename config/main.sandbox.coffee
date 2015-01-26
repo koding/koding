@@ -359,7 +359,7 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           { location    : "= /-/payments/stripe/webhook" },
-          { location    : "= /-/payments/paypal/webhook" }
+          { location    : "= /-/payments/paypal/webhook" },
         ]
 
     vmwatcher           :
@@ -391,7 +391,6 @@ Configuration = (options={}) ->
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
         locations       : [
-          { location    : "= /payments/stripe/webhook" },
           # location ordering is important here. if you are going to need to change it or
           # add something new, thoroughly test it in sandbox. Most of the problems are not occuring
           # in dev environment
