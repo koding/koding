@@ -20,14 +20,15 @@ class RealtimeController extends KDController
 
     {subscribekey, ssl} = KD.config.pubnub
 
-    @pubnub = PUBNUB.init
-      subscribe_key : subscribekey
-      uuid          : KD.whoami()._id
-      ssl           : ssl
+    if KD.isPubnubEnabled()
+      @pubnub = PUBNUB.init
+        subscribe_key : subscribekey
+        uuid          : KD.whoami()._id
+        ssl           : ssl
 
-    realtimeToken = Cookies.get("realtimeToken")
+      realtimeToken = Cookies.get("realtimeToken")
 
-    @pubnub.auth realtimeToken  if realtimeToken?
+      @pubnub.auth realtimeToken  if realtimeToken?
 
 
   # channel authentication is needed for notification channel and
