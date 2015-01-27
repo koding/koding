@@ -4,6 +4,7 @@ import (
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
+
 	"math"
 	"socialapi/models"
 	"socialapi/request"
@@ -11,10 +12,11 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"labix.org/v2/mgo/bson"
+
 	"github.com/koding/bongo"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"labix.org/v2/mgo/bson"
 )
 
 func CreatePrivateMessageUser() {
@@ -34,8 +36,8 @@ func CreatePrivateMessageUser() {
 	modelhelper.CreateAccount(acc)
 }
 
-func TestCreateLink(t *testing.T) {
-	r := runner.New("test-moderation-create-link")
+func TestProcess(t *testing.T) {
+	r := runner.New("test-moderation-blacklist")
 	err := r.Init()
 	if err != nil {
 		panic(err)
@@ -47,8 +49,6 @@ func TestCreateLink(t *testing.T) {
 	defer modelhelper.Close()
 
 	CreatePrivateMessageUser()
-	// disable logs
-	// r.Log.SetLevel(logging.CRITICAL)
 
 	Convey("given a controller", t, func() {
 
@@ -63,17 +63,17 @@ func TestCreateLink(t *testing.T) {
 		})
 
 		Convey("should return nil when given nil channel link request", func() {
-			So(controller.CreateLink(nil), ShouldBeNil)
+			So(controller.process(nil), ShouldBeNil)
 		})
 
-		Convey("should return nil when account id given 0", func() {
-			So(controller.CreateLink(models.NewChannelLink()), ShouldBeNil)
+		Convey("should return nil when channel id given 0", func() {
+			So(controller.process(models.NewChannelLink()), ShouldBeNil)
 		})
 
-		Convey("non existing account should not give error", func() {
+		Convey("non existing channel should not give error", func() {
 			a := models.NewChannelLink()
 			a.Id = math.MaxInt64
-			So(controller.CreateLink(a), ShouldBeNil)
+			So(controller.process(a), ShouldBeNil)
 		})
 
 		acc1 := models.CreateAccountWithTest()
@@ -81,7 +81,7 @@ func TestCreateLink(t *testing.T) {
 
 		Convey("should process 0 participated channels with no messages", func() {
 			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
@@ -112,7 +112,7 @@ func TestCreateLink(t *testing.T) {
 			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
 			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
 
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
@@ -147,7 +147,7 @@ func TestCreateLink(t *testing.T) {
 			So(cpc, ShouldEqual, 2)
 
 			// create the link
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
@@ -178,7 +178,7 @@ func TestCreateLink(t *testing.T) {
 			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
 			models.CreateMessage(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST)
 
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any participants", func() {
 				cp := models.NewChannelParticipant()
@@ -233,7 +233,7 @@ func TestCreateLink(t *testing.T) {
 			So(cmlc, ShouldEqual, 3)
 
 			// do the switch
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			Convey("leaf node should not have any messages", func() {
 				//check leaf channel
@@ -297,7 +297,7 @@ func TestCreateLink(t *testing.T) {
 			So(cm3.Update(), ShouldBeNil)
 
 			// do the switch
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			//check leaf channel
 
@@ -332,7 +332,7 @@ func TestCreateLink(t *testing.T) {
 			cm3Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
 			// do the switch
-			So(controller.CreateLink(cl), ShouldBeNil)
+			So(controller.process(cl), ShouldBeNil)
 
 			//
 			// fetch the history
