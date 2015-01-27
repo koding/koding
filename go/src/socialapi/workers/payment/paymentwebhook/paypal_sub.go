@@ -26,7 +26,7 @@ func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, c *Contr
 }
 
 func paypalExpireSubscription(customerId string, k *kite.Client) error {
-	err := paypal.ExpireSubscription(customerId)
+	err := paypal.ExpireBasedOnPayment(customerId)
 	if err != nil {
 		return err
 	}

@@ -2,7 +2,7 @@ package paypal
 
 import "socialapi/workers/payment/paymentmodels"
 
-func ExpireIfUnPaid(providerCustomerId string) error {
+func ExpireBasedOnPayment(providerCustomerId string) error {
 	client, err := Client()
 	if err != nil {
 		return err
@@ -14,6 +14,7 @@ func ExpireIfUnPaid(providerCustomerId string) error {
 		return err
 	}
 
+	// if user hasn't paid, expire right away
 	lastPaymentDate := response.Values.Get("LASTPAYMENTDATE")
 	if lastPaymentDate == "" {
 		return ExpireSubscription(providerCustomerId)
@@ -24,6 +25,7 @@ func ExpireIfUnPaid(providerCustomerId string) error {
 		return err
 	}
 
+	// user has paid for current period, so expire at end of period
 	return subscription.UpdateToExpireTime(subscription.CurrentPeriodEnd)
 }
 
