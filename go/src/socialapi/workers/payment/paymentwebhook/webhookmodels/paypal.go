@@ -16,7 +16,12 @@ type PaypalOwnTime struct {
 func (pt *PaypalOwnTime) UnmarshalJSON(b []byte) error {
 	var err error
 
-	pt.Time, err = time.Parse(PaypalTimeLayout, strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1))
+	str := strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1)
+	if str == "" || str == "N/A" {
+		return nil
+	}
+
+	pt.Time, err = time.Parse(PaypalTimeLayout, str)
 
 	return err
 }
