@@ -8,13 +8,14 @@ modalSelector = '.activity-modal.vm-settings'
 
 openVmSettingsModal = (browser) ->
 
-    browser
-      .waitForElementVisible   '.activity-sidebar a.running', 20000
-      .pause 5000
-      .moveToElement           '.activity-sidebar a.running span', 125, 20
-      .click                   '.activity-sidebar a.running span'
-      .waitForElementVisible   modalSelector, 20000
+    vmSelector = '.activity-sidebar a.running'
 
+    browser
+      .waitForElementVisible   vmSelector, 20000
+      .pause                   5000
+      .moveToElement           vmSelector + ' span', 125, 20
+      .click                   vmSelector + ' span'
+      .waitForElementVisible   modalSelector, 20000
 
 
 module.exports =
