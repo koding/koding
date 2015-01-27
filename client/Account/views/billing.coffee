@@ -83,24 +83,11 @@ class AccountBilling extends KDView
     @paymentMethodWrapper.addSubView new KDHeaderView
       title : 'Payment Method'
 
-
-
     paymentController.creditCard (err, cc) =>
 
       card = null  if err?
-      
-      # intentional if/else ifs
-      # to denote the edge cases - SY
-      if subscription.provider is 'paypal'
-        card = null
 
-      else if subscription.provider is 'stripe' and subscription.planTitle is 'free'
-        card = null
-
-      else if subscription.provider is 'koding'
-        card = null
-
-      else
+      if subscription.provider is 'stripe' and subscription.state isnt 'expired'
         card = cc
 
       @putPaymentMethodView card

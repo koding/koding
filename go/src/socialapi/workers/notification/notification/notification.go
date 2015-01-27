@@ -29,18 +29,11 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
-	rmqConn, err := rmq.Connect("NewNotificationWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
-	nwc := &Controller{
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Controller {
+	return &Controller{
 		log:     log,
-		rmqConn: rmqConn.Conn(),
+		rmqConn: rmq.Conn(),
 	}
-
-	return nwc, nil
 }
 
 // CreateReplyNotification notifies main thread owner.

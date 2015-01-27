@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"strings"
 	"time"
 )
 
@@ -28,8 +29,12 @@ func (t *TestVMS) Run() {
 }
 
 func (t *TestVMS) Result() string {
-	return fmt.Sprintf("terminated '%d' instances",
-		t.testInstances.Total())
+	if t.testInstances.Total() == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("terminated '%d' instances. instances: %s",
+		t.testInstances.Total(), strings.Join(t.testInstances.Ids(), ","))
 }
 
 func (t *TestVMS) Info() *taskInfo {

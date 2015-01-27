@@ -29,6 +29,9 @@ type ChannelMessageList struct {
 
 	// Deletion date of the channel
 	DeletedAt time.Time `json:"deletedAt"`
+
+	// is required to identify to request in client side
+	ClientRequestId string `json:"clientRequestId,omitempty" sql:"-"`
 }
 
 // Tests are done.

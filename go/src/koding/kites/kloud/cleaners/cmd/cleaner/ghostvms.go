@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
+	"strings"
 	"time"
 
 	"github.com/mitchellh/goamz/ec2"
@@ -58,8 +59,12 @@ func (g *GhostVMs) Result() string {
 		return fmt.Sprintf("ghostVMs: error '%s'", g.err.Error())
 	}
 
-	return fmt.Sprintf("terminated '%d' instances",
-		g.ghostInstances.Total())
+	if g.ghostInstances.Total() == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("terminated '%d' instances. instances: %s",
+		g.ghostInstances.Total(), strings.Join(g.ghostInstances.Ids(), ","))
 }
 
 func (g *GhostVMs) Info() *taskInfo {

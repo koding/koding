@@ -233,8 +233,8 @@ body.pricing
         .plan-price .interval-text
           visibility    hidden
 
-      &.current
 
+      &[disabled=disabled]
         .cpu:after
           color         #ddd !important
 
@@ -242,6 +242,16 @@ body.pricing
           color         #ddd !important
           &:before
             color       #ddd !important
+
+        .plan-title
+          color         inherit !important
+          text-align    center
+
+        .plan-buy-button
+          border-color  #ddd
+
+
+      &.current
 
         .overflow-hidden
           position      relative
@@ -259,13 +269,6 @@ body.pricing
             line-height   17px
             abs           23px 0 0 -23px
             borderBox()
-
-        .plan-title
-          color         inherit !important
-          text-align    center
-
-        .plan-buy-button
-          border-color  #ddd
 
       &:nth-of-type(4)
         rounded         0 7px 7px 0

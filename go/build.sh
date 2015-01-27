@@ -33,7 +33,7 @@ services=(
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/guestcleanerworker
-  github.com/canthefason/goldorf
+  github.com/canthefason/go-watcher
   github.com/mattes/migrate
   koding/go-webserver
   koding/vmwatcher

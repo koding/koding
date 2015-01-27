@@ -30,18 +30,19 @@ func main() {
 
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
+	rmqConn, err := rmq.Connect("NewActivityEmailWorkerController")
+	if err != nil {
+		panic(err)
+	}
+	defer rmqConn.Conn().Close()
 
 	es := emailmodels.NewEmailSettings(r.Conf)
 
-	handler, err := activityemail.New(
+	handler := activityemail.New(
 		rmq,
 		r.Log,
 		es,
 	)
-	if err != nil {
-		r.Log.Error("%s", err.Error())
-		return
-	}
 
 	r.SetContext(handler)
 	r.Register(notificationmodels.Notification{}).OnCreate().Handle((*activityemail.Controller).SendInstantEmail)

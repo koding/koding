@@ -2,6 +2,9 @@ class PricingAppView extends KDView
 
   JView.mixin @prototype
 
+  TOO_MANY_ATTEMPT_BLOCK_DURATION = KD.config.paymentBlockDuration
+  TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
+
   getInitialState : ->
     {
       planInterval : 'year'
@@ -15,6 +18,9 @@ class PricingAppView extends KDView
     super options, data
 
     @state = KD.utils.extend @getInitialState(), options.state
+
+    # it's going to be assigned by 'PricingAppController'.
+    @appStorage = null
 
     @loadPlan()  if KD.isLoggedIn()
     @initViews()
@@ -136,10 +142,11 @@ class PricingAppView extends KDView
 
       return KD.showError err  if err?
 
-      { planTitle, provider, planInterval } = subscription
+      { planTitle, provider, planInterval, state } = subscription
 
-      @state.currentPlan         = planTitle
       @state.provider            = provider
+      @state.currentPlan         = planTitle
+      @state.subscriptionState   = state
       @state.currentPlanInterval = planInterval
 
       @plans.setState @state
@@ -147,17 +154,53 @@ class PricingAppView extends KDView
       callback()
 
 
-  planSelected: (options) ->
+  preventBlockedUser: (options, callback) ->
+
+    @appStorage.fetchValue TOO_MANY_ATTEMPT_BLOCK_KEY, (result) =>
+
+      return callback()  unless result
+
+      difference = Date.now() - result.timestamp
+
+      if difference < TOO_MANY_ATTEMPT_BLOCK_DURATION
+
+        @workflowController = new PaymentWorkflow { state: options, delegate: this }
+
+        @workflowController.on 'WorkflowStarted', =>
+          @workflowController.failedAttemptLimitReached no
+
+        return
+
+      @removeBlockFromUser()
+
+      return callback()
+
+
+  removeBlockFromUser: ->
+
+    KD.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
+
+
+  ###*
+   * This method uses `preventBlockedUser` method as a
+   * before filter, that filter will decide
+   * if this method will be called or not.
+  ###
+  planSelected: (options) -> @preventBlockedUser options, =>
 
     return KD.singletons
       .router
       .handleRoute '/Login'  unless KD.isLoggedIn()
 
-    return @loadPlan @lazyBound 'planSelected', options  unless @state.currentPlan?
+    # wait for loading the current plan,
+    # call this method until it's ready.
+    unless @state.currentPlan?
+      return @loadPlan => @planSelected options
 
     isCurrentPlan =
       options.planTitle    is @state.currentPlan and
-      options.planInterval is @state.currentPlanInterval
+      options.planInterval is @state.currentPlanInterval and
+      'expired'          isnt @state.subscriptionState
 
     return KD.showError "That's already your current plan."  if isCurrentPlan
 

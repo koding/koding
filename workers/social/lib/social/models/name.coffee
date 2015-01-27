@@ -38,7 +38,7 @@ module.exports = class JName extends Model
     JSecretName.one {name}, (err, secretNameObj)=>
       if err then callback err
       else unless secretNameObj?
-        callback new KodingError "Unknown name #{name}"
+        callback new KodingError "Unknown name #{name} (Maybe non of the participants are using Broker anymore)"
       else
         oldSecretName = secretNameObj.secretName
         secretName    = createId()

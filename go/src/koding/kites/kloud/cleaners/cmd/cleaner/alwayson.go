@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strings"
+
 	"koding/kites/kloud/cleaners/lookup"
 )
 
@@ -41,7 +43,13 @@ func (a *AlwaysOn) Result() string {
 	if a.err != nil {
 		return fmt.Sprintf("alwaysOn: error '%s'", a.err.Error())
 	}
-	return fmt.Sprintf("disabled '%d' free machines", len(a.nonvalidUsers))
+
+	if len(a.nonvalidUsers) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("disabled '%d' free machines. users: %s",
+		len(a.nonvalidUsers), strings.Join(a.nonvalidUsers, ","))
 }
 
 func (a *AlwaysOn) Info() *taskInfo {
