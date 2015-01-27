@@ -197,3 +197,27 @@ func (m *MongoDB) Users(usernames ...string) ([]models.User, error) {
 
 	return users, nil
 }
+
+func (m *MongoDB) NotConfirmedUsers() ([]models.User, error) {
+	users := make([]models.User, 0)
+
+	query := func(c *mgo.Collection) error {
+		notConfirmed := bson.M{
+			"status": bson.M{"$exists": true, "$ne": "confirmed"},
+		}
+
+		user := models.User{}
+		iter := c.Find(notConfirmed).Batch(150).Iter()
+		for iter.Next(&user) {
+			users = append(users, user)
+		}
+
+		return iter.Close()
+	}
+
+	if err := m.DB.Run("jUsers", query); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}

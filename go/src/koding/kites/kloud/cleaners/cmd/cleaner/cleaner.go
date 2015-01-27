@@ -21,6 +21,7 @@ type Cleaner struct {
 	DNS      *koding.DNS
 	Domains  *koding.Domains
 	DryRun   bool
+	Debug    bool
 
 	Hook Hook
 	Log  logging.Logger
@@ -31,7 +32,7 @@ type Artifacts struct {
 	Volumes          lookup.MultiVolumes
 	AlwaysOnMachines []lookup.MachineDocument
 	UsersMultiple    map[string][]lookup.MachineDocument
-	MongodbIDs       map[string]struct{}
+	MongodbUsers     map[string]lookup.MachineDocument
 	IsPaid           func(string) bool
 }
 
@@ -68,6 +69,11 @@ func NewCleaner(conf *Config) *Cleaner {
 		Username: "cleaner",
 	}
 
+	log := logging.NewLogger("cleaner")
+	if conf.Debug {
+		log.SetLevel(logging.DEBUG)
+	}
+
 	return &Cleaner{
 		AWS:      l,
 		MongoDB:  m,
@@ -77,6 +83,7 @@ func NewCleaner(conf *Config) *Cleaner {
 		Hook:     hook,
 		Log:      logging.NewLogger("cleaner"),
 		DryRun:   conf.DryRun,
+		Debug:    conf.Debug,
 	}
 }
 
@@ -173,7 +180,7 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 	wg.Add(5)
 
 	a := &Artifacts{
-		MongodbIDs:    make(map[string]struct{}, 0),
+		MongodbUsers:  make(map[string]lookup.MachineDocument, 0),
 		UsersMultiple: make(map[string][]lookup.MachineDocument, 0),
 	}
 
@@ -229,7 +236,7 @@ func (c *Cleaner) Collect() (*Artifacts, error) {
 				return
 			}
 
-			a.MongodbIDs[id] = struct{}{}
+			a.MongodbUsers[id] = l
 
 			// fetch duplicate users
 			username := l.Credential
