@@ -135,10 +135,8 @@ class SocialApiController extends KDController
     messages = messages.messageList  if messages.messageList
     messages = [].concat(messages)
     revivedMessages = []
-    {SocialMessage} = KD.remote.api
-    revivedMessages = for message in messages
-      addToScreenMap { messageId: message.id, clientRequestId: message.clientRequestId }
-      mapActivity message
+    revivedMessages = (mapActivity message for message in messages)
+
     return revivedMessages
 
 
@@ -235,6 +233,7 @@ class SocialApiController extends KDController
 
     {id, clientRequestId} = message
 
+    # id is needed for join/leave activity messages
     inside = _inScreenMap[id] or _inScreenMap[clientRequestId]
 
     return not inside
@@ -301,11 +300,11 @@ class SocialApiController extends KDController
 
 
   addToScreenMap = (options) ->
-    {messageId, clientRequestId} = options
+    options = options.message  if options.message?
+    {clientRequestId} = options
     {_inScreenMap} = KD.singletons.socialapi
 
-    _inScreenMap[clientRequestId] = yes  if clientRequestId
-    _inScreenMap[messageId]       = yes  if messageId
+    _inScreenMap[clientRequestId] = yes
 
 
   addToScreenMap : addToScreenMap
