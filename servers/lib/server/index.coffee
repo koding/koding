@@ -297,7 +297,6 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
     JUser.login clientId, { username : email, password }, (err, info) ->
 
-
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
