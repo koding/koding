@@ -100,7 +100,7 @@ module.exports = class JUser extends jraphical.Module
         getSSHKeys              : (signature Function)
         authenticateWithOauth   : (signature Object, Function)
         unregister              : (signature String, Function)
-        finishRegistration      : (signature Object, Function)
+        finishRegistration      : (signature Object, Function) # DEPRECATED ~ GG
         verifyPassword          : (signature Object, Function)
         verifyByPin             : (signature Object, Function)
 
@@ -460,6 +460,40 @@ Team Koding
       return handleError null, user
 
 
+  verifyByPin: (options, callback)->
+
+    if (@getAt 'status') is 'confirmed'
+      return callback null
+
+    JVerificationToken = require '../verificationtoken'
+
+    {pin, resendIfExists} = options
+
+    username = @getAt 'username'
+    email    = @getAt 'email'
+
+    options  = {
+      user   : this
+      action : 'verify-account'
+      resendIfExists, pin, username, email
+    }
+
+    unless pin?
+
+      JVerificationToken.requestNewPin options, (err)-> callback err
+
+    else
+
+      JVerificationToken.confirmByPin options, (err, confirmed)=>
+
+        if err
+          callback err
+        else if confirmed
+          @confirmEmail (err)-> callback err
+        else
+          callback createKodingError 'PIN is not confirmed.'
+
+
   @verifyByPin = secure (client, options, callback)->
 
     account = client.connection.delegate
@@ -467,33 +501,8 @@ Team Koding
 
       return callback new Error "User not found"  unless user
 
-      if (user.getAt 'status') is 'confirmed'
-        return callback null
+      user.verifyByPin options, callback
 
-      JVerificationToken = require '../verificationtoken'
-
-      {pin, resendIfExists} = options
-      {username, email} = user
-
-      options = {
-        action: 'verify-account'
-        resendIfExists, user, pin, username, email
-      }
-
-      unless pin?
-
-        JVerificationToken.requestNewPin options, (err)-> callback err
-
-      else
-
-        JVerificationToken.confirmByPin options, (err, confirmed)=>
-
-          if err
-            callback err
-          else if confirmed
-            user.confirmEmail (err)-> callback err
-          else
-            callback createKodingError 'PIN is not confirmed.'
 
 
   logAndReturnLoginError = (username, error, callback)->
@@ -854,7 +863,6 @@ Team Koding
     invite         = null
     user           = null
     quotaExceedErr = null
-    recoveryToken  = null
     error          = null
 
     aNewRegister   = oldUsername is 'guestuser'
@@ -959,27 +967,16 @@ Team Koding
             console.warn err  if err?
             queue.next()
         else
-          queue.next()
-
-      ->
-        JPasswordRecovery = require '../passwordrecovery'
-
-        passwordOptions =
-          email         : user.email
-          verb          : unless username? then 'Register' else 'Verify'
-          resetPassword : no
-          expiryPeriod  : 1000 * 60 * 60 * 24 * 14 # 2 weeks in milliseconds
-
-        JPasswordRecovery.create passwordOptions, (err, token)->
-          recoveryToken = token
-          queue.next()
+          user.verifyByPin resendIfExists: yes, (err)->
+            console.warn "Failed to send verification token:", err  if err
+            queue.next()
 
       ->
         JAccount.emit "AccountRegistered", account, referrer
         queue.next()
 
       ->
-        callback error, {account, recoveryToken, newToken}
+        callback error, {account, newToken}
         queue.next()
 
       ->
@@ -999,50 +996,14 @@ Team Koding
 
     daisy queue
 
+
+  # DEPRECATED
   @finishRegistration: secure (client, formData, callback) ->
-    { sessionToken: clientId } = client
+    { sessionToken: clientId, clientIP } = client
+    console.warn "DEPRECATED JUser::finishRegistration called from", \
+                 { clientIP, sessionToken }
+    callback null
 
-    { recoveryToken: token, firstName, lastName, username, password,
-      passwordConfirm } = formData
-
-    if password isnt passwordConfirm
-      return callback { message: 'Passwords must match!' }
-
-    JPasswordRecovery = require '../passwordrecovery'
-    JPasswordRecovery.one { token }, (err, certificate) =>
-      return callback err  if err
-      return callback { message: 'Unrecognized token!' }  unless certificate
-
-      @one email: certificate.email, (err, user) =>
-        return callback err  if err
-        return callback { message: 'Unrecognized token!' }  unless user
-
-        user.fetchOwnAccount (err, account) =>
-          return callback err  if err
-
-          options = { account, username, clientId, isRegistration : yes}
-
-          @changeUsernameByAccount options, (err, replacementToken) ->
-            return callback err  if err
-
-            user.changePassword password, (err) ->
-              return callback err  if err
-
-              account.update $set: { firstName, lastName }, (err) ->
-                return callback err  if err
-
-                client.connection.delegate = account
-
-                account.fetchGroups client, (err, groups) ->
-                  queue = groups.map ({group}) ->
-                    ->
-                      return queue.fin()  unless group
-                      return queue.fin()  if group.slug in ["koding", "guests"]
-
-                      queue.fin()
-
-                  dash queue, ->
-                    callback null, { account, replacementToken }
 
   @removeUnsubscription:({email}, callback)->
     JUnsubscribedMail = require '../unsubscribedmail'

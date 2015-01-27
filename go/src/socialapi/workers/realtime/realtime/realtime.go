@@ -80,19 +80,13 @@ func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 // New Creates a new controller for realtime package
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
-	// connnects to RabbitMQ
-	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Controller {
 	ffc := &Controller{
 		log:     log,
-		rmqConn: rmqConn.Conn(),
+		rmqConn: rmq.Conn(),
 	}
 
-	return ffc, nil
+	return ffc
 }
 
 // MessageUpdated controls message updated status

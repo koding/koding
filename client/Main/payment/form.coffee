@@ -10,12 +10,12 @@
 # from the rest. ~Umut
 class PaymentForm extends JView
 
-  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
 
   getInitialState: ->
-    planInterval : PaymentWorkflow.planInterval.MONTH
-    planTitle    : PaymentWorkflow.planTitle.HOBBYIST
-    provider     : PaymentWorkflow.provider.KODING
+    planInterval : PaymentConstants.planInterval.MONTH
+    planTitle    : PaymentConstants.planTitle.HOBBYIST
+    provider     : PaymentConstants.provider.KODING
 
 
   constructor: (options = {}, data) ->
@@ -90,7 +90,9 @@ class PaymentForm extends JView
       cssClass : 'success-msg hidden'
       partial  : ''
 
-    buttonPartial = switch operation
+    buttonPartial = if @state.subscriptionState is 'expired'
+    then 'CONTINUE'
+    else switch operation
       when  1 then 'UPGRADE YOUR PLAN'
       when  0 then 'MAKE CHANGE'
       when -1 then 'DOWNGRADE'
@@ -123,32 +125,30 @@ class PaymentForm extends JView
 
   filterViews: ->
 
-    { FREE }   = PaymentWorkflow.planTitle
-    { MONTH }  = PaymentWorkflow.planInterval
-    { KODING } = PaymentWorkflow.provider
-    { currentPlan, planTitle, planInterval, provider } = @state
+    { FREE }   = PaymentConstants.planTitle
+    { MONTH }  = PaymentConstants.planInterval
+    { KODING } = PaymentConstants.provider
+    { currentPlan, planTitle, planInterval, provider, paymentMethod } = @state
 
     operation = PaymentWorkflow.getOperation currentPlan, planTitle
 
     @yearPriceMessage.hide()  if planInterval is MONTH
-    @yearPriceMessage.hide()  if operation is PaymentWorkflow.operation.INTERVAL_CHANGE
+    @yearPriceMessage.hide()  if operation is PaymentConstants.operation.INTERVAL_CHANGE
 
-    # no need to show those views when they are
-    # downgrading to free account.
-    if planTitle is FREE
-      @securityNote.hide()
-      @existingCreditCardMessage.hide()
-      @yearPriceMessage.hide()
-
-    # if their currentPlan is not free it means that
-    # we already have their credit card,
-    # don't show existing cc message, show
-    # cc form.
-    if currentPlan is FREE
-      @form.show()
-      @existingCreditCardMessage.hide()
-    else
+    if paymentMethod
       @submitButton.enable()
+      @form.hide()
+    else
+      @existingCreditCardMessage.hide()
+      @form.show()
+
+      # no need to show those views when they are
+      # downgrading to free account.
+      if planTitle is FREE
+        @securityNote.hide()
+        @yearPriceMessage.hide()
+        @form.hide()
+        @submitButton.enable()
 
     @paypalForm.destroy()  unless provider is KODING
 
@@ -234,6 +234,7 @@ class PaymentForm extends JView
       We are sorry #{word} are disabled for Paypal.
       Please contact <a href='mailto:billing@koding.com'>billing@koding.com</a>
     "
+    @existingCreditCardMessage.show()
 
 
   showSuccess: (operation) ->
@@ -250,7 +251,7 @@ class PaymentForm extends JView
 
     switch operation
 
-      when PaymentWorkflow.operation.UPGRADE
+      when PaymentConstants.operation.UPGRADE
 
         @successMessage.updatePartial "
           Depending on the plan upgraded to, you now have access to more computing
@@ -263,7 +264,7 @@ class PaymentForm extends JView
         "
         @successMessage.show()
 
-      when PaymentWorkflow.operation.INTERVAL_CHANGE
+      when PaymentConstants.operation.INTERVAL_CHANGE
 
         @successMessage.updatePartial "
           Your billing cycle has been successfully updated.
@@ -272,6 +273,7 @@ class PaymentForm extends JView
         "
         @successMessage.show()
 
+    @submitButton.enable()
     @submitButton.setTitle 'CONTINUE'
     @submitButton.setCallback =>
       @submitButton.hideLoader()
@@ -331,7 +333,7 @@ class PaymentForm extends JView
     {{> @yearPriceMessage}}
     {{> @submitButton}}
     #{
-      if @state.provider is PaymentWorkflow.provider.KODING
+      if @state.provider is PaymentConstants.provider.KODING
       then '<div class="divider">OR</div>'
       else ''
     }
