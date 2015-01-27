@@ -1,5 +1,6 @@
 JView                                 = require './../core/jview'
 CustomLinkView                        = require './../core/customlinkview'
+LoginInputView                        = require './logininputview'
 LoginInlineForm                       = require './loginform'
 RegisterInlineForm                    = require './registerform'
 RedeemInlineForm                      = require './redeemform'
@@ -12,7 +13,9 @@ MainControllerLoggedOut               = require './../core/maincontrollerloggedo
 
 module.exports = class LoginView extends JView
 
-  stop = KD.utils.stopDOMEvent
+  stop           = KD.utils.stopDOMEvent
+  ENTER          = 13
+  USERNAME_VALID = no
 
   backgroundImages  = [
     [ 'Charlie Foster', 'http://www.flickr.com/photos/charliefoster/' ]
@@ -117,7 +120,7 @@ module.exports = class LoginView extends JView
       testPath : "register-form"
       callback : (formData) =>
 
-        @showPasswordModal formData, @registerForm
+        @showExtraInformation formData
 
     @redeemForm = new RedeemInlineForm
       cssClass : "login-form"
@@ -255,78 +258,141 @@ module.exports = class LoginView extends JView
           duration  : 4500
 
 
-  showPasswordModal: (formData, form) ->
+  showExtraInformation : (formData, form) ->
 
-    if no in [form.email.input.valid, form.username.input.valid]
-      return form.button.hideLoader()
-
+    form       ?= @registerForm
     {mainView} = KD.singletons
 
     mainView.setClass 'blur'
 
+    {email, password} = formData
+
+    gravatar = form.gravatars[formData.email]
+
+    unless gravatar
+
+      form.once 'gravatarInfoFetched', =>
+        @showExtraInformation formData, form
+
+      return
+
+    {preferredUsername, requestHash} = gravatar
+
+    givenName  = gravatar.name?.givenName
+    familyName = gravatar.name?.familyName
+
+    fields   = {}
+    size     = 80
+    fallback = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+
+    fields.photo =
+      itemClass  : KDCustomHTMLView
+      tagName    : 'img'
+      attributes :
+        src      : "//gravatar.com/avatar/#{requestHash}?size=#{size}&d=#{fallback}&r=g"
+
+
+    fields.email =
+      itemClass : KDCustomHTMLView
+      partial   : email
+
+    handleKeyup = (event) ->
+
+      return  unless event.which is ENTER
+      modal.modalTabs.forms.extraInformation.submit event
+
+
+    fields.username =
+      name               : 'username'
+      itemClass          : LoginInputView
+      label              : 'Pick a username'
+      inputOptions       :
+        name             : 'username'
+        defaultValue     : preferredUsername
+        forceCase        : 'lowercase'
+        placeholder      : 'username'
+        attributes       :
+          testpath       : 'register-form-username'
+        focus            : -> @unsetTooltip()
+        keyup            : handleKeyup
+        validate         :
+          container      : this
+          rules          :
+            required     : yes
+            rangeLength  : [4, 25]
+            regExp       : /^[^0-9][a-z\d]+([-][a-z\d]+)*$/i
+            # regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
+            usernameCheck: (input, event) => @usernameCheck input, event
+            finalCheck   : (input, event) => @usernameCheck input, event, 0
+          messages       :
+            required     : 'Please enter a username.'
+            regExp       : 'For username only lowercase letters and numbers are allowed!'
+            rangeLength  : 'Username should be between 4 and 25 characters!'
+          events         :
+            required     : 'blur'
+            rangeLength  : 'blur'
+            regExp       : 'keyup'
+            usernameCheck: 'keyup'
+            finalCheck   : 'blur'
+      nextElement      :
+        suffix         :
+          itemClass    : KDCustomHTMLView
+          cssClass     : 'suffix'
+          partial      : '.koding.io'
+
+    if givenName
+      fields.firstName =
+        defaultValue : givenName
+        label        : 'First Name'
+        keyup        : handleKeyup
+
+    if familyName
+      fields.lastName =
+        defaultValue : familyName
+        label        : 'Last Name'
+        keyup        : handleKeyup
+
+
     modal = new KDModalViewWithForms
-      cssClass                : 'password'
-      width                   : 600
-      height                  : 'auto'
-      overlay                 : yes
-      title                   : 'Almost there, please enter a strong password.'
-      tabs                    :
-        forms                 :
-          password            :
-            callback          : (passwordForm) =>
+      cssClass                        : 'extra-info password'
+      width                           : 360
+      height                          : 'auto'
+      overlay                         : yes
+      tabs                            :
+        forms                         :
+          extraInformation            :
+            callback                  : =>
 
-              formData.password        = passwordForm.password
-              formData.passwordConfirm = passwordForm.passwordConfirm
+              {username} = modal.modalTabs.forms.extraInformation.inputs
 
-              @doRegister formData, form
-              modal.destroy()
+              if USERNAME_VALID and username.input.valid
+                formData.username        = username.input.getValue()
+                formData.passwordConfirm = formData.password
 
-            fields                    :
-              password                :
-                type                  : 'password'
-                cssClass              : 'half'
-                name                  : 'password'
-                placeholder           : 'password'
-                attributes            :
-                  testpath            : 'password-input'
-                validate              :
-                  events              :
-                    passwordCheck     : 'keyup'
-                  rules               :
-                    passwordCheck     : (input, event)=>
-                      passwordForm  = modal.modalTabs.forms.password
-                      {result, msg} = @checkForPasswords input, passwordForm.inputs.confirm
-                      @changeButtonState passwordForm.buttons.submit, result
-                      modal.setTitle msg
-                nextElement           :
-                  confirm             :
-                    cssClass          : 'half'
-                    type              : 'password'
-                    name              : 'passwordConfirm'
-                    placeholder       : 'confirm password'
-                    attributes        :
-                      testpath        : 'confirm-password-input'
-                    validate          :
-                      events          :
-                        passwordCheck : 'keyup'
-                      rules           :
-                        passwordCheck : (input, event)=>
-                          passwordForm  = modal.modalTabs.forms.password
-                          {result, msg} = @checkForPasswords input, passwordForm.inputs.password
-                          @changeButtonState passwordForm.buttons.submit, result
-                          modal.setTitle msg
-            buttons           :
-              submit          :
-                cssClass      : 'solid green medium'
-                type          : 'submit'
-                attributes    :
-                  testpath    : 'register-submit-button'
-                title         : 'Let\'s go'
-                disabled      : yes
+                @doRegister formData, @registerForm
+                modal.destroy()
+
+            fields                    : fields
+            buttons                   :
+              continue                :
+                title                 : 'LET\'S GO'
+                style                 : 'solid green medium'
+                type                  : 'submit'
+
+    usernameView = modal.modalTabs.forms.extraInformation.inputs.username
+    usernameView.setOption 'stickyTooltip', yes
+
+
+    unless gravatar.dummy
+      modal.addSubView new KDCustomHTMLView
+        partial  : 'Profile info fetched from Gravatar.'
+        cssClass : 'description'
 
     modal.once 'KDObjectWillBeDestroyed', ->
       mainView.unsetClass 'blur'
       form.button.hideLoader()
+      form.email.icon.unsetTooltip()
+      form.password.icon.unsetTooltip()
 
     modal.once 'viewAppended', ->
 
@@ -334,20 +400,40 @@ module.exports = class LoginView extends JView
         partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
 
       KD.utils.defer ->
-        modal.modalTabs.forms.password.inputs.password.setFocus()
+        modal.modalTabs.forms.extraInformation.inputs.username.input.setFocus()
 
-  checkForPasswords: (password, confirm) ->
+  usernameCheckTimer = null
 
-    vals = [password.getValue(), confirm.getValue()]
-    check1 = vals.first.length > 7
-    check2 = vals.last.length > 7
-    check3 = vals.first is vals.last
+  usernameCheck:(input, event, delay=800)->
+    return if event?.which is 9
+    return if input.getValue().length < 4
 
-    return result : no, msg : "Passwords must match!"  if check1 and not check2
-    return result : no, msg : "Passwords should be at least 8 characters."  if not check1 or not check2
-    return result : no, msg : "Passwords must match!"  unless check3
+    KD.utils.killWait usernameCheckTimer
+    input.setValidationResult "usernameCheck", null
+    username = input.getValue()
 
-    return result : yes, msg : "Looks good, go ahead!"  if check1 and check2 and check3
+    if input.valid
+      usernameCheckTimer = KD.utils.wait delay, =>
+        $.ajax
+          url         : "/Validate/Username/#{username}"
+          type        : 'POST'
+          xhrFields   : withCredentials : yes
+          success     : ->
+            input.setValidationResult 'usernameCheck', null
+            USERNAME_VALID = yes
+          error       : ({responseJSON}) ->
+
+            {forbidden, kodingUser} = responseJSON
+
+            if forbidden
+              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is forbidden to use!"
+              USERNAME_VALID = no
+            else if kodingUser
+              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is already taken!"
+              USERNAME_VALID = no
+            else
+              input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
+              USERNAME_VALID = no
 
 
   changeButtonState: (button, state) ->

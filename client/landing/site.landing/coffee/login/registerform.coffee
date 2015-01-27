@@ -5,12 +5,12 @@ LoginInputViewWithLoader = require './logininputwithloader'
 module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   EMAIL_VALID    = yes
-  USERNAME_VALID = yes
   ENTER          = 13
 
   constructor:(options={},data)->
     super options, data
 
+    @email?.destroy()
     @email = new LoginInputViewWithLoader
       inputOptions    :
         name          : 'email'
@@ -21,37 +21,28 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         decorateValidation: no
         focus         : => @email.icon.unsetTooltip()
         keyup         : (event) => @submitForm event  if event.which is ENTER
+        blur          : => @fetchGravatarInfo @email.input.getValue()
 
-
-
-    @username?.destroy()
-    @username = new LoginInputViewWithLoader
+    @password?.destroy()
+    @password = new LoginInputView
       inputOptions       :
-        name             : 'username'
-        forceCase        : 'lowercase'
-        placeholder      : 'username'
-        attributes       :
-          testpath       : 'register-form-username'
-        focus            : => @username.icon.unsetTooltip()
-        keyup            : (event) => @submitForm event  if event.which is ENTER
-        validate         :
-          container      : this
-          rules          :
-            required     : yes
-            rangeLength  : [4, 25]
-            regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
-            usernameCheck: (input, event)=> @usernameCheck input, event
-            finalCheck   : (input, event)=> @usernameCheck input, event, 0
-          messages       :
-            required     : 'Please enter a username.'
-            regExp       : 'For username only lowercase letters and numbers are allowed!'
-            rangeLength  : 'Username should be between 4 and 25 characters!'
-          events         :
-            required     : 'blur'
-            rangeLength  : 'blur'
-            regExp       : 'keyup'
-            usernameCheck: 'keyup'
-            finalCheck   : 'blur'
+        name             : "password"
+        type             : "password"
+        testPath         : "recover-password"
+        placeholder      : "Password"
+        keyup            : (event) =>
+          if event.which is ENTER
+            @password.input.validate()
+            @button.click event
+        validate          :
+          event           : 'blur'
+          container       : this
+          rules           :
+            required      : yes
+            minLength     : 8
+          messages        :
+            required      : "Please enter a password."
+            minLength     : "Passwords should be at least 8 characters."
         decorateValidation: no
 
     {buttonTitle} = @getOptions()
@@ -82,9 +73,8 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     KD.singletons.router.on 'RouteInfoHandled', =>
       @email.icon.unsetTooltip()
-      @username.icon.unsetTooltip()
+      @password.icon.unsetTooltip()
 
-  usernameCheckTimer = null
 
   reset:->
 
@@ -93,38 +83,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     
     super
     
-
-  usernameCheck:(input, event, delay=800)->
-    return if event?.which is 9
-    return if input.getValue().length < 4
-
-    KD.utils.killWait usernameCheckTimer
-    input.setValidationResult "usernameCheck", null
-    username = input.getValue()
-
-    if input.valid
-      usernameCheckTimer = KD.utils.wait delay, =>
-        $.ajax
-          url         : "/Validate/Username/#{username}"
-          type        : 'POST'
-          xhrFields   : withCredentials : yes
-          success     : ->
-            input.setValidationResult 'usernameCheck', null
-            USERNAME_VALID = yes
-          error       : ({responseJSON}) ->
-
-            {forbidden, kodingUser} = responseJSON
-
-            if forbidden
-              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is forbidden to use!"
-              USERNAME_VALID = no
-            else if kodingUser
-              input.setValidationResult "usernameCheck", "Sorry, \"#{username}\" is already taken!"
-              USERNAME_VALID = no
-            else
-              input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
-              USERNAME_VALID = no
-
 
   getEmailValidator: ->
     container   : this
@@ -153,18 +111,53 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       email     : 'That doesn\'t seem like a valid email address.'
 
 
+  fetchGravatarInfo : (email) ->
+
+    isEmail = if KDInputValidator.ruleEmail @email.input then no else yes
+
+    return unless isEmail
+
+    @gravatarInfoFetched = no
+    @gravatars ?= {}
+
+    return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
+
+    $.ajax
+      url         : "/Gravatar"
+      data        : {email}
+      type        : 'POST'
+      xhrFields   : withCredentials : yes
+      success     : (gravatar) =>
+
+        if gravatar is "User not found"
+          gravatar              =
+            dummy               : yes
+            photos              : [
+              (value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png')
+            ]
+            preferredUsername   : ''
+        else
+          gravatar = gravatar.entry.first
+
+        @emit 'gravatarInfoFetched', @gravatars[email] = gravatar
+
+      error       : (xhr) ->
+        {responseText} = xhr
+        new KDNotificationView title : responseText
+
+
   submitForm: (event) ->
 
     # KDInputView doesn't give clear results with
     # async results that's why we maintain those
-    # results manually in EMAIL_VALID and USERNAME_VALID
+    # results manually in EMAIL_VALID
     # at least for now - SY
-    if EMAIL_VALID and USERNAME_VALID and @username.input.valid and @email.input.valid
+    if EMAIL_VALID and @password.input.valid and @email.input.valid
       @submit event
       return yes
     else
       @button.hideLoader()
-      @username.input.validate()
+      @password.input.validate()
       @email.input.validate()
       return no
 
@@ -173,7 +166,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     """
     <section class='main-part'>
       <div class='email'>{{> @email}}</div>
-      <div class='username'>{{> @username}}</div>
+      <div class='password'>{{> @password}}</div>
       <div class='invitation-field invited-by hidden'>
         <span class='icon'></span>
         Invited by:

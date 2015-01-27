@@ -130,7 +130,7 @@ module.exports = class HomeView extends KDView
       buttonTitle : 'SIGN UP'
       callback    : (formData) =>
         router.requireApp 'Login', (controller) =>
-          controller.getView().showPasswordModal formData, @signUpForm
+          controller.getView().showExtraInformation formData, @signUpForm
 
     @signUpForm.button.unsetClass 'green'
     @signUpForm.button.setClass 'yellow'
