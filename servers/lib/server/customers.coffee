@@ -2,7 +2,12 @@
   "../../../workers/social/lib/social/models/socialapi/requests.coffee"
 )
 
+{ dash } = require 'bongo'
+
 module.exports = (req, res) ->
+  koding     = require './bongo'
+  {JMachine} = koding.models
+
   errMsg = (msg)->
     {
       "description" : msg
@@ -20,9 +25,19 @@ module.exports = (req, res) ->
   unless key is "R1PVxSPvjvDSWdlPRVqRv8IdwXZB"
     return res.status(401).send errMsg "key is wrong"
 
-  url  = "/payments/customers"
+  url = "/payments/customers"
 
-  get url, {}, (err, response)->
+  get url, {}, (err, usernames)->
     return res.status(400).send err  if err
 
-    res.status(200).send response
+    queue    = []
+    response = {}
+
+    for username in usernames
+      queue.push -> JMachine.fetchByUsername username, (err, machines)->
+        return err  if err
+
+        response[username] = machines.map (machine)-> machine.data.slug
+        queue.fin()
+
+    dash queue, -> res.status(200).send response
