@@ -132,8 +132,8 @@ class MessagePane extends KDTabPaneView
       else @createFakeItemView value, clientRequestId
 
 
-  putMessage: (message, index = 0) ->
-    @listController.addItem message, index
+  putMessage: (message, index = 0) -> @listController.addItem message, index
+
 
   createFakeItemView: (value, clientRequestId) ->
 
@@ -149,6 +149,7 @@ class MessagePane extends KDTabPaneView
 
 
   messageSubmitFailed: (err, clientRequestId) ->
+
     view = @fakeMessageMap[clientRequestId]
     view.showResend()
     view.on 'SubmitSucceeded', (message) =>
