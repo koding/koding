@@ -20,8 +20,7 @@ func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller)
 
 func _paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, c *Controller) error {
 	opts := map[string]string{
-		"amount":   req.Amount,
-		"currency": req.CurrencyCode,
+		"price": formatPaypalAmount(req.Currency, req.Amount),
 	}
 
 	emailAddress, err := getEmailForCustomer(req.PayerId)

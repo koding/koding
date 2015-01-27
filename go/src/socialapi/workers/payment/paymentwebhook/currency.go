@@ -1,16 +1,32 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-func formatAmount(amount float64, currencyStr string) string {
-	var currency string
+func formatStripeAmount(currencyStr string, amount float64) string {
+	return formatAmount(currencyStr, amount/100)
+}
 
-	switch currencyStr {
-	case "usd":
-		currency = "$"
-	default:
-		Log.Error("Unknown currency: %v", currencyStr)
+func formatPaypalAmount(currencyStr, amountStr string) string {
+	amount, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		Log.Error(err.Error())
 	}
 
-	return fmt.Sprintf("%s%v", currency, amount/100)
+	return formatAmount(currencyStr, amount)
+}
+
+func formatAmount(currency string, amount float64) string {
+	switch currency {
+	case "usd":
+		currency = "$"
+	case "USD":
+		currency = "$"
+	default:
+		Log.Error("Unknown currency: %v", currency)
+	}
+
+	return fmt.Sprintf("%s%v", currency, amount)
 }

@@ -28,7 +28,7 @@ func _stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) 
 	}
 
 	opts := map[string]string{
-		"price": formatAmount(req.Amount, req.Currency),
+		"price": formatStripeAmount(req.CustomerId, req.Amount),
 	}
 
 	return paymentemail.Send(c.Email, action, emailAddress, opts)
