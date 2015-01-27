@@ -14,5 +14,6 @@ static/a/site.*/css/main.css
 static/a/site.*/css/kd.css
 static/a/site.*/css/kd.css
 .DS_Store
+.gulp
 sprite@*x.styl
 static/a/site.boilerplate
