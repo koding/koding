@@ -200,7 +200,7 @@ ALTER TABLE "api"."channel_link" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY
 -- ----------------------------
 --  Uniques structure for table channel_link
 -- ----------------------------
-ALTER TABLE "api"."channel_link" ADD CONSTRAINT "channel_link_root_id_leaf_id_key" UNIQUE ("rot_id","leaf_id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."channel_link" ADD CONSTRAINT "channel_link_root_id_leaf_id_key" UNIQUE ("root_id","leaf_id") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 -- ----------------------------
 --  Foreign keys structure for table channel_link
