@@ -25,11 +25,14 @@ func main() {
 
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-
-	handler, err := notification.New(rmq, r.Log)
+	rmqConn, err := rmq.Connect("NewNotificationWorkerController")
 	if err != nil {
 		panic(err)
 	}
+	defer rmqConn.Conn().Close()
+
+	handler := notification.New(rmq, r.Log)
+
 	r.SetContext(handler)
 	r.Register(models.MessageReply{}).OnCreate().Handle((*notification.Controller).CreateReplyNotification)
 	r.Register(models.Interaction{}).OnCreate().Handle((*notification.Controller).CreateInteractionNotification)

@@ -142,10 +142,11 @@ class PricingAppView extends KDView
 
       return KD.showError err  if err?
 
-      { planTitle, provider, planInterval } = subscription
+      { planTitle, provider, planInterval, state } = subscription
 
-      @state.currentPlan         = planTitle
       @state.provider            = provider
+      @state.currentPlan         = planTitle
+      @state.subscriptionState   = state
       @state.currentPlanInterval = planInterval
 
       @plans.setState @state
@@ -198,7 +199,8 @@ class PricingAppView extends KDView
 
     isCurrentPlan =
       options.planTitle    is @state.currentPlan and
-      options.planInterval is @state.currentPlanInterval
+      options.planInterval is @state.currentPlanInterval and
+      'expired'          isnt @state.subscriptionState
 
     return KD.showError "That's already your current plan."  if isCurrentPlan
 

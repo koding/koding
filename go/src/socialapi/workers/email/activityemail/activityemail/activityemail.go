@@ -46,19 +46,12 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *emailmodels.EmailSettings) (*Controller, error) {
-	rmqConn, err := rmq.Connect("NewActivityEmailWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
-	nwc := &Controller{
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *emailmodels.EmailSettings) *Controller {
+	return &Controller{
 		log:      log,
-		rmqConn:  rmqConn.Conn(),
+		rmqConn:  rmq.Conn(),
 		settings: es,
 	}
-
-	return nwc, nil
 }
 
 func (n *Controller) SendInstantEmail(notification *notificationmodels.Notification) error {

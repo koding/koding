@@ -2,10 +2,15 @@ package parser
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/smartystreets/goconvey/web/server/contract"
+)
+
+var (
+	testNamePattern = regexp.MustCompile("^=== RUN:? (.+)$")
 )
 
 func ParsePackageResults(result *contract.PackageResult, rawOutput string) {
@@ -19,8 +24,9 @@ type outputParser struct {
 	tests  []*contract.TestResult
 
 	// place holders for loops
-	line string
-	test *contract.TestResult
+	line    string
+	test    *contract.TestResult
+	testMap map[string]*contract.TestResult
 }
 
 func newOutputParser(result *contract.PackageResult, rawOutput string) *outputParser {
@@ -29,6 +35,7 @@ func newOutputParser(result *contract.PackageResult, rawOutput string) *outputPa
 	self.lines = strings.Split(self.raw, "\n")
 	self.result = result
 	self.tests = []*contract.TestResult{}
+	self.testMap = make(map[string]*contract.TestResult)
 	return self
 }
 
@@ -86,10 +93,14 @@ func (self *outputParser) processTestOutput() {
 }
 
 func (self *outputParser) registerTestFunction() {
-	self.test = contract.NewTestResult(self.line[len("=== RUN "):])
+	testName := testNamePattern.FindStringSubmatch(self.line)[1]
+	self.test = contract.NewTestResult(testName)
 	self.tests = append(self.tests, self.test)
+	self.testMap[self.test.TestName] = self.test
 }
 func (self *outputParser) recordTestMetadata() {
+	testName := strings.Split(self.line, " ")[2]
+	self.test = self.testMap[testName]
 	self.test.Passed = !strings.HasPrefix(self.line, "--- FAIL: ")
 	self.test.Skipped = strings.HasPrefix(self.line, "--- SKIP: ")
 	self.test.Elapsed = parseTestFunctionDuration(self.line)
@@ -123,7 +134,7 @@ func (self *outputParser) recordCoverageSummary(summary string) {
 	}
 }
 func (self *outputParser) saveLineForParsingLater() {
-	self.line = strings.TrimSpace(self.line)
+	self.line = strings.TrimLeft(self.line, "\t")
 	if self.test == nil {
 		fmt.Println("Potential error parsing output of", self.result.PackageName, "; couldn't handle this stray line:", self.line)
 		return

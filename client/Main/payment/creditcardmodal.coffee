@@ -5,14 +5,22 @@ class CreditCardModal extends PaymentBaseModal
     options.title    = 'Update Payment Method'
     options.subtitle = ''
 
+    @isInputValidMap = {}
+
     super options, data
 
+
+  observeForm: PaymentForm::observeForm
+  handleFormInputValidation: PaymentForm::handleFormInputValidation
+  handleValidationResult: PaymentForm::handleValidationResult
 
   initViews: ->
 
     @addSubView @form = new StripeFormView {
       callback : @lazyBound 'emit', 'CreditCardSubmitted'
     }
+
+    @observeForm()
 
     @addSubView @successMessage = new KDCustomHTMLView
       cssClass : 'success-msg hidden'
@@ -21,6 +29,7 @@ class CreditCardModal extends PaymentBaseModal
     @addSubView @submitButton = new KDButtonView
       style    : 'solid medium green'
       title    : 'UPDATE'
+      disabled : yes
       loader   : yes
       cssClass : 'submit-btn'
       callback : => @emit 'CreditCardSubmitted', @form.getData()
@@ -37,6 +46,7 @@ class CreditCardModal extends PaymentBaseModal
 
     @on 'CreditCardUpdateFailed', KD.showError
     @on 'CreditCardUpdateSucceeded', @bound 'handleSuccess'
+    @on 'GotValidationResult', @bound 'handleValidationResult'
 
     { cardNumber } = @form.inputs
 

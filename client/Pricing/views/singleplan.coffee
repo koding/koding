@@ -114,13 +114,19 @@ class SinglePlanView extends KDView
     return price = priceMap[planInterval]
 
 
-  disable: ->
-    @setClass 'current'
+  disable: (isCurrent = yes) ->
+
+    @setClass 'current'  if isCurrent
     @buyButton.disable()
+
+    @setAttribute 'disabled', 'disabled'
 
 
   enable: ->
+
     @unsetClass 'current'
     @buyButton.enable()
+
+    @setAttribute 'disabled', 'false'
 
 

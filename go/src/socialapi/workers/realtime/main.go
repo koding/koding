@@ -26,11 +26,13 @@ func main() {
 
 	//create connection to RMQ for publishing realtime events
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-
-	c, err := realtime.New(rmq, r.Log)
+	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
 	if err != nil {
 		panic(err)
 	}
+	defer rmqConn.Conn().Close()
+
+	c := realtime.New(rmq, r.Log)
 
 	r.SetContext(c)
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*realtime.Controller).MessageUpdated)

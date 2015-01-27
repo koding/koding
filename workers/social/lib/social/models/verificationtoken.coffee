@@ -116,18 +116,21 @@ module.exports = class JVerificationToken extends Module
     email.save callback
 
 
-  getTextBody:(firstName, plainPin)->
+  getTextBody: (firstName, plainPin)->
+
     """
     Hi #{firstName},
 
-    You can use following code to complete your request:
+    Here’s your koding.com verification code:
 
       #{plainPin}
 
+    Have a nice day!
     --
     Koding Team
 
     """
+
 
   @invalidatePin = (options, callback)->
     {email, action, username} = options

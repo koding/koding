@@ -2,7 +2,6 @@
 // to .go files within the working directory (and all nested go packages).
 // Navigating to the configured host and port in a web browser will display the
 // latest results of running `go test` in each go package.
-
 package main
 
 import (
@@ -16,12 +15,15 @@ import (
 	"strings"
 	"time"
 
+	"go/build"
+
 	"github.com/smartystreets/goconvey/web/server/api"
 	"github.com/smartystreets/goconvey/web/server/contract"
-	executor "github.com/smartystreets/goconvey/web/server/executor"
-	parser "github.com/smartystreets/goconvey/web/server/parser"
+	"github.com/smartystreets/goconvey/web/server/executor"
+	"github.com/smartystreets/goconvey/web/server/messaging"
+	"github.com/smartystreets/goconvey/web/server/parser"
 	"github.com/smartystreets/goconvey/web/server/system"
-	watch "github.com/smartystreets/goconvey/web/server/watcher"
+	"github.com/smartystreets/goconvey/web/server/watch"
 )
 
 func init() {
@@ -36,7 +38,8 @@ func flags() {
 	flag.StringVar(&gobin, "gobin", "go", "The path to the 'go' binary (default: search on the PATH).")
 	flag.BoolVar(&cover, "cover", true, "Enable package-level coverage statistics. Requires Go 1.2+ and the go cover tool. (default: true)")
 	flag.IntVar(&depth, "depth", -1, "The directory scanning depth. If -1, scan infinitely deep directory structures. 0: scan working directory. 1+: Scan into nested directories, limited to value. (default: -1)")
-	flag.BoolVar(&short, "short", false, "Configures the `testing.Short()` function to return `true`, allowing you to call `t.Skip()` on long-running tests.")
+	flag.StringVar(&timeout, "timeout", "5s", "The test execution timeout if none is specified in the *.goconvey file (default: 5s).")
+	flag.StringVar(&watchedSuffixes, "watchedSuffixes", ".go", "A comma separated list of file suffixes to watch for modifications (default: .go).")
 
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
@@ -50,14 +53,64 @@ func folders() {
 
 func main() {
 	flag.Parse()
+	log.Printf(initialConfiguration, host, port, nap, cover)
 
-	log.Printf(initialConfiguration, host, port, nap, cover, short)
+	working, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	monitor, server := wireup()
+	cover = coverageEnabled(cover, reports)
+	shell := system.NewShell(gobin, reports, cover, timeout)
 
-	go monitor.ScanForever()
+	watcherInput := make(chan messaging.WatcherCommand)
+	watcherOutput := make(chan messaging.Folders)
+	watcher := watch.NewWatcher(working, depth, nap, watcherInput, watcherOutput, watchedSuffixes)
 
+	parser := parser.NewParser(parser.ParsePackageResults)
+	tester := executor.NewConcurrentTester(shell)
+	tester.SetBatchSize(packages)
+
+	longpollChan := make(chan chan string)
+	executor := executor.NewExecutor(tester, parser, longpollChan)
+	server := api.NewHTTPServer(working, watcherInput, executor, longpollChan)
+
+	go runTestOnUpdates(watcherOutput, executor, server)
+	go watcher.Listen()
 	serveHTTP(server)
+}
+
+func runTestOnUpdates(queue chan messaging.Folders, executor contract.Executor, server contract.Server) {
+	for update := range queue {
+		log.Println("Received request from watcher to execute tests...")
+		root := ""
+		packages := []*contract.Package{}
+		for _, folder := range update {
+			root = folder.Root
+			hasImportCycle := testFilesImportTheirOwnPackage(folder.Path)
+			packages = append(packages, contract.NewPackage(folder, hasImportCycle))
+		}
+		output := executor.ExecuteTests(packages)
+		server.ReceiveUpdate(root, output)
+	}
+}
+
+// This method exists because of a bug in the go cover tool that
+// causes an infinite loop when you try to run `go test -cover`
+// on a package that has an import cycle defined in one of it's
+// test files. Yuck.
+func testFilesImportTheirOwnPackage(packagePath string) bool {
+	meta, err := build.ImportDir(packagePath, build.AllowBinary)
+	if err != nil {
+		return false
+	}
+
+	for _, dependency := range meta.TestImports {
+		if dependency == meta.ImportPath {
+			return true
+		}
+	}
+	return false
 }
 
 func serveHTTP(server contract.Server) {
@@ -83,45 +136,16 @@ func serveAjaxMethods(server contract.Server) {
 
 func activateServer() {
 	log.Printf("Serving HTTP at: http://%s:%d\n", host, port)
-	err := http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", host, port), nil)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 }
 
-func wireup() (*contract.Monitor, contract.Server) {
-	log.Println("Constructing components...")
-	working, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	shellExecutor := system.NewCommandExecutor()
-	cover = coverageEnabled(cover, reports, shellExecutor)
-
-	depthLimit := system.NewDepthLimit(system.NewFileSystem(), depth)
-	shell := system.NewShell(shellExecutor, gobin, short, cover, reports)
-
-	watcher := watch.NewWatcher(depthLimit, shell)
-	watcher.Adjust(working)
-
-	parser := parser.NewParser(parser.ParsePackageResults)
-	tester := executor.NewConcurrentTester(shell)
-	tester.SetBatchSize(packages)
-
-	longpollChan, pauseUpdate := make(chan chan string), make(chan bool, 1)
-	executor := executor.NewExecutor(tester, parser, longpollChan)
-	server := api.NewHTTPServer(watcher, executor, longpollChan, pauseUpdate)
-	scanner := watch.NewScanner(depthLimit, watcher)
-	monitor := contract.NewMonitor(scanner, watcher, executor, server, pauseUpdate, sleeper)
-
-	return monitor, server
-}
-
-func coverageEnabled(cover bool, reports string, shell system.Executor) bool {
+func coverageEnabled(cover bool, reports string) bool {
 	return (cover &&
 		goVersion_1_2_orGreater() &&
-		coverToolInstalled(shell) &&
+		coverToolInstalled() &&
 		ensureReportDirectoryExists(reports))
 }
 func goVersion_1_2_orGreater() bool {
@@ -134,13 +158,13 @@ func goVersion_1_2_orGreater() bool {
 	}
 	return true
 }
-func coverToolInstalled(shell system.Executor) bool {
+func coverToolInstalled() bool {
 	working, err := os.Getwd()
 	if err != nil {
 		working = "."
 	}
-	output, _ := shell.Execute(working, "go", "tool", "cover")
-	installed := strings.Contains(output, "Usage of 'go tool cover':")
+	command := system.NewCommand(working, "go", "tool", "cover").Execute()
+	installed := strings.Contains(command.Output, "Usage of 'go tool cover':")
 	if !installed {
 		log.Print(coverToolMissing)
 		return false
@@ -170,19 +194,16 @@ func exists(path string) bool {
 	return false
 }
 
-func sleeper() {
-	time.Sleep(nap)
-}
-
 var (
-	port     int
-	host     string
-	gobin    string
-	nap      time.Duration
-	packages int
-	cover    bool
-	depth    int
-	short    bool
+	port            int
+	host            string
+	gobin           string
+	nap             time.Duration
+	packages        int
+	cover           bool
+	depth           int
+	timeout         string
+	watchedSuffixes string
 
 	static  string
 	reports string
@@ -191,7 +212,7 @@ var (
 )
 
 const (
-	initialConfiguration       = "Initial configuration: [host: %s] [port: %d] [poll: %v] [cover: %v] [short: %v]\n"
+	initialConfiguration       = "Initial configuration: [host: %s] [port: %d] [poll: %v] [cover: %v]\n"
 	pleaseUpgradeGoVersion     = "Go version is less that 1.2 (%s), please upgrade to the latest stable version to enable coverage reporting.\n"
 	coverToolMissing           = "Go cover tool is not installed or not accessible: `go get code.google.com/p/go.tools/cmd/cover`\n"
 	reportDirectoryUnavailable = "Could not find or create the coverage report directory (at: '%s'). You probably won't see any coverage statistics...\n"
