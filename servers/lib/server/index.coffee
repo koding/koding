@@ -297,7 +297,6 @@ app.post '/:name?/Validate/Email/:email?', (req, res) ->
 
     JUser.login clientId, { username : email, password }, (err, info) ->
 
-
       {isValid : isEmail} = JUser.validateAt 'email', email, yes
 
       if err and isEmail
@@ -535,7 +534,8 @@ app.get  "/:name?/OAuth/url"          , require  "./oauth_url"
 app.get  '/-/subscriptions'          , require "./subscriptions"
 app.get  '/-/payments/paypal/return' , require "./paypal_return"
 app.get  '/-/payments/paypal/cancel' , require "./paypal_cancel"
-app.post '/-/payments/paypal/webhook' , require "./paypal_webhook"
+app.post '/-/payments/paypal/webhook', require "./paypal_webhook"
+app.get  '/-/payments/customers'     , require "./customers"
 
 # TODO: we need to add basic auth!
 app.all '/-/email/webhook', (req, res) ->

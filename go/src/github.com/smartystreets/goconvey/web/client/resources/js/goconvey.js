@@ -3,7 +3,8 @@ $(init);
 $(window).load(function()
 {
 	// Things may shift after all the elements (images/fonts) are loaded
-	reframe();
+	// In Chrome, calling reframe() doesn't work (maybe a quirk); we need to trigger resize
+	$(window).resize();
 });
 
 function init()
@@ -101,6 +102,7 @@ function initPoller()
 	$(convey.poller).on('serverexec', function(event, data)
 	{
 		log("Server status: executing");
+		$('.favicon').attr('href', '/favicon.ico');	// indicates running tests
 	});
 
 	$(convey.poller).on('serveridle', function(event, data)
@@ -160,6 +162,12 @@ function wireup()
 			$('.story-line-desc .message').show();
 		else
 			$('.story-line-desc .message').hide();
+	});
+	$('.enum#ui-effects').on('click', 'li:not(.sel)', function()
+	{
+		var newSetting = $(this).data('ui-effects');
+		convey.uiEffects = newSetting;
+		save('ui-effects', newSetting);
 	});
 	// End settings wireup
 
@@ -254,6 +262,7 @@ function wireup()
 	$('footer .replay').tipsy({ live: true, gravity: 'e' });
 	$('#path').tipsy({ delayIn: 500 });
 	$('.ignore').tipsy({ live: true, gravity: $.fn.tipsy.autoNS });
+	$('.disabled').tipsy({ live: true, gravity: $.fn.tipsy.autoNS });
 	$('#logo').tipsy({ gravity: 'w' });
 
 
@@ -462,6 +471,12 @@ function loadSettingsFromStorage()
 	}
 	enumSel("show-debug-output", showDebugOutput);
 
+	var uiEffects = get("ui-effects");
+	if (uiEffects === null)
+		uiEffects = "true";
+	convey.uiEffects = uiEffects == "true";
+	enumSel("ui-effects", uiEffects);
+
 	if (notif())
 		$('#toggle-notif').toggleClass("fa-bell-o fa-bell " + convey.layout.selClass);
 }
@@ -524,6 +539,7 @@ function process(data, status, jqxhr)
 	var coverageAvgHelper = { countedPackages: 0, coverageSum: 0 };
 	var packages = {
 		tested: [],
+		ignored: [],
 		coverage: {},
 		nogofiles: [],
 		notestfiles: [],
@@ -553,6 +569,8 @@ function process(data, status, jqxhr)
 			packages.notestfiles.push(pkg);
 		else if (pkg.Outcome == "no test functions")
 			packages.notestfn.push(pkg);
+		else if (pkg.Outcome == "ignored" || pkg.Outcome == "disabled")
+			packages.ignored.push(pkg);
 		else
 		{
 			if (pkg.Coverage >= 0)
@@ -609,29 +627,32 @@ function process(data, status, jqxhr)
 			else
 				test._status = convey.statuses.pass;
 
-			var storyPath = [{ Depth: -1, Title: test.TestName }];	// Maintains the current assertion's story as we iterate
+			var storyPath = [{ Depth: -1, Title: test.TestName, _id: test._id }];	// Maintains the current assertion's story as we iterate
 
 			for (var k in test.Stories)
 			{
 				var story = makeContext(test.Stories[k]);
+
+				story._id = uniqueID;
+				story._pkgid = pkg._id;
+				current().overall.assertions += story.Assertions.length;
 
 				// Establish the current story path so we can report the context
 				// of failures and panicks more conveniently at the top of the page
 				if (storyPath.length > 0)
 					for (var x = storyPath[storyPath.length - 1].Depth; x >= test.Stories[k].Depth; x--)
 						storyPath.pop();
-				
-				storyPath.push({ Depth: test.Stories[k].Depth, Title: test.Stories[k].Title });
+				storyPath.push({ Depth: test.Stories[k].Depth, Title: test.Stories[k].Title, _id: test.Stories[k]._id });
 
-				story._id = uniqueID;
-				story._pkgid = pkg._id;
-				current().overall.assertions += story.Assertions.length;
 
 				for (var l in story.Assertions)
 				{
 					var assertion = story.Assertions[l];
 					assertion._id = uniqueID;
 					assertion._pkg = pkg.PackageName;
+					assertion._pkgId = pkg._id;
+					assertion._failed = !!assertion.Failure;
+					assertion._panicked = !!assertion.Error;
 					assertion._maxDepth = storyPath[storyPath.length - 1].Depth;
 					$.extend(assertion._path = [], storyPath);
 
@@ -783,12 +804,23 @@ function process(data, status, jqxhr)
 
 
 
+
+
+
+
+
+
+
+
+
+
 // Updates the entire UI given a frame from the history
 function renderFrame(frame)
 {
 	log("Rendering frame (id: " + frame.id + ")");
 
 	$('#coverage').html(render('tpl-coverage', frame.packages.tested.sort(sortPackages)));
+	$('#ignored').html(render('tpl-ignored', frame.packages.ignored.sort(sortPackages)));
 	$('#nogofiles').html(render('tpl-nogofiles', frame.packages.nogofiles.sort(sortPackages)));
 	$('#notestfiles').html(render('tpl-notestfiles', frame.packages.notestfiles.sort(sortPackages)));
 	$('#notestfn').html(render('tpl-notestfn', frame.packages.notestfn.sort(sortPackages)));
@@ -822,6 +854,7 @@ function renderFrame(frame)
 		$('.failures').hide();
 
 	$('#stories').html(render('tpl-stories', frame.packages.tested.sort(sortPackages)));
+	$('#stories').append(render('tpl-stories', frame.packages.ignored.sort(sortPackages)));
 
 	var pkgDefaultView = get('pkg-expand-collapse');
 	$('.story-pkg.expanded').each(function()
@@ -864,7 +897,7 @@ function enumSel(id, val)
 	{
 		$('.enum#'+id+' > li').each(function()
 		{
-			if ($(this).data(id) == val)
+			if ($(this).data(id).toString() == val)
 			{
 				$(this).addClass(convey.layout.selClass).siblings().removeClass(convey.layout.selClass);
 				return false;
@@ -919,28 +952,33 @@ function changeStatus(newStatus, isHistoricalFrame)
 	// enabling/disabling flashing in the proper order so that they don't overlap.
 	// TODO: I suppose the pulsating could also be done with just CSS, maybe...?
 
-	var times = sameStatus ? 3 : 2;
-	var duration = sameStatus ? 500 : 300;
-
-	$('.overall .status').removeClass('flash').effect("pulsate", {times: times}, duration, function()
+	if (convey.uiEffects)
 	{
-		$(this).text(newStatus.text);
+		var times = sameStatus ? 3 : 2;
+		var duration = sameStatus ? 500 : 300;
 
-		if (newStatus != convey.statuses.pass)	// only flicker extra when not currently passing
+		$('.overall .status').removeClass('flash').effect("pulsate", {times: times}, duration, function()
 		{
-			$(this).effect("pulsate", {times: 1}, 300, function()
+			$(this).text(newStatus.text);
+
+			if (newStatus != convey.statuses.pass)	// only flicker extra when not currently passing
 			{
-				$(this).effect("pulsate", {times: 1}, 500, function()
+				$(this).effect("pulsate", {times: 1}, 300, function()
 				{
-					if (newStatus == convey.statuses.panic
-							|| newStatus == convey.statuses.buildfail)
-						$(this).addClass('flash');
-					else
-						$(this).removeClass('flash');
+					$(this).effect("pulsate", {times: 1}, 500, function()
+					{
+						if (newStatus == convey.statuses.panic
+								|| newStatus == convey.statuses.buildfail)
+							$(this).addClass('flash');
+						else
+							$(this).removeClass('flash');
+					});
 				});
-			});
-		}
-	});
+			}
+		});
+	}
+	else
+		$('.overall .status').text(newStatus.text);
 
 	if (!sameStatus)	// change the color
 		$('.overall').switchClass(convey.overallClass, newStatus.class, 1000);
@@ -1094,9 +1132,10 @@ function zerofill(val, count)
 	return (pad + val).slice(-pad.length);
 }
 
+// Sorts packages ascending by only the last part of their name
+// Can be passed into Array.sort()
 function sortPackages(a, b)
 {
-	// sorts packages ascending by only the last part of their name
 	var aPkg = splitPathName(a.PackageName);
 	var bPkg = splitPathName(b.PackageName);
 
@@ -1114,7 +1153,7 @@ function sortPackages(a, b)
 		return 0;
 
 	/*
-	Use to sort by entire package name:
+	MEMO: Use to sort by entire package name:
 	if (a.PackageName < b.PackageName) return -1;
 	else if (a.PackageName > b.PackageName) return 1;
 	else return 0;
@@ -1134,8 +1173,8 @@ function save(key, val)
 {
 	if (typeof val === 'object' || typeof val === 'array')
 		val = JSON.stringify(val);
-	else if (typeof val === 'number' || typeof val === "boolean")
-		val = "" + val;
+	else if (typeof val === 'number' || typeof val === 'boolean')
+		val = val.toString();
 	localStorage.setItem(key, val);
 }
 

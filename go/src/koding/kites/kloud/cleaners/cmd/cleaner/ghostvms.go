@@ -11,24 +11,29 @@ import (
 
 type GhostVMs struct {
 	Instances *lookup.MultiInstances
-	MongoDB   *lookup.MongoDB
-	Ids       map[string]struct{}
+	Ids       map[string]lookup.MachineDocument
 
 	ghostInstances *lookup.MultiInstances
 	err            error
 }
 
 func (g *GhostVMs) Process() {
+	gi := lookup.NewMultiInstances()
+	ut := lookup.NewMultiInstances()
+
 	prodInstances := g.Instances.
 		WithTag("koding-env", "production").
 		OlderThan(time.Hour)
 
-	g.ghostInstances = lookup.NewMultiInstances()
+	// pick 4 days old VMs. Why? Because if something goes wrong during weekend
+	// (starting at Friday), we should be able to pick it up on Monday
+	oldInstances := g.Instances.
+		OlderThan(time.Hour * 96)
 
-	prodInstances.Iter(func(client *ec2.EC2, vms lookup.Instances) {
+	prodInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
 		ghostIds := make(lookup.Instances, 0)
 
-		for id, instance := range vms {
+		for id, instance := range instances {
 			_, ok := g.Ids[id]
 			// so we have a id that is available on AWS but is not available in
 			// MongodB
@@ -37,8 +42,29 @@ func (g *GhostVMs) Process() {
 			}
 		}
 
-		g.ghostInstances.Add(client, ghostIds)
+		gi.Add(client, ghostIds)
 	})
+
+	oldInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+		ghostIds := make(lookup.Instances, 0)
+
+		for id, instance := range instances {
+			if len(instance.Tags) != 0 {
+				continue
+			}
+
+			_, ok := g.Ids[id]
+			// so we have a id that is available on AWS but is not available in
+			// MongodB, plus it's not tagged!
+			if !ok {
+				ghostIds[id] = instance
+			}
+		}
+
+		ut.Add(client, ghostIds)
+	})
+
+	g.ghostInstances = lookup.MergeMultiInstances(gi, ut)
 }
 
 func (g *GhostVMs) Run() {

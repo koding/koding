@@ -263,14 +263,6 @@ class MainController extends KDController
       KD.setVersionCookie result.account
       @swapAccount result, callback
 
-  handleFinishRegistration: (formData, callback) ->
-    { JUser } = KD.remote.api
-
-    @isLoggingIn on
-
-    JUser.finishRegistration formData, (err, result) =>
-      return callback err  if err
-      @swapAccount result, callback
 
   handleOauthAuth : (formData, callback)->
     { JUser } = KD.remote.api

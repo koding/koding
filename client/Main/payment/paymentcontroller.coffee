@@ -24,7 +24,15 @@ class PaymentController extends KDController
 
   subscriptions : (callback) -> @api().subscriptions {}, callback
   invoices      : (callback) -> @api().invoices {}, callback
-  creditCard    : (callback) -> @api().creditCard {}, callback
+
+
+  creditCard: (callback) ->
+
+    @api().creditCard {}, (err, card) ->
+
+      card = null  if isNoCard card
+
+      return callback err, card
 
 
   updateCreditCard: (token, callback) ->
@@ -52,6 +60,17 @@ class PaymentController extends KDController
 
   paypalReturn: (err) -> @emit 'PaypalRequestFinished', err
   paypalCancel: ->
+
+  isNoCard = (data) ->
+
+    return no  unless data
+
+    noCard =
+      data.last4 is '' and
+      data.year  is 0 and
+      data.month is 0
+
+    return noCard
 
   ##########################################################
 
