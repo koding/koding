@@ -644,7 +644,6 @@ class ActivitySidebar extends KDCustomHTMLView
     @watchedMachines  or= {}
     computeController   = KD.getSingleton 'computeController'
     appManager          = KD.getSingleton 'appManager'
-    isSameMachineActive = appManager.getFrontApp().mountedMachineUId is machine.uid
     {Running}           = Machine.State
 
     return  if @watchedMachines[machine._id]
@@ -652,7 +651,7 @@ class ActivitySidebar extends KDCustomHTMLView
     callback = (state) =>
       if state.status is Running
         machine.status.state = Running
-        if isSameMachineActive
+        if appManager.getFrontApp().mountedMachineUId is machine.uid
           @selectWorkspace { workspace, machine }
           delete @watchedMachines[machine._id]
 
