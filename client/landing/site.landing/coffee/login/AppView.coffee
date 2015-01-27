@@ -299,7 +299,7 @@ module.exports = class LoginView extends JView
     handleKeyup = (event) ->
 
       return  unless event.which is ENTER
-      modal.modalTabs.forms.extraInformation.submit event
+      modal.modalTabs.forms.extraInformation.buttons.continue.click()
 
 
     fields.username =
