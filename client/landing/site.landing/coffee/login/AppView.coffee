@@ -369,6 +369,7 @@ module.exports = class LoginView extends JView
                 formData.username        = username.input.getValue()
                 formData.passwordConfirm = formData.password
 
+                KD.utils.killWait usernameCheckTimer
                 @doRegister formData, @registerForm
                 modal.destroy()
 

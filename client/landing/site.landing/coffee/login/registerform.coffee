@@ -12,16 +12,16 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     @email?.destroy()
     @email = new LoginInputViewWithLoader
-      inputOptions    :
-        name          : 'email'
-        placeholder   : 'email address'
-        attributes    :
-          testpath    : 'register-form-email'
-        validate      : @getEmailValidator()
+      inputOptions        :
+        name              : 'email'
+        placeholder       : 'email address'
+        attributes        :
+          testpath        : 'register-form-email'
+        validate          : @getEmailValidator()
         decorateValidation: no
-        focus         : => @email.icon.unsetTooltip()
-        keyup         : (event) => @submitForm event  if event.which is ENTER
-        blur          : => @fetchGravatarInfo @email.input.getValue()
+        focus             : => @email.icon.unsetTooltip()
+        keyup             : (event) => @submitForm event  if event.which is ENTER
+        blur              : => @fetchGravatarInfo @email.input.getValue()
 
     @password?.destroy()
     @password = new LoginInputView
@@ -30,6 +30,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         type             : "password"
         testPath         : "recover-password"
         placeholder      : "Password"
+        focus            : => @password.icon.unsetTooltip()
         keyup            : (event) =>
           if event.which is ENTER
             @password.input.validate()
