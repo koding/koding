@@ -78,7 +78,11 @@ class SocialApiController extends KDController
     return  unless plain = data.message
 
     {accountOldId, replies, interactions} = data
-    {createdAt, deletedAt, updatedAt}     = plain
+    {createdAt, deletedAt, updatedAt, typeConstant}     = plain
+
+    cachedItem = KD.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
+
+    return cachedItem  if cachedItem
 
     plain._id = plain.id
 
