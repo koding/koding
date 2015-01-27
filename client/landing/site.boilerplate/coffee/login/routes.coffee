@@ -59,10 +59,6 @@ do ->
   #           app.getView().animateToForm 'login'
   #           app.headBannerShowInvitation invite
 
-  # handleFinishRegistration = ({params:{token}}) ->
-  #   KD.singleton('appManager').open 'Login', (app) ->
-  #     app.prepareFinishRegistrationForm token  unless KD.isLoggedIn()
-
   #  handleFailureOfRestriction =->
   #    KD.utils.defer -> new KDNotificationView title: "Login restricted"
 
@@ -93,7 +89,6 @@ do ->
     '/Reset'            : handler (app)-> app.getView().animateToForm 'reset'
     '/ResendToken'      : handler (app)-> app.getView().animateToForm 'resendEmail'
     '/Recover'          : handler (app)-> app.getView().animateToForm 'recover'
-    # '/:name?/Register/:token'  : handleFinishRegistration
     # '/:name?/Reset/:token'     : handleResetRoute
     # '/:name?/Confirm/:token'   : handleResetRoute
     # '/:name?/Verify/:token?'   : handleVerifyRoute

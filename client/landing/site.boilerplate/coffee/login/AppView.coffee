@@ -6,7 +6,6 @@ RedeemInlineForm                      = require './redeemform'
 RecoverInlineForm                     = require './recoverform'
 ResetInlineForm                       = require './resetform'
 ResendEmailConfirmationLinkInlineForm = require './resendmailconfirmationform'
-FinishRegistrationForm                = require './finishregistrationform'
 LoginOptions                          = require './loginoptions'
 RegisterOptions                       = require './registeroptions'
 MainControllerLoggedOut               = require './../core/maincontrollerloggedout'
@@ -141,11 +140,6 @@ module.exports = class LoginView extends JView
       callback : (formData)=>
         @doReset formData
 
-    @finishRegistrationForm = new FinishRegistrationForm
-      cssClass  : "login-form foobar"
-      callback  : (formData) =>
-        @doFinishRegistration formData
-
     @headBanner = new KDCustomHTMLView
       domId    : "invite-recovery-notification-bar"
       cssClass : "invite-recovery-notification-bar hidden"
@@ -220,9 +214,6 @@ module.exports = class LoginView extends JView
       </div>
       <div class="login-form-holder rf">
         {{> @registerForm}}
-      </div>
-      <div class="login-form-holder frf">
-        {{> @finishRegistrationForm}}
       </div>
       <div class="login-form-holder rdf">
         {{> @redeemForm}}
@@ -423,9 +414,6 @@ module.exports = class LoginView extends JView
         form.emit 'SubmitFailed', responseText
 
 
-  doFinishRegistration: (formData) ->
-    (KD.getSingleton 'mainController').handleFinishRegistration formData, @bound 'afterLoginCallback'
-
   doLogin: (formData)->
 
     {username, password, redirectTo} = formData
@@ -569,7 +557,7 @@ module.exports = class LoginView extends JView
 
   animateToForm: (name)->
 
-    @unsetClass 'register recover login reset home resendEmail finishRegistration'
+    @unsetClass 'register recover login reset home resendEmail'
     @emit 'LoginViewAnimated', name
     @setClass name
     @$('.flex-wrapper').removeClass 'three one'
@@ -581,8 +569,6 @@ module.exports = class LoginView extends JView
     switch name
       when "register"
         @registerForm.email.input.setFocus()
-      when "finishRegistration"
-        @finishRegistrationForm.username.input.setFocus()
       when "redeem"
         @$('.flex-wrapper').addClass 'one'
         @redeemForm.inviteCode.input.setFocus()
