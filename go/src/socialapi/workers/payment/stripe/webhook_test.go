@@ -81,7 +81,7 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			Convey("When 'invoice.created' webhook is fired", func() {
-				Convey("Then subscription plan, period start, end are updated", func() {
+				Convey("Then period start, end are updated", func() {
 					err := subscription.ById(subscription.Id)
 					So(err, ShouldBeNil)
 
@@ -89,7 +89,6 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 					err = plan.ByProviderId(planProviderId, ProviderName)
 					So(err, ShouldBeNil)
 
-					So(subscription.PlanId, ShouldEqual, plan.Id)
 					So(subscription.CurrentPeriodStart, ShouldHappenOnOrBefore, time.Unix(periodStart, 0).UTC())
 					So(subscription.CurrentPeriodEnd, ShouldHappenOnOrBefore, time.Unix(periodEnd, 0).UTC())
 					So(subscription.CanceledAt.IsZero(), ShouldBeTrue)
