@@ -28,7 +28,7 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func (c *Controller) CreateLink(cl *models.ChannelLink) error {
+func (c *Controller) process(cl *models.ChannelLink) error {
 	if err := c.validateRequest(cl); err != nil {
 		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
 		return nil
@@ -52,40 +52,21 @@ func (c *Controller) CreateLink(cl *models.ChannelLink) error {
 	return nil
 }
 
+func (c *Controller) CreateLink(cl *models.ChannelLink) error {
+	return c.process(cl)
+}
+
+func (c *Controller) Blacklist(cl *models.ChannelLink) error {
+	return c.process(cl)
+}
+
 func (c *Controller) UnLink(cl *models.ChannelLink) error {
 	if err := c.validateRequest(cl); err != nil {
 		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
 		return nil
 	}
 
-	if err := c.moveParticipants(cl); err != nil {
-		c.log.Error("Error while processing channel participants, err: %s ", err.Error())
-		return err
-	}
-
-	if err := c.moveMessages(cl); err != nil {
-		c.log.Error("Error while processing messages, err: %s ", err.Error())
-		return err
-	}
-
-	return nil
-}
-
-func (c *Controller) Blacklist(cl *models.ChannelLink) error {
-	if err := c.validateRequest(cl); err != nil {
-		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
-		return nil
-	}
-
-	if err := c.moveParticipants(cl); err != nil {
-		c.log.Error("Error while processing channel participants, err: %s ", err.Error())
-		return err
-	}
-
-	if err := c.moveMessages(cl); err != nil {
-		c.log.Error("Error while processing messages, err: %s ", err.Error())
-		return err
-	}
+	c.log.Info("nothing to do for unlink for now")
 
 	return nil
 }
