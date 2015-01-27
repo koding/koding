@@ -17,6 +17,7 @@ CREATE TYPE "api"."role_constant_enum" AS ENUM (
 CREATE TYPE "api"."channel_type_constant_enum" AS ENUM (
     'group',
     'topic',
+    'linkedtopic',
     'followingfeed',
     'followers',
     'pinnedactivity',

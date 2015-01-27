@@ -58,6 +58,7 @@ const (
 	Channel_TYPE_GROUP           = "group"
 	Channel_TYPE_ANNOUNCEMENT    = "announcement"
 	Channel_TYPE_TOPIC           = "topic"
+	Channel_TYPE_LINKED_TOPIC    = "linkedtopic"
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
