@@ -45,8 +45,9 @@ type NotificationContent struct {
 }
 
 type CheckParticipationResponse struct {
-	Channel *Channel `json:"channel"`
-	Account *Account `json:"account"`
+	Channel      *Channel `json:"channel"`
+	Account      *Account `json:"account"`
+	AccountToken string   `json:"accountToken"`
 }
 
 type Account struct {
