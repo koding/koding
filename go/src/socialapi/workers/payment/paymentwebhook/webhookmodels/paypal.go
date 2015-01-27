@@ -6,8 +6,9 @@ import (
 	"time"
 )
 
-const PayplTimeLayout = "03:04:05 Jan 02, 2006 MST"
+const PaypalTimeLayout = "15:04:05 Jan 02, 2006 MST"
 
+// Paypal is so special it deverses it's own time format.
 type PaypalOwnTime struct {
 	time.Time
 }
@@ -15,7 +16,7 @@ type PaypalOwnTime struct {
 func (pt *PaypalOwnTime) UnmarshalJSON(b []byte) error {
 	var err error
 
-	pt.Time, err = time.Parse(PayplTimeLayout, strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1))
+	pt.Time, err = time.Parse(PaypalTimeLayout, strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1))
 
 	return err
 }
