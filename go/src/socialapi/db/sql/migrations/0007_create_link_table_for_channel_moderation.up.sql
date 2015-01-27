@@ -1,29 +1,24 @@
-
--- ----------------------------
---  Sequence structure for channel_link_id_seq
--- ----------------------------
---
-
 --
 -- create the sequence
 --
-DO
-$$
-BEGIN
-    CREATE SEQUENCE "api"."channel_link_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
-EXCEPTION WHEN duplicate_table THEN
-        -- do nothing, it's already there
-END
-$$ LANGUAGE plpgsql;
+DO $$
+  BEGIN
+    BEGIN
+      CREATE SEQUENCE "api"."channel_link_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
+    EXCEPTION WHEN duplicate_table THEN
+      RAISE NOTICE 'api.channel_link_id_seq sequence already exists';
+    END;
+  END;
+$$;
 
 
 -- grant the usage on sequence
 GRANT USAGE ON SEQUENCE "api"."channel_link_id_seq" TO "social";
 
 -----------------------------------------------------------------------
------------------------------------------------------------------------
------------------------------------------------------------------------
 
+-- create channel_link table for storing the relation between root and leaf
+-- channel
 CREATE TABLE IF NOT EXISTS "api"."channel_link"  (
     "id" BIGINT NOT NULL DEFAULT nextval(
         'api.channel_link_id_seq' :: regclass
