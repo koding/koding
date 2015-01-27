@@ -123,10 +123,7 @@ class PrivateMessagePane extends MessagePane
 
   replaceFakeItemView: (message) ->
 
-    index = @listController.getListView().getItemIndex @fakeMessageMap[message.clientRequestId]
-    item  = @putMessage message, index
-
-    @removeFakeMessage message.clientRequestId
+    item = super message
     @scrollDown item
 
 
