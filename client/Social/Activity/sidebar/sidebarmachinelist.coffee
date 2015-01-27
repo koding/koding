@@ -24,3 +24,6 @@ class SidebarMachineList extends KDCustomHTMLView
           @emit 'ListHeaderPlusIconClicked'
 
     @addSubView @header
+
+    for machineData in data
+      @addSubView new SidebarMachineBox {}, machineData
