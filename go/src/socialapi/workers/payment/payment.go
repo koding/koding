@@ -170,7 +170,9 @@ func (a *AccountRequest) ActiveUsernames() ([]string, error) {
 
 	usernames := []string{}
 	for _, customer := range customers {
-		usernames = append(usernames, customer.Username)
+		if customer.Username != "" {
+			usernames = append(usernames, customer.Username)
+		}
 	}
 
 	return usernames, nil
