@@ -192,7 +192,11 @@ class RealtimeController extends KDController
         error   : (err) =>
           @handleError err
           callback err
-        timetoken: ((new Date()).getTime() - 1500) * 10000
+        # with each channel subscription pubnub resubscribes to every channel
+        # and some messages are dropped in this resubscription time interval
+        # for this reason for every subscribe request, we are fetching all messages sent
+        # in last 3 seconds
+        timetoken: ((new Date()).getTime() - 3000) * 10000
         restore : yes
 
 
