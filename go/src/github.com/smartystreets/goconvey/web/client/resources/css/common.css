@@ -217,6 +217,10 @@ footer .server-down {
 	margin-right: 5%;
 }
 
+.settings .setting:first-child {
+	margin-left: 5%;
+}
+
 .settings .setting .setting-meta {
 	text-align: right;
 	padding-right: 1em;
@@ -383,7 +387,7 @@ footer .server-down {
 	line-height: 1.25em;
 	max-height: 150px;
 	overflow-y: auto;
-	white-space: pre-wrap;
+	white-space: pre;
 	font-family: 'Menlo', 'Share Tech Mono', monospace;
 }
 
@@ -416,6 +420,12 @@ footer .server-down {
 	border-bottom-style: solid;
 	padding: 2px 5px;
 	font-size: 14px;
+}
+
+.diffviewer .original,
+.diffviewer .changed,
+.diffviewer .diff {
+	white-space: pre-wrap;
 }
 
 .diffviewer tr:first-child td {

@@ -49,20 +49,43 @@ class PricingPlansView extends KDView
 
   refresh: ->
 
-    { planInterval, currentPlanInterval,
-      planTitle, currentPlan } = @state
+    { planInterval, currentPlanInterval, subscriptionState
+      planTitle, currentPlan, promotedPlan } = @state
 
     isSameInterval    = planInterval is currentPlanInterval
     isCurrentPlanFree = currentPlan is 'free'
+    isExpired         = subscriptionState is 'expired'
 
-    if isCurrentPlanFree
-      @setPromotedPlan @state.promotedPlan
+    if isExpired
+      lowerPlans = getLowerPlans currentPlan
+      # disable plan without setting css class to 'current'
+      # the argument 'no' implies that.
+      @planViews[title].disable no  for title in lowerPlans
+
+    else if isCurrentPlanFree
+      @setPromotedPlan promotedPlan
       @planViews['free'].disable()
+
     else if isSameInterval
       @setPromotedPlan null
       @planViews[currentPlan].disable()
+
     else
-      @setPromotedPlan @state.promotedPlan
+      @setPromotedPlan promotedPlan
+
+
+  ###*
+   * It gets the name of the plan
+   * and returns an array that has the names
+   * of lower plans.
+  ###
+  getLowerPlans = (planTitle) ->
+
+    plans = ['free', 'hobbyist', 'developer', 'professional']
+
+    index = plans.indexOf planTitle
+
+    return plans.slice 0, index
 
 
   plans: [
