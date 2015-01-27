@@ -1164,7 +1164,11 @@ Team Koding
     @update {$set: status: 'confirmed'}, (err, res)=>
       return callback err if err
       JUser.emit "EmailConfirmed", @
-      return callback null
+
+      welcomeemail = require "../welcomeemail"
+      welcomeemail.send @email, @username, (err)->
+        callback err
+
 
   block:(blockedUntil, callback)->
     unless blockedUntil then return callback createKodingError "Blocking date is not defined"
