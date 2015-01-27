@@ -7,14 +7,15 @@
 --
 -- create the sequence
 --
-DO
-$$
-BEGIN
-    CREATE SEQUENCE "api"."permission_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
-EXCEPTION WHEN duplicate_table THEN
-        -- do nothing, it's already there
-END
-$$ LANGUAGE plpgsql;
+DO $$
+  BEGIN
+    BEGIN
+      CREATE SEQUENCE "api"."permission_id_seq" INCREMENT 1 START 1 MAXVALUE 9223372036854775807 MINVALUE 1 CACHE 1;
+    EXCEPTION WHEN duplicate_table THEN
+      RAISE NOTICE 'api.permission_id_seq sequence already exists';
+    END;
+  END;
+$$;
 
 
 -- grant the usage on sequence
