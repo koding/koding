@@ -3,9 +3,15 @@ package main
 import (
 	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
+	"socialapi/workers/payment/paypal"
 )
 
 func paypalPaymentSucceeded(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
+	err := paypal.UpdateCurrentPeriods(req.PayerId, req.PaymentDate.Time, req.NextPaymentDate.Time)
+	if err != nil {
+		return err
+	}
+
 	return _paypalPaymentHelper(req, paymentemail.InvoiceCreated, c)
 }
 

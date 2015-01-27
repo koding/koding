@@ -168,3 +168,17 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 
 	return subscriptions, err
 }
+
+func (s *Subscription) UpdateToExpireTime(t time.Time) error {
+	s.CanceledAt = t
+	err := bongo.B.Update(s)
+
+	return err
+}
+
+func (s *Subscription) UpdateCurrentPeriods(start, end time.Time) error {
+	s.CurrentPeriodStart = start
+	s.CurrentPeriodEnd = end
+
+	return bongo.B.Update(s)
+}
