@@ -12,7 +12,7 @@ postToSlack = (message) ->
     include: true
     method: 'POST'
     data:
-      "payload": '{"channel": "#qa", "username": "qa-bot", "text": "' + message + '"}'
+      "payload": '{"channel": "#qa", "username": "crow", "icon_url": "https://koding-cdn.s3.amazonaws.com/images/qa-crow-logo.png", "text": "' + message + '"}'
 
   curl.request options, (err, parts) -> console.log err  if err
 
@@ -33,32 +33,51 @@ handleMachineNotRunning = (browser, targetUser, machineName) ->
   helpers.waitForVMRunning browser, machineName
 
 
+getUserData = (callback) ->
+
+  options =
+    url   : 'https://latest.koding.com/-/payments/customers?key=R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
+
+  curl.request options, (err, result) ->
+    if err
+      return console.log "Couldn't get user data"
+
+    data = JSON.parse result
+
+    for key, value of data
+      username = key
+      vms      = value
+
+    callback(username, vms)
+
 
 module.exports =
 
   paidUser: (browser) ->
 
-    user =
-      username : 'fatihacet'
-      password : 'xXbeDUPwtYhmw9KNKXiD8jf'
+    getUserData (username, vms) ->
 
-    targetUser      = 'devrim'
-    machineName     = 'koding-vm-0'
-    machineLink     = '/IDE/' + machineName + '/my-workspace'
-    machineSelector = "a[href='" + machineLink + "']"
+      user =
+        username : 'fatihacet'
+        password : 'xXbeDUPwtYhmw9KNKXiD8jf'
 
+      machineName     = vms[0]
+      machineLink     = '/IDE/' + machineName + '/my-workspace'
+      machineSelector = "a[href='" + machineLink + "']"
 
-    helpers.beginTest(browser, user)
+      console.log 'Impersonating user', username, 'for machine', machineName
 
-    browser
-      .execute('KD.impersonate("' + targetUser + '")')
-      .pause 15000
-      .waitForElementVisible   machineSelector, 30000
-      .click                   machineSelector
-      .element                 'css selector', machineSelector + '.running', (result) ->
-        if result.status is 0
-          handleMachineRunning browser, targetUser, machineName
-        else
-          handleMachineNotRunning browser, targetUser, machineName
+      helpers.beginTest(browser, user)
 
-    browser.end()
+      browser
+        .execute('KD.impersonate("' + username + '")')
+        .pause 15000
+        .waitForElementVisible   machineSelector, 30000
+        .click                   machineSelector
+        .element                 'css selector', machineSelector + '.running', (result) ->
+          if result.status is 0
+            handleMachineRunning browser, username, machineName
+          else
+            handleMachineNotRunning browser, username, machineName
+
+      browser.end()
