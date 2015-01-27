@@ -26,7 +26,7 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 
 	err = stopMachinesForUser(sub.CustomerId, c.Kite)
 	if err != nil {
-		return err
+		Log.Error(err.Error())
 	}
 
 	err = stripe.SubscriptionDeletedWebhook(sub)

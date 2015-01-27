@@ -17,7 +17,7 @@ func paypalSubscriptionCreated(req *webhookmodels.PaypalGenericWebhook, c *Contr
 func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
 	err := paypalExpireSubscription(req.PayerId, c.Kite)
 	if err != nil {
-		return err
+		Log.Error(err.Error())
 	}
 
 	return subscriptionEmail(
