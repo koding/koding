@@ -188,23 +188,6 @@ sidebarTextShadow()
           border-color  sidebarGray transparent transparent transparent
           abs           12px 0 0 5px
 
-    &.sub-title
-      padding         2px 0 0 20px
-      color           sidebarSubtitle
-      font-size       11px
-      margin-bottom   1px
-      text-transform  uppercase
-
-      .more-link
-        display       inline
-        height        16px
-        border-bottom none
-        font-size     11px
-        color         sidebarSectionHeaderColor
-
-        &:hover
-          color       sidebarActive
-
     // &.app
     &.workspace
       color           sidebarGray
@@ -904,3 +887,18 @@ h3.sidebar-title
           background  #4BA148
           border      none
           shadow      none
+
+  .workspaces-link
+    display         inline
+    height          16px
+    border-bottom   none
+    font-size       11px
+    color           sidebarSectionHeaderColor
+    padding         2px 0 0 20px
+    margin-bottom   1px
+    text-transform  uppercase
+    sidebarTextShadow()
+    pointer()
+
+    &:hover
+      color         sidebarActive

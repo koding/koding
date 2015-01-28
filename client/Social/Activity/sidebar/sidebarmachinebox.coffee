@@ -10,6 +10,10 @@ class SidebarMachineBox extends KDView
 
     @addSubView @machineItem = new NavigationMachineItem {}, machine
 
+    @addSubView @workspacesLabel = new KDCustomHTMLView
+      cssClass : 'workspaces-link'
+      partial  : 'Workspaces'
+
     listController = new KDListViewController
       itemClass    : NavigationWorkspaceItem
       itemOptions  : { machine }
