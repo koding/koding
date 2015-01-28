@@ -74,7 +74,7 @@ do ->
         m = new Machine machine: KD.remote.revive m
 
       sameUser  = m.getOwner() is username
-      sameLabel = (m.label or m.slug) is label
+      sameLabel = (m.slug or m.label) is label
 
       return m  if sameLabel and sameUser
 
@@ -150,7 +150,7 @@ do ->
 
     workspaceSlug ?= 'my-workspace'
 
-    KD.getSingleton('router').handleRoute "/IDE/#{machine.label}/#{workspaceSlug}"
+    KD.getSingleton('router').handleRoute "/IDE/#{machine.slug}/#{workspaceSlug}"
 
 
   routeToLatestWorkspace = ->
@@ -247,7 +247,7 @@ do ->
           if workspace
             return loadWorkspace workspace, params
           else
-            for machine in KD.userMachines when machine.label is machineLabel
+            for machine in KD.userMachines when machine.slug is machineLabel
               break
 
             if machine

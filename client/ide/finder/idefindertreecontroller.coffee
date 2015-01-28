@@ -26,24 +26,24 @@ class IDE.FinderTreeController extends NFinderTreeController
     appManager.tell 'IDE', 'createNewTerminal', { machine, path }
 
 
-  collapseFolder: (nodeView, callback) ->
+  collapseFolder: (nodeView, callback, silence) ->
 
-    super nodeView, callback
+    super nodeView, callback, silence
 
     return  if @dontEmitChangeEvent
 
     @emit 'FolderCollapsed', nodeView.getData().path
 
 
-  expandFolder: (nodeView, callback) ->
+  expandFolder: (nodeView, callback, silence) ->
 
-    super nodeView, callback
+    super nodeView, callback, silence
 
     return  if @dontEmitChangeEvent
 
     @emit 'FolderExpanded', nodeView.getData().path
-    
-  
+
+
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
 
     node = @nodes["[#{machineUId}]#{rootPath}"]
