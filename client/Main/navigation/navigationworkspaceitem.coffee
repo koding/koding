@@ -1,57 +1,42 @@
-class NavigationWorkspaceItem extends JView
+class NavigationWorkspaceItem extends KDListItemView
+
+  JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
-    super options, data
+    options.cssClass = 'kdlistitemview-main-nav workspace'
 
-    @init()
+    super options, data # machine data is `options.machine`, workspace data is `data`
 
-
-  init: ->
-
-    @unsetClass 'kdview'
-
-    { href, title } = @getData()
-    href = KD.utils.groupifyLink href
+    {machine} = options
+    workspace = data # to make it more sense in the following lines.
+    path      = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+    href      = KD.utils.groupifyLink path
+    title     = workspace.name
 
     @title = new CustomLinkView { href, title }
 
     @unreadCount = new KDCustomHTMLView
-      tagName  : 'cite'
-      cssClass : 'count hidden'
+      tagName    : 'cite'
+      cssClass   : 'count hidden'
 
+    @settingsIcon = new KDCustomHTMLView
 
-  click: (event) ->
-
-    # TODO: at least a KDView - DOM element check would
-    # be more appropriate, fix later. ~Umut
-    isSettingsIconView = event.target.classList.contains 'ws-settings-icon'
-    navItem            = @getDelegate()
-
-    # if the event's target settings icon
-    # do not pass the event to the delegate
-    # which is navigation item itself. if it's not
-    # don't do anything special and pass the event to
-    # delegate, so that it can do its job. ~Umut
-    if isSettingsIconView
-      KD.utils.stopDOMEvent event
-      @showSettingsPopup()
-      return
-
-    navItem.emit 'click', event
+    unless workspace.isDefault
+      @settingsIcon = new KDCustomHTMLView
+        tagName     : 'span'
+        cssClass    : 'ws-settings-icon'
+        click       : @bound 'showSettingsPopup'
 
 
   showSettingsPopup: ->
 
-    navItem     = @getDelegate()
-    { x, y, w } = navItem.getBounds()
+    { x, y, w } = @getBounds()
+    top         = Math.max y - 38, 0
+    left        = x + w + 16
+    position    = { top, left }
 
-    top  = Math.max(y - 38, 0)
-    left = x + w + 16
-
-    position = { top, left }
-
-    new WorkspaceSettingsPopup { position, delegate: navItem }
+    new WorkspaceSettingsPopup { position, delegate: this }
 
 
   setUnreadCount: (unreadCount = 0) ->
@@ -69,8 +54,9 @@ class NavigationWorkspaceItem extends JView
 
   pistachio: ->
     """
-    <figure></figure>
-    {{> @title}}
-    {{> @unreadCount}}
+      <figure></figure>
+      {{> @title}}
+      {{> @settingsIcon}}
+      {{> @unreadCount}}
     """
 
