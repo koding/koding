@@ -16,6 +16,7 @@ import (
 var admins = []string{"kloud", "koding"}
 
 func (p *Provider) Validate(m *protocol.Machine, r *kite.Request) error {
+	p.Log.Debug("[%s] validating for method '%s'", m.Id, r.Method)
 	username := m.Username
 
 	// do not check for admin users, or if test mode is enabled
