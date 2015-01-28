@@ -56,6 +56,10 @@ type Machine struct {
 	// Username defines the owner of the machine
 	Username string
 
+	// UserId is a unique id that defines a user. It can be used to verify
+	// identifiy a username
+	UserId string
+
 	// Provider defines the provider in which the data is used to be operated.
 	Provider string
 

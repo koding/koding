@@ -60,6 +60,7 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 	m := &protocol.Machine{
 		Id:          id,
 		Username:    machine.Credential, // contains the username for koding provider
+		UserId:      user.ObjectId.Hex(),
 		Provider:    machine.Provider,
 		Builder:     machine.Meta,
 		Credential:  credential.Meta,
