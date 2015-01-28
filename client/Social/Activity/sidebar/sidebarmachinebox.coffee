@@ -11,7 +11,8 @@ class SidebarMachineBox extends KDView
     @addSubView @machineItem = new NavigationMachineItem {}, machine
 
     listController = new KDListViewController
-      itemClass    : SidebarWorkspaceItem
+      itemClass    : NavigationWorkspaceItem
+      itemOptions  : { machine }
 
     for ws in data.workspaces
       listController.addItem ws
