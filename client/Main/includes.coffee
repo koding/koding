@@ -202,6 +202,7 @@ module.exports = [
 
   # PAYMENT
   # controller
+  "payment/constants.coffee",
   "payment/paymentcontroller.coffee",
   # # views
   "payment/paymentmethodview.coffee",

@@ -1,5 +1,6 @@
 mongourl   = "dev:k9lc4G1k32nyD72@iad-mongos0.objectrocket.com:15184/koding"
 dryrun     = true
+debug      = true
 hostedzone = "koding.io"
 interval   = "6h"
 

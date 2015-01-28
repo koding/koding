@@ -671,48 +671,34 @@ button.app-settings-menu
 /* More vms modal  */
 
 .kdmodal.more-modal
-  background           #E7E7E7
-  font-family          adelleFamily
-
   .kdmodal-title
-    border-bottom      1px solid #D0D0D0 !important
-    size               100%, 58px
-    line-height        63px !important
-    padding            0 16px 0 27px !important
-    margin             0 !important
-    borderBox()
+    margin-bottom      0 !important
 
-    span.title
-      display          inline
-      font-size        16px !important
-      color            #585858 !important
-      font-weight      400 !important
-
-    .kdbutton
-      font-family      inherit
-      background       #52A840
-      rounded          4px
-      height           29px
-      margin-top       15px
-      fr()
-
-      .button-title
-        font-family    inherit
-        font-size      12px
-        text-shadow    1px 1px 1px rgba(0,0,0,.22)
-
-  .close-icon
-    display            none
-
-  .kdmodal-inner
-    margin             0
-    background         transparent
+    .title
+      display          inline-block !important
 
   .kdmodal-content
-    background         transparent
-    padding            24px !important
-    margin             0 !important
-    borderBox()
+    padding-top        45px !important
+
+    .add-big-btn
+      background       transparent
+      height           31px
+      line-height      28px
+      abs              0px 0 0 0px
+
+      .button-title
+        color          #7B7B7B
+        font-size      12px
+        font-weight    400
+
+      .button-title:after
+        content        ''
+        display        inline-block
+        r-sprite       'account', 'plus-10'
+        opacity        .6
+        margin-left    6px
+
+
 
     .kdlistitemview-sidebar-item
       display          block
@@ -949,40 +935,46 @@ button.app-settings-menu
 // .kdmodal.resurrection
 
 .kdmodal
-  bg                    color white
+  bg                    color #fafafa
   rounded               6px
-  shadow                0 0 32px rgba(0,0,0,.46)
+  shadow                0 12px 19px rgba(0,0,0,.5)
   position              fixed !important
+  border                1px solid #979797
+  font-family           adelleFamily
 
   .kdmodal-inner
-    margin              45px
+    margin              17px 24px 24px !important
+    background-color    #fafafa
 
     .close-icon
-      r-sprite            app, "modal-close-icon"
-      top               14px
-      right             14px
+      r-sprite          app, "modal-close-icon"
+      top               10px
+      right             10px
+      size              9px, 9px
 
       &:hover
-        r-sprite          app, "modal-close-icon"
+        r-sprite        app, "modal-close-icon"
 
   .kdmodal-title
     cursor              move
-    line-height         normal !important
     font-weight         400
-    color               #50595a !important
-    margin-bottom       15px !important
+    color               #00B057 !important
+    margin-bottom       14px !important
     padding             0 !important
     background          none !important
     border              none !important
+    line-height         30px !important
 
     .title
-      font-size         24px !important
+      font-size         20px !important
+      color             inherit !important
+      line-height       30px !important
 
   .kdmodal-content
-    margin              15px 0 0 0 !important
+    margin              0 !important
     padding             0 !important
-    font-size           16px !important
-    line-height         22px !important
+    font-size           14px !important
+    line-height         24px !important
 
     .modalformline
       padding           0

@@ -78,7 +78,11 @@ class SocialApiController extends KDController
     return  unless plain = data.message
 
     {accountOldId, replies, interactions} = data
-    {createdAt, deletedAt, updatedAt}     = plain
+    {createdAt, deletedAt, updatedAt, typeConstant}     = plain
+
+    cachedItem = KD.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
+
+    return cachedItem  if cachedItem
 
     plain._id = plain.id
 
@@ -131,10 +135,8 @@ class SocialApiController extends KDController
     messages = messages.messageList  if messages.messageList
     messages = [].concat(messages)
     revivedMessages = []
-    {SocialMessage} = KD.remote.api
-    revivedMessages = for message in messages
-      addToScreenMap { messageId: message.id, clientRequestId: message.clientRequestId }
-      mapActivity message
+    revivedMessages = (mapActivity message for message in messages)
+
     return revivedMessages
 
 
@@ -227,11 +229,15 @@ class SocialApiController extends KDController
     return no  if KD.isTesting
 
     {message} = message  unless message.typeConstant?
+
     {_inScreenMap}  = KD.singletons.socialapi
 
-    {id, clientRequestId} = message
+    # when I am not the message owner, it is obviously from another browser
+    return yes  unless message.accountId is KD.whoami().socialApiId
 
-    inside = _inScreenMap[id] or _inScreenMap[clientRequestId]
+    {clientRequestId} = message
+
+    inside = _inScreenMap[clientRequestId]
 
     return not inside
 
@@ -297,11 +303,11 @@ class SocialApiController extends KDController
 
 
   addToScreenMap = (options) ->
-    {messageId, clientRequestId} = options
+    options = options.message  if options.message?
+    {clientRequestId} = options
     {_inScreenMap} = KD.singletons.socialapi
 
     _inScreenMap[clientRequestId] = yes  if clientRequestId
-    _inScreenMap[messageId]       = yes  if messageId
 
 
   addToScreenMap : addToScreenMap
@@ -519,7 +525,7 @@ class SocialApiController extends KDController
       err = {message: "An error occurred"}
 
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      KD.utils.doXhrRequest {type: 'GET', endPoint, async: no}, (err, response) ->
+      KD.utils.doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response

@@ -84,8 +84,6 @@ class MessageEventManager extends KDObject
 
       return  unless KD.singletons.socialapi.isFromOtherBrowser plain
 
-      KD.singletons.socialapi.addToScreenMap plain
-
       message.emit "AddReply", reply
       message.emit "update"
 

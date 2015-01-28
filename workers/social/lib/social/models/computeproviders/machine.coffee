@@ -394,6 +394,23 @@ module.exports = class JMachine extends Module
         callback err, machines
 
 
+  @fetchByUsername = (username, callback)->
+
+    JUser = require '../user'
+    JUser.one {username}, (err, user)->
+
+      return callback err  if err
+      return callback new KodingError "User not found."  unless user
+
+      selector        =
+        'users.id'    : user.getId()
+        'users.sudo'  : yes
+        'users.owner' : yes
+
+      JMachine.some selector, limit: 30, (err, machines)->
+        callback err, machines
+
+
   # Instance Methods
 
   setProvisioner: permit 'set provisioner',
