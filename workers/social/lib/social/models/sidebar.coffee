@@ -75,6 +75,12 @@ module.exports = class Sidebar extends bongo.Base
     machines.forEach (machine) ->
       machineMap[machine.uid] = machine
 
+      addNodeFn = switch
+        when isMachineOwner user, machine
+          addOwnFn
+
+      addNodeFn {machine}
+
     workspaceQueue = workspaces.map (workspace) ->
 
       machine = machineMap[workspace.machineUId]
