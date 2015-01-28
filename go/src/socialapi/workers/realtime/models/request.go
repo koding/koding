@@ -22,12 +22,14 @@ type NotificationMessage struct {
 	Account   *Account            `json:"account"`
 	Body      NotificationContent `json:"body"`
 	EventName string              `json:"eventName"`
+	EventId   string              `json:"eventId"`
 }
 
 type Message struct {
 	Id        int64       `json:"messageId, string"`
 	EventName string      `json:"eventName"`
 	Body      interface{} `json:"body"`
+	EventId   string      `json:"eventId"`
 }
 
 type Authenticate struct {
@@ -43,8 +45,9 @@ type NotificationContent struct {
 }
 
 type CheckParticipationResponse struct {
-	Channel *Channel `json:"channel"`
-	Account *Account `json:"account"`
+	Channel      *Channel `json:"channel"`
+	Account      *Account `json:"account"`
+	AccountToken string   `json:"accountToken"`
 }
 
 type Account struct {
