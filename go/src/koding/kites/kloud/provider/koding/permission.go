@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/protocol"
 
 	"github.com/koding/kite"
@@ -21,6 +22,11 @@ func (p *Provider) Validate(m *protocol.Machine, r *kite.Request) error {
 
 	// do not check for admin users, or if test mode is enabled
 	if isAdmin(username) {
+		return nil
+	}
+
+	// give access to kloudctl
+	if r.Auth.Key == command.KloudSecretKey {
 		return nil
 	}
 
