@@ -6,7 +6,9 @@ class SidebarMachineBox extends KDView
 
     { machine } = data
 
-    @addSubView @machineItem = new NavigationMachineItem {}, machine
+    @machine = new Machine machine: KD.remote.revive machine
+
+    @addSubView @machineItem = new NavigationMachineItem {}, @machine
 
     @createWorkspacesLabel()
     @createWorkspacesList()
