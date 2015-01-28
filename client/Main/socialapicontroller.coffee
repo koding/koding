@@ -229,12 +229,15 @@ class SocialApiController extends KDController
     return no  if KD.isTesting
 
     {message} = message  unless message.typeConstant?
+
     {_inScreenMap}  = KD.singletons.socialapi
 
-    {id, clientRequestId} = message
+    # when I am not the message owner, it is obviously from another browser
+    return yes  unless message.accountId is KD.whoami().socialApiId
 
-    # id is needed for join/leave activity messages
-    inside = _inScreenMap[id] or _inScreenMap[clientRequestId]
+    {clientRequestId} = message
+
+    inside = _inScreenMap[clientRequestId]
 
     return not inside
 
@@ -304,7 +307,7 @@ class SocialApiController extends KDController
     {clientRequestId} = options
     {_inScreenMap} = KD.singletons.socialapi
 
-    _inScreenMap[clientRequestId] = yes
+    _inScreenMap[clientRequestId] = yes  if clientRequestId
 
 
   addToScreenMap : addToScreenMap
@@ -522,7 +525,7 @@ class SocialApiController extends KDController
       err = {message: "An error occurred"}
 
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      KD.utils.doXhrRequest {type: 'GET', endPoint, async: no}, (err, response) ->
+      KD.utils.doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response
