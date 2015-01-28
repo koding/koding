@@ -38,4 +38,17 @@ class SidebarMachineBox extends KDView
         modal.once 'NewWorkspaceRequested', @bound 'showAddWorkspaceInput'
 
 
+  showAddWorkspaceInput: ->
 
+    if @addWorkspaceView
+      @addWorkspaceView.input.setFocus()
+      return no
+
+    { machineUId, machineLabel } = @getData().machine
+
+    @addWorkspaceView = new AddWorkspaceView {}, { machineUId, machineLabel }
+    @addWorkspaceView.once 'KDObjectWillBeDestroyed', => @addWorkspaceView = null
+
+    @listController.getView().addSubView @addWorkspaceView
+
+    KD.utils.wait 177, => @addWorkspaceView.input.setFocus()
