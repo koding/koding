@@ -47,4 +47,9 @@ var (
 	ErrAccountNotFound     = errors.New("account not found")
 	ErrChannelNotFound     = errors.New("channel not found")
 	ErrParticipantNotFound = errors.New("participant not found")
+
+	// moderation
+	ErrLeafIsNotSet     = errors.New("leaf channel is not set")
+	ErrRootIsNotSet     = errors.New("root channel is not set")
+	ErrChannelHasLeaves = errors.New("channel has leaves")
 )
