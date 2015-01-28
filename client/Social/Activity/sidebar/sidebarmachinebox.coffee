@@ -4,10 +4,16 @@ class SidebarMachineBox extends KDView
 
     super options, data
 
-
     {machine, workspaces} = data
 
     machine = new KD.remote.api.JMachine machine
 
-    @addSubView new NavigationMachineItem {}, machine
+    @addSubView @machineItem = new NavigationMachineItem {}, machine
 
+    listController = new KDListViewController
+      itemClass    : SidebarWorkspaceItem
+
+    for ws in data.workspaces
+      listController.addItem ws
+
+    @addSubView listController.getView()
