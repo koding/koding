@@ -1,6 +1,7 @@
 package api
 
 import (
+	"socialapi/models"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
 )
@@ -17,7 +18,7 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  GetLink,
+			Handler:  GetLinks,
 			Name:     models.ModerationChannelGetLink,
 			Type:     handler.GetRequest,
 			Endpoint: "/moderation/channel/{rootId}/link",
@@ -26,7 +27,7 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  Unlink,
+			Handler:  UnLink,
 			Name:     models.ModerationChannelDeleteLink,
 			Type:     handler.DeleteRequest,
 			Endpoint: "/moderation/channel/{rootId}/link/{leafId}",
