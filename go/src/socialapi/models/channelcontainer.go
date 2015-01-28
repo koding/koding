@@ -174,6 +174,13 @@ func (cr *ChannelContainer) AddLastMessage(accountId int64) *ChannelContainer {
 		if err != nil {
 			return err
 		}
+
+		cm, err := cmc.Message.PopulatePayload()
+		if err != nil {
+			return err
+		}
+		cmc.Message = cm
+
 		cc.LastMessage = cmc
 
 		return nil

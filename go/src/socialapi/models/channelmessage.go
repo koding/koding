@@ -532,6 +532,15 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	return messages, nil
 }
 
+func (c *ChannelMessage) PopulatePayload() (*ChannelMessage, error) {
+	cm, err := c.PopulateAddedBy()
+	if err != nil {
+		return nil, err
+	}
+
+	return cm.PopulateInitialParticipants()
+}
+
 func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {
 	newCm := NewChannelMessage()
 	*newCm = *c
