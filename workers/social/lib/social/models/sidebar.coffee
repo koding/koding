@@ -37,15 +37,15 @@ module.exports = class Sidebar extends bongo.Base
           return callback new KodingError err  if err
 
           options = {client, user, machines, workspaces, callback}
-          options.addOwnFn = makeWorkspaceAdderFn data.own
-          options.addSharedFn = makeWorkspaceAdderFn data.shared
-          options.addCollaborationFn = makeWorkspaceAdderFn data.collaboration
+          options.addOwnFn = makeEnvironmentNodeAdderFn data.own
+          options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
+          options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
           options.callback = -> callback null, data
 
           decorateEnvironmentData options
 
 
-  makeWorkspaceAdderFn = (list) ->
+  makeEnvironmentNodeAdderFn = (list) ->
 
     findNode = (machine) ->
 
@@ -55,12 +55,12 @@ module.exports = class Sidebar extends bongo.Base
 
     return ({machine, workspace}) ->
 
-      if node = findNode machine
-        node.workspaces.push workspace
-      else
-        workspaces = [workspace]
-        node = {machine, workspaces}
+      unless node = findNode machine
+        node = {machine, workspaces: []}
         list.push node
+
+      {workspaces} = node
+      workspaces.push workspace  if workspace
 
 
   decorateEnvironmentData = (options) ->
@@ -71,7 +71,9 @@ module.exports = class Sidebar extends bongo.Base
     {callback} = options
 
     machineMap = {}
-    machines.forEach (machine) -> machineMap[machine.uid] = machine
+
+    machines.forEach (machine) ->
+      machineMap[machine.uid] = machine
 
     workspaceQueue = workspaces.map (workspace) ->
 
