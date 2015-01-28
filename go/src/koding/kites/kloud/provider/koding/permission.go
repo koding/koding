@@ -3,6 +3,10 @@ package koding
 import (
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/protocol"
+
+	"github.com/koding/kite"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -11,8 +15,28 @@ import (
 // admins have full control over all methods
 var admins = []string{"kloud", "koding"}
 
+func (p *Provider) Validate(m *protocol.Machine, r *kite.Request) error {
+	username := m.Username
+
+	// do not check for admin users, or if test mode is enabled
+	if isAdmin(username) {
+		return nil
+	}
+
+	// check for user permissions and
+	if err := p.checkUser(m.User.ObjectId, m.SharedUsers); err != nil && !p.Test {
+		return err
+	}
+
+	if m.User.Status != "confirmed" {
+		return kloud.NewError(kloud.ErrUserNotConfirmed)
+	}
+
+	return nil
+}
+
 // isAdmin checks whether the given username is an admin or not
-func IsAdmin(username string) bool {
+func isAdmin(username string) bool {
 	for _, admin := range admins {
 		if admin == username {
 			return true

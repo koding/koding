@@ -1,6 +1,7 @@
 package protocol
 
 import (
+	"koding/db/models"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 
@@ -56,9 +57,12 @@ type Machine struct {
 	// Username defines the owner of the machine
 	Username string
 
-	// UserId is a unique id that defines a user. It can be used to verify
-	// identifiy a username
-	UserId string
+	// User information.
+	User *models.User
+
+	// SharedUsers contain a list of users that have access to this machine.
+	// The list can contains the machine owner too.
+	SharedUsers []models.Permissions
 
 	// Provider defines the provider in which the data is used to be operated.
 	Provider string
