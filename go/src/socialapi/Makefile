@@ -264,6 +264,12 @@ testapi:
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 
+	@echo "$(OK_COLOR)--> moderation integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/moderation/topic/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
+
+
 	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
 	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/feeder/*.go
 	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
