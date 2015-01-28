@@ -6,8 +6,6 @@ class SidebarMachineBox extends KDView
 
     { machine } = data
 
-    machine = new KD.remote.api.JMachine machine
-
     @addSubView @machineItem = new NavigationMachineItem {}, machine
 
     @createWorkspacesLabel()
