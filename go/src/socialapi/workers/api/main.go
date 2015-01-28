@@ -12,6 +12,7 @@ import (
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
+	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
@@ -50,6 +51,7 @@ func main() {
 	trollmodeapi.AddHandlers(m)
 	sitemapapi.AddHandlers(m)
 	permissionapi.AddHandlers(m)
+	topicmoderationapi.AddHandlers(m)
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
