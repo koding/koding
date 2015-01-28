@@ -151,6 +151,10 @@ module.exports = class LoginView extends JView
       cssClass : "invite-recovery-notification-bar hidden"
       partial  : "..."
 
+    KD.singletons.router.on 'RouteInfoHandled', =>
+      @signupModal?.destroy()
+      @signupModal = null
+
 
   viewAppended:->
 
@@ -296,10 +300,10 @@ module.exports = class LoginView extends JView
       itemClass : KDCustomHTMLView
       partial   : email
 
-    handleKeyup = (event) ->
+    handleKeyup = (event) =>
 
       return  unless event.which is ENTER
-      modal.modalTabs.forms.extraInformation.buttons.continue.click()
+      @signupModal.modalTabs.forms.extraInformation.buttons.continue.click()
 
 
     fields.username =
@@ -313,14 +317,14 @@ module.exports = class LoginView extends JView
         placeholder      : 'username'
         attributes       :
           testpath       : 'register-form-username'
-        focus            : -> @unsetTooltip()
+        focus            : -> @parent.icon.unsetTooltip()
         keyup            : handleKeyup
         validate         :
           container      : this
           rules          :
             required     : yes
             rangeLength  : [4, 25]
-            regExp       : /^[^0-9][a-z\d]+([-][a-z\d]+)*$/i
+            regExp       : /^[^0-9][a-z\d]*([-][a-z\d]+)*$/i
             # regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
             usernameCheck: (input, event) => @usernameCheck input, event
             finalCheck   : (input, event) => @usernameCheck input, event, 0
@@ -353,7 +357,7 @@ module.exports = class LoginView extends JView
         keyup        : handleKeyup
 
 
-    modal = new KDModalViewWithForms
+    @signupModal = new KDModalViewWithForms
       cssClass                        : 'extra-info password'
       width                           : 360
       height                          : 'auto'
@@ -363,15 +367,14 @@ module.exports = class LoginView extends JView
           extraInformation            :
             callback                  : =>
 
-              {username} = modal.modalTabs.forms.extraInformation.inputs
+              {username} = @signupModal.modalTabs.forms.extraInformation.inputs
 
               if USERNAME_VALID and username.input.valid
                 formData.username        = username.input.getValue()
                 formData.passwordConfirm = formData.password
 
-                KD.utils.killWait usernameCheckTimer
                 @doRegister formData, @registerForm
-                modal.destroy()
+                @signupModal.destroy()
 
             fields                    : fields
             buttons                   :
@@ -380,28 +383,31 @@ module.exports = class LoginView extends JView
                 style                 : 'solid green medium'
                 type                  : 'submit'
 
-    usernameView = modal.modalTabs.forms.extraInformation.inputs.username
+    usernameView = @signupModal.modalTabs.forms.extraInformation.inputs.username
     usernameView.setOption 'stickyTooltip', yes
 
 
     unless gravatar.dummy
-      modal.addSubView new KDCustomHTMLView
+      @signupModal.addSubView new KDCustomHTMLView
         partial  : 'Profile info fetched from Gravatar.'
         cssClass : 'description'
 
-    modal.once 'KDObjectWillBeDestroyed', ->
+    @signupModal.once 'KDObjectWillBeDestroyed', =>
+      KD.utils.killWait usernameCheckTimer
       mainView.unsetClass 'blur'
       form.button.hideLoader()
       form.email.icon.unsetTooltip()
       form.password.icon.unsetTooltip()
+      usernameView.icon.unsetTooltip()
+      @signupModal = null
 
-    modal.once 'viewAppended', ->
+    @signupModal.once 'viewAppended', =>
 
-      modal.addSubView new KDCustomHTMLView
+      @signupModal.addSubView new KDCustomHTMLView
         partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
 
       KD.utils.defer ->
-        modal.modalTabs.forms.extraInformation.inputs.username.input.setFocus()
+        usernameView.input.setFocus()
 
   usernameCheckTimer = null
 
@@ -419,10 +425,15 @@ module.exports = class LoginView extends JView
           url         : "/Validate/Username/#{username}"
           type        : 'POST'
           xhrFields   : withCredentials : yes
-          success     : ->
+          success     : =>
+
+            return  if not @signupModal
+
             input.setValidationResult 'usernameCheck', null
             USERNAME_VALID = yes
-          error       : ({responseJSON}) ->
+          error       : ({responseJSON}) =>
+
+            return  if not @signupModal
 
             {forbidden, kodingUser} = responseJSON
 
