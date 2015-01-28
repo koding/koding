@@ -3,6 +3,8 @@ package protocol
 import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
+
+	"github.com/koding/kite"
 )
 
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
@@ -33,6 +35,12 @@ type Provider interface {
 
 	// Info returns full information about a single machine
 	Info(*Machine) (*InfoArtifact, error)
+}
+
+// Validator validates a machine before passing it to the provider's
+// appropriate method call.
+type Validator interface {
+	Validate(machine *Machine, request *kite.Request) error
 }
 
 // Machine is used as a data source for the appropriate interfaces
