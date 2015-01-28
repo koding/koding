@@ -33,6 +33,9 @@ class SidebarMachineBox extends KDView
     @addSubView @workspacesLabel = new KDCustomHTMLView
       cssClass : 'workspaces-link'
       partial  : 'Workspaces'
+      click    : =>
+        modal = new MoreWorkspacesModal {}, @getData().workspaces
+        modal.once 'NewWorkspaceRequested', @bound 'showAddWorkspaceInput'
 
 
 
