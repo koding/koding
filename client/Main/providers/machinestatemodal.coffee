@@ -72,12 +72,13 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       if error?.length > 0
 
         if /NetworkOut overlimit/i.test event.message
-          @customErrorMessage = """
-            <p>You've reached your outbound network usage limit for this week.</p>
-            <span>Please upgrade your <a href="/Pricing">plan</a> or <span
-            class="contact-support">contact support</span> for further
+          @customErrorMessage = "
+            <p>You've reached your outbound network usage
+            limit for this week.</p><span>
+            Please upgrade your <a href='/Pricing'>plan</a> or
+            <span class='contact-support'>contact support</span> for further
             assistance.</span>
-          """
+          "
 
         unless error.code is ComputeController.Error.NotVerified
           @hasError = yes
@@ -164,7 +165,9 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.destroySubViews()
 
-    @createStateLabel "Checking state for <strong>#{@machineName or ''}</strong>..."
+    @createStateLabel \
+      "Checking state for <strong>#{@machineName or ''}</strong>..."
+
     @createLoading()
     @createFooter()
 
@@ -215,11 +218,13 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'verify-message'
-      partial  : """
+      partial  : "
         <p>Before you can access your VM, we need to verify your account.
         A verification email should already be in your inbox.
-        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
-      """
+        If you did not receive it yet, you can request a
+        <cite>new code</cite>.</p>
+      "
+
       click    : (event)=>
 
         return  unless $(event.target).is 'cite'
@@ -290,19 +295,21 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'expired-message'
-      partial  : if destroyVMs then """
+      partial  : if destroyVMs then "
         <h1>Delete all existing VMs</h1>
-        <p>To be able to downgrade your current plan #{plan} to the <b>Free</b>
-        plan, you need to delete all your existing VMs. This action will
-        <b>destroy all your VMs, (including YOUR FILES) and cannot
-        be UNDONE!</b> Are you sure you want to continue?</p>
-      """ else """
+        <p>To be able to downgrade your current plan #{plan} to the
+        <b>Free</b> plan, you need to delete all your existing VMs. This
+        action will <b>destroy all your VMs, (including YOUR FILES) and
+        cannot be UNDONE!</b> Are you sure you want to continue?</p>
+      " else "
         <h1>Your Koding Paid Plan Has Expired</h1>
-        <p>This happens when we cannot collect a payment. As a result, access to your VM is restricted.</p>
-        <p>To continue, you can either make a payment to lift the restriction or
-        downgrade to a free account. Downgrading will delete your existing VM(s) (and all the data inside them)
+        <p>This happens when we cannot collect a payment. As a result,
+        access to your VM is restricted.</p>
+        <p>To continue, you can either make a payment to lift the
+        restriction or downgrade to a free account. Downgrading will delete
+        your existing VM(s) (and all the data inside them)
         and give you a new default VM.</p>
-      """
+      "
 
     unless destroyVMs
       @container.addSubView @upgradeButton
@@ -324,17 +331,20 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     if @state in [ Stopped, NotInitialized, Unknown ]
       @createStateButton()
-    else if @state in [ Starting, Building, Pending, Stopping, Terminating, Updating, Rebooting ]
+    else if @state in [ Starting, Building, Pending, Stopping,
+                        Terminating, Updating, Rebooting ]
       percentage = response?.percentage
       @createProgressBar percentage
       @triggerEventTimer percentage
     else if @state is Terminated
       @label.destroy?()
 
-      @createStateLabel """
-        Your VM <strong>#{@machineName or ''}</strong> was successfully deleted.
-        Please select a new VM to operate on from the VMs list or create a new one.
-      """
+      @createStateLabel "
+        Your VM <strong>#{@machineName or ''}</strong> was
+        successfully deleted.Please select a new VM to operate on from
+        the VMs list or create a new one.
+      "
+
     else if @state is Running
       @prepareIDE()
       @destroy()
@@ -358,7 +368,9 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
       Terminating    : 'is terminating.'
       Updating       : 'is updating now.'
       Unknown        : 'is turned off.'
-      NotFound       : 'This machine does not exist.' # additional class level state to show a modal for unknown routes.
+      NotFound       : 'This machine does not exist.' # additional class level
+                                                      # state to show a modal
+                                                      # for unknown routes.
 
     stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
     return "<span class='icon'></span>#{stateText}"
