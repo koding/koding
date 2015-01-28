@@ -324,8 +324,7 @@ module.exports = class LoginView extends JView
           rules          :
             required     : yes
             rangeLength  : [4, 25]
-            regExp       : /^[^0-9][a-z\d]*([-][a-z\d]+)*$/i
-            # regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
+            regExp       : /^[a-z\d]+([-][a-z\d]+)*$/i
             usernameCheck: (input, event) => @usernameCheck input, event
             finalCheck   : (input, event) => @usernameCheck input, event, 0
           messages       :
@@ -367,11 +366,13 @@ module.exports = class LoginView extends JView
           extraInformation            :
             callback                  : =>
 
-              {username} = @signupModal.modalTabs.forms.extraInformation.inputs
+              {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
 
               if USERNAME_VALID and username.input.valid
                 formData.username        = username.input.getValue()
                 formData.passwordConfirm = formData.password
+                formData.firstName = firstName?.getValue()
+                formData.lastName = lastName?.getValue()
 
                 @doRegister formData, @registerForm
                 @signupModal.destroy()
