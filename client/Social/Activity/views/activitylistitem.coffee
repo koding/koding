@@ -133,6 +133,7 @@ class ActivityListItemView extends KDListItemView
       @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
       @editWidgetWrapper.addSubView @editWidget, null, yes
+      @embedBox.hide()
 
     KD.utils.defer =>
       {typeConstant} = @getData()
@@ -157,6 +158,7 @@ class ActivityListItemView extends KDListItemView
     @resetEditing()
     @editWidget.destroy()
     @editWidget = null
+    @embedBox.show()
 
 
   resetEditing: ->
