@@ -1,41 +1,129 @@
 package tests
 
 import (
+	"koding/db/mongodb/modelhelper"
+	"math/rand"
 	"socialapi/models"
+	"socialapi/request"
 	"socialapi/rest"
-	"socialapi/workers/common/tests"
+	"socialapi/workers/common/runner"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
-	"labix.org/v2/mgo/bson"
 )
 
-func TestmoderationSetting(t *testing.T) {
-	var AccountOldId = bson.NewObjectId()
-	Convey("while testing troll mode", t, func() {
-		Convey("First Create User", func() {
-			account := models.NewAccount()
-			account.OldId = AccountOldId.Hex()
-			account, err := rest.CreateAccount(account)
-			tests.ResultedWithNoErrorCheck(account, err)
+func TestModeration(t *testing.T) {
+	r := runner.New("test-moderation")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
 
-			Convey("then we should be able to mark as troll", func() {
-				res := rest.MarkAsTroll(account)
+	rand.Seed(time.Now().UTC().UnixNano())
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
+	Convey("While creating a link to a channel", t, func() {
+		// create admin
+		admin, err := models.CreateAccountInBothDbs()
+		So(err, ShouldBeNil)
+		So(admin, ShouldNotBeNil)
+
+		// create another account
+		acc2, err := models.CreateAccountInBothDbs()
+		So(err, ShouldBeNil)
+		So(acc2, ShouldNotBeNil)
+
+		// create root channel with second acc
+		root, err := rest.CreateChannelWithType(acc2.Id, models.Channel_TYPE_TOPIC)
+		So(err, ShouldBeNil)
+		So(root, ShouldNotBeNil)
+
+		// create leaf channel with second acc
+		leaf, err := rest.CreateChannelWithType(acc2.Id, models.Channel_TYPE_TOPIC)
+		So(err, ShouldBeNil)
+		So(leaf, ShouldNotBeNil)
+
+		// create leaf2 channel with second acc
+		leaf2, err := rest.CreateChannelWithType(acc2.Id, models.Channel_TYPE_TOPIC)
+		So(err, ShouldBeNil)
+		So(leaf2, ShouldNotBeNil)
+
+		// fetch admin's session
+		ses, err := models.FetchOrCreateSession(admin.Nick)
+		So(err, ShouldBeNil)
+		So(ses, ShouldNotBeNil)
+
+		Convey("We should be able to create it first", func() {
+			res, err := rest.CreateLink(root.Id, leaf.Id, ses.ClientId)
+			So(err, ShouldBeNil)
+			So(res, ShouldNotBeNil)
+
+			Convey("We should get error if we try to create the same link again", func() {
+				res, err := rest.CreateLink(root.Id, leaf.Id, ses.ClientId)
+				So(err, ShouldNotBeNil)
 				So(res, ShouldBeNil)
-				Convey("shold be able to mark as troll twice", func() {
-					res := rest.MarkAsTroll(account)
-					So(res, ShouldBeNil)
-				})
 			})
 
-			Convey("should be able to unmark as troll", func() {
-				res := rest.UnMarkAsTroll(account)
-				So(res, ShouldBeNil)
-				Convey("should be able to unmark as troll twice", func() {
-					res := rest.UnMarkAsTroll(account)
-					So(res, ShouldBeNil)
-				})
+			Convey("We should not be able to list with non set root id", func() {
+				links, err := rest.GetLinks(0, request.NewQuery(), ses.ClientId)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, models.ErrChannelIsNotSet.Error())
+				So(links, ShouldBeNil)
 			})
+
+			Convey("We should be able to list the linked channels", func() {
+				res, err := rest.CreateLink(root.Id, leaf2.Id, ses.ClientId)
+				So(err, ShouldBeNil)
+				So(res, ShouldNotBeNil)
+
+				links, err := rest.GetLinks(root.Id, request.NewQuery(), ses.ClientId)
+				So(err, ShouldBeNil)
+				So(links, ShouldNotBeNil)
+				So(len(links), ShouldEqual, 2)
+			})
+
+			Convey("We should be able to unlink created link", func() {
+				err = rest.UnLink(root.Id, leaf.Id, ses.ClientId)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("We should not be able to unlink with non-set root id", func() {
+				err = rest.UnLink(0, rand.Int63(), ses.ClientId)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, models.ErrChannelIsNotSet.Error())
+			})
+
+			Convey("We should not be able to unlink with non-set leaf id", func() {
+				err = rest.UnLink(rand.Int63(), 0, ses.ClientId)
+				So(err, ShouldNotBeNil)
+				So(err.Error(), ShouldContainSubstring, models.ErrLeafIsNotSet.Error())
+			})
+
+			Convey("We should not be able to unlink non existing leaf", func() {
+				err = rest.UnLink(root.Id, rand.Int63(), ses.ClientId)
+				So(err, ShouldNotBeNil)
+			})
+
+			Convey("We should not be able to unlink from non existing root", func() {
+				err = rest.UnLink(rand.Int63(), leaf.Id, ses.ClientId)
+				So(err, ShouldNotBeNil)
+			})
+		})
+
+		Convey("We should be able to blacklist channel without any leaves", func() {
+			So(rest.BlackList(root.Id, ses.ClientId), ShouldBeNil)
+		})
+
+		Convey("We should not be able to blacklist channel with leaves", func() {
+			res, err := rest.CreateLink(root.Id, leaf.Id, ses.ClientId)
+			So(err, ShouldBeNil)
+			So(res, ShouldNotBeNil)
+
+			err = rest.BlackList(root.Id, ses.ClientId)
+			So(err, ShouldNotBeNil)
+			So(err.Error(), ShouldContainSubstring, models.ErrChannelHasLeaves.Error())
 		})
 	})
 }
