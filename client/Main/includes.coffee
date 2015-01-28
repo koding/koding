@@ -185,7 +185,6 @@ module.exports = [
 
   "navigation/navigationlink.coffee",
   "navigation/navigationworkspaceitem.coffee",
-  "navigation/navigationitem.coffee",
   "navigation/navigationmachineitem.coffee",
 
   "domains/managedomainsview.coffee",
