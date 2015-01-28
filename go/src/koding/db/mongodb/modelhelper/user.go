@@ -74,8 +74,16 @@ func GetAccountByUserId(id bson.ObjectId) (*models.Account, error) {
 
 func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
 	users := make([]models.User, 0)
+
 	query := func(c *mgo.Collection) error {
-		return c.Find(s).All(&users)
+		iter := c.Find(s).Iter()
+
+		var user models.User
+		for iter.Next(&user) {
+			users = append(users, user)
+		}
+
+		return nil
 	}
 
 	return users, Mongo.Run(UserColl, query)
