@@ -125,3 +125,12 @@ module.exports = class Sidebar extends bongo.Base
         return yes
 
     return no
+
+
+  isMachineShared = (user, machine) ->
+
+    for u in machine.users
+      if u.id.equals user.getId() and u.permanent
+        return yes
+
+    return no
