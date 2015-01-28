@@ -113,7 +113,15 @@ module.exports = class Sidebar extends bongo.Base
 
     {user, machine, successFn, failureFn} = options
 
-    for u in machine.users when u.owner and u.id.equals user.getId()
-      return successFn()
+    if isMachineOwner user, machine
+    then successFn()
+    else failureFn()
 
-    failureFn()
+
+  isMachineOwner = (user, machine) ->
+
+    for u in machine.users
+      if u.owner and u.id.equals user.getId()
+        return yes
+
+    return no
