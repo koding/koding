@@ -87,7 +87,14 @@ class PrivateMessagePane extends MessagePane
   realtimeMessageArrived: (message) ->
 
     wasAtBottom = @isPageAtBottom()
-    item = @appendMessage message
+    index       = @listController.getItemCount()
+
+    for item, i in @listController.getListItems() by -1
+      if not item.getData().isFake and new Date item.getData().createdAt < new Date message.createdAt
+        index = i + 1
+        break
+
+    item = @appendMessage message, index
 
     @scrollDown item  if wasAtBottom
 
