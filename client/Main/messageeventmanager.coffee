@@ -94,14 +94,17 @@ class MessageEventManager extends KDObject
 
     message = @getData()
 
+    return  unless KD.singletons.socialapi.isFromOtherBrowser message
+
     for item in message.replies
       reply = item  if replyId is item.getId()
 
-    message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
-    message.repliesCount--
+    # when the comment does not appear on the screen, no need to send a 'RemoveReply' event
+    if reply
+      message.replies = message.replies.filter (reply) -> reply.getId() isnt replyId
+      message.repliesCount--
+      message.emit "RemoveReply", reply
 
-    return  unless KD.singletons.socialapi.isFromOtherBrowser message
 
-    message.emit "RemoveReply", reply
     message.emit "update"
 
