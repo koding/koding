@@ -10,6 +10,7 @@ module.exports = [
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
+  "libs/pubnub.min.js",
   'libs/marked.js'
   'libs/date.format.js'
   'libs/highlight.pack.js'
