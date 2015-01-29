@@ -118,29 +118,44 @@ module.exports =
       .waitForElementNotPresent  fileSelector, 2000
 
 
-  attemptEnterEmailAndUsernameOnRegister: (browser, user) ->
+  attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
+
     browser
       .url                    @getUrl()
       .waitForElementVisible  '[testpath=main-header]', 10000
       .setValue               '[testpath=register-form-email]', user.email
-      .setValue               '[testpath=register-form-username]', user.username
+      .setValue               'input[name=password]', user.password
       .click                  '[testpath=signup-button]'
 
-  attemptEnterPasswordOnRegister: (browser, user) ->
+
+  attemptEnterUsernameOnRegister: (browser, user) ->
+
+    modalSelector  = '.extra-info.password'
+    buttonSelector = 'button[type=submit]'
+
+    browser.waitForElementVisible modalSelector, 10000
+
+    if user.gravatar
+      browser
+        .assert.valueContains 'input[name=username]',  'kodingtestuser'
+        .assert.valueContains 'input[name=firstName]', 'Koding'
+        .assert.valueContains 'input[name=lastName]',  'Testuser'
+    else
+      browser
+        .setValue '[testpath=register-form-username]', user.username
+
     browser
-      .waitForElementVisible  '[testpath=password-input]', 10000
-      .setValue               '[testpath=password-input]', user.password
-      .setValue               '[testpath=confirm-password-input]', user.password
-      .click                  '[testpath=register-submit-button]'
+      .pause    2000
+      .click    modalSelector
+      .click    buttonSelector
+
 
   doRegister: (browser, user) ->
 
     user = utils.getUser(yes) unless user
 
-    @attemptEnterEmailAndUsernameOnRegister(browser, user)
-
-    @attemptEnterPasswordOnRegister(browser, user)
-
+    @attemptEnterEmailAndPasswordOnRegister(browser, user)
+    @attemptEnterUsernameOnRegister(browser, user)
     @doLogout(browser)
 
     @doLogin(browser, user)
