@@ -20,7 +20,9 @@ module.exports = class Sidebar extends bongo.Base
 
   @fetchEnvironment$ = secure (client, callback) ->
 
-    data = own: []
+    data =
+      own: []
+      shared: []
 
     client.connection.delegate.fetchUser (err, user) ->
 
@@ -78,6 +80,8 @@ module.exports = class Sidebar extends bongo.Base
       addNodeFn = switch
         when isMachineOwner user, machine
           addOwnFn
+        when isMachineShared user, machine
+          addSharedFn
 
       addNodeFn {machine}
 
@@ -111,6 +115,14 @@ module.exports = class Sidebar extends bongo.Base
             if isMachineOwner user, machine
             then successFn()
             else failureFn()
+
+          ->
+
+            successFn = makeSuccessFn addSharedFn
+
+            if isMachineShared user, machine
+            then successFn()
+            else failureFn()
         ]
 
         dash filterQueue, -> workspaceQueue.fin()
@@ -130,7 +142,7 @@ module.exports = class Sidebar extends bongo.Base
   isMachineShared = (user, machine) ->
 
     for u in machine.users
-      if u.id.equals user.getId() and u.permanent
+      if (u.id.equals user.getId()) and u.permanent
         return yes
 
     return no
