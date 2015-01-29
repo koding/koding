@@ -4,7 +4,7 @@ bongo = require 'bongo'
 JMachine   = require './computeproviders/machine'
 JWorkspace = require './workspace'
 
-SocialMessage = require './socialapi/message'
+SocialChannel = require './socialapi/channel'
 
 KodingError = require '../error'
 
@@ -23,6 +23,7 @@ module.exports = class Sidebar extends bongo.Base
     data =
       own: []
       shared: []
+      collaboration: []
 
     client.connection.delegate.fetchUser (err, user) ->
 
@@ -124,6 +125,15 @@ module.exports = class Sidebar extends bongo.Base
             if isMachineShared user, machine
             then successFn()
             else failureFn()
+
+          ->
+
+            return filterQueue.fin()  unless workspace.channelId
+
+            successFn = makeSuccessFn addCollaborationFn
+
+            options = {client, user, workspace, successFn, failureFn}
+            filterCollaborationWorkspace options
         ]
 
         dash filterQueue, -> workspaceQueue.fin()
@@ -147,3 +157,16 @@ module.exports = class Sidebar extends bongo.Base
         return yes
 
     return no
+
+
+  filterCollaborationWorkspace = (options = {}) ->
+
+    {client, user, workspace, successFn, failureFn} = options
+
+    SocialChannel.byId client, id: workspace.channelId, (err, channel) ->
+
+      if err
+        console.error 'Fetch workspace channel:', err
+        return failureFn err
+
+      successFn()
