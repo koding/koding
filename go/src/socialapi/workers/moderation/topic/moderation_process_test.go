@@ -90,7 +90,6 @@ func TestProcess(t *testing.T) {
 
 				So(err, ShouldBeNil)
 				So(cpc, ShouldEqual, 0)
-
 			})
 
 			Convey("root node should have 0 participants", func() {

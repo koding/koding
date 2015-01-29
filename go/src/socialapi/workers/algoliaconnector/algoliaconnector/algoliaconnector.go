@@ -60,6 +60,18 @@ func (f *Controller) TopicSaved(data *models.Channel) error {
 	})
 }
 
+// TopicUpdated handles the channel update events, for now only handles the
+// channels that are topic channels, we can link channels together in any point
+// of time, after linking, leaf channel should be removed from search engine
+func (f *Controller) TopicUpdated(data *models.Channel) error {
+	if data.TypeConstant != models.Channel_TYPE_LINKED_TOPIC {
+		f.log.Debug("unsuported channel for topic update type: %s id: %d", data.TypeConstant, data.Id)
+		return nil
+	}
+
+	return f.delete("topics", strconv.FormatInt(data.Id, 10))
+}
+
 func (f *Controller) AccountSaved(data *models.Account) error {
 	return f.insert("accounts", map[string]interface{}{
 		"objectID": data.OldId,
