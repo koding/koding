@@ -96,5 +96,3 @@ website/a/out
 /tests/users.json
 /tests/output/
 supervisor.html
-
-go/src/socialapi/workers/payment/paymentwebhook/paymentwebhook
