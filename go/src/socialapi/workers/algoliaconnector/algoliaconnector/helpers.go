@@ -13,6 +13,16 @@ func (f *Controller) insert(indexName string, record map[string]interface{}) err
 	return err
 }
 
+// Delete removes a record from the given indexName
+func (f *Controller) delete(indexName string, objectID string) error {
+	index, err := f.indexes.Get(indexName)
+	if err != nil {
+		return err
+	}
+	_, err = index.DeleteObject(objectID)
+	return err
+}
+
 func (f *Controller) get(indexName string, objectId string) (map[string]interface{}, error) {
 	index, err := f.indexes.Get(indexName)
 	if err != nil {
