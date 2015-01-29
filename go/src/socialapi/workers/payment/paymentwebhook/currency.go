@@ -12,7 +12,7 @@ func formatStripeAmount(currencyStr string, amount float64) string {
 func formatPaypalAmount(currencyStr, amountStr string) string {
 	amount, err := strconv.ParseFloat(amountStr, 64)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error("Paypal: error converting amount: %v to float: %s", amountStr, err.Error())
 	}
 
 	return formatAmount(currencyStr, amount)
@@ -23,7 +23,7 @@ func formatAmount(currency string, amount float64) string {
 	case "USD", "usd":
 		currency = "$"
 	default:
-		Log.Error("Unknown currency: %v", currency)
+		Log.Error("Paypal: unknown currency: %v, amount: %v", currency, amount)
 	}
 
 	return fmt.Sprintf("%s%v", currency, amount)

@@ -85,7 +85,7 @@ func initializeRunner() *runner.Runner {
 
 func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client {
 	if k == nil {
-		Log.Info("kite not initialized in runner")
+		Log.Info("kite not initialized in runner. Pass '-kite-init'")
 		return nil
 	}
 
@@ -95,7 +95,7 @@ func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client
 
 	// dial the kloud address
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
-		Log.Info("%s. Is kloud/kontrol running?", err.Error())
+		Log.Error("%s. Is kloud/kontrol running?", err.Error())
 		return nil
 	}
 
