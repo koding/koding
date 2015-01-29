@@ -204,6 +204,12 @@ testmoderation:
 	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./tests.test
 
+testalgolia:
+	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
+	@./algoliaconnector.test -c $(CONFIG)
+	@rm ./algoliaconnector.test
+
 testapi:
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
