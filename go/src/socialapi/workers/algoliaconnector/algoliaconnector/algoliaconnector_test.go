@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"errors"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
@@ -47,7 +48,82 @@ func TestTopicSaved(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+}
 
+// makeSureErr checks if the given id's get request returns the desired err, it
+// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
+// index the records right away, so try to go to a desired state
+func makeSureErr(handler *Controller, id int64, e error) error {
+	deadLine := time.After(time.Second * 15)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			// make sure it is set
+			_, err := handler.get("topics", strconv.FormatInt(id, 10))
+
+			if e != nil && err != nil {
+				if err.Error() == e.Error() {
+					return nil
+				}
+			} else {
+				if err == e {
+					return nil
+				}
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
+}
+
+var errDeadline = errors.New("dead line")
+
+func TestTopicUpdated(t *testing.T) {
+	r := runner.New("AlogoliaConnector-Test")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	defer r.Close()
+
+	rand.Seed(time.Now().UnixNano())
+
+	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+	// create message handler
+	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+
+	Convey("given some fake topic channel", t, func() {
+		mockTopic := models.NewChannel()
+		mockTopic.Id = rand.Int63()
+		mockTopic.TypeConstant = models.Channel_TYPE_TOPIC
+		Convey("it should save the document to algolia", func() {
+			err := handler.TopicSaved(mockTopic)
+			So(err, ShouldBeNil)
+			So(makeSureErr(handler, mockTopic.Id, nil), ShouldBeNil)
+
+			Convey("given some existing topic channel", func() {
+				mockTopic.TypeConstant = models.Channel_TYPE_LINKED_TOPIC
+				Convey("it should be able to remove it", func() {
+					err := handler.TopicUpdated(mockTopic)
+					So(err, ShouldBeNil)
+
+					So(makeSureErr(handler, mockTopic.Id, ErrAlgoliaObjectIdNotFound), ShouldBeNil)
+
+					Convey("removing a deleted channel should return success", func() {
+						err := handler.TopicUpdated(mockTopic)
+						So(err, ShouldBeNil)
+					})
+				})
+			})
+			Convey("removing a non-existing channel should return success", func() {
+				mockTopic.Id++
+				err := handler.TopicUpdated(mockTopic)
+				So(err, ShouldBeNil)
+			})
+		})
+	})
 }
 
 func TestAccountSaved(t *testing.T) {
