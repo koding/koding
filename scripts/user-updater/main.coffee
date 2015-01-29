@@ -129,13 +129,6 @@ koding.once 'dbClientReady', ->
 
       {referrer, referred} = res
 
-      if 'confirmed' not in [referrer.user.status, referred.user.status]
-        console.log "
-          #{referrer.user.username} or #{referred.user.username}
-          is not confirmed, skipping.
-        "
-        return callback null
-
       createMissingReward referral, {referrer, referred}, (err)->
         console.log "ERROR>", err  if err
 
