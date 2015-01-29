@@ -3,6 +3,7 @@ spritesmith = require 'gulp.spritesmith'
 argv        = require('minimist') process.argv
 site        = SITE_NAME or argv.site or 'landing'
 base        = "#{__dirname}/.."
+tinypng     = require 'gulp-tinypng'
 
 { BUILD_PATH } = require './helper.constants'
 { log } = require './helper.logger'
@@ -25,6 +26,7 @@ module.exports = (pixelRatio = 1, version = '') ->
     .pipe gulp.dest "./../site.#{site}/styl/"
 
   stream.img
+    .pipe tinypng 'jmodUCq84QJZAvbQKDxC3ct95PmQQXZi'
     .pipe gulp.dest "#{BUILD_PATH}/images/"
 
   return stream

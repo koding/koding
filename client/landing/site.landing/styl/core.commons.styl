@@ -200,19 +200,6 @@ button
   a
     color               inherit
 
-.kdmodal.redeem-modal
-
-  .formline
-    overflow              visible
-    padding               15px 0 0
-    .input-wrapper
-      overflow            visible
-      margin-right        8px
-      fr()
-    label
-      margin              0
-
-
 
 validationRed = rgba(217, 58, 55, 1)
 .kdtooltip.validation-error
@@ -254,17 +241,6 @@ validationRed = rgba(217, 58, 55, 1)
     &.direction-left:after
       right                 9px
 
-
-.avatarview
-  background-image          url( imagePath + 'defaultavatar/avatar.svg')
-  background-size           100% 100%
-  background-repeat         no-repeat
-  overflow                  hidden
-  display                   block
-  vertical-align            top
-  img
-    rounded                 3px
-
 .content-page
   margin                    0 auto
   size                      auto auto
@@ -273,95 +249,6 @@ validationRed = rgba(217, 58, 55, 1)
     height              100%
     font-size           14px
     fl()
-
-a.custom-link-view.border-only-green
-  display             block
-  margin              0 auto 46px
-  background          transparent
-  border              2px solid #3bc079
-  rounded             4px
-  padding             10px 32px
-  width               200px
-  clear               both
-  font-size           16px
-  text-transform      uppercase
-  text-decoration     none
-
-  .title
-    color             #01ae57
-    font-size         16px
-
-  &:hover
-    background        #3bc079
-    text-decoration   none
-
-    .title
-      color           #fff
-
-//
-// THIN BUTTON STYLES
-//
-.kdbutton.thin
-  bg                   color transparent
-  border               2px solid logoBg
-  rounded              28px
-  padding              0
-  height               55px
-  borderBox()
-  span.button-title
-    padding            0
-    color              logoBg
-    font-size          18px
-    text-decoration    uppercase
-    letter-spacing     1px
-  &:hover
-    bg                 color white
-  &:active
-    bg                 color logoBg
-    span.button-title
-      color            white
-  &:focus
-    shadow             0 0 10px -2px logoBg
-
-  // Sizes
-  &.medium
-    height             42px
-    line-height        38px
-    rounded            21px
-
-  &.small
-    height             26px
-    line-height        24px
-    rounded            13px
-
-    span.button-title
-      font-size        14px
-
-  // Color variatons
-
-  &.red
-    border-color       #E94835
-
-    span.button-title
-      color            #E94835
-
-    &:active
-      bg               color #E94835
-
-      span.button-title
-        color          white
-
-  &.gray
-    border-color       #929292
-
-    span.button-title
-      color            #666666
-
-    &:active
-      bg               color #E94835
-
-      span.button-title
-        color          white
 
 
 //
