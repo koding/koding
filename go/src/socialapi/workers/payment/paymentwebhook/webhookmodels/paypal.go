@@ -17,6 +17,8 @@ func (pt *PaypalTime) UnmarshalJSON(b []byte) error {
 	var err error
 
 	str := strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1)
+
+	// paypal send `N/A` when time is nil
 	if str == "" || str == "N/A" {
 		return nil
 	}
