@@ -83,7 +83,7 @@ module.exports = class Sidebar extends bongo.Base
         when isMachineShared user, machine
           addSharedFn
 
-      addNodeFn {machine}
+      addNodeFn? {machine}
 
     workspaceQueue = workspaces.map (workspace) ->
 
