@@ -23,11 +23,11 @@ type SG struct {
 	SenderClient          SenderClient
 }
 
-func Initialize(username, password string) Client {
-	return InitializeSG(username, password)
+func New(username, password string) Client {
+	return New(username, password)
 }
 
-func InitializeSG(username, password string) *SG {
+func NewSG(username, password string) *SG {
 	return &SG{
 		FromAddress: DefaultFromAddress, FromName: DefaultFromName,
 		SenderClient: sendgrid.NewSendGridClient(username, password),
