@@ -22,7 +22,7 @@ type stripeWebhookRequest struct {
 	Livemode bool   `json:"livemode"`
 	Id       string `json:"id"`
 	Data     struct {
-		Object interface{} `json:"object"`
+		Object json.RawMessage `json:"object"`
 	} `json:"data"`
 }
 
@@ -47,15 +47,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(req.Data.Object)
-	if err != nil {
-		Log.Error("Stripe: error marshalling Stripe webhook '%v' : %v", s, err)
-
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	err = action(data, s.Controller)
+	err = action(req.Data.Object, s.Controller)
 	if err != nil {
 		Log.Error("Stripe: webhook: %s action failed: %s", req.Name, err)
 
