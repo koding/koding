@@ -31,6 +31,8 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	Log.Debug("Paypal: received webhook: %s", req.TransactionType)
+
 	action, ok := paypalActions[req.TransactionType]
 	if !ok {
 		Log.Debug("Paypal: webhook: %s, %s not implemented", req.Status, req.TransactionType)
@@ -39,7 +41,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err = action(req, p.Controller)
 	if err != nil {
-		Log.Error("Paypal: webhook: %s action failed: %v", req.PayerId, err)
+		Log.Error("Paypal: webhook: %s action: %s failed for user: %v", req.TransactionType, req.PayerId, err)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return
