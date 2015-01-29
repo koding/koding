@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymentmodels"
+	"strings"
 
 	"github.com/koding/kite"
 )
@@ -43,7 +44,7 @@ func stopMachinesForUser(customerId string, k *kite.Client) error {
 			MachineId: machine.ObjectId.Hex(), Reason: "Plan expired",
 		})
 
-		if err != nil {
+		if err != nil && !isVmAlreadyStoppedErr(err) {
 			Log.Error("Error stopping machine:%s for username: %s, %v", username, machine, err)
 		}
 	}
@@ -68,4 +69,8 @@ func errUsernameEmpty(customerId string) error {
 
 func errUnmarshalFailed(data interface{}) error {
 	return fmt.Errorf("unmarshalling webhook failed: %v", data)
+}
+
+func isVmAlreadyStoppedErr(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "not allowed for current state")
 }
