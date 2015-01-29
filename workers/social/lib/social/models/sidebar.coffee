@@ -108,22 +108,14 @@ module.exports = class Sidebar extends bongo.Base
 
             successFn = makeSuccessFn addOwnFn
 
-            options = {user, machine, successFn, failureFn}
-            filterOwnWorkspace options
+            if isMachineOwner user, machine
+            then successFn()
+            else failureFn()
         ]
 
         dash filterQueue, -> workspaceQueue.fin()
 
     dash workspaceQueue, callback
-
-
-  filterOwnWorkspace = (options) ->
-
-    {user, machine, successFn, failureFn} = options
-
-    if isMachineOwner user, machine
-    then successFn()
-    else failureFn()
 
 
   isMachineOwner = (user, machine) ->
