@@ -10,21 +10,24 @@ var (
 	DefaultFromName    = "Koding"
 )
 
+// The default interface to send emails.
 type Client interface {
 	SendTemplateEmail(string, string, Options) error
 }
 
+func New(username, password string) Client {
+	return New(username, password)
+}
+
+// This interface defines the implementation of those sending emails.
 type SenderClient interface {
 	Send(*sendgrid.SGMail) error
 }
 
+// Sengrid implementation of `Client`.
 type SG struct {
 	FromAddress, FromName string
 	SenderClient          SenderClient
-}
-
-func New(username, password string) Client {
-	return New(username, password)
 }
 
 func NewSG(username, password string) *SG {
