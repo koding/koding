@@ -30,6 +30,7 @@ type User struct {
 	BlockedReason string `bson:"blockedReason" json:"blockedReason"`
 
 	EmailFrequency EmailFrequency `bson:"emailFrequency" json:"emailFrequency"`
+	Inactive       UserInactive   `bson:"inactive,omitempty" json:"inactive"`
 }
 
 type EmailFrequency struct {
@@ -46,4 +47,10 @@ type EmailFrequency struct {
 	Leave             bool   `bson:"groupLeft"`
 	Mention           bool   `bson:"mention"`
 	NotificationDelay string `bson:"pmNotificationDelay"`
+}
+
+type UserInactive struct {
+	Warning    int       `bson:"warning" json:"warning"`
+	Assigned   bool      `bson:"assigned" json:"assigned"`
+	AssignedAt time.Time `bson:"assignedAt" json:"assignedAt"`
 }
