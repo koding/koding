@@ -4,8 +4,8 @@ type Action int
 
 const (
 	SubscriptionCreated Action = iota
-	ChargeRefunded
-	ChargeFailed
 	SubscriptionDeleted
-	InvoiceCreated
+	PaymentCreated
+	PaymentRefunded
+	PaymentFailed
 )

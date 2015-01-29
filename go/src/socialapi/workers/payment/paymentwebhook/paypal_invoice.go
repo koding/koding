@@ -12,7 +12,7 @@ func paypalPaymentSucceeded(req *webhookmodels.PaypalGenericWebhook, c *Controll
 		return err
 	}
 
-	return paypalPaymentHelper(req, paymentemail.InvoiceCreated, c)
+	return paypalPaymentHelper(req, paymentemail.PaymentCreated, c)
 }
 
 func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
@@ -21,7 +21,7 @@ func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller)
 		return err
 	}
 
-	return paypalPaymentHelper(req, paymentemail.ChargeFailed, c)
+	return paypalPaymentHelper(req, paymentemail.PaymentFailed, c)
 }
 
 func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, c *Controller) error {

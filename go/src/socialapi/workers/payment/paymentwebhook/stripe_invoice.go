@@ -48,6 +48,6 @@ func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller
 	}
 
 	return paymentemail.Send(
-		c.Email, paymentemail.InvoiceCreated, emailAddress, opts,
+		c.Email, paymentemail.PaymentCreated, emailAddress, opts,
 	)
 }

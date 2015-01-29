@@ -7,11 +7,11 @@ import (
 )
 
 func stripePaymentRefunded(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, paymentemail.ChargeRefunded)
+	return stripeChargeHelper(raw, c, paymentemail.PaymentRefunded)
 }
 
 func stripePaymentFailed(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, paymentemail.ChargeFailed)
+	return stripeChargeHelper(raw, c, paymentemail.PaymentFailed)
 }
 
 func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) error {
