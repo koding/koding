@@ -68,11 +68,14 @@ class SinglePlanView extends KDView
         tagName  : 'dd'
         partial  : partial
 
+    heapClass = getHeapClass title.toLowerCase(), planInterval
     @addSubView @buyButton = new KDButtonView
-      style     : 'plan-buy-button'
+      style     : "plan-buy-button #{heapClass}"
       title     : 'SELECT'
       state     : { name, monthPrice, yearPrice }
       callback  : @bound 'select'
+
+    @buyButton.heapClass = heapClass
 
   select: ->
 
@@ -104,6 +107,13 @@ class SinglePlanView extends KDView
       <span class='interval-text'>MONTHLY</span>
     "
 
+    # this is for adding toggling heap css classes.
+    { title } = @getOptions()
+    title = title.toLowerCase()
+    @buyButton.unsetClass @buyButton.heapClass
+    @buyButton.setClass heapClass = getHeapClass title, planInterval
+    @buyButton.heapClass = heapClass
+
 
   getPrice: (planInterval) ->
 
@@ -128,5 +138,8 @@ class SinglePlanView extends KDView
     @buyButton.enable()
 
     @setAttribute 'disabled', 'false'
+
+
+  getHeapClass = (title, interval) -> "heap-#{title}-#{interval}-button"
 
 
