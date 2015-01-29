@@ -27,7 +27,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Log.Error("Paypal: error decoding webhook : %v", err)
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Log.Error("Paypal: webhook: %s action failed: %v", req.PayerId, err)
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }

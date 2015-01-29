@@ -37,7 +37,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Log.Error("Stripe: error decoding webhook '%v' : %v", s, err)
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -51,7 +51,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Log.Error("Stripe: error marshalling Stripe webhook '%v' : %v", s, err)
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		Log.Error("Stripe: webhook: %s action failed: %s", req.Name, err)
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
