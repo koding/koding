@@ -25,6 +25,8 @@ koding.once 'dbClientReady', ->
   JReferral = rekuire 'referral/index.coffee'
   JUser     = rekuire 'user/index.coffee'
 
+  userCache = {}
+
   # Config
   # ------
 
@@ -48,6 +50,9 @@ koding.once 'dbClientReady', ->
 
   fetchAccount = (_id, cb)->
 
+    if cached = userCache[_id]
+      return cb null, cached
+
     JAccount.one {_id}, (err, account)->
       return cb err  if err
       return cb {message: "no account found"}  unless account
@@ -56,7 +61,7 @@ koding.once 'dbClientReady', ->
         return cb err  if err
         return cb {message: "no user found"}  unless user
 
-        cb null, {user, account}
+        cb null, userCache[_id] = {user, account}
 
 
   fetchMembers = (referral, as, cb)->
