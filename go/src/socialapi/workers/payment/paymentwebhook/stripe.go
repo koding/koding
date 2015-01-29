@@ -41,6 +41,8 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	Log.Debug("Stripe: received webhook: %s", req.Name)
+
 	action, ok := stripeActions[req.Name]
 	if !ok {
 		Log.Debug("Stripe: webhook: %s not implemented", req.Name)

@@ -113,7 +113,7 @@ func (c *Customer) DeleteSubscriptionsAndItself() error {
 				fmt.Printf("Deleting user: %s subscription: %s failed: %v\n", c.Username, subscription.Id, err)
 			}
 		} else {
-			fmt.Printf("Tried to delete user: %s with active subscription: %s\n", c.Username, subscription.Id)
+			fmt.Printf("Tried to delete user: %s with active subscription: %v\n", c.Username, subscription.Id)
 		}
 	}
 
