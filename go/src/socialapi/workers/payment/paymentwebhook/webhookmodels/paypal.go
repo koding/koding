@@ -9,11 +9,11 @@ import (
 const PaypalTimeLayout = "15:04:05 Jan 02, 2006 MST"
 
 // Paypal is so special it deverses it's own time format.
-type PaypalOwnTime struct {
+type PaypalTime struct {
 	time.Time
 }
 
-func (pt *PaypalOwnTime) UnmarshalJSON(b []byte) error {
+func (pt *PaypalTime) UnmarshalJSON(b []byte) error {
 	var err error
 
 	str := strings.Replace(fmt.Sprintf("%s", b), `"`, "", -1)
@@ -27,12 +27,12 @@ func (pt *PaypalOwnTime) UnmarshalJSON(b []byte) error {
 }
 
 type PaypalGenericWebhook struct {
-	TransactionType string        `json:"txn_type"`
-	Status          string        `json:"payment_status"`
-	PayerId         string        `json:"recurring_payment_id"`
-	Plan            string        `json:"product_name"`
-	Amount          string        `json:"amount"`
-	Currency        string        `json:"currency_code"`
-	NextPaymentDate PaypalOwnTime `json:"next_payment_date"`
-	PaymentDate     PaypalOwnTime `json:"payment_date"`
+	TransactionType string     `json:"txn_type"`
+	Status          string     `json:"payment_status"`
+	PayerId         string     `json:"recurring_payment_id"`
+	Plan            string     `json:"product_name"`
+	Amount          string     `json:"amount"`
+	Currency        string     `json:"currency_code"`
+	NextPaymentDate PaypalTime `json:"next_payment_date"`
+	PaymentDate     PaypalTime `json:"payment_date"`
 }
