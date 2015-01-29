@@ -210,6 +210,10 @@ class RealtimeController extends KDController
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
     for channel in channels
+      # if somehow we are not able to subscribe to a channel (public access is not granted etc.)
+      # unsubscribe from that channel. Otherwise user will not be able to receive
+      # further realtime events
+      @pubnub.unsubscribe {channel}
       unless forbiddenChannels[channel]
         channelToken = channel.replace "channel-", ""
         forbiddenChannels[channel] = yes
