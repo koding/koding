@@ -199,3 +199,17 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 
 	return a, nil
 }
+
+func CreateChannelLinkWithTest(acc1, acc2 int64) *ChannelLink {
+	root := CreateChannelWithTest(acc1)
+	leaf := CreateChannelWithTest(acc2)
+
+	cl := &ChannelLink{
+		RootId: root.Id,
+		LeafId: leaf.Id,
+	}
+
+	So(cl.Create(), ShouldBeNil)
+
+	return cl
+}
