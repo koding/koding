@@ -30,6 +30,12 @@ func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller
 		return err
 	}
 
+	if req.Lines.Data == nil {
+		return fmt.Errorf(
+			"Invoice: %s for %s has nil line items", req.ID, req.CustomerId,
+		)
+	}
+
 	if len(req.Lines.Data) < 0 {
 		return fmt.Errorf(
 			"Invoice: %s for %s has 0 line items", req.ID, req.CustomerId,
