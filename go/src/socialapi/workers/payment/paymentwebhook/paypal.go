@@ -31,7 +31,7 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	action, ok := paypalActions[req.TransactionType]
 	if !ok {
-		Log.Error("Paypal webhook: %s, %s not implemented",
+		Log.Debug("Paypal webhook: %s, %s not implemented",
 			req.Status, req.TransactionType)
 
 		return

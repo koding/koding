@@ -12,7 +12,7 @@ func paypalPaymentSucceeded(req *webhookmodels.PaypalGenericWebhook, c *Controll
 		return err
 	}
 
-	return _paypalPaymentHelper(req, paymentemail.InvoiceCreated, c)
+	return paypalPaymentHelper(req, paymentemail.InvoiceCreated, c)
 }
 
 func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
@@ -21,10 +21,10 @@ func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller)
 		return err
 	}
 
-	return _paypalPaymentHelper(req, paymentemail.ChargeFailed, c)
+	return paypalPaymentHelper(req, paymentemail.ChargeFailed, c)
 }
 
-func _paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, c *Controller) error {
+func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, c *Controller) error {
 	opts := map[string]string{
 		"price": formatPaypalAmount(req.Currency, req.Amount),
 	}

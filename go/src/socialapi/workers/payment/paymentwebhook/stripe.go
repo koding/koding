@@ -10,9 +10,9 @@ type stripeActionType func([]byte, *Controller) error
 var stripeActions = map[string]stripeActionType{
 	"customer.subscription.created": stripeSubscriptionCreated,
 	"customer.subscription.deleted": stripeSubscriptionDeleted,
-	"invoice.created":               stripeInvoiceCreated,
-	"charge.refunded":               stripeChargeRefunded,
-	"charge.failed":                 stripeChargeFailed,
+	"invoice.created":               stripePaymentSucceeded,
+	"charge.refunded":               stripePaymentRefunded,
+	"charge.failed":                 stripePaymentFailed,
 	"customer.deleted":              stripeCustomerDeleted,
 }
 

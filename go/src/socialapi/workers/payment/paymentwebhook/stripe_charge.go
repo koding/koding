@@ -6,15 +6,15 @@ import (
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
-func stripeChargeRefunded(raw []byte, c *Controller) error {
-	return _stripeChargeHelper(raw, c, paymentemail.ChargeRefunded)
+func stripePaymentRefunded(raw []byte, c *Controller) error {
+	return stripeChargeHelper(raw, c, paymentemail.ChargeRefunded)
 }
 
-func stripeChargeFailed(raw []byte, c *Controller) error {
-	return _stripeChargeHelper(raw, c, paymentemail.ChargeFailed)
+func stripePaymentFailed(raw []byte, c *Controller) error {
+	return stripeChargeHelper(raw, c, paymentemail.ChargeFailed)
 }
 
-func _stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) error {
+func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) error {
 	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)

@@ -8,7 +8,7 @@ import (
 	"socialapi/workers/payment/stripe"
 )
 
-func stripeInvoiceCreated(raw []byte, c *Controller) error {
+func stripePaymentSucceeded(raw []byte, c *Controller) error {
 	var invoice *webhookmodels.StripeInvoice
 
 	err := json.Unmarshal(raw, &invoice)
@@ -21,10 +21,10 @@ func stripeInvoiceCreated(raw []byte, c *Controller) error {
 		return err
 	}
 
-	return sendInvoiceCreatedEmail(invoice, c)
+	return stripePaymentSucceededEmail(invoice, c)
 }
 
-func sendInvoiceCreatedEmail(req *webhookmodels.StripeInvoice, c *Controller) error {
+func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller) error {
 	emailAddress, err := getEmailForCustomer(req.CustomerId)
 	if err != nil {
 		return err
