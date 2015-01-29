@@ -20,18 +20,24 @@ console.log "Trying to connect #{mongo} ..."
 
 koding.once 'dbClientReady', ->
 
-  JAccount = rekuire 'account.coffee'
-  JReward  = rekuire 'rewards/index.coffee'
-  JUser    = rekuire 'user/index.coffee'
+  JAccount  = rekuire 'account.coffee'
+  JReward   = rekuire 'rewards/index.coffee'
+  JReferral = rekuire 'referral/index.coffee'
+  JUser     = rekuire 'user/index.coffee'
+
+  userCache = {}
 
   # Config
   # ------
 
-  query = type: 'registered'
+  query = { type: "disk", unit: "MB" }
   skip  = 0
 
   # Helpers
   # -------
+
+  logError = (err, index)->
+    console.log "ERROR on #{index}. >", err  if err?
 
   iterate = (cursor, func, index, callback)->
     cursor.nextObject (err, obj)->
@@ -45,90 +51,116 @@ koding.once 'dbClientReady', ->
         callback null, index
 
 
-  fetchUser  = (acc, callback)->
-    selector = { targetId: acc._id, as: 'owner', sourceName: 'JUser' }
-    Relationship.one selector, (err, rel) ->
-      return callback err   if err
-      return callback null  unless rel
-      JUser.one {_id: rel.sourceId}, callback
+  fetchAccount = (_id, cb)->
+
+    if cached = userCache[_id]
+      return cb null, cached
+
+    JAccount.one {_id}, (err, account)->
+      return cb err  if err
+      return cb {message: "no account found"}  unless account
+
+      JUser.one {username: account.profile.nickname}, (err, user)->
+        return cb err  if err
+        return cb {message: "no user found"}  unless user
+
+        cb null, userCache[_id] = {user, account}
 
 
-  addMissingRewards = (account, index, callback)->
+  fetchMembers = (referral, as, cb)->
 
-    referrerUsername = account.profile.nickname
+    selector = {targetId: referral._id, as}
 
-    console.log "##{index} working on", referrerUsername
+    Relationship.one selector, (err, rel)->
+      return cb err  if err
+      return cb {message: "no relationship found"}  unless rel
 
-    query = { referrerUsername }
+      fetchAccount rel.sourceId, (err, member)->
+        return cb err  if err
+        cb null, member
 
-    originId         = account._id
-    type             = "disk"
-    unit             = "MB"
-    amount           = 500
-    sourceCampaign   = "oldkoding"
 
-    JAccount.someData query, {_id:1, profile:1}, {skip}, (err, cursor)->
+  fetchDamn = (referral, cb)->
 
-      return console.log "ERROR: ", err  if err?
+    fetchMembers referral, "referrer", (err, referrer)->
+      return cb err  if err
 
-      iterate cursor, (referrer, index, callback)->
+      fetchMembers referral, "referred", (err, referred)->
+        return cb err  if err
 
-        fetchUser referrer, (err, user)->
+        cb null, {referrer, referred}
 
-          if err?
-            {nickname} = referrer.profile
-            console.log "Failed to fetch JUser for #{nickname}, skipping."
-            console.log err
-            return callback null
 
-          unless user.status is 'confirmed'
-            console.log "Referral #{user.username} is not confirmed, skipping."
-            return callback null
-          else
-            console.log "Referral #{user.username} valid, creating reward..."
+  createMissingReward = (referral, {referrer, referred}, callback)->
 
-          providedBy = referrer._id
+    type           = "disk"
+    unit           = "MB"
+    amount         = referral.amount
+    sourceCampaign = "oldkoding"
 
-          reward = new JReward {
-            type, unit, amount, sourceCampaign, providedBy, originId
-          }
+    console.log "Referrer #{referrer.user.username} valid, creating reward..."
 
-          reward.save (err)->
+    providedBy = referrer.account._id
+    originId   = referred.account._id
 
-            if err?.code is 11000
-              console.log "
-                Reward for #{referrerUsername} from #{user.username}
-                was already exists, skipping
-              "
-            else
-              console.warn err  if err?
+    reward = new JReward {
+      type, unit, amount, sourceCampaign, providedBy, originId
+    }
 
-            options = { unit, type, originId }
+    reward.save (err)->
 
-            JReward.calculateAndUpdateEarnedAmount options, (err)->
-              console.warn err  if err?
-              callback null
+      if err?.code is 11000
+        console.log "
+          Reward for #{referrer.user.username} from #{referred.user.username}
+          was already exists, skipping
+        "
+      else if err
+        console.warn err
+        return callback null
 
-      , 0, (err, total)->
+      options = { unit, type, originId }
 
-        if total > 0
-          console.log "Processed #{total} referral for #{referrerUsername}"
-
+      JReward.calculateAndUpdateEarnedAmount options, (err)->
+        console.warn err  if err?
         callback null
+
+
+  addMissingRewards = (referral, index, callback)->
+
+    console.log "Working on #{index}. referral"
+
+    fetchDamn referral, (err, res) ->
+
+      if err
+        logError err, index
+        return callback null
+
+      {referrer, referred} = res
+
+      createMissingReward referral, {referrer, referred}, (err)->
+        logError err, index
+
+        [referrer, referred] = [referred, referrer]
+
+        createMissingReward referral, {referrer, referred}, (err)->
+          logError err, index
+
+          callback null
 
 
   # Main updater
   # ------------
 
-  JAccount.count query, (err, userCount)->
+  JReferral.count query, (err, referralCount)->
 
-    console.log "Total #{userCount - skip} accounts found, starting..."
+    console.log "Total #{referralCount - skip} referrals found, starting..."
 
-    JAccount.someData query, {_id:1, profile:1}, {skip}, (err, cursor)->
+    JReferral.someData query, {_id: 1, amount: 1}, {skip}, (err, cursor)->
 
       return console.log "ERROR: ", err  if err?
 
       iterate cursor, addMissingRewards, skip, (err, total)->
 
+        console.log "ERROR >>", err  if err?
         console.log "FINAL #{total}"
         process.exit 0

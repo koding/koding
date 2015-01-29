@@ -188,6 +188,7 @@ class RealtimeController extends KDController
           @channels[channel].emit eventName, body
         connect : =>
           @channels[pubnubChannelName] = channelInstance
+          @removeFromForbiddenChannels pubnubChannelName
           callback null, channelInstance
         error   : (err) =>
           @handleError err
@@ -203,18 +204,32 @@ class RealtimeController extends KDController
   handleError: (err) ->
     {message, payload} = err
 
-    return warn err  unless payload
+    return warn err  unless payload?.channels
 
     {channels} = payload
 
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
     for channel in channels
+      # if somehow we are not able to subscribe to a channel (public access is not granted etc.)
+      # unsubscribe from that channel. Otherwise user will not be able to receive
+      # further realtime events
+      @pubnub.unsubscribe {channel}
       unless forbiddenChannels[channel]
         channelToken = channel.replace "channel-", ""
         forbiddenChannels[channel] = yes
         @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
         KD.utils.sendDataDogEvent "ForbiddenChannel", tags: {channelToken}, sendLogs: no
+
+
+  removeFromForbiddenChannels: (channelName) ->
+    forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
+
+    return  unless forbiddenChannels[channelName]
+
+    delete forbiddenChannels[channelName]
+
+    @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
 
 
   # subscribeBroker subscribes the broker channels when it is enabled.
