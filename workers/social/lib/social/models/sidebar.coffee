@@ -20,7 +20,9 @@ module.exports = class Sidebar extends bongo.Base
 
   @fetchEnvironment$ = secure (client, callback) ->
 
-    data = own: []
+    data =
+      own: []
+      shared: []
 
     client.connection.delegate.fetchUser (err, user) ->
 
@@ -37,15 +39,15 @@ module.exports = class Sidebar extends bongo.Base
           return callback new KodingError err  if err
 
           options = {client, user, machines, workspaces, callback}
-          options.addOwnFn = makeWorkspaceAdderFn data.own
-          options.addSharedFn = makeWorkspaceAdderFn data.shared
-          options.addCollaborationFn = makeWorkspaceAdderFn data.collaboration
+          options.addOwnFn = makeEnvironmentNodeAdderFn data.own
+          options.addSharedFn = makeEnvironmentNodeAdderFn data.shared
+          options.addCollaborationFn = makeEnvironmentNodeAdderFn data.collaboration
           options.callback = -> callback null, data
 
           decorateEnvironmentData options
 
 
-  makeWorkspaceAdderFn = (list) ->
+  makeEnvironmentNodeAdderFn = (list) ->
 
     findNode = (machine) ->
 
@@ -55,12 +57,12 @@ module.exports = class Sidebar extends bongo.Base
 
     return ({machine, workspace}) ->
 
-      if node = findNode machine
-        node.workspaces.push workspace
-      else
-        workspaces = [workspace]
-        node = {machine, workspaces}
+      unless node = findNode machine
+        node = {machine, workspaces: []}
         list.push node
+
+      {workspaces} = node
+      workspaces.push workspace  if workspace
 
 
   decorateEnvironmentData = (options) ->
@@ -71,7 +73,17 @@ module.exports = class Sidebar extends bongo.Base
     {callback} = options
 
     machineMap = {}
-    machines.forEach (machine) -> machineMap[machine.uid] = machine
+
+    machines.forEach (machine) ->
+      machineMap[machine.uid] = machine
+
+      addNodeFn = switch
+        when isMachineOwner user, machine
+          addOwnFn
+        when isMachineShared user, machine
+          addSharedFn
+
+      addNodeFn {machine}
 
     workspaceQueue = workspaces.map (workspace) ->
 
@@ -85,6 +97,7 @@ module.exports = class Sidebar extends bongo.Base
 
           filterQueue.fin()
 
+          return  unless err
           console.error \
             new KodingError "Sidebar decorate environment data: #{err}"
 
@@ -100,8 +113,17 @@ module.exports = class Sidebar extends bongo.Base
 
             successFn = makeSuccessFn addOwnFn
 
-            options = {user, machine, successFn, failureFn}
-            filterOwnWorkspace options
+            if isMachineOwner user, machine
+            then successFn()
+            else failureFn()
+
+          ->
+
+            successFn = makeSuccessFn addSharedFn
+
+            if isMachineShared user, machine
+            then successFn()
+            else failureFn()
         ]
 
         dash filterQueue, -> workspaceQueue.fin()
@@ -109,11 +131,19 @@ module.exports = class Sidebar extends bongo.Base
     dash workspaceQueue, callback
 
 
-  filterOwnWorkspace = (options) ->
+  isMachineOwner = (user, machine) ->
 
-    {user, machine, successFn, failureFn} = options
+    for u in machine.users
+      if u.owner and u.id.equals user.getId()
+        return yes
 
-    for u in machine.users when u.owner and u.id.equals user.getId()
-      return successFn()
+    return no
 
-    failureFn()
+
+  isMachineShared = (user, machine) ->
+
+    for u in machine.users
+      if (u.id.equals user.getId()) and u.permanent
+        return yes
+
+    return no
