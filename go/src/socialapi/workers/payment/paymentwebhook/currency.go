@@ -20,9 +20,7 @@ func formatPaypalAmount(currencyStr, amountStr string) string {
 
 func formatAmount(currency string, amount float64) string {
 	switch currency {
-	case "usd":
-		currency = "$"
-	case "USD":
+	case "USD", "usd":
 		currency = "$"
 	default:
 		Log.Error("Unknown currency: %v", currency)

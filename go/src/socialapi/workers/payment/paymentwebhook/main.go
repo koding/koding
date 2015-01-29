@@ -67,7 +67,7 @@ func main() {
 //----------------------------------------------------------
 
 func initializeRunner() *runner.Runner {
-	r := runner.New("paymenttest")
+	r := runner.New(WorkerName)
 	if err := r.Init(); err != nil {
 		Log.Fatal(err.Error())
 	}
