@@ -97,6 +97,7 @@ module.exports = class Sidebar extends bongo.Base
 
           filterQueue.fin()
 
+          return  unless err
           console.error \
             new KodingError "Sidebar decorate environment data: #{err}"
 
