@@ -89,10 +89,13 @@ class PrivateMessagePane extends MessagePane
     wasAtBottom = @isPageAtBottom()
     index       = @listController.getItemCount()
 
+    createdAt = new Date message.createdAt
     for item, i in @listController.getListItems() by -1
-      if not item.getData().isFake and new Date item.getData().createdAt < new Date message.createdAt
+      if not item.getData().isFake and (new Date item.getData().createdAt) < createdAt
         index = i + 1
         break
+
+    console.log "#{message.body} - received at #{index}, date = #{message.createdAt}, #{(new Date message.createdAt).getTime()}"
 
     item = @appendMessage message, index
 
@@ -132,6 +135,9 @@ class PrivateMessagePane extends MessagePane
 
     item = super message
     @scrollDown item
+
+    index = @listController.getListView().getItemIndex item
+    console.log "#{message.body} - entered at #{index}, date = #{message.createdAt}, #{(new Date message.createdAt).getTime()}"
 
 
   #

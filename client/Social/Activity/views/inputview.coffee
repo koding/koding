@@ -24,6 +24,18 @@ class ActivityInputView extends KDHitEnterInputView
 
     @emit 'Enter', value
 
+    if value.match '/pmtest'
+
+      [_, milliseconds, totalCount] = value.split ' '
+
+      count = 0
+      interval = KD.utils.repeat milliseconds, =>
+
+        return window.clearInterval interval  if count > totalCount
+
+        @emit 'Enter', "#{count}-#{KD.nick()}"
+        count++
+
 
   empty: ->
     @setValue ''
