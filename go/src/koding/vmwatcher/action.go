@@ -30,7 +30,7 @@ func stopVm(machineId, username, reason string) error {
 }
 
 func blockUserAndDestroyVm(machineId, username, reason string) error {
-	machines, err := modelhelper.GetMachinesForUsername(username)
+	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err
 	}

@@ -26,7 +26,7 @@ func stopMachinesForUser(customerId string, k *kite.Client) error {
 		return errUsernameEmpty(username)
 	}
 
-	machines, err := modelhelper.GetMachinesForUsername(username)
+	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err
 	}
