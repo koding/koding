@@ -36,6 +36,9 @@ koding.once 'dbClientReady', ->
   # Helpers
   # -------
 
+  logError = (err, index)->
+    console.log "ERROR on #{index}. >", err  if err?
+
   iterate = (cursor, func, index, callback)->
     cursor.nextObject (err, obj)->
       if err
@@ -129,18 +132,18 @@ koding.once 'dbClientReady', ->
     fetchDamn referral, (err, res) ->
 
       if err
-        console.log "ERROR>", err
+        logError err, index
         return callback null
 
       {referrer, referred} = res
 
       createMissingReward referral, {referrer, referred}, (err)->
-        console.log "ERROR>", err  if err
+        logError err, index
 
         [referrer, referred] = [referred, referrer]
 
         createMissingReward referral, {referrer, referred}, (err)->
-          console.log "ERROR>", err  if err
+          logError err, index
 
           callback null
 
