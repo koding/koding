@@ -37,28 +37,5 @@ func TestStripe(t *testing.T) {
 				So(recorder.Code, ShouldEqual, 200)
 			})
 		})
-
-		Convey("When webhook is implemented", func() {
-			body := []byte(`{
-				"type":"customer.subscription.created",
-				"data": {
-					"object": {
-						"plan": {
-							"name": "Developer"
-						},
-						"id": "ch_00000000000000",
-						"customer": "cus_00000000000000"
-					}
-				}
-			}`)
-
-			recorder, err := stripeTest(body)
-
-			So(err, ShouldBeNil)
-
-			Convey("Then it should return 200", func() {
-				So(recorder.Code, ShouldEqual, 200)
-			})
-		})
 	})
 }
