@@ -28,6 +28,11 @@ type Controller struct {
 func main() {
 	r := initializeRunner()
 
+	defer func() {
+		r.Close()
+		modelhelper.Close()
+	}()
+
 	conf := r.Conf
 	kloud := conf.Kloud
 
