@@ -17,13 +17,13 @@ class MoreVMsModal extends SidebarSearchModal
 
     @addButton = new KDButtonView
       title    : "Add VMs"
-      style    : 'solid green small'
+      style    : 'add-big-btn'
       loader   : yes
       callback : =>
         @addButton.showLoader()
         ComputeHelpers.handleNewMachineRequest @bound 'destroy'
 
-    @addSubView @addButton, '.kdmodal-title'
+    @addSubView @addButton, '.kdmodal-content'
 
 
   populate: ->

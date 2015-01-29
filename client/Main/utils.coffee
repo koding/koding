@@ -1030,12 +1030,14 @@ utils.extend utils,
     {type, endPoint, data, async} = options
     type = 'POST'  unless type
 
+    async or= yes
+
     return callback {message: "endPoint not set"}  unless endPoint
 
     xhr = new XMLHttpRequest()
     xhr.open type, endPoint, async
     xhr.setRequestHeader "Content-Type", "application/json;"
-    xhr.onreadystatechange = (result) =>
+    xhr.onload = (result) =>
       try
         response = JSON.parse xhr.responseText
       catch e

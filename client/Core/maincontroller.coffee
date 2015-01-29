@@ -208,32 +208,17 @@ class MainController extends KDController
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
     cookieChangeHandler = do (cookie = Cookies.get 'clientId') => =>
-      cookieExists = cookie?
-      cookieMatches = cookie is (Cookies.get 'clientId')
-      cookie = Cookies.get 'clientId'
+      cookieExists      = cookie?
+      cookieMatches     = cookie is (Cookies.get 'clientId')
 
-      if cookieExists and not cookieMatches
-        return @isLoggingIn off  if @isLoggingIn() is on
+      if not cookieExists or (cookieExists and not cookieMatches)
+        location.reload '/'
 
-        window.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
-        @emit "clientIdChanged"
+      @utils.wait 1000, cookieChangeHandler
 
-        # window location path is set to last route to ensure visitor is not
-        # redirected to another page
-        @utils.defer ->
-          lastRoute = localStorage?.routeToBeContinued or KD.getSingleton("router").visitedRoutes.last
-
-          if lastRoute and /^\/(?:Reset|Register|Verify|Confirm)\//.test lastRoute
-            lastRoute = "/Activity"
-
-          {entryPoint} = KD.config
-          KD.getSingleton('router').handleRoute lastRoute or '/Activity', {replaceState: yes, entryPoint}
-          localStorage?.removeItem "routeToBeContinued"
-
-        @utils.wait 3000, cookieChangeHandler
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625
-    @utils.wait 3000, cookieChangeHandler
+    @utils.wait 1000, cookieChangeHandler
 
   swapAccount: (options, callback) ->
     return { message: 'Login failed!' } unless options

@@ -6,6 +6,9 @@ class RealtimeController extends KDController
     # make another caching here
     @channels = {}
 
+    # this is used for discarding events that are received multiple times
+    @eventCache = {}
+
     @localStorage  = KD.getSingleton("localStorageController").storage "realtime"
 
     # each forbidden channel name is stored in local storage
@@ -17,14 +20,15 @@ class RealtimeController extends KDController
 
     {subscribekey, ssl} = KD.config.pubnub
 
-    @pubnub = PUBNUB.init
-      subscribe_key : subscribekey
-      uuid          : KD.whoami()._id
-      ssl           : ssl
+    if KD.isPubnubEnabled()
+      @pubnub = PUBNUB.init
+        subscribe_key : subscribekey
+        uuid          : KD.whoami()._id
+        ssl           : ssl
 
-    realtimeToken = Cookies.get("realtimeToken")
+      realtimeToken = Cookies.get("realtimeToken")
 
-    @pubnub.auth realtimeToken  if realtimeToken?
+      @pubnub.auth realtimeToken  if realtimeToken?
 
 
   # channel authentication is needed for notification channel and
@@ -163,8 +167,15 @@ class RealtimeController extends KDController
       @pubnub.subscribe
         channel : pubnubChannelName
         message : (message, env, channel) =>
+
           return  unless message
-          {eventName, body} = message
+
+          {eventName, body, eventId} = message
+
+          return  if @eventCache[eventId]
+
+          @eventCache[eventId] = yes
+
           # when a user is connected in two browsers, and leaves a channel, in second one
           # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
           # user from all connected devices.
@@ -181,6 +192,11 @@ class RealtimeController extends KDController
         error   : (err) =>
           @handleError err
           callback err
+        # with each channel subscription pubnub resubscribes to every channel
+        # and some messages are dropped in this resubscription time interval
+        # for this reason for every subscribe request, we are fetching all messages sent
+        # in last 3 seconds
+        timetoken: ((new Date()).getTime() - 3000) * 10000
         restore : yes
 
 
@@ -194,6 +210,10 @@ class RealtimeController extends KDController
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
     for channel in channels
+      # if somehow we are not able to subscribe to a channel (public access is not granted etc.)
+      # unsubscribe from that channel. Otherwise user will not be able to receive
+      # further realtime events
+      @pubnub.unsubscribe {channel}
       unless forbiddenChannels[channel]
         channelToken = channel.replace "channel-", ""
         forbiddenChannels[channel] = yes

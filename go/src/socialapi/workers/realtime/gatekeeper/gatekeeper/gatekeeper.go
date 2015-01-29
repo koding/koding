@@ -37,6 +37,7 @@ func (h *Handler) SubscribeChannel(u *url.URL, header http.Header, req *models.C
 	a := new(models.Authenticate)
 	a.Channel = models.NewPrivateMessageChannel(*res.Channel)
 	a.Account = res.Account
+	a.Account.Token = res.AccountToken
 
 	err = h.pubnub.Authenticate(a)
 	if err != nil {
