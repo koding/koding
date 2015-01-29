@@ -36,6 +36,8 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
+
+		w.WriteHeader(500)
 		return
 	}
 
@@ -48,12 +50,16 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(req.Data.Object)
 	if err != nil {
 		Log.Error("Error marshalling Stripe webhook '%v' : %v", s, err)
+
+		w.WriteHeader(500)
 		return
 	}
 
 	err = action(data, s.Controller)
 	if err != nil {
 		Log.Error("Stripe webhook: %s action failed: %s", req.Name, err)
+
+		w.WriteHeader(500)
 		return
 	}
 }
