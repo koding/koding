@@ -27,11 +27,7 @@ class RealtimeController extends KDController
         uuid          : KD.whoami()._id
         ssl           : ssl
 
-      @pubnub.time (serverTime) =>
-        diff = new Date() * 10000 - serverTime
-        # when time difference between pubnub server and client is less than 500ms
-        # ignore the difference
-        @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
+      @getTimeDiffWithServer()
 
       realtimeToken = Cookies.get("realtimeToken")
 
@@ -200,6 +196,7 @@ class RealtimeController extends KDController
         error   : (err) =>
           @handleError err
           callback err
+        reconnect: => @getTimeDiffWithServer()
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
@@ -209,6 +206,12 @@ class RealtimeController extends KDController
         timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
         restore : yes
 
+  getTimeDiffWithServer: ->
+    @pubnub.time (serverTime) =>
+      diff = new Date() * 10000 - serverTime
+      # when time difference between pubnub server and client is less than 500ms
+      # ignore the difference
+      @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
 
   handleError: (err) ->
     {message, payload} = err
