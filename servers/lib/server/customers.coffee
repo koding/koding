@@ -33,7 +33,7 @@ module.exports = (req, res) ->
     queue    = []
     response = {}
 
-    usernames.forEach (username)->
+    usernames[0..20].forEach (username)->
       queue.push -> JMachine.fetchByUsername username, (err, machines)->
         return err  if err
 
