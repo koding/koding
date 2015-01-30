@@ -37,10 +37,10 @@ class SidebarMachineBox extends KDView
       partial  : 'Workspaces'
       click    : =>
         modal = new MoreWorkspacesModal {}, @getData().workspaces
-        modal.once 'NewWorkspaceRequested', @bound 'showAddWorkspaceInput'
+        modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
 
 
-  showAddWorkspaceInput: ->
+  createAddWorkspaceInput: ->
 
     if @addWorkspaceView
       @addWorkspaceView.input.setFocus()
