@@ -29,6 +29,8 @@ class SidebarMachineBox extends KDView
     @listView = @listController.getView()
     @addSubView @listView
 
+    @collapseList()
+
 
   addWorkspace: (wsData) -> @listController.addItem wsData
 
