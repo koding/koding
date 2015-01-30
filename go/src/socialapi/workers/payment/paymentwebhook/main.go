@@ -50,9 +50,7 @@ func main() {
 	pp := &paypalMux{Controller: cont}
 
 	// initialize http server
-	mux := http.NewServeMux()
-	mux.Handle("/-/payments/stripe/webhook", st)
-	mux.Handle("/-/payments/paypal/webhook", pp)
+	mux := initializeMux(st, pp)
 
 	http.HandleFunc("/version", artifact.VersionHandler())
 	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
@@ -106,6 +104,14 @@ func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client
 
 func initializeEmail(conf config.Email) kodingemail.Client {
 	return kodingemail.NewSG(conf.Username, conf.Password)
+}
+
+func initializeMux(st *stripeMux, pp *paypalMux) *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.Handle("/-/payments/stripe/webhook", st)
+	mux.Handle("/-/payments/paypal/webhook", pp)
+
+	return mux
 }
 
 func getEmailForCustomer(customerId string) (string, error) {
