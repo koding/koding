@@ -72,3 +72,23 @@ class SidebarMachineBox extends KDView
 
     @addWorkspaceView.destroy()
     @addWorkspaceView = null
+
+
+  collapseList: ->
+
+    @listView.setClass 'hidden'
+    @workspacesLabel.setClass 'hidden'
+    @isListCollapsed = yes
+
+
+  expandList: ->
+
+    @listView.unsetClass 'hidden'
+    @workspacesLabel.unsetClass 'hidden'
+    @isListCollapsed = no
+
+
+
+  forEachWorkspaceItem: (callback) ->
+
+    callback item  for item in @listController.getItemsOrdered()
