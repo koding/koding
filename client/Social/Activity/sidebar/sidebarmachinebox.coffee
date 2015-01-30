@@ -46,11 +46,26 @@ class SidebarMachineBox extends KDView
       @addWorkspaceView.input.setFocus()
       return no
 
-    { machineUId, machineLabel } = @getData().machine
+    { machine } = @getData()
 
-    @addWorkspaceView = new AddWorkspaceView {}, { machineUId, machineLabel }
-    @addWorkspaceView.once 'KDObjectWillBeDestroyed', => @addWorkspaceView = null
+    data =
+      machineUId   : machine.uid
+      machineLabel : machine.label
+
+    @addWorkspaceView = new AddWorkspaceView {}, data
+
+    @addWorkspaceView.once 'KDObjectWillBeDestroyed', @bound 'removeAddWorkspaceInput'
+    @addWorkspaceView.once 'WorkspaceCreateFailed',   @bound 'removeAddWorkspaceInput'
+    @addWorkspaceView.once 'WorkspaceCreated', (ws) =>
+      @addWorkspace ws
+      @removeAddWorkspaceInput()
 
     @listController.getView().addSubView @addWorkspaceView
 
     KD.utils.wait 177, => @addWorkspaceView.input.setFocus()
+
+
+  removeAddWorkspaceInput: ->
+
+    @addWorkspaceView.destroy()
+    @addWorkspaceView = null

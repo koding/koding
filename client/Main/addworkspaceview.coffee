@@ -16,6 +16,9 @@ class AddWorkspaceView extends KDCustomHTMLView
       cssClass : 'cancel'
       click    : @bound 'destroy'
 
+    @once 'WorkspaceCreated',      @bound 'clearFlag'
+    @once 'WorkspaceCreateFailed', @bound 'clearFlag'
+
 
   click: -> return no
 
@@ -33,16 +36,10 @@ class AddWorkspaceView extends KDCustomHTMLView
         name         : @input.getValue()
         machineUId   : data.machineUId
         machineLabel : data.machineLabel
+        eventObj     : this # dirty vibe!
 
-      {activitySidebar}  = KD.getSingleton 'mainView'
+      IDE.helpers.createWorkspace options
       @hasPendingRequest = yes
 
-      activitySidebar.createNewWorkspace options
 
-      activitySidebar.once 'WorkspaceCreated',      @bound 'clearFlag'
-      activitySidebar.once 'WorkspaceCreateFailed', @bound 'clearFlag'
-
-
-  clearFlag: ->
-
-    KD.utils.defer => @hasPendingRequest = no
+  clearFlag: -> KD.utils.defer => @hasPendingRequest = no
