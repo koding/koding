@@ -1,8 +1,9 @@
 package main
 
 import (
-	"koding/kodingemail"
 	"socialapi/workers/payment/paymentemail"
+
+	"github.com/koding/kodingemail"
 )
 
 func subscriptionEmail(customerId, planName string, action paymentemail.Action, email kodingemail.Client) error {

@@ -2,7 +2,8 @@ package paymentemail
 
 import (
 	"fmt"
-	"koding/kodingemail"
+
+	"github.com/koding/kodingemail"
 )
 
 // these are template ids in sendgrid, these are hardcoded here

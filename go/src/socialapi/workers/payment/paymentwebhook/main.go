@@ -3,7 +3,6 @@ package main
 import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
-	"koding/kodingemail"
 	"net/http"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
@@ -11,6 +10,8 @@ import (
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
+
+	"github.com/koding/kodingemail"
 
 	"github.com/koding/kite"
 )
