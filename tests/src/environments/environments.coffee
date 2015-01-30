@@ -40,3 +40,30 @@ module.exports =
           .waitForElementVisible  '#container', 20000
           .waitForElementVisible  '#container .hellobox', 20000
           .end()
+
+
+  turnOffVm: (browser) ->
+
+    linkSelector = modalSelector + ' .statustoggle .input-wrapper'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    openVmSettingsModal(browser)
+
+    browser
+      .waitForElementVisible   linkSelector, 20000
+      .waitForElementVisible   linkSelector + ' .koding-on-off a.knob', 20000
+      .click                   linkSelector + ' .koding-on-off a.knob'
+      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopping', 20000
+      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopped', 300000
+      .waitForElementVisible   '.env-machine-state .kdmodal-content .turn-on.state-button', 20000 # Assertion
+      .end()
+
+
+  turnOnVm: (browser)->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    browser.end()
+

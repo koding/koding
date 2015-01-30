@@ -1,8 +1,11 @@
 package protocol
 
 import (
+	"koding/db/models"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
+
+	"github.com/koding/kite"
 )
 
 // Provider manages a machine, it's start/stop/destroy/restart a machine.
@@ -35,6 +38,12 @@ type Provider interface {
 	Info(*Machine) (*InfoArtifact, error)
 }
 
+// Validator validates a machine before passing it to the provider's
+// appropriate method call.
+type Validator interface {
+	Validate(machine *Machine, request *kite.Request) error
+}
+
 // Machine is used as a data source for the appropriate interfaces
 // provided by the Kloud package. A context is gathered by the Storage
 // interface.
@@ -47,6 +56,13 @@ type Machine struct {
 
 	// Username defines the owner of the machine
 	Username string
+
+	// User information.
+	User *models.User
+
+	// SharedUsers contain a list of users that have access to this machine.
+	// The list can contains the machine owner too.
+	SharedUsers []models.Permissions
 
 	// Provider defines the provider in which the data is used to be operated.
 	Provider string

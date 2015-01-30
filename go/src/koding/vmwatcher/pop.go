@@ -19,7 +19,7 @@ func popMachine(key, subkey string) ([]*models.Machine, error) {
 		return nil, err
 	}
 
-	machines, err := modelhelper.GetMachinesForUsername(username)
+	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return nil, err
 	}

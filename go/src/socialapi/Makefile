@@ -33,11 +33,6 @@ ifdef port
 	PORT="-port=$(port)"
 endif
 
-# set kite
-ifdef kite
-	KITE="-kite-init=true"
-endif
-
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -61,10 +56,15 @@ develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notifica
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
+paymentwebhookdev:
+	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
+	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(METRICS)
+
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS) $(KITE)
+	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS)
 
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
@@ -262,6 +262,14 @@ testapi:
 	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
 	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./generator.test
+
+	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/paymentwebhook/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
+	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
 doc:
 	@for package in $(PACKAGES); \
