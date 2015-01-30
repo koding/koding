@@ -33,11 +33,15 @@ module.exports = (req, res) ->
     queue    = []
     response = {}
 
-    for username in usernames
+    usernames.forEach (username)->
       queue.push -> JMachine.fetchByUsername username, (err, machines)->
         return err  if err
 
-        response[username] = machines.map (machine)-> machine.data.slug
+        slugs = []
+        machines.forEach (machine)->
+          slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
+
+        response[username] = slugs
         queue.fin()
 
     dash queue, -> res.status(200).send response
