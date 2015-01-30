@@ -49,4 +49,9 @@ class IDE.FinderTreeController extends NFinderTreeController
     eventObj     = this
     options      = { name, machineUId, rootPath, machineLabel, eventObj }
 
-    KD.getSingleton('mainView').activitySidebar.createNewWorkspace options
+    IDE.helpers.createWorkspace options
+
+    @once 'WorkspaceCreated', (workspace) =>
+      { activitySidebar } = KD.singletons.mainView
+      machineBox = activitySidebar.getMachineBoxByMachineUId machineUId
+      machineBox.addWorkspace workspace
