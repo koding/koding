@@ -74,14 +74,14 @@ class ActivityInputWidget extends KDView
 
     options = { channelId, body, payload, clientRequestId }
 
-    @addToQueue options, !!activity
+    @addToQueue options, activity?
 
     @emit 'SubmitStarted', body, clientRequestId
 
 
   addToQueue: (options, performUpdate) ->
 
-    queueItem           = { options, performUpdate }
+    queueItem = { options, performUpdate }
 
     @activityQueue.push queueItem
 
@@ -106,11 +106,14 @@ class ActivityInputWidget extends KDView
       @emit 'SubmitSucceeded', activity
       KD.mixpanel "Status update create, success", { length: activity?.body?.length }
 
-    queueIndex = (index for item, index in @activityQueue when item.options.clientRequestId is activity?.clientRequestId)[0]
+    queueIndex = null
+    for {options}, index in @activityQueue when options.clientRequestId is activity?.clientRequestId
+      queueIndex = index
+      break
 
     @activityQueue.splice queueIndex, 1  if queueIndex?
 
-    @startSubmission @activityQueue[0]  if @activityQueue.length > 0
+    @startSubmission @activityQueue.first  if @activityQueue.length > 0
 
 
   create: (options, callback) ->

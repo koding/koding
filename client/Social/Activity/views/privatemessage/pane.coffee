@@ -88,8 +88,15 @@ class PrivateMessagePane extends MessagePane
 
     wasAtBottom = @isPageAtBottom()
     index       = @listController.getItemCount()
+    createdAt   = new Date message.createdAt
 
-    createdAt = new Date message.createdAt
+    ###
+    Insert incoming message at a postion in the list according to its creation date.
+    It needs for the case of multiple messages coming almost at the same time
+    when we can't be sure what message is earlier or later.
+    Also, it handles the case of fake messages - we should insert incoming message
+    before them because we haven't got response for them yet
+    ###
     for item, i in @listController.getListItems() by -1
       if not item.getData().isFake and (new Date item.getData().createdAt) < createdAt
         index = i + 1
