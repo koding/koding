@@ -69,7 +69,7 @@ class ActivitySidebar extends KDCustomHTMLView
       .on 'RenderMachines',            @bound 'renderMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
-    @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
+    # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
   # event handling
@@ -504,59 +504,59 @@ class ActivitySidebar extends KDCustomHTMLView
 
   listMachines: (machines) ->
 
-    treeData = []
-    nickname = KD.nick()
+    # treeData = []
+    # nickname = KD.nick()
 
-    for machine in machines
+    # for machine in machines
 
-      treeData.push machine
+    #   treeData.push machine
 
-      unless machine.isPermanent()
-        treeData.push
-          title        : 'Workspaces'
-          type         : 'title'
-          parentId     : machine.getId()
-          id           : machine.getData().getId()
-          machineUId   : machine.uid
-          machineLabel : machine.slug or machine.label
+    #   unless machine.isPermanent()
+    #     treeData.push
+    #       title        : 'Workspaces'
+    #       type         : 'title'
+    #       parentId     : machine.getId()
+    #       id           : machine.getData().getId()
+    #       machineUId   : machine.uid
+    #       machineLabel : machine.slug or machine.label
 
-      ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
-      machineOwner = machine.getOwner()
-      isMyMachine  = machine.isMine()
-      ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
-      hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
+    #   ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
+    #   machineOwner = machine.getOwner()
+    #   isMyMachine  = machine.isMine()
+    #   ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
+    #   hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
-      if machine.isMine() and not hasWorkspace
-        KD.userWorkspaces.push @getDummyWorkspace machine
+    #   if machine.isMine() and not hasWorkspace
+    #     KD.userWorkspaces.push @getDummyWorkspace machine
 
-      @sortWorkspaces KD.userWorkspaces
+    #   @sortWorkspaces KD.userWorkspaces
 
-      KD.userWorkspaces.forEach (workspace) ->
+    #   KD.userWorkspaces.forEach (workspace) ->
 
-        unless workspace instanceof KD.remote.api.JWorkspace
-          workspace = KD.remote.revive workspace
+    #     unless workspace instanceof KD.remote.api.JWorkspace
+    #       workspace = KD.remote.revive workspace
 
-        if workspace.machineUId is machine.uid
-          ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-          title    = "#{workspace.name}"
+    #     if workspace.machineUId is machine.uid
+    #       ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+    #       title    = "#{workspace.name}"
 
-          unless isMyMachine
-            if channelId = workspace.channelId
-            then ideRoute = "/IDE/#{channelId}"
-            else
-              return
+    #       unless isMyMachine
+    #         if channelId = workspace.channelId
+    #         then ideRoute = "/IDE/#{channelId}"
+    #         else
+    #           return
 
-          if not workspace.isDefault or workspace.slug isnt 'my-workspace'
-            title += "<span class='ws-settings-icon'></span>"
+    #       if not workspace.isDefault or workspace.slug isnt 'my-workspace'
+    #         title += "<span class='ws-settings-icon'></span>"
 
-          treeData.push
-            title        : title
-            type         : 'workspace'
-            href         : ideRoute
-            machineLabel : machine.slug or machine.label
-            data         : workspace
-            id           : workspace._id
-            parentId     : machine.getId()
+    #       treeData.push
+    #         title        : title
+    #         type         : 'workspace'
+    #         href         : ideRoute
+    #         machineLabel : machine.slug or machine.label
+    #         data         : workspace
+    #         id           : workspace._id
+    #         parentId     : machine.getId()
 
     # for data in treeData
 
@@ -564,7 +564,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     #   @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
 
-    @emit 'MachinesListed'
+    # @emit 'MachinesListed'
 
 
   getDummyWorkspace: (machine) ->
@@ -724,24 +724,25 @@ class ActivitySidebar extends KDCustomHTMLView
 
       @machineLists.push @ownMachinesList
 
-  handleMachineItemClick: (machineItem, event) ->
 
-    machine  = machineItem.getData()
-    {status} = machine
-    {Building, Running} = Machine.State
+  # handleMachineItemClick: (machineItem, event) ->
 
-    @activityLink?.unsetClass 'selected'
+  #   machine  = machineItem.getData()
+  #   {status} = machine
+  #   {Building, Running} = Machine.State
 
-    if event.target.nodeName is 'SPAN'
+  #   @activityLink?.unsetClass 'selected'
 
-      if status?.state is Running
-        KD.utils.stopDOMEvent event
-        KD.singletons.mainView.openMachineModal machine, machineItem
-      else return
+  #   if event.target.nodeName is 'SPAN'
 
-    else if machineItem.getData().status?.state is Machine.State.Building
+  #     if status?.state is Running
+  #       KD.utils.stopDOMEvent event
+  #       KD.singletons.mainView.openMachineModal machine, machineItem
+  #     else return
 
-      return
+  #   else if machineItem.getData().status?.state is Machine.State.Building
+
+  #     return
 
 
   # handleMoreVMsClick: (ev) ->
@@ -753,14 +754,14 @@ class ActivitySidebar extends KDCustomHTMLView
   #   else new MoreVMsModal {}, KD.userMachines
 
 
-  handleMoreWorkspacesClick: (data) ->
-    workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
-      workspace.machineLabel = data.machineLabel
-      workspace
+  # handleMoreWorkspacesClick: (data) ->
+  #   workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
+  #     workspace.machineLabel = data.machineLabel
+  #     workspace
 
-    data.workspaces = workspaces or []
+  #   data.workspaces = workspaces or []
 
-    new MoreWorkspacesModal {}, data
+  #   new MoreWorkspacesModal {}, data
 
 
   addFollowedTopics: ->
@@ -862,94 +863,95 @@ class ActivitySidebar extends KDCustomHTMLView
         .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
-  addNewWorkspace: (machineData) ->
-    return if @addWorkspaceView
+  # addNewWorkspace: (machineData) ->
+  #   return if @addWorkspaceView
 
-    {machineUId, machineLabel, delegate} = machineData
-    type     = 'new-workspace'
-    parentId = machineUId
-    id       = "#{machineUId}-input"
-    data     = { type, machineUId, machineLabel, parentId, id }
-    tree     = @machineTree
+  #   {machineUId, machineLabel, delegate} = machineData
+  #   type     = 'new-workspace'
+  #   parentId = machineUId
+  #   id       = "#{machineUId}-input"
+  #   data     = { type, machineUId, machineLabel, parentId, id }
+  #   tree     = @machineTree
 
-    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
+  #   @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
-    @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
-      delegate.removeItem @addWorkspaceView
-      @addWorkspaceView = null
+  #   @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
+  #     delegate.removeItem @addWorkspaceView
+  #     @addWorkspaceView = null
 
-    KD.utils.wait 177, => @addWorkspaceView.child.input.setFocus()
+  #   KD.utils.wait 177, => @addWorkspaceView.child.input.setFocus()
 
 
-  createNewWorkspace: (options = {}) ->
-    {name, machineUId, rootPath, machineLabel} = options
-    {computeController, router } = KD.singletons
-    layout = {}
+  # createNewWorkspace: (options = {}) ->
 
-    if not name or not machineUId
-      return warn 'Missing options to create a new workspace'
+  #   {name, machineUId, rootPath, machineLabel} = options
+  #   {computeController, router } = KD.singletons
+  #   layout = {}
 
-    machine = m for m in computeController.machines when m.uid is machineUId
-    data    = { name, machineUId, machineLabel, rootPath, layout }
+  #   if not name or not machineUId
+  #     return warn 'Missing options to create a new workspace'
 
-    return warn "Machine not found."  unless machine
+  #   machine = m for m in computeController.machines when m.uid is machineUId
+  #   data    = { name, machineUId, machineLabel, rootPath, layout }
 
-    KD.remote.api.JWorkspace.create data, (err, workspace) =>
-      if err
-        @emit 'WorkspaceCreateFailed'
-        return KD.showError "Couldn't create your new workspace"
+  #   return warn "Machine not found."  unless machine
 
-      folderOptions  =
-        type         : 'folder'
-        path         : workspace.rootPath
-        recursive    : yes
-        samePathOnly : yes
+  #   KD.remote.api.JWorkspace.create data, (err, workspace) =>
+  #     if err
+  #       @emit 'WorkspaceCreateFailed'
+  #       return KD.showError "Couldn't create your new workspace"
 
-      machine.fs.create folderOptions, (err, folder) =>
-        if err
-          @emit 'WorkspaceCreateFailed'
-          return KD.showError "Couldn't create your new workspace"
+  #     folderOptions  =
+  #       type         : 'folder'
+  #       path         : workspace.rootPath
+  #       recursive    : yes
+  #       samePathOnly : yes
 
-        filePath   = "#{workspace.rootPath}/README.md"
-        readMeFile = FSHelper.createFileInstance { path: filePath, machine }
+  #     machine.fs.create folderOptions, (err, folder) =>
+  #       if err
+  #         @emit 'WorkspaceCreateFailed'
+  #         return KD.showError "Couldn't create your new workspace"
 
-        readMeFile.save IDE.contents.workspace, (err) =>
-          if err
-            @emit 'WorkspaceCreateFailed'
-            return KD.showError "Couldn't create your new workspace"
+  #       filePath   = "#{workspace.rootPath}/README.md"
+  #       readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-          for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
-            parentId = nodeData.id
+  #       readMeFile.save IDE.contents.workspace, (err) =>
+  #         if err
+  #           @emit 'WorkspaceCreateFailed'
+  #           return KD.showError "Couldn't create your new workspace"
 
-          view    = @addWorkspaceView
-          data    =
-            title : "#{workspace.name} <span class='ws-settings-icon'></span>"
-            type  : 'workspace'
-            href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-            data  : workspace
-            id    : workspace._id
-            machineLabel : machineLabel
-            parentId: parentId
+  #         for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+  #           parentId = nodeData.id
 
-          if view
-            list  = view.getDelegate()
-            list.removeItem view  if view
-          else
-            for key, node of @machineTree.nodes when node.type is 'title'
-              list = node.getDelegate()
+  #         view    = @addWorkspaceView
+  #         data    =
+  #           title : "#{workspace.name} <span class='ws-settings-icon'></span>"
+  #           type  : 'workspace'
+  #           href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+  #           data  : workspace
+  #           id    : workspace._id
+  #           machineLabel : machineLabel
+  #           parentId: parentId
 
-          KD.userWorkspaces.push workspace
-          @sortWorkspaces KD.userWorkspaces
+  #         if view
+  #           list  = view.getDelegate()
+  #           list.removeItem view  if view
+  #         else
+  #           for key, node of @machineTree.nodes when node.type is 'title'
+  #             list = node.getDelegate()
 
-          index = 1 + KD.userWorkspaces
-            .filter (w) -> w.machineUId is machine.uid
-            .map    (w) -> w.slug
-            .indexOf workspace.slug
+  #         KD.userWorkspaces.push workspace
+  #         @sortWorkspaces KD.userWorkspaces
 
-          @machineTree.addNode data, index
+  #         index = 1 + KD.userWorkspaces
+  #           .filter (w) -> w.machineUId is machine.uid
+  #           .map    (w) -> w.slug
+  #           .indexOf workspace.slug
 
-          router.handleRoute data.href
-          @emit 'WorkspaceCreated', workspace
+  #         @machineTree.addNode data, index
+
+  #         router.handleRoute data.href
+  #         @emit 'WorkspaceCreated', workspace
 
 
   updateMachineTree: (callback = noop) ->
