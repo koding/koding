@@ -109,14 +109,16 @@ func checkThrottle(channelId, requesterId int64) error {
 	return nil
 }
 
-func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-
+func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	if err := req.ById(id); err != nil {
+	cm := models.NewChannelMessage()
+	cm.Id = id
+
+	if err := cm.ById(id); err != nil {
 		if err == bongo.RecordNotFound {
 			return response.NewNotFound()
 		}
@@ -124,7 +126,7 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 
 	// if this is a reply no need to delete it's replies
-	if req.TypeConstant == models.ChannelMessage_TYPE_REPLY {
+	if cm.TypeConstant == models.ChannelMessage_TYPE_REPLY {
 		mr := models.NewMessageReply()
 		mr.ReplyId = id
 		parent, err := mr.FetchParent()
@@ -133,12 +135,12 @@ func Delete(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 		}
 
 		// delete the message here
-		err = req.DeleteMessageAndDependencies(false)
+		err = cm.DeleteMessageAndDependencies(false)
 		// then invalidate the cache of the parent message
 		bongo.B.AddToCache(parent)
 
 	} else {
-		err = req.DeleteMessageAndDependencies(true)
+		err = cm.DeleteMessageAndDependencies(true)
 	}
 
 	if err != nil {
