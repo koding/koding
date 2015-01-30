@@ -2,7 +2,7 @@ class AddWorkspaceView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'add-workspace-view'
+    options.cssClass = 'add-workspace-view kdlistitemview-main-nav workspace'
 
     super options, data
 
@@ -39,10 +39,10 @@ class AddWorkspaceView extends KDCustomHTMLView
 
       activitySidebar.createNewWorkspace options
 
-      activitySidebar.once 'WorkspaceCreated', @bound 'clearFlag'
-
+      activitySidebar.once 'WorkspaceCreated',      @bound 'clearFlag'
       activitySidebar.once 'WorkspaceCreateFailed', @bound 'clearFlag'
 
 
   clearFlag: ->
+
     KD.utils.defer => @hasPendingRequest = no

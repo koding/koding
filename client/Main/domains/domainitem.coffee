@@ -20,7 +20,7 @@ class DomainItem extends KDListItemView
     unless domain is topDomain
       @addSubView new KDCustomHTMLView
         tagName  : 'span'
-        cssClass : 'remove-domain'
+        cssClass : 'remove'
         click    : =>
           @getDelegate().emit 'DeleteDomainRequested', this
 

@@ -31,14 +31,17 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
       warn err  if err?
 
-      if not verified
-      then @buildVerifyView()
-      else
-        KD.singletons.paymentController.subscriptions (err, subscription)=>
-          warn err  if err?
-          if subscription?.state is 'expired'
-          then @buildExpiredView subscription
-          else @buildInitial()
+      unless verified
+        return @buildVerifyView()
+
+      unless @machine.isApproved()
+        return @buildApproveView()
+
+      KD.singletons.paymentController.subscriptions (err, subscription)=>
+        warn err  if err?
+        if subscription?.state is 'expired'
+        then @buildExpiredView subscription
+        else @buildInitial()
 
 
   triggerEventTimer: (percentage)->
@@ -243,6 +246,49 @@ class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
     @container.addSubView @codeEntryView
     @container.addSubView @button
+
+
+  buildApproveView: ->
+
+    @container.destroySubViews()
+
+    @approveButton = new KDButtonView
+      title    : 'Approve'
+      cssClass : 'solid medium green plan-change-button'
+      callback : =>
+        @showBusy "Working..."
+        @machine.jMachine.approve (err)=>
+          unless KD.showError err
+            @_busy = no
+            @buildInitial()
+
+    @denyButton = new KDButtonView
+      title    : 'Deny'
+      cssClass : 'solid medium green plan-change-button downgrade'
+      callback : =>
+
+        @showBusy "Working..."
+
+        @machine.jMachine.deny (err)->
+          {computeController, router} = KD.singletons
+
+          @_busy = no
+
+          unless KD.showError err
+            computeController.once 'RenderMachines', ->
+              router.handleRoute '/IDE'
+            computeController.reset yes
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'expired-message'
+      partial  : """
+        <h1>A Shared VM</h1>
+        <p>This machine is shared with you by <b>#{@machine.getOwner()}</b>.
+        You need to approve this action before start using this machine.</p>
+      """
+
+    @container.addSubView @approveButton
+    @container.addSubView @denyButton
 
 
   buildExpiredView: (subscription, nextState)->

@@ -45,6 +45,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue  : running
           itemClass     : KodingSwitch
           cssClass      : "tiny"
+          disabled      : data.isPermanent?()
           callback      : (state) => @emit 'StateChange', state
           nextElement   :
             statusLoader:
@@ -77,12 +78,16 @@ class MachineSettingsPopup extends KDModalViewWithForms
         moreView        :
           label         : "More"
           itemClass     : KDCustomHTMLView
+          cssClass      : if data.isPermanent() then 'hidden'
 
     super options, data
 
     { computeController } = KD.singletons
 
+    @isPaidAccount = no
     @machine = @getData()
+
+    @setClass 'read-only'  if @machine.isPermanent()
 
     @on 'StateChange', (state)=>
       if state then computeController.start @machine
@@ -167,6 +172,12 @@ class MachineSettingsPopup extends KDModalViewWithForms
         statusToggle.setOff no
         statusToggle.show()
 
+    if @machine.isPermanent()
+      statusToggle.setTooltip
+        title     : 'Only owners can change machine state.'
+        placement : 'right'
+
+      return
 
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
 
@@ -199,13 +210,23 @@ class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : @machine.alwaysOn
           cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        sharedWith     :
+          label        : "
+            VM Shared With
+            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+              <span class='help'></span>
+            </a>
+            <span class='toggle'></span>
+          "
+          itemClass    : ManageSharedView
+          machine      : @machine
         domains        :
           label        : "
             Domains
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
-              <span class='domain-help'></span>
+              <span class='help'></span>
             </a>
-            <span class='domain-toggle'></span>
+            <span class='toggle'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine
@@ -213,22 +234,41 @@ class MachineSettingsPopup extends KDModalViewWithForms
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
 
-    {advancedView, domains} = @moreForm.inputs
+    {advancedView, domains, sharedWith} = @moreForm.inputs
     advancedLabel = advancedView.getOption 'label'
 
     advancedLabel.on 'click', =>
       advancedLabel.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
-    {label} = domains.getOptions()
+    domainLabel = domains.getOption 'label'
 
-    label.on 'click', (event)->
-      return  unless $(event.target).hasClass 'domain-toggle'
-      label.toggleClass 'expanded'
+    domainLabel.on 'click', (event)->
+      return  unless $(event.target).hasClass 'toggle'
+      domainLabel.toggleClass 'expanded'
       domains.toggleInput()
 
     domains.on 'DomainInputCancelled', ->
-      label.unsetClass 'expanded'
+      domainLabel.unsetClass 'expanded'
+
+    shareVMLabel = sharedWith.getOption 'label'
+
+    shareVMLabel.on 'click', (event)=>
+      return  unless $(event.target).hasClass 'toggle'
+
+      unless @isPaidAccount
+        KD.utils.defer =>
+          new ComputeErrorModal.Usage
+            plan    : 'free'
+            message : 'VM share feature is only available for paid accounts.'
+        @destroy()
+
+      else
+        shareVMLabel.toggleClass 'expanded'
+        sharedWith.toggleInput()
+
+    sharedWith.on 'UserInputCancelled', ->
+      shareVMLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'
@@ -240,33 +280,26 @@ class MachineSettingsPopup extends KDModalViewWithForms
         computeController.reinit @machine
         @destroy()
 
-    @buttonContainer.addSubView @resizeButton = new KDButtonView
-      style    : 'solid compact green resize hidden'
-      title    : 'Resize VM'
-      callback : =>
-        computeController.resize @machine, 10
-        @destroy()
-
-    @buttonContainer.addSubView @terminateButton = new KDButtonView
-      style    : 'solid compact red'
-      title    : 'Terminate VM'
-      callback : =>
-        computeController.destroy @machine
-        @destroy()
-
     @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position : top : 20
 
     computeController.fetchUserPlan (plan)=>
 
-      if plan in ['free', 'hobbyist']
-        @terminateButton.hide()
+      @isPaidAccount = plan isnt 'free'
 
-        if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
-          @resizeButton.show()
+      if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
+        @buttonContainer.addSubView @resizeButton = new KDButtonView
+          style    : 'solid compact green resize'
+          title    : 'Resize VM'
+          callback : =>
+            computeController.resize @machine, 10
+            @destroy()
 
-
-  shareMachineWithUser: (username) ->
-    @machine.jMachine.shareWith target: username
-    @machine.getBaseKite().klientShare { username }
+      unless plan is 'free'
+        @buttonContainer.addSubView @terminateButton = new KDButtonView
+          style    : 'solid compact red'
+          title    : 'Terminate VM'
+          callback : =>
+            computeController.destroy @machine
+            @destroy()

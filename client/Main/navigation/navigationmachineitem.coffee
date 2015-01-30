@@ -22,7 +22,11 @@ class NavigationMachineItem extends JView
         if ws.machineUId is machine.uid and ws.channelId
           channelId = ws.channelId
 
-      ideRoute = "/IDE/#{channelId}"
+      ideRoute = if channelId
+        "/IDE/#{channelId}"
+      else
+        "/IDE/#{machine.uid}/my-workspace"
+
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
@@ -53,6 +57,10 @@ class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
+    @settingsIcon = new KDCustomHTMLView
+      tagName     : 'span'
+      click       : @bound 'handleMachineSettingsClick'
+
     KD.singletons.computeController
 
       .on "public-#{@machine._id}", (event)=>
@@ -72,6 +80,19 @@ class NavigationMachineItem extends JView
       #   @setAttributes
       #     href   : newPath
       #     title  : "Open IDE for #{@alias}"
+
+
+  handleMachineSettingsClick: (event) ->
+
+    machine    = @getData()
+    { status } = machine
+    { Building, Running } = Machine.State
+
+    KD.utils.stopDOMEvent event
+
+    if status?.state is Running
+      KD.singletons.mainView.openMachineModal machine, this
+    else return
 
 
   handleMachineEvent: (event) ->
@@ -112,6 +133,6 @@ class NavigationMachineItem extends JView
     return """
       <figure></figure>
       {{> @label}}
-      <span></span>
+      {{> @settingsIcon}}
       {{> @progress}}
     """
