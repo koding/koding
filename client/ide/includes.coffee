@@ -59,6 +59,8 @@ module.exports = [
   "views/statusbar/avatarview.coffee"
   "views/statusbar/chatheadwatchitemview.coffee"
 
+  "helpers/helpers.coffee"
+
   # misc views
   "views/basesplitview.coffee"
 
