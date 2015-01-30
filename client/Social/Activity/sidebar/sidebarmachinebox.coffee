@@ -90,6 +90,19 @@ class SidebarMachineBox extends KDView
     @isListCollapsed = no
 
 
+  selectWorkspace: (workspace) ->
+
+    @expandList()
+    @deselectWorkspaces()
+    @forEachWorkspaceItem (item) ->
+      if item.getData().slug is workspace.slug
+        item.setClass 'selected'
+
+
+  deselectWorkspaces: ->
+
+    @forEachWorkspaceItem (item) -> item.unsetClass 'selected'
+
 
   forEachWorkspaceItem: (callback) ->
 
