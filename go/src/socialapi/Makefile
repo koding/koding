@@ -263,6 +263,11 @@ testapi:
 	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./generator.test
 
+	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/paymentwebhook/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
 doc:
 	@for package in $(PACKAGES); \
 	do \
