@@ -26,7 +26,8 @@ class SidebarMachineBox extends KDView
 
     @addWorkspace ws  for ws in workspaces
 
-    @addSubView @listController.getView()
+    @listView = @listController.getView()
+    @addSubView @listView
 
 
   addWorkspace: (wsData) -> @listController.addItem wsData
@@ -62,7 +63,7 @@ class SidebarMachineBox extends KDView
       @addWorkspace ws
       @removeAddWorkspaceInput()
 
-    @listController.getView().addSubView @addWorkspaceView
+    @listView.addSubView @addWorkspaceView
 
     KD.utils.wait 177, => @addWorkspaceView.input.setFocus()
 
