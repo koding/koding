@@ -20,6 +20,7 @@ module.exports = [
   "sidebar/sidebarmachinebox.coffee"
   "sidebar/sidebarmachinelist.coffee"
   "sidebar/sidebarownmachineslist.coffee"
+  "sidebar/sidebarworkspaceitem.coffee"
   "sidebar/vmitem.coffee"
   "sidebar/modalworkspaceitem.coffee"
   "sidebar/messageitem.coffee"
