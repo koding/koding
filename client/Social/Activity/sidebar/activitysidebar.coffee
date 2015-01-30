@@ -602,6 +602,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
   selectWorkspace: (data) ->
 
+    box = @getMachineBoxByMachineUId data.machine.uid
+    box?.selectWorkspace data.workspace
+
     # data = @latestWorkspaceData or {}  unless data
     # { workspace, machine } = data
 
