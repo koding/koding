@@ -22,10 +22,12 @@ class SidebarMachineBox extends KDView
       itemClass     : NavigationWorkspaceItem
       itemOptions   : { machine }
 
-    for ws in workspaces
-      @listController.addItem ws
+    @addWorkspace ws  for ws in workspaces
 
     @addSubView @listController.getView()
+
+
+  addWorkspace: (wsData) -> @listController.addItem wsData
 
 
   createWorkspacesLabel: ->
