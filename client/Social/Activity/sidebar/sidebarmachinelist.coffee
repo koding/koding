@@ -9,6 +9,12 @@ class SidebarMachineList extends KDCustomHTMLView
 
     super options, data
 
+    @createHeader()
+    @addMachineBoxes()
+
+
+  createHeader: ->
+
     @header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
@@ -25,6 +31,9 @@ class SidebarMachineList extends KDCustomHTMLView
 
     @addSubView @header
 
+
+  addMachineBoxes: ->
+
     @machineBoxes = []
 
     for machineData in data
@@ -32,4 +41,3 @@ class SidebarMachineList extends KDCustomHTMLView
       machineBox = new SidebarMachineBox {}, machineData
       @addSubView machineBox
       @machineBoxes.push machineBox
-
