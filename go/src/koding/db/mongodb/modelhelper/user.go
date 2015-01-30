@@ -113,3 +113,12 @@ func RemoveUser(username string) error {
 
 	return Mongo.Run(UserColl, query)
 }
+
+func GetUserByAccountId(id string) (*models.User, error) {
+	account, err := GetAccountById(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetUser(account.Profile.Nickname)
+}

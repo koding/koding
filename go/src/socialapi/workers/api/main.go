@@ -61,7 +61,7 @@ func main() {
 		go setDefaults(r.Log)
 	}
 
-	payment.Initialize(config.MustGet(), r.Kite)
+	payment.Initialize(config.MustGet())
 
 	r.Listen()
 	r.Wait()

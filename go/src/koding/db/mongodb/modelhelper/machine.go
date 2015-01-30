@@ -76,7 +76,7 @@ func GetRunningVms() ([]models.Machine, error) {
 	return machines, nil
 }
 
-func GetMachinesForUsername(username string) ([]*models.Machine, error) {
+func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
 		return nil, err

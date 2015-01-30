@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"testing"
 	"time"
 
@@ -22,8 +23,8 @@ func TestSubscriptionDeletedWebhook(t *testing.T) {
 		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
 			subscriptionProviderId := subscription.ProviderSubscriptionId
 
-			data := rawSubscriptionDeletedData(subscriptionProviderId)
-			err := SubscriptionDeletedWebhook(data)
+			req := &webhookmodels.StripeSubscription{ID: subscriptionProviderId}
+			err := SubscriptionDeletedWebhook(req)
 
 			Convey("When webhook is fired after third failed invoice", func() {
 				Convey("Then customer subscription is marked as expired", func() {
@@ -46,44 +47,41 @@ var (
 	periodEnd   int64 = 1476645845
 )
 
-func rawInvoiceCreatedData(subscriptionId string) ([]byte, string) {
+func rawInvoiceCreatedData(subscriptionId string) (*webhookmodels.StripeInvoice, string) {
 	planProviderId := LowerPlanProviderId
 
-	raw := `{
-		"id": "in_00000000000000",
-		"lines": {
-			"data": [
-				{
-					"id": "%s",
-					"plan": { "id": "%s" },
-					"period": {
-						"start": %d,
-						"end": %d
-					}
-				}
-			],
-			"count": 1
-		}
-	}`
+	invoiceLine := webhookmodels.StripeInvoiceData{
+		SubscriptionId: subscriptionId,
+		Plan: webhookmodels.StripePlan{
+			ID: planProviderId,
+		},
+		Period: webhookmodels.StripePeriod{
+			Start: float64(periodStart),
+			End:   float64(periodEnd),
+		},
+	}
 
-	data := fmt.Sprintf(
-		raw, subscriptionId, planProviderId, periodStart, periodEnd,
-	)
+	invoice := &webhookmodels.StripeInvoice{
+		ID: "in_00000000000000",
+		Lines: webhookmodels.StripeInvoiceLines{
+			Data: []webhookmodels.StripeInvoiceData{invoiceLine},
+		},
+	}
 
-	return []byte(data), planProviderId
+	return invoice, planProviderId
 }
 
 func TestInvoiceCreatedWebhook(t *testing.T) {
 	Convey("Given customer has a subscription", t,
 		subscribeWithReturnsFn(func(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription) {
 			subscriptionProviderId := subscription.ProviderSubscriptionId
-			data, planProviderId := rawInvoiceCreatedData(subscriptionProviderId)
+			invoice, planProviderId := rawInvoiceCreatedData(subscriptionProviderId)
 
-			err := InvoiceCreatedWebhook(data)
+			err := InvoiceCreatedWebhook(invoice)
 			So(err, ShouldBeNil)
 
 			Convey("When 'invoice.created' webhook is fired", func() {
-				Convey("Then subscription plan, period start, end are updated", func() {
+				Convey("Then period start, end are updated", func() {
 					err := subscription.ById(subscription.Id)
 					So(err, ShouldBeNil)
 
@@ -91,7 +89,6 @@ func TestInvoiceCreatedWebhook(t *testing.T) {
 					err = plan.ByProviderId(planProviderId, ProviderName)
 					So(err, ShouldBeNil)
 
-					So(subscription.PlanId, ShouldEqual, plan.Id)
 					So(subscription.CurrentPeriodStart, ShouldHappenOnOrBefore, time.Unix(periodStart, 0).UTC())
 					So(subscription.CurrentPeriodEnd, ShouldHappenOnOrBefore, time.Unix(periodEnd, 0).UTC())
 					So(subscription.CanceledAt.IsZero(), ShouldBeTrue)

@@ -44,7 +44,7 @@ func (c *Cloudwatch) Save(username string, value float64) error {
 }
 
 func (c *Cloudwatch) GetAndSaveData(username string) error {
-	userMachines, err := modelhelper.GetMachinesForUsername(username)
+	userMachines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (c *Cloudwatch) GetMachinesOverLimit(limitName string) ([]*models.Machine, 
 		}
 
 		if !lr.CanStart {
-			ms, err := modelhelper.GetMachinesForUsername(username)
+			ms, err := modelhelper.GetMachinesByUsername(username)
 			if err != nil {
 				Log.Error(err.Error())
 				continue

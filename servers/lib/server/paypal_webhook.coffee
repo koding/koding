@@ -1,10 +1,13 @@
-{ post } = require (
-  "../../../workers/social/lib/social/models/socialapi/requests.coffee"
-)
+request = require 'request'
+
+{ socialapi : {paymentwebhook : { port } } } = KONFIG
 
 module.exports = (req, res) ->
-  console.log "Got paypal webhook:", req.body
+  reqOptions =
+    url    : "http://localhost:#{port}/-/payments/paypal/webhook"
+    json   : true
+    method : 'POST'
 
-  post "/payments/paypal/webhook", req.body, (err, response)->
-    console.log "Payments ERROR: ", err  if err
-    res.status(200).send 'ok'
+  reqOptions.body = req.body
+
+  request reqOptions, -> res.status(200).send 'ok'
