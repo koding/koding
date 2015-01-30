@@ -978,11 +978,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   removeMachineNode: (machine) ->
-    # {nodes}    = @machineTree
-    # {jMachine} = machine
 
-    # for nodeId, node of nodes when node.data?.jMachine is jMachine
-    #   @machineTree.removeNode nodeId
+    box = @getMachineBoxByMachineUId machine.uid
+    box?.destroy()
 
 
   getMachineBoxByMachineUId: (uid) ->
