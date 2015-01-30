@@ -1,8 +1,9 @@
 package webhookmodels
 
 type StripePlan struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Interval string `json:"interval"`
 }
 
 type StripeSubscription struct {
