@@ -3,6 +3,7 @@ package paymentmodels
 import (
 	"errors"
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -112,7 +113,7 @@ func (c *Customer) DeleteSubscriptionsAndItself() error {
 				fmt.Printf("Deleting user: %s subscription: %s failed: %v\n", c.Username, subscription.Id, err)
 			}
 		} else {
-			fmt.Printf("Tried to delete user: %s with active subscription: %s\n", c.Username, subscription.Id)
+			fmt.Printf("Tried to delete user: %s with active subscription: %v\n", c.Username, subscription.Id)
 		}
 	}
 
@@ -141,4 +142,22 @@ func (c *Customer) ByProviderSubscription(id, providerName string) error {
 	}
 
 	return c.ById(subscription.CustomerId)
+}
+
+func (c *Customer) GetEmail(providerCustomerId string) (string, error) {
+	err := c.ByProviderCustomerId(providerCustomerId)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := modelhelper.GetUserByAccountId(c.OldId)
+	if err != nil {
+		return "", err
+	}
+
+	if user.Email == "" {
+		return "", paymenterrors.ErrCustomerEmailIsEmpty(c.OldId)
+	}
+
+	return user.Email, nil
 }
