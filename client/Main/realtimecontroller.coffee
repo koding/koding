@@ -19,12 +19,19 @@ class RealtimeController extends KDController
     super options, data
 
     {subscribekey, ssl} = KD.config.pubnub
+    @timeDiff = 0
 
     if KD.isPubnubEnabled()
       @pubnub = PUBNUB.init
         subscribe_key : subscribekey
         uuid          : KD.whoami()._id
         ssl           : ssl
+
+      @pubnub.time (serverTime) =>
+        diff = new Date() * 10000 - serverTime
+        # when time difference between pubnub server and client is less than 500ms
+        # ignore the difference
+        @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
 
       realtimeToken = Cookies.get("realtimeToken")
 
@@ -197,7 +204,9 @@ class RealtimeController extends KDController
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
         # in last 3 seconds
-        timetoken: ((new Date()).getTime() - 3000) * 10000
+        # another issue is if user's computer time is ahead of server, it is not receiving the events.
+        # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
+        timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
         restore : yes
 
 
