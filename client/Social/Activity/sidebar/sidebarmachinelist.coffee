@@ -15,13 +15,15 @@ class SidebarMachineList extends KDCustomHTMLView
 
   createHeader: ->
 
+    { title, hasPlusIcon } = @getOptions()
+
     @header = new KDCustomHTMLView
       tagName  : 'h3'
       cssClass : 'sidebar-title'
-      partial  : options.title
+      partial  : title
       click    : => @emit 'ListHeaderClicked'
 
-    if options.hasPlusIcon
+    if hasPlusIcon
       @header.addSubView new CustomLinkView
         cssClass : 'add-icon buy-vm'
         title    : ' '
@@ -36,7 +38,7 @@ class SidebarMachineList extends KDCustomHTMLView
 
     @machineBoxes = []
 
-    for machineData in data
+    for machineData in @getData()
 
       machineBox = new SidebarMachineBox {}, machineData
       @addSubView machineBox
