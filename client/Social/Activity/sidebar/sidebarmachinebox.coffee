@@ -2,6 +2,8 @@ class SidebarMachineBox extends KDView
 
   constructor: (options = {}, data) ->
 
+    options.cssClass = "sidebar-machine-box #{data.machine.label}"
+
     super options, data
 
     { machine } = data

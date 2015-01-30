@@ -4,6 +4,7 @@ class SidebarOwnMachinesList extends SidebarMachineList
 
     options.title       = 'VMs'
     options.hasPlusIcon = yes
+    options.cssClass    = 'my-machines-list'
 
     super options, data
 
