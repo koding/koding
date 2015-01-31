@@ -193,12 +193,15 @@ testpermission:
 	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./permission.test
 
-testmoderation:
+testmoderation: testmoderationunit testmoderationintegration
+
+testmoderationunit:
 	@echo "$(OK_COLOR)--> moderation unit tests... $(NO_COLOR)"
 	@`which go` test -c workers/moderation/topic/*.go
 	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./topic.test
 
+testmoderationintegration:
 	@echo "$(OK_COLOR)--> moderation integration tests... $(NO_COLOR)"
 	@`which go` test -c workers/moderation/topic/tests/*.go
 	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
