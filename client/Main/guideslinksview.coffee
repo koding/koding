@@ -3,7 +3,7 @@ class GuidesLinksView extends KDView
   Links      =
     'Firewalls'    : 'http://learn.koding.com/guides/enable-ufw/'
     'ssh'          : 'http://learn.koding.com/guides/ssh-into-your-vm/'
-    'sudo'         : 'http://learn.koding.com/faq/what-is-my-sudo-password/'
+    'kpm'          : 'http://learn.koding.com/guides/getting-started-kpm/'
     'MySQL'        : 'http://learn.koding.com/guides/installing-mysql/'
     'Collaboration': 'http://learn.koding.com/guides/collaboration/'
 
