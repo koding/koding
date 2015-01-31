@@ -23,9 +23,9 @@ type Account struct {
 	// unique account nicknames
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 
-	Token string `json:"token"`
 	// Token is used for authentication purposes, this data should not be shared
 	// with other clients/accounts
+	Token string `json:"-"`
 }
 
 func ValidateAccount(a *Account) error {

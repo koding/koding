@@ -1,7 +1,6 @@
 package paymentmodels
 
 import (
-	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"time"
 
@@ -93,30 +92,10 @@ func (s *Subscription) UpdateState(state string) error {
 }
 
 func (s *Subscription) Cancel() error {
-	err := s.Delete()
-	if err != nil {
-		return err
-	}
+	s.CanceledAt = time.Now()
+	s.State = SubscriptionStateCanceled
 
-	customer := NewCustomer()
-	err = customer.ById(s.CustomerId)
-	if err != nil {
-		return err
-	}
-
-	subscriptions, err := customer.FindSubscriptions()
-	if err != nil {
-		return err
-	}
-
-	for _, subscription := range subscriptions {
-		err := subscription.Delete()
-		if err != nil {
-			fmt.Println("Deleting user: %s subscription: %s failed: %v", customer.Username, subscription.Id, err)
-		}
-	}
-
-	return customer.Delete()
+	return bongo.B.Update(s)
 }
 
 func (s *Subscription) Expire() error {
@@ -163,8 +142,22 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 	err := bongo.B.DB.
 		Table(s.BongoName()).
 		Where(
-		"canceled_at > ?", t,
+		"canceled_at < ? AND canceled_at != ?", t, time.Time{},
 	).Find(&subscriptions).Error
 
 	return subscriptions, err
+}
+
+func (s *Subscription) UpdateToExpireTime(t time.Time) error {
+	s.CanceledAt = t
+	err := bongo.B.Update(s)
+
+	return err
+}
+
+func (s *Subscription) UpdateCurrentPeriods(start, end time.Time) error {
+	s.CurrentPeriodStart = start
+	s.CurrentPeriodEnd = end
+
+	return bongo.B.Update(s)
 }

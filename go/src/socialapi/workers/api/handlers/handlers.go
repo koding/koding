@@ -38,7 +38,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.DeleteRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
-			Securer:        models.MessageSecurer,
+			Securer:        models.MessageDeleteSecurer,
 		},
 	)
 

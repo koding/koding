@@ -6,6 +6,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+	"strconv"
 
 	"github.com/koding/bongo"
 )
@@ -40,7 +41,12 @@ func GetAccountFromSession(u *url.URL, h http.Header, _ interface{}, c *models.C
 		return response.NewNotFound()
 	}
 
-	return response.NewOK(c.Client.Account)
+	res := map[string]interface{}{
+		"id":    strconv.FormatInt(c.Client.Account.Id, 10),
+		"nick":  c.Client.Account.Nick,
+		"token": c.Client.Account.Token,
+	}
+	return response.NewOK(res)
 }
 
 func ParticipatedChannelCount(u *url.URL, h http.Header, _ interface{}, c *models.Context) (int, http.Header, interface{}, error) {

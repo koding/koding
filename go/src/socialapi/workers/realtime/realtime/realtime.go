@@ -80,19 +80,13 @@ func (r *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 // New Creates a new controller for realtime package
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) (*Controller, error) {
-	// connnects to RabbitMQ
-	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
-	if err != nil {
-		return nil, err
-	}
-
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Controller {
 	ffc := &Controller{
 		log:     log,
-		rmqConn: rmqConn.Conn(),
+		rmqConn: rmq.Conn(),
 	}
 
-	return ffc, nil
+	return ffc
 }
 
 // MessageUpdated controls message updated status
@@ -569,17 +563,10 @@ func (f *Controller) MessageListDeleted(cml *models.ChannelMessageList) error {
 		return err
 	}
 
-	// first try to fetch data from cache
-	cm, _ := models.ChannelMessageById(cml.MessageId)
-	if cm == nil {
-		// if not found, fetch from db by unscoped
-		cm = models.NewChannelMessage()
-		// When a message is removed, deleted message is not found
-		// via regular ById method
-		if err := cm.UnscopedById(cml.MessageId); err != nil {
-			return err
-		}
-	}
+	// Since we are making hard deletes, we no longer need to check the
+	// message existency
+	cm := models.NewChannelMessage()
+	cm.Id = cml.MessageId
 
 	cp := models.NewChannelParticipant()
 	cp.AccountId = c.CreatorId

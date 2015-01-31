@@ -56,6 +56,7 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
+  paymentwebhook      = { port : "6600" }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -88,6 +89,7 @@ Configuration = (options={}) ->
     gatekeeper        : gatekeeper
     customDomain      : customDomain
     kloud             : { secretKey: kloud.secretKey, address: kloud.address }
+    paymentwebhook    : paymentwebhook
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -118,7 +120,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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"                                                                 , kloudSecretKey : kloud.secretKey                                           , kloudAddr : kloud.address, connectToKlient: true, debug: true, mongo: mongo, redis: redis.url }
+    vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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"                                                                 , kloudSecretKey : kloud.secretKey                                           , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}
     authWorker                     : {login         : "#{rabbitmq.login}" , queueName : socialQueueName+'auth'     , authExchange      : "auth"                                  , authAllExchange : "authAll"                                      , port  : 9530 }
@@ -216,7 +218,7 @@ Configuration = (options={}) ->
     entryPoint           : {slug:'koding'       , type:'group'}
     siftScience          : 'f270274999'
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub               : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: no     }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: no,  enabled: yes     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
 
@@ -239,7 +241,7 @@ Configuration = (options={}) ->
       ports             :
          incoming       : "#{KONFIG.gowebserver.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/go-webserver -c #{configName}"
+        command         : "#{GOBIN}/watcher -run koding/go-webserver -c #{configName}"
       nginx             :
         locations       : [ location: "~^/IDE/.*" ]
       healthCheckURL    : "http://localhost:#{KONFIG.gowebserver.port}/healthCheck"
@@ -278,7 +280,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{KONFIG.broker.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/broker -c #{configName}"
+        command         : "#{GOBIN}/watcher -run koding/broker -c #{configName}"
       nginx             :
         websocket       : yes
         locations       : [
@@ -291,7 +293,7 @@ Configuration = (options={}) ->
     rerouting           :
       group             : "webserver"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/rerouting -c #{configName}"
+        command         : "#{GOBIN}/watcher -run koding/rerouting -c #{configName}"
       healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
 
@@ -356,12 +358,11 @@ Configuration = (options={}) ->
       ports             :
         incoming        : "#{socialapi.port}"
       supervisord       :
-        command         : "cd #{projectRoot}/go/src/socialapi && make develop kite=true -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
+        command         : "cd #{projectRoot}/go/src/socialapi && make develop -j config=#{socialapi.configFilePath} && cd #{projectRoot}"
       healthCheckURL    : "#{socialapi.proxyUrl}/healthCheck"
       versionURL        : "#{socialapi.proxyUrl}/version"
       nginx             :
         locations       : [
-          { location    : "= /payments/stripe/webhook" },
           # location ordering is important here. if you are going to need to change it or
           # add something new, thoroughly test it in sandbox. Most of the problems are not occuring
           # in dev environment
@@ -403,13 +404,27 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "cd #{projectRoot}/go/src/socialapi && make dispatcherdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
 
+    paymentwebhook      :
+      group             : "socialapi"
+      ports             :
+        incoming        : paymentwebhook.port
+      supervisord       :
+        command         : "cd #{projectRoot}/go/src/socialapi && make paymentwebhookdev config=#{socialapi.configFilePath} && cd #{projectRoot}"
+      healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
+      versionURL        : "http://localhost:#{paymentwebhook.port}/version"
+      nginx             :
+        locations       : [
+          { location    : "= /-/payments/stripe/webhook" },
+          { location    : "= /-/payments/paypal/webhook" }
+        ]
+
     vmwatcher           :
       group             : "environment"
       instances         : 1
       ports             :
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
-        command         : "#{GOBIN}/goldorf -run koding/vmwatcher"
+        command         : "#{GOBIN}/watcher -run koding/vmwatcher"
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
@@ -664,6 +679,7 @@ Configuration = (options={}) ->
         # this is a temporary adition, normally file watcher should delete the created file later on
         cd #{projectRoot}/go/bin
         rm goldorf-main-*
+        rm watcher-*
         #{projectRoot}/go/build.sh
         cd #{projectRoot}/go/src/socialapi
         make configure

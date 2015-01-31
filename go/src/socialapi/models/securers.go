@@ -44,6 +44,10 @@ func MessageReadSecurer(permissionName string, context *Context) error {
 	return nil
 }
 
+func MessageDeleteSecurer(permissionName string, context *Context) error {
+	return nil
+}
+
 func AccountSecurer(permissionName string, request *Account, context *Context) error {
 	return nil
 }

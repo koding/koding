@@ -10,6 +10,7 @@ module.exports = [
   "libs/kite.js",
   "libs/kontrol.js",
   "libs/algoliasearch.min.js",
+  "libs/pubnub.min.js",
   'libs/marked.js'
   'libs/date.format.js'
   'libs/highlight.pack.js'
@@ -200,6 +201,7 @@ module.exports = [
 
   # PAYMENT
   # controller
+  "payment/constants.coffee",
   "payment/paymentcontroller.coffee",
   # # views
   "payment/paymentmethodview.coffee",

@@ -33,11 +33,6 @@ ifdef port
 	PORT="-port=$(port)"
 endif
 
-# set kite
-ifdef kite
-	KITE="-kite-init=true"
-endif
-
 PACKAGES = \
 	socialapi/workers/api \
 	socialapi/workers/emailnotifier \
@@ -61,70 +56,75 @@ develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notifica
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
+paymentwebhookdev:
+	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
+	@echo "$(OK_COLOR)==> Running Payment Webhook Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/payment/paymentwebhook -c $(CONFIG) -kite-init=true $(DBG) $(METRICS)
+
 apidev:
 	@echo "DBG $(DBG) METRICS ====> $(METRICS)"
 	@echo "$(OK_COLOR)==> Running API Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS) $(KITE)
+	@$(GOBINDIR)/watcher -run socialapi/workers/api -watch socialapi -c $(CONFIG) $(PORT) $(DBG) $(METRICS)
 
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
 
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
 
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
 
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
 
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
 
 emaildev: activityemaildev dailyemaildev privatemessageemaildev
 
 activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
 
 dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
 
 privatemessageemailfeederdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemailsenderdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
 
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
 
 dispatcherdev:
 	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(METRICS)
 
 gatekeeperdev:
 	@echo "$(OK_COLOR)==> Running Gatekeeper Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
@@ -135,20 +135,20 @@ configuremigration:
 
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/migrator -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/migrator -c $(CONFIG) $(DBG) $(METRICS)
 sitemapdev: sitemapfeederdev sitemapgeneratordev
 
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
-	@$(GOBINDIR)/goldorf -run socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
@@ -163,8 +163,8 @@ install-postgres:
 	(vagrant ssh default --command "/opt/koding/go/src/socialapi/db/sql/definition/install.sh")
 
 installwatcher:
-	@`which go` get github.com/canthefason/goldorf
-	@`which go` install github.com/canthefason/goldorf
+	@`which go` get github.com/canthefason/go-watcher
+	@`which go` install github.com/canthefason/go-watcher/cmd/watcher
 
 install-migrate:
 	@`which go` get github.com/mattes/migrate
@@ -315,6 +315,14 @@ testapi:
 	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
 	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./generator.test
+
+	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/paymentwebhook/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
+	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
 doc:
 	@for package in $(PACKAGES); \

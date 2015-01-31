@@ -1,8 +1,10 @@
 package dispatcher
 
 import (
+	"fmt"
 	"socialapi/workers/helper"
 	"socialapi/workers/realtime/models"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -16,21 +18,14 @@ type Controller struct {
 	rmqConn *amqp.Connection
 }
 
-func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) (*Controller, error) {
+func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) *Controller {
 
-	rmqConn, err := rmqConn.Connect("NewDispatcherController")
-	if err != nil {
-		return nil, err
-	}
-
-	handler := &Controller{
+	return &Controller{
 		Pubnub:  pubnub,
 		Broker:  broker,
 		logger:  helper.MustGetLogger(),
 		rmqConn: rmqConn.Conn(),
 	}
-
-	return handler, nil
 }
 
 // DefaultErrHandler controls the errors, return false if an error occurred
@@ -45,6 +40,8 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 	if ok := c.isPushMessageValid(pm); !ok {
 		return nil
 	}
+
+	pm.EventId = createEventId()
 
 	// TODO later on Pubnub needs its own queue
 	go func() {
@@ -82,6 +79,8 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 		return nil
 	}
 
+	um.EventId = createEventId()
+
 	// TODO later on Pubnub needs its own queue
 	go func() {
 		err := c.Pubnub.UpdateInstance(um)
@@ -100,6 +99,7 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 		return nil
 	}
 	nm.EventName = "message"
+	nm.EventId = createEventId()
 
 	// TODO later on Pubnub needs its own queue
 	go func() {
@@ -134,4 +134,8 @@ func (c *Controller) RevokeChannelAccess(rca *models.RevokeChannelAccess) error 
 	}
 
 	return nil
+}
+
+func createEventId() string {
+	return fmt.Sprintf("server-%d", time.Now().UnixNano())
 }

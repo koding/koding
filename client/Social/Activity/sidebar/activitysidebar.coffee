@@ -525,7 +525,7 @@ class ActivitySidebar extends KDCustomHTMLView
       ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
       hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
-      unless hasWorkspace
+      if machine.isMine() and not hasWorkspace
         KD.userWorkspaces.push @getDummyWorkspace machine
 
       @sortWorkspaces KD.userWorkspaces
@@ -630,8 +630,12 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @latestWorkspaceData = data
 
-    localStorage         = KD.getSingleton("localStorageController").storage "IDE"
-    minimumDataToStore   = machineLabel: (machine.slug or machine.label), workspaceSlug: workspace.slug
+    localStorage = KD.getSingleton("localStorageController").storage "IDE"
+
+    minimumDataToStore =
+      machineLabel     : machine.slug or machine.label
+      workspaceSlug    : workspace.slug
+      channelId        : data.channelId
 
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
@@ -640,7 +644,6 @@ class ActivitySidebar extends KDCustomHTMLView
     @watchedMachines  or= {}
     computeController   = KD.getSingleton 'computeController'
     appManager          = KD.getSingleton 'appManager'
-    isSameMachineActive = appManager.getFrontApp().mountedMachineUId is machine.uid
     {Running}           = Machine.State
 
     return  if @watchedMachines[machine._id]
@@ -648,8 +651,7 @@ class ActivitySidebar extends KDCustomHTMLView
     callback = (state) =>
       if state.status is Running
         machine.status.state = Running
-        if isSameMachineActive
-          @selectWorkspace { workspace, machine }
+        if appManager.getFrontApp().mountedMachineUId is machine.uid
           delete @watchedMachines[machine._id]
 
     computeController.on "public-#{machine._id}", callback

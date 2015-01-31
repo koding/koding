@@ -33,7 +33,7 @@ services=(
   koding/kontrol/kontrolapi
   koding/kontrol/kontrolclient
   koding/workers/guestcleanerworker
-  github.com/canthefason/goldorf
+  github.com/canthefason/go-watcher
   github.com/mattes/migrate
   koding/go-webserver
   koding/vmwatcher
@@ -58,6 +58,7 @@ services=(
   socialapi/workers/email/privatemessageemail/privatemessageemailfeeder
   socialapi/workers/email/privatemessageemail/privatemessageemailsender
   socialapi/workers/moderation/cmd/topicmoderation
+  socialapi/workers/payment/paymentwebhook
 )
 
 

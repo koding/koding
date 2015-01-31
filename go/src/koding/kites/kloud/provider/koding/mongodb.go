@@ -43,23 +43,13 @@ func (p *Provider) Get(id string) (*protocol.Machine, error) {
 		return nil, err
 	}
 
-	// do not check for admin users, or if test mode is enabled
-	if !IsAdmin(username) {
-		// check for user permissions
-		if err := p.checkUser(user.ObjectId, machine.Users); err != nil && !p.Test {
-			return nil, err
-		}
-
-		if user.Status != "confirmed" {
-			return nil, kloud.NewError(kloud.ErrUserNotConfirmed)
-		}
-	}
-
 	credential := p.GetCredential(machine.Credential)
 
 	m := &protocol.Machine{
 		Id:          id,
 		Username:    machine.Credential, // contains the username for koding provider
+		User:        user,
+		SharedUsers: machine.Users,
 		Provider:    machine.Provider,
 		Builder:     machine.Meta,
 		Credential:  credential.Meta,

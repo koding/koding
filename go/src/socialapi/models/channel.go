@@ -585,7 +585,7 @@ func (c *Channel) FetchLastMessage() (*ChannelMessage, error) {
 		return nil, err
 	}
 
-	return cm, nil
+	return cm.PopulatePayload()
 }
 
 func (c *Channel) FetchLastMessageId() (int64, error) {

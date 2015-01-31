@@ -23,16 +23,25 @@ func main() {
 
 	// later on broker support must be removed
 	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-	broker, err := models.NewBroker(rmq, r.Log)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	c, err := dispatcher.NewController(rmq, pubnub, broker)
+	rmqConn, err := rmq.Connect("NewDispatcher")
 	if err != nil {
 		panic(err)
 	}
+	defer rmqConn.Conn().Close()
+
+	// When we use the same RMQ connection for both, we received
+	// 'Exception (504) Reason: "CHANNEL_ERROR - unexpected method in connection state running"'
+	// error at some point. It needs debugging.
+	rmqBroker := helper.NewRabbitMQ(r.Conf, r.Log)
+	rmqBrokerConn, err := rmqBroker.Connect("NewBrokerDispatcher")
+	if err != nil {
+		panic(err)
+	}
+	defer rmqBrokerConn.Conn().Close()
+
+	broker := models.NewBroker(rmqBrokerConn, r.Log)
+
+	c := dispatcher.NewController(rmqConn, pubnub, broker)
 
 	r.SetContext(c)
 	r.ListenFor("dispatcher_channel_updated", (*dispatcher.Controller).UpdateChannel)

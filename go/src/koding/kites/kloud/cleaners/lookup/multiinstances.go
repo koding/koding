@@ -21,6 +21,31 @@ func NewMultiInstances() *MultiInstances {
 	}
 }
 
+func MergeMultiInstances(m ...*MultiInstances) *MultiInstances {
+	merged := NewMultiInstances()
+
+	for _, multiInstances := range m {
+		for client, instances := range multiInstances.m {
+			var c Instances
+			var ok bool
+
+			c, ok = merged.m[client]
+			if !ok {
+				// lazy initialize
+				c = make(Instances, 0)
+			}
+
+			for id, instance := range instances {
+				c[id] = instance
+			}
+
+			merged.m[client] = c
+		}
+	}
+
+	return merged
+}
+
 func (m *MultiInstances) Add(client *ec2.EC2, instances Instances) {
 	m.Lock()
 	defer m.Unlock()

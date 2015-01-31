@@ -1,6 +1,9 @@
 package main
 
-import "koding/db/mongodb/modelhelper"
+import (
+	"koding/db/mongodb/modelhelper"
+	"strings"
+)
 
 // request arguments
 type requestArgs struct {
@@ -18,11 +21,16 @@ func stopVm(machineId, username, reason string) error {
 		MachineId: machineId, Reason: reason,
 	})
 
+	// kloud ouptuts log for vms already stopped, we don't care
+	if strings.Contains(err.Error(), "not allowed for current state") {
+		return nil
+	}
+
 	return err
 }
 
 func blockUserAndDestroyVm(machineId, username, reason string) error {
-	machines, err := modelhelper.GetMachinesForUsername(username)
+	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err
 	}

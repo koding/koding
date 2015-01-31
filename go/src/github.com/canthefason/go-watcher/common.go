@@ -7,16 +7,17 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
 // Binary name used for built package
-const binaryName = "goldorf-main"
+const binaryName = "watcher"
 
 type Params struct {
 	// Package parameters
 	Package []string
-	// Goldorf parameters
+	// Go-Watcher parameters
 	System map[string]string
 }
 
@@ -28,7 +29,7 @@ func NewParams() *Params {
 	}
 }
 
-// Get returns the goldorf parameter with given name
+// Get returns the watcher parameter with given name
 func (p *Params) Get(name string) string {
 	return p.System[name]
 }
@@ -41,12 +42,22 @@ func (p *Params) CloneRun() {
 	}
 }
 
+func (p *Params) GetPackage() string {
+	run := p.Get("run")
+	if run != "" {
+		return run
+	}
+
+	return "."
+}
+
 // GetBinaryName prepares binary name with GOPATH if it is set
-func getBinaryName() string {
+func (p *Params) createBinaryName() string {
 	rand.Seed(time.Now().UnixNano())
 	randName := rand.Int31n(999999)
+	packageName := strings.Replace(p.GetPackage(), "/", "-", -1)
 
-	return fmt.Sprintf("%s-%d", getBinaryNameRoot(), randName)
+	return fmt.Sprintf("%s-%s-%d", getBinaryNameRoot(), packageName, randName)
 }
 
 func getBinaryNameRoot() string {
@@ -56,10 +67,6 @@ func getBinaryNameRoot() string {
 	}
 
 	return path
-}
-
-func removeOldFiles() {
-	exec.Command("rm", fmt.Sprintf("%s-*", getBinaryNameRoot()))
 }
 
 // runCommand runs the command with given name and arguments. It copies the

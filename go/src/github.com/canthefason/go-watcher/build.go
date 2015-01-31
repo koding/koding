@@ -2,29 +2,40 @@ package watcher
 
 import (
 	"log"
+	"os"
 	"os/exec"
+	"os/signal"
 	"syscall"
 
 	"github.com/fatih/color"
 )
 
-var oldFileName string
+type Builder struct {
+	runner  *Runner
+	watcher *Watcher
+}
+
+func NewBuilder(w *Watcher, r *Runner) *Builder {
+	return &Builder{watcher: w, runner: r}
+}
 
 // Build listens watch events from Watcher and sends messages to Runner
 // when new changes are built.
-func Build(w *Watcher, r *Runner, p *Params) {
-	for {
-		w.Wait()
+func (b *Builder) Build(p *Params) {
+	go b.registerSignalHandler()
+	go func() {
+		b.watcher.update <- true
+	}()
 
-		run := p.Get("run")
-		if run == "" {
-			run = "."
-		}
+	for <-b.watcher.Wait() {
+		fileName := p.createBinaryName()
 
-		color.Cyan("Building %s...\n", run)
+		pkg := p.GetPackage()
 
-		fileName := getBinaryName()
-		cmd, err := runCommand("go", "build", "-o", fileName, run)
+		color.Cyan("Building %s...\n", pkg)
+
+		// build package
+		cmd, err := runCommand("go", "build", "-o", fileName, pkg)
 		if err != nil {
 			log.Fatalf("Could not run 'go build' command: %s", err)
 			continue
@@ -40,14 +51,24 @@ func Build(w *Watcher, r *Runner, p *Params) {
 			continue
 		}
 
-		// when binary is successfully updated, kill the old running process
-		r.Kill(oldFileName)
-
-		oldFileName = fileName
-
 		// and start the new process
-		r.Run(fileName)
+		b.runner.restart(fileName)
 	}
+}
+
+func (b *Builder) registerSignalHandler() {
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+				b.watcher.Close()
+				b.runner.Close()
+			}
+		}
+	}()
 }
 
 // interpretError checks the error, and returns nil if it is

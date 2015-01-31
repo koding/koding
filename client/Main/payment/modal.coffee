@@ -3,13 +3,13 @@
 # the process, (e.g validation errors etc)
 class PaymentModal extends PaymentBaseModal
 
-  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentWorkflow.operation
+  { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
 
   getInitialState: ->
-    planInterval : PaymentWorkflow.planInterval.MONTH
-    planTitle    : PaymentWorkflow.planTitle.HOBBYIST
-    provider     : PaymentWorkflow.provider.KODING
-    operation    : PaymentWorkflow.operation.UPGRADE
+    planInterval : PaymentConstants.planInterval.MONTH
+    planTitle    : PaymentConstants.planTitle.HOBBYIST
+    provider     : PaymentConstants.provider.KODING
+    operation    : PaymentConstants.operation.UPGRADE
 
 
   constructor: (options = {}, data) ->
@@ -36,8 +36,8 @@ class PaymentModal extends PaymentBaseModal
   initViews: ->
 
     { provider, planTitle } = @state
-    { PAYPAL } = PaymentWorkflow.provider
-    { FREE }   = PaymentWorkflow.planTitle
+    { PAYPAL } = PaymentConstants.provider
+    { FREE }   = PaymentConstants.planTitle
 
     @addSubView @errors = new KDCustomHTMLView {cssClass : 'errors hidden'}
     @addSubView @form   = new PaymentForm {@state}

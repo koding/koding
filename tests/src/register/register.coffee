@@ -2,12 +2,43 @@ utils = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
 
 
+expectValidationError = (browser) ->
+
+  browser
+    .waitForElementVisible '.validation-error', 20000 # Assertion
+    .end()
+
+
 module.exports =
 
-  registerUser: (browser) ->
+
+  registerUserWithGravatarEmail: (browser) ->
+
+    user =
+      email    : 'kodingtestuser@gmail.com'
+      username : 'kodingtestuser'
+      password : 'passwordfortestuser'
+      gravatar : yes
+
+    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
+
+    browser
+      .pause   2000
+      .element 'css selector', '.login-input-view.validation-error', (result) =>
+
+        if result.status is 0
+          browser.end()
+        else
+          helpers.attemptEnterUsernameOnRegister(browser, user)
+          helpers.doLogout(browser)
+          helpers.doLogin(browser, user)
+
+          browser.end()
+
+
+  registerUserWithoutGravatarEmail: (browser) ->
 
     helpers.doRegister(browser)
-
     browser.end()
 
 
@@ -16,20 +47,20 @@ module.exports =
     user = utils.getUser(yes)
     user.username = '{r2d2}'
 
-    helpers.attemptEnterEmailAndUsernameOnRegister(browser, user)
-    browser
-      .waitForElementVisible    '.validation-error', 20000 # Assertion
-      .end()
+    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
+    helpers.attemptEnterUsernameOnRegister(browser, user)
+
+    expectValidationError(browser)
+
 
   registerWithInvalidEmail: (browser) ->
 
     user = utils.getUser(yes)
     user.email = 'r2d2.kd.io'
 
-    helpers.attemptEnterEmailAndUsernameOnRegister(browser, user)
-    browser
-      .waitForElementVisible    '.validation-error', 20000 # Assertion
-      .end()
+    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
+
+    expectValidationError(browser)
 
 
   registerWithInvalidPassword: (browser) ->
@@ -37,12 +68,9 @@ module.exports =
     user = utils.getUser(yes)
     user.password = '123456'
 
-    helpers.attemptEnterEmailAndUsernameOnRegister(browser, user)
-    helpers.attemptEnterPasswordOnRegister(browser, user)
+    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
 
-    browser
-      .waitForElementVisible    '.kdmodal-inner', 20000 # Assertion
-      .end()
+    expectValidationError(browser)
 
 
   # forgotPasswordWwithEmailConfirmation: (browser) ->  #yarim kaldi

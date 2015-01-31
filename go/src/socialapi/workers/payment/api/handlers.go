@@ -82,18 +82,6 @@ func AddHandlers(m *mux.Mux) {
 		})
 
 	//----------------------------------------------------------
-	// Stripe webhook
-	//----------------------------------------------------------
-	m.AddHandler(
-		handler.Request{
-			Handler:        StripeWebhook,
-			Name:           "payment-stripewebhook",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/stripe/webhook",
-			CollectMetrics: true,
-		})
-
-	//----------------------------------------------------------
 	// Paypal
 	//----------------------------------------------------------
 
@@ -121,15 +109,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:           "payment-paypalgettoken",
 			Type:           handler.GetRequest,
 			Endpoint:       "/payments/paypal/token",
-			CollectMetrics: true,
-		})
-
-	m.AddHandler(
-		handler.Request{
-			Handler:        PaypalWebhook,
-			Name:           "payment-paypalwebhook",
-			Type:           handler.PostRequest,
-			Endpoint:       "/payments/paypal/webhook",
 			CollectMetrics: true,
 		})
 }
