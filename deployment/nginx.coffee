@@ -338,6 +338,12 @@ module.exports.create = (KONFIG, environment)->
        return 301 $scheme://koding.com$request_uri ;
     }
 
+    # redirect kodingen.com to koding.com
+    server {
+       server_name "~^kodingen.com" ;
+       return 301 $scheme://koding.com$request_uri ;
+    }
+
   # close http
   }
   """
