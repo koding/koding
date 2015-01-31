@@ -11,17 +11,20 @@ import (
 	"github.com/streadway/amqp"
 )
 
+// Controller holds the required parameters for moderation async operations
 type Controller struct {
 	log logging.Logger
 }
 
+// NewController creates a handler for consuming async operations of moderation
 func NewController(log logging.Logger) *Controller {
 	return &Controller{
 		log: log,
 	}
 }
 
-// this worker is completely idempotent, so no need to cut the circuit
+// DefaultErrHandler handles the errors, we dont need to ack a message, continue
+// to the success
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	c.log.Error("an error occurred putting message back to queue", err)
 	delivery.Nack(false, true)
@@ -52,14 +55,19 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 	return nil
 }
 
+// CreateLink moves the participants and the messages of a leaf channel to the
+// root channel
 func (c *Controller) CreateLink(cl *models.ChannelLink) error {
 	return c.process(cl)
 }
 
+// Blacklist moves the participants and the messages of a leaf channel to the
+// root channel
 func (c *Controller) Blacklist(cl *models.ChannelLink) error {
 	return c.process(cl)
 }
 
+// Unlink is not implemented yet
 func (c *Controller) UnLink(cl *models.ChannelLink) error {
 	if err := c.validateRequest(cl); err != nil {
 		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
@@ -95,7 +103,8 @@ func (c *Controller) validateRequest(cl *models.ChannelLink) error {
 // doesnt update the lastSeenAt time of the participants on channels if the user
 // already a participant of the root node, just removes the participation from
 // leaf node, if user only participant of the leaf node updates the current
-// participation with the new root node's channel id
+// participation with the new root node's channel id, it is always safe to
+// return error whever we encounter one
 func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 	var processCount = 100
 	var erroredChannelParticipants []models.ChannelParticipant
@@ -113,23 +122,28 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 			Where("channel_id = ?", cl.LeafId).
 			Find(&channelParticipants).Error
 
+		// if we encounter an error do not continue, if we cant find any
+		// result, it can be excluded from the error case, because since we
+		// will not be able to process any message system will return
 		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
-		// we processed all channel participants
+		// we processed all channel participants, no need to continue anymore
 		if len(channelParticipants) <= 0 {
 			c.log.Info("doesnt have any participants to process")
 			break
 		}
 
 		for i, channelParticipant := range channelParticipants {
-			// fetch the root channel's participation, if exists
+			// fetch the root channel's participant, if exists
 			rootParticipation := models.NewChannelParticipant()
 			rootParticipation.ChannelId = cl.RootId
 			rootParticipation.AccountId = channelParticipant.AccountId
 			err := rootParticipation.FetchParticipant()
 			if err != nil && err != bongo.RecordNotFound {
+				// dont append to erroredChannelParticipants because we need the
+				// data here
 				return err
 			}
 
