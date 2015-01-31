@@ -15,7 +15,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     @email = new LoginInputView
       inputOptions    :
         name          : "email"
-        placeholder   : "email address"
+        placeholder   : "Email address"
         testPath      : "register-form-email"
         keyup         : (event) => @button.click event  if event.which is ENTER
         validate      : @getEmailValidator()

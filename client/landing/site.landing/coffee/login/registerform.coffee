@@ -14,7 +14,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     @email = new LoginInputViewWithLoader
       inputOptions        :
         name              : 'email'
-        placeholder       : 'email address'
+        placeholder       : 'Email address'
         attributes        :
           testpath        : 'register-form-email'
         validate          : @getEmailValidator()
@@ -81,9 +81,9 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     inputs = KDFormView.findChildInputs this
     input.clearValidationFeedback() for input in inputs
-    
+
     super
-    
+
 
   getEmailValidator: ->
     container   : this
