@@ -244,6 +244,8 @@ testapi:
 
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
 	@`which go` test -c workers/topicfeed/topicfeed/*.go
+	@./topicfeed.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./topicfeed.test
 
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	@`which go` test -c workers/payment/*.go
