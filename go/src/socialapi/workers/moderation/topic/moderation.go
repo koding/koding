@@ -198,14 +198,12 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 	rootChannel, err := models.ChannelById(cl.RootId)
 	if err != nil {
 		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
-		c.log.Critical("closing the circuit")
 		return nil
 	}
 
 	leafChannel, err := models.ChannelById(cl.LeafId)
 	if err != nil {
 		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
-		c.log.Critical("closing the circuit")
 		return nil
 	}
 
@@ -221,6 +219,9 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 			Where("channel_id = ?", cl.LeafId).
 			Find(&messageLists).Error
 
+		// if we encounter an error do not continue, if we cant find any
+		// result, it can be excluded from the error case, because since we
+		// will not be able to process any message system will return
 		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
@@ -233,6 +234,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		for i, messageList := range messageLists {
 			// fetch the regarding message
 			cm := models.NewChannelMessage()
+			// message can be a deleted one
 			err := cm.UnscopedById(messageList.MessageId)
 			if err != nil && err != bongo.RecordNotFound {
 				return err
@@ -240,7 +242,6 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 
 			if err == bongo.RecordNotFound {
 				c.log.Critical("we do have inconsistent data in our db, message with id: %d doesnt exist in channel_message table but we have referance in our channel_message_list table id: %d", messageList.MessageId, messageList.Id)
-				c.log.Critical("skipping this iteration")
 				continue
 			}
 
@@ -267,23 +268,27 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 			isInChannel, _ := models.NewChannelMessageList().IsInChannel(cm.Id, rootChannel.Id)
 			if isInChannel {
 				// we are deleting with an unscoped because we dont need the
+				// we are deleting the leaf with an unscoped because we dont need the
 				// data in our db anymore
 				if err := bongo.B.Unscoped().Delete(messageList).Error; err != nil {
-					//
-					// TODO do we need to send an event here?
-					//
 					c.log.Error("Err while deleting the channel message list %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				}
+				// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
+				go bongo.B.AfterDelete(messageList)
 			} else {
-				// update the message itself, without callbacks, because while updating
+				// update the message itself, without callbacks
+				//
 				// TODO we may need to send events here
-				// if err := bongo.B.Unscoped().Model(&messageList).UpdateColumn("channel_id", cl.RootId).Error; err != nil {
+				//
+				fmt.Println("messageList-->", messageList)
 				if err := bongo.B.Unscoped().Model(&messageList).UpdateColumn("channel_id", cl.RootId).Error; err != nil {
 					c.log.Error("Err while updating the mesage %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 					continue
 				}
+				// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
+				go bongo.B.AfterCreate(messageList)
 			}
 
 		}
@@ -305,14 +310,12 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 	rootChannel, err := models.ChannelById(cl.RootId)
 	if err != nil {
 		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
-		c.log.Critical("closing the circuit")
 		return nil
 	}
 
 	leafChannel, err := models.ChannelById(cl.LeafId)
 	if err != nil {
 		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
-		c.log.Critical("closing the circuit")
 		return nil
 	}
 
@@ -328,6 +331,9 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 			Where("initial_channel_id = ?", cl.LeafId).
 			Find(&messages).Error
 
+		// if we encounter an error do not continue, if we cant find any
+		// result, it can be excluded from the error case, because since we
+		// will not be able to process any message system will return
 		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
