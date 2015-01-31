@@ -300,7 +300,10 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 	return nil
 }
 
-// updateInitialChannelIds updates the message's initial channel id properties
+// updateInitialChannelIds updates the message's initial channel id properties,
+// we are already updating the channel_message's initial channel id while
+// iterating over the messages but there can be some messages that are created
+// in that channel initially, but then can be moved to other channels
 func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 	var processCount = 100
 
