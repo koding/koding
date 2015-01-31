@@ -265,28 +265,27 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				continue
 			}
 
-			isInChannel, _ := models.NewChannelMessageList().IsInChannel(cm.Id, rootChannel.Id)
-			if isInChannel {
-				// we are deleting with an unscoped because we dont need the
+			isInRootChannel, _ := models.NewChannelMessageList().IsInChannel(cm.Id, rootChannel.Id)
+			if isInRootChannel {
+
 				// we are deleting the leaf with an unscoped because we dont need the
 				// data in our db anymore
 				if err := bongo.B.Unscoped().Delete(messageList).Error; err != nil {
 					c.log.Error("Err while deleting the channel message list %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				}
+
 				// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
 				go bongo.B.AfterDelete(messageList)
+
 			} else {
 				// update the message itself, without callbacks
-				//
-				// TODO we may need to send events here
-				//
-				fmt.Println("messageList-->", messageList)
 				if err := bongo.B.Unscoped().Model(&messageList).UpdateColumn("channel_id", cl.RootId).Error; err != nil {
 					c.log.Error("Err while updating the mesage %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 					continue
 				}
+
 				// do not forget to send the event, other workers may need it, ps: algoliaconnecter needs it
 				go bongo.B.AfterCreate(messageList)
 			}
