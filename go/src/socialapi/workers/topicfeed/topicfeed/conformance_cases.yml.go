@@ -1,4 +1,6 @@
-tests:
+package topicfeed
+
+var conformanceTestsCases = `tests:
   mentions:
     - description: "Extract mention at the begining of a tweet"
       text: "@username reply"
@@ -887,3 +889,4 @@ tests:
           indices: [9, 16]
         - cashtag: "symbol_ab"
           indices: [22, 32]
+`
