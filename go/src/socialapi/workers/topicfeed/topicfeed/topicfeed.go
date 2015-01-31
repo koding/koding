@@ -1,7 +1,6 @@
 package topicfeed
 
 import (
-	"encoding/json"
 	"fmt"
 	"socialapi/models"
 
@@ -9,23 +8,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/kylemcc/twitter-text-go/extract"
 	"github.com/streadway/amqp"
-
-	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 )
-
-// s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
-// will find [foo, bar, 123]
-// will not find [' baz', '-`3sdf']
-// here is the regex -> (?m)(?:#)(\w+)
-var topicRegex = verbalexpressions.New().
-	Find("#").
-	BeginCapture().
-	Word().
-	EndCapture().
-	Regex()
-
-// extend this regex with https://github.com/twitter/twitter-text-rb/blob/eacf388136891eb316f1c110da8898efb8b54a38/lib/twitter-text/regex.rb
-// to support all languages
 
 type Controller struct {
 	log logging.Logger
@@ -282,15 +265,6 @@ func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
 		return err
 	}
 	return nil
-}
-
-func mapMessage(data []byte) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
 }
 
 func isEligible(cm *models.ChannelMessage) (bool, error) {
