@@ -63,6 +63,7 @@ class SidebarMachineBox extends KDView
     @addWorkspaceView.once 'WorkspaceCreateFailed',   @bound 'removeAddWorkspaceInput'
     @addWorkspaceView.once 'WorkspaceCreated', (ws) =>
       @addWorkspace ws
+      @getData().workspaces.push ws
       @removeAddWorkspaceInput()
 
     @listView.addSubView @addWorkspaceView
