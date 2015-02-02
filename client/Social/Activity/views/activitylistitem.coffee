@@ -61,15 +61,12 @@ class ActivityListItemView extends KDListItemView
     KD.remote.cacheable constructorName, _id, (err, account)=>
       @setClass "exempt" if account?.isExempt
 
-    embedOptions  =
+    @embedOptions  =
       hasDropdown : no
       delegate    : this
 
-    @embedBox = if data.link?
-      @setClass 'two-columns'  if @twoColumns
-      new EmbedBox embedOptions, data.link
-    else
-      new KDCustomHTMLView
+    @embedBoxWrapper = new KDCustomHTMLView
+    @updateEmbedBox()
 
     @timeAgoView =
       if @getData().createdAt
@@ -130,10 +127,12 @@ class ActivityListItemView extends KDListItemView
     unless @editWidget
       { editWidgetClass } = @getOptions()
       @editWidget = new editWidgetClass { delegate:this }, @getData()
-      @editWidget.on 'SubmitSucceeded', @bound 'destroyEditWidget'
+      @editWidget.on 'SubmitSucceeded', =>
+          @updateEmbedBox()
+          @destroyEditWidget()
       @editWidget.input.on 'EscapePerformed', @bound 'destroyEditWidget'
       @editWidgetWrapper.addSubView @editWidget, null, yes
-      @embedBox.hide()
+      @embedBoxWrapper.hide()
 
     KD.utils.defer =>
       {typeConstant} = @getData()
@@ -158,7 +157,21 @@ class ActivityListItemView extends KDListItemView
     @resetEditing()
     @editWidget.destroy()
     @editWidget = null
-    @embedBox.show()
+    @embedBoxWrapper.show()
+
+
+
+  updateEmbedBox: ->
+
+    data    = @getData()
+    embedBox = if data.link?
+      @setClass 'two-columns'  if @twoColumns
+      new EmbedBox @embedOptions, data.link
+    else
+      new KDCustomHTMLView
+
+    @embedBoxWrapper.destroySubViews()
+    @embedBoxWrapper.addSubView embedBox
 
 
   resetEditing: ->
@@ -268,8 +281,8 @@ class ActivityListItemView extends KDListItemView
 
     KD.utils.defer =>
       if @getData().link?.link_url? isnt ''
-      then @embedBox.show()
-      else @embedBox.hide()
+      then @embedBoxWrapper.show()
+      else @embedBoxWrapper.hide()
 
       @checkIfItsTooTall()
 
@@ -319,7 +332,7 @@ class ActivityListItemView extends KDListItemView
       {{> @editWidgetWrapper}}
       {article.has-markdown{KD.utils.formatContent #(body)}}
       {{> @resend}}
-      {{> @embedBox}}
+      {{> @embedBoxWrapper}}
       {{> @actionLinks}}
       <mark class="mark-for-show-more"> </mark>
       {{> @likeSummaryView}}

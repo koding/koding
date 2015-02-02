@@ -156,6 +156,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 
 	body := req.Body
+	payload := req.Payload
 	if err := req.ById(id); err != nil {
 		if err == bongo.RecordNotFound {
 			return response.NewNotFound()
@@ -168,6 +169,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	}
 
 	req.Body = body
+	req.Payload = payload
 	if err := req.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
