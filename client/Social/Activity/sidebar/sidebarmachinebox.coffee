@@ -78,6 +78,8 @@ class SidebarMachineBox extends KDView
 
   collapseList: ->
 
+    return  if @isListCollapsed
+
     @listView.setClass 'hidden'
     @workspacesLabel.setClass 'hidden'
     @isListCollapsed = yes
