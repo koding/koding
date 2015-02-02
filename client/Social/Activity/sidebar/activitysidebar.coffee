@@ -569,35 +569,35 @@ class ActivitySidebar extends KDCustomHTMLView
 
   getDummyWorkspace: (machine) ->
 
-    new KD.remote.api.JWorkspace
-      _id          : "#{machine.getId()}-my-workspace"
-      isDummy      : yes
-      isDefault    : yes
-      originId     : KD.whoami()._id # In case JAccount is not revived yet
-      slug         : 'my-workspace'
-      machineUId   : machine.uid
-      machineLabel : machine.label
-      name         : 'My Workspace'
+    # new KD.remote.api.JWorkspace
+    #   _id          : "#{machine.getId()}-my-workspace"
+    #   isDummy      : yes
+    #   isDefault    : yes
+    #   originId     : KD.whoami()._id # In case JAccount is not revived yet
+    #   slug         : 'my-workspace'
+    #   machineUId   : machine.uid
+    #   machineLabel : machine.label
+    #   name         : 'My Workspace'
 
 
   sortWorkspaces: (workspaces) ->
 
-    workspaces.sort (a, b) ->
-      switch
-        when a.slug is 'my-workspace' then -1
-        when b.slug is 'my-workspace' then 1
-        when a.slug < b.slug then -1
-        when a.slug > b.slug then 1
-        else 0
+    # workspaces.sort (a, b) ->
+    #   switch
+    #     when a.slug is 'my-workspace' then -1
+    #     when b.slug is 'my-workspace' then 1
+    #     when a.slug < b.slug then -1
+    #     when a.slug > b.slug then 1
+    #     else 0
 
 
   mapWorkspaceWithChannel: (data, node) ->
 
-    return  unless data.data?.channelId?
+    # return  unless data.data?.channelId?
 
-    { channelId } = data.data
+    # { channelId } = data.data
 
-    @workspaceItemChannelMap[channelId] = node
+    # @workspaceItemChannelMap[channelId] = node
 
 
   selectWorkspace: (data) ->
