@@ -25,4 +25,5 @@ class MoreWorkspacesModal extends SidebarSearchModal
   populate: ->
 
     for workspace in @getData()
-      @listController.addItem workspace
+      item = @listController.addItem workspace
+      item.once 'WorkspaceSelected', @bound 'destroy'

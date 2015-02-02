@@ -1,16 +1,21 @@
-class ModalWorkspaceItem extends SidebarItem
+class ModalWorkspaceItem extends KDListItemView
 
   JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
-    options.attributes = {}
+    options.type     = 'sidebar-item'
+    options.partial  = ''
 
     super
 
+    href = "/IDE/#{data.machineLabel}/#{data.slug}"
 
-  pistachio: ->
-    """
-    {{ #(slug) }}
-    """
-
+    @addSubView new KDCustomHTMLView
+      tagName   : 'a'
+      attributes: { href }
+      partial   : data.name
+      click     : (e) =>
+        KD.utils.stopDOMEvent e
+        @emit 'WorkspaceSelected'
+        KD.singletons.router.handleRoute href
