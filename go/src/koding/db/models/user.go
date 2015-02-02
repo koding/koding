@@ -10,7 +10,7 @@ type User struct {
 	ObjectId      bson.ObjectId `bson:"_id" json:"-"`
 	Uid           int           `bson:"uid" json:"uid"`
 	Email         string        `bson:"email" json:"email"`
-	LastLoginDate time.Time     `bson:"lastLoginDate" json:"lastLoginDate"`
+	LastLoginDate time.Time     `bson:"lastLoginDate,omitempty" json:"lastLoginDate"`
 	RegisteredAt  time.Time     `bson:"registeredAt" json:"registeredAt"`
 	BlockedUntil  time.Time     `bson:"blockedUntil" json:"blockedUntil"`
 
