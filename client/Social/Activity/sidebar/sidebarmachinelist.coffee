@@ -43,3 +43,27 @@ class SidebarMachineList extends KDCustomHTMLView
       machineBox = new SidebarMachineBox {}, machineData
       @addSubView machineBox
       @machineBoxes.push machineBox
+
+
+  deselectMachines: ->
+
+    @forEachMachineBoxes (box) ->
+      box.unsetClass 'selected'
+
+
+  selectMachineAndWorkspace: (machineUId, workspaceSlug) ->
+
+    @forEachMachineBoxes (box) ->
+      if box.machine.uid is machineUId
+        box.setClass 'selected'
+        box.selectWorkspace workspaceSlug
+      else
+        box.unsetClass 'selected'
+        box.deselectWorkspaces()
+        box.collapseList()
+
+
+  forEachMachineBoxes: (callback) ->
+
+    for box in @machineBoxes
+      callback box
