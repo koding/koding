@@ -11,13 +11,29 @@ import (
 
 var (
 	// TODO: get from config
-	PlanUrl = "http://localhost:7000/payments"
+	DefaultPlanUrl = "http://localhost:7000/payments"
 
 	FreePlanName = "free"
 )
 
-func IsPaidAccount(account *models.Account) (bool, error) {
-	sub, err := GetByAccount(account)
+type Client struct {
+	PlanUrl       string
+	DefaultToPaid bool
+}
+
+func New(planUrl string) *Client {
+	if planUrl == "" {
+		planUrl = DefaultPlanUrl
+	}
+
+	return &Client{
+		PlanUrl:       planUrl,
+		DefaultToPaid: true,
+	}
+}
+
+func (c *Client) IsPaidAccount(account *models.Account) (bool, error) {
+	sub, err := c.GetByAccount(account)
 	if err != nil {
 		return false, err
 	}
@@ -25,26 +41,26 @@ func IsPaidAccount(account *models.Account) (bool, error) {
 	return sub.PlanTitle != FreePlanName, nil
 }
 
-func GetByUsername(username string) (*payment.SubscriptionsResponse, error) {
+func (c *Client) GetByUsername(username string) (*payment.SubscriptionsResponse, error) {
 	account, err := modelhelper.GetAccount(username)
 	if err != nil {
 		return nil, err
 	}
 
-	return GetByAccount(account)
+	return c.GetByAccount(account)
 }
 
-func GetByAccountId(accountId string) (*payment.SubscriptionsResponse, error) {
+func (c *Client) GetByAccountId(accountId string) (*payment.SubscriptionsResponse, error) {
 	account, err := modelhelper.GetAccountById(accountId)
 	if err != nil {
 		return nil, err
 	}
 
-	return GetByAccount(account)
+	return c.GetByAccount(account)
 }
 
-func GetByAccount(account *models.Account) (*payment.SubscriptionsResponse, error) {
-	url := fmt.Sprintf("%s?account_id=%s", PlanUrl, account.Id.Hex())
+func (c *Client) GetByAccount(account *models.Account) (*payment.SubscriptionsResponse, error) {
+	url := fmt.Sprintf("%s?account_id=%s", c.PlanUrl, account.Id.Hex())
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err
