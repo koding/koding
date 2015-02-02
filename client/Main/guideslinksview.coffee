@@ -1,11 +1,11 @@
 class GuidesLinksView extends KDView
 
   Links      =
-    'ssh'    : 'http://learn.koding.com/guides/ssh-into-your-vm/'
-    'sudo'   : 'http://learn.koding.com/faq/what-is-my-sudo-password/'
-    'mySQL'  : 'http://learn.koding.com/guides/installing-mysql/'
-    'NodeJS' : 'http://learn.koding.com/guides/getting-started-nodejs/'
-    'apache' : 'http://learn.koding.com/categories/apache/'
+    'Firewalls'    : 'http://learn.koding.com/guides/enable-ufw/'
+    'ssh'          : 'http://learn.koding.com/guides/ssh-into-your-vm/'
+    'kpm'          : 'http://learn.koding.com/guides/getting-started-kpm/'
+    'MySQL'        : 'http://learn.koding.com/guides/installing-mysql/'
+    'Collaboration': 'http://learn.koding.com/guides/collaboration/'
 
   constructor: (options = {}, data) ->
 
