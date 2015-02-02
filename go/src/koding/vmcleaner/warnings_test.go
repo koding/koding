@@ -104,12 +104,7 @@ func TestLockAndReleaseUser(t *testing.T) {
 
 func TestIsUserExempt(t *testing.T) {
 	Convey("Given exempt conditions", t, func() {
-		username := "paiduser"
-		user := &models.User{
-			Name: username, ObjectId: bson.NewObjectId(), Status: "blocked",
-		}
-
-		err := modelhelper.CreateUser(user)
+		user, err := createUser()
 		So(err, ShouldBeNil)
 
 		Convey("Then it should be exempt", func() {
@@ -136,6 +131,63 @@ func TestIsUserExempt(t *testing.T) {
 			modelhelper.RemoveUser(user.Name)
 		})
 	})
+}
+
+func TestAct(t *testing.T) {
+	Convey("Given action", t, func() {
+		Convey("Then it should call it if not exempt", func() {
+			user, err := createUser()
+			So(err, ShouldBeNil)
+
+			var called = false
+
+			warning := &Warning{
+				Action: func(user *models.User, level int) error {
+					called = true
+					return nil
+				},
+
+				Exempt: []Exempt{func(user *models.User) bool {
+					return false
+				}},
+			}
+
+			err = warning.Act(user)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+		})
+
+		Convey("Then it shouldn't call it if exempt", func() {
+			user, err := createUser()
+			So(err, ShouldBeNil)
+
+			var called = false
+
+			warning := &Warning{
+				Action: func(user *models.User, level int) error {
+					called = true
+					return nil
+				},
+
+				Exempt: []Exempt{func(user *models.User) bool {
+					return true
+				}},
+			}
+
+			err = warning.Act(user)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeFalse)
+		})
+	})
+}
+
+func createUser() (*models.User, error) {
+	username := "paiduser"
+	user := &models.User{
+		Name: username, ObjectId: bson.NewObjectId(), Status: "blocked",
+	}
+
+	return user, modelhelper.CreateUser(user)
 }
 
 func createInactiveUser(daysInactive int) (*models.User, error) {
