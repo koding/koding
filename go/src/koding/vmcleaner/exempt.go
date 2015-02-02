@@ -16,7 +16,8 @@ func PaidUserExempt(user *models.User) bool {
 		return false
 	}
 
-	yes, err := paymentapi.IsPaidAccount(account)
+	paymentclient := paymentapi.New("")
+	yes, err := paymentclient.IsPaidAccount(account)
 	if err != nil {
 		// Log.Error("Error fetching plan, default to paid: %v", err)
 		return true
