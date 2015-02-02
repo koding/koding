@@ -69,6 +69,17 @@ func (w *Warning) Act(userId bson.ObjectId) error {
 	return nil
 }
 
+func (w *Warning) IsUserExempt(user *models.User) bool {
+	for _, exemptFn := range w.Exempt {
+		yes := exemptFn(user)
+		if yes {
+			return true
+		}
+	}
+
+	return false
+}
+
 //----------------------------------------------------------
 // Helpers
 //----------------------------------------------------------

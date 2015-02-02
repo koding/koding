@@ -102,6 +102,42 @@ func TestLockAndReleaseUser(t *testing.T) {
 	})
 }
 
+func TestIsUserExempt(t *testing.T) {
+	Convey("Given exempt conditions", t, func() {
+		username := "paiduser"
+		user := &models.User{
+			Name: username, ObjectId: bson.NewObjectId(), Status: "blocked",
+		}
+
+		err := modelhelper.CreateUser(user)
+		So(err, ShouldBeNil)
+
+		Convey("Then it should be exempt", func() {
+			warning := &Warning{
+				Exempt: []Exempt{func(user *models.User) bool {
+					return true
+				}},
+			}
+
+			So(warning.IsUserExempt(user), ShouldBeTrue)
+		})
+
+		Convey("Then it should not be exempt", func() {
+			warning := &Warning{
+				Exempt: []Exempt{func(user *models.User) bool {
+					return false
+				}},
+			}
+
+			So(warning.IsUserExempt(user), ShouldBeFalse)
+		})
+
+		Reset(func() {
+			modelhelper.RemoveUser(user.Name)
+		})
+	})
+}
+
 func createInactiveUser(daysInactive int) (*models.User, error) {
 	user := &models.User{
 		Name: "inactiveuser", ObjectId: bson.NewObjectId(),
