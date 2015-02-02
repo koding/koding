@@ -61,6 +61,7 @@ type receiver interface {
 	sendFrame(string)
 	// close closes the receiver in a "done" way (idempotent)
 	close()
+	canSend() bool
 	// done notification channel gets closed whenever receiver ends
 	doneNotify() <-chan struct{}
 	// interrupted channel gets closed whenever receiver is interrupted (i.e. http connection drops,...)
@@ -92,7 +93,7 @@ func (s *session) sendMessage(msg string) error {
 		return ErrSessionNotOpen
 	}
 	s.sendBuffer = append(s.sendBuffer, msg)
-	if s.recv != nil {
+	if s.recv != nil && s.recv.canSend() {
 		s.recv.sendBulk(s.sendBuffer...)
 		s.sendBuffer = nil
 	}

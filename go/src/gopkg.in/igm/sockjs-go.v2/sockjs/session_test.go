@@ -307,6 +307,14 @@ type testReceiver struct {
 func (t *testReceiver) doneNotify() <-chan struct{}        { return t.doneCh }
 func (t *testReceiver) interruptedNotify() <-chan struct{} { return t.interruptCh }
 func (t *testReceiver) close()                             { close(t.doneCh) }
+func (t *testReceiver) canSend() bool {
+	select {
+	case <-t.doneCh:
+		return false // already closed
+	default:
+		return true
+	}
+}
 func (t *testReceiver) sendBulk(messages ...string) {
 	for _, m := range messages {
 		t.sendFrame(m)
