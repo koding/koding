@@ -877,7 +877,8 @@ h3.sidebar-title
         opacity     1
       &.terminated
       &.notinitialized
-        opacity     .5
+        figure
+          opacity   .5
       &.running > figure
         border-color   #24B463
         // bg          color, #8CEE71
@@ -907,3 +908,8 @@ h3.sidebar-title
 
     &:hover
       color         sidebarActive
+
+
+  .sidebar-machine-box.selected
+    .vm
+      color         #FFF
