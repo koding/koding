@@ -93,3 +93,20 @@ func TestPaidUserExempt(t *testing.T) {
 		})
 	})
 }
+
+func TestBlockedUserExempt(t *testing.T) {
+	Convey("Given user who is blocked", t, func() {
+		username := "paiduser"
+		user := &models.User{
+			Name: username, ObjectId: bson.NewObjectId(), Status: "blocked",
+		}
+
+		err := modelhelper.CreateUser(user)
+		So(err, ShouldBeNil)
+
+		Convey("Then it returns true for exempt", func() {
+			yes := BlockedUserExempt(user)
+			So(yes, ShouldBeTrue)
+		})
+	})
+}
