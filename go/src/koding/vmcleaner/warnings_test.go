@@ -86,7 +86,7 @@ func TestLockAndReleaseUser(t *testing.T) {
 			So(newuser.Inactive.Assigned, ShouldBeTrue)
 
 			Convey("Then it should release user", func() {
-				err := FirstEmail.ReleaseUser(user.ObjectId)
+				err := FirstEmail.UpdateAndReleaseUser(user.ObjectId)
 				So(err, ShouldBeNil)
 
 				Convey("Then it shouldn't get same user again", func() {

@@ -52,7 +52,7 @@ func main() {
 				continue
 			}
 
-			err = warning.ReleaseUser(user.ObjectId)
+			err = warning.UpdateAndReleaseUser(user.ObjectId)
 			if err != nil {
 				handleError(err)
 				continue

@@ -38,7 +38,7 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 	return user, modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
 
-func (w *Warning) ReleaseUser(userId bson.ObjectId) error {
+func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 	var query = func(c *mgo.Collection) error {
 		find := bson.M{"_id": userId}
 		update := bson.M{
