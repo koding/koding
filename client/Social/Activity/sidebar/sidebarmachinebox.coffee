@@ -90,7 +90,7 @@ class SidebarMachineBox extends KDView
     @isListCollapsed = no
 
 
-  selectWorkspace: (workspace) ->
+  selectWorkspace: (slug) ->
 
     { machine } = @getData()
 
@@ -99,7 +99,7 @@ class SidebarMachineBox extends KDView
 
     @deselectWorkspaces()
     @forEachWorkspaceItem (item) ->
-      if item.getData().slug is workspace.slug
+      if item.getData().slug is slug
         item.setClass 'selected'
 
 
