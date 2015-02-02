@@ -34,20 +34,22 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
       callback : =>
         @deleteButton.showLoader()
 
-        KD.remote.api.JWorkspace.deleteById workspace.id, (err)=>
+        KD.remote.api.JWorkspace.deleteById workspace.getId(), (err)=>
 
           return  if KD.showError err
-          
-          { machineUId, rootPath } = workspace.data
+
+          { machineUId, rootPath } = workspace
+          { router, appManager   } = KD.singletons
+
           if deleteRelatedFiles
-            KD.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", machineUId, rootPath 
+            methodName = 'deleteWorkspaceRootFolder'
+            appManager.tell 'IDE', methodName, machineUId, rootPath
 
           navItem.destroy()
           @destroy()
 
-          KD.singletons
-            .router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
-            
+          router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
+
     @buttonContainer.addSubView field = new KDCustomHTMLView
         tagName : 'li'
         cssClass : 'delete-files'
