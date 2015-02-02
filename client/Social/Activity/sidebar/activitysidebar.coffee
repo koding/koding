@@ -656,7 +656,6 @@ class ActivitySidebar extends KDCustomHTMLView
       if state.status is Running
         machine.status.state = Running
         if appManager.getFrontApp().mountedMachineUId is machine.uid
-          @selectWorkspace { workspace, machine }
           delete @watchedMachines[machine._id]
 
     computeController.on "public-#{machine._id}", callback

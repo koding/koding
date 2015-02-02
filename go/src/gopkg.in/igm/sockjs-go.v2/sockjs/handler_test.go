@@ -66,9 +66,11 @@ func TestHandler_SessionByRequest(t *testing.T) {
 	}
 	// test session expires after timeout
 	time.Sleep(15 * time.Millisecond)
+	h.sessionsMux.Lock()
 	if _, exists := h.sessions["sessionid"]; exists {
 		t.Errorf("Session should not exist in handler after timeout")
 	}
+	h.sessionsMux.Unlock()
 	// test proper behaviour in case URL is not correct
 	req, _ = http.NewRequest("POST", "", nil)
 	if _, err := h.sessionByRequest(req); err == nil {

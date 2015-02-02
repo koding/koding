@@ -97,3 +97,8 @@ func (recv *httpReceiver) close() {
 		close(recv.doneCh)
 	}
 }
+func (recv *httpReceiver) canSend() bool {
+	recv.Lock()
+	defer recv.Unlock()
+	return recv.state != stateHTTPReceiverClosed
+}

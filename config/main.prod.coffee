@@ -346,7 +346,7 @@ Configuration = (options={}) ->
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "#{GOBIN}/paymentwebhook -c #{configName}"
+        command         : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath}"
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :

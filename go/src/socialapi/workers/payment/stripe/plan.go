@@ -24,7 +24,7 @@ func CreateDefaultPlans() error {
 
 		_, err = CreatePlan(id, pl.Title, pl.NameForStripe, pl.Interval, pl.Amount)
 		if err != nil {
-			return err
+			continue
 		}
 	}
 
