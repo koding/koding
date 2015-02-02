@@ -65,7 +65,11 @@ func (w *Warning) FindUser() (*models.User, error) {
 	return user, modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
 
-func (w *Warning) Act(userId bson.ObjectId) error {
+func (w *Warning) Act(user *models.User) error {
+	if !w.IsUserExempt(user) {
+		return w.Action(user, w.Level)
+	}
+
 	return nil
 }
 

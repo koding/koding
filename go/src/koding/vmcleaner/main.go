@@ -46,7 +46,7 @@ func main() {
 				break
 			}
 
-			err = warning.Act(user.ObjectId)
+			err = warning.Act(user)
 			if err != nil {
 				handleError(err)
 				continue
