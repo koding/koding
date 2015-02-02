@@ -36,8 +36,8 @@ func newHandler(prefix string, opts Options, handlerFunc func(Session)) *handler
 	sessionPrefix := prefix + "/[^/.]+/[^/.]+"
 	h.mappings = []*mapping{
 		newMapping("GET", prefix+"[/]?$", welcomeHandler),
-		newMapping("OPTIONS", prefix+"/info?$", opts.cookie, xhrCors, cacheFor, opts.info),
-		newMapping("GET", prefix+"/info?$", xhrCors, noCache, opts.info),
+		newMapping("OPTIONS", prefix+"/info$", opts.cookie, xhrCors, cacheFor, opts.info),
+		newMapping("GET", prefix+"/info$", xhrCors, noCache, opts.info),
 		// XHR
 		newMapping("POST", sessionPrefix+"/xhr_send$", opts.cookie, xhrCors, noCache, h.xhrSend),
 		newMapping("OPTIONS", sessionPrefix+"/xhr_send$", opts.cookie, xhrCors, cacheFor, xhrOptions),
@@ -48,9 +48,9 @@ func newHandler(prefix string, opts Options, handlerFunc func(Session)) *handler
 		// EventStream
 		newMapping("GET", sessionPrefix+"/eventsource$", opts.cookie, xhrCors, noCache, h.eventSource),
 		// Htmlfile
-		newMapping("GET", sessionPrefix+"/htmlfile", opts.cookie, xhrCors, noCache, h.htmlFile),
+		newMapping("GET", sessionPrefix+"/htmlfile$", opts.cookie, xhrCors, noCache, h.htmlFile),
 		// JsonP
-		newMapping("GET", sessionPrefix+"/jsonp", opts.cookie, xhrCors, noCache, h.jsonp),
+		newMapping("GET", sessionPrefix+"/jsonp$", opts.cookie, xhrCors, noCache, h.jsonp),
 		newMapping("OPTIONS", sessionPrefix+"/jsonp$", opts.cookie, xhrCors, cacheFor, xhrOptions),
 		newMapping("POST", sessionPrefix+"/jsonp_send$", opts.cookie, xhrCors, noCache, h.jsonpSend),
 		// IFrame
