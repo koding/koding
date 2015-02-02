@@ -86,7 +86,7 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 
 	query := func(c *mgo.Collection) error {
 		return c.Find(
-			bson.M{"users.id": user.ObjectId, "users.sudo": true},
+			bson.M{"provider": "koding", "users.id": user.ObjectId, "users.sudo": true},
 		).All(&machines)
 	}
 
