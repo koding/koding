@@ -92,7 +92,11 @@ class SidebarMachineBox extends KDView
 
   selectWorkspace: (workspace) ->
 
-    @expandList()
+    { machine } = @getData()
+
+    if machine.status.state is Machine.State.Running
+      @expandList()
+
     @deselectWorkspaces()
     @forEachWorkspaceItem (item) ->
       if item.getData().slug is workspace.slug
