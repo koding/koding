@@ -88,7 +88,7 @@ func TestIsUserPaid(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(username)
+			deleteUserWithUsername(user)
 		})
 	})
 }
@@ -109,7 +109,7 @@ func TestIsUserBlocked(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(username)
+			deleteUserWithUsername(user)
 		})
 	})
 }
@@ -125,7 +125,7 @@ func TestIsUserVMsEmpty(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 
@@ -139,7 +139,7 @@ func TestIsUserVMsEmpty(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 }
