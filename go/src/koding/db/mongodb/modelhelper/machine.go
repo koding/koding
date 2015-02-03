@@ -208,3 +208,11 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 
 	return Mongo.Run(MachineColl, query)
 }
+
+func CreateMachineForUser(m *models.Machine, u *models.User) error {
+	m.Users = []models.MachineUser{
+		models.MachineUser{Id: u.ObjectId, Sudo: true, Owner: true},
+	}
+
+	return CreateMachine(m)
+}

@@ -9,7 +9,7 @@ import (
 type Exempt func(*models.User) bool
 
 // All paid users are exempt
-func PaidUserExempt(user *models.User) bool {
+func IsUserPaid(user *models.User) bool {
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {
 		// Log.Error("Error fetching account with username: %s", user.Name)
@@ -19,7 +19,7 @@ func PaidUserExempt(user *models.User) bool {
 	paymentclient := paymentapi.New("")
 	yes, err := paymentclient.IsPaidAccount(account)
 	if err != nil {
-		// Log.Error("Error fetching plan, default to paid: %v", err)
+		// Log.Error("Error fetching plan for user: %s, default to paid: %v", user.Name, err)
 		return true
 	}
 
@@ -27,6 +27,20 @@ func PaidUserExempt(user *models.User) bool {
 }
 
 // Blocked users don't get an email, but vms get deleted
-func BlockedUserExempt(user *models.User) bool {
+func IsUserBlocked(user *models.User) bool {
 	return user.Status == modelhelper.UserStatusBlocked
+}
+
+func IsUserVMsEmpty(user *models.User) bool {
+	machines, err := modelhelper.GetMachines(user.ObjectId)
+	if err != nil {
+		// Log.Error("Error fetching vms for user: %s, default to false: %v", user.Name, err)
+		return true
+	}
+
+	if len(machines) > 0 {
+		return false
+	}
+
+	return true
 }

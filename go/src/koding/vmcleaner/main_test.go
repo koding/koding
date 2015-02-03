@@ -116,6 +116,22 @@ func createUser() (*models.User, error) {
 	return user, modelhelper.CreateUser(user)
 }
 
+func createUserWithVM() (*models.User, error) {
+	username := "vminactiveWithvms"
+	user := &models.User{
+		Name: username, ObjectId: bson.NewObjectId(),
+	}
+
+	machine := &models.Machine{ObjectId: bson.NewObjectId()}
+
+	err := modelhelper.CreateMachineForUser(machine, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, modelhelper.CreateUser(user)
+}
+
 func createInactiveUser(daysInactive int) (*models.User, error) {
 	user := &models.User{
 		Name: "inactiveuser", ObjectId: bson.NewObjectId(),
