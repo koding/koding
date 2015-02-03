@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	"encoding/json"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -14,6 +15,16 @@ const (
 	// Canonical database path is `$HOME + DatabasePath`
 	DatabasePath = "/.config/koding/klient.bolt"
 )
+
+// boltdb satisfies Storage interface
+type boltdb struct {
+	*bolt.DB
+}
+
+// Tx is our own transaction type which provides helper methods
+type Tx struct {
+	*bolt.Tx
+}
 
 // NewBoltStorage returns a new boltdb
 func NewBoltStorage() (*boltdb, error) {
@@ -36,11 +47,6 @@ func NewBoltStorage() (*boltdb, error) {
 	return d, nil
 }
 
-// boltdb satisfies Storage interface
-type boltdb struct {
-	*bolt.DB
-}
-
 func (b *boltdb) open(dbpath string) error {
 	var err error
 	b.DB, err = bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
@@ -58,47 +64,48 @@ func (b *boltdb) open(dbpath string) error {
 }
 
 // Get returns the value of a given username
-func (b *boltdb) Get(username string) (string, error) {
-	var user string
-
+func (b *boltdb) Get(username string) (*Option, error) {
+	var option *Option
 	err := b.View(func(tx *Tx) error {
 		value := tx.User(username)
 		if len(value) == 0 {
 			return ErrUserNotFound
 		}
-		user = value
-		return nil
+
+		return json.Unmarshal([]byte(value), &option)
 	})
 
-	if err != nil {
-		return "", err
-	}
-
-	return user, nil
+	return option, err
 }
 
 // GetAll fetches all keys which are unique usernames in the bucket.
-func (b *boltdb) GetAll() ([]string, error) {
-	users := make([]string, 0)
+func (b *boltdb) GetAll() (map[string]*Option, error) {
+	options := make(map[string]*Option, 0)
 
 	err := b.View(func(tx *Tx) error {
-		tx.Bucket([]byte(UserBucket)).ForEach(func(k, _ []byte) error {
-			users = append(users, string(k))
+		return tx.Bucket([]byte(UserBucket)).ForEach(func(k, v []byte) error {
+			var option *Option
+			if err := json.Unmarshal(v, &option); err != nil {
+				return err
+			}
+
+			options[string(k)] = option
 			return nil
 		})
-		return nil
 	})
 
-	if err != nil {
-		return nil, err
-	}
-	return users, nil
+	return options, err
 }
 
 // Set assigns the value for the given username
-func (b *boltdb) Set(username, value string) error {
+func (b *boltdb) Set(username string, option *Option) error {
+	v, err := json.Marshal(option)
+	if err != nil {
+		return err
+	}
+
 	return b.Update(func(tx *Tx) error {
-		return tx.SetUser(username, value)
+		return tx.SetUser(username, string(v))
 	})
 }
 
@@ -126,11 +133,6 @@ func (b *boltdb) Update(fn func(*Tx) error) error {
 	return b.DB.Update(func(tx *bolt.Tx) error {
 		return fn(&Tx{tx})
 	})
-}
-
-// Tx is our own transaction type which provides helper methods
-type Tx struct {
-	*bolt.Tx
 }
 
 // User retrieves a users field by name.

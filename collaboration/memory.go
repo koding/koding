@@ -4,39 +4,36 @@ import "sync"
 
 func NewMemoryStorage() *memoryStorage {
 	return &memoryStorage{
-		users: make(map[string]string),
+		users: make(map[string]*Option),
 	}
 }
 
 // memoryStorage satisfies Storage interface
 type memoryStorage struct {
-	users map[string]string
+	users map[string]*Option
 	sync.Mutex
 }
 
-func (m *memoryStorage) Get(username string) (string, error) {
+func (m *memoryStorage) Get(username string) (*Option, error) {
 	m.Lock()
 	defer m.Unlock()
 
-	if _, ok := m.users[username]; !ok {
-		return "", ErrUserNotFound
+	option, ok := m.users[username]
+	if !ok {
+		return nil, ErrUserNotFound
 	}
 
-	return m.users[username], nil
+	return option, nil
 }
 
-func (m *memoryStorage) GetAll() ([]string, error) {
+func (m *memoryStorage) GetAll() (map[string]*Option, error) {
 	m.Lock()
 	defer m.Unlock()
 
-	allUsers := make([]string, 0)
-	for user := range m.users {
-		allUsers = append(allUsers, user)
-	}
-	return allUsers, nil
+	return m.users, nil
 }
 
-func (m *memoryStorage) Set(username, value string) error {
+func (m *memoryStorage) Set(username string, value *Option) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -48,9 +45,7 @@ func (m *memoryStorage) Delete(username string) error {
 	m.Lock()
 	defer m.Unlock()
 
-	if _, ok := m.users[username]; ok {
-		delete(m.users, username)
-	}
+	delete(m.users, username)
 	return nil
 }
 

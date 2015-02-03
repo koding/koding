@@ -142,9 +142,9 @@ func (u *Updater) updateBinary(url string) error {
 }
 
 func (u *Updater) latestVersion() (string, error) {
-	u.Log.Info("Getting latest version from %s", u.Endpoint)
 	resp, err := http.Get(u.Endpoint)
 	if err != nil {
+		u.Log.Debug("Getting latest version from %s", u.Endpoint)
 		return "", err
 	}
 	defer resp.Body.Close()

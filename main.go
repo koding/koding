@@ -144,8 +144,11 @@ func newKite() *kite.Kite {
 		// only authenticated methods have correct username. For example
 		// kite.ping has authentication disabled so username can be empty.
 		if r.Auth != nil {
-			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
-				r.Username, r.Client.Environment, r.Client.Name, r.Method)
+			// Koding (kloud) connects to much, don't display it.
+			if r.Username != "koding" {
+				k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
+					r.Username, r.Client.Environment, r.Client.Name, r.Method)
+			}
 
 			// Allow these users by default
 			allowedUsers := []string{k.Config.Username, "koding"}
@@ -155,7 +158,13 @@ func newKite() *kite.Kite {
 			if err != nil {
 				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
 			}
-			allowedUsers = append(allowedUsers, sharedUsers...)
+
+			sharedUsernames := make([]string, 0)
+			for username := range sharedUsers {
+				sharedUsernames = append(sharedUsernames, username)
+			}
+
+			allowedUsers = append(allowedUsers, sharedUsernames...)
 
 			if !userIn(r.Username, allowedUsers...) {
 				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
@@ -218,7 +227,11 @@ func newKite() *kite.Kite {
 	var disconnectTimer *time.Timer
 
 	k.OnFirstRequest(func(c *kite.Client) {
-		k.Log.Info("Kite '%s/%s/%s' is connected", c.Username, c.Environment, c.Name)
+		// Koding (kloud) connects to much, don't display it.
+		if c.Username != "koding" {
+			k.Log.Info("Kite '%s/%s/%s' is connected", c.Username, c.Environment, c.Name)
+		}
+
 		if c.Username != k.Config.Username {
 			return // we don't care for others
 		}
@@ -234,7 +247,11 @@ func newKite() *kite.Kite {
 
 	// Unshare collab users if the klient owner disconnects
 	k.OnDisconnect(func(c *kite.Client) {
-		k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
+		// Koding (kloud) connects to much, don't display it.
+		if c.Username != "koding" {
+			k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
+		}
+
 		if c.Username != k.Config.Username {
 			return // we don't care for others
 		}
@@ -266,12 +283,17 @@ func newKite() *kite.Kite {
 				}
 
 				k.Log.Info("Unsharing users '%s'", sharedUsers)
-				for _, user := range sharedUsers {
+				for user, option := range sharedUsers {
+					// dont touch permanent users
+					if option.Permanent {
+						k.Log.Info("User is permanent, avoiding it: '%s'", user)
+						continue
+					}
+
 					if err := collab.Delete(user); err != nil {
 						k.Log.Warning("Couldn't delete user from storage: '%s'", err)
 					}
 					term.CloseSessions(user)
-
 				}
 			}
 		}()
