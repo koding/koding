@@ -16,7 +16,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestPaidUserExempt(t *testing.T) {
+func TestIsUserPaid(t *testing.T) {
 	Convey("Given user who is paid", t, func() {
 		username := "paiduser"
 		user := &models.User{
@@ -37,7 +37,7 @@ func TestPaidUserExempt(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true if error fetching plan", func() {
-			yes := PaidUserExempt(user)
+			yes := IsUserPaid(user)
 			So(yes, ShouldBeTrue)
 		})
 
@@ -93,7 +93,7 @@ func TestPaidUserExempt(t *testing.T) {
 	})
 }
 
-func TestBlockedUserExempt(t *testing.T) {
+func TestIsUserBlocked(t *testing.T) {
 	Convey("Given user who is blocked", t, func() {
 		username := "paiduser"
 		user := &models.User{
@@ -104,12 +104,42 @@ func TestBlockedUserExempt(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true for exempt", func() {
-			yes := BlockedUserExempt(user)
+			yes := IsUserBlocked(user)
 			So(yes, ShouldBeTrue)
 		})
 
 		Reset(func() {
 			deleteUserWithUsername(username)
+		})
+	})
+}
+
+func TestIsUserVMsEmpty(t *testing.T) {
+	Convey("Given user who has no vms", t, func() {
+		user, err := createUser()
+
+		So(err, ShouldBeNil)
+		Convey("Then it returns true for exempt", func() {
+			yes := IsUserVMsEmpty(user)
+			So(yes, ShouldBeTrue)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user.Name)
+		})
+	})
+
+	Convey("Given user who has vms", t, func() {
+		user, err := createUserWithVM()
+
+		So(err, ShouldBeNil)
+		Convey("Then it returns true for exempt", func() {
+			no := IsUserVMsEmpty(user)
+			So(no, ShouldBeFalse)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user.Name)
 		})
 	})
 }

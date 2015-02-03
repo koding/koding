@@ -12,7 +12,7 @@ var FirstEmail = &Warning{
 		"inactive.warning": bson.M{"$exists": false},
 	},
 
-	Exempt: []Exempt{PaidUserExempt, BlockedUserExempt},
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked},
 
 	Action: SendEmail,
 }
@@ -27,7 +27,7 @@ var SecondEmail = &Warning{
 		"inactive.warning": 1,
 	},
 
-	Exempt: []Exempt{PaidUserExempt, BlockedUserExempt},
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked},
 
 	Action: SendEmail,
 }
@@ -42,7 +42,7 @@ var ThirdDeleteVM = &Warning{
 		"inactive.warning": 2,
 	},
 
-	Exempt: []Exempt{PaidUserExempt},
+	Exempt: []Exempt{IsUserPaid},
 
 	Action: DeleteVM,
 }
