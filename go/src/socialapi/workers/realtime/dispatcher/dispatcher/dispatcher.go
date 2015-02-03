@@ -43,14 +43,13 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 
 	pm.EventId = createEventId()
 
-	// TODO later on Pubnub needs its own queue
 	go func() {
-		if err := c.Pubnub.UpdateChannel(pm); err != nil {
-			c.logger.Error("Could not push update channel message with body %s to pubnub: %s", pm.Message.Body, err)
+		if err := c.Broker.UpdateChannel(pm); err != nil {
+			c.logger.Error("Could not push update channel message with body %s to broker: %s", pm.Message.Body, err)
 		}
 	}()
 
-	return c.Broker.UpdateChannel(pm)
+	return c.Pubnub.UpdateChannel(pm)
 }
 
 func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
@@ -81,15 +80,14 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 
 	um.EventId = createEventId()
 
-	// TODO later on Pubnub needs its own queue
 	go func() {
-		err := c.Pubnub.UpdateInstance(um)
+		err := c.Broker.UpdateInstance(um)
 		if err != nil {
-			c.logger.Error("Could not push update instance message with id %d to pubnub: %s", um.Message.Id, err)
+			c.logger.Error("Could not push update instance message with id %d to broker: %s", um.Message.Id, err)
 		}
 	}()
 
-	return c.Broker.UpdateInstance(um)
+	return c.Pubnub.UpdateInstance(um)
 }
 
 // NotifyUser sends user notifications to related channel
@@ -101,15 +99,14 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	nm.EventName = "message"
 	nm.EventId = createEventId()
 
-	// TODO later on Pubnub needs its own queue
 	go func() {
-		err := c.Pubnub.NotifyUser(nm)
+		err := c.Broker.NotifyUser(nm)
 		if err != nil {
-			c.logger.Error("Could not send push notification message %s to user %s pubnub: %s", nm.EventName, nm.Account.Nickname, err)
+			c.logger.Error("Could not send push notification message %s to user %s broker: %s", nm.EventName, nm.Account.Nickname, err)
 		}
 	}()
 
-	return c.Broker.NotifyUser(nm)
+	return c.Pubnub.NotifyUser(nm)
 }
 
 func (c *Controller) GrantMessagePublicAccess(um *models.UpdateInstanceMessage) error {
