@@ -11,7 +11,7 @@ type Inactive struct {
 }
 
 var Warnings = []*Warning{
-	FirstEmail, SecondEmail, ThirdDeleteVM,
+	FirstEmail, SecondEmail, ThirdEmail, FourthDeleteVM,
 }
 
 func main() {

@@ -3,12 +3,14 @@ package main
 import "labix.org/v2/mgo/bson"
 
 var FirstEmail = &Warning{
-	Name: "Find users inactive for > 45 days, send email",
+	Name: "Find users inactive for > 30 days, send email",
 
 	Level: 1,
 
+	Interval: 30,
+
 	Select: bson.M{
-		"lastLoginDate":    moreThanDaysQuery(45),
+		"lastLoginDate":    moreThanDaysQuery(30),
 		"inactive.warning": bson.M{"$exists": false},
 	},
 
@@ -18,12 +20,14 @@ var FirstEmail = &Warning{
 }
 
 var SecondEmail = &Warning{
-	Name: "Find users inactive for > 52 days, send email again",
+	Name: "Find users inactive for > 45 days, send email",
 
 	Level: 2,
 
+	Interval: 45,
+
 	Select: bson.M{
-		"lastLoginDate":    moreThanDaysQuery(52),
+		"lastLoginDate":    moreThanDaysQuery(45),
 		"inactive.warning": 1,
 	},
 
@@ -32,14 +36,33 @@ var SecondEmail = &Warning{
 	Action: SendEmail,
 }
 
-var ThirdDeleteVM = &Warning{
-	Name: "Find users inactive for > 60 days, delete ALL their vms",
+var ThirdEmail = &Warning{
+	Name: "Find users inactive for > 52 days, send email",
 
 	Level: 3,
 
+	Interval: 52,
+
+	Select: bson.M{
+		"lastLoginDate":    moreThanDaysQuery(52),
+		"inactive.warning": 2,
+	},
+
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
+
+	Action: SendEmail,
+}
+
+var FourthDeleteVM = &Warning{
+	Name: "Find users inactive for > 60 days, delete ALL their vms",
+
+	Level: 4,
+
+	Interval: 60,
+
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(60),
-		"inactive.warning": 2,
+		"inactive.warning": 3,
 	},
 
 	Exempt: []Exempt{IsUserPaid, IsUserVMsEmpty},

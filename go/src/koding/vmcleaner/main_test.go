@@ -37,6 +37,18 @@ func createUserWithWarning(w int) (*models.User, error) {
 	return user, modelhelper.CreateUser(user)
 }
 
+func createInactiveUserWithWarning(daysInactive, w int) (*models.User, error) {
+	username := "inactiveuserwithwarning"
+	user := &models.User{
+		Name: username, ObjectId: bson.NewObjectId(),
+		Email:         "inactiveuser@koding.com",
+		LastLoginDate: now().Add(-time.Hour * 24 * time.Duration(daysInactive)),
+		Inactive:      models.UserInactive{Warning: w, ModifiedAt: now()},
+	}
+
+	return user, modelhelper.CreateUser(user)
+}
+
 func createUserWithVM() (*models.User, error) {
 	username := "userwithvms"
 	user := &models.User{
