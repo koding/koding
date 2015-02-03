@@ -8,7 +8,7 @@ import (
 
 type Exempt func(*models.User) bool
 
-// All paid users are exempt
+// All paid users are exempt.
 func IsUserPaid(user *models.User) bool {
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {
@@ -26,11 +26,12 @@ func IsUserPaid(user *models.User) bool {
 	return yes
 }
 
-// Blocked users don't get an email, but vms get deleted
+// Blocked users don't get an email, but vms get deleted.
 func IsUserBlocked(user *models.User) bool {
 	return user.Status == modelhelper.UserStatusBlocked
 }
 
+// If user has no vm, don't send email saying their vms will be deleted.
 func IsUserVMsEmpty(user *models.User) bool {
 	machines, err := modelhelper.GetMachines(user.ObjectId)
 	if err != nil {
@@ -38,9 +39,5 @@ func IsUserVMsEmpty(user *models.User) bool {
 		return true
 	}
 
-	if len(machines) > 0 {
-		return false
-	}
-
-	return true
+	return len(machines) == 0
 }
