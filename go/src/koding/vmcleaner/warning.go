@@ -45,7 +45,7 @@ func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 		update := bson.M{
 			"$set": bson.M{
 				"inactive.warning": w.Level, "inactive.modifiedAt": now(),
-				"inactive.warning_time": bson.M{
+				"inactive.warnings": bson.M{
 					fmt.Sprintf("%d", w.Level): now(),
 				},
 			},
