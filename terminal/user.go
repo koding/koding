@@ -6,12 +6,17 @@ type User struct {
 	username   string
 	Sessions   map[string]*Server
 	sync.Mutex // protects sessions
+
+	//ScreenSessionLimit defines the maximum number of sessions a user can
+	//create, it's useful to avoid spamming the remote host.
+	ScreenSessionLimit int
 }
 
 func NewUser(username string) *User {
 	return &User{
-		username: username,
-		Sessions: make(map[string]*Server),
+		username:           username,
+		Sessions:           make(map[string]*Server),
+		ScreenSessionLimit: 20,
 	}
 }
 
@@ -20,6 +25,15 @@ func (u *User) AddSession(session string, server *Server) {
 	defer u.Unlock()
 
 	u.Sessions[session] = server
+}
+
+// HasLimit checks whether the session. It returns true if the limit has been
+// reached
+func (u *User) HasLimit() bool {
+	u.Lock()
+	defer u.Unlock()
+
+	return len(u.Sessions) == u.ScreenSessionLimit
 }
 
 func (u *User) Session(session string) (*Server, bool) {

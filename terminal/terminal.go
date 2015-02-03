@@ -33,6 +33,19 @@ func New(log kite.Logger) *Terminal {
 	}
 }
 
+func (t *Terminal) HasLimit(username string) bool {
+	t.Lock()
+	defer t.Unlock()
+
+	user, ok := t.Users[username]
+	if !ok {
+		// not available yet so it's good to go
+		return false
+	}
+
+	return user.HasLimit()
+}
+
 // AddUserSession adds the given username and session
 func (t *Terminal) AddUserSession(username, session string, server *Server) {
 	t.Lock()
@@ -136,6 +149,10 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("Could not get home dir: %s", err)
+	}
+
+	if t.HasLimit(r.Username) {
+		return nil, errors.New("session limit has reached")
 	}
 
 	command, err := newCommand(params.Mode, params.Session, user.Username)
