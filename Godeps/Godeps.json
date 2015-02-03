@@ -27,8 +27,8 @@
 		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
-			"Comment": "v0.6.2-10-g51fe59a",
-			"Rev": "51fe59aca108dc5680109e7b2051cbdcfa5a253c"
+			"Comment": "v0.6.4-10-g89efc1f",
+			"Rev": "89efc1fea9b8b47f6f6ce72279a7ed9496b4cdb3"
 		},
 		{
 			"ImportPath": "github.com/boltdb/bolt",
@@ -41,56 +41,56 @@
 		},
 		{
 			"ImportPath": "github.com/dgrijalva/jwt-go",
-			"Comment": "v2.2.0-2-g47b263f",
-			"Rev": "47b263f020574c14765ecc3ea88f0e9447046632"
+			"Comment": "v2.2.0-15-g61124b6",
+			"Rev": "61124b62ad244d655f87d944aefaa2ae5a0d2f16"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/archive",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/fileutils",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/ioutils",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/pools",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/promise",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/system",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/pkg/units",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/docker/docker/vendor/src/code.google.com/p/go/src/pkg/archive/tar",
-			"Comment": "v1.4.1-179-g4baa240",
-			"Rev": "4baa240065b8b7dd65f161ad443bd499cf5e6707"
+			"Comment": "v1.4.1-850-g989ca9b",
+			"Rev": "989ca9b357ba6e229aa53c881b2400a192edfc36"
 		},
 		{
 			"ImportPath": "github.com/fsouza/go-dockerclient",
-			"Rev": "b52383442df766febf51f9f858ee311f69a2f264"
+			"Rev": "0758f407f25a8df60c540b0ec758905192687e14"
 		},
 		{
 			"ImportPath": "github.com/gorilla/websocket",
-			"Rev": "9007e29a7c93fc3dcebbdbf742ce0efaf19e6510"
+			"Rev": "ab5b3a61f5b6aa323d66ece457334396c4ccdd03"
 		},
 		{
 			"ImportPath": "github.com/hashicorp/go-version",
@@ -106,7 +106,7 @@
 		},
 		{
 			"ImportPath": "github.com/koding/kite",
-			"Rev": "445a0fca1e78f6673bdd37bda983f4401256d0b0"
+			"Rev": "c0c40a2b933d426516e36b60387b5c20d7c32f92"
 		},
 		{
 			"ImportPath": "github.com/koding/logging",
@@ -127,7 +127,7 @@
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
-			"Rev": "740c764bc6149d3f1806231418adb9f52c11bcbf"
+			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/osext",
@@ -149,7 +149,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/igm/sockjs-go.v2/sockjs",
-			"Rev": "9dbc79efa97d9a6c6b4a515893bd02c9242e9225"
+			"Rev": "32606d9d36ea669347adc725866c95df69e2509e"
 		}
 	]
 }

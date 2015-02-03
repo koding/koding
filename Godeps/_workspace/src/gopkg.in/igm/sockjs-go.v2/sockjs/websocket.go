@@ -85,5 +85,13 @@ func (w *wsReceiver) close() {
 		close(w.closeCh)
 	}
 }
+func (w *wsReceiver) canSend() bool {
+	select {
+	case <-w.closeCh: // already closed
+		return false
+	default:
+		return true
+	}
+}
 func (w *wsReceiver) doneNotify() <-chan struct{}        { return w.closeCh }
 func (w *wsReceiver) interruptedNotify() <-chan struct{} { return nil }
