@@ -24,7 +24,7 @@ func TestWarningsQuery(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 
@@ -68,7 +68,7 @@ func TestWarningsQuery(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 }
@@ -108,7 +108,7 @@ func TestLockAndReleaseUser(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 }
@@ -139,7 +139,7 @@ func TestIsUserExempt(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 }
@@ -168,7 +168,7 @@ func TestAct(t *testing.T) {
 			So(called, ShouldBeTrue)
 
 			Reset(func() {
-				deleteUserWithUsername(user.Name)
+				deleteUserWithUsername(user)
 			})
 		})
 
@@ -194,7 +194,7 @@ func TestAct(t *testing.T) {
 			So(called, ShouldBeFalse)
 
 			Reset(func() {
-				deleteUserWithUsername(user.Name)
+				deleteUserWithUsername(user)
 			})
 		})
 	})

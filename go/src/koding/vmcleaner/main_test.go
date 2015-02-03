@@ -35,7 +35,7 @@ func TestWarningsFull(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 
@@ -98,7 +98,7 @@ func TestWarningsFull(t *testing.T) {
 		})
 
 		Reset(func() {
-			deleteUserWithUsername(user.Name)
+			deleteUserWithUsername(user)
 		})
 	})
 }
@@ -142,9 +142,10 @@ func createInactiveUser(daysInactive int) (*models.User, error) {
 	return user, modelhelper.CreateUser(user)
 }
 
-func deleteUserWithUsername(username string) {
-	modelhelper.RemoveAllUsers(username)
-	modelhelper.RemoveAllAccountByUsername(username)
+func deleteUserWithUsername(user *models.User) {
+	modelhelper.RemoveAllUsers(user.Name)
+	modelhelper.RemoveAllAccountByUsername(user.Name)
+	modelhelper.RemoveAllMachinesForUser(user.ObjectId)
 }
 
 func findUser(username string) (*models.User, error) {
