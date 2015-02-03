@@ -3,17 +3,25 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 
+	"github.com/koding/kodingemail"
 	"github.com/koding/multiconfig"
 )
 
 type Vmcleaner struct {
 	Mongo string `required:"true"`
+	Email struct {
+		Username string `required:"username"`
+		Password string `required:"password"`
+	} `required:"email"`
 }
+
+var email kodingemail.Client
 
 func initialize() {
 	conf := initializeConf()
 
 	initializeMongo(conf.Mongo)
+	email = initializeEmail(conf.Email.Username, conf.Email.Password)
 }
 
 func initializeConf() *Vmcleaner {
@@ -32,4 +40,8 @@ func initializeConf() *Vmcleaner {
 
 func initializeMongo(mongoUrl string) {
 	modelhelper.Initialize(mongoUrl)
+}
+
+func initializeEmail(username, password string) kodingemail.Client {
+	return kodingemail.NewSG(username, password)
 }

@@ -24,7 +24,7 @@ func TestWarningsQuery(t *testing.T) {
 		})
 
 		Reset(func() {
-			modelhelper.RemoveUser(user.Name)
+			deleteUserWithUsername(user.Name)
 		})
 	})
 
@@ -68,7 +68,7 @@ func TestWarningsQuery(t *testing.T) {
 		})
 
 		Reset(func() {
-			modelhelper.RemoveUser(user.Name)
+			deleteUserWithUsername(user.Name)
 		})
 	})
 }
@@ -97,7 +97,7 @@ func TestLockAndReleaseUser(t *testing.T) {
 		})
 
 		Reset(func() {
-			modelhelper.RemoveUser(user.Name)
+			deleteUserWithUsername(user.Name)
 		})
 	})
 }
@@ -128,7 +128,7 @@ func TestIsUserExempt(t *testing.T) {
 		})
 
 		Reset(func() {
-			modelhelper.RemoveUser(user.Name)
+			deleteUserWithUsername(user.Name)
 		})
 	})
 }
@@ -155,6 +155,10 @@ func TestAct(t *testing.T) {
 			err = warning.Act(user)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeTrue)
+
+			Reset(func() {
+				deleteUserWithUsername(user.Name)
+			})
 		})
 
 		Convey("Then it shouldn't call it if exempt", func() {
@@ -177,14 +181,18 @@ func TestAct(t *testing.T) {
 			err = warning.Act(user)
 			So(err, ShouldBeNil)
 			So(called, ShouldBeFalse)
+
+			Reset(func() {
+				deleteUserWithUsername(user.Name)
+			})
 		})
 	})
 }
 
 func createUser() (*models.User, error) {
-	username := "paiduser"
+	username := "vminactive"
 	user := &models.User{
-		Name: username, ObjectId: bson.NewObjectId(), Status: "blocked",
+		Name: username, ObjectId: bson.NewObjectId(),
 	}
 
 	return user, modelhelper.CreateUser(user)
@@ -193,6 +201,7 @@ func createUser() (*models.User, error) {
 func createInactiveUser(daysInactive int) (*models.User, error) {
 	user := &models.User{
 		Name: "inactiveuser", ObjectId: bson.NewObjectId(),
+		Email:         "inactiveuser@koding.com",
 		LastLoginDate: now().Add(-time.Hour * 24 * time.Duration(daysInactive)),
 	}
 

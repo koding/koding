@@ -88,8 +88,7 @@ func TestPaidUserExempt(t *testing.T) {
 		})
 
 		Reset(func() {
-			modelhelper.RemoveUser(user.Name)
-			modelhelper.RemoveAccountByUsername(user.Name)
+			deleteUserWithUsername(username)
 		})
 	})
 }
@@ -107,6 +106,10 @@ func TestBlockedUserExempt(t *testing.T) {
 		Convey("Then it returns true for exempt", func() {
 			yes := BlockedUserExempt(user)
 			So(yes, ShouldBeTrue)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(username)
 		})
 	})
 }
