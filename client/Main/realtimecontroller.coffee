@@ -21,6 +21,8 @@ class RealtimeController extends KDController
     {subscribekey, ssl} = KD.config.pubnub
     @timeDiff = 0
 
+    @authenticated = false
+
     if KD.isPubnubEnabled()
       @pubnub = PUBNUB.init
         subscribe_key : subscribekey
@@ -31,7 +33,20 @@ class RealtimeController extends KDController
 
       realtimeToken = Cookies.get("realtimeToken")
 
-      @pubnub.auth realtimeToken  if realtimeToken?
+      if realtimeToken?
+        @pubnub.auth realtimeToken
+        @authenticated = yes
+
+        return
+
+      # in case of realtime token does not exist, fetch it from Gatekeeper
+      options = { endPoint : "/api/gatekeeper/token", data: { id: KD.whoami().socialApiId } }
+      @authenticate options, (err) =>
+
+        return warn err  if err
+
+        @authenticated = yes
+        @emit 'authenticated'
 
 
   # channel authentication is needed for notification channel and
@@ -156,6 +171,12 @@ class RealtimeController extends KDController
 
   subscribePubnub: (options = {}, callback) ->
 
+    return @subscribeHelper options, callback  if @authenticated
+
+    @once 'authenticated', => @subscribeHelper options, callback
+
+
+  subscribeHelper: (options = {}, callback) ->
     pubnubChannelName = options.channelName
 
     # return channel if it already exists
