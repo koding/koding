@@ -104,10 +104,12 @@ func (w *Warning) Run() Result {
 			break
 		}
 
-		err = w.Act(user)
-		if err != nil {
-			handleError(err)
-			continue
+		if !w.IsUserExempt(user) {
+			err = w.Act(user)
+			if err != nil {
+				handleError(err)
+				continue
+			}
 		}
 
 		err = w.UpdateAndReleaseUser(user.ObjectId)

@@ -43,8 +43,7 @@ func TestWarningsFull(t *testing.T) {
 		user, err := createInactiveUser(46)
 		So(err, ShouldBeNil)
 
-		senderTestClient := &kodingemail.SenderTestClient{}
-		email.SetClient(senderTestClient)
+		senderTestClient := resetEmailClient()
 
 		warning := FirstEmail
 		warning.Run()
@@ -66,6 +65,8 @@ func TestWarningsFull(t *testing.T) {
 
 				err := modelhelper.UpdateUser(selector, update)
 				So(err, ShouldBeNil)
+
+				// senderTestClient := resetEmailClient()
 
 				warning := SecondEmail
 				warning.Run()
@@ -150,4 +151,11 @@ func deleteUserWithUsername(user *models.User) {
 
 func findUser(username string) (*models.User, error) {
 	return modelhelper.GetUser(username)
+}
+
+func resetEmailClient() *kodingemail.SenderTestClient {
+	senderTestClient := &kodingemail.SenderTestClient{}
+	email.SetClient(senderTestClient)
+
+	return senderTestClient
 }
