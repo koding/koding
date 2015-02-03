@@ -37,6 +37,34 @@ seeUpgradeModal = (browser) ->
       .click                   sidebarTitle + ' a.buy-vm'
       .waitForElementVisible   '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
+
+  addDomain = (browser) ->
+
+    user = helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    domainSelector    = '.more-form .domains .domains-a-hrefhttplearnkodingcomfaqvm-hostname-target-blank-span-classdomain-helpspan-a-span-classdomain-togglespan span.domain-toggle'
+    paragraph         = helpers.getFakeText()
+    createDomainName  = paragraph.split(' ')[0]
+    domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
+
+    openVmSettingsModal(browser)
+
+    clickMoreButtonInVMSettingsModal(browser)
+
+    browser
+      .waitForElementVisible    '.more-form .domains', 20000
+      .waitForElementVisible    domainSelector, 20000
+      .click                    domainSelector
+      .waitForElementVisible    '.domains-view input.text', 20000
+      .setValue                 '.domains-view input.text', createDomainName + '\n'
+      .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
+      .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
+      .assert.containsText      '.domains-view .listview-wrapper', domainName
+
+    return domainName
+
+
 module.exports =
 
 
@@ -109,4 +137,11 @@ module.exports =
       .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
       .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
       .end()
+
+
+  addDomain: (browser) ->
+
+    addDomain(browser)
+    browser.end()
+
 
