@@ -277,6 +277,27 @@ func TestCommitContainerComplete(t *testing.T) {
 	}
 }
 
+func TestCommitContainerWithTag(t *testing.T) {
+	server := DockerServer{}
+	server.imgIDs = make(map[string]string)
+	addContainers(&server, 2)
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	queryString := "container=" + server.containers[0].ID + "&repo=tsuru/python&tag=v1"
+	request, _ := http.NewRequest("POST", "/commit?"+queryString, nil)
+	server.ServeHTTP(recorder, request)
+	image := server.images[0]
+	if image.Parent != server.containers[0].Image {
+		t.Errorf("CommitContainer: wrong parent image. Want %q. Got %q.", server.containers[0].Image, image.Parent)
+	}
+	if image.Container != server.containers[0].ID {
+		t.Errorf("CommitContainer: wrong container. Want %q. Got %q.", server.containers[0].ID, image.Container)
+	}
+	if id := server.imgIDs["tsuru/python:v1"]; id != image.ID {
+		t.Errorf("CommitContainer: wrong ID saved for repository. Want %q. Got %q.", image.ID, id)
+	}
+}
+
 func TestCommitContainerInvalidRun(t *testing.T) {
 	server := DockerServer{}
 	addContainers(&server, 1)
@@ -778,6 +799,17 @@ func TestPushImage(t *testing.T) {
 	}
 }
 
+func TestPushImageWithTag(t *testing.T) {
+	server := DockerServer{imgIDs: map[string]string{"tsuru/python:v1": "a123"}}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("POST", "/images/tsuru/python/push?tag=v1", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Errorf("PushImage: wrong status. Want %d. Got %d.", http.StatusOK, recorder.Code)
+	}
+}
+
 func TestPushImageNotFound(t *testing.T) {
 	server := DockerServer{}
 	server.buildMuxer()
@@ -799,6 +831,20 @@ func TestTagImage(t *testing.T) {
 		t.Errorf("TagImage: wrong status. Want %d. Got %d.", http.StatusCreated, recorder.Code)
 	}
 	if server.imgIDs["tsuru/python"] != server.imgIDs["tsuru/new-python"] {
+		t.Errorf("TagImage: did not tag the image")
+	}
+}
+
+func TestTagImageWithRepoAndTag(t *testing.T) {
+	server := DockerServer{imgIDs: map[string]string{"tsuru/python": "a123"}}
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	request, _ := http.NewRequest("POST", "/images/tsuru/python/tag?repo=tsuru/new-python&tag=v1", nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusCreated {
+		t.Errorf("TagImage: wrong status. Want %d. Got %d.", http.StatusCreated, recorder.Code)
+	}
+	if server.imgIDs["tsuru/python"] != server.imgIDs["tsuru/new-python:v1"] {
 		t.Errorf("TagImage: did not tag the image")
 	}
 }
@@ -1087,5 +1133,85 @@ func TestDefaultHandler(t *testing.T) {
 	defer server.listener.Close()
 	if server.mux != server.DefaultHandler() {
 		t.Fatalf("DefaultHandler: Expected to return server.mux, got: %#v", server.DefaultHandler())
+	}
+}
+
+func TestCreateExecContainer(t *testing.T) {
+	server := DockerServer{}
+	addContainers(&server, 2)
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	body := `{"Cmd": ["bash", "-c", "ls"]}`
+	path := fmt.Sprintf("/containers/%s/exec", server.containers[0].ID)
+	request, _ := http.NewRequest("POST", path, strings.NewReader(body))
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("CreateExec: wrong status. Want %d. Got %d.", http.StatusOK, recorder.Code)
+	}
+	serverExec := server.execs[0]
+	var got docker.Exec
+	err := json.NewDecoder(recorder.Body).Decode(&got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got.ID != serverExec.ID {
+		t.Errorf("CreateExec: wrong value. Want %#v. Got %#v.", serverExec.ID, got.ID)
+	}
+	expected := docker.ExecInspect{
+		ID: got.ID,
+		ProcessConfig: docker.ExecProcessConfig{
+			EntryPoint: "bash",
+			Arguments:  []string{"-c", "ls"},
+		},
+		Container: *server.containers[0],
+	}
+	if !reflect.DeepEqual(*serverExec, expected) {
+		t.Errorf("InspectContainer: wrong value. Want:\n%#v\nGot:\n%#v\n", expected, *serverExec)
+	}
+}
+
+func TestInspectExecContainer(t *testing.T) {
+	server := DockerServer{}
+	addContainers(&server, 1)
+	server.buildMuxer()
+	recorder := httptest.NewRecorder()
+	body := `{"Cmd": ["bash", "-c", "ls"]}`
+	path := fmt.Sprintf("/containers/%s/exec", server.containers[0].ID)
+	request, _ := http.NewRequest("POST", path, strings.NewReader(body))
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("CreateExec: wrong status. Want %d. Got %d.", http.StatusOK, recorder.Code)
+	}
+	var got docker.Exec
+	err := json.NewDecoder(recorder.Body).Decode(&got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path = fmt.Sprintf("/exec/%s/json", got.ID)
+	request, _ = http.NewRequest("GET", path, nil)
+	server.ServeHTTP(recorder, request)
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("CreateExec: wrong status. Want %d. Got %d.", http.StatusOK, recorder.Code)
+	}
+	var got2 docker.ExecInspect
+	err = json.NewDecoder(recorder.Body).Decode(&got2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := docker.ExecInspect{
+		ID: got.ID,
+		ProcessConfig: docker.ExecProcessConfig{
+			EntryPoint: "bash",
+			Arguments:  []string{"-c", "ls"},
+		},
+		Container: *server.containers[0],
+	}
+	got2.Container.State.StartedAt = expected.Container.State.StartedAt
+	got2.Container.State.FinishedAt = expected.Container.State.FinishedAt
+	got2.Container.Config = expected.Container.Config
+	got2.Container.Created = expected.Container.Created
+	got2.Container.NetworkSettings = expected.Container.NetworkSettings
+	if !reflect.DeepEqual(got2, expected) {
+		t.Errorf("InspectContainer: wrong value. Want:\n%#v\nGot:\n%#v\n", expected, got2)
 	}
 }

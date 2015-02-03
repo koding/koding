@@ -1,9 +1,9 @@
 package sockjs
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -65,8 +65,11 @@ func TestHandler_WebSocketTerminationByServer(t *testing.T) {
 		t.Errorf("Open frame expected, got '%s' and error '%v', expected '%s' without error", msg, err, `c[1024,"some close message"]`)
 	}
 	_, msg, err = conn.ReadMessage()
-	if err != io.ErrUnexpectedEOF {
-		t.Errorf("Expected '%v', got '%v'", io.EOF, err)
+	// gorilla websocket keeps `errUnexpectedEOF` private so we need to introspect the error message
+	if err != nil {
+		if !strings.Contains(err.Error(), "unexpected EOF") {
+			t.Errorf("Expected 'unexpected EOF' error or similar, got '%v'", err)
+		}
 	}
 }
 
