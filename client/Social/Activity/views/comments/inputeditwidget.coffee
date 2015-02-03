@@ -15,7 +15,7 @@ class CommentInputEditWidget extends CommentInputWidget
 
     super
 
-    @input.on 'Escape', @bound 'cancel'
+    @input.on 'EscapePerformed', @bound 'cancel'
 
 
   reset: ->
