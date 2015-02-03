@@ -71,6 +71,17 @@ func (h *Handler) SubscribeNotification(u *url.URL, header http.Header, temp *mo
 	return responseWithCookie(temp, account.Token)
 }
 
+func (h *Handler) GetToken(u *url.URL, header http.Header, req *models.Account) (int, http.Header, interface{}, error) {
+
+	// fetch account information from session
+	account, err := getAccountInfo(u, header)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return responseWithCookie(req, account.Token)
+}
+
 func responseWithCookie(req interface{}, token string) (int, http.Header, interface{}, error) {
 	expires := time.Now().AddDate(5, 0, 0)
 	cookie := &http.Cookie{
