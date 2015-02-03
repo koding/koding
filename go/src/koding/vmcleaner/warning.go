@@ -43,8 +43,7 @@ func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 		find := bson.M{"_id": userId}
 		update := bson.M{
 			"$set": bson.M{
-				"inactive.warning":    w.Level,
-				"inactive.modifiedAt": now(),
+				"inactive.warning": w.Level, "inactive.modifiedAt": now(),
 			},
 			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
 		}
@@ -84,6 +83,39 @@ func (w *Warning) IsUserExempt(user *models.User) bool {
 	return false
 }
 
+type Result struct {
+	Total, Successful, Failure int
+	Level                      int
+}
+
+func (w *Warning) Run() Result {
+	for {
+		user, err := w.FindAndLockUser()
+		if err != nil && !isErrNotFound(err) {
+			handleError(err)
+			continue
+		}
+
+		if isErrNotFound(err) {
+			break
+		}
+
+		err = w.Act(user)
+		if err != nil {
+			handleError(err)
+			continue
+		}
+
+		err = w.UpdateAndReleaseUser(user.ObjectId)
+		if err != nil {
+			handleError(err)
+			continue
+		}
+	}
+
+	return Result{}
+}
+
 //----------------------------------------------------------
 // Helpers
 //----------------------------------------------------------
@@ -94,4 +126,8 @@ func now() time.Time {
 
 func moreThanDaysQuery(days int) bson.M {
 	return bson.M{"$lt": now().Add(-time.Hour * 24 * time.Duration(days))}
+}
+
+func isErrNotFound(err error) bool {
+	return err != nil && err == mgo.ErrNotFound
 }
