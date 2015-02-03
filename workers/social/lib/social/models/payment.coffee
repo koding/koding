@@ -23,6 +23,8 @@ module.exports = class Payment extends Base
           (signature Object, Function)
         getToken          :
           (signature Object, Function)
+        canUserPurchase   :
+          (signature Function)
 
 
   { get, post, deleteReq } = require "./socialapi/requests"
@@ -112,6 +114,10 @@ module.exports = class Payment extends Base
     SiftScience = require "./siftscience"
     SiftScience.createOrder client, raw, callback
 
+  @canUserPurchase = secure (client, callback)->
+    client.connection.delegate.fetchUser (err, user)->
+      return callback err  if err
+      callback null, user.status is 'confirmed'
 
   validateParams = (requiredParams, data, callback)->
     for param in requiredParams
