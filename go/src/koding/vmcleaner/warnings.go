@@ -27,7 +27,7 @@ var SecondEmail = &Warning{
 		"inactive.warning": 1,
 	},
 
-	Exempt: []Exempt{IsUserPaid, IsUserBlocked},
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
 
 	Action: SendEmail,
 }
@@ -42,7 +42,7 @@ var ThirdDeleteVM = &Warning{
 		"inactive.warning": 2,
 	},
 
-	Exempt: []Exempt{IsUserPaid},
+	Exempt: []Exempt{IsUserPaid, IsUserVMsEmpty},
 
 	Action: DeleteVM,
 }
