@@ -209,7 +209,7 @@ Configuration = (options={}) ->
     entryPoint           : {slug:'koding'       , type:'group'}
     siftScience          : '3305771626'
     paypal               : { formUrl: 'https://www.paypal.com/incontext' }
-    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: yes     }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 24 * 60 * 60 * 1000 # 24 hours
 
