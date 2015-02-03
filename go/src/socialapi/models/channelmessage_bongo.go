@@ -72,6 +72,8 @@ func (c *ChannelMessage) Update() error {
 	}
 
 	cm.Body = c.Body
+	cm.Payload = c.Payload
+
 	return bongo.B.Update(cm)
 
 	// todo implement UpdatePartial
