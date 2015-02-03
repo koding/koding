@@ -8,6 +8,7 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
+	"github.com/koding/kodingemail"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -73,89 +74,89 @@ func TestWarningsQuery(t *testing.T) {
 	})
 }
 
-func TestIsUserExempt(t *testing.T) {
-	Convey("Given exempt conditions", t, func() {
-		user, err := createUser()
+func TestWarningsFull(t *testing.T) {
+	Convey("Given user who is inactive & not warned", t, func() {
+		user, err := createInactiveUser(46)
 		So(err, ShouldBeNil)
 
-		Convey("Then it should be exempt", func() {
-			warning := &Warning{
-				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
-					return true
-				}},
-			}
+		senderTestClient := &kodingemail.SenderTestClient{}
+		email.SetClient(senderTestClient)
 
-			So(warning.IsUserExempt(user), ShouldBeTrue)
-		})
+		warning := FirstEmail
+		warning.Run()
 
-		Convey("Then it should not be exempt", func() {
-			warning := &Warning{
-				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
-					return false
-				}},
-			}
-
-			So(warning.IsUserExempt(user), ShouldBeFalse)
+		Convey("Then they should get an email", func() {
+			So(senderTestClient.Mail, ShouldNotBeNil)
+			So(len(senderTestClient.Mail.To), ShouldEqual, 1)
+			So(senderTestClient.Mail.To[0], ShouldEqual, user.Email)
 		})
 
 		Reset(func() {
 			deleteUserWithUsername(user)
 		})
 	})
-}
 
-func TestAct(t *testing.T) {
-	Convey("Given action", t, func() {
-		Convey("Then it should call it if not exempt", func() {
-			user, err := createUser()
+	Convey("Given user who is inactive & been warned", t, func() {
+		user, err := createInactiveUser(46)
+		So(err, ShouldBeNil)
+
+		senderTestClient := resetEmailClient()
+
+		warning := FirstEmail
+		warning.Run()
+
+		Convey("Then they should get an email", func() {
+			So(senderTestClient.Mail, ShouldNotBeNil)
+			So(len(senderTestClient.Mail.To), ShouldEqual, 1)
+			So(senderTestClient.Mail.To[0], ShouldEqual, user.Email)
+
+			user, err := modelhelper.GetUser(user.Name)
 			So(err, ShouldBeNil)
+			So(user.Inactive.Warning, ShouldEqual, 1)
 
-			var called = false
+			Convey("Then they should get another email", func() {
+				selector := bson.M{"username": user.Name}
+				update := bson.M{
+					"lastLoginDate": now().Add(-time.Hour * 24 * time.Duration(53)),
+				}
 
-			warning := &Warning{
-				Action: func(user *models.User, level int) error {
-					called = true
-					return nil
-				},
+				err := modelhelper.UpdateUser(selector, update)
+				So(err, ShouldBeNil)
 
-				Exempt: []Exempt{func(user *models.User, _ *Warning) bool {
-					return false
-				}},
-			}
+				// senderTestClient := resetEmailClient()
 
-			err = warning.Act(user)
-			So(err, ShouldBeNil)
-			So(called, ShouldBeTrue)
+				warning := SecondEmail
+				warning.Run()
 
-			Reset(func() {
-				deleteUserWithUsername(user)
+				So(senderTestClient.Mail, ShouldNotBeNil)
+				So(len(senderTestClient.Mail.To), ShouldEqual, 1)
+				So(senderTestClient.Mail.To[0], ShouldEqual, user.Email)
+
+				user, err := modelhelper.GetUser(user.Name)
+				So(err, ShouldBeNil)
+				So(user.Inactive.Warning, ShouldEqual, 2)
+
+				Convey("Then their vm should be deleted", func() {
+					selector := bson.M{"username": user.Name}
+					update := bson.M{
+						"lastLoginDate": now().Add(-time.Hour * 24 * time.Duration(65)),
+					}
+
+					err := modelhelper.UpdateUser(selector, update)
+					So(err, ShouldBeNil)
+
+					warning := ThirdDeleteVM
+					warning.Run()
+
+					user, err := modelhelper.GetUser(user.Name)
+					So(err, ShouldBeNil)
+					So(user.Inactive.Warning, ShouldEqual, 3)
+				})
 			})
 		})
 
-		Convey("Then it shouldn't call it if exempt", func() {
-			user, err := createUser()
-			So(err, ShouldBeNil)
-
-			var called = false
-
-			warning := &Warning{
-				Action: func(user *models.User, level int) error {
-					called = true
-					return nil
-				},
-
-				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
-					return true
-				}},
-			}
-
-			err = warning.Act(user)
-			So(err, ShouldBeNil)
-			So(called, ShouldBeFalse)
-
-			Reset(func() {
-				deleteUserWithUsername(user)
-			})
+		Reset(func() {
+			deleteUserWithUsername(user)
 		})
 	})
 }

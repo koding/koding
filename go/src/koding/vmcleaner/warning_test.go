@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/models"
 	"testing"
 
 	"labix.org/v2/mgo/bson"
@@ -55,6 +56,93 @@ func TestLockAndReleaseUser(t *testing.T) {
 
 		Reset(func() {
 			deleteUserWithUsername(user)
+		})
+	})
+}
+
+func TestIsUserExempt(t *testing.T) {
+	Convey("Given exempt conditions", t, func() {
+		user, err := createUser()
+		So(err, ShouldBeNil)
+
+		Convey("Then it should be exempt", func() {
+			warning := &Warning{
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
+					return true
+				}},
+			}
+
+			So(warning.IsUserExempt(user), ShouldBeTrue)
+		})
+
+		Convey("Then it should not be exempt", func() {
+			warning := &Warning{
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
+					return false
+				}},
+			}
+
+			So(warning.IsUserExempt(user), ShouldBeFalse)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+}
+
+func TestAct(t *testing.T) {
+	Convey("Given action", t, func() {
+		Convey("Then it should call it if not exempt", func() {
+			user, err := createUser()
+			So(err, ShouldBeNil)
+
+			var called = false
+
+			warning := &Warning{
+				Action: func(user *models.User, level int) error {
+					called = true
+					return nil
+				},
+
+				Exempt: []Exempt{func(user *models.User, _ *Warning) bool {
+					return false
+				}},
+			}
+
+			err = warning.Act(user)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeTrue)
+
+			Reset(func() {
+				deleteUserWithUsername(user)
+			})
+		})
+
+		Convey("Then it shouldn't call it if exempt", func() {
+			user, err := createUser()
+			So(err, ShouldBeNil)
+
+			var called = false
+
+			warning := &Warning{
+				Action: func(user *models.User, level int) error {
+					called = true
+					return nil
+				},
+
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
+					return true
+				}},
+			}
+
+			err = warning.Act(user)
+			So(err, ShouldBeNil)
+			So(called, ShouldBeFalse)
+
+			Reset(func() {
+				deleteUserWithUsername(user)
+			})
 		})
 	})
 }
