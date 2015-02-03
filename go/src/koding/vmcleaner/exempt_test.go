@@ -143,3 +143,9 @@ func TestIsUserVMsEmpty(t *testing.T) {
 		})
 	})
 }
+
+func TestIsWarningTimeElapsed(t *testing.T) {
+	Convey("Given user who has no vms", t, func() {
+		// user, err := createUser()
+	})
+}

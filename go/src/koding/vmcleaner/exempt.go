@@ -4,6 +4,7 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/payment/paymentapi"
+	"time"
 )
 
 type Exempt func(*models.User) bool
@@ -40,4 +41,30 @@ func IsUserVMsEmpty(user *models.User) bool {
 	}
 
 	return len(machines) == 0
+}
+
+func IsWarningTimeElapsed(user *models.User) bool {
+	var interval time.Duration
+	var t time.Time
+
+	switch user.Inactive.Warning {
+	case 1:
+		interval = 30
+		t = user.Inactive.WarningTime.One
+	case 2:
+		interval = 45
+		t = user.Inactive.WarningTime.Two
+	case 3:
+		interval = 52
+		t = user.Inactive.WarningTime.Three
+	case 4:
+		interval = 60
+		t = user.Inactive.WarningTime.Four
+	}
+
+	if t.Add(time.Hour * 24 * interval).After(time.Now().UTC()) {
+		return false
+	}
+
+	return true
 }
