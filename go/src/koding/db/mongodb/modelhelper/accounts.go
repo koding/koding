@@ -52,10 +52,21 @@ func RemoveAccount(id bson.ObjectId) error {
 }
 
 func RemoveAccountByUsername(username string) error {
-	selector := bson.M{"username": username}
+	selector := bson.M{"profile": bson.M{"nickname": username}}
 
 	query := func(c *mgo.Collection) error {
 		err := c.Remove(selector)
+		return err
+	}
+
+	return Mongo.Run(AccountsCollection, query)
+}
+
+func RemoveAllAccountByUsername(username string) error {
+	selector := bson.M{"profile": bson.M{"nickname": username}}
+
+	query := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(selector)
 		return err
 	}
 
