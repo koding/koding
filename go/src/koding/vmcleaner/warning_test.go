@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"labix.org/v2/mgo/bson"
@@ -38,7 +39,11 @@ func TestLockAndReleaseUser(t *testing.T) {
 					So(updatedUser.Inactive.Warning, ShouldEqual, level)
 					So(updatedUser.Inactive.ModifiedAt.IsZero(), ShouldBeFalse)
 
-					So(updatedUser.Inactive.WarningTime, ShouldNotBeNil)
+					warnings := updatedUser.Inactive.Warnings
+
+					So(warnings, ShouldNotBeNil)
+					So(warnings[fmt.Sprintf("%v", level)], ShouldNotBeNil)
+					So(warnings[fmt.Sprintf("%v", level)].IsZero(), ShouldBeFalse)
 
 					Convey("Then it shouldn't get same user again", func() {
 						_, err := warning.FindAndLockUser()
