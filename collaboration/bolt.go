@@ -72,7 +72,7 @@ func (b *boltdb) Get(username string) (*Option, error) {
 			return ErrUserNotFound
 		}
 
-		return json.Unmarshal([]byte(value), option)
+		return json.Unmarshal([]byte(value), &option)
 	})
 
 	return option, err
@@ -85,7 +85,7 @@ func (b *boltdb) GetAll() (map[string]*Option, error) {
 	err := b.View(func(tx *Tx) error {
 		return tx.Bucket([]byte(UserBucket)).ForEach(func(k, v []byte) error {
 			var option *Option
-			if err := json.Unmarshal([]byte(v), option); err != nil {
+			if err := json.Unmarshal(v, &option); err != nil {
 				return err
 			}
 
