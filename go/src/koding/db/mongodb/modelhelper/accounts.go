@@ -59,7 +59,7 @@ func RemoveAccountByUsername(username string) error {
 		return err
 	}
 
-	return Mongo.Run(AccountsCollection, query)
+	return Mongo.Run(AccountsColl, query)
 }
 
 func RemoveAllAccountByUsername(username string) error {
@@ -70,7 +70,7 @@ func RemoveAllAccountByUsername(username string) error {
 		return err
 	}
 
-	return Mongo.Run(AccountsCollection, query)
+	return Mongo.Run(AccountsColl, query)
 }
 
 func CreateAccount(a *models.Account) error {
