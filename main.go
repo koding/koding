@@ -11,7 +11,6 @@ import (
 
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
-	"github.com/koding/klient/docker"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/protocol"
 	"github.com/koding/klient/terminal"
@@ -63,12 +62,13 @@ var (
 		"klient.share":        true,
 		"klient.unshare":      true,
 		"klient.shared":       true,
-		"docker.create":       true,
-		"docker.connect":      true,
-		"docker.stop":         true,
-		"docker.start":        true,
-		"docker.remove":       true,
-		"docker.list":         true,
+		// Disabled until we have Docker support, no need to bloat the binary :)
+		// "docker.create":       true,
+		// "docker.connect":      true,
+		// "docker.stop":         true,
+		// "docker.start":        true,
+		// "docker.remove":       true,
+		// "docker.list":         true,
 	})
 
 	// this is used to allow other users to call any klient method.
@@ -204,14 +204,15 @@ func newKite() *kite.Kite {
 	k.HandleFunc("fs.move", fs.Move)
 	k.HandleFunc("fs.copy", fs.Copy)
 
-	// Docker
-	dock := docker.New("unix:///var/run/docker.sock", k.Log)
-	k.HandleFunc("docker.create", dock.Create)
-	k.HandleFunc("docker.connect", dock.Connect)
-	k.HandleFunc("docker.stop", dock.Stop)
-	k.HandleFunc("docker.start", dock.Start)
-	k.HandleFunc("docker.remove", dock.RemoveContainer)
-	k.HandleFunc("docker.list", dock.List)
+	// // Docker
+	// Disabled until we have Docker support, no need to bloat the binary :)
+	// dock := docker.New("unix:///var/run/docker.sock", k.Log)
+	// k.HandleFunc("docker.create", dock.Create)
+	// k.HandleFunc("docker.connect", dock.Connect)
+	// k.HandleFunc("docker.stop", dock.Stop)
+	// k.HandleFunc("docker.start", dock.Start)
+	// k.HandleFunc("docker.remove", dock.RemoveContainer)
+	// k.HandleFunc("docker.list", dock.List)
 
 	// Execution
 	k.HandleFunc("exec", command.Exec)
