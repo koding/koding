@@ -31,23 +31,18 @@ module.exports = (req, res) ->
     return res.status(400).send err  if err
 
     response = []
-    chunk    = []
     queue    = []
 
-    while (usernames.length > 0)
-      chunk = usernames.splice(0,10)
-      chunk.forEach (username)->
-        queue.push -> JMachine.fetchByUsername username, (err, machines)->
-          if err
-            queue.fin()
-          else
-            slugs = []
-            machines.forEach (machine)->
-              slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
+    usernames.forEach (username)->
+      queue.push -> JMachine.fetchByUsername username, (err, machines)->
+        if err
+          queue.fin()
+        else
+          slugs = []
+          machines.forEach (machine)->
+            slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
 
-            resp = { "username" : username, "vms" : slugs }
-            response.push resp
-
-            queue.fin()
+          response.push { "username" : username, "vms" : slugs }
+          queue.fin()
 
     dash queue, -> res.status(200).send response
