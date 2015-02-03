@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-type Exempt func(*models.User) bool
+type Exempt func(*models.User, *Warning) bool
 
 // All paid users are exempt.
-func IsUserPaid(user *models.User) bool {
+func IsUserPaid(user *models.User, _ *Warning) bool {
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {
 		// Log.Error("Error fetching account with username: %s", user.Name)
@@ -28,12 +28,12 @@ func IsUserPaid(user *models.User) bool {
 }
 
 // Blocked users don't get an email, but vms get deleted.
-func IsUserBlocked(user *models.User) bool {
+func IsUserBlocked(user *models.User, _ *Warning) bool {
 	return user.Status == modelhelper.UserStatusBlocked
 }
 
 // If user has no vm, don't send email saying their vms will be deleted.
-func IsUserVMsEmpty(user *models.User) bool {
+func IsUserVMsEmpty(user *models.User, _ *Warning) bool {
 	machines, err := modelhelper.GetMachines(user.ObjectId)
 	if err != nil {
 		// Log.Error("Error fetching vms for user: %s, default to false: %v", user.Name, err)
@@ -43,7 +43,7 @@ func IsUserVMsEmpty(user *models.User) bool {
 	return len(machines) == 0
 }
 
-func IsWarningTimeElapsed(user *models.User) bool {
+func IsWarningTimeElapsed(user *models.User, w *Warning) bool {
 	var interval time.Duration
 	var t time.Time
 

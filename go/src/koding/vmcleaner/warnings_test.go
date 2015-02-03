@@ -118,9 +118,11 @@ func TestIsUserExempt(t *testing.T) {
 		user, err := createUser()
 		So(err, ShouldBeNil)
 
+    warning : &Warning{}
+
 		Convey("Then it should be exempt", func() {
 			warning := &Warning{
-				Exempt: []Exempt{func(user *models.User) bool {
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
 					return true
 				}},
 			}
@@ -130,7 +132,7 @@ func TestIsUserExempt(t *testing.T) {
 
 		Convey("Then it should not be exempt", func() {
 			warning := &Warning{
-				Exempt: []Exempt{func(user *models.User) bool {
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
 					return false
 				}},
 			}

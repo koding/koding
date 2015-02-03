@@ -78,7 +78,7 @@ func (w *Warning) Act(user *models.User) error {
 
 func (w *Warning) IsUserExempt(user *models.User) bool {
 	for _, exemptFn := range w.Exempt {
-		yes := exemptFn(user)
+		yes := exemptFn(user, w)
 		if yes {
 			return true
 		}
