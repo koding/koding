@@ -145,3 +145,19 @@ module.exports =
     browser.end()
 
 
+  deleteDomain: (browser) ->
+
+    domainName = addDomain(browser)
+
+    domainItem = '.domains-view .kdlistitemview-domain:last-child'
+    loader     = '.domains-view .in-progress.kdloader'
+
+    browser
+      .moveToElement             domainItem, 10, 10
+      .click                     domainItem + ' span.remove-domain'
+      .waitForElementVisible     loader, 10000
+      .waitForElementNotVisible  loader, 20000
+      .getText                   domainItem, (result) =>
+        assert.notEqual          result.value, domainName # Assertion
+
+        browser.end()
