@@ -11,11 +11,11 @@ import (
 )
 
 type Warning struct {
-	Name   string
-	Level  int
-	Select bson.M
-	Action Action
-	Exempt []Exempt
+	Name            string
+	Level, Interval int
+	Select          bson.M
+	Action          Action
+	Exempt          []Exempt
 }
 
 func (w *Warning) FindAndLockUser() (*models.User, error) {

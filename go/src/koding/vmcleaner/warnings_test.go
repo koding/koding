@@ -1,7 +1,6 @@
 package main
 
 import (
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"testing"
 	"time"
@@ -14,11 +13,13 @@ import (
 
 func TestWarningsQuery(t *testing.T) {
 	Convey("Given user who is inactive & not warned", t, func() {
-		user, err := createInactiveUser(46)
+		warning := FirstEmail
+
+		user, err := createInactiveUser(warning.Interval + 1)
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := FirstEmail.FindUser()
+			newuser, err := warning.FindUser()
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
@@ -30,17 +31,14 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned", t, func() {
-		user := &models.User{
-			Name: "inactiveuser", ObjectId: bson.NewObjectId(),
-			LastLoginDate: time.Now().Add(-time.Hour * 24 * 53),
-			Inactive:      models.UserInactive{Warning: 1},
-		}
+		warning := SecondEmail
 
-		err := modelhelper.CreateUser(user)
+		user, err := createInactiveUserWithWarning(warning.Interval+1,
+			warning.Level-1)
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := SecondEmail.FindUser()
+			newuser, err := warning.FindUser()
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
@@ -52,17 +50,33 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned twice", t, func() {
-		user := &models.User{
-			Name: "inactiveuser", ObjectId: bson.NewObjectId(),
-			LastLoginDate: now().Add(-time.Hour * 24 * 61),
-			Inactive:      models.UserInactive{Warning: 2},
-		}
+		warning := ThirdEmail
 
-		err := modelhelper.CreateUser(user)
+		user, err := createInactiveUserWithWarning(warning.Interval+1,
+			warning.Level-1)
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := ThirdDeleteVM.FindUser()
+			newuser, err := warning.FindUser()
+			So(err, ShouldBeNil)
+
+			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+
+	Convey("Given user who is inactive & warned thrice", t, func() {
+		warning := FourthDeleteVM
+
+		user, err := createInactiveUserWithWarning(warning.Interval+1,
+			warning.Level-1)
+		So(err, ShouldBeNil)
+
+		Convey("Then it should fetch the user", func() {
+			newuser, err := warning.FindUser()
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
@@ -136,7 +150,7 @@ func TestWarningsFull(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(user.Inactive.Warning, ShouldEqual, 2)
 
-				Convey("Then their vm should be deleted", func() {
+				Convey("Then they should get another email", func() {
 					selector := bson.M{"username": user.Name}
 					update := bson.M{
 						"lastLoginDate": now().Add(-time.Hour * 24 * time.Duration(65)),
@@ -145,8 +159,12 @@ func TestWarningsFull(t *testing.T) {
 					err := modelhelper.UpdateUser(selector, update)
 					So(err, ShouldBeNil)
 
-					warning := ThirdDeleteVM
+					warning := ThirdEmail
 					warning.Run()
+
+					So(senderTestClient.Mail, ShouldNotBeNil)
+					So(len(senderTestClient.Mail.To), ShouldEqual, 1)
+					So(senderTestClient.Mail.To[0], ShouldEqual, user.Email)
 
 					user, err := modelhelper.GetUser(user.Name)
 					So(err, ShouldBeNil)
