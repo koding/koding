@@ -141,6 +141,11 @@ class ActivityInputWidget extends KDView
         return @showError err, options
 
       activity.body = body
+
+      if payload
+        activity.link.link_url = payload.link_url
+        activity.link.link_embed = payload.link_embed
+
       activity.emit 'update'
 
       callback err, activity

@@ -211,7 +211,7 @@ Configuration = (options={}) ->
     entryPoint           : {slug:'koding'       , type:'group'}
     siftScience          : 'f270274999'
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: yes     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
 
@@ -359,7 +359,6 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           { location    : "= /-/payments/stripe/webhook" },
-          { location    : "= /-/payments/paypal/webhook" },
         ]
 
     vmwatcher           :

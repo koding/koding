@@ -4,7 +4,7 @@ notifications:
   - igor.mihalik+travis@gmail.com
 
 before_install:
-- go get code.google.com/p/go.tools/cmd/cover
+- go get golang.org/x/tools/cmd/cover
 - go get github.com/mattn/goveralls
 
 after_success:
@@ -17,4 +17,4 @@ install:
 script: go test ./sockjs -v -race
 
 go:
-- 1.2.2
+- 1.4.1
