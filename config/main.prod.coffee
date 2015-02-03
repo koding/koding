@@ -159,6 +159,7 @@ Configuration = (options={}) ->
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
     siftScience                    : 'e6c3413236e08107'
+    tokbox                         : { API_KEY: '45082272', API_SECRET: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
     collaboration :
       timeout     : 1 * 60 * 1000
