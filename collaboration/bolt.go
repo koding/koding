@@ -72,6 +72,11 @@ func (b *boltdb) Get(username string) (*Option, error) {
 			return ErrUserNotFound
 		}
 
+		// don't unmarshall an empty string, this is probably due the old db
+		if string(value) == "" {
+			return nil
+		}
+
 		return json.Unmarshal([]byte(value), &option)
 	})
 
@@ -85,11 +90,13 @@ func (b *boltdb) GetAll() (map[string]*Option, error) {
 	err := b.View(func(tx *Tx) error {
 		return tx.Bucket([]byte(UserBucket)).ForEach(func(k, v []byte) error {
 			var option *Option
-			if err := json.Unmarshal(v, &option); err != nil {
-				return err
+
+			// we don't return an error, because of the old data which is pure
+			// string
+			if err := json.Unmarshal(v, &option); err == nil {
+				options[string(k)] = option
 			}
 
-			options[string(k)] = option
 			return nil
 		})
 	})
