@@ -15,7 +15,7 @@ openVmSettingsModal = (browser) ->
       .pause                   5000
       .moveToElement           vmSelector + ' span', 125, 20
       .click                   vmSelector + ' span'
-      .waitForElementVisible   modalSelector, 20000
+      .waitForElementVisible   modalSelector, 20000 # Assertion
 
 
 module.exports =
@@ -66,4 +66,20 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     browser.end()
+
+
+  seeUpgradeModal: (browser) ->
+
+    plusSelector = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+      .waitForElementVisible   plusSelector, 20000
+      .moveToElement           plusSelector + ' a.buy-vm', 10, 10
+      .click                   plusSelector + ' a.buy-vm'
+      .waitForElementVisible   '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+      .end()
 

@@ -352,7 +352,6 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           { location    : "= /-/payments/stripe/webhook" },
-          { location    : "= /-/payments/paypal/webhook" }
         ]
 
     vmwatcher           :

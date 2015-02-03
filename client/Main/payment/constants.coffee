@@ -24,4 +24,6 @@ PaymentConstants =
   TOO_MANY_ATTEMPT_BLOCK_KEY: 'BlockForTooManyAttempts'
   TOO_MANY_ATTEMPT_BLOCK_DURATION: KD.config.paymentBlockDuration
 
+  error:
+    ERR_USER_NOT_CONFIRMED: 'You need to confirm your email to purchase a Koding subscription.'
 
