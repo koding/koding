@@ -18,6 +18,14 @@ openVmSettingsModal = (browser) ->
       .waitForElementVisible   modalSelector, 20000 # Assertion
 
 
+clickMoreButtonInVMSettingsModal = (browser) ->
+
+    browser
+      .waitForElementVisible  '.settings form.with-fields .moreview', 20000
+      .click                  '.settings form.with-fields .moreview label.more'
+      .pause  200
+
+
 seeUpgradeModal = (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
@@ -85,3 +93,20 @@ module.exports =
     helpers.waitForVMRunning(browser)
     seeUpgradeModal(browser)
     browser.end()
+  makeAlwaysOnForNotPaidUser: (browser) ->
+
+    buttonSelector = '.more-form .alwayson'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    openVmSettingsModal(browser)
+
+    clickMoreButtonInVMSettingsModal(browser)
+
+    browser
+      .waitForElementVisible  buttonSelector, 20000
+      .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
+      .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
+      .end()
+
