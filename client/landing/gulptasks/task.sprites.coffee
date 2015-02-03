@@ -26,7 +26,7 @@ module.exports = (pixelRatio = 1, version = '') ->
     .pipe gulp.dest "./../site.#{site}/styl/"
 
   stream.img
-    .pipe tinypng 'jmodUCq84QJZAvbQKDxC3ct95PmQQXZi'
+    .pipe tinypng 'Eu03yEccx7b0QJkE44EI_Je8sXOQOcEr'
     .pipe gulp.dest "#{BUILD_PATH}/images/"
 
   return stream
