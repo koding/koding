@@ -17,6 +17,8 @@ import (
 )
 
 func TestIsUserPaid(t *testing.T) {
+	warning := &Warning{}
+
 	Convey("Given user who is paid", t, func() {
 		username := "paiduser"
 		user := &models.User{
@@ -37,7 +39,7 @@ func TestIsUserPaid(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true if error fetching plan", func() {
-			yes := IsUserPaid(user)
+			yes := IsUserPaid(user, warning)
 			So(yes, ShouldBeTrue)
 		})
 
@@ -94,6 +96,8 @@ func TestIsUserPaid(t *testing.T) {
 }
 
 func TestIsUserBlocked(t *testing.T) {
+	warning := &Warning{}
+
 	Convey("Given user who is blocked", t, func() {
 		username := "paiduser"
 		user := &models.User{
@@ -104,7 +108,7 @@ func TestIsUserBlocked(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true for exempt", func() {
-			yes := IsUserBlocked(user)
+			yes := IsUserBlocked(user, warning)
 			So(yes, ShouldBeTrue)
 		})
 
@@ -115,12 +119,14 @@ func TestIsUserBlocked(t *testing.T) {
 }
 
 func TestIsUserVMsEmpty(t *testing.T) {
+	warning := &Warning{}
+
 	Convey("Given user who has no vms", t, func() {
 		user, err := createUser()
 
 		So(err, ShouldBeNil)
 		Convey("Then it returns true for exempt", func() {
-			yes := IsUserVMsEmpty(user)
+			yes := IsUserVMsEmpty(user, warning)
 			So(yes, ShouldBeTrue)
 		})
 
@@ -134,7 +140,7 @@ func TestIsUserVMsEmpty(t *testing.T) {
 
 		So(err, ShouldBeNil)
 		Convey("Then it returns true for exempt", func() {
-			no := IsUserVMsEmpty(user)
+			no := IsUserVMsEmpty(user, warning)
 			So(no, ShouldBeFalse)
 		})
 
