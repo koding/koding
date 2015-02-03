@@ -37,18 +37,15 @@ func (c *Collaboration) Share(r *kite.Request) (interface{}, error) {
 	}
 
 	option, err := c.Get(params.Username)
-	if err != nil {
-		return nil, err
-	}
-
-	// if the user is already a permanant user just return lazily, we don't
-	// need change anything
-	if option.Permanent {
-		return "shared", nil
+	if err == nil {
+		// if the user is already a permanant user just return lazily, we don't
+		// need change anything
+		if option.Permanent {
+			return "shared", nil
+		}
 	}
 
 	newOption := &Option{Permanent: params.Permanent}
-
 	if err := c.Set(params.Username, newOption); err != nil {
 		return nil, errors.New("user is already in the shared list.")
 	}
