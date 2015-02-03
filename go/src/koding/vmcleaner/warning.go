@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"time"
@@ -44,6 +45,9 @@ func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 		update := bson.M{
 			"$set": bson.M{
 				"inactive.warning": w.Level, "inactive.modifiedAt": now(),
+				"inactive.warning_time": bson.M{
+					fmt.Sprintf("%d", w.Level): now(),
+				},
 			},
 			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
 		}

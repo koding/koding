@@ -85,9 +85,20 @@ func TestLockAndReleaseUser(t *testing.T) {
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
 			So(newuser.Inactive.Assigned, ShouldBeTrue)
 
-			Convey("Then it should release user", func() {
+			Convey("When it releases user", func() {
 				err := FirstEmail.UpdateAndReleaseUser(user.ObjectId)
 				So(err, ShouldBeNil)
+
+				Convey("Then it should update user", func() {
+					updatedUser, err := findUser(user.Name)
+					So(err, ShouldBeNil)
+
+					So(updatedUser.Inactive.Warning, ShouldEqual, FirstEmail.Level)
+					So(updatedUser.Inactive.ModifiedAt.IsZero(), ShouldBeFalse)
+
+					So(updatedUser.Inactive.WarningTime, ShouldNotBeNil)
+					So(updatedUser.Inactive.WarningTime.One.IsZero(), ShouldBeFalse)
+				})
 
 				Convey("Then it shouldn't get same user again", func() {
 					_, err := FirstEmail.FindAndLockUser()
