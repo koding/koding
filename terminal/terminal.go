@@ -151,7 +151,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 		return nil, fmt.Errorf("Could not get home dir: %s", err)
 	}
 
-	if t.HasLimit(r.Username) {
+	if params.Mode == "create" && t.HasLimit(r.Username) {
 		return nil, errors.New("session limit has reached")
 	}
 
