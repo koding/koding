@@ -12,6 +12,7 @@ var (
 
 // The default interface to send emails.
 type Client interface {
+	SetClient(SenderClient)
 	SendTemplateEmail(string, string, Options) error
 }
 
@@ -61,4 +62,8 @@ func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 	message.AddTo(to)
 
 	return s.SenderClient.Send(message)
+}
+
+func (s *SG) SetClient(client SenderClient) {
+	s.SenderClient = client
 }
