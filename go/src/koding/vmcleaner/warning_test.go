@@ -85,6 +85,17 @@ func TestIsUserExempt(t *testing.T) {
 			So(warning.IsUserExempt(user), ShouldBeFalse)
 		})
 
+		Convey("Then it should be exempt even if one condition is exempt", func() {
+			warning := &Warning{
+				Exempt: []Exempt{
+					func(_ *models.User, _ *Warning) bool { return false },
+					func(_ *models.User, _ *Warning) bool { return true },
+				},
+			}
+
+			So(warning.IsUserExempt(user), ShouldBeTrue)
+		})
+
 		Reset(func() {
 			deleteUserWithUsername(user)
 		})
