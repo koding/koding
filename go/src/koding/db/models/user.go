@@ -61,4 +61,5 @@ type UserInactiveWarningTime struct {
 	One   time.Time `bson:"1,omitempty" json:"1"`
 	Two   time.Time `bson:"2,omitempty" json:"2"`
 	Three time.Time `bson:"3,omitempty" json:"3"`
+	Four  time.Time `bson:"4,omitempty" json:"4"`
 }
