@@ -130,3 +130,7 @@ func deleteUserWithUsername(username string) {
 	modelhelper.RemoveAllUsers(username)
 	modelhelper.RemoveAllAccountByUsername(username)
 }
+
+func findUser(username string) (*models.User, error) {
+	return modelhelper.GetUser(username)
+}
