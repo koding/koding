@@ -4,6 +4,8 @@ Bongo = require "bongo"
 module.exports = class Payment extends Base
   @share()
 
+  ERR_USER_NOT_CONFIRMED = 'ERR_USER_NOT_CONFIRMED'
+
   @set
     sharedMethods     :
       static          :
@@ -35,23 +37,27 @@ module.exports = class Payment extends Base
       "token", "email", "planTitle", "planInterval", "provider"
     ]
 
-    validateParams requiredParams, data, (err)->
+    @canUserPurchase client, (err, confirmed) ->
       return callback err  if err
+      return callback { message: ERR_USER_NOT_CONFIRMED }  unless confirmed
 
-      canChangePlan client, data.planTitle, (err)->
+      validateParams requiredParams, data, (err)->
         return callback err  if err
 
-        data.accountId = getAccountId client
-        url = "/payments/subscribe"
+        canChangePlan client, data.planTitle, (err)->
+          return callback err  if err
 
-        post url, data, (err, response)->
-          callback err, response
+          data.accountId = getAccountId client
+          url = "/payments/subscribe"
 
-          data.status = if err then "$failed" else "$success"
+          post url, data, (err, response)->
+            callback err, response
 
-          SiftScience = require "./siftscience"
-          SiftScience.transaction client, data, (err)->
-            log "logging to SiftScience failed", err  if err
+            data.status = if err then "$failed" else "$success"
+
+            SiftScience = require "./siftscience"
+            SiftScience.transaction client, data, (err)->
+              log "logging to SiftScience failed", err  if err
 
 
   @subscriptions$ = secure (client, data, callback)->
