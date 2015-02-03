@@ -73,52 +73,10 @@ func TestWarningsQuery(t *testing.T) {
 	})
 }
 
-func TestLockAndReleaseUser(t *testing.T) {
-	Convey("Given user who is inactive & not warned", t, func() {
-		user, err := createInactiveUser(46)
-		So(err, ShouldBeNil)
-
-		Convey("Then it should find and lock user", func() {
-			newuser, err := FirstEmail.FindAndLockUser()
-			So(err, ShouldBeNil)
-
-			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
-			So(newuser.Inactive.Assigned, ShouldBeTrue)
-
-			Convey("When it releases user", func() {
-				err := FirstEmail.UpdateAndReleaseUser(user.ObjectId)
-				So(err, ShouldBeNil)
-
-				Convey("Then it should update user", func() {
-					updatedUser, err := findUser(user.Name)
-					So(err, ShouldBeNil)
-
-					So(updatedUser.Inactive.Warning, ShouldEqual, FirstEmail.Level)
-					So(updatedUser.Inactive.ModifiedAt.IsZero(), ShouldBeFalse)
-
-					So(updatedUser.Inactive.WarningTime, ShouldNotBeNil)
-					So(updatedUser.Inactive.WarningTime.One.IsZero(), ShouldBeFalse)
-				})
-
-				Convey("Then it shouldn't get same user again", func() {
-					_, err := FirstEmail.FindAndLockUser()
-					So(err, ShouldNotBeNil)
-				})
-			})
-		})
-
-		Reset(func() {
-			deleteUserWithUsername(user)
-		})
-	})
-}
-
 func TestIsUserExempt(t *testing.T) {
 	Convey("Given exempt conditions", t, func() {
 		user, err := createUser()
 		So(err, ShouldBeNil)
-
-    warning : &Warning{}
 
 		Convey("Then it should be exempt", func() {
 			warning := &Warning{
@@ -160,7 +118,7 @@ func TestAct(t *testing.T) {
 					return nil
 				},
 
-				Exempt: []Exempt{func(user *models.User) bool {
+				Exempt: []Exempt{func(user *models.User, _ *Warning) bool {
 					return false
 				}},
 			}
@@ -186,7 +144,7 @@ func TestAct(t *testing.T) {
 					return nil
 				},
 
-				Exempt: []Exempt{func(user *models.User) bool {
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
 					return true
 				}},
 			}

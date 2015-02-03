@@ -109,7 +109,7 @@ func TestWarningsFull(t *testing.T) {
 //----------------------------------------------------------
 
 func createUser() (*models.User, error) {
-	username := "vminactive"
+	username := "regularuser"
 	user := &models.User{
 		Name: username, ObjectId: bson.NewObjectId(),
 	}
@@ -117,8 +117,18 @@ func createUser() (*models.User, error) {
 	return user, modelhelper.CreateUser(user)
 }
 
+func createUserWithWarning(w int) (*models.User, error) {
+	username := "userwithwarning"
+	user := &models.User{
+		Name: username, ObjectId: bson.NewObjectId(),
+		Inactive: models.UserInactive{Warning: w, ModifiedAt: now()},
+	}
+
+	return user, modelhelper.CreateUser(user)
+}
+
 func createUserWithVM() (*models.User, error) {
-	username := "vminactiveWithvms"
+	username := "userwithvms"
 	user := &models.User{
 		Name: username, ObjectId: bson.NewObjectId(),
 	}
