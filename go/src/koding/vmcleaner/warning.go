@@ -87,11 +87,6 @@ func (w *Warning) IsUserExempt(user *models.User) bool {
 	return false
 }
 
-type Result struct {
-	Total, Successful, Failure int
-	Level                      int
-}
-
 func (w *Warning) Run() Result {
 	for {
 		user, err := w.FindAndLockUser()
