@@ -4,6 +4,7 @@ import (
 	"github.com/koding/kodingemail"
 	"labix.org/v2/mgo/bson"
 
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"testing"
 	"time"
@@ -100,6 +101,29 @@ func TestWarningsFull(t *testing.T) {
 			deleteUserWithUsername(user.Name)
 		})
 	})
+}
+
+//----------------------------------------------------------
+// helpers
+//----------------------------------------------------------
+
+func createUser() (*models.User, error) {
+	username := "vminactive"
+	user := &models.User{
+		Name: username, ObjectId: bson.NewObjectId(),
+	}
+
+	return user, modelhelper.CreateUser(user)
+}
+
+func createInactiveUser(daysInactive int) (*models.User, error) {
+	user := &models.User{
+		Name: "inactiveuser", ObjectId: bson.NewObjectId(),
+		Email:         "inactiveuser@koding.com",
+		LastLoginDate: now().Add(-time.Hour * 24 * time.Duration(daysInactive)),
+	}
+
+	return user, modelhelper.CreateUser(user)
 }
 
 func deleteUserWithUsername(username string) {
