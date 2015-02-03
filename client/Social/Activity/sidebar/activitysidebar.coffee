@@ -49,8 +49,8 @@ class ActivitySidebar extends KDCustomHTMLView
 
     # @appsList = new DockController
 
-    # router
-    #   .on "RouteInfoHandled",          @bound 'deselectAllItems'
+    router
+      .on "RouteInfoHandled",          @bound 'deselectAllItems'
 
     notificationController
       .on 'AddedToChannel',            @bound 'accountAddedToChannel'
@@ -397,14 +397,17 @@ class ActivitySidebar extends KDCustomHTMLView
       @selectedItem = candidates.first
 
 
-  deselectAllItems: ->
+  deselectAllItems: (route) ->
 
-    # @selectedItem = null
+    @selectedItem = null
+    isVisitedIDE  = route?.params?.machineLabel
 
-    # @machineTree.deselectAllNodes()
+    if @machineLists and not isVisitedIDE
+      for machineList in @machineLists
+        machineList.deselectMachinesAndCollapseWorkspaces()
 
-    # for own name, {listController} of @sections
-    #   listController.deselectAllItems()
+    for own name, {listController} of @sections
+      listController.deselectAllItems()
 
 
   viewAppended: ->

@@ -67,3 +67,11 @@ class SidebarMachineList extends KDCustomHTMLView
 
     for box in @machineBoxes
       callback box
+
+
+  deselectMachinesAndCollapseWorkspaces: ->
+
+    @deselectMachines()
+    @forEachMachineBoxes (box) ->
+      box.deselectWorkspaces()
+      box.collapseList()
