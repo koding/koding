@@ -70,4 +70,12 @@ class WebTermMessagePane extends KDCustomScrollView
 
       return yes
 
+    else if err.message is "session limit has reached"
+
+      @setMessage \
+        "You have too many sessions opened,
+        click here to dismiss.", "DiscardSession"
+
+      return yes
+
     return no
