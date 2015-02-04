@@ -48,7 +48,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     @tabView.on 'PaneRemoved', (tab) =>
       { view } = tab.pane
 
-      if tab.pane.view instanceof IDE.TerminalPane
+      if view instanceof IDE.TerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
