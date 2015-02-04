@@ -583,7 +583,7 @@ class IDEAppController extends AppController
       [paneType, callback] = [callback, paneType]
 
     for ideView in @ideViews
-      for pane in ideView.tabView.panes
+      for pane in ideView.tabView.panes when pane
         view = pane.getSubViews().first
         if paneType
           if view.getOptions().paneType is paneType
