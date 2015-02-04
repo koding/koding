@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"bytes"
@@ -20,9 +20,10 @@ import (
 )
 
 type Updater struct {
-	Endpoint string
-	Interval time.Duration
-	Log      kite.Logger
+	Endpoint       string
+	Interval       time.Duration
+	CurrentVersion string
+	Log            kite.Logger
 }
 
 type UpdateData struct {
@@ -64,14 +65,12 @@ func (u *Updater) checkAndUpdate() error {
 	}
 
 	latestVer := "0.1." + l
-	currentVer := VERSION
-
 	latest, err := version.NewVersion(latestVer)
 	if err != nil {
 		return err
 	}
 
-	current, err := version.NewVersion(currentVer)
+	current, err := version.NewVersion(u.CurrentVersion)
 	if err != nil {
 		return err
 	}
@@ -81,7 +80,7 @@ func (u *Updater) checkAndUpdate() error {
 		return nil
 	}
 
-	u.Log.Info("Current version: %s is old. Going to update to: %s", currentVer, latestVer)
+	u.Log.Info("Current version: %s is old. Going to update to: %s", u.CurrentVersion, latestVer)
 
 	basePath := "https://s3.amazonaws.com/koding-klient/" + protocol.Environment + "/latest"
 	latestKlientURL := basePath + "/klient-" + latestVer + ".gz"

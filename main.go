@@ -1,23 +1,13 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"os"
-	"strings"
-	"sync"
 	"time"
 
-	"github.com/koding/klient/collaboration"
-	"github.com/koding/klient/command"
-	"github.com/koding/klient/fs"
+	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
-	"github.com/koding/klient/terminal"
-	"github.com/koding/klient/usage"
-
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
 )
 
 var (
@@ -35,287 +25,40 @@ var (
 	flagUpdateURL = flag.String("update-url",
 		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
-
-	VERSION = protocol.Version
-	NAME    = protocol.Name
-
-	// this is our main reference to count and measure metrics for the klient
-	// we count only those methods, please add/remove methods here that will
-	// reset the timer of a klient.
-	usg = usage.NewUsage(map[string]bool{
-		"fs.readDirectory":    true,
-		"fs.glob":             true,
-		"fs.readFile":         true,
-		"fs.writeFile":        true,
-		"fs.uniquePath":       true,
-		"fs.getInfo":          true,
-		"fs.setPermissions":   true,
-		"fs.remove":           true,
-		"fs.rename":           true,
-		"fs.createDirectory":  true,
-		"fs.move":             true,
-		"fs.copy":             true,
-		"webterm.getSessions": true,
-		"webterm.connect":     true,
-		"webterm.killSession": true,
-		"exec":                true,
-		"klient.share":        true,
-		"klient.unshare":      true,
-		"klient.shared":       true,
-		// Disabled until we have Docker support, no need to bloat the binary :)
-		// "docker.create":       true,
-		// "docker.connect":      true,
-		// "docker.stop":         true,
-		// "docker.start":        true,
-		// "docker.remove":       true,
-		// "docker.list":         true,
-	})
-
-	// this is used to allow other users to call any klient method.
-	collab = collaboration.New()
-
-	// we also could use an atomic boolean this is simple for now.
-	updating   = false
-	updatingMu sync.Mutex // protects updating
 )
 
 func main() {
+	// Call realMain instead of doing the work here so we can use
+	// `defer` statements within the function and have them work properly.
+	// (defers aren't called with os.Exit)
+	os.Exit(realMain())
+}
+
+func realMain() int {
 	flag.Parse()
 	if *flagVersion {
-		fmt.Println(VERSION)
-		os.Exit(0)
+		fmt.Println(protocol.Version)
+		return 0
 	}
 
-	k := newKite()
-
-	// Close the klient.db in any case. Corrupt db would be catastrophic
-	defer collab.Close()
-
-	k.Log.Info("Running as version %s", VERSION)
-	k.Run()
-}
-
-func newKite() *kite.Kite {
-	k := kite.New(NAME, VERSION)
-
-	if *flagDebug {
-		k.SetLogLevel(kite.DEBUG)
+	conf := &app.KlientConfig{
+		Name:           protocol.Name,
+		Version:        protocol.Version,
+		IP:             *flagIP,
+		Port:           *flagPort,
+		Environment:    *flagEnvironment,
+		Region:         *flagRegion,
+		RegisterURL:    *flagRegisterURL,
+		Debug:          *flagDebug,
+		UpdateInterval: *flagUpdateInterval,
+		UpdateURL:      *flagUpdateURL,
 	}
 
-	conf := config.MustGet()
-	k.Config = conf
-	k.Config.Port = *flagPort
-	k.Config.Environment = *flagEnvironment
-	k.Config.Region = *flagRegion
-	k.Id = conf.Id // always boot up with the same id in the kite.key
+	a := app.NewKlient(conf)
+	defer a.Close()
 
-	if *flagUpdateInterval < time.Minute {
-		k.Log.Warning("Update interval can't be less than one minute. Setting to one minute.")
-		*flagUpdateInterval = time.Minute
-	}
+	// Run Forrest, Run!
+	a.Run()
 
-	updater := &Updater{
-		Endpoint: *flagUpdateURL,
-		Interval: *flagUpdateInterval,
-		Log:      k.Log,
-	}
-
-	// before we register check for latest update and re-update itself before
-	// we continue
-	k.Log.Info("Checking for new updates")
-	if err := updater.checkAndUpdate(); err != nil {
-		k.Log.Warning("Self-update: %s", err)
-	}
-
-	go updater.Run()
-
-	userIn := func(user string, users ...string) bool {
-		for _, u := range users {
-			if u == user {
-				return true
-			}
-		}
-		return false
-	}
-
-	// don't pass any request if the caller is outside of our scope.
-	// don't allow anyone to call a method if we are during an update.
-	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		// only authenticated methods have correct username. For example
-		// kite.ping has authentication disabled so username can be empty.
-		if r.Auth != nil {
-			// Koding (kloud) connects to much, don't display it.
-			if r.Username != "koding" {
-				k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
-					r.Username, r.Client.Environment, r.Client.Name, r.Method)
-			}
-
-			// Allow these users by default
-			allowedUsers := []string{k.Config.Username, "koding"}
-
-			// Allow collaboration users as well
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
-			}
-
-			sharedUsernames := make([]string, 0)
-			for username := range sharedUsers {
-				sharedUsernames = append(sharedUsernames, username)
-			}
-
-			allowedUsers = append(allowedUsers, sharedUsernames...)
-
-			if !userIn(r.Username, allowedUsers...) {
-				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
-			}
-		}
-
-		updatingMu.Lock()
-		defer updatingMu.Unlock()
-
-		if updating {
-			return nil, errors.New("Updating klient. Can't accept any method.")
-		}
-
-		return true, nil
-	})
-
-	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
-	k.PreHandleFunc(usg.Counter) // we measure every incoming request
-	k.HandleFunc("klient.usage", usg.Current)
-
-	// Collaboration, is used by our Koding.com browser client.
-	k.HandleFunc("klient.share", collab.Share)
-	k.HandleFunc("klient.unshare", collab.Unshare)
-	k.HandleFunc("klient.shared", collab.Shared)
-
-	// Filesystem
-	k.HandleFunc("fs.readDirectory", fs.ReadDirectory)
-	k.HandleFunc("fs.glob", fs.Glob)
-	k.HandleFunc("fs.readFile", fs.ReadFile)
-	k.HandleFunc("fs.writeFile", fs.WriteFile)
-	k.HandleFunc("fs.uniquePath", fs.UniquePath)
-	k.HandleFunc("fs.getInfo", fs.GetInfo)
-	k.HandleFunc("fs.setPermissions", fs.SetPermissions)
-	k.HandleFunc("fs.remove", fs.Remove)
-	k.HandleFunc("fs.rename", fs.Rename)
-	k.HandleFunc("fs.createDirectory", fs.CreateDirectory)
-	k.HandleFunc("fs.move", fs.Move)
-	k.HandleFunc("fs.copy", fs.Copy)
-
-	// // Docker
-	// Disabled until we have Docker support, no need to bloat the binary :)
-	// dock := docker.New("unix:///var/run/docker.sock", k.Log)
-	// k.HandleFunc("docker.create", dock.Create)
-	// k.HandleFunc("docker.connect", dock.Connect)
-	// k.HandleFunc("docker.stop", dock.Stop)
-	// k.HandleFunc("docker.start", dock.Start)
-	// k.HandleFunc("docker.remove", dock.RemoveContainer)
-	// k.HandleFunc("docker.list", dock.List)
-
-	// Execution
-	k.HandleFunc("exec", command.Exec)
-
-	// Terminal
-	term := terminal.New(k.Log)
-	term.InputHook = usg.Reset
-	k.HandleFunc("webterm.getSessions", term.GetSessions)
-	k.HandleFunc("webterm.connect", term.Connect)
-	k.HandleFunc("webterm.killSession", term.KillSession)
-	k.HandleFunc("webterm.killSessions", term.KillSessions)
-
-	var disconnectTimer *time.Timer
-
-	k.OnFirstRequest(func(c *kite.Client) {
-		// Koding (kloud) connects to much, don't display it.
-		if c.Username != "koding" {
-			k.Log.Info("Kite '%s/%s/%s' is connected", c.Username, c.Environment, c.Name)
-		}
-
-		if c.Username != k.Config.Username {
-			return // we don't care for others
-		}
-
-		// it's still not initialized, so don't do anything
-		if disconnectTimer != nil {
-			// stop previously started disconnect timer.
-			k.Log.Info("Disconnection timer is cancelled.")
-			disconnectTimer.Stop()
-		}
-
-	})
-
-	// Unshare collab users if the klient owner disconnects
-	k.OnDisconnect(func(c *kite.Client) {
-		// Koding (kloud) connects to much, don't display it.
-		if c.Username != "koding" {
-			k.Log.Info("Kite '%s/%s/%s' is disconnected", c.Username, c.Environment, c.Name)
-		}
-
-		if c.Username != k.Config.Username {
-			return // we don't care for others
-		}
-
-		// if there is any previously created timers stop them so we don't leak
-		// goroutines
-		if disconnectTimer != nil {
-			disconnectTimer.Stop()
-		}
-
-		k.Log.Info("Disconnection timer of 1 minutes is fired.")
-		disconnectTimer = time.NewTimer(time.Minute * 1)
-
-		// Close all active sessions of the current. Do not close it
-		// immediately, instead of give some time so users can safely exit. If
-		// the user reconnects again the timer will be stopped so we don't
-		// unshare for network hiccups accidentally.
-		go func() {
-			select {
-			case <-disconnectTimer.C:
-				sharedUsers, err := collab.GetAll()
-				if err != nil {
-					k.Log.Warning("Couldn't unshare users: '%s'", err)
-					return
-				}
-
-				if len(sharedUsers) == 0 {
-					return // nothing to do ...
-				}
-
-				k.Log.Info("Unsharing users '%s'", sharedUsers)
-				for user, option := range sharedUsers {
-					// dont touch permanent users
-					if option.Permanent {
-						k.Log.Info("User is permanent, avoiding it: '%s'", user)
-						continue
-					}
-
-					if err := collab.Delete(user); err != nil {
-						k.Log.Warning("Couldn't delete user from storage: '%s'", err)
-					}
-					term.CloseSessions(user)
-				}
-			}
-		}()
-	})
-
-	if err := register(k); err != nil {
-		panic(err)
-	}
-
-	return k
-}
-
-// Given a string of the form "host", "host:port", or "[ipv6::address]:port",
-// return true if the string includes a port.
-func HasPort(s string) bool { return strings.LastIndex(s, ":") > strings.LastIndex(s, "]") }
-
-// Given a string of the form "host", "port", returns "host:port"
-func AddPort(host, port string) string {
-	if ok := HasPort(host); ok {
-		return host
-	}
-
-	return host + ":" + port
+	return 0
 }
