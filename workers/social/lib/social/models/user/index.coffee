@@ -49,11 +49,8 @@ module.exports = class JUser extends jraphical.Module
                      'term','twitter','facebook','google','framework', 'kite'
                      'landing','hello','dev']
 
-  @hashUnhashedPasswords =->
-    @all {salt: $exists: no}, (err, users)->
-      users.forEach (user)-> user.changePassword user.getAt('password')
 
-  hashPassword =(value, salt)->
+  hashPassword = (value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
@@ -790,15 +787,6 @@ Team Koding
       callback if isError
         { message: "Errors were encountered during validation", errors }
       else null
-
-
-  @changePasswordByUsername = (username, password, callback) ->
-    salt = createSalt()
-    hashedPassword = hashPassword password, salt
-    @one { username }, (err, user) ->
-      return callback err if err
-      return callback new Error "User not found" unless user
-      user.changePassword password, callback
 
   @changeEmailByUsername = (options, callback) ->
     { account, oldUsername, email } = options
