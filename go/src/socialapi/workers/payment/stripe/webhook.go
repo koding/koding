@@ -1,8 +1,8 @@
 package stripe
 
 import (
-	"encoding/json"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"time"
 )
 
@@ -10,20 +10,9 @@ import (
 // SubscriptionDeleted
 //----------------------------------------------------------
 
-type SubscriptionDeletedWebhookRequest struct {
-	ID string `json:"id"`
-}
-
-func SubscriptionDeletedWebhook(raw []byte) error {
-	var req *SubscriptionDeletedWebhookRequest
-
-	err := json.Unmarshal(raw, &req)
-	if err != nil {
-		return err
-	}
-
+func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 	subscription := paymentmodels.NewSubscription()
-	err = subscription.ByProviderId(req.ID, ProviderName)
+	err := subscription.ByProviderId(req.ID, ProviderName)
 	if err != nil {
 		return err
 	}
@@ -56,14 +45,7 @@ type InvoiceCreatedWebhookRequest struct {
 	} `json:"lines"`
 }
 
-func InvoiceCreatedWebhook(raw []byte) error {
-	var req *InvoiceCreatedWebhookRequest
-
-	err := json.Unmarshal(raw, &req)
-	if err != nil {
-		return err
-	}
-
+func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	if !IsLineCountAllowed(req.Lines.Count) {
 		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil
@@ -72,13 +54,13 @@ func InvoiceCreatedWebhook(raw []byte) error {
 	item := req.Lines.Data[0]
 
 	subscription := paymentmodels.NewSubscription()
-	err = subscription.ByProviderId(item.SubscriptionId, ProviderName)
+	err := subscription.ByProviderId(item.SubscriptionId, ProviderName)
 	if err != nil {
 		return err
 	}
 
 	plan := paymentmodels.NewPlan()
-	plan.ByProviderId(item.Plan.PlanId, ProviderName)
+	plan.ByProviderId(item.Plan.ID, ProviderName)
 	if err != nil {
 		return err
 	}
@@ -107,20 +89,9 @@ func InvoiceCreatedWebhook(raw []byte) error {
 // CustomerDeleted
 //----------------------------------------------------------
 
-type CustomerDeletedWebhookRequest struct {
-	ID string `json:"id"`
-}
-
-func CustomerDeletedWebhook(raw []byte) error {
-	var req *CustomerDeletedWebhookRequest
-
-	err := json.Unmarshal(raw, &req)
-	if err != nil {
-		return err
-	}
-
+func CustomerDeletedWebhook(req *webhookmodels.StripeCustomer) error {
 	customer := paymentmodels.NewCustomer()
-	err = customer.ByProviderCustomerId(req.ID)
+	err := customer.ByProviderCustomerId(req.ID)
 	if err != nil {
 		return err
 	}

@@ -30,14 +30,19 @@ module.exports = (req, res) ->
   get url, {}, (err, usernames)->
     return res.status(400).send err  if err
 
+    response = []
     queue    = []
-    response = {}
 
-    for username in usernames
+    usernames.forEach (username)->
       queue.push -> JMachine.fetchByUsername username, (err, machines)->
-        return err  if err
+        if err
+          queue.fin()
+        else
+          slugs = []
+          machines.forEach (machine)->
+            slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
 
-        response[username] = machines.map (machine)-> machine.data.slug
-        queue.fin()
+          response.push { "username" : username, "vms" : slugs }
+          queue.fin()
 
     dash queue, -> res.status(200).send response

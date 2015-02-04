@@ -414,6 +414,18 @@ func TestChannelMessageBuildEmptyMessageContainer(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(bem.Message, ShouldEqual, c)
 		})
+		Convey("it should not return error when account is not set", func() {
+			// create message
+			c := createMessageWithTest()
+			So(c.Create(), ShouldBeNil)
+
+			cm := NewChannelMessage()
+			cm.Id = c.Id
+
+			bem, err := cm.BuildEmptyMessageContainer()
+			So(err, ShouldBeNil)
+			So(bem.Message, ShouldEqual, cm)
+		})
 	})
 }
 

@@ -15,7 +15,7 @@ openVmSettingsModal = (browser) ->
       .pause                   5000
       .moveToElement           vmSelector + ' span', 125, 20
       .click                   vmSelector + ' span'
-      .waitForElementVisible   modalSelector, 20000
+      .waitForElementVisible   modalSelector, 20000 # Assertion
 
 
 module.exports =
@@ -40,3 +40,46 @@ module.exports =
           .waitForElementVisible  '#container', 20000
           .waitForElementVisible  '#container .hellobox', 20000
           .end()
+
+
+  turnOffVm: (browser) ->
+
+    linkSelector = modalSelector + ' .statustoggle .input-wrapper'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    openVmSettingsModal(browser)
+
+    browser
+      .waitForElementVisible   linkSelector, 20000
+      .waitForElementVisible   linkSelector + ' .koding-on-off a.knob', 20000
+      .click                   linkSelector + ' .koding-on-off a.knob'
+      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopping', 20000
+      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopped', 300000
+      .waitForElementVisible   '.env-machine-state .kdmodal-content .turn-on.state-button', 20000 # Assertion
+      .end()
+
+
+  turnOnVm: (browser)->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    browser.end()
+
+
+  seeUpgradeModal: (browser) ->
+
+    plusSelector = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+      .waitForElementVisible   plusSelector, 20000
+      .moveToElement           plusSelector + ' a.buy-vm', 10, 10
+      .click                   plusSelector + ' a.buy-vm'
+      .waitForElementVisible   '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+      .end()
+

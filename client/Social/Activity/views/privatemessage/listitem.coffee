@@ -91,6 +91,6 @@ class PrivateMessageListItemView extends ActivityListItemView
       </div>
       {{> @editWidgetWrapper}}
       {article.has-markdown{KD.utils.formatContent #(body)}}
-      {{> @embedBox}}
+      {{> @embedBoxWrapper}}
     </div>
     """

@@ -244,6 +244,15 @@ func (k *Kloud) coreMethods(r *kite.Request, fn controlFunc) (result interface{}
 		return nil, NewError(ErrProviderAvailable)
 	}
 
+	// if the provider implements the validate method, validate it before we
+	// call any method
+	if validator, ok := provider.(protocol.Validator); ok {
+		err := validator.Validate(machine, r)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	controller, ok := provider.(protocol.Provider)
 	if !ok {
 		return nil, NewError(ErrProviderNotImplemented)

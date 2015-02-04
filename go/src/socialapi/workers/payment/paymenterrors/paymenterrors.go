@@ -2,6 +2,7 @@ package paymenterrors
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -46,5 +47,9 @@ var (
 		}
 
 		return err.Error() == "Nothing to invoice for customer"
+	}
+
+	ErrCustomerEmailIsEmpty = func(oldId string) error {
+		return fmt.Errorf("customer: %s has no email", oldId)
 	}
 )

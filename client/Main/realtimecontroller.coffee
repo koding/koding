@@ -6,6 +6,9 @@ class RealtimeController extends KDController
     # make another caching here
     @channels = {}
 
+    # this is used for discarding events that are received multiple times
+    @eventCache = {}
+
     @localStorage  = KD.getSingleton("localStorageController").storage "realtime"
 
     # each forbidden channel name is stored in local storage
@@ -16,15 +19,34 @@ class RealtimeController extends KDController
     super options, data
 
     {subscribekey, ssl} = KD.config.pubnub
+    @timeDiff = 0
 
-    @pubnub = PUBNUB.init
-      subscribe_key : subscribekey
-      uuid          : KD.whoami()._id
-      ssl           : ssl
+    @authenticated = false
 
-    realtimeToken = Cookies.get("realtimeToken")
+    if KD.isPubnubEnabled()
+      @pubnub = PUBNUB.init
+        subscribe_key : subscribekey
+        uuid          : KD.whoami()._id
+        ssl           : ssl
 
-    @pubnub.auth realtimeToken  if realtimeToken?
+      @getTimeDiffWithServer()
+
+      realtimeToken = Cookies.get("realtimeToken")
+
+      if realtimeToken?
+        @pubnub.auth realtimeToken
+        @authenticated = yes
+
+        return
+
+      # in case of realtime token does not exist, fetch it from Gatekeeper
+      options = { endPoint : "/api/gatekeeper/token", data: { id: KD.whoami().socialApiId } }
+      @authenticate options, (err) =>
+
+        return warn err  if err
+
+        @authenticated = yes
+        @emit 'authenticated'
 
 
   # channel authentication is needed for notification channel and
@@ -149,6 +171,12 @@ class RealtimeController extends KDController
 
   subscribePubnub: (options = {}, callback) ->
 
+    return @subscribeHelper options, callback  if @authenticated
+
+    @once 'authenticated', => @subscribeHelper options, callback
+
+
+  subscribeHelper: (options = {}, callback) ->
     pubnubChannelName = options.channelName
 
     # return channel if it already exists
@@ -163,8 +191,15 @@ class RealtimeController extends KDController
       @pubnub.subscribe
         channel : pubnubChannelName
         message : (message, env, channel) =>
+
           return  unless message
-          {eventName, body} = message
+
+          {eventName, body, eventId} = message
+
+          return  if @eventCache[eventId]
+
+          @eventCache[eventId] = yes
+
           # when a user is connected in two browsers, and leaves a channel, in second one
           # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
           # user from all connected devices.
@@ -177,28 +212,57 @@ class RealtimeController extends KDController
           @channels[channel].emit eventName, body
         connect : =>
           @channels[pubnubChannelName] = channelInstance
+          @removeFromForbiddenChannels pubnubChannelName
           callback null, channelInstance
         error   : (err) =>
           @handleError err
           callback err
+        reconnect: => @getTimeDiffWithServer()
+        # with each channel subscription pubnub resubscribes to every channel
+        # and some messages are dropped in this resubscription time interval
+        # for this reason for every subscribe request, we are fetching all messages sent
+        # in last 3 seconds
+        # another issue is if user's computer time is ahead of server, it is not receiving the events.
+        # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
+        timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
         restore : yes
 
+  getTimeDiffWithServer: ->
+    @pubnub.time (serverTime) =>
+      diff = new Date() * 10000 - serverTime
+      # when time difference between pubnub server and client is less than 500ms
+      # ignore the difference
+      @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
 
   handleError: (err) ->
     {message, payload} = err
 
-    return warn err  unless payload
+    return warn err  unless payload?.channels
 
     {channels} = payload
 
     forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
 
     for channel in channels
+      # if somehow we are not able to subscribe to a channel (public access is not granted etc.)
+      # unsubscribe from that channel. Otherwise user will not be able to receive
+      # further realtime events
+      @pubnub.unsubscribe {channel}
       unless forbiddenChannels[channel]
         channelToken = channel.replace "channel-", ""
         forbiddenChannels[channel] = yes
         @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
         KD.utils.sendDataDogEvent "ForbiddenChannel", tags: {channelToken}, sendLogs: no
+
+
+  removeFromForbiddenChannels: (channelName) ->
+    forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
+
+    return  unless forbiddenChannels[channelName]
+
+    delete forbiddenChannels[channelName]
+
+    @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
 
 
   # subscribeBroker subscribes the broker channels when it is enabled.

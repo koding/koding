@@ -241,6 +241,10 @@ func (c *ChannelMessage) BuildEmptyMessageContainer() (*ChannelMessageContainer,
 	container := NewChannelMessageContainer()
 	container.Message = c
 
+	if c.AccountId == 0 {
+		return container, nil
+	}
+
 	oldId, err := FetchAccountOldIdByIdFromCache(c.AccountId)
 	if err != nil {
 		return nil, err
@@ -530,6 +534,15 @@ func (c *ChannelMessage) FetchByIds(ids []int64) ([]ChannelMessage, error) {
 	}
 
 	return messages, nil
+}
+
+func (c *ChannelMessage) PopulatePayload() (*ChannelMessage, error) {
+	cm, err := c.PopulateAddedBy()
+	if err != nil {
+		return nil, err
+	}
+
+	return cm.PopulateInitialParticipants()
 }
 
 func (c *ChannelMessage) PopulateAddedBy() (*ChannelMessage, error) {

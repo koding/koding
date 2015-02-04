@@ -197,9 +197,9 @@ module.exports = class JReward extends jraphical.Message
 
     fetchEarnedReward options, (err, earnedReward)->
       return callback err  if err?
-      
+
       callback null, earnedReward?.amount or 0
-      
+
       # We can manually call this if we need.
       # JReward.calculateAndUpdateEarnedAmount options, callback
 
@@ -220,19 +220,19 @@ module.exports = class JReward extends jraphical.Message
 
   do ->
 
-    JAccount.on 'AccountRegistered', (me, referrerCode)->
+    JAccount.on 'AccountRegistered', (me, referrerUsername)->
 
       return console.error "Account is not defined in event"  unless me
-      return  unless referrerCode
+      return  unless referrerUsername
 
       {nickname} = me.profile
-      if nickname is referrerCode
+      if nickname is referrerUsername
         return console.error "User (#{nickname}) tried to refer themself."
 
-      me.update $set: referrerUsername: referrerCode, (err)->
+      me.update $set: { referrerUsername }, (err)->
 
         unless err
-          console.log "reward saved for #{nickname} from #{referrerCode}"
+          console.log "reward saved for #{nickname} from #{referrerUsername}"
 
 
     persistRewards = (campaign, source, target, callback)->
@@ -283,7 +283,7 @@ module.exports = class JReward extends jraphical.Message
     JUser.on 'EmailConfirmed', (user)->
 
       unless user?
-        return console.warn "User is not defined in '#{EmailConfirmed}' event"
+        return console.warn "User is not defined in 'EmailConfirmed' event"
 
       me       = null
       referrer = null
