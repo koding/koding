@@ -24,16 +24,12 @@ var (
 )
 
 type Vmcleaner struct {
-	Mongo string `required:"true"`
-	Email struct {
-		Username string `required:"username"`
-		Password string `required:"password"`
-	} `required:"email"`
-
-	Kloud struct {
-		SecretKey string `required:"key"`
-		Address   string `required:"secret"`
-	} `required:"kloud"`
+	Mongo             string `required:"true"`
+	KloudSecretKey    string `required:"true"`
+	KloudAddr         string `required:"true"`
+	SendgridUsername  string `required:"true"`
+	SendgridPassword  string `required:"true"`
+	SendgridRecipient string
 }
 
 func main() {
@@ -45,11 +41,10 @@ func main() {
 	}()
 
 	// initialize client to talk to kloud
-	kloud := conf.Kloud
-	kiteClient := initializeKiteClient(kloud.SecretKey, kloud.Address)
+	kiteClient := initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
 
 	// initialize client to send email
-	email := initializeEmail(conf.Email.Username, conf.Email.Password)
+	email := initializeEmail(conf.SendgridUsername, conf.SendgridPassword)
 
 	Warnings = initializeWarnings(kiteClient, email)
 
@@ -60,7 +55,7 @@ func main() {
 }
 
 func initializeConf() *Vmcleaner {
-	var conf *Vmcleaner
+	var conf = new(Vmcleaner)
 
 	d := &multiconfig.DefaultLoader{
 		Loader: multiconfig.MultiLoader(
