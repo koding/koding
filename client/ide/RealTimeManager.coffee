@@ -4,8 +4,11 @@ class RealTimeManager extends KDObject
 
     super options, data
 
+    IDE.Metrics.collect 'RealTimeManager.google_api_client', 'request'
     GoogleApiClient.on 'ready', =>
-      GoogleApiClient.loadDriveApi @lazyBound 'emit', 'ready'
+      GoogleApiClient.loadDriveApi =>
+        IDE.Metrics.collect 'RealTimeManager.google_api_client', 'ready'
+        @emit 'ready'
 
 
   setRealtimeDoc: (realtimeDoc) ->
