@@ -99,10 +99,6 @@ func main() {
 		Log.Fatal(err.Error())
 	}
 
-	defer func() {
-		listener.Close()
-	}()
-
 	go func() {
 		signals := make(chan os.Signal, 1)
 		signal.Notify(signals)
