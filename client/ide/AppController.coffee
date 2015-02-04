@@ -912,7 +912,7 @@ class IDEAppController extends AppController
       @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
-      # @resurrectSnapshot()
+      @resurrectSnapshot()  unless @amIHost
 
       unless @myWatchMap.values().length
         @listChatParticipants (accounts) =>
