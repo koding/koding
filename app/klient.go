@@ -22,19 +22,38 @@ var (
 	updatingMu sync.Mutex // protects updating
 )
 
-// Klient defines
+// Klient is the central app which provides all available methods.
 type Klient struct {
-	kite     *kite.Kite
-	collab   *collaboration.Collaboration
-	terminal *terminal.Terminal
-	docker   *docker.Docker
-	log      kite.Logger
-	usage    *usage.Usage
+	// kite defines the server running and powering Klient.
+	kite *kite.Kite
 
+	// collab is used to store authorized third party users and allows them to
+	// use the available methods. It provides methods to add or remove users
+	// from the storage
+	collab *collaboration.Collaboration
+
+	// terminal provides wmethods
+	terminal *terminal.Terminal
+
+	// doccker provides the docker related methods.
+	docker *docker.Docker
+
+	// usage counts and tracks all called metrics. It also provides a method
+	// that return those informations
+	usage *usage.Usage
+
+	log kite.Logger
+
+	// disconnectTimer is used track disconnected users and eventually remove
+	// them from the collaboration storage.
 	disconnectTimer *time.Timer
-	config          *KlientConfig
+
+	// config stores all necessary configuration needed for Klient to work.
+	// It's supplied with the NewKlient() function.
+	config *KlientConfig
 }
 
+// KlientConfig defines a Klient's config
 type KlientConfig struct {
 	Name    string
 	Version string
@@ -97,6 +116,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 		config:   conf,
 	}
 
+	// This is important, don't forget it
 	kl.RegisterMethods()
 
 	return kl

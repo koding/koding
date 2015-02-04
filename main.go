@@ -25,22 +25,25 @@ var (
 	flagUpdateURL = flag.String("update-url",
 		"https://s3.amazonaws.com/koding-klient/"+protocol.Environment+"/latest-version.txt",
 		"Change update endpoint for latest version")
-
-	// These are assigned during the go build process via ldflags
-	VERSION = protocol.Version
-	NAME    = protocol.Name
 )
 
 func main() {
+	// Call realMain instead of doing the work here so we can use
+	// `defer` statements within the function and have them work properly.
+	// (defers aren't called with os.Exit)
+	os.Exit(realMain())
+}
+
+func realMain() int {
 	flag.Parse()
 	if *flagVersion {
-		fmt.Println(VERSION)
-		os.Exit(0)
+		fmt.Println(protocol.Version)
+		return 0
 	}
 
 	conf := &app.KlientConfig{
-		Name:           NAME,
-		Version:        VERSION,
+		Name:           protocol.Name,
+		Version:        protocol.Version,
 		IP:             *flagIP,
 		Port:           *flagPort,
 		Environment:    *flagEnvironment,
@@ -54,5 +57,8 @@ func main() {
 	a := app.NewKlient(conf)
 	defer a.Close()
 
+	// Run Forrest, Run!
 	a.Run()
+
+	return 0
 }
