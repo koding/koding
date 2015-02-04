@@ -1013,7 +1013,8 @@ class IDEAppController extends AppController
     hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
     snapshot     = if hostSnapshot then mySnapshot.concat hostSnapshot else mySnapshot
 
-    @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
+    @forEachSubViewInIDEViews_ (pane) =>
+      @removePaneFromTabView pane  if pane.isInitial
 
     for change in snapshot when change.context
       @changeActiveTabView change.context.paneType
