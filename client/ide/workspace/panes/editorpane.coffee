@@ -114,7 +114,7 @@ class IDE.EditorPane extends IDE.Pane
 
   getContent: ->
 
-    return @getAce().getContents()
+    return if @getEditor() then @getAce().getContents() else ''
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
