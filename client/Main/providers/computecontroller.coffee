@@ -230,7 +230,7 @@ class ComputeController extends KDController
       return err
 
 
-  destroy: (machine, force = @_force)->
+  destroy: (machine, force)->
 
     destroy = (machine)=>
 
@@ -257,7 +257,7 @@ class ComputeController extends KDController
 
         (@errorHandler call, 'destroy', machine) err
 
-    return destroy machine  if force?
+    return destroy machine  if force or @_force
 
     ComputeController
       .UI.askFor 'destroy', machine, force, =>
