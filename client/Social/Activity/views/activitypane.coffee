@@ -182,6 +182,11 @@ class ActivityPane extends MessagePane
     content = @[contentName]
 
     @clearSearch()
+    
+    {router}       = KD.singletons
+    if router.visitedRoutes.last isnt content.options.route
+      router.visitedRoutes.push content.options.route
+    
 
     unless content.isLoaded
       @fetch options, @createContentSetter contentName
