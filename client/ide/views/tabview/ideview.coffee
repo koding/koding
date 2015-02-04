@@ -92,9 +92,12 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       editor    : editorPane
       aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
-    editorPane.once 'EditorIsReady', ->
+    editorPane.once 'EditorIsReady', =>
       ace        = editorPane.getAce()
       appManager = KD.getSingleton 'appManager'
+
+      if file.path.indexOf('localfile:/Untitled.txt') is 0
+        ace.on 'FileContentChanged', => @emit 'UpdateWorkspaceSnapshot'
 
       ace.on 'ace.change.cursor', (cursor) ->
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
