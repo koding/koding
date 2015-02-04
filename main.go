@@ -114,61 +114,20 @@ func newKite() *kite.Kite {
 		*flagUpdateInterval = time.Minute
 	}
 
+	// start our updater in the background
 	updater := &Updater{
 		Endpoint: *flagUpdateURL,
 		Interval: *flagUpdateInterval,
 		Log:      k.Log,
 	}
-
-	// before we register check for latest update and re-update itself before
-	// we continue
-	k.Log.Info("Checking for new updates")
-	if err := updater.checkAndUpdate(); err != nil {
-		k.Log.Warning("Self-update: %s", err)
-	}
-
 	go updater.Run()
 
-	userIn := func(user string, users ...string) bool {
-		for _, u := range users {
-			if u == user {
-				return true
-			}
-		}
-		return false
-	}
-
-	// don't pass any request if the caller is outside of our scope.
 	// don't allow anyone to call a method if we are during an update.
 	k.PreHandleFunc(func(r *kite.Request) (interface{}, error) {
-		// only authenticated methods have correct username. For example
-		// kite.ping has authentication disabled so username can be empty.
-		if r.Auth != nil {
-			// Koding (kloud) connects to much, don't display it.
-			if r.Username != "koding" {
-				k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
-					r.Username, r.Client.Environment, r.Client.Name, r.Method)
-			}
-
-			// Allow these users by default
-			allowedUsers := []string{k.Config.Username, "koding"}
-
-			// Allow collaboration users as well
-			sharedUsers, err := collab.GetAll()
-			if err != nil {
-				return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
-			}
-
-			sharedUsernames := make([]string, 0)
-			for username := range sharedUsers {
-				sharedUsernames = append(sharedUsernames, username)
-			}
-
-			allowedUsers = append(allowedUsers, sharedUsernames...)
-
-			if !userIn(r.Username, allowedUsers...) {
-				return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
-			}
+		// Koding (kloud) connects to much, don't display it.
+		if r.Username != "koding" {
+			k.Log.Info("Kite '%s/%s/%s' called method: '%s'",
+				r.Username, r.Client.Environment, r.Client.Name, r.Method)
 		}
 
 		updatingMu.Lock()
@@ -180,6 +139,8 @@ func newKite() *kite.Kite {
 
 		return true, nil
 	})
+
+	k.PreHandleFunc(checkAuth(k.Config.Username))
 
 	// Metrics, is used by Kloud to get usage so Kloud can stop free VMs
 	k.PreHandleFunc(usg.Counter) // we measure every incoming request
@@ -305,6 +266,50 @@ func newKite() *kite.Kite {
 	}
 
 	return k
+}
+
+// checkAuth checks whether the given incoming request is authenticated or not.
+// It don't pass any request if the caller is outside of our scope.
+func checkAuth(klientUser string) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		if r.Auth != nil {
+			return true, nil
+		}
+
+		// lazy return for those, no need to fetch from the DB
+		if userIn(r.Username, []string{klientUser, "koding"}...) {
+			return true, nil
+		}
+
+		// Allow collaboration users as well
+		sharedUsers, err := collab.GetAll()
+		if err != nil {
+			return nil, fmt.Errorf("Can't read shared users from the storage. Err: %v", err)
+		}
+
+		sharedUsernames := make([]string, 0)
+		for username := range sharedUsers {
+			sharedUsernames = append(sharedUsernames, username)
+		}
+
+		if !userIn(r.Username, sharedUsernames...) {
+			return nil, fmt.Errorf("User '%s' is not allowed to make a call to us.", r.Username)
+		}
+
+		return true, nil
+
+	}
+}
+
+// userIn checks whether the given user exists in the users list or not. It
+// returns true if the user exists.
+func userIn(user string, users ...string) bool {
+	for _, u := range users {
+		if u == user {
+			return true
+		}
+	}
+	return false
 }
 
 // Given a string of the form "host", "host:port", or "[ipv6::address]:port",
