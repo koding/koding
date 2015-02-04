@@ -18,6 +18,10 @@ params =
       Name: 'tag:Name'
       Values: [environment]
     }
+    {
+      Name: 'instance-state-name'
+      Values: ['running']
+    }
   ]
 
 EC2.describeInstances params, (err, data) ->
