@@ -102,7 +102,7 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	go func() {
 		err := c.Broker.NotifyUser(nm)
 		if err != nil {
-			c.logger.Error("Could not send push notification message %s to user %s broker: %s", nm.EventName, nm.Account.Nickname, err)
+			c.logger.Error("Could not send push notification message '%s' to user %s broker: %s", nm.EventName, nm.Account.Nickname, err)
 		}
 	}()
 

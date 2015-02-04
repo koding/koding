@@ -49,11 +49,8 @@ module.exports = class JUser extends jraphical.Module
                      'term','twitter','facebook','google','framework', 'kite'
                      'landing','hello','dev']
 
-  @hashUnhashedPasswords =->
-    @all {salt: $exists: no}, (err, users)->
-      users.forEach (user)-> user.changePassword user.getAt('password')
 
-  hashPassword =(value, salt)->
+  hashPassword = (value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
@@ -791,15 +788,6 @@ Team Koding
         { message: "Errors were encountered during validation", errors }
       else null
 
-
-  @changePasswordByUsername = (username, password, callback) ->
-    salt = createSalt()
-    hashedPassword = hashPassword password, salt
-    @one { username }, (err, user) ->
-      return callback err if err
-      return callback new Error "User not found" unless user
-      user.changePassword password, callback
-
   @changeEmailByUsername = (options, callback) ->
     { account, oldUsername, email } = options
     # prevent from leading and trailing spaces
@@ -1029,24 +1017,35 @@ Team Koding
           callback null
 
   @changePassword = secure (client, password, callback) ->
+
     @fetchUser client, (err,user)->
-      return callback createKodingError "Something went wrong please try again!" if err or not user
+
+      if err or not user
+        return callback createKodingError \
+          "Something went wrong please try again!"
+
       if user.getAt('password') is hashPassword password, user.getAt('salt')
         return callback createKodingError "PasswordIsSame"
 
-      user.changePassword password, (err)=>
-        sendChangeEmail user.email, "password"
-        return callback err
+      user.changePassword password, (err)-> callback err
 
-  sendChangeEmail = (email, type)->
+
+  sendChangedEmail = (username, email, type) ->
+
     email = new JMail {
       email
       subject : "Your #{type} has been changed"
       content : """
-        Your #{type} has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+        Hi #{username},
+
+        Your #{type} has been changed! If you didn't request this change,
+        please contact with support@koding.com immediately!
+
       """
     }
+
     email.save()
+
 
   @changeEmail = secure (client,options,callback)->
 
@@ -1062,34 +1061,28 @@ Team Koding
           callback createKodingError "Email is already in use!"
         else
           user.changeEmail account, options, callback
-          if account.status is 'registered'
-            # don't send an email when guests change their emails, which we
-            # need to allow for the pricing workflow.
-            sendChangeEmail user.email, "email"
+
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
-      if err
-        callback err
-      else if count is 1
-        callback null, no
-      else
-        callback null, yes
+      callback err, count is 0
+
 
   @usernameAvailable = (username, callback)->
     JName = require '../name'
 
     username += ''
     res =
-      kodingUser   : no
-      forbidden    : yes
+      kodingUser : no
+      forbidden  : yes
 
     JName.count { name: username }, (err, count)=>
+
       if err or username.length < 4 or username.length > 25
         callback err, res
       else
-        res.kodingUser = if count is 1 then yes else no
-        res.forbidden = if username in @bannedUserList then yes else no
+        res.kodingUser = count is 1
+        res.forbidden  = username in @bannedUserList
         callback null, res
 
 
@@ -1105,12 +1098,15 @@ Team Koding
     }, callback
 
 
-  changePassword:(newPassword, callback)->
+  changePassword: (newPassword, callback)->
 
-    @setPassword newPassword, (err)->
-      return callback err  if err?
-      sendChangeEmail @email, "password"
-      callback null
+    @setPassword newPassword, (err)=>
+
+      unless err
+        sendChangedEmail @getAt('username'), @getAt('email'), 'password'
+
+      callback err
+
 
   changeEmail:(account, options, callback)->
 
@@ -1125,34 +1121,42 @@ Team Koding
         callback null
       return
 
+    action = "update-email"
+
     if not pin
-      options =
-        action    : "update-email"
-        user      : this
-        email     : email
+
+      options = {
+        email, action, user: this, resendIfExists: yes
+      }
 
       JVerificationToken.requestNewPin options, callback
 
     else
-      options =
-        action    : "update-email"
-        username  : @getAt 'username'
-        email     : email
-        pin       : pin
+      options = {
+        email, action, pin, username: @getAt 'username'
+      }
 
       JVerificationToken.confirmByPin options, (err, confirmed)=>
 
-        if err then callback err
-        else if confirmed
-          @update $set: {email}, (err, res)=>
-            if err
-              callback err
-            else
-              account.profile.hash = getHash email
-              account.save (err)-> throw err if err
-              callback null
-        else
-          callback createKodingError 'PIN is not confirmed.'
+        return callback err  if err
+
+        unless confirmed
+          return callback createKodingError 'PIN is not confirmed.'
+
+        oldEmail = @getAt 'email'
+
+        @update $set: {email}, (err, res)=>
+
+          return callback err  if err
+
+          account.profile.hash = getHash email
+          account.save (err)=>
+
+            unless err
+              sendChangedEmail @getAt('username'), oldEmail, 'email'
+
+            callback err
+
 
   fetchHomepageView:(options, callback)->
     {account, bongoModels} = options

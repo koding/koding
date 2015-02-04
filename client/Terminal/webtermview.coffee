@@ -79,7 +79,8 @@ class WebTermView extends KDCustomScrollView
       cssClass: 'hidden'
 
     @messagePane.on 'RequestNewSession', @lazyBound 'webtermConnect', 'create'
-    @messagePane.on 'RequestReconnect',  @bound 'webtermConnect'
+    @messagePane.on 'RequestReconnect', @bound 'webtermConnect'
+    @messagePane.on 'DiscardSession', @lazyBound 'emit', 'WebTerm.terminated'
 
 
   generateOptions:->
@@ -117,40 +118,40 @@ class WebTermView extends KDCustomScrollView
 
     kite = @getKite()
 
-    kite.init()
+    kite.init().then =>
 
-    kite.webtermConnect(options).then (remote)=>
+      kite.webtermConnect(options).then (remote)=>
 
-      return  unless remote?
+        return  unless remote?
 
-      @_lastRemote = remote
+        @_lastRemote = remote
 
-      @setOption "session", remote.session
+        @setOption "session", remote.session
 
-      @terminal.eventHandler = (data)=>
-        @emit "WebTermEvent", data
+        @terminal.eventHandler = (data)=>
+          @emit "WebTermEvent", data
 
-      @terminal.server = remote
-      @sessionId = remote.session
+        @terminal.server = remote
+        @sessionId = remote.session
 
-      @emit "WebTermConnected", remote
+        @emit "WebTermConnected", remote
 
-      @_triedToReconnect = no
+        @_triedToReconnect = no
 
-      KD.utils.wait 500, @messagePane.bound 'hide'
+        KD.utils.wait 500, @messagePane.bound 'hide'
 
-    .timeout ComputeController.timeout
+      .timeout ComputeController.timeout
 
-    .catch (err)=>
+      .catch (err)=>
 
-      throw err  unless @messagePane.handleError err
+        @messagePane.handleError err
 
 
-    kite.on 'close', =>
+      kite.on 'close', =>
 
-      if not kite.isDisconnected and not @_triedToReconnect
-        @_triedToReconnect = yes
-        @webtermConnect()
+        if not kite.isDisconnected and not @_triedToReconnect
+          @_triedToReconnect = yes
+          @webtermConnect()
 
 
   connectToTerminal: ->
