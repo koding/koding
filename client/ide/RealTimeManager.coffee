@@ -209,3 +209,17 @@ class RealTimeManager extends KDObject
 
     @isDisposed = yes
     @destroy()
+
+
+do ->
+
+  window.handleGoogleApiLoaded = ->
+
+    log 'Google API client is loaded'
+
+  new KDCustomHTMLView
+    tagName: 'script'
+    attributes:
+      src: 'https://apis.google.com/js/client.js?onload=handleGoogleApiLoaded'
+
+  .appendToSelector 'head'

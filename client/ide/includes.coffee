@@ -72,7 +72,6 @@ module.exports = [
 
   # 3rd party
   "../../website/a/js/sketchpad.js"
-  "../../website/a/js/gapi.js"
   "../../website/a/js/ndpane.min.js"
 
   # collaboration
