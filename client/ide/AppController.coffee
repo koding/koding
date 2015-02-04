@@ -558,9 +558,11 @@ class IDEAppController extends AppController
       delete @generatedPanes[pane.view.hash]
 
       @statusBar.showInformation()  if ideViewLength is 0
+      @writeSnapshot()
 
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
+      @writeSnapshot()
 
     ideView.on 'ChangeHappened', (change) =>
       @syncChange change  if @rtm
