@@ -1214,7 +1214,7 @@ class IDEAppController extends AppController
         else if path.indexOf('localfile:/Untitled.txt') is 0
           @openFile file, context.file.content, noop, no
         else
-          file.fetchContents (err, contents) =>
+          file.fetchContents (err, contents = '') =>
             @changeActiveTabView paneType
             @openFile file, contents, noop, no
 
