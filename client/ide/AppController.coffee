@@ -84,6 +84,8 @@ class IDEAppController extends AppController
 
       @resizeActiveTerminalPane()
 
+    @localStorageController = KD.getSingleton('localStorageController').storage 'IDE'
+
 
   bindRouteHandler: ->
 
