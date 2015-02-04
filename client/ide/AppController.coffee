@@ -297,7 +297,6 @@ class IDEAppController extends AppController
 
           if snapshot
             for key, value of snapshot
-              { context } = value
               @createPaneFromChange value, yes
           else
             @ideViews.first.createEditor()
