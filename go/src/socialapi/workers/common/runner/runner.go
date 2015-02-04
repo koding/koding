@@ -203,7 +203,7 @@ func (r *Runner) RegisterSignalHandler() {
 		for {
 			signal := <-signals
 			switch signal {
-			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP:
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
 				err := r.Close()
 				r.Done <- err
 			}
