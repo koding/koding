@@ -245,7 +245,7 @@ class IDEAppController extends AppController
 
     # interrupt if workspace was changed
     return if machineData.uid isnt @workspaceData.machineUId
-    
+
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
@@ -274,6 +274,9 @@ class IDEAppController extends AppController
       @getMountedMachine (err, machine) =>
         return unless machine
         {state} = machine.status
+
+        for ideView in @ideViews
+          ideView.mountedMachine = @mountedMachine
 
         if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
           nickname     = KD.nick()
@@ -545,6 +548,7 @@ class IDEAppController extends AppController
   registerIDEView: (ideView) ->
 
     @ideViews.push ideView
+    ideView.mountedMachine = @mountedMachine
 
     ideView.on 'PaneRemoved', (pane) =>
       ideViewLength  = 0
