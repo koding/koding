@@ -571,6 +571,19 @@ class IDEAppController extends AppController
       @writeSnapshot()
 
 
+  writeSnapshot: ->
+
+    name  = @getWorkspaceSnapshotName()
+    value = @getWorkspaceSnapshot()
+
+    @localStorageController.setValue name, value
+
+
+  getWorkspaceSnapshotName: ->
+
+    return "wss.#{@mountedMachine.uid}.#{@workspaceData.slug}"
+
+
   registerPane: (pane) ->
 
     {view} = pane
