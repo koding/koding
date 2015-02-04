@@ -92,8 +92,10 @@ class PaymentWorkflow extends KDController
     @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
 
+    { paymentController } = KD.singletons
+
     @modal.on 'PaymentSubmitted', (formData) =>
-      isUserConfirmed (err, confirmed) =>
+      paymentController.canUserPurchase (err, confirmed) =>
         return @userIsNotConfirmed err  if err
         @handlePaymentSubmit formData
 
