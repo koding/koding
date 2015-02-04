@@ -123,6 +123,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
+    vmcleaner                      : {port          : "6700"              , kloudSecretKey : kloud.secretKey       , kloudAddr : kloud.address, mongo: mongo, sendgridUsername : sendgrid.username , sendgridPassword : sendgrid.password }
     vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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"                                                      , kloudSecretKey : kloud.secretKey                                , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
@@ -382,6 +383,22 @@ Configuration = (options={}) ->
         stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
+
+    vmcleaner           :
+      group             : "environment"
+      instances         : 1
+      ports             :
+        incoming        : "#{KONFIG.vmcleaner.port}"
+      supervisord       :
+        command         : "#{GOBIN}/vmcleaner"
+      healthCheckURL    : "http://localhost:#{KONFIG.vmcleaner.port}/healthCheck"
+      versionURL        : "http://localhost:#{KONFIG.vmcleaner.port}/version"
+
+    # clientWatcher       :
+    #   group             : "webserver"
+    #   supervisord       :
+    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
+
 
     # Social API workers
     socialapi           :
