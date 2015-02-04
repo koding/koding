@@ -1017,8 +1017,13 @@ Team Koding
           callback null
 
   @changePassword = secure (client, password, callback) ->
+
     @fetchUser client, (err,user)->
-      return callback createKodingError "Something went wrong please try again!" if err or not user
+
+      if err or not user
+        return callback createKodingError \
+          "Something went wrong please try again!"
+
       if user.getAt('password') is hashPassword password, user.getAt('salt')
         return callback createKodingError "PasswordIsSame"
 
@@ -1057,27 +1062,24 @@ Team Koding
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
-      if err
-        callback err
-      else if count is 1
-        callback null, no
-      else
-        callback null, yes
+      callback err, count is 0
+
 
   @usernameAvailable = (username, callback)->
     JName = require '../name'
 
     username += ''
     res =
-      kodingUser   : no
-      forbidden    : yes
+      kodingUser : no
+      forbidden  : yes
 
     JName.count { name: username }, (err, count)=>
+
       if err or username.length < 4 or username.length > 25
         callback err, res
       else
-        res.kodingUser = if count is 1 then yes else no
-        res.forbidden = if username in @bannedUserList then yes else no
+        res.kodingUser = count is 1
+        res.forbidden  = username in @bannedUserList
         callback null, res
 
 
@@ -1113,20 +1115,20 @@ Team Koding
         callback null
       return
 
+    action = "update-email"
+
     if not pin
-      options =
-        action    : "update-email"
-        user      : this
-        email     : email
+
+      options = {
+        email, action, user: this, resendIfExists: yes
+      }
 
       JVerificationToken.requestNewPin options, callback
 
     else
-      options =
-        action    : "update-email"
-        username  : @getAt 'username'
-        email     : email
-        pin       : pin
+      options = {
+        email, action, pin, username: @getAt 'username'
+      }
 
       JVerificationToken.confirmByPin options, (err, confirmed)=>
 
