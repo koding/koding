@@ -567,6 +567,9 @@ class IDEAppController extends AppController
     ideView.on 'ChangeHappened', (change) =>
       @syncChange change  if @rtm
 
+    ideView.on 'UpdateWorkspaceSnapshot', =>
+      @writeSnapshot()
+
 
   registerPane: (pane) ->
 
