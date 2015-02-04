@@ -1031,15 +1031,22 @@ Team Koding
         sendChangeEmail user.email, "password"
         return callback err
 
-  sendChangeEmail = (email, type)->
+  sendChangedEmail = (username, email, type) ->
+
     email = new JMail {
       email
       subject : "Your #{type} has been changed"
       content : """
-        Your #{type} has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+        Hi #{username},
+
+        Your #{type} has been changed! If you didn't request this change,
+        please contact with support@koding.com immediately!
+
       """
     }
+
     email.save()
+
 
   @changeEmail = secure (client,options,callback)->
 
