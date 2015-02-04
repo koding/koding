@@ -10,15 +10,9 @@ import (
 	"time"
 )
 
-var (
-	email kodingemail.Client
-)
-
 func init() {
 	modelhelper.Initialize("localhost:27017/koding")
-	email = initializeEmail("", "")
-
-	Warnings = initializeWarnings(nil, email)
+	Email = initializeEmail("", "")
 }
 
 //----------------------------------------------------------
@@ -94,7 +88,7 @@ func findUser(username string) (*models.User, error) {
 
 func resetEmailClient() *kodingemail.SenderTestClient {
 	senderTestClient := &kodingemail.SenderTestClient{}
-	email.SetClient(senderTestClient)
+	Email.SetClient(senderTestClient)
 
 	return senderTestClient
 }
