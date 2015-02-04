@@ -10,10 +10,8 @@ import (
 )
 
 var (
-	// TODO: get from config
 	DefaultPlanUrl = "http://localhost:7000/payments"
-
-	FreePlanName = "free"
+	FreePlanName   = "free"
 )
 
 type Client struct {
