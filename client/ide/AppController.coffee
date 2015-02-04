@@ -1189,7 +1189,11 @@ class IDEAppController extends AppController
 
     return  if currentSnapshot[paneHash]
 
-    switch context.paneType
+    { paneType } = context
+
+    @changeActiveTabView paneType
+
+    switch paneType
       when 'terminal'
         terminalOptions =
           machine  : @mountedMachine
@@ -1197,24 +1201,25 @@ class IDEAppController extends AppController
           hash     : paneHash
           joinUser : @collaborationHost or KD.nick()
 
-        @changeActiveTabView 'terminal'
         @createNewTerminal terminalOptions
 
       when 'editor'
-        {path}        = context.file
-        file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
+        { path }      = context.file
+        options       = { path, machine : @mountedMachine }
+        file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
 
         if @rtm
           content = @rtm.getFromModel(path)?.getText() or ''
           @openFile file, content, noop, no
+        else if path.indexOf('localfile:/Untitled.txt') is 0
+          @openFile file, context.file.content
         else
           file.fetchContents (err, contents) =>
-            @changeActiveTabView 'editor'
+            @changeActiveTabView paneType
             @openFile file, contents, noop, no
 
       when 'drawing'
-        @changeActiveTabView 'drawing'
         @createNewDrawing paneHash
 
     if @mySnapshot
