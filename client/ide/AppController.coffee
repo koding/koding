@@ -296,16 +296,9 @@ class IDEAppController extends AppController
           snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
           if snapshot
-            hasFile = no
             for key, value of snapshot
               { context } = value
-
-              if context.paneType is 'editor'
-                hasFile    = yes
-                isUntitled = context.file?.name is 'Untitled.txt'
-
-              @ideViews.first.createEditor()    unless hasFile
-              @createPaneFromChange value, yes  unless isUntitled
+              @createPaneFromChange value, yes
           else
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
