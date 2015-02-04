@@ -34,9 +34,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @updateStatusBar()
       @focusTab()
 
-    @once 'viewAppended', => KD.utils.wait 300, =>
-      @createEditor()  if @getOption 'createNewEditor'
-
     @tabView.on 'PaneAdded', (pane) =>
       return unless pane.options.editor
       {tabHandle} = pane
@@ -229,9 +226,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   removeOpenDocument: -> # legacy, should be reimplemented in ace bundle.
 
 
-  getActivePaneView: ->
-
-    return @tabView.getActivePane().view
+  getActivePaneView: -> return @tabView.getActivePane()?.view
 
 
   focusTab: ->
@@ -268,7 +263,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
-    
+
     @updateStatusBar()
 
 
@@ -450,7 +445,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     .catch (err)->
       warn "Failed to terminate sessions", err
 
-  terminateSession: (machine, session)->
+
+  terminateSession: (machine, session) ->
 
     machine.getBaseKite().webtermKillSession {session}
 
