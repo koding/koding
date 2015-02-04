@@ -29,14 +29,13 @@ class RealTimeManager extends KDObject
       dataType: 'JSON'
       success: (authToken) =>
         # TODO: Error handling please
-        gapi.load 'client', =>
-          gapi.client.load 'drive', 'v2', =>
-            gapi.load 'auth:client,drive-realtime,drive-share', =>
-              gapi.auth.setToken authToken
+        gapi.client.load 'drive', 'v2', =>
+          gapi.load 'auth:client,drive-realtime,drive-share', =>
+            gapi.auth.setToken authToken
 
-              @emit 'ClientAuthenticated'
-              @emit 'ready'
-              @isAuthenticated = yes
+            @emit 'ClientAuthenticated'
+            @emit 'ready'
+            @isAuthenticated = yes
 
 
   reauth: ->
