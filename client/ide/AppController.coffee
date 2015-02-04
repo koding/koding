@@ -1212,7 +1212,7 @@ class IDEAppController extends AppController
           content = @rtm.getFromModel(path)?.getText() or ''
           @openFile file, content, noop, no
         else if path.indexOf('localfile:/Untitled.txt') is 0
-          @openFile file, context.file.content
+          @openFile file, context.file.content, noop, no
         else
           file.fetchContents (err, contents) =>
             @changeActiveTabView paneType
