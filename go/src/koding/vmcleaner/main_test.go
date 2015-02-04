@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/koding/kodingemail"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
 	"koding/db/models"
@@ -90,4 +91,14 @@ func resetEmailClient() *kodingemail.SenderTestClient {
 	email.SetClient(senderTestClient)
 
 	return senderTestClient
+}
+
+func findUserByQuery(selector bson.M) (*models.User, error) {
+	var user *models.User
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(selector).One(&user)
+	}
+
+	return user, modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }

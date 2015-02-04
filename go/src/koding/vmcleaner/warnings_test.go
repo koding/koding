@@ -19,7 +19,7 @@ func TestWarningsQuery(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := warning.FindUser()
+			newuser, err := findUserByQuery(warning.Select)
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
@@ -38,7 +38,7 @@ func TestWarningsQuery(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := warning.FindUser()
+			newuser, err := findUserByQuery(warning.Select)
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
@@ -57,7 +57,7 @@ func TestWarningsQuery(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := warning.FindUser()
+			newuser, err := findUserByQuery(warning.Select)
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
@@ -76,7 +76,7 @@ func TestWarningsQuery(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should fetch the user", func() {
-			newuser, err := warning.FindUser()
+			newuser, err := findUserByQuery(warning.Select)
 			So(err, ShouldBeNil)
 
 			So(newuser.ObjectId, ShouldEqual, user.ObjectId)
