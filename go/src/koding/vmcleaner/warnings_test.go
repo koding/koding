@@ -7,13 +7,12 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
-	"github.com/koding/kodingemail"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestWarningsQuery(t *testing.T) {
 	Convey("Given user who is inactive & not warned", t, func() {
-		warning := FirstEmail
+		warning := Warnings[0]
 
 		user, err := createInactiveUser(warning.Interval + 1)
 		So(err, ShouldBeNil)
@@ -31,7 +30,7 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned", t, func() {
-		warning := SecondEmail
+		warning := Warnings[1]
 
 		user, err := createInactiveUserWithWarning(warning.Interval+1,
 			warning.Level-1)
@@ -50,7 +49,7 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned twice", t, func() {
-		warning := ThirdEmail
+		warning := Warnings[2]
 
 		user, err := createInactiveUserWithWarning(warning.Interval+1,
 			warning.Level-1)
@@ -69,7 +68,7 @@ func TestWarningsQuery(t *testing.T) {
 	})
 
 	Convey("Given user who is inactive & warned thrice", t, func() {
-		warning := FourthDeleteVM
+		warning := Warnings[3]
 
 		user, err := createInactiveUserWithWarning(warning.Interval+1,
 			warning.Level-1)
@@ -93,10 +92,9 @@ func TestWarningsFull(t *testing.T) {
 		user, err := createInactiveUser(46)
 		So(err, ShouldBeNil)
 
-		senderTestClient := &kodingemail.SenderTestClient{}
-		email.SetClient(senderTestClient)
+		senderTestClient := resetEmailClient()
 
-		warning := FirstEmail
+		warning := Warnings[0]
 		warning.Run()
 
 		Convey("Then they should get an email", func() {
@@ -116,7 +114,7 @@ func TestWarningsFull(t *testing.T) {
 
 		senderTestClient := resetEmailClient()
 
-		warning := FirstEmail
+		warning := Warnings[0]
 		warning.Run()
 
 		Convey("Then they should get an email", func() {
@@ -139,7 +137,7 @@ func TestWarningsFull(t *testing.T) {
 
 				// senderTestClient := resetEmailClient()
 
-				warning := SecondEmail
+				warning := Warnings[1]
 				warning.Run()
 
 				So(senderTestClient.Mail, ShouldNotBeNil)
@@ -159,7 +157,7 @@ func TestWarningsFull(t *testing.T) {
 					err := modelhelper.UpdateUser(selector, update)
 					So(err, ShouldBeNil)
 
-					warning := ThirdEmail
+					warning := Warnings[2]
 					warning.Run()
 
 					So(senderTestClient.Mail, ShouldNotBeNil)
