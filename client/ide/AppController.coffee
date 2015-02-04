@@ -1168,12 +1168,12 @@ class IDEAppController extends AppController
     return targetPane
 
 
-  createPaneFromChange: (change) ->
+  createPaneFromChange: (change, isOffline) ->
 
-    return unless @rtm
+    return  if not @rtm and not isOffline
 
     {context} = change
-    return unless context
+    return  unless context
 
     paneHash = context.paneHash or context.hash
     currentSnapshot = @getWorkspaceSnapshot()
@@ -1188,6 +1188,7 @@ class IDEAppController extends AppController
           hash     : paneHash
           joinUser : @collaborationHost or KD.nick()
 
+        @changeActiveTabView 'terminal'
         @createNewTerminal terminalOptions
 
       when 'editor'
@@ -1195,15 +1196,21 @@ class IDEAppController extends AppController
         file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
         file.paneHash = paneHash
 
-        content = @rtm.getFromModel(path)?.getText() or ''
-
-        @openFile file, content, noop, no
+        if @rtm
+          content = @rtm.getFromModel(path)?.getText() or ''
+          @openFile file, content, noop, no
+        else
+          file.fetchContents (err, contents) =>
+            @changeActiveTabView 'editor'
+            @openFile file, contents, noop, no
 
       when 'drawing'
+        @changeActiveTabView 'drawing'
         @createNewDrawing paneHash
 
-    unless @mySnapshot.get paneHash
-      @mySnapshot.set paneHash, change
+    if @mySnapshot
+      unless @mySnapshot.get paneHash
+        @mySnapshot.set paneHash, change
 
 
   handleParticipantAction: (actionType, changeData) ->
