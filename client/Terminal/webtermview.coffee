@@ -79,7 +79,8 @@ class WebTermView extends KDCustomScrollView
       cssClass: 'hidden'
 
     @messagePane.on 'RequestNewSession', @lazyBound 'webtermConnect', 'create'
-    @messagePane.on 'RequestReconnect',  @bound 'webtermConnect'
+    @messagePane.on 'RequestReconnect', @bound 'webtermConnect'
+    @messagePane.on 'DiscardSession', @lazyBound 'emit', 'WebTerm.terminated'
 
 
   generateOptions:->
