@@ -58,7 +58,7 @@ class ActivityController extends KDObject
                   KD.showErrorNotification err, options
                   modal.modalTabs.forms.BlockUser.buttons.blockUser.hideLoader()
                 else
-                  KD.showNotification "User is blocked!"
+                  KD.showNotification "User is blocked!", { type: "main" }
 
                 modal.destroy()
 
@@ -151,7 +151,7 @@ class ActivityController extends KDObject
           options = userMessage: "You are not allowed to mark this user as a troll"
           KD.showErrorNotification err, options
         else
-          KD.showNotification "@#{acc.profile.nickname} won't be treated as a troll anymore!"
+          KD.showNotification "@#{acc.profile.nickname} won't be treated as a troll anymore!", { type: "main" }
 
     if data.account._id
       KD.remote.cacheable "JAccount", data.account._id, (err, account)->
@@ -187,7 +187,7 @@ class ActivityController extends KDObject
                   options = userMessage: "You are not allowed to mark this user as a troll"
                   KD.showErrorNotification err, options
                 else
-                  KD.showNotification "@#{acc.profile.nickname} marked as a troll!"
+                  KD.showNotification "@#{acc.profile.nickname} marked as a troll!", { type: "main" }
 
                 modal.destroy()
 
