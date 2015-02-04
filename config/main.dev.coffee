@@ -936,6 +936,12 @@ Configuration = (options={}) ->
 
       }
 
+      function create_default_workspace () {
+
+        node #{projectRoot}/scripts/create-default-workspace
+
+      }
+
       function cleanchatnotifications () {
         cd #{GOBIN}
         ./notification -c #{socialapi.configFilePath} -h
@@ -1028,6 +1034,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "updateusers" ]; then
         updateusers
+
+      elif [ "$1" == "create_default_workspace" ]; then
+        create_default_workspace
 
       elif [ "$1" == "cleanchatnotifications" ]; then
         cleanchatnotifications
