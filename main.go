@@ -4,9 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"sync"
 	"time"
 
+	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
 )
 
@@ -29,10 +29,6 @@ var (
 	// These are assigned during the go build process via ldflags
 	VERSION = protocol.Version
 	NAME    = protocol.Name
-
-	// we also could use an atomic boolean this is simple for now.
-	updating   = false
-	updatingMu sync.Mutex // protects updating
 )
 
 func main() {
@@ -42,9 +38,21 @@ func main() {
 		os.Exit(0)
 	}
 
-	k := NewKlient()
-	defer k.Close()
+	conf := &app.KlientConfig{
+		Name:           NAME,
+		Version:        VERSION,
+		IP:             *flagIP,
+		Port:           *flagPort,
+		Environment:    *flagEnvironment,
+		Region:         *flagRegion,
+		RegisterURL:    *flagRegisterURL,
+		Debug:          *flagDebug,
+		UpdateInterval: *flagUpdateInterval,
+		UpdateURL:      *flagUpdateURL,
+	}
 
-	k.log.Info("Running as version %s", VERSION)
-	k.Run()
+	a := app.NewKlient(conf)
+	defer a.Close()
+
+	a.Run()
 }

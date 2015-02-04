@@ -1,4 +1,4 @@
-package main
+package app
 
 import (
 	"errors"
@@ -8,33 +8,31 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
 const publicEcho = "http://echoip.com"
 
-func register(k *kite.Kite) error {
+func (k *Klient) register() error {
 	ip, err := publicIP()
 	if err != nil {
 		return err
 	}
 
 	scheme := "http"
-	if k.TLSConfig != nil {
+	if k.kite.TLSConfig != nil {
 		scheme = "https"
 	}
 
 	registerURL := &url.URL{
 		Scheme: scheme,
-		Host:   ip.String() + ":" + strconv.Itoa(k.Config.Port),
+		Host:   ip.String() + ":" + strconv.Itoa(k.config.Port),
 		Path:   "/kite",
 	}
 
-	if *flagRegisterURL != "" {
-		u, err := url.Parse(*flagRegisterURL)
+	if k.config.RegisterURL != "" {
+		u, err := url.Parse(k.config.RegisterURL)
 		if err != nil {
-			k.Log.Fatal("Couldn't parse register url: %s", err)
+			k.log.Fatal("Couldn't parse register url: %s", err)
 		}
 
 		registerURL = u
@@ -44,8 +42,8 @@ func register(k *kite.Kite) error {
 		errors.New("register url is nil")
 	}
 
-	k.Log.Info("Going to register via HTTP to kontrol with URL: %s", registerURL)
-	k.RegisterHTTPForever(registerURL)
+	k.log.Info("Going to register via HTTP to kontrol with URL: %s", registerURL)
+	k.kite.RegisterHTTPForever(registerURL)
 	return nil
 }
 

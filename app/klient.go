@@ -1,8 +1,9 @@
-package main
+package app
 
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
@@ -15,6 +16,13 @@ import (
 	"github.com/koding/klient/usage"
 )
 
+var (
+	// we also could use an atomic boolean this is simple for now.
+	updating   = false
+	updatingMu sync.Mutex // protects updating
+)
+
+// Klient defines
 type Klient struct {
 	kite     *kite.Kite
 	collab   *collaboration.Collaboration
@@ -24,9 +32,26 @@ type Klient struct {
 	usage    *usage.Usage
 
 	disconnectTimer *time.Timer
+	config          *KlientConfig
 }
 
-func NewKlient() *Klient {
+type KlientConfig struct {
+	Name    string
+	Version string
+
+	IP          string
+	Port        int
+	Environment string
+	Region      string
+	RegisterURL string
+	Debug       bool
+
+	UpdateInterval time.Duration
+	UpdateURL      string
+}
+
+// NewKlient returns a new Klient instance
+func NewKlient(conf *KlientConfig) *Klient {
 	// this is our main reference to count and measure metrics for the klient
 	// we count only those methods, please add/remove methods here that will
 	// reset the timer of a klient.
@@ -58,7 +83,7 @@ func NewKlient() *Klient {
 		"docker.list":         true,
 	})
 
-	k := newKite()
+	k := newKite(conf)
 	term := terminal.New(k.Log)
 	term.InputHook = usg.Reset
 
@@ -69,7 +94,11 @@ func NewKlient() *Klient {
 		terminal: term,
 		usage:    usg,
 		log:      k.Log,
+		config:   conf,
 	}
+
+	kl.RegisterMethods()
+
 	return kl
 }
 
@@ -214,7 +243,7 @@ func (k *Klient) RegisterMethods() {
 func (k *Klient) Run() {
 	k.startUpdater()
 
-	if err := register(k.kite); err != nil {
+	if err := k.register(); err != nil {
 		panic(err)
 	}
 
@@ -222,16 +251,17 @@ func (k *Klient) Run() {
 }
 
 func (k *Klient) startUpdater() {
-	if *flagUpdateInterval < time.Minute {
+	if k.config.UpdateInterval < time.Minute {
 		k.log.Warning("Update interval can't be less than one minute. Setting to one minute.")
-		*flagUpdateInterval = time.Minute
+		k.config.UpdateInterval = time.Minute
 	}
 
 	// start our updater in the background
 	updater := &Updater{
-		Endpoint: *flagUpdateURL,
-		Interval: *flagUpdateInterval,
-		Log:      k.log,
+		Endpoint:       k.config.UpdateURL,
+		Interval:       k.config.UpdateInterval,
+		CurrentVersion: k.config.Version,
+		Log:            k.log,
 	}
 	go updater.Run()
 }
@@ -241,18 +271,18 @@ func (k *Klient) Close() {
 	k.kite.Close()
 }
 
-func newKite() *kite.Kite {
-	k := kite.New(NAME, VERSION)
+func newKite(kconf *KlientConfig) *kite.Kite {
+	k := kite.New(kconf.Name, kconf.Version)
 
-	if *flagDebug {
+	if kconf.Debug {
 		k.SetLogLevel(kite.DEBUG)
 	}
 
 	conf := config.MustGet()
 	k.Config = conf
-	k.Config.Port = *flagPort
-	k.Config.Environment = *flagEnvironment
-	k.Config.Region = *flagRegion
+	k.Config.Port = kconf.Port
+	k.Config.Environment = kconf.Environment
+	k.Config.Region = kconf.Region
 	k.Id = conf.Id // always boot up with the same id in the kite.key
 	return k
 }
