@@ -148,6 +148,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     terminalPane.once 'WebtermCreated', =>
       terminalPane.webtermView.on 'click', @bound 'click'
+      @emit 'UpdateWorkspaceSnapshot'
 
       unless joinUser
         change        =
