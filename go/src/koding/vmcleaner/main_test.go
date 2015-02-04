@@ -10,9 +10,15 @@ import (
 	"time"
 )
 
+var (
+	email kodingemail.Client
+)
+
 func init() {
-	initializeMongo("localhost:27017/koding")
+	modelhelper.Initialize("localhost:27017/koding")
 	email = initializeEmail("", "")
+
+	Warnings = initializeWarnings(nil, email)
 }
 
 //----------------------------------------------------------
