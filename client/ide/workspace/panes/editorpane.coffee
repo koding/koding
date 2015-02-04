@@ -179,15 +179,17 @@ class IDE.EditorPane extends IDE.Pane
 
   serialize: ->
 
-    file       = @getFile()
-    {paneType} = @getOptions()
-
-    {name, path } = file
+    file           = @getFile()
+    { paneType }   = @getOptions()
+    { name, path } = file
 
     data       =
       file     : { name, path }
       paneType : paneType
       hash     : @hash
+
+    if path.indexOf('localfile:/Untitled.txt') is 0
+      data.file.content = @getContent()
 
     return data
 
