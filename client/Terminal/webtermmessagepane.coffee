@@ -60,8 +60,6 @@ class WebTermMessagePane extends KDCustomScrollView
         "This session is not valid anymore,
         click here to create a new one.", 'RequestNewSession'
 
-      return yes
-
     else if err.name is "TimeoutError"
 
       @setMessage \
@@ -70,14 +68,16 @@ class WebTermMessagePane extends KDCustomScrollView
 
       KD.utils.sendDataDogEvent "TerminalConnectionFailed"
 
-      return yes
-
     else if err.message is "session limit has reached"
 
       @setMessage \
         "You have too many sessions opened,
         click here to dismiss.", "DiscardSession"
 
-      return yes
+    else
 
-    return no
+      @setMessage \
+        "An unknown error occured, please open a new tab.
+        Click here to dismiss this one.", "DiscardSession"
+
+      warn "[Webterm]", err
