@@ -10,6 +10,8 @@ class WebTermMessagePane extends KDCustomScrollView
 
   busy: ->
 
+    @off 'click'
+
     @loader.updatePartial 'Connecting'
 
     @message.hide()
