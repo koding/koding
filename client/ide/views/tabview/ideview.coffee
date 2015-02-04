@@ -34,9 +34,6 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       @updateStatusBar()
       @focusTab()
 
-    @once 'viewAppended', => KD.utils.wait 300, =>
-      @createEditor()  if @getOption 'createNewEditor'
-
     @tabView.on 'PaneAdded', (pane) =>
       return unless pane.options.editor
       {tabHandle} = pane
@@ -47,6 +44,13 @@ class IDE.IDEView extends IDE.WorkspaceTabView
         click    : => @createEditorMenu tabHandle, icon
 
       tabHandle.addSubView icon, null, yes
+
+    @tabView.on 'PaneRemoved', (tab) =>
+      { view } = tab.pane
+
+      if view instanceof IDE.TerminalPane
+        sessionId = view.session or view.webtermView.sessionId
+        @terminateSession @mountedMachine, sessionId
 
 
   createPane_: (view, paneOptions, paneData) ->
@@ -88,9 +92,12 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       editor    : editorPane
       aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
-    editorPane.once 'EditorIsReady', ->
+    editorPane.once 'EditorIsReady', =>
       ace        = editorPane.getAce()
       appManager = KD.getSingleton 'appManager'
+
+      if file.path.indexOf('localfile:/Untitled.txt') is 0
+        ace.on 'FileContentChanged', => @emit 'UpdateWorkspaceSnapshot'
 
       ace.on 'ace.change.cursor', (cursor) ->
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
@@ -141,6 +148,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     terminalPane.once 'WebtermCreated', =>
       terminalPane.webtermView.on 'click', @bound 'click'
+      @emit 'UpdateWorkspaceSnapshot'
 
       unless joinUser
         change        =
@@ -229,9 +237,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
   removeOpenDocument: -> # legacy, should be reimplemented in ace bundle.
 
 
-  getActivePaneView: ->
-
-    return @tabView.getActivePane().view
+  getActivePaneView: -> return @tabView.getActivePane()?.view
 
 
   focusTab: ->
@@ -268,7 +274,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     appManager.tell 'IDE', 'setActiveTabView', @tabView
     appManager.tell 'IDE', 'setFindAndReplaceViewDelegate'
-    
+
     @updateStatusBar()
 
 
@@ -450,7 +456,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
     .catch (err)->
       warn "Failed to terminate sessions", err
 
-  terminateSession: (machine, session)->
+
+  terminateSession: (machine, session) ->
 
     machine.getBaseKite().webtermKillSession {session}
 

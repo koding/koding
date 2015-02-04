@@ -84,6 +84,8 @@ class IDEAppController extends AppController
 
       @resizeActiveTerminalPane()
 
+    @localStorageController = KD.getSingleton('localStorageController').storage 'IDE'
+
 
   bindRouteHandler: ->
 
@@ -245,7 +247,7 @@ class IDEAppController extends AppController
 
     # interrupt if workspace was changed
     return if machineData.uid isnt @workspaceData.machineUId
-    
+
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
@@ -275,6 +277,9 @@ class IDEAppController extends AppController
         return unless machine
         {state} = machine.status
 
+        for ideView in @ideViews
+          ideView.mountedMachine = @mountedMachine
+
         if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
           nickname     = KD.nick()
           machineLabel = machine.slug or machine.label
@@ -288,10 +293,17 @@ class IDEAppController extends AppController
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
         else
-          @createNewTerminal { machine }
-          @setActiveTabView @ideViews.first.tabView
-          @forEachSubViewInIDEViews_ (pane) ->
-            pane.isInitial = yes
+          snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
+
+          if snapshot
+            for key, value of snapshot
+              @createPaneFromChange value, yes
+          else
+            @ideViews.first.createEditor()
+            @ideViews.last.createTerminal { machine }
+            @setActiveTabView @ideViews.first.tabView
+            @forEachSubViewInIDEViews_ (pane) ->
+              pane.isInitial = yes
 
 
   getMountedMachine: (callback = noop) ->
@@ -545,6 +557,7 @@ class IDEAppController extends AppController
   registerIDEView: (ideView) ->
 
     @ideViews.push ideView
+    ideView.mountedMachine = @mountedMachine
 
     ideView.on 'PaneRemoved', (pane) =>
       ideViewLength  = 0
@@ -552,12 +565,30 @@ class IDEAppController extends AppController
       delete @generatedPanes[pane.view.hash]
 
       @statusBar.showInformation()  if ideViewLength is 0
+      @writeSnapshot()
 
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
+      @writeSnapshot()
 
     ideView.on 'ChangeHappened', (change) =>
       @syncChange change  if @rtm
+
+    ideView.on 'UpdateWorkspaceSnapshot', =>
+      @writeSnapshot()
+
+
+  writeSnapshot: ->
+
+    name  = @getWorkspaceSnapshotName()
+    value = @getWorkspaceSnapshot()
+
+    @localStorageController.setValue name, value
+
+
+  getWorkspaceSnapshotName: ->
+
+    return "wss.#{@mountedMachine.uid}.#{@workspaceData.slug}"
 
 
   registerPane: (pane) ->
@@ -579,7 +610,7 @@ class IDEAppController extends AppController
       [paneType, callback] = [callback, paneType]
 
     for ideView in @ideViews
-      for pane in ideView.tabView.panes
+      for pane in ideView.tabView.panes when pane
         view = pane.getSubViews().first
         if paneType
           if view.getOptions().paneType is paneType
@@ -880,7 +911,7 @@ class IDEAppController extends AppController
       @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
-      @resurrectSnapshot()
+      @resurrectSnapshot()  unless @amIHost
 
       unless @myWatchMap.values().length
         @listChatParticipants (accounts) =>
@@ -974,17 +1005,20 @@ class IDEAppController extends AppController
     hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
     snapshot     = if hostSnapshot then mySnapshot.concat hostSnapshot else mySnapshot
 
-    @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
+    @forEachSubViewInIDEViews_ (pane) =>
+      @removePaneFromTabView pane  if pane.isInitial
 
     for change in snapshot when change.context
-      {paneType} = change.context
-
-      if paneType is 'terminal'
-        @setActiveTabView @ideViews.last.tabView
-      else
-        @setActiveTabView @ideViews.first.tabView
-
+      @changeActiveTabView change.context.paneType
       @createPaneFromChange change
+
+
+  changeActiveTabView: (paneType) ->
+
+    if paneType is 'terminal'
+      @setActiveTabView @ideViews.last.tabView
+    else
+      @setActiveTabView @ideViews.first.tabView
 
 
   syncChange: (change) ->
@@ -1142,19 +1176,23 @@ class IDEAppController extends AppController
     return targetPane
 
 
-  createPaneFromChange: (change) ->
+  createPaneFromChange: (change, isOffline) ->
 
-    return unless @rtm
+    return  if not @rtm and not isOffline
 
     {context} = change
-    return unless context
+    return  unless context
 
     paneHash = context.paneHash or context.hash
     currentSnapshot = @getWorkspaceSnapshot()
 
     return  if currentSnapshot[paneHash]
 
-    switch context.paneType
+    { paneType } = context
+
+    @changeActiveTabView paneType
+
+    switch paneType
       when 'terminal'
         terminalOptions =
           machine  : @mountedMachine
@@ -1165,19 +1203,27 @@ class IDEAppController extends AppController
         @createNewTerminal terminalOptions
 
       when 'editor'
-        {path}        = context.file
-        file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
+        { path }      = context.file
+        options       = { path, machine : @mountedMachine }
+        file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
 
-        content = @rtm.getFromModel(path)?.getText() or ''
-
-        @openFile file, content, noop, no
+        if @rtm
+          content = @rtm.getFromModel(path)?.getText() or ''
+          @openFile file, content, noop, no
+        else if path.indexOf('localfile:/Untitled.txt') is 0
+          @openFile file, context.file.content, noop, no
+        else
+          file.fetchContents (err, contents = '') =>
+            @changeActiveTabView paneType
+            @openFile file, contents, noop, no
 
       when 'drawing'
         @createNewDrawing paneHash
 
-    unless @mySnapshot.get paneHash
-      @mySnapshot.set paneHash, change
+    if @mySnapshot
+      unless @mySnapshot.get paneHash
+        @mySnapshot.set paneHash, change
 
 
   handleParticipantAction: (actionType, changeData) ->

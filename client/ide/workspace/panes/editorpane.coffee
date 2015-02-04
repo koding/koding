@@ -114,7 +114,7 @@ class IDE.EditorPane extends IDE.Pane
 
   getContent: ->
 
-    return @getAce().getContents()
+    return if @getEditor() then @getAce().getContents() else ''
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
@@ -139,15 +139,12 @@ class IDE.EditorPane extends IDE.Pane
 
   getInitialChangeObject: ->
 
-    change        =
-      origin      : KD.nick()
-      context     :
-        paneHash  : @hash
-        paneType  : @getOptions().paneType
-        file      :
-          path    : @file.path
-          machine :
-            uid   : @file.machine.uid
+    change       =
+      origin     : KD.nick()
+      context    :
+        paneHash : @hash
+        paneType : @getOptions().paneType
+        file     : path: @file.path
 
     return change
 
@@ -182,18 +179,17 @@ class IDE.EditorPane extends IDE.Pane
 
   serialize: ->
 
-    file       = @getFile()
-    {paneType} = @getOptions()
-    {machine}  = file
-
-    {name, path } = file
-    {label, ipAddress, slug, uid} = machine
+    file           = @getFile()
+    { paneType }   = @getOptions()
+    { name, path } = file
 
     data       =
       file     : { name, path }
-      machine  : { label, ipAddress, slug, uid }
       paneType : paneType
       hash     : @hash
+
+    if path.indexOf('localfile:/Untitled.txt') is 0
+      data.file.content = @getContent()
 
     return data
 
