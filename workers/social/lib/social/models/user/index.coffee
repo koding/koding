@@ -1061,10 +1061,7 @@ Team Koding
           callback createKodingError "Email is already in use!"
         else
           user.changeEmail account, options, callback
-          if account.status is 'registered'
-            # don't send an email when guests change their emails, which we
-            # need to allow for the pricing workflow.
-            sendChangeEmail user.email, "email"
+
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
@@ -1141,17 +1138,25 @@ Team Koding
 
       JVerificationToken.confirmByPin options, (err, confirmed)=>
 
-        if err then callback err
-        else if confirmed
-          @update $set: {email}, (err, res)=>
-            if err
-              callback err
-            else
-              account.profile.hash = getHash email
-              account.save (err)-> throw err if err
-              callback null
-        else
-          callback createKodingError 'PIN is not confirmed.'
+        return callback err  if err
+
+        unless confirmed
+          return callback createKodingError 'PIN is not confirmed.'
+
+        oldEmail = @getAt 'email'
+
+        @update $set: {email}, (err, res)=>
+
+          return callback err  if err
+
+          account.profile.hash = getHash email
+          account.save (err)=>
+
+            unless err
+              sendChangedEmail @getAt('username'), oldEmail, 'email'
+
+            callback err
+
 
   fetchHomepageView:(options, callback)->
     {account, bongoModels} = options
