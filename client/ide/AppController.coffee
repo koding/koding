@@ -1001,14 +1001,16 @@ class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
 
     for change in snapshot when change.context
-      {paneType} = change.context
-
-      if paneType is 'terminal'
-        @setActiveTabView @ideViews.last.tabView
-      else
-        @setActiveTabView @ideViews.first.tabView
-
+      @changeActiveTabView change.context.paneType
       @createPaneFromChange change
+
+
+  changeActiveTabView: (paneType) ->
+
+    if paneType is 'terminal'
+      @setActiveTabView @ideViews.last.tabView
+    else
+      @setActiveTabView @ideViews.first.tabView
 
 
   syncChange: (change) ->
