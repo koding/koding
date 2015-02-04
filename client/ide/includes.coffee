@@ -75,6 +75,7 @@ module.exports = [
   "../../website/a/js/ndpane.min.js"
 
   # collaboration
+  "GoogleApiClient.coffee"
   "RealTimeManager.coffee"
   "views/chat/chatparticipantview.coffee"
   "views/chat/chatview.coffee"

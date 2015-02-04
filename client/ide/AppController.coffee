@@ -945,8 +945,6 @@ class IDEAppController extends AppController
         for key, change of hostSnapshot.values()
           @createPaneFromChange change
 
-      KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
-
       @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
       unless @amIHost
