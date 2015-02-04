@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
 	"github.com/koding/pubnub"
 )
@@ -20,8 +21,9 @@ type PubNub struct {
 }
 
 const (
-	PublishTimeout = 3 * time.Second
-	ServerId       = -1
+	PublishTimeout    = 3 * time.Second
+	ServerId          = -1
+	RequestRetryCount = 5
 )
 
 func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
@@ -157,7 +159,7 @@ func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 		Token:       a.Account.Token,
 	}
 
-	return p.grant.Grant(settings)
+	return p.grantAccess(settings)
 }
 
 func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
@@ -170,7 +172,7 @@ func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
 		Token:       a.Account.Token,
 	}
 
-	return p.grant.Grant(settings)
+	return p.grantAccess(settings)
 }
 
 func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
@@ -190,6 +192,43 @@ func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
 	return nil
 }
 
+func (p *PubNub) grantAccess(s *pubnub.AuthSettings) error {
+	bo := backoff.NewExponentialBackOff()
+	ticker := backoff.NewTicker(bo)
+
+	var err error
+	tryCount := 0
+	for _ = range ticker.C {
+		if err = p.grant.Grant(s); err != nil {
+			tryCount++
+			p.log.Error("Could not grant access: %s  will retry... (%d time(s))", err, tryCount)
+		}
+
+		if tryCount >= RequestRetryCount {
+			break
+		}
+	}
+
+	return err
+}
+
 func (p *PubNub) publish(c ChannelInterface, message interface{}) error {
-	return p.pub.Push(c.PrepareName(), message)
+
+	bo := backoff.NewExponentialBackOff()
+	ticker := backoff.NewTicker(bo)
+
+	var err error
+	tryCount := 0
+	for _ = range ticker.C {
+		if err = p.pub.Push(c.PrepareName(), message); err != nil {
+			tryCount++
+			p.log.Error("Could not publish message: %s  will retry... (%d time(s))", err, tryCount)
+		}
+
+		if tryCount >= RequestRetryCount {
+			break
+		}
+	}
+
+	return err
 }
