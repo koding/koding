@@ -9,7 +9,11 @@ package main
 
 import (
 	"koding/artifact"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/robfig/cron"
@@ -80,15 +84,39 @@ func main() {
 
 	c.Start()
 
-	// expose api for workers like kloud to check if users is over limit
-	http.HandleFunc("/", checkerHTTP)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/version", artifact.VersionHandler())
-	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
+	// expose api for workers like kloud to check if users is over limit
+	mux.HandleFunc("/", checkerHTTP)
+
+	mux.HandleFunc("/version", artifact.VersionHandler())
+	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
 	Log.Info("Listening on port: %s", port)
 
-	err := http.ListenAndServe(":"+port, nil)
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
+
+	defer func() {
+		listener.Close()
+	}()
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
+				listener.Close()
+				os.Exit(0)
+			}
+		}
+	}()
+
+	err = http.Serve(listener, mux)
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
