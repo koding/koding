@@ -293,10 +293,25 @@ class IDEAppController extends AppController
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
         else
-          @createNewTerminal { machine }
-          @setActiveTabView @ideViews.first.tabView
-          @forEachSubViewInIDEViews_ (pane) ->
-            pane.isInitial = yes
+          snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
+
+          if snapshot
+            hasFile = no
+            for key, value of snapshot
+              { context } = value
+
+              if context.paneType is 'editor'
+                hasFile    = yes
+                isUntitled = context.file?.name is 'Untitled.txt'
+
+              @ideViews.first.createEditor()    unless hasFile
+              @createPaneFromChange value, yes  unless isUntitled
+          else
+            @ideViews.first.createEditor()
+            @ideViews.last.createTerminal { machine }
+            @setActiveTabView @ideViews.first.tabView
+            @forEachSubViewInIDEViews_ (pane) ->
+              pane.isInitial = yes
 
 
   getMountedMachine: (callback = noop) ->
@@ -904,7 +919,7 @@ class IDEAppController extends AppController
       @listenPings()
       @rtm.isReady = yes
       @emit 'RTMIsReady'
-      @resurrectSnapshot()
+      # @resurrectSnapshot()
 
       unless @myWatchMap.values().length
         @listChatParticipants (accounts) =>
