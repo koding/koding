@@ -19,8 +19,12 @@ var (
 
 	Log = helper.CreateLogger(WorkerName, false)
 
-	Warnings   []*Warning
-	controller *Controller
+	Warnings = []*Warning{
+		FirstEmail, SecondEmail, ThirdEmail, FourthDeleteVM,
+	}
+
+	KiteClient *kite.Client
+	Email      kodingemail.Client
 )
 
 type Vmcleaner struct {
@@ -41,17 +45,15 @@ func main() {
 	}()
 
 	// initialize client to talk to kloud
-	kiteClient := initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
+	KiteClient = initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
 
 	// initialize client to send email
-	email := initializeEmail(conf.SendgridUsername, conf.SendgridPassword)
+	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword)
 
-	Warnings = initializeWarnings(kiteClient, email)
-
-	for _, warning := range Warnings {
-		result := warning.Run()
-		fmt.Println(result)
-	}
+	// for _, warning := range Warnings {
+	//   result := warning.Run()
+	//   fmt.Println(result)
+	// }
 }
 
 func initializeConf() *Vmcleaner {

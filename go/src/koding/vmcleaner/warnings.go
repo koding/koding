@@ -1,84 +1,71 @@
 package main
 
-import (
-	"github.com/koding/kite"
+import "labix.org/v2/mgo/bson"
 
-	"github.com/koding/kodingemail"
-	"labix.org/v2/mgo/bson"
-)
+var FirstEmail = &Warning{
+	Name: "Find users inactive for > 30 days, send email",
 
-func initializeWarnings(kiteClient *kite.Client, email kodingemail.Client) []*Warning {
-	controller := &Controller{Kite: kiteClient, Email: email}
+	Level: 1,
 
-	var FirstEmail = &Warning{
-		Name: "Find users inactive for > 30 days, send email",
+	Interval: 30,
 
-		Level: 1,
+	Select: bson.M{
+		"lastLoginDate":    moreThanDaysQuery(30),
+		"inactive.warning": bson.M{"$exists": false},
+	},
 
-		Interval: 30,
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked},
 
-		Select: bson.M{
-			"lastLoginDate":    moreThanDaysQuery(30),
-			"inactive.warning": bson.M{"$exists": false},
-		},
+	Action: SendEmail,
+}
 
-		Exempt: []Exempt{IsUserPaid, IsUserBlocked},
+var SecondEmail = &Warning{
+	Name: "Find users inactive for > 45 days, send email",
 
-		Action: controller.SendEmail,
-	}
+	Level: 2,
 
-	var SecondEmail = &Warning{
-		Name: "Find users inactive for > 45 days, send email",
+	Interval: 45,
 
-		Level: 2,
+	Select: bson.M{
+		"lastLoginDate":    moreThanDaysQuery(45),
+		"inactive.warning": 1,
+	},
 
-		Interval: 45,
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
 
-		Select: bson.M{
-			"lastLoginDate":    moreThanDaysQuery(45),
-			"inactive.warning": 1,
-		},
+	Action: SendEmail,
+}
 
-		Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
+var ThirdEmail = &Warning{
+	Name: "Find users inactive for > 52 days, send email",
 
-		Action: controller.SendEmail,
-	}
+	Level: 3,
 
-	var ThirdEmail = &Warning{
-		Name: "Find users inactive for > 52 days, send email",
+	Interval: 52,
 
-		Level: 3,
+	Select: bson.M{
+		"lastLoginDate":    moreThanDaysQuery(52),
+		"inactive.warning": 2,
+	},
 
-		Interval: 52,
+	Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
 
-		Select: bson.M{
-			"lastLoginDate":    moreThanDaysQuery(52),
-			"inactive.warning": 2,
-		},
+	Action: SendEmail,
+}
 
-		Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
+var FourthDeleteVM = &Warning{
+	Name: "Find users inactive for > 60 days, delete ALL their vms",
 
-		Action: controller.SendEmail,
-	}
+	Level: 4,
 
-	var FourthDeleteVM = &Warning{
-		Name: "Find users inactive for > 60 days, delete ALL their vms",
+	Interval: 60,
 
-		Level: 4,
+	Select: bson.M{
+		"lastLoginDate":    moreThanDaysQuery(60),
+		"inactive.warning": 3,
+	},
 
-		Interval: 60,
+	Exempt: []Exempt{IsUserPaid, IsUserVMsEmpty},
 
-		Select: bson.M{
-			"lastLoginDate":    moreThanDaysQuery(60),
-			"inactive.warning": 3,
-		},
-
-		Exempt: []Exempt{IsUserPaid, IsUserVMsEmpty},
-
-		Action: controller.DeleteVM,
-	}
-
-	return []*Warning{
-		FirstEmail, SecondEmail, ThirdEmail, FourthDeleteVM,
-	}
+	Action: DeleteVM,
 }
