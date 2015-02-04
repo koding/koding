@@ -1027,9 +1027,8 @@ Team Koding
       if user.getAt('password') is hashPassword password, user.getAt('salt')
         return callback createKodingError "PasswordIsSame"
 
-      user.changePassword password, (err)=>
-        sendChangeEmail user.email, "password"
-        return callback err
+      user.changePassword password, (err)-> callback err
+
 
   sendChangedEmail = (username, email, type) ->
 
@@ -1102,12 +1101,15 @@ Team Koding
     }, callback
 
 
-  changePassword:(newPassword, callback)->
+  changePassword: (newPassword, callback)->
 
-    @setPassword newPassword, (err)->
-      return callback err  if err?
-      sendChangeEmail @email, "password"
-      callback null
+    @setPassword newPassword, (err)=>
+
+      unless err
+        sendChangedEmail @getAt('username'), @getAt('email'), 'password'
+
+      callback err
+
 
   changeEmail:(account, options, callback)->
 
