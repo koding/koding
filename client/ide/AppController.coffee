@@ -210,7 +210,9 @@ class IDEAppController extends AppController
       {tabView} = view
 
       for p in tabView.panes by -1
+        tabView.detachInProgress = yes
         {pane} = tabView.removePane p, yes, (yes if tabView instanceof AceApplicationTabView)
+        tabView.detachInProgress = no
         panes.push pane
 
       view.destroy()
