@@ -30,6 +30,10 @@ type Controller struct {
 func main() {
 	r := initializeRunner()
 
+	go func() {
+		r.Listen()
+	}()
+
 	defer func() {
 		r.Close()
 		modelhelper.Close()
