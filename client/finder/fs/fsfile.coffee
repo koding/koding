@@ -187,6 +187,10 @@ class FSFile extends FSItem
 
   abort: -> @emit "AbortRequested"
 
+
+  isDummyFile: -> return @path.indexOf('localfile:/Untitled.txt') is 0
+
+
   save: (contents = '', callback = null, useEncoding = yes) ->
 
     @emit "fs.save.started"
