@@ -138,7 +138,7 @@ Configuration = (options={}) ->
 
     # -- WORKER CONFIGURATION -- #
 
-    vmcleaner                      : {port          : "6700"              , kloudSecretKey : kloud.secretKey       , kloudAddr : kloud.address, mongo: mongo, sendgridUsername : sendgrid.username , sendgridPassword : sendgrid.password, forceRecipient : "senthil@koding.com" }
+    vmcleaner                      : {port          : "6700"              , kloudSecretKey : kloud.secretKey       , kloudAddr : kloud.address, mongo: mongo, sendgridUsername : sendgrid.username , sendgridPassword : sendgrid.password, sendgridRecipient : "senthil@koding.com" }
     vmwatcher                      : {port          : "6400"              , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"     , awsSecret         : "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"                                                                 , kloudSecretKey : kloud.secretKey                                           , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                , useCacheHeader: no                     , kitePort          : 8860}

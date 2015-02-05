@@ -48,7 +48,7 @@ func main() {
 	KiteClient = initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
 
 	// initialize client to send email
-	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword)
+	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword, conf.SendgridRecipient)
 
 	// for _, warning := range Warnings {
 	//   result := warning.Run()
@@ -103,8 +103,8 @@ func initializeKiteClient(kloudKey, kloudAddr string) *kite.Client {
 	return kiteClient
 }
 
-func initializeEmail(username, password string) kodingemail.Client {
-	return kodingemail.NewSG(username, password)
+func initializeEmail(username, password, forceRecipient string) kodingemail.Client {
+	return kodingemail.NewSG(username, password, forceRecipient)
 }
 
 func handleError(err error) {
