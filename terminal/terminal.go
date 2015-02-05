@@ -223,7 +223,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 
 	// Read the STDOUT from shell process and send to the connected client.
 	go func() {
-		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+		buf := make([]byte, (4096)-utf8.UTFMax, 4096)
 		for {
 			n, err := server.pty.Master.Read(buf)
 			for n < cap(buf)-1 {
