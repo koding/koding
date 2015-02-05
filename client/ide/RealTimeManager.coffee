@@ -4,9 +4,11 @@ class RealTimeManager extends KDObject
 
     super options, data
 
-    @isAuthenticated = no
-
-    @auth()
+    IDE.Metrics.collect 'RealTimeManager.google_api_client', 'request'
+    GoogleApiClient.on 'ready', =>
+      GoogleApiClient.loadDriveApi =>
+        IDE.Metrics.collect 'RealTimeManager.google_api_client', 'ready'
+        @emit 'ready'
 
 
   setRealtimeDoc: (realtimeDoc) ->
@@ -20,33 +22,6 @@ class RealTimeManager extends KDObject
       throw new Error 'RealtimeDoc is not set yet for RealTimeManager'
 
     return @realtimeDoc
-
-
-  auth: ->
-
-    $.ajax
-      url: '/-/google-api/authorize/drive',
-      dataType: 'JSON'
-      success: (authToken) =>
-        # TODO: Error handling please
-        gapi.load 'client', =>
-          gapi.client.load 'drive', 'v2', =>
-            gapi.load 'auth:client,drive-realtime,drive-share', =>
-              gapi.auth.setToken authToken
-
-              @emit 'ClientAuthenticated'
-              @emit 'ready'
-              @isAuthenticated = yes
-
-
-  reauth: ->
-
-    $.ajax
-      url: '/-/google-api/authorize/drive'
-      dataType: 'JSON'
-      success: (authToken) =>
-        gapi.auth.setToken authToken
-        @emit 'ReauthSucceed', authToken
 
 
   createFile: (title) ->

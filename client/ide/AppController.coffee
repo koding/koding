@@ -945,8 +945,6 @@ class IDEAppController extends AppController
         for key, change of hostSnapshot.values()
           @createPaneFromChange change
 
-      KD.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
-
       @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
       unless @amIHost
@@ -1337,6 +1335,7 @@ class IDEAppController extends AppController
 
     @rtm.ready =>
       unless @workspaceData.channelId
+        IDE.Metrics.collect 'StatusBar.collaboration_button', 'shown'
         return @statusBar.share.show()
 
       @fetchSocialChannel (channel) =>
@@ -1346,6 +1345,7 @@ class IDEAppController extends AppController
             @chat.hide()
             @statusBar.share.updatePartial 'Chat'
 
+          IDE.Metrics.collect 'StatusBar.collaboration_button', 'shown'
           @statusBar.share.show()
 
 
