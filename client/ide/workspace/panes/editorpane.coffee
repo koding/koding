@@ -188,7 +188,7 @@ class IDE.EditorPane extends IDE.Pane
       paneType : paneType
       hash     : @hash
 
-    if path.indexOf('localfile:/Untitled.txt') is 0
+    if file.isDummyFile()
       data.file.content = @getContent()
 
     return data

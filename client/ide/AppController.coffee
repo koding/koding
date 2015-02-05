@@ -1205,7 +1205,8 @@ class IDEAppController extends AppController
         @createNewTerminal terminalOptions
 
       when 'editor'
-        { path }      = context.file
+        { file }      = context
+        { path }      = file
         options       = { path, machine : @mountedMachine }
         file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
@@ -1213,7 +1214,7 @@ class IDEAppController extends AppController
         if @rtm
           content = @rtm.getFromModel(path)?.getText() or ''
           @openFile file, content, noop, no
-        else if path.indexOf('localfile:/Untitled.txt') is 0
+        else if file.isDummyFile()
           @openFile file, context.file.content, noop, no
         else
           file.fetchContents (err, contents = '') =>

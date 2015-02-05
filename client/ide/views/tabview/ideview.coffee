@@ -96,7 +96,7 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       ace        = editorPane.getAce()
       appManager = KD.getSingleton 'appManager'
 
-      if file.path.indexOf('localfile:/Untitled.txt') is 0
+      if file.isDummyFile()
         ace.on 'FileContentChanged', => @emit 'UpdateWorkspaceSnapshot'
 
       ace.on 'ace.change.cursor', (cursor) ->
