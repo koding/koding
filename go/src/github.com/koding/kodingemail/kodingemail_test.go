@@ -5,7 +5,7 @@ import "testing"
 func TestSendTemplateEmail(t *testing.T) {
 	testSenderClient := &SenderTestClient{}
 
-	sgclient := NewSG("", "")
+	sgclient := NewSG("", "", "")
 	sgclient.SenderClient = testSenderClient
 
 	toEmail := "indiana@koding.com"
@@ -37,5 +37,30 @@ func TestSendTemplateEmail(t *testing.T) {
 	tId, ok := templates.Settings["template_id"]
 	if !ok || tId != templateId {
 		t.Fatal("Template id not set")
+	}
+}
+
+func TestForceRecipient(t *testing.T) {
+	testSenderClient := &SenderTestClient{}
+
+	forceRecipient := "jamesbond@koding.com"
+
+	sgclient := NewSG("", "", forceRecipient)
+	sgclient.SenderClient = testSenderClient
+
+	toEmail := "indiana@koding.com"
+	templateId := "random"
+
+	err := sgclient.SendTemplateEmail(toEmail, templateId, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(testSenderClient.Mail.To) != 1 {
+		t.Fatal("Expected 1 in to address")
+	}
+
+	if testSenderClient.Mail.To[0] != forceRecipient {
+		t.Fatal("Expected email to go to forceRecipient")
 	}
 }

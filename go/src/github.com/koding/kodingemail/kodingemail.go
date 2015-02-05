@@ -29,12 +29,14 @@ type SenderClient interface {
 type SG struct {
 	FromAddress, FromName string
 	SenderClient          SenderClient
+	ForceRecipient        string
 }
 
-func NewSG(username, password string) *SG {
+func NewSG(username, password, forceRecipient string) *SG {
 	return &SG{
 		FromAddress: DefaultFromAddress, FromName: DefaultFromName,
-		SenderClient: sendgrid.NewSendGridClient(username, password),
+		ForceRecipient: forceRecipient,
+		SenderClient:   sendgrid.NewSendGridClient(username, password),
 	}
 }
 
@@ -59,7 +61,12 @@ func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 	message.SetFrom(s.FromAddress)
 	message.SetFromName(s.FromName)
 
-	message.AddTo(to)
+	recipient := to
+	if s.ForceRecipient != "" {
+		recipient = s.ForceRecipient
+	}
+
+	message.AddTo(recipient)
 
 	return s.SenderClient.Send(message)
 }
