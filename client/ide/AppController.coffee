@@ -293,6 +293,7 @@ class IDEAppController extends AppController
           machineLabel = machine.slug or machine.label
           splashs      = IDE.splashMarkups
 
+          @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
           @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
           @fakeTerminalPane = @fakeTabView.parent.createPane_ @fakeTerminalView, { name: 'Terminal' }
