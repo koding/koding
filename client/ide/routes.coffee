@@ -185,23 +185,21 @@ do ->
 
       try
 
-        return routeToLatestWorkspace()  unless KD.userWorkspaces.length
+        [workspace] = KD.userWorkspaces.filter (w) -> w.channelId is channel.id
 
-        KD.userWorkspaces.forEach (workspace, index) =>
+        return routeToLatestWorkspace()  unless workspace
 
-          return  if workspace.channelId isnt channel.id
+        [machine] = KD.userMachines.filter (m) -> m.uid is workspace.machineUId
 
-          machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-          query   = socialApiId: channel.creatorId
+        query = socialApiId: channel.creatorId
+        KD.remote.api.JAccount.some query, {}, (err, account) =>
 
-          KD.remote.api.JAccount.some query, {}, (err, account) =>
+          return throw new Error err  if err
 
-            return throw new Error err  if err
+          username  = account.first.profile.nickname
+          channelId = channel.id
 
-            username  = account.first.profile.nickname
-            channelId = channel.id
-
-            return loadIDE { machine, workspace, username, channelId }
+          return loadIDE { machine, workspace, username, channelId }
 
       catch e
 
