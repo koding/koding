@@ -81,17 +81,19 @@ func (t *Terminal) DeleteUserSession(username, session string) {
 }
 
 // RenameUserSession renames the given users session in the Users map
-func (t *Terminal) RenameUserSession(username, oldName, newName string) {
+func (t *Terminal) RenameUserSession(username, oldName, newName string) error {
 	t.Lock()
 	defer t.Unlock()
 
 	user, ok := t.Users[username]
 	if !ok {
-		return // nothing to do
+		return errors.New("username not available")
 	}
 
 	user.RenameSession(oldName, newName)
 	t.Users[username] = user
+
+	return nil
 }
 
 // KillSession kills the given screen session
