@@ -63,11 +63,10 @@ class EmbedBoxWidget extends KDView
     fn = @bound 'checkInputForUrls'
 
     delay = 1000
-    timerId = null
+    timer = null
     input.on 'keydown', (event) ->
-      window.clearTimeout timerId
-      timerId = window.setTimeout fn, delay
-
+      KD.utils.killWait timer
+      timer = KD.utils.wait delay, fn
     input.on 'paste', fn
     input.on 'change', fn
 
