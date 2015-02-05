@@ -1217,6 +1217,7 @@ class IDEAppController extends AppController
           @openFile file, context.file.content, noop, no
         else
           file.fetchContents (err, contents = '') =>
+            return KD.showError err  if err
             @changeActiveTabView paneType
             @openFile file, contents, noop, no
 
