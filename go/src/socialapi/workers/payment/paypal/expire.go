@@ -1,6 +1,9 @@
 package paypal
 
-import "socialapi/workers/payment/paymentmodels"
+import (
+	"fmt"
+	"socialapi/workers/payment/paymentmodels"
+)
 
 func ExpireBasedOnPayment(providerCustomerId string) error {
 	client, err := Client()
@@ -23,6 +26,10 @@ func ExpireBasedOnPayment(providerCustomerId string) error {
 	subscription, err := getSubscription(providerCustomerId)
 	if err != nil {
 		return err
+	}
+
+	if subscription.CurrentPeriodEnd.IsZero() {
+		return fmt.Errorf("Customer: %v expiration should be set at end of current period, but it is nil")
 	}
 
 	// user has paid for current period, so expire at end of period
