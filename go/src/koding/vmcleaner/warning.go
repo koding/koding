@@ -11,11 +11,13 @@ import (
 )
 
 type Warning struct {
-	Name            string
-	Level, Interval int
-	Select          bson.M
-	Action          Action
-	Exempt          []Exempt
+	Name                     string
+	Level                    int
+	Interval                 int
+	IntervalSinceLastWarning time.Duration
+	Select                   bson.M
+	Action                   Action
+	Exempt                   []Exempt
 }
 
 func (w *Warning) Run() Result {
@@ -105,6 +107,18 @@ func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 	}
 
 	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+}
+
+func (w *Warning) CurrentLevel() int {
+	return w.Level
+}
+
+func (w *Warning) PreviousLevel() int {
+	return w.Level - 1
+}
+
+func (w *Warning) NextLevel() int {
+	return w.Level + 1
 }
 
 //----------------------------------------------------------
