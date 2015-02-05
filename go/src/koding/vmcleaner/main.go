@@ -50,10 +50,10 @@ func main() {
 	// initialize client to send email
 	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword, conf.SendgridRecipient)
 
-	// for _, warning := range Warnings {
-	//   result := warning.Run()
-	//   fmt.Println(result)
-	// }
+	for _, warning := range Warnings {
+		result := warning.Run()
+		Log.Info(result.String())
+	}
 }
 
 func initializeConf() *Vmcleaner {
