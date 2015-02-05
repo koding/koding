@@ -1005,6 +1005,7 @@ class IDEAppController extends AppController
     panes = {}
 
     @forEachSubViewInIDEViews_ (pane) ->
+      return  unless pane
       return  if not pane.serialize or (@isInSession and pane.isInitial)
 
       data = pane.serialize()
