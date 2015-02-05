@@ -47,9 +47,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
     @tabView.on 'PaneRemoved', (paneInstance) =>
       { view } = paneInstance.pane
-      isDetach = paneInstance.pane.getDelegate().detachInProgress
+      { detachInProgress } = paneInstance.pane.getDelegate()
 
-      if view instanceof IDE.TerminalPane and not isDetach
+      if view instanceof IDE.TerminalPane and not detachInProgress
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
