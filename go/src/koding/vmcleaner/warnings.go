@@ -1,6 +1,10 @@
 package main
 
-import "labix.org/v2/mgo/bson"
+import (
+	"time"
+
+	"labix.org/v2/mgo/bson"
+)
 
 var FirstEmail = &Warning{
 	Name: "Find users inactive for > 30 days, send email",
@@ -24,7 +28,8 @@ var SecondEmail = &Warning{
 
 	Level: 2,
 
-	Interval: 45,
+	Interval:                 45,
+	IntervalSinceLastWarning: time.Hour * 24 * 15, // 15 days since last warning
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(45),
@@ -41,7 +46,8 @@ var ThirdEmail = &Warning{
 
 	Level: 3,
 
-	Interval: 52,
+	Interval:                 52,
+	IntervalSinceLastWarning: time.Hour * 24 * 7, // 7 days since last warning
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(52),
@@ -58,7 +64,8 @@ var FourthDeleteVM = &Warning{
 
 	Level: 4,
 
-	Interval: 60,
+	Interval:                 60,
+	IntervalSinceLastWarning: time.Hour * 24 * 8, // 8 days since last warning
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(60),

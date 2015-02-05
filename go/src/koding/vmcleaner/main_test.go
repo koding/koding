@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/koding/kodingemail"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -44,7 +46,12 @@ func createInactiveUserWithWarning(daysInactive, w int) (*models.User, error) {
 		Name: username, ObjectId: bson.NewObjectId(),
 		Email:         "inactiveuser@koding.com",
 		LastLoginDate: now().Add(-time.Hour * 24 * time.Duration(daysInactive)),
-		Inactive:      models.UserInactive{Warning: w, ModifiedAt: now()},
+		Inactive: models.UserInactive{
+			Warning: w, ModifiedAt: now(),
+			Warnings: map[string]time.Time{
+				fmt.Sprintf("%d", w): now(),
+			},
+		},
 	}
 
 	return user, modelhelper.CreateUser(user)

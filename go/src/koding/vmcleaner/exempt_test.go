@@ -150,8 +150,47 @@ func TestIsUserVMsEmpty(t *testing.T) {
 	})
 }
 
-func TestIsWarningTimeElapsed(t *testing.T) {
-	Convey("Given user who has no vms", t, func() {
-		// user, err := createUser()
+func TestIsTooEarly(t *testing.T) {
+	warning := SecondEmail
+
+	Convey("Given user who is inactive and has been warned", t, func() {
+		user, err := createInactiveUserWithWarning(warning.Interval+1, warning.Level)
+		So(err, ShouldBeNil)
+
+		Convey("Then it returns true if warned time < warning interval", func() {
+			yes := IsTooEarly(user, warning)
+			So(yes, ShouldBeFalse)
+
+			Reset(func() {
+				deleteUserWithUsername(user)
+			})
+		})
+	})
+
+	Convey("Given user who is inactive and has been warned", t, func() {
+		user, err := createInactiveUserWithWarning(warning.Interval*2, warning.Level-1)
+		So(err, ShouldBeNil)
+
+		selector := bson.M{"username": user.Name}
+		update := bson.M{
+			"inactive.warnings": bson.M{
+				fmt.Sprintf("%d", warning.Level-1): now().Add(-warning.IntervalSinceLastWarning * 2),
+			},
+		}
+
+		err = modelhelper.UpdateUser(selector, update)
+		So(err, ShouldBeNil)
+
+		Convey("Then it returns false if warned time > warning interval", func() {
+			user, err := modelhelper.GetUser(user.Name)
+			So(err, ShouldBeNil)
+
+			no := IsTooEarly(user, warning)
+			So(no, ShouldBeTrue)
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
 	})
 }
