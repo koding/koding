@@ -269,12 +269,9 @@ class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
 
-  isMachineNotRunning: ->
+  isMachineRunning: ->
 
-    states    = [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
-    { state } = @mountedMachine.status
-
-    return states.indexOf(state) > -1
+    return @mountedMachine.status.state is Machine.State.Running
 
 
   createInitialView: ->
@@ -288,7 +285,7 @@ class IDEAppController extends AppController
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
 
-        if @isMachineNotRunning()
+        unless @isMachineRunning()
           nickname     = KD.nick()
           machineLabel = machine.slug or machine.label
           splashs      = IDE.splashMarkups
@@ -589,7 +586,7 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    return  if @isMachineNotRunning()
+    return  unless @isMachineRunning()
 
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
@@ -839,9 +836,7 @@ class IDEAppController extends AppController
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
 
-    if snapshot
-      @resurrectLocalSnapshot snapshot
-
+    if snapshot then @resurrectLocalSnapshot snapshot
     else
       @ideViews.first.createEditor()
       @ideViews.last.createNewTerminal { machine }
@@ -850,8 +845,8 @@ class IDEAppController extends AppController
 
   resurrectLocalSnapshot: (snapshot) ->
 
-    for key, value of snapshot
-      @createPaneFromChange value, yes  if value
+    for key, value of snapshot when value
+      @createPaneFromChange value, yes
 
 
   toggleFullscreenIDEView: ->
