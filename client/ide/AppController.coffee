@@ -829,15 +829,24 @@ class IDEAppController extends AppController
     else
       finderController.reset()
 
-    @forEachSubViewInIDEViews_ 'terminal', (terminalPane) ->
-      terminalPane.resurrect()
+    snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
     unless @fakeViewsDestroyed
+      for ideView in @ideViews
+        {tabView} = ideView
+        tabView.removePane tabView.getActivePane()
+
       @fakeFinderView?.destroy()
-      @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal { machine }
-      @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
+
+    if snapshot
+      @resurrectLocalSnapshot snapshot
+
+    else
+      @ideViews.first.createEditor()
+      @ideViews.last.createNewTerminal { machine }
+      @setActiveTabView @ideViews.first.tabView
+
 
   resurrectLocalSnapshot: (snapshot) ->
 
