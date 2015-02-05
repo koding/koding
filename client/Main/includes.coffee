@@ -295,6 +295,8 @@ module.exports = [
   "metric.coffee",
 
   "opentokcontroller.coffee",
+  "videochatcontroller.coffee",
+
   # ---------- Main APP ENDS ---------- #
 
   # STYLES
