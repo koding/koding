@@ -74,5 +74,5 @@ var FourthDeleteVM = &Warning{
 
 	Exempt: []Exempt{IsUserPaid, IsUserVMsEmpty},
 
-	Action: DeleteVM,
+	Action: DeleteVMs,
 }
