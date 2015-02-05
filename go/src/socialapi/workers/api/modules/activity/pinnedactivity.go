@@ -55,8 +55,10 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
+	cm := models.NewChannelMessage()
+	cm.Id = req.MessageId
 	return response.HandleResultAndError(
-		c.EnsureMessage(req.MessageId, true),
+		c.EnsureMessage(cm, true),
 	)
 }
 

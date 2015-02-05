@@ -344,11 +344,9 @@ func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
-func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageList, error) {
+func (c *Channel) EnsureMessage(cm *ChannelMessage, force bool) (*ChannelMessageList, error) {
 	cml := NewChannelMessageList()
-	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, messageId).First(cml).Error
-	cm := NewChannelMessage()
-	cm.Id = messageId
+	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, cm.Id).First(cml).Error
 
 	if err == bongo.RecordNotFound {
 		return c.AddMessage(cm)
