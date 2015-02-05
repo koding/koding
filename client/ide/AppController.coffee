@@ -269,18 +269,26 @@ class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
 
+  isMachineNotRunning: ->
+
+    states    = [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
+    { state } = @mountedMachine.status
+
+    return states.indexOf(state) > -1
+
+
   createInitialView: ->
 
     KD.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
+
         return unless machine
-        {state} = machine.status
 
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
 
-        if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
+        if @isMachineNotRunning()
           nickname     = KD.nick()
           machineLabel = machine.slug or machine.label
           splashs      = IDE.splashMarkups
