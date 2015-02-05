@@ -1176,11 +1176,11 @@ class IDEAppController extends AppController
     return targetPane
 
 
-  createPaneFromChange: (change, isOffline) ->
+  createPaneFromChange: (change = {}, isFromLocalStorage) ->
 
-    return  if not @rtm and not isOffline
+    return  if not @rtm and not isFromLocalStorage
 
-    {context} = change
+    { context } = change
     return  unless context
 
     paneHash = context.paneHash or context.hash
@@ -1189,6 +1189,8 @@ class IDEAppController extends AppController
     return  if currentSnapshot[paneHash]
 
     { paneType } = context
+
+    return  if not paneType or not paneHash
 
     @changeActiveTabView paneType
 
@@ -1203,7 +1205,8 @@ class IDEAppController extends AppController
         @createNewTerminal terminalOptions
 
       when 'editor'
-        { path }      = context.file
+        { file }      = context
+        { path }      = file
         options       = { path, machine : @mountedMachine }
         file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
@@ -1211,10 +1214,11 @@ class IDEAppController extends AppController
         if @rtm
           content = @rtm.getFromModel(path)?.getText() or ''
           @openFile file, content, noop, no
-        else if path.indexOf('localfile:/Untitled.txt') is 0
+        else if file.isDummyFile()
           @openFile file, context.file.content, noop, no
         else
           file.fetchContents (err, contents = '') =>
+            return KD.showError err  if err
             @changeActiveTabView paneType
             @openFile file, contents, noop, no
 
