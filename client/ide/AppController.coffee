@@ -589,6 +589,8 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
+    return  if @isMachineNotRunning()
+
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
 
