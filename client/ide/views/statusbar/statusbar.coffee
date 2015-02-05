@@ -30,11 +30,6 @@ class IDE.StatusBar extends KDView
 
     @addSubView new KDCustomHTMLView
       partial  : '<cite></cite>'
-      cssClass : 'icon github'
-      click    : -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
-
-    @addSubView new KDCustomHTMLView
-      partial  : '<cite></cite>'
       cssClass : 'icon shortcuts'
       click    : -> KD.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
 
