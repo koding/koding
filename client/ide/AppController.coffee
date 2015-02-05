@@ -1176,9 +1176,9 @@ class IDEAppController extends AppController
     return targetPane
 
 
-  createPaneFromChange: (change, isOffline) ->
+  createPaneFromChange: (change = {}, isFromLocalStorage) ->
 
-    return  if not @rtm and not isOffline
+    return  if not @rtm and not isFromLocalStorage
 
     {context} = change
     return  unless context
