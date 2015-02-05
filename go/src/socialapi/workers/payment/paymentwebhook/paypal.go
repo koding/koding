@@ -45,4 +45,6 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	Log.Info("Paypal: succesfully processed webhook: %s for user: %s", req.TransactionType, req.PayerId)
 }
