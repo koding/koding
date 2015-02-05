@@ -301,6 +301,8 @@ class IDEAppController extends AppController
           @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
+          @fakeEditor.once 'EditorIsReady', => KD.utils.defer => @fakeEditor.setFocus no
+
         else
           snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
