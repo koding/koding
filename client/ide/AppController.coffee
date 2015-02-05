@@ -269,22 +269,28 @@ class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
 
+  isMachineRunning: ->
+
+    return @mountedMachine.status.state is Machine.State.Running
+
+
   createInitialView: ->
 
     KD.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
+
         return unless machine
-        {state} = machine.status
 
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
 
-        if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
+        unless @isMachineRunning()
           nickname     = KD.nick()
           machineLabel = machine.slug or machine.label
           splashs      = IDE.splashMarkups
 
+          @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
           @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
           @fakeTerminalPane = @fakeTabView.parent.createPane_ @fakeTerminalView, { name: 'Terminal' }
@@ -292,12 +298,12 @@ class IDEAppController extends AppController
           @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
+          @fakeEditor.once 'EditorIsReady', => KD.utils.defer => @fakeEditor.setFocus no
+
         else
           snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
-          if snapshot
-            for key, value of snapshot
-              @createPaneFromChange value, yes
+          if snapshot then @resurrectLocalSnapshot snapshot
           else
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
@@ -580,6 +586,8 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
+    return  unless @isMachineRunning()
+
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
 
@@ -818,15 +826,27 @@ class IDEAppController extends AppController
     else
       finderController.reset()
 
-    @forEachSubViewInIDEViews_ 'terminal', (terminalPane) ->
-      terminalPane.resurrect()
+    snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
     unless @fakeViewsDestroyed
+      for ideView in @ideViews
+        {tabView} = ideView
+        tabView.removePane tabView.getActivePane()
+
       @fakeFinderView?.destroy()
-      @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal { machine }
-      @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
+
+    if snapshot then @resurrectLocalSnapshot snapshot
+    else
+      @ideViews.first.createEditor()
+      @ideViews.last.createNewTerminal { machine }
+      @setActiveTabView @ideViews.first.tabView
+
+
+  resurrectLocalSnapshot: (snapshot) ->
+
+    for key, value of snapshot when value
+      @createPaneFromChange value, yes
 
 
   toggleFullscreenIDEView: ->
@@ -1211,7 +1231,7 @@ class IDEAppController extends AppController
         file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
 
-        if @rtm
+        if @rtm?.realtimeDoc
           content = @rtm.getFromModel(path)?.getText() or ''
           @openFile file, content, noop, no
         else if file.isDummyFile()
