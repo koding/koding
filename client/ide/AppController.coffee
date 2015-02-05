@@ -1180,7 +1180,7 @@ class IDEAppController extends AppController
 
     return  if not @rtm and not isFromLocalStorage
 
-    {context} = change
+    { context } = change
     return  unless context
 
     paneHash = context.paneHash or context.hash
@@ -1189,6 +1189,8 @@ class IDEAppController extends AppController
     return  if currentSnapshot[paneHash]
 
     { paneType } = context
+
+    return  if not paneType or not paneHash
 
     @changeActiveTabView paneType
 
