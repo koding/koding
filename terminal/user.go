@@ -51,6 +51,19 @@ func (u *User) DeleteSession(session string) {
 	delete(u.Sessions, session)
 }
 
+func (u *User) RenameSession(oldName, newName string) {
+	u.Lock()
+	defer u.Unlock()
+
+	server, ok := u.Sessions[oldName]
+	if !ok {
+		return
+	}
+
+	delete(u.Sessions, oldName)
+	u.Sessions[newName] = server
+}
+
 // CloseSessions close the users all active sessions
 func (u *User) CloseSessions() {
 	u.Lock()

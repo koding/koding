@@ -177,6 +177,15 @@ func killSession(session string) error {
 	return nil
 }
 
+func renameSession(oldName, newName string) error {
+	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", newName).Output()
+	if err != nil {
+		return commandError("screen renaming failed", err, out)
+	}
+
+	return nil
+}
+
 func commandError(message string, err error, out []byte) error {
 	return fmt.Errorf("%s\n%s\n%s", message, err.Error(), string(out))
 }
