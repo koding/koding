@@ -1236,7 +1236,7 @@ class IDEAppController extends AppController
         file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
 
-        if @rtm
+        if @rtm?.realtimeDoc
           content = @rtm.getFromModel(path)?.getText() or ''
           @openFile file, content, noop, no
         else if file.isDummyFile()
