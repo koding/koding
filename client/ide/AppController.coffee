@@ -253,14 +253,13 @@ class IDEAppController extends AppController
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
-    if machineData.isMine()
-      rootPath   = @workspaceData?.rootPath or null
-    else if owner = machineData.getOwner()
-      rootPath   = "/home/#{owner}"
-    else
-      rootPath   = '/'
+    path = @workspaceData?.rootPath
 
-    filesPane.emit 'MachineMountRequested', machineData, rootPath
+    path ?= if owner = machineData.getOwner()
+    then "/home/#{owner}"
+    else '/'
+
+    filesPane.emit 'MachineMountRequested', machineData, path
 
 
   unmountMachine: (machineData) ->
