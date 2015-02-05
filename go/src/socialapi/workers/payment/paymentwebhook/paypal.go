@@ -11,9 +11,8 @@ type paypalActionType func(*webhookmodels.PaypalGenericWebhook, *Controller) err
 var paypalActions = map[string]paypalActionType{
 	"recurring_payment_profile_created": paypalSubscriptionCreated,
 	"recurring_payment_profile_cancel":  paypalSubscriptionDeleted,
-	"recurring_payment_failed":          paypalPaymentFailed,
 	"recurring_payment":                 paypalPaymentSucceeded,
-	"recurring_payment_skipped":         paypalPaymentFailed,
+	"recurring_payment_suspended":       paypalPaymentFailed,
 }
 
 type paypalMux struct {
