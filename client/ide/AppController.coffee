@@ -306,9 +306,7 @@ class IDEAppController extends AppController
         else
           snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
-          if snapshot
-            for key, value of snapshot
-              @createPaneFromChange value, yes
+          if snapshot then @resurrectLocalSnapshot snapshot
           else
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
@@ -838,6 +836,11 @@ class IDEAppController extends AppController
       @createNewTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
+
+  resurrectLocalSnapshot: (snapshot) ->
+
+    for key, value of snapshot
+      @createPaneFromChange value, yes  if value
 
 
   toggleFullscreenIDEView: ->
