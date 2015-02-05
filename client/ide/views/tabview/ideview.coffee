@@ -123,6 +123,8 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
       @emitChange editorPane, change
 
+    return editorPane
+
 
   createShortcutsView: ->
 
