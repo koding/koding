@@ -98,7 +98,10 @@ func newCommand(mode, session, username string) (*Command, error) {
 		name = defaultShell
 		args = []string{}
 	case "create":
-		session = randomString()
+		// if the user didn't send a session name, create a custom randomized
+		if session == "" {
+			session = randomString()
+		}
 		args = append(args, sessionPrefix+"."+session)
 	default:
 		return nil, fmt.Errorf("mode '%s' is unknown. Valid modes are:  [shared|noscreen|resume|create]", mode)
