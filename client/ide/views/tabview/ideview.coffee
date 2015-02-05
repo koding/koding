@@ -45,9 +45,9 @@ class IDE.IDEView extends IDE.WorkspaceTabView
 
       tabHandle.addSubView icon, null, yes
 
-    @tabView.on 'PaneRemoved', (tab) =>
-      { view } = tab.pane
-      isDetach = tab.pane.getDelegate().detachInProgress
+    @tabView.on 'PaneRemoved', (paneInstance) =>
+      { view } = paneInstance.pane
+      isDetach = paneInstance.pane.getDelegate().detachInProgress
 
       if view instanceof IDE.TerminalPane and not isDetach
         sessionId = view.session or view.webtermView.sessionId
