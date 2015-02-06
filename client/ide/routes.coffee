@@ -82,7 +82,26 @@ do ->
   getLatestWorkspace = ->
 
     storage = KD.getSingleton('localStorageController').storage 'IDE'
-    return storage.getValue 'LatestWorkspace'
+    workspace = storage.getValue 'LatestWorkspace'
+
+    return  unless workspace
+
+    {machineLabel, workspaceSlug, channelId} = workspace  if workspace
+
+    return if checkWorkspace machineLabel, workspaceSlug, channelId
+    then workspace
+    else null
+
+
+  checkWorkspace = (machineLabel, workspaceSlug, channelId) ->
+
+    for workspace in KD.userWorkspaces
+      sameLabel = workspace.machineLabel is machineLabel
+      sameSlug = workspace.slug is workspaceSlug
+      sameChannelId = not channelId or workspace.channelId is channelId
+
+      if sameLabel and sameSlug and sameChannelId
+        return workspace
 
 
   loadIDE = (data) ->
