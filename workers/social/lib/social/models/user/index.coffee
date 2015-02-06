@@ -209,6 +209,11 @@ module.exports = class JUser extends jraphical.Module
 
     @createGuestUsername (err, username) =>
       return callback err  if err?
+
+      # Adding -rm suffix to separate them from real guests
+      # -rm was intentional otherwise we are exceeding the max username length
+      username = "#{username}-rm"
+
       email = "#{username}@koding.com"
       @one { username: toBeDeletedUsername }, (err, user) =>
         return callback err  if err?
