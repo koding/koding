@@ -300,12 +300,6 @@ module.exports = class LoginView extends JView
       itemClass : KDCustomHTMLView
       partial   : email
 
-    handleKeyup = (event) =>
-
-      return  unless event.which is ENTER
-      @signupModal.modalTabs.forms.extraInformation.buttons.continue.click()
-
-
     fields.username =
       name               : 'username'
       itemClass          : LoginInputView
@@ -318,7 +312,6 @@ module.exports = class LoginView extends JView
         attributes       :
           testpath       : 'register-form-username'
         focus            : -> @parent.icon.unsetTooltip()
-        keyup            : handleKeyup
         validate         :
           container      : this
           rules          :
@@ -347,13 +340,11 @@ module.exports = class LoginView extends JView
       fields.firstName =
         defaultValue : givenName
         label        : 'First Name'
-        keyup        : handleKeyup
 
     if familyName
       fields.lastName =
         defaultValue : familyName
         label        : 'Last Name'
-        keyup        : handleKeyup
 
 
     @signupModal = new KDModalViewWithForms
@@ -364,25 +355,14 @@ module.exports = class LoginView extends JView
       tabs                            :
         forms                         :
           extraInformation            :
-            callback                  : =>
-
-              {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
-
-              if USERNAME_VALID and username.input.valid
-                formData.username        = username.input.getValue()
-                formData.passwordConfirm = formData.password
-                formData.firstName = firstName?.getValue()
-                formData.lastName = lastName?.getValue()
-
-                @doRegister formData, @registerForm
-                @signupModal.destroy()
-
+            callback                  : @bound "checkBeforeRegister"
             fields                    : fields
             buttons                   :
               continue                :
                 title                 : 'LET\'S GO'
                 style                 : 'solid green medium'
                 type                  : 'submit'
+    @signupModal.setOption 'userData', formData
 
     usernameView = @signupModal.modalTabs.forms.extraInformation.inputs.username
     usernameView.setOption 'stickyTooltip', yes
@@ -395,11 +375,14 @@ module.exports = class LoginView extends JView
 
     @signupModal.once 'KDObjectWillBeDestroyed', =>
       KD.utils.killWait usernameCheckTimer
+      usernameCheckTimer = null
+
       mainView.unsetClass 'blur'
       form.button.hideLoader()
       form.email.icon.unsetTooltip()
       form.password.icon.unsetTooltip()
       usernameView.icon.unsetTooltip()
+
       @signupModal = null
 
     @signupModal.once 'viewAppended', =>
@@ -413,10 +396,12 @@ module.exports = class LoginView extends JView
   usernameCheckTimer = null
 
   usernameCheck:(input, event, delay=800)->
+
     return if event?.which is 9
     return if input.getValue().length < 4
 
     KD.utils.killWait usernameCheckTimer
+    usernameCheckTimer = null
     input.setValidationResult "usernameCheck", null
     username = input.getValue()
 
@@ -428,13 +413,19 @@ module.exports = class LoginView extends JView
           xhrFields   : withCredentials : yes
           success     : =>
 
-            return  if not @signupModal
+            usernameCheckTimer = null
+            return  unless @signupModal?
 
             input.setValidationResult 'usernameCheck', null
             USERNAME_VALID = yes
+
+            if @signupModal.getOption 'pendingSubmit'
+              @checkBeforeRegister()
+
           error       : ({responseJSON}) =>
 
-            return  if not @signupModal
+            usernameCheckTimer = null
+            return  unless @signupModal?
 
             {forbidden, kodingUser} = responseJSON
 
@@ -448,6 +439,8 @@ module.exports = class LoginView extends JView
               input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
               USERNAME_VALID = no
 
+            @signupModal.unsetOption 'pendingSubmit'
+
 
   changeButtonState: (button, state) ->
 
@@ -459,6 +452,28 @@ module.exports = class LoginView extends JView
       button.setClass 'red'
       button.unsetClass 'green'
       button.disable()
+
+
+  checkBeforeRegister: ->
+
+    return  unless @signupModal?
+
+    {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
+
+    @unsetOption 'pendingSubmit'
+
+    if USERNAME_VALID and username.input.valid
+      formData = @signupModal.getOption "userData"
+
+      formData.username        = username.input.getValue()
+      formData.passwordConfirm = formData.password
+      formData.firstName       = firstName?.getValue()
+      formData.lastName        = lastName?.getValue()
+
+      @doRegister formData, @registerForm
+      @signupModal.destroy()
+    else if usernameCheckTimer?
+      @signupModal.setOption 'pendingSubmit', yes
 
 
   doRegister: (formData, form) ->
