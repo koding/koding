@@ -94,7 +94,7 @@ module.exports = (terminal) ->
 
   initEscapeSequenceHandler = ->
     switchCharacter
-      "\x07": -> terminal.ringBellCallback
+      "\x07": -> terminal.ringBellCallback()
       "\x0E": -> terminal.setCharacterSetIndex 1
       "\x0F": -> terminal.setCharacterSetIndex 0
       "\x1B": switchCharacter # ESC
