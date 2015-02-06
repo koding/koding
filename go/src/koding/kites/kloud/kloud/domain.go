@@ -4,16 +4,13 @@ import (
 	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/protocol"
+	"strings"
 
 	"github.com/koding/kite"
 )
 
 type domainArgs struct {
 	DomainName string
-	MachineId  string
-
-	// is set to true if the given machineId is not found
-	machineNotFound bool
 }
 
 type domainFunc func(*protocol.Machine, *domainArgs) (interface{}, error)
@@ -24,30 +21,26 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, err
 	}
 
-	k.Log.Debug("'%s' method is called with args: %+v\n", r.Method, args)
 	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
 		return nil, err
 	}
 
 	m, err := k.PrepareMachine(r)
-	if err != nil && err != ErrLockAcquired {
+	if err != nil {
 		return nil, err
 	}
 
-	// this is returned if the machine was not found for the given machine Id.
-	if err == ErrLockAcquired {
-		args.machineNotFound = true
-	} else {
-		// PrepareMachine is locking for us, so unlock after we are done
-		defer k.Locker.Unlock(m.Id)
+	// PrepareMachine is locking for us, so unlock after we are done
+	defer k.Locker.Unlock(m.Id)
 
-		if m.IpAddress == "" {
-			return nil, fmt.Errorf("ip address is not defined")
-		}
-
-		// fake eventer to avoid panics if someone tries to use the eventer
-		m.Eventer = &eventer.Events{}
+	if m.IpAddress == "" {
+		return nil, fmt.Errorf("ip address is not defined")
 	}
+
+	// fake eventer to avoid panics if someone tries to use the eventer
+	m.Eventer = &eventer.Events{}
+
+	k.Log.Debug("'%s' method is called with args: %+v\n", r.Method, args)
 
 	return fn(m, args)
 }
@@ -60,7 +53,6 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		// now assign the machine ip to the given domain name
-		k.Log.Debug("[%s] Adding domain '%s' to the machine", args.MachineId, args.DomainName)
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
 			return nil, err
 		}
@@ -126,8 +118,25 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, fmt.Errorf("domain does not exists in DB")
 		}
 
-		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+		record, err := k.Domainer.Get(args.DomainName)
+		if err != nil && strings.Contains(err.Error(), "no records available") {
+			k.Log.Debug("[%s] setting domain '%s' to IP '%s'", m.Id, args.DomainName, m.IpAddress)
+			if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+				return nil, err
+			}
+		} else if err != nil {
+			// If it's something else just return it
 			return nil, err
+		}
+
+		// check for err again, otherwise we get a panic by acessing record's fields
+		if err == nil && record.IP != m.IpAddress {
+			k.Log.Debug("[%s] setting domain '%s' from old IP '%s' to new Ip '%s'",
+				m.Id, args.DomainName, record.IP, m.IpAddress)
+			if err := k.Domainer.Update(args.DomainName, record.IP, m.IpAddress); err != nil {
+				fmt.Printf("err = %+v\n", err)
+				return nil, err
+			}
 		}
 
 		// adding the machineID for the given domain.
