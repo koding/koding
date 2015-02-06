@@ -644,8 +644,8 @@ class ActivitySidebar extends KDCustomHTMLView
     {workspace, machine} = data
 
     @watchedMachines  or= {}
-    computeController   = KD.getSingleton 'computeController'
-    {Running}           = Machine.State
+
+    {Running} = Machine.State
 
     return  if @watchedMachines[machine._id]
 
@@ -658,7 +658,9 @@ class ActivitySidebar extends KDCustomHTMLView
       if data is @latestWorkspaceData
         @selectWorkspace data
 
-    computeController.on "public-#{machine._id}", callback
+    KD.getSingleton 'computeController'
+      .on "public-#{machine._id}", callback
+
     @watchedMachines[machine._id] = yes
 
 
