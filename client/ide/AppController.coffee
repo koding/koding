@@ -840,7 +840,7 @@ class IDEAppController extends AppController
     if snapshot then @resurrectLocalSnapshot snapshot
     else
       @ideViews.first.createEditor()
-      @ideViews.last.createNewTerminal { machine }
+      @ideViews.last.createTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
 
 
