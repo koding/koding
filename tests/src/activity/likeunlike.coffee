@@ -24,23 +24,23 @@ module.exports =
       .end()
 
 
-  # unlikePost: (browser) ->
+  unlikePost: (browser) ->
 
-  #   user = helpers.beginTest(browser)
-  #   helpers.postActivity(browser, no)
+    user = helpers.beginTest(browser)
+    helpers.postActivity(browser, no)
 
-  #   selector    = activitySelector + ' [testpath=activity-like-link]'
-  #   visibleLike = selector + ':not(.hidden)'
-  #   likeElement = activitySelector + ' .like-summary'
+    selector    = activitySelector + ' [testpath=activity-like-link]'
+    visibleLike = selector + ':not(.hidden)'
+    likeElement = activitySelector + ' .like-summary'
 
-  #   browser
-  #     .waitForElementVisible    visibleLike, 25000
-  #     .click                    visibleLike
-  #     .pause                    5000 # required
-  #     .waitForElementVisible    selector + '.liked:not(.count)', 25000
-  #     .click                    selector + '.liked:not(.count)'
-  #     .waitForElementNotVisible likeElement, 25000
-  #     .end()
+    browser
+      .waitForElementVisible    visibleLike, 25000
+      .click                    visibleLike
+      .pause                    5000 # required
+      .waitForElementVisible    selector + '.liked:not(.count)', 25000
+      .click                    selector + '.liked:not(.count)'
+      .waitForElementNotVisible likeElement, 25000
+      .end()
 
 
   likeComment: (browser) ->
@@ -53,6 +53,7 @@ module.exports =
     browser
       .waitForElementVisible    commentSelector, 25000
       .click                    commentSelector + ' [testpath=activity-like-link]'
+      .pause  2000
       .waitForElementVisible    commentSelector + ' .liked:not(.count)', 25000 # Assertion
       .end()
 
