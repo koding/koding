@@ -19,14 +19,14 @@ class VmDangerModalView extends KDModalViewWithForms
           buttons            :
             confirmButton    :
               title          : options.action
-              style          : 'modal-clean-red'
+              style          : 'solid red medium'
               type           : 'submit'
               disabled       : yes
               loader         :
                 color        : '#E94835'
               callback       : -> @showLoader()
             Cancel           :
-              style          : 'modal-cancel'
+              style          : 'solid light-gray medium'
               callback       : @bound 'destroy'
           fields             :
             vmSlug           :
