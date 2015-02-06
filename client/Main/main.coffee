@@ -28,7 +28,7 @@ do ->
 """
       buttons          :
         "I Agree"      :
-          style        : "modal-clean-green"
+          style        : "solid green medium"
           callback     : -> modal.destroy()
 
   ###

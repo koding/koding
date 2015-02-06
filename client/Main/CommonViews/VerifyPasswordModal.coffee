@@ -21,7 +21,7 @@ class VerifyPasswordModal extends KDModalViewWithForms
             buttons               :
               Submit              :
                 title             : buttonTitle
-                cssClass          : "modal-clean-green"
+                cssClass          : "solid green medium"
                 type              : "submit"
               Forgot              :
                 title             : "Forgot Password?"

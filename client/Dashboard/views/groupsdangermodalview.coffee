@@ -22,14 +22,14 @@ class GroupsDangerModalView extends KDModalViewWithForms
           buttons            :
             confirmButton    :
               title          : options.action
-              style          : 'modal-clean-red'
+              style          : 'solid red medium'
               type           : 'submit'
               disabled       : yes
               loader         :
                 color        : "#444444"
               callback       : -> @showLoader()
             Cancel           :
-              style          : 'modal-cancel'
+              style          : 'solid light-gray medium'
               callback       : (event)=> @destroy()
           fields             :
             groupSlug        :

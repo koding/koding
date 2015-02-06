@@ -14,14 +14,14 @@ class CloneRepoModal extends ModalViewWithTerminal
     options.buttons    =
       Clone            :
         title          : "Clone"
-        cssClass       : "modal-clean-green"
+        cssClass       : "solid green medium"
         loader         :
           color        : "#FFFFFF"
           diameter     : 14
         callback       : => @cloneRepo()  if @repoPath.validate()
       Cancel           :
         title          : "Cancel"
-        cssClass       : "modal-cancel"
+        cssClass       : "solid light-gray medium"
         callback       : => @destroy()
 
     super options, data

@@ -28,13 +28,13 @@ class CustomViewItem extends JView
       buttons      :
         Delete     :
           title    : "Delete"
-          cssClass : "modal-clean-red"
+          cssClass : "solid red medium"
           callback : =>
             callback()
             modal.destroy()
         Cancel     :
           title    : "Cancel"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
   edit: ->

@@ -315,10 +315,10 @@ class ApplicationManager extends KDObject
                 defaultValue: no
             buttons         :
               Open          :
-                cssClass    : "modal-clean-green"
+                cssClass    : "solid green medium"
                 type        : "submit"
               Cancel        :
-                cssClass    : "modal-cancel"
+                cssClass    : "solid light-gray medium"
                 callback    : ->
                   modal.cancel()
                   callback null

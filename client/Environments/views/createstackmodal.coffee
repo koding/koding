@@ -15,7 +15,7 @@ class CreateStackModal extends KDModalViewWithForms
           buttons             :
             create            :
               title           : "Create"
-              style           : "modal-clean-green"
+              style           : "solid green medium"
               type            : "submit"
               loader          :
                 color         : '#eee'
@@ -25,7 +25,7 @@ class CreateStackModal extends KDModalViewWithForms
                   @modalTabs.forms.CreateStackForm.buttons.create.hideLoader()
             cancel            :
               title           : "Cancel"
-              style           : "modal-cancel"
+              style           : "solid light-gray medium"
               callback        : => @destroy()
           fields              :
             title             :
