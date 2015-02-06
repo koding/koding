@@ -36,19 +36,16 @@ handleMachineNotRunning = (browser, targetUser, machineName) ->
 getUserData = (callback) ->
 
   options =
-    url   : 'https://latest.koding.com/-/payments/customers?key=R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
+    url   : 'https://koding.com/-/payments/customers?key=R1PVxSPvjvDSWdlPRVqRv8IdwXZB'
 
   curl.request options, (err, result) ->
     if err
       return console.log "Couldn't get user data"
 
-    data = JSON.parse result
+    data   = JSON.parse result
+    random = Math.floor(Math.random() * (data.length - 0) + 0)
 
-    for key, value of data
-      username = key
-      vms      = value
-
-    callback(username, vms)
+    callback data[random].username, data[random].vms
 
 
 module.exports =
@@ -64,6 +61,10 @@ module.exports =
       machineName     = vms[0]
       machineLink     = '/IDE/' + machineName + '/my-workspace'
       machineSelector = "a[href='" + machineLink + "']"
+
+      unless machineName
+        postToSlack username + " doesn't have a always on VM, ignoring user..."
+        browser.waitForElementVisible '.hello', 100
 
       console.log 'Impersonating user', username, 'for machine', machineName
 
@@ -81,3 +82,8 @@ module.exports =
             handleMachineNotRunning browser, username, machineName
 
       browser.end()
+
+
+  afterEach: (browser) ->
+
+    module.exports.paidUser(browser)
