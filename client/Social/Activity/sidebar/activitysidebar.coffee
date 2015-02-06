@@ -33,6 +33,7 @@ class ActivitySidebar extends KDCustomHTMLView
     super options
 
     {
+      mainController
       notificationController
       computeController
       socialapi
@@ -71,6 +72,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
+
+    mainController.ready =>
+      KD.whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
+
 
   # event handling
 
@@ -980,3 +985,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
     for nodeId, node of nodes when node.data?.jMachine is jMachine
       @machineTree.removeNode nodeId
+
+
+  newWorkspaceCreated: (workspace) ->
+
+    KD.userWorkspaces.push workspace
+    @updateMachineTree()
