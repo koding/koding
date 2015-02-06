@@ -1725,7 +1725,7 @@ class IDEAppController extends AppController
   showKickedModal: ->
     options        =
       title        : 'Your session has been closed'
-      content      : "You have been removed from the session by @#{@collaborationHost}. - Please reload your browser -"
+      content      : "You have been removed from the session by @#{@collaborationHost}."
       blocking     : yes
       buttons      :
         ok         :
@@ -1749,7 +1749,7 @@ class IDEAppController extends AppController
 
   showSessionEndedModal: (content) ->
 
-    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
+    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore."
 
     options        =
       title        : 'Session ended'
