@@ -857,12 +857,19 @@ class IDEAppController extends AppController
 
   doResize: ->
 
-    @forEachSubViewInIDEViews_ (pane) ->
+    @forEachSubViewInIDEViews_ (pane) =>
       {paneType} = pane.options
       switch paneType
         when 'terminal'
-          {terminal} = pane.webtermView
+          { webtermView } = pane
+          { terminal }    = webtermView
+
           terminal.windowDidResize()  if terminal?
+
+          unless @isInSession
+            KD.utils.wait 400, -> # defer was not enough.
+              webtermView.triggerFitToWindow()
+
         when 'editor'
           height = pane.getHeight()
           {ace}  = pane.aceView
@@ -870,6 +877,7 @@ class IDEAppController extends AppController
           if ace?.editor?
             ace.setHeight height
             ace.editor.resize()
+
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
 
@@ -1217,11 +1225,11 @@ class IDEAppController extends AppController
     switch paneType
       when 'terminal'
         terminalOptions =
-          machine  : @mountedMachine
-          session  : context.session
-          hash     : paneHash
-          joinUser : @collaborationHost or KD.nick()
-          fitToWindow : yes
+          machine       : @mountedMachine
+          session       : context.session
+          hash          : paneHash
+          joinUser      : @collaborationHost or KD.nick()
+          fitToWindow   : not @isInSession
 
         @createNewTerminal terminalOptions
 
