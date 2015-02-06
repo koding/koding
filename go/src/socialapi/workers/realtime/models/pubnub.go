@@ -196,7 +196,6 @@ func (p *PubNub) grantAccess(s *pubnub.AuthSettings) error {
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxElapsedTime = MaxRetryDuration
 	ticker := backoff.NewTicker(bo)
-	defer ticker.Stop()
 
 	var err error
 	tryCount := 0
@@ -204,7 +203,10 @@ func (p *PubNub) grantAccess(s *pubnub.AuthSettings) error {
 		if err = p.grant.Grant(s); err != nil {
 			tryCount++
 			p.log.Error("Could not grant access: %s  will retry... (%d time(s))", err, tryCount)
+			continue
 		}
+
+		ticker.Stop()
 	}
 
 	return err
@@ -223,7 +225,11 @@ func (p *PubNub) publish(c ChannelInterface, message interface{}) error {
 		if err = p.pub.Push(c.PrepareName(), message); err != nil {
 			tryCount++
 			p.log.Error("Could not publish message: %s  will retry... (%d time(s))", err, tryCount)
+
+			continue
 		}
+
+		ticker.Stop()
 	}
 
 	return err
