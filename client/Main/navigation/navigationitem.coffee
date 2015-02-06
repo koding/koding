@@ -39,6 +39,7 @@ class NavigationItem extends JTreeItemView
         KD.utils.stopDOMEvent event
         activitySidebar.emit 'MoreWorkspaceModalRequested', data
 
+
   createWorkspaceItem: (data) ->
 
     @setClass 'workspace'

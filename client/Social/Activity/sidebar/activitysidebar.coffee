@@ -741,6 +741,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
 
   handleMoreWorkspacesClick: (data) ->
+
+    machine = m for m in KD.userMachines when m.uid is data.machineUId
+
+    return no  unless machine.isMine()
+
     workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
       workspace.machineLabel = data.machineLabel
       workspace
