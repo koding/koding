@@ -55,8 +55,6 @@ func stripeSubscriptionUpdated(raw []byte, c *Controller) error {
 	return subscriptionEmail(
 		sub.CustomerId, currentPlanName, paymentemail.SubscriptionChanged, c.Email,
 	)
-
-	return nil
 }
 
 func unmarshalSubscription(raw []byte) (*webhookmodels.StripeSubscription, error) {
