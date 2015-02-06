@@ -10,6 +10,7 @@ import (
 
 type domainArgs struct {
 	DomainName string
+	MachineId  string
 }
 
 type domainFunc func(*protocol.Machine, *domainArgs) (interface{}, error)
@@ -20,8 +21,8 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, err
 	}
 
-	if args.DomainName == "" {
-		return nil, fmt.Errorf("domain name argument is empty")
+	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
+		return nil, err
 	}
 
 	m, err := k.PrepareMachine(r)
@@ -39,10 +40,6 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 	// fake eventer to avoid panics if someone tries to use the eventer
 	m.Eventer = &eventer.Events{}
 
-	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
-		return nil, err
-	}
-
 	return fn(m, args)
 }
 
@@ -50,10 +47,11 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 	addFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// a non nil means the domain exists
 		if _, err := k.Domainer.Get(args.DomainName); err == nil {
-			return nil, fmt.Errorf("domain record does exists")
+			return nil, fmt.Errorf("domain record already exists")
 		}
 
 		// now assign the machine ip to the given domain name
+		k.Log.Debug("[%s] Adding domain '%s' to the machine", args.MachineId, args.DomainName)
 		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
 			return nil, err
 		}
