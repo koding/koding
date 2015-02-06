@@ -345,17 +345,7 @@ class PrivateMessagePane extends MessagePane
       @participantMap[participant._id].destroy()
       delete @participantMap[participant._id]
 
-      @removeFromAutoCompleteSelectedList account
-
-
-  removeFromAutoCompleteSelectedList: (account) ->
-
-    return  unless account in @autoComplete.getSelectedItemData()
-
-    # remove the account from autocomplete controller's
-    # selected list. So that it can show up in other searchs.
-    @autoComplete.removeSelectedItemData account
-    @autoComplete.selectedItemCounter--
+      @autoComplete.removeSelectedParticipant account
 
 
   createPreviousLink: ->
@@ -414,11 +404,12 @@ class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-    @autoComplete = new KDAutoCompleteController
+    @autoComplete = new ParticipantSearchController
       name                : 'userController'
       placeholder         : 'Type a username...'
       itemClass           : ActivityAutoCompleteUserItemView
       itemDataPath        : 'profile.nickname'
+      fetchInterval       : 0
       outputWrapper       : new KDView cssClass: 'hidden'
       listWrapperCssClass : 'private-message hidden'
       submitValuesAsText  : yes
