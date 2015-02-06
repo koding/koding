@@ -32,6 +32,7 @@ module.exports = [
   "views/guidewidget.coffee"
   "views/topicswidget.coffee"
   "views/universitywidget.coffee"
+  "views/socialmediawidget.coffee"
   "views/widgetsbar.coffee"
 
   "views/messagepane.coffee"
