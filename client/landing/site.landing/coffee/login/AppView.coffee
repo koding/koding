@@ -346,7 +346,7 @@ module.exports = class LoginView extends JView
         defaultValue : familyName
         label        : 'Last Name'
 
-
+    USERNAME_VALID = no
     @signupModal = new KDModalViewWithForms
       cssClass                        : 'extra-info password'
       width                           : 360
@@ -397,16 +397,19 @@ module.exports = class LoginView extends JView
 
   usernameCheck:(input, event, delay=800)->
 
-    return if event?.which is 9
-    return if input.getValue().length < 4
+    return  if event?.which is 9
+    return  if input.getValue().length < 4
 
     KD.utils.killWait usernameCheckTimer
     usernameCheckTimer = null
+
     input.setValidationResult "usernameCheck", null
     username = input.getValue()
 
     if input.valid
       usernameCheckTimer = KD.utils.wait delay, =>
+        return  unless @signupModal?
+
         $.ajax
           url         : "/Validate/Username/#{username}"
           type        : 'POST'
@@ -470,8 +473,8 @@ module.exports = class LoginView extends JView
       formData.firstName       = firstName?.getValue()
       formData.lastName        = lastName?.getValue()
 
-      @doRegister formData, @registerForm
       @signupModal.destroy()
+      @doRegister formData, @registerForm
     else if usernameCheckTimer?
       @signupModal.setOption 'pendingSubmit', yes
 
