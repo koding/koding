@@ -39,6 +39,26 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 	)
 }
 
+func stripeSubscriptionUpdated(raw []byte, c *Controller) error {
+	sub, err := unmarshalSubscription(raw)
+	if err != nil {
+		return err
+	}
+
+	previousPlan := sub.PreviousAttributes.Plan
+	currentPlanName := sub.Plan.Name
+
+	if isSamePlan(previousPlan.Name, currentPlanName) {
+		return nil
+	}
+
+	return subscriptionEmail(
+		sub.CustomerId, currentPlanName, paymentemail.SubscriptionChanged, c.Email,
+	)
+
+	return nil
+}
+
 func unmarshalSubscription(raw []byte) (*webhookmodels.StripeSubscription, error) {
 	var req *webhookmodels.StripeSubscription
 
@@ -48,4 +68,8 @@ func unmarshalSubscription(raw []byte) (*webhookmodels.StripeSubscription, error
 	}
 
 	return req, nil
+}
+
+func isSamePlan(previousPlanName, newPlanName string) bool {
+	return previousPlanName != "" && previousPlanName == newPlanName
 }
