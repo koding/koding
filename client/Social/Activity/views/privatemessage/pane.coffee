@@ -377,21 +377,16 @@ class PrivateMessagePane extends MessagePane
     @participantsView.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
-      callback    : @bound 'showAutoCompleteInput'
+      callback    : @bound 'toggleAutoCompleteInput'
 
 
-  showAutoCompleteInput: ->
+  toggleAutoCompleteInput: ->
 
     @emit 'NewParticipantButtonClicked'
 
     @autoCompleteForm.toggleClass 'active'
     @newParticipantButton.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
-
-    @autoComplete.getView().once 'blur',=>
-      @autoCompleteForm.toggleClass 'active'
-      @newParticipantButton.toggleClass 'active'
-      @input.input.setFocus()
 
 
   createAddParticipantForm: ->
@@ -416,6 +411,8 @@ class PrivateMessagePane extends MessagePane
       dataSource          : @bound 'fetchAccounts'
 
     @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
+
+    @autoComplete.on 'ItemSelected', @bound 'toggleAutoCompleteInput'
 
     @autoComplete.on 'ItemListChanged', (count) =>
       participant  = @autoComplete.getSelectedItemData()[count - 1]
