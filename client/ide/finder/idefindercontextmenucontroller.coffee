@@ -50,4 +50,7 @@ class IDE.FinderContextMenuController extends NFinderContextMenuController
     else
       delete items.Collapse
 
+    unless fileData.machine.isMine()
+      delete items['Workspace from here']
+
     return items
