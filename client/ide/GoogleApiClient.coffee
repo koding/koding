@@ -28,7 +28,7 @@ class GoogleApiClient extends KDObject
         @authorizeDriveClient callback
 
 
-  @authorizeDriveClient = do (interval = null) -> return (callback) ->
+  @authorizeDriveClient = do (interval = null) -> return (callback = noop) ->
 
     GoogleApiClient.metric 'drive', 'authorization_request'
 
