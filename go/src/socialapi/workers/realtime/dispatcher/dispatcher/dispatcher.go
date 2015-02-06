@@ -49,15 +49,7 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 		}
 	}()
 
-	go func() {
-		if err := c.Pubnub.UpdateChannel(pm); err != nil {
-			c.logger.Error("Could not push update channel message with body %s to pubnub: %s", pm.Message.Body, err)
-		}
-	}()
-
-	return nil
-
-	// return c.Pubnub.UpdateChannel(pm)
+	return c.Pubnub.UpdateChannel(pm)
 }
 
 func (c *Controller) isPushMessageValid(pm *models.PushMessage) bool {
@@ -95,15 +87,7 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 		}
 	}()
 
-	go func() {
-		if err := c.Pubnub.UpdateInstance(um); err != nil {
-			c.logger.Error("Could not push update instance message with id %d to pubnub: %s", um.Message.Id, err)
-		}
-	}()
-
-	return nil
-
-	// return c.Pubnub.UpdateInstance(um)
+	return c.Pubnub.UpdateInstance(um)
 }
 
 // NotifyUser sends user notifications to related channel
@@ -123,30 +107,13 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 		}
 	}()
 
-	go func() {
-		if err := c.Pubnub.NotifyUser(nm); err != nil {
-			c.logger.Error("Could not send push notification message '%s' to user %s pubnub: %s", nm.EventName, nm.Account.Nickname, err)
-		}
-	}()
-
-	return nil
-
-	// return c.Pubnub.NotifyUser(nm)
+	return c.Pubnub.NotifyUser(nm)
 }
 
 func (c *Controller) GrantMessagePublicAccess(um *models.UpdateInstanceMessage) error {
 	muc := models.NewMessageUpdateChannel(*um)
 
-	go func() {
-		err := c.Pubnub.GrantPublicAccess(muc)
-		if err != nil {
-			c.logger.Error("Could not grant public access for message %d: %s", um.Id, err)
-		}
-	}()
-
-	return nil
-
-	// return c.Pubnub.GrantPublicAccess(muc)
+	return c.Pubnub.GrantPublicAccess(muc)
 }
 
 func (c *Controller) RevokeChannelAccess(rca *models.RevokeChannelAccess) error {
