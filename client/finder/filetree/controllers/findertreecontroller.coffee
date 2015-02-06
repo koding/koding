@@ -769,11 +769,11 @@ class NFinderTreeController extends JTreeViewController
           buttons      :
             Start      :
               title    : "Start"
-              cssClass : "modal-clean-green"
+              cssClass : "solid green medium"
               callback : -> kallback()
             Cancel     :
               title    : "Cancel"
-              cssClass : "modal-cancel"
+              cssClass : "solid light-gray medium"
               callback : -> modal.destroy()
 
         for file in files

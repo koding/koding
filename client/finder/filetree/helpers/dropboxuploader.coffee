@@ -34,7 +34,7 @@ __saveToDropbox = (nodeView) ->
       buttons      :
         "Choose"   :
           title    : "Choose Folder"
-          style    : "modal-clean-green"
+          style    : "solid green medium"
           callback : =>
             modal.destroy()
             fileName     = FSHelper.getFileNameFromPath plainPath
@@ -64,7 +64,7 @@ __saveToDropbox = (nodeView) ->
             Dropbox.save options
 
         Cancel     :
-          style    : "modal-cancel"
+          style    : "solid light-gray medium"
           callback : ->
             modal.destroy()
             removeTempFile()
