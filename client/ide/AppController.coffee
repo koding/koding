@@ -1221,6 +1221,7 @@ class IDEAppController extends AppController
           session  : context.session
           hash     : paneHash
           joinUser : @collaborationHost or KD.nick()
+          fitToWindow : yes
 
         @createNewTerminal terminalOptions
 

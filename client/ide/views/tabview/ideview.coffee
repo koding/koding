@@ -144,13 +144,17 @@ class IDE.IDEView extends IDE.WorkspaceTabView
       if rootPath and not isDefault
         options.path = frontApp.workspaceData.rootPath
 
-    { machine, joinUser } = options
+    { machine, joinUser, fitToWindow } = options
 
     terminalPane = new IDE.TerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
       terminalPane.webtermView.on 'click', @bound 'click'
+
+      if fitToWindow
+        KD.utils.defer -> terminalPane.webtermView.triggerFitToWindow()
+
       @emit 'UpdateWorkspaceSnapshot'
 
       unless joinUser
