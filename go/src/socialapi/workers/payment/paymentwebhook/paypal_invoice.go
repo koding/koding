@@ -35,5 +35,7 @@ func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action payment
 		return err
 	}
 
+	Log.Info("Paypal: Sent paypal email to: %s with plan: %s", emailAddress, req.Plan)
+
 	return paymentemail.Send(c.Email, action, emailAddress, opts)
 }

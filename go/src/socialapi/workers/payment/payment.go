@@ -134,21 +134,11 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 }
 
 func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
-	invoices, err := stripe.FindInvoicesForCustomer(a.AccountId)
-	if err != nil && err != paymenterrors.ErrCustomerNotFound {
-		Log.Error("Fetching invoices for account: %s failed. %s", a.AccountId, err)
-	}
-
-	return invoices, err
+	return stripe.FindInvoicesForCustomer(a.AccountId)
 }
 
 func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
-	resp, err := stripe.GetCreditCard(a.AccountId)
-	if err != nil && err != paymenterrors.ErrCustomerNotFound {
-		Log.Error("Fetching cc for account: %s failed. %s", a.AccountId, err)
-	}
-
-	return resp, err
+	return stripe.GetCreditCard(a.AccountId)
 }
 
 func (a *AccountRequest) Delete() (interface{}, error) {
