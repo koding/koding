@@ -46,7 +46,6 @@ class IDE.StatusBar extends KDView
     @avatars.hide()  if collabDisabled
 
 
-
   showInformation: ->
 
     @status.updatePartial 'Click the plus button above to create a new panel'
@@ -54,7 +53,7 @@ class IDE.StatusBar extends KDView
 
   createParticipantAvatar: (nickname, isOnline) ->
 
-    return  if @participantAvatars[nickname]
+    return  if @participantAvatars[nickname] or nickname is KD.nick()
 
     view       = new IDE.StatusBarAvatarView
       origin   : nickname
@@ -100,6 +99,8 @@ class IDE.StatusBar extends KDView
 
 
   addParticipantAvatar: (nickname) ->
+
+    return no  if nickname is KD.nick()
 
     oldAvatar = @participantAvatars[nickname]
 
