@@ -70,6 +70,8 @@ module.exports = class JWorkspace extends Module
 
       workspace.save (err) ->
         return callback err  if err
+
+        delegate.emit 'NewWorkspaceCreated', workspace
         return callback null, workspace
 
 
