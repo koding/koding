@@ -619,7 +619,7 @@ class ActivitySidebar extends KDCustomHTMLView
             tree.expand node
           else
             tree.selectNode node
-            @watchMachineState workspace, machine
+            @watchMachineState data
         else
           tree.collapse node
 
@@ -640,19 +640,23 @@ class ActivitySidebar extends KDCustomHTMLView
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
-  watchMachineState: (workspace, machine) ->
+  watchMachineState: (data) ->
+    {workspace, machine} = data
+
     @watchedMachines  or= {}
     computeController   = KD.getSingleton 'computeController'
-    appManager          = KD.getSingleton 'appManager'
     {Running}           = Machine.State
 
     return  if @watchedMachines[machine._id]
 
     callback = (state) =>
-      if state.status is Running
-        machine.status.state = Running
-        if appManager.getFrontApp().mountedMachineUId is machine.uid
-          delete @watchedMachines[machine._id]
+      return  if state.status isnt Running
+
+      machine.status.state = Running
+      delete @watchedMachines[machine._id]
+
+      if data is @latestWorkspaceData
+        @selectWorkspace data
 
     computeController.on "public-#{machine._id}", callback
     @watchedMachines[machine._id] = yes
