@@ -995,5 +995,11 @@ class ActivitySidebar extends KDCustomHTMLView
 
   newWorkspaceCreated: (workspace) ->
 
+    matches = KD.userWorkspaces.filter (w) ->
+      w.machineUId is workspace.machineUId and \
+      w.slug is workspace.slug
+
+    return  if matches.length
+
     KD.userWorkspaces.push workspace
     @updateMachineTree()
