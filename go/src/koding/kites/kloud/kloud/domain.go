@@ -11,6 +11,9 @@ import (
 type domainArgs struct {
 	DomainName string
 	MachineId  string
+
+	// is set to true if the given machineId is not found
+	machineNotFound bool
 }
 
 type domainFunc func(*protocol.Machine, *domainArgs) (interface{}, error)
@@ -21,24 +24,30 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, err
 	}
 
+	k.Log.Debug("'%s' method is called with args: %+v\n", r.Method, args)
 	if err := k.Domainer.Validate(args.DomainName, r.Username); err != nil {
 		return nil, err
 	}
 
 	m, err := k.PrepareMachine(r)
-	if err != nil {
+	if err != nil && err != ErrLockAcquired {
 		return nil, err
 	}
 
-	// PreparMachine is locking for us, so unlock after we are done
-	defer k.Locker.Unlock(m.Id)
+	// this is returned if the machine was not found for the given machine Id.
+	if err == ErrLockAcquired {
+		args.machineNotFound = true
+	} else {
+		// PrepareMachine is locking for us, so unlock after we are done
+		defer k.Locker.Unlock(m.Id)
 
-	if m.IpAddress == "" {
-		return nil, fmt.Errorf("ip address is not defined")
+		if m.IpAddress == "" {
+			return nil, fmt.Errorf("ip address is not defined")
+		}
+
+		// fake eventer to avoid panics if someone tries to use the eventer
+		m.Eventer = &eventer.Events{}
 	}
-
-	// fake eventer to avoid panics if someone tries to use the eventer
-	m.Eventer = &eventer.Events{}
 
 	return fn(m, args)
 }
@@ -121,7 +130,7 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, err
 		}
 
-		// addign the machineID for the given domain.
+		// adding the machineID for the given domain.
 		if err := k.DomainStorage.UpdateMachine(args.DomainName, m.Id); err != nil {
 			return nil, err
 		}
