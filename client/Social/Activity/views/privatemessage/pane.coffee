@@ -338,8 +338,24 @@ class PrivateMessagePane extends MessagePane
     return  unless participant
     return  unless @participantMap[participant._id]?
 
-    @participantMap[participant._id].destroy()
-    delete @participantMap[participant._id]
+    KD.remote.cacheable 'JAccount', participant._id, (err, account) =>
+
+      return warn err  if err
+
+      @participantMap[participant._id].destroy()
+      delete @participantMap[participant._id]
+
+      @removeFromAutoCompleteSelectedList account
+
+
+  removeFromAutoCompleteSelectedList: (account) ->
+
+    return  unless account in @autoComplete.getSelectedItemData()
+
+    # remove the account from autocomplete controller's
+    # selected list. So that it can show up in other searchs.
+    @autoComplete.removeSelectedItemData account
+    @autoComplete.selectedItemCounter--
 
 
   createPreviousLink: ->
