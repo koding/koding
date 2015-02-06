@@ -31,5 +31,7 @@ func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) e
 		"price": formatStripeAmount(req.Currency, req.Amount),
 	}
 
+	Log.Info("Stripe: Sent invoice email to: %s", emailAddress)
+
 	return paymentemail.Send(c.Email, action, emailAddress, opts)
 }

@@ -63,7 +63,6 @@ func IsDowngrade(oldPlan, newPlan *paymentmodels.Plan) bool {
 
 func IsLineCountAllowed(count int) bool {
 	if count == 0 {
-		Log.Error("Received 0 line items for invoice.created webhook.")
 		return false
 	}
 

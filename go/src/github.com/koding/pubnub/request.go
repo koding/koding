@@ -134,7 +134,7 @@ func (pr *PubNubRequest) parseErrorResponse(response []byte) {
 	var r []interface{}
 	err := json.Unmarshal(response, &r)
 	if err != nil {
-		pr.sendError(err)
+		pr.sendError(errors.New(string(response)))
 		return
 	}
 
