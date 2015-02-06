@@ -36,10 +36,10 @@ class Ace extends KDView
             @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
           @editor.gotoLine 0
-          
+
           # remove cmd+L binding. we have already defined cmd+g for this purpose
           @editor.commands.removeCommand 'gotoline'
-          
+
           # we are using ctrl+alt+s for 'Save All' action
           @editor.commands.removeCommand 'sortlines'
 
@@ -456,6 +456,7 @@ class Ace extends KDView
         targetHandle.unsetClass 'saved'
 
   showGotoLine: ->
+
     unless @gotoLineModal
       @gotoLineModal = new KDModalViewWithForms
         cssClass                : 'goto'
