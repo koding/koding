@@ -1690,7 +1690,10 @@ class IDEAppController extends AppController
 
     {origin, type} = data
 
-    return  if origin is KD.nick()
+    if origin is KD.nick()
+      if type is 'ParticipantWantsToLeave'
+      then return @quit()
+      else return
 
     switch type
 
