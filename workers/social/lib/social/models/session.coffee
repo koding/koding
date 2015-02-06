@@ -54,7 +54,17 @@ module.exports = class JSession extends Model
           console.error err  if err?
 
 
-  @createSession =(callback) ->
+  safeGuestSessionName = (username)->
+
+    if username is "guestuser"
+      console.log "FIXME @gokmen --- denying to create session for guestuser"
+      username = JUser.createGuestUsername()
+      console.log "FIXME @gokmen --- overwritten with #{username}."
+
+    return username
+
+
+  @createSession = (callback) ->
 
     JUser = require './user'
     clientId = createId()
@@ -70,7 +80,8 @@ module.exports = class JSession extends Model
       if err then @emit 'error', err
       else
         {nickname: username} = account.profile
-        session = new JSession { clientId, username }
+        username = safeGuestSessionName username
+        session  = new JSession { clientId, username }
         session.save (err)->
           if err
             callback err
@@ -101,8 +112,8 @@ module.exports = class JSession extends Model
         return callback null, session  if session?
 
         clientId = createId()
-
-        session = new JSession { clientId, username }
+        username = safeGuestSessionName username
+        session  = new JSession { clientId, username }
         session.save (err)->
           return callback err  if err?
           callback null, session
