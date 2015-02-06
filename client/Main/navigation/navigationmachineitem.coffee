@@ -108,15 +108,9 @@ class NavigationMachineItem extends JView
 
 
   pistachio:->
-    cogMarkup = '<span></span>'
-    template  = """
+    return """
       <figure></figure>
       {{> @label}}
-      #{cogMarkup}
+      #{if @getData().isMine() then '<span></span>' else ''}
       {{> @progress}}
     """
-
-    unless @getData().isMine()
-      template = template.replace cogMarkup, ''
-
-    return template
