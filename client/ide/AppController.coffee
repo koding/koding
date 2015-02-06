@@ -1673,10 +1673,10 @@ class IDEAppController extends AppController
     modalOptions.blocking ?= no
     modalOptions.buttons or=
       Yes        :
-        cssClass : 'modal-clean-green'
+        cssClass : 'solid green medium'
         callback : callback
       No         :
-        cssClass : 'modal-cancel'
+        cssClass : 'solid light-gray medium'
         callback : => @modal.destroy()
 
     ModalClass = if modalOptions.blocking then KDBlockingModalView else KDModalView
