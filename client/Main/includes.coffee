@@ -293,6 +293,7 @@ module.exports = [
   "mixpanel.coffee",
   "analytic.coffee",
   "metric.coffee",
+  "datadogmetrics.coffee",
 
   # ---------- Main APP ENDS ---------- #
 

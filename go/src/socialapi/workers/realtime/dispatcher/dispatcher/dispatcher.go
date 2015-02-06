@@ -96,6 +96,7 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 		c.logger.Error("Nickname is not set")
 		return nil
 	}
+
 	nm.EventName = "message"
 	nm.EventId = createEventId()
 
