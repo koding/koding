@@ -29,7 +29,7 @@ func ExpireBasedOnPayment(providerCustomerId string) error {
 	}
 
 	if subscription.CurrentPeriodEnd.IsZero() {
-		return fmt.Errorf("Customer: %v expiration should be set at end of current period, but it is nil")
+		return fmt.Errorf("Customer: %v expiration should be set at end of current period, but it is nil", providerCustomerId)
 	}
 
 	// user has paid for current period, so expire at end of period
