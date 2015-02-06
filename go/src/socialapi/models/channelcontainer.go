@@ -169,17 +169,12 @@ func (cr *ChannelContainer) AddLastMessage(accountId int64) *ChannelContainer {
 			return nil
 		}
 
-		cmc := NewChannelMessageContainer()
-		err = cmc.Fetch(lastMessageId, &request.Query{AccountId: accountId})
+		cm := NewChannelMessage()
+		cm.Id = lastMessageId
+		cmc, err := cm.BuildMessage(&request.Query{AccountId: accountId})
 		if err != nil {
 			return err
 		}
-
-		cm, err := cmc.Message.PopulatePayload()
-		if err != nil {
-			return err
-		}
-		cmc.Message = cm
 
 		cc.LastMessage = cmc
 
