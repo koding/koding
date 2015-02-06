@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/pinnedpost/pinnedpost"
 )
@@ -19,7 +18,8 @@ func main() {
 	}
 
 	r.SetContext(pinnedpost.New(r.Log))
-	r.Register(models.MessageReply{}).OnCreate().Handle((*pinnedpost.Controller).MessageReplyCreated)
+	// block listening to events of message create, because we are not using the pinned message feature anymore
+	// r.Register(models.MessageReply{}).OnCreate().Handle((*pinnedpost.Controller).MessageReplyCreated)
 	r.Listen()
 	r.Wait()
 }

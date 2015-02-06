@@ -71,7 +71,8 @@ module.exports = (options={}, callback)->
   reqs = [
     { fn:fetchPopularPosts,      key: 'popularPosts'     }
     { fn:fetchFollowedChannels,  key: 'followedChannels' }
-    { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
+    # pinned message channel is no-longer used
+    # { fn:fetchPinnedMessages,    key: 'pinnedMessages'   }
     { fn:fetchPrivateMessages,   key: 'privateMessages'  }
   ]
 
