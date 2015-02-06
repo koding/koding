@@ -222,13 +222,8 @@ class ManageDomainsView extends KDView
           loader    :
             color   : 'darkred'
           callback  : ->
-            computeController.getKloud()
-              .unsetDomain {domainName: domain, machineId}
-              .then -> callback yes
-              .catch (err)->
-                warn err
-                callback no
-              .finally -> modal.destroy()
+            modal.destroy()
+            callback yes
         cancel      :
           title     : "Cancel"
           style     : 'modal-cancel'
