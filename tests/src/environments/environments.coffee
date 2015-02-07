@@ -26,16 +26,21 @@ clickMoreButtonInVMSettingsModal = (browser) ->
       .pause  200
 
 
+clickAddVMButton = (browser) ->
+
+  sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+
+  browser
+    .waitForElementVisible   '[testpath=main-sidebar]', 20000
+    .waitForElementVisible   sidebarTitle, 20000
+    .moveToElement           sidebarTitle + ' a.buy-vm', 10, 10
+    .click                   sidebarTitle + ' a.buy-vm'
+
+
 seeUpgradeModal = (browser) ->
 
-    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
-
-    browser
-      .waitForElementVisible   '[testpath=main-sidebar]', 20000
-      .waitForElementVisible   sidebarTitle, 20000
-      .moveToElement           sidebarTitle + ' a.buy-vm', 10, 10
-      .click                   sidebarTitle + ' a.buy-vm'
-      .waitForElementVisible   '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+    clickAddVMButton(browser)
+    browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
 
   addDomain = (browser) ->
