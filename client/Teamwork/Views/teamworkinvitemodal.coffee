@@ -8,12 +8,12 @@ class TeamworkInviteModal extends KDModalView
     options.width    = 600
     options.buttons  =
       Invite         :
-        cssClass     : "modal-clean-green"
+        cssClass     : "solid green medium"
         icon         : yes
         iconClass    : "tw-intive-icon"
         callback     : @bound "sendInvites"
       Cancel         :
-        cssClass     : "modal-cancel"
+        cssClass     : "solid light-gray medium"
         callback     : @bound "destroy"
 
     super options, data

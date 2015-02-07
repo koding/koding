@@ -8,7 +8,7 @@ class TeamworkExportModal extends KDModalView
     options.width    = 655
     options.buttons  =
       Next           :
-        cssClass     : "modal-clean-green"
+        cssClass     : "solid green medium"
         title        : "Next"
         iconClass    : "tw-next-icon"
         icon         : yes

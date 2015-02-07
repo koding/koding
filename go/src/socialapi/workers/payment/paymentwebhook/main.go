@@ -3,6 +3,7 @@ package main
 import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"net"
 	"net/http"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
@@ -29,6 +30,8 @@ type Controller struct {
 func main() {
 	r := initializeRunner()
 
+	go r.Listen()
+
 	defer func() {
 		r.Close()
 		modelhelper.Close()
@@ -54,10 +57,18 @@ func main() {
 	mux := initializeMux(st, pp)
 
 	port := conf.PaymentWebhook.Port
-
 	Log.Info("Listening on port: %s\n", port)
 
-	err := http.ListenAndServe(":"+port, mux)
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
+
+	defer func() {
+		listener.Close()
+	}()
+
+	err = http.Serve(listener, mux)
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

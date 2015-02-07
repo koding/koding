@@ -10,3 +10,4 @@ class ActivityWidgetsBar extends KDCustomHTMLView
     @addSubView new ActivityGuideWidget
     @addSubView new ActivityTopicsWidget
     @addSubView new ActivityUniversityWidget
+    @addSubView new ActivitySocialMediaWidget

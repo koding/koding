@@ -103,7 +103,7 @@ class TeamworkApp extends KDObject
       buttons       :
         Import      :
           title     : "Import"
-          cssClass  : "modal-clean-green"
+          cssClass  : "solid green medium"
           loader    :
             color   : "#FFFFFF"
             diameter: 14
@@ -112,7 +112,7 @@ class TeamworkApp extends KDObject
             KD.mixpanel "Teamwork import confirm, click"
         DontImport  :
           title     : "Don't import anything"
-          cssClass  : "modal-cancel"
+          cssClass  : "solid light-gray medium"
           callback  : ->
             modal.destroy()
             KD.mixpanel "Teamwork import confirm, fail"

@@ -338,8 +338,14 @@ class PrivateMessagePane extends MessagePane
     return  unless participant
     return  unless @participantMap[participant._id]?
 
-    @participantMap[participant._id].destroy()
-    delete @participantMap[participant._id]
+    KD.remote.cacheable 'JAccount', participant._id, (err, account) =>
+
+      return warn err  if err
+
+      @participantMap[participant._id].destroy()
+      delete @participantMap[participant._id]
+
+      @autoComplete.removeSelectedParticipant account
 
 
   createPreviousLink: ->
@@ -371,21 +377,16 @@ class PrivateMessagePane extends MessagePane
     @participantsView.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
-      callback    : @bound 'showAutoCompleteInput'
+      callback    : @bound 'toggleAutoCompleteInput'
 
 
-  showAutoCompleteInput: ->
+  toggleAutoCompleteInput: ->
 
     @emit 'NewParticipantButtonClicked'
 
     @autoCompleteForm.toggleClass 'active'
     @newParticipantButton.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
-
-    @autoComplete.getView().once 'blur',=>
-      @autoCompleteForm.toggleClass 'active'
-      @newParticipantButton.toggleClass 'active'
-      @input.input.setFocus()
 
 
   createAddParticipantForm: ->
@@ -398,17 +399,20 @@ class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-    @autoComplete = new KDAutoCompleteController
+    @autoComplete = new ParticipantSearchController
       name                : 'userController'
       placeholder         : 'Type a username...'
       itemClass           : ActivityAutoCompleteUserItemView
       itemDataPath        : 'profile.nickname'
+      fetchInterval       : 0
       outputWrapper       : new KDView cssClass: 'hidden'
       listWrapperCssClass : 'private-message hidden'
       submitValuesAsText  : yes
       dataSource          : @bound 'fetchAccounts'
 
     @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
+
+    @autoComplete.on 'ItemSelected', @bound 'toggleAutoCompleteInput'
 
     @autoComplete.on 'ItemListChanged', (count) =>
       participant  = @autoComplete.getSelectedItemData()[count - 1]

@@ -69,13 +69,13 @@ class OnboardingItemView extends CustomViewsDashboardView
       buttons      :
         Delete     :
           title    : "Confirm"
-          cssClass : "modal-clean-green"
+          cssClass : "solid green medium"
           callback : =>
             callback()
             modal.destroy()
         Cancel     :
           title    : "Cancel"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
   fetchViews: ->
@@ -122,13 +122,13 @@ class OnboardingItemView extends CustomViewsDashboardView
       buttons      :
         Delete     :
           title    : "Delete"
-          cssClass : "modal-clean-red"
+          cssClass : "solid red medium"
           callback : =>
             callback()
             modal.destroy()
         Cancel     :
           title    : "Cancel"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
 

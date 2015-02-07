@@ -49,11 +49,8 @@ module.exports = class JUser extends jraphical.Module
                      'term','twitter','facebook','google','framework', 'kite'
                      'landing','hello','dev']
 
-  @hashUnhashedPasswords =->
-    @all {salt: $exists: no}, (err, users)->
-      users.forEach (user)-> user.changePassword user.getAt('password')
 
-  hashPassword =(value, salt)->
+  hashPassword = (value, salt)->
     require('crypto').createHash('sha1').update(salt+value).digest('hex')
 
   createSalt = require 'hat'
@@ -192,9 +189,11 @@ module.exports = class JUser extends jraphical.Module
   guests    = {}
 
   @unregister = secure (client, toBeDeletedUsername, callback) ->
-    {delegate} = client.connection
 
-    console.log "#{delegate.profile.nickname} requested to delete: #{toBeDeletedUsername}"
+    {delegate} = client.connection
+    {nickname} = delegate.profile
+
+    console.log "#{nickname} requested to delete: #{toBeDeletedUsername}"
 
     # deleter should be registered one
     if delegate.type is 'unregistered'
@@ -204,16 +203,24 @@ module.exports = class JUser extends jraphical.Module
       return callback createKodingError "It's not allowed to delete this user!"
 
     # only owner and the dummy admins can delete a user
-    unless toBeDeletedUsername is delegate.profile.nickname or
+    unless toBeDeletedUsername is nickname or
            delegate.can 'administer accounts'
       return callback createKodingError "You must confirm this action!"
 
     @createGuestUsername (err, username) =>
       return callback err  if err?
+
+      # Adding -rm suffix to separate them from real guests
+      # -rm was intentional otherwise we are exceeding the max username length
+      username = "#{username}-rm"
+
       email = "#{username}@koding.com"
       @one { username: toBeDeletedUsername }, (err, user) =>
         return callback err  if err?
-        return callback createKodingError "User not found #{toBeDeletedUsername}"  unless user
+
+        unless user
+          return callback createKodingError \
+            "User not found #{toBeDeletedUsername}"
 
         oldEmail = user.email
 
@@ -255,7 +262,10 @@ module.exports = class JUser extends jraphical.Module
 
           JAccount.one {"profile.nickname": toBeDeletedUsername}, (err, account)=>
             return callback err  if err?
-            return callback createKodingError "Account not found #{toBeDeletedUsername}"  unless account
+
+            unless account
+              return callback createKodingError \
+                "Account not found #{toBeDeletedUsername}"
 
             # update the account to be deleted with empty data
             account.update $set: accountValues, (err)=>
@@ -361,15 +371,24 @@ module.exports = class JUser extends jraphical.Module
       if user.blockedUntil and user.blockedUntil > new Date
         toDate = user.blockedUntil.toUTCString()
         message = """
-Account suspended due to violation of our acceptable use policy.
+          Account suspended due to violation of our acceptable use policy.
 
-Hello,
-This account has been put on suspension by Koding moderators due to a violation of our acceptable use policy. The ban will be in effect until #{toDate} at which time you will be able to log back in again. Should you have any questions regarding this ban, please write to ban@koding.com and allow 2-3 business days for us to research and reply. Even though your account is banned, all your data is safe and will be accessible once the ban lifts.
+          Hello,
 
-Please note, repeated violations of our acceptable use policy will result in the permanent deletion of your account.
+          This account has been put on suspension by Koding moderators due
+          to a violation of our acceptable use policy. The ban will be in
+          effect until #{toDate} at which time you will be able to log back
+          in again. Should you have any questions regarding this ban, please
+          write to ban@koding.com and allow 2-3 business days for us to
+          research and reply. Even though your account is banned, all your
+          data is safe and will be accessible once the ban lifts.
 
-Team Koding
-          """
+          Please note, repeated violations of our acceptable use policy
+          will result in the permanent deletion of your account.
+
+          Team Koding
+        """
+
         callback createKodingError message
       else
         user.unblock callback
@@ -413,24 +432,36 @@ Team Koding
         bruteForceControlData =
           ip        : session.clientIP
           username  : username
+
         # todo add alert support(mail, log etc)
         JLog.checkLoginBruteForce bruteForceControlData, (res)->
-          unless res then return callback createKodingError "Your login access is blocked for #{JLog.timeLimit()} minutes."
+
+          unless res
+            return callback createKodingError \
+              "Your login access is blocked for #{JLog.timeLimit()} minutes."
 
           JUser.one { username }, (err, user)->
+
             if err
               logAndReturnLoginError username, err.message, callback
+
             # if user not found it means we dont know about given username
             else unless user?
               logAndReturnLoginError username, 'Unknown user name', callback
+
             # if password is autogenerated return error
             else if user.getAt('passwordStatus') is 'needs reset'
-              logAndReturnLoginError username, 'You should reset your password in order to continue!', callback
+              logAndReturnLoginError username, \
+                'You should reset your password in order to continue!', callback
+
             # hash of given password and given user's salt should match with user's password
             else unless user.getAt('password') is hashPassword password, user.getAt('salt')
               logAndReturnLoginError username, 'Access denied!', callback
+
+            # continue login
             else
               afterLogin user, clientId, session, callback
+
 
   @verifyPassword = secure (client, options, callback)->
     {connection: {delegate}} = client
@@ -623,9 +654,10 @@ Team Koding
         callback null
 
 
-  @createGuestUsername = (callback) ->
+  @createGuestUsername = (callback = ->) ->
 
-    callback null, "guest-#{rack()}"
+    callback null, username = "guest-#{rack()}"
+    return username
 
 
   @fetchGuestUser = (callback)->
@@ -791,15 +823,6 @@ Team Koding
         { message: "Errors were encountered during validation", errors }
       else null
 
-
-  @changePasswordByUsername = (username, password, callback) ->
-    salt = createSalt()
-    hashedPassword = hashPassword password, salt
-    @one { username }, (err, user) ->
-      return callback err if err
-      return callback new Error "User not found" unless user
-      user.changePassword password, callback
-
   @changeEmailByUsername = (options, callback) ->
     { account, oldUsername, email } = options
     # prevent from leading and trailing spaces
@@ -834,6 +857,7 @@ Team Koding
       guestsGroup.removeMember account, callback
 
   @convert = secure (client, userFormData, callback) ->
+
     { connection, sessionToken : clientId, clientIP } = client
     { delegate : account } = connection
     { nickname : oldUsername } = account.profile
@@ -1029,24 +1053,35 @@ Team Koding
           callback null
 
   @changePassword = secure (client, password, callback) ->
+
     @fetchUser client, (err,user)->
-      return callback createKodingError "Something went wrong please try again!" if err or not user
+
+      if err or not user
+        return callback createKodingError \
+          "Something went wrong please try again!"
+
       if user.getAt('password') is hashPassword password, user.getAt('salt')
         return callback createKodingError "PasswordIsSame"
 
-      user.changePassword password, (err)=>
-        sendChangeEmail user.email, "password"
-        return callback err
+      user.changePassword password, (err)-> callback err
 
-  sendChangeEmail = (email, type)->
+
+  sendChangedEmail = (username, email, type) ->
+
     email = new JMail {
       email
       subject : "Your #{type} has been changed"
       content : """
-        Your #{type} has been changed!  If you didn't request this change, please contact support@koding.com immediately!
+        Hi #{username},
+
+        Your #{type} has been changed! If you didn't request this change,
+        please contact with support@koding.com immediately!
+
       """
     }
+
     email.save()
+
 
   @changeEmail = secure (client,options,callback)->
 
@@ -1062,34 +1097,28 @@ Team Koding
           callback createKodingError "Email is already in use!"
         else
           user.changeEmail account, options, callback
-          if account.status is 'registered'
-            # don't send an email when guests change their emails, which we
-            # need to allow for the pricing workflow.
-            sendChangeEmail user.email, "email"
+
 
   @emailAvailable = (email, callback)->
     @count {email}, (err, count)->
-      if err
-        callback err
-      else if count is 1
-        callback null, no
-      else
-        callback null, yes
+      callback err, count is 0
+
 
   @usernameAvailable = (username, callback)->
     JName = require '../name'
 
     username += ''
     res =
-      kodingUser   : no
-      forbidden    : yes
+      kodingUser : no
+      forbidden  : yes
 
     JName.count { name: username }, (err, count)=>
+
       if err or username.length < 4 or username.length > 25
         callback err, res
       else
-        res.kodingUser = if count is 1 then yes else no
-        res.forbidden = if username in @bannedUserList then yes else no
+        res.kodingUser = count is 1
+        res.forbidden  = username in @bannedUserList
         callback null, res
 
 
@@ -1105,12 +1134,15 @@ Team Koding
     }, callback
 
 
-  changePassword:(newPassword, callback)->
+  changePassword: (newPassword, callback)->
 
-    @setPassword newPassword, (err)->
-      return callback err  if err?
-      sendChangeEmail @email, "password"
-      callback null
+    @setPassword newPassword, (err)=>
+
+      unless err
+        sendChangedEmail @getAt('username'), @getAt('email'), 'password'
+
+      callback err
+
 
   changeEmail:(account, options, callback)->
 
@@ -1125,34 +1157,42 @@ Team Koding
         callback null
       return
 
+    action = "update-email"
+
     if not pin
-      options =
-        action    : "update-email"
-        user      : this
-        email     : email
+
+      options = {
+        email, action, user: this, resendIfExists: yes
+      }
 
       JVerificationToken.requestNewPin options, callback
 
     else
-      options =
-        action    : "update-email"
-        username  : @getAt 'username'
-        email     : email
-        pin       : pin
+      options = {
+        email, action, pin, username: @getAt 'username'
+      }
 
       JVerificationToken.confirmByPin options, (err, confirmed)=>
 
-        if err then callback err
-        else if confirmed
-          @update $set: {email}, (err, res)=>
-            if err
-              callback err
-            else
-              account.profile.hash = getHash email
-              account.save (err)-> throw err if err
-              callback null
-        else
-          callback createKodingError 'PIN is not confirmed.'
+        return callback err  if err
+
+        unless confirmed
+          return callback createKodingError 'PIN is not confirmed.'
+
+        oldEmail = @getAt 'email'
+
+        @update $set: {email}, (err, res)=>
+
+          return callback err  if err
+
+          account.profile.hash = getHash email
+          account.save (err)=>
+
+            unless err
+              sendChangedEmail @getAt('username'), oldEmail, 'email'
+
+            callback err
+
 
   fetchHomepageView:(options, callback)->
     {account, bongoModels} = options

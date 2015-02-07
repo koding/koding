@@ -80,7 +80,7 @@ class TeamworkImporter extends KDObject
       buttons      :
         Confirm    :
           title    : "Overwrite"
-          cssClass : "modal-clean-red"
+          cssClass : "solid red medium"
           callback : =>
             modal.destroy()
             if   contentOptions.confirmCallback
@@ -88,7 +88,7 @@ class TeamworkImporter extends KDObject
             else @importDone_()
         Cancel     :
           title    : "Cancel"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : =>
             modal.destroy()
             return  if contentOptions.cancelCallback? modal
@@ -152,11 +152,11 @@ class TeamworkImporter extends KDObject
           buttons      :
             Install    :
               title    : "Install Script"
-              cssClass : "modal-clean-green"
+              cssClass : "solid green medium"
               callback : => @runShFile shFile, modal
             Cancel     :
               title    : "Cancel"
-              cssClass : "modal-cancel"
+              cssClass : "solid light-gray medium"
               callback : -> modal.destroy()
 
   runShFile: (shFile, modal) ->

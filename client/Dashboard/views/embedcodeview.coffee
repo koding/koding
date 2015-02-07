@@ -29,7 +29,7 @@ class EmbedCodeView extends KDTabView
 
     @payment = new PaymentWidget
       planCode        : '#{ @planCode }'
-      contentCssClass : 'modal-clean-green'
+      contentCssClass : 'solid green medium'
       content         : @content
 
     @payment.on "subscribed", ->

@@ -101,7 +101,7 @@ do ->
             content      : "<div class='modalformline'>#{content}</div>"
             buttons      :
               "Close"    :
-                style    : 'modal-clean-gray'
+                style    : 'solid light-gray medium'
                 callback : -> modal.destroy()
           router.clear()
 

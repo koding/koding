@@ -6,6 +6,7 @@ class KodingKite_KlientKite extends KodingKite
 
     exec               : 'exec'
     ping               : 'kite.ping'
+    systemInfo         : 'kite.systemInfo'
 
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'
@@ -39,10 +40,7 @@ class KodingKite_KlientKite extends KodingKite
   init: ->
 
     @connect()  unless @_connectAttempted
-
-    if @terminalSessions.length is 0 and not @_fetchingSessions
-    then @fetchTerminalSessions()
-    else Promise.resolve()
+    Promise.resolve()
 
 
   # setTransport is used to override the setTransport method in KodingKite
@@ -69,8 +67,10 @@ class KodingKite_KlientKite extends KodingKite
 
       .then (remote) =>
 
+        @addToActiveSessions remote.session
+
         if @terminalSessions.length is 0
-          @fetchTerminalSessions()
+          @fetchTerminalSessions remote.session
         else
           unless remote.session in @terminalSessions
             @terminalSessions.push remote.session
@@ -86,13 +86,17 @@ class KodingKite_KlientKite extends KodingKite
 
       .then (state) =>
 
+        @removeFromActiveSessions session
+
         @terminalSessions = @terminalSessions.filter (currentSession)->
           session isnt currentSession
 
         return state
 
 
-  fetchTerminalSessions: ->
+  fetchTerminalSessions: (session)->
+
+    return Promise.resolve()  if @_fetchingSessions
 
     @_fetchingSessions = yes
 
@@ -101,6 +105,12 @@ class KodingKite_KlientKite extends KodingKite
     .then (sessions)=>
 
       @terminalSessions = sessions
+
+      if session and session not in @terminalSessions
+        @terminalSessions.push session
+
+      @syncSessionsWithLocalStorage()
+
       @_fetchingSessions = no
 
     .timeout 10000
@@ -108,5 +118,47 @@ class KodingKite_KlientKite extends KodingKite
     .catch (err)=>
 
       # Reset current sessions if fails
-      @terminalSessions = []
+      if err.message is 'no sessions available'
+        @terminalSessions = if session then [session] else []
+      else
+        @terminalSessions = []
+
       @_fetchingSessions = no
+
+      @syncSessionsWithLocalStorage()
+
+
+
+  getLocalStorage = ->
+
+    return KD.singletons.localStorageController.storage 'Klient', '1.0'
+
+  setActiveSessions = (sessions)->
+
+    getLocalStorage().setValue 'activeSessions', sessions
+
+
+  getActiveSessions: ->
+
+    return (getLocalStorage().getValue 'activeSessions') ? []
+
+
+  syncSessionsWithLocalStorage: ->
+
+    setActiveSessions @getActiveSessions().filter (session)=>
+      session in @terminalSessions
+
+
+  addToActiveSessions: (session)->
+
+    activeSessions = @getActiveSessions()
+    activeSessions.push session  unless session in activeSessions
+
+    setActiveSessions activeSessions
+
+
+  removeFromActiveSessions: (session)->
+
+    activeSessions = @getActiveSessions().filter (old)-> session isnt old
+
+    setActiveSessions activeSessions
