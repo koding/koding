@@ -282,9 +282,11 @@ class MachineSettingsPopup extends KDModalViewWithForms
         computeController.destroy @machine
         @destroy()
 
-    @addSubView new KDCustomHTMLView
+    _addSubview = KDView::addSubView.bind this
+
+    _addSubview new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 20
+      position : top : 40
 
     computeController.fetchUserPlan (plan)=>
 

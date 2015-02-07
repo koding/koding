@@ -23,9 +23,9 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
     navItem   = @getDelegate()
     workspace = navItem.getData()
     deleteRelatedFiles = no
-    
+
     @addSubView @buttonContainer = new KDCustomHTMLView tagName : 'ul'
-    
+
     @buttonContainer.addSubView button = new KDCustomHTMLView tagName : 'li'
     button.addSubView @deleteButton = new KDButtonView
       style    : 'solid compact red'
@@ -35,21 +35,21 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
         KD.remote.api.JWorkspace.deleteById workspace.id, (err)=>
 
           return  if KD.showError err
-          
+
           { machineUId, rootPath } = workspace.data
           if deleteRelatedFiles
-            KD.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", machineUId, rootPath 
+            KD.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", machineUId, rootPath
 
           navItem.destroy()
           @destroy()
 
           KD.singletons
             .router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
-            
-    @buttonContainer.addSubView field = new KDCustomHTMLView 
+
+    @buttonContainer.addSubView field = new KDCustomHTMLView
         tagName : 'li'
         cssClass : 'delete-files'
-        
+
     title = new KDCustomHTMLView
         tagName  : 'label'
         partial  : 'also delete its files'
@@ -59,10 +59,12 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
         defaultValue  : deleteRelatedFiles
         cssClass      : 'tiny'
         callback      : (state) -> deleteRelatedFiles = state
-    
+
     field.addSubView title
     field.addSubView fieldSwitch
-            
-    @addSubView new KDCustomHTMLView
+
+    _addSubView = KDView::addSubView.bind this
+
+    _addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 34
+      position : top : 40
