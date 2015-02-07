@@ -126,7 +126,7 @@ class KodingAppsController extends KDController
       overlay        : yes
       buttons        :
         Run          :
-          style      : "modal-clean-red"
+          style      : "solid red medium"
           loader     :
             color    : "#ffffff"
             diameter : 16
@@ -143,7 +143,7 @@ class KodingAppsController extends KDController
                     title : "Application is not reachable"
 
         cancel       :
-          style      : "modal-cancel"
+          style      : "solid light-gray medium"
           callback   : -> modal.destroy()
 
     modal.buttonHolder.addSubView new KDView
@@ -254,7 +254,7 @@ class KodingAppsController extends KDController
           form                    :
             buttons               :
               Create              :
-                cssClass          : "modal-clean-gray"
+                cssClass          : "solid light-gray medium"
                 loader            :
                   color           : "#444444"
                   diameter        : 12
@@ -422,7 +422,7 @@ class KodingAppsController extends KDController
                 """
       buttons:
         "Install Compiler":
-          cssClass: "modal-clean-green"
+          cssClass: "solid green medium"
           callback: =>
             modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
 

@@ -218,7 +218,7 @@ class ManageDomainsView extends KDView
       buttons       :
         OK          :
           title     : "Yes"
-          style     : 'modal-clean-red'
+          style     : 'solid red medium'
           loader    :
             color   : 'darkred'
           callback  : ->
@@ -226,7 +226,7 @@ class ManageDomainsView extends KDView
             callback yes
         cancel      :
           title     : "Cancel"
-          style     : 'modal-cancel'
+          style     : 'solid light-gray medium'
           callback  : -> modal.cancel()
 
 

@@ -22,7 +22,7 @@ class VerifyPINModal extends KDModalViewWithForms
             buttons               :
               Submit              :
                 title             : buttonTitle
-                cssClass          : "modal-clean-green"
+                cssClass          : "solid green medium"
                 type              : "submit"
             fields                :
               pin                 :

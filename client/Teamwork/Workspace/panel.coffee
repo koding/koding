@@ -121,7 +121,7 @@ class Panel extends JView
       buttons      :
         Close      :
           title    : "Close"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
   viewAppended: ->
