@@ -438,6 +438,43 @@ module.exports =
             .assert.containsText     avatarSelector, newName
 
 
+  fillPaymentForm: (browser) ->
+
+    paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
+    cardNumber    = '4111 1111 1111 1111'
+    cvc           = '123'
+    month         = '12'
+    year          = '2017'
+
+    browser
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal, 20000
+      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
+      .click                   'input[name=cardNumber]'
+      .setValue                'input[name=cardNumber]', cardNumber
+      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
+      .click                   'input[name=cardCVC]'
+      .setValue                'input[name=cardCVC]', cvc
+      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
+      .click                   'input[name=cardMonth]'
+      .setValue                'input[name=cardMonth]', month
+      .waitForElementVisible   paymentModal + ' .cardyear', 20000
+      .click                   'input[name=cardYear]'
+      .setValue                'input[name=cardYear]', year
+      .waitForElementVisible   paymentModal + ' .cardname', 20000
+      .click                   'input[name=cardName]'
+      .click                   '.year-price-msg'
+      .waitForElementVisible   'button.submit-btn', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+      .url                     @getUrl() + '/Pricing'
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.single-plan.developer.current', 20000
+
+
+
   getUrl: ->
     return 'http://lvh.me:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
