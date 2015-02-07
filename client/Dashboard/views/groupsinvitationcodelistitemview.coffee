@@ -48,19 +48,19 @@ class GroupsInvitationCodeListItemView extends KDListItemView
             buttons           :
               Save            :
                 itemClass     : KDButtonView
-                style         : 'modal-clean-green'
+                style         : 'solid green medium'
                 type          : 'submit'
                 loader        :
                   color       : '#444444'
               # Disable         :
               #   itemClass     : KDButtonView
-              #   style         : 'modal-clean-red'
+              #   style         : 'solid red medium'
               #   loader        :
               #     color       : '#ffffff'
               #     diameter    : 12
               #   callback      : -> log 'deactivated'
               Cancel          :
-                style         : 'modal-cancel'
+                style         : 'solid light-gray medium'
                 callback      : -> modal.destroy()
             fields            :
               maxUses         :
@@ -92,7 +92,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
             buttons          :
               Close          :
                 itemClass    : KDButtonView
-                style        : 'modal-clean-green'
+                style        : 'solid green medium'
                 loader       :
                   color      : '#444444'
                 callback     : -> modal.destroy()
@@ -129,7 +129,7 @@ class GroupsInvitationCodeListItemView extends KDListItemView
               buttons        :
                 Confirm      :
                   itemClass  : KDButtonView
-                  style      : 'modal-clean-green'
+                  style      : 'solid green medium'
                   loader     :
                     color    : '#444444'
                   callback   : =>

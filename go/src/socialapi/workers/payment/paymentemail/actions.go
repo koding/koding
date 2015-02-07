@@ -4,6 +4,7 @@ type Action int
 
 const (
 	SubscriptionCreated Action = iota
+	SubscriptionChanged
 	SubscriptionDeleted
 	PaymentCreated
 	PaymentRefunded

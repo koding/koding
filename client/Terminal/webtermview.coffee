@@ -266,6 +266,14 @@ class WebTermView extends KDCustomScrollView
       event.preventDefault()
 
 
+  triggerFitToWindow: ->
+
+    return  unless @terminal?.server?
+
+    @terminal.server.controlSequence String.fromCharCode 2
+    @terminal.server.input 'F'
+
+
   mainTabPaneShown: (pane) ->
 
     return  unless pane.hasClass('ide') and pane.getElement().contains @getElement()

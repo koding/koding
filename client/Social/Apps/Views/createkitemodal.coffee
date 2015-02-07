@@ -15,13 +15,13 @@ class CreateKiteModal extends KDModalViewWithForms
           buttons             :
             Next              :
               title           : "Next"
-              style           : "modal-clean-gray"
+              style           : "solid light-gray medium"
               loader          :
                 color         : "#444444"
               callback        : => @handleDetailsForm()
             Cancel            :
               title           : "Cancel"
-              style           : "modal-cancel"
+              style           : "solid light-gray medium"
               callback        : => @destroy()
           fields              :
             nameField         :
@@ -46,14 +46,14 @@ class CreateKiteModal extends KDModalViewWithForms
           buttons             :
             Next              :
               title           : "Next"
-              style           : "modal-clean-gray"
+              style           : "solid light-gray medium"
               type            : "submit"
               loader          :
                 color         : "#444444"
               callback        : -> @hideLoader()
             Cancel            :
               title           : "Cancel"
-              style           : "modal-cancel"
+              style           : "solid light-gray medium"
               callback        : => @destroy()
           fields              :
             markdownWidget    :
@@ -67,14 +67,14 @@ class CreateKiteModal extends KDModalViewWithForms
           buttons             :
             Save              :
               title           : "Save"
-              style           : "modal-clean-gray"
+              style           : "solid light-gray medium"
               type            : "submit"
               loader          :
                 color         : "#444444"
               callback        : @bound "save"
             Cancel            :
               title           : "Cancel"
-              style           : "modal-cancel"
+              style           : "solid light-gray medium"
               callback        : => @destroy()
 
     super options, data

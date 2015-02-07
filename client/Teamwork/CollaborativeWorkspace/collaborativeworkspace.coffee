@@ -267,11 +267,11 @@ class CollaborativeWorkspace extends Workspace
       buttons      :
         Join       :
           title    : "Join Session"
-          cssClass : "modal-clean-green"
+          cssClass : "solid green medium"
           callback : => @handleJoinASessionFromModal sessionKeyInput.getValue(), modal
         Close      :
           title    : "Close"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : -> modal.destroy()
 
     modal.addSubView sessionKeyInput = new KDHitEnterInputView

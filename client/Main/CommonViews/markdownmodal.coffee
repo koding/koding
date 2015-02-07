@@ -12,7 +12,7 @@ class MarkdownModal extends KDModalView
       buttons     :
         Close     :
           title   : 'Close'
-          style   : 'modal-clean-gray'
+          style   : 'solid light-gray medium'
           callback: => @destroy()
     , options
 
