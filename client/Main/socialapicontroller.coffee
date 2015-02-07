@@ -50,11 +50,19 @@ class SocialApiController extends KDController
 
 
   leaveChannel = (response) ->
+
     {first} = response
     return  unless first
 
-    {socialapi} = KD.singletons
     {channelId} = first
+
+    removeChannel channelId
+
+
+  removeChannel = (channelId) ->
+
+    {socialapi} = KD.singletons
+
     channel = socialapi._cache["privatemessage"][channelId]
 
     return  unless channel
@@ -609,6 +617,7 @@ class SocialApiController extends KDController
     delete               : channelRequesterFn
       fnName             : 'delete'
       validateOptionsWith: ["channelId"]
+      successFn          : removeChannel
 
     revive               : mapChannel
 
