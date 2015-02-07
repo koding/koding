@@ -88,7 +88,7 @@ class FeedCoverPhotoView extends KDView
             buttons       :
               uploadButton:
                 title     : "Upload"
-                cssClass  : "modal-clean-green"
+                cssClass  : "solid green medium"
                 callback  : =>
                   modal.upload (err)=>
                     return  if err then _notify()
@@ -96,7 +96,7 @@ class FeedCoverPhotoView extends KDView
 
               clear       :
                 title     : "Remove cover photo"
-                cssClass  : "modal-clean-red"
+                cssClass  : "solid red medium"
                 callback  : =>
                   @group.modify "customize.coverPhoto" : "", (err)=>
                     return _notify()  if err

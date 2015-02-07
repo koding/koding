@@ -30,9 +30,7 @@ type Controller struct {
 func main() {
 	r := initializeRunner()
 
-	go func() {
-		r.Listen()
-	}()
+	go r.Listen()
 
 	defer func() {
 		r.Close()

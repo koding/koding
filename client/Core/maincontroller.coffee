@@ -129,8 +129,17 @@ class MainController extends KDController
 
 
 
-  accountChanged:(account, firstLoad = no)->
-    account = KD.remote.revive account  unless account instanceof KD.remote.api.JAccount
+  accountChanged: (account, firstLoad = no)->
+
+    unless account instanceof KD.remote.api.JAccount
+      account = KD.remote.revive account
+
+    # this is last guard that we can take for guestuser issue ~ GG
+    if account.profile?.nickname is "guestuser"
+      Cookies.expire 'clientId'
+      window.location.href = '/'
+      return
+
     KD.userAccount = account
     connectedState.connected = yes
 

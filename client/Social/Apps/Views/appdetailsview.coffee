@@ -46,7 +46,7 @@ class AppDetailsView extends KDScrollView
           overlay        : yes
           buttons        :
             Delete       :
-              style      : "modal-clean-red"
+              style      : "solid red medium"
               loader     :
                 color    : "#ffffff"
                 diameter : 16
@@ -64,7 +64,7 @@ class AppDetailsView extends KDScrollView
                       title    : "Error, please try again later!"
                     warn err
             cancel       :
-              style      : "modal-cancel"
+              style      : "solid light-gray medium"
               callback   : -> modal.destroy()
 
     if KD.checkFlag('super-admin') or app.originId is KD.whoami().getId()
@@ -159,10 +159,10 @@ class AppDetailsView extends KDScrollView
 
     if state
       text  = 'approve'
-      style = 'modal-clean-green'
+      style = 'solid green medium'
     else
       text  = 'disapprove'
-      style = 'modal-clean-red'
+      style = 'solid red medium'
 
     modal = KDModalView.confirm
       title       : 'Are you sure?'

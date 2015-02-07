@@ -33,6 +33,7 @@ class ActivitySidebar extends KDCustomHTMLView
     super options
 
     {
+      mainController
       notificationController
       computeController
       socialapi
@@ -71,6 +72,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
     @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
+
+    mainController.ready =>
+      KD.whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
+
 
   # event handling
 
@@ -619,7 +624,7 @@ class ActivitySidebar extends KDCustomHTMLView
             tree.expand node
           else
             tree.selectNode node
-            @watchMachineState workspace, machine
+            @watchMachineState data
         else
           tree.collapse node
 
@@ -640,21 +645,27 @@ class ActivitySidebar extends KDCustomHTMLView
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
-  watchMachineState: (workspace, machine) ->
+  watchMachineState: (data) ->
+    {workspace, machine} = data
+
     @watchedMachines  or= {}
-    computeController   = KD.getSingleton 'computeController'
-    appManager          = KD.getSingleton 'appManager'
-    {Running}           = Machine.State
+
+    {Running} = Machine.State
 
     return  if @watchedMachines[machine._id]
 
     callback = (state) =>
-      if state.status is Running
-        machine.status.state = Running
-        if appManager.getFrontApp().mountedMachineUId is machine.uid
-          delete @watchedMachines[machine._id]
+      return  if state.status isnt Running
 
-    computeController.on "public-#{machine._id}", callback
+      machine.status.state = Running
+      delete @watchedMachines[machine._id]
+
+      if data is @latestWorkspaceData
+        @selectWorkspace data
+
+    KD.getSingleton 'computeController'
+      .on "public-#{machine._id}", callback
+
     @watchedMachines[machine._id] = yes
 
 
@@ -980,3 +991,15 @@ class ActivitySidebar extends KDCustomHTMLView
 
     for nodeId, node of nodes when node.data?.jMachine is jMachine
       @machineTree.removeNode nodeId
+
+
+  newWorkspaceCreated: (workspace) ->
+
+    matches = KD.userWorkspaces.filter (w) ->
+      w.machineUId is workspace.machineUId and \
+      w.slug is workspace.slug
+
+    return  if matches.length
+
+    KD.userWorkspaces.push workspace
+    @updateMachineTree()

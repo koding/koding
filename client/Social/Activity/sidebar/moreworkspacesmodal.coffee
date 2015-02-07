@@ -13,17 +13,17 @@ class MoreWorkspacesModal extends SidebarSearchModal
 
   viewAppended: ->
 
-    super
-
     @addButton = new KDButtonView
       title    : "Add Workspace"
-      style    : 'solid green small'
+      style    : 'add-big-btn'
       loader   : yes
       callback : =>
         @destroy()
         KD.singletons.mainView.activitySidebar.addNewWorkspace @getData()
 
-    @addSubView @addButton, '.kdmodal-title'
+    @addSubView @addButton, '.kdmodal-content'
+
+    super
 
 
   populate: ->

@@ -159,13 +159,13 @@ class VideoPopup extends KDView
               buttons       :
                 "No, close it" :
                   title     : "No, close it"
-                  cssClass  : "modal-clean-gray"
+                  cssClass  : "solid light-gray medium"
                   callback  : =>
                     @videoPopup?.close()
                     modal.destroy()
                 "Yes, keep it running" :
                   title     : "Yes, keep it running"
-                  cssClass  : "modal-clean-green"
+                  cssClass  : "solid green medium"
                   callback  : =>
                     modal.destroy()
                     userChoice = yes

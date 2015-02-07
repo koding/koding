@@ -107,13 +107,13 @@ class MainTabView extends KDTabView
       overlay       : yes
       buttons       :
         "Close"     :
-          cssClass  : "modal-clean-gray"
+          cssClass  : "solid red medium"
           title     : "Close"
           callback  : =>
             @appManager.quit appInstance
             modal.destroy()
         "Cancel"    :
-          cssClass  : "modal-cancel"
+          cssClass  : "solid light-gray medium"
           title     : "Cancel"
           callback  : =>
             modal.destroy()

@@ -43,12 +43,6 @@ func (c *Controller) UpdateChannel(pm *models.PushMessage) error {
 
 	pm.EventId = createEventId()
 
-	go func() {
-		if err := c.Broker.UpdateChannel(pm); err != nil {
-			c.logger.Error("Could not push update channel message with body %s to broker: %s", pm.Message.Body, err)
-		}
-	}()
-
 	return c.Pubnub.UpdateChannel(pm)
 }
 
@@ -99,13 +93,6 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 
 	nm.EventName = "message"
 	nm.EventId = createEventId()
-
-	go func() {
-		err := c.Broker.NotifyUser(nm)
-		if err != nil {
-			c.logger.Error("Could not send push notification message '%s' to user %s broker: %s", nm.EventName, nm.Account.Nickname, err)
-		}
-	}()
 
 	return c.Pubnub.NotifyUser(nm)
 }

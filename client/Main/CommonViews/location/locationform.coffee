@@ -72,7 +72,7 @@ class LocationForm extends KDFormViewWithFields
       options.buttons ?= {}
 
       options.buttons.Save ?=
-        style             : 'modal-clean-green'
+        style             : 'solid green medium'
         type              : 'submit'
         loader            : { color : '#fff', diameter : 12 }
 

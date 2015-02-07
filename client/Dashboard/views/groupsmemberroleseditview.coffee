@@ -117,7 +117,7 @@ class GroupsMemberRolesEditView extends JView
       overlay        : yes
       buttons        :
         Kick         :
-          style      : "modal-clean-red"
+          style      : "solid red medium"
           loader     :
             color    : "#444444"
           callback   : =>
@@ -127,7 +127,7 @@ class GroupsMemberRolesEditView extends JView
               modal.buttons.Kick.hideLoader()
               modal.destroy()
         Cancel       :
-          style      : "modal-cancel"
+          style      : "solid light-gray medium"
           callback   : (event)-> modal.destroy()
 
   showErrorMessage:(err)-> KD.showError err

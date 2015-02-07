@@ -19,7 +19,7 @@ class AdminModal extends KDModalViewWithForms
             buttons           :
               Update          :
                 title         : "Update"
-                style         : "modal-clean-gray"
+                style         : "solid light-gray medium"
                 loader        :
                   color       : "#444444"
                   diameter    : 12
@@ -83,7 +83,7 @@ class AdminModal extends KDModalViewWithForms
                     overlay        : yes
                     buttons        :
                       Impersonate  :
-                        style      : "modal-clean-green"
+                        style      : "solid green medium"
                         loader     :
                           color    : "#FFF"
                           diameter : 16
@@ -99,7 +99,7 @@ class AdminModal extends KDModalViewWithForms
             buttons           :
               "Broadcast Message"  :
                 title         : "Broadcast"
-                style         : "modal-clean-gray"
+                style         : "solid light-gray medium"
                 loader        :
                   color       : "#444444"
                   diameter    : 12
