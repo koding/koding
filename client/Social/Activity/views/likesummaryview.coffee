@@ -39,8 +39,9 @@ class ActivityLikeSummaryView extends KDView
     {actorsPreview} = @getData().interactions.like
 
     if liked
-      actorsPreview.unshift KD.whoami()._id
-      @getData().interactions.like.actorsCount += 1
+      if KD.whoami()._id not in actorsPreview
+        actorsPreview.unshift KD.whoami()._id
+        @getData().interactions.like.actorsCount += 1
     else
       index = actorsPreview.indexOf KD.whoami()._id
       if index > -1

@@ -165,3 +165,40 @@ activity.widgetsbar.styl
       margin-top            6px
       display               block
       noTextDeco()
+
+  .socialmedia-widget
+    background              none
+    border                  none
+    padding                 0
+
+    a.kdbutton
+      size                  141px, 29px
+      padding               0
+      fl()
+      noTextDeco()
+
+      &:before
+        content             ''
+        display             inline-block
+        vertical-align      middle
+        margin-right        7px
+
+      .button-title
+        font-size           10px
+        line-height         30px
+
+    .fb
+      margin-left           13px
+
+      &:before
+        r-sprite            'activity', 'facebook-white-8'
+
+      &:hover
+        background-color    #3B5998
+
+    .tw
+      &:before
+        r-sprite            'activity', 'twitter-white-16'
+
+      &:hover
+        background-color    #55ACEE

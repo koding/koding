@@ -263,12 +263,12 @@ class EnvironmentApprovalModal extends KDModalView
         loader            :
           color           : "#444444"
         cssClass          : if options.action is 'delete' \
-                            then "modal-clean-red" else "modal-clean-green"
+                            then "solid red medium" else "solid green medium"
         callback          : =>
           @buttons.Yes.showLoader()
           @emit 'Approved'
       Cancel              :
-        cssClass          : "modal-cancel"
+        cssClass          : "solid light-gray medium"
         callback          : =>
           @emit 'Cancelled'
           @cancel()

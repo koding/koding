@@ -81,10 +81,10 @@ class NotificationController extends KDObject
           """
         buttons       :
           "Refresh":
-            style     : "modal-clean-red"
+            style     : "solid red medium"
             callback  : (event) -> location.replace '/Login'
           "Close"     :
-            style     : "modal-clean-gray"
+            style     : "solid light-gray medium"
             callback  : (event) -> modal.destroy()
 
     @on 'UserBlocked', ({blockedDate}) ->
@@ -106,7 +106,7 @@ class NotificationController extends KDObject
           """
         buttons       :
           "Ok"        :
-            style     : "modal-clean-gray"
+            style     : "solid light-gray medium"
             callback  : (event) ->
               Cookies.expire 'clientId'
               modal.destroy()
