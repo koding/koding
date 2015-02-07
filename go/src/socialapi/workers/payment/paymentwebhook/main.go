@@ -42,6 +42,7 @@ func main() {
 
 	// initialize client to talk to kloud
 	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
+	defer kiteClient.Close()
 
 	// initialize client to send email
 	email := initializeEmail(conf.Email)
