@@ -8,22 +8,22 @@ modalSelector = '.activity-modal.vm-settings'
 
 openVmSettingsModal = (browser) ->
 
-    vmSelector = '.activity-sidebar a.running'
+  vmSelector = '.activity-sidebar a.running'
 
-    browser
-      .waitForElementVisible   vmSelector, 20000
-      .pause                   5000
-      .moveToElement           vmSelector + ' span', 125, 20
-      .click                   vmSelector + ' span'
-      .waitForElementVisible   modalSelector, 20000 # Assertion
+  browser
+    .waitForElementVisible   vmSelector, 20000
+    .pause                   5000
+    .moveToElement           vmSelector + ' span', 125, 20
+    .click                   vmSelector + ' span'
+    .waitForElementVisible   modalSelector, 20000 # Assertion
 
 
 clickMoreButtonInVMSettingsModal = (browser) ->
 
-    browser
-      .waitForElementVisible  '.settings form.with-fields .moreview', 20000
-      .click                  '.settings form.with-fields .moreview label.more'
-      .pause  200
+  browser
+    .waitForElementVisible  '.settings form.with-fields .moreview', 20000
+    .click                  '.settings form.with-fields .moreview label.more'
+    .pause  200
 
 
 clickAddVMButton = (browser) ->
@@ -39,35 +39,35 @@ clickAddVMButton = (browser) ->
 
 seeUpgradeModal = (browser) ->
 
-    clickAddVMButton(browser)
-    browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+  clickAddVMButton(browser)
+  browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
 
-  addDomain = (browser) ->
+addDomain = (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  user = helpers.beginTest(browser)
+  helpers.waitForVMRunning(browser)
 
-    domainSelector    = '.more-form .domains .domains-a-hrefhttplearnkodingcomfaqvm-hostname-target-blank-span-classdomain-helpspan-a-span-classdomain-togglespan span.domain-toggle'
-    paragraph         = helpers.getFakeText()
-    createDomainName  = paragraph.split(' ')[0]
-    domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
+  domainSelector    = '.more-form .domains .domains-a-hrefhttplearnkodingcomfaqvm-hostname-target-blank-span-classdomain-helpspan-a-span-classdomain-togglespan span.domain-toggle'
+  paragraph         = helpers.getFakeText()
+  createDomainName  = paragraph.split(' ')[0]
+  domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
 
-    openVmSettingsModal(browser)
+  openVmSettingsModal(browser)
 
-    clickMoreButtonInVMSettingsModal(browser)
+  clickMoreButtonInVMSettingsModal(browser)
 
-    browser
-      .waitForElementVisible    '.more-form .domains', 20000
-      .waitForElementVisible    domainSelector, 20000
-      .click                    domainSelector
-      .waitForElementVisible    '.domains-view input.text', 20000
-      .setValue                 '.domains-view input.text', createDomainName + '\n'
-      .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
-      .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
-      .assert.containsText      '.domains-view .listview-wrapper', domainName
+  browser
+    .waitForElementVisible    '.more-form .domains', 20000
+    .waitForElementVisible    domainSelector, 20000
+    .click                    domainSelector
+    .waitForElementVisible    '.domains-view input.text', 20000
+    .setValue                 '.domains-view input.text', createDomainName + '\n'
+    .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
+    .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
+    .assert.containsText      '.domains-view .listview-wrapper', domainName
 
-    return domainName
+  return domainName
 
 
 module.exports =
