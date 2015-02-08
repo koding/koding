@@ -27,11 +27,17 @@ func PushMessage(c *models.Channel, eventName string, body interface{}, secretNa
 }
 
 func UpdateInstance(m *models.ChannelMessage, eventName string, body interface{}) error {
+	c, err := models.ChannelById(m.InitialChannelId)
+	if err != nil {
+		return err
+	}
+
 	request := map[string]interface{}{
-		"token":     m.Token,
-		"eventName": eventName,
-		"body":      body,
-		"messageId": m.Id,
+		"token":        m.Token,
+		"eventName":    eventName,
+		"body":         body,
+		"messageId":    m.Id,
+		"channelToken": c.Token,
 	}
 
 	return bongo.B.Emit("dispatcher_message_updated", request)
