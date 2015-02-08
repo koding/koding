@@ -145,10 +145,12 @@ class RealtimeController extends KDController
     {token} = message
 
     channelName = "instance-#{token}"
-    options = { channelName }
 
-    return @subscribePubnub options, callback
+    channelInstance = new PubnubChannel name: channelName
 
+    @channels[channelName] = channelInstance
+
+    return callback null, channelInstance
 
   subscribeNotification: (callback) ->
     unless KD.isPubnubEnabled()
@@ -210,7 +212,15 @@ class RealtimeController extends KDController
           # no need to emit any events when not subscribed
           return  unless @channels[channel]
 
-          @channels[channel].emit eventName, body
+          if eventName.indexOf("instance-") < 0
+            return @channels[channel].emit eventName, body
+
+          events = eventName.split "."
+          instanceChannel = events[0]
+          eventName = events[1]
+          @channels[instanceChannel].emit eventName, body
+
+
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName

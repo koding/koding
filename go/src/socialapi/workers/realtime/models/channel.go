@@ -72,7 +72,7 @@ func NewMessageUpdateChannel(ui UpdateInstanceMessage) *MessageUpdateChannel {
 }
 
 func (mc *MessageUpdateChannel) PrepareName() string {
-	return fmt.Sprintf("instance-%s", mc.Token)
+	return fmt.Sprintf("channel-%s", mc.ChannelToken)
 }
 
 func (mc *MessageUpdateChannel) GrantAccess(p *PubNub, a *Authenticate) error {
