@@ -188,7 +188,7 @@ class RealtimeController extends KDController
 
       channelInstance = new PubnubChannel name: pubnubChannelName
 
-      @pubnub.subscribe
+      err = @pubnub.subscribe
         channel : pubnubChannelName
         message : (message, env, channel) =>
 
@@ -198,6 +198,7 @@ class RealtimeController extends KDController
 
           return  if @eventCache[eventId]
 
+          # TODO delete this periodically
           @eventCache[eventId] = yes
 
           # when a user is connected in two browsers, and leaves a channel, in second one
@@ -214,9 +215,7 @@ class RealtimeController extends KDController
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName
           callback null, channelInstance
-        error   : (err) =>
-          @handleError err
-          callback err
+        error   : (err) => @handleError err
         reconnect: => @getTimeDiffWithServer()
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
@@ -226,6 +225,8 @@ class RealtimeController extends KDController
         # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
         timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
         restore : yes
+
+      return callback err  if err
 
   getTimeDiffWithServer: ->
     @pubnub.time (serverTime) =>
