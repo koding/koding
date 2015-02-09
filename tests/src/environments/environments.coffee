@@ -128,36 +128,6 @@ module.exports =
     browser.end()
 
 
-  addVM: (browser) ->
-
-    modalSelector = '.computeplan-modal.free-plan .kdmodal-inner'
-    pricingPage   = '.content-page.pricing'
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-    seeUpgradeModal(browser)
-
-    browser
-      .waitForElementVisible   modalSelector, 20000
-      .waitForElementVisible   modalSelector + ' a.custom-link-view span', 20000
-      .click                   modalSelector + ' a.custom-link-view span'
-      .waitForElementVisible   pricingPage, 25000
-      .waitForElementVisible   pricingPage + ' .plans .developer', 25000
-      .pause 2000
-      .click                   pricingPage + ' .plans .developer .plan-buy-button'
-
-    helpers.fillPaymentForm(browser)
-
-    browser.url helpers.getUrl() + '/IDE'
-    clickAddVMButton(browser)
-
-    browser
-      .waitForElementVisible    '.env-modal.paid-plan', 25000
-      .click                    '.env-modal.paid-plan button'
-      .waitForElementVisible    'a[href="/IDE/koding-vm-1/my-workspace"]', 25000
-      .end()
-
-
   makeAlwaysOnForNotPaidUser: (browser) ->
 
     buttonSelector = '.more-form .alwayson'
@@ -198,3 +168,33 @@ module.exports =
         assert.notEqual          result.value, domainName # Assertion
 
         browser.end()
+
+
+  addVM: (browser) ->
+
+    modalSelector = '.computeplan-modal.free-plan .kdmodal-inner'
+    pricingPage   = '.content-page.pricing'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+    seeUpgradeModal(browser)
+
+    browser
+      .waitForElementVisible   modalSelector, 20000
+      .waitForElementVisible   modalSelector + ' a.custom-link-view span', 20000
+      .click                   modalSelector + ' a.custom-link-view span'
+      .waitForElementVisible   pricingPage, 25000
+      .waitForElementVisible   pricingPage + ' .plans .developer', 25000
+      .pause 2000
+      .click                   pricingPage + ' .plans .developer .plan-buy-button'
+
+    helpers.fillPaymentForm(browser)
+
+    browser.url helpers.getUrl() + '/IDE'
+    clickAddVMButton(browser)
+
+    browser
+      .waitForElementVisible    '.env-modal.paid-plan', 25000
+      .click                    '.env-modal.paid-plan button'
+      .waitForElementVisible    'a[href="/IDE/koding-vm-1/my-workspace"]', 25000
+      .end()
