@@ -653,10 +653,7 @@ module.exports = class JUser extends jraphical.Module
         callback null
 
 
-  @createGuestUsername = (callback = ->) ->
-
-    callback null, username = "guest-#{rack()}"
-    return username
+  @createGuestUsername = -> "guest-#{rack()}"
 
 
   @fetchGuestUser = (callback)->
