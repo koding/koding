@@ -167,6 +167,21 @@ func (a *AccountRequest) ActiveUsernames() ([]string, error) {
 	return usernames, nil
 }
 
+func (a *AccountRequest) Expire() (interface{}, error) {
+	customer := paymentmodels.NewCustomer()
+	err := customer.ByOldId(a.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	subscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, subscription.Expire()
+}
+
 //----------------------------------------------------------
 // UpdateCreditCard
 //----------------------------------------------------------
