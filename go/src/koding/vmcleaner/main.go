@@ -40,15 +40,17 @@ func main() {
 	conf := initializeConf()
 	modelhelper.Initialize(conf.Mongo)
 
-	defer func() {
-		modelhelper.Close()
-	}()
-
 	// initialize client to talk to kloud
 	KiteClient = initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
 
+	defer func() {
+		modelhelper.Close()
+		KiteClient.Close()
+	}()
+
 	// initialize client to send email
-	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword, conf.SendgridRecipient)
+	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword,
+		conf.SendgridRecipient)
 
 	for _, warning := range Warnings {
 		result := warning.Run()
