@@ -31,6 +31,8 @@ func init() {
 	Initialize(config.MustGet())
 
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	Log.SetLevel(0)
 }
 
 func TestGetAllCustomers(t *testing.T) {
