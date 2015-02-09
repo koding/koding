@@ -391,11 +391,13 @@ class IDE.IDEView extends IDE.WorkspaceTabView
           'Terminate'     :
             callback      : => @terminateSession machine, session
 
+    canTerminateSessions  = sessions.length > 0 and frontApp.amIHost
+
     terminalSessions["New Session"] =
       callback            : => @createTerminal { machine }
-      separator           : sessions.length > 0
+      separator           : canTerminateSessions
 
-    if sessions.length > 0
+    if canTerminateSessions
       terminalSessions["Terminate all"] =
         callback          : => @terminateSessions machine
 
