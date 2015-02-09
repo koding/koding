@@ -131,20 +131,30 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
       success     : (gravatar) =>
 
         if gravatar is "User not found"
-          gravatar              =
-            dummy               : yes
-            photos              : [
-              (value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png')
-            ]
-            preferredUsername   : ''
+          gravatar = @getDummyGravatar()
         else
           gravatar = gravatar.entry.first
 
         @emit 'gravatarInfoFetched', @gravatars[email] = gravatar
 
-      error       : (xhr) ->
+      error       : (xhr) =>
         {responseText} = xhr
-        new KDNotificationView title : responseText
+        console.log "Error while fetching gravatar data - #{responseText}"
+
+        gravatar = @getDummyGravatar()
+        @emit 'gravatarInfoFetched', @gravatars[email] = gravatar
+
+
+  getDummyGravatar: ->
+
+    gravatar =
+      dummy               : yes
+      photos              : [
+        (value            : 'https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.80.png')
+      ]
+      preferredUsername   : ''
+
+    return gravatar
 
 
   submitForm: (event) ->
