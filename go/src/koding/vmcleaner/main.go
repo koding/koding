@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/helper"
 	"time"
@@ -121,5 +120,7 @@ func initializeEmail(username, password, forceRecipient string) kodingemail.Clie
 }
 
 func handleError(err error) {
-	fmt.Println(err)
+	if err != nil {
+		Log.Error(err.Error())
+	}
 }
