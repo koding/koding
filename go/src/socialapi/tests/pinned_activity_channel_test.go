@@ -12,7 +12,7 @@ import (
 )
 
 func TestPinnedActivityChannel(t *testing.T) {
-	Convey("while  testing pinned activity channel", t, func() {
+	ConveySkip("while  testing pinned activity channel", t, func() {
 		rand.Seed(time.Now().UnixNano())
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
 
