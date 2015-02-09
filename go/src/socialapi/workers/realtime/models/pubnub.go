@@ -127,6 +127,8 @@ func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 		return err
 	}
 
+	// Prepend instance id to event name. We are no longer creating a channel
+	// for each message by doing this.
 	um.EventName = fmt.Sprintf("instance-%s.%s", um.Token, um.EventName)
 
 	if err := p.publish(mc, *um); err != nil {

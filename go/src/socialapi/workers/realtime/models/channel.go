@@ -72,6 +72,7 @@ func NewMessageUpdateChannel(ui UpdateInstanceMessage) *MessageUpdateChannel {
 }
 
 func (mc *MessageUpdateChannel) PrepareName() string {
+	// Send message instance events to parent channel itself.
 	return fmt.Sprintf("channel-%s", mc.ChannelToken)
 }
 

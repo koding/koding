@@ -27,6 +27,9 @@ func PushMessage(c *models.Channel, eventName string, body interface{}, secretNa
 }
 
 func UpdateInstance(m *models.ChannelMessage, eventName string, body interface{}) error {
+	// For public messages we are setting this InitialChannelId as the 'public' channel.
+	// Later on if we stop sending all public messages to public channel, we should fetch
+	// the message channel ids
 	c, err := models.ChannelById(m.InitialChannelId)
 	if err != nil {
 		return err
