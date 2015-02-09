@@ -6,6 +6,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
+// This is a general notification that user is inactive.
 var FirstEmail = &Warning{
 	Name: "Find users inactive for > 30 days, send email",
 
@@ -23,6 +24,7 @@ var FirstEmail = &Warning{
 	Action: SendEmail,
 }
 
+// This is a warning that user's vm will be deleted.
 var SecondEmail = &Warning{
 	Name: "Find users inactive for > 45 days, send email",
 
@@ -41,6 +43,7 @@ var SecondEmail = &Warning{
 	Action: SendEmail,
 }
 
+// This is a second warning that user's vm will be deleted.
 var ThirdEmail = &Warning{
 	Name: "Find users inactive for > 52 days, send email",
 
@@ -59,6 +62,7 @@ var ThirdEmail = &Warning{
 	Action: SendEmail,
 }
 
+// User hasn't come back, take action.
 var FourthDeleteVM = &Warning{
 	Name: "Find users inactive for > 60 days, delete ALL their vms",
 

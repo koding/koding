@@ -9,6 +9,7 @@ import (
 type Action func(*models.User, int) error
 
 var (
+	// Sendgrid template ids.
 	templates = map[int]string{
 		1: "8239b8ac-032d-4f90-80de-a144519a945c",
 		2: "a987a9c0-f116-4e75-bf18-bff3c1c11b37",

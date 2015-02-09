@@ -11,13 +11,21 @@ import (
 )
 
 type Warning struct {
-	Name                     string
-	Level                    int
-	Interval                 int
+	Name     string
+	Level    int
+	Interval int
+
+	// Defines how long between emails from above level & this.
 	IntervalSinceLastWarning time.Duration
-	Select                   bson.M
-	Action                   Action
-	Exempt                   []Exempt
+
+	// Query that defines which user to select.
+	Select bson.M
+
+	// Action the warning will take if user isn't exempt.
+	Action Action
+
+	// Definitions of exemptions.
+	Exempt []Exempt
 }
 
 func (w *Warning) Run() Result {
@@ -50,6 +58,8 @@ func (w *Warning) Run() Result {
 	return Result{}
 }
 
+// `FindAndLockUser` finds user with warning query and locks it
+// so other workers can't work on it.
 func (w *Warning) FindAndLockUser() (*models.User, error) {
 	w.Select["assigned"] = bson.M{"$ne": true}
 
@@ -90,6 +100,8 @@ func (w *Warning) Act(user *models.User) error {
 	return nil
 }
 
+// `UpdateAndReleaseUser` updates user to indicate current warning
+// has been acted upon & releases user for next warning.
 func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 	var query = func(c *mgo.Collection) error {
 		find := bson.M{"_id": userId}

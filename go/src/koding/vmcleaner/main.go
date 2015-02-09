@@ -19,6 +19,7 @@ var (
 
 	Log = helper.CreateLogger(WorkerName, false)
 
+	// List of warnings to iterate upon in a certain interval.
 	Warnings = []*Warning{
 		FirstEmail, SecondEmail, ThirdEmail, FourthDeleteVM,
 	}

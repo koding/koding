@@ -43,6 +43,7 @@ func IsUserVMsEmpty(user *models.User, _ *Warning) bool {
 	return len(machines) == 0
 }
 
+// Make sure enough time has elapsed between emails to user.
 func IsTooEarly(user *models.User, w *Warning) bool {
 	lastLevel := fmt.Sprintf("%d", w.PreviousLevel())
 	lastWarned, ok := user.Inactive.Warnings[lastLevel]
