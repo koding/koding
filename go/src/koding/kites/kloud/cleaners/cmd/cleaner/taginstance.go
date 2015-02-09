@@ -40,6 +40,21 @@ func (t *TagInstances) Process() {
 		emptyInstances.Add(client, untaggedInstances)
 	})
 
+	if emptyInstances.Total() > 50 {
+		fmt.Printf("tagInstances: oops there are '%d' untagged instances, something must be wrong\n",
+			emptyInstances.Total())
+
+		// log instance struct so we can see why this happened
+		emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
+			for _, instance := range instances {
+				fmt.Printf("[%s] instance = %+v tags %+v\n",
+					client.Region.Name, instance, instance.Tags)
+			}
+		})
+
+		return // do not continue
+	}
+
 	t.untagged = make(map[*ec2.EC2][]tagData, 0)
 	emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
 		regionUntagged := make([]tagData, 0)
