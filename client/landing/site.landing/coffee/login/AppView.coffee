@@ -17,6 +17,8 @@ module.exports = class LoginView extends JView
   ENTER          = 13
   USERNAME_VALID = no
 
+  pendingSignupRequest = no
+
   backgroundImages  = [
     [ 'Charlie Foster', 'http://www.flickr.com/photos/charliefoster/' ]
     [ 'Dietmar Becker', 'http://pican.de/' ]
@@ -295,7 +297,6 @@ module.exports = class LoginView extends JView
       attributes :
         src      : "//gravatar.com/avatar/#{requestHash}?size=#{size}&d=#{fallback}&r=g"
 
-
     fields.email =
       itemClass : KDCustomHTMLView
       partial   : email
@@ -346,7 +347,8 @@ module.exports = class LoginView extends JView
         defaultValue : familyName
         label        : 'Last Name'
 
-    USERNAME_VALID = no
+    USERNAME_VALID       = no
+    pendingSignupRequest = no
     @signupModal = new KDModalViewWithForms
       cssClass                        : 'extra-info password'
       width                           : 360
@@ -422,8 +424,7 @@ module.exports = class LoginView extends JView
             input.setValidationResult 'usernameCheck', null
             USERNAME_VALID = yes
 
-            if @signupModal.getOption 'pendingSubmit'
-              @checkBeforeRegister()
+            @checkBeforeRegister()  if pendingSignupRequest
 
           error       : ({responseJSON}) =>
 
@@ -442,7 +443,7 @@ module.exports = class LoginView extends JView
               input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
               USERNAME_VALID = no
 
-            @signupModal.unsetOption 'pendingSubmit'
+            pendingSignupRequest = no
 
 
   changeButtonState: (button, state) ->
@@ -463,7 +464,7 @@ module.exports = class LoginView extends JView
 
     {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
 
-    @unsetOption 'pendingSubmit'
+    pendingSignupRequest = no
 
     if USERNAME_VALID and username.input.valid
       formData = @signupModal.getOption "userData"
@@ -476,7 +477,7 @@ module.exports = class LoginView extends JView
       @signupModal.destroy()
       @doRegister formData, @registerForm
     else if usernameCheckTimer?
-      @signupModal.setOption 'pendingSubmit', yes
+      pendingSignupRequest = yes
 
 
   doRegister: (formData, form) ->
