@@ -190,7 +190,7 @@ module.exports = class AceView extends JView
 
         @getDelegate().openSavedFile newFile, contents
 
-    , { inputDefaultValue: file.name }
+    , { inputDefaultValue: file.name, machine: file.machine }
 
   _windowDidResize:->
     height = @getHeight()
