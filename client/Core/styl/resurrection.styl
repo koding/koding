@@ -499,25 +499,31 @@ div.nominateicon
       .kdnotification-content
         font-size             13px
 
+
+.kdmodal.vm-settings
+  .kdmodal-content
+    overflow              visible
+    margin                20px !important
+
+.kdmodal.ws-settings
+  .kdmodal-content
+    overflow              visible
+    margin                5px 16px !important
+
 .kdmodal.ws-settings
 .kdmodal.vm-settings
 
   background              #fafafa !important
   border-color            #fafafa !important
-  overflow-y              scroll
 
   .kdmodal-title
     hidden()
-
-  .kdmodal-content
-    overflow              visible
-    margin                0 !important
 
   .close-icon
     hidden()
 
   .modal-arrow
-    left                  -41px !important
+    left                  -21px !important
     border-right-color    #fafafa !important
     vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
 
@@ -526,7 +532,9 @@ div.nominateicon
 
   &.activity-modal
     .kdmodal-inner
-      margin              21px
+      margin              0
+      padding             0
+      overflow-y          auto
 
   .kdformview .formline
 
@@ -554,7 +562,7 @@ div.nominateicon
       color               #909090
       font-size           12px
       line-height         21px
-      font-weight         600
+      font-weight         400
       noTextDeco()
 
       a
@@ -787,7 +795,7 @@ div.nominateicon
     font-size             12px
     line-height           20px
     margin                0
-    font-weight           600
+    font-weight           500
     padding-left          3px
     color                 #a3a3a3
 
@@ -832,7 +840,7 @@ div.nominateicon
     border-bottom         1px solid #e0e0e0
 
   .modal-arrow
-    left                  -36px !important
+    left                  -22px !important
     border-right-color    #242424 !important
     vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
     &:before
@@ -847,7 +855,7 @@ div.nominateicon
 
   &.activity-modal
     .kdmodal-inner
-      margin              5px 16px
+      margin              0
 
   &.guides
     label.kdlabel
