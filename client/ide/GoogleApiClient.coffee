@@ -68,6 +68,8 @@ class GoogleApiClient extends KDObject
       GoogleApiClient.readyState = yes
       GoogleApiClient.emit 'ready'
 
+    return window.handleGoogleApiLoaded()  if window.gapi
+
     identifier = 'google-api-client'
     url = 'https://apis.google.com/js/client.js?onload=handleGoogleApiLoaded'
     KodingAppsController.appendHeadElement 'script', {identifier, url}
