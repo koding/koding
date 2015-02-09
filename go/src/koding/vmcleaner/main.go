@@ -7,6 +7,7 @@ import (
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
+	"github.com/robfig/cron"
 
 	"github.com/koding/kite"
 	"github.com/koding/kodingemail"
@@ -46,17 +47,26 @@ func main() {
 
 	defer func() {
 		modelhelper.Close()
-		KiteClient.Close()
+
+		if KiteClient != nil {
+			KiteClient.Close()
+		}
 	}()
 
 	// initialize client to send email
 	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword,
 		conf.SendgridRecipient)
 
-	for _, warning := range Warnings {
-		result := warning.Run()
-		Log.Info(result.String())
-	}
+	c := cron.New()
+
+	c.AddFunc("@daily", func() {
+		for _, warning := range Warnings {
+			result := warning.Run()
+			Log.Info(result.String())
+		}
+	})
+
+	c.Start()
 }
 
 func initializeConf() *Vmcleaner {
