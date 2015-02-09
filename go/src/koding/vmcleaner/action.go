@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"strings"
 )
 
 type Action func(*models.User, int) error
@@ -49,10 +50,19 @@ func DeleteVMs(user *models.User, _ int) error {
 			MachineId: machine.ObjectId.Hex()},
 		)
 
+		if err != nil && !isVmAlreadyStoppedErr(err) {
+			Log.Error("Error stopping machine:%s for username: %s, %v", user.Name,
+				machine.ObjectId, err)
+		}
+
 		if err != nil {
 			Log.Error(err.Error())
 		}
 	}
 
 	return nil
+}
+
+func isVmAlreadyStoppedErr(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "already stopped")
 }
