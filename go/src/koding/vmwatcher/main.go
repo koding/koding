@@ -107,6 +107,7 @@ func main() {
 			switch signal {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
 				listener.Close()
+				controller.Klient.Close()
 				os.Exit(0)
 			}
 		}
