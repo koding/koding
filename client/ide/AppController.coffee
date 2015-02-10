@@ -1821,8 +1821,6 @@ class IDEAppController extends AppController
 
 
   handleParticipantLeaveAction: ->
-    # remove the leaving participant's info from the collaborative doc
-    @removeParticipant KD.nick()
 
     options   =
       title   : 'Are you sure?'
@@ -1837,6 +1835,8 @@ class IDEAppController extends AppController
       KD.singletons.socialapi.channel.leave options, (err) =>
         return KD.showError err  if err
         @setMachineUser [KD.whoami()], no, => @quit()
+        # remove the leaving participant's info from the collaborative doc
+        @removeParticipant KD.nick()
 
 
   removeMachineNode: ->
