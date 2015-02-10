@@ -38,6 +38,10 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'scrollPastEnd', state
 
+    @enableAutocomplete       = new KodingSwitch
+      cssClass           : "tiny settings-on-off"
+      callback           : (state) => @emit 'SettingsChanged', 'enableAutocomplete', state
+
     @openRecentFiles     = new KodingSwitch
       cssClass           : "tiny settings-on-off"
       callback           : (state) => @emit 'SettingsChanged', 'openRecentFiles', state
@@ -77,6 +81,7 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       'theme', 'useSoftTabs', 'showGutter', 'useWordWrap', 'showPrintMargin'
       'highlightActiveLine', 'showInvisibles', 'fontSize', 'tabSize'
       'keyboardHandler', 'scrollPastEnd', 'openRecentFiles', 'useAutosave'
+      'enableAutocomplete'
     ]
 
 
@@ -86,6 +91,7 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
     showGutter           : yes
     highlightActiveLine  : yes
     scrollPastEnd        : yes
+    enableAutocomplete   : yes
     openRecentFiles      : yes
     showInvisibles       : no
     useWordWrap          : no
@@ -107,6 +113,7 @@ class IDE.EditorSettingsView extends IDE.IDESettingsView
       <p>Highlight active line           {{> @highlightActiveLine}}</p>
       <p>Show invisibles                 {{> @showInvisibles}}</p>
       <p>Use scroll past end             {{> @scrollPastEnd}}</p>
+      <p>Enable autocomplete             {{> @enableAutocomplete}}</p>
       <p class="with-select">Key binding {{> @keyboardHandler}}</p>
       <p class="with-select">Font size   {{> @fontSize}}</p>
       <p class="with-select">Theme       {{> @theme}}</p>
