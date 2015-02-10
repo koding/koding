@@ -83,7 +83,7 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 
 func (w *Warning) IsUserExempt(user *models.User) bool {
 	for _, exemptFn := range w.Exempt {
-		yes := exemptFn(user, w)
+		yes, _ := exemptFn(user, w)
 		if yes {
 			return true
 		}

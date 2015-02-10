@@ -38,9 +38,9 @@ func TestIsUserPaid(t *testing.T) {
 		err = modelhelper.Mongo.Run(modelhelper.AccountsCollection, query)
 		So(err, ShouldBeNil)
 
-		Convey("Then it returns true if error fetching plan", func() {
-			yes := IsUserPaid(user, warning)
-			So(yes, ShouldBeTrue)
+		Convey("Then it returns false if error fetching plan", func() {
+			_, err := IsUserPaid(user, warning)
+			So(err, ShouldNotBeNil)
 		})
 
 		Convey("Then it returns true if user is paid", func() {
@@ -62,6 +62,7 @@ func TestIsUserPaid(t *testing.T) {
 			paymentclient := paymentapi.New(url.String())
 
 			yes, err := paymentclient.IsPaidAccount(account)
+
 			So(err, ShouldBeNil)
 			So(yes, ShouldBeTrue)
 		})
@@ -108,8 +109,9 @@ func TestIsUserBlocked(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true for exempt", func() {
-			yes := IsUserBlocked(user, warning)
-			So(yes, ShouldBeTrue)
+			isBlocked, err := IsUserBlocked(user, warning)
+			So(err, ShouldBeNil)
+			So(isBlocked, ShouldBeTrue)
 		})
 
 		Reset(func() {
@@ -126,8 +128,10 @@ func TestIsUserVMsEmpty(t *testing.T) {
 
 		So(err, ShouldBeNil)
 		Convey("Then it returns true for exempt", func() {
-			yes := IsUserVMsEmpty(user, warning)
-			So(yes, ShouldBeTrue)
+			noVms, err := IsUserVMsEmpty(user, warning)
+
+			So(err, ShouldBeNil)
+			So(noVms, ShouldBeTrue)
 		})
 
 		Reset(func() {
@@ -140,8 +144,10 @@ func TestIsUserVMsEmpty(t *testing.T) {
 
 		So(err, ShouldBeNil)
 		Convey("Then it returns true for exempt", func() {
-			no := IsUserVMsEmpty(user, warning)
-			So(no, ShouldBeFalse)
+			noVms, err := IsUserVMsEmpty(user, warning)
+
+			So(err, ShouldBeNil)
+			So(noVms, ShouldBeTrue)
 		})
 
 		Reset(func() {
@@ -158,8 +164,10 @@ func TestIsTooSoon(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true if warned time < warning interval", func() {
-			yes := IsTooSoon(user, warning)
-			So(yes, ShouldBeFalse)
+			tooSoon, err := IsTooSoon(user, warning)
+
+			So(err, ShouldBeNil)
+			So(tooSoon, ShouldBeFalse)
 
 			Reset(func() {
 				deleteUserWithUsername(user)
@@ -185,8 +193,10 @@ func TestIsTooSoon(t *testing.T) {
 			user, err := modelhelper.GetUser(user.Name)
 			So(err, ShouldBeNil)
 
-			no := IsTooSoon(user, warning)
-			So(no, ShouldBeTrue)
+			tooSoon, err := IsTooSoon(user, warning)
+
+			So(err, ShouldBeNil)
+			So(tooSoon, ShouldBeTrue)
 		})
 
 		Reset(func() {
