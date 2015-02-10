@@ -66,7 +66,7 @@ func GetRunningVms() ([]models.Machine, error) {
 			machines = append(machines, machine)
 		}
 
-		return nil
+		return iter.Close()
 	}
 
 	err := Mongo.Run(MachinesColl, query)

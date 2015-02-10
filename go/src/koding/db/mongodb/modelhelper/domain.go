@@ -133,7 +133,7 @@ func GetDomains() []models.Domain {
 			domains = append(domains, domain)
 		}
 
-		return nil
+		return iter.Close()
 	}
 
 	Mongo.Run("jDomains", query)
