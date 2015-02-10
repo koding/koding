@@ -17,6 +17,8 @@ module.exports = class LoginView extends JView
   ENTER          = 13
   USERNAME_VALID = no
 
+  pendingSignupRequest = no
+
   backgroundImages  = [
     [ 'Charlie Foster', 'http://www.flickr.com/photos/charliefoster/' ]
     [ 'Dietmar Becker', 'http://pican.de/' ]
@@ -295,16 +297,9 @@ module.exports = class LoginView extends JView
       attributes :
         src      : "//gravatar.com/avatar/#{requestHash}?size=#{size}&d=#{fallback}&r=g"
 
-
     fields.email =
       itemClass : KDCustomHTMLView
       partial   : email
-
-    handleKeyup = (event) =>
-
-      return  unless event.which is ENTER
-      @signupModal.modalTabs.forms.extraInformation.buttons.continue.click()
-
 
     fields.username =
       name               : 'username'
@@ -318,7 +313,6 @@ module.exports = class LoginView extends JView
         attributes       :
           testpath       : 'register-form-username'
         focus            : -> @parent.icon.unsetTooltip()
-        keyup            : handleKeyup
         validate         :
           container      : this
           rules          :
@@ -347,15 +341,14 @@ module.exports = class LoginView extends JView
       fields.firstName =
         defaultValue : givenName
         label        : 'First Name'
-        keyup        : handleKeyup
 
     if familyName
       fields.lastName =
         defaultValue : familyName
         label        : 'Last Name'
-        keyup        : handleKeyup
 
-
+    USERNAME_VALID       = no
+    pendingSignupRequest = no
     @signupModal = new KDModalViewWithForms
       cssClass                        : 'extra-info password'
       width                           : 360
@@ -364,25 +357,14 @@ module.exports = class LoginView extends JView
       tabs                            :
         forms                         :
           extraInformation            :
-            callback                  : =>
-
-              {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
-
-              if USERNAME_VALID and username.input.valid
-                formData.username        = username.input.getValue()
-                formData.passwordConfirm = formData.password
-                formData.firstName = firstName?.getValue()
-                formData.lastName = lastName?.getValue()
-
-                @doRegister formData, @registerForm
-                @signupModal.destroy()
-
+            callback                  : @bound "checkBeforeRegister"
             fields                    : fields
             buttons                   :
               continue                :
                 title                 : 'LET\'S GO'
                 style                 : 'solid green medium'
                 type                  : 'submit'
+    @signupModal.setOption 'userData', formData
 
     usernameView = @signupModal.modalTabs.forms.extraInformation.inputs.username
     usernameView.setOption 'stickyTooltip', yes
@@ -395,11 +377,14 @@ module.exports = class LoginView extends JView
 
     @signupModal.once 'KDObjectWillBeDestroyed', =>
       KD.utils.killWait usernameCheckTimer
+      usernameCheckTimer = null
+
       mainView.unsetClass 'blur'
       form.button.hideLoader()
       form.email.icon.unsetTooltip()
       form.password.icon.unsetTooltip()
       usernameView.icon.unsetTooltip()
+
       @signupModal = null
 
     @signupModal.once 'viewAppended', =>
@@ -413,28 +398,38 @@ module.exports = class LoginView extends JView
   usernameCheckTimer = null
 
   usernameCheck:(input, event, delay=800)->
-    return if event?.which is 9
-    return if input.getValue().length < 4
+
+    return  if event?.which is 9
+    return  if input.getValue().length < 4
 
     KD.utils.killWait usernameCheckTimer
+    usernameCheckTimer = null
+
     input.setValidationResult "usernameCheck", null
     username = input.getValue()
 
     if input.valid
       usernameCheckTimer = KD.utils.wait delay, =>
+        return  unless @signupModal?
+
         $.ajax
           url         : "/Validate/Username/#{username}"
           type        : 'POST'
           xhrFields   : withCredentials : yes
           success     : =>
 
-            return  if not @signupModal
+            usernameCheckTimer = null
+            return  unless @signupModal?
 
             input.setValidationResult 'usernameCheck', null
             USERNAME_VALID = yes
+
+            @checkBeforeRegister()  if pendingSignupRequest
+
           error       : ({responseJSON}) =>
 
-            return  if not @signupModal
+            usernameCheckTimer = null
+            return  unless @signupModal?
 
             {forbidden, kodingUser} = responseJSON
 
@@ -448,6 +443,8 @@ module.exports = class LoginView extends JView
               input.setValidationResult "usernameCheck", "Sorry, there is a problem with \"#{username}\"!"
               USERNAME_VALID = no
 
+            pendingSignupRequest = no
+
 
   changeButtonState: (button, state) ->
 
@@ -459,6 +456,28 @@ module.exports = class LoginView extends JView
       button.setClass 'red'
       button.unsetClass 'green'
       button.disable()
+
+
+  checkBeforeRegister: ->
+
+    return  unless @signupModal?
+
+    {username, firstName, lastName} = @signupModal.modalTabs.forms.extraInformation.inputs
+
+    pendingSignupRequest = no
+
+    if USERNAME_VALID and username.input.valid
+      formData = @signupModal.getOption "userData"
+
+      formData.username        = username.input.getValue()
+      formData.passwordConfirm = formData.password
+      formData.firstName       = firstName?.getValue()
+      formData.lastName        = lastName?.getValue()
+
+      @signupModal.destroy()
+      @doRegister formData, @registerForm
+    else if usernameCheckTimer?
+      pendingSignupRequest = yes
 
 
   doRegister: (formData, form) ->
