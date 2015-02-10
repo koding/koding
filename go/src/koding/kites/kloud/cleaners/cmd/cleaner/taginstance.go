@@ -24,8 +24,9 @@ type tagData struct {
 
 func (t *TagInstances) Process() {
 	emptyInstances := lookup.NewMultiInstances()
-	ids := make([]string, 0)
 
+	// first collect all untagged instances. We can untagged instances when
+	// `instance.Tags` is empty
 	t.Instances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
 		untaggedInstances := make(lookup.Instances, 0)
 
@@ -33,13 +34,13 @@ func (t *TagInstances) Process() {
 			// no tags available
 			if len(instance.Tags) == 0 {
 				untaggedInstances[id] = instance
-				ids = append(ids, id)
 			}
 		}
 
 		emptyInstances.Add(client, untaggedInstances)
 	})
 
+	// this is just here for debugging, remove once you are finished
 	if emptyInstances.Total() > 50 {
 		fmt.Printf("tagInstances: oops there are '%d' untagged instances, something must be wrong\n",
 			emptyInstances.Total())
@@ -55,6 +56,8 @@ func (t *TagInstances) Process() {
 		return // do not continue
 	}
 
+	// next fetch the necessary tag data from MongoDB, so we can tag again the
+	// untagged instances
 	t.untagged = make(map[*ec2.EC2][]tagData, 0)
 	emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
 		regionUntagged := make([]tagData, 0)
