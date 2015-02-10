@@ -498,11 +498,13 @@ class IDEAppController extends AppController
 
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
+
   moveTab: (direction) ->
 
-    return unless @activeTabView.parent?
+    tabView = @activeTabView
+    return unless tabView.parent?
 
-    panel = @activeTabView.parent.parent
+    panel = tabView.parent.parent
     return  unless panel instanceof KDSplitViewPanel
 
     targetOffset = @layout[direction](panel._layout.data.offset)
@@ -510,19 +512,28 @@ class IDEAppController extends AppController
 
     targetPanel = @layoutMap[targetOffset]
 
-    {pane} = @activeTabView.removePane @activeTabView.getActivePane(), yes, yes
+    tabView.detachInProgress = yes
+
+    {pane} = tabView.removePane tabView.getActivePane(), yes, yes
 
     targetPanel.subViews.first.tabView.addPane pane
     @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
 
-  moveTabUp: -> @moveTab('north')
+    tabView.detachInProgress = no
 
-  moveTabDown: -> @moveTab('south')
 
-  moveTabLeft: -> @moveTab('west')
+  moveTabUp: -> @moveTab 'north'
 
-  moveTabRight: -> @moveTab('east')
+
+  moveTabDown: -> @moveTab 'south'
+
+
+  moveTabLeft: -> @moveTab 'west'
+
+
+  moveTabRight: -> @moveTab 'east'
+
 
   goToLeftTab: ->
 
