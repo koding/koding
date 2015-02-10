@@ -146,6 +146,8 @@ class RealtimeController extends KDController
 
     channelName = "instance-#{token}"
 
+    return callback null, @channels[channelName]  if @channels[channelName]
+
     # just create a channel for instance event reception
     channelInstance = new PubnubChannel name: channelName
 
@@ -200,10 +202,14 @@ class RealtimeController extends KDController
 
           {eventName, body, eventId} = message
 
-          return  if @eventCache[eventId]
+          return  unless eventName and body
 
-          # TODO delete this periodically
-          @eventCache[eventId] = yes
+          if eventId?
+            return  if @eventCache[eventId]
+
+            # TODO delete this periodically
+            @eventCache[eventId] = yes
+
 
           # when a user is connected in two browsers, and leaves a channel, in second one
           # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
@@ -220,8 +226,15 @@ class RealtimeController extends KDController
             return @channels[channel].emit eventName, body
 
           events = eventName.split "."
+          if events.length < 2
+            warn 'could not parse event name', eventName
+            return
+
           instanceChannel = events[0]
           eventName = events[1]
+
+          return  unless @channels[instanceChannel]
+
           @channels[instanceChannel].emit eventName, body
 
 
