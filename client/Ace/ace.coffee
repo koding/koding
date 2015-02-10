@@ -400,8 +400,8 @@ class Ace extends KDView
       @editor.setOptions
         enableBasicAutocompletion: value
         enableSnippets: value
-    return  unless save
-    @appStorage.setValue 'enableAutocomplete', value
+
+    @appStorage.setValue 'enableAutocomplete', value  if save
 
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber
