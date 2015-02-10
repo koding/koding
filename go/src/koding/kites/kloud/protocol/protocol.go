@@ -35,7 +35,7 @@ type Provider interface {
 	Resize(*Machine) (*Artifact, error)
 
 	// CreateSnapshot creates a new snapshot from the given machine
-	CreateSnapshot(*Machine) error
+	CreateSnapshot(*Machine) (*Artifact, error)
 
 	// Info returns full information about a single machine
 	Info(*Machine) (*InfoArtifact, error)

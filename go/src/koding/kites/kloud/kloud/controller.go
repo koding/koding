@@ -32,7 +32,7 @@ var states = map[string]*statePair{
 	"restart":        &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
 	"resize":         &statePair{initial: machinestate.Pending, final: machinestate.Running},
 	"reinit":         &statePair{initial: machinestate.Terminating, final: machinestate.Running},
-	"createSnapshot": &statePair{initial: machinestate.Stopping, final: machinestate.Running},
+	"createSnapshot": &statePair{initial: machinestate.Pending, final: machinestate.Running},
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
