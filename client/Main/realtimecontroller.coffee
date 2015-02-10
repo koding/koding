@@ -18,7 +18,7 @@ class RealtimeController extends KDController
 
     super options, data
 
-    {subscribekey, ssl} = KD.config.pubnub
+    {subscribekey} = KD.config.pubnub
     @timeDiff = 0
 
     @authenticated = false
@@ -27,7 +27,7 @@ class RealtimeController extends KDController
       @pubnub = PUBNUB.init
         subscribe_key : subscribekey
         uuid          : KD.whoami()._id
-        ssl           : ssl
+        ssl           : window.location.protocol is 'https:'
 
       @getTimeDiffWithServer()
 
