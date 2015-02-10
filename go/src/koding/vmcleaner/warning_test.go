@@ -67,8 +67,8 @@ func TestIsUserExempt(t *testing.T) {
 
 		Convey("Then it should be exempt", func() {
 			warning := &Warning{
-				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
-					return true
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) (bool, error) {
+					return true, nil
 				}},
 			}
 
@@ -77,8 +77,8 @@ func TestIsUserExempt(t *testing.T) {
 
 		Convey("Then it should not be exempt", func() {
 			warning := &Warning{
-				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
-					return false
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) (bool, error) {
+					return false, nil
 				}},
 			}
 
@@ -88,8 +88,8 @@ func TestIsUserExempt(t *testing.T) {
 		Convey("Then it should be exempt even if one condition is exempt", func() {
 			warning := &Warning{
 				Exempt: []Exempt{
-					func(_ *models.User, _ *Warning) bool { return false },
-					func(_ *models.User, _ *Warning) bool { return true },
+					func(_ *models.User, _ *Warning) (bool, error) { return false, nil },
+					func(_ *models.User, _ *Warning) (bool, error) { return true, nil },
 				},
 			}
 
@@ -116,8 +116,8 @@ func TestAct(t *testing.T) {
 					return nil
 				},
 
-				Exempt: []Exempt{func(user *models.User, _ *Warning) bool {
-					return false
+				Exempt: []Exempt{func(user *models.User, _ *Warning) (bool, error) {
+					return false, nil
 				}},
 			}
 
@@ -142,8 +142,8 @@ func TestAct(t *testing.T) {
 					return nil
 				},
 
-				Exempt: []Exempt{func(_ *models.User, _ *Warning) bool {
-					return true
+				Exempt: []Exempt{func(_ *models.User, _ *Warning) (bool, error) {
+					return true, nil
 				}},
 			}
 

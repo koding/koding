@@ -7,49 +7,41 @@ import (
 	"socialapi/workers/payment/paymentapi"
 )
 
-type Exempt func(*models.User, *Warning) bool
+type Exempt func(*models.User, *Warning) (bool, error)
 
 // All paid users are exempt.
-func IsUserPaid(user *models.User, _ *Warning) bool {
+func IsUserPaid(user *models.User, _ *Warning) (bool, error) {
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {
-		Log.Error("Error fetching account with username: %s", user.Name)
-		return false
+		return false, err
 	}
 
 	paymentclient := paymentapi.New("")
-	isPaid, err := paymentclient.IsPaidAccount(account)
-	if err != nil {
-		Log.Error("Error fetching plan for user: %s, default to paid: %v", user.Name, err)
-		return true
-	}
-
-	return isPaid
+	return paymentclient.IsPaidAccount(account)
 }
 
 // Blocked users don't get an email, but vms get deleted.
-func IsUserBlocked(user *models.User, _ *Warning) bool {
-	return user.Status == modelhelper.UserStatusBlocked
+func IsUserBlocked(user *models.User, _ *Warning) (bool, error) {
+	return user.Status == modelhelper.UserStatusBlocked, nil
 }
 
 // If user has no vm, don't send email saying their vms will be deleted.
-func IsUserVMsEmpty(user *models.User, _ *Warning) bool {
-	machines, err := modelhelper.GetMachines(user.ObjectId)
+func IsUserVMsEmpty(user *models.User, _ *Warning) (bool, error) {
+	machines, err := modelhelper.GetMachinesByUsername(user.Name)
 	if err != nil {
-		Log.Error("Error fetching vms for user: %s, default to false: %v", user.Name, err)
-		return true
+		return false, err
 	}
 
-	return len(machines) == 0
+	return len(machines) == 0, nil
 }
 
 // Make sure enough time has elapsed between emails to user.
-func IsTooSoon(user *models.User, w *Warning) bool {
+func IsTooSoon(user *models.User, w *Warning) (bool, error) {
 	lastLevel := fmt.Sprintf("%d", w.PreviousLevel())
 	lastWarned, ok := user.Inactive.Warnings[lastLevel]
 	if !ok {
-		return false
+		return false, nil
 	}
 
-	return !lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(now())
+	return !lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(now()), nil
 }
