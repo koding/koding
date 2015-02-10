@@ -118,9 +118,3 @@ func initializeKiteClient(kloudKey, kloudAddr string) (*kite.Client, error) {
 func initializeEmail(username, password, forceRecipient string) kodingemail.Client {
 	return kodingemail.NewSG(username, password, forceRecipient)
 }
-
-func handleError(err error) {
-	if err != nil {
-		Log.Error(err.Error())
-	}
-}
