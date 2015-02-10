@@ -72,6 +72,8 @@ type SubscriptionsResponse struct {
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
 	Provider           string    `json:"provider"`
+	ExpiredAt          time.Time `json:"expiredAt"`
+	CanceledAt         time.Time `json:"canceledAt"`
 	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
@@ -128,6 +130,8 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		CurrentPeriodEnd:   currentSubscription.CurrentPeriodEnd,
 		State:              currentSubscription.State,
 		Provider:           currentSubscription.Provider,
+		ExpiredAt:          currentSubscription.ExpiredAt,
+		CanceledAt:         currentSubscription.CanceledAt,
 	}
 
 	return resp, nil
