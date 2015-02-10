@@ -973,6 +973,22 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        unless referrer?
+          return queue.next()
+
+        if username is referrer
+          console.error "User (#{username}) tried to refer themself."
+          return queue.next()
+
+        account.update $set: { referrerUsername: referrer }, (err)->
+
+          if err?
+          then console.error err
+          else console.log "reward saved for #{username} from #{referrer}"
+
+          queue.next()
+
+      ->
         user.setPassword password, (err) ->
           return callback err  if err?
           queue.next()
@@ -988,10 +1004,6 @@ module.exports = class JUser extends jraphical.Module
           user.verifyByPin resendIfExists: yes, (err)->
             console.warn "Failed to send verification token:", err  if err
             queue.next()
-
-      ->
-        JAccount.emit "AccountRegistered", account, referrer
-        queue.next()
 
       ->
         callback error, {account, newToken}
