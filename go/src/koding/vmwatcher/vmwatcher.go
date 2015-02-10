@@ -3,6 +3,8 @@ package main
 import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"math/rand"
+	"time"
 )
 
 var limitsToAction = map[string]func(string, string, string) error{
@@ -95,6 +97,8 @@ func extractUsernames(machines []*models.Machine) []interface{} {
 
 func act(machines []*models.Machine, limit string, fn func(string, string, string) error) error {
 	for _, machine := range machines {
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+
 		err := fn(machine.ObjectId.Hex(), machine.Credential, limit)
 		if err != nil {
 			Log.Error(err.Error())
