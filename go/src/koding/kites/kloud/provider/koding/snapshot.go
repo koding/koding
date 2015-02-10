@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+
+	"github.com/mitchellh/goamz/ec2"
 )
 
 func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, error) {
@@ -12,7 +14,7 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 		return nil, err
 	}
 
-	a.Push("Creating snapshot initialized", 10, machinestate.Pending)
+	a.Push("Creating snapshot initialized", 10, machinestate.Snapshotting)
 	instance, err := a.Instance(a.Id())
 	if err != nil {
 		return nil, err
@@ -33,28 +35,39 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id)
 
 	a.Log.Debug("[%s] Creating snapshot '%s'", m.Id, snapshotDesc)
-	a.Push("Creating snapshot", 40, machinestate.Pending)
+	a.Push("Creating snapshot", 40, machinestate.Snapshotting)
 	snapshot, err := a.CreateSnapshot(volumeId, snapshotDesc)
 	if err != nil {
 		return nil, err
 	}
 	a.Log.Debug("[%s] Snapshot created successfully: %+v", m.Id, snapshot)
 
+	tags := []ec2.Tag{
+		{Key: "Name", Value: snapshotDesc},
+		{Key: "koding-user", Value: m.Username},
+		{Key: "koding-machineId", Value: m.Id},
+	}
+
+	if _, err := a.Client.CreateTags([]string{snapshot.Id}, tags); err != nil {
+		// don't return for a snapshot tag problem
+		p.Log.Warning("[%s] Failed to tag the new snapshot: %v", m.Id, err)
+	}
+
 	a.Log.Debug("[%s] Starting the machine after snapshot creation", m.Id)
-	a.Push("Starting instance", 70, machinestate.Pending)
+	a.Push("Starting instance", 70, machinestate.Snapshotting)
 	// start the stopped instance now as we attached the new volume
 	artifact, err := a.Start(false)
 	if err != nil {
 		return nil, err
 	}
 
-	a.Push("Updating domain", 85, machinestate.Pending)
+	a.Push("Updating domain", 85, machinestate.Snapshotting)
 	// update Domain record with the new IP
 	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
 		return nil, err
 	}
 
-	a.Push("Updating domain aliases", 87, machinestate.Pending)
+	a.Push("Updating domain aliases", 87, machinestate.Snapshotting)
 	// also get all domain aliases that belongs to this machine and unset
 	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
@@ -67,7 +80,7 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 		}
 	}
 
-	a.Push("Checking connectivity", 90, machinestate.Pending)
+	a.Push("Checking connectivity", 90, machinestate.Snapshotting)
 	artifact.DomainName = m.Domain.Name
 
 	if p.IsKlientReady(m.QueryString) {

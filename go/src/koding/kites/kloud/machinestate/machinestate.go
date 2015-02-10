@@ -47,6 +47,11 @@ const (
 	// physically doesn't exist anymore.
 	Terminated
 
+	// Snapshotting defines the state where the machine is stopped and a
+	// Snapshot creating is in process. After a successfull snapshot the
+	// machine is in Running state.
+	Snapshotting
+
 	// Pending defines the state where the machine is in a work-in-progress
 	// state. A pending state might be a state between two stable states of a
 	// machine such as Stopped and Starting where we resized a disk. A Machine
@@ -64,6 +69,7 @@ var States = map[string]State{
 	"Rebooting":      Rebooting,
 	"Terminating":    Terminating,
 	"Terminated":     Terminated,
+	"Snapshotting":   Snapshotting,
 	"Pending":        Pending,
 	"Unknown":        Unknown,
 }
@@ -167,6 +173,8 @@ func (s State) String() string {
 		return "Terminating"
 	case Terminated:
 		return "Terminated"
+	case Snapshotting:
+		return "Snapshotting"
 	case Pending:
 		return "Pending"
 	case Unknown:
