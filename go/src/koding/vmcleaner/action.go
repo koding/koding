@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"math/rand"
 	"strings"
+	"time"
 )
 
 type Action func(*models.User, int) error
@@ -46,6 +48,8 @@ func DeleteVMs(user *models.User, _ int) error {
 	}
 
 	for _, machine := range machines {
+		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
+
 		_, err := KiteClient.Tell("destroy", &requestArgs{
 			MachineId: machine.ObjectId.Hex()},
 		)
