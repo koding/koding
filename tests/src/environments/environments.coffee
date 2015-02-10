@@ -198,3 +198,22 @@ module.exports =
       .click                    '.env-modal.paid-plan button'
       .waitForElementVisible    'a[href="/IDE/koding-vm-1/my-workspace"]', 25000
       .end()
+
+
+  # this test depends addVM test.
+  turnOnNewPaidVM: (browser) ->
+
+    vmName     = 'koding-vm-1'
+    vmSelector = 'a[href="/IDE/' + vmName + '/my-workspace"]'
+
+    helpers.beginTest(browser)
+
+    browser
+      .waitForElementVisible vmSelector, 25000
+      .pause                 10000 # required, wait for IDE open.
+      .click                 vmSelector
+
+    helpers.waitForVMRunning(browser, vmName)
+
+    browser.end()
+
