@@ -38,7 +38,7 @@ var SecondEmail = &Warning{
 		"inactive.warning": 1,
 	},
 
-	Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
+	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
 
 	Action: SendEmail,
 }
@@ -57,7 +57,7 @@ var ThirdEmail = &Warning{
 		"inactive.warning": 2,
 	},
 
-	Exempt: []Exempt{IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
+	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserBlocked, IsUserVMsEmpty},
 
 	Action: SendEmail,
 }
@@ -76,7 +76,7 @@ var FourthDeleteVM = &Warning{
 		"inactive.warning": 3,
 	},
 
-	Exempt: []Exempt{IsUserPaid, IsUserVMsEmpty},
+	Exempt: []Exempt{IsTooSoon, IsUserPaid, IsUserVMsEmpty},
 
 	Action: DeleteVMs,
 }
