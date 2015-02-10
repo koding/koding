@@ -5,8 +5,8 @@
 { dash } = require 'bongo'
 
 module.exports = (req, res) ->
-  koding     = require './bongo'
-  {JMachine} = koding.models
+  koding = require './bongo'
+  {JMachine, JUser} = koding.models
 
   errMsg = (msg)->
     {
@@ -33,16 +33,22 @@ module.exports = (req, res) ->
     response = []
     queue    = []
 
-    usernames.forEach (username)->
-      queue.push -> JMachine.fetchByUsername username, (err, machines)->
-        if err
-          queue.fin()
-        else
-          slugs = []
-          machines.forEach (machine)->
-            slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
+    JUser.someData {username: {$in:usernames}, status: "confirmed"}, {}, (err, cursor) ->
+      return res.status(400).send err  if err
 
-          response.push { "username" : username, "vms" : slugs }
-          queue.fin()
+      cursor.toArray (err, usernames)->
+        return res.status(400).send err  if err
 
-    dash queue, -> res.status(200).send response
+        usernames.forEach (username)->
+          queue.push -> JMachine.fetchByUsername username, (err, machines)->
+            if err
+              queue.fin()
+            else
+              slugs = []
+              machines.forEach (machine)->
+                slugs.push  machine.data.slug  if machine.data.meta.alwaysOn
+
+              response.push { "username" : username, "vms" : slugs }
+              queue.fin()
+
+      dash queue, -> res.status(200).send response

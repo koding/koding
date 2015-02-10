@@ -805,9 +805,13 @@ class ActivitySidebar extends KDCustomHTMLView
       noItemText : 'You didn\'t participate in any conversations yet.'
       headerLink : KD.utils.groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
-        KD.singletons.socialapi.channel.fetchPinnedMessages
-          limit : 5
-        , callback
+        # we disabled pinned messages a long time ago but we are still sending
+        # the requests to the backed, those are useless operations ~ CS
+        return callback null, null
+
+        # KD.singletons.socialapi.channel.fetchPinnedMessages
+        #   limit : 5
+        # , callback
 
     if KD.singletons.mainController.isFeatureDisabled 'threads'
       @sections.conversations.hide()
