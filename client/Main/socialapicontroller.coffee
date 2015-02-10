@@ -227,7 +227,7 @@ class SocialApiController extends KDController
   # this method will prevent the arrival of
   # realtime messages to the individual messages
   # if the message is mine and current window has focus.
-  isFromOtherBrowser = (message) ->
+  isFromOtherBrowser = (message, event) ->
 
     # selenium doesn't put focus into the
     # spawned browser, it's causing problems.
@@ -237,8 +237,11 @@ class SocialApiController extends KDController
     return no  if KD.isTesting
 
     {message} = message  unless message.typeConstant?
+    {_inScreenMap, _cache}  = KD.singletons.socialapi
 
-    {_inScreenMap}  = KD.singletons.socialapi
+    # While making retrospective realtime message query, it is possible to fetch an already
+    # existing message. This is for preventing the case.
+    return no  if event?.indexOf('Added') > 1 and if _cache[message.typeConstant]?[message.id]
 
     # when I am not the message owner, it is obviously from another browser
     return yes  unless message.accountId is KD.whoami().socialApiId
@@ -263,7 +266,7 @@ class SocialApiController extends KDController
           if typeof validatorFn isnt "function"
             return warn "validator function is not valid"
 
-          return  unless validatorFn(data)
+          return  unless validatorFn(data, event)
 
         data = mapperFn data
 

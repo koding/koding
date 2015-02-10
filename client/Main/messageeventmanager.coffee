@@ -82,7 +82,7 @@ class MessageEventManager extends KDObject
 
       plain.message.messageId = message.id
 
-      return  unless KD.singletons.socialapi.isFromOtherBrowser plain
+      return  unless KD.singletons.socialapi.isFromOtherBrowser plain, 'ReplyAdded'
 
       message.emit "AddReply", reply
       message.emit "update"
