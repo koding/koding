@@ -105,6 +105,37 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 	return k.coreMethods(r, resizeFunc)
 }
 
+func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr error) {
+	resizeFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		resp, err := p.CreateSnapshot(m)
+		if err != nil {
+			return nil, err
+		}
+
+		// some providers might provide empty information, therefore do not
+		// update anything for them
+		if resp == nil {
+			return resp, nil
+		}
+
+		err = k.Storage.Update(m.Id, &StorageData{
+			Type: "createSnapshot",
+			Data: map[string]interface{}{
+				"ipAddress": resp.IpAddress,
+			},
+		})
+
+		if err != nil {
+			k.Log.Error("[%s] updating data after createSnapshot method was not possible: %s",
+				m.Id, err.Error())
+		}
+
+		return resp, nil
+	}
+
+	return k.coreMethods(r, resizeFunc)
+}
+
 func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 	reinitFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 		resp, err := p.Reinit(m)

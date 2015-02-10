@@ -129,7 +129,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 		data["ipAddress"] = s.Data["ipAddress"]
 	case "domain":
 		data["domain"] = s.Data["domainName"]
-	case "resize":
+	case "resize", "createSnapshot":
 		data["ipAddress"] = s.Data["ipAddress"]
 	default:
 		return fmt.Errorf("Storage type unknown: '%s'", s.Type)
