@@ -77,13 +77,13 @@ class CommentInputWidget extends ActivityInputWidget
     KD.utils.defer @bound 'focus'
 
 
-  create: ({body, clientRequestId}, callback) ->
+  create: ({body, payload, clientRequestId}, callback) ->
 
     { activity } = @getOptions()
 
     { appManager } = KD.singletons
 
-    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
+    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId, payload}, (err, reply) =>
 
       return KD.showError err  if err
 
