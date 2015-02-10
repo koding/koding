@@ -101,6 +101,17 @@ func (t *TagInstances) Process() {
 }
 
 func (t *TagInstances) Run() {
+	count := 0
+	for _, instances := range t.untagged {
+		for _, _ = range instances {
+			count++
+		}
+	}
+
+	if count > 50 {
+		fmt.Printf("tagInstances: count is '%d'. AWS response fetching failed.Aborting tagging instances\n", count)
+	}
+
 	for client, untaggedInstances := range t.untagged {
 		for _, instance := range untaggedInstances {
 			_, err := client.CreateTags([]string{instance.id}, instance.tags)
