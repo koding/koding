@@ -24,9 +24,7 @@ module.exports = class JReward extends jraphical.Message
           (signature Object, Function)
         fetchEarnedAmount:
           (signature Object, Function)
-        fetchReferrals:
-          (signature Object, Object, Function)
-        fetchReferredAccounts:
+        some:
           (signature Object, Object, Function)
 
     sharedEvents      :
@@ -204,14 +202,14 @@ module.exports = class JReward extends jraphical.Message
       # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
-  @fetchReferrals = secure (client, query, options, callback)->
-    query.originId = client.connection.delegate.getId()
-    JReward.some query, options, callback
+  @some$ = secure (client, selector, options, callback)->
 
+    selector ?= {}
+    options  ?= {}
 
-  @fetchReferredAccounts = secure (client, query, options, callback)->
-    username = client.connection.delegate.profile.nickname
-    JAccount.some { referrerUsername : username }, options, callback
+    selector.originId = client.connection.delegate.getId()
+
+    @some selector, options, callback
 
 
 
