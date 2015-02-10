@@ -47,6 +47,14 @@ func AddHandlers(m *mux.Mux) {
 			Endpoint: "/payments/customers/{accountId}",
 		})
 
+	m.AddHandler(
+		handler.Request{
+			Handler:  ExpireCustomerRequest,
+			Name:     "payment-expirecustomer",
+			Type:     handler.PostRequest,
+			Endpoint: "/payments/customers/{accountId}/expire",
+		})
+
 	//----------------------------------------------------------
 	// Invoices
 	//----------------------------------------------------------

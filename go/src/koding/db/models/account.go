@@ -8,18 +8,13 @@ import (
 )
 
 type Account struct {
-	Id          bson.ObjectId `bson:"_id" json:"_id"`
-	GlobalFlags []string      `bson:"globalFlags" json:"globalFlags"`
-	SocialApiId string        `bson:"socialApiId" json:"socialApiId"`
-	Profile     struct {
-		Nickname  string `bson:"nickname" json:"nickname"`
-		FirstName string `bson:"firstName" json:"firstName"`
-		LastName  string `bson:"lastName" json:"lastName"`
-		Hash      string `bson:"hash" json:"hash"`
-	} `bson:"profile" json:"profile"`
-	Type       string `bson:"type" json:"type"`
-	Status     string `bson:"status" json:"status"`
-	SystemInfo struct {
+	Id          bson.ObjectId  `bson:"_id" json:"_id"`
+	GlobalFlags []string       `bson:"globalFlags" json:"globalFlags"`
+	SocialApiId string         `bson:"socialApiId" json:"socialApiId"`
+	Type        string         `bson:"type" json:"type"`
+	Status      string         `bson:"status" json:"status"`
+	Profile     AccountProfile `bson:"profile" json:"profile"`
+	SystemInfo  struct {
 		DefaultToLastUsedEnvironment bool `json:"defaultToLastUsedEnvironment" bson:"defaultToLastUsedEnvironment"`
 	} `json:"systemInfo"`
 	OnlineStatus bool `bson:"onlineStatus" json:"onlineStatus"`
@@ -30,6 +25,13 @@ type Account struct {
 	} `bson:"meta" json:"meta"`
 	IsExempt                bool `json:"isExempt" bson:"isExempt"`
 	LastLoginTimezoneOffset int  `json:"lastLoginTimezoneOffset" bson:"lastLoginTimezoneOffset"`
+}
+
+type AccountProfile struct {
+	Nickname  string `bson:"nickname" json:"nickname"`
+	FirstName string `bson:"firstName" json:"firstName"`
+	LastName  string `bson:"lastName" json:"lastName"`
+	Hash      string `bson:"hash" json:"hash"`
 }
 
 func (a *Account) GetSocialApiId() (int64, error) {
