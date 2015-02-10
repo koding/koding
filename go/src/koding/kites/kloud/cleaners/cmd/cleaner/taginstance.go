@@ -108,6 +108,7 @@ func (t *TagInstances) Run() {
 
 	if count > 50 {
 		fmt.Printf("tagInstances: count is '%d'. AWS response fetching failed. Aborting tagging instances\n", count)
+		return
 	}
 
 	for client, untaggedInstances := range t.untagged {
@@ -134,6 +135,10 @@ func (t *TagInstances) Result() string {
 
 	if len(ids) == 0 {
 		return ""
+	}
+
+	if len(ids) > 50 {
+		return fmt.Sprintf("aborted due high count '%d'", len(ids))
 	}
 
 	return fmt.Sprintf("tagged '%d' untagged instances: %s", len(ids), strings.Join(ids, ","))
