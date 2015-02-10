@@ -17,16 +17,17 @@ func main() {
 	c := cli.NewCLI(Name, Version)
 	c.Args = os.Args[1:]
 	c.Commands = map[string]cli.CommandFactory{
-		"ping":    command.NewPing(),
-		"event":   command.NewEvent(),
-		"info":    command.NewInfo(),
-		"build":   command.NewCmd("build"),
-		"start":   command.NewCmd("start"),
-		"stop":    command.NewCmd("stop"),
-		"destroy": command.NewCmd("destroy"),
-		"restart": command.NewCmd("restart"),
-		"resize":  command.NewCmd("resize"),
-		"reinit":  command.NewCmd("reinit"),
+		"ping":            command.NewPing(),
+		"event":           command.NewEvent(),
+		"info":            command.NewInfo(),
+		"build":           command.NewCmd("build"),
+		"start":           command.NewCmd("start"),
+		"stop":            command.NewCmd("stop"),
+		"destroy":         command.NewCmd("destroy"),
+		"restart":         command.NewCmd("restart"),
+		"resize":          command.NewCmd("resize"),
+		"reinit":          command.NewCmd("reinit"),
+		"create-snapshot": command.NewCmd("createSnapshot"),
 	}
 
 	_, err := c.Run()
