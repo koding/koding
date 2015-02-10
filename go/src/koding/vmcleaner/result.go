@@ -3,13 +3,11 @@ package main
 import "fmt"
 
 type Result struct {
-	Total, Successful, Failure int
-	Warning                    int
+	Successful, Failure int
+	Warning             string
 }
 
 func (r *Result) String() string {
-	return fmt.Sprintf(
-		"Ran for warning: %v total: %v, successful: %v, failed: %v",
-		r.Warning, r.Total, r.Successful, r.Failure,
-	)
+	return fmt.Sprintf("Ran for WARNING: %v, successful: %v, failed: %v",
+		r.Warning, r.Successful, r.Failure)
 }
