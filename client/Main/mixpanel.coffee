@@ -21,7 +21,7 @@ if KD.config.logToExternal then do ->
             # check if values isn't empty object
             providers[provider] = yes  if Object.keys(providerInfo).length > 0
 
-        KD.singletons.paymentController.subscriptions (err, subscription)->
+        KD.singletons.paymentController.subscriptions (err, currentSub)->
           plan = "error fetching plan" if err
           args =
             "$id"          : _id
@@ -30,7 +30,7 @@ if KD.config.logToExternal then do ->
             "$last_name"   : lastName
             "$created"     : meta?.createdAt
             "$email"       : email
-            subscription   : subscription
+            subscription   : currentSub
             lastLoginDate  : lastLoginDate
             status         : status
             emailFrequency :
