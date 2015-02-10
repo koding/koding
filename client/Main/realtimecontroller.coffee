@@ -244,6 +244,9 @@ class RealtimeController extends KDController
 
   getTimeDiffWithServer: ->
     @pubnub.time (serverTime) =>
+
+      return  unless serverTime
+
       diff = new Date() * 10000 - serverTime
       # when time difference between pubnub server and client is less than 500ms
       # ignore the difference
