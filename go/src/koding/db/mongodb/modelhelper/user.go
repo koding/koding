@@ -83,7 +83,7 @@ func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
 			users = append(users, user)
 		}
 
-		return nil
+		return iter.Close()
 	}
 
 	return users, Mongo.Run(UserColl, query)
