@@ -29,18 +29,23 @@ type Warning struct {
 }
 
 func (w *Warning) Run() *Result {
+	result := &Result{Warning: w.Name}
+
 	for {
 		err := w.RunSingle()
 		if err != nil && !isErrNotFound(err) {
+			result.Failure += 1
 			continue
 		}
 
 		if isErrNotFound(err) {
 			break
 		}
+
+		result.Successful += 1
 	}
 
-	return &Result{}
+	return result
 }
 
 func (w *Warning) RunSingle() error {
