@@ -150,7 +150,7 @@ func TestIsUserVMsEmpty(t *testing.T) {
 	})
 }
 
-func TestIsTooEarly(t *testing.T) {
+func TestIsTooSoon(t *testing.T) {
 	warning := SecondEmail
 
 	Convey("Given user who is inactive and has been warned", t, func() {
@@ -158,7 +158,7 @@ func TestIsTooEarly(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it returns true if warned time < warning interval", func() {
-			yes := IsTooEarly(user, warning)
+			yes := IsTooSoon(user, warning)
 			So(yes, ShouldBeFalse)
 
 			Reset(func() {
@@ -185,7 +185,7 @@ func TestIsTooEarly(t *testing.T) {
 			user, err := modelhelper.GetUser(user.Name)
 			So(err, ShouldBeNil)
 
-			no := IsTooEarly(user, warning)
+			no := IsTooSoon(user, warning)
 			So(no, ShouldBeTrue)
 		})
 

@@ -18,13 +18,13 @@ func IsUserPaid(user *models.User, _ *Warning) bool {
 	}
 
 	paymentclient := paymentapi.New("")
-	yes, err := paymentclient.IsPaidAccount(account)
+	isPaid, err := paymentclient.IsPaidAccount(account)
 	if err != nil {
 		Log.Error("Error fetching plan for user: %s, default to paid: %v", user.Name, err)
 		return true
 	}
 
-	return yes
+	return isPaid
 }
 
 // Blocked users don't get an email, but vms get deleted.
@@ -44,15 +44,15 @@ func IsUserVMsEmpty(user *models.User, _ *Warning) bool {
 }
 
 // Make sure enough time has elapsed between emails to user.
-func IsTooEarly(user *models.User, w *Warning) bool {
+func IsTooSoon(user *models.User, w *Warning) bool {
 	lastLevel := fmt.Sprintf("%d", w.PreviousLevel())
 	lastWarned, ok := user.Inactive.Warnings[lastLevel]
 	if !ok {
 		return false
 	}
 
-	yes := lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(now())
-	if yes {
+	tooSoon := lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(now())
+	if tooSoon {
 		return false
 	}
 

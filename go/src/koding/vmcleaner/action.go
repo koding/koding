@@ -32,7 +32,6 @@ func SendEmail(user *models.User, levelId int) error {
 // request arguments
 type requestArgs struct {
 	MachineId string `json:"machineId"`
-	Reason    string `json:"reason"`
 }
 
 func DeleteVMs(user *models.User, _ int) error {
@@ -51,8 +50,8 @@ func DeleteVMs(user *models.User, _ int) error {
 		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
 
 		_, err := KiteClient.Tell("destroy", &requestArgs{
-			MachineId: machine.ObjectId.Hex()},
-		)
+			MachineId: machine.ObjectId.Hex(),
+		})
 
 		if err != nil && !isVmAlreadyStoppedErr(err) {
 			Log.Error("Error stopping machine:%s for username: %s, %v", user.Name,
