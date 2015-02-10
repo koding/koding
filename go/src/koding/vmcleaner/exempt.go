@@ -51,5 +51,5 @@ func IsTooSoon(user *models.User, w *Warning) bool {
 		return false
 	}
 
-	return lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(now())
+	return !lastWarned.Add(w.IntervalSinceLastWarning).UTC().After(now())
 }
