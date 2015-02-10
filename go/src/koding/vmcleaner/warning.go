@@ -49,10 +49,8 @@ func (w *Warning) RunSingle() error {
 		return err
 	}
 
-	if !w.IsUserExempt(user) {
-		if err := w.Act(user); err != nil {
-			return err
-		}
+	if err := w.Act(user); err != nil {
+		return err
 	}
 
 	return w.UpdateAndReleaseUser(user.ObjectId)
@@ -81,19 +79,28 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 	return user, modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
 
-func (w *Warning) IsUserExempt(user *models.User) bool {
+func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 	for _, exemptFn := range w.Exempt {
-		yes, _ := exemptFn(user, w)
+		yes, err := exemptFn(user, w)
+		if err != nil {
+			return false, nil
+		}
+
 		if yes {
-			return true
+			return true, nil
 		}
 	}
 
-	return false
+	return false, nil
 }
 
 func (w *Warning) Act(user *models.User) error {
-	if !w.IsUserExempt(user) {
+	isExempt, err := w.IsUserExempt(user)
+	if err != nil {
+		return err
+	}
+
+	if !isExempt {
 		return w.Action(user, w.Level)
 	}
 
