@@ -180,11 +180,11 @@ class RealTimeManager extends KDObject
           @bindListListeners instance
 
   textInserted:(string, e) ->
-    unless @isDisposed
-      @emit 'TextInsertedIntoString', string, e
+    return  if @isDisposed
+    @emit 'TextInsertedIntoString', string, e
 
   textDeleted:(string, e)=>
-    return if @isDisposed
+    return  if @isDisposed
     @emit 'TextDeletedFromString', string, e
 
   bindStringListeners: (string) ->
@@ -197,7 +197,7 @@ class RealTimeManager extends KDObject
 
 
   mapValueChanged: (map, v) ->
-    return if @isDisposed
+    return  if @isDisposed
     @emit 'MapValueChanged', map, v
 
   bindMapListeners: (map) ->
@@ -207,15 +207,15 @@ class RealTimeManager extends KDObject
     map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, (v) => @mapValueChanged map, v
 
   listValueAdded: (list, v)->
-    return if @isDisposed
+    return  if @isDisposed
     @emit 'ValuesAddedToList', list, v
 
   listValueRemoved: (list, v)->
-    return if @isDisposed
+    return  if @isDisposed
     @emit 'ValuesRemovedFromList', list, v
 
   listValueSet:(list, v)=>
-    return if @isDisposed
+    return  if @isDisposed
     @emit 'ListValuesSet', list, v
 
   bindListListeners: (list) ->
