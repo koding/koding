@@ -6,9 +6,12 @@ assert  = require 'assert'
 modalSelector = '.activity-modal.vm-settings'
 
 
-openVmSettingsModal = (browser) ->
+openVmSettingsModal = (browser, vmName) ->
 
-  vmSelector = '.activity-sidebar a.running'
+  if not vmName
+    vmName = 'koding-vm-0'
+
+  vmSelector = '.activity-sidebar a[href="/IDE/' + vmName + '/my-workspace"].running'
 
   browser
     .waitForElementVisible   vmSelector, 20000
@@ -217,3 +220,25 @@ module.exports =
 
     browser.end()
 
+
+  # this test depends addVM and turnOnNewPaidVM tests.
+  makePaidVMAlwaysOn: (browser) ->
+
+    helpers.beginTest(browser)
+
+    openVmSettingsModal(browser, 'koding-vm-1')
+    clickMoreButtonInVMSettingsModal(browser)
+
+    browser
+      .waitForElementVisible    '.more-form .alwayson', 20000
+      .click                    '.more-form .alwayson .koding-on-off'
+      .pause                    1000
+      .refresh()
+      .waitForElementVisible    '[testpath=main-sidebar]', 25000
+
+    openVmSettingsModal(browser, 'koding-vm-1')
+    clickMoreButtonInVMSettingsModal(browser)
+
+    browser
+      .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
+      .end()
