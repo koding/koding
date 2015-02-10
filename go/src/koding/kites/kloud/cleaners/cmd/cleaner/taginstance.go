@@ -42,18 +42,16 @@ func (t *TagInstances) Process() {
 
 	// this is just here for debugging, remove once you are finished
 	if emptyInstances.Total() > 50 {
-		fmt.Printf("tagInstances: oops there are '%d' untagged instances, something must be wrong\n",
+		fmt.Printf("=============> tagInstances: oops there are '%d' untagged instances, something must be wrong\n",
 			emptyInstances.Total())
 
 		// log instance struct so we can see why this happened
 		emptyInstances.Iter(func(client *ec2.EC2, instances lookup.Instances) {
 			for _, instance := range instances {
-				fmt.Printf("[%s] instance = %+v tags %+v\n",
+				fmt.Printf("----------> [%s] instance = %+v tags %+v\n",
 					client.Region.Name, instance, instance.Tags)
 			}
 		})
-
-		return // do not continue
 	}
 
 	// next fetch the necessary tag data from MongoDB, so we can tag again the
@@ -109,7 +107,7 @@ func (t *TagInstances) Run() {
 	}
 
 	if count > 50 {
-		fmt.Printf("tagInstances: count is '%d'. AWS response fetching failed.Aborting tagging instances\n", count)
+		fmt.Printf("tagInstances: count is '%d'. AWS response fetching failed. Aborting tagging instances\n", count)
 	}
 
 	for client, untaggedInstances := range t.untagged {
