@@ -72,7 +72,10 @@ func TestIsUserExempt(t *testing.T) {
 				}},
 			}
 
-			So(warning.IsUserExempt(user), ShouldBeTrue)
+			isExempt, err := warning.IsUserExempt(user)
+
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeTrue)
 		})
 
 		Convey("Then it should not be exempt", func() {
@@ -82,7 +85,10 @@ func TestIsUserExempt(t *testing.T) {
 				}},
 			}
 
-			So(warning.IsUserExempt(user), ShouldBeFalse)
+			isExempt, err := warning.IsUserExempt(user)
+
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeFalse)
 		})
 
 		Convey("Then it should be exempt even if one condition is exempt", func() {
@@ -93,7 +99,10 @@ func TestIsUserExempt(t *testing.T) {
 				},
 			}
 
-			So(warning.IsUserExempt(user), ShouldBeTrue)
+			isExempt, err := warning.IsUserExempt(user)
+
+			So(err, ShouldBeNil)
+			So(isExempt, ShouldBeTrue)
 		})
 
 		Reset(func() {
