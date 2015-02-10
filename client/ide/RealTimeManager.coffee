@@ -131,51 +131,103 @@ class RealTimeManager extends KDObject
 
     return data
 
+  # delete deletes a given key from the collaborative doc if exists
+  delete: (type, key) ->
+
+    return null  if @isDisposed
+
+    doc = @getRealtimeDoc()
+
+    return throw new Error 'Missing arguments'  if not doc or not key or not type
+
+    unless doc.getModel
+      return throw new Error 'Invalid doc type for collaboration'
+
+    model  = doc.getModel()
+
+    # Returns the value mapped to the given key.
+    val = model.getRoot().get key
+
+    # remove the listeners first
+    @unbindRealtimeListeners val, type
+
+    # delete key from root map
+    model.getRoot().delete key
+
+
+  unbindRealtimeListeners: do (instances = []) ->
+    (instance, type) ->
+      return  if @isDisposed
+      instances.push instance
+      switch type
+        when 'string'
+          @unbindStringListeners instance
+        when 'map'
+          @unbindMapListeners instance
+        when 'list'
+          @unbindListListeners instance
 
   bindRealtimeListeners: do (instances = []) ->
-
     (instance, type) ->
-
-      return  if instances.indexOf(instance) > -1 or @isDisposed
-
+      return  if @isDisposed
       instances.push instance
+      switch type
+        when 'string'
+          @bindStringListeners instance
+        when 'map'
+          @bindMapListeners instance
+        when 'list'
+          @bindListListeners instance
 
-      if type is 'string'
-        @bindStringListeners instance
+  textInserted:(string, e) ->
+    unless @isDisposed
+      @emit 'TextInsertedIntoString', string, e
 
-      else if type is 'map'
-        @bindMapListeners instance
-
-      else if type is 'list'
-        @bindListListeners instance
-
+  textDeleted:(string, e)=>
+    return if @isDisposed
+    @emit 'TextDeletedFromString', string, e
 
   bindStringListeners: (string) ->
+    string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, (e) => @textInserted string, e
+    string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, (e) => @textDeleted string, e
 
-    string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, (e) =>
-      @emit 'TextInsertedIntoString', string, e  unless @isDisposed
+  unbindStringListeners: (string) ->
+    string.removeEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, (e) => @textInserted string, e
+    string.removeEventListener gapi.drive.realtime.EventType.TEXT_DELETED, (e) => @textDeleted string, e
 
-    string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, (e) =>
-      @emit 'TextDeletedFromString', string, e  unless @isDisposed
 
+  mapValueChanged: (map, v) ->
+    return if @isDisposed
+    @emit 'MapValueChanged', map, v
 
   bindMapListeners: (map) ->
+    map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, (v) => @mapValueChanged map, v
 
-    map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, (v) =>
-      @emit 'MapValueChanged', map, v  unless @isDisposed
+  unbindMapListeners: (map) ->
+    map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, (v) => @mapValueChanged map, v
 
+  listValueAdded: (list, v)->
+    return if @isDisposed
+    @emit 'ValuesAddedToList', list, v
+
+  listValueRemoved: (list, v)->
+    return if @isDisposed
+    @emit 'ValuesRemovedFromList', list, v
+
+  listValueSet:(list, v)=>
+    return if @isDisposed
+    @emit 'ListValuesSet', list, v
 
   bindListListeners: (list) ->
+    list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, (s) => @listValueAdded list, s
+    list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, (s) => @listValueRemoved list, s
+    list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, (s) => @listValueSet list, s
 
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, (v) =>
-      @emit 'ValuesAddedToList', list, v  unless @isDisposed
 
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, (v) =>
-      @emit 'ValuesRemovedFromList', list, v  unless @isDisposed
-
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, (v) =>
-      @emit 'ListValuesSet', list, v  unless @isDisposed
-
+  unbindListListeners: (list) ->
+    list.removeEventListener gapi.drive.realtime.EventType.VALUES_ADDED, (s) => @listValueAdded list, s
+    list.removeEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, (s) => @listValueRemoved list, s
+    list.removeEventListener gapi.drive.realtime.EventType.VALUES_SET, (s) => @listValueSet list, s
 
   getCollaborators: -> return @getRealtimeDoc().getCollaborators()
 

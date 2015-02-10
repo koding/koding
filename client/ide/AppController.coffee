@@ -1300,6 +1300,39 @@ class IDEAppController extends AppController
             @participants.remove index
 
 
+  removeParticipantFromParticipantList: (nickname) ->
+    return throw new Error "participants is not set"  unless @participants
+
+    # find the index for participant
+    for participant, index in @participants.asArray()
+      if participant.nickname is nickname
+
+        # remove from participants list if the user exits
+        @participants.remove index
+        break
+
+  removeParticipantFromMaps: (nickname) ->
+    return throw new Error "rtm is not set"   unless @rtm
+
+    myWatchMapName     = "#{nickname}WatchMap"
+    mySnapshotName     = "#{nickname}Snapshot"
+
+    # delete the keys
+    @rtm.delete 'map', myWatchMapName
+    @rtm.delete 'map', mySnapshotName
+
+
+  removeParticipantFromPermissions: (nickname)->
+    return throw new Error "permissions is not set"   unless @permissions
+    # Removes the entry for the given key (if such an entry exists).
+    @permissions.delete(nickname)
+
+
+  removeParticipant: (nickname) ->
+    @removeParticipantFromMaps nickname
+    @removeParticipantFromParticipantList nickname
+    @removeParticipantFromPermissions nickname
+
   setRealTimeManager: (object) =>
 
     callback = =>
@@ -1788,6 +1821,8 @@ class IDEAppController extends AppController
 
 
   handleParticipantLeaveAction: ->
+    # remove the leaving participant's info from the collaborative doc
+    @removeParticipant KD.nick()
 
     options   =
       title   : 'Are you sure?'
@@ -1814,7 +1849,8 @@ class IDEAppController extends AppController
     @chat.emit 'ParticipantLeft', username
     @statusBar.removeParticipantAvatar username
     @removeParticipantCursorWidget username
-
+    # remove participant's all data persisted in realtime appInfo
+    @removeParticipant username
 
   getCollaborationData: (callback = noop) =>
 
