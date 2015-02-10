@@ -222,6 +222,7 @@ class RealtimeController extends KDController
 
           # instance events are received via public channel. For this reason
           # if an event name includes "instance-", update the related message channel
+          # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded"
           if eventName.indexOf("instance-") < 0
             return @channels[channel].emit eventName, body
 

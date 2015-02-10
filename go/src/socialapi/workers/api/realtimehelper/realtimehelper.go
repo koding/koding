@@ -27,9 +27,10 @@ func PushMessage(c *models.Channel, eventName string, body interface{}, secretNa
 }
 
 func UpdateInstance(m *models.ChannelMessage, eventName string, body interface{}) error {
-	// For public messages we are setting this InitialChannelId as the 'public' channel.
-	// Later on if we stop sending all public messages to public channel, we should fetch
-	// the message channel ids
+	// While sending message instance updates, instead of creating new PubNub channel for each message
+	// we are sending the events to parent channels. For this reason, we need channel tokens.
+	// When a message belongs to more than one channel, this initialChannelId is set as public channel id,
+	// and according to this the event is sent to public channel
 	c, err := models.ChannelById(m.InitialChannelId)
 	if err != nil {
 		return err
