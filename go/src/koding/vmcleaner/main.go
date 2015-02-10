@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/helper"
 	"time"
@@ -42,7 +43,12 @@ func main() {
 	modelhelper.Initialize(conf.Mongo)
 
 	// initialize client to talk to kloud
-	KiteClient = initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
+	var err error
+
+	KiteClient, err = initializeKiteClient(conf.KloudSecretKey, conf.KloudAddr)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
 
 	defer func() {
 		modelhelper.Close()
@@ -82,23 +88,18 @@ func initializeConf() *Vmcleaner {
 	return conf
 }
 
-func initializeKiteClient(kloudKey, kloudAddr string) *kite.Client {
+func initializeKiteClient(kloudKey, kloudAddr string) (*kite.Client, error) {
 	var err error
 
 	// create new kite
 	k := kite.New(WorkerName, WorkerVersion)
 	config, err := kiteConfig.Get()
 	if err != nil {
-		Log.Fatal(err.Error())
+		return nil, err
 	}
 
 	// set skeleton config
 	k.Config = config
-
-	if k == nil {
-		Log.Info("kite not initialized in runner. Pass '-kite-init'")
-		return nil
-	}
 
 	// create a new connection to the cloud
 	kiteClient := k.NewClient(kloudAddr)
@@ -106,13 +107,12 @@ func initializeKiteClient(kloudKey, kloudAddr string) *kite.Client {
 
 	// dial the kloud address
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
-		Log.Error("%s. Is kloud running?", err.Error())
-		return nil
+		return nil, fmt.Errorf("%s. Is kloud running?", err.Error())
 	}
 
 	Log.Debug("Connected to klient: %s", kloudAddr)
 
-	return kiteClient
+	return kiteClient, nil
 }
 
 func initializeEmail(username, password, forceRecipient string) kodingemail.Client {
