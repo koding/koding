@@ -124,9 +124,22 @@ func (s State) ValidMethods() []string {
 	case NotInitialized:
 		return []string{"build", "destroy"}
 	case Running:
-		return []string{"stop", "resize", "destroy", "restart", "reinit"}
+		return []string{
+			"stop",
+			"resize",
+			"destroy",
+			"restart",
+			"reinit",
+			"createSnapshot",
+		}
 	case Stopped:
-		return []string{"start", "resize", "destroy", "reinit"}
+		return []string{
+			"start",
+			"resize",
+			"destroy",
+			"reinit",
+			"createSnapshot",
+		}
 	case Terminated:
 		return []string{"build"}
 	default:
