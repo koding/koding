@@ -525,12 +525,9 @@ class IDEAppController extends AppController
 
   moveTabUp: -> @moveTab 'north'
 
-
   moveTabDown: -> @moveTab 'south'
 
-
   moveTabLeft: -> @moveTab 'west'
-
 
   moveTabRight: -> @moveTab 'east'
 
@@ -1103,7 +1100,6 @@ class IDEAppController extends AppController
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
-
 
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
