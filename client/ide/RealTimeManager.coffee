@@ -204,6 +204,7 @@ class RealTimeManager extends KDObject
     list.removeEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, @listValueSet
 
 
+  # values holds the event handlers of the collaborative objects
   values = {}
 
   binder: (collaborativeObj, callback)->
