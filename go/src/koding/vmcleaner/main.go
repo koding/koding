@@ -106,7 +106,7 @@ func initializeKiteClient(kloudKey, kloudAddr string) *kite.Client {
 
 	// dial the kloud address
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
-		Log.Error("%s. Is kloud/kontrol running?", err.Error())
+		Log.Error("%s. Is kloud running?", err.Error())
 		return nil
 	}
 
