@@ -220,21 +220,6 @@ module.exports = class JReward extends jraphical.Message
 
   do ->
 
-    JAccount.on 'AccountRegistered', (me, referrerUsername)->
-
-      return console.error "Account is not defined in event"  unless me
-      return  unless referrerUsername
-
-      {nickname} = me.profile
-      if nickname is referrerUsername
-        return console.error "User (#{nickname}) tried to refer themself."
-
-      me.update $set: { referrerUsername }, (err)->
-
-        unless err
-          console.log "reward saved for #{nickname} from #{referrerUsername}"
-
-
     persistRewards = (campaign, source, target, callback)->
 
       reward = null
