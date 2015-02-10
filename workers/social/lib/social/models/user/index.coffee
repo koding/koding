@@ -990,10 +990,6 @@ module.exports = class JUser extends jraphical.Module
             queue.next()
 
       ->
-        JAccount.emit "AccountRegistered", account, referrer
-        queue.next()
-
-      ->
         callback error, {account, newToken}
         queue.next()
 
