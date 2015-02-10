@@ -28,34 +28,34 @@ type Warning struct {
 	Exempt []Exempt
 }
 
-func (w *Warning) Run() Result {
+func (w *Warning) Run() *Result {
 	for {
-		user, err := w.FindAndLockUser()
+		err := w.RunSingle()
 		if err != nil && !isErrNotFound(err) {
-			handleError(err)
 			continue
 		}
 
 		if isErrNotFound(err) {
 			break
 		}
+	}
 
-		if !w.IsUserExempt(user) {
-			err = w.Act(user)
-			if err != nil {
-				handleError(err)
-				continue
-			}
-		}
+	return &Result{}
+}
 
-		err = w.UpdateAndReleaseUser(user.ObjectId)
-		if err != nil {
-			handleError(err)
-			continue
+func (w *Warning) RunSingle() error {
+	user, err := w.FindAndLockUser()
+	if err != nil {
+		return err
+	}
+
+	if !w.IsUserExempt(user) {
+		if err := w.Act(user); err != nil {
+			return err
 		}
 	}
 
-	return Result{}
+	return w.UpdateAndReleaseUser(user.ObjectId)
 }
 
 // `FindAndLockUser` finds user with warning query and locks it
