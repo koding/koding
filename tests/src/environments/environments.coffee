@@ -196,7 +196,6 @@ module.exports =
 
     browser.element 'css selector', modalSelector, (result) =>
       if result.status is 0
-        console.log 'if de bu salak'
         browser
           .waitForElementVisible   modalSelector, 20000
           .waitForElementVisible   modalSelector + ' a.custom-link-view span', 20000
@@ -212,7 +211,6 @@ module.exports =
         clickAddVMButton(browser)
         clickCreateVMButton(browser)
       else
-        console.log 'else de bu salak', result.status
         clickCreateVMButton(browser)
 
 
