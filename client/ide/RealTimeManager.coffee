@@ -158,7 +158,7 @@ class RealTimeManager extends KDObject
     return  if @isDisposed
     @emit 'TextInsertedIntoString', string, e
 
-  textDeleted:(string, e)=>
+  textDeleted:(string, e) ->
     return  if @isDisposed
     @emit 'TextDeletedFromString', string, e
 
@@ -181,15 +181,15 @@ class RealTimeManager extends KDObject
   unbindMapListeners: (map) ->
     map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, @mapValueChanged
 
-  listValueAdded: (list, v)->
+  listValueAdded: (list, v) ->
     return  if @isDisposed
     @emit 'ValuesAddedToList', list, v
 
-  listValueRemoved: (list, v)->
+  listValueRemoved: (list, v) ->
     return  if @isDisposed
     @emit 'ValuesRemovedFromList', list, v
 
-  listValueSet: (list, e)->
+  listValueSet: (list, e) ->
     return  if @isDisposed
     @emit 'ListValuesSet', list, e
 
@@ -207,7 +207,7 @@ class RealTimeManager extends KDObject
   # values holds the event handlers of the collaborative objects
   values = {}
 
-  binder: (collaborativeObj, callback)->
+  binder: (collaborativeObj, callback) ->
     # all kind of collaborativeObjs have id
     throw new Error "id is not set" if not collaborativeObj.id
 
