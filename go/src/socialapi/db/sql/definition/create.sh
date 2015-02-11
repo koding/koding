@@ -80,6 +80,8 @@ sudo -u postgres psql social < $1/payment_definition/004-table.sql
 # create constraints
 sudo -u postgres psql social < $1/payment_definition/005-constraint.sql
 
+sudo -u postgres psql social < $1/payment_definition/006-paymentro.sql
+
 # modifications
 sudo -u postgres psql social < $1/payment_definition/modifications/001-add-koding-to-enum.sql
 

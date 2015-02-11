@@ -977,3 +977,56 @@ dropdownBorder = 1px solid #E0E0E0
 
   .activity-widgets-bar
     hidden()
+
+@media (min-width: 0px) and (max-width: 414px)
+  #kdmaincontainer.with-sidebar
+    #main-sidebar
+      display               none
+
+    #main-panel-wrapper
+      width                 100%
+      margin-left           0
+
+    #main-header
+      display               block
+      visibility            visible
+      top                   0
+      background            #2A2929
+      padding               16px 0 0 14px
+
+      nav
+        display             hidden
+
+  .activity-pane
+    main.kdscrollview
+      padding               56px 14px
+
+    &.single-activity
+      .kdlistitemview-activity
+        margin-top          14px
+
+  #content-page-activity
+    .search-input
+      display               none
+
+    cite.search-icon
+      display               none
+
+  .activity-input-widget textarea.input-view.hitenterview
+    min-height              65px
+
+  .link-embed-box
+    .preview-image
+      margin                4px 0 0 4px
+      border-radius         4px
+      overflow              hidden
+
+    div.embed-link-view
+      height                auto
+
+    div.preview-text
+      height                auto
+      padding               10px 10px 32px
+
+      a.description
+        height              auto
