@@ -97,12 +97,6 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 	return c.Pubnub.NotifyUser(nm)
 }
 
-func (c *Controller) GrantMessagePublicAccess(um *models.UpdateInstanceMessage) error {
-	muc := models.NewMessageUpdateChannel(*um)
-
-	return c.Pubnub.GrantPublicAccess(muc)
-}
-
 func (c *Controller) RevokeChannelAccess(rca *models.RevokeChannelAccess) error {
 	channel := models.Channel{
 		Token: rca.ChannelToken,
