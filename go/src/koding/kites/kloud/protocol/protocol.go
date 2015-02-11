@@ -37,6 +37,9 @@ type Provider interface {
 	// CreateSnapshot creates a new snapshot from the given machine
 	CreateSnapshot(*Machine) (*Artifact, error)
 
+	// DeleteSnapshot deletes a snapshot from the given machine
+	DeleteSnapshot(*Machine) error
+
 	// Info returns full information about a single machine
 	Info(*Machine) (*InfoArtifact, error)
 }
