@@ -32,11 +32,12 @@ func (p *Provider) DeleteSnapshot(snapshotId string, m *protocol.Machine) error 
 		return err
 	}
 
-	p.Log.Debug("[%s] deleting snapshot from AWS %s", m.Id, snapshotId)
+	p.Log.Info("[%s] deleting snapshot from AWS %s", m.Id, snapshotId)
 	if _, err := a.Client.DeleteSnapshots([]string{snapshotId}); err != nil {
 		return err
 	}
 
+	p.Log.Debug("[%s] deleting snapshot data from MongoDB %s", m.Id, snapshotId)
 	return p.DeleteSnapshotData(snapshotId)
 }
 
@@ -151,7 +152,6 @@ func (p *Provider) AddSnapshotData(snapshotId, region, machineId string) error {
 }
 
 func (p *Provider) DeleteSnapshotData(snapshotId string) error {
-	p.Log.Debug("[%s] deleting snapshot data from MongoDB %s", snapshotId)
 	err := p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"snapshotId": snapshotId})
 	})
