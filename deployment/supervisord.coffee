@@ -47,7 +47,7 @@ generateSupervisorSectionForWorker = (app, options={})->
     autostart               : yes
     autorestart             : yes
     startsecs               : 10
-    startretries            : 3
+    startretries            : 5
     stopsignal              : "TERM"
     stopwaitsecs            : 10
     redirect_stderr         : yes

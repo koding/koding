@@ -145,9 +145,15 @@ class RealtimeController extends KDController
     {token} = message
 
     channelName = "instance-#{token}"
-    options = { channelName }
 
-    return @subscribePubnub options, callback
+    return callback null, @channels[channelName]  if @channels[channelName]
+
+    # just create a channel for instance event reception
+    channelInstance = new PubnubChannel name: channelName
+
+    @channels[channelName] = channelInstance
+
+    return callback null, channelInstance
 
 
   subscribeNotification: (callback) ->
@@ -188,7 +194,7 @@ class RealtimeController extends KDController
 
       channelInstance = new PubnubChannel name: pubnubChannelName
 
-      @pubnub.subscribe
+      err = @pubnub.subscribe
         channel : pubnubChannelName
         message : (message, env, channel) =>
 
@@ -196,9 +202,14 @@ class RealtimeController extends KDController
 
           {eventName, body, eventId} = message
 
-          return  if @eventCache[eventId]
+          return  unless eventName and body
 
-          @eventCache[eventId] = yes
+          if eventId?
+            return  if @eventCache[eventId]
+
+            # TODO delete this periodically
+            @eventCache[eventId] = yes
+
 
           # when a user is connected in two browsers, and leaves a channel, in second one
           # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
@@ -209,14 +220,30 @@ class RealtimeController extends KDController
           # no need to emit any events when not subscribed
           return  unless @channels[channel]
 
-          @channels[channel].emit eventName, body
+          # instance events are received via public channel. For this reason
+          # if an event name includes "instance-", update the related message channel
+          # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded"
+          if eventName.indexOf("instance-") < 0
+            return @channels[channel].emit eventName, body
+
+          events = eventName.split "."
+          if events.length < 2
+            warn 'could not parse event name', eventName
+            return
+
+          instanceChannel = events[0]
+          eventName = events[1]
+
+          return  unless @channels[instanceChannel]
+
+          @channels[instanceChannel].emit eventName, body
+
+
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName
           callback null, channelInstance
-        error   : (err) =>
-          @handleError err
-          callback err
+        error   : (err) => @handleError err
         reconnect: => @getTimeDiffWithServer()
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
@@ -227,8 +254,13 @@ class RealtimeController extends KDController
         timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
         restore : yes
 
+      return callback err  if err
+
   getTimeDiffWithServer: ->
     @pubnub.time (serverTime) =>
+
+      return  unless serverTime
+
       diff = new Date() * 10000 - serverTime
       # when time difference between pubnub server and client is less than 500ms
       # ignore the difference

@@ -45,12 +45,12 @@ class ActivityAppController extends AppController
 
   reply: (options = {}, callback = noop) ->
 
-    {activity, body, clientRequestId} = options
+    {activity, body, clientRequestId, payload} = options
 
     messageId = activity.id
 
     {socialapi} = KD.singletons
-    socialapi.message.reply {body, messageId, clientRequestId}, callback
+    socialapi.message.reply {body, messageId, clientRequestId, payload}, callback
 
 
   delete: ({id}, callback) ->
