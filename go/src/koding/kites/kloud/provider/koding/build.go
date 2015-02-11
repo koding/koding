@@ -53,6 +53,11 @@ type BuildData struct {
 	KiteId  string
 }
 
+type ImageData struct {
+	blockDeviceMapping ec2.BlockDeviceMapping
+	imageId            string
+}
+
 type Build struct {
 	amazon        *amazon.AmazonClient
 	machine       *protocol.Machine
@@ -60,6 +65,9 @@ type Build struct {
 	start, finish int
 	log           logging.Logger
 	retryCount    int
+
+	// if available, create the instance via the snapshot -> AMI way
+	snapshotId string
 }
 
 // normalize returns the normalized step according to the initial start and finish
@@ -199,25 +207,16 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	return buildArtifact, nil
 }
 
-// buildData returns all necessary data that is needed to build a machine.
-func (b *Build) buildData() (*BuildData, error) {
-	// get all subnets belonging to Kloud
-	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
-		b.machine.Id)
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
-	if err != nil {
-		return nil, err
-	}
-
-	// sort and get the lowest
-	subnet := subnets.WithMostIps()
-
-	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
-		b.machine.Id, subnet.VpcId)
-	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-	if err != nil {
-		return nil, err
-	}
+func (b *Build) imageData() (*ImageData, error) {
+	// if b.snapshotId != "" {
+	// 	b.log.Debug("[%s] creating AMI from the snapshot '%s'", b.machine.Id, b.snapshotId)
+	// 	b.amazon.Push("Snapshot detected. Building custom Image for instance",
+	// 		b.normalize(5), machinestate.Building)
+	// 	imageId, err = b.createAMIFromSnapshot()
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	b.log.Debug("[%s] Fetching image which is tagged with '%s'",
 		b.machine.Id, DefaultCustomAMITag)
@@ -245,6 +244,37 @@ func (b *Build) buildData() (*BuildData, error) {
 	}
 	b.log.Debug("[%s] Using block device settings %v", b.machine.Id, blockDeviceMapping)
 
+	return &ImageData{
+		imageId:            image.Id,
+		blockDeviceMapping: blockDeviceMapping,
+	}, nil
+}
+
+// buildData returns all necessary data that is needed to build a machine.
+func (b *Build) buildData() (*BuildData, error) {
+	// get all subnets belonging to Kloud
+	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
+		b.machine.Id)
+	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
+	if err != nil {
+		return nil, err
+	}
+
+	// sort and get the lowest
+	subnet := subnets.WithMostIps()
+
+	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
+		b.machine.Id, subnet.VpcId)
+	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	imageData, err := b.imageData()
+	if err != nil {
+		return nil, err
+	}
+
 	b.log.Debug("[%s] Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
 		b.machine.Id, subnet.SubnetId, subnet.AvailabilityZone,
 		group.Id, subnet.AvailableIpAddressCount)
@@ -269,7 +299,7 @@ func (b *Build) buildData() (*BuildData, error) {
 	}
 
 	ec2Data := &ec2.RunInstances{
-		ImageId:                  image.Id,
+		ImageId:                  imageData.imageId,
 		MinCount:                 1,
 		MaxCount:                 1,
 		KeyName:                  b.provider.KeyName,
@@ -278,7 +308,7 @@ func (b *Build) buildData() (*BuildData, error) {
 		SubnetId:                 subnet.SubnetId,
 		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
 		AvailZone:                subnet.AvailabilityZone,
-		BlockDevices:             []ec2.BlockDeviceMapping{blockDeviceMapping},
+		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userData,
 	}
 
@@ -550,6 +580,10 @@ func (b *Build) checkKite(query string) error {
 	}
 
 	return nil
+}
+
+func (b *Build) createAMIFromSnapshot() (string, error) {
+	return "", errors.New("Not implemented yet")
 }
 
 // CreateKey signs a new key and returns the token back
