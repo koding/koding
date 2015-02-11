@@ -46,7 +46,9 @@ module.exports =
       .click                  '[testpath=login-button]'
       .pause                  5000
 
+
   waitForVMRunning: (browser, machineName) ->
+
     vmSelector = '.vm.running.koding'
 
     if machineName
@@ -83,16 +85,15 @@ module.exports =
   doLogin: (browser, user) ->
     @attemptLogin(browser, user)
 
-    browser
-      .element                'css selector', '[testpath=main-sidebar]', (result) =>
-        if result.status is 0
-          console.log 'log in success'
+    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
+      if result.status is 0
+        console.log 'log in success'
 
-          browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
-        else
-          console.log 'user is not registered yet. registering the user.'
+        browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
+      else
+        console.log 'user is not registered yet. registering the user.'
 
-          @doRegister browser, user
+        @doRegister browser, user
 
 
   doLogout: (browser) ->
