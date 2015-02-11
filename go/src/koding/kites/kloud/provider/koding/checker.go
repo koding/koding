@@ -288,6 +288,39 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 	// no need for errors because instances will be empty in case of an error
 	instances, _ := p.userInstances()
 
+	// we need to fetch JAccount here to get earnedRewards if exists
+	var account *models.Account
+	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": p.Username}).One(&account)
+	}); err != nil {
+		p.Log.Warning("[%s] Failed to fetch user information while checking storage. err: %v",
+			p.Machine.Id, err)
+		return err
+	}
+
+	// setting as 0 initially
+	rewardAmount := 0
+
+	// querying the earnedReward of given account
+	var reward *models.EarnedReward
+	if err := p.DB.Run("jEarnedRewards", func(c *mgo.Collection) error {
+		return c.Find(bson.M{
+			"originId": account.Id.Hex(),
+			"type":     "disk",
+			"unit":     "MB",
+		}).One(&reward)
+	}); err != nil && err != mgo.ErrNotFound {
+		// if there is no earnedRewards we can continue with 0
+		return err
+	}
+
+	// we got the amount as MB but aws only supports GB
+	// dividing with 1000 not 1024.
+	rewardAmount = rewardAmount / 1000
+
+	// and adding it to totalStorage
+	totalStorage += rewardAmount
+
 	// i hate for loops too, but unfortunaly the responses are always in form
 	// of slices
 	currentStorage := 0
