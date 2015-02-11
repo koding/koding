@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -60,6 +61,11 @@ func (b *Broker) UpdateInstance(um *UpdateInstanceMessage) error {
 		return err
 	}
 	defer channel.Close()
+
+	// TODO this line (and all the class) will be all deleted while removing broker
+	if strings.Contains(um.EventName, "updateInstance") {
+		um.EventName = "updateInstance"
+	}
 
 	routingKey := "oid." + um.Token + ".event." + um.EventName
 	updateMessage, err := json.Marshal(um.Body)
