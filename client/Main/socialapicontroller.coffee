@@ -227,7 +227,7 @@ class SocialApiController extends KDController
   # this method will prevent the arrival of
   # realtime messages to the individual messages
   # if the message is mine and current window has focus.
-  isFromOtherBrowser = (message, event) ->
+  isFromOtherBrowser = (message) ->
 
     # selenium doesn't put focus into the
     # spawned browser, it's causing problems.
@@ -237,11 +237,7 @@ class SocialApiController extends KDController
     return no  if KD.isTesting
 
     {message} = message  unless message.typeConstant?
-    {_inScreenMap, _cache}  = KD.singletons.socialapi
-
-    # While making retrospective realtime message query, it is possible to fetch an already
-    # existing message. This is for preventing the case.
-    return no  if event is 'MessageAdded' and _cache?[message.typeConstant]?[message.id]
+    {_inScreenMap}  = KD.singletons.socialapi
 
     # when I am not the message owner, it is obviously from another browser
     return yes  unless message.accountId is KD.whoami().socialApiId
@@ -259,18 +255,34 @@ class SocialApiController extends KDController
   forwardMessageEvents : forwardMessageEvents
   forwardMessageEvents = (source, target, events) ->
 
-    events.forEach ({event, mapperFn, validatorFn}) ->
+    events.forEach ({event, mapperFn, validatorFn, filterFn}) ->
       source.on event, (data, rest...) ->
 
         if validatorFn
           if typeof validatorFn isnt "function"
             return warn "validator function is not valid"
 
-          return  unless validatorFn(data, event)
+          return  unless validatorFn(data)
+
+        if filterFn
+          if typeof filterFn isnt "function"
+            return warn "filter function is not valid"
+
+          return  unless filterFn(data)
 
         data = mapperFn data
 
         target.emit event, data, rest...
+
+
+  # While making retrospective realtime message query, it is possible to fetch an already
+  # existing message. This is for preventing the case.
+  filterMessage = (data) ->
+    {message} = data  unless data.typeConstant?
+    if cachedMessage = KD.singletons.socialapi._cache?[message.typeConstant]?[message.id]
+      return yes  if cachedMessage.isShown
+
+    message.isShown = yes
 
 
   registerAndOpenChannels = (socialApiChannels) ->
@@ -424,9 +436,10 @@ class SocialApiController extends KDController
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
 
+
   getMessageEvents = ->
     [
-      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser, filterFn: filterMessage}
       {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
       {event: "AddedToChannel",     mapperFn: mapParticipant}
       {event: "RemovedFromChannel", mapperFn: mapParticipant}
