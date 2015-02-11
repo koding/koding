@@ -298,27 +298,30 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		return err
 	}
 
-	// setting as 0 initially
 	rewardAmount := 0
 
 	// querying the earnedReward of given account
 	var reward *models.EarnedReward
 	if err := p.DB.Run("jEarnedRewards", func(c *mgo.Collection) error {
 		return c.Find(bson.M{
-			"originId": account.Id.Hex(),
+			"originId": account.Id,
 			"type":     "disk",
 			"unit":     "MB",
 		}).One(&reward)
-	}); err != nil && err != mgo.ErrNotFound {
-		// if there is no earnedRewards we can continue with 0
-		return err
+	}); err != nil {
+		// if there is a different error rather
+		// than notFound we should stop here
+		if err != mgo.ErrNotFound {
+			return err
+		}
+	} else {
+		// we got the amount as MB but aws only supports GB
+		// dividing with 1000 not 1024.
+		rewardAmount = reward.Amount / 1000
 	}
 
-	// we got the amount as MB but aws only supports GB
-	// dividing with 1000 not 1024.
-	rewardAmount = rewardAmount / 1000
-
 	// and adding it to totalStorage
+	// if there is no reward it will be 0 in this state
 	totalStorage += rewardAmount
 
 	// i hate for loops too, but unfortunaly the responses are always in form
