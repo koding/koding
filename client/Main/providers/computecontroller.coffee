@@ -676,8 +676,27 @@ class ComputeController extends KDController
     provider ?= "koding"
 
     @fetchUserPlan (plan)=> @fetchPlans (plans)=>
-      @fetchUsage { provider }, (err, usage)->
-        callback err, { plan, plans, usage }
+      @fetchUsage { provider }, (err, usage)=>
+        @fetchRewards { unit: 'GB' }, (err, reward)->
+          callback err, { plan, plans, usage, reward }
+
+  fetchRewards: (options, callback)->
+
+    {unit} = options
+
+    options =
+      unit  : 'MB'
+      type  : 'disk'
+
+    KD.remote.api.JReward.fetchEarnedAmount options, (err, amount)->
+
+      if err
+        amount = 0
+        warn err
+
+      amount = Math.floor amount / 1000  if unit is 'GB'
+
+      callback null, amount
 
 
   findMachineFromMachineId: (machineId)->
