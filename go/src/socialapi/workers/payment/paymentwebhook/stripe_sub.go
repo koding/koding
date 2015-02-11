@@ -69,5 +69,5 @@ func unmarshalSubscription(raw []byte) (*webhookmodels.StripeSubscription, error
 }
 
 func isSamePlan(previousPlanName, newPlanName string) bool {
-	return previousPlanName != "" && previousPlanName == newPlanName
+	return previousPlanName == "" || previousPlanName == newPlanName
 }
