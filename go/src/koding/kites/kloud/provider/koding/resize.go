@@ -39,8 +39,19 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
 
+	checker, err := p.PlanChecker(m)
+	if err != nil {
+		return nil, err
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
+		return nil, err
+	}
+
+	// giving wantStorage as 0 since machine document already
+	// has the max amount, we just want to check if its valid or not.
+	if err := checker.Storage(0); err != nil {
 		return nil, err
 	}
 
