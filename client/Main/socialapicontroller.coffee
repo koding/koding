@@ -241,7 +241,7 @@ class SocialApiController extends KDController
 
     # While making retrospective realtime message query, it is possible to fetch an already
     # existing message. This is for preventing the case.
-    return no  if event?.indexOf('Added') > 1 and if _cache[message.typeConstant]?[message.id]
+    return no  if event is 'MessageAdded' and _cache?[message.typeConstant]?[message.id]
 
     # when I am not the message owner, it is obviously from another browser
     return yes  unless message.accountId is KD.whoami().socialApiId

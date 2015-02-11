@@ -69,6 +69,11 @@ class MessageEventManager extends KDObject
 
   addReply: (plain) ->
 
+    # revive adds the reply to cache. if reply is already there, it means it is shown
+    # on the screen
+    # TODO this code gone mad. Need a better caching mechanism
+    return  if KD.singletons.socialapi._cache[plain.message.typeConstant]?[plain.message.id]
+
     reply = KD.singletons.socialapi.message.revive plain
 
     KD.getMessageOwner reply, (err, owner) =>
@@ -82,7 +87,7 @@ class MessageEventManager extends KDObject
 
       plain.message.messageId = message.id
 
-      return  unless KD.singletons.socialapi.isFromOtherBrowser plain, 'ReplyAdded'
+      return  unless KD.singletons.socialapi.isFromOtherBrowser plain
 
       message.emit "AddReply", reply
       message.emit "update"
