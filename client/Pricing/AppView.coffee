@@ -224,6 +224,7 @@ class PricingAppView extends KDView
       @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
 
         @state.currentPlan = state.planTitle
+        @state.currentPlanInterval = state.planInterval
         @plans.setState @state
 
         KD.singletons
