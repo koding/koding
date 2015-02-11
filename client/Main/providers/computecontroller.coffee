@@ -503,9 +503,8 @@ class ComputeController extends KDController
     if @plans
       KD.utils.defer => callback @plans
     else
-      KD.remote.api.ComputeProvider.fetchPlans
-        provider: "koding"
-      , (err, plans)=>
+      KD.remote.api.ComputeProvider
+        .fetchPlans provider: "koding", (err, plans)=>
           if err? then warn err
           else @plans = plans
           callback plans
@@ -671,7 +670,7 @@ class ComputeController extends KDController
     .nodeify callback
 
 
-  fetchPlanCombo:(provider, callback)->
+  fetchPlanCombo: (provider, callback)->
 
     [callback, provider] = [provider, callback]  unless callback?
     provider ?= "koding"
