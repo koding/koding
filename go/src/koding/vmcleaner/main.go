@@ -2,8 +2,14 @@ package main
 
 import (
 	"fmt"
+	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
 	"socialapi/workers/helper"
+	"syscall"
 	"time"
 
 	kiteConfig "github.com/koding/kite/config"
@@ -30,6 +36,7 @@ var (
 )
 
 type Vmcleaner struct {
+	Port              string `required:"true"`
 	Mongo             string `required:"true"`
 	KloudSecretKey    string `required:"true"`
 	KloudAddr         string `required:"true"`
@@ -40,6 +47,8 @@ type Vmcleaner struct {
 
 func main() {
 	conf := initializeConf()
+	port := conf.Port
+
 	modelhelper.Initialize(conf.Mongo)
 
 	// initialize client to talk to kloud
@@ -49,14 +58,6 @@ func main() {
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
-
-	defer func() {
-		modelhelper.Close()
-
-		if KiteClient != nil {
-			KiteClient.Close()
-		}
-	}()
 
 	// initialize client to send email
 	Email = initializeEmail(conf.SendgridUsername, conf.SendgridPassword,
@@ -72,6 +73,43 @@ func main() {
 	})
 
 	c.Start()
+
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("/version", artifact.VersionHandler())
+	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
+
+	Log.Info("Listening on port: %s", port)
+
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
+				modelhelper.Close()
+				listener.Close()
+
+				if KiteClient != nil {
+					KiteClient.Close()
+				}
+
+				os.Exit(0)
+			}
+		}
+	}()
+
+	err = http.Serve(listener, mux)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
 }
 
 func initializeConf() *Vmcleaner {
