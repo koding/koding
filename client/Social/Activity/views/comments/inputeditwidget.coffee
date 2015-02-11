@@ -34,15 +34,23 @@ class CommentInputEditWidget extends CommentInputWidget
     @emit 'Submit'
 
     {id} = data = @getData()
+    payload = @getPayload()
 
     { appManager } = KD.singletons
 
-    appManager.tell 'Activity', 'edit', {id, body}, (err) =>
+    appManager.tell 'Activity', 'edit', {id, body, payload}, (err, activity) =>
 
       return KD.showError err  if err
 
-      data.body = body
-      data.emit 'update'
+      activity.body = body
+
+      if payload
+        activity.link.link_url = payload.link_url
+        activity.link.link_embed = payload.link_embed
+
+      activity.emit 'update'
+
+      callback err, activity
 
 
   submissionCallback: (err, activity) ->
@@ -56,6 +64,14 @@ class CommentInputEditWidget extends CommentInputWidget
     KD.mixpanel "Comment edit, success", { length: activity?.body?.length }
 
 
+  getPayload: ->
+
+    link_url   = @embedBox.url
+    link_embed = @embedBox.getDataForSubmit()
+
+    return {link_url, link_embed}  if link_url and link_embed
+
+
   viewAppended: ->
 
     super
@@ -64,11 +80,10 @@ class CommentInputEditWidget extends CommentInputWidget
     {body, link} = data
 
     @input.setValue body, data
+    @embedBox.loadEmbed link.link_url  if link
 
     @addSubView new KDCustomHTMLView
       cssClass  : 'cancel-description'
       pistachio : 'Press Esc to cancel'
 
     KD.utils.defer @bound 'setFocus'
-
-
