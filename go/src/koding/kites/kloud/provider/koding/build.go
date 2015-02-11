@@ -208,16 +208,6 @@ func (b *Build) run() (*protocol.Artifact, error) {
 }
 
 func (b *Build) imageData() (*ImageData, error) {
-	// if b.snapshotId != "" {
-	// 	b.log.Debug("[%s] creating AMI from the snapshot '%s'", b.machine.Id, b.snapshotId)
-	// 	b.amazon.Push("Snapshot detected. Building custom Image for instance",
-	// 		b.normalize(5), machinestate.Building)
-	// 	imageId, err = b.createAMIFromSnapshot()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
-
 	b.log.Debug("[%s] Fetching image which is tagged with '%s'",
 		b.machine.Id, DefaultCustomAMITag)
 	image, err := b.amazon.ImageByTag(DefaultCustomAMITag)
@@ -242,7 +232,34 @@ func (b *Build) imageData() (*ImageData, error) {
 		DeleteOnTermination: true,
 		Encrypted:           false,
 	}
-	b.log.Debug("[%s] Using block device settings %v", b.machine.Id, blockDeviceMapping)
+
+	if b.snapshotId != "" {
+		b.log.Debug("[%s] creating AMI from the snapshot '%s'", b.machine.Id, b.snapshotId)
+
+		blockDeviceMapping.SnapshotId = b.snapshotId
+		amiDesc := fmt.Sprintf("user-%s-%s", b.machine.Username, b.machine.Id)
+
+		registerOpts := &ec2.RegisterImage{
+			Name:           amiDesc,
+			Description:    amiDesc,
+			Architecture:   image.Architecture,
+			RootDeviceName: image.RootDeviceName,
+			VirtType:       image.VirtualizationType,
+			KernelId:       image.KernelId,
+			RamdiskId:      image.RamdiskId,
+			BlockDevices:   []ec2.BlockDeviceMapping{blockDeviceMapping},
+		}
+
+		registerResp, err := b.amazon.Client.RegisterImage(registerOpts)
+		if err != nil {
+			return nil, err
+		}
+
+		image.Id = registerResp.ImageId
+	}
+
+	b.log.Debug("[%s] Using image Id: %s and block device settings %v",
+		b.machine.Id, image.Id, blockDeviceMapping)
 
 	return &ImageData{
 		imageId:            image.Id,
@@ -580,10 +597,6 @@ func (b *Build) checkKite(query string) error {
 	}
 
 	return nil
-}
-
-func (b *Build) createAMIFromSnapshot() (string, error) {
-	return "", errors.New("Not implemented yet")
 }
 
 // CreateKey signs a new key and returns the token back
