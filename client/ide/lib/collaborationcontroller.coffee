@@ -570,12 +570,13 @@ module.exports =
 
       kd.utils.killRepeat @pingInterval
 
-      @stopCollaborationSession =>
-        @quit()
+      @quit()
 
-        new KDNotificationView
-          title    : "@#{@collaborationHost} has left the session."
-          duration : 3000
+      new KDNotificationView
+        title    : "@#{@collaborationHost} has left the session."
+        duration : 3000
+
+      @setMachineSharingStatus off
 
   handleBroadcastMessage: (data) ->
 
