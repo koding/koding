@@ -354,6 +354,7 @@ Configuration = (options={}) ->
         incoming        : paymentwebhook.port
       supervisord       :
         command         : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
+        stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -368,6 +369,7 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/vmwatcher -c #{configName}"
+        stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
