@@ -42,6 +42,15 @@ func (p *Provider) DeleteSnapshot(snapshotId string, m *protocol.Machine) error 
 }
 
 func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, error) {
+	checker, err := p.PlanChecker(m)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := checker.SnapshotTotal(); err != nil {
+		return nil, err
+	}
+
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
