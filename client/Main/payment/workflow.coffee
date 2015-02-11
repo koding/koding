@@ -224,11 +224,7 @@ class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
-    initiatorView = @getDelegate()
-
     @emit 'PaymentWorkflowFinishedSuccessfully', state
-
-    initiatorView.state.currentPlan = state.currentPlan
 
     @modal.destroy()
 
