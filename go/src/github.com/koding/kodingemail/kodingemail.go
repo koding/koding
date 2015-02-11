@@ -1,6 +1,8 @@
 package kodingemail
 
 import (
+	"fmt"
+
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/smtpapi-go"
 )
@@ -63,6 +65,7 @@ func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 
 	recipient := to
 	if s.ForceRecipient != "" {
+		fmt.Println("kodingemail: Forcing recipient to", s.ForceRecipient)
 		recipient = s.ForceRecipient
 	}
 
