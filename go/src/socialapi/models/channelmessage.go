@@ -605,3 +605,29 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 
 	return newCm, nil
 }
+
+// FetchParentChannel fetches the parent channel of the message. When
+// initial channel is topic, it fetches the group channel, otherwise
+// it just fetches the initial channel as parent.
+func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
+	c, err := ChannelById(cm.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.TypeConstant != Channel_TYPE_TOPIC {
+		return c, nil
+	}
+
+	ch := NewChannel()
+	selector := map[string]interface{}{
+		"group_name":    c.GroupName,
+		"type_constant": Channel_TYPE_GROUP,
+	}
+
+	if err := ch.One(bongo.NewQS(selector)); err != nil {
+		return nil, err
+	}
+
+	return ch, nil
+}

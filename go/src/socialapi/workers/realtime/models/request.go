@@ -14,7 +14,8 @@ type PushMessage struct {
 }
 
 type UpdateInstanceMessage struct {
-	Token string `json:"token"`
+	Token        string `json:"token"`
+	ChannelToken string `json:"channelToken"`
 	Message
 }
 
