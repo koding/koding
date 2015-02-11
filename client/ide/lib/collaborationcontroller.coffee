@@ -231,13 +231,14 @@ module.exports =
       channelId  : @socialChannel.id
       accountIds : [ account.socialApiId ]
 
-    @setMachineUser [account], no, =>
+    targetUser = account.profile.nickname
+
+    @setMachineUser [targetUser], no, (err) =>
 
       kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
 
         return showError err  if err
 
-        targetUser = account.profile.nickname
         message    =
           type     : 'ParticipantKicked'
           origin   : nick()
@@ -803,16 +804,21 @@ module.exports =
 
   setMachineSharingStatus: (status, callback) ->
 
-    @listChatParticipants (accounts) =>
-      @setMachineUser accounts, status, callback
+    getUsernames = (accounts) ->
 
-
-  setMachineUser: (accounts, share = yes, callback = kd.noop) ->
-
-    usernames = accounts.map (account) -> account.profile.nickname
+      accounts
+        .map ({profile: {nickname}}) -> nickname
+        .filter (nickname) -> nickname isnt nick()
 
     if @amIHost
-      usernames = usernames.filter (username) -> username isnt nick()
+      @listChatParticipants (accounts) =>
+        usernames = getUsernames accounts
+        @setMachineUser usernames, status
+    else
+      @setMachineUser [nick()], status
+
+
+  setMachineUser: (usernames, share = yes, callback = kd.noop) ->
 
     return callback()  unless usernames.length
 
@@ -928,7 +934,7 @@ module.exports =
       options = channelId: @socialChannel.getId()
       kd.singletons.socialapi.channel.leave options, (err) =>
         return showError err  if err
-        @setMachineUser [whoami()], no, => @quit()
+        @setMachineUser [nick()], no, => @quit()
         # remove the leaving participant's info from the collaborative doc
         @removeParticipant nick()
 
