@@ -162,6 +162,7 @@ module.exports = class AceView extends JView
     file = @getData()
     container = @getOptions().delegate or this
 
+
     showSaveDialog container, (input, finderController, dialog) =>
 
       [node] = finderController.treeController.selectedNodes
