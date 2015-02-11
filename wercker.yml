@@ -137,10 +137,10 @@ build:
         name: run activity edit delete test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity editdelete'
-    # - script:
-    #     name: run activity like unlike suite
-    #     code: |
-    #       ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity likeunlike'
+    - script:
+        name: run activity like unlike suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity likeunlike'
     - script:
         name: run activity other test suite
         code: |
@@ -196,7 +196,8 @@ build:
         name: terminate test instance
         code: |
           INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
-          scripts/wercker/terminate-test-instance $INSTANCE_ID
+          if [ -n "$INSTANCE_ID" ]; then scripts/wercker/terminate-test-instance $INSTANCE_ID; fi
+
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN

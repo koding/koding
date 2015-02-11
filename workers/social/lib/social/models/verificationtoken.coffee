@@ -58,7 +58,7 @@ module.exports = class JVerificationToken extends Module
 
           if createdAt < 20 # min
             if resendIfExists
-              confirmation.sendEmail {subject, firstName}, callback
+              confirmation.sendEmail {subject, firstName, action}, callback
             else
               callback if err then err else new PINExistsError \
                 "PIN exists and not expired,
@@ -68,21 +68,22 @@ module.exports = class JVerificationToken extends Module
 
         # Remove all waiting pins for given action and email
         @remove {username, action}, (err, count)->
-          if err then console.warn err
-          else
-            if count > 0 then console.log "#{count} expired PIN removed."
-            else console.log "No such waiting PIN found."
 
-            # Create a random pin
-            pin = hat 16
+          return console.warn err  if err
 
-            # Create and send new pin
-            confirmation = new JVerificationToken {username, action, email, pin}
-            confirmation.save (err)->
-              if err
-                callback err
-              else
-                confirmation.sendEmail {subject, firstName}, callback
+          if count > 0 then console.log "#{count} expired PIN removed."
+          else console.log "No such waiting PIN found."
+
+          # Create a random pin
+          pin = hat 16
+
+          # Create and send new pin
+          confirmation = new JVerificationToken {username, action, email, pin}
+          confirmation.save (err)->
+            if err
+              callback err
+            else
+              confirmation.sendEmail {subject, firstName, action}, callback
 
 
   @confirmByPin = (options, callback)->
@@ -100,7 +101,52 @@ module.exports = class JVerificationToken extends Module
         callback null, false
 
 
-  sendEmail: ({subject, firstName}, callback)->
+  getTextBody = ({firstName, pin, action})->
+
+    templates =
+
+      'verify-account': """
+        Hi #{firstName},
+
+        Welcome to Koding!
+
+        You can use the following code to verify your koding.com account:
+
+          #{pin}
+
+        Have a nice day!
+        --
+        Koding Team
+      """
+
+      'update-email'  : """
+        Hi #{firstName},
+
+        To verify your new e-mail address you can use the following code:
+
+          #{pin}
+
+        Have a nice day!
+        --
+        Koding Team
+      """
+
+      default         : """
+        Hi #{firstName},
+
+        Here’s your koding.com verification code:
+
+          #{pin}
+
+        Have a nice day!
+        --
+        Koding Team
+      """
+
+    return templates[action] or templates.default
+
+
+  sendEmail: ({subject, firstName, action}, callback)->
 
     JMail = require './email'
 
@@ -108,28 +154,12 @@ module.exports = class JVerificationToken extends Module
       from    : 'hello@koding.com'
       email   : @email
       subject : subject
-      content : @getTextBody firstName, @pin
+      content : getTextBody {firstName, @pin, action}
       force   : yes
 
     console.log "Pin (#{@pin}) sent to #{@email} for #{@action} action."
 
     email.save callback
-
-
-  getTextBody: (firstName, plainPin)->
-
-    """
-    Hi #{firstName},
-
-    Here’s your koding.com verification code:
-
-      #{plainPin}
-
-    Have a nice day!
-    --
-    Koding Team
-
-    """
 
 
   @invalidatePin = (options, callback)->
