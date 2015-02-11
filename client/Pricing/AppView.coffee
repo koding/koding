@@ -209,11 +209,14 @@ class PricingAppView extends KDView
       inProcess = yes
 
       isCurrentPlan =
-        options.planTitle    is @state.currentPlan and
-        options.planInterval is @state.currentPlanInterval and
-        'expired'          isnt @state.subscriptionState
+        options.planTitle     is @state.currentPlan and
+        (options.planInterval is @state.currentPlanInterval or
+        options.planTitle     is PaymentConstants.planTitle.FREE) and
+        'expired'             isnt @state.subscriptionState
 
-      return KD.showError "That's already your current plan."  if isCurrentPlan
+      if isCurrentPlan
+        inProcess = no
+        return KD.showError "That's already your current plan."
 
       @setState options
 
