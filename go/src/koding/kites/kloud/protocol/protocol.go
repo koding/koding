@@ -38,7 +38,7 @@ type Provider interface {
 	CreateSnapshot(*Machine) (*Artifact, error)
 
 	// DeleteSnapshot deletes a snapshot from the given machine
-	DeleteSnapshot(*Machine) error
+	DeleteSnapshot(string, *Machine) error
 
 	// Info returns full information about a single machine
 	Info(*Machine) (*InfoArtifact, error)

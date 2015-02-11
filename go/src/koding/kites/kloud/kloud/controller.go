@@ -33,6 +33,7 @@ var states = map[string]*statePair{
 	"resize":         &statePair{initial: machinestate.Pending, final: machinestate.Running},
 	"reinit":         &statePair{initial: machinestate.Terminating, final: machinestate.Running},
 	"createSnapshot": &statePair{initial: machinestate.Snapshotting, final: machinestate.Running},
+	"deleteSnapshot": &statePair{initial: machinestate.Snapshotting, final: machinestate.Running},
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
@@ -96,37 +97,6 @@ func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 
 		if err != nil {
 			k.Log.Error("[%s] updating data after resize method was not possible: %s",
-				m.Id, err.Error())
-		}
-
-		return resp, nil
-	}
-
-	return k.coreMethods(r, resizeFunc)
-}
-
-func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr error) {
-	resizeFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-		resp, err := p.CreateSnapshot(m)
-		if err != nil {
-			return nil, err
-		}
-
-		// some providers might provide empty information, therefore do not
-		// update anything for them
-		if resp == nil {
-			return resp, nil
-		}
-
-		err = k.Storage.Update(m.Id, &StorageData{
-			Type: "createSnapshot",
-			Data: map[string]interface{}{
-				"ipAddress": resp.IpAddress,
-			},
-		})
-
-		if err != nil {
-			k.Log.Error("[%s] updating data after createSnapshot method was not possible: %s",
 				m.Id, err.Error())
 		}
 

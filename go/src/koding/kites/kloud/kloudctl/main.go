@@ -28,6 +28,7 @@ func main() {
 		"resize":          command.NewCmd("resize"),
 		"reinit":          command.NewCmd("reinit"),
 		"create-snapshot": command.NewCmd("createSnapshot"),
+		"delete-snapshot": command.NewDeleteSnapshot(),
 	}
 
 	_, err := c.Run()

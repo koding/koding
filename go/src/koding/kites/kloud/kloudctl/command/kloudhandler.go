@@ -18,8 +18,9 @@ func init() {
 
 // KloudArgs is used as argument that is sent to kloud
 type KloudArgs struct {
-	MachineId string
-	Username  string
+	MachineId  string `json:"machineId"`
+	SnapshotId string `json:"snapshotId"`
+	Username   string `json:"username"`
 }
 
 type Actioner interface {

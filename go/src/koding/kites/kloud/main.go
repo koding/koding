@@ -256,6 +256,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Snapshot functionality
 	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	// Domain records handling methods
 	k.HandleFunc("domain.set", kld.DomainSet)

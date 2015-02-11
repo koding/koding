@@ -26,8 +26,18 @@ type SnapshotDocument struct {
 	CreatedAt  time.Time     `bson:"createdAt"`
 }
 
-func (p *Provider) DeleteSnapshot(m *protocol.Machine) error {
-	return nil
+func (p *Provider) DeleteSnapshot(snapshotId string, m *protocol.Machine) error {
+	a, err := p.NewClient(m)
+	if err != nil {
+		return err
+	}
+
+	p.Log.Debug("[%s] deleting snapshot from AWS %s", m.Id, snapshotId)
+	if _, err := a.Client.DeleteSnapshots([]string{snapshotId}); err != nil {
+		return err
+	}
+
+	return p.DeleteSnapshotData(snapshotId)
 }
 
 func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, error) {
@@ -141,6 +151,7 @@ func (p *Provider) AddSnapshotData(snapshotId, region, machineId string) error {
 }
 
 func (p *Provider) DeleteSnapshotData(snapshotId string) error {
+	p.Log.Debug("[%s] deleting snapshot data from MongoDB %s", snapshotId)
 	err := p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"snapshotId": snapshotId})
 	})
@@ -151,5 +162,4 @@ func (p *Provider) DeleteSnapshotData(snapshotId string) error {
 	}
 
 	return nil
-
 }
