@@ -241,16 +241,22 @@ module.exports =
     openVmSettingsModal(browser, 'koding-vm-1')
     clickMoreButtonInVMSettingsModal(browser)
 
-    browser
-      .waitForElementVisible    '.more-form .alwayson', 20000
-      .click                    '.more-form .alwayson .koding-on-off'
-      .pause                    1000
-      .refresh()
-      .waitForElementVisible    '[testpath=main-sidebar]', 25000
+    browser.element  'css selector', '.more-form .alwayson .koding-on-off.on', (result) =>
+      if result.status is 0
+        console.log 'VM is already always on, ending test...'
+        browser.end()
 
-    openVmSettingsModal(browser, 'koding-vm-1')
-    clickMoreButtonInVMSettingsModal(browser)
+      else
+        browser
+          .waitForElementVisible    '.more-form .alwayson', 20000
+          .click                    '.more-form .alwayson .koding-on-off'
+          .pause                    1000
+          .refresh()
+          .waitForElementVisible    '[testpath=main-sidebar]', 25000
 
-    browser
-      .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
-      .end()
+        openVmSettingsModal(browser, 'koding-vm-1')
+        clickMoreButtonInVMSettingsModal(browser)
+
+        browser
+          .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
+          .end()
