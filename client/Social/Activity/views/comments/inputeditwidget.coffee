@@ -34,7 +34,7 @@ class CommentInputEditWidget extends CommentInputWidget
     @emit 'Submit'
 
     {id} = data = @getData()
-    payload        = @getPayload()
+    payload = @getPayload()
 
     { appManager } = KD.singletons
 
@@ -64,7 +64,7 @@ class CommentInputEditWidget extends CommentInputWidget
     KD.mixpanel "Comment edit, success", { length: activity?.body?.length }
 
 
-    getPayload: ->
+  getPayload: ->
 
     link_url   = @embedBox.url
     link_embed = @embedBox.getDataForSubmit()
@@ -87,5 +87,3 @@ class CommentInputEditWidget extends CommentInputWidget
       pistachio : 'Press Esc to cancel'
 
     KD.utils.defer @bound 'setFocus'
-
-
