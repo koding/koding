@@ -211,10 +211,10 @@ class RealTimeManager extends KDObject
     # all kind of collaborativeObjs have id
     throw new Error "id is not set" if not collaborativeObj.id
 
-    values[collaborativeObj.id] or= (v) ->
+    values[collaborativeObj.id] or= (v) =>
       callback.call this, collaborativeObj, v
 
-    return values[collaborativeObj.id].bind this
+    return values[collaborativeObj.id]
 
   unbindRealtimeListeners: do (instances = []) ->
     (instance, type) ->
