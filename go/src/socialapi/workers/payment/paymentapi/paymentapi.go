@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	DefaultPlanUrl = "http://localhost:7000/payments"
+	DefaultPlanUrl = "http://localhost:7000/payments/subscriptions"
 	FreePlanName   = "free"
 )
 
