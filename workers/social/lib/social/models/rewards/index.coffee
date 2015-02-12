@@ -37,7 +37,7 @@ module.exports = class JReward extends jraphical.Message
       # since bongo is not supporting them
       # we need to manually define following:
       #
-      #   - providedBy, originId, sourceCampaign (unique)
+      #   - { providedBy:1, originId:1, sourceCampaign:1 } (unique)
       #
 
       type            : 'sparse'
@@ -188,10 +188,9 @@ module.exports = class JReward extends jraphical.Message
           callback null, reward
 
 
-  @fetchEarnedAmount = secure (client, options, callback)->
+  @fetchEarnedAmount = (options, callback)->
 
     options = useDefault options
-    options.originId = client.connection.delegate.getId()
 
     fetchEarnedReward options, (err, earnedReward)->
       return callback err  if err?
@@ -200,6 +199,13 @@ module.exports = class JReward extends jraphical.Message
 
       # We can manually call this if we need.
       # JReward.calculateAndUpdateEarnedAmount options, callback
+
+
+  @fetchEarnedAmount$ = secure (client, options, callback)->
+
+    options.originId  = client.connection.delegate.getId()
+
+    @fetchEarnedAmount options, callback
 
 
   @some$ = secure (client, selector, options, callback)->

@@ -279,6 +279,11 @@ testapi: testcollaboration
 	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
 	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
+	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
+	@`which go` test -c workers/realtime/models/*.go
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./models.test
+
 doc:
 	@for package in $(PACKAGES); \
 	do \
