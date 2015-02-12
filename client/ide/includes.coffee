@@ -62,6 +62,8 @@ module.exports = [
   # misc views
   "views/basesplitview.coffee"
 
+  "collaborationcontroller.coffee"
+
   "AppControllerOptions.coffee"
   "AppController.coffee"
 
