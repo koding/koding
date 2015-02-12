@@ -29,9 +29,12 @@ class RealtimeController extends KDController
         uuid          : KD.whoami()._id
         ssl           : if KD.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
 
-      @getTimeDiffWithServer()
-
       realtimeToken = Cookies.get("realtimeToken")
+
+      @fetchServerTime()
+      setInterval =>
+        @fetchServerTime()
+      , 10000
 
       if realtimeToken?
         @pubnub.auth realtimeToken
@@ -47,6 +50,14 @@ class RealtimeController extends KDController
 
         @authenticated = yes
         @emit 'authenticated'
+
+
+  fetchServerTime: ->
+    @pubnub.time (timestamp) =>
+      return  unless timestamp
+
+      @serverTimestamp = timestamp
+      @emit 'Ping', timestamp
 
 
   # channel authentication is needed for notification channel and
@@ -206,15 +217,60 @@ class RealtimeController extends KDController
         error   : (err) =>
           @handleError err
           callback err  unless callbackCalled
-        reconnect: => @getTimeDiffWithServer()
+        reconnect: (channel) => @reconnect channel
+
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
         # in last 3 seconds
-        # another issue is if user's computer time is ahead of server, it is not receiving the events.
-        # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
-        timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
+        timetoken: @serverTimestamp - 30000000
         restore : yes
+
+
+  isDisconnected: (err) ->
+    # I know this is so error prone, but they are not sending any error code; just message. :(
+    return err?.message is 'Offline. Please check your network settings.'
+
+
+  reconnect: (channel) ->
+    @once 'Ping', (serverTimestamp) =>
+
+      return  unless @lastSeenOnline
+
+      # if user is not online for more than a day, then reload the page
+      if @lastSeenOnline < serverTimestamp - 864000000000
+        return window.location.reload()
+
+      @fetchHistory channel, @lastSeenOnline
+      @lastSeenOnline = null
+
+
+  fetchHistory: (channel, timestamp) ->
+
+    return  unless timestamp
+
+    limit = 100
+    @pubnub.history
+      channel : channel
+      start   : "#{timestamp}"
+      count   : limit
+      reverse : true
+      callback: (response) =>
+
+        return  unless response?.length and Array.isArray(response)
+
+        messages = response[0]
+        start    = response[1]
+
+        return  unless messages?.length and Array.isArray(messages)
+
+        @handleMessage message, channel  for message in messages
+
+        # since the maximum message limit is 100, we are making a recursive call here
+        @fetchHistory channel, start  if messages.length is limit
+      err: (err) ->
+        # instead of getting into a stale state, just reload the page
+        window.location.reload()  if err
 
 
   handleMessage: (message, channel) ->
@@ -260,18 +316,11 @@ class RealtimeController extends KDController
     @channels[instanceChannel].emit eventName, body
 
 
-  getTimeDiffWithServer: ->
-    @pubnub.time (serverTime) =>
-
-      return  unless serverTime
-
-      diff = new Date() * 10000 - serverTime
-      # when time difference between pubnub server and client is less than 500ms
-      # ignore the difference
-      @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
-
   handleError: (err) ->
     {message, payload} = err
+
+    if @isDisconnected err
+      @lastSeenOnline = @serverTimestamp
 
     return warn err  unless payload?.channels
 
