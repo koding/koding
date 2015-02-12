@@ -1889,28 +1889,59 @@ class IDEAppController extends AppController
 
     pingInterval = 1000 * 5
     pongInterval = 1000 * 15
-    diffInterval = KD.config.collaboration.timeout
 
-    if @amIHost
-      @pingInterval = KD.utils.repeat pingInterval, =>
-        @pingTime.setText Date.now().toString()
-    else
-      @pingInterval = KD.utils.repeat pongInterval, =>
-        lastPing = @pingTime.getText()
+    @pingInterval = if @amIHost
+    then KD.utils.repeat pingInterval, @bound 'sendPing'
+    else KD.utils.repeat pongInterval, @bound 'checkPing'
 
-        return  if Date.now() - lastPing < diffInterval
 
-        KD.remote.api.Collaboration.stop @rtmFileId, @workspaceData, (err) =>
-          if err
-          then console.warn err
-          else
-            KD.utils.killRepeat @pingInterval
-            @stopCollaborationSession =>
-              @quit()
+  sendPing: -> @pingTime.setText Date.now().toString()
 
-              new KDNotificationView
-                title    : "@#{@collaborationHost} has left the session."
-                duration : 3000
+
+  forceQuitCollaboration = ->
+
+    { Collaboration } = KD.remote.api
+    Collaboration.stop @rtmFileId, @workspaceData, (err) =>
+
+      return warn err  if err
+
+      KD.utils.killRepeat @pingInterval
+
+      @stopCollaborationSession =>
+        @quit()
+
+        new KDNotificationView
+          title    : "@#{@collaborationHost} has left the session."
+          duration : 3000
+
+
+  checkPing: do ->
+
+    lastCheckedAt = null
+    lastPing      = null
+    errorTryCount = 3
+    diffInterval  = KD.config.collaboration.timeout
+
+    return ->
+
+      ping = @pingTime.getText()
+
+      # kill session if `errorTryCount`
+      # limit is passed.
+      if errorTryCount <= 0
+        forceQuitCollaboration.call this
+      # update the lastChecked at if the last ping
+      # is still the same, decrease the error try count.
+      else if ping is lastPing and errorTryCount > 0
+        errorTryCount -= 1
+        lastCheckedAt = Date.now()
+        return
+      # this is the happy path.
+      else if lastPing - ping < diffInterval
+        lastCheckedAt = Date.now()
+        lastPing      = ping
+        errorTryCount = 3
+        return
 
 
   removeParticipantCursorWidget: (targetUser) ->
