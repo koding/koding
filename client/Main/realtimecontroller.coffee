@@ -194,56 +194,18 @@ class RealtimeController extends KDController
 
       channelInstance = new PubnubChannel name: pubnubChannelName
 
-      err = @pubnub.subscribe
+      callbackCalled = no
+      @pubnub.subscribe
         channel : pubnubChannelName
-        message : (message, env, channel) =>
-
-          return  unless message
-
-          {eventName, body, eventId} = message
-
-          return  unless eventName and body
-
-          if eventId?
-            return  if @eventCache[eventId]
-
-            # TODO delete this periodically
-            @eventCache[eventId] = yes
-
-
-          # when a user is connected in two browsers, and leaves a channel, in second one
-          # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
-          # user from all connected devices.
-          if eventName is 'RemovedFromChannel' and body.accountId is KD.whoami().socialApiId
-            return @unsubscribePubnub message.channel
-
-          # no need to emit any events when not subscribed
-          return  unless @channels[channel]
-
-          # instance events are received via public channel. For this reason
-          # if an event name includes "instance-", update the related message channel
-          # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded"
-          if eventName.indexOf("instance-") < 0
-            return @channels[channel].emit eventName, body
-
-          events = eventName.split "."
-          if events.length < 2
-            warn 'could not parse event name', eventName
-            return
-
-          instanceChannel = events[0]
-          eventName = events[1]
-
-          return  unless @channels[instanceChannel]
-
-          @channels[instanceChannel].emit eventName, body
-
-
+        message : (message, env, channel) => @handleMessage message, channel
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName
+          callbackCalled = yes
           callback null, channelInstance
-        error   : (err) => @handleError err
+        error   : (err) =>
+          @handleError err
+          callback err  unless callbackCalled
         reconnect: => @getTimeDiffWithServer()
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
@@ -254,7 +216,49 @@ class RealtimeController extends KDController
         timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
         restore : yes
 
-      return callback err  if err
+
+  handleMessage: (message, channel) ->
+
+    return  unless message
+
+    {eventName, body, eventId} = message
+
+    return  unless eventName and body
+
+    if eventId?
+      return  if @eventCache[eventId]
+
+      # TODO delete this periodically
+      @eventCache[eventId] = yes
+
+
+    # when a user is connected in two browsers, and leaves a channel, in second one
+    # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
+    # user from all connected devices.
+    if eventName is 'RemovedFromChannel' and body.accountId is KD.whoami().socialApiId
+      return @unsubscribePubnub message.channel
+
+    # no need to emit any events when not subscribed
+    return  unless @channels[channel]
+
+    # instance events are received via public channel. For this reason
+    # if an event name includes "instance-", update the related message channel
+    # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded"
+    if eventName.indexOf("instance-") < 0
+      return @channels[channel].emit eventName, body
+
+    events = eventName.split "."
+    if events.length < 2
+      warn 'could not parse event name', eventName
+      return
+
+    instanceChannel = events[0]
+    eventName = events[1]
+
+    return  unless @channels[instanceChannel]
+
+    @channels[instanceChannel].emit eventName, body
+
 
   getTimeDiffWithServer: ->
     @pubnub.time (serverTime) =>
