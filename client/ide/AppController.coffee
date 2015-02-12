@@ -1,6 +1,6 @@
 class IDEAppController extends AppController
 
-  _.extend @prototype, CollaborationController.prototype
+  _.extend @prototype, CollaborationController
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,

@@ -1,10 +1,9 @@
 # Attn!!
 #
-# This class is not designed to be initiated.
-# Simply it's a mixin to be mixed into `IDEAppController`. ~Umut
+# This object is designed to be a mixin for IDEAppController.
 #
 # @see `IDEAppController`
-class CollaborationController extends KDController
+CollaborationController =
 
   # social related
 
