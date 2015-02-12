@@ -383,6 +383,8 @@ CollaborationController =
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
+
+
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
@@ -475,7 +477,7 @@ CollaborationController =
       @rtm.ready => kallback()
 
 
-  getCollaborationData: (callback = noop) =>
+  getCollaborationData: (callback = noop) ->
 
     collaborationData =
       watchMap        : @myWatchMap?.values()
