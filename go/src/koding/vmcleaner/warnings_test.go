@@ -157,6 +157,8 @@ func TestWarningsFull(t *testing.T) {
 					err := modelhelper.UpdateUser(selector, update)
 					So(err, ShouldBeNil)
 
+					updateUserModifiedAt(user, yesterday())
+
 					warning := Warnings[2]
 					warning.Run()
 

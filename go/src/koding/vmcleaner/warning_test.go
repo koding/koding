@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"koding/db/models"
 	"testing"
+	"time"
 
 	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func TestLockAndReleaseUser(t *testing.T) {
+func TestReleaseUser(t *testing.T) {
 	Convey("Given user", t, func() {
 		level := 9001
 
-		user, err := createUserWithWarning(level - 1)
+		user, err := createUserWithWarning(level-1, yesterday())
 		So(err, ShouldBeNil)
 
 		warning := &Warning{
@@ -22,7 +23,53 @@ func TestLockAndReleaseUser(t *testing.T) {
 			Level:  level,
 		}
 
+		_, err = warning.FindAndLockUser()
+		So(err, ShouldBeNil)
+
+		Convey("When it releases user", func() {
+			err = warning.ReleaseUser(user.ObjectId)
+			So(err, ShouldBeNil)
+
+			Convey("Then it updates modifiedAt", func() {
+				updatedUser, err := findUser(user.Name)
+				So(err, ShouldBeNil)
+
+				veryRecently := timeNow().Add(-1 * time.Second)
+				So(updatedUser.Inactive.ModifiedAt.UTC(), ShouldHappenAfter,
+					veryRecently)
+			})
+		})
+
+		Reset(func() {
+			deleteUserWithUsername(user)
+		})
+	})
+}
+
+func TestLockAndReleaseUser(t *testing.T) {
+	Convey("Given user", t, func() {
+		level := 9001
+
+		user, err := createUserWithWarning(level-1, yesterday())
+		So(err, ShouldBeNil)
+
+		warning := &Warning{
+			Select: bson.M{"username": user.Name, "inactive.warning": level - 1},
+			Level:  level,
+		}
+
+		Convey("Then it shouldn't user if it was processed today", func() {
+			err := updateUserModifiedAt(user, timeNow().Add(time.Hour*24))
+			So(err, ShouldBeNil)
+
+			_, err = warning.FindAndLockUser()
+			So(err, ShouldNotBeNil)
+		})
+
 		Convey("Then it should find and lock user", func() {
+			err := updateUserModifiedAt(user, timeNow().Add(-time.Hour*24))
+			So(err, ShouldBeNil)
+
 			newuser, err := warning.FindAndLockUser()
 			So(err, ShouldBeNil)
 
@@ -165,4 +212,7 @@ func TestAct(t *testing.T) {
 			})
 		})
 	})
+}
+
+func updateModifiedAt(user *models.User, m time.Time) {
 }

@@ -6,6 +6,8 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"time"
 
+	"github.com/jinzhu/now"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -54,6 +56,15 @@ func (w *Warning) RunSingle() error {
 		return err
 	}
 
+	isExempt, err := w.IsUserExempt(user)
+	if err != nil {
+		Log.Error(err.Error())
+	}
+
+	if err != nil || isExempt {
+		return w.ReleaseUser(user.ObjectId)
+	}
+
 	if err := w.Act(user); err != nil {
 		return err
 	}
@@ -64,7 +75,11 @@ func (w *Warning) RunSingle() error {
 // `FindAndLockUser` finds user with warning query and locks it
 // so other workers can't work on it.
 func (w *Warning) FindAndLockUser() (*models.User, error) {
-	w.Select["assigned"] = bson.M{"$ne": true}
+	w.Select["inactive.assigned"] = bson.M{"$ne": true}
+	w.Select["$or"] = []bson.M{
+		bson.M{"inactive.modifiedAt": bson.M{"$exists": false}},
+		bson.M{"inactive.modifiedAt": bson.M{"$lte": now.BeginningOfDay().UTC()}},
+	}
 
 	var change = mgo.Change{
 		Update: bson.M{
@@ -86,13 +101,9 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 
 func (w *Warning) IsUserExempt(user *models.User) (bool, error) {
 	for _, exemptFn := range w.Exempt {
-		yes, err := exemptFn(user, w)
-		if err != nil {
-			return false, nil
-		}
-
-		if yes {
-			return true, nil
+		isExempt, err := exemptFn(user, w)
+		if err != nil || isExempt {
+			return true, err
 		}
 	}
 
@@ -125,6 +136,20 @@ func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 				},
 			},
 			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
+		}
+
+		return c.Update(find, update)
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+}
+
+func (w *Warning) ReleaseUser(userId bson.ObjectId) error {
+	var query = func(c *mgo.Collection) error {
+		find := bson.M{"_id": userId}
+		update := bson.M{
+			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
+			"$set":   bson.M{"inactive.modifiedAt": timeNow()},
 		}
 
 		return c.Update(find, update)
