@@ -1,106 +1,238 @@
-class PaymentWorkflow extends FormWorkflow
+# This class is responsible of showing the payment modal.
+# This workflow will decide if what to do next.
+# No matter where you are instantiating this class,
+# as long as you pass the view instance to this class
+# it will emit necessary events when a substantial thing
+# happens in the work flow.
+#
+# Necessary options when you instantiate it.
+#
+# planTitle  : string (see PaymentConstants.planTitle)
+# monthPrice : int (e.g 1900 for $19)
+# yearPrice  : int (e.g 19000 for $190)
+class PaymentWorkflow extends KDController
+
+  { TOO_MANY_ATTEMPT_BLOCK_KEY,
+    TOO_MANY_ATTEMPT_BLOCK_DURATION } = PaymentConstants
+
+  @getOperation = (current, selected) ->
+
+    arr = [
+      PaymentConstants.planTitle.FREE
+      PaymentConstants.planTitle.HOBBYIST
+      PaymentConstants.planTitle.DEVELOPER
+      PaymentConstants.planTitle.PROFESSIONAL
+    ]
+
+    current  = arr.indexOf current
+    selected = arr.indexOf selected
+
+    return switch
+      when selected >  current then PaymentConstants.operation.UPGRADE
+      when selected is current then PaymentConstants.operation.INTERVAL_CHANGE
+      when selected <  current then PaymentConstants.operation.DOWNGRADE
+
+
+  getInitialState: -> {
+    failedAttemptCount : 0
+  }
+
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'payment-workflow', options.cssClass
-    unless options.confirmForm
-      throw new Error "You must provide a confirmForm option!"
-
     super options, data
 
-  preparePaymentMethods: (formData) ->
+    @state = KD.utils.extend @getInitialState(), options.state
 
-    paymentController = KD.getSingleton 'paymentController'
+    KD.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
-    @showLoader()
 
-    paymentController.fetchPaymentMethods (err, paymentMethods) =>
-      @hideLoader()
-      return if KD.showError err
+  start: ->
 
-      if paymentMethods.methods.length > 0
-        (@getForm 'choice').setPaymentMethods paymentMethods
-      else
-        @clearData 'paymentMethod'
+    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
 
-  createChoiceForm: (options, data) ->
+    @state.operation = operation
 
-    form = new PaymentChoiceForm options, data
+    { paymentController } = KD.singletons
 
-    form.once 'Activated', =>
-      @preparePaymentMethods()
+    paymentController.canUserPurchase (err, canPurchase) =>
 
-    form.on 'PaymentMethodChosen', (paymentMethod) =>
-      @collectData { paymentMethod }
+      return @showError err  if err
 
-    form.on 'PaymentMethodNotChosen', =>
-      @clearData 'paymentMethod'
+      unless canPurchase
+        return @showError { message: PaymentConstants.error.ERR_USER_NOT_CONFIRMED }
 
-    return form
+      paymentController.creditCard (err, card) =>
 
-  createEntryForm: (options, data) ->
+        @state.paymentMethod = card
 
-    form = new PaymentMethodEntryForm options, data
+        { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
 
-    payment = KD.getSingleton 'paymentController'
+        switch operation
+          when DOWNGRADE                then @startDowngradeFlow()
+          when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
 
-    payment.observePaymentSave form, (err, paymentMethod) =>
-      form.buttons.Save.hideLoader()
-      return if KD.showError err
+        @emit 'WorkflowStarted'
 
-      @collectData { paymentMethod }
 
-    return form
+  showError: (err) ->
 
-  prepareWorkflow: ->
+    { message } = err
 
-    { all, any } = Junction
+    humanReadable = PaymentConstants.error[message]
+    err.message   = humanReadable  if humanReadable
 
-    @requireData [
-      'productData'
-      any 'createAccount', 'loggedIn'
-      any 'paymentMethod', 'subscription'
-      'userConfirmation'
-    ]
+    KD.showError err
+    @modal?.form.submitButton.hideLoader()
 
-    if KD.whoami().type is 'unregistered'
-      existingAccountWorkflow = new ExistingAccountWorkflow name : 'login' # why, because i had to! srsly, this goes as a form to workflow.on 'FormIsShown' on PricingAppView, and fixes breadcrumb navigation
-      existingAccountWorkflow.on 'DataCollected', @bound "collectData"
-      @addForm 'createAccount', existingAccountWorkflow, ['createAccount', 'loggedIn']
+
+  startRegularFlow: ->
+
+    @modal = new PaymentModal { @state }
+    @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
+    @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
+
+    { paymentController } = KD.singletons
+
+    @modal.on 'PaymentSubmitted', (formData) =>
+      paymentController.canUserPurchase (err, confirmed) =>
+        return @userIsNotConfirmed err  if err
+        @handlePaymentSubmit formData
+
+    @modal.on 'PaypalButtonClicked', =>
+      @state.provider = PaymentConstants.provider.PAYPAL
+
+
+  startDowngradeFlow: ->
+
+    { paymentController } = KD.singletons
+
+    paymentController.canChangePlan @state.planTitle, (err) =>
+
+      if err?
+        @state.error = err
+        @modal = new PaymentDowngradeErrorModal { @state }
+        return
+
+      @startRegularFlow()
+
+
+  handlePaymentSubmit: (formData) ->
+
+    { FAILED_ATTEMPT_LIMIT } = PaymentConstants
+
+    if @state.failedAttemptCount >= FAILED_ATTEMPT_LIMIT
+      return @failedAttemptLimitReached()
+
+    {
+      cardNumber, cardCVC, cardMonth,
+      cardYear, planTitle, planInterval, planAmount
+      currentPlan, cardName
+    } = formData
+
+    # Just because stripe validates both 2 digit
+    # and 4 digit year, and different types of month
+    # we are enforcing those, other than length problems
+    # Stripe will take care of the rest. ~U
+    cardYear  = null  unless cardYear.length in [2, 4]
+    cardMonth = null  if cardMonth.length isnt 2
+
+    binNumber = cardNumber.slice 0, 6
+    lastFour  = cardNumber.slice -4
+
+    KD.utils.defer ->
+      KD.singletons.paymentController.logOrder {
+        planTitle, planAmount, binNumber, lastFour, cardName
+      }, noop
+
+    { KODING, STRIPE } = PaymentConstants.provider
+
+    @state.provider = STRIPE  if @state.provider is KODING
+
+    shouldRegisterNewPlan = \
+      currentPlan is PaymentConstants.planTitle.FREE or
+      @state.subscriptionState is 'expired'
+
+    if shouldRegisterNewPlan
+
+      Stripe.card.createToken {
+        number    : cardNumber
+        cvc       : cardCVC
+        exp_month : cardMonth
+        exp_year  : cardYear
+        name      : cardName
+      }, (status, response) =>
+
+        if response.error
+          @modal.emit 'StripeRequestValidationFailed', response.error
+          @modal.form.submitButton.hideLoader()
+          @state.failedAttemptCount++
+          return
+
+        token = response.id
+        @subscribeToPlan planTitle, planInterval, token, {
+          binNumber, lastFour, planAmount, cardName
+        }
     else
-      # TODO: this is an awful hack for now C.T.
-      @addForm 'existingAccount', (@skip loggedIn: yes), ['createAccount', 'loggedIn']
+      @subscribeToPlan planTitle, planInterval, 'a', {
+        binNumber, lastFour, planAmount, cardName
+      }
 
-    # - "product form" can be used for collecting some product-related data
-    # before the payment method collection/selection process begins.  If you
-    # use this feature, make sure to emit the "DataCollected" event with any
-    # data that you want aggregated (that you want to be able to access from
-    # the "PaymentConfirmed" listeners).
-    # - "confirm form" is required.  This form should render a summary, and
-    # emit a "PaymentConfirmed" after user approval.
-    { productForm, confirmForm } = @getOptions()
+    @state.currentPlan = planTitle
 
-    if productForm?
 
-      @addForm 'product', productForm, ['productData', 'subscription']
+  subscribeToPlan: (planTitle, planInterval, token, options) ->
 
-      productForm.on 'DataCollected', (productData) =>
-        @collectData { productData }
-        { subscription, oldSubscription } = productData
-        @collectData { subscription }  if subscription
-        @collectData { oldSubscription }  if oldSubscription
+    { paymentController } = KD.singletons
 
-    # "choice form" is for choosing from existing payment methods on-file.
-    @addForm 'choice', @createChoiceForm(), ['paymentMethod']
+    me = KD.whoami()
+    me.fetchEmail (err, email) =>
 
-    # "entry form" is for entering a new payment method for us to file.
-    @addForm 'entry', @createEntryForm(), ['paymentMethod']
+      return @showError err  if err
 
-    @addForm 'confirm', confirmForm, ['userConfirmation']
+      options.email = email
+      options.provider = @state.provider
 
-    confirmForm.on 'CouponOptionChanged', (name) => @collectData promotionType: name
-    confirmForm.on 'PaymentConfirmed', => @collectData userConfirmation: yes
+      paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
 
-    @forwardEvent confirmForm, 'Cancel'
+        @modal.form.submitButton.hideLoader()
 
-    return this
+        if err
+          @modal.emit 'PaymentFailed', err
+          @state.failedAttemptCount++
+        else
+          @modal.emit 'PaymentSucceeded'
+
+
+  failedAttemptLimitReached: (blockUser = yes)->
+
+    KD.utils.defer => @blockUserForTooManyAttempts()  if blockUser
+
+    @modal.emit 'FailedAttemptLimitReached'
+
+
+  blockUserForTooManyAttempts: ->
+
+    { appStorageController } = KD.singletons
+
+    pricingStorage = appStorageController.storage 'Pricing', '2.0.0'
+
+    value = { timestamp: Date.now() }
+
+    pricingStorage.setValue TOO_MANY_ATTEMPT_BLOCK_KEY, value
+
+
+  finish: (state) ->
+
+    @emit 'PaymentWorkflowFinishedSuccessfully', state
+
+    @modal.destroy()
+
+
+  finishWithError: (state) ->
+
+    @emit 'PaymentWorkflowFinishedWithError', state
+
+    @destroy()
+
+
