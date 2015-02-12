@@ -7,268 +7,237 @@
 #   window.WebSocket = null
 
 KD.extend
+  newKodingLaunchDate: do ->
+    d = new Date()
+    d.setUTCFullYear 2014
+    d.setUTCMonth 7
+    d.setUTCDate 30
+    d.setUTCHours 17
+    d.setUTCMinutes 0
+    d
 
-  useWebSockets : yes
+  setVersionCookie: ({ meta:{ createdAt }}) ->
+    if (new Date createdAt) > KD.newKodingLaunchDate
+      Cookies.set 'koding082014', 'koding082014'
 
-  socketConnected:->
-    @backendIsConnected = yes
+  apiUri       : KD.config.apiUri
+  appsUri      : KD.config.appsUri
+  singleton    : KD.getSingleton.bind KD
+  appClasses   : {}
+  appScripts   : {}
+  appLabels    : {}
+  navItems     : []
+  navItemIndex : {}
 
-  # Rewrites console.log to send logs to backend and also browser console.
-  enabledBackendLogger: (backendLoggerClass)->
-    oldConsoleLog = console.log
-    frontloggerConsoleLog = (args...)->
-      return unless KD.logsEnabled
-      oldConsoleLog.apply this, arguments
-      backendLoggerClass.info.apply backendLoggerClass, arguments
+  whoami:-> KD.userAccount
 
-    console.log = frontloggerConsoleLog
+  isLoggedIn:-> KD.whoami()?.type is 'registered'
 
-    return "Logs are logged to backend too."
+  registerAppClass:(fn, options = {})->
 
-  impersonate : (username)->
-    KD.remote.api.JAccount.impersonate username, (err)=>
-      if err
-        options = userMessage: "You are not allowed to impersonate"
-        @showErrorNotification err, options
-      else location.reload()
+    return error "AppClass is missing a name!"  unless options.name
 
-  notify_:(message, type='', duration = 3500)->
-    new KDNotificationView
-      cssClass : type
-      title    : message
-      duration : duration
+    if KD.appClasses[options.name]
 
-  requireMembership:(options={})->
-
-    {callback, onFailMsg, onFail, silence, tryAgain, groupName} = options
-    unless KD.isLoggedIn()
-      # if there is fail message, display it
-      if onFailMsg
-        @notify_ onFailMsg, "error"
-
-      # if there is fail method, call it
-      onFail?()
-
-      # if it's not a silent operation redirect
-      unless silence
-        KD.getSingleton('router').handleRoute "/Login",
-          entryPoint : KD.config.entryPoint
-
-      # if there is callback and we want to try again
-      if callback? and tryAgain
-        unless KD.lastFuncCall
-          KD.lastFuncCall = callback
-
-          mainController = KD.getSingleton("mainController")
-          mainController.once "accountChanged.to.loggedIn", =>
-            if KD.isLoggedIn()
-              KD.lastFuncCall?()
-              KD.lastFuncCall = null
-              if groupName
-                @joinGroup_ groupName, (err) =>
-                  return @notify_ "Joining #{groupName} group failed", "error"  if err
-    else if groupName
-      @joinGroup_ groupName, (err)=>
-        return @notify_ "Joining #{groupName} group failed", "error"  if err
-        callback?()
-    else
-      callback?()
-
-  joinGroup_:(groupName, callback)->
-    return callback null unless groupName
-    user = @whoami()
-    user.checkGroupMembership groupName, (err, isMember)=>
-      return callback err  if err
-      return callback null if isMember
-
-      #join to group
-      @remote.api.JGroup.one { slug: groupName }, (err, currentGroup)=>
-        return callback err if err
-        return callback null unless currentGroup
-        currentGroup.join (err)=>
-          return callback err if err
-          @notify_ "You have joined to #{groupName} group!", "success"
-          return callback null
-
-  nick:-> KD.whoami()?.profile?.nickname
-
-  logout:->
-    mainController = KD.getSingleton('mainController')
-    mainController.isLoggingIn on
-    delete KD.userAccount
-
-
-  isGroup: ->
-
-    {entryPoint} = KD.config
-    return entryPoint?.type is 'group'
-
-
-  isKoding: ->
-
-    {entryPoint} = KD.config
-    return entryPoint?.slug is 'koding'
-
-
-  isMember: ->
-
-    {roles} = KD.config
-    return 'member' in roles
-
-
-  isGuest:-> not KD.isLoggedIn()
-
-  isMine:(target)->
-    if target?.bongo_?.constructorName is 'JAccount'
-      KD.whoami().profile.nickname is target.profile.nickname
-    else if target?.originId?
-      KD.whoami()._id is target.originId
-
-  isMyPost: (post) ->
-    post         or= {}
-    post.account or= {}
-    post.account._id is KD.whoami().getId() and post.typeConstant not in ['join', 'leave']
-
-  isMyChannel: (channel) -> channel.creatorId is KD.whoami().socialApiId
-
-  checkFlag:(flagToCheck, account = KD.whoami())->
-    if account.globalFlags
-      if 'string' is typeof flagToCheck
-        return flagToCheck in account.globalFlags
+      if KD.config.apps[options.name]
+        return warn "AppClass #{options.name} cannot be used, since its conflicting with an internal Koding App."
       else
-        for flag in flagToCheck
-          if flag in account.globalFlags
-            return yes
-    return no
+        warn "AppClass #{options.name} is already registered or the name is already taken!"
+        warn "Removing the old one. It was ", KD.appClasses[options.name]
+        @unregisterAppClass options.name
 
-  # filterTrollActivity filters troll activities from users.
-  # Only super-admins and other trolls can see these activities
-  filterTrollActivity:(account)->
-    return no unless account.isExempt
-    return account._id isnt KD.whoami()._id and not KD.checkFlag "super-admin"
+    options.multiple      ?= no           # a Boolean
+    options.background    ?= no           # a Boolean
+    options.hiddenHandle  ?= no           # a Boolean
+    options.openWith     or= "lastActive" # a String "lastActive","forceNew" or "prompt"
+    options.behavior     or= ""           # a String "application", or ""
+    options.thirdParty    ?= no           # a Boolean
+    options.menu         or= null         # <Array<Object{title: string, eventName: string, shortcut: string}>>
+    options.navItem      or= {}           # <Object{title: string, eventName: string, shortcut: string}>
+    options.labels       or= []           # <Array<string>> list of labels to use as app name
+    options.version       ?= "1.0"        # <string> version
+    options.route        or= null         # <string> or <Object{slug: string, handler: function}>
+    options.routes       or= null         # <string> or <Object{slug: string, handler: function}>
+    options.styles       or= []           # <Array<string>> list of stylesheets
 
-  showError:(err, messages)->
-    return no  unless err
+    {routes, route, name}  = options
 
-    if Array.isArray err
-      @showError er  for er in err
-      return err.length
+    if route
+    then @registerRoute name, route
+    else if routes
+    then @registerRoutes name, routes
 
-    if 'string' is typeof err
-      message = err
-      err     = {message}
+    if options.navItem?.order
+      @registerNavItem options.navItem
 
-    defaultMessages =
-      AccessDenied : 'Permission denied'
-      KodingError  : 'Something went wrong'
+    Object.defineProperty KD.appClasses, name,
+      configurable  : yes
+      enumerable    : yes
+      writable      : no
+      value         : { fn, options }
 
-    err.name or= 'KodingError'
-    content    = ''
+  registerRoutes: (appName, routes) ->
 
-    if messages
-      errMessage = messages[err.name] or messages.KodingError \
-                                      or defaultMessages.KodingError
-    messages or= defaultMessages
-    errMessage or= err.message or messages[err.name] or messages.KodingError
-
-    if errMessage?
-      if 'string' is typeof errMessage
-        title = errMessage
-      else if errMessage.title? and errMessage.content?
-        {title, content} = errMessage
-
-    duration = errMessage.duration or 2500
-    title  or= err.message
-
-    new KDNotificationView {title, content, duration}
-
-    unless err.name is 'AccessDenied'
-      warn "KodingError:", err.message
-      error err
-    err?
-
-  showNotification: (message, options = {})->
-    return  if not message or message is ""
-
-    # TODO these css/type parameters will be changed according to error type
-    type = 'growl'
-
-    options.duration or= 3500
-    options.title      = message
-    # options.css      or= css
-    options.type     or= type
-
-    options.fn message  if options.fn and typeof options.fn? is 'function'
-
-    new KDNotificationView options
-
-  # TODO after error message handling method is decided replace this function
-  # with showError
-  showErrorNotification: (err, options = {}) ->
-    {message, name} = err  if err
-
-    switch name
-      when 'AccessDenied'
-        options.fn = warn
-        options.type = 'growl'
-        message = options.userMessage
-      else
-        options.userMessage = "Error, please try again later!"
-        options.fn = error
-
-    @showNotification message, options
-
-  getPathInfo: (fullPath)->
-    return no unless fullPath
-
-    path      = FSHelper.plainPath fullPath
-    basename  = FSHelper.getFileNameFromPath fullPath
-    parent    = FSHelper.getParentPath path
-    machineUid= FSHelper.getUidFromPath fullPath
-    isPublic  = FSHelper.isPublicPath fullPath
-
-    return {path, basename, parent, machineUid, isPublic}
-
-  getPublicURLOfPath: (fullPath, secure=no)->
-
-    {machineUid, isPublic, path} = KD.getPathInfo fullPath
-    return unless isPublic
-    pathPartials = path.match /^\/home\/(\w+)\/Web\/(.*)/
-    return unless pathPartials
-    [_, user, publicPath] = pathPartials
-
-    publicPath or= ""
-    domain = "#{machineUid}.#{KD.nick()}.#{KD.config.userSitesDomain}"
-
-    return "#{if secure then 'https' else 'http'}://#{domain}/#{publicPath}"
-
-  getGroup: -> KD.currentGroup
-
-  getReferralUrl: (username) ->
-    "#{location.origin}/R/#{username}"
-
-  hasAccess:(permission)->
-    if "admin" in KD.config.roles then yes else permission in KD.config.permissions
-
-  getMessageOwner: (message, callback) ->
-    {constructorName, _id} = message.account
-    KD.remote.cacheable constructorName, _id, (err, owner) ->
-      return callback err  if err
-      return callback {message: "Account not found", name: "NotFound"} unless owner
-      callback null, owner
-
-  togglePubnub: ->
-    isPubnubEnabled = localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
-    try
-      localStorage.isPubnubEnabled = !isPubnubEnabled
-      location.reload()
-    catch e
-      warn "could not toggle pubnub: #{e}"
-
-  isPubnubEnabled: ->
-    localStorage.isPubnubEnabled is "true" or KD.config.pubnub.enabled
+    @registerRoute appName, route, handler for own route, handler of routes
 
 
-Object.defineProperty KD, "defaultSlug",
-  get:->
-    if KD.isGuest() then 'guests' else 'koding'
+  showEnforceLoginModal: ->
+
+    return  if KD.isLoggedIn()
+    if Cookies.get('doNotForceRegistration') or location.search.indexOf('sr=1') > -1
+      Cookies.set 'doNotForceRegistration', 'true'
+      return
+
+    {appManager} = KD.singletons
+    appManager.tell 'Account', 'showRegistrationNeededModal'
+
+
+  registerRoute: (appName, route, handler) ->
+
+    slug   = if "string" is typeof route then route else route.slug
+    route  =
+      slug    : slug ? '/'
+      handler : handler or route.handler or null
+
+    if route.slug isnt '/' or appName is 'KDMainApp'
+
+      {slug, handler} = route
+
+      cb = ->
+        router = KD.getSingleton 'router'
+        handler ?= ({params:{name}, query}) ->
+          router.openSection appName, name, query
+        router.addRoute slug, handler
+
+      if router = KD.singletons.router then cb()
+      else KDRouter.on 'RouterIsReady', cb
+
+
+  resetNavItems      : (items)->
+    @navItems        = items
+    @navItemIndex    = KD.utils.arrayToObject items, 'title'
+
+  registerNavItem    : (itemData)->
+    unless @navItemIndex[itemData.title]
+      @navItemIndex[itemData.title] = itemData
+      @navItems.push itemData
+      return true
+    return false
+
+  getNavItems        : -> @navItems.sort (a, b)-> a.order - b.order
+
+  setNavItems        : (navItems)->
+    @registerNavItem item for item in navItems.sort (a, b)-> a.order - b.order
+
+  unregisterAppClass :(name)-> delete KD.appClasses[name]
+
+  getAppClass        :(name)-> KD.appClasses[name]?.fn or null
+
+  getAppOptions      :(name)-> KD.appClasses[name]?.options or null
+
+  getAppVersion      :(name)-> KD.appClasses[name]?.options?.version or null
+
+  getAppScript       :(name)-> @appScripts[name] or null
+
+  registerAppScript  :(name, script)-> @appScripts[name] = script
+
+  unregisterAppScript:(name)-> delete @appScripts[name]
+
+  resetAppScripts    :-> @appScripts = {}
+
+  parseLogs:->
+    KD.__logs   ?= []
+    l = "\n"; l += "#{line}\n"  for line in KD.__logs
+    l+= "\nEOF Logs.\n"
+
+  disableLogs:->
+
+    KD.__logs      ?= []
+    window.konsole ?= {}
+
+    _log = (method)->
+
+      ->
+        line = "[#{dateFormat Date.now(), "HH:MM:ss"}][#{method[0]}] "
+        for arg in arguments
+          if typeof arg is 'object'
+            arg = KD.utils.objectToString arg, maxDepth: 6
+          line += "#{arg} "
+
+        unless line is KD.__logs.last
+          KD.__logs.push line
+
+        return line
+
+    window.onerror = (err, url, line)->
+      (_log 'error') "#{err} at #{url} line #{line}"
+      return true
+
+    for method in ['trace','time','timeEnd']
+      window[method] = noop
+      KD[method]     = noop
+
+    for method in ['warn','log','error','info']
+      window.konsole[method] ?= window.console[method]
+      window.console[method] = KD[method] = window[method] = _log method
+
+    delete KD.logsEnabled
+    return "Logs are disabled now."
+
+  enableLogs:(state = yes)->
+
+    return KD.disableLogs()  unless state
+    return if KD.logsEnabled
+
+    if window.konsole?
+
+      window.onerror = null
+
+      KD.__logs?.push \
+        "[#{dateFormat Date.now(), "HH:MM:ss"}][!] Logging disabled manually."
+
+      for method in ['warn','log','error','info']
+        window.console[method] = window.konsole[method]
+
+    KD.log     = window.log     = console.log.bind     console
+    KD.warn    = window.warn    = console.warn.bind    console
+    KD.error   = window.error   = console.error.bind   console
+    KD.info    = window.info    = console.info.bind    console
+    KD.time    = window.time    = console.time.bind    console
+    KD.timeEnd = window.timeEnd = console.timeEnd.bind console
+    KD.logsEnabled = yes
+
+    return "Logs are enabled now."
+
+  runningInFrame: -> window.top isnt window.self
+
+  tell: -> KD.getSingleton('appManager').tell arguments...
+
+
+do ->
+  logsEnabled = (Cookies.get 'enableLogs') or !KD.config?.suppressLogs
+  unless logsEnabled
+    # Koding 3d logo
+    console.log """
+
+       __                 __
+      /\\ \\               /\\ \\  __
+      \\ \\ \\/'\\     ___   \\_\\ \\/\\_\\    ___      __
+       \\ \\ , <    / __`\\ /'_` \\/\\ \\ /' _ `\\  /'_ `\\
+        \\ \\ \\\\`\\ /\\ \\L\\ \\\\ \\L\\ \\ \\ \\/\\ \\/\\ \\/\\ \\L\\ \\
+         \\ \\_\\ \\_\\ \\____/ \\___,_\\ \\_\\ \\_\\ \\_\\ \\____ \\
+          \\/_/\\/_/\\/___/ \\/__,_ /\\/_/\\/_/\\/_/\\/___L\\ \\
+                                               /\\____/
+            The Cloud Development Environment  \\_/__/
+
+
+      Hello! console.{log, info, warn, error} disabled.
+      If you need them please call KD.enableLogs() first.
+
+      Thanks! ~ Koding Devs.
+
+      psst! we're hiring -> apply@koding.com
+
+    """
+
+  KD.enableLogs logsEnabled
