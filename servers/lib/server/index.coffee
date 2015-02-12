@@ -599,8 +599,11 @@ app.post '/Gravatar', (req, res) ->
   _request  =
     url     : _url
     headers : 'User-Agent': 'request'
+    timeout : 3000
 
   request _request, (err, response, body) ->
+
+    return res.status(400).send err.code  if err
 
     if body isnt 'User not found'
       try
