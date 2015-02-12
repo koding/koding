@@ -111,8 +111,8 @@ module.exports = class JVerificationToken extends Module
         Welcome to Koding!
 
         You can use the following code to verify your koding.com account:
+          <b>#{pin}</b>
 
-          #{pin}
 
         Have a nice day!
         --
@@ -124,7 +124,7 @@ module.exports = class JVerificationToken extends Module
 
         To verify your new e-mail address you can use the following code:
 
-          #{pin}
+          <b>#{pin}</b>
 
         Have a nice day!
         --
@@ -136,7 +136,7 @@ module.exports = class JVerificationToken extends Module
 
         Here’s your koding.com verification code:
 
-          #{pin}
+          <b>#{pin}</b>
 
         Have a nice day!
         --
