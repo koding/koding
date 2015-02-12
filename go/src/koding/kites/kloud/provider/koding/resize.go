@@ -39,19 +39,8 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	infoLog := p.GetCustomLogger(m.Id, "info")
 
-	checker, err := p.PlanChecker(m)
-	if err != nil {
-		return nil, err
-	}
-
 	a, err := p.NewClient(m)
 	if err != nil {
-		return nil, err
-	}
-
-	// giving wantStorage as 0 since machine document already
-	// has the max amount, we just want to check if its valid or not.
-	if err := checker.Storage(0); err != nil {
 		return nil, err
 	}
 
@@ -82,6 +71,19 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	}
 
 	desiredSize := a.Builder.StorageSize
+
+	checker, err := p.PlanChecker(m)
+	if err != nil {
+	  return nil, err
+	}
+
+	// Storage is counting all current sizes. So we need ask only for the
+	// difference that we want to add. So say if the current size is 3
+	// and our desired size is 10, we need to ask if we have still
+	// limit for a 7 GB space.
+	if err := checker.Storage(desiredSize - currentSize); err != nil {
+	  return nil, err
+	}
 
 	a.Push("Checking if size is eligible", 20, machinestate.Pending)
 
