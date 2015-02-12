@@ -52,7 +52,7 @@ do ->
       originId = account.getId()
 
       callback KD.userWorkspaces.filter (workspace) ->
-        originId is workspace.originId
+        originId is workspace?.originId
 
 
   filterOwnWorkspaces = (callback) ->
