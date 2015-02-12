@@ -121,9 +121,17 @@ module.exports = class Payment extends Base
     SiftScience.createOrder client, raw, callback
 
   @canUserPurchase = secure (client, callback)->
-    client.connection.delegate.fetchUser (err, user)->
+    {connection : {delegate}} = client
+
+    if delegate.profile.nickname is "guestuser"
+      return callback {message:"guests are not allowed"}
+
+    if delegate.type isnt "registered"
+      return callback {message:"guests are not allowed"}
+
+    delegate.fetchUser (err, user)->
       return callback err  if err
-      callback null, user.status is 'confirmed'
+      callback null, user.status is "confirmed"
 
   validateParams = (requiredParams, data, callback)->
     for param in requiredParams

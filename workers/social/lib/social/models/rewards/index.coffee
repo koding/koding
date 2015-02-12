@@ -37,7 +37,7 @@ module.exports = class JReward extends jraphical.Message
       # since bongo is not supporting them
       # we need to manually define following:
       #
-      #   - providedBy, originId, sourceCampaign (unique)
+      #   - { providedBy:1, originId:1, sourceCampaign:1 } (unique)
       #
 
       type            : 'sparse'
@@ -159,7 +159,9 @@ module.exports = class JReward extends jraphical.Message
     unless username
       return callback new KodingError "Please set username"
 
-    providedBy = client.connection.delegate.getId()
+    providedBy = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not providedBy
 
     JAccount.one 'profile.nickname': username, (err, account)->
 
@@ -188,10 +190,9 @@ module.exports = class JReward extends jraphical.Message
           callback null, reward
 
 
-  @fetchEarnedAmount = secure (client, options, callback)->
+  @fetchEarnedAmount = (options, callback)->
 
     options = useDefault options
-    options.originId = client.connection.delegate.getId()
 
     fetchEarnedReward options, (err, earnedReward)->
       return callback err  if err?
@@ -202,12 +203,25 @@ module.exports = class JReward extends jraphical.Message
       # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
+  @fetchEarnedAmount$ = secure (client, options, callback)->
+
+    providedBy = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not providedBy
+
+    @fetchEarnedAmount options, callback
+
+
   @some$ = secure (client, selector, options, callback)->
+
+    originId = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not originId
 
     selector ?= {}
     options  ?= {}
 
-    selector.originId = client.connection.delegate.getId()
+    selector.originId = originId
 
     @some selector, options, callback
 

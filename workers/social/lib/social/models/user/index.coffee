@@ -1077,12 +1077,16 @@ module.exports = class JUser extends jraphical.Module
     email = new JMail {
       email
       subject : "Your #{type} has been changed"
+      replyto : 'support@koding.com'
       content : """
         Hi #{username},
 
-        Your #{type} has been changed! If you didn't request this change,
-        please contact with support@koding.com immediately!
+        Your <b>#{type}</b> has been changed!
 
+        If you didn't request this change, reply to this email and help will be on its way!
+
+        --
+        Koding Team
       """
     }
 

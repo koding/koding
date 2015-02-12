@@ -1,10 +1,12 @@
-{Model}   = require 'bongo'
-jraphical = require 'jraphical'
+{Model}     = require 'bongo'
+jraphical   = require 'jraphical'
+KodingError = require '../../error'
 
 module.exports = class JRewardCampaign extends jraphical.Module
 
-  # An example to create in client side by an administrator
+  # Examples for working with campaigns
   #
+  # # Create
   #
   # KD.remote.api.JRewardCampaign.create(
   #   {
@@ -21,6 +23,33 @@ module.exports = class JRewardCampaign extends jraphical.Module
   #     console.log(err, campaign);
   #   }
   # );
+  #
+  # # Find & Modify
+  #
+  # var campaign = null;
+  #
+  # KD.remote.api.JRewardCampaign.one(
+  #   {
+  #     name: "register"
+  #   }, function(err, _campaign){
+  #     if (err) {
+  #       console.warn(err);
+  #     }
+  #     else if (_campaign) {
+  #       campaign = _campaign;
+  #       console.log("Campaign assigned to local variable `campaign`");
+  #     }
+  #     else {
+  #       console.error("No campaign found.");
+  #     }
+  #   }
+  # );
+  #
+  # if (campaign) {
+  #   campaign.update({isActive: false}, log);
+  # }
+  #
+
 
   {signature, secure} = require 'bongo'
 
@@ -79,6 +108,10 @@ module.exports = class JRewardCampaign extends jraphical.Module
           (signature Object, Function)
           (signature Object, Object, Function)
         ]
+        one             :
+          (signature Object, Function)
+        some            :
+          (signature Object, Object, Function)
         isValid         :
           (signature String, Function)
       instance          :
@@ -96,6 +129,18 @@ module.exports = class JRewardCampaign extends jraphical.Module
 
   DEFAULT_CAMPAIGN = "register"
 
+  deleteExistingCampaign = (data, callback)->
+
+    {name} = data
+
+    return callback new KodingError "Name not provided"  unless name
+
+    JRewardCampaign.one {name}, (err, campaign)->
+
+      return callback err  if err
+      return callback null unless campaign
+
+      campaign.remove callback
 
 
   # Private Methods
@@ -128,6 +173,18 @@ module.exports = class JRewardCampaign extends jraphical.Module
   # --------------
 
   # Static Methods
+
+  @some$ = permit 'manage campaign',
+
+    success: (client, selector, options, callback) ->
+      @some selector, options, callback
+
+
+  @one$ = permit 'manage campaign',
+
+    success: (client, selector, callback) ->
+      @one selector, callback
+
 
   @create = permit 'manage campaign',
 
