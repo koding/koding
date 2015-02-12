@@ -1885,6 +1885,30 @@ class IDEAppController extends AppController
         @handleParticipantKicked targetUser
 
 
+  getCollaborationHost: -> if @amIHost then KD.nick() else @collaborationHost
+
+
+  isHostOnline: ->
+
+    host = @getCollaborationHost()
+
+    filtered = @participants
+      .asArray()
+      .filter (its) -> its.nickname is host
+
+    return no  unless filtered.length
+
+    { sessionId } = filtered.first
+
+    return no  unless sessionId
+
+    final = @rtm
+      .getCollaborators()
+      .filter (its) -> its.sessionId is sessionId
+
+    return final.length > 0
+
+
   listenPings: ->
 
     pingInterval = 1000 * 5
