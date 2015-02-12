@@ -69,7 +69,7 @@ func (w *Warning) FindAndLockUser() (*models.User, error) {
 	var change = mgo.Change{
 		Update: bson.M{
 			"$set": bson.M{
-				"inactive.assigned": true, "inactive.assignedAt": now().UTC(),
+				"inactive.assigned": true, "inactive.assignedAt": timeNow(),
 			},
 		},
 		ReturnNew: true,
@@ -119,9 +119,9 @@ func (w *Warning) UpdateAndReleaseUser(userId bson.ObjectId) error {
 		find := bson.M{"_id": userId}
 		update := bson.M{
 			"$set": bson.M{
-				"inactive.warning": w.Level, "inactive.modifiedAt": now(),
+				"inactive.warning": w.Level, "inactive.modifiedAt": timeNow(),
 				"inactive.warnings": bson.M{
-					fmt.Sprintf("%d", w.Level): now(),
+					fmt.Sprintf("%d", w.Level): timeNow(),
 				},
 			},
 			"$unset": bson.M{"inactive.assigned": 1, "inactive.assignedAt": 1},
@@ -149,12 +149,12 @@ func (w *Warning) NextLevel() int {
 // Helpers
 //----------------------------------------------------------
 
-func now() time.Time {
+func timeNow() time.Time {
 	return time.Now().UTC()
 }
 
 func moreThanDaysQuery(days int) bson.M {
-	return bson.M{"$lt": now().Add(-time.Hour * 24 * time.Duration(days))}
+	return bson.M{"$lt": timeNow().Add(-time.Hour * 24 * time.Duration(days))}
 }
 
 func isErrNotFound(err error) bool {

@@ -129,7 +129,7 @@ func TestWarningsFull(t *testing.T) {
 			Convey("Then they should get another email", func() {
 				selector := bson.M{"username": user.Name}
 				update := bson.M{
-					"lastLoginDate": now().Add(-time.Hour * 24 * time.Duration(53)),
+					"lastLoginDate": timeNow().Add(-time.Hour * 24 * time.Duration(53)),
 				}
 
 				err := modelhelper.UpdateUser(selector, update)
@@ -151,7 +151,7 @@ func TestWarningsFull(t *testing.T) {
 				Convey("Then they should get another email", func() {
 					selector := bson.M{"username": user.Name}
 					update := bson.M{
-						"lastLoginDate": now().Add(-time.Hour * 24 * time.Duration(65)),
+						"lastLoginDate": timeNow().Add(-time.Hour * 24 * time.Duration(65)),
 					}
 
 					err := modelhelper.UpdateUser(selector, update)
