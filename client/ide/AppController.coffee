@@ -1922,7 +1922,7 @@ class IDEAppController extends AppController
   sendPing: -> @pingTime.setText Date.now().toString()
 
 
-  forceQuitCollaboration = ->
+  forceQuitCollaboration: ->
 
     { Collaboration } = KD.remote.api
     Collaboration.stop @rtmFileId, @workspaceData, (err) =>
@@ -1953,7 +1953,7 @@ class IDEAppController extends AppController
       # kill session if `errorTryCount`
       # limit is passed.
       if errorTryCount <= 0
-        forceQuitCollaboration.call this
+        @forceQuitCollaboration()
       # update the lastChecked at if the last ping
       # is still the same, decrease the error try count.
       else if ping is lastPing and errorTryCount > 0
