@@ -15,6 +15,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
+	"koding/kites/kloud/waitstate"
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -235,6 +236,12 @@ func (b *Build) imageData() (*ImageData, error) {
 	}
 
 	if b.snapshotId != "" {
+		b.log.Debug("[%s] checking for snapshot permissions", b.machine.Id)
+		// check first if the snapshot belongs to the user, it might belong to someone else!
+		if err := b.provider.CheckSnapshotExistence(b.machine.Username, b.snapshotId); err != nil {
+			return nil, err
+		}
+
 		b.log.Debug("[%s] creating AMI from the snapshot '%s'", b.machine.Id, b.snapshotId)
 
 		blockDeviceMapping.SnapshotId = b.snapshotId
@@ -253,6 +260,31 @@ func (b *Build) imageData() (*ImageData, error) {
 
 		registerResp, err := b.amazon.Client.RegisterImage(registerOpts)
 		if err != nil {
+			return nil, err
+		}
+
+		// wait until the AMI is ready
+		checkAMI := func(currentPercentage int) (machinestate.State, error) {
+			resp, err := b.amazon.Client.Images([]string{registerResp.ImageId}, ec2.NewFilter())
+			if err != nil {
+				return 0, err
+			}
+
+			// shouldn't happen but let's check it anyway
+			if len(resp.Images) == 0 {
+				return machinestate.Pending, nil
+			}
+
+			image := resp.Images[0]
+			if image.State != "available" {
+				return machinestate.Pending, nil
+			}
+
+			return machinestate.NotInitialized, nil
+		}
+
+		ws := waitstate.WaitState{StateFunc: checkAMI, Action: "check-ami"}
+		if err := ws.Wait(); err != nil {
 			return nil, err
 		}
 
