@@ -97,3 +97,5 @@ website/a/out
 /tests/output/
 supervisor.html
 client/.sprites
+client/app/__generatedapps__.coffee
+client/app/__generatedroutes__.coffee
