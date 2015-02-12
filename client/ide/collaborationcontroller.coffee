@@ -448,7 +448,7 @@ CollaborationController =
     @removeParticipantFromPermissions nickname
 
 
-  setRealTimeManager: (object) =>
+  setRealTimeManager: (object) ->
 
     callback = =>
       object.rtm = @rtm
