@@ -876,7 +876,9 @@ class IDEAppController extends AppController
 
           terminal.windowDidResize()  if terminal?
 
-          unless @isInSession
+          {isActive} = @getActiveInstance()
+
+          if not @isInSession and isActive
             KD.utils.wait 400, -> # defer was not enough.
               webtermView.triggerFitToWindow()
 
@@ -1145,3 +1147,11 @@ class IDEAppController extends AppController
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
 
     @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
+
+
+  getActiveInstance: ->
+
+    {appControllers} = KD.singletons.appManager
+    instance = appControllers.IDE.instances[appControllers.IDE.lastActiveIndex]
+
+    return {instance, isActive: instance is this}
