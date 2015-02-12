@@ -395,6 +395,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
           }
           {
+            location    : "~ /api/social/collaboration/ping"
+            proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
