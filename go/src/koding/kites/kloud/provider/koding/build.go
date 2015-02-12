@@ -81,19 +81,20 @@ func (b *Build) normalize(percentage int) int {
 
 }
 
-func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
 
 	b := &Build{
-		amazon:   a,
-		machine:  m,
-		provider: p,
-		start:    10,
-		finish:   90,
-		log:      p.Log,
+		amazon:     a,
+		machine:    m,
+		provider:   p,
+		start:      10,
+		finish:     90,
+		log:        p.Log,
+		snapshotId: snapshotId,
 	}
 
 	return b.run()

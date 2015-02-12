@@ -12,7 +12,7 @@ import (
 type Provider interface {
 	// Build the machine and creates an artifact that can be pass to other
 	// methods
-	Build(*Machine) (*Artifact, error)
+	Build(string, *Machine) (*Artifact, error)
 
 	// Start starts the machine
 	Start(*Machine) (*Artifact, error)
