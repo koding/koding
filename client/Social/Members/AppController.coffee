@@ -2,15 +2,15 @@ class MembersAppController extends AppController
 
   KD.registerAppClass this,
     name         : "Members"
-    routes       :
-      "/:name?/Members" : ({params, query}) ->
-        {router, appManager} = KD.singletons
-        KD.getSingleton('groupsController').ready ->
-          group = KD.getGroup()
-          KD.getSingleton("appManager").tell 'Members', 'createContentDisplay', group, (contentDisplay) ->
-            contentDisplay.emit "handleQuery", {filter: "members"}
+  #   routes       :
+  #     "/:name?/Members" : ({params, query}) ->
+  #       {router, appManager} = KD.singletons
+  #       KD.getSingleton('groupsController').ready ->
+  #         group = KD.getGroup()
+  #         KD.getSingleton("appManager").tell 'Members', 'createContentDisplay', group, (contentDisplay) ->
+  #           contentDisplay.emit "handleQuery", {filter: "members"}
 
-    hiddenHandle : yes
+  #   hiddenHandle : yes
 
   {externalProfiles} = KD.config
 
@@ -166,12 +166,12 @@ class MembersAppController extends AppController
     callback new ProfileView options, member
 
   showContentDisplay:(contentDisplay)->
-    
+
     view = new ContentDisplayScrollableView
       contentDisplay : contentDisplay
 
     @forwardEvent view, 'LazyLoadThresholdReached'
-      
+
     KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
     return contentDisplay
 
