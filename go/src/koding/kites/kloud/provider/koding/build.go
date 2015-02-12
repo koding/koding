@@ -50,8 +50,9 @@ var (
 
 type BuildData struct {
 	// This is passed directly to goamz to create the final instance
-	EC2Data *ec2.RunInstances
-	KiteId  string
+	EC2Data   *ec2.RunInstances
+	ImageData *ImageData
+	KiteId    string
 }
 
 type ImageData struct {
@@ -113,6 +114,17 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		buildData, err := b.buildData()
 		if err != nil {
 			return nil, err
+		}
+
+		// if we build the instance from a snapshot, it'll create a temporary
+		// AMI. Destroy it after we are finished or if something goes wrong.
+		if b.snapshotId != "" {
+			defer func() {
+				if _, err := b.amazon.Client.DeregisterImage(buildData.ImageData.imageId); err != nil {
+					b.log.Warning("[%s] Couldn't delete AMI '%s': %s",
+						b.machine.Id, buildData.ImageData.imageId, err)
+				}
+			}()
 		}
 
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
@@ -363,8 +375,9 @@ func (b *Build) buildData() (*BuildData, error) {
 	}
 
 	return &BuildData{
-		EC2Data: ec2Data,
-		KiteId:  kiteId,
+		EC2Data:   ec2Data,
+		ImageData: imageData,
+		KiteId:    kiteId,
 	}, nil
 }
 
