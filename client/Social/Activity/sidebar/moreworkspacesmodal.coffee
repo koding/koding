@@ -12,7 +12,7 @@ class MoreWorkspacesModal extends SidebarSearchModal
     super options, data
 
     @addButton = new KDButtonView
-      title    : "Add Workspace"
+      title    : 'Add Workspace'
       style    : 'add-big-btn'
       loader   : yes
       callback : =>
@@ -20,8 +20,6 @@ class MoreWorkspacesModal extends SidebarSearchModal
         @destroy()
 
     @addSubView @addButton, '.kdmodal-content'
-
-    super
 
 
   populate: ->
