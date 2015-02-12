@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/jinzhu/now"
 	"github.com/koding/kodingemail"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -32,11 +33,11 @@ func createUser() (*models.User, error) {
 	return user, modelhelper.CreateUser(user)
 }
 
-func createUserWithWarning(w int) (*models.User, error) {
+func createUserWithWarning(w int, m time.Time) (*models.User, error) {
 	username := "userwithwarning"
 	user := &models.User{
 		Name: username, ObjectId: bson.NewObjectId(),
-		Inactive: models.UserInactive{Warning: w, ModifiedAt: timeNow()},
+		Inactive: models.UserInactive{Warning: w, ModifiedAt: m},
 	}
 
 	return user, modelhelper.CreateUser(user)
@@ -108,4 +109,15 @@ func findUserByQuery(selector bson.M) (*models.User, error) {
 	}
 
 	return user, modelhelper.Mongo.Run(modelhelper.UserColl, query)
+}
+
+func yesterday() time.Time {
+	return now.BeginningOfDay().UTC()
+}
+
+func updateUserModifiedAt(user *models.User, m time.Time) error {
+	selector := bson.M{"username": user.Name}
+	update := bson.M{"inactive.modifiedAt": m}
+
+	return modelhelper.UpdateUser(selector, update)
 }
