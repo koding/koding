@@ -230,7 +230,7 @@ class ComputeController extends KDController
       return err
 
 
-  destroy: (machine, force = @_force)->
+  destroy: (machine, force)->
 
     destroy = (machine)=>
 
@@ -257,7 +257,7 @@ class ComputeController extends KDController
 
         (@errorHandler call, 'destroy', machine) err
 
-    return destroy machine  if force?
+    return destroy machine  if force or @_force
 
     ComputeController
       .UI.askFor 'destroy', machine, force, =>
@@ -503,9 +503,8 @@ class ComputeController extends KDController
     if @plans
       KD.utils.defer => callback @plans
     else
-      KD.remote.api.ComputeProvider.fetchPlans
-        provider: "koding"
-      , (err, plans)=>
+      KD.remote.api.ComputeProvider
+        .fetchPlans provider: "koding", (err, plans)=>
           if err? then warn err
           else @plans = plans
           callback plans
@@ -671,14 +670,33 @@ class ComputeController extends KDController
     .nodeify callback
 
 
-  fetchPlanCombo:(provider, callback)->
+  fetchPlanCombo: (provider, callback)->
 
     [callback, provider] = [provider, callback]  unless callback?
     provider ?= "koding"
 
     @fetchUserPlan (plan)=> @fetchPlans (plans)=>
-      @fetchUsage { provider }, (err, usage)->
-        callback err, { plan, plans, usage }
+      @fetchUsage { provider }, (err, usage)=>
+        @fetchRewards { unit: 'GB' }, (err, reward)->
+          callback err, { plan, plans, usage, reward }
+
+  fetchRewards: (options, callback)->
+
+    {unit} = options
+
+    options =
+      unit  : 'MB'
+      type  : 'disk'
+
+    KD.remote.api.JReward.fetchEarnedAmount options, (err, amount)->
+
+      if err
+        amount = 0
+        warn err
+
+      amount = Math.floor amount / 1000  if unit is 'GB'
+
+      callback null, amount
 
 
   findMachineFromMachineId: (machineId)->

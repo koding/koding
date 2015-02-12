@@ -34,10 +34,11 @@ class EmbedBoxWidget extends KDView
 
     @embedLinks = new EmbedBoxLinksView { delegate: this }
 
-    @embedLinks.on 'LinkAdded', ({ url }) =>
+    @embedLinks.on 'LinkAdded', (url) =>
       @show()
       # if the embed index isn't set, set it to 0
       @setEmbedIndex 0  unless @getEmbedIndex()?
+      @addEmbed url
 
     @embedLinks.on 'LinkRemoved', ({ url, index }) =>
       @hide()  if @embedLinks.getLinkCount() is 0
@@ -61,14 +62,17 @@ class EmbedBoxWidget extends KDView
 
     fn = @bound 'checkInputForUrls'
 
+    delay = 1000
+    timer = null
     input.on 'keydown', (event) ->
-      fn()  if event.which in [9, 13, 32]
-
+      KD.utils.killWait timer
+      timer = KD.utils.wait delay, fn
     input.on 'paste', fn
     input.on 'change', fn
 
   checkInputForUrls: ->
     KD.utils.defer =>
+
       input = @getDelegate()
       text = input.getValue()
 
@@ -76,7 +80,6 @@ class EmbedBoxWidget extends KDView
 
       staleUrls = _.difference @urls, urls
       newUrls   = _.difference urls, @urls
-
 
       @embedLinks.addLink     newUrl    for newUrl    in newUrls
       @embedLinks.removeLink  staleUrl  for staleUrl  in staleUrls

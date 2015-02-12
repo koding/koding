@@ -13,13 +13,15 @@ class MoreWorkspacesModal extends SidebarSearchModal
 
     @addButton = new KDButtonView
       title    : "Add Workspace"
-      style    : 'solid green small'
+      style    : 'add-big-btn'
       loader   : yes
       callback : =>
         @emit 'NewWorkspaceRequested'
         @destroy()
 
-    @addSubView @addButton, '.kdmodal-title'
+    @addSubView @addButton, '.kdmodal-content'
+
+    super
 
 
   populate: ->

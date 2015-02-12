@@ -47,6 +47,7 @@ class CommentListItemView extends KDListItemView
     @unsetClass 'edited'
     @likeView.hide()
     @replyView?.hide()
+    @embedBoxWrapper.hide()
 
     activity   = @getData()
     @editInput = new CommentInputEditWidget {}, activity
@@ -59,6 +60,8 @@ class CommentListItemView extends KDListItemView
     @editInput
       .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'
+      .once 'SubmitSucceeded', @bound 'updateEmbedBox'
+      .once 'EditSucceeded', @bound 'updateEmbedBox'
 
 
   showResend: ->
@@ -143,6 +146,22 @@ class CommentListItemView extends KDListItemView
       @emit 'MentionHappened', account.profile.nickname
 
 
+  updateEmbedBox: ->
+
+
+    data     = @getData()
+
+    embedBox = if data.link?
+      @setClass 'two-columns'  if @twoColumns
+      new EmbedBox @embedOptions, data.link
+    else
+      new KDCustomHTMLView
+
+    @embedBoxWrapper.destroySubViews()
+    @embedBoxWrapper.addSubView embedBox
+    @embedBoxWrapper.show()
+
+
   addMenu: ->
 
     comment       = @getData()
@@ -209,6 +228,13 @@ class CommentListItemView extends KDListItemView
 
     @resend = new KDCustomHTMLView cssClass: 'resend hidden'
 
+
+    @embedOptions  =
+      hasDropdown : no
+      delegate    : this
+    @embedBoxWrapper = new KDCustomHTMLView
+    @updateEmbedBox()
+
     @addMenu()
     @createReplyLink()
 
@@ -247,5 +273,6 @@ class CommentListItemView extends KDListItemView
     {{> @timeAgoView}}
     {{> @likeView}}
     {{> @replyView}}
+    {{> @embedBoxWrapper}}
     </div>
     '''

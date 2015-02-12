@@ -72,7 +72,8 @@ func NewMessageUpdateChannel(ui UpdateInstanceMessage) *MessageUpdateChannel {
 }
 
 func (mc *MessageUpdateChannel) PrepareName() string {
-	return fmt.Sprintf("instance-%s", mc.Token)
+	// Send message instance events to parent channel itself.
+	return fmt.Sprintf("channel-%s", mc.ChannelToken)
 }
 
 func (mc *MessageUpdateChannel) GrantAccess(p *PubNub, a *Authenticate) error {

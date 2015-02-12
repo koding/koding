@@ -204,7 +204,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
       buttons      :
         Import     :
           title    : "Import"
-          cssClass : "modal-clean-green"
+          cssClass : "solid green medium"
           icon     : yes
           iconClass: "tw-import-icon"
           callback : =>
@@ -212,7 +212,7 @@ class TeamworkWorkspace extends CollaborativeWorkspace
             @handleImport importUrlInput, modal
         Close      :
           title    : "Cancel"
-          cssClass : "modal-cancel"
+          cssClass : "solid light-gray medium"
           callback : ->
             KD.mixpanel "Teamwork import, cancel"
             modal.destroy()

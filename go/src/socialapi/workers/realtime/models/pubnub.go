@@ -1,11 +1,13 @@
 package models
 
 import (
+	"fmt"
 	"socialapi/config"
 	"strconv"
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
 	"github.com/koding/pubnub"
 )
@@ -20,8 +22,9 @@ type PubNub struct {
 }
 
 const (
-	PublishTimeout = 3 * time.Second
-	ServerId       = -1
+	PublishTimeout   = 3 * time.Second
+	ServerId         = -1
+	MaxRetryDuration = 10 * time.Second
 )
 
 func NewPubNub(conf config.Pubnub, log logging.Logger) *PubNub {
@@ -124,6 +127,10 @@ func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 		return err
 	}
 
+	// Prepend instance id to event name. We are no longer creating a channel
+	// for each message by doing this.
+	um.EventName = fmt.Sprintf("instance-%s.%s", um.Token, um.EventName)
+
 	if err := p.publish(mc, *um); err != nil {
 		p.log.Error("Could not push update instance event: %s", err)
 	}
@@ -157,7 +164,7 @@ func (p *PubNub) GrantAccess(a *Authenticate, c ChannelInterface) error {
 		Token:       a.Account.Token,
 	}
 
-	return p.grant.Grant(settings)
+	return p.grantAccess(settings)
 }
 
 func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
@@ -170,7 +177,7 @@ func (p *PubNub) RevokeAccess(a *Authenticate, c ChannelInterface) error {
 		Token:       a.Account.Token,
 	}
 
-	return p.grant.Grant(settings)
+	return p.grantAccess(settings)
 }
 
 func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
@@ -190,6 +197,45 @@ func (p *PubNub) GrantPublicAccess(c ChannelInterface) error {
 	return nil
 }
 
+func (p *PubNub) grantAccess(s *pubnub.AuthSettings) error {
+	bo := backoff.NewExponentialBackOff()
+	bo.MaxElapsedTime = MaxRetryDuration
+	ticker := backoff.NewTicker(bo)
+
+	var err error
+	tryCount := 0
+	for _ = range ticker.C {
+		if err = p.grant.Grant(s); err != nil {
+			tryCount++
+			p.log.Error("Could not grant access: %s  will retry... (%d time(s))", err, tryCount)
+			continue
+		}
+
+		ticker.Stop()
+	}
+
+	return err
+}
+
 func (p *PubNub) publish(c ChannelInterface, message interface{}) error {
-	return p.pub.Push(c.PrepareName(), message)
+
+	bo := backoff.NewExponentialBackOff()
+	bo.MaxElapsedTime = MaxRetryDuration
+	ticker := backoff.NewTicker(bo)
+	defer ticker.Stop()
+
+	var err error
+	tryCount := 0
+	for _ = range ticker.C {
+		if err = p.pub.Push(c.PrepareName(), message); err != nil {
+			tryCount++
+			p.log.Error("Could not publish message: %s  will retry... (%d time(s))", err, tryCount)
+
+			continue
+		}
+
+		ticker.Stop()
+	}
+
+	return err
 }

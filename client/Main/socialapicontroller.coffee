@@ -50,11 +50,19 @@ class SocialApiController extends KDController
 
 
   leaveChannel = (response) ->
+
     {first} = response
     return  unless first
 
-    {socialapi} = KD.singletons
     {channelId} = first
+
+    removeChannel channelId
+
+
+  removeChannel = (channelId) ->
+
+    {socialapi} = KD.singletons
+
     channel = socialapi._cache["privatemessage"][channelId]
 
     return  unless channel
@@ -229,7 +237,6 @@ class SocialApiController extends KDController
     return no  if KD.isTesting
 
     {message} = message  unless message.typeConstant?
-
     {_inScreenMap}  = KD.singletons.socialapi
 
     # when I am not the message owner, it is obviously from another browser
@@ -248,7 +255,7 @@ class SocialApiController extends KDController
   forwardMessageEvents : forwardMessageEvents
   forwardMessageEvents = (source, target, events) ->
 
-    events.forEach ({event, mapperFn, validatorFn}) ->
+    events.forEach ({event, mapperFn, validatorFn, filterFn}) ->
       source.on event, (data, rest...) ->
 
         if validatorFn
@@ -257,9 +264,25 @@ class SocialApiController extends KDController
 
           return  unless validatorFn(data)
 
+        if filterFn
+          if typeof filterFn isnt "function"
+            return warn "filter function is not valid"
+
+          return  unless filterFn(data)
+
         data = mapperFn data
 
         target.emit event, data, rest...
+
+
+  # While making retrospective realtime message query, it is possible to fetch an already
+  # existing message. This is for preventing the case.
+  filterMessage = (data) ->
+    {message} = data  unless data.typeConstant?
+    if cachedMessage = KD.singletons.socialapi._cache?[message.typeConstant]?[message.id]
+      return yes  if cachedMessage.isShown
+
+    message.isShown = yes
 
 
   registerAndOpenChannels = (socialApiChannels) ->
@@ -413,9 +436,10 @@ class SocialApiController extends KDController
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
 
+
   getMessageEvents = ->
     [
-      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser, filterFn: filterMessage}
       {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
       {event: "AddedToChannel",     mapperFn: mapParticipant}
       {event: "RemovedFromChannel", mapperFn: mapParticipant}
@@ -609,6 +633,7 @@ class SocialApiController extends KDController
     delete               : channelRequesterFn
       fnName             : 'delete'
       validateOptionsWith: ["channelId"]
+      successFn          : removeChannel
 
     revive               : mapChannel
 

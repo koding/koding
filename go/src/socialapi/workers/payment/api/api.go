@@ -37,6 +37,14 @@ func GetCustomersRequest(u *url.URL, h http.Header, _ interface{}) (int, http.He
 	)
 }
 
+func ExpireCustomerRequest(u *url.URL, h http.Header, req *payment.AccountRequest) (int, http.Header, interface{}, error) {
+	req.AccountId = u.Query().Get("accountId")
+
+	return response.HandleResultAndClientError(
+		req.Expire(),
+	)
+}
+
 func DeleteCustomerRequest(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	req := &payment.AccountRequest{
 		AccountId: u.Query().Get("accountId"),

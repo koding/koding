@@ -20,8 +20,7 @@ class ActivityLikeLink extends CustomLinkView
 
   setLikeState: (state) ->
     @isInteracted = state
-
-    @setTemplate @pistachio()
+    @update()
 
 
   click: (event) ->
@@ -49,8 +48,6 @@ class ActivityLikeLink extends CustomLinkView
 
 
   update: ->
-
-    { @isInteracted } = @getData().interactions.like
 
     @setTemplate @pistachio()
 

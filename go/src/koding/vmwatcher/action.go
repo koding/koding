@@ -21,9 +21,11 @@ func stopVm(machineId, username, reason string) error {
 		MachineId: machineId, Reason: reason,
 	})
 
-	// kloud ouptuts log for vms already stopped, we don't care
-	if strings.Contains(err.Error(), "not allowed for current state") {
-		return nil
+	if err != nil {
+		// kloud ouptuts log for vms already stopped, we don't care
+		if strings.Contains(err.Error(), "not allowed for current state") {
+			return nil
+		}
 	}
 
 	return err

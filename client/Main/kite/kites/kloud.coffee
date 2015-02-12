@@ -64,7 +64,7 @@ class KodingKite_KloudKite extends KodingKite
     {klient} = kontrol.kites
     machine  = computeController.findMachineFromMachineId machineId
 
-    unless machineId?
+    if not machine or not machineId
       return callback null
 
     klientKite = klient?[machine.uid]

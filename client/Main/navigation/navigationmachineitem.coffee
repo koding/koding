@@ -57,9 +57,12 @@ class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    @settingsIcon = new KDCustomHTMLView
-      tagName     : 'span'
-      click       : @bound 'handleMachineSettingsClick'
+    if @getData().isMine()
+      @settingsIcon = new KDCustomHTMLView
+        tagName     : 'span'
+        click       : @bound 'handleMachineSettingsClick'
+    else
+      @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
     KD.singletons.computeController
 
@@ -128,7 +131,7 @@ class NavigationMachineItem extends JView
       KD.utils.wait 1000, @progress.bound 'hide'
 
 
-  pistachio:->
+  pistachio: ->
 
     return """
       <figure></figure>

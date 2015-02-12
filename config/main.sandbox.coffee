@@ -211,7 +211,7 @@ Configuration = (options={}) ->
     entryPoint           : {slug:'koding'       , type:'group'}
     siftScience          : 'f270274999'
     paypal               : { formUrl: 'https://www.sandbox.paypal.com/incontext' }
-    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: no     }
+    pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: yes     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 2 * 60 * 1000 # 2 minutes
 
@@ -353,13 +353,13 @@ Configuration = (options={}) ->
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
+        stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
         locations       : [
           { location    : "= /-/payments/stripe/webhook" },
-          { location    : "= /-/payments/paypal/webhook" },
         ]
 
     vmwatcher           :
@@ -369,6 +369,7 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/vmwatcher -c #{configName}"
+        stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 

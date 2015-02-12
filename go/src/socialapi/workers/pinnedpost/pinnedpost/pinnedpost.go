@@ -85,7 +85,9 @@ func (c *Controller) addMessage(accountId, messageId, channelId int64) error {
 	// add parent message into pinning channel
 	// but do not force message to be put into the channel, because
 	// if the user removed the message from channel, we should not add the same message again
-	_, err = pinningChannel.EnsureMessage(messageId, false)
+	cm := models.NewChannelMessage()
+	cm.Id = messageId
+	_, err = pinningChannel.EnsureMessage(cm, false)
 
 	// if message is already in the channel ignore the error, and mark process as successful
 	if err == models.ErrMessageAlreadyInTheChannel {

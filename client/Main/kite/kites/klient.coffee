@@ -6,6 +6,7 @@ class KodingKite_KlientKite extends KodingKite
 
     exec               : 'exec'
     ping               : 'kite.ping'
+    systemInfo         : 'kite.systemInfo'
 
     fsReadDirectory    : 'fs.readDirectory'
     fsGlob             : 'fs.glob'

@@ -36,10 +36,10 @@ class Ace extends KDView
             @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
           @editor.gotoLine 0
-          
+
           # remove cmd+L binding. we have already defined cmd+g for this purpose
           @editor.commands.removeCommand 'gotoline'
-          
+
           # we are using ctrl+alt+s for 'Save All' action
           @editor.commands.removeCommand 'sortlines'
 
@@ -84,11 +84,7 @@ class Ace extends KDView
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
-
-    requirejs ['ace/ext-language_tools'], =>
-      @editor.setOptions
-        enableBasicAutocompletion: yes
-        enableSnippets: yes
+      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
 
   saveStarted:->
     @lastContentsSentForSave = @getContents()
@@ -256,6 +252,9 @@ class Ace extends KDView
   getOpenRecentFiles:->
     @appStorage.getValue('openRecentFiles') ? yes
 
+  getEnableAutocomplete:->
+    @appStorage.getValue('enableAutocomplete') ? yes
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -270,6 +269,7 @@ class Ace extends KDView
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
+    enableAutocomplete  : @getEnableAutocomplete()
 
   ###
   SETTERS
@@ -394,6 +394,15 @@ class Ace extends KDView
   setOpenRecentFiles:(value, save = yes)->
     @appStorage.setValue 'openRecentFiles', value
 
+  setEnableAutocomplete:(value, save = yes)->
+
+    requirejs ['ace/ext-language_tools'], =>
+      @editor.setOptions
+        enableBasicAutocompletion: value
+        enableSnippets: value
+
+    @appStorage.setValue 'enableAutocomplete', value  if save
+
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber
 
@@ -456,6 +465,7 @@ class Ace extends KDView
         targetHandle.unsetClass 'saved'
 
   showGotoLine: ->
+
     unless @gotoLineModal
       @gotoLineModal = new KDModalViewWithForms
         cssClass                : 'goto'

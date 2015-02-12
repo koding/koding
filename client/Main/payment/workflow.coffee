@@ -55,25 +55,49 @@ class PaymentWorkflow extends KDController
 
     { paymentController } = KD.singletons
 
-    paymentController.creditCard (err, card) =>
+    paymentController.canUserPurchase (err, canPurchase) =>
 
-      @state.paymentMethod = card
+      return @showError err  if err
 
-      { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
+      unless canPurchase
+        return @showError { message: PaymentConstants.error.ERR_USER_NOT_CONFIRMED }
 
-      switch operation
-        when DOWNGRADE                then @startDowngradeFlow()
-        when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
+      paymentController.creditCard (err, card) =>
 
-      @emit 'WorkflowStarted'
+        @state.paymentMethod = card
+
+        { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
+
+        switch operation
+          when DOWNGRADE                then @startDowngradeFlow()
+          when UPGRADE, INTERVAL_CHANGE then @startRegularFlow()
+
+        @emit 'WorkflowStarted'
+
+
+  showError: (err) ->
+
+    { message } = err
+
+    humanReadable = PaymentConstants.error[message]
+    err.message   = humanReadable  if humanReadable
+
+    KD.showError err
+    @modal?.form.submitButton.hideLoader()
 
 
   startRegularFlow: ->
 
     @modal = new PaymentModal { @state }
     @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
-    @modal.on 'PaymentSubmitted',                 @bound 'handlePaymentSubmit'
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
+
+    { paymentController } = KD.singletons
+
+    @modal.on 'PaymentSubmitted', (formData) =>
+      paymentController.canUserPurchase (err, confirmed) =>
+        return @userIsNotConfirmed err  if err
+        @handlePaymentSubmit formData
 
     @modal.on 'PaypalButtonClicked', =>
       @state.provider = PaymentConstants.provider.PAYPAL
@@ -164,7 +188,7 @@ class PaymentWorkflow extends KDController
     me = KD.whoami()
     me.fetchEmail (err, email) =>
 
-      return KD.showError err  if err
+      return @showError err  if err
 
       options.email = email
       options.provider = @state.provider
@@ -200,11 +224,7 @@ class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
-    initiatorView = @getDelegate()
-
     @emit 'PaymentWorkflowFinishedSuccessfully', state
-
-    initiatorView.state.currentPlan = state.currentPlan
 
     @modal.destroy()
 
@@ -214,4 +234,5 @@ class PaymentWorkflow extends KDController
     @emit 'PaymentWorkflowFinishedWithError', state
 
     @destroy()
+
 

@@ -9,7 +9,7 @@ class UploadImageModalView extends KDModalView
     options.buttons       ?=
       uploadButton         :
         title              : "Upload"
-        cssClass           : "modal-clean-green"
+        cssClass           : "solid green medium"
         callback           : @bound "upload"
 
     super options, data
@@ -57,7 +57,7 @@ class UploadImageModalView extends KDModalView
       FSHelper.s3.upload imageName, avatarData, "groups", group.slug, (err, url)=>
         if err
           message = if err.code is 100 then "First you have to create a VM"
-          else "Error while uploading photo." 
+          else "Error while uploading photo."
           KD.showError message
           @loaderView.hide()
           return

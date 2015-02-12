@@ -53,7 +53,7 @@ class PaymentWidget extends KDView
       callback err or not account or not account.cardNumber
 
   checkSubscription:(callback)-> throw Error 'reimplement this'
-  
+
   pistachio:->
     """
     {{> @loader}}
@@ -105,12 +105,12 @@ class PaymentWidget extends KDView
         buttons       :
           No          :
             title     : "No"
-            cssClass  : "modal-clean-gray"
+            cssClass  : "solid light-gray medium"
             callback  : =>
               modal.destroy()
           Yes         :
             title     : "Yes, subscribe"
-            cssClass  : "modal-clean-green"
+            cssClass  : "solid green medium"
             callback  : =>
               modal.destroy()
               callback()

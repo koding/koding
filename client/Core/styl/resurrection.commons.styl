@@ -450,8 +450,9 @@ button.app-settings-menu
     padding            0
     color              logoBg
     font-size          18px
-    text-decoration    uppercase
+    text-transform     uppercase
     letter-spacing     1px
+
   &:hover
     bg                 color white
   &:active
@@ -506,6 +507,11 @@ button.app-settings-menu
 // SOLID BUTTON STYLES
 //
 
+.kdbutton.solid.no-text-transform
+
+  span.button-title
+    text-transform          none !important
+
 .kdbutton.solid
   bg                   color #3c4043
   border               none
@@ -518,9 +524,9 @@ button.app-settings-menu
     padding            0
     color              rgba(227, 227, 227, 0.8)
     font-size          18px
-    letter-spacing     .6px
     line-height        55px
     text-rendering     geometricPrecision
+    text-transform     uppercase
   span.icon
     margin             18px 0 0 0
   &:hover
@@ -671,86 +677,40 @@ button.app-settings-menu
 /* More vms modal  */
 
 .kdmodal.more-modal
-  background           #E7E7E7
-  font-family          adelleFamily
 
-  .kdmodal-title
-    border-bottom      1px solid #D0D0D0 !important
-    size               100%, 58px
-    line-height        63px !important
-    padding            0 16px 0 27px !important
-    margin             0 !important
-    borderBox()
+  .kdlistitemview-sidebar-item
+    display          block
+    width            auto
+    height           35px
+    line-height      35px
+    padding-left     46px
+    color            #5E5E5E
+    font-size        14px
 
-    span.title
-      display          inline
-      font-size        16px !important
-      color            #585858 !important
-      font-weight      400 !important
+    & ~ .kdlistitemview-sidebar-item
+      margin-top     8px
 
-    .kdbutton
-      font-family      inherit
-      background       #52A840
-      rounded          4px
-      height           29px
-      margin-top       15px
+    &:before
+      display        block
+      text-align     center
+      abs            0px 0 0 0px
+      size           35px, 35px
+      line-height    38px
+      background     #52A840
+      rounded        5px
+      color          #fff
+      font-size      14px
+
+    .kdbutton.clean-gray
+      font-size      0
+      background     none
+      border         none
+      shadow         none
+      outline        none
+      padding        0
+      r-sprite       'app', '16-cog'
+      margin-top     8px
       fr()
-
-      .button-title
-        font-family    inherit
-        font-size      12px
-        text-shadow    1px 1px 1px rgba(0,0,0,.22)
-
-  .close-icon
-    display            none
-
-  .kdmodal-inner
-    margin             0
-    background         transparent
-
-  .kdmodal-content
-    background         transparent
-    padding            24px !important
-    margin             0 !important
-    borderBox()
-
-    .kdlistitemview-sidebar-item
-      display          block
-      width            auto
-      height           35px
-      line-height      35px
-      padding-left     46px
-      color            #5E5E5E
-      font-size        14px
-
-      a
-        text-decoration  none
-        color            #5e5e5e
-
-      & ~ .kdlistitemview-sidebar-item
-        margin-top     8px
-
-      &:before
-        display        block
-        text-align     center
-        abs            0px 0 0 0px
-        size           35px, 35px
-        line-height    38px
-        background     #52A840
-        rounded        5px
-        color          #fff
-        font-size      14px
-
-      .kdbutton.clean-gray
-        font-size      0
-        background     none
-        border         none
-        shadow         none
-        outline        none
-        padding        0
-        r-sprite       'app', '16-cog'
-        margin-top     8px
-        fr()
 
 .more-vms .kdlistitemview-sidebar-item:before
   content              'K'
@@ -953,34 +913,37 @@ button.app-settings-menu
 // .kdmodal.resurrection
 
 .kdmodal
-  bg                    color white
-  rounded               6px
-  shadow                0 0 32px rgba(0,0,0,.46)
+  bg                    color #FAFAFA
+  rounded               3px
+  shadow                0 12px 19px rgba(0,0,0,.50)
+  border                1px solid #979797
   position              fixed !important
+  font-family           adelleFamily
 
   .kdmodal-inner
-    margin              45px
+    background          #fafafa
+    margin              15px 25px 25px
 
     .close-icon
-      r-sprite            app, "modal-close-icon"
-      top               14px
-      right             14px
+      r-sprite          app, "modal-close-icon"
+      top               10px
+      right             10px
 
       &:hover
         r-sprite          app, "modal-close-icon"
 
   .kdmodal-title
     cursor              move
-    line-height         normal !important
+    line-height         30px !important
     font-weight         400
-    color               #50595a !important
+    color               #00B057 !important
     margin-bottom       15px !important
     padding             0 !important
     background          none !important
     border              none !important
 
     .title
-      font-size         24px !important
+      font-size         20px !important
 
   .kdmodal-content
     margin              15px 0 0 0 !important
@@ -1000,41 +963,20 @@ button.app-settings-menu
   .formline.button-field
     margin              24px 0 0 0 !important
     background          none !important
-    // looks better i think w/o - SY
-    // border-top          2px solid #f3f4f5 !important
-    height              73px !important
+    border-top          none !important
+    height              auto !important
 
     .kdbutton
+      height            37px
       fr()
+
+      .button-title
+        line-height     36px !important
 
       &.to-left
         margin-left     0
         margin-right    12px
         fl()
-
-      &:not(.solid)
-        size            auto, 45px
-        background      none
-        border-width    3px
-        border-style    solid
-        margin          22px 0 0 12px !important
-        padding         0 24px !important
-        rounded         23px
-        font-size       18px
-        text-transform  uppercase
-        font-family     'Proxima Nova'
-
-    .modal-clean-red
-      border-color      #e94b35
-      color             #e94b35
-
-    .modal-clean-green
-      border-color      #1aaf5d
-      color             #1aaf5d
-
-    .modal-cancel
-      border-color      #bdc3c7
-      color             #bdc3c7
 
 .kdoverlay
   fix()
@@ -1760,19 +1702,19 @@ account, group dashboard and payment pages.
 }
 
 .kdbutton.add-big-btn
-  size                      100%, 40px
+  size                      100%, 31px
   border                    1px dashed #D0D0D0
-  background                #fff
+  background                transparent
   rounded                   3px
-  margin                    0 0 16px 0
+  margin                    0 0 15px 0
   padding                   0
-  line-height               40px
+  line-height               30px
 
   .button-title
-    font-size               14px
+    font-size               12px
     line-height             inherit
-    font-weight             600
-    color                   #878787
+    font-weight             400
+    color                   #7B7B7B
     opacity                 .99
 
   .icon

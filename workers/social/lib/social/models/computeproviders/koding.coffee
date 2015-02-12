@@ -3,7 +3,7 @@ ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
 Regions           = require 'koding-regions'
-
+{clone}           = require 'underscore'
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -67,7 +67,23 @@ module.exports = class Koding extends ProviderInterface
       then plan = 'free'
       else plan = subscription.planTitle
 
-      callback err, PLANS[plan]
+      # we need to clone the plan data since we are using global data here,
+      # when we modify it at line 84 everything will be broken after the
+      # first operation until this social restarts ~ GG
+      planData  = clone PLANS[plan]
+
+      JReward   = require '../rewards'
+      JReward.fetchEarnedAmount
+        unit     : 'MB'
+        type     : 'disk'
+        originId : client.r.account.getId()
+
+      , (err, amount)->
+
+        amount = 0  if err
+        planData.storage += Math.floor amount / 1000
+
+        callback err, planData
 
 
   checkUsage = (usage, plan, storage)->

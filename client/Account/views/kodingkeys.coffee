@@ -79,13 +79,13 @@ class AccountKodingKeyListItem extends KDListItemView
           """
           buttons      :
             "Yes, Revoke Access":
-              style    : "modal-clean-red"
+              style    : "solid red medium"
               callback : (event)=>
                 @revokeAccess options, data
                 @destroy()
                 modal.destroy()
             "Close"    :
-              style    : "modal-clean-gray"
+              style    : "solid light-gray medium"
               callback : (event)->
                 modal.destroy()
 

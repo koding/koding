@@ -20,7 +20,7 @@ class TroubleshootModal extends KDModalViewWithForms
             buttons         :
               sendFeedback  :
                 title       : "Send Feedback"
-                style       : "modal-clean-green"
+                style       : "solid green medium"
                 type        : "submit"
                 loader      :
                   color     : "#444444"
@@ -28,11 +28,11 @@ class TroubleshootModal extends KDModalViewWithForms
                 callback    : -> @hideLoader()
               recover       :
                 title       : "Recover"
-                style       : "modal-clean-red"
+                style       : "solid red medium"
                 callback    : -> troubleshoot.recover()
               close         :
                 title       : "Close"
-                style       : "modal-cancel"
+                style       : "solid light-gray medium"
                 callback    : => @destroy()
             fields          :
               check         :
@@ -101,5 +101,5 @@ class TroubleshootModal extends KDModalViewWithForms
       content      : "We have received your feedback."
       buttons      :
         Close      :
-          style    : "modal-cancel"
+          style    : "solid light-gray medium"
           callback : -> modal.destroy()

@@ -67,6 +67,8 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
     field.addSubView title
     field.addSubView fieldSwitch
 
-    @addSubView new KDCustomHTMLView
+    _addSubView = KDView::addSubView.bind this
+
+    _addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 34
+      position : top : 40

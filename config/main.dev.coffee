@@ -415,7 +415,6 @@ Configuration = (options={}) ->
       nginx             :
         locations       : [
           { location    : "= /-/payments/stripe/webhook" },
-          { location    : "= /-/payments/paypal/webhook" }
         ]
 
     vmwatcher           :
@@ -425,7 +424,7 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/watcher -run koding/vmwatcher"
-      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheckURL"
+      healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
   #-------------------------------------------------------------------------#

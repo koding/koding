@@ -57,6 +57,10 @@ class MachineSettingsPopup extends KDModalViewWithForms
               loaderOptions :
                 color   : '#333333'
               showLoader: yes
+        diskUsage       :
+          label         : 'Disk Usage'
+          itemClass     : KDProgressBarView
+          cssClass      : if running then 'disk-usage' else 'hidden'
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
@@ -65,7 +69,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
         specs           :
           label         : "Specs"
           itemClass     : KDView
-          partial       : "1GB RAM, 1Core, #{storage}GB Disk"
+          partial       : "1GB RAM, 1Core CPU, #{storage}GB Disk"
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
@@ -145,7 +149,7 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     {windowController, computeController} = KD.singletons
 
-    {statusToggle, statusLoader} = @modalTabs.forms.Settings.inputs
+    {statusToggle, statusLoader, diskUsage} = @modalTabs.forms.Settings.inputs
 
     statusToggle.hide()
 
@@ -171,6 +175,31 @@ class MachineSettingsPopup extends KDModalViewWithForms
         statusLoader.hide()
         statusToggle.setOff no
         statusToggle.show()
+
+    diskUsage.updateBar 0, '%', 'checking usage...'
+
+    baseKite.systemInfo()
+
+      .then (info)->
+
+        format = KD.utils.formatBytesToHumanReadable
+
+        total  = info.diskTotal * 1024
+        usage  = info.diskUsage * 1024
+        free   = total - usage
+
+        KD.utils.wait 200, ->
+          diskUsage.updateBar \
+            (info.diskUsage / info.diskTotal) * 100, '%', format usage
+
+          diskUsage.setTooltip
+            title: "#{format total} total and #{format free} free"
+
+      .catch (err)->
+
+        warn "Failed to fetch system info for machine settings:", err
+        diskUsage.updateBar 0, '%', 'failed to fetch usage!'
+
 
     if @machine.isPermanent()
       statusToggle.setTooltip
@@ -280,9 +309,25 @@ class MachineSettingsPopup extends KDModalViewWithForms
         computeController.reinit @machine
         @destroy()
 
-    @addSubView new KDCustomHTMLView
+    @buttonContainer.addSubView @resizeButton = new KDButtonView
+      style    : 'solid compact green resize hidden'
+      title    : 'Resize VM'
+      callback : =>
+        computeController.resize @machine, 10
+        @destroy()
+
+    @buttonContainer.addSubView @terminateButton = new KDButtonView
+      style    : 'solid compact red'
+      title    : 'Terminate VM'
+      callback : =>
+        computeController.destroy @machine
+        @destroy()
+
+    _addSubview = KDView::addSubView.bind this
+
+    _addSubview new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 20
+      position : top : 40
 
     computeController.fetchUserPlan (plan)=>
 

@@ -51,6 +51,13 @@ func (cue *channelUpdatedEvent) notifyAllParticipants() error {
 		&request.Query{
 			// make sure exempt users are getting reatime notifications
 			ShowExempt: true,
+
+			// lets say nodejs topic has 56K participants(yes it has), if we
+			// dont limit we can take koding down. 100 is just a random number
+			Limit: 100,
+
+			// send the event to the recently active users
+			Sort: map[string]string{"updated_at": "DESC"},
 		},
 	)
 

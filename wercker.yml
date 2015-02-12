@@ -196,7 +196,8 @@ build:
         name: terminate test instance
         code: |
           INSTANCE_ID=$(cat $INSTANCE_DATA | awk '{print $1}')
-          scripts/wercker/terminate-test-instance $INSTANCE_ID
+          if [ -n "$INSTANCE_ID" ]; then scripts/wercker/terminate-test-instance $INSTANCE_ID; fi
+
     - jessefulton/slack-notify:
         subdomain: koding
         token: $SLACK_TOKEN

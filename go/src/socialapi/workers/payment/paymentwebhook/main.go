@@ -3,6 +3,7 @@ package main
 import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"net"
 	"net/http"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
@@ -29,6 +30,8 @@ type Controller struct {
 func main() {
 	r := initializeRunner()
 
+	go r.Listen()
+
 	defer func() {
 		r.Close()
 		modelhelper.Close()
@@ -39,6 +42,7 @@ func main() {
 
 	// initialize client to talk to kloud
 	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
+	defer kiteClient.Close()
 
 	// initialize client to send email
 	email := initializeEmail(conf.Email)
@@ -53,14 +57,19 @@ func main() {
 	// initialize http server
 	mux := initializeMux(st, pp)
 
-	http.HandleFunc("/version", artifact.VersionHandler())
-	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
-
 	port := conf.PaymentWebhook.Port
-
 	Log.Info("Listening on port: %s\n", port)
 
-	err := http.ListenAndServe(":"+port, mux)
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
+
+	defer func() {
+		listener.Close()
+	}()
+
+	err = http.Serve(listener, mux)
 	if err != nil {
 		Log.Fatal(err.Error())
 	}
@@ -109,8 +118,11 @@ func initializeEmail(conf config.Email) kodingemail.Client {
 
 func initializeMux(st *stripeMux, pp *paypalMux) *http.ServeMux {
 	mux := http.NewServeMux()
+
 	mux.Handle("/-/payments/stripe/webhook", st)
 	mux.Handle("/-/payments/paypal/webhook", pp)
+	mux.HandleFunc("/version", artifact.VersionHandler())
+	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
 	return mux
 }

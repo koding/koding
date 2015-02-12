@@ -33,6 +33,7 @@ class ActivitySidebar extends KDCustomHTMLView
     super options
 
     {
+      mainController
       notificationController
       computeController
       socialapi
@@ -71,6 +72,10 @@ class ActivitySidebar extends KDCustomHTMLView
 
     # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
+
+    mainController.ready =>
+      KD.whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
+
 
   # event handling
 
@@ -628,7 +633,7 @@ class ActivitySidebar extends KDCustomHTMLView
     #         tree.expand node
     #       else
     #         tree.selectNode node
-    #         @watchMachineState workspace, machine
+    #         @watchMachineState data
     #     else
     #       tree.collapse node
 
@@ -649,21 +654,28 @@ class ActivitySidebar extends KDCustomHTMLView
     # localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
-  watchMachineState: (workspace, machine) ->
+  watchMachineState: (data) ->
+
+    {workspace, machine} = data
+
     @watchedMachines  or= {}
-    computeController   = KD.getSingleton 'computeController'
-    appManager          = KD.getSingleton 'appManager'
-    {Running}           = Machine.State
+
+    {Running} = Machine.State
 
     return  if @watchedMachines[machine._id]
 
     callback = (state) =>
-      if state.status is Running
-        machine.status.state = Running
-        if appManager.getFrontApp().mountedMachineUId is machine.uid
-          delete @watchedMachines[machine._id]
+      return  if state.status isnt Running
 
-    computeController.on "public-#{machine._id}", callback
+      machine.status.state = Running
+      delete @watchedMachines[machine._id]
+
+      if data is @latestWorkspaceData
+        @selectWorkspace data
+
+    KD.getSingleton 'computeController'
+      .on "public-#{machine._id}", callback
+
     @watchedMachines[machine._id] = yes
 
 
@@ -765,6 +777,19 @@ class ActivitySidebar extends KDCustomHTMLView
   #     workspace.machineLabel = data.machineLabel
   #     workspace
 
+  # ======= start of conflict block
+  # ======= preserved conflict since it's already commented out on refactor
+  # handleMoreWorkspacesClick: (data) ->
+
+  #   machine = m for m in KD.userMachines when m.uid is data.machineUId
+
+  #   return no  if not machine or not machine.isMine()
+
+  #   workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
+  #     workspace.machineLabel = data.machineLabel
+  #     workspace
+  # ======= end of conflict block
+
   #   data.workspaces = workspaces or []
 
   #   new MoreWorkspacesModal {}, data
@@ -809,9 +834,13 @@ class ActivitySidebar extends KDCustomHTMLView
       noItemText : 'You didn\'t participate in any conversations yet.'
       headerLink : KD.utils.groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
-        KD.singletons.socialapi.channel.fetchPinnedMessages
-          limit : 5
-        , callback
+        # we disabled pinned messages a long time ago but we are still sending
+        # the requests to the backed, those are useless operations ~ CS
+        return callback null, null
+
+        # KD.singletons.socialapi.channel.fetchPinnedMessages
+        #   limit : 5
+        # , callback
 
     if KD.singletons.mainController.isFeatureDisabled 'threads'
       @sections.conversations.hide()
@@ -1006,3 +1035,15 @@ class ActivitySidebar extends KDCustomHTMLView
           box = machineBox
 
     return box
+
+
+  newWorkspaceCreated: (workspace) ->
+
+    matches = KD.userWorkspaces.filter (w) ->
+      w.machineUId is workspace.machineUId and \
+      w.slug is workspace.slug
+
+    return  if matches.length
+
+    KD.userWorkspaces.push workspace
+    @updateMachineTree()

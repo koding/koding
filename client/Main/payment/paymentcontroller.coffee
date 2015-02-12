@@ -35,6 +35,9 @@ class PaymentController extends KDController
       return callback err, card
 
 
+  canUserPurchase: (callback) -> @api().canUserPurchase callback
+
+
   updateCreditCard: (token, callback) ->
 
     params          = {token}

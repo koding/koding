@@ -28,7 +28,7 @@ class FacebookTeamworkInstructionsModal extends KDModalViewWithForms
               """
           buttons                  :
             Next                   :
-              cssClass             : "modal-clean-green"
+              cssClass             : "solid green medium"
               callback             : =>
                 @modalTabs.showPaneByIndex 1
         "App Setup"                :
@@ -79,7 +79,7 @@ class FacebookTeamworkInstructionsModal extends KDModalViewWithForms
               """
           buttons                  :
             Done                   :
-              cssClass             : "modal-clean-green"
+              cssClass             : "solid green medium"
               callback             : =>
                 {appId, appNamespace, appCanvasUrl} = @modalTabs.forms["App Setup"].inputs
                 if appId.validate() and appNamespace.validate()

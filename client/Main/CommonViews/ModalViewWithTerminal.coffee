@@ -8,7 +8,7 @@
 #         hidden: true
 #     buttons:
 #         "Hello":
-#             cssClass: "modal-clean-gray"
+#             cssClass: "solid light-gray medium"
 #             callback: -> modal.showTerminal()
 #
 # modal.on "terminal.event", (data)->

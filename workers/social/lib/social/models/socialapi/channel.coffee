@@ -269,5 +269,12 @@ module.exports = class SocialChannel extends Base
       }
     ]
     success: (client, options, callback) ->
-      return deleteChannel options, callback  if options.channelId?
-      callback message: "channel id not provided"
+
+      return  callback message: "channel id not provided"  unless options.channelId?
+
+
+      return deleteChannel options, (err) ->
+
+        return callback err  if err
+
+        return callback null, options.channelId
