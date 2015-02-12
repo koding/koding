@@ -38,7 +38,7 @@ func TestIsUserPaid(t *testing.T) {
 		err = modelhelper.Mongo.Run(modelhelper.AccountsCollection, query)
 		So(err, ShouldBeNil)
 
-		Convey("Then it returns false if error fetching plan", func() {
+		Convey("Then it returns error if error fetching plan", func() {
 			_, err := IsUserPaid(user, warning)
 			So(err, ShouldNotBeNil)
 		})
@@ -179,10 +179,12 @@ func TestIsTooSoon(t *testing.T) {
 		user, err := createInactiveUserWithWarning(warning.Interval*2, warning.Level-1)
 		So(err, ShouldBeNil)
 
+		lastWarningDate := timeNow().Add(-warning.IntervalSinceLastWarning * 2)
+
 		selector := bson.M{"username": user.Name}
 		update := bson.M{
 			"inactive.warnings": bson.M{
-				fmt.Sprintf("%d", warning.Level-1): now().Add(-warning.IntervalSinceLastWarning * 2),
+				fmt.Sprintf("%d", warning.Level-1): lastWarningDate,
 			},
 		}
 
@@ -196,7 +198,7 @@ func TestIsTooSoon(t *testing.T) {
 			tooSoon, err := IsTooSoon(user, warning)
 
 			So(err, ShouldBeNil)
-			So(tooSoon, ShouldBeTrue)
+			So(tooSoon, ShouldBeFalse)
 		})
 
 		Reset(func() {
