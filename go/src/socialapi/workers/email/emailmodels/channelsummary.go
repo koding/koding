@@ -66,7 +66,7 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 	}
 
 	// fix the ordering problem of the messages
-	orderedCms := make([]models.ChannelMessage, len(cm))
+	orderedCms := make([]models.ChannelMessage, len(cms))
 	// swap the order
 	for i, cm := range cms {
 		// head becomes last, last becomes first
