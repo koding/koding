@@ -27,11 +27,14 @@ class RealtimeController extends KDController
       @pubnub = PUBNUB.init
         subscribe_key : subscribekey
         uuid          : KD.whoami()._id
-        ssl           : ssl
-
-      @getTimeDiffWithServer()
+        ssl           : if KD.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
 
       realtimeToken = Cookies.get("realtimeToken")
+
+      @fetchServerTime()
+      setInterval =>
+        @fetchServerTime()
+      , 10000
 
       if realtimeToken?
         @pubnub.auth realtimeToken
@@ -47,6 +50,14 @@ class RealtimeController extends KDController
 
         @authenticated = yes
         @emit 'authenticated'
+
+
+  fetchServerTime: ->
+    @pubnub.time (timestamp) =>
+      return  unless timestamp
+
+      @serverTimestamp = timestamp
+      @emit 'Ping', timestamp
 
 
   # channel authentication is needed for notification channel and
@@ -194,80 +205,122 @@ class RealtimeController extends KDController
 
       channelInstance = new PubnubChannel name: pubnubChannelName
 
-      err = @pubnub.subscribe
+      callbackCalled = no
+      @pubnub.subscribe
         channel : pubnubChannelName
-        message : (message, env, channel) =>
-
-          return  unless message
-
-          {eventName, body, eventId} = message
-
-          return  unless eventName and body
-
-          if eventId?
-            return  if @eventCache[eventId]
-
-            # TODO delete this periodically
-            @eventCache[eventId] = yes
-
-
-          # when a user is connected in two browsers, and leaves a channel, in second one
-          # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
-          # user from all connected devices.
-          if eventName is 'RemovedFromChannel' and body.accountId is KD.whoami().socialApiId
-            return @unsubscribePubnub message.channel
-
-          # no need to emit any events when not subscribed
-          return  unless @channels[channel]
-
-          # instance events are received via public channel. For this reason
-          # if an event name includes "instance-", update the related message channel
-          # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded"
-          if eventName.indexOf("instance-") < 0
-            return @channels[channel].emit eventName, body
-
-          events = eventName.split "."
-          if events.length < 2
-            warn 'could not parse event name', eventName
-            return
-
-          instanceChannel = events[0]
-          eventName = events[1]
-
-          return  unless @channels[instanceChannel]
-
-          @channels[instanceChannel].emit eventName, body
-
-
+        message : (message, env, channel) => @handleMessage message, channel
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName
+          callbackCalled = yes
           callback null, channelInstance
-        error   : (err) => @handleError err
-        reconnect: => @getTimeDiffWithServer()
+        error   : (err) =>
+          @handleError err
+          callback err  unless callbackCalled
+        reconnect: (channel) => @reconnect channel
+
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
         # in last 3 seconds
-        # another issue is if user's computer time is ahead of server, it is not receiving the events.
-        # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
-        timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
+        timetoken: @serverTimestamp - 30000000
         restore : yes
 
-      return callback err  if err
 
-  getTimeDiffWithServer: ->
-    @pubnub.time (serverTime) =>
+  isDisconnected: (err) ->
+    # I know this is so error prone, but they are not sending any error code; just message. :(
+    return err?.message is 'Offline. Please check your network settings.'
 
-      return  unless serverTime
 
-      diff = new Date() * 10000 - serverTime
-      # when time difference between pubnub server and client is less than 500ms
-      # ignore the difference
-      @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
+  reconnect: (channel) ->
+    @once 'Ping', (serverTimestamp) =>
+
+      return  unless @lastSeenOnline
+
+      # if user is not online for more than a day, then reload the page
+      if @lastSeenOnline < serverTimestamp - 864000000000
+        return window.location.reload()
+
+      @fetchHistory channel, @lastSeenOnline
+      @lastSeenOnline = null
+
+
+  fetchHistory: (channel, timestamp) ->
+
+    return  unless timestamp
+
+    limit = 100
+    @pubnub.history
+      channel : channel
+      start   : "#{timestamp}"
+      count   : limit
+      reverse : true
+      callback: (response) =>
+
+        return  unless response?.length and Array.isArray(response)
+
+        messages = response[0]
+        start    = response[1]
+
+        return  unless messages?.length and Array.isArray(messages)
+
+        @handleMessage message, channel  for message in messages
+
+        # since the maximum message limit is 100, we are making a recursive call here
+        @fetchHistory channel, start  if messages.length is limit
+      err: (err) ->
+        # instead of getting into a stale state, just reload the page
+        window.location.reload()  if err
+
+
+  handleMessage: (message, channel) ->
+
+    return  unless message
+
+    {eventName, body, eventId} = message
+
+    return  unless eventName and body
+
+    if eventId?
+      return  if @eventCache[eventId]
+
+      # TODO delete this periodically
+      @eventCache[eventId] = yes
+
+
+    # when a user is connected in two browsers, and leaves a channel, in second one
+    # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
+    # user from all connected devices.
+    if eventName is 'RemovedFromChannel' and body.accountId is KD.whoami().socialApiId
+      return @unsubscribePubnub message.channel
+
+    # no need to emit any events when not subscribed
+    return  unless @channels[channel]
+
+    # instance events are received via public channel. For this reason
+    # if an event name includes "instance-", update the related message channel
+    # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded"
+    if eventName.indexOf("instance-") < 0
+      return @channels[channel].emit eventName, body
+
+    events = eventName.split "."
+    if events.length < 2
+      warn 'could not parse event name', eventName
+      return
+
+    instanceChannel = events[0]
+    eventName = events[1]
+
+    return  unless @channels[instanceChannel]
+
+    @channels[instanceChannel].emit eventName, body
+
 
   handleError: (err) ->
     {message, payload} = err
+
+    if @isDisconnected err
+      @lastSeenOnline = @serverTimestamp
 
     return warn err  unless payload?.channels
 
