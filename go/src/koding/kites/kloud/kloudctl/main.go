@@ -20,7 +20,7 @@ func main() {
 		"ping":            command.NewPing(),
 		"event":           command.NewEvent(),
 		"info":            command.NewInfo(),
-		"build":           command.NewCmd("build"),
+		"build":           command.NewBuild(),
 		"start":           command.NewCmd("start"),
 		"stop":            command.NewCmd("stop"),
 		"destroy":         command.NewCmd("destroy"),
