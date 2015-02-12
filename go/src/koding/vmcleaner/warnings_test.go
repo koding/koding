@@ -95,6 +95,8 @@ func TestWarningsFull(t *testing.T) {
 		senderTestClient := resetEmailClient()
 
 		warning := Warnings[0]
+		warning.Exempt = []Exempt{}
+
 		warning.Run()
 
 		Convey("Then they should get an email", func() {
@@ -115,6 +117,7 @@ func TestWarningsFull(t *testing.T) {
 		senderTestClient := resetEmailClient()
 
 		warning := Warnings[0]
+		warning.Exempt = []Exempt{}
 		warning.Run()
 
 		Convey("Then they should get an email", func() {
@@ -135,9 +138,13 @@ func TestWarningsFull(t *testing.T) {
 				err := modelhelper.UpdateUser(selector, update)
 				So(err, ShouldBeNil)
 
-				// senderTestClient := resetEmailClient()
+				updateUserModifiedAt(user, yesterday())
+
+				senderTestClient := resetEmailClient()
 
 				warning := Warnings[1]
+				warning.Exempt = []Exempt{}
+
 				warning.Run()
 
 				So(senderTestClient.Mail, ShouldNotBeNil)
@@ -160,6 +167,7 @@ func TestWarningsFull(t *testing.T) {
 					updateUserModifiedAt(user, yesterday())
 
 					warning := Warnings[2]
+					warning.Exempt = []Exempt{}
 					warning.Run()
 
 					So(senderTestClient.Mail, ShouldNotBeNil)
