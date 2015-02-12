@@ -65,6 +65,14 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return nil, err
 	}
 
+	// fix the ordering problem of the messages
+	orderedCms := make([]models.ChannelMessage, len(cms))
+	// swap the order
+	for i, cm := range cms {
+		// head becomes last, last becomes first
+		orderedCms[len(cms)-i-1] = cm
+	}
+
 	count, err := fetchChannelMessageCount(a, ch, awaySince)
 	if err != nil {
 		return nil, err
@@ -106,7 +114,7 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		cs.BodyContent.IsNicknameShown = true
 	}
 
-	if err := cs.BodyContent.AddMessages(cms); err != nil {
+	if err := cs.BodyContent.AddMessages(orderedCms); err != nil {
 		return nil, err
 	}
 
