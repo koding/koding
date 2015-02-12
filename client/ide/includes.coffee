@@ -64,6 +64,8 @@ module.exports = [
   # misc views
   "views/basesplitview.coffee"
 
+  "collaborationcontroller.coffee"
+
   "AppControllerOptions.coffee"
   "AppController.coffee"
 
@@ -74,10 +76,13 @@ module.exports = [
 
   # 3rd party
   "../../website/a/js/sketchpad.js"
-  "../../website/a/js/gapi.js"
   "../../website/a/js/ndpane.min.js"
 
+  # misc utils
+  "metrics.coffee"
+
   # collaboration
+  "GoogleApiClient.coffee"
   "RealTimeManager.coffee"
   "views/chat/chatparticipantview.coffee"
   "views/chat/chatview.coffee"

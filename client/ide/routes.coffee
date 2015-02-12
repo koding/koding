@@ -82,7 +82,26 @@ do ->
   getLatestWorkspace = ->
 
     storage = KD.getSingleton('localStorageController').storage 'IDE'
-    return storage.getValue 'LatestWorkspace'
+    workspace = storage.getValue 'LatestWorkspace'
+
+    return  unless workspace
+
+    {machineLabel, workspaceSlug, channelId} = workspace  if workspace
+
+    return if checkWorkspace machineLabel, workspaceSlug, channelId
+    then workspace
+    else null
+
+
+  checkWorkspace = (machineLabel, workspaceSlug, channelId) ->
+
+    for workspace in KD.userWorkspaces
+      sameLabel = workspace.machineLabel is machineLabel
+      sameSlug = workspace.slug is workspaceSlug
+      sameChannelId = not channelId or workspace.channelId is channelId
+
+      if sameLabel and sameSlug and sameChannelId
+        return workspace
 
 
   loadIDE = (data) ->
@@ -185,23 +204,21 @@ do ->
 
       try
 
-        return routeToLatestWorkspace()  unless KD.userWorkspaces.length
+        [workspace] = KD.userWorkspaces.filter (w) -> w.channelId is channel.id
 
-        KD.userWorkspaces.forEach (workspace, index) =>
+        return routeToLatestWorkspace()  unless workspace
 
-          return  if workspace.channelId isnt channel.id
+        [machine] = KD.userMachines.filter (m) -> m.uid is workspace.machineUId
 
-          machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-          query   = socialApiId: channel.creatorId
+        query = socialApiId: channel.creatorId
+        KD.remote.api.JAccount.some query, {}, (err, account) =>
 
-          KD.remote.api.JAccount.some query, {}, (err, account) =>
+          return throw new Error err  if err
 
-            return throw new Error err  if err
+          username  = account.first.profile.nickname
+          channelId = channel.id
 
-            username  = account.first.profile.nickname
-            channelId = channel.id
-
-            return loadIDE { machine, workspace, username, channelId }
+          return loadIDE { machine, workspace, username, channelId }
 
       catch e
 

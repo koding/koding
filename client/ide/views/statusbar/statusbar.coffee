@@ -30,11 +30,6 @@ class IDE.StatusBar extends KDView
 
     @addSubView new KDCustomHTMLView
       partial  : '<cite></cite>'
-      cssClass : 'icon github'
-      click    : -> KD.utils.createExternalLink 'https://github.com/koding/IDE'
-
-    @addSubView new KDCustomHTMLView
-      partial  : '<cite></cite>'
       cssClass : 'icon shortcuts'
       click    : -> KD.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
 
@@ -51,7 +46,6 @@ class IDE.StatusBar extends KDView
     @avatars.hide()  if collabDisabled
 
 
-
   showInformation: ->
 
     @status.updatePartial 'Click the plus button above to create a new panel'
@@ -59,7 +53,7 @@ class IDE.StatusBar extends KDView
 
   createParticipantAvatar: (nickname, isOnline) ->
 
-    return  if @participantAvatars[nickname]
+    return  if @participantAvatars[nickname] or nickname is KD.nick()
 
     view       = new IDE.StatusBarAvatarView
       origin   : nickname
@@ -105,6 +99,8 @@ class IDE.StatusBar extends KDView
 
 
   addParticipantAvatar: (nickname) ->
+
+    return no  if nickname is KD.nick()
 
     oldAvatar = @participantAvatars[nickname]
 
