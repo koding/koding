@@ -31,6 +31,9 @@ func (b *Build) Action(args []string, k *kite.Client) error {
 		MachineId:  *b.id,
 		SnapshotId: *b.snapshotId,
 	})
+	if err != nil {
+		return err
+	}
 
 	var result kloud.ControlResult
 	err = resp.Unmarshal(&result)
