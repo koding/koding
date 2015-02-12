@@ -24,9 +24,7 @@ module.exports = class JReward extends jraphical.Message
           (signature Object, Function)
         fetchEarnedAmount:
           (signature Object, Function)
-        fetchReferrals:
-          (signature Object, Object, Function)
-        fetchReferredAccounts:
+        some:
           (signature Object, Object, Function)
 
     sharedEvents      :
@@ -204,14 +202,14 @@ module.exports = class JReward extends jraphical.Message
       # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
-  @fetchReferrals = secure (client, query, options, callback)->
-    query.originId = client.connection.delegate.getId()
-    JReward.some query, options, callback
+  @some$ = secure (client, selector, options, callback)->
 
+    selector ?= {}
+    options  ?= {}
 
-  @fetchReferredAccounts = secure (client, query, options, callback)->
-    username = client.connection.delegate.profile.nickname
-    JAccount.some { referrerUsername : username }, options, callback
+    selector.originId = client.connection.delegate.getId()
+
+    @some selector, options, callback
 
 
 
@@ -219,21 +217,6 @@ module.exports = class JReward extends jraphical.Message
   # --------------------
 
   do ->
-
-    JAccount.on 'AccountRegistered', (me, referrerUsername)->
-
-      return console.error "Account is not defined in event"  unless me
-      return  unless referrerUsername
-
-      {nickname} = me.profile
-      if nickname is referrerUsername
-        return console.error "User (#{nickname}) tried to refer themself."
-
-      me.update $set: { referrerUsername }, (err)->
-
-        unless err
-          console.log "reward saved for #{nickname} from #{referrerUsername}"
-
 
     persistRewards = (campaign, source, target, callback)->
 
