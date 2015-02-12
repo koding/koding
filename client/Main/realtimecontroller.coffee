@@ -27,7 +27,7 @@ class RealtimeController extends KDController
       @pubnub = PUBNUB.init
         subscribe_key : subscribekey
         uuid          : KD.whoami()._id
-        ssl           : ssl
+        ssl           : if KD.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
 
       @getTimeDiffWithServer()
 
