@@ -132,12 +132,22 @@ module.exports =
     browser.end()
 
 
-  seeUpgradeModal: (browser) ->
+  seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    seeUpgradeModal(browser)
-    browser.end()
+
+    clickAddVMButton(browser)
+
+    browser.pause 5000 # wait to see the modal
+
+    browser.element 'css selector', '.env-modal.paid-plan', (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        browser
+          .waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+          .end()
 
 
   makeAlwaysOnForNotPaidUser: (browser) ->
