@@ -152,11 +152,6 @@ func (p *PlanChecker) AllowedInstances(wantInstance InstanceType) error {
 func (p *PlanChecker) AlwaysOn() error {
 	alwaysOnLimit := p.Plan.Plan.Limits().AlwaysOn
 
-	// lazy return if null
-	if alwaysOnLimit == 0 {
-		return fmt.Errorf("total alwaysOn limit has been reached. Plan limit: %d", alwaysOnLimit)
-	}
-
 	// get all alwaysOn machines that belongs to this user
 	alwaysOnMachines := 0
 	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
