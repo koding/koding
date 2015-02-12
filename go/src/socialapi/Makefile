@@ -186,6 +186,12 @@ build:
 	@echo "building with ../../build.sh"
 	../../build.sh
 
+testcollaboration:
+	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
+	@`which go` test -c workers/collaboration/tests/*.go
+	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./collaboration.test
+
 testapi:
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
