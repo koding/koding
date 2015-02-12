@@ -599,7 +599,7 @@ app.post '/Gravatar', (req, res) ->
   _request  =
     url     : _url
     headers : 'User-Agent': 'request'
-    timeout : 10000
+    timeout : 3000
 
   request _request, (err, response, body) ->
 
@@ -612,6 +612,8 @@ app.post '/Gravatar', (req, res) ->
         return res.status(400).send 'User not found'
 
       return res.status(200).send gravatar
+
+    res.status(400).send body
 
 
 app.get '/Hackathon/:section?', (req, res, next)->
