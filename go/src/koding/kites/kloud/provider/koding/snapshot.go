@@ -3,6 +3,7 @@ package koding
 import (
 	"errors"
 	"fmt"
+	"koding/db/models"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"time"
@@ -20,10 +21,12 @@ const (
 // DomainDocument defines a single MongoDB document in the jSnapshots collection
 type SnapshotDocument struct {
 	Id         bson.ObjectId `bson:"_id" json:"-"`
+	OriginId   bson.ObjectId `bson:"originId"`
 	MachineId  bson.ObjectId `bson:"machineId"`
 	SnapshotId string        `bson:"snapshotId"`
 	Region     string        `bson:"region"`
 	CreatedAt  time.Time     `bson:"createdAt"`
+	username   string        `bson:"-"`
 }
 
 func (p *Provider) DeleteSnapshot(snapshotId string, m *protocol.Machine) error {
@@ -84,7 +87,14 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 	}
 	a.Log.Debug("[%s] Snapshot created successfully: %+v", m.Id, snapshot)
 
-	if err := p.AddSnapshotData(snapshot.Id, a.Client.Region.Name, m.Id); err != nil {
+	snapshotData := &SnapshotDocument{
+		username:   m.Username,
+		Region:     a.Client.Region.Name,
+		SnapshotId: snapshot.Id,
+		MachineId:  bson.ObjectIdHex(m.Id),
+	}
+
+	if err := p.AddSnapshotData(snapshotData); err != nil {
 		return nil, err
 	}
 
@@ -138,21 +148,26 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 	return artifact, nil
 }
 
-func (p *Provider) AddSnapshotData(snapshotId, region, machineId string) error {
-	doc := &SnapshotDocument{
-		Id:         bson.NewObjectId(),
-		MachineId:  bson.ObjectIdHex(machineId),
-		SnapshotId: snapshotId,
-		Region:     region,
-		CreatedAt:  time.Now().UTC(),
+func (p *Provider) AddSnapshotData(doc *SnapshotDocument) error {
+	var account *models.Account
+	if err := p.Session.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": doc.username}).One(&account)
+	}); err != nil {
+		p.Log.Error("Could not fetch account %v: err: %v", doc.username, err)
+		return errors.New("could not fetch account from DB")
 	}
+
+	// fill remaining fields
+	doc.Id = bson.NewObjectId()
+	doc.CreatedAt = time.Now().UTC()
+	doc.OriginId = account.Id
 
 	err := p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
 		return c.Insert(doc)
 	})
 
 	if err != nil {
-		p.Log.Error("[%s] Could not add snapshot %v: err: %v", machineId, doc, err)
+		p.Log.Error("[%s] Could not add snapshot %v: err: %v", doc.MachineId.Hex(), doc, err)
 		return errors.New("could not add snapshot to DB")
 	}
 
@@ -168,6 +183,38 @@ func (p *Provider) DeleteSnapshotData(snapshotId string) error {
 	if err != nil {
 		p.Log.Error("Could not delete %v: err: %v", snapshotId, err)
 		return errors.New("could not delete snapshot from DB")
+	}
+
+	return nil
+}
+
+func (p *Provider) CheckSnapshotExistence(username, snapshotId string) error {
+	var account *models.Account
+	if err := p.Session.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": username}).One(&account)
+	}); err != nil {
+		p.Log.Error("Could not fetch account %v: err: %v", username, err)
+		return errors.New("could not fetch account from DB")
+	}
+
+	var err error
+	var count int
+
+	err = p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{
+			"originId":   account.Id,
+			"snapshotId": snapshotId,
+		}).Count()
+		return err
+	})
+
+	if err != nil {
+		p.Log.Error("Could not fetch %v: err: %v", snapshotId, err)
+		return errors.New("could not check Snapshot existency")
+	}
+
+	if count == 0 {
+		return errors.New("No snapshot found for the given user")
 	}
 
 	return nil
