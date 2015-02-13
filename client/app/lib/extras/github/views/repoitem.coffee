@@ -1,4 +1,10 @@
-class GitHub.RepoItem extends KDListItemView
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDListItemView = kd.ListItemView
+JView = require '../../../jview'
+
+
+module.exports = class RepoItem extends KDListItemView
 
   JView.mixin @prototype
 
@@ -27,3 +33,5 @@ class GitHub.RepoItem extends KDListItemView
     {p{#(description)}}
     {{> @actionButton}}
     """
+
+

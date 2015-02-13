@@ -1,4 +1,7 @@
-class GitHub
+$ = require 'jquery'
+kd = require 'kd'
+whoami = require '../../util/whoami'
+module.exports = class GitHub
 
   GITHUB_API_URL = "https://api.github.com"
   @_repoCache = {}
@@ -7,7 +10,7 @@ class GitHub
 
     unless callback
       [params, callback] = [callback, params]
-    callback ?= noop
+    callback ?= kd.noop
 
     req =
       url      : "#{GITHUB_API_URL}#{url}"
@@ -18,7 +21,7 @@ class GitHub
     $.ajax req
     null
 
-  @fetchUserRepos = (username, callback = noop, force)->
+  @fetchUserRepos = (username, callback = kd.noop, force)->
 
     if force then @resetCache username
     if @_repoCache[username]?.length > 0
@@ -53,9 +56,9 @@ class GitHub
           @_repoCache[username] = repos
           callback null, repos
 
-  @fetchMyRepos = (callback = noop, force = no)->
+  @fetchMyRepos = (callback = kd.noop, force = no)->
 
-    me = KD.whoami()
+    me = whoami()
     me.fetchOAuthInfo (err, oauth)=>
 
       return callback err  if err?
@@ -74,9 +77,9 @@ class GitHub
 
     null
 
-  @link = (callback = noop)->
+  @link = (callback = kd.noop)->
 
-    me = KD.whoami()
+    me = whoami()
     me.fetchOAuthInfo (err, oauth)->
       return callback err  if err?
 
@@ -84,7 +87,7 @@ class GitHub
         return callback
           message : "Already linked with #{oauth.github.username}"
 
-      {mainController, oauthController} = KD.singletons
+      {mainController, oauthController} = kd.singletons
       oauthController.openPopup 'github'
 
       handler = -> callback null
@@ -92,7 +95,7 @@ class GitHub
       mainController.off  "ForeignAuthSuccess.github", handler
       mainController.once "ForeignAuthSuccess.github", handler
 
-  @rateLimit = (callback = noop)->
+  @rateLimit = (callback = kd.noop)->
 
     @fetch "/rate_limit", (response, state, req)=>
 
@@ -108,7 +111,7 @@ class GitHub
 
   @username = (callback)->
 
-    me = KD.whoami()
+    me = whoami()
     me.fetchOAuthInfo (err, oauth)->
       if err? then callback ''
       else callback if oauth?.github? then oauth.github.username else ''
@@ -159,3 +162,4 @@ class GitHub
                            api calls, try again in #{remaining}."""
 
     callback options
+

@@ -1,4 +1,17 @@
-class GitHub.Modal extends KDModalView
+$ = require 'jquery'
+whoami = require '../../../util/whoami'
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDListViewController = kd.ListViewController
+KDLoaderView = kd.LoaderView
+KDModalView = kd.ModalView
+KDNotificationView = kd.NotificationView
+KDView = kd.View
+GitHub = require '../github'
+RepoItem = require './repoitem'
+
+
+module.exports = class Modal extends KDModalView
 
   constructor:(options = {}, data)->
 
@@ -37,7 +50,7 @@ class GitHub.Modal extends KDModalView
       viewOptions       :
         type            : 'github'
         wrapper         : yes
-        itemClass       : GitHub.RepoItem
+        itemClass       : RepoItem
         itemOptions     :
           buttonTitle   : 'publish'
       noItemFoundWidget : new KDView
@@ -66,17 +79,17 @@ class GitHub.Modal extends KDModalView
         """
         new KDNotificationView title: err.message  if err.message?
 
-        KD.utils.defer =>
+        kd.utils.defer =>
           @_windowDidResize()
 
-        return warn err
+        return kd.warn err
 
       if @repoFilter?
         repos = @repoFilter repos
 
       @repoController.replaceAllItems repos
 
-      KD.utils.defer =>
+      kd.utils.defer =>
         @_windowDidResize()
         @message.updatePartial "Repositories of #{GitHub.makeLink username}"
         @refreshButton.show()
@@ -90,7 +103,7 @@ class GitHub.Modal extends KDModalView
     @refreshButton.hide()
     @loader.show()
 
-    me = KD.whoami()
+    me = whoami()
     me.fetchOAuthInfo (err, oauth)=>
 
       return callback err  if err?
@@ -117,3 +130,5 @@ class GitHub.Modal extends KDModalView
         @message.off 'click'
         @container.show()
         @showRepos oauth.github.username, force
+
+
