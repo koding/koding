@@ -4,11 +4,12 @@ LoginInputViewWithLoader = require './logininputwithloader'
 
 module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
-  EMAIL_VALID    = yes
   ENTER          = 13
 
   constructor:(options={},data)->
     super options, data
+
+    @emailIsAvailable = no
 
     @email?.destroy()
     @email = new LoginInputViewWithLoader
@@ -96,6 +97,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         input.setValidationResult 'available', null
         email = input.getValue()
 
+        @emailIsAvailable = no
         if input.valid
           $.ajax
             url         : "/Validate/Email/#{email}"
@@ -103,12 +105,12 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             xhrFields   : withCredentials : yes
             success     : =>
               input.setValidationResult 'available', null
-              EMAIL_VALID = yes
-              @emit 'emailValidatedOnServer', EMAIL_VALID
+              @emailIsAvailable = yes
+              @emit 'emailValidatedOnServer'
             error       : ({responseJSON}) =>
               input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
-              EMAIL_VALID = no
-              @emit 'emailValidatedOnServer', EMAIL_VALID
+              @emailIsAvailable = no
+              @emit 'emailValidatedOnServer'
     messages    :
       required  : 'Please enter your email address.'
       email     : 'That doesn\'t seem like a valid email address.'
@@ -162,9 +164,9 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     # KDInputView doesn't give clear results with
     # async results that's why we maintain those
-    # results manually in EMAIL_VALID
+    # results manually in @emailIsAvailable
     # at least for now - SY
-    if EMAIL_VALID and @password.input.valid and @email.input.valid
+    if @emailIsAvailable and @password.input.valid and @email.input.valid
       @submit event
       return yes
     else

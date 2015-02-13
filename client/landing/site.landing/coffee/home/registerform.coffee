@@ -32,19 +32,17 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
   handleOauthData: (userData) ->
 
-    for own field, value of userData
-      @[field]?.input?.setValue value
-      @[field]?.placeholder?.setClass 'out'
-
     { input } = @email
+    input.setValue userData.email
+    @email.placeholder.setClass 'out'
     input.validate()
+
     if input.valid
-      emailValidated = no
-      @once 'emailValidatedOnServer', (result) =>
-        emailValidated = yes; @submitOAuthData userData  if result and @gravatars[input.getValue()]
+      @once 'emailValidatedOnServer', =>
+        @submitOAuthData userData
 
       @once 'gravatarInfoFetched', =>
-        @submitOAuthData userData  if emailValidated and input.valid
+        @submitOAuthData userData
 
       @fetchGravatarInfo input.getValue()
 
@@ -53,6 +51,10 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     email = @email.input.getValue()
     gravatar = @gravatars[email]
+
+    return  if not @emailIsAvailable or not gravatar?
+
+    # oath username has more priority over gravatar username
     gravatar.preferredUsername = userData.username  if userData.username?
 
     formData = { email: @email.input.getValue() }
