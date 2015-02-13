@@ -1,4 +1,15 @@
-class NavigationItem extends JTreeItemView
+groupifyLink = require '../util/groupifyLink'
+kd = require 'kd'
+JTreeItemView = kd.JTreeItemView
+KDCustomHTMLView = kd.CustomHTMLView
+AddWorkspaceView = require '../addworkspaceview'
+JView = require '../jview'
+NavigationMachineItem = require './navigationmachineitem'
+NavigationWorkspaceItem = require './navigationworkspaceitem'
+SidebarMoreLink = require '../activity/sidebar/sidebarmorelink'
+
+
+module.exports = class NavigationItem extends JTreeItemView
 
   JView.mixin @prototype
 
@@ -28,7 +39,7 @@ class NavigationItem extends JTreeItemView
   createMoreLink: (data) ->
 
     @setClass 'sub-title'
-    { activitySidebar } = KD.singletons.mainView
+    { activitySidebar } = kd.singletons.mainView
     { title } = @getData()
     data.delegate = @getDelegate()
 
@@ -36,9 +47,8 @@ class NavigationItem extends JTreeItemView
       title   : title
       tagName : 'a'
       click   : (event) ->
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         activitySidebar.emit 'MoreWorkspaceModalRequested', data
-
 
   createWorkspaceItem: (data) ->
 
@@ -61,7 +71,7 @@ class NavigationItem extends JTreeItemView
     @child    = new KDCustomHTMLView
       partial : """
         <figure></figure>
-        <a href='#{KD.utils.groupifyLink data.href}'>#{data.title}</a>
+        <a href='#{groupifyLink data.href}'>#{data.title}</a>
       """
 
 
@@ -69,4 +79,6 @@ class NavigationItem extends JTreeItemView
     """
       {{> @child}}
     """
+
+
 

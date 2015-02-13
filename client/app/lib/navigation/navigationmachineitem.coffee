@@ -1,4 +1,15 @@
-class NavigationMachineItem extends JView
+htmlencode = require 'htmlencode'
+globals = require 'globals'
+groupifyLink = require '../util/groupifyLink'
+nick = require '../util/nick'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDProgressBarView = kd.ProgressBarView
+JView = require '../jview'
+Machine = require '../providers/machine'
+
+
+module.exports = class NavigationMachineItem extends JView
 
   {Running, Stopped} = Machine.State
 
@@ -15,8 +26,8 @@ class NavigationMachineItem extends JView
     isMyMachine  = machine.isMine()
     channelId    = ''
 
-    if not isMyMachine and KD.userWorkspaces
-      KD.userWorkspaces.forEach (ws) ->
+    if not isMyMachine and globals.userWorkspaces
+      globals.userWorkspaces.forEach (ws) ->
         return if channelId
 
         if ws.machineUId is machine.uid and ws.channelId
@@ -27,11 +38,11 @@ class NavigationMachineItem extends JView
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : KD.utils.groupifyLink ideRoute
+      href             : groupifyLink ideRoute
       title            : "Open IDE for #{@alias}"
 
-    unless machineOwner is KD.nick()
-      options.attributes.title += " (shared by @#{Encoder.htmlDecode machineOwner})"
+    unless machineOwner is nick()
+      options.attributes.title += " (shared by @#{htmlencode.htmlDecode machineOwner})"
 
     super options, data
 
@@ -43,7 +54,7 @@ class NavigationMachineItem extends JView
       labelPartial = """
         #{labelPartial}
         <cite class='shared-by'>
-          (@#{Encoder.htmlDecode machineOwner})
+          (@#{htmlencode.htmlDecode machineOwner})
         </cite>
       """
 
@@ -53,7 +64,7 @@ class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    KD.singletons.computeController
+    kd.singletons.computeController
 
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
@@ -67,7 +78,7 @@ class NavigationMachineItem extends JView
 
       #   @label.updatePartial @machine.label
       #   @alias   = @machine.slug or @label
-      #   newPath  = KD.utils.groupifyLink "/IDE/#{@alias}/my-workspace"
+      #   newPath  = groupifyLink "/IDE/#{@alias}/my-workspace"
 
       #   @setAttributes
       #     href   : newPath
@@ -104,13 +115,16 @@ class NavigationMachineItem extends JView
     @progress.updateBar percentage
 
     if percentage is 100
-      KD.utils.wait 1000, @progress.bound 'hide'
+      kd.utils.wait 1000, @progress.bound 'hide'
 
 
   pistachio:->
+
     return """
       <figure></figure>
       {{> @label}}
-      #{if @getData().isMine() then '<span></span>' else ''}
+      <span></span>
       {{> @progress}}
     """
+
+

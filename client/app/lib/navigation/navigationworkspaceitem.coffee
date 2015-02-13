@@ -1,4 +1,12 @@
-class NavigationWorkspaceItem extends JView
+groupifyLink = require '../util/groupifyLink'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+CustomLinkView = require '../customlinkview'
+JView = require '../jview'
+WorkspaceSettingsPopup = require '../workspacesettingspopup'
+
+
+module.exports = class NavigationWorkspaceItem extends JView
 
   constructor: (options = {}, data) ->
 
@@ -12,7 +20,7 @@ class NavigationWorkspaceItem extends JView
     @unsetClass 'kdview'
 
     { href, title } = @getData()
-    href = KD.utils.groupifyLink href
+    href = groupifyLink href
 
     @title = new CustomLinkView { href, title }
 
@@ -34,7 +42,7 @@ class NavigationWorkspaceItem extends JView
     # don't do anything special and pass the event to
     # delegate, so that it can do its job. ~Umut
     if isSettingsIconView
-      KD.utils.stopDOMEvent event
+      kd.utils.stopDOMEvent event
       @showSettingsPopup()
       return
 
@@ -73,4 +81,6 @@ class NavigationWorkspaceItem extends JView
     {{> @title}}
     {{> @unreadCount}}
     """
+
+
 

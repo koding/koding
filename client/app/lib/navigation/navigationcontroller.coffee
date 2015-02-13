@@ -1,4 +1,10 @@
-class NavigationController extends KDListViewController
+kd = require 'kd'
+KDListViewController = kd.ListViewController
+isLoggedIn = require '../util/isLoggedIn'
+globals = require 'globals'
+
+
+module.exports = class NavigationController extends KDListViewController
 
   reset:->
     previousSelection = @selectedItems.slice()
@@ -21,29 +27,20 @@ class NavigationController extends KDListViewController
       @removeItem navItem
 
   instantiateListItems:(items)->
-    {roles} = KD.config
+    {roles} = globals.config
 
     for itemData in items
       # if not defined, do not check loggedIn state
       if itemData.loggedIn?
         # loggedIn:yes = do not show if not logged in
         if itemData.loggedIn
-          continue  unless KD.isLoggedIn() # do not show if not logged in
+          continue  unless isLoggedIn() # do not show if not logged in
         # loggedIn:no = do not show if logged in
         unless itemData.loggedIn
-          continue  if     KD.isLoggedIn()
+          continue  if     isLoggedIn()
 
       if itemData.role
         if itemData.role in roles
           @getListView().addItem itemData
       else
         @getListView().addItem itemData
-
-
-class MainNavController extends NavigationController
-
-  reset:->
-    previousSelection = @selectedItems.slice()
-    @removeAllItems()
-    @instantiateListItems KD.getNavItems()
-    @selectItemByName name  for {name} in previousSelection
