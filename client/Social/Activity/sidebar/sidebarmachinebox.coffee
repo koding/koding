@@ -26,6 +26,9 @@ class SidebarMachineBox extends KDView
 
     @listWrapper = @listController.getView()
 
+    @listController.getListView().on 'ItemWasAdded', (item) =>
+      item.once 'WorkspaceDeleted', @bound 'handleWorkspaceDeleted'
+
     @addWorkspace ws  for ws in workspaces
     @addSubView @listWrapper
 
@@ -120,3 +123,11 @@ class SidebarMachineBox extends KDView
   forEachWorkspaceItem: (callback) ->
 
     callback item  for item in @listController.getItemsOrdered()
+
+
+  handleWorkspaceDeleted: (wsId) ->
+
+    { workspaces } = @getData()
+
+    for ws, index in workspaces when ws.getId() is wsId
+      workspaces.splice index, 1
