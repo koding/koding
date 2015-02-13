@@ -1,11 +1,16 @@
-class AvatarAreaIconLink extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+JView = require '../jview'
+
+
+module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
 
   JView.mixin @prototype
 
   constructor: (options = {}, data) ->
 
     options.tagName  = 'a'
-    options.cssClass = KD.utils.curry 'acc-icon', options.cssClass
+    options.cssClass = kd.utils.curry 'acc-icon', options.cssClass
 
     super options,data
 
@@ -27,7 +32,7 @@ class AvatarAreaIconLink extends KDCustomHTMLView
 
   click: (event) ->
 
-    KD.utils.stopDOMEvent event
+    kd.utils.stopDOMEvent event
 
     return clickedInside = no  if clickedInside
 
@@ -61,6 +66,8 @@ class AvatarAreaIconLink extends KDCustomHTMLView
     </span>
     <span class='icon'></span>
     """
+
+
 
 
 

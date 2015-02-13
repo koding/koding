@@ -1,4 +1,6 @@
-class PopupList extends KDListView
+kd = require 'kd'
+KDListView = kd.ListView
+module.exports = class PopupList extends KDListView
 
   constructor:(options = {}, data)->
 
@@ -7,3 +9,5 @@ class PopupList extends KDListView
     # options.lastToFirst  ?= no
 
     super options,data
+
+

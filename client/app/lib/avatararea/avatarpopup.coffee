@@ -1,26 +1,31 @@
-class AvatarPopup extends KDView
+$ = require 'jquery'
+isLoggedIn = require '../util/isLoggedIn'
+kd = require 'kd'
+KDView = kd.View
 
+
+module.exports = class AvatarPopup extends KDView
 
   constructor:->
 
     super
 
-    mainController = KD.getSingleton "mainController"
+    mainController = kd.getSingleton "mainController"
     mainController.on "accountChanged.to.loggedIn", @bound 'accountChanged'
 
-    @_windowController = KD.getSingleton('windowController')
+    @_windowController = kd.getSingleton('windowController')
     @listenWindowResize()
 
   show:->
-    @utils.killWait @loaderTimeout
+    kd.utils.killWait @loaderTimeout
     @_windowDidResize()
     @_windowController.addLayer this
-    KD.getSingleton('mainController').emit "AvatarPopupIsActive"
+    kd.getSingleton('mainController').emit "AvatarPopupIsActive"
     @setClass "active"
     return this
 
   hide:->
-    KD.getSingleton('mainController').emit "AvatarPopupIsInactive"
+    kd.getSingleton('mainController').emit "AvatarPopupIsInactive"
     @unsetClass "active"
     return this
 
@@ -36,7 +41,7 @@ class AvatarPopup extends KDView
       cssClass : "content sublink"
       partial  : @notLoggedInMessage or "Login required."
 
-    @accountChanged()  if KD.isLoggedIn()
+    @accountChanged()  if isLoggedIn()
 
   setPopupListener:->
     @avatarPopupTab.on 'click', (event)=> @hide()
@@ -44,7 +49,7 @@ class AvatarPopup extends KDView
   _windowDidResize:->
     if @listController
       {scrollView}    = @listController
-      windowHeight    = $(window).height()
+      windowHeight    = $(global).height()
       avatarTopOffset = @$().offset().top
       @listController.scrollView.$().css maxHeight : windowHeight - avatarTopOffset - 80
 

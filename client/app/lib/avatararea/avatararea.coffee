@@ -1,4 +1,13 @@
-class AvatarArea extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+AvatarAreaIconLink = require './avatarareaiconlink'
+AvatarPopupGroupSwitcher = require './avatarpopupgroupswitcher'
+AvatarView = require '../commonviews/avatarviews/avatarview'
+JView = require '../jview'
+PopupNotifications = require '../notifications/popupnotifications'
+
+
+module.exports = class AvatarArea extends KDCustomHTMLView
 
   JView.mixin @prototype
 
@@ -40,7 +49,7 @@ class AvatarArea extends KDCustomHTMLView
       delegate   : @notificationsPopup
 
     @once 'viewAppended', =>
-      mainView = KD.getSingleton 'mainView'
+      mainView = kd.getSingleton 'mainView'
       mainView.addSubView @groupSwitcherPopup
       mainView.addSubView @notificationsPopup
       @groupSwitcherPopup.listControllerPending.on 'PendingGroupsCountDidChange', (count)=>
@@ -51,7 +60,7 @@ class AvatarArea extends KDCustomHTMLView
 
       @attachListeners()
 
-    KD.getSingleton('mainController').on 'accountChanged', =>
+    kd.getSingleton('mainController').on 'accountChanged', =>
       @groupSwitcherPopup.listController.removeAllItems()
 
       # Commenting out these lines because of
@@ -62,7 +71,7 @@ class AvatarArea extends KDCustomHTMLView
   attachListeners:->
 
     @notificationsPopup.on 'NotificationCountDidChange', (count)=>
-      @utils.killWait @notificationsPopup.loaderTimeout
+      kd.utils.killWait @notificationsPopup.loaderTimeout
       @notificationsIcon.updateCount count
 
 
@@ -76,4 +85,3 @@ class AvatarArea extends KDCustomHTMLView
     {{> @groupsSwitcherIcon}}
     {{> @notificationsIcon}}
     """
-

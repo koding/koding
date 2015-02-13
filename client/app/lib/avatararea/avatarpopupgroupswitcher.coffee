@@ -1,4 +1,23 @@
-class AvatarPopupGroupSwitcher extends AvatarPopup
+globals = require 'globals'
+kookies = require 'kookies'
+Promise = require 'bluebird'
+$ = require 'jquery'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDListViewController = kd.ListViewController
+KDView = kd.View
+isLoggedIn = require '../util/isLoggedIn'
+showError = require '../util/showError'
+whoami = require '../util/whoami'
+AvatarPopup = require './avatarpopup'
+CustomLinkView = require '../customlinkview'
+HelpSupportModal = require '../commonviews/helpsupportmodal'
+PopupGroupListItem = require '../popupgrouplistitem'
+PopupGroupListItemPending = require './popupgrouplistitempending'
+PopupList = require './popuplist'
+
+
+module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
 
   constructor:->
     @notLoggedInMessage = 'Login required to switch groups'
@@ -11,9 +30,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @pending             = 0
     @notPopulated        = yes
     @notPopulatedPending = yes
-    groupsController     = KD.getSingleton "groupsController"
-    router               = KD.getSingleton "router"
-
+    groupsController     = kd.getSingleton "groupsController"
+    router               = kd.getSingleton "router"
 
     @_popupList = new PopupList
       itemClass  : PopupGroupListItem
@@ -24,7 +42,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     # does not work yet
     # @_popupListPending.on 'PendingCountDecreased', @bound 'decreasePendingCount'
     # @_popupListPending.on 'UpdateGroupList',       @bound 'populateGroups'
-    # KD.whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
+    # whoami().on        'NewPendingInvitation',  @bound 'populatePendingGroups'
 
     @listControllerPending = new KDListViewController
       lazyLoaderOptions   :
@@ -62,21 +80,21 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         bottom : @getHeight() + 2
         left   : 257
 
-    {entryPoint} = KD.config
+    {entryPoint} = globals.config
     createGroupLink = new KDCustomHTMLView
       tagName    : 'a'
       attributes : href : '/Pricing/Team'
       cssClass   : 'bottom'
       partial    : 'Create a group'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         router.handleRoute '/Pricing/CreateGroup', entryPoint : 'koding'
         @hide()
 
-    KD.singletons.mainController.ready ->
-      return unless KD.isLoggedIn()
-      KD.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
-        return KD.showError err  if err
+    kd.singletons.mainController.ready ->
+      return unless isLoggedIn()
+      kd.singleton("paymentController").fetchSubscriptionsWithPlans tags: ["custom-plan"], (err, subscriptions) ->
+        return showError err  if err
         createGroupLink.show()   unless subscriptions.length
 
     backToKoding = new KDCustomHTMLView
@@ -85,8 +103,8 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass   : 'bottom bb'
       partial    : 'Go back to Koding'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
-        location.href = '/'
+        kd.utils.stopDOMEvent event
+        global.location.href = '/'
 
     groupsController.ready ->
       backToKoding.destroy()  if groupsController.getCurrentGroup().slug is 'koding'
@@ -105,7 +123,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       @groupSubMenuWrapper.unsetClass 'active'
 
     handleSubMenu = (event)=>
-      KD.utils.stopDOMEvent event
+      kd.utils.stopDOMEvent event
       submenuShown = yes
       @groupSubMenuWrapper.setClass 'active'
 
@@ -120,14 +138,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     #   bind       : 'mouseenter mousemove'
     #   mouseenter : handleSubMenu
     #   click      : handleSubMenu
-    #   mousemove  : KD.utils.stopDOMEvent
+    #   mousemove  : kd.utils.stopDOMEvent
 
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Upgrade plan'
       href       : '/Pricing'
       cssClass   : 'bottom-separator'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         router.handleRoute '/Pricing'
         @hide()
 
@@ -140,7 +158,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       title      : 'Contact support'
       cssClass   : 'bottom-separator support'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         new HelpSupportModal
         @hide()
 
@@ -152,7 +170,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         testpath : 'AccountSettingsLink'
       cssClass   : 'bottom-separator'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         router.handleRoute '/Account'
         @hide()
 
@@ -163,15 +181,15 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     #   cssClass   : 'bottom-separator'
     #   partial    : 'Use "old" Koding'
     #   click      : (event)=>
-    #     Cookies.set 'useOldKoding', 'true'
+    #     kookies.set 'useOldKoding', 'true'
     #     location.reload()
 
     # @avatarPopupContent.addSubView new KDCustomHTMLView
     #   tagName    : 'a'
     #   partial    : 'Environments'
     #   click      : (event)=>
-    #     KD.utils.stopDOMEvent event
-    #     KD.getSingleton("router").handleRoute "/Environments"
+    #     kd.utils.stopDOMEvent event
+    #     kd.getSingleton("router").handleRoute "/Environments"
     #     @hide()
 
     # @avatarPopupContent.addSubView new KDCustomHTMLView
@@ -187,27 +205,27 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
       cssClass : "bottom hidden"
       partial  : "Group Dashboard"
       click    : (event) =>
-        KD.utils.stopDOMEvent event
-        KD.getSingleton("router").handleRoute "/Dashboard"
+        kd.utils.stopDOMEvent event
+        kd.getSingleton("router").handleRoute "/Dashboard"
         @hide()
 
     # FIXME:
     groupsController.ready ->
       group = groupsController.getCurrentGroup()
       group.canEditGroup (err, success)=>
-        KD.utils.defer => setGroupWrapperStyle()
+        kd.utils.defer => setGroupWrapperStyle()
         return  unless success
         dashboardLink.show()
 
     cookieName = "kdproxy-usehttp"
-    if (Cookies.get cookieName) is "1"
+    if (kookies.get cookieName) is "1"
       @avatarPopupContent.addSubView new KDCustomHTMLView
         tagName    : 'a'
         partial    : 'Switch back to secure (https) mode'
         click      : (event)=>
-          KD.utils.stopDOMEvent event
-          Cookies.expire cookieName
-          window.location.reload()
+          kd.utils.stopDOMEvent event
+          kookies.expire cookieName
+          global.location.reload()
 
     @avatarPopupContent.addSubView new KDCustomHTMLView
       tagName    : 'a'
@@ -216,7 +234,7 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
         testpath : 'logout-link'
       partial    : 'Logout'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         router.handleRoute '/Logout'
         @hide()
 
@@ -224,10 +242,10 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @listControllerPending.removeAllItems()
     @listControllerPending.hideLazyLoader()
 
-    return  unless KD.isLoggedIn()
+    return  unless isLoggedIn()
 
-    KD.whoami().fetchGroupsWithPendingInvitations (err, groups)=>
-      if err then warn err
+    whoami().fetchGroupsWithPendingInvitations (err, groups)=>
+      if err then kd.warn err
       else if groups?
         @pending = 0
         for group in groups when group
@@ -238,14 +256,14 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
 
 
   populateGroups:->
-    return  if not KD.isLoggedIn() or @isLoading
+    return  if not isLoggedIn() or @isLoading
 
     @listController.removeAllItems()
 
     @isLoading = yes
 
-    KD.whoami().fetchGroups null, (err, groups)=>
-      if err then warn err
+    whoami().fetchGroups null, (err, groups)=>
+      if err then kd.warn err
       else if groups?
 
         results = []
@@ -295,113 +313,3 @@ class AvatarPopupGroupSwitcher extends AvatarPopup
     @groupSubMenuWrapper.unsetClass 'active'
 
     @emit 'AvatarPopupShouldBeHidden'
-
-class PopupGroupListItem extends KDListItemView
-
-  JView.mixin @prototype
-
-  constructor:(options = {}, data)->
-    options.tagName or= "li"
-    options.type    or= "activity-ticker-item"
-    super
-
-    {group:{title, avatar, slug, customize}, roles, admin} = @getData()
-    roleClasses = roles.map((role)-> "role-#{role}").join ' '
-    @setClass "role #{roleClasses}"
-
-    defaultLogo  = "https://koding.s3.amazonaws.com/grouplogo_.png"
-
-    @groupLogo  = new KDCustomHTMLView
-      tagName    : "figure"
-      cssClass   : "avatararea-group-logo"
-
-    @switchLink = new CustomLinkView
-      title       : title
-      cssClass    : "avatararea-group-name"
-      href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Activity"
-      target      : slug
-
-    @adminLink = if admin
-      new CustomLinkView
-        title       : ''
-        href        : "/#{if slug is KD.defaultSlug then '' else slug+'/'}Dashboard"
-        target      : slug
-        cssClass    : 'admin-icon'
-        iconOnly    : yes
-        icon        :
-          cssClass  : 'dashboard-page'
-          placement : 'right'
-          tooltip   :
-            title   : "Opens admin dashboard in new browser window."
-            delayIn : 300
-    else new KDCustomHTMLView
-
-  pistachio: ->
-    {group} = @getData()
-    {slug, customize} = group
-
-    if customize?.logo
-      @groupLogo.setCss 'background-image', "url(#{customize?.logo})"
-    else
-      @groupLogo.setCss 'background-color', KD.utils.stringToColor slug
-
-    """
-    {{> @groupLogo}}{{> @switchLink}}{{> @adminLink}}
-    """
-
-class PopupGroupListItemPending extends PopupGroupListItem
-
-  JView.mixin @prototype
-
-  constructor:(options = {}, data)->
-    super
-
-    {group} = @getData()
-    @setClass 'role pending'
-
-    @acceptButton = new KDButtonView
-      style       : 'clean-gray'
-      title       : 'Accept Invitation'
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : 'accept'
-      tooltip     :
-        title     : 'Accept Invitation'
-      callback    : =>
-        KD.whoami().acceptInvitation group, (err)=>
-          if err then warn err
-          else
-            @destroy()
-            @parent.emit 'PendingCountDecreased'
-            @parent.emit 'UpdateGroupList'
-
-    @ignoreButton = new KDButtonView
-      style       : 'clean-gray'
-      title       : 'Ignore Invitation'
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : 'ignore'
-      tooltip     :
-        title     : 'Ignore Invitation'
-      callback    : =>
-        KD.whoami().ignoreInvitation group, (err)=>
-          if err then warn err
-          else
-            new KDNotificationView
-              title    : 'Ignored!'
-              content  : 'If you change your mind, you can request access to the group anytime.'
-              duration : 2000
-            @destroy()
-            @parent.emit 'PendingCountDecreased'
-
-
-  pistachio: ->
-    """
-    <div class='right-overflow'>
-      <div class="buttons">
-        {{> @acceptButton}}
-        {{> @ignoreButton}}
-      </div>
-      {{> @switchLink}}
-    </div>
-    """
