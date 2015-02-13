@@ -70,6 +70,10 @@ type Build struct {
 
 	// if available, create the instance via the snapshot -> AMI way
 	snapshotId string
+
+	// cleanFuncs are a list of functions that are called once a run() method
+	// is returned (for an error or non error doesn't matter)
+	cleanFuncs []func()
 }
 
 // normalize returns the normalized step according to the initial start and finish
@@ -97,12 +101,22 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		finish:     90,
 		log:        p.Log,
 		snapshotId: snapshotId,
+		cleanFuncs: make([]func(), 0),
 	}
 
 	return b.run()
 }
 
 func (b *Build) run() (*protocol.Artifact, error) {
+	// run the cleanFuncs once we are finished with the build
+	defer func() {
+		if b.cleanFuncs != nil {
+			for _, fn := range b.cleanFuncs {
+				fn()
+			}
+		}
+	}()
+
 	var err error
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
@@ -114,17 +128,6 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		buildData, err := b.buildData()
 		if err != nil {
 			return nil, err
-		}
-
-		// if we build the instance from a snapshot, it'll create a temporary
-		// AMI. Destroy it after we are finished or if something goes wrong.
-		if b.snapshotId != "" {
-			defer func() {
-				if _, err := b.amazon.Client.DeregisterImage(buildData.ImageData.imageId); err != nil {
-					b.log.Warning("[%s] Couldn't delete AMI '%s': %s",
-						b.machine.Id, buildData.ImageData.imageId, err)
-				}
-			}()
 		}
 
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
@@ -274,6 +277,15 @@ func (b *Build) imageData() (*ImageData, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		// if we build the instance from a snapshot, it'll create a temporary
+		// AMI. Destroy it after we are finished or if something goes wrong.
+		b.cleanFuncs = append(b.cleanFuncs, func() {
+			b.log.Debug("[%s] Deleting temporary AMI '%s'", b.machine.Id, registerResp.ImageId)
+			if _, err := b.amazon.Client.DeregisterImage(registerResp.ImageId); err != nil {
+				b.log.Warning("[%s] Couldn't delete AMI '%s': %s", b.machine.Id, registerResp.ImageId, err)
+			}
+		})
 
 		// wait until the AMI is ready
 		checkAMI := func(currentPercentage int) (machinestate.State, error) {
