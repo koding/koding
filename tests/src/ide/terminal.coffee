@@ -1,7 +1,6 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
+
 paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 
