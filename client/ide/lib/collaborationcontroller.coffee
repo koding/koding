@@ -768,10 +768,10 @@ module.exports =
       @setMachineUser [target], no  if target
 
 
-  setMachineSharingStatus: (status) ->
+  setMachineSharingStatus: (status, callback) ->
 
     @listChatParticipants (accounts) =>
-      @setMachineUser accounts, status
+      @setMachineUser accounts, status, callback
 
 
   setMachineUser: (accounts, share = yes, callback = kd.noop) ->
