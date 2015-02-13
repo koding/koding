@@ -242,7 +242,6 @@ class RealtimeController extends KDController
         return window.location.reload()
 
       @fetchHistory channel, @lastSeenOnline
-      @lastSeenOnline = null
 
 
   fetchHistory: (channel, timestamp) ->
