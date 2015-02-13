@@ -1,8 +1,13 @@
-do ->
+kd = require 'kd'
+registerRoutes = require 'app/util/registerRoutes'
+isLoggedIn = require 'app/util/isLoggedIn'
 
-  KD.registerRoutes 'Terminal',
+module.exports = ->
+
+  registerRoutes 'Terminal',
     '/:name?/Terminal' : (routeInfo, state, path) ->
-      if !KD.isLoggedIn()
-        KD.singletons.router.handleRoute "/Login"
+      if !isLoggedIn()
+        kd.singletons.router.handleRoute "/Login"
       else
-        KD.singletons.router.handleRoute path.replace(/\/Terminal/, '/IDE')
+        kd.singletons.router.handleRoute path.replace(/\/Terminal/, '/IDE')
+
