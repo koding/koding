@@ -183,6 +183,7 @@ CollaborationController =
 
 
   createChatPaneView: (channel) ->
+    return throwError 'RealTimeManager is not set'  unless @rtm
 
     options = { @rtm, @isInSession }
     @getView().addSubView @chat = new IDE.ChatView options, channel
@@ -415,7 +416,7 @@ CollaborationController =
 
 
   removeParticipantFromParticipantList: (nickname) ->
-    return throw new Error "participants is not set"  unless @participants
+    return throwError "participants is not set"  unless @participants
 
     # find the index for participant
     for participant, index in @participants.asArray()
@@ -426,7 +427,7 @@ CollaborationController =
         break
 
   removeParticipantFromMaps: (nickname) ->
-    return throw new Error "rtm is not set"   unless @rtm
+    return throwError "rtm is not set"   unless @rtm
 
     myWatchMapName     = "#{nickname}WatchMap"
     mySnapshotName     = "#{nickname}Snapshot"
@@ -437,7 +438,7 @@ CollaborationController =
 
 
   removeParticipantFromPermissions: (nickname)->
-    return throw new Error "permissions is not set"   unless @permissions
+    return throwError "permissions is not set"   unless @permissions
     # Removes the entry for the given key (if such an entry exists).
     @permissions.delete(nickname)
 
