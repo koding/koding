@@ -81,3 +81,10 @@ class SidebarMachineList extends KDCustomHTMLView
     @forEachMachineBoxes (box) ->
       box.deselectWorkspaces()
       box.collapseList()
+
+
+  updateList: (listData) ->
+
+    for data in listData
+      unless @machineBoxesByMachineUId[data.machine.uid]
+        @addMachineBox data
