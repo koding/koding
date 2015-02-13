@@ -34,7 +34,8 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
       callback : =>
         @deleteButton.showLoader()
 
-        KD.remote.api.JWorkspace.deleteById workspace.getId(), (err)=>
+        wsId = workspace.getId()
+        KD.remote.api.JWorkspace.deleteById wsId, (err)=>
 
           return  if KD.showError err
 
@@ -44,6 +45,8 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
           if deleteRelatedFiles
             methodName = 'deleteWorkspaceRootFolder'
             appManager.tell 'IDE', methodName, machineUId, rootPath
+
+          @emit 'WorkspaceDeleted', wsId
 
           navItem.destroy()
           @destroy()
