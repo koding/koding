@@ -1,4 +1,6 @@
-class MainTabPane extends KDTabPaneView
+kd = require 'kd'
+KDTabPaneView = kd.TabPaneView
+module.exports = class MainTabPane extends KDTabPaneView
 
   constructor:(options, data)->
 
@@ -11,13 +13,15 @@ class MainTabPane extends KDTabPaneView
 
     super
 
-    KD.utils.defer => window.scrollTo 0, @lastScrollTops.window
+    kd.utils.defer => global.scrollTo 0, @lastScrollTops.window
 
 
   hide: ->
 
     return  unless @active
 
-    @lastScrollTops.window = window.scrollY
+    @lastScrollTops.window = global.scrollY
 
     super
+
+

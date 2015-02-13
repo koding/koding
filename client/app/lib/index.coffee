@@ -1,17 +1,66 @@
-do ->
-  unless KD.config.mainUri?
-    KD.config.mainUri = window.location.origin
-    KD.config.apiUri  = window.location.origin
+# Make sure none of these modules are calling remote#getInstance before this file. -og
+globals = require 'globals'
+kookies = require 'kookies'
+getscript = require 'getscript'
+Promise = require 'bluebird'
+kd = require 'kd'
+KDModalView = kd.ModalView
+KDNotificationView = kd.NotificationView
+getFullnameFromAccount = require './util/getFullnameFromAccount'
+socketConnected = require './util/socketConnected'
+enableLogs = require './util/enableLogs'
+whoami = require './util/whoami'
+isLoggedIn = require './util/isLoggedIn'
+ConnectionChecker = require './connectionchecker'
+lazyrouter = require './lazyrouter'
+
+
+module.exports = (defaults) ->
+
+  isStarted = false
+
+  if isStarted then throw 'already running' else isStarted = true
+
+  initialize defaults, bootup
+
+
+bootup = ->
+
+  # don't move following requires outside of this scope.
+  # `remote` must be initialized after globals is set and ready
+  # `MainController` & `Status` have some self-invoking methods
+  # that depend on `remote`, and here we are. -og
+  remote = require('./remote').getInstance()
+  # it is very important that you invoke this method before anything else does, so f important.
+
+  remote.once 'ready', ->
+    globals.currentGroup = remote.revive globals.currentGroup
+    globals.userAccount  = remote.revive globals.userAccount
+
+  MainController = require './maincontroller'
+  Status = require './status'
+
+  # Dear sir, madam, or dolphin,
+  # `Status` & `MainController` have these `registerSingleton` calls.
+  # Since (at the moment) there is no easy way to track what singletons
+  # we have defined or undefined; we should try to keep those calls
+  # within a single space, preferably in entry point (this file).
+  # That is to say, if you have registered a singleton in somewhere else,
+  # and that file is not a direct dependency of this file, you are most
+  # probably causing harm to sea lions and sea turtles. -og
 
   status           = new Status
   mainController   = new MainController
+
+  require('./routehandler')()
+
   currentNotif     = null
   firstLoad        = yes
 
   mainController.tempStorage = {}
 
-  if /edge.koding.com/.test window.location.href
-    name = KD.utils.getFullnameFromAccount KD.whoami()
+  if /edge.koding.com/.test global.location.href
+    name = getFullnameFromAccount whoami()
     modal = new KDModalView
       title            : "Hi #{name},"
       width            : 600
@@ -28,7 +77,7 @@ do ->
 """
       buttons          :
         "I Agree"      :
-          style        : "solid green medium"
+          style        : "modal-clean-green"
           callback     : -> modal.destroy()
 
   ###
@@ -36,29 +85,26 @@ do ->
   ###
 
   status.on 'bongoConnected', (account)->
-    KD.socketConnected()
+    socketConnected()
     mainController.accountChanged account, firstLoad
     firstLoad = no
 
-  status.on 'sessionTokenChanged', (token)->
+  # status.on 'sessionTokenChanged', (token)->
     # this is disabled for now to test user log-out problem.
     # $.cookie 'clientId', token
 
   status.on 'connected', ->
     destroyCurrentNotif()
-    log 'kd remote connected'
+    kd.log 'kd remote connected'
 
   status.on 'reconnected', (options={})->
     destroyCurrentNotif()
-    log "kd remote re-connected"
+    kd.log "kd remote re-connected"
 
   status.on 'disconnected', (options={})->
-    log "kd remote disconnected"
+    kd.log "kd remote disconnected"
 
-  KD.remote.connect()
-
-  # Its required for apps
-  KD.exportKDFramework()
+  remote.connect()
 
   ###
   # INTERNET CONNECTIVITIY
@@ -66,7 +112,7 @@ do ->
 
   smallDisconnectedNotif =->
     currentNotif = new KDNotificationView
-      title         : "Looks like your Internet Connection is down"
+      title         : "Looks like your Internet connection is down"
       type          : "tray"
       closeManually : yes
       content       : """<p>Koding will continue trying to reconnect but while your connection is down, <br> no changes you make will be saved back to your VM. Please save your work locally as well.</p>"""
@@ -85,22 +131,84 @@ do ->
     currentNotif?.destroy()
     currentNotif = null
 
-  if window.navigator.onLine?
-    KD.utils.repeat 10000, ->
-      if window.navigator.onLine
+  if global.navigator.onLine?
+    kd.utils.repeat 10000, ->
+      if global.navigator.onLine
         destroyCurrentNotif()  if currentNotif
       else
         showNotif "small", "disconnected"  unless currentNotif
   else
-    window.connectionCheckerReponse = ->
+    global.connectionCheckerReponse = ->
 
-    KD.utils.repeat 30000, ->
-      item = new ConnectionChecker {
+    kd.utils.repeat 30000, ->
+      item = new ConnectionChecker
         jsonp       : "connectionCheckerReponse"
         crossDomain : yes
-        fail        : ->
-          showNotif "small", "disconnected"  unless currentNotif
-      },
-      "https://s3.amazonaws.com/koding-ping/ping.json"
+        fail        : -> showNotif "small", "disconnected"  unless currentNotif
+      , "https://s3.amazonaws.com/koding-ping/ping.json"
 
       item.ping -> destroyCurrentNotif()  if currentNotif
+
+  setupAnalytics()
+
+  return true
+
+
+# segment.io
+
+setupAnalytics = ->
+
+  if globals.config.logToExternal then do ->
+
+    kd.getSingleton('mainController').on 'AccountChanged', (account) ->
+
+      return  unless isLoggedIn() and account and global.analytics
+
+      {type, meta, profile} = account
+
+      return  unless profile
+
+      {createdAt} = meta
+      {firstName, lastName, nickname} = profile
+
+      analytics.identify nickname, {
+        "$username"     : nickname
+        "$first_name"   : firstName
+        "$last_name"    : lastName
+        "$created"      : createdAt
+        "Status"        : type
+        "Randomizer"    : kd.utils.getRandomNumber 4
+      }
+
+
+initialize = (defaults, next) ->
+  apps_ = globals.config.apps
+
+  kd.utils.extend globals, defaults
+
+  globals.config.apps = apps_
+
+  lazyrouter.register globals.modules
+
+  unless globals.config.mainUri?
+    globals.config.mainUri = global.location.origin
+    globals.config.apiUri  = global.location.origin
+
+  logsEnabled = (kookies.get 'enableLogs') or !globals.config?.suppressLogs
+  enableLogs logsEnabled
+
+  next()
+
+  #scripts = globals.externals.filter (external) -> external.autoload is true
+    #.map (external) ->
+      #if external.file
+        #return globals.baseurl + '/' + external.file
+      #return external.uri
+
+  #Promise.all scripts.map (uri) ->
+    #new Promise (resolve) ->
+      #getscript uri, (err, res) ->
+        #throw err  if err
+        #resolve()
+  #.then next
+
