@@ -1,6 +1,15 @@
-class KitesAppController extends AppController
+kd = require 'kd'
+$ = require 'jquery'
+KDNotificationView = kd.NotificationView
+KiteDetailsView = require './views/kitedetailsview'
+showError = require 'app/util/showError'
+AppController = require 'app/appcontroller'
+remote = require('app/remote').getInstance()
 
-  KD.registerAppClass this,
+
+module.exports = class KitesAppController extends AppController
+
+  @options =
     name            : "Kites"
     route           : "/:name?/Kites?/:username?/:kite?"
     enforceLogin    : yes
@@ -17,7 +26,7 @@ class KitesAppController extends AppController
     super options, data
 
   handleQuery: (query) ->
-    {currentPath} = KD.getSingleton "router"
+    {currentPath} = kd.getSingleton "router"
 
     # an example full query is "/Kites/fatihacet/MyKite"
     # so temp = "/", route = "Kites", username = "fatihacet", kiteName = "MyKite"
@@ -29,15 +38,15 @@ class KitesAppController extends AppController
     @displayKiteContent username, kiteName
 
   goToKites: ->
-    KD.getSingleton("router").handleRoute "/Apps?filter=kites"
+    kd.getSingleton("router").handleRoute "/Apps?filter=kites"
 
   displayKiteContent: (username, kiteName) ->
     query =
       "manifest.name"       : kiteName
       "manifest.authorNick" : username
 
-    KD.remote.api.JKite.list query, {}, (err, kite) =>
-      return KD.showError err  if err
+    remote.api.JKite.list query, {}, (err, kite) =>
+      return showError err  if err
 
       unless kite.length
         new KDNotificationView
@@ -50,3 +59,5 @@ class KitesAppController extends AppController
 
       $("body").addClass "apps"
       @getView().addSubView new KiteDetailsView {}, kite.first
+
+

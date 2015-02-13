@@ -1,8 +1,16 @@
-class KitePlanListItemView extends KDListItemView
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+KDListItemView = kd.ListItemView
+showError = require 'app/util/showError'
+formatMoney = require 'app/util/formatMoney'
+
+
+module.exports = class KitePlanListItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type = KD.utils.curry "kite-product"
+    options.type = kd.utils.curry "kite-product"
 
     super options, data
 
@@ -16,7 +24,7 @@ class KitePlanListItemView extends KDListItemView
 
   unsubscribe: ->
     @subscription.cancel (err) =>
-      return KD.showError err  if err
+      return showError err  if err
       @subscribeButton.setTitle "Subscribe"
       @subscribeButton.setCallback @bound "selectPlan"
 
@@ -32,12 +40,12 @@ class KitePlanListItemView extends KDListItemView
       partial: """
         <p class="title">#{title}</p>
         <p class="desc">#{description}</p>
-        <p class="price">#{KD.utils.formatMoney feeAmount / 100}/#{feeUnit}</p>
+        <p class="price">#{formatMoney feeAmount / 100}/#{feeUnit}</p>
       """
 
     @addSubView @subscribeButton
 
-    KD.singleton("paymentController").fetchSubscriptionsWithPlans
+    kd.singleton("paymentController").fetchSubscriptionsWithPlans
       tags: $in: tags
     , (err, subscriptions) =>
       for subscription in subscriptions
@@ -45,3 +53,5 @@ class KitePlanListItemView extends KDListItemView
           @subscription = subscription
           @subscribeButton.setTitle "Unsubscribe"
           @subscribeButton.setCallback @bound "unsubscribe"
+
+
