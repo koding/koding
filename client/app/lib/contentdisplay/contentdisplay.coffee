@@ -5,3 +5,4 @@ class ContentDisplay extends MainTabPane
     options.cssClass = KD.utils.curry "content-display-wrapper content-page", options.cssClass
 
     super
+ No newline at end of file

@@ -1,4 +1,13 @@
-class ContentDisplayController extends KDController
+getFullnameFromAccount = require '../util/getFullnameFromAccount'
+remote = require('../remote').getInstance()
+kd = require 'kd'
+KDController = kd.Controller
+ContentDisplay = require './contentdisplay'
+getPlainActivityBody = require 'app/util/getPlainActivityBody'
+shortenText = require 'app/util/shortenText'
+
+
+module.exports = class ContentDisplayController extends KDController
 
   constructor:(options)->
 
@@ -10,8 +19,8 @@ class ContentDisplayController extends KDController
 
   attachListeners:->
 
-    mc         = KD.singleton 'mainController'
-    appManager = KD.singleton 'appManager'
+    mc         = kd.singleton 'mainController'
+    appManager = kd.singleton 'appManager'
     @on "ContentDisplayWantsToBeShown",  (view)=> mc.ready => @showDisplay view
     @on "ContentDisplayWantsToBeHidden", (view)=> mc.ready => @hideDisplay view
     @on "ContentDisplaysShouldBeHidden",       => mc.ready => @hideAllDisplays()
@@ -29,7 +38,7 @@ class ContentDisplayController extends KDController
 
     @displays[view.id] = view
 
-    {@mainTabView} = KD.singleton "mainView"
+    {@mainTabView} = kd.singleton "mainView"
     activePane = @mainTabView.getActivePane()
     @mainTabView.addPane tabPane
 
@@ -43,16 +52,16 @@ class ContentDisplayController extends KDController
 
     return  unless model
 
-    {JAccount, SocialMessage, JGroup} = KD.remote.api
+    {JAccount, SocialMessage, JGroup} = remote.api
     title = switch model.constructor
-      when JAccount          then  KD.utils.getFullnameFromAccount model
-      when SocialMessage     then  @utils.getPlainActivityBody model
+      when JAccount          then  getFullnameFromAccount model
+      when SocialMessage     then  getPlainActivityBody model
       when JGroup            then  model.title
       else "#{model.title}#{getSectionName model}"
 
-    @utils.shortenText title, maxLength : 100 # max char length of the title
+    shortenText title, maxLength : 100 # max char length of the title
 
-    KD.singletons.router.setPageTitle title
+    kd.singletons.router.setPageTitle title
 
 
   hideDisplay:(view)->
