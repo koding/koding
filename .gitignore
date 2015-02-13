@@ -99,3 +99,4 @@ supervisor.html
 client/.sprites
 client/app/__generatedapps__.coffee
 client/app/__generatedroutes__.coffee
+client/node_modules
