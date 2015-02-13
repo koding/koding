@@ -54,6 +54,9 @@ fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
     return callback { message: "Request is not valid for fetching channel"}
 
+  # topic fetch is crashing so we forced for a limit here
+  data.limit = 15
+
   url = "/channel"
   get url, data, callback
 

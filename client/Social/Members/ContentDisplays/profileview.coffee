@@ -198,7 +198,7 @@ class ProfileView extends JView
   createExternalProfiles:->
 
     appManager         = KD.getSingleton 'appManager'
-    {externalProfiles} = MembersAppController
+    {externalProfiles} = KD.config
 
     for own provider, options of externalProfiles
       @["#{provider}View"]?.destroy()
