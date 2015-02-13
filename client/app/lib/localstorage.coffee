@@ -1,4 +1,9 @@
-class LocalStorage extends AppStorage
+jspath = require 'jspath'
+kd = require 'kd'
+AppStorage = require './appstorage'
+
+
+module.exports = class LocalStorage extends AppStorage
 
 
   storage = null
@@ -10,7 +15,7 @@ class LocalStorage extends AppStorage
     storage.setItem    = (key, val) -> storage[key] = val
     storage.getItem    = (key) -> storage[key]
     storage.clear      = ->
-      storage = KD.utils.dict()
+      storage = kd.utils.dict()
       LocalStorage.createPolyfillAPI()
       return
 
@@ -20,17 +25,17 @@ class LocalStorage extends AppStorage
   # This is necessary to check if its allowed to use window.localStorage
   # otherwise it crashes the rest of the code
   try
-    storage = window.localStorage
+    storage = global.localStorage
 
   catch e
-    warn "#{e.name} occurred while getting localStorage:", e.message
+    kd.warn "#{e.name} occurred while getting localStorage:", e.message
 
-    storage = KD.utils.dict()
+    storage = kd.utils.dict()
     LocalStorage.createPolyfillAPI()
 
 
   fetchStorage: ->
-    KD.utils.defer => @emit "ready"
+    kd.utils.defer => @emit "ready"
 
 
   getValue: (key)->
@@ -41,7 +46,7 @@ class LocalStorage extends AppStorage
       try
         data = JSON.parse data
       catch e
-        warn 'parse failed', e
+        kd.warn 'parse failed', e
     return data
 
 
@@ -51,7 +56,7 @@ class LocalStorage extends AppStorage
     data = @getValue keys.shift()
     return null  unless data
     return data  if keys.length is 0
-    JsPath.getAt data, keys.join '.'
+    jspath.getAt data, keys.join '.'
 
 
   setAt: (path, value, callback)->
@@ -61,7 +66,7 @@ class LocalStorage extends AppStorage
     if keys.length is 0
       @setValue key, value, callback
     else
-      @setValue key, (JsPath.setAt {}, (keys.join '.'), value), callback
+      @setValue key, (jspath.setAt {}, (keys.join '.'), value), callback
 
 
   fetchValue: (key, callback)->
@@ -71,7 +76,7 @@ class LocalStorage extends AppStorage
   setValue: (key, value, callback)->
     @_storageData[key] = value or ''
     try storage[@getSignature key] = (JSON.stringify value) or ''
-    KD.utils.defer => callback? null
+    kd.utils.defer => callback? null
 
 
   unsetKey: (key)->
@@ -94,19 +99,4 @@ class LocalStorage extends AppStorage
   @getStorage = -> storage
 
 
-class LocalStorageController extends KDController
 
-  constructor:->
-    super
-    @localStorages = {}
-
-  storage:(appName, version)->
-
-    version ?= (KD.getAppVersion appName) or "1.0"
-
-    key = "#{appName}-#{version}"
-    return @localStorages[key] or= new LocalStorage appName, version
-
-
-# Let people can use AppStorage
-KD.classes.LocalStorage = LocalStorage

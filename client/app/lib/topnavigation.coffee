@@ -1,4 +1,9 @@
-class TopNavigation extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+CustomLinkView = require './customlinkview'
+
+
+module.exports = class TopNavigation extends KDCustomHTMLView
 
   menu = [
     { title : 'EDUCATION', href : '/Education', appName : 'Education'}
@@ -16,7 +21,7 @@ class TopNavigation extends KDCustomHTMLView
 
     @menu = {}
 
-    appManager = KD.singleton "appManager"
+    appManager = kd.singleton "appManager"
 
     appManager.on 'AppIsBeingShown', @bound 'setActiveItem'
 
@@ -45,4 +50,6 @@ class TopNavigation extends KDCustomHTMLView
   unsetActiveItems: ->
 
     item.unsetClass 'active'  for own name, item of @menu
+
+
 

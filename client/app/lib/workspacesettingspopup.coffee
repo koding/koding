@@ -1,8 +1,18 @@
-class WorkspaceSettingsPopup extends KDModalViewWithForms
+remote = require('./remote').getInstance()
+showError = require './util/showError'
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+KDModalViewWithForms = kd.ModalViewWithForms
+GuidesLinksView = require './guideslinksview'
+KodingSwitch = require './commonviews/kodingswitch'
+
+
+module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
 
   constructor:(options = {}, data)->
 
-    options         = KD.utils.extend options,
+    options         = kd.utils.extend options,
       title         : "Workspace settings"
       cssClass      : 'activity-modal ws-settings'
       content       : ""
@@ -32,21 +42,21 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
       title    : 'Delete Workspace'
       callback : =>
 
-        KD.remote.api.JWorkspace.deleteById workspace.id, (err)=>
+        remote.api.JWorkspace.deleteById workspace.id, (err)=>
 
-          return  if KD.showError err
+          return  if showError err
 
           { machineUId, rootPath } = workspace.data
           if deleteRelatedFiles
-            KD.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", machineUId, rootPath
+            kd.getSingleton('appManager').tell 'IDE', "deleteWorkspaceRootFolder", machineUId, rootPath 
 
           navItem.destroy()
           @destroy()
 
-          KD.singletons
+          kd.singletons
             .router.handleRoute "/IDE/#{workspace.machineLabel}/my-workspace"
 
-    @buttonContainer.addSubView field = new KDCustomHTMLView
+    @buttonContainer.addSubView field = new KDCustomHTMLView 
         tagName : 'li'
         cssClass : 'delete-files'
 
@@ -63,8 +73,6 @@ class WorkspaceSettingsPopup extends KDModalViewWithForms
     field.addSubView title
     field.addSubView fieldSwitch
 
-    _addSubView = KDView::addSubView.bind this
-
-    _addSubView new KDCustomHTMLView
+    @addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 40
+      position : top : 34

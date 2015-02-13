@@ -1,4 +1,7 @@
-class AddWorkspaceView extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDInputView = kd.InputView
+module.exports = class AddWorkspaceView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
@@ -25,7 +28,7 @@ class AddWorkspaceView extends KDCustomHTMLView
     if event.which is 13
 
       if @hasPendingRequest
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         return no
 
       data           = @getData()
@@ -34,7 +37,7 @@ class AddWorkspaceView extends KDCustomHTMLView
         machineUId   : data.machineUId
         machineLabel : data.machineLabel
 
-      {activitySidebar}  = KD.getSingleton 'mainView'
+      {activitySidebar}  = kd.getSingleton 'mainView'
       @hasPendingRequest = yes
 
       activitySidebar.createNewWorkspace options
@@ -45,4 +48,6 @@ class AddWorkspaceView extends KDCustomHTMLView
 
 
   clearFlag: ->
-    KD.utils.defer => @hasPendingRequest = no
+    kd.utils.defer => @hasPendingRequest = no
+
+

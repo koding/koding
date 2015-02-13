@@ -1,4 +1,11 @@
-class WelcomeModal extends KDModalView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDHeaderView = kd.HeaderView
+KDModalView = kd.ModalView
+CustomLinkView = require './customlinkview'
+
+
+module.exports = class WelcomeModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
@@ -38,11 +45,13 @@ class WelcomeModal extends KDModalView
       cssClass    : 'welcome-btn'
       title       : 'Read our blog post about this release'
       click       : =>
-        window.open 'http://blog.koding.com/2014/09/new-release', '_blank'
+        global.open 'http://blog.koding.com/2014/09/new-release', '_blank'
         @destroy()
 
     content.addSubView new CustomLinkView
       cssClass    : 'welcome-btn'
       title       : 'Explore the new koding now'
       click       : @bound 'cancel'
+
+
 

@@ -1,4 +1,19 @@
-class ApplicationManager extends KDObject
+$ = require 'jquery'
+globals = require 'globals'
+getAppOptions = require './util/getAppOptions'
+getAppClass = require './util/getAppClass'
+kd = require 'kd'
+KDModalViewWithForms = kd.ModalViewWithForms
+KDNotificationView = kd.NotificationView
+KDObject = kd.Object
+KDOnOffSwitch = kd.OnOffSwitch
+KDSelectBox = kd.SelectBox
+KDView = kd.View
+FSHelper = require './util/fs/fshelper'
+KodingAppsController = require './kodingappscontroller'
+
+
+module.exports = class ApplicationManager extends KDObject
 
   ###
 
@@ -22,7 +37,7 @@ class ApplicationManager extends KDObject
     @on 'AppIsBeingShown', @bound "setFrontApp"
 
     # set unload listener
-    wc = KD.singleton 'windowController'
+    wc = kd.singleton 'windowController'
     wc.addUnloadListener 'window', =>
       for own app of @appControllers when app in ['Ace', 'Terminal', 'Teamwork']
         safeToUnload = no
@@ -30,29 +45,29 @@ class ApplicationManager extends KDObject
       return safeToUnload ? yes
 
   isAppInternal : (name='')->
-    return KD.config.apps[name] and (name not in Object.keys KD.appClasses)
+    return globals.config.apps[name] and (name not in Object.keys globals.appClasses)
 
   open: do ->
 
-    createOrShow = (appOptions = {}, appParams, callback = noop)->
+    createOrShow = (appOptions = {}, appParams, callback = kd.noop)->
 
       name = appOptions?.name
       return @handleAppNotFound()  unless name
 
       appInstance = @get name
       cb = if appParams.background or appOptions.background
-      then (appInst)-> KD.utils.defer -> callback appInst
+      then (appInst)-> kd.utils.defer -> callback appInst
       else @show.bind this, name, appParams, callback
 
       if appInstance then cb appInstance else @create name, appParams, cb
 
     (name, options, callback)->
 
-      return warn "ApplicationManager::open called without an app name!"  unless name
+      return kd.warn "ApplicationManager::open called without an app name!"  unless name
 
       [callback, options]  = [options, callback] if 'function' is typeof options
       options            or= {}
-      appOptions           = KD.getAppOptions name
+      appOptions           = getAppOptions name
       appParams            = options.params or {}
       defaultCallback      = createOrShow.bind this, appOptions, appParams, callback
 
@@ -83,8 +98,8 @@ class ApplicationManager extends KDObject
 
         if @isAppInternal name
           return KodingAppsController.loadInternalApp name, (err)=>
-            return warn err  if err
-            KD.utils.defer => @open name, options, callback
+            return kd.warn err  if err
+            kd.utils.defer => @open name, options, callback
 
         options.avoidRecursion = yes
         return do defaultCallback
@@ -103,10 +118,10 @@ class ApplicationManager extends KDObject
       else do defaultCallback
 
   openFileWithApplication: (appName, file) ->
-    @open appName, => @utils.defer => @getFrontApp().openFile file
+    @open appName, => kd.utils.defer => @getFrontApp().openFile file
 
   promptOpenFileWith:(file)->
-    finderController = KD.getSingleton "finderController"
+    finderController = kd.getSingleton "finderController"
     {treeController} = finderController
     view = new KDView {}, file
     treeController.showOpenWithModal view
@@ -123,30 +138,30 @@ class ApplicationManager extends KDObject
       when 'unknown'
         @promptOpenFileWith file
       when 'code','text'
-        log "open with a text editor"
+        kd.log "open with a text editor"
         @open @defaultApps.text, (appController)-> appController.openFile file
       when 'image'
-        log "open with an image processing app"
+        kd.log "open with an image processing app"
       when 'video'
-        log "open with a video app"
+        kd.log "open with a video app"
       when 'sound'
-        log "open with a sound app"
+        kd.log "open with a sound app"
       when 'archive'
-        log "extract the thing."
+        kd.log "extract the thing."
 
 
   tell:(name, command, rest...)->
 
-    return warn "ApplicationManager::tell called without an app name!"  unless name
+    return kd.warn "ApplicationManager::tell called without an app name!"  unless name
 
     app = @get name
     cb  = (appInstance)-> appInstance?[command]? rest...
 
-    if app then @utils.defer -> cb app
+    if app then kd.utils.defer -> cb app
     else @create name, cb
 
   require: (name, params, callback) ->
-    log "AppManager: requiring an app", name
+    kd.log "AppManager: requiring an app", name
     [callback, params] = [params, callback]  unless callback
     callback ?= ->
     if app = @get name
@@ -157,29 +172,29 @@ class ApplicationManager extends KDObject
 
     [callback, params] = [params, callback]  unless callback
 
-    AppClass              = KD.getAppClass name
-    appOptions            = $.extend {}, true, KD.getAppOptions name
+    AppClass              = getAppClass name
+    appOptions            = $.extend {}, true, getAppOptions name
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
 
     if @isAppInternal name
       return KodingAppsController.loadInternalApp name, (err)=>
-        return warn err  if err
-        KD.utils.defer => @create name, params, callback
+        return kd.warn err  if err
+        kd.utils.defer => @create name, params, callback
 
 
-    @utils.defer =>
+    kd.utils.defer =>
       return @emit "AppCouldntBeCreated"  unless appInstance
       @emit "AppCreated", appInstance
 
       if appOptions.thirdParty
-        return KD.getSingleton("kodingAppsController").putAppResources appInstance, callback
+        return kd.getSingleton("kodingAppsController").putAppResources appInstance, callback
 
       callback? appInstance
 
   show:(name, appParams, callback)->
 
-    appOptions  = KD.getAppOptions name
+    appOptions  = getAppOptions name
     appInstance = @get name
 
     appView     = appInstance.getView?()
@@ -189,21 +204,21 @@ class ApplicationManager extends KDObject
     appInstance.appIsShown? appParams
 
     @setLastActiveIndex appInstance
-    @utils.defer -> callback? appInstance
+    kd.utils.defer -> callback? appInstance
 
   showInstance:(appInstance, callback)->
 
     appView    = appInstance.getView?() or null
-    appOptions = KD.getAppOptions appInstance.getOption "name"
+    appOptions = getAppOptions appInstance.getOption "name"
 
     return if appOptions.background
 
     @emit 'AppIsBeingShown', appInstance, appView, appOptions
     appInstance.appIsShown?()
     @setLastActiveIndex appInstance
-    @utils.defer -> callback? appInstance
+    kd.utils.defer -> callback? appInstance
 
-  quit:(appInstance, callback = noop)->
+  quit:(appInstance, callback = kd.noop)->
     view = appInstance.getView?()
     destroyer = if view? then view else appInstance
     destroyer.destroy()
@@ -247,7 +262,7 @@ class ApplicationManager extends KDObject
 
   setFrontApp: (appInstance) ->
 
-    {router}  = KD.singletons
+    {router}  = kd.singletons
     {name} = appInstance.getOptions()
     router.setPageTitle name  if name
     @setLastActiveIndex appInstance
@@ -255,7 +270,7 @@ class ApplicationManager extends KDObject
 
   getFrontAppManifest: ->
     {name}  = @getFrontApp().getOptions()
-    return KD.getAppOptions name
+    return getAppOptions name
 
   register:(appInstance)->
 
@@ -315,10 +330,10 @@ class ApplicationManager extends KDObject
                 defaultValue: no
             buttons         :
               Open          :
-                cssClass    : "solid green medium"
+                cssClass    : "modal-clean-green"
                 type        : "submit"
               Cancel        :
-                cssClass    : "solid light-gray medium"
+                cssClass    : "modal-cancel"
                 callback    : ->
                   modal.cancel()
                   callback null
@@ -329,7 +344,7 @@ class ApplicationManager extends KDObject
     destroyer.once "KDObjectWillBeDestroyed", =>
       @unregister appInstance
       appInstance.emit "AppDidQuit"
-      KD.getSingleton('appManager').emit  "AppDidQuit", appInstance
+      kd.getSingleton('appManager').emit  "AppDidQuit", appInstance
 
   setLastActiveIndex:(appInstance)->
 
@@ -370,3 +385,5 @@ class ApplicationManager extends KDObject
   #     unless storage
   #       storage = {appId,version,bucket:{}} # creating a fake storage
   #     callback error, storage
+
+

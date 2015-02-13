@@ -1,4 +1,8 @@
-class JView extends KDView
+kd = require 'kd'
+KDView = kd.View
+Pistachio = require './util/pistachio'
+
+module.exports = class JView extends KDView
 
   @mixin = (target) ->
     target.viewAppended = @::viewAppended
@@ -21,3 +25,5 @@ class JView extends KDView
 
   pistachio: (tmpl) ->
     "#{@options.prefix}#{tmpl}#{@options.suffix}"  if tmpl
+
+

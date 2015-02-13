@@ -1,5 +1,9 @@
+kd = require 'kd'
+KDController = kd.Controller
+remote = require('./remote').getInstance()
+
 # Responsible for emitting connection related events.
-class Status extends KDController
+module.exports = class Status extends KDController
   [NOTSTARTED, CONNECTED, RECONNECTED, DISCONNECTED] = [1..4]
   [NOTSTARTED, UP, DOWN] = [1..3]
 
@@ -11,7 +15,7 @@ class Status extends KDController
     @state = NOTSTARTED
     @connectionState = DOWN
 
-    {@remote}= KD
+    @remote = remote
 
     @remote.on "connected", @bound "connected"
     @remote.on "disconnected", @bound "disconnected"
@@ -26,7 +30,7 @@ class Status extends KDController
     if "boolean" is typeof options
       options = autoReconnect : options
 
-    log "status", options
+    kd.log "status", options
 
     autoReconnect = options.autoReconnect
     @remote.disconnect(autoReconnect)
@@ -65,3 +69,5 @@ class Status extends KDController
 
   sessionTokenChanged: (token) ->
     @emit "sessionTokenChanged", token
+
+

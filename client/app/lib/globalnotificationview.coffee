@@ -1,4 +1,14 @@
-class GlobalNotificationView extends JView
+globals = require 'globals'
+nicetime = require './util/nicetime'
+notify_ = require './util/notify_'
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+CustomLinkView = require './customlinkview'
+JView = require './jview'
+
+
+module.exports = class GlobalNotificationView extends JView
 
   constructor:->
 
@@ -9,7 +19,7 @@ class GlobalNotificationView extends JView
       icon       :
         cssClass : 'close'
       click      : (event)=>
-        KD.utils.stopDOMEvent event
+        kd.utils.stopDOMEvent event
         @hideAndDestroy()
 
     @bindTransitionEnd()
@@ -19,31 +29,31 @@ class GlobalNotificationView extends JView
     scheduledAt = (new Date(scheduledAt)).getTime()
 
     if closeTimer and typeof closeTimer is 'number'
-      KD.utils.wait closeTimer, @bound 'hideAndDestroy'
+      kd.utils.wait closeTimer, @bound 'hideAndDestroy'
 
     @timer = new KDCustomHTMLView
       tagName  : 'strong'
       cssClass : if @getOption 'showTimer' then 'hidden'
       partial  : @timerPartial scheduledAt
 
-    @repeater = KD.utils.repeat 2000, =>
+    @repeater = kd.utils.repeat 2000, =>
       @timer.updatePartial @timerPartial scheduledAt
-      KD.utils.killRepeat @repeater  if Date.now() > scheduledAt
+      kd.utils.killRepeat @repeater  if Date.now() > scheduledAt
 
-    if 'admin' in KD.config.roles and @getData().bongo_
+    if 'admin' in globals.config.roles and @getData().bongo_
       @adminClose = new KDButtonView
         tagName  : 'span'
         cssClass : 'solid red mini cancel'
         title    : 'ADMIN: Cancel Notification'
         callback : =>
           @getData().cancel (err)=>
-            if err then KD.notify_ err
+            if err then notify_ err
             else @hideAndDestroy()
     else
       @adminClose = new KDCustomHTMLView
 
     @getData().on? 'restartCanceled', =>
-      log 'remove active restart message ::realtime::'
+      kd.log 'remove active restart message ::realtime::'
       @hideAndDestroy()
 
   hideAndDestroy:->
@@ -52,11 +62,11 @@ class GlobalNotificationView extends JView
 
   destroy:->
 
-    KD.utils.killRepeat @repeater
+    kd.utils.killRepeat @repeater
     super
 
 
-  timerPartial:(time)-> "#{KD.utils.nicetime (time - Date.now()) / 1000}."
+  timerPartial:(time)-> "#{nicetime (time - Date.now()) / 1000}."
 
   show:-> @setClass 'in'
 
@@ -69,3 +79,4 @@ class GlobalNotificationView extends JView
     {{> @close}}{{> @adminClose}}
     </div>
     """
+

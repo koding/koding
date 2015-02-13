@@ -1,6 +1,9 @@
-class KiteLogger
+globals = require 'globals'
+kd = require 'kd'
+remote = require('./remote').getInstance()
+module.exports = class KiteLogger
 
-  @buffer = KD.utils.dict()
+  @buffer = kd.utils.dict()
 
   @log = (kiteName, rpcCall, state) ->
 
@@ -29,12 +32,14 @@ class KiteLogger
       @consumeInProgress = no
       return
 
-    KD.remote.api.DataDog.sendMetrics data, (err) =>
-      warn "[KiteLogger] failed:", err  if err?
+    remote.api.DataDog.sendMetrics data, (err) =>
+      kd.warn "[KiteLogger] failed:", err  if err?
       @consumeInProgress = no
 
 
-  if KD.config.environment is 'production'
+  if globals.config.environment is 'production'
     @interval = 10000 # 10 seconds
-    @timer = KD.utils.repeat @interval, @consume
+    @timer = kd.utils.repeat @interval, @consume
+
+
 

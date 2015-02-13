@@ -1,4 +1,12 @@
-class MainTabView extends KDTabView
+$ = require 'jquery'
+kd = require 'kd'
+KDModalView = kd.ModalView
+KDTabView = kd.TabView
+KDView = kd.View
+MainTabPane = require './maintabpane'
+
+
+module.exports = class MainTabView extends KDTabView
 
   constructor:(options,data)->
     options.resizeTabHandles    = yes
@@ -7,8 +15,8 @@ class MainTabView extends KDTabView
     @visibleHandles             = []
     @totalSize                  = 0
     super options,data
-    @router                     = KD.getSingleton 'router'
-    @appManager                 = KD.getSingleton("appManager")
+    @router                     = kd.getSingleton 'router'
+    @appManager                 = kd.getSingleton("appManager")
 
     @appManager.on 'AppIsBeingShown', (controller, view, options)=>
       if view.parent
@@ -57,15 +65,15 @@ class MainTabView extends KDTabView
   createTabPane:(options = {}, mainView)->
 
     o = {}
-    o.cssClass = @utils.curry "content-area-pane", options.cssClass
+    o.cssClass = kd.utils.curry "content-area-pane", options.cssClass
     o.class  or= KDView
 
     # adding a domId is a temporary hack
     # for reviving the main tabs
     # a better solution tbdl - SY
 
-    domId           = "maintabpane-#{@utils.slugify options.name}"
-    o.domId         = domId  if document.getElementById domId
+    domId           = "maintabpane-#{kd.utils.slugify options.name}"
+    o.domId         = domId  if global.document.getElementById domId
     o.name          = options.name
     o.behavior      = options.behavior
     o.hiddenHandle  = options.hiddenHandle
@@ -107,13 +115,15 @@ class MainTabView extends KDTabView
       overlay       : yes
       buttons       :
         "Close"     :
-          cssClass  : "solid red medium"
+          cssClass  : "modal-clean-gray"
           title     : "Close"
           callback  : =>
             @appManager.quit appInstance
             modal.destroy()
         "Cancel"    :
-          cssClass  : "solid light-gray medium"
+          cssClass  : "modal-cancel"
           title     : "Cancel"
           callback  : =>
             modal.destroy()
+
+

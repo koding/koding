@@ -1,9 +1,29 @@
-class MainView extends KDView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDCustomScrollView = kd.CustomScrollView
+KDScrollView = kd.ScrollView
+KDView = kd.View
+sinkrow = require 'sinkrow'
+globals = require 'globals'
+mixpanel = require './util/mixpanel'
+remote = require('./remote').getInstance()
+isLoggedIn = require './util/isLoggedIn'
+whoami = require './util/whoami'
+ActivitySidebar = require './activity/sidebar/activitysidebar'
+AvatarArea = require './avatararea/avatararea'
+CustomLinkView = require './customlinkview'
+GlobalNotificationView = require './globalnotificationview'
+MachineSettingsPopup = require './providers/machinesettingspopup'
+MainTabView = require './maintabview'
+TopNavigation = require './topnavigation'
+
+
+module.exports = class MainView extends KDView
 
   constructor: (options = {}, data)->
 
     options.domId    = 'kdmaincontainer'
-    options.cssClass = if KD.isLoggedInOnLoad then 'with-sidebar' else ''
+    options.cssClass = if globals.isLoggedInOnLoad then 'with-sidebar' else ''
 
     super options, data
 
@@ -19,7 +39,7 @@ class MainView extends KDView
     @createPanelWrapper()
     @createMainTabView()
 
-    KD.singletons.mainController.ready =>
+    kd.singletons.mainController.ready =>
       @createAccountArea()
       @setStickyNotification()
       @emit 'ready'
@@ -27,7 +47,7 @@ class MainView extends KDView
 
   createHeader:->
 
-    {entryPoint} = KD.config
+    entryPoint = globals.config.entryPoint
 
     @addSubView @header = new KDView
       tagName    : 'header'
@@ -44,19 +64,19 @@ class MainView extends KDView
       cssClass   : if entryPoint?.type is 'group' then 'group' else ''
       partial    : '<cite></cite>'
       click     : (event)=>
-        KD.utils.stopDOMEvent event
-        {router} = KD.singletons
+        kd.utils.stopDOMEvent event
+        {router} = kd.singletons
         router.handleRoute router.getDefaultRoute()
 
-    @logo.setClass KD.config.environment
+    @logo.setClass globals.config.environment
 
     @header.addSubView @logotype = new CustomLinkView
       cssClass : 'logotype'
       title    : 'Koding'
       href     : '/'
       click    : (event)=>
-        KD.utils.stopDOMEvent event
-        {router} = KD.singletons
+        kd.utils.stopDOMEvent event
+        {router} = kd.singletons
         router.handleRoute router.getDefaultRoute()
 
 
@@ -70,6 +90,8 @@ class MainView extends KDView
       attributes :
         testpath : 'main-sidebar'
 
+    entryPoint = globals.config.entryPoint
+
     logoWrapper = new KDCustomHTMLView
       cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
 
@@ -78,8 +100,8 @@ class MainView extends KDView
       attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
       partial    : '<figure></figure>'
       click      : (event) =>
-        KD.utils.stopDOMEvent event
-        KD.mixpanel 'Koding Logo, click'
+        kd.utils.stopDOMEvent event
+        mixpanel 'Koding Logo, click'
 
     @aside.addSubView logoWrapper
 
@@ -108,7 +130,7 @@ class MainView extends KDView
     @sidebar.on 'NoOffscreenItemsBelow', ->
       moreItemsBelow.hide()
 
-    KD.singletons.notificationController.on 'ParticipantUpdated', =>
+    kd.singletons.notificationController.on 'ParticipantUpdated', =>
       @sidebar.updateOffscreenIndicators()
 
   createPanelWrapper:->
@@ -129,7 +151,7 @@ class MainView extends KDView
 
     @isSidebarCollapsed = !@isSidebarCollapsed
 
-    {appManager, windowController} = KD.singletons
+    {appManager, windowController} = kd.singletons
 
     if appManager.getFrontApp().getOption('name') is 'IDE'
       windowController.notifyWindowResizeListeners()
@@ -145,22 +167,22 @@ class MainView extends KDView
     @aside.addSubView @accountArea = new KDCustomHTMLView
       cssClass : 'account-area'
 
-    if KD.isLoggedIn()
+    if isLoggedIn()
     then @createLoggedInAccountArea()
     else
-      mc = KD.getSingleton "mainController"
+      mc = kd.getSingleton "mainController"
       mc.once "accountChanged.to.loggedIn", @bound 'createLoggedInAccountArea'
 
 
   createLoggedInAccountArea:->
 
-    KDView.setElementClass document.body, 'add', 'logged-in'
+    KDView.setElementClass global.document.body, 'add', 'logged-in'
 
     @accountArea.destroySubViews()
 
-    # KD.utils.defer => @accountMenu.accountChanged KD.whoami()
+    # KD.utils.defer => @accountMenu.accountChanged whoami()
 
-    @accountArea.addSubView @avatarArea  = new AvatarArea {}, KD.whoami()
+    @accountArea.addSubView @avatarArea  = new AvatarArea {}, whoami()
     # @accountArea.addSubView @searchIcon  = new KDCustomHTMLView
     #   domId      : 'fatih-launcher'
     #   cssClass   : 'search acc-dropdown-icon'
@@ -169,13 +191,13 @@ class MainView extends KDView
     #     title    : 'Search'
     #     href     : '#'
     #   click      : (event)=>
-    #     KD.utils.stopDOMEvent event
+    #     kd.utils.stopDOMEvent event
     #     # log 'run fatih'
 
     #     @accountArea.setClass "search-open"
     #     @searchInput.setFocus()
 
-    #     KD.getSingleton("windowController").addLayer @searchInput
+    #     kd.getSingleton("windowController").addLayer @searchInput
 
     #     @searchInput.once "ReceivedClickElsewhere", =>
     #       @accountArea.unsetClass "search-open"
@@ -186,7 +208,7 @@ class MainView extends KDView
     #   cssClass   : "search-form-container"
 
     # handleRoute = (searchRoute, text)->
-    #   if group = KD.getSingleton("groupsController").getCurrentGroup()
+    #   if group = kd.getSingleton("groupsController").getCurrentGroup()
     #     groupSlug = if group.slug is "koding" then "" else "/#{group.slug}"
     #   else
     #     groupSlug = ""
@@ -198,10 +220,10 @@ class MainView extends KDView
     #   # add group slug
     #   searchRoute = "#{groupSlug}#{searchRoute}"
 
-    #   KD.getSingleton("router").handleRoute searchRoute
+    #   kd.getSingleton("router").handleRoute searchRoute
 
     # search = (text) ->
-    #   currentApp  = KD.getSingleton("appManager").getFrontApp()
+    #   currentApp  = kd.getSingleton("appManager").getFrontApp()
     #   if currentApp and searchRoute = currentApp.options.searchRoute
     #     return handleRoute searchRoute, text
     #   else
@@ -243,7 +265,7 @@ class MainView extends KDView
 
 
     @mainTabView.on "AllPanesClosed", ->
-      KD.getSingleton('router').handleRoute "/Activity"
+      kd.getSingleton('router').handleRoute "/Activity"
 
     @panelWrapper.addSubView @mainTabView
 
@@ -260,22 +282,21 @@ class MainView extends KDView
 
   setStickyNotification:->
 
-    return if not KD.isLoggedIn() # don't show it to guests
+    return if not isLoggedIn() # don't show it to guests
 
-    {JSystemStatus} = KD.remote.api
+    {JSystemStatus} = remote.api
 
     JSystemStatus.on 'restartScheduled', @bound 'handleSystemMessage'
 
-    KD.utils.wait 2000, =>
-      KD.remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
-        if err then log 'current system status:',err
+    kd.utils.wait 2000, =>
+      remote.api.JSystemStatus.getCurrentSystemStatuses (err, statuses)=>
+        if err then kd.log 'current system status:',err
         else if statuses and Array.isArray statuses
-          {daisy} = Bongo
           queue   = statuses.map (status)=>=>
             @createGlobalNotification status
-            KD.utils.wait 500, -> queue.next()
+            kd.utils.wait 500, -> queue.next()
 
-          daisy queue.reverse()
+          sinkrow.daisy queue.reverse()
 
   handleSystemMessage:(message)->
 
@@ -305,8 +326,8 @@ class MainView extends KDView
 
     options.type      or= typeMap[message.type]
     options.showTimer  ?= message.type isnt 'restart'  #change this option name creates confusion with the actual timer
-    options.cssClass    = KD.utils.curry "header-notification", options.type
-    options.cssClass    = KD.utils.curry options.cssClass, 'fx'  if options.animated
+    options.cssClass    = kd.utils.curry "header-notification", options.type
+    options.cssClass    = kd.utils.curry options.cssClass, 'fx'  if options.animated
 
     @notifications.push notification = new GlobalNotificationView options, message
 
@@ -323,7 +344,7 @@ class MainView extends KDView
           @notifications[i-1]?.show()
           break
 
-    KD.utils.wait 177, notification.bound 'show'
+    kd.utils.wait 177, notification.bound 'show'
 
     return notification
 
@@ -331,13 +352,13 @@ class MainView extends KDView
   enableFullscreen: ->
     @setClass "fullscreen no-anim"
     @emit "fullscreen", yes
-    KD.getSingleton("windowController").notifyWindowResizeListeners()
+    kd.getSingleton("windowController").notifyWindowResizeListeners()
 
 
   disableFullscreen: ->
     @unsetClass "fullscreen no-anim"
     @emit "fullscreen", no
-    KD.getSingleton("windowController").notifyWindowResizeListeners()
+    kd.getSingleton("windowController").notifyWindowResizeListeners()
 
 
   isFullscreen: -> @hasClass "fullscreen"
@@ -352,15 +373,15 @@ class MainView extends KDView
 
   bindPulsingRemove:->
 
-    router     = KD.getSingleton 'router'
-    appManager = KD.getSingleton 'appManager'
+    router     = kd.getSingleton 'router'
+    appManager = kd.getSingleton 'appManager'
 
     appManager.once 'AppCouldntBeCreated', removePulsing
 
     appManager.on 'AppCreated', (appInstance)->
       options = appInstance.getOptions()
       {title, name, appEmitsReady} = options
-      routeArr = location.pathname.split('/')
+      routeArr = global.location.pathname.split('/')
       routeArr.shift()
       checkedRoute = if routeArr.first is "Develop" \
                      then routeArr.last else routeArr.first
@@ -374,7 +395,7 @@ class MainView extends KDView
 
   _logoutAnimation: ->
 
-    {body}      = document
+    {body}      = global.document
     turnOffLine = new KDCustomHTMLView cssClass : "turn-off-line"
     turnOffDot  = new KDCustomHTMLView cssClass : "turn-off-dot"
 
@@ -387,25 +408,25 @@ class MainView extends KDView
 
   removePulsing = ->
 
-    loadingScreen = document.getElementById 'main-loading'
+    loadingScreen = global.document.getElementById 'main-loading'
 
     return unless loadingScreen
 
     logo = loadingScreen.children[0]
     logo.classList.add 'out'
 
-    KD.utils.wait 750, ->
+    kd.utils.wait 750, ->
 
       loadingScreen.classList.add 'out'
 
-      KD.utils.wait 750, ->
+      kd.utils.wait 750, ->
 
         loadingScreen.parentElement.removeChild loadingScreen
 
-        return if KD.isLoggedIn()
+        return if isLoggedIn()
 
-        cdc      = KD.singleton('display')
-        mainView = KD.getSingleton 'mainView'
+        cdc      = kd.singleton('display')
+        mainView = kd.getSingleton 'mainView'
 
         return unless Object.keys(cdc.displays).length
 
@@ -414,4 +435,6 @@ class MainView extends KDView
           duration = 400
           KDScrollView::scrollTo.call mainView, {top, duration}
           break
+
+
 

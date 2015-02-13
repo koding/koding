@@ -1,12 +1,19 @@
-class MessageEventManager extends KDObject
+remote = require('./remote').getInstance()
+getMessageOwner = require './util/getMessageOwner'
+filterTrollActivity = require './util/filterTrollActivity'
+whoami = require './util/whoami'
+kd = require 'kd'
+KDObject = kd.Object
+
+module.exports = class MessageEventManager extends KDObject
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    KD.singletons.realtime.subscribeMessage data, (err, messageChannel) =>
+    kd.singletons.realtime.subscribeMessage data, (err, messageChannel) =>
 
-      return warn err  if err
+      return kd.warn err  if err
 
       messageChannel
         .on 'InteractionAdded', @bound 'addInteraction'
@@ -18,10 +25,10 @@ class MessageEventManager extends KDObject
   addInteraction: (event) ->
 
     {accountOldId} = event
-    KD.remote.cacheable "JAccount", accountOldId, (err, owner) =>
-      return error err  if err
-      return error "Account not found" unless owner
-      return if KD.filterTrollActivity owner
+    remote.cacheable "JAccount", accountOldId, (err, owner) =>
+      return kd.error err  if err
+      return kd.error "Account not found" unless owner
+      return if filterTrollActivity owner
 
       {typeConstant} = event
       fn = @bound "add#{typeConstant.capitalize()}"
@@ -45,7 +52,7 @@ class MessageEventManager extends KDObject
 
     like.actorsCount = count
     like.actorsPreview.unshift accountOldId  if accountOldId not in like.actorsPreview
-    like.isInteracted = yes  if KD.whoami().getId() is accountOldId
+    like.isInteracted = yes  if whoami().getId() is accountOldId
 
     message.emit "LikeAdded"
     message.emit "update"
@@ -61,7 +68,7 @@ class MessageEventManager extends KDObject
     like.actorsCount = count
     like.actorsPreview = like.actorsPreview.filter (id) -> id isnt accountOldId
 
-    like.isInteracted = no  if KD.whoami().getId() is accountOldId
+    like.isInteracted = no  if whoami().getId() is accountOldId
 
     message.emit "LikeRemoved"
     message.emit "update"
@@ -69,17 +76,12 @@ class MessageEventManager extends KDObject
 
   addReply: (plain) ->
 
-    # revive adds the reply to cache. if reply is already there, it means it is shown
-    # on the screen
-    # TODO this code gone mad. Need a better caching mechanism
-    return  if KD.singletons.socialapi._cache[plain.message.typeConstant]?[plain.message.id]
+    reply = kd.singletons.socialapi.message.revive plain
 
-    reply = KD.singletons.socialapi.message.revive plain
+    getMessageOwner reply, (err, owner) =>
 
-    KD.getMessageOwner reply, (err, owner) =>
-
-      return error err  if err
-      return  if KD.filterTrollActivity owner
+      return kd.error err  if err
+      return  if filterTrollActivity owner
 
       message = @getData()
       message.replies.push reply
@@ -87,7 +89,7 @@ class MessageEventManager extends KDObject
 
       plain.message.messageId = message.id
 
-      return  unless KD.singletons.socialapi.isFromOtherBrowser plain
+      return  unless kd.singletons.socialapi.isFromOtherBrowser plain
 
       message.emit "AddReply", reply
       message.emit "update"
@@ -98,6 +100,8 @@ class MessageEventManager extends KDObject
     {replyId} = options
 
     message = @getData()
+
+    return  unless kd.singletons.socialapi.isFromOtherBrowser message
 
     for item in message.replies
       reply = item  if replyId is item.getId()

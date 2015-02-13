@@ -1,4 +1,6 @@
-class GuidesLinksView extends KDView
+kd = require 'kd'
+KDView = kd.View
+module.exports = class GuidesLinksView extends KDView
 
   Links      =
     'Firewalls'    : 'http://learn.koding.com/guides/enable-ufw/'
@@ -9,7 +11,7 @@ class GuidesLinksView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'guides-links', options.cssClass
+    options.cssClass = kd.utils.curry 'guides-links', options.cssClass
 
     unless options.partial?
 

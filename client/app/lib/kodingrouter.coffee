@@ -1,15 +1,27 @@
-class KodingRouter extends KDRouter
+htmlencode = require 'htmlencode'
+globals = require 'globals'
+remote = require('./remote').getInstance()
+isLoggedIn = require './util/isLoggedIn'
+showError = require './util/showError'
+isGroup = require './util/isGroup'
+isKoding = require './util/isKoding'
+kd = require 'kd'
+KDRouter = kd.Router
+KodingAppsController = require './kodingappscontroller'
+
+
+module.exports = class KodingRouter extends KDRouter
 
   constructor: (@defaultRoute) ->
 
     @breadcrumb = []
-    @defaultRoute or= location.pathname + location.search
+    @defaultRoute or= global.location.pathname + global.location.search
     @openRoutes     = {}
     @openRoutesById = {}
 
     super()
 
-    @on 'AlreadyHere', -> log "You're already here!"
+    @on 'AlreadyHere', -> kd.log "You're already here!"
 
 
   listen: ->
@@ -19,18 +31,18 @@ class KodingRouter extends KDRouter
     return if @userRoute
 
 
-    KD.utils.defer =>
+    kd.utils.defer =>
       @handleRoute @defaultRoute,
         shouldPushState : yes
         replaceState    : yes
-        entryPoint      : KD.config.entryPoint
+        entryPoint      : globals.config.entryPoint
 
 
   handleRoute: (route, options = {}) ->
 
     @breadcrumb.push route
 
-    entryPoint = options.entryPoint or KD.config.entryPoint
+    entryPoint = options.entryPoint or globals.config.entryPoint
     frags      = route.split("?")[0].split "/"
 
     [_root, _slug, _content, _extra] = frags
@@ -40,11 +52,11 @@ class KodingRouter extends KDRouter
     else
       name = _slug
 
-    appManager = KD.getSingleton 'appManager'
+    appManager = kd.getSingleton 'appManager'
     if appManager.isAppInternal name
-      return KodingAppsController.loadInternalApp name, (err)=>
-        return warn err  if err
-        KD.utils.defer => @handleRoute route, options
+      return KodingAppsController.loadInternalApp name, (err, res) =>
+        return kd.warn err  if err
+        kd.utils.defer => @handleRoute route, options
 
     if entryPoint?.slug and entryPoint.type is "group"
       entrySlug = "/" + entryPoint.slug
@@ -59,7 +71,7 @@ class KodingRouter extends KDRouter
 
   openSection: (app, group, query) ->
 
-    {appManager} = KD.singletons
+    {appManager} = kd.singletons
     handleQuery = appManager.tell.bind appManager, app, "handleQuery", query
 
     appManager.once "AppCreated", handleQuery  unless appWasOpen = appManager.get app
@@ -74,14 +86,14 @@ class KodingRouter extends KDRouter
     status_301 = (redirectTarget)=>
       @handleRoute "/#{redirectTarget}", replaceState: yes
 
-    KD.remote.api.JUrlAlias.resolve route, (err, target)->
+    remote.api.JUrlAlias.resolve route, (err, target)->
       if err or not target?
       then status_404()
       else status_301 target
 
-  getDefaultRoute: -> if KD.isLoggedIn() then '/IDE' else '/Home'
+  getDefaultRoute: -> if isLoggedIn() then '/IDE' else '/Home'
 
-  setPageTitle: (title = 'Koding') -> document.title = Encoder.htmlDecode title
+  setPageTitle: (title = 'Koding') -> global.document.title = htmlencode.htmlDecode title
 
   openContent : (name, section, models, route, query, passOptions=no) ->
     method   = 'createContentDisplay'
@@ -96,7 +108,7 @@ class KodingRouter extends KDRouter
       options = {model:models, route, query}
 
     callback = =>
-      KD.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
+      kd.getSingleton("appManager").tell section, method, options ? models, (contentDisplay) =>
         unless contentDisplay
           console.warn 'no content display'
           return
@@ -105,14 +117,14 @@ class KodingRouter extends KDRouter
         @openRoutesById[contentDisplay.id] = routeWithoutParams
         contentDisplay.emit 'handleQuery', query
 
-    groupsController = KD.getSingleton('groupsController')
+    groupsController = kd.getSingleton('groupsController')
     currentGroup = groupsController.getCurrentGroup()
 
     # change group if necessary
     unless currentGroup
       groupName = if section is "Groups" then name else "koding"
       groupsController.changeGroup groupName, (err) =>
-        KD.showError err if err
+        showError err if err
         callback()
     else
       callback()
@@ -122,30 +134,30 @@ class KodingRouter extends KDRouter
     routeWithoutParams = route.split('?')[0]
 
     groupName = if section is "Groups" then name else "koding"
-    KD.getSingleton('groupsController').changeGroup groupName, (err) =>
-      KD.showError err if err
+    kd.getSingleton('groupsController').changeGroup groupName, (err) =>
+      showError err if err
       onSuccess = (models)=>
         @openContent name, section, models, route, query, passOptions
       onError   = (err)=>
-        KD.showError err
+        showError err
         @handleNotFound route
 
       if name and not slug
-        KD.remote.cacheable name, (err, models)=>
+        remote.cacheable name, (err, models)=>
           if models?
           then onSuccess models
           else onError err
       else
         # TEMP FIX: getting rid of the leading slash for the post slugs
         slashlessSlug = routeWithoutParams.slice(1)
-        KD.remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
+        remote.api.JName.one { name: slashlessSlug }, (err, jName)=>
           if err then onError err
           else if jName?
             models = []
             jName.slugs.forEach (aSlug, i)=>
               {constructorName, usedAsPath} = aSlug
               selector = {}
-              konstructor = KD.remote.api[constructorName]
+              konstructor = remote.api[constructorName]
               selector[usedAsPath] = aSlug.slug
               selector.group = aSlug.group if aSlug.group
               konstructor?.one selector, (err, model)=>
@@ -158,9 +170,11 @@ class KodingRouter extends KDRouter
 
   clear: (route, replaceState = yes) ->
     unless route
-      {entryPoint} = KD.config
-      route = if KD.isLoggedIn() and KD.isGroup() and not KD.isKoding()
-      then "/#{KD.config.entryPoint?.slug}"
+      {entryPoint} = globals.config
+      route = if isLoggedIn() and isGroup() and not isKoding()
+      then "/#{globals.config.entryPoint?.slug}"
       else '/'
 
     super route, replaceState
+
+

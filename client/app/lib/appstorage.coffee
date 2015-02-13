@@ -1,4 +1,7 @@
-class AppStorage extends KDObject
+whoami = require './util/whoami'
+kd = require 'kd'
+KDObject = kd.Object
+module.exports = class AppStorage extends KDObject
 
   constructor: (appId, version = '1.0')->
     @_applicationID = appId
@@ -11,9 +14,9 @@ class AppStorage extends KDObject
     [appId, version] = [@_applicationID, @_applicationVersion]
 
     if not @_storage or force
-      {mainController} = KD.singletons
+      {mainController} = kd.singletons
       mainController.ready =>
-        KD.whoami().fetchAppStorage {appId, version}, (error, storage) =>
+        whoami().fetchAppStorage {appId, version}, (error, storage) =>
           if not error and storage
             @_storage = storage
             callback? @_storage
@@ -22,7 +25,7 @@ class AppStorage extends KDObject
           else
             callback? null
     else
-      KD.utils.defer =>
+      kd.utils.defer =>
         callback? @_storage
         @emit "storageFetched"
         @emit "ready"
@@ -80,18 +83,5 @@ class AppStorage extends KDObject
     pack[_key] = value
     pack
 
-class AppStorageController extends KDController
 
-  constructor:->
-    super
-    @appStorages = {}
 
-  storage:(appName, version = "1.0")->
-    key = "#{appName}-#{version}"
-    @appStorages[key] or= new AppStorage appName, version
-    storage = @appStorages[key]
-    storage.fetchStorage()
-    return storage
-
-# Let people can use AppStorage
-KD.classes.AppStorage = AppStorage
