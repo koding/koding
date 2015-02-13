@@ -1,4 +1,13 @@
-class NotificationController extends KDObject
+kookies = require 'kookies'
+getGroup = require './util/getGroup'
+whoami = require './util/whoami'
+kd = require 'kd'
+KDModalView = kd.ModalView
+KDNotificationView = kd.NotificationView
+KDObject = kd.Object
+
+
+module.exports = class NotificationController extends KDObject
 
   subjectMap = ->
 
@@ -10,7 +19,7 @@ class NotificationController extends KDObject
 
     super
 
-    KD.getSingleton('mainController').on "AccountChanged", =>
+    kd.getSingleton('mainController').on "AccountChanged", =>
       @off 'NotificationHasArrived'
       @notificationChannel?.close().off()
       @notificationChannel?.off()
@@ -20,10 +29,10 @@ class NotificationController extends KDObject
 
     @notificationChannel = null
 
-    {realtime} = KD.singletons
+    {realtime} = kd.singletons
     realtime.subscribeNotification (err, @notificationChannel) =>
 
-      return warn "notification subscription error", err  if err
+      return kd.warn "notification subscription error", err  if err
 
       @notificationChannel.off()
       @notificationChannel.on 'message', (notification)=>
@@ -33,7 +42,7 @@ class NotificationController extends KDObject
           unless notification.context
             @emit notification.event, notification.contents
 
-          if notification.context is KD.getGroup().slug
+          if notification.context is getGroup().slug
             @emit notification.event, notification.contents
 
           else
@@ -47,7 +56,7 @@ class NotificationController extends KDObject
       deleteUserCookie()
 
     deleteUserCookie = ->
-      Cookies.expire 'clientId'
+      kookies.expire 'clientId'
 
     displayEmailConfirmedNotification = (modal)->
       modal.off "KDObjectWillBeDestroyed"
@@ -57,8 +66,8 @@ class NotificationController extends KDObject
       modal.destroy()
 
     @once 'EmailShouldBeConfirmed', ->
-      {firstName, nickname} = KD.whoami().profile
-      KD.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
+      {firstName, nickname} = whoami().profile
+      kd.getSingleton('appManager').tell 'Account', 'displayConfirmEmailModal', name, nickname, (modal)=>
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
@@ -81,10 +90,10 @@ class NotificationController extends KDObject
           """
         buttons       :
           "Refresh":
-            style     : "solid red medium"
-            callback  : (event) -> location.replace '/Login'
+            style     : "modal-clean-red"
+            callback  : (event) -> global.location.replace '/Login'
           "Close"     :
-            style     : "solid light-gray medium"
+            style     : "modal-clean-gray"
             callback  : (event) -> modal.destroy()
 
     @on 'UserBlocked', ({blockedDate}) ->
@@ -97,7 +106,7 @@ class NotificationController extends KDObject
           """
           <div class="modalformline">
             Hello,
-            This account has been put on suspension by Koding moderators due to violation of our <a href="https://koding.com/acceptable.html">acceptable use policy</a>. The ban will be in effect until <strong>#{blockedDate}</strong> at which time you will be able to log back in again. If you have any questions regarding this ban, please write to <a href='mailto:ban@koding.com?subject=Username: #{KD.whoami().profile.nickname}'>ban@koding.com</a> and allow 2-3 business days for us to research and reply. Even though your account is banned, all your data is safe and will be accessible once the ban is lifted.<br><br>
+            This account has been put on suspension by Koding moderators due to violation of our <a href="https://koding.com/acceptable.html">acceptable use policy</a>. The ban will be in effect until <strong>#{blockedDate}</strong> at which time you will be able to log back in again. If you have any questions regarding this ban, please write to <a href='mailto:ban@koding.com?subject=Username: #{whoami().profile.nickname}'>ban@koding.com</a> and allow 2-3 business days for us to research and reply. Even though your account is banned, all your data is safe and will be accessible once the ban is lifted.<br><br>
 
             Please note, repeated violations of our <a href="https://koding.com/acceptable.html">acceptable use policy</a> will result in the permanent deletion of your account.<br><br>
 
@@ -106,13 +115,13 @@ class NotificationController extends KDObject
           """
         buttons       :
           "Ok"        :
-            style     : "solid light-gray medium"
+            style     : "modal-clean-gray"
             callback  : (event) ->
-              Cookies.expire 'clientId'
+              kookies.expire 'clientId'
               modal.destroy()
-              location.reload yes
+              global.location.reload yes
 
       # If not clicked on "Ok", kick him out after 10 seconds
-      @utils.wait 10000, =>
-        Cookies.expire 'clientId'
-        location.reload yes
+      kd.utils.wait 10000, =>
+        kookies.expire 'clientId'
+        global.location.reload yes

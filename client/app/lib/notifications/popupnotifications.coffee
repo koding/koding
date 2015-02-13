@@ -1,8 +1,16 @@
-class PopupNotifications extends AvatarPopup
+kd = require 'kd'
+isLoggedIn = require '../util/isLoggedIn'
+AvatarPopup = require '../avatararea/avatarpopup'
+NotificationListController = require './notificationlistcontroller'
+NotificationListItemView = require './notificationlistitemview'
+PopupList = require '../avatararea/popuplist'
+
+
+module.exports = class PopupNotifications extends AvatarPopup
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'popup-notifications', options.cssClass
+    options.cssClass = kd.utils.curry 'popup-notifications', options.cssClass
 
     super options, data
 
@@ -30,17 +38,17 @@ class PopupNotifications extends AvatarPopup
 
     @attachListeners()
 
-    KD.getSingleton('mainController').on "AccountChanged", =>
+    kd.getSingleton('mainController').on "AccountChanged", =>
       @attachListeners()
 
   hide: ->
 
     super
 
-    if KD.isLoggedIn()
-      {notifications} = KD.singletons.socialapi
+    if isLoggedIn()
+      {notifications} = kd.singletons.socialapi
       notifications.glance {}, (err) =>
-        return warn err.error, err.description  if err
+        return kd.warn err.error, err.description  if err
 
         @listController.emit 'NotificationCountDidChange', 0
 
@@ -55,21 +63,23 @@ class PopupNotifications extends AvatarPopup
 
     @listController.removeAllItems()
 
-    if KD.isLoggedIn()
+    if isLoggedIn()
       # Fetch Notifications
       @listController.fetchNotificationTeasers (err, notifications)=>
-        return warn "Notifications cannot be received", err  if err
+        return kd.warn "Notifications cannot be received", err  if err
         @listController.instantiateListItems notifications
 
   attachListeners: ->
-    {notificationController} = KD.singletons
+    {notificationController} = kd.singletons
     notificationController.off 'NotificationHasArrived'
     notificationController.on 'NotificationHasArrived', ({event})=>
     #   # No need the following
     #   # @notificationsIcon.updateCount @notificationsIcon.count + 1 if event is 'ActivityIsAdded'
       if event is 'NotificationAdded'
         @listController.fetchNotificationTeasers (err, notifications)=>
-          return warn "Notifications cannot be received", err  if err
+          return kd.warn "Notifications cannot be received", err  if err
           @listController.removeAllItems()
           @listController.instantiateListItems notifications
+
+
 

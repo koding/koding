@@ -1,4 +1,19 @@
-class NotificationListItemView extends KDListItemView
+Promise = require 'bluebird'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDListItemView = kd.ListItemView
+KDNotificationView = kd.NotificationView
+KDTimeAgoView = kd.TimeAgoView
+groupifyLink = require '../util/groupifyLink'
+getFullnameFromAccount = require '../util/getFullnameFromAccount'
+remote = require('../remote').getInstance()
+whoami = require '../util/whoami'
+AvatarView = require '../commonviews/avatarviews/avatarview'
+JView = require '../jview'
+LinkGroup = require '../commonviews/linkviews/linkgroup'
+
+
+module.exports = class NotificationListItemView extends KDListItemView
 
   JView.mixin @prototype
 
@@ -27,7 +42,7 @@ class NotificationListItemView extends KDListItemView
     options.tagName        or= "a"
     options.linkGroupClass or= LinkGroup
     options.avatarClass    or= AvatarView
-    options.cssClass         = KD.utils.curry 'clearfix', options.cssClass
+    options.cssClass         = kd.utils.curry 'clearfix', options.cssClass
 
     super options, data
 
@@ -50,21 +65,19 @@ class NotificationListItemView extends KDListItemView
       @setTemplate @pistachio()
       @template.update()
     .catch (err) ->
-      warn err.description
+      kd.warn err.description
 
 
   updateHref: ->
 
-    { socialapi } = KD.singletons
+    { socialapi } = kd.singletons
 
     href = '#'
-
-    { groupifyLink } = KD.utils
 
     switch @getData().type
       when 'comment', 'like', 'mention'
         socialapi.message.byId { id: @getData().targetId }, (err, post) =>
-          return warn err  if err
+          return kd.warn err  if err
           @setAttribute 'href', groupifyLink "/Activity/Post/#{post.slug}"
       when 'follow'
         @setAttribute 'href', groupifyLink "/#{@actors.first.profile.nickname}"
@@ -74,14 +87,14 @@ class NotificationListItemView extends KDListItemView
 
   click: (event) ->
 
-    KD.utils.stopDOMEvent event
+    kd.utils.stopDOMEvent event
 
     showPost = (err, post)->
-      return warn err if err
+      return kd.warn err if err
       if post
         # TODO group slug must be prepended after groups are implemented
         # groupSlug = if post.group is "koding" then "" else "/#{post.group}"
-        KD.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
+        kd.singletons.router.handleRoute "/Activity/Post/#{post.slug}", { state: post }
       else
         new KDNotificationView
           title : "This post has been deleted!"
@@ -92,9 +105,9 @@ class NotificationListItemView extends KDListItemView
 
     switch @getData().type
       when "comment", "like", "mention"
-        {message} = KD.singletons.socialapi
+        {message} = kd.singletons.socialapi
         message.byId {id: @getData().targetId}, showPost
-      when "follow"        then router.handleRoute "/#{@actors[0].profile.nickname}"
+      when "follow"        then kd.singletons.router.handleRoute "/#{@actors[0].profile.nickname}"
       when "join", "leave" then return
 
 
@@ -114,7 +127,7 @@ class NotificationListItemView extends KDListItemView
     origins         = latestActors.map (id) -> {id, constructorName}
 
     new Promise (resolve, reject) =>
-      KD.remote.cacheable origins, (err, actors) =>
+      remote.cacheable origins, (err, actors) =>
         return reject err if err?
         @actors = actors
         @participants = new options.linkGroupClass {group: actors}
@@ -141,20 +154,20 @@ class NotificationListItemView extends KDListItemView
       data = @getData()
       adjective = ""
       if data.type in ['comment', 'like', 'mention']
-        {message} = KD.singletons.socialapi
+        {message} = kd.singletons.socialapi
         message.byId {id: data.targetId}, (err, message) =>
 
           return reject err  if err or not message
 
-          KD.remote.cacheable 'JAccount', message.account._id, (err, origin) =>
+          remote.cacheable 'JAccount', message.account._id, (err, origin) =>
             return reject err  if err or not origin
 
-            isMine     = message.account._id is KD.whoami().getId()
+            isMine     = message.account._id is whoami().getId()
             isTheirOwn = @actors.length is 1 and @actors[0].getId() is origin.getId()
 
             adjective = if isMine then "your"
             else if isTheirOwn then "their own"
-            else "#{KD.utils.getFullnameFromAccount origin}'s"
+            else "#{getFullnameFromAccount origin}'s"
 
             @activityPlot.updatePartial "#{adjective} #{@getActivityName()}"
             resolve()
@@ -176,5 +189,7 @@ class NotificationListItemView extends KDListItemView
       {{> @timeAgoView}}
     </div>
     """
+
+
 
 

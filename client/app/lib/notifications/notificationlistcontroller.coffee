@@ -1,4 +1,12 @@
-class NotificationListController extends KDListViewController
+showError = require '../util/showError'
+kd = require 'kd'
+KDListView = kd.ListView
+KDListViewController = kd.ListViewController
+KDView = kd.View
+NotificationListItemView = require './notificationlistitemview'
+
+
+module.exports = class NotificationListController extends KDListViewController
 
   constructor:(options, data)->
     options.itemClass           or= NotificationListItemView
@@ -21,12 +29,14 @@ class NotificationListController extends KDListViewController
     @forwardEvent @getListView(), 'AvatarPopupShouldBeHidden'
 
   fetchNotificationTeasers:(callback)->
-    {fetch} = KD.singletons.socialapi.notifications
+    {fetch} = kd.singletons.socialapi.notifications
     fetch {}, (err, notifications) =>
-      return KD.showError err if err?
-      return KD.showError 'Notifications could not be fetched'  unless notifications
+      return showError err if err?
+      return showError 'Notifications could not be fetched'  unless notifications
       @emit 'NotificationCountDidChange', notifications.unreadCount
       callback null, notifications.notifications
       @hideLazyLoader()
+
+
 
 
