@@ -1,4 +1,9 @@
-class GroupMembersPageListItemView extends MembersListItemView
+whoami = require 'app/util/whoami'
+MembersListItemView = require 'app/commonviews/memberslistitemview'
+FollowButton = require 'app/commonviews/followbutton'
+
+
+module.exports = class GroupMembersPageListItemView extends MembersListItemView
   constructor : (options = {}, data) ->
     options.cssClass     = "clearfix"
     options.avatar       =
@@ -8,7 +13,7 @@ class GroupMembersPageListItemView extends MembersListItemView
 
     super options, data
 
-    unless data.getId() is KD.whoami().getId()
+    unless data.getId() is whoami().getId()
       @followButton = new FollowButton
         style          : "solid green medium"
         title          : "follow"
@@ -27,3 +32,5 @@ class GroupMembersPageListItemView extends MembersListItemView
       , data
 
       @followButton.unsetClass 'follow-btn'
+
+

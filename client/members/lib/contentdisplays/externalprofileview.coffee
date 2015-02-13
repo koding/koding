@@ -1,17 +1,25 @@
-class ExternalProfileView extends JView
+kd = require 'kd'
+isMine = require 'app/util/isMine'
+JView = require 'app/jview'
+jspath = require 'jspath'
+
+
+module.exports = class ExternalProfileView extends JView
+
+  {warn} = kd
 
   constructor: (options, account) ->
 
     options.tagName  or= 'a'
     options.provider or= ''
-    options.cssClass   = KD.utils.curry "external-profile #{options.provider}", options.cssClass
+    options.cssClass   = kd.utils.curry "external-profile #{options.provider}", options.cssClass
     options.attributes = href : '#'
 
     super options, account
 
     @linked        = no
     {provider}     = @getOptions()
-    mainController = KD.getSingleton 'mainController'
+    mainController = kd.getSingleton 'mainController'
 
     mainController.on "ForeignAuthSuccess.#{provider}", @bound "setLinkedState"
 
@@ -43,10 +51,10 @@ class ExternalProfileView extends JView
       @linked = yes
       @setClass 'linked'
       @setAttributes
-        href   : JsPath.getAt storage.content, urlLocation
+        href   : jspath.getAt storage.content, urlLocation
         target : '_blank'
 
-      @setTooltip if KD.isMine(account)
+      @setTooltip if isMine(account)
       then title : "Go to my #{nicename} profile"
       else title : "Go to #{firstName}'s #{nicename} profile"
 
@@ -56,9 +64,9 @@ class ExternalProfileView extends JView
     return  if @linked
 
     {provider} = @getOptions()
-    if KD.isMine @parent.getData()
-      KD.utils.stopDOMEvent event
-      KD.singletons.oauthController.openPopup provider
+    if isMine @parent.getData()
+      kd.utils.stopDOMEvent event
+      kd.singletons.oauthController.openPopup provider
 
 
   pistachio:->
@@ -66,3 +74,5 @@ class ExternalProfileView extends JView
     """
     <span class="icon"></span>
     """
+
+

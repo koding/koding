@@ -1,4 +1,29 @@
-class ProfileView extends JView
+kd = require 'kd'
+globals = require 'globals'
+KDCustomHTMLView = kd.CustomHTMLView
+KDModalView = kd.ModalView
+KDNotificationView = kd.NotificationView
+ExternalProfileView = require './externalprofileview'
+ProfileContentEditableView = require './profilecontenteditableview'
+remote = require('app/remote').getInstance()
+globals = require 'globals'
+proxifyUrl = require 'app/util/proxifyUrl'
+checkFlag = require 'app/util/checkFlag'
+isMine = require 'app/util/isMine'
+whoami = require 'app/util/whoami'
+isGuest = require 'app/util/isGuest'
+MemberMailLink = require 'app/members/contentdisplays/membermaillink'
+JView = require 'app/jview'
+JCustomHTMLView = require 'app/jcustomhtmlview'
+FSHelper = require 'app/util/fs/fshelper'
+AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
+MetaInfoButtonView = require 'app/commonviews/metainfobuttonview'
+TrollButtonView = require 'app/commonviews/trollbuttonview'
+
+
+module.exports = class ProfileView extends JView
+
+  {log} = kd
 
   constructor: (options = {}, data) ->
 
@@ -6,11 +31,11 @@ class ProfileView extends JView
     super options, data
 
     @memberData    = @getData()
-    mainController = KD.getSingleton "mainController"
+    mainController = kd.getSingleton "mainController"
 
     if @memberData.isExempt
-      if not KD.checkFlag 'super-admin'
-        return KD.getSingleton('router').handleRoute "/Activity"
+      if not checkFlag 'super-admin'
+        return kd.getSingleton('router').handleRoute "/Activity"
 
     @firstName      = new ProfileContentEditableView
       tagName       : "span"
@@ -45,7 +70,7 @@ class ProfileView extends JView
       testPath      : "profile-bio"
       pistachio     : "{{#(profile.about) or ''}}"
       cssClass      : "location"
-      placeholder   : if KD.isMine @memberData then "Add your location" else ""
+      placeholder   : if isMine @memberData then "Add your location" else ""
       delegate      : this
       tabNavigation : yes
     , @memberData
@@ -58,7 +83,7 @@ class ProfileView extends JView
       input.setEditingMode on
       input.focus()
 
-    if @memberData.getId() is KD.whoami().getId()
+    if @memberData.getId() is whoami().getId()
       @firstName.on "NextTabStop",     => focus @lastName
       @firstName.on "PreviousTabStop", => focus @bio
       @lastName.on "NextTabStop",      => focus @bio
@@ -103,7 +128,7 @@ class ProfileView extends JView
 
     @avatar = new AvatarStaticView avatarOptions, @memberData
 
-    userDomain = @memberData.profile.nickname + "." + KD.config.userSitesDomain
+    userDomain = @memberData.profile.nickname + "." + globals.config.userSitesDomain
     @userHomeLink = new JCustomHTMLView
       tagName     : "a"
       cssClass    : "user-home-link"
@@ -112,7 +137,7 @@ class ProfileView extends JView
         target    : "_blank"
       pistachio   : userDomain
       click       : (event) =>
-        KD.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
+        kd.utils.stopDOMEvent event unless @memberData.onlineStatus is "online"
 
     nickname = @memberData.profile.nickname
 
@@ -123,7 +148,7 @@ class ProfileView extends JView
       pistachio   : "<span>{{ #(counts.followers) }}</span>Followers"
       click       : (event) =>
         event.preventDefault()
-        KD.getSingleton('router').handleRoute "/#{nickname}?filter=followers", {state: @memberData}
+        kd.getSingleton('router').handleRoute "/#{nickname}?filter=followers", {state: @memberData}
     , @memberData
 
     @following = new JView
@@ -133,7 +158,7 @@ class ProfileView extends JView
       pistachio   : "<span>{{ #(counts.following) }}</span>Following"
       click       : (event) =>
         event.preventDefault()
-        KD.getSingleton('router').handleRoute "/#{nickname}?filter=following", {state: @memberData}
+        kd.getSingleton('router').handleRoute "/#{nickname}?filter=following", {state: @memberData}
     , @memberData
 
     @likes = new JView
@@ -143,11 +168,11 @@ class ProfileView extends JView
       pistachio   : "<span>{{ #(counts.likes) }}</span>Likes"
       click       : (event) =>
         event.preventDefault()
-        KD.getSingleton('router').handleRoute "/#{nickname}?filter=likes", {state: @memberData}
+        kd.getSingleton('router').handleRoute "/#{nickname}?filter=likes", {state: @memberData}
     , @memberData
 
     @sendMessageLink = new KDCustomHTMLView
-    unless KD.isMine @memberData
+    unless isMine @memberData
       @sendMessageLink = new MemberMailLink {}, @memberData
 
     if @sendMessageLink instanceof MemberMailLink
@@ -162,9 +187,9 @@ class ProfileView extends JView
     @trollButton    = new KDCustomHTMLView
     @metaInfoButton = new KDCustomHTMLView
 
-    if KD.checkFlag('super-admin')
+    if checkFlag('super-admin')
 
-      unless KD.isMine @memberData
+      unless isMine @memberData
 
         @trollButton = new TrollButtonView
           style : 'solid medium red'
@@ -179,15 +204,15 @@ class ProfileView extends JView
     super
     @createExternalProfiles()
     @createBadges()
-    KD.utils.defer =>
-      return  unless KD.isMine @memberData
+    kd.utils.defer =>
+      return  unless isMine @memberData
       @firstName.setPlaceholder()  unless @firstName.getValue()
       @lastName.setPlaceholder()   unless @lastName.getValue()
       @bio.setPlaceholder()        unless @bio.getValue()
 
   uploadAvatar: (avatarData, callback)->
     FSHelper.s3.upload "avatar.png", avatarData, "user", "", (err, url)=>
-      resized = KD.utils.proxifyUrl url,
+      resized = proxifyUrl url,
         crop: true, width: 300, height: 300
 
       @memberData.modify "profile.avatar": [url, +new Date()].join("?"), callback
@@ -197,8 +222,8 @@ class ProfileView extends JView
 
   createExternalProfiles:->
 
-    appManager         = KD.getSingleton 'appManager'
-    {externalProfiles} = KD.config
+    appManager         = kd.getSingleton 'appManager'
+    {externalProfiles} = globals.config
 
     for own provider, options of externalProfiles
       @["#{provider}View"]?.destroy()
@@ -234,21 +259,21 @@ class ProfileView extends JView
         duration : 2500
 
   cancel:(event)->
-    KD.utils.stopDOMEvent event  if event
+    kd.utils.stopDOMEvent event  if event
     @memberData.emit "update"
 
   fetchAutoCompleteForToField: (inputValue, blacklist, callback) ->
-    KD.remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts) ->
+    remote.api.JAccount.byRelevance inputValue,{blacklist},(err,accounts) ->
       callback accounts
 
   fetchAutoCompleteDataForTags:(inputValue, blacklist, callback) ->
-    KD.remote.api.JTag.byRelevanceForSkills inputValue, {blacklist}, (err, tags) ->
+    remote.api.JTag.byRelevanceForSkills inputValue, {blacklist}, (err, tags) ->
       unless err
         callback? tags
       else
         log "there was an error fetching topics #{err.message}"
 
-  # FIXME: this should be taken to inbox app controller using KD.getSingleton("appManager").tell
+  # FIXME: this should be taken to inbox app controller using kd.getSingleton("appManager").tell
   prepareMessage: (formOutput, callback) ->
     {body, subject, recipients} = formOutput
     to = recipients.join ' '
@@ -261,11 +286,11 @@ class ProfileView extends JView
       callback? err, message
 
   sendMessage: (messageDetails, callback) ->
-    if KD.isGuest()
+    if isGuest()
       return new KDNotificationView
         title: "Sending chat message for guests not allowed"
 
-    KD.remote.api.JPrivateMessage.create messageDetails, callback
+    remote.api.JPrivateMessage.create messageDetails, callback
 
   putNick: (nick) -> "@#{nick}"
 
@@ -301,3 +326,5 @@ class ProfileView extends JView
         </div>
       </main>
     """
+
+

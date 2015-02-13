@@ -1,18 +1,27 @@
-class MembersAppController extends AppController
+kd = require 'kd'
+KDListViewController = kd.ListViewController
+KDView = kd.View
+MemberActivityListController = require './memberactivitylistcontroller'
+ContentDisplayScrollableView = require './contentdisplays/contentdisplayscrollableview'
+GroupMembersPageListItemView = require './groupmemberspagelistitemview'
+ProfileView = require './contentdisplays/profileview'
+remote = require('app/remote').getInstance()
+globals = require 'globals'
+getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
+getGroup = require 'app/util/getGroup'
+mixpanel = require 'app/util/mixpanel'
+whoami = require 'app/util/whoami'
+isMine = require 'app/util/isMine'
+AppController = require 'app/appcontroller'
+ActivityListItemView = require 'activity/views/activitylistitemview'
+FilterLinksView = require 'activity/views/filterlinksview'
 
-  KD.registerAppClass this,
-    name         : "Members"
-  #   routes       :
-  #     "/:name?/Members" : ({params, query}) ->
-  #       {router, appManager} = KD.singletons
-  #       KD.getSingleton('groupsController').ready ->
-  #         group = KD.getGroup()
-  #         KD.getSingleton("appManager").tell 'Members', 'createContentDisplay', group, (contentDisplay) ->
-  #           contentDisplay.emit "handleQuery", {filter: "members"}
 
-  #   hiddenHandle : yes
+module.exports = class MembersAppController extends AppController
 
-  {externalProfiles} = KD.config
+  @options = name  : 'Members'
+
+  {externalProfiles} = globals.config
 
   constructor:(options = {}, data)->
     options.view    = new KDView
@@ -20,16 +29,16 @@ class MembersAppController extends AppController
     options.appInfo =
       name          : 'Members'
 
-    @appManager = KD.getSingleton "appManager"
+    @appManager = kd.getSingleton "appManager"
 
     super options, data
 
     @once "MemberListLoaded", ->
-      KD.mixpanel "Load member list, success"
+      mixpanel "Load member list, success"
 
   createContentDisplay:(model, callback=->)->
-    KD.singletons.appManager.setFrontApp this
-    {JAccount} = KD.remote.api
+    kd.singletons.appManager.setFrontApp this
+    {JAccount} = remote.api
     type = if model instanceof JAccount then "profile" else "members"
 
     contentDisplay = new KDView
@@ -40,9 +49,9 @@ class MembersAppController extends AppController
       @ready => @feedController?.handleQuery? query
 
     contentDisplay.once 'KDObjectWillBeDestroyed', ->
-      KD.singleton('appManager').tell 'Activity', 'resetProfileLastTo'
+      kd.singleton('appManager').tell 'Activity', 'resetProfileLastTo'
 
-    KD.getSingleton('groupsController').ready =>
+    kd.getSingleton('groupsController').ready =>
       contentDisplay.$('div.lazy').remove()
       if type is "profile"
         @createProfileView contentDisplay, model
@@ -54,7 +63,7 @@ class MembersAppController extends AppController
         default    : 'Posts'
 
       @showContentDisplay contentDisplay
-      @utils.defer -> callback contentDisplay
+      kd.utils.defer -> callback contentDisplay
 
   createProfileView: (contentDisplay, model)->
     @prepareProfileView model, (profileView)=>
@@ -63,27 +72,29 @@ class MembersAppController extends AppController
         contentDisplay.addSubView feederView
 
   createGroupMembersView: (contentDisplay)->
-    contentDisplay.addSubView new HeaderViewSection
-      title    : "Members"
-      type     : "big"
-    @prepareFeederView KD.whoami(), (feederView)->
+    # assuming, not being used - sy
+
+    # contentDisplay.addSubView new HeaderViewSection
+    #   title    : "Members"
+    #   type     : "big"
+    @prepareFeederView whoami(), (feederView)->
       contentDisplay.addSubView feederView
 
   prepareFeederView:(account, callback)->
-    windowController = KD.getSingleton('windowController')
+    windowController = kd.getSingleton('windowController')
 
-    if KD.isMine account
+    if isMine account
       owner   = "you"
       auxVerb =
         have : "have"
         be   : "are"
     else
-      owner = KD.utils.getFullnameFromAccount account
+      owner = getFullnameFromAccount account
       auxVerb =
         have : "has"
         be   : "is"
 
-    KD.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
+    kd.getSingleton("appManager").tell 'Feeder', 'createContentFeedController', {
       itemClass             : ActivityListItemView
       listControllerClass   : MemberActivityListController
       listCssClass          : "activity-related"
@@ -96,7 +107,7 @@ class MembersAppController extends AppController
           noItemFoundText   : "#{owner} #{auxVerb.have} not shared any posts yet."
           dataSource        : (selector, options = {}, callback)=>
             options.targetId = account.socialApiId
-            KD.singletons.socialapi.channel.fetchProfileFeed options, callback
+            kd.singletons.socialapi.channel.fetchProfileFeed options, callback
         followers           :
           loggedInOnly      : yes
           itemClass         : GroupMembersPageListItemView
@@ -104,7 +115,7 @@ class MembersAppController extends AppController
           listCssClass      : "member-related"
           noItemFoundText   : "No one is following #{owner} yet."
           dataSource        : (selector, options, callback)=>
-            options.groupId or= KD.getGroup().getId()
+            options.groupId or= getGroup().getId()
             account.fetchFollowersWithRelationship selector, options, callback
         following           :
           loggedInOnly      : yes
@@ -113,7 +124,7 @@ class MembersAppController extends AppController
           listCssClass      : "member-related"
           noItemFoundText   : "#{owner} #{auxVerb.be} not following anyone."
           dataSource        : (selector, options, callback)=>
-            options.groupId or= KD.getGroup().getId()
+            options.groupId or= getGroup().getId()
             account.fetchFollowingWithRelationship selector, options, callback
         likes               :
           loggedInOnly      : yes
@@ -127,7 +138,7 @@ class MembersAppController extends AppController
           listCssClass       : "member-related"
           title              : ""
           dataSource         : (selector, options, callback)=>
-            group = KD.getGroup()
+            group = getGroup()
             group.fetchMembers selector, options, (err, res)=>
               @emit "MemberListLoaded"  unless err
               callback err, res
@@ -158,10 +169,10 @@ class MembersAppController extends AppController
       tagName    : 'aside'
       cssClass   : "app-sidebar clearfix"
 
-    if KD.isMine member
-      options.cssClass = KD.utils.curry "own-profile", options.cssClass
+    if isMine member
+      options.cssClass = kd.utils.curry "own-profile", options.cssClass
     else
-      options.bind = "mouseenter" unless KD.isMine member
+      options.bind = "mouseenter" unless isMine member
 
     callback new ProfileView options, member
 
@@ -172,7 +183,7 @@ class MembersAppController extends AppController
 
     @forwardEvent view, 'LazyLoadThresholdReached'
 
-    KD.singleton('display').emit "ContentDisplayWantsToBeShown", view
+    kd.singleton('display').emit "ContentDisplayWantsToBeShown", view
     return contentDisplay
 
   fetchFeedForHomePage:(callback)->
@@ -181,7 +192,7 @@ class MembersAppController extends AppController
       skip   : 0
       sort   : "meta.modifiedAt" : -1
     selector = {}
-    KD.remote.api.JAccount.someWithRelationship selector, options, callback
+    remote.api.JAccount.someWithRelationship selector, options, callback
 
   fetchSomeMembers:(options = {}, callback)->
 
@@ -194,7 +205,7 @@ class MembersAppController extends AppController
 
     delete options.selector if options.selector
 
-    KD.remote.api.JAccount.byRelevance selector, options, callback
+    remote.api.JAccount.byRelevance selector, options, callback
 
 
   fetchExternalProfiles:(account, callback)->
@@ -202,8 +213,3 @@ class MembersAppController extends AppController
     whitelist = Object.keys(externalProfiles).slice().map (a)-> "ext|profile|#{a}"
     account.fetchStorages  whitelist, callback
 
-class MemberActivityListController extends ActivityListController
-  # used for filtering received live updates
-  addItem: (activity, index, animation)->
-    if activity.account._id is @getOptions().creator.getId()
-      super activity, index, animation
