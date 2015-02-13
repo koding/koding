@@ -58,7 +58,7 @@ do ->
   filterOwnWorkspaces = (callback) ->
 
     callback KD.userWorkspaces.filter (workspace) ->
-      workspace.originId is KD.whoami()._id
+      workspace?.originId is KD.whoami()._id
 
 
   selectWorkspaceOnSidebar = (data) ->
