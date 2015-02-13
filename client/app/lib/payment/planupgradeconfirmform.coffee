@@ -1,6 +1,20 @@
-class PlanUpgradeConfirmForm extends PaymentConfirmForm
+sinkrow = require 'sinkrow'
+kd = require 'kd'
+KDButtonBar = kd.ButtonBar
+KDView = kd.View
+KDCustomHTMLView = kd.CustomHTMLView
+KDLabelView = kd.LabelView
+KDInputRadioGroup = kd.InputRadioGroup
+showError = require '../util/showError'
+GenericPlanView = require './genericplanview'
+PaymentConfirmForm = require './paymentconfirmform'
+formatMoney = require 'app/util/formatMoney'
+
+
+module.exports = class PlanUpgradeConfirmForm extends PaymentConfirmForm
+
   constructor: (options = {}, data) ->
-    options.cssClass = KD.utils.curry "plan-upgrade-confirm-form", options.cssClass
+    options.cssClass = kd.utils.curry "plan-upgrade-confirm-form", options.cssClass
     super options, data
     @coupons = {}
 
@@ -100,13 +114,13 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     discount.addSubView new KDLabelView title: "Discount"
     discount.addSubView @discount = new KDCustomHTMLView
       tagName  : "span"
-      partial  : @utils.formatMoney discountInCents / 100
+      partial  : formatMoney discountInCents / 100
 
     totalWrapper.addSubView subtotal = new KDCustomHTMLView cssClass: "subtotal"
     subtotal.addSubView new KDLabelView title: "Subtotal"
     subtotal.addSubView @subtotal = new KDCustomHTMLView
       tagName  : "span"
-      partial  : (@getData().productData.plan.feeAmount - @utils.formatMoney discountInCents) / 100
+      partial  : (@getData().productData.plan.feeAmount - formatMoney discountInCents) / 100
 
     couponOptions.setDefaultValue "discount"
     @changeCouponOption "discount"
@@ -121,18 +135,17 @@ class PlanUpgradeConfirmForm extends PaymentConfirmForm
     {discountType, discountInCents} = @coupons[code]
     switch discountType
       when "dollars"
-        @discount.updatePartial @utils.formatMoney discountInCents / 100
-        @subtotal.updatePartial @utils.formatMoney (@getData().productData.plan.feeAmount - discountInCents) / 100
+        @discount.updatePartial formatMoney discountInCents / 100
+        @subtotal.updatePartial formatMoney (@getData().productData.plan.feeAmount - discountInCents) / 100
 
   fetchCoupons: (plan, codes, callback) ->
-    {dash} = Bongo
     queue = codes.map (code) =>
       =>
         plan.fetchCoupon code, (err, coupon) =>
-          return  if KD.showError err
+          return  if showError err
           @coupons[code] = coupon
           queue.fin()
-    dash queue, callback
+    sinkrow.dash queue, callback
 
   pistachio: ->
     """

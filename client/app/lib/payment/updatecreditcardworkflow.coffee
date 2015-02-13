@@ -1,10 +1,15 @@
-class UpdateCreditCardWorkflow extends KDController
+kd = require 'kd'
+KDController = kd.Controller
+CreditCardModal = require './creditcardmodal'
+
+
+module.exports = class UpdateCreditCardWorkflow extends KDController
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    KD.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
+    kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
 
   start: ->
@@ -46,7 +51,7 @@ class UpdateCreditCardWorkflow extends KDController
 
   updateCreditCard: (token) ->
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.updateCreditCard token, (err, result) =>
 
@@ -59,7 +64,7 @@ class UpdateCreditCardWorkflow extends KDController
 
     initiatorView = @getDelegate()
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.creditCard (err, card) =>
 
@@ -70,5 +75,4 @@ class UpdateCreditCardWorkflow extends KDController
       initiatorView.state.paymentMethod = card
 
       @modal.destroy()
-
 

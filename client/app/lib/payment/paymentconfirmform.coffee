@@ -1,4 +1,8 @@
-class PaymentConfirmForm extends JView
+JView = require '../jview'
+kd = require 'kd'
+KDButtonBar = kd.ButtonBar
+
+module.exports = class PaymentConfirmForm extends JView
 
   constructor: (options = {}, data) ->
     super options, data

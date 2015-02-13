@@ -1,8 +1,14 @@
-class PaymentChoiceForm extends KDView
+kd = require 'kd'
+KDView = kd.View
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+PaymentMethodView = require './paymentmethodview'
+
+module.exports = class PaymentChoiceForm extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "pricing-payment-choice clearfix", options.cssClass
+    options.cssClass = kd.utils.curry "pricing-payment-choice clearfix", options.cssClass
     options.name     = 'method'
 
     super options, data

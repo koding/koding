@@ -1,7 +1,15 @@
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+PaymentBaseModal = require './paymentbasemodal'
+PaymentForm = require './paymentform'
+PaymentConstants = require './constants'
+showError = require '../util/showError'
+
+
 # This class is the modal view.
 # Shows the payment form and the result of
 # the process, (e.g validation errors etc)
-class PaymentModal extends PaymentBaseModal
+module.exports = class PaymentModal extends PaymentBaseModal
 
   { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
 
@@ -16,9 +24,9 @@ class PaymentModal extends PaymentBaseModal
 
     { state } = options
 
-    @state = KD.utils.extend @getInitialState(), state
+    @state = kd.utils.extend @getInitialState(), state
 
-    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
+    operation = PaymentConstants.getOperation @state.currentPlan, @state.planTitle
 
     if @state.subscriptionState is 'expired'
       options.title = 'Reactivate your account'
@@ -58,7 +66,7 @@ class PaymentModal extends PaymentBaseModal
     @on 'PaymentFailed',                 @bound 'handleError'
     @on 'PaymentSucceeded',              @bound 'handleSuccess'
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.on 'PaypalRequestFinished', @bound 'handlePaypalResponse'
 
@@ -73,15 +81,15 @@ class PaymentModal extends PaymentBaseModal
 
     @form.paypalForm.buttons['paypal'].hideLoader()
 
-    return KD.showError err  if err
+    return showError err  if err
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.subscriptions (err, subscription) =>
 
-      return KD.showError err  if err
+      return showError err  if err
 
-      @state = KD.utils.extend @state, subscription
+      @state = kd.utils.extend @state, subscription
 
       @handleSuccess()
 
@@ -108,14 +116,14 @@ class PaymentModal extends PaymentBaseModal
   handleError: (error) ->
 
     msg = error?.description or error?.message or "Something went wrong."
-    KD.showError msg
+    showError msg
 
 
   handleSuccess: ->
 
     { currentPlan, planTitle } = @state
 
-    operation = PaymentWorkflow.getOperation currentPlan, planTitle
+    operation = PaymentConstants.getOperation currentPlan, planTitle
 
     switch operation
       when UPGRADE
@@ -130,4 +138,3 @@ class PaymentModal extends PaymentBaseModal
 
     @once 'KDModalViewDestroyed', =>
       @emit 'PaymentWorkflowFinished', @state
-

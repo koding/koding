@@ -1,12 +1,15 @@
-class PaypalFormView extends KDFormViewWithFields
+globals = require 'globals'
+kd = require 'kd'
+KDFormViewWithFields = kd.FormViewWithFields
+module.exports = class PaypalFormView extends KDFormViewWithFields
 
-  getInitialState: -> KD.utils.dict()
+  getInitialState: -> kd.utils.dict()
 
   constructor: (options = {}, data) ->
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
-    options.cssClass = KD.utils.curry 'paypal-form', options.cssClass
+    options.cssClass = kd.utils.curry 'paypal-form', options.cssClass
     options.fields = @getFields()
 
     super options, data
@@ -21,13 +24,13 @@ class PaypalFormView extends KDFormViewWithFields
 
     { planTitle, planInterval } = @state
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.getPaypalToken planTitle, planInterval, (err, token) =>
 
       @state.token = token
 
-      actionUrl = "#{KD.config.paypal.formUrl}?token=#{token}"
+      actionUrl = "#{globals.config.paypal.formUrl}?token=#{token}"
       @setAttribute 'action', actionUrl
       @setAttribute 'method', 'post'
 
@@ -44,4 +47,6 @@ class PaypalFormView extends KDFormViewWithFields
       defaultValue: @state.planInterval
       type: 'hidden'
       cssClass: 'hidden'
+
+
 

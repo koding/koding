@@ -10,28 +10,20 @@
 # planTitle  : string (see PaymentConstants.planTitle)
 # monthPrice : int (e.g 1900 for $19)
 # yearPrice  : int (e.g 19000 for $190)
-class PaymentWorkflow extends KDController
+
+kd = require 'kd'
+KDController = kd.Controller
+PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
+PaymentConstants = require './constants'
+PaymentModal = require './paymentmodal'
+whoami = require '../util/whoami'
+showError = require '../util/showError'
+
+
+module.exports = class PaymentWorkflow extends KDController
 
   { TOO_MANY_ATTEMPT_BLOCK_KEY,
     TOO_MANY_ATTEMPT_BLOCK_DURATION } = PaymentConstants
-
-  @getOperation = (current, selected) ->
-
-    arr = [
-      PaymentConstants.planTitle.FREE
-      PaymentConstants.planTitle.HOBBYIST
-      PaymentConstants.planTitle.DEVELOPER
-      PaymentConstants.planTitle.PROFESSIONAL
-    ]
-
-    current  = arr.indexOf current
-    selected = arr.indexOf selected
-
-    return switch
-      when selected >  current then PaymentConstants.operation.UPGRADE
-      when selected is current then PaymentConstants.operation.INTERVAL_CHANGE
-      when selected <  current then PaymentConstants.operation.DOWNGRADE
-
 
   getInitialState: -> {
     failedAttemptCount : 0
@@ -42,18 +34,18 @@ class PaymentWorkflow extends KDController
 
     super options, data
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
-    KD.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
+    kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
 
   start: ->
 
-    operation = PaymentWorkflow.getOperation @state.currentPlan, @state.planTitle
+    operation = PaymentConstants.getOperation @state.currentPlan, @state.planTitle
 
     @state.operation = operation
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.canUserPurchase (err, canPurchase) =>
 
@@ -82,7 +74,7 @@ class PaymentWorkflow extends KDController
     humanReadable = PaymentConstants.error[message]
     err.message   = humanReadable  if humanReadable
 
-    KD.showError err
+    showError err
     @modal?.form.submitButton.hideLoader()
 
 
@@ -92,7 +84,7 @@ class PaymentWorkflow extends KDController
     @modal.on 'PaymentWorkflowFinished',          @bound 'finish'
     @modal.on 'PaymentWorkflowFinishedWithError', @bound 'finishWithError'
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     @modal.on 'PaymentSubmitted', (formData) =>
       paymentController.canUserPurchase (err, confirmed) =>
@@ -105,7 +97,7 @@ class PaymentWorkflow extends KDController
 
   startDowngradeFlow: ->
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.canChangePlan @state.planTitle, (err) =>
 
@@ -140,10 +132,10 @@ class PaymentWorkflow extends KDController
     binNumber = cardNumber.slice 0, 6
     lastFour  = cardNumber.slice -4
 
-    KD.utils.defer ->
-      KD.singletons.paymentController.logOrder {
+    kd.utils.defer ->
+      kd.singletons.paymentController.logOrder {
         planTitle, planAmount, binNumber, lastFour, cardName
-      }, noop
+      }, kd.noop
 
     { KODING, STRIPE } = PaymentConstants.provider
 
@@ -183,9 +175,9 @@ class PaymentWorkflow extends KDController
 
   subscribeToPlan: (planTitle, planInterval, token, options) ->
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
-    me = KD.whoami()
+    me = whoami()
     me.fetchEmail (err, email) =>
 
       return @showError err  if err
@@ -206,14 +198,14 @@ class PaymentWorkflow extends KDController
 
   failedAttemptLimitReached: (blockUser = yes)->
 
-    KD.utils.defer => @blockUserForTooManyAttempts()  if blockUser
+    kd.utils.defer => @blockUserForTooManyAttempts()  if blockUser
 
     @modal.emit 'FailedAttemptLimitReached'
 
 
   blockUserForTooManyAttempts: ->
 
-    { appStorageController } = KD.singletons
+    { appStorageController } = kd.singletons
 
     pricingStorage = appStorageController.storage 'Pricing', '2.0.0'
 
@@ -224,7 +216,11 @@ class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
+    initiatorView = @getDelegate()
+
     @emit 'PaymentWorkflowFinishedSuccessfully', state
+
+    initiatorView.state.currentPlan = state.currentPlan
 
     @modal.destroy()
 
@@ -234,5 +230,3 @@ class PaymentWorkflow extends KDController
     @emit 'PaymentWorkflowFinishedWithError', state
 
     @destroy()
-
-

@@ -1,8 +1,13 @@
-class PaymentMethodView extends JView
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+JView = require '../jview'
+
+module.exports = class PaymentMethodView extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass    = KD.utils.curry "payment-method", options.cssClass
+    options.cssClass    = kd.utils.curry "payment-method", options.cssClass
     options.editLink   ?= no
     options.removeLink ?= no
 
@@ -75,7 +80,7 @@ class PaymentMethodView extends JView
     # let's just use visa, and don't show it anywhere. ~U
     cardType = 'visa'
 
-    type = KD.utils.slugify(cardType).toLowerCase()
+    type = kd.utils.slugify(cardType).toLowerCase()
     @setClass type
 
     numberPrefix = if type is 'american-express'

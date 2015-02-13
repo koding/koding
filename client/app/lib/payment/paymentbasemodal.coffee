@@ -1,9 +1,11 @@
-class PaymentBaseModal extends KDModalView
+kd = require 'kd'
+KDModalView = kd.ModalView
+module.exports = class PaymentBaseModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
     options.width    = 515
-    options.cssClass = KD.utils.curry 'payment-modal', options.cssClass
+    options.cssClass = kd.utils.curry 'payment-modal', options.cssClass
     options.overlay  = yes
 
     super options, data
@@ -15,4 +17,6 @@ class PaymentBaseModal extends KDModalView
   initViews: ->
 
   initEvents: ->
+
+
 

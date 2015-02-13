@@ -1,15 +1,21 @@
-class PaymentDowngradeErrorModal extends PaymentBaseModal
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+PaymentBaseModal = require './paymentbasemodal'
 
-  getInitialState: -> KD.utils.dict()
+
+module.exports = class PaymentDowngradeErrorModal extends PaymentBaseModal
+
+  getInitialState: -> kd.utils.dict()
 
   constructor: (options = {}, data) ->
 
     { state } = options
 
-    @state = KD.utils.extend @getInitialState(), state
+    @state = kd.utils.extend @getInitialState(), state
 
     options.title    = 'Downgrading isn\'t possible'
-    options.cssClass = KD.utils.curry 'downgrade-error-modal', options.cssClass
+    options.cssClass = kd.utils.curry 'downgrade-error-modal', options.cssClass
 
     super options, data
 
@@ -36,5 +42,7 @@ class PaymentDowngradeErrorModal extends PaymentBaseModal
       cssClass : 'submit-btn'
       partial  : 'CLOSE'
       callback : @bound 'cancel'
+
+
 
 

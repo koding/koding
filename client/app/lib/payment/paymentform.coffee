@@ -8,7 +8,19 @@
 # either refactor those to another type of check,
 # or seperate places where we are checking for free plan
 # from the rest. ~Umut
-class PaymentForm extends JView
+
+
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDButtonView = kd.ButtonView
+JView = require '../jview'
+PaymentConstants = require './constants'
+PaypalFormView = require './paypalformview'
+StripeFormView = require './stripeformview'
+nick = require '../util/nick'
+
+
+module.exports = class PaymentForm extends JView
 
   { UPGRADE, DOWNGRADE, INTERVAL_CHANGE } = PaymentConstants.operation
 
@@ -20,13 +32,13 @@ class PaymentForm extends JView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'payment-form-wrapper', options.cssClass
+    options.cssClass = kd.utils.curry 'payment-form-wrapper', options.cssClass
 
     super options, data
 
     { state } = @getOptions()
 
-    @state = KD.utils.extend @getInitialState(), state
+    @state = kd.utils.extend @getInitialState(), state
 
     @isInputValidMap = {}
 
@@ -130,7 +142,7 @@ class PaymentForm extends JView
     { KODING } = PaymentConstants.provider
     { currentPlan, planTitle, planInterval, provider, paymentMethod } = @state
 
-    operation = PaymentWorkflow.getOperation currentPlan, planTitle
+    operation = PaymentConstants.getOperation currentPlan, planTitle
 
     @yearPriceMessage.hide()  if planInterval is MONTH
     @yearPriceMessage.hide()  if operation is PaymentConstants.operation.INTERVAL_CHANGE
@@ -156,7 +168,7 @@ class PaymentForm extends JView
   initForm: ->
 
     { cssClass } = @getOptions()
-    cssClass     = KD.utils.curry cssClass, 'hidden'
+    cssClass     = kd.utils.curry cssClass, 'hidden'
 
     return new StripeFormView
       state    : @state
@@ -296,7 +308,7 @@ class PaymentForm extends JView
       @$('.summary')
     ].forEach (element) -> element.detach()
 
-    subject = "User: #{KD.nick()} blocked from upgrades due to too many failed attempts"
+    subject = "User: #{nick()} blocked from upgrades due to too many failed attempts"
     body = "Plan Name: #{@state.planTitle}, Plan Interval: #{@state.planInterval}"
 
     @successMessage.updatePartial "
@@ -340,4 +352,3 @@ class PaymentForm extends JView
     {{> @paypalForm}}
     {{> @securityNote}}
     """
-

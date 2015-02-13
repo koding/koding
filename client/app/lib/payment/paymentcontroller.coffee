@@ -1,8 +1,26 @@
-class PaymentController extends KDController
+sinkrow = require 'sinkrow'
+$ = require 'jquery'
+getGroup = require '../util/getGroup'
+remote = require('../remote').getInstance()
+whoami = require '../util/whoami'
+showError = require '../util/showError'
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDController = kd.Controller
+KDModalView = kd.ModalView
+KDNotificationView = kd.NotificationView
+JView = require '../jview'
+PaymentWorkflow = require './paymentworkflow'
+SubscriptionView = require './subscriptionview'
+PaymentFormModal = require './paymentformmodal'
+PlanUpgradeConfirmForm = require './planupgradeconfirmform'
+
+
+module.exports = class PaymentController extends KDController
 
   DEFAULT_PROVIDER = 'stripe'
 
-  api: -> KD.remote.api.Payment
+  api: -> remote.api.Payment
 
 
   subscribe: (token, planTitle, planInterval, options, callback) ->
@@ -79,10 +97,9 @@ class PaymentController extends KDController
 
   fetchPaymentMethods: (callback) ->
 
-    {dash}                 = Bongo
     methods                = null
     preferredPaymentMethod = null
-    {appStorageController} = KD.singletons
+    {appStorageController} = kd.singletons
     appStorage             = appStorageController.storage 'Account', '1.0'
 
     queue      = [
@@ -91,12 +108,12 @@ class PaymentController extends KDController
         preferredPaymentMethod = appStorage.getValue 'preferredPaymentMethod'
         queue.fin()
 
-      => KD.whoami().fetchPaymentMethods (err, paymentMethods) ->
+      => whoami().fetchPaymentMethods (err, paymentMethods) ->
         methods = paymentMethods
         queue.fin err
     ]
 
-    dash queue, (err) -> callback err, {
+    sinkrow.dash queue, (err) -> callback err, {
       preferredPaymentMethod
       methods
       appStorage
@@ -118,7 +135,7 @@ class PaymentController extends KDController
         @emit 'PaymentDataChanged'
 
   removePaymentMethod: (paymentMethodId, callback) ->
-    { JPayment } = KD.remote.api
+    { JPayment } = remote.api
     JPayment.removePaymentMethod paymentMethodId, (err) =>
       return callback err  if err
       @emit 'PaymentDataChanged'
@@ -133,10 +150,10 @@ class PaymentController extends KDController
       callback null
 
     fetchSubscription = (type, planCode, callback) ->
-      { JPaymentSubscription } = KD.remote.api
+      { JPaymentSubscription } = remote.api
 
       if type is 'group'
-        KD.getGroup().checkPayment (err, subs) =>
+        getGroup().checkPayment (err, subs) =>
           findActiveSubscription subs, planCode, callback
       else
         JPaymentSubscription.fetchUserSubscriptions (err, subs) ->
@@ -144,17 +161,17 @@ class PaymentController extends KDController
 
   fetchPlanByCode: (planCode, callback) ->
 
-    { JPaymentPlan } = KD.remote.api
+    { JPaymentPlan } = remote.api
 
     JPaymentPlan.fetchPlanByCode planCode, callback
 
   fetchPaymentInfo: (type, callback) ->
 
-    { JPaymentPlan } = KD.remote.api
+    { JPaymentPlan } = remote.api
 
     switch type
       when 'group', 'expensed'
-        KD.getGroup().fetchPaymentInfo callback
+        getGroup().fetchPaymentInfo callback
       when 'user'
         JPaymentPlan.fetchAccountDetails callback
 
@@ -171,7 +188,7 @@ class PaymentController extends KDController
       timeout : 5000
 
   updatePaymentInfo: (paymentMethodId = null, paymentMethod, callback) ->
-    {JPayment} = KD.remote.api
+    {JPayment} = remote.api
     paymentMethod[key] = value.trim()  for own key, value of paymentMethod
     JPayment.setPaymentInfo paymentMethodId, paymentMethod, callback
 
@@ -185,7 +202,7 @@ class PaymentController extends KDController
       callback     : ->
         parent   or= @parent
         parent.emit "Cancel"
-        KD.singleton("router").handleRoute "/Pricing"
+        kd.singleton("router").handleRoute "/Pricing"
 
     return new JView
       pistachioParams:
@@ -217,7 +234,7 @@ class PaymentController extends KDController
         else
           usage = oldSubscription?.usage ? {}
           plan.checkQuota {usage}, (err) ->
-            return  if KD.showError err
+            return  if showError err
             callback()
 
       .on 'CurrentSubscriptionSet', (oldSubscription) ->
@@ -236,22 +253,22 @@ class PaymentController extends KDController
           { existingSubscription } = err
           if existingSubscription.status is 'active'
             new KDNotificationView title: "You are already subscribed to this plan!"
-            KD.getSingleton('router').handleRoute '/Account/Subscriptions'
+            kd.getSingleton('router').handleRoute '/Account/Subscriptions'
           else
             existingSubscription.plan = plan
             @confirmReactivation existingSubscription, (err, subscription) =>
-              return KD.showError err  if err
+              return showError err  if err
               @emit "SubscriptionReactivated", subscription
         else if createAccount
           { cardFirstName: firstName, cardLastName: lastName } = billing
-          { JUser } = KD.remote.api
+          { JUser } = remote.api
           JUser.convert { firstName, lastName, email }, (err) =>
-            return KD.showError err  if err
+            return showError err  if err
             JUser.logout ->
         else
           @emit "SubscriptionCompleted"
 
-        log 'KD.singletons.dock.getView().show()'
+        kd.log 'kd.singletons.dock.getView().show()'
 
       .enter()
 
@@ -323,8 +340,8 @@ class PaymentController extends KDController
       callback()
 
   fetchActiveSubscription: (tags, callback) ->
-    if KD.getGroup()?.slug is "koding"
-      return callback()  if KD.whoami().type isnt "registered"
+    if getGroup()?.slug is "koding"
+      return callback()  if whoami().type isnt "registered"
       status = $in: ["active", "canceled"]
       @fetchSubscriptionsWithPlans {tags, status}, (err, subscriptions) ->
         return callback err  if err
@@ -346,14 +363,14 @@ class PaymentController extends KDController
       @fetchGroupSubscription callback
 
   fetchGroupSubscription: (callback) ->
-    KD.getGroup().fetchSubscription callback
+    getGroup().fetchSubscription callback
 
   fetchSubscriptionsWithPlans: (options, callback) ->
     [callback, options] = [options, callback]  unless callback
 
     options ?= {}
 
-    KD.whoami().fetchPlansAndSubscriptions options, (err, plansAndSubs) =>
+    whoami().fetchPlansAndSubscriptions options, (err, plansAndSubs) =>
       return callback err  if err
 
       { subscriptions } = @groupPlansBySubscription plansAndSubs
@@ -374,12 +391,12 @@ class PaymentController extends KDController
 
     { plans, subscriptions }
 
-  canDebitPack: (options = {}, callback = noop) ->
+  canDebitPack: (options = {}, callback = kd.noop) ->
     {subscriptionTag, packTag, multiplyFactor} = options
     multiplyFactor ?= 1
 
-    return warn "missing parameters"  unless subscriptionTag or packTag
+    return kd.warn "missing parameters"  unless subscriptionTag or packTag
 
     @fetchActiveSubscription tags: subscriptionTag, (err, subscription) ->
-      KD.remote.api.JPaymentPack.one tags: packTag, (err, pack) ->
+      remote.api.JPaymentPack.one tags: packTag, (err, pack) ->
         subscription.checkUsage pack, multiplyFactor, callback

@@ -1,4 +1,13 @@
-class CreditCardModal extends PaymentBaseModal
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDButtonView = kd.ButtonView
+PaymentBaseModal = require './paymentbasemodal'
+StripeFormView = require './stripeformview'
+PaymentForm = require './paymentform'
+showError = require '../util/showError'
+
+
+module.exports = class CreditCardModal extends PaymentBaseModal
 
   constructor: (options = {}, data) ->
 
@@ -44,7 +53,7 @@ class CreditCardModal extends PaymentBaseModal
 
   initEvents: ->
 
-    @on 'CreditCardUpdateFailed', KD.showError
+    @on 'CreditCardUpdateFailed', showError
     @on 'CreditCardUpdateSucceeded', @bound 'handleSuccess'
     @on 'GotValidationResult', @bound 'handleValidationResult'
 
@@ -75,5 +84,4 @@ class CreditCardModal extends PaymentBaseModal
     @submitButton.setCallback =>
       @submitButton.hideLoader()
       @emit 'CreditCardWorkflowFinished'
-
 

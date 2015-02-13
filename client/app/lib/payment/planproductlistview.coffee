@@ -1,4 +1,9 @@
-class PlanProductListView extends KDView
+kd = require 'kd'
+KDView = kd.View
+KDCustomHTMLView = kd.CustomHTMLView
+
+module.exports = class PlanProductListView extends KDView
+
   viewAppended: ->
     {planOptions} = @getOptions()
     return  unless planOptions

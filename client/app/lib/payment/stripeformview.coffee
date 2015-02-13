@@ -1,12 +1,19 @@
-class StripeFormView extends KDFormViewWithFields
+$ = require 'jquery'
+whoami = require '../util/whoami'
+showError = require '../util/showError'
+kd = require 'kd'
+KDFormViewWithFields = kd.FormViewWithFields
 
-  getInitialState: -> KD.utils.dict()
+
+module.exports = class StripeFormView extends KDFormViewWithFields
+
+  getInitialState: -> kd.utils.dict()
 
   constructor: (options = {}, data) ->
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
-    { firstName, lastName } = KD.whoami().profile
+    { firstName, lastName } = whoami().profile
 
     clearValidationErrors = (input, event) ->
       input.unsetTooltip()
@@ -31,7 +38,7 @@ class StripeFormView extends KDFormViewWithFields
         rules        :
           clear      : clearValidationErrors
 
-          checkCC    : KD.utils.debounce 100, (input, event) ->
+          checkCC    : kd.utils.debounce 100, (input, event) ->
             val = $.trim input.getValue().replace(/-|\s/g,"")
             returnResult = result = Stripe.card.validateCardNumber val
             result = if result then no else 'Card number is not valid'
@@ -43,7 +50,7 @@ class StripeFormView extends KDFormViewWithFields
               @unsetClass cssClass  if cssClass
               val = $.trim input.getValue().replace(/-|\s/g,"")
               cssClass = Stripe.card.cardType(val).toLowerCase()
-              cssClass = KD.utils.slugify cssClass
+              cssClass = kd.utils.slugify cssClass
               @setClass cssClass
 
         events       :
@@ -151,7 +158,7 @@ class StripeFormView extends KDFormViewWithFields
       cssClass     : 'hidden'
 
     options.fields   = fields
-    options.cssClass = KD.utils.curry 'payment-method-entry-form clearfix', options.cssClass
+    options.cssClass = kd.utils.curry 'payment-method-entry-form clearfix', options.cssClass
     options.name     = 'method'
 
     super options, data
@@ -172,7 +179,7 @@ class StripeFormView extends KDFormViewWithFields
       when 'cvc'
         cardCVC.setValidationResult 'checkCVC', 'CVC is not valid'
       else
-        KD.showError error.message
+        showError error.message
 
 
   cleanFormExceptName: ->
@@ -183,5 +190,3 @@ class StripeFormView extends KDFormViewWithFields
       @inputs.cardMonth
       @inputs.cardYear
     ].forEach (input) -> input.setValue ""
-
-

@@ -1,4 +1,12 @@
-class PaymentMethodEntryForm extends KDFormViewWithFields
+kd = require 'kd'
+KDFormViewWithFields = kd.FormViewWithFields
+KDHeaderView = kd.HeaderView
+KDFormView = kd.FormView
+KDCustomHTMLView = kd.CustomHTMLView
+whoami = require '../util/whoami'
+
+module.exports = class PaymentMethodEntryForm extends KDFormViewWithFields
+
   constructor: (options = {}, data) ->
 
     thisYear = expiresYear = (new Date).getFullYear()
@@ -16,7 +24,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         cssClass          : 'section-header'
       cardFirstName       :
         label             : 'First name'
-        defaultValue      : KD.whoami().profile.firstName
+        defaultValue      : whoami().profile.firstName
         validate          :
           notifications   : yes
           event           : "blur"
@@ -28,7 +36,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         cssClass          : "card-name"
       cardLastName        :
         label             : 'Last name'
-        defaultValue      : KD.whoami().profile.lastName
+        defaultValue      : whoami().profile.lastName
         validate          :
           notifications   : yes
           event           : "blur"
@@ -145,7 +153,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
         domId             : "recaptcha"
 
     super
-      cssClass              : KD.utils.curry 'payment-method-entry-form clearfix', options.cssClass
+      cssClass              : kd.utils.curry 'payment-method-entry-form clearfix', options.cssClass
       name                  : 'method'
       fields                : fields
       callback              : (formData) =>
@@ -169,7 +177,7 @@ class PaymentMethodEntryForm extends KDFormViewWithFields
     cardNumberInput.on 'keyup', @bound 'handleCardKeyup'
 
     @on 'FormValidationFailed', (err)=>
-      KD.utils.wait 500, => @unsetClass 'animate shake'
+      kd.utils.wait 500, => @unsetClass 'animate shake'
       @setClass 'animate shake'
       @stopLoader()
 

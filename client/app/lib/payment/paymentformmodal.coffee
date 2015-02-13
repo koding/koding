@@ -1,4 +1,10 @@
-class PaymentFormModal extends KDModalView
+kd = require 'kd'
+KDModalView = kd.ModalView
+KDLoaderView = kd.LoaderView
+PaymentChoiceForm = require './paymentchoiceform'
+PaymentMethodEntryForm = require './paymentmethodentryform'
+
+module.exports = class PaymentFormModal extends KDModalView
 
   constructor: (options = {}, data = {}) ->
 

@@ -1,6 +1,12 @@
-class GenericPlanView extends JView
+JView = require '../jview'
+kd = require 'kd'
+formatMoney = require '../util/formatMoney'
+PlanProductListView = require './planproductlistview'
+
+module.exports = class GenericPlanView extends JView
+
   constructor: (options = {}, data = {} ) ->
-    options.cssClass     = KD.utils.curry "generic-plan-view", options.cssClass
+    options.cssClass     = kd.utils.curry "generic-plan-view", options.cssClass
     options.hiddenPrice ?= no
     super options, data
 
@@ -8,7 +14,7 @@ class GenericPlanView extends JView
     data = @getData()
     {planOptions, hiddenPrice} = @getOptions()
     total = if planOptions?.total then planOptions.total else data.feeAmount
-    total = KD.utils.formatMoney total / 100
+    total = formatMoney total / 100
     @productList = new PlanProductListView {planOptions}, data
 
     """
