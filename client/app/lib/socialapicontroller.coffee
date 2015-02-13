@@ -1,4 +1,17 @@
-class SocialApiController extends KDController
+_ = require 'underscore'
+htmlencode = require 'htmlencode'
+globals = require 'globals'
+getGroup = require './util/getGroup'
+doXhrRequest = require './util/doXhrRequest'
+remote = require('./remote').getInstance()
+checkFlag = require './util/checkFlag'
+whoami = require './util/whoami'
+kd = require 'kd'
+KDController = kd.Controller
+MessageEventManager = require './messageeventmanager'
+
+
+module.exports = class SocialApiController extends KDController
 
   constructor: (options = {}, data) ->
 
@@ -11,11 +24,11 @@ class SocialApiController extends KDController
 
   getPrefetchedData: (dataPath) ->
 
-    return [] unless KD.socialApiData
+    return [] unless globals.socialApiData
 
     data = if dataPath is 'navigated'
-    then KD.socialApiData[dataPath]?.data?.messageList
-    else KD.socialApiData[dataPath]
+    then globals.socialApiData[dataPath]?.data?.messageList
+    else globals.socialApiData[dataPath]
 
     return [] unless data
 
@@ -35,9 +48,9 @@ class SocialApiController extends KDController
     return no  unless channelId
 
     # super admins can see/post anyting
-    return no  if KD.checkFlag "super-admin"
+    return no  if checkFlag "super-admin"
 
-    {socialApiAnnouncementChannelId} = KD.getGroup()
+    {socialApiAnnouncementChannelId} = getGroup()
 
     return channelId is socialApiAnnouncementChannelId
 
@@ -50,19 +63,11 @@ class SocialApiController extends KDController
 
 
   leaveChannel = (response) ->
-
     {first} = response
     return  unless first
 
+    {socialapi} = kd.singletons
     {channelId} = first
-
-    removeChannel channelId
-
-
-  removeChannel = (channelId) ->
-
-    {socialapi} = KD.singletons
-
     channel = socialapi._cache["privatemessage"][channelId]
 
     return  unless channel
@@ -75,7 +80,7 @@ class SocialApiController extends KDController
     {typeConstant, id} = channel
     delete socialapi._cache[typeConstant][id]
 
-    {realtime} = KD.singletons
+    {realtime} = kd.singletons
 
     realtime.unsubscribeChannel channel
 
@@ -88,7 +93,7 @@ class SocialApiController extends KDController
     {accountOldId, replies, interactions} = data
     {createdAt, deletedAt, updatedAt, typeConstant}     = plain
 
-    cachedItem = KD.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
+    cachedItem = kd.singletons.socialapi.retrieveCachedItem typeConstant, plain.id
 
     return cachedItem  if cachedItem
 
@@ -96,7 +101,7 @@ class SocialApiController extends KDController
 
     {payload} = plain
 
-    m = new KD.remote.api.SocialMessage plain
+    m = new remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
 
     m.replies      = mapActivities data.replies or []
@@ -120,17 +125,17 @@ class SocialApiController extends KDController
         m.link       =
           link_url   : payload.link_url
           link_embed :
-            try JSON.parse Encoder.htmlDecode payload.link_embed
+            try JSON.parse htmlencode.htmlDecode payload.link_embed
             catch e then null
 
       if payload.initialParticipants and typeof payload.initialParticipants is 'string'
         payload.initialParticipants =
-          try JSON.parse Encoder.htmlDecode payload.initialParticipants
+          try JSON.parse htmlencode.htmlDecode payload.initialParticipants
           catch e then null
 
     new MessageEventManager {}, m
 
-    KD.singletons.socialapi.cacheItem m
+    kd.singletons.socialapi.cacheItem m
 
     return m
 
@@ -150,9 +155,9 @@ class SocialApiController extends KDController
 
   getCurrentGroup = (callback) ->
 
-    groupsController = KD.getSingleton "groupsController"
+    groupsController = kd.getSingleton "groupsController"
     groupsController.ready ->
-      callback  KD.getSingleton("groupsController").getCurrentGroup()
+      callback  kd.getSingleton("groupsController").getCurrentGroup()
 
 
   mapPrivateMessages: mapPrivateMessages
@@ -197,9 +202,9 @@ class SocialApiController extends KDController
     data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
 
 
-    channelInstance = new KD.remote.api.SocialChannel data
+    channelInstance = new remote.api.SocialChannel data
 
-    KD.singletons.socialapi.cacheItem channelInstance
+    kd.singletons.socialapi.cacheItem channelInstance
 
     return channelInstance
 
@@ -234,13 +239,14 @@ class SocialApiController extends KDController
     # Probably a temporary fix.
     # This flag needs to be set before running
     # tests. ~Umut
-    return no  if KD.isTesting
+    return no  if globals.isTesting
 
     {message} = message  unless message.typeConstant?
-    {_inScreenMap}  = KD.singletons.socialapi
+
+    {_inScreenMap}  = kd.singletons.socialapi
 
     # when I am not the message owner, it is obviously from another browser
-    return yes  unless message.accountId is KD.whoami().socialApiId
+    return yes  unless message.accountId is whoami().socialApiId
 
     {clientRequestId} = message
 
@@ -255,39 +261,23 @@ class SocialApiController extends KDController
   forwardMessageEvents : forwardMessageEvents
   forwardMessageEvents = (source, target, events) ->
 
-    events.forEach ({event, mapperFn, validatorFn, filterFn}) ->
+    events.forEach ({event, mapperFn, validatorFn}) ->
       source.on event, (data, rest...) ->
 
         if validatorFn
           if typeof validatorFn isnt "function"
-            return warn "validator function is not valid"
+            return kd.warn "validator function is not valid"
 
           return  unless validatorFn(data)
-
-        if filterFn
-          if typeof filterFn isnt "function"
-            return warn "filter function is not valid"
-
-          return  unless filterFn(data)
 
         data = mapperFn data
 
         target.emit event, data, rest...
 
 
-  # While making retrospective realtime message query, it is possible to fetch an already
-  # existing message. This is for preventing the case.
-  filterMessage = (data) ->
-    {message} = data  unless data.typeConstant?
-    if cachedMessage = KD.singletons.socialapi._cache?[message.typeConstant]?[message.id]
-      return yes  if cachedMessage.isShown
-
-    message.isShown = yes
-
-
   registerAndOpenChannels = (socialApiChannels) ->
 
-    {socialapi} = KD.singletons
+    {socialapi} = kd.singletons
     getCurrentGroup (group)->
       socialApiChannels.forEach (socialApiChannel) ->
         channelName = generateChannelName socialApiChannel
@@ -307,9 +297,9 @@ class SocialApiController extends KDController
           brokerChannelName: channelName
           token      : token
 
-        KD.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
+        kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->
 
-          return warn err  if err
+          return kd.warn err  if err
 
           # add opened channel to the openedChannels list, for later use
           socialapi.openedChannels[channelName] = {delegate: realtimeChannel, channel: socialApiChannel}
@@ -328,7 +318,7 @@ class SocialApiController extends KDController
   addToScreenMap = (options) ->
     options = options.message  if options.message?
     {clientRequestId} = options
-    {_inScreenMap} = KD.singletons.socialapi
+    {_inScreenMap} = kd.singletons.socialapi
 
     _inScreenMap[clientRequestId] = yes  if clientRequestId
 
@@ -373,11 +363,11 @@ class SocialApiController extends KDController
       api = {}
       switch apiType
         when "channel"
-          api = KD.remote.api.SocialChannel
+          api = remote.api.SocialChannel
         when "notification"
-          api = KD.remote.api.SocialNotification
+          api = remote.api.SocialNotification
         else
-          api = KD.remote.api.SocialMessage
+          api = remote.api.SocialMessage
           addToScreenMap options
 
       api[fnName] options, (err, result)->
@@ -436,10 +426,9 @@ class SocialApiController extends KDController
       when 'post', 'message'           then @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
 
-
   getMessageEvents = ->
     [
-      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser, filterFn: filterMessage}
+      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
       {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
       {event: "AddedToChannel",     mapperFn: mapParticipant}
       {event: "RemovedFromChannel", mapperFn: mapParticipant}
@@ -522,7 +511,7 @@ class SocialApiController extends KDController
     revive               : mapActivity
 
     fetchDataFromEmbedly : (args...) ->
-      KD.remote.api.SocialMessage.fetchDataFromEmbedly args...
+      remote.api.SocialMessage.fetchDataFromEmbedly args...
 
   channel:
     byId                 : channelRequesterFn
@@ -539,17 +528,17 @@ class SocialApiController extends KDController
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
 
-    fetchActivities      : (options = {}, callback = noop)->
+    fetchActivities      : (options = {}, callback = kd.noop)->
 
       # show exempt content if only requester is admin or exempt herself
-      showExempt = KD.checkFlag?("super-admin") or KD.whoami()?.isExempt
+      showExempt = checkFlag?("super-admin") or whoami()?.isExempt
 
       options.showExempt or= showExempt
 
       err = {message: "An error occurred"}
 
       endPoint = "/api/social/channel/#{options.id}/history?#{serialize(options)}"
-      KD.utils.doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
+      doXhrRequest {type: 'GET', endPoint, async: yes}, (err, response) ->
         return callback err  if err
 
         return callback null, mapActivities response
@@ -633,7 +622,6 @@ class SocialApiController extends KDController
     delete               : channelRequesterFn
       fnName             : 'delete'
       validateOptionsWith: ["channelId"]
-      successFn          : removeChannel
 
     revive               : mapChannel
 
@@ -643,3 +631,5 @@ class SocialApiController extends KDController
 
     glance               : notificationRequesterFn
       fnName             : 'glance'
+
+

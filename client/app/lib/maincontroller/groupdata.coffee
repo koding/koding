@@ -1,8 +1,13 @@
-class GroupData extends KDEventEmitter
+jspath = require 'jspath'
+kd = require 'kd'
+KDEventEmitter = kd.EventEmitter
+module.exports = class GroupData extends KDEventEmitter
 
   getAt:(path)->
-    JsPath.getAt @data, path
+    jspath.getAt @data, path
 
   setGroup:(group)->
     @data = group
     @emit 'update'
+
+

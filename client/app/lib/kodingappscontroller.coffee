@@ -1,9 +1,31 @@
-class KodingAppsController extends KDController
+htmlencode = require 'htmlencode'
+Promise = require 'bluebird'
+$ = require 'jquery'
+globals = require 'globals'
+getFullnameFromAccount = require './util/getFullnameFromAccount'
+registerAppClass = require './util/registerAppClass'
+remote = require('./remote').getInstance()
+nick = require './util/nick'
+kd = require 'kd'
+KDController = kd.Controller
+KDCustomHTMLView = kd.CustomHTMLView
+KDModalView = kd.ModalView
+KDModalViewWithForms = kd.ModalViewWithForms
+KDNotificationView = kd.NotificationView
+KDView = kd.View
+AppSkeleton = require './appskeleton'
+FSHelper = require './util/fs/fshelper'
+GitHub = require './extras/github/github'
+KodingAppSelectorForGitHub = require './commonviews/kodingappselectorforgithub'
+ModalViewWithTerminal = require './commonviews/modalviewwithterminal'
+
+
+module.exports = class KodingAppsController extends KDController
 
   name    = "KodingAppsController"
   version = "0.1"
 
-  KD.registerAppClass this, {name, version, background: yes}
+  registerAppClass this, {name, version, background: yes}
 
   constructor:->
     super
@@ -17,48 +39,51 @@ class KodingAppsController extends KDController
 
     #   @emit 'ready'
 
-  @loadInternalApp = (name, callback)->
+  @loadInternalApp = (name, callback) ->
 
-    unless KD.config.apps[name]
-      warn message = "#{name} is not available to run!"
+    unless globals.config.apps[name]
+      kd.warn message = "#{name} is not available to run!"
       return callback {message}
 
-    if name.capitalize() in Object.keys KD.appClasses
-      warn "#{name} is already imported"
+    if name.capitalize() in Object.keys globals.appClasses
+      kd.warn "#{name} is already imported"
       return callback null
 
-    app = KD.config.apps[name]
-    @putAppScript app, callback
+    app = globals.config.apps[name]
+
+    @putAppScript app, (err, res) ->
+      registerAppClass require res.app.identifier
+      callback err, res
 
   # This is the most important method to put & run additional apps on Koding
   # Please make sure about your changes on it.
-  @putAppScript = (app, callback = noop)->
+  @putAppScript = (app, callback = kd.noop)->
 
     if app.style
       @appendHeadElement 'style',  \
-        { url:app.style, identifier:app.identifier, force: yes }
+        { app: app, url:app.style, identifier:app.identifier, force: yes }
 
     if app.script
       @appendHeadElement 'script', \
-        { url:app.script, identifier:app.identifier, force: yes }, callback
+        { app: app, url:app.script, identifier:app.identifier, force: yes }, callback
 
     return
 
-  @unloadAppScript = (app, callback = noop)->
+  @unloadAppScript = (app, callback = kd.noop)->
 
     identifier = app.identifier.replace /\./g, '_'
 
     @destroyScriptElement "style", identifier
     @destroyScriptElement "script", identifier
 
-    KD.utils.defer -> callback()
+    kd.utils.defer -> callback()
 
-  @runApprovedApp = (jApp, options = {}, callback = noop)->
+  @runApprovedApp = (jApp, options = {}, callback = kd.noop)->
 
-    return warn "JNewApp not found!"  unless jApp
+    return kd.warn "JNewApp not found!"  unless jApp
 
     {script, style} = jApp.urls
-    return warn "Script not found! on #{jApp}"  unless script
+    return kd.warn "Script not found! on #{jApp}"  unless script
 
     app = {
       name : jApp.name
@@ -72,18 +97,18 @@ class KodingAppsController extends KDController
       route = "/#{jApp.manifest.authorNick}/Apps/#{jApp.name}"
 
 
-      KD.utils.defer ->
+      kd.utils.defer ->
 
         if options.dontUseRouter
-          KD.singletons.appManager.open jApp.name
+          kd.singletons.appManager.open jApp.name
         else
-          KD.singletons.router.handleRoute route
+          kd.singletons.router.handleRoute route
 
         callback()
 
-  @runExternalApp = (jApp, options = {}, callback = noop)->
+  @runExternalApp = (jApp, options = {}, callback = kd.noop)->
 
-    if jApp.status is 'verified' or jApp.manifest.authorNick is KD.nick()
+    if jApp.status is 'verified' or jApp.manifest.authorNick is nick()
       return @runApprovedApp jApp, options
 
     if jApp.status is 'not-verified'
@@ -95,7 +120,7 @@ class KodingAppsController extends KDController
             callback : -> @getDelegate().destroy()
 
     repo = jApp.manifest.repository.replace /^git\:\/\//, "https://"
-    script = jApp.urls.script.replace KD.config.appsUri, "https://raw.github.com"
+    script = jApp.urls.script.replace globals.config.appsUri, "https://raw.github.com"
     authorLink = """
       <a href="/#{jApp.manifest.authorNick}">#{jApp.manifest.author}</a>
     """
@@ -126,7 +151,7 @@ class KodingAppsController extends KDController
       overlay        : yes
       buttons        :
         Run          :
-          style      : "solid red medium"
+          style      : "modal-clean-red"
           loader     :
             color    : "#ffffff"
             diameter : 16
@@ -143,19 +168,19 @@ class KodingAppsController extends KDController
                     title : "Application is not reachable"
 
         cancel       :
-          style      : "solid light-gray medium"
+          style      : "modal-cancel"
           callback   : -> modal.destroy()
 
     modal.buttonHolder.addSubView new KDView
       partial  : "Do you still want to continue?"
       cssClass : "run-warning"
 
-  @appendHeadElement = Promise.promisify (type, {identifier, url, force}, callback = (->)) ->
+  @appendHeadElement = Promise.promisify (type, {app, identifier, url, force}, callback = (->)) ->
 
-    identifier = identifier.replace /\./g, '_'
-    domId      = "internal-#{type}-#{identifier}"
-    vmName     = getVMNameFromPath url
-    tagName    = type
+    identifier  = identifier.replace /\./g, '_'
+    domId       = "internal-#{type}-#{identifier}"
+    vmName      = getVMNameFromPath url
+    tagName     = type
 
     # Which means this is an invm-app
     if vmName
@@ -174,13 +199,13 @@ class KodingAppsController extends KDController
         else
           callback null
 
-        KD.utils.defer -> obj.appendToSelector 'head'
+        kd.utils.defer -> obj.appendToSelector 'head'
 
     else
       delim = if /\?/.test url then "&" else "?"
-      url = "#{ url }#{ delim }#{ KD.utils.uniqueId() }"
+      url = "#{ url }#{ delim }#{ kd.utils.uniqueId() }"
       bind = ''
-      load = noop
+      load = kd.noop
 
       if type is 'style'
         tagName    = 'link'
@@ -192,18 +217,18 @@ class KodingAppsController extends KDController
           type     : "text/javascript"
           src      : url
         bind       = "load"
-        load       = -> callback null
+        load       = -> callback null, {app, type, url}
 
       @destroyScriptElement type, identifier  if force
 
-      document.head.appendChild (new KDCustomHTMLView {
+      global.document.head.appendChild (new KDCustomHTMLView {
         domId, tagName, attributes, bind, load
       }).getElement()
 
       callback null  if type is 'style'
 
   @destroyScriptElement = (type, identifier)->
-    (document.getElementById "internal-#{type}-#{identifier}")?.remove()
+    (global.document.getElementById "internal-#{type}-#{identifier}")?.remove()
 
   @appendHeadElements = (options, callback)->
     {items, identifier} = options
@@ -228,7 +253,7 @@ class KodingAppsController extends KDController
   getAppPath:(manifest, escaped=no)->
 
     path = if 'string' is typeof manifest then manifest else manifest.path
-    path = if /^~/.test path then "/home/#{KD.nick()}#{path.substr(1)}"\
+    path = if /^~/.test path then "/home/#{nick()}#{path.substr(1)}"\
            else path
     return FSHelper.escapeFilePath path  if escaped
     return path.replace /(\/+)$/, ""
@@ -254,7 +279,7 @@ class KodingAppsController extends KDController
           form                    :
             buttons               :
               Create              :
-                cssClass          : "solid light-gray medium"
+                cssClass          : "modal-clean-gray"
                 loader            :
                   color           : "#444444"
                   diameter        : 12
@@ -315,7 +340,7 @@ class KodingAppsController extends KDController
         title : "Application name is not provided."
 
     type         = "blank"
-    appname      = KD.utils.slugify name.replace /[^a-zA-Z]/g, ''
+    appname      = kd.utils.slugify name.replace /[^a-zA-Z]/g, ''
     APPNAME      = appname.capitalize()
     manifestStr  = AppSkeleton.manifest type, APPNAME
     changeLogStr = AppSkeleton.changeLog APPNAME
@@ -334,7 +359,7 @@ class KodingAppsController extends KDController
       content = AppSkeleton.indexCoffee
                   .replace /\%\%APPNAME\%\%/g, APPNAME
                   .replace /\%\%appname\%\%/g, appname
-                  .replace /\%\%AUTHOR\%\%/g , KD.nick()
+                  .replace /\%\%AUTHOR\%\%/g , nick()
 
       indexFile.save content
 
@@ -350,7 +375,7 @@ class KodingAppsController extends KDController
       readmeFile = FSHelper.createFileInstance {
         path: "#{appPath}/README.md", machine
       }
-      author  = Encoder.htmlDecode(KD.utils.getFullnameFromAccount())
+      author  = htmlencode.htmlDecode(getFullnameFromAccount())
       content = AppSkeleton.readmeMd
         .replace /\%\%APPNAME\%\%/g, APPNAME
         .replace /\%\%AUTHOR_FULLNAME\%\%/g , author
@@ -376,7 +401,7 @@ class KodingAppsController extends KDController
       return { appPath }
 
     .catch (err) ->
-      warn err
+      kd.warn err
 
     .nodeify callback
 
@@ -388,7 +413,7 @@ class KodingAppsController extends KDController
 
     vm    = getVMNameFromPath path
     path  = FSHelper.plainPath path
-    reg   = /// ^\/home\/#{KD.nick()}\/Applications\/(.*)\.kdapp ///
+    reg   = /// ^\/home\/#{nick()}\/Applications\/(.*)\.kdapp ///
     parts = reg.exec path
 
     unless parts
@@ -422,7 +447,7 @@ class KodingAppsController extends KDController
                 """
       buttons:
         "Install Compiler":
-          cssClass: "solid green medium"
+          cssClass: "modal-clean-green"
           callback: =>
             modal.run "sudo npm install -g kdc; echo $?|kdevent;" # find a clean/better way to do it.
 
@@ -442,7 +467,7 @@ class KodingAppsController extends KDController
     {name} = app
 
     @compileAppOnServer path, (err)=>
-      return warn err  if err
+      return kd.warn err  if err
 
       @fetchManifest "#{app.path}/manifest.json", (err, manifest)->
 
@@ -452,7 +477,7 @@ class KodingAppsController extends KDController
 
         unless target is 'production'
 
-          return KD.remote.api.JNewApp.publish {
+          return remote.api.JNewApp.publish {
             name, url: app.fullPath, manifest
           }, callback
 
@@ -466,9 +491,9 @@ class KodingAppsController extends KDController
 
             if not err and commit
 
-              url = "#{KD.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
+              url = "#{globals.config.appsUri}/#{repo.full_name}/#{commit.sha}/"
               manifest.commitId = commit.sha
-              KD.remote.api.JNewApp.publish { name, url, manifest }, callback
+              remote.api.JNewApp.publish { name, url, manifest }, callback
 
             else
 
@@ -477,12 +502,12 @@ class KodingAppsController extends KDController
 
             modal.destroy()
 
-  @fetchManifest = (path, callback = noop)->
+  @fetchManifest = (path, callback = kd.noop)->
 
     manifest = FSHelper.createFileInstance path:  path
     manifest.fetchContents (err, response)=>
 
-      return warn err  if err
+      return kd.warn err  if err
 
       try
         manifest = JSON.parse response
@@ -496,126 +521,5 @@ class KodingAppsController extends KDController
       callback null, manifest
 
 
-class AppSkeleton
-
-  @manifest = (type, name)->
-
-    {profile} = KD.whoami()
-    raw =
-      background    : no
-      behavior      : "application"
-      version       : "0.1"
-      title         : "#{name or type.capitalize()}"
-      name          : "#{name or type.capitalize()}"
-      identifier    : "com.koding.apps.#{utils.slugify name or type}"
-      path          : "~/Applications/#{name or type.capitalize()}.kdapp"
-      homepage      : "#{profile.nickname}.#{KD.config.userSitesDomain}/#{utils.slugify name or type}"
-      repository    : "git://github.com/#{profile.nickname}/#{utils.slugify name or type}.kdapp.git"
-      description   : "#{name or type} : a Koding application created with the #{type} template."
-      category      : "web-app" # can be web-app, add-on, server-stack, framework, misc
-      source        :
-        blocks      :
-          app       :
-            files   : [ "./index.coffee" ]
-        stylesheets : [ "./resources/style.css" ]
-      options       :
-        type        : "tab"
-      icns          :
-        "128"       : "./resources/icon.128.png"
-      fileTypes     : []
-
-    json = JSON.stringify raw, null, 2
 
 
-  @changeLog = (name)->
-
-    today = new Date().format('yyyy-mm-dd')
-    {profile} = KD.whoami()
-    fullName  = KD.utils.getFullnameFromAccount()
-
-    """
-     #{today} #{fullName} <@#{profile.nickname}>
-
-        * #{name} (index.coffee): Application created.
-    """
-
-
-  @indexCoffee =
-
-    """
-      class %%APPNAME%%MainView extends KDView
-
-        constructor:(options = {}, data)->
-          options.cssClass = '%%appname%% main-view'
-          super options, data
-
-        viewAppended:->
-          @addSubView new KDView
-            partial  : "Welcome to %%APPNAME%% app!"
-            cssClass : "welcome-view"
-
-      class %%APPNAME%%Controller extends AppController
-
-        constructor:(options = {}, data)->
-          options.view    = new %%APPNAME%%MainView
-          options.appInfo =
-            name : "%%APPNAME%%"
-            type : "application"
-
-          super options, data
-
-      do ->
-
-        # In live mode you can add your App view to window's appView
-        if appView?
-
-          view = new %%APPNAME%%MainView
-          appView.addSubView view
-
-        else
-
-          KD.registerAppClass %%APPNAME%%Controller,
-            name     : "%%APPNAME%%"
-            routes   :
-              "/:name?/%%APPNAME%%" : null
-              "/:name?/%%AUTHOR%%/Apps/%%APPNAME%%" : null
-            dockPath : "/%%AUTHOR%%/Apps/%%APPNAME%%"
-            behavior : "application"
-    """
-
-  @styleCss =
-
-    """
-      .%%appname%%.main-view {
-        background: white;
-      }
-
-      .%%appname%% .welcome-view {
-
-        background: #eee;
-
-        height: auto;
-        width: auto;
-        max-width: 300px;
-
-        margin: 50px auto;
-
-        border: 1px solid #ccc;
-        border-radius: 4px;
-
-        padding:10px;
-
-        text-align:center;
-
-      }
-    """
-
-  @readmeMd =
-
-    """
-      %%APPNAME%%
-      -----------
-
-      Yet another awesome Koding application! by %%AUTHOR_FULLNAME%%
-
-    """

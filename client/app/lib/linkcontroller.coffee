@@ -1,23 +1,27 @@
-class LinkController extends KDController
+getGroup = require './util/getGroup'
+remote = require('./remote').getInstance()
+kd = require 'kd'
+KDController = kd.Controller
+module.exports = class LinkController extends KDController
 
   constructor:->
     super
     @linkHandlers = {}
 
   handleLinkClick:(link)->
-    {JAccount, JGroup} = KD.remote.api
+    {JAccount, JGroup} = remote.api
     data = link.getData?()
     return  unless data?
     options = {}
     route   = switch data.constructor
       when JAccount
-        {slug} = KD.getGroup()
+        {slug} = getGroup()
         {profile: {nickname}} = data
         href = if slug is "koding" then "/#{nickname}" else "/#{slug}/#{nickname}"
       when JGroup
         "/#{data.slug}"
 
-    KD.getSingleton('router').handleRoute route, {state : data}  if route?
+    kd.getSingleton('router').handleRoute route, {state : data}  if route?
 
   registerLink:(link)->
     id = link.getId()
@@ -28,3 +32,5 @@ class LinkController extends KDController
     id = link.getId()
     link.off @linkHandlers[id]
     delete @linkHandlers[id]
+
+

@@ -1,4 +1,9 @@
-class WidgetController extends KDController
+htmlencode = require 'htmlencode'
+kookies = require 'kookies'
+remote = require('./remote').getInstance()
+kd = require 'kd'
+KDController = kd.Controller
+module.exports = class WidgetController extends KDController
 
   constructor: (options = {}, data) ->
 
@@ -20,7 +25,7 @@ class WidgetController extends KDController
         { isPreview: yes }
       ]
 
-    KD.remote.api.JCustomPartials.some query, {}, (err, widgets) =>
+    remote.api.JCustomPartials.some query, {}, (err, widgets) =>
       return  unless widgets or err
       for widget in widgets
         target   = "published"
@@ -40,7 +45,7 @@ class WidgetController extends KDController
     return @placeholders
 
   showWidgets: (widgets) ->
-    isPreviewMode = Cookies.get "custom-partials-preview-mode"
+    isPreviewMode = kookies.get "custom-partials-preview-mode"
     targetKey     = if isPreviewMode then "preview" else "published"
 
     for widget in widgets
@@ -54,19 +59,21 @@ class WidgetController extends KDController
           @evalJS    view, js  if js
           @appendCSS css, key  if css
         catch
-          warn "#{key} widget failed to load"
+          kd.warn "#{key} widget failed to load"
 
   evalJS: (view, js) ->
     jsCode = "viewId = '#{view.getId()}'; #{js}"
-    eval Encoder.htmlDecode jsCode
+    eval htmlencode.htmlDecode jsCode
 
   appendCSS: (css, key) ->
     domId         = "#{key}WidgetStyle"
-    oldElement    = document.getElementById domId
-    document.head.removeChild oldElement  if oldElement
+    oldElement    = global.document.getElementById domId
+    global.document.head.removeChild oldElement  if oldElement
 
-    tag           = document.createElement "style"
+    tag           = global.document.createElement "style"
     tag.id        = domId
-    tag.innerHTML = Encoder.htmlDecode css
+    tag.innerHTML = htmlencode.htmlDecode css
 
-    document.head.appendChild tag
+    global.document.head.appendChild tag
+
+

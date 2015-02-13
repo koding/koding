@@ -1,23 +1,30 @@
-class AppController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+KDKeyboardListener = kd.KeyboardListener
+KDKeyboardMap = kd.KeyboardMap
+getAppOptions = require './util/getAppOptions'
+
+
+module.exports = class AppController extends KDViewController
 
   constructor:->
 
     super
 
     { name, version } = @getOptions()
-    { mainController } = KD.singletons
+    { mainController } = kd.singletons
 
     mainController.ready =>
       # defer should be removed
       # this should be listening to a different event - SY
-      KD.utils.defer  =>
-        { appStorageController } = KD.singletons
+      kd.utils.defer  =>
+        { appStorageController } = kd.singletons
         @appStorage = appStorageController.storage name, version or "1.0.1"
 
     @bindKeyCombos()
 
   bindKeyCombos: ->
-    { globalKeyCombos } = KD.singletons
+    { globalKeyCombos } = kd.singletons
 
     @appKeyListener = new KDKeyboardListener
     @appKeyMap      = new KDKeyboardMap { priority: 10 }
@@ -28,7 +35,7 @@ class AppController extends KDViewController
 
     @registerDeclaredBindings()
 
-    KD.singletons.appManager.on 'AppIsBeingShown', (app) =>
+    kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
       @appKeyListener?.listen()  if app is this
 
   registerAppKeys: (bindings = {}) ->
@@ -37,13 +44,13 @@ class AppController extends KDViewController
     @appKeyMap
 
   createContentDisplay:(models, callback)->
-    warn "You need to override #createContentDisplay - #{@constructor.name}"
+    kd.warn "You need to override #createContentDisplay - #{@constructor.name}"
 
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
 
   handleCommand: (command, appName, event) ->
-    { commands } = KD.getAppOptions @getOptions().name
+    { commands } = getAppOptions @getOptions().name
 
     cmd = commands[command]
 
@@ -56,7 +63,7 @@ class AppController extends KDViewController
 
   registerDeclaredBindings: ->
     appName = @getOptions().name
-    { keyBindings } = KD.getAppOptions appName
+    { keyBindings } = getAppOptions appName
 
     keyBindings?.forEach (b) =>
       @appKeyMap.addCombo b.binding, { global: b.global }, (ev) =>

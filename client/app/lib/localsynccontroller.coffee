@@ -1,8 +1,16 @@
-class LocalSyncController extends KDController
+kd = require 'kd'
+KDController = kd.Controller
+sinkrow = require 'sinkrow'
+remote = require('./remote').getInstance()
+showError = require './util/showError'
+FSHelper = require './util/fs/fshelper'
+
+
+module.exports = class LocalSyncController extends KDController
 
   constructor:->
     super
-    @storage     = KD.singletons.localStorageController.storage "editor"
+    @storage     = kd.singletons.localStorageController.storage "editor"
     @filesToSave = @storage.getValue("saveRequestedFiles") or []
     @openedFiles = @storage.getValue("openedFiles") or []
 
@@ -12,21 +20,20 @@ class LocalSyncController extends KDController
     @initializeListeners()
 
   initializeListeners: ->
-    KD.remote.on "reconnected", =>
+    remote.on "reconnected", =>
       return  if @synStarted
       @synStarted = yes
       # @syncLocalContentIfDiffExists (err)=>
       #   @synStarted = no
-      #   KD.showError err if err
+      #   showError err if err
 
   syncLocalContentIfDiffExists: (callback)->
-    {dash} = Bongo
     queue  = @filesToSave.map (key)=>
       =>
         fsfile = FSHelper.createFileInstance path: key
         @patchFileIfDiffExist fsfile, @storage.getValue("OE-#{key}"), (res)->
           queue.fin()
-    dash queue, callback
+    sinkrow.dash queue, callback
 
   addToSaveArray: (file)->
     fileName = FSHelper.getFullPath file
@@ -64,10 +71,10 @@ class LocalSyncController extends KDController
     @storage.setValue "saveRequestedFiles", @filesToSave
 
   patchFileIfDiffExist: (file, localContent, cb, callCounter = 0)->
-    KD.singletons.vmController.info file.vmName, @utils.getTimedOutCallback (err, vm, info)=>
+    kd.singletons.vmController.info file.vmName, kd.utils.getTimedOutCallback (err, vm, info)=>
       return cb err unless info.state is "RUNNING"
       FSHelper.getInfo file.path, file.vmName, (err, info)=>
-        return  KD.showError err if err
+        return  showError err if err
         return unless @isFileVersionOk file, info.time
         file.fetchContents (err, content)=>
           if content and not err
@@ -119,7 +126,7 @@ class LocalSyncController extends KDController
   updateEditorStatus:(file, lastSavedContent)->
     fileName   = FSHelper.getFullPath file
     # get current AceViews
-    aceAppView = KD.singletons.appManager.get("Ace").getView()
+    aceAppView = kd.singletons.appManager.get("Ace").getView()
     {ace} = aceAppView.aceViews[fileName]
     ace.lastSavedContents = lastSavedContent
     unless ace.getContents() is lastSavedContent
@@ -130,4 +137,6 @@ class LocalSyncController extends KDController
   removeLocalContents:->
     for key in @storage.getLocalStorageKeys()
       if key.indexOf("koding-editor") > -1
-        delete window.localStorage[key]
+        delete global.localStorage[key]
+
+
