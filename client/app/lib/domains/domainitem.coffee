@@ -1,4 +1,13 @@
-class DomainItem extends KDListItemView
+globals = require 'globals'
+nick = require '../util/nick'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDListItemView = kd.ListItemView
+CustomLinkView = require '../customlinkview'
+KodingSwitch = require '../commonviews/kodingswitch'
+
+
+module.exports = class DomainItem extends KDListItemView
 
   constructor:(options = {}, data)->
 
@@ -10,7 +19,7 @@ class DomainItem extends KDListItemView
     { domain, machineId } = @getData()
     currentMachineId      = @getOption 'machineId'
 
-    topDomain  = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+    topDomain  = "#{nick()}.#{globals.config.userSitesDomain}"
 
     @addSubView new CustomLinkView
       title    : domain
@@ -29,3 +38,5 @@ class DomainItem extends KDListItemView
       defaultValue : machineId is currentMachineId
       callback     : (state) =>
         @getDelegate().emit 'DomainStateChanged', this, state
+
+

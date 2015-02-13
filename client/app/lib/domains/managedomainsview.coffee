@@ -1,14 +1,28 @@
-class ManageDomainsView extends KDView
+htmlencode = require 'htmlencode'
+$ = require 'jquery'
+globals = require 'globals'
+nick = require '../util/nick'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDHitEnterInputView = kd.HitEnterInputView
+KDListViewController = kd.ListViewController
+KDLoaderView = kd.LoaderView
+KDModalView = kd.ModalView
+KDView = kd.View
+DomainItem = require './domainitem'
+
+
+module.exports = class ManageDomainsView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'domains-view', options.cssClass
+    options.cssClass = kd.utils.curry 'domains-view', options.cssClass
 
     super options, data
 
     {@machine} = @getOptions()
 
-    @domainSuffix = ".#{KD.nick()}.#{KD.config.userSitesDomain}"
+    @domainSuffix = ".#{nick()}.#{globals.config.userSitesDomain}"
 
     @addSubView @inputView = new KDView
       cssClass          : 'input-view'
@@ -23,7 +37,7 @@ class ManageDomainsView extends KDView
       partial           : @domainSuffix
       cssClass          : 'domain-suffix'
 
-    topDomain = "#{KD.nick()}.#{KD.config.userSitesDomain}"
+    topDomain = "#{nick()}.#{globals.config.userSitesDomain}"
 
     @domainController   = new KDListViewController
       viewOptions       :
@@ -58,19 +72,19 @@ class ManageDomainsView extends KDView
 
   listDomains: (reset = no)->
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
     computeController.domains = []  if reset
     computeController.fetchDomains (err, domains = [])=>
-      warn err  if err?
+      kd.warn err  if err?
       @domainController.replaceAllItems domains
       @loader.hide()
 
 
   addDomain:->
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
 
-    domain = "#{Encoder.XSSEncode @input.getValue().trim()}#{@domainSuffix}"
+    domain = "#{htmlencode.XSSEncode @input.getValue().trim()}#{@domainSuffix}"
     machineId = @machine._id
 
     if @domainController.getItemCount() >= 5
@@ -96,7 +110,7 @@ class ManageDomainsView extends KDView
         @emit "DomainInputCancelled"
 
       .catch (err)=>
-        warn "Failed to create domain:", err
+        kd.warn "Failed to create domain:", err
         @warning.setTooltip title: err.message
         @warning.show()
         @input.setFocus()
@@ -108,7 +122,7 @@ class ManageDomainsView extends KDView
 
   removeDomain:(domainItem)->
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
 
     {domain}  = domainItem.getData()
     machineId = @machine._id
@@ -125,7 +139,7 @@ class ManageDomainsView extends KDView
         computeController.domains = []
 
       .catch (err)=>
-        warn "Failed to remove domain:", err
+        kd.warn "Failed to remove domain:", err
         @warning.setTooltip title: err.message
         @warning.show()
 
@@ -152,7 +166,7 @@ class ManageDomainsView extends KDView
 
   changeDomainState: (domainItem, state)->
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
     {stateToggle}       = domainItem
     {domain}            = domainItem.getData()
     machineId           = @machine._id
@@ -164,7 +178,7 @@ class ManageDomainsView extends KDView
         domainItem.data.machineId = null  unless state
 
       .catch (err)=>
-        warn "Failed to change domain state:", err
+        kd.warn "Failed to change domain state:", err
         @warning.setTooltip title: err.message
         @warning.show()
 
@@ -189,7 +203,7 @@ class ManageDomainsView extends KDView
 
     if not state or not machineId? then return callback yes
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
 
     machineName = ""
     for machine in computeController.machines
@@ -218,15 +232,20 @@ class ManageDomainsView extends KDView
       buttons       :
         OK          :
           title     : "Yes"
-          style     : 'solid red medium'
+          style     : 'modal-clean-red'
           loader    :
             color   : 'darkred'
           callback  : ->
-            modal.destroy()
-            callback yes
+            computeController.getKloud()
+              .unsetDomain {domainName: domain, machineId}
+              .then -> callback yes
+              .catch (err)->
+                kd.warn err
+                callback no
+              .finally -> modal.destroy()
         cancel      :
           title     : "Cancel"
-          style     : 'solid light-gray medium'
+          style     : 'modal-cancel'
           callback  : -> modal.cancel()
 
 
@@ -234,7 +253,7 @@ class ManageDomainsView extends KDView
 
     @inputView.toggleClass 'hidden'
 
-    {windowController} = KD.singletons
+    {windowController} = kd.singletons
 
     windowController.addLayer @input
     @input.setFocus()
@@ -245,3 +264,5 @@ class ManageDomainsView extends KDView
       @emit "DomainInputCancelled"
       @inputView.hide()
       @warning.hide()
+
+
