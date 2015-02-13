@@ -54,4 +54,4 @@ class IDE.FinderTreeController extends NFinderTreeController
     @once 'WorkspaceCreated', (workspace) =>
       { activitySidebar } = KD.singletons.mainView
       machineBox = activitySidebar.getMachineBoxByMachineUId machineUId
-      machineBox.addWorkspace workspace
+      machineBox.addWorkspace workspace, yes
