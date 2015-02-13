@@ -1,8 +1,22 @@
-class PricingAppView extends KDView
+kd = require 'kd'
+KDButtonGroupView = kd.ButtonGroupView
+KDCustomHTMLView = kd.CustomHTMLView
+KDView = kd.View
+PricingPlansView = require './views/pricingplansview'
+isLoggedIn = require 'app/util/isLoggedIn'
+showError = require 'app/util/showError'
+PaymentWorkflow = require 'app/payment/paymentworkflow'
+JView = require 'app/jview'
+FooterView = require 'app/commonviews/footerview'
+CustomLinkView = require 'app/customlinkview'
+globals = require 'globals'
+
+
+module.exports = class PricingAppView extends KDView
 
   JView.mixin @prototype
 
-  TOO_MANY_ATTEMPT_BLOCK_DURATION = KD.config.paymentBlockDuration
+  TOO_MANY_ATTEMPT_BLOCK_DURATION = globals.config.paymentBlockDuration
   TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
 
   getInitialState : ->
@@ -13,22 +27,22 @@ class PricingAppView extends KDView
 
   constructor:(options = {}, data) ->
 
-    options.cssClass = KD.utils.curry "content-page pricing", options.cssClass
+    options.cssClass = kd.utils.curry "content-page pricing", options.cssClass
 
     super options, data
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
     # it's going to be assigned by 'PricingAppController'.
     @appStorage = null
 
-    @loadPlan()  if KD.isLoggedIn()
+    @loadPlan()  if isLoggedIn()
     @initViews()
     @initEvents()
 
     { planInterval, promotedPlan } = @state
 
-    @plans.planViews[promotedPlan].setClass 'promoted'  unless KD.isLoggedIn()
+    @plans.planViews[promotedPlan].setClass 'promoted'  unless isLoggedIn()
     @selectIntervalToggle @state.planInterval
 
 
@@ -134,13 +148,13 @@ class PricingAppView extends KDView
     @plans.switchTo planInterval
 
 
-  loadPlan: (callback = noop) ->
+  loadPlan: (callback = kd.noop) ->
 
-    { paymentController } = KD.singletons
+    { paymentController } = kd.singletons
 
     paymentController.subscriptions (err, subscription) =>
 
-      return KD.showError err  if err?
+      return showError err  if err?
 
       { planTitle, provider, planInterval, state } = subscription
 
@@ -178,7 +192,7 @@ class PricingAppView extends KDView
 
   removeBlockFromUser: ->
 
-    KD.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
+    kd.utils.defer => @appStorage.unsetKey TOO_MANY_ATTEMPT_BLOCK_KEY
 
 
   ###*
@@ -186,53 +200,36 @@ class PricingAppView extends KDView
    * before filter, that filter will decide
    * if this method will be called or not.
   ###
-  planSelected: do (inProcess = no) -> (options) ->
+  planSelected: (options) -> @preventBlockedUser options, =>
 
-    return  if inProcess
+    return kd.singletons
+      .router
+      .handleRoute '/Login'  unless isLoggedIn()
 
-    @preventBlockedUser options, =>
+    # wait for loading the current plan,
+    # call this method until it's ready.
+    unless @state.currentPlan?
+      return @loadPlan => @planSelected options
 
-      return KD.singletons
+    isCurrentPlan =
+      options.planTitle    is @state.currentPlan and
+      options.planInterval is @state.currentPlanInterval and
+      'expired'          isnt @state.subscriptionState
+
+    return showError "That's already your current plan."  if isCurrentPlan
+
+    @setState options
+
+    @workflowController = new PaymentWorkflow { @state, delegate: this }
+
+    @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
+
+      @state.currentPlan = state.planTitle
+      @plans.setState @state
+
+      kd.singletons
         .router
-        .handleRoute '/Login'  unless KD.isLoggedIn()
-
-      # To prevent any other thing to happen when a plan selected
-      # (not starting the whole payment process)
-      # we are not letting the rest of the process happen.
-      return  if inProcess
-
-      # wait for loading the current plan,
-      # call this method until it's ready.
-      unless @state.currentPlan?
-        return @loadPlan => @planSelected options
-
-      inProcess = yes
-
-      isCurrentPlan =
-        options.planTitle     is @state.currentPlan and
-        (options.planInterval is @state.currentPlanInterval or
-        options.planTitle     is PaymentConstants.planTitle.FREE) and
-        'expired'             isnt @state.subscriptionState
-
-      if isCurrentPlan
-        inProcess = no
-        return KD.showError "That's already your current plan."
-
-      @setState options
-
-      @workflowController = new PaymentWorkflow { @state, delegate: this }
-
-      @workflowController.on 'WorkflowStarted', -> inProcess = no
-
-      @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
-
-        @state.currentPlan = state.planTitle
-        @state.currentPlanInterval = state.planInterval
-        @plans.setState @state
-
-        KD.singletons
-          .router
-          .handleRoute '/'
+        .handleRoute '/'
 
 
   continueFrom: (planTitle, planInterval) ->
@@ -243,7 +240,7 @@ class PricingAppView extends KDView
     plan.select()
 
 
-  setState: (obj) -> @state = KD.utils.extend @state, obj
+  setState: (obj) -> @state = kd.utils.extend @state, obj
 
 
   pistachio: ->
@@ -255,5 +252,4 @@ class PricingAppView extends KDView
       {{> @footer}}
       {{> @kodingFooter}}
     """
-
 

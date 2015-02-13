@@ -1,0 +1,4 @@
+{
+  "name": "pricing",
+  "main": "./lib/index.coffee"
+}

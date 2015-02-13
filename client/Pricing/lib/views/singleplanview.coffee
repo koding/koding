@@ -1,4 +1,11 @@
-class SinglePlanView extends KDView
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+KDHeaderView = kd.HeaderView
+KDView = kd.View
+
+
+module.exports = class SinglePlanView extends KDView
 
   getInitialState: -> {
     planInterval: 'year'
@@ -6,11 +13,11 @@ class SinglePlanView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'single-plan', options.cssClass
+    options.cssClass = kd.utils.curry 'single-plan', options.cssClass
 
     super options, data
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
     @initViews()
 
@@ -91,7 +98,7 @@ class SinglePlanView extends KDView
 
   setPlanInterval: (planInterval) ->
 
-    KD.utils.extend @state, { planInterval }
+    kd.utils.extend @state, { planInterval }
 
     price = @getPrice planInterval
 
@@ -128,5 +135,4 @@ class SinglePlanView extends KDView
     @buyButton.enable()
 
     @setAttribute 'disabled', 'false'
-
 

@@ -1,8 +1,15 @@
-class PricingAppController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+PricingAppView = require './pricingappview'
+KodingAppsController = require 'app/kodingappscontroller'
+globals = require 'globals'
 
-  KD.registerAppClass this,
+
+module.exports = class PricingAppController extends KDViewController
+
+  @options =
     name  : 'Pricing'
-    route : '/Pricing'
+    route : '/:name?/Pricing'
 
   constructor: (options = {}, data) ->
 
@@ -21,14 +28,14 @@ class PricingAppController extends KDViewController
     @initAppStorage()
 
     KodingAppsController.appendHeadElement 'script', stripeOptions, =>
-      Stripe.setPublishableKey KD.config.stripe.token
+      Stripe.setPublishableKey globals.config.stripe.token
       KodingAppsController.appendHeadElement 'script', paypalOptions, =>
         @emit 'ready'
 
 
   initAppStorage: ->
 
-    { appStorageController } = KD.singletons
+    { appStorageController } = kd.singletons
 
     appStorage = appStorageController.storage 'Pricing', '2.0.0'
 
@@ -47,5 +54,4 @@ class PricingAppController extends KDViewController
     return  unless planTitle and planInterval
 
     @loadPaymentProvider -> view.continueFrom planTitle, planInterval
-
 

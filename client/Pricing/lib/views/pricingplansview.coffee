@@ -1,6 +1,11 @@
-class PricingPlansView extends KDView
+kd = require 'kd'
+KDView = kd.View
+SinglePlanView = require './singleplanview'
 
-  getInitialState: -> KD.utils.dict()
+
+module.exports = class PricingPlansView extends KDView
+
+  getInitialState: -> kd.utils.dict()
 
   constructor: (options = {}, data) ->
 
@@ -9,7 +14,7 @@ class PricingPlansView extends KDView
 
     super options, data
 
-    @state = KD.utils.extend @getInitialState(), options.state
+    @state = kd.utils.extend @getInitialState(), options.state
 
     @planViews = {}
 
@@ -31,7 +36,7 @@ class PricingPlansView extends KDView
 
   setState: (state) ->
 
-    KD.utils.extend @state, state
+    kd.utils.extend @state, state
 
     @refresh()
 
