@@ -36,7 +36,9 @@ class NavigationWorkspaceItem extends KDListItemView
     left        = x + w + 16
     position    = { top, left }
 
-    new WorkspaceSettingsPopup { position, delegate: this }
+    settingsPopup = new WorkspaceSettingsPopup { position, delegate: this }
+    settingsPopup.once 'WorkspaceDeleted', (wsId) =>
+      @emit 'WorkspaceDeleted', wsId
 
 
   setUnreadCount: (unreadCount = 0) ->
