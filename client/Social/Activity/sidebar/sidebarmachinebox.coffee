@@ -32,7 +32,14 @@ class SidebarMachineBox extends KDView
     @collapseList()
 
 
-  addWorkspace: (wsData) -> @listController.addItem wsData
+  addWorkspace: (wsData, storeData = no) ->
+
+    @listController.addItem wsData
+
+    return  unless storeData
+
+    { workspaces } = @getData()
+    workspaces.push wsData
 
 
   createWorkspacesLabel: ->
@@ -62,8 +69,7 @@ class SidebarMachineBox extends KDView
     @addWorkspaceView.once 'KDObjectWillBeDestroyed', @bound 'removeAddWorkspaceInput'
     @addWorkspaceView.once 'WorkspaceCreateFailed',   @bound 'removeAddWorkspaceInput'
     @addWorkspaceView.once 'WorkspaceCreated', (ws) =>
-      @addWorkspace ws
-      @getData().workspaces.push ws
+      @addWorkspace ws, yes
       @removeAddWorkspaceInput()
 
     @listView.addSubView @addWorkspaceView
