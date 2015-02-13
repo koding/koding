@@ -741,15 +741,10 @@ class ActivitySidebar extends KDCustomHTMLView
   #   else @fetchMachines @bound 'listMachines'
 
 
-   addMachineList: ->
+  addMachineList: ->
 
-    KD.remote.api.Sidebar.fetchEnvironment (err, data) =>
-      @machineLists = []
-      @machineListsByName = {}
-      @addSubView @ownMachinesList = new SidebarOwnMachinesList {}, data.own
-
-      @machineLists.push @ownMachinesList
-      @machineListsByName.own = @ownMachinesList
+    @fetchMachines (machines) =>
+      @renderMachines machines
 
 
   # handleMachineItemClick: (machineItem, event) ->
