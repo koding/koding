@@ -1,8 +1,13 @@
-class AboutAppController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+AboutAppView = require './aboutappview'
 
-  KD.registerAppClass this,
+
+module.exports = class AboutAppController extends KDViewController
+
+  @options =
     name  : 'About'
-    route : '/About'
+    route : '/:name?/About'
 
   constructor:(options = {}, data)->
 
