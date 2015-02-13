@@ -1,6 +1,5 @@
-@import "../../Framework/src/themes/default/kdfn"
-@import "../styl/appfn"
-@import "../styl/app.fonts"
+@require "./app.fonts"
+
 
 @css {
 /*
@@ -133,7 +132,7 @@ aside.app-sidebar
     fl()
 
     cite
-      r-sprite          home 'logo'
+      r-sprite          app 'logo'
       margin            0
       display           block
 
@@ -499,17 +498,6 @@ div.nominateicon
       .kdnotification-content
         font-size             13px
 
-
-.kdmodal.vm-settings
-  .kdmodal-content
-    overflow              visible
-    margin                20px !important
-
-.kdmodal.ws-settings
-  .kdmodal-content
-    overflow              visible
-    margin                5px 16px !important
-
 .kdmodal.ws-settings
 .kdmodal.vm-settings
 
@@ -519,11 +507,15 @@ div.nominateicon
   .kdmodal-title
     hidden()
 
+  .kdmodal-content
+    overflow              visible
+    margin                0 !important
+
   .close-icon
     hidden()
 
   .modal-arrow
-    left                  -21px !important
+    left                  -41px !important
     border-right-color    #fafafa !important
     vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
 
@@ -532,9 +524,7 @@ div.nominateicon
 
   &.activity-modal
     .kdmodal-inner
-      margin              0
-      padding             0
-      overflow-y          auto
+      margin              21px
 
   .kdformview .formline
 
@@ -562,7 +552,7 @@ div.nominateicon
       color               #909090
       font-size           12px
       line-height         21px
-      font-weight         400
+      font-weight         600
       noTextDeco()
 
       a
@@ -637,29 +627,6 @@ div.nominateicon
     &.guides
       label.kdlabel
         padding-top       5px
-
-    &.disk-usage
-
-      .input-wrapper
-        height            20px
-
-        .progressbar-container
-
-          size        100% 14px
-          background  #ddd
-          border      none
-          rounded     2px
-          top         4px
-
-          .bar
-            background  #428040
-            border      none
-            shadow      none
-
-          span
-            text-align  left
-            left        2px
-            top         1px
 
     &.moreview
     &.advancedview
@@ -795,7 +762,7 @@ div.nominateicon
     font-size             12px
     line-height           20px
     margin                0
-    font-weight           500
+    font-weight           600
     padding-left          3px
     color                 #a3a3a3
 
@@ -840,7 +807,7 @@ div.nominateicon
     border-bottom         1px solid #e0e0e0
 
   .modal-arrow
-    left                  -22px !important
+    left                  -36px !important
     border-right-color    #242424 !important
     vendor                filter, drop-shadow(-5px 1px 4px rgba(0,0,0,0.35))
     &:before
@@ -855,7 +822,7 @@ div.nominateicon
 
   &.activity-modal
     .kdmodal-inner
-      margin              0
+      margin              5px 16px
 
   &.guides
     label.kdlabel
@@ -1353,8 +1320,10 @@ paymentGrayLighter  = #f8f8f8
 
 
 .kdmodal.env-modal
+  bg                    color, #E7E7E7
   .kdmodal-inner
     margin              0
+    bg                  color, #E7E7E7
 
   .content-container
     text-align          center
@@ -1367,11 +1336,11 @@ paymentGrayLighter  = #f8f8f8
       vendor            box-shadow, none !important
 
   .footer
-    bg                  color, #f3f3f3
+    bg                  color, #DCDCDC
     font-size           14px
     color               #5E5E5E
     padding             25px 30px
-    rounded             0 0 3px 3px
+    rounded             0 0 6px 6px
 
 
 .kdmodal.env-machine-state
