@@ -1,4 +1,9 @@
-class OnboardingViewController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+OnboardingItemView = require './onboardingitemview'
+
+
+module.exports = class OnboardingViewController extends KDViewController
 
   constructor: (options = {}, data) ->
 
@@ -24,3 +29,5 @@ class OnboardingViewController extends KDViewController
 
     view.on "OnboardingShown", (slug) =>
       @getDelegate().emit "OnboardingShown", slug
+
+

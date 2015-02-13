@@ -1,4 +1,15 @@
-class OnboardingItemView extends KDView
+htmlencode = require 'htmlencode'
+$ = require 'jquery'
+mixpanel = require '../util/mixpanel'
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+KDSpotlightView = kd.SpotlightView
+KDView = kd.View
+OnboardingContextMenu = require '../onboardingcontextmenu'
+
+
+module.exports = class OnboardingItemView extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -16,11 +27,11 @@ class OnboardingItemView extends KDView
     @hasPrev       = index isnt 0 and @hasNext
 
     try
-      @parentElement = eval Encoder.htmlDecode path
+      @parentElement = eval htmlencode.htmlDecode path
       if @parentElement instanceof KDView
         @createContextMenu()
         @listenEvents()
-      else if @parentElement instanceof jQuery
+      else if @parentElement instanceof $
         @parentElement = @getKDViewFromJQueryElement @parentElement
         return  unless @parentElement
 
@@ -48,7 +59,7 @@ class OnboardingItemView extends KDView
       @contextMenu.once "KDObjectWillBeDestroyed", =>
         @destroy()
 
-      KD.utils.defer =>
+      kd.utils.defer =>
         left = @parentElement.getX() - @contextMenu.getX() + 10
         @contextMenu.arrow.setCss "left", left
         $("body").addClass "noscroll"
@@ -103,7 +114,7 @@ class OnboardingItemView extends KDView
     element = $element[0] # first is jQuery method
     kdview  = null
 
-    for key, kdinstance of KD.instances
+    for key, kdinstance of kd.instances
       if kdinstance.getElement?() is element
         kdview = kdinstance
         break
@@ -113,19 +124,19 @@ class OnboardingItemView extends KDView
   listenEvents: ->
     @on "NavigationRequested", (direction) =>
       @destroy()
-      KD.mixpanel "Onboarding navigation, click"
+      mixpanel "Onboarding navigation, click"
 
     @on "OnboardingCompleted", =>
       @destroy()
-      KD.mixpanel "Onboarding navigation, success"
+      mixpanel "Onboarding navigation, success"
 
     @on "OnboardingCancelled", =>
       @destroy()
-      KD.mixpanel "Onboarding navigation, failure"
+      mixpanel "Onboarding navigation, failure"
 
     {setStorage, slug} = @getOptions()
     if setStorage
-      KD.utils.defer =>
+      kd.utils.defer =>
         @emit "OnboardingShown", slug
 
   destroy: ->
@@ -135,7 +146,5 @@ class OnboardingItemView extends KDView
     $("body").removeClass "noscroll"
 
 
-class OnboardingContextMenu extends KDContextMenu
 
-  childAppended: ->
-    KD.utils.defer => @positionContextMenu()
+

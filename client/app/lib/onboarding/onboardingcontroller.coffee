@@ -1,13 +1,21 @@
-class OnboardingController extends KDController
+kookies = require 'kookies'
+remote = require('../remote').getInstance()
+isLoggedIn = require '../util/isLoggedIn'
+kd = require 'kd'
+KDController = kd.Controller
+OnboardingViewController = require './onboardingviewcontroller'
+
+
+module.exports = class OnboardingController extends KDController
 
   constructor: (options = {}, data) ->
 
     super options, data
 
     @onboardings   = {}
-    mainController = KD.getSingleton "mainController"
+    mainController = kd.getSingleton "mainController"
 
-    if KD.isLoggedIn() then @fetchItems()
+    if isLoggedIn() then @fetchItems()
     else
       mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
 
@@ -15,8 +23,8 @@ class OnboardingController extends KDController
       @appStorage.setValue slug, yes
 
   fetchItems: ->
-    @appStorage = KD.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
-    @hasCookie  = Cookies.get "custom-partials-preview-mode"
+    @appStorage = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
+    @hasCookie  = kookies.get "custom-partials-preview-mode"
     query       = partialType : "ONBOARDING"
 
     if @hasCookie
@@ -24,7 +32,7 @@ class OnboardingController extends KDController
     else
       query["isActive"]  = yes
 
-    KD.remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
+    remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
       for data in onboardings when data.partial
         appName = data.partial.app
         @onboardings[appName] ?= []
@@ -33,16 +41,16 @@ class OnboardingController extends KDController
       @appStorage.fetchStorage @bound "bindOnboardingEvents"
 
   bindOnboardingEvents: ->
-    appManager = KD.getSingleton "appManager"
+    appManager = kd.getSingleton "appManager"
     appManager.on "AppCreated", (app) =>
       appName = app.getOptions().name
       return unless @onboardings[appName]
 
-      KD.utils.wait 3000, =>
+      kd.utils.wait 3000, =>
         onboardings = @onboardings[appName]
 
         for item in onboardings
-          slug    = KD.utils.slugify KD.utils.curry appName, item.name
+          slug    = kd.utils.slugify kd.utils.curry appName, item.name
           isShown = @appStorage.getValue slug
 
           if not isShown or @hasCookie
@@ -52,3 +60,5 @@ class OnboardingController extends KDController
         return unless onboarding?.partial.items?.length
 
         new OnboardingViewController { app, slug, delegate: this }, onboarding.partial
+
+
