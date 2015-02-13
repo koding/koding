@@ -235,6 +235,10 @@ module.exports =
 
     @setMachineUser [targetUser], no, (err) =>
 
+      if err
+        showError "Failed to kick #{targetUser}"
+        return throwError err
+
       kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
 
         return showError err  if err
@@ -547,7 +551,7 @@ module.exports =
     { Collaboration } = remote.api
     Collaboration.stop @rtmFileId, @workspaceData, (err) =>
 
-      return warn err  if err
+      return throwError err  if err
 
       kd.utils.killRepeat @pingInterval
 
@@ -718,7 +722,9 @@ module.exports =
 
     @rtm.createFile @getRealTimeFileName()
 
-    @setMachineSharingStatus on
+    @setMachineSharingStatus on, (err) ->
+
+      throwError err  if err
 
 
   # should clean realtime manager.
@@ -795,9 +801,9 @@ module.exports =
     if @amIHost
       @listChatParticipants (accounts) =>
         usernames = getUsernames accounts
-        @setMachineUser usernames, status
+        @setMachineUser usernames, status, callback
     else
-      @setMachineUser [nick()], status
+      @setMachineUser [nick()], status, callback
 
 
   setMachineUser: (usernames, share = yes, callback = kd.noop) ->
@@ -827,8 +833,7 @@ module.exports =
 
               action = if share then 'added' else 'removed'
               message = "#{username} couldn't be #{action} as an user"
-              callback { message }
-              console.error message
+              callback {message}
 
       sinkrow.dash queue, callback
 
@@ -930,9 +935,7 @@ module.exports =
         else args.join ' '
 
     argIndex = 0
-    error = new Error """
+    console.error """
       IDE.CollaborationController:
       #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
     """
-
-    throw error
