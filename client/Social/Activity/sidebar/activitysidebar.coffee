@@ -744,7 +744,12 @@ class ActivitySidebar extends KDCustomHTMLView
   addMachineList: ->
 
     @fetchMachines (machines) =>
-      @renderMachines machines
+      @machineLists = []
+      @machineListsByName = {}
+      @addSubView @ownMachinesList = new SidebarOwnMachinesList {}, machines.own
+
+      @machineLists.push @ownMachinesList
+      @machineListsByName.own = @ownMachinesList
 
 
   # handleMachineItemClick: (machineItem, event) ->
@@ -1000,13 +1005,11 @@ class ActivitySidebar extends KDCustomHTMLView
       @renderMachines machines, callback
 
 
-  renderMachines: (machines, callback = noop)->
 
     # @machineTree.removeAllNodes()
     # @listMachines machines
 
     # @selectWorkspace()
-    callback()
 
 
   invalidateWorkspaces: (machine)->
