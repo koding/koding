@@ -61,13 +61,18 @@ module.exports =
 
     helpers.postComment(browser)
 
-    comment         = helpers.getFakeText()
-    commentSelector = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
+    commentSelector     = activitySelector + ' .comment-container .kdlistitemview-comment:first-child'
+    likeLinkSelector    = commentSelector + ' [testpath=activity-like-link]:not(.like-count)'
+    afterLikeSelector   = likeLinkSelector + '.liked'
+    afterUnlikeSelector = commentSelector + ' [testpath=activity-like-link]:not(.liked):first-child'
 
     browser
       .waitForElementVisible    commentSelector, 25000
-      .click                    commentSelector + ' [testpath=activity-like-link]'
-      .waitForElementVisible    commentSelector + ' [testpath=activity-like-link]', 25000
-      .click                    commentSelector + ' [testpath=activity-like-link]'
-      .waitForElementVisible    commentSelector + ' .liked:not(.count)', 25000 # Assertion
+      .waitForElementVisible    likeLinkSelector, 25000
+      .click                    likeLinkSelector
+      .pause                    8000 # wait for latency to make sure really liked on server
+      .waitForElementVisible    afterLikeSelector, 25000
+      .click                    afterLikeSelector
+      .pause                    8000 # wait for latency to make sure really unliked on server
+      .waitForElementVisible    afterUnlikeSelector, 25000
       .end()
