@@ -66,9 +66,7 @@ class ComputeEventListener extends KDObject
 
     unless event.status is Running
       computeController.invalidateCache machine._id
-
-      KodingKontrol.dcNotification?.destroy()
-      KodingKontrol.dcNotification = null
+      KodingKontrol.setTryingToReconnect no
 
 
   revertToPreviousState:(machine)->

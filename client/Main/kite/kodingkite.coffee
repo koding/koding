@@ -125,12 +125,18 @@ class KodingKite extends KDObject
 
 
   disconnect: ->
+
+    KodingKontrol.setTryingToReconnect no
+
     @isDisconnected = yes
     @transport?.disconnect()
     @transport = null
 
 
   reconnect:  ->
+
+    KodingKontrol.setTryingToReconnect()
+
     @transport?.disconnect()
 
     KD.utils.wait 1000, =>
@@ -153,3 +159,4 @@ class KodingKite extends KDObject
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
 
+        KodingKontrol.setTryingToReconnect no
