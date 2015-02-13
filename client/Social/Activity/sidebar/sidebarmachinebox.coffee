@@ -24,10 +24,10 @@ class SidebarMachineBox extends KDView
       itemClass     : NavigationWorkspaceItem
       itemOptions   : { machine }
 
-    @addWorkspace ws  for ws in workspaces
+    @listWrapper = @listController.getView()
 
-    @listView = @listController.getView()
-    @addSubView @listView
+    @addWorkspace ws  for ws in workspaces
+    @addSubView @listWrapper
 
     @collapseList()
 
@@ -72,7 +72,7 @@ class SidebarMachineBox extends KDView
       @addWorkspace ws, yes
       @removeAddWorkspaceInput()
 
-    @listView.addSubView @addWorkspaceView
+    @listWrapper.addSubView @addWorkspaceView
 
     KD.utils.wait 177, => @addWorkspaceView.input.setFocus()
 
@@ -87,14 +87,14 @@ class SidebarMachineBox extends KDView
 
     return  if @isListCollapsed
 
-    @listView.setClass 'hidden'
+    @listWrapper.setClass 'hidden'
     @workspacesLabel.setClass 'hidden'
     @isListCollapsed = yes
 
 
   expandList: ->
 
-    @listView.unsetClass 'hidden'
+    @listWrapper.unsetClass 'hidden'
     @workspacesLabel.unsetClass 'hidden'
     @isListCollapsed = no
 
