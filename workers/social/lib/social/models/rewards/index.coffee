@@ -159,7 +159,9 @@ module.exports = class JReward extends jraphical.Message
     unless username
       return callback new KodingError "Please set username"
 
-    providedBy = client.connection.delegate.getId()
+    providedBy = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not providedBy
 
     JAccount.one 'profile.nickname': username, (err, account)->
 
@@ -203,17 +205,23 @@ module.exports = class JReward extends jraphical.Message
 
   @fetchEarnedAmount$ = secure (client, options, callback)->
 
-    options.originId  = client.connection.delegate.getId()
+    providedBy = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not providedBy
 
     @fetchEarnedAmount options, callback
 
 
   @some$ = secure (client, selector, options, callback)->
 
+    originId = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not originId
+
     selector ?= {}
     options  ?= {}
 
-    selector.originId = client.connection.delegate.getId()
+    selector.originId = originId
 
     @some selector, options, callback
 

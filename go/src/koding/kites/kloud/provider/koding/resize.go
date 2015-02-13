@@ -74,7 +74,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	checker, err := p.PlanChecker(m)
 	if err != nil {
-	  return nil, err
+		return nil, err
 	}
 
 	// Storage is counting all current sizes. So we need ask only for the
@@ -82,7 +82,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// and our desired size is 10, we need to ask if we have still
 	// limit for a 7 GB space.
 	if err := checker.Storage(desiredSize - currentSize); err != nil {
-	  return nil, err
+		return nil, err
 	}
 
 	a.Push("Checking if size is eligible", 20, machinestate.Pending)

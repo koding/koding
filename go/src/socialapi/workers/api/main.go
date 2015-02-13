@@ -9,6 +9,7 @@ import (
 
 	"socialapi/config"
 	"socialapi/workers/api/handlers"
+	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
@@ -44,6 +45,7 @@ func main() {
 	// shutdown server
 	defer m.Close()
 
+	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
 	notificationapi.AddHandlers(m)
 	trollmodeapi.AddHandlers(m)
