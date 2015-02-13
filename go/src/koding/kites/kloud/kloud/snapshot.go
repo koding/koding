@@ -18,7 +18,7 @@ func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr err
 		// some providers might provide empty information, therefore do not
 		// update anything for them
 		if resp == nil {
-			return resp, nil
+			return true, nil
 		}
 
 		err = k.Storage.Update(m.Id, &StorageData{
