@@ -38,7 +38,7 @@ func (b *Broker) NewSubscriber() (Subscriber, error) {
 
 	// set quality of the service
 	// TODO get this from config
-	if err := l.Consumer.QOS(10); err != nil {
+	if err := l.Consumer.QOS(b.config.QOS); err != nil {
 		return nil, err
 	}
 

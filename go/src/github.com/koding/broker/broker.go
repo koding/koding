@@ -40,6 +40,9 @@ type Config struct {
 	// Enable Maintenance Queue, if this is enabled, redelivered messages will
 	// be put to maintenance queue
 	EnableMaintenanceQueue bool
+
+	// QOS holds the prefetch count of the rabbitmq
+	QOS int
 }
 
 type Broker struct {
