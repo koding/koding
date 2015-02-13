@@ -1,10 +1,14 @@
-class AboutAppView extends JView
+JView = require 'app/jview'
+FooterView = require 'app/commonviews/footerview'
+
+
+module.exports = class AboutAppView extends JView
 
   constructor:->
 
     super
 
-    @once 'viewAppended', -> window.scrollTo 0, 0
+    @once 'viewAppended', -> global.scrollTo 0, 0
 
     @footer = new FooterView
 
@@ -81,3 +85,5 @@ class AboutAppView extends JView
     </section>
     {{> @footer}}
     """
+
+
