@@ -151,7 +151,8 @@ module.exports =
     if channelId
 
       @fetchSocialChannel (err, channel) =>
-        return callback err  if err
+        if err or not channel
+          return @initPrivateMessage callback
 
         @createChatPaneView channel
         @isRealtimeSessionActive channelId, (isActive, file) =>
