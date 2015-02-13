@@ -490,7 +490,7 @@ class ActivitySidebar extends KDCustomHTMLView
             return  unless machine.isMine()
 
             for workspace in userWorkspaces \
-              when workspace.slug is 'my-workspace' \
+              when workspace and workspace.slug is 'my-workspace' \
               and workspace.machineUId is machine.uid
                 return
 
