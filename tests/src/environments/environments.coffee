@@ -202,17 +202,20 @@ module.exports =
 
     modalSelector = '.computeplan-modal.free-plan'
     pricingPage   = '.content-page.pricing'
+    vmSelector    = 'a[href="/IDE/koding-vm-1/my-workspace"]'
 
     helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
 
-    clickAddVMButton(browser)
-
-    browser.pause 5000 # wait to see the modal
-
-    browser.element 'css selector', modalSelector, (result) =>
+    browser.element 'css selector', vmSelector, (result) =>
       if result.status is 0
+        browser.end()
+      else
+        helpers.waitForVMRunning(browser)
+
+        clickAddVMButton(browser)
+
         browser
+          .pause 5000 # wait to see the modal
           .waitForElementVisible   modalSelector, 20000
           .waitForElementVisible   modalSelector + ' a.custom-link-view span', 20000
           .click                   modalSelector + ' a.custom-link-view span'
@@ -226,9 +229,6 @@ module.exports =
         browser.url helpers.getUrl() + '/IDE'
         clickAddVMButton(browser)
         clickCreateVMButton(browser)
-      else
-        clickCreateVMButton(browser)
-
 
 
   # this test depends addVM test.
