@@ -121,6 +121,7 @@ module.exports = [
   "views/privatemessage/participantsearchcontroller.coffee"
   "views/privatemessage/form.coffee"
   "views/privatemessage/kodingbot.coffee"
+  "views/privatemessage/videochatview.coffee"
   "views/privatemessage/pane.coffee"
   "views/privatemessage/replypreviouslink.coffee"
   "views/privatemessage/replyinputview.coffee"
