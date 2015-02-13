@@ -1,9 +1,13 @@
-class FeaturesAppController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+FeaturesView = require './featuresview'
 
-  KD.registerAppClass this,
+
+module.exports = class FeaturesAppController extends KDViewController
+
+  @options =
     name  : 'Features'
-    route : '/Features'
-
+    route : '/:name?/Features'
 
   constructor: (options = {}, data) ->
 
@@ -11,3 +15,5 @@ class FeaturesAppController extends KDViewController
       cssClass : 'content-page features'
 
     super options, data
+
+
