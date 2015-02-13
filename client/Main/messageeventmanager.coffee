@@ -99,8 +99,6 @@ class MessageEventManager extends KDObject
 
     message = @getData()
 
-    return  unless KD.singletons.socialapi.isFromOtherBrowser message
-
     for item in message.replies
       reply = item  if replyId is item.getId()
 

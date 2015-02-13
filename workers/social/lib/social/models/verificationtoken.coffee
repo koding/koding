@@ -106,15 +106,16 @@ module.exports = class JVerificationToken extends Module
     templates =
 
       'verify-account': """
-        Hi #{firstName},
+        Thanks for signing up and welcome to Koding!
 
-        Welcome to Koding!
+        Here's the confirmation code that you can use to verify your email address:
 
-        You can use the following code to verify your koding.com account:
+          <b>#{pin}</b>
 
-          #{pin}
+        If you run into any issues, just reply to this email and help will be on its way!
 
         Have a nice day!
+
         --
         Koding Team
       """
@@ -124,9 +125,10 @@ module.exports = class JVerificationToken extends Module
 
         To verify your new e-mail address you can use the following code:
 
-          #{pin}
+          <b>#{pin}</b>
 
         Have a nice day!
+
         --
         Koding Team
       """
@@ -136,9 +138,10 @@ module.exports = class JVerificationToken extends Module
 
         Here’s your koding.com verification code:
 
-          #{pin}
+          <b>#{pin}</b>
 
         Have a nice day!
+
         --
         Koding Team
       """
@@ -156,6 +159,7 @@ module.exports = class JVerificationToken extends Module
       subject : subject
       content : getTextBody {firstName, @pin, action}
       force   : yes
+      replyto : 'support@koding.com'
 
     console.log "Pin (#{@pin}) sent to #{@email} for #{@action} action."
 
