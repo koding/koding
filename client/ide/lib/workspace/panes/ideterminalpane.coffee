@@ -46,7 +46,8 @@ module.exports = class IDETerminalPane extends IDEPane
 
       kd.utils.wait 166, =>
         {path} = @getOptions()
-        @runCommand "cd #{path}"  if path
+        return  unless path
+        @runCommand "cd #{FSHelper.escapeFilePath path}"
 
     @webtermView.connectToTerminal()
 
@@ -102,15 +103,12 @@ module.exports = class IDETerminalPane extends IDEPane
 
   serialize: ->
 
-    {label, ipAddress, slug, uid} = @machine
-    {path, paneType} = @getOptions()
-
     data       =
-      path     : path
-      machine  : { label, ipAddress, slug, uid }
-      paneType : paneType
+      paneType : @getOptions().paneType
       session  : @remote?.session
       hash     : @hash
+
+    return data
 
 
   setEditMode: (state) ->

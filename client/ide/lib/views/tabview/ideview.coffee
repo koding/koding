@@ -52,9 +52,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       @updateStatusBar()
       @focusTab()
 
-    @once 'viewAppended', => kd.utils.wait 300, =>
-      @createEditor()  if @getOption 'createNewEditor'
-
     @tabView.on 'PaneAdded', (pane) =>
       return unless pane.options.editor
       {tabHandle} = pane
@@ -65,6 +62,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         click    : => @createEditorMenu tabHandle, icon
 
       tabHandle.addSubView icon, null, yes
+
+    @tabView.on 'PaneRemoved', (obj) =>
+      { view } = obj.pane
+      { detachInProgress } = obj.pane.getDelegate()
+
+      if view instanceof IDETerminalPane and not detachInProgress
+        sessionId = view.session or view.webtermView.sessionId
+        @terminateSession @mountedMachine, sessionId
 
 
   createPane_: (view, paneOptions, paneData) ->
@@ -106,9 +111,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       editor    : editorPane
       aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
 
-    editorPane.once 'EditorIsReady', ->
+    editorPane.once 'EditorIsReady', =>
       ace        = editorPane.getAce()
       appManager = kd.getSingleton 'appManager'
+
+      if file.isDummyFile()
+        ace.on 'FileContentChanged', => @emit 'UpdateWorkspaceSnapshot'
 
       ace.on 'ace.change.cursor', (cursor) ->
         appManager.tell 'IDE', 'updateStatusBar', 'editor', { file, cursor }
@@ -134,6 +142,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       @emitChange editorPane, change
 
+    return editorPane
+
 
   createShortcutsView: ->
 
@@ -152,13 +162,18 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       if rootPath and not isDefault
         options.path = frontApp.workspaceData.rootPath
 
-    { machine, joinUser } = options
+    { machine, joinUser, fitToWindow } = options
 
     terminalPane = new IDETerminalPane options
     @createPane_ terminalPane, { name: 'Terminal' }
 
     terminalPane.once 'WebtermCreated', =>
       terminalPane.webtermView.on 'click', @bound 'click'
+
+      if fitToWindow
+        kd.utils.defer -> terminalPane.webtermView.triggerFitToWindow()
+
+      @emit 'UpdateWorkspaceSnapshot'
 
       unless joinUser
         change        =
@@ -247,9 +262,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   removeOpenDocument: -> # legacy, should be reimplemented in ace bundle.
 
 
-  getActivePaneView: ->
-
-    return @tabView.getActivePane().view
+  getActivePaneView: -> return @tabView.getActivePane()?.view
 
 
   focusTab: ->
@@ -396,11 +409,13 @@ module.exports = class IDEView extends IDEWorkspaceTabView
           'Terminate'     :
             callback      : => @terminateSession machine, session
 
+    canTerminateSessions  = sessions.length > 0 and frontApp.amIHost
+
     terminalSessions["New Session"] =
       callback            : => @createTerminal { machine }
-      separator           : sessions.length > 0
+      separator           : canTerminateSessions
 
-    if sessions.length > 0
+    if canTerminateSessions
       terminalSessions["Terminate all"] =
         callback          : => @terminateSessions machine
 
@@ -468,7 +483,8 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     .catch (err)->
       kd.warn "Failed to terminate sessions", err
 
-  terminateSession: (machine, session)->
+
+  terminateSession: (machine, session) ->
 
     machine.getBaseKite().webtermKillSession {session}
 

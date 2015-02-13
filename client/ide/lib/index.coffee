@@ -1,6 +1,7 @@
 dateFormat = require 'dateformat'
 sinkrow = require 'sinkrow'
 ndpane = require 'ndpane'
+_ = require 'underscore'
 kd = require 'kd'
 $ = require 'jquery'
 KDBlockingModalView = kd.BlockingModalView
@@ -19,6 +20,7 @@ Machine = require 'app/providers/machine'
 KodingKontrol = require 'app/kite/kodingkontrol'
 FSHelper = require 'app/util/fs/fshelper'
 AppController = require 'app/appcontroller'
+CollaborationController = require './collaborationcontroller'
 IDEChatView = require './views/chat/idechatview'
 IDEContentSearch = require './views/contentsearch/idecontentsearch'
 IDEEditorPane = require './workspace/panes/ideeditorpane'
@@ -39,6 +41,8 @@ require('./routehandler')()
 
 
 module.exports = class IDEAppController extends AppController
+
+  _.extend @prototype, CollaborationController
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
@@ -124,6 +128,8 @@ module.exports = class IDEAppController extends AppController
       kd.singletons.windowController.notifyWindowResizeListeners()
 
       @resizeActiveTerminalPane()
+
+    @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
 
 
   bindRouteHandler: ->
@@ -249,7 +255,9 @@ module.exports = class IDEAppController extends AppController
       {tabView} = view
 
       for p in tabView.panes by -1
+        tabView.detachInProgress = yes
         {pane} = tabView.removePane p, yes, (yes if tabView instanceof AceApplicationTabView)
+        tabView.detachInProgress = no
         panes.push pane
 
       view.destroy()
@@ -290,14 +298,13 @@ module.exports = class IDEAppController extends AppController
     panel        = @workspace.getView()
     filesPane    = panel.getPaneByName 'filesPane'
 
-    if machineData.isMine()
-      rootPath   = @workspaceData?.rootPath or null
-    else if owner = machineData.getOwner()
-      rootPath   = "/home/#{owner}"
-    else
-      rootPath   = '/'
+    path = @workspaceData?.rootPath
 
-    filesPane.emit 'MachineMountRequested', machineData, rootPath
+    path ?= if owner = machineData.getOwner()
+    then "/home/#{owner}"
+    else '/'
+
+    filesPane.emit 'MachineMountRequested', machineData, path
 
 
   unmountMachine: (machineData) ->
@@ -308,19 +315,28 @@ module.exports = class IDEAppController extends AppController
     filesPane.emit 'MachineUnmountRequested', machineData
 
 
+  isMachineRunning: ->
+
+    return @mountedMachine.status.state is Running
+
+
   createInitialView: ->
 
     kd.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
-        return unless machine
-        {state} = machine.status
 
-        if state in [ 'Stopped', 'NotInitialized', 'Terminated', 'Starting', 'Building' ]
+        return unless machine
+
+        for ideView in @ideViews
+          ideView.mountedMachine = @mountedMachine
+
+        unless @isMachineRunning()
           nickname     = nick()
           machineLabel = machine.slug or machine.label
           splashs      = splashMarkups
 
+          @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
           @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
           @fakeTerminalPane = @fakeTabView.parent.createPane_ @fakeTerminalView, { name: 'Terminal' }
@@ -328,11 +344,18 @@ module.exports = class IDEAppController extends AppController
           @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
+          @fakeEditor.once 'EditorIsReady', => kd.utils.defer => @fakeEditor.setFocus no
+
         else
-          @createNewTerminal { machine }
-          @setActiveTabView @ideViews.first.tabView
-          @forEachSubViewInIDEViews_ (pane) ->
-            pane.isInitial = yes
+          snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
+
+          if snapshot then @resurrectLocalSnapshot snapshot
+          else
+            @ideViews.first.createEditor()
+            @ideViews.last.createTerminal { machine }
+            @setActiveTabView @ideViews.first.tabView
+            @forEachSubViewInIDEViews_ (pane) ->
+              pane.isInitial = yes
 
 
   getMountedMachine: (callback = noop) ->
@@ -520,11 +543,13 @@ module.exports = class IDEAppController extends AppController
 
     @activeTabView.emit 'DrawingPaneRequested', paneHash
 
+
   moveTab: (direction) ->
 
-    return unless @activeTabView.parent?
+    tabView = @activeTabView
+    return unless tabView.parent?
 
-    panel = @activeTabView.parent.parent
+    panel = tabView.parent.parent
     return  unless panel instanceof KDSplitViewPanel
 
     targetOffset = @layout[direction](panel._layout.data.offset)
@@ -532,19 +557,25 @@ module.exports = class IDEAppController extends AppController
 
     targetPanel = @layoutMap[targetOffset]
 
-    {pane} = @activeTabView.removePane @activeTabView.getActivePane(), yes, yes
+    tabView.detachInProgress = yes
+
+    {pane} = tabView.removePane tabView.getActivePane(), yes, yes
 
     targetPanel.subViews.first.tabView.addPane pane
     @setActiveTabView targetPanel.subViews.first.tabView
     @doResize()
 
-  moveTabUp: -> @moveTab('north')
+    tabView.detachInProgress = no
 
-  moveTabDown: -> @moveTab('south')
 
-  moveTabLeft: -> @moveTab('west')
+  moveTabUp: -> @moveTab 'north'
 
-  moveTabRight: -> @moveTab('east')
+  moveTabDown: -> @moveTab 'south'
+
+  moveTabLeft: -> @moveTab 'west'
+
+  moveTabRight: -> @moveTab 'east'
+
 
   goToLeftTab: ->
 
@@ -586,6 +617,7 @@ module.exports = class IDEAppController extends AppController
   registerIDEView: (ideView) ->
 
     @ideViews.push ideView
+    ideView.mountedMachine = @mountedMachine
 
     ideView.on 'PaneRemoved', (pane) =>
       ideViewLength  = 0
@@ -593,12 +625,32 @@ module.exports = class IDEAppController extends AppController
       delete @generatedPanes[pane.view.hash]
 
       @statusBar.showInformation()  if ideViewLength is 0
+      @writeSnapshot()
 
     ideView.tabView.on 'PaneAdded', (pane) =>
       @registerPane pane
+      @writeSnapshot()
 
     ideView.on 'ChangeHappened', (change) =>
       @syncChange change  if @rtm
+
+    ideView.on 'UpdateWorkspaceSnapshot', =>
+      @writeSnapshot()
+
+
+  writeSnapshot: ->
+
+    return  unless @isMachineRunning()
+
+    name  = @getWorkspaceSnapshotName()
+    value = @getWorkspaceSnapshot()
+
+    @localStorageController.setValue name, value
+
+
+  getWorkspaceSnapshotName: ->
+
+    return "wss.#{@mountedMachine.uid}.#{@workspaceData.slug}"
 
 
   registerPane: (pane) ->
@@ -620,7 +672,7 @@ module.exports = class IDEAppController extends AppController
       [paneType, callback] = [callback, paneType]
 
     for ideView in @ideViews
-      for pane in ideView.tabView.panes
+      for pane in ideView.tabView.panes when pane
         view = pane.getSubViews().first
         if paneType
           if view.getOptions().paneType is paneType
@@ -828,15 +880,27 @@ module.exports = class IDEAppController extends AppController
     else
       finderController.reset()
 
-    @forEachSubViewInIDEViews_ 'terminal', (terminalPane) ->
-      terminalPane.resurrect()
+    snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
     unless @fakeViewsDestroyed
+      for ideView in @ideViews
+        {tabView} = ideView
+        tabView.removePane tabView.getActivePane()
+
       @fakeFinderView?.destroy()
-      @fakeTabView?.removePane_ @fakeTerminalPane
-      @createNewTerminal { machine }
-      @setActiveTabView @ideViews.first.tabView
       @fakeViewsDestroyed = yes
+
+    if snapshot then @resurrectLocalSnapshot snapshot
+    else
+      @ideViews.first.createEditor()
+      @ideViews.last.createTerminal { machine }
+      @setActiveTabView @ideViews.first.tabView
+
+
+  resurrectLocalSnapshot: (snapshot) ->
+
+    for key, value of snapshot when value
+      @createPaneFromChange value, yes
 
 
   toggleFullscreenIDEView: ->
@@ -846,12 +910,21 @@ module.exports = class IDEAppController extends AppController
 
   doResize: ->
 
-    @forEachSubViewInIDEViews_ (pane) ->
+    @forEachSubViewInIDEViews_ (pane) =>
       {paneType} = pane.options
       switch paneType
         when 'terminal'
-          {terminal} = pane.webtermView
+          { webtermView } = pane
+          { terminal }    = webtermView
+
           terminal.windowDidResize()  if terminal?
+
+          {isActive} = @getActiveInstance()
+
+          if not @isInSession and isActive
+            KD.utils.wait 400, -> # defer was not enough.
+              webtermView.triggerFitToWindow()
+
         when 'editor'
           height = pane.getHeight()
           {ace}  = pane.aceView
@@ -859,6 +932,7 @@ module.exports = class IDEAppController extends AppController
           if ace?.editor?
             ace.setHeight height
             ace.editor.resize()
+
 
   notify: (title, cssClass = 'success', type = 'mini', duration = 4000) ->
 
@@ -881,122 +955,12 @@ module.exports = class IDEAppController extends AppController
     tabView.removePane paneView
 
 
-  loadCollaborationFile: (fileId) ->
-
-    return unless fileId
-
-    @rtmFileId = fileId
-
-    @rtm.getFile fileId
-
-    @rtm.once 'FileLoaded', (doc) =>
-      nickname = nick()
-      hostName = @collaborationHost
-
-      @rtm.setRealtimeDoc doc
-
-      @setCollaborativeReferences()
-
-      if @amIHost
-        @getView().setClass 'host'
-      #   @changes.clear()
-      #   @broadcastMessages.clear()
-
-      isInList = no
-
-      @participants.asArray().forEach (participant) =>
-        isInList = yes  if participant.nickname is nickname
-
-      if not isInList
-        @addParticipant whoami(), no
-
-      @rtm.on 'CollaboratorJoined', (doc, participant) =>
-        @handleParticipantAction 'join', participant
-
-      @rtm.on 'CollaboratorLeft', (doc, participant) =>
-        @handleParticipantAction 'left', participant
-
-      @registerCollaborationSessionId()
-      @bindRealtimeEvents()
-      @listenPings()
-      @rtm.isReady = yes
-      @emit 'RTMIsReady'
-      @resurrectSnapshot()
-
-      unless @myWatchMap.values().length
-        @listChatParticipants (accounts) =>
-          accounts.forEach (account) =>
-            {nickname} = account.profile
-            @myWatchMap.set nickname, nickname
-
-      if not @amIHost and @myWatchMap.values().indexOf(hostName) > -1
-        hostSnapshot = @rtm.getFromModel "#{hostName}Snapshot"
-
-        for key, change of hostSnapshot.values()
-          @createPaneFromChange change
-
-      kd.utils.repeat 60 * 55 * 1000, => @rtm.reauth()
-
-      @finderPane.on 'ChangeHappened', @bound 'syncChange'
-
-      unless @amIHost
-        @makeReadOnly()  if @permissions.get(nickname) is 'read'
-
-
-  setCollaborativeReferences: ->
-
-    nickname           = nick()
-    myWatchMapName     = "#{nickname}WatchMap"
-    mySnapshotName     = "#{nickname}Snapshot"
-    defaultPermission  = default: 'edit'
-
-    @participants      = @rtm.getFromModel 'participants'
-    @changes           = @rtm.getFromModel 'changes'
-    @permissions       = @rtm.getFromModel 'permissions'
-    @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
-    @pingTime          = @rtm.getFromModel 'pingTime'
-    @myWatchMap        = @rtm.getFromModel myWatchMapName
-    @mySnapshot        = @rtm.getFromModel mySnapshotName
-
-    @participants      or= @rtm.create 'list',   'participants', []
-    @changes           or= @rtm.create 'list',   'changes', []
-    @permissions       or= @rtm.create 'map',    'permissions', defaultPermission
-    @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
-    @pingTime          or= @rtm.create 'string', 'pingTime'
-    @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-
-    initialSnapshot      = if @amIHost then @getWorkspaceSnapshot() else {}
-    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, initialSnapshot
-
-
-  registerCollaborationSessionId: ->
-
-    collaborators = @rtm.getCollaborators()
-
-    for collaborator in collaborators when collaborator.isMe
-      participants = @participants.asArray()
-
-      for user, index in participants when user.nickname is nick()
-        newData = kd.utils.dict()
-
-        newData[key] = value  for key, value of user
-
-        newData.sessionId = collaborator.sessionId
-        @participants.remove index
-        @participants.insert index, newData
-
-
-  addParticipant: (account) ->
-
-    {hash, nickname} = account.profile
-    @participants.push { nickname, hash }
-
-
   getWorkspaceSnapshot: ->
 
     panes = {}
 
     @forEachSubViewInIDEViews_ (pane) ->
+      return  unless pane
       return  if not pane.serialize or (@isInSession and pane.isInitial)
 
       data = pane.serialize()
@@ -1007,25 +971,12 @@ module.exports = class IDEAppController extends AppController
     return panes
 
 
-  resurrectSnapshot: ->
+  changeActiveTabView: (paneType) ->
 
-    return  if @collaborationJustInitialized or @fakeTabView
-
-    mySnapshot   = @mySnapshot.values().filter (item) -> return not item.isInitial
-    hostSnapshot = @rtm.getFromModel("#{@collaborationHost}Snapshot")?.values()
-    snapshot     = if hostSnapshot then mySnapshot.concat hostSnapshot else mySnapshot
-
-    @forEachSubViewInIDEViews_ (pane) => @removePaneFromTabView pane
-
-    for change in snapshot when change.context
-      {paneType} = change.context
-
-      if paneType is 'terminal'
-        @setActiveTabView @ideViews.last.tabView
-      else
-        @setActiveTabView @ideViews.first.tabView
-
-      @createPaneFromChange change
+    if paneType is 'terminal'
+      @setActiveTabView @ideViews.last.tabView
+    else
+      @setActiveTabView @ideViews.first.tabView
 
 
   syncChange: (change) ->
@@ -1068,63 +1019,6 @@ module.exports = class IDEAppController extends AppController
 
       when 'PaneRemoved'
         @mySnapshot.delete paneHash  if paneHash
-
-
-  watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
-
-
-  unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
-
-
-  bindRealtimeEvents: ->
-
-    @rtm.bindRealtimeListeners @changes, 'list'
-    @rtm.bindRealtimeListeners @broadcastMessages, 'list'
-    @rtm.bindRealtimeListeners @myWatchMap, 'map'
-    @rtm.bindRealtimeListeners @permissions, 'map'
-
-    @rtm.on 'ValuesAddedToList', (list, event) =>
-
-      [value] = event.values
-
-      switch list
-        when @changes           then @handleChange value
-        when @broadcastMessages then @handleBroadcastMessage value
-
-    @rtm.on 'ValuesRemovedFromList', (list, event) =>
-
-      @handleChange event.values[0]  if list is @changes
-
-    @rtm.on 'MapValueChanged', (map, event) =>
-
-      if map is @myWatchMap
-        @handleWatchMapChange event
-
-      else if map is @permissions
-        @handlePermissionMapChange event
-
-
-  handlePermissionMapChange: (event) ->
-
-    @chat.settingsPane.emit 'PermissionChanged', event
-
-    {property, newValue} = event
-
-    return  unless property is nick()
-
-    if      newValue is 'edit' then @makeEditable()
-    else if newValue is 'read' then @makeReadOnly()
-
-
-  handleWatchMapChange: (event) ->
-
-    {property, newValue, oldValue} = event
-
-    if newValue is property
-      @statusBar.emit 'ParticipantWatched', property
-
-    else unless newValue
-      @statusBar.emit 'ParticipantUnwatched', property
 
 
   handleChange: (change) ->
@@ -1183,447 +1077,59 @@ module.exports = class IDEAppController extends AppController
     return targetPane
 
 
-  createPaneFromChange: (change) ->
+  createPaneFromChange: (change = {}, isFromLocalStorage) ->
 
-    return unless @rtm
+    return  if not @rtm and not isFromLocalStorage
 
-    {context} = change
-    return unless context
+    { context } = change
+    return  unless context
 
     paneHash = context.paneHash or context.hash
     currentSnapshot = @getWorkspaceSnapshot()
 
     return  if currentSnapshot[paneHash]
 
-    switch context.paneType
+    { paneType } = context
+
+    return  if not paneType or not paneHash
+
+    @changeActiveTabView paneType
+
+    switch paneType
       when 'terminal'
         terminalOptions =
-          machine  : @mountedMachine
-          session  : context.session
-          hash     : paneHash
-          joinUser : @collaborationHost or nick()
+          machine       : @mountedMachine
+          session       : context.session
+          hash          : paneHash
+          joinUser      : @collaborationHost or nick()
+          fitToWindow   : not @isInSession
 
         @createNewTerminal terminalOptions
 
       when 'editor'
-        {path}        = context.file
-        file          = FSHelper.createFileInstance {path, machine : @mountedMachine}
+        { file }      = context
+        { path }      = file
+        options       = { path, machine : @mountedMachine }
+        file          = FSHelper.createFileInstance options
         file.paneHash = paneHash
 
-        content = @rtm.getFromModel(path)?.getText() or ''
-
-        @openFile file, content, noop, no
+        if @rtm?.realtimeDoc
+          content = @rtm.getFromModel(path)?.getText() or ''
+          @openFile file, content, noop, no
+        else if file.isDummyFile()
+          @openFile file, context.file.content, noop, no
+        else
+          file.fetchContents (err, contents = '') =>
+            return showError err  if err
+            @changeActiveTabView paneType
+            @openFile file, contents, noop, no
 
       when 'drawing'
         @createNewDrawing paneHash
 
-    unless @mySnapshot.get paneHash
-      @mySnapshot.set paneHash, change
-
-
-  handleParticipantAction: (actionType, changeData) ->
-
-    kd.utils.wait 2000, =>
-      participants  = @participants.asArray()
-      {sessionId}   = changeData.collaborator
-      targetUser    = null
-      targetIndex   = null
-
-      for participant, index in participants when participant.sessionId is sessionId
-        targetUser  = participant.nickname
-        targetIndex = index
-
-      unless targetUser
-        return warn 'Unknown user in collaboration, we should handle this case...'
-
-      if actionType is 'join'
-        @chat.emit 'ParticipantJoined', targetUser
-        @statusBar.emit 'ParticipantJoined', targetUser
-      else
-        @chat.emit 'ParticipantLeft', targetUser
-        @statusBar.emit 'ParticipantLeft', targetUser
-        @removeParticipantCursorWidget targetUser
-
-        # check the user is still at same index, so we won't remove someone else.
-        user = @participants.get targetIndex
-
-        if user.nickname is targetUser
-          @participants.remove targetIndex
-        else
-          participants = @participants.asArray()
-          for participant, index in participants when participant.nickname is targetUser
-            @participants.remove index
-
-
-  setRealTimeManager: (object) =>
-
-    callback = =>
-      object.rtm = @rtm
-      object.emit 'RealTimeManagerSet'
-
-    if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
-
-
-  getWorkspaceName: (callback) -> callback @workspaceData.name
-
-
-  createChatPaneView: (channel) ->
-
-    options = { @rtm, @isInSession }
-    @getView().addSubView @chat = new IDEChatView options, channel
-    @chat.show()
-
-    @on 'RTMIsReady', =>
-      @listChatParticipants (accounts) =>
-        @chat.settingsPane.createParticipantsList accounts
-
-      @statusBar.emit 'CollaborationStarted'
-
-      {settingsPane} = @chat
-
-      settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-      settingsPane.updateDefaultPermissions()
-
-
-  createChatPane: ->
-
-    @startChatSession (err, channel) =>
-
-      return showError err  if err
-
-      @createChatPaneView channel
-
-
-  showChat: ->
-
-    return @createChatPane()  unless @chat
-
-    @chat.start()
-
-
-  prepareCollaboration: ->
-
-    @rtm        = new RealTimeManager
-    {channelId} = @workspaceData
-
-    @rtm.ready =>
-      unless @workspaceData.channelId
-        return @statusBar.share.show()
-
-      @fetchSocialChannel (channel) =>
-        @isRealtimeSessionActive channelId, (isActive) =>
-          if isActive or @isInSession
-            @startChatSession => @chat.showChatPane()
-            @chat.hide()
-            @statusBar.share.updatePartial 'Chat'
-
-          @statusBar.share.show()
-
-
-  createWorkspace: (options = {}) ->
-
-    name         = options.name or 'My Workspace'
-    rootPath     = "/home/#{nick()}"
-    {label, uid} = @mountedMachine
-
-    return remote.api.JWorkspace.create
-      name         : name
-      label        : options.label        or label
-      machineUId   : options.machineUId   or uid
-      machineLabel : options.machineLabel or label
-      rootPath     : options.rootPath     or rootPath
-      isDefault    : name is 'My Workspace'
-
-
-  updateWorkspace: (options = {}) ->
-
-    return remote.api.JWorkspace.update @workspaceData._id, { $set : options }
-
-
-  startChatSession: (callback) ->
-
-    return if @workspaceData.isDummy
-      @createWorkspace()
-        .then (workspace) =>
-          @workspaceData = workspace
-          @initPrivateMessage callback
-        .error callback
-
-    channelId = @channelId or @workspaceData.channelId
-
-    if channelId
-
-      @fetchSocialChannel (channel) =>
-
-        @createChatPaneView channel
-
-        @isRealtimeSessionActive channelId, (isActive, file) =>
-
-          if isActive
-            @loadCollaborationFile file.result.items[0].id
-            return @continuePrivateMessage callback
-
-          @statusBar.share.show()
-          @chat.emit 'CollaborationNotInitialized'
-
-    else
-      @initPrivateMessage callback
-
-
-  stopChatSession: ->
-
-    @chat.emit 'CollaborationEnded'
-    @chat = null
-
-
-  getRealTimeFileName: (id) ->
-
-    unless id
-      if @channelId          then id = @channelId
-      else if @socialChannel then id = @socialChannel.id
-      else
-        return showError 'social channel id is not provided'
-
-    hostName = if @amIHost then nick() else @collaborationHost
-
-    return "#{hostName}.#{id}"
-
-
-  continuePrivateMessage: (callback) ->
-
-    @on 'RTMIsReady', =>
-      @chat.emit 'CollaborationStarted'
-
-      @listChatParticipants (accounts) =>
-        @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
-
-      callback()
-
-
-  isRealtimeSessionActive: (id, callback) ->
-
-    kallback = =>
-      @rtm.once 'FileQueryFinished', (file) =>
-
-        if file.result.items.length > 0
-          callback yes, file
-        else
-          callback no
-
-      @rtm.fetchFileByTitle @getRealTimeFileName id
-
-    if @rtm then kallback()
-    else
-      @rtm = new RealTimeManager
-      @rtm.ready => kallback()
-
-
-  setSocialChannel: (channel) ->
-
-    @socialChannel = channel
-
-    @socialChannel.on 'AddedToChannel', (originOrAccount) =>
-
-      kallback = (account) =>
-
-        return  unless account
-
-        {nickname} = account.profile
-        @statusBar.createParticipantAvatar nickname, no
-        @watchParticipant nickname
-
-      if originOrAccount.constructorName
-        remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
-      else if 'string' is typeof originOrAccount
-        remote.cacheable originOrAccount, kallback
-      else
-        kallback originOrAccount
-
-
-  initPrivateMessage: (callback) ->
-
-    {message} = kd.singletons.socialapi
-    nick      = nick()
-
-    message.initPrivateMessage
-      body       : "@#{nick} initiated the IDE session."
-      purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
-      recipients : [ nick ]
-      payload    :
-        'system-message' : 'initiate'
-        collaboration    : yes
-    , (err, channels) =>
-
-      return callback err  if err or (not Array.isArray(channels) and not channels[0])
-
-      [channel] = channels
-      @setSocialChannel channel
-
-      @updateWorkspace { channelId : channel.id }
-        .then =>
-          @workspaceData.channelId = channel.id
-          callback null, channel
-          @chat.ready => @chat.emit 'CollaborationNotInitialized'
-        .error callback
-
-
-  fetchSocialChannel: (callback) ->
-
-    return callback @socialChannel  if @socialChannel
-
-    id = @channelId or @workspaceData.channelId
-
-    kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
-      return showError err  if err
-
-      @setSocialChannel channel
-
-      callback @socialChannel
-
-
-  deletePrivateMessage: (callback = noop) ->
-
-    {channel}    = kd.getSingleton 'socialapi'
-    {JWorkspace} = remote.api
-
-    options = channelId: @socialChannel.getId()
-    channel.delete options, (err) =>
-
-      return showError err  if err
-
-      @channelId = @socialChannel = null
-
-      options = $unset: channelId: 1
-      JWorkspace.update @workspaceData._id, options, (err) =>
-
-        return showError err  if err
-
-        @workspaceData.channelId = null
-
-        callback()
-
-
-  # FIXME: This method is called more than once. It should cache the result and
-  # return if result set exists.
-  listChatParticipants: (callback) ->
-
-    channelId = @socialChannel.getId()
-
-    {socialapi} = kd.singletons
-    socialapi.channel.listParticipants {channelId}, (err, participants) ->
-
-      idList = participants.map ({accountId}) -> accountId
-      query  = socialApiId: $in: idList
-
-      remote.api.JAccount.some query, {}
-        .then callback
-
-
-  startCollaborationSession: (callback) ->
-
-    return callback msg : 'no social channel'  unless @socialChannel
-
-    {message} = kd.singletons.socialapi
-    nick      = nick()
-
-    message.sendPrivateMessage
-      body       : "@#{nick} activated collaboration."
-      channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'start'
-        collaboration    : yes
-    , callback
-
-    @collaborationJustInitialized = yes
-
-    @rtm = new RealTimeManager  unless @rtm
-    @rtm.once 'FileCreated', (file) =>
-      @loadCollaborationFile file.id
-
-    @rtm.createFile @getRealTimeFileName()
-
-    @setMachineSharingStatus on
-
-
-  showEndCollaborationModal: (callback) ->
-
-    modalOptions =
-      title      : 'Are you sure?'
-      content    : 'This will end your session and all participants will be removed from this session.'
-
-    @showModal modalOptions, => @stopCollaborationSession callback
-
-
-  stopCollaborationSession: (callback = noop) ->
-
-    @chat.settingsPane.endSession.disable()
-
-    return callback msg : 'no social channel'  unless @socialChannel
-
-    {message} = kd.singletons.socialapi
-    nick      = nick()
-
-    @broadcastMessages.push origin: nick(), type: 'SessionEnded'
-
-    @rtm.once 'FileDeleted', =>
-      @statusBar.emit 'CollaborationEnded'
-      @stopChatSession()
-      @modal.destroy()
-      @rtm.dispose()
-      @rtm = null
-      kd.utils.killRepeat @pingInterval
-      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
-      @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
-
-    @mySnapshot.clear()
-    @rtm.deleteFile @getRealTimeFileName()
-
-    if @amIHost
-      @setMachineSharingStatus off
-      @deletePrivateMessage callback
-
-
-  setMachineSharingStatus: (status) ->
-
-    @listChatParticipants (accounts) =>
-      @setMachineUser accounts, status
-
-
-  setMachineUser: (accounts, share = yes, callback = noop) ->
-
-    usernames = accounts.map (account) -> account.profile.nickname
-
-    if @amIHost
-      usernames = usernames.filter (username) -> username isnt nick()
-
-    return  unless usernames.length
-
-    jMachine = @mountedMachine.getData()
-    method   = if share then 'share' else 'unshare'
-    jMachine[method] usernames, (err) =>
-
-      return showError err  if err
-
-      kite   = @mountedMachine.getBaseKite()
-      method = if share then 'klientShare' else 'klientUnshare'
-
-      queue = usernames.map (username) ->
-        ->
-          kite[method] {username}
-            .then -> queue.fin()
-            .error (err) ->
-              queue.fin()
-
-              return  if err.message in [
-                'user is already in the shared list.'
-                'user is not in the shared list.'
-              ]
-
-              action = if share then 'added' else 'removed'
-              showError "#{username} couldn't be #{action} as an user"
-              console.error err
-
-      sinkrow.dash queue, callback
+    if @mySnapshot
+      unless @mySnapshot.get paneHash
+        @mySnapshot.set paneHash, change
 
 
   showModal: (modalOptions = {}, callback = noop) ->
@@ -1633,10 +1139,10 @@ module.exports = class IDEAppController extends AppController
     modalOptions.blocking ?= no
     modalOptions.buttons or=
       Yes        :
-        cssClass : 'modal-clean-green'
+        cssClass : 'solid green medium'
         callback : callback
       No         :
-        cssClass : 'modal-cancel'
+        cssClass : 'solid light-gray medium'
         callback : => @modal.destroy()
 
     ModalClass = if modalOptions.blocking then KDBlockingModalView else KDModalView
@@ -1646,182 +1152,12 @@ module.exports = class IDEAppController extends AppController
       delete @modal
 
 
-  handleBroadcastMessage: (data) ->
-
-    {origin, type} = data
-
-    return  if origin is nick()
-
-    switch type
-
-      when 'SessionEnded'
-
-        @showSessionEndedModal()
-
-      when 'ParticipantWantsToLeave'
-
-        @handleParticipantKicked data.origin
-
-      when 'ParticipantKicked'
-
-        return  unless data.origin is @collaborationHost
-
-        if data.target is nick()
-          @removeMachineNode()
-          @showKickedModal()
-        else
-          @handleParticipantKicked data.target
-
-
-  unshareMachineAndKlient: (username, fetchUser = no) ->
-
-    if fetchUser
-      return remote.cacheable username, (err, accounts) =>
-
-        return showError err  if err
-
-        @setMachineUser accounts, no
-
-
-    @listChatParticipants (accounts) =>
-
-      for account in accounts when account.profile.nickname is username
-        target = account
-
-      @setMachineUser [target], no  if target
-
-
-  showKickedModal: ->
-    options        =
-      title        : 'Your session has been closed'
-      content      : "You have been removed from the session by @#{@collaborationHost}. - Please reload your browser -"
-      blocking     : yes
-      buttons      :
-        ok         :
-          title    : 'OK'
-          callback : => @modal.destroy()
-
-    @showModal options
-    @quit()
-
-
   quit: ->
 
-    kd.utils.killRepeat @autoSaveInterval
-    kd.utils.killRepeat @pingInterval
-    @rtm?.dispose()
-    @rtm = null
+    @cleanupCollaboration()
 
     kd.singletons.router.handleRoute '/IDE'
     kd.singletons.appManager.quit this
-
-
-  showSessionEndedModal: (content) ->
-
-    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore. - Please reload your browser -"
-
-    options        =
-      title        : 'Session ended'
-      content      : content
-      blocking     : yes
-      buttons      :
-        quit       :
-          title    : 'LEAVE'
-          callback : => @modal.destroy()
-
-    @showModal options
-    @removeMachineNode()
-    @quit()
-
-
-  handleParticipantLeaveAction: ->
-
-    options   =
-      title   : 'Are you sure?'
-      content : "If you leave this session you won't be able to return back."
-
-    @showModal options, =>
-      @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
-      @stopChatSession()
-      @modal.destroy()
-
-      options = channelId: @socialChannel.getId()
-      kd.singletons.socialapi.channel.leave options, (err) =>
-        return showError err  if err
-        @setMachineUser [whoami()], no, => @quit()
-
-
-  removeMachineNode: ->
-
-    kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
-
-
-  handleParticipantKicked: (username) ->
-
-    @chat.emit 'ParticipantLeft', username
-    @statusBar.removeParticipantAvatar username
-    @removeParticipantCursorWidget username
-
-
-  getCollaborationData: (callback = noop) =>
-
-    collaborationData =
-      watchMap        : @myWatchMap?.values()
-      amIHost         : @amIHost
-
-    callback collaborationData
-
-
-  kickParticipant: (account) ->
-
-    return  unless @amIHost
-
-    options      =
-      channelId  : @socialChannel.id
-      accountIds : [ account.socialApiId ]
-
-    @setMachineUser [account], no, =>
-
-      kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
-
-        return showError err  if err
-
-        targetUser = account.profile.nickname
-        message    =
-          type     : 'ParticipantKicked'
-          origin   : nick()
-          target   : targetUser
-
-        @broadcastMessages.push message
-        @handleParticipantKicked targetUser
-
-
-  listenPings: ->
-
-    pingInterval = 1000 * 5
-    pongInterval = 1000 * 15
-    diffInterval = globals.config.collaboration.timeout
-
-    if @amIHost
-      @pingInterval = kd.utils.repeat pingInterval, =>
-        @pingTime.setText Date.now().toString()
-    else
-      @pingInterval = kd.utils.repeat pongInterval, =>
-        lastPing = @pingTime.getText()
-
-        return  if Date.now() - lastPing < diffInterval
-
-        remote.api.Collaboration.stop @rtmFileId, @workspaceData, (err) =>
-          if err
-          then console.warn err
-          else
-            kd.utils.killRepeat @pingInterval
-            @stopCollaborationSession =>
-              @quit()
-
-              new KDNotificationView
-                title    : "@#{@collaborationHost} has left the session."
-                duration : 3000
 
 
   removeParticipantCursorWidget: (targetUser) ->
@@ -1855,3 +1191,10 @@ module.exports = class IDEAppController extends AppController
 
     @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
 
+
+  getActiveInstance: ->
+
+    {appControllers} = kd.singletons.appManager
+    instance = appControllers.IDE.instances[appControllers.IDE.lastActiveIndex]
+
+    return {instance, isActive: instance is this}

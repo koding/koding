@@ -123,7 +123,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
   getContent: ->
 
-    return @getAce().getContents()
+    return if @getEditor() then @getAce().getContents() else ''
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
@@ -148,15 +148,19 @@ module.exports = class IDEEditorPane extends IDEPane
 
   getInitialChangeObject: ->
 
-    change        =
-      origin      : nick()
-      context     :
-        paneHash  : @hash
-        paneType  : @getOptions().paneType
-        file      :
-          path    : @file.path
-          machine :
-            uid   : @file.machine.uid
+    change       =
+      origin     : nick()
+      context    :
+        paneHash : @hash
+        paneType : @getOptions().paneType
+        file     : path: @file.path
+
+    return change
+
+
+  bindChangeListeners: ->
+
+    change = @getInitialChangeObject()
 
     return change
 
@@ -191,18 +195,17 @@ module.exports = class IDEEditorPane extends IDEPane
 
   serialize: ->
 
-    file       = @getFile()
-    {paneType} = @getOptions()
-    {machine}  = file
-
-    {name, path } = file
-    {label, ipAddress, slug, uid} = machine
+    file           = @getFile()
+    { paneType }   = @getOptions()
+    { name, path } = file
 
     data       =
       file     : { name, path }
-      machine  : { label, ipAddress, slug, uid }
       paneType : paneType
       hash     : @hash
+
+    if file.isDummyFile()
+      data.file.content = @getContent()
 
     return data
 

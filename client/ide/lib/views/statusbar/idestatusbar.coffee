@@ -37,11 +37,6 @@ module.exports = class IDEStatusBar extends KDView
 
     @addSubView new KDCustomHTMLView
       partial  : '<cite></cite>'
-      cssClass : 'icon github'
-      click    : -> kd.utils.createExternalLink 'https://github.com/koding/IDE'
-
-    @addSubView new KDCustomHTMLView
-      partial  : '<cite></cite>'
       cssClass : 'icon shortcuts'
       click    : -> kd.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
 
@@ -58,7 +53,6 @@ module.exports = class IDEStatusBar extends KDView
     @avatars.hide()  if collabDisabled
 
 
-
   showInformation: ->
 
     @status.updatePartial 'Click the plus button above to create a new panel'
@@ -66,7 +60,7 @@ module.exports = class IDEStatusBar extends KDView
 
   createParticipantAvatar: (nickname, isOnline) ->
 
-    return  if @participantAvatars[nickname]
+    return  if @participantAvatars[nickname] or nickname is nick()
 
     view       = new IDEStatusBarAvatarView
       origin   : nickname
@@ -112,6 +106,8 @@ module.exports = class IDEStatusBar extends KDView
 
 
   addParticipantAvatar: (nickname) ->
+
+    return no  if nickname is nick()
 
     oldAvatar = @participantAvatars[nickname]
 

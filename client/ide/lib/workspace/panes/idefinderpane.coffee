@@ -51,6 +51,9 @@ module.exports = class IDEFinderPane extends IDEPane
 
     @on 'MachineUnmountRequested', (machine) ->
       fc.unmountMachine machine.uid
+      
+    @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
+      @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
 
     @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
       @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
