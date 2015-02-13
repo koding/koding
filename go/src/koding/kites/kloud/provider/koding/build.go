@@ -118,6 +118,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	}()
 
 	var err error
+	imageId := ""
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
 
@@ -130,6 +131,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			return nil, err
 		}
 
+		imageId = buildData.ImageData.imageId
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
@@ -150,6 +152,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			Type: "building",
 			Data: map[string]interface{}{
 				"instanceId":  instanceId,
+				"imageId":     imageId,
 				"queryString": queryString,
 				"region":      b.amazon.Builder.Region,
 			},
@@ -206,6 +209,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	}
 
 	buildArtifact.KiteQuery = queryString
+	buildArtifact.ImageId = imageId
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 

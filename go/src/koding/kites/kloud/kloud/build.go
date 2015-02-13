@@ -67,6 +67,7 @@ kite query : %s`
 				"instanceName": artifact.InstanceName,
 				"instanceType": artifact.InstanceType,
 				"queryString":  artifact.KiteQuery,
+				"imageId":      artifact.ImageId,
 			},
 		}), nil
 	}

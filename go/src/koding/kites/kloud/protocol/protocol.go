@@ -123,6 +123,9 @@ type Artifact struct {
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
 
+	// ImageId specifies the image which is used to build the Machine
+	ImageId string
+
 	// DomainName defines the current domain record that is bound to the given
 	// IpAddress
 	DomainName string
