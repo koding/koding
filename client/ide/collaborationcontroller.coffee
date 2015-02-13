@@ -881,3 +881,13 @@ CollaborationController =
         # remove the leaving participant's info from the collaborative doc
         @removeParticipant KD.nick()
 
+
+  throwError: throwError = (format, args...) ->
+
+    argIndex = 0
+    error = new Error """
+      IDE.CollaboratonController:
+      #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
+    """
+
+    throw error
