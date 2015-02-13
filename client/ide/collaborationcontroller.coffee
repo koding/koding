@@ -723,7 +723,6 @@ CollaborationController =
 
   cleanupCollaboration: ->
 
-    KD.utils.killRepeat @autoSaveInterval
     KD.utils.killRepeat @pingInterval
     @rtm?.dispose()
     @rtm = null
@@ -881,5 +880,4 @@ CollaborationController =
         @setMachineUser [KD.whoami()], no, => @quit()
         # remove the leaving participant's info from the collaborative doc
         @removeParticipant KD.nick()
-
 
