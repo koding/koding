@@ -872,11 +872,12 @@ module.exports =
       buttons      :
         quit       :
           title    : 'LEAVE'
-          callback : => @modal.destroy()
+          callback : =>
+            @modal.destroy()
+            @quit()
+            @removeMachineNode()
 
     @showModal options
-    @removeMachineNode()
-    @quit()
 
 
   handleParticipantLeaveAction: ->
