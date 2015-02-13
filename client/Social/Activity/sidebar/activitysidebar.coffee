@@ -67,7 +67,7 @@ class ActivitySidebar extends KDCustomHTMLView
 
     computeController
       .on 'MachineDataModified',       @bound 'updateMachineTree'
-      .on 'RenderMachines',            @bound 'renderMachines'
+      .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
     # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
@@ -998,12 +998,13 @@ class ActivitySidebar extends KDCustomHTMLView
   #         @emit 'WorkspaceCreated', workspace
 
 
-  updateMachineTree: (callback = noop) ->
+  updateMachineTree: ->
+
+
+  updateMachines: (callback = noop) ->
 
     @fetchMachines (machines) =>
-
-      @renderMachines machines, callback
-
+      @ownMachinesList.updateList machines.own
 
 
     # @machineTree.removeAllNodes()
