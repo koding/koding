@@ -58,16 +58,16 @@ CollaborationController =
 
   fetchSocialChannel: (callback) ->
 
-    return callback @socialChannel  if @socialChannel
+    return callback null, @socialChannel  if @socialChannel
 
     id = @channelId or @workspaceData.channelId
 
     KD.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
-      return KD.showError err  if err
+      return callback err  if err
 
       @setSocialChannel channel
 
-      callback @socialChannel
+      callback null, @socialChannel
 
 
   deletePrivateMessage: (callback = noop) ->
@@ -78,18 +78,17 @@ CollaborationController =
     options = channelId: @socialChannel.getId()
     channel.delete options, (err) =>
 
-      return KD.showError err  if err
+      return callback err  if err
 
       @channelId = @socialChannel = null
 
       options = $unset: channelId: 1
       JWorkspace.update @workspaceData._id, options, (err) =>
 
-        return KD.showError err  if err
+        return callback err  if err
 
         @workspaceData.channelId = null
-
-        callback()
+        callback null
 
 
   # FIXME: This method is called more than once. It should cache the result and
@@ -116,7 +115,7 @@ CollaborationController =
       @listChatParticipants (accounts) =>
         @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
 
-      callback()
+      callback null
 
 
   startChatSession: (callback) ->
@@ -132,12 +131,11 @@ CollaborationController =
 
     if channelId
 
-      @fetchSocialChannel (channel) =>
+      @fetchSocialChannel (err, channel) =>
+        return callback err  if err
 
         @createChatPaneView channel
-
         @isRealtimeSessionActive channelId, (isActive, file) =>
-
           if isActive
             @loadCollaborationFile file.result.items[0].id
             return @continuePrivateMessage callback
@@ -185,6 +183,7 @@ CollaborationController =
 
 
   createChatPaneView: (channel) ->
+    return throwError 'RealTimeManager is not set'  unless @rtm
 
     options = { @rtm, @isInSession }
     @getView().addSubView @chat = new IDE.ChatView options, channel
@@ -417,7 +416,7 @@ CollaborationController =
 
 
   removeParticipantFromParticipantList: (nickname) ->
-    return throw new Error "participants is not set"  unless @participants
+    return throwError "participants is not set"  unless @participants
 
     # find the index for participant
     for participant, index in @participants.asArray()
@@ -428,7 +427,7 @@ CollaborationController =
         break
 
   removeParticipantFromMaps: (nickname) ->
-    return throw new Error "rtm is not set"   unless @rtm
+    return throwError "rtm is not set"   unless @rtm
 
     myWatchMapName     = "#{nickname}WatchMap"
     mySnapshotName     = "#{nickname}Snapshot"
@@ -439,7 +438,7 @@ CollaborationController =
 
 
   removeParticipantFromPermissions: (nickname)->
-    return throw new Error "permissions is not set"   unless @permissions
+    return throwError "permissions is not set"   unless @permissions
     # Removes the entry for the given key (if such an entry exists).
     @permissions.delete(nickname)
 
@@ -652,7 +651,8 @@ CollaborationController =
         IDE.Metrics.collect 'StatusBar.collaboration_button', 'shown'
         return @statusBar.share.show()
 
-      @fetchSocialChannel (channel) =>
+      @fetchSocialChannel (err, channel) =>
+        return throwError "no social channel"  if err
         @isRealtimeSessionActive channelId, (isActive) =>
           if isActive or @isInSession
             @startChatSession => @chat.showChatPane()
@@ -723,7 +723,6 @@ CollaborationController =
 
   cleanupCollaboration: ->
 
-    KD.utils.killRepeat @autoSaveInterval
     KD.utils.killRepeat @pingInterval
     @rtm?.dispose()
     @rtm = null
@@ -773,7 +772,7 @@ CollaborationController =
     method   = if share then 'share' else 'unshare'
     jMachine[method] usernames, (err) =>
 
-      return KD.showError err  if err
+      return callback err  if err
 
       kite   = @mountedMachine.getBaseKite()
       method = if share then 'klientShare' else 'klientUnshare'
@@ -791,8 +790,9 @@ CollaborationController =
               ]
 
               action = if share then 'added' else 'removed'
-              KD.showError "#{username} couldn't be #{action} as an user"
-              console.error err
+              message = "#{username} couldn't be #{action} as an user"
+              callback { message }
+              console.error message
 
       Bongo.dash queue, callback
 
@@ -883,3 +883,12 @@ CollaborationController =
         @removeParticipant KD.nick()
 
 
+  throwError: throwError = (format, args...) ->
+
+    argIndex = 0
+    error = new Error """
+      IDE.CollaboratonController:
+      #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
+    """
+
+    throw error
