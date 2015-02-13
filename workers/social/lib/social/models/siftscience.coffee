@@ -77,11 +77,14 @@ module.exports = class SiftScience
 
   @fetchUserInfo = (client, callback)->
     {sessionToken, connection : {delegate}} = client
+
+    if delegate.type isnt "registered"
+      return callback {message:"guests are not allowed"}
+
     delegate.fetchUser (err, user)->
       return callback err  if err
 
       {username, email} = user
-
       callback null, {username, email, sessionToken}
 
 
