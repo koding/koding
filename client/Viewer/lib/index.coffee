@@ -1,24 +1,11 @@
-class ViewerAppController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+PreviewerView = require './previewerview'
 
-  KD.registerAppClass this,
-    name         : "Viewer"
-    route        : "/:name?/Viewer"
-    multiple     : yes
-    openWith     : "forceNew"
-    behavior     : "application"
-    preCondition :
-      condition  : (options, cb)->
-        {path, vmName} = options
-        return cb true  unless path
-        path = FSHelper.plainPath path
-        publicPath = path.replace \
-          ////home/(.*)/Web/(.*)///, "https://$1.#{KD.config.userSitesDomain}/$2"
-        cb publicPath isnt path, {path: publicPath}
-      failure    : (options, cb)->
-        correctPath = \
-          "/home/#{KD.nick()}/Web/"
-        KD.getSingleton("appManager").notify "File must be under: #{correctPath}"
 
+module.exports = class ViewerAppController extends KDViewController
+
+  @options = require './options'
 
   constructor:(options = {}, data)->
 
