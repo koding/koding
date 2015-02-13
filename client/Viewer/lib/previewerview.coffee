@@ -1,4 +1,10 @@
-class PreviewerView extends KDView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDView = kd.View
+ViewerTopBar = require './viewertopbar'
+
+
+module.exports = class PreviewerView extends KDView
 
   constructor:(options = {},data)->
 
@@ -41,4 +47,4 @@ class PreviewerView extends KDView
 
     {params} = @getOptions()
     path     = params?.path
-    if path then @utils.defer => @openPath path
+    if path then kd.utils.defer => @openPath path
