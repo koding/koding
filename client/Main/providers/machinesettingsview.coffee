@@ -331,20 +331,8 @@ class MachineSettingsPopup extends KDModalViewWithForms
 
     computeController.fetchUserPlan (plan)=>
 
-      @isPaidAccount = plan isnt 'free'
+      if plan in ['free', 'hobbyist']
+        @terminateButton.hide()
 
-      if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
-        @buttonContainer.addSubView @resizeButton = new KDButtonView
-          style    : 'solid compact green resize'
-          title    : 'Resize VM'
-          callback : =>
-            computeController.resize @machine, 10
-            @destroy()
-
-      unless plan is 'free'
-        @buttonContainer.addSubView @terminateButton = new KDButtonView
-          style    : 'solid compact red'
-          title    : 'Terminate VM'
-          callback : =>
-            computeController.destroy @machine
-            @destroy()
+        if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
+          @resizeButton.show()
