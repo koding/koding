@@ -1,4 +1,11 @@
-class FeaturesView extends KDView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDView = kd.View
+FooterView = require 'app/commonviews/footerview'
+CustomLinkView = require 'app/customlinkview'
+
+
+module.exports = class FeaturesView extends KDView
 
   IMAGEPATH     = '/a/site.landing/images/features'
   TABS          =
@@ -250,5 +257,7 @@ class FeaturesView extends KDView
       <div class='tab-contents'></div>
     </section>
     """
+
+
 
 
