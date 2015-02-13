@@ -736,11 +736,18 @@ module.exports =
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
 
 
-  cleanupCollaboration: ->
+  cleanupCollaboration: (options = {}) ->
+    return throwError 'RealTimeManager is not set'  unless @rtm
 
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
     @rtm = null
+    KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+    @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
+
+    { reinit } = options
+
+    @prepareCollaboration()  if reinit
 
   # environment related
 
