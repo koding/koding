@@ -1,3 +1,180 @@
+// KDFN STARTS
+
+/* FUNCTIONS */
+
+ellipsis()
+  text-overflow   ellipsis
+  overflow        hidden
+  white-space     nowrap
+
+vendor(a, b)
+  -webkit-{a}  b
+  -moz-{a}     b
+  // -khtml-{a}   b
+  // -o-{a}       b
+  // -icab-{a}    b
+  {a}          b
+
+
+size()
+  width   arguments[0]
+  height  arguments[1]
+
+rounded()
+  vendor(border-radius,arguments)
+
+shadow()
+  vendor(box-shadow,arguments)
+
+gradient()
+  background-image -moz-linear-gradient(100% 100% 90deg, arguments[1], arguments[0]) arguments[2]
+  background-image -webkit-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  background-image -khtml-gradient(linear, 0% 0%, 0% 100%, from(arguments[0]), to(arguments[1])) arguments[2]
+  background-image -o-linear-gradient(arguments[0], arguments[1]) arguments[2];
+
+gradient1()
+  background-image -moz-linear-gradient(270deg, arguments[2] arguments[3], arguments[0] arguments[1])
+  background-image -webkit-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
+  background-image -khtml-gradient(linear, 0% arguments[1], 0% arguments[3], from(arguments[0]), to(arguments[2]))
+  background-image -o-linear-gradient(arguments[0], arguments[1]);
+
+gradient2()
+  background-image -moz-radial-gradient(arguments[0] arguments[1], arguments[2] arguments[3])
+  background-image -webkit-radial-gradient(arguments[0], arguments[1],arguments[2], arguments[3])
+  background-image -khtml-radial-gradient(arguments[0], arguments[1], arguments[2], arguments[3])
+  background-image -o-radial-gradient(arguments[2], arguments[3]);
+
+
+
+fl()
+  display block
+  float left
+
+fr()
+  display block
+  float right
+
+kdfsprite()
+  // TODO: Make a seperate sprite for framework only
+  bg  image,url("../images/_kd.sprites.png")
+  bg  color,transparent
+  bg  repeat,no-repeat
+
+noTextSelection()
+  vendor(user-select,none)
+
+bg(prop,args)
+  background-{prop} args
+
+hidden()
+  display     none
+  visibility  hidden
+
+visible()
+  display     block
+  visibility  visible
+
+invisible()
+  visibility  hidden
+
+borderBox()
+  vendor(box-sizing,border-box)
+contentBox()
+  vendor(box-sizing,content-box)
+
+blockMid()
+  display           inline-block
+  vertical-align    middle
+
+blockMidTop()
+  display           inline-block
+  vertical-align    top
+
+noTextDeco()
+  text-decoration       none
+  excludeHoverState = arguments[0]
+  if excludeHoverState
+    &:hover
+      text-decoration   underline
+  else
+    &:hover
+      text-decoration   none
+
+abs()
+  t = arguments[0]
+  r = arguments[1]
+  b = arguments[2]
+  l = arguments[3]
+  top t    if t
+  right r  if r
+  bottom b if b
+  left l   if l
+  _abs()
+
+_abs()
+  position absolute
+
+rel()
+  position    relative
+
+sta()
+  position    static
+
+fix()
+  position    fixed
+
+headerFont()
+  font-family Ubuntu, "Bree Serif", Helvetica, sans-serif
+
+pointer()
+  cursor     pointer
+
+kalc()
+
+  if arguments[2]
+    suffix = '!important'
+  else
+    suffix = ''
+
+  long   = '-webkit-calc(' + arguments[1] + ')' + suffix
+  short  = 'calc(' + arguments[1] + ')' + suffix
+
+  {arguments[0]} unquote(long)
+  {arguments[0]} unquote(short)
+
+flex()
+  display         -webkit-box
+  display         -moz-box
+  display         flex
+
+singleTransformTransition()
+
+  -webkit-transition      -webkit-transform arguments[0] arguments[1]
+  -moz-transition         -moz-transform arguments[0] arguments[1]
+  transition              transform arguments[0] arguments[1]
+
+cf()
+  /**
+   * For modern browsers
+   * 1. The space content is one way to avoid an Opera bug when the
+   *    contenteditable attribute is included anywhere else in the document.
+   *    Otherwise it causes space to appear at the top and bottom of elements
+   *    that are clearfixed.
+   * 2. The use of `table` rather than `block` is only necessary if using
+   *    `:before` to contain the top-margins of child elements.
+   */
+
+  &:before
+  &:after
+    content " "   /* 1 */
+    display table /* 2 */
+
+
+  &:after
+    clear both
+
+// KDFN ENDS
+
 comment-bg           = #f6f6f6
 comment-border-color = rgba(40,40,40,.06)
 avatar-border-color  = rgb(238,238,238)
@@ -31,12 +208,33 @@ paleRed              = #ffe7e7
 
 sidebarWidth         = 258px
 
+__pixRatio   = 1.5
+retinaQuery  = 'all and (-webkit-min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery += '(min--moz-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery += '(-o-min-device-pixel-ratio:' + __pixRatio + '/1),'
+retinaQuery += '(min-device-pixel-ratio:' + __pixRatio + '),'
+retinaQuery += '(min-resolution:' + unit(__pixRatio*92, dpi) + '),'
+retinaQuery += '(min-resolution:' + unit(__pixRatio, dppx) + ')'
+
 r-sprite(folder, name)
-  sprite(folder, name)
-  hidpi = s("(min--moz-device-pixel-ratio: 1.5), (-o-min-device-pixel-ratio: 3/2), (-webkit-min-device-pixel-ratio: 1.5), (min-resolution: 1.5dppx)");
-  @media hidpi
-    sprite(folder+"@2x", name, false)
-    background-size sprite-dimensions(folder+"@2x", name)
+
+  spriteName1x = '$1x_' + folder + '_' + name
+  spriteName2x = '$2x_' + folder + '_' + name
+  sprite1x     = lookup(spriteName1x)
+  sprite2x     = lookup(spriteName2x)
+
+  if sprite1x
+    sprite sprite1x
+  else
+    color  'broken icon: ' + folder + ' ' + name
+    return
+
+  if sprite2x
+    @media retinaQuery
+      bg image, url(sprite2x[8])
+      bg position, (sprite2x[2]/2 sprite2x[3]/2)
+      bg size, (sprite2x[6]/2 sprite2x[7]/2)
+
 
 dividerWithText()
   color             #a8a8a8
