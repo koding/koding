@@ -745,7 +745,7 @@ module.exports =
     @rtm.once 'FileDeleted', =>
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
-      @modal.destroy()
+      @modal?.destroy()
 
       if @amIHost
         @setMachineSharingStatus off, (err) =>
