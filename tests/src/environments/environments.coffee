@@ -19,14 +19,15 @@ openVmSettingsModal = (browser, vmName) ->
     .moveToElement           vmSelector + ' span', 125, 20
     .click                   vmSelector + ' span'
     .waitForElementVisible   modalSelector, 20000 # Assertion
+    .pause                   2500
 
 
 clickMoreButtonInVMSettingsModal = (browser) ->
 
   browser
     .waitForElementVisible  '.settings form.with-fields .moreview', 20000
-    .click                  '.settings form.with-fields .moreview label.more'
-    .pause  200
+    .click                  '.settings form.with-fields .moreview'
+    .pause                  2000
 
 
 clickAddVMButton = (browser) ->
@@ -200,9 +201,9 @@ module.exports =
 
   addVM: (browser) ->
 
-    modalSelector = '.computeplan-modal.free-plan'
-    pricingPage   = '.content-page.pricing'
-    vmSelector    = 'a[href="/IDE/koding-vm-1/my-workspace"]'
+    freeModalSelector = '.computeplan-modal.free-plan'
+    pricingPage       = '.content-page.pricing'
+    vmSelector        = 'a[href="/IDE/koding-vm-1/my-workspace"]'
 
     helpers.beginTest(browser)
 
@@ -216,9 +217,9 @@ module.exports =
 
         browser
           .pause 5000 # wait to see the modal
-          .waitForElementVisible   modalSelector, 20000
-          .waitForElementVisible   modalSelector + ' a.custom-link-view span', 20000
-          .click                   modalSelector + ' a.custom-link-view span'
+          .waitForElementVisible   freeModalSelector, 20000
+          .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
+          .click                   freeModalSelector + ' a.custom-link-view span'
           .waitForElementVisible   pricingPage, 25000
           .waitForElementVisible   pricingPage + ' .plans .developer', 25000
           .pause 2000
@@ -268,11 +269,11 @@ module.exports =
           .click                    '.more-form .alwayson .koding-on-off'
           .pause                    1000
           .refresh()
-          .waitForElementVisible    '[testpath=main-sidebar]', 25000
+          .waitForElementVisible    '[testpath=main-sidebar]', 25000, =>
 
-        openVmSettingsModal(browser, 'koding-vm-1')
-        clickMoreButtonInVMSettingsModal(browser)
+            openVmSettingsModal(browser, 'koding-vm-1')
+            clickMoreButtonInVMSettingsModal(browser) # Assertion
 
-        browser
-          .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
-          .end()
+            browser
+              .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
+              .end()
