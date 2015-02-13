@@ -227,3 +227,15 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     return kite
 
+
+  @setTryingToReconnect = (show = yes)->
+
+    @dcNotification?.destroy()
+    @dcNotification = null
+
+    return  unless show
+
+    @dcNotification = new KDNotificationView
+      title    : 'Trying to reconnect...'
+      type     : 'tray'
+      duration : 999999
