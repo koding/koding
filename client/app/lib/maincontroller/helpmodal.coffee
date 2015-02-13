@@ -1,60 +1,10 @@
-class HelpController extends KDController
-
-  name    = "HelpController"
-  version = "0.1"
-
-  KD.registerAppClass this, {name, version, background: yes}
-
-  showHelp:(delegate)->
-    KD.mixpanel "Help modal show, success"
-
-    @_modal?.destroy?()
-    @_modal = new HelpModal {delegate}
-
-    storage = KD.singletons.localStorageController.storage('HelpController')
-    storage.setValue 'shown', yes
-
-class HelpPage extends KDSlidePageView
-
-  JView.mixin @prototype
-
-  constructor:(options = {}, data)->
-
-    options.cssClass = KD.utils.curry 'help-page', options.cssClass
-
-    super options, data
-
-  addLinks:(links)->
-
-    links.forEach (link)=>
-      target = if link.command then '' else " target='_blank'"
-      options =
-        tagName : 'li'
-        partial : "<a href='#{link.url}'#{target}>#{link.title}</a>"
-
-      if link.command
-        options.click = (event)=>
-          KD.utils.stopDOMEvent event
-          KD.mixpanel "Help modal link, click", title:link.title
-
-          KD.singletons.appManager.require 'Terminal',(app)=>
-            @getDelegate().emit 'InternalLinkClicked', link
-            KD.utils.wait 500, =>
-              KD.singletons.router.handleRoute link.url
-              KD.singletons.appManager.tell 'Terminal', 'runCommand', link.command
-      else
-        options.click = (event)=>
-          KD.mixpanel "Help modal link, click", title:link.title
-
-      @addSubView (new KDCustomHTMLView options), 'ul'
-
-  pistachio:->
-    """
-      {h3{#(title)}}
-      <ul></ul>
-    """
-
-class HelpModal extends AnimatedModalView
+mixpanel = require '../util/mixpanel'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDSlideShowView = kd.SlideShowView
+AnimatedModalView = require '../commonviews/animatedmodalview'
+HelpPage = require '../helppage'
+module.exports = class HelpModal extends AnimatedModalView
 
   links =
     noob : [
@@ -116,7 +66,7 @@ class HelpModal extends AnimatedModalView
       @$('a').removeClass 'active'
 
     @on 'InternalLinkClicked', (link)=>
-      KD.utils.defer => @destroy()
+      kd.utils.defer => @destroy()
 
     {slider} = this
 
@@ -126,8 +76,8 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "new to<br/>programming"
       click      : (event)->
-        KD.mixpanel "Help modal subsection, click", title:"new"
-        KD.utils.stopDOMEvent event
+        mixpanel "Help modal subsection, click", title:"new"
+        kd.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
         slider.jump 0
@@ -137,8 +87,8 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "an experienced<br/>developer"
       click      : (event)->
-        KD.mixpanel "Help modal subsection, click", title:"experienced"
-        KD.utils.stopDOMEvent event
+        mixpanel "Help modal subsection, click", title:"experienced"
+        kd.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
         slider.jump 1
@@ -148,8 +98,8 @@ class HelpModal extends AnimatedModalView
       attributes : href : '#'
       partial    : "an advanced<br/>programmer"
       click      : (event)->
-        KD.mixpanel "Help modal subsection, click", title:"advanced"
-        KD.utils.stopDOMEvent event
+        mixpanel "Help modal subsection, click", title:"advanced"
+        kd.utils.stopDOMEvent event
         buttonContainer.emit 'deselectAll'
         @setClass 'active'
         slider.jump 2

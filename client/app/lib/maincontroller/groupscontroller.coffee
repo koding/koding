@@ -1,4 +1,16 @@
-class GroupsController extends KDController
+globals = require 'globals'
+getGroup = require '../util/getGroup'
+remote = require('../remote').getInstance()
+mixpanel = require '../util/mixpanel'
+whoami = require '../util/whoami'
+showError = require '../util/showError'
+kd = require 'kd'
+KDController = kd.Controller
+KDNotificationView = kd.NotificationView
+GroupData = require './groupdata'
+
+
+module.exports = class GroupsController extends KDController
 
   constructor:(options = {}, data)->
 
@@ -6,12 +18,12 @@ class GroupsController extends KDController
 
     @isReady       = no
 
-    @utils.defer @bound 'init'
+    kd.utils.defer @bound 'init'
 
   init:->
-    mainController    = KD.getSingleton 'mainController'
-    router            = KD.getSingleton 'router'
-    {entryPoint}      = KD.config
+    mainController    = kd.getSingleton 'mainController'
+    router            = kd.getSingleton 'router'
+    {entryPoint}      = globals.config
     @groups           = {}
     @currentGroupData = new GroupData
 
@@ -26,11 +38,11 @@ class GroupsController extends KDController
   filterXssAndForwardEvents: (target, events) ->
     events.forEach (event) =>
       target.on event, (rest...) =>
-        rest = KD.remote.revive rest
+        rest = remote.revive rest
         @emit event, rest...
 
   openGroupChannel:(group, callback=->)->
-    @groupChannel = KD.remote.subscribe "group.#{group.slug}",
+    @groupChannel = remote.subscribe "group.#{group.slug}",
       serviceType : 'group'
       group       : group.slug
       isExclusive : yes
@@ -53,7 +65,7 @@ class GroupsController extends KDController
     oldGroupName        = @currentGroupName
     @currentGroupName   = groupName
 
-    KD.remote.cacheable groupName, (err, models)=>
+    remote.cacheable groupName, (err, models)=>
       if err then callback err
       else if models?
         [group] = models
@@ -63,15 +75,14 @@ class GroupsController extends KDController
           @setGroup groupName
           @currentGroupData.setGroup group
           callback null, groupName, group
-          @openGroupChannel KD.getGroup()
+          @openGroupChannel getGroup()
           @emit 'ready'
-
 
   getUserArea:->
     @userArea ? group:
-      if KD.config.entryPoint?.type is 'group'
-      then KD.config.entryPoint.slug
-      else (KD.getSingleton 'groupsController').currentGroupName
+      if globals.config.entryPoint?.type is 'group'
+      then globals.config.entryPoint.slug
+      else (kd.getSingleton 'groupsController').currentGroupName
 
   setUserArea:(userArea)->
     @userArea = userArea
@@ -81,27 +92,27 @@ class GroupsController extends KDController
   setGroup:(groupName)->
     @currentGroupName = groupName
     @setUserArea {
-      group: groupName, user: KD.whoami().profile.nickname
+      group: groupName, user: whoami().profile.nickname
     }
 
   joinGroup:(group, callback)->
     group.join (err, response)=>
-      return KD.showError err  if err?
+      return showError err  if err?
       callback err, response
-      KD.getSingleton('mainController').emit 'JoinedGroup'
-      KD.mixpanel "Join group, success", slug:group.slug
+      kd.getSingleton('mainController').emit 'JoinedGroup'
+      mixpanel "Join group, success", slug:group.slug
 
   acceptInvitation:(group, callback)->
-    KD.whoami().acceptInvitation group, (err, res)=>
-      mainController = KD.getSingleton "mainController"
+    whoami().acceptInvitation group, (err, res)=>
+      mainController = kd.getSingleton "mainController"
       mainController.once "AccountChanged", callback.bind this, err, res
-      mainController.accountChanged KD.whoami()
+      mainController.accountChanged whoami()
 
   ignoreInvitation:(group, callback)->
-    KD.whoami().ignoreInvitation group, callback
+    whoami().ignoreInvitation group, callback
 
   cancelGroupRequest:(group, callback)->
-    KD.whoami().cancelRequest group.slug, callback
+    whoami().cancelRequest group.slug, callback
 
   cancelMembershipPolicyChange:(policy, membershipPolicyView, modal)->
     membershipPolicyView.enableInvitations.setValue policy.invitationsEnabled
@@ -111,4 +122,5 @@ class GroupsController extends KDController
       unless err
         policy.emit 'MembershipPolicyChangeSaved'
         new KDNotificationView {title:"Membership policy has been updated."}
-      KD.showError err
+      showError err
+
