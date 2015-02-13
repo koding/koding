@@ -1,4 +1,17 @@
-class KodingKontrol extends KontrolJS = (require 'kontrol')
+SockJS = require 'sockjs-client'
+kitejs = require 'kite.js'
+Promise = require 'bluebird'
+kookies = require 'kookies'
+kd = require 'kd'
+KDNotificationView = kd.NotificationView
+globals = require 'globals'
+splitKiteQuery = require '../util/splitKiteQuery'
+KiteCache = require './kitecache'
+KiteLogger = require '../kitelogger'
+KodingKite = require './kodingkite'
+
+
+module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   constructor: (options = {})->
 
@@ -12,11 +25,11 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
   getAuthOptions: ->
 
-    @_lastUsedKey = Cookies.get 'clientId'
+    @_lastUsedKey = kookies.get 'clientId'
 
     autoConnect           : no
     autoReconnect         : yes
-    url                   : @_kontrolUrl ? KD.config.newkontrol.url
+    url                   : @_kontrolUrl ? globals.config.newkontrol.url
     auth                  :
       type                : 'sessionID'
       key                 : @_lastUsedKey
@@ -43,7 +56,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
   reauthenticate: (initial)->
 
     if @_lastUsedKey?
-      if (Cookies.get 'clientId') isnt @_lastUsedKey
+      if (kookies.get 'clientId') isnt @_lastUsedKey
         # disconnect the old kontrol kite
         @kite?.disconnect()
 
@@ -80,15 +93,15 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
 
   getVersion: (name) ->
-    return KD.config.kites[name].version ? '1.0.0'
+    return globals.config.kites[name].version ? '1.0.0'
 
 
   injectQueryParams: (args = {}) ->
 
     args.query             ?= {}
     args.query.version     ?= @getVersion args.query.name
-    args.query.username    ?= KD.config.kites.kontrol.username
-    args.query.environment ?= KD.config.environment
+    args.query.username    ?= globals.config.kites.kontrol.username
+    args.query.environment ?= globals.config.environment
 
     return args
 
@@ -109,6 +122,8 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     { name, correlationName } = options
 
+    KodingKite.constructors.klient = require './kites/klient'
+    KodingKite.constructors.kloud = require './kites/kloud'
     konstructor = KodingKite.constructors[name]
     kite = new konstructor options
 
@@ -119,7 +134,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
   createKite: (options, query)->
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
 
     {kite} = options
     kiteName = kite.name
@@ -168,7 +183,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
     # If queryString provided try to split it first
     # and if successful, use it as query
-    if queryString? and queryObject = KD.utils.splitKiteQuery queryString
+    if queryString? and queryObject = splitKiteQuery queryString
       query    = queryObject
       { name } = queryObject  if query.name
 
@@ -216,7 +231,7 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
     # Report error
     .catch (err)=>
 
-      warn "[KodingKontrol] ", err
+      kd.warn "[KodingKontrol] ", err
 
       # Instead parsing message we need to define a code or different
       # name for `No kite found` error in kite.js ~ FIXME GG
@@ -226,4 +241,3 @@ class KodingKontrol extends KontrolJS = (require 'kontrol')
 
 
     return kite
-

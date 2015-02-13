@@ -1,4 +1,9 @@
-class KiteCache
+proxifyTransportUrl = require '../util/proxifyTransportUrl'
+LocalStorage = require '../localstorage'
+kd = require 'kd'
+
+
+module.exports = class KiteCache
 
   storage   = LocalStorage.getStorage()
   signature = 'KITE_'
@@ -27,7 +32,7 @@ class KiteCache
     try
       {exp} = JSON.parse atob body
     catch e
-      warn "Failed to parse token:", e
+      kd.warn "Failed to parse token:", e
       return no
 
     exp = +new Date exp * 1000
@@ -42,7 +47,7 @@ class KiteCache
   proxifyTransport = (kite) ->
 
     if kite.kite.name is 'klient'
-      kite.url = KD.utils.proxifyTransportUrl kite.url
+      kite.url = proxifyTransportUrl kite.url
 
     return kite
 
@@ -100,7 +105,7 @@ class KiteCache
   @cache = (query, kite) ->
 
     unless kite?
-      return warn "[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE"
+      return kd.warn "[KiteCache] KITE NOT PROVIDED, IGNORING TO CACHE"
 
     queryString = @generateQueryString query
     kite = proxifyTransport kite
@@ -120,17 +125,17 @@ class KiteCache
       kite = JSON.parse kite
 
     catch e
-      warn "[KiteCache] PARSE ERROR", e
+      kd.warn "[KiteCache] PARSE ERROR", e
       return @unset query
 
     if kite.cachedAt?
-      warn "[KiteCache] CACHE FOUND WITH OLD STYLE TIMESTAMP, REMOVING..."
+      kd.warn "[KiteCache] CACHE FOUND WITH OLD STYLE TIMESTAMP, REMOVING..."
       return @unset queryString
 
     else
 
       unless isKiteValid kite
-        warn "[KiteCache] CACHE FOUND BUT ITS OUTDATED, REMOVING..."
+        kd.warn "[KiteCache] CACHE FOUND BUT ITS OUTDATED, REMOVING..."
         return @unset queryString
 
     return kite

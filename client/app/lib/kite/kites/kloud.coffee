@@ -1,6 +1,11 @@
-class KodingKite_KloudKite extends KodingKite
+Promise = require 'bluebird'
+kd = require 'kd'
+Machine = require '../../providers/machine'
+KiteLogger = require '../../kitelogger'
+globals = require 'globals'
 
-  @constructors['kloud'] = this
+
+module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   @createApiMapping
     stop         : 'stop'
@@ -19,8 +24,8 @@ class KodingKite_KloudKite extends KodingKite
 
   constructor: (options) ->
     super options
-    @requestingInfo = KD.utils.dict()
-    @needsRequest   = KD.utils.dict()
+    @requestingInfo = kd.utils.dict()
+    @needsRequest   = kd.utils.dict()
 
     @_reconnectedOnce = no
 
@@ -60,11 +65,11 @@ class KodingKite_KloudKite extends KodingKite
 
   askInfoFromKlient: (machineId, callback) ->
 
-    {kontrol, computeController} = KD.singletons
+    {kontrol, computeController} = kd.singletons
     {klient} = kontrol.kites
     machine  = computeController.findMachineFromMachineId machineId
 
-    if not machine or not machineId
+    unless machineId?
       return callback null
 
     klientKite = klient?[machine.uid]
@@ -102,7 +107,7 @@ class KodingKite_KloudKite extends KodingKite
 
   askInfoFromKloud: (machineId, currentState) ->
 
-    {kontrol, computeController} = KD.singletons
+    {kontrol, computeController} = kd.singletons
 
     @tell 'info', { machineId }
 
@@ -113,18 +118,18 @@ class KodingKite_KloudKite extends KodingKite
         unless info.State is Machine.State.Running
           computeController.invalidateCache machineId
 
-      .timeout ComputeController.timeout
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
       .catch (err) =>
 
         if err.name is 'TimeoutError'
 
           unless @_reconnectedOnce
-            warn 'First time timeout, reconnecting to kloud...'
+            kd.warn 'First time timeout, reconnecting to kloud...'
             kontrol.kites.kloud.singleton?.reconnect?()
             @_reconnectedOnce = yes
 
           KiteLogger.failed 'kloud', 'info'
 
-        warn '[kloud:info] failed, sending current state back:', { currentState, err }
+        kd.warn '[kloud:info] failed, sending current state back:', { currentState, err }
         @resolveRequestingInfos machineId, State: currentState

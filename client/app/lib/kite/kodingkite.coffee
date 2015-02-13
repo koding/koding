@@ -1,6 +1,14 @@
-class KodingKite extends KDObject
+kitejs = require 'kite.js'
+Promise = require 'bluebird'
+kd = require 'kd'
+KDObject = kd.Object
+KiteLogger = require '../kitelogger'
 
-  { @Error } = require 'kite'
+module.exports = class KodingKite extends KDObject
+
+  @constructors = {}
+
+  @Error = kitejs.Kite.Error
 
   [DISCONNECTED, CONNECTED] = [0, 1]
   MAX_QUEUE_SIZE = 50
@@ -111,7 +119,6 @@ class KodingKite extends KDObject
       @::[method] = @createMethod @prototype, { method, rpcMethod }
 
 
-  @constructors = {}
 
 
   connect: ->
@@ -133,7 +140,7 @@ class KodingKite extends KDObject
   reconnect:  ->
     @transport?.disconnect()
 
-    KD.utils.wait 1000, =>
+    kd.utils.wait 1000, =>
       @transport?.connect()
 
 
@@ -144,7 +151,7 @@ class KodingKite extends KDObject
     new Promise (resolve, reject)=>
       return resolve args if @_state is CONNECTED
       if @waitingCalls.length >= MAX_QUEUE_SIZE
-        warn "Call rejected for #{name} kite, queue has #{MAX_QUEUE_SIZE} items."
+        kd.warn "Call rejected for #{name} kite, queue has #{MAX_QUEUE_SIZE} items."
         return reject()
 
       cid = (@waitingCalls.push args) - 1
@@ -152,4 +159,6 @@ class KodingKite extends KDObject
       @once 'connected', ->
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
+
+
 
