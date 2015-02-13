@@ -9,6 +9,9 @@ class SidebarMachineList extends KDCustomHTMLView
 
     super options, data
 
+    @machineBoxes = []
+    @machineBoxesByMachineUId = {}
+
     @createHeader()
     @addMachineBoxes()
 
@@ -36,8 +39,6 @@ class SidebarMachineList extends KDCustomHTMLView
 
   addMachineBoxes: ->
 
-    @machineBoxes = []
-
     for machineData in @getData()
       @addMachineBox machineData
 
@@ -47,6 +48,7 @@ class SidebarMachineList extends KDCustomHTMLView
     machineBox = new SidebarMachineBox {}, machineData
     @addSubView machineBox
     @machineBoxes.push machineBox
+    @machineBoxesByMachineUId[machineData.machine.uid] = machineBox
 
 
   deselectMachines: ->
