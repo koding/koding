@@ -101,12 +101,14 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
             url         : "/Validate/Email/#{email}"
             type        : 'POST'
             xhrFields   : withCredentials : yes
-            success     : ->
+            success     : =>
               input.setValidationResult 'available', null
               EMAIL_VALID = yes
-            error       : ({responseJSON}) ->
+              @emit 'emailValidatedOnServer', EMAIL_VALID
+            error       : ({responseJSON}) =>
               input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
               EMAIL_VALID = no
+              @emit 'emailValidatedOnServer', EMAIL_VALID
     messages    :
       required  : 'Please enter your email address.'
       email     : 'That doesn\'t seem like a valid email address.'
@@ -118,7 +120,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     return unless isEmail
 
-    @gravatarInfoFetched = no
     @gravatars ?= {}
 
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]

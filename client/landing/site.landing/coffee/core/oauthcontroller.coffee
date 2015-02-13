@@ -80,15 +80,13 @@ module.exports = class OAuthController extends KDController
 
   handleNewUser: (userInfo)->
 
-    KD.singletons.router.handleRoute '/Register'
+    KD.singletons.router.handleRoute '/'
 
-    KD.singletons.router.requireApp 'Login', (loginController)->
-      loginView = loginController.getView()
-      loginView.animateToForm "register"
+    KD.singletons.router.requireApp 'Home', (homeController)->
+      homeView = homeController.getView()
+      { signUpForm } = homeView
 
-      for own field, value of userInfo
-        loginView.registerForm[field]?.input?.setValue value
-        loginView.registerForm[field]?.placeholder?.setClass 'out'
+      signUpForm.handleOauthData userInfo
 
 
   notify = (err)->
