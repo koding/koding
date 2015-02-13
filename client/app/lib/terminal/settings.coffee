@@ -1,4 +1,4 @@
-__webtermSettings =
+module.exports =
   fonts      : [
     { title  : 'Source Code Pro' , value: 'source-code-pro' }
     { title  : 'Ubuntu Mono'     , value: 'ubuntu-mono'     }

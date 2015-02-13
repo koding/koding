@@ -1,4 +1,8 @@
-class WebTerm.Cursor
+$ = require 'jquery'
+StyledText = require './styledtext'
+
+
+module.exports = class Cursor
   constructor: (@terminal) ->
     @x = 0
     @y = 0
@@ -53,12 +57,12 @@ class WebTerm.Cursor
 
   resetBlink: ->
     if @blinkInterval?
-      window.clearInterval @blinkInterval
+      global.clearInterval @blinkInterval
       @blinkInterval = null
     @inversed = true
     @updateCursorElement()
     if (@focused and not @stopped) and @blinking
-      @blinkInterval = window.setInterval =>
+      @blinkInterval = global.setInterval =>
         @inversed = if localStorage?["WebTerm.slowDrawing"] is "true" then true else not @inversed
         @updateCursorElement()
       , 600
@@ -67,9 +71,9 @@ class WebTerm.Cursor
     return content if not @visible
     newContent = content.substring 0, @x
     newContent.merge = false
-    @element = content.substring(@x, @x + 1).get(0) ? new WebTerm.StyledText(" ", @terminal.currentStyle)
+    @element = content.substring(@x, @x + 1).get(0) ? new StyledText(" ", @terminal.currentStyle)
     @element.spanForced = true
-    @element.style = jQuery.extend true, {}, @element.style
+    @element.style = $.extend true, {}, @element.style
     @element.style.outlined = not @focused
     @element.style.inverse = @focused and @inversed
     newContent.push @element
@@ -81,3 +85,5 @@ class WebTerm.Cursor
     @element.style.outlined = not @focused
     @element.style.inverse = @focused and @inversed
     @element.updateNode()
+
+

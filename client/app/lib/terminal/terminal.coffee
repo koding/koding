@@ -1,4 +1,16 @@
-class WebTerm.Terminal extends KDObject
+_ = require 'underscore'
+$ = require 'jquery'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDObject = kd.Object
+Cursor = require './cursor'
+InputHandler = require './inputhandler'
+ScreenBuffer = require './screenbuffer'
+StyledText = require './styledtext'
+createANSIControlCodeReader = require './createansicontrolcodereader'
+
+
+module.exports = class Terminal extends KDObject
 
   LINE_DRAWING_CHARSET = [
     0x2191, 0x2193, 0x2192, 0x2190, 0x2588, 0x259a, 0x2603
@@ -27,7 +39,7 @@ class WebTerm.Terminal extends KDObject
 
     if @readOnly
       for keyHandler in ['keyDown', 'keyPress', 'keyUp', 'paste']
-        @[keyHandler] = noop
+        @[keyHandler] = kd.noop
 
     @parent               = containerView
     @container            = containerView.$()
@@ -52,23 +64,23 @@ class WebTerm.Terminal extends KDObject
     @currentHeight            = 0
     @sizeX                    = 80
     @sizeY                    = 24
-    @currentStyle             = WebTerm.StyledText.DEFAULT_STYLE
+    @currentStyle             = StyledText.DEFAULT_STYLE
     @currentWhitespaceStyle   = null
     @currentCharacterSets     = ["B", "A", "A", "A"]
     @currentCharacterSetIndex = 0
 
-    @inputHandler      = new WebTerm.InputHandler(this)
-    @screenBuffer      = new WebTerm.ScreenBuffer(this)
-    @cursor            = new WebTerm.Cursor(this)
+    @inputHandler      = new InputHandler(this)
+    @screenBuffer      = new ScreenBuffer(this)
+    @cursor            = new Cursor(this)
     @cursor.stopBlink()  if @readOnly
 
-    @controlCodeReader = WebTerm.createAnsiControlCodeReader(this)
+    @controlCodeReader = createANSIControlCodeReader(this)
 
     @measurebox = new KDCustomHTMLView
       partial   : "\xA0"
       cssClass  : 'offscreen'
 
-    outputboxElement = document.createElement "div"
+    outputboxElement = global.document.createElement "div"
     @outputbox = $ outputboxElement
     @outputbox.attr "contenteditable", !@readOnly
     @outputbox.attr "spellcheck", off
@@ -80,7 +92,7 @@ class WebTerm.Terminal extends KDObject
     outputboxElement.addEventListener "keydown", do =>
       controlMeta = no
       (event) =>
-        range = KD.utils.getSelectionRange()
+        range = kd.utils.getSelectionRange()
         return  if range.startOffset is range.endOffset
         if event.ctrlKey or event.metaKey
           return  controlMeta = yes  if event.keyIdentifier in ["Control", "Meta"]
@@ -93,20 +105,20 @@ class WebTerm.Terminal extends KDObject
           @setKeyFocus()
 
     outputboxElement.addEventListener "keypress", (event) =>
-      KD.utils.stopDOMEvent event  if event.target isnt @keyInput.getElement()
+      kd.utils.stopDOMEvent event  if event.target isnt @keyInput.getElement()
     , yes
 
     @outputbox.on "keydown", (event) =>
       if @mousedownHappened
         @setKeyFocus() unless event.ctrlKey or event.metaKey
-        @utils.defer =>
+        kd.utils.defer =>
           @mousedownHappened = false
 
     @outputbox.on "paste", @bound "paste"
 
     @outputbox.on "drop", (event) =>
       @server.input event.originalEvent.dataTransfer.getData "text/plain"
-      KD.utils.stopDOMEvent event
+      kd.utils.stopDOMEvent event
 
     @updateSize()
 
@@ -115,16 +127,16 @@ class WebTerm.Terminal extends KDObject
 
     @clientInterface =
       output: (data) =>
-        log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
+        kd.log @inspectString(data) if localStorage?["WebTerm.logRawOutput"] is "true"
         @controlCodeReader.addData data
         if localStorage?["WebTerm.slowDrawing"] is "true"
-          @controlCodeInterval ?= window.setInterval =>
+          @controlCodeInterval ?= global.setInterval =>
             atEnd = @controlCodeReader.process()
             if localStorage?["WebTerm.slowDrawing"] isnt "true"
               atEnd = @controlCodeReader.process() until atEnd
             @screenBuffer.flush()
             if atEnd
-              window.clearInterval @controlCodeInterval
+              global.clearInterval @controlCodeInterval
               @controlCodeInterval = null
           , 20
         else
@@ -165,7 +177,7 @@ class WebTerm.Terminal extends KDObject
 
   setFocused: (value) ->
     @cursor.setFocused value
-    if value then KD.utils.defer => @setKeyFocus()
+    if value then kd.utils.defer => @setKeyFocus()
 
   setSize: (x, y) ->
 
@@ -253,25 +265,25 @@ class WebTerm.Terminal extends KDObject
     text = text.replace /[ ]/g, "\xA0" # NBSP
     switch @currentCharacterSets[@currentCharacterSetIndex]
       when "0"
-        nonBoldStyle = jQuery.extend true, {}, style
+        nonBoldStyle = $.extend true, {}, style
         nonBoldStyle.bold = false
         for i in [0..text.length]
           c = text.charCodeAt i
           u = LINE_DRAWING_CHARSET[c - 0x41] ? c
           charStyle = if u >= 0x2300 then nonBoldStyle else style
-          newContent.push new WebTerm.StyledText(String.fromCharCode(u), charStyle)
+          newContent.push new StyledText(String.fromCharCode(u), charStyle)
       when "A"
         text = text.replace /#/g, "\xA3" # pound sign
-        newContent.push new WebTerm.StyledText(text, style)
+        newContent.push new StyledText(text, style)
       else
-        newContent.push new WebTerm.StyledText(text, style)
+        newContent.push new StyledText(text, style)
 
     newContent.pushAll oldContent.substring(if insert then x else x + text.length)
     @screenBuffer.setLineContent lineIndex, newContent
 
   writeEmptyText: (length, options) ->
     if not @currentWhitespaceStyle?
-      @currentWhitespaceStyle = jQuery.extend true, {}, @currentStyle
+      @currentWhitespaceStyle = $.extend true, {}, @currentStyle
       @currentWhitespaceStyle.inverse = false
     @currentWhitespaceStyle
     options ?= {}
@@ -289,16 +301,16 @@ class WebTerm.Terminal extends KDObject
     newContent.pushAll oldContent.substring(x + count)
     text = ""
     text += "\xA0" for i in [0...count]
-    newContent.push new WebTerm.StyledText(text, oldContent.get(oldContent.length() - 1).style)
+    newContent.push new StyledText(text, oldContent.get(oldContent.length() - 1).style)
     @screenBuffer.setLineContent lineIndex, newContent
 
   setStyle: (name, value) ->
-    @currentStyle = jQuery.extend true, {}, @currentStyle
+    @currentStyle = $.extend true, {}, @currentStyle
     @currentStyle[name] = value
     @currentWhitespaceStyle = null
 
   resetStyle: ->
-    @currentStyle = WebTerm.StyledText.DEFAULT_STYLE
+    @currentStyle = StyledText.DEFAULT_STYLE
     @currentWhitespaceStyle = null
 
   setCharacterSet: (index, charset) ->
@@ -341,6 +353,8 @@ class WebTerm.Terminal extends KDObject
 
     return  if @isReadOnly
 
-    KD.utils.stopDOMEvent event
+    kd.utils.stopDOMEvent event
     @server.input event.originalEvent.clipboardData.getData "text/plain"
     @setKeyFocus()
+
+

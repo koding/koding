@@ -1,4 +1,10 @@
-class SessionStackView extends KDView
+kd = require 'kd'
+KDView = kd.View
+SessionItemView = require './sessionitemview'
+warnAndLog = require 'app/util/warnAndLog'
+
+
+module.exports = class SessionStackView extends KDView
 
   constructor: (options, data) ->
 
@@ -40,7 +46,7 @@ class SessionStackView extends KDView
       @loader.hide()
 
       unless (/no sessions available/i.test(err.message))
-        KD.utils.warnAndLog "terminal: webtermGetSessions error",
+        warnAndLog "terminal: webtermGetSessions error",
           {reason:err?.message, machineId:@getOptions().machine.uid}
 
 

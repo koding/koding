@@ -1,4 +1,4 @@
-class WebTerm.InputHandler
+module.exports = class InputHandler
 
   ESC = "\x1B";
   CSI = ESC + "[";
@@ -122,4 +122,6 @@ class WebTerm.InputHandler
 
 
   useApplicationKeypad: (value) -> @applicationKeypad = value
+
+
 

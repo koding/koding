@@ -1,9 +1,26 @@
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDModalView = kd.ModalView
+KDNotificationView = kd.NotificationView
+KDTabPaneView = kd.TabPaneView
+KDView = kd.View
+mixpanel = require 'app/util/mixpanel'
+isLoggedIn = require 'app/util/isLoggedIn'
+WebtermSettingsView = require 'app/terminal/webtermsettingsview'
+WebTermView = require 'app/terminal/webtermview'
+JView = require 'app/jview'
+ChromeTerminalBanner = require './chrometerminalbanner'
+TerminalStartTab = require './terminalstarttab'
+Encoder = require 'htmlencode'
+ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
+ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
+
 
 # Notes:                                  ~ GG
 # RestoreTab functionality removed with
 # 8c9f80cff24c93107de583cb864b0001f1e737af
 
-class WebTermAppView extends JView
+module.exports = class WebTermAppView extends JView
 
   loadingPartial = 'Loading Terminal...'
 
@@ -13,9 +30,9 @@ class WebTermAppView extends JView
 
     @machines = {}
 
-    @dirty = KD.utils.dict()
+    @dirty = kd.utils.dict()
 
-    @initedPanes = KD.utils.dict()
+    @initedPanes = kd.utils.dict()
 
     @tabHandleContainer = new ApplicationTabHandleHolder
       delegate          : this
@@ -47,26 +64,26 @@ class WebTermAppView extends JView
       @removeSession { machineId: machine.uid, sessionId: session }
 
     @on 'TerminalStarted', ->
-      KD.mixpanel "Open new Webterm, success"
+      mixpanel "Open new Webterm, success"
 
 
   viewAppended: ->
     super
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
     computeController.fetchMachines (err, machines)=>
 
       machines.forEach (machine)=>
         @machines[machine.uid] = machine
 
-    path = location.pathname + location.search + "?"
-    mainController = KD.getSingleton("mainController")
+    path = global.location.pathname + global.location.search + "?"
+    mainController = kd.getSingleton("mainController")
 
-    unless KD.isLoggedIn()
+    unless isLoggedIn()
       mainController.once "accountChanged.to.loggedIn", =>
-        wc = KD.singleton 'windowController'
+        wc = kd.singleton 'windowController'
         wc.clearUnloadListeners()
-        location.replace path
+        global.location.replace path
 
 
   addStartTab:->
@@ -102,7 +119,7 @@ class WebTermAppView extends JView
         @chromeAppMode()
 
       if query.fullscreen
-        KD.getSingleton("mainView").enableFullscreen()
+        kd.getSingleton("mainView").enableFullscreen()
 
 
   initPane: (pane) ->
@@ -132,12 +149,12 @@ class WebTermAppView extends JView
       storage.setValue 'activeIndex', index
 
     terminalView.terminal?.scrollToBottom()
-    KD.utils.defer -> terminalView.setKeyView()
+    kd.utils.defer -> terminalView.setKeyView()
 
 
   fetchStorage: (callback) ->
 
-    storage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
+    storage = kd.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage -> callback storage
 
 
@@ -161,12 +178,12 @@ class WebTermAppView extends JView
       """
       buttons :
         "Run" :
-          cssClass: "solid green medium"
+          cssClass: "modal-clean-green"
           callback: ->
             remote.input "#{command}\n"
             modal.destroy()
         "Cancel":
-          cssClass: "solid red medium"
+          cssClass: "modal-clean-red"
           callback: ->
             modal.destroy()
 
@@ -213,17 +230,17 @@ class WebTermAppView extends JView
 
   chromeAppMode: ->
 
-    windowController = KD.getSingleton("windowController")
-    mainController   = KD.getSingleton("mainController")
+    windowController = kd.getSingleton("windowController")
+    mainController   = kd.getSingleton("mainController")
 
     # talking with chrome app
-    if window.parent?.postMessage
-      {parent} = window
+    if global.parent?.postMessage
+      {parent} = global
       mainController.on "clientIdChanged", ->
         parent.postMessage "clientIdChanged", "*"
 
       parent.postMessage "fullScreenTerminalReady", "*"
-      parent.postMessage "loggedIn", "*"  if KD.isLoggedIn()
+      parent.postMessage "loggedIn", "*"  if isLoggedIn()
 
       @on "KDObjectWillBeDestroyed", ->
         parent.postMessage "fullScreenWillBeDestroyed", "*"
@@ -289,7 +306,7 @@ class WebTermAppView extends JView
 
   updateSessions: ->
 
-    storage = (KD.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
+    storage = (kd.getSingleton 'appStorageController').storage 'Terminal', '1.0.1'
     storage.fetchStorage =>
 
       activeIndex = @tabView.getActivePaneIndex()
@@ -305,7 +322,7 @@ class WebTermAppView extends JView
           machineId = terminalView.getMachine().uid
           sessions.push "#{ machineId }:#{ sessionId }"
         else
-          info "There is terminal pane but no sessionId is set."
+          kd.info "There is terminal pane but no sessionId is set."
 
       storage.setValue 'savedSessions', sessions
       storage.setValue 'activeIndex', activeIndex
@@ -322,11 +339,11 @@ class WebTermAppView extends JView
 
     .then (response) =>
 
-      info "Terminal session removed from #{machineId} klient kite"
+      kd.info "Terminal session removed from #{machineId} klient kite"
       @emit 'SessionListChanged'
 
     .catch (err) ->
-      warn err
+      kd.warn err
 
 
   findPane: (session) ->

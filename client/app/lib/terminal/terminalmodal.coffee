@@ -1,8 +1,13 @@
-class TerminalModal extends KDModalView
+kd = require 'kd'
+KDModalView = kd.ModalView
+WebTermView = require './webtermview'
+
+
+module.exports = class TerminalModal extends KDModalView
 
   constructor: (options={}, data)->
 
-    options.cssClass       = KD.utils.curry "terminal", options.cssClass
+    options.cssClass       = kd.utils.curry "terminal", options.cssClass
     options.destroyOnExit ?= yes
 
     if options.machine?.getName? and not options.title
@@ -33,14 +38,16 @@ class TerminalModal extends KDModalView
       @emit "terminal.terminated"
       @destroy()  if @getOption 'destroyOnExit'
 
-    @on "click", => @setCss 'zIndex', 10000 + KD.utils.uniqueId()
+    @on "click", => @setCss 'zIndex', 10000 + kd.utils.uniqueId()
 
   viewAppended: ->
 
     @addSubView @webterm
     @webterm.connectToTerminal()
-    @setCss 'zIndex', 10000 + KD.utils.uniqueId()
+    @setCss 'zIndex', 10000 + kd.utils.uniqueId()
 
   run: (command)->
 
     @emit "terminal.input", command + "\n"
+
+

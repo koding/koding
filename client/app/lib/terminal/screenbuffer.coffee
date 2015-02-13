@@ -1,4 +1,8 @@
-class WebTerm.ScreenBuffer
+$ = require 'jquery'
+StyledText = require './styledtext'
+
+
+module.exports = class ScreenBuffer
   constructor: (@terminal) ->
     @lineContents = []
     @lineDivs = []
@@ -60,7 +64,7 @@ class WebTerm.ScreenBuffer
       scrolledToBottom = @terminal.isScrolledToBottom() or @terminal.container.queue().length != 0
       newDivs = []
       for i in [0...linesToAdd]
-        div = document.createElement("div")
+        div = global.document.createElement("div")
         $(div).text "\xA0"
         newDivs.push div
         @lineDivs.push div
@@ -126,7 +130,7 @@ class WebTerm.ScreenBuffer
         else
           styledText.text.substring(beginIndex - offset)
         if text.length > 0
-          content.push new WebTerm.StyledText(text, styledText.style)
+          content.push new StyledText(text, styledText.style)
           length += text.length
         offset += styledText.text.length
 
@@ -134,6 +138,8 @@ class WebTerm.ScreenBuffer
       if missing > 0
         text = ""
         text += "\xA0" for i in [0...missing]
-        content.push new WebTerm.StyledText(text, WebTerm.StyledText.DEFAULT_STYLE)
+        content.push new StyledText(text, StyledText.DEFAULT_STYLE)
 
       content
+
+

@@ -1,4 +1,5 @@
-class WebTerm.StyledText
+$ = require 'jquery'
+module.exports = class StyledText
   COLOR_NAMES = ["Black", "Red", "Green", "Yellow", "Blue", "Magenta", "Cyan", "White", "BrightBlack", "BrightRed", "BrightGreen", "BrightYellow", "BrightBlue", "BrightMagenta", "BrightCyan", "BrightWhite"]
 
   constructor: (text, style) ->
@@ -10,11 +11,11 @@ class WebTerm.StyledText
   getNode: ->
     if not @node?
       if not @style.isDefault() or @spanForced
-        @node = $(document.createElement("span"))
+        @node = $(global.document.createElement("span"))
         @node.text @text
         @updateNode()
       else
-        @node = document.createTextNode @text
+        @node = global.document.createTextNode @text
     @node
 
   updateNode: ->
@@ -77,3 +78,5 @@ class WebTerm.StyledText
       return "rgb(#{l}, #{l}, #{l})"
 
   @DEFAULT_STYLE = new Style
+
+

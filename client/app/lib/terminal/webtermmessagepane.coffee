@@ -1,9 +1,13 @@
-class WebTermMessagePane extends KDCustomScrollView
+sendDataDogEvent = require '../util/sendDataDogEvent'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDCustomScrollView = kd.CustomScrollView
+module.exports = class WebTermMessagePane extends KDCustomScrollView
 
 
   constructor: (options = {}, data)->
 
-    options.cssClass = KD.utils.curry \
+    options.cssClass = kd.utils.curry \
       'message-pane console ubuntu-mono green-on-black', options.cssClass
 
     super options, data
@@ -19,13 +23,13 @@ class WebTermMessagePane extends KDCustomScrollView
 
     @show()
 
-    @loader.repeater = KD.utils.repeat 200, @loader.lazyBound 'setPartial', '.'
+    @loader.repeater = kd.utils.repeat 200, @loader.lazyBound 'setPartial', '.'
 
   hide: ->
 
     super
 
-    KD.utils.killRepeat @loader.repeater
+    kd.utils.killRepeat @loader.repeater
 
 
   viewAppended: ->
@@ -51,7 +55,7 @@ class WebTermMessagePane extends KDCustomScrollView
 
   handleError: (err)->
 
-    KD.utils.killRepeat @loader.repeater
+    kd.utils.killRepeat @loader.repeater
     @loader.hide()
 
     if err.message is "ErrNoSession"
@@ -66,7 +70,7 @@ class WebTermMessagePane extends KDCustomScrollView
         "Failed to connect your terminal,
         click here to try again.", 'RequestReconnect'
 
-      KD.utils.sendDataDogEvent "TerminalConnectionFailed"
+      sendDataDogEvent "TerminalConnectionFailed"
 
     else if err.message is "session limit has reached"
 

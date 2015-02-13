@@ -1,4 +1,11 @@
-class WebtermSettingsView extends JView
+kd = require 'kd'
+KDSelectBox = kd.SelectBox
+JView = require '../jview'
+KodingSwitch = require '../commonviews/kodingswitch'
+settings = require './settings'
+
+
+module.exports = class WebtermSettingsView extends JView
 
   constructor: (options={}, data)->
     super options, data
@@ -6,21 +13,21 @@ class WebtermSettingsView extends JView
     webtermView = @getDelegate()
 
     @font       = new KDSelectBox
-      selectOptions : __webtermSettings.fonts
+      selectOptions : settings.fonts
       callback      : (value) =>
         webtermView.appStorage.setValue 'font', value
         webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'font'
 
     @fontSize       = new KDSelectBox
-      selectOptions : __webtermSettings.fontSizes
+      selectOptions : settings.fontSizes
       callback      : (value) =>
         webtermView.appStorage.setValue 'fontSize', value
         webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'fontSize'
 
     @theme          = new KDSelectBox
-      selectOptions : __webtermSettings.themes
+      selectOptions : settings.themes
       callback      : (value) =>
         webtermView.appStorage.setValue 'theme', value
         webtermView.updateSettings()
@@ -33,7 +40,7 @@ class WebtermSettingsView extends JView
         webtermView.updateSettings()
       defaultValue  : webtermView.appStorage.getValue 'visualBell'
 
-    mainView        = KD.getSingleton "mainView"
+    mainView        = kd.getSingleton "mainView"
     @fullscreen     = new KodingSwitch
       size          : "tiny"
       callback      : (state) =>
@@ -47,7 +54,7 @@ class WebtermSettingsView extends JView
       defaultValue  : mainView.isFullscreen()
 
     @scrollback     = new KDSelectBox
-      selectOptions : __webtermSettings.scrollback
+      selectOptions : settings.scrollback
       callback      : (value) =>
         webtermView.appStorage.setValue 'scrollback', value
         webtermView.updateSettings()
@@ -63,3 +70,5 @@ class WebtermSettingsView extends JView
     <p>Use visual bell                  {{> @bell}}</p>
     <p>Fullscreen                       {{> @fullscreen}}</p>
     """
+
+

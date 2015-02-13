@@ -1,30 +1,14 @@
-class WebTermController extends AppController
+kd = require 'kd'
+KDNotificationView = kd.NotificationView
+isLoggedIn = require 'app/util/isLoggedIn'
+AppController = require 'app/appcontroller'
+globals = require 'globals'
+WebTermAppView = require 'terminal/webtermappview'
 
-  KD.registerAppClass this,
-    name         : "Terminal"
-    title        : "Terminal"
-    version      : "1.0.1"
-    multiple     : yes
-    hiddenHandle : no
-    preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
-      failure    : (options, cb)->
-        KD.singletons.appManager.open 'Terminal', conditionPassed : yes
-        KD.showEnforceLoginModal()
-    menu         :
-      width      : 250
-      items      : [
-        {title: "customViewAdvancedSettings"}
-      ]
-    commands     :
-      'ring bell': 'ringBell'
-      'noop'     : (->)
-    keyBindings  : [
-      { command: 'ring bell',     binding: 'alt+meta+k',        global: yes }
-      { command: 'noop',          binding: ['meta+v','meta+r'], global: yes }
-    ]
-    behavior     : "application"
 
+module.exports = class WebTermController extends AppController
+
+  @options = require './options'
 
   constructor:(options = {}, data)->
 
@@ -43,10 +27,10 @@ class WebTermController extends AppController
     @getView().once 'TerminalStarted', =>
       alreadyStarted = yes
       if @globalNotification
-        KD.utils.wait 300, =>
+        kd.utils.wait 300, =>
           @globalNotification.hideAndDestroy()
-          KD.utils.wait 1000, =>
-            KD.singletons.mainView.createGlobalNotification
+          kd.utils.wait 1000, =>
+            kd.singletons.mainView.createGlobalNotification
               title      : "All seem good now,"
               content    : "keep coding :)"
               type       : 'green'
@@ -55,11 +39,11 @@ class WebTermController extends AppController
     @getView().on 'TerminalFailed', @bound 'checkOSKiteStatus'
 
     # sometimes terminal is so fast we don't even need to ask oskite status
-    @checkOSKiteStatus()  unless KD.useNewKites or alreadyStarted
+    @checkOSKiteStatus()  unless globals.useNewKites or alreadyStarted
 
   checkOSKiteStatus:-> @askOSKiteStatus @bound 'tellOSKiteStatus'
 
-  askOSKiteStatus:(callback)-> KD.singletons.vmController._runWrapper 'oskite.All', callback
+  askOSKiteStatus:(callback)-> kd.singletons.vmController._runWrapper 'oskite.All', callback
 
   tellOSKiteStatus:(err, kontainers)=>
 
@@ -67,10 +51,10 @@ class WebTermController extends AppController
     limits       = 0
 
     if err
-      warn err
+      kd.warn err
       # title = err.message or "Something went wrong!"
       @globalNotification?.destroy()
-      return @globalNotification = KD.singletons.mainView.createGlobalNotification
+      return @globalNotification = kd.singletons.mainView.createGlobalNotification
         title   : "Something went wrong!"
         content : "Please check back again in a few minutes."
         type    : 'yellow'
@@ -85,7 +69,7 @@ class WebTermController extends AppController
 
     if kontainers and vms > limits
       @globalNotification?.destroy()
-      return @globalNotification = KD.singletons.mainView.createGlobalNotification
+      return @globalNotification = kd.singletons.mainView.createGlobalNotification
         title   : "Sorry, we can't launch your VM right now. We are experiencing an unxpected high load."
         content : "Please try again later."
         type    : 'red'
@@ -110,7 +94,7 @@ class WebTermController extends AppController
 
     { name, version } = @getOptions()
 
-    storage = (KD.getSingleton 'appStorageController').storage name, version
+    storage = (kd.getSingleton 'appStorageController').storage name, version
 
     if not bell? or storage.getValue 'visualBell'
     then new KDNotificationView title: 'Bell!', duration: 100

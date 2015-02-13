@@ -1,13 +1,26 @@
-class WebTermView extends KDCustomScrollView
+mixpanel = require '../util/mixpanel'
+kd = require 'kd'
+KDButtonViewWithMenu = kd.ButtonViewWithMenu
+KDCustomScrollView = kd.CustomScrollView
+Machine = require '../providers/machine'
+Terminal = require './terminal'
+TerminalWrapper = require './terminalwrapper'
+WebTermMessagePane = require './webtermmessagepane'
+WebtermSettingsView = require './webtermsettingsview'
+settings = require './settings'
+globals = require 'globals'
+
+
+module.exports = class WebTermView extends KDCustomScrollView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass     = KD.utils.curry 'webterm', options.cssClass
+    options.cssClass     = kd.utils.curry 'webterm', options.cssClass
     options.wrapperClass = TerminalWrapper
 
     super options, data
 
-    KD.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
+    kd.getSingleton('mainView').on 'MainTabPaneShown', @bound 'mainTabPaneShown'
 
 
   viewAppended: ->
@@ -21,7 +34,7 @@ class WebTermView extends KDCustomScrollView
     @container.on 'scroll', -> @setScrollLeft 0
 
     { readOnly } = @getOptions()
-    @terminal = new WebTerm.Terminal
+    @terminal = new Terminal
       containerView : @container
       appView       : this
       readOnly      : readOnly ? no
@@ -52,7 +65,7 @@ class WebTermView extends KDCustomScrollView
 
     @on "ReceivedClickElsewhere", =>
       @setFocus no
-      KD.getSingleton('windowController').removeLayer this
+      kd.getSingleton('windowController').removeLayer this
 
 
     @getElement().addEventListener "mousedown", (event) =>
@@ -61,14 +74,14 @@ class WebTermView extends KDCustomScrollView
 
     @forwardEvent @terminal, 'command'
 
-    KD.mixpanel "Open Webterm, click", {
+    mixpanel "Open Webterm, click", {
       machineName : @getMachine().getName()
     }
 
     @getDelegate().on 'KDTabPaneActive', => @terminal.updateSize yes
 
     # watch machine state:
-    { computeController } = KD.singletons
+    { computeController } = kd.singletons
     computeController.on "public-#{@getMachine()._id}", (event) =>
       if event.status in [Machine.State.Stopping, Machine.State.Stopped]
         @terminal.cursor.stopBlink()
@@ -138,9 +151,9 @@ class WebTermView extends KDCustomScrollView
 
         @_triedToReconnect = no
 
-        KD.utils.wait 500, @messagePane.bound 'hide'
+        kd.utils.wait 500, @messagePane.bound 'hide'
 
-      .timeout ComputeController.timeout
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
       .catch (err)=>
 
@@ -156,7 +169,7 @@ class WebTermView extends KDCustomScrollView
 
   connectToTerminal: ->
 
-    @appStorage = KD.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
+    @appStorage = kd.getSingleton('appStorageController').storage 'Terminal', '1.0.1'
 
     @appStorage.fetchStorage =>
 
@@ -177,7 +190,7 @@ class WebTermView extends KDCustomScrollView
   destroy: ->
     super
 
-    KD.utils.killRepeat @checker
+    kd.utils.killRepeat @checker
 
     unless @status is "fail"
       @emit "TerminalClosed",
@@ -189,11 +202,11 @@ class WebTermView extends KDCustomScrollView
 
   updateSettings: ->
 
-    for font in __webtermSettings.fonts
+    for font in settings.fonts
       @container.unsetClass font.value
       @messagePane.unsetClass font.value
 
-    for theme in __webtermSettings.themes
+    for theme in settings.themes
       @container.unsetClass theme.value
       @messagePane.unsetClass theme.value
 
@@ -208,7 +221,7 @@ class WebTermView extends KDCustomScrollView
       fontSize: @appStorage.getValue('fontSize') + 'px'
 
     @$().css
-      color: (window.getComputedStyle @container.getElement()).backgroundColor
+      color: (global.getComputedStyle @container.getElement()).backgroundColor
 
     @terminal.updateSize true
     @terminal.scrollToBottom()
@@ -217,7 +230,7 @@ class WebTermView extends KDCustomScrollView
     @terminal.cursor.setBlinking @appStorage.getValue 'blinkingCursor'
 
   setKeyView: ->
-    KD.getSingleton('windowController').addLayer this
+    kd.getSingleton('windowController').addLayer this
     @setFocus()
     @emit 'KeyViewIsSet'
     @once "ReceivedClickElsewhere", => @setFocus no
@@ -234,11 +247,11 @@ class WebTermView extends KDCustomScrollView
     @restoreRange()
 
   restoreRange: ->
-    range = @utils.getSelectionRange()
+    range = kd.utils.getSelectionRange()
     return  unless range
     return  if range.startOffset is range.endOffset and range.startContainer is range.endContainer
-    @utils.defer =>
-      @utils.addRange range
+    kd.utils.defer =>
+      kd.utils.addRange range
 
   keyDown: (event) ->
     @listenFullscreen event
@@ -261,17 +274,9 @@ class WebTermView extends KDCustomScrollView
   listenFullscreen: (event)->
     requestFullscreen = (event.metaKey or event.ctrlKey) and event.keyCode is 13
     if requestFullscreen
-      mainView = KD.getSingleton "mainView"
+      mainView = kd.getSingleton "mainView"
       mainView.toggleFullscreen()
       event.preventDefault()
-
-
-  triggerFitToWindow: ->
-
-    return  unless @terminal?.server?
-
-    @terminal.server.controlSequence String.fromCharCode 2
-    @terminal.server.input 'F'
 
 
   mainTabPaneShown: (pane) ->
@@ -280,3 +285,5 @@ class WebTermView extends KDCustomScrollView
 
     el = @container.getElement()
     el.scrollTop = el.scrollHeight
+
+

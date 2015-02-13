@@ -1,11 +1,15 @@
-class TerminalStartTabVMItem extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDLoaderView = kd.LoaderView
+JView = require 'app/jview'
+module.exports = class TerminalStartTabVMItem extends KDCustomHTMLView
 
   JView.mixin @prototype
 
   constructor:(options = {}, data)->
 
     options.tagName  = 'li'
-    options.cssClass = KD.utils.curry 'vm-loader-item', options.cssClass
+    options.cssClass = kd.utils.curry 'vm-loader-item', options.cssClass
 
     super options, data
 

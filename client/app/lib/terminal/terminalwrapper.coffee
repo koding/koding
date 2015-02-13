@@ -1,4 +1,6 @@
-class TerminalWrapper extends KDCustomScrollViewWrapper
+kd = require 'kd'
+KDCustomScrollViewWrapper = kd.CustomScrollViewWrapper
+module.exports = class TerminalWrapper extends KDCustomScrollViewWrapper
 
   _scrollHorizontally: -> @setScrollLeft 0
 
@@ -23,3 +25,5 @@ class TerminalWrapper extends KDCustomScrollViewWrapper
       @setScrollTop lastPosition = newPosition
 
       return shouldStop
+
+

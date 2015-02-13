@@ -1,4 +1,10 @@
-class ChromeTerminalBanner extends JView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+isLoggedIn = require 'app/util/isLoggedIn'
+nick = require 'app/util/nick'
+JView = require 'app/jview'
+CustomLinkView = require 'app/customlinkview'
+module.exports = class ChromeTerminalBanner extends JView
   constructor: (options={}, data)->
 
     options.domId = "chrome-terminal-banner"
@@ -7,9 +13,9 @@ class ChromeTerminalBanner extends JView
 
     @descriptionHidden = yes
 
-    @mainView = KD.getSingleton "mainView"
-    @router   = KD.getSingleton "router"
-    @finder   = KD.getSingleton "finderController"
+    @mainView = kd.getSingleton "mainView"
+    @router   = kd.getSingleton "router"
+    @finder   = kd.getSingleton "finderController"
 
     @mainView.on "fullscreen", (state)=>
       unless state then @hide() else @show()
@@ -49,12 +55,12 @@ class ChromeTerminalBanner extends JView
       click    : => @revealKoding()
 
   revealKoding: (route)->
-    @finder.mountVm "vm-0.#{KD.nick()}.guests.kd.io" unless KD.isLoggedIn()
+    @finder.mountVm "vm-0.#{nick()}.guests.kd.io" unless isLoggedIn()
     @router.handleRoute route if route
     @mainView.disableFullscreen()
 
   pistachio: ->
-    if KD.isLoggedIn()
+    if isLoggedIn()
       """
       <span class="koding-icon"></span>
       <div class="actions">
@@ -73,5 +79,5 @@ class ChromeTerminalBanner extends JView
       """
 
   destroy:->
-    KD.getSingleton("mainView").disableFullscreen()
+    kd.getSingleton("mainView").disableFullscreen()
     super

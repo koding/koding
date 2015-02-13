@@ -1,4 +1,11 @@
-class TerminalStartTab extends JView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDNotificationView = kd.NotificationView
+JView = require 'app/jview'
+SessionStackView = require './sessionstackview'
+
+
+module.exports = class TerminalStartTab extends JView
 
   constructor:->
 
@@ -10,7 +17,7 @@ class TerminalStartTab extends JView
     @message.hide()
 
     # FIXME GG
-    # KD.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
+    # kd.singletons.notificationController.on 'NotificationHasArrived', ({event}) =>
     #   if event in ["VMCreated", "VMRemoved"]
     #     @viewAppended yes
 
@@ -23,7 +30,7 @@ class TerminalStartTab extends JView
 
   fetchMachines: ->
 
-    {computeController} = KD.singletons
+    {computeController} = kd.singletons
     computeController.fetchMachines (err, machines)=>
 
       if err
@@ -71,9 +78,9 @@ class TerminalStartTab extends JView
 
   prepareMessage: ->
 
-    {paymentController} = KD.singletons
+    {paymentController} = kd.singletons
     paymentController.fetchActiveSubscription tags: "vm", (err, subscription) =>
-      return error err  if err
+      return kd.error err  if err
       if not subscription or "nosync" in subscription.tags
         message = """You are on a free developer plan. Your VMs will be turned off within 15 minutes of idle time,
         and all your sessions will be deleted. If you want to keep your sessions, you can

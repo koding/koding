@@ -1,4 +1,9 @@
-class SessionItemView extends KDView
+kd = require 'kd'
+KDView = kd.View
+$ = require 'jquery'
+
+
+module.exports = class SessionItemView extends KDView
 
   constructor: (options, data) ->
 

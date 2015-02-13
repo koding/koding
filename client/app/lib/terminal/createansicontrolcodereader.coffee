@@ -1,89 +1,9 @@
-class WebTerm.ControlCodeReader
-  constructor: (@terminal, @handler, @nextReader) ->
-    @data = ""
-    @pos = 0
-    @controlCodeOffset = null
-    @regexp = new RegExp Object.keys(@handler.map).join("|")
+TextReader = require './textreader'
+ControlCodeReader = require './controlcodereader'
+kd = require 'kd'
 
-  skip: (length) ->
-    @pos += length
+module.exports = (terminal) ->
 
-  readChar: ->
-    return null if @pos >= @data.length
-    c = @data.charAt @pos
-    @pos += 1
-    c
-
-  readRegexp: (regexp) ->
-    result = @data.substring(@pos).match(regexp)
-    return null if not result?
-    @pos += result[0].length
-    result
-
-  readUntil: (regexp) ->
-    endPos = @data.substring(@pos).search regexp
-    return null if endPos is -1
-    string = @data.substring @pos, @pos + endPos
-    @pos += endPos
-    string
-
-  addData: (newData) ->
-    @data += newData
-
-  process: ->
-    return false if not @nextReader.process()
-    return true if @data.length is 0
-
-    if @controlCodeOffset?
-      @controlCodeIncomplete = false
-      @handler this
-      if @controlCodeIncomplete
-        @pos = @controlCodeOffset
-        true
-      else
-        @controlCodeOffset = null
-        false
-    else
-      if (text = @readUntil @regexp)?
-        @nextReader.addData text
-        @nextReader.process()
-        @controlCodeOffset = @pos
-        false
-      else
-        @nextReader.addData @data.substring(@pos)
-        @data = ""
-        @pos = 0
-        @nextReader.process()
-
-  incompleteControlCode: ->
-    @controlCodeIncomplete = true
-
-  unsupportedControlCode: ->
-    # warn "Unsupported control code: " + @terminal.inspectString(@data.substring(@controlCodeOffset, @pos))
-
-
-class WebTerm.TextReader
-  constructor: (@terminal) ->
-    @data = ""
-
-  addData: (newData) ->
-    @data += newData
-
-  process: ->
-    return true if @data.length is 0
-    while @terminal.cursor.x + @data.length > @terminal.sizeX # line wrapping
-      remaining = @terminal.sizeX - @terminal.cursor.x
-      @terminal.writeText @data.substring(0, remaining)
-      @terminal.lineFeed()
-      @terminal.cursor.moveTo 0, @terminal.cursor.y
-      @data = @data.substring remaining
-    @terminal.writeText @data
-    @terminal.cursor.move @data.length, 0
-    @data = ""
-    true
-
-
-WebTerm.createAnsiControlCodeReader = (terminal) ->
   switchCharacter = (map) ->
     f = (reader) ->
       c = reader.readChar()
@@ -147,7 +67,7 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
     f
 
   ignored = (str) ->
-    -> log "Ignored: " + str if localStorage?["WebTerm.logRawOutput"] is "true"
+    -> kd.log "Ignored: " + str if localStorage?["WebTerm.logRawOutput"] is "true"
 
   originMode = false
 
@@ -323,8 +243,8 @@ WebTerm.createAnsiControlCodeReader = (terminal) ->
           2:   (params) -> terminal.setTitleCallback? params.raw[1]
           100: (params) -> terminal.eventHandler?     params.raw[1..].join ';' # deprecated
 
-  return new WebTerm.ControlCodeReader(terminal, initCursorControlHandler(),
-    new WebTerm.ControlCodeReader(terminal, initEscapeSequenceHandler(),
-      new WebTerm.TextReader(terminal)
+  return new ControlCodeReader(terminal, initCursorControlHandler(),
+    new ControlCodeReader(terminal, initEscapeSequenceHandler(),
+      new TextReader(terminal)
     )
   )
