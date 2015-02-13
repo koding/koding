@@ -10,19 +10,19 @@ IDE.helpers =
     { computeController, router } = KD.singletons
 
     if not name or not machineUId or not eventObj
-      warn 'Missing options to create a new workspace'
-      return IDE.helpers.handleWorkspaceCreateError_ eventObj
+      err = message: 'Missing options to create a new workspace'
+      return IDE.helpers.handleWorkspaceCreateError_ eventObj, err
 
     machine = m for m in computeController.machines when m.uid is machineUId
     layout  = {}
     data    = { name, machineUId, machineLabel, rootPath, layout }
 
     unless machine
-      warn "Machine not found."
-      return IDE.helpers.handleWorkspaceCreateError_ eventObj
+      err = mesage: "Machine not found."
+      return IDE.helpers.handleWorkspaceCreateError_ eventObj, err
 
     KD.remote.api.JWorkspace.create data, (err, workspace) =>
-      return IDE.helpers.handleWorkspaceCreateError_ eventObj  if err
+      return IDE.helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
       folderOptions  =
         type         : 'folder'
@@ -31,13 +31,13 @@ IDE.helpers =
         samePathOnly : yes
 
       machine.fs.create folderOptions, (err, folder) =>
-        return IDE.helpers.handleWorkspaceCreateError_ eventObj  if err
+        return IDE.helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
         filePath   = "#{workspace.rootPath}/README.md"
         readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
         readMeFile.save IDE.contents.workspace, (err) =>
-          return IDE.helpers.handleWorkspaceCreateError_ eventObj  if err
+          return IDE.helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
           eventObj.emit 'WorkspaceCreated', workspace
 
@@ -47,5 +47,6 @@ IDE.helpers =
 
   handleWorkspaceCreateError_: (eventObj, error) ->
 
-    eventObj.emit 'WorkspaceCreateFailed'
+    eventObj.emit 'WorkspaceCreateFailed', error
     KD.showError "Couldn't create your new workspace."
+    warn error
