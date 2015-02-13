@@ -1,8 +1,13 @@
-class LegalAppController extends KDViewController
+kd = require 'kd'
+KDViewController = kd.ViewController
+LegalAppView = require './legalappview'
 
-  KD.registerAppClass this,
+
+module.exports = class LegalAppController extends KDViewController
+
+  @options =
     name  : 'Legal'
-    route : '/Legal'
+    route : '/:name?/Legal'
 
   constructor:(options = {}, data)->
 
@@ -10,3 +15,5 @@ class LegalAppController extends KDViewController
       cssClass      : "content-page legal"
 
     super options, data
+
+
