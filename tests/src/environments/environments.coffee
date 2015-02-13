@@ -154,19 +154,24 @@ module.exports =
   makeAlwaysOnForNotPaidUser: (browser) ->
 
     buttonSelector = '.more-form .alwayson'
+    vmSelector     = 'a[href="/IDE/koding-vm-1/my-workspace"]'
 
     helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
 
-    openVmSettingsModal(browser)
+    browser.element 'css selector', vmSelector, (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        helpers.waitForVMRunning(browser)
+        openVmSettingsModal(browser)
+        clickMoreButtonInVMSettingsModal(browser)
 
-    clickMoreButtonInVMSettingsModal(browser)
-
-    browser
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
-      .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
-      .end()
+        browser
+          .waitForElementVisible  buttonSelector, 20000
+          .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
+          .pause                  2000
+          .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
+          .end()
 
 
   addDomain: (browser) ->
