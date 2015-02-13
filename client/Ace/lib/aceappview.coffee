@@ -1,4 +1,20 @@
-class AceAppView extends JView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDNotificationView = kd.NotificationView
+KDTabPaneView = kd.TabPaneView
+KDView = kd.View
+nick = require 'app/util/nick'
+JView = require 'app/jview'
+FSHelper = require 'app/util/fs/fshelper'
+getPublicURLOfPath = require 'app/util/getPublicURLOfPath'
+ApplicationTabHandleHolder = require 'app/commonviews/applicationview/applicationtabhandleholder'
+AceSettingsView = require './acesettingsview'
+AceApplicationTabView = require './aceapplicationtabview'
+AceView = require './aceview'
+EditorMacroView = require './editormacroview'
+
+
+module.exports = class AceAppView extends JView
 
   constructor: (options = {}, data) ->
 
@@ -6,7 +22,7 @@ class AceAppView extends JView
 
     @aceViews            = {}
     @timestamp           = Date.now()
-    @appManager          = KD.getSingleton "appManager"
+    @appManager          = kd.getSingleton "appManager"
     @tabHandleContainer  = new ApplicationTabHandleHolder delegate: @
     @tabView             = new AceApplicationTabView
       delegate                  : this
@@ -47,13 +63,13 @@ class AceAppView extends JView
       pane.tabHandle.setTitle title
 
     @on "KDObjectWillBeDestroyed", ->
-      KD.getSingleton("mainView").disableFullscreen()
+      kd.getSingleton("mainView").disableFullscreen()
 
   preview: ->
     file = @getActiveAceView().getData()
     {path, vmName} = file
     return  if /^localfile/.test path
-    path = KD.getPublicURLOfPath FSHelper.getFullPath file
+    path = getPublicURLOfPath FSHelper.getFullPath file
 
     notify = =>
       @getActiveAceView().ace.notify "File needs to be under ~/Web folder", "error"
@@ -61,8 +77,8 @@ class AceAppView extends JView
     if path
       match = path.match /\.kd\.io\/(.*)/
       return notify()  unless match
-      path = "https://#{KD.nick()}.kd.io/#{match[1]}"
-      KD.singleton("appManager").require "Viewer", {path, vmName}, (app) =>
+      path = "https://#{nick()}.kd.io/#{match[1]}"
+      kd.singleton("appManager").require "Viewer", {path, vmName}, (app) =>
         @tabView.addPane new KDTabPaneView
           name    : "[#{path.split("/").last}]"
           view    : app.getView()
@@ -71,7 +87,7 @@ class AceAppView extends JView
 
   viewAppended:->
     super
-    @utils.wait 100, =>
+    kd.utils.wait 100, =>
       @embedFinder()
       @addNewTab() if @tabView.panes.length is 0
 
@@ -91,7 +107,7 @@ class AceAppView extends JView
     pane.on "KDTabPaneActive", => @selectCurrentFileAtFinder aceView
 
     # save opened file to localStorage, so that we can open same files on refresh.
-    KD.singletons.localSync.addToOpenedFiles file.path
+    kd.singletons.localSync.addToOpenedFiles file.path
 
   selectCurrentFileAtFinder: (aceView)->
     {treeController}  = @finderController
@@ -109,7 +125,7 @@ class AceAppView extends JView
 
   openFile: (file, isAceAppOpen) ->
     if file and @isFileOpen file
-      mainTabView = KD.getSingleton("mainView").mainTabView
+      mainTabView = kd.getSingleton("mainView").mainTabView
       mainTabView.showPane @parent
       @tabView.showPane @aceViews[file.path].parent
     else
@@ -131,7 +147,7 @@ class AceAppView extends JView
         view.ace.setData newFile
         @setFileListeners newFile
         view.ace.notify "New file is created!", "success"
-        KD.getSingleton('mainController').emit "NewFileIsCreated", newFile
+        kd.getSingleton('mainController').emit "NewFileIsCreated", newFile
     file.on "fs.delete.finished", => @removeOpenDocument @aceViews[file.path]
 
   clearFileRecords: (view) ->
@@ -155,7 +171,7 @@ class AceAppView extends JView
 
     @on "exitMenuItemClicked", =>
       @appManager.quit @appManager.frontApp
-      KD.singletons.router.handleRoute "/Activity"
+      kd.singletons.router.handleRoute "/Activity"
 
     @on "keyBindingsMenuItemClicked", => new EditorMacroView
 
@@ -182,7 +198,7 @@ class AceAppView extends JView
       "Enter Fullscreen"
       "Exit Fullscreen"
     ]
-    mainView = KD.getSingleton "mainView"
+    mainView = kd.getSingleton "mainView"
     state    = mainView.isFullscreen() or 0
     toggleFullscreen = new KDView
       partial : "<span>#{labels[Number state]}</span>"

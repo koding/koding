@@ -1,4 +1,12 @@
-class AceFindAndReplaceView extends JView
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
+KDHitEnterInputView = kd.HitEnterInputView
+KDMultipleChoice = kd.MultipleChoice
+JView = require 'app/jview'
+
+
+module.exports = class AceFindAndReplaceView extends JView
 
   constructor: (options = {}, data) ->
 

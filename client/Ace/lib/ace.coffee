@@ -1,11 +1,27 @@
-class Ace extends KDView
+kd = require 'kd'
+KDButtonView = kd.ButtonView
+KDModalViewWithForms = kd.ModalViewWithForms
+KDNotificationView = kd.NotificationView
+KDView = kd.View
+remote = require('app/remote').getInstance()
+globals = require 'globals'
+mixpanel = require 'app/util/mixpanel'
+FSHelper = require 'app/util/fs/fshelper'
+$ = require 'jquery'
+settings = require './settings'
+getscript = require 'getscript'
+
+
+aceLoaded = false
+
+module.exports = class Ace extends KDView
 
   constructor:(options, file)->
 
     super options, file
 
     @lastSavedContents     = ''
-    {appStorageController} = KD.singletons
+    {appStorageController} = kd.singletons
     @appStorage            = appStorageController.storage 'Ace', '1.0.1'
 
   setDomElement:(cssClass)->
@@ -17,14 +33,14 @@ class Ace extends KDView
     @hide()
     @appStorage.fetchStorage (storage)=>
 
-      requirejs ['ace/ace'], =>
+      onAceLoad = =>
 
         @keyHandlers = {}
 
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
-          return  unless document.getElementById id
+          return  unless global.document.getElementById id
           @editor = ace.edit id
           @prepareEditor()
           if contents
@@ -46,9 +62,9 @@ class Ace extends KDView
           @focus()
           @show()
 
-          @utils.defer => @emit 'ace.ready'
+          kd.utils.defer => @emit 'ace.ready'
 
-          KD.mixpanel 'Open Ace, success'
+          mixpanel 'Open Ace, success'
 
         @once 'ace.ready', =>
           LineWidgets = ace.require('ace/line_widgets').LineWidgets
@@ -57,6 +73,21 @@ class Ace extends KDView
 
           @lineWidgetManager = new LineWidgets @editor.session
           @lineWidgetManager.attach @editor
+
+
+      unless aceLoaded
+        getscript '/a/p/p/thirdparty/ace/_ace.js', (err) ->
+          throw err  if err
+
+          ace.config.set 'basePath', '/a/p/p/thirdparty/ace'
+          ace.config.set 'themePath', '/a/p/p/thirdparty/ace'
+          ace.config.set 'modePath', '/a/p/p/thirdparty/ace'
+          ace.config.set 'workerPath', '/a/p/p/thirdparty/ace'
+
+          aceLoaded = true
+          onAceLoad()
+      else
+        onAceLoad()
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
@@ -84,7 +115,10 @@ class Ace extends KDView
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
-      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
+
+    @editor.setOptions
+      enableBasicAutocompletion: yes
+      enableSnippets: yes
 
   saveStarted:->
     @lastContentsSentForSave = @getContents()
@@ -122,7 +156,7 @@ class Ace extends KDView
       @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
-      @addKeyCombo 'settings',   'Ctrl-,',           noop # override default ace settings view
+      @addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
 
       if createFindAndReplaceView
         @addKeyCombo 'find',    'Ctrl-F', =>        @showFindReplaceView no
@@ -173,9 +207,9 @@ class Ace extends KDView
         @notify 'Nothing to save!'
       return
     file = @getData()
-    {localSync} = KD.singletons
+    {localSync} = kd.singletons
     # update the localStorage each time user requested save.
-    if KD.remote.isConnected()
+    if remote.isConnected()
       @askedForSave = yes
       @emit 'ace.requests.save', contents
       # if file is saved, remove it from localStorage
@@ -187,7 +221,7 @@ class Ace extends KDView
       @prepareSyncListeners()
 
   prepareSyncListeners: ->
-    {localSync} = KD.singletons
+    {localSync} = kd.singletons
 
     localSync.on 'LocalContentSynced', (file) =>
       @notify 'File synced to remote...', null, null, 5000
@@ -252,9 +286,6 @@ class Ace extends KDView
   getOpenRecentFiles:->
     @appStorage.getValue('openRecentFiles') ? yes
 
-  getEnableAutocomplete:->
-    @appStorage.getValue('enableAutocomplete') ? yes
-
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -269,7 +300,6 @@ class Ace extends KDView
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
-    enableAutocomplete  : @getEnableAutocomplete()
 
   ###
   SETTERS
@@ -284,26 +314,22 @@ class Ace extends KDView
 
     unless mode
       ext  = FSHelper.getFileExtension file.path
-      for own name, [language, extensions] of __aceSettings.syntaxAssociations
+      for own name, [language, extensions] of settings.syntaxAssociations
         if ///^(?:#{extensions})$///i.test ext
           mode = name
 
       syntaxChoice = @appStorage.getValue "syntax_#{ext}"
       mode = syntaxChoice or mode or 'text'
 
-    requirejs ["ace/mode-#{mode}"], =>
-      {Mode} = ace.require "ace/mode/#{mode}"
-      @editor.getSession().setMode new Mode
-      @syntaxMode = mode
+    @editor.getSession().setMode "ace/mode/#{mode}"
+    @syntaxMode = mode
 
   setTheme:(themeName, save = yes)->
     themeName or= @appStorage.getValue('theme') or 'base16'
-    requirejs ["ace/theme-#{themeName}"], =>
-      callback = ace.require "ace/theme/#{themeName}"
-      @editor.setTheme "ace/theme/#{themeName}"
-      return  unless save
-      @appStorage.setValue 'theme', themeName, =>
-        callback
+    @editor.setTheme "ace/theme/#{themeName}"
+    return  unless save
+    #@appStorage.setValue 'theme', themeName, =>
+      #callback
 
   setUseSoftTabs:(value, save = yes)->
 
@@ -347,32 +373,33 @@ class Ace extends KDView
       @keyHandlers[name] = binding.handler
       done binding.handler
 
-    if name is 'default'
-      done null
-    else
-      path = "ace/keyboard/#{name}"
-      unless name of @keyHandlers
-        requirejs [path.replace('board/', 'binding-')], ->
-          next path
-      else
-        done @keyHandlers[name]
+    done null
+    #if name is 'default'
+      #done null
+    #else
+      #path = "ace/keyboard/#{name}"
+      #unless name of @keyHandlers
+        #requirejs [path.replace('board/', 'binding-')], ->
+          #next path
+      #else
+        #done @keyHandlers[name]
 
   setScrollPastEnd: (value = yes) ->
     @editor.setOption 'scrollPastEnd', value
     @appStorage.setValue 'scrollPastEnd', value
 
   setFontSize:(value, save = yes)->
-    return if value is KD.config.oldFontSize
+    return if value is globals.config.oldFontSize
 
-    style           = document.createElement 'style'
+    style           = global.document.createElement 'style'
     style.id        = 'ace-font-size'
     style.innerHTML = ".ace_editor { font-size: #{value}px }"
 
-    oldStyleTag     = document.getElementById style.id
+    oldStyleTag     = global.document.getElementById style.id
     oldStyleTag.parentNode.removeChild oldStyleTag if oldStyleTag
 
-    document.head.appendChild style
-    KD.config.oldFontSize = value
+    global.document.head.appendChild style
+    globals.config.oldFontSize = value
 
     return  unless save
     @appStorage.setValue 'fontSize', value
@@ -393,15 +420,6 @@ class Ace extends KDView
 
   setOpenRecentFiles:(value, save = yes)->
     @appStorage.setValue 'openRecentFiles', value
-
-  setEnableAutocomplete:(value, save = yes)->
-
-    requirejs ['ace/ext-language_tools'], =>
-      @editor.setOptions
-        enableBasicAutocompletion: value
-        enableSnippets: value
-
-    @appStorage.setValue 'enableAutocomplete', value  if save
 
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber
@@ -434,14 +452,14 @@ class Ace extends KDView
             duration  : 0
             click     : -> details.destroy()
 
-          KD.getSingleton('windowController').addLayer details
+          kd.getSingleton('windowController').addLayer details
 
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
   #obsolete: Now we are using IDE saveAllFiles method
   saveAllFiles: ->
-    aceApp = KD.singletons.appManager.get 'Ace'
+    aceApp = kd.singletons.appManager.get 'Ace'
     return unless aceApp
 
     {aceViews} = aceApp.getView()
@@ -460,12 +478,11 @@ class Ace extends KDView
       targetHandle = handle
       targetHandle.setClass 'saved'
 
-      KD.utils.wait 500, ->
+      kd.utils.wait 500, ->
         targetHandle.unsetClass 'modified'
         targetHandle.unsetClass 'saved'
 
   showGotoLine: ->
-
     unless @gotoLineModal
       @gotoLineModal = new KDModalViewWithForms
         cssClass                : 'goto'

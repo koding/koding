@@ -1,3 +1,14 @@
+kd = require 'kd'
+KDButtonViewWithMenu = kd.ButtonViewWithMenu
+KDCustomHTMLView = kd.CustomHTMLView
+KDModalView = kd.ModalView
+JView = require 'app/jview'
+FSHelper = require 'app/util/fs/fshelper'
+Ace = require './ace'
+AceFindAndReplaceView = require './acefindandreplaceview'
+AceSettingsView = require './acesettingsview'
+showSaveDialog = require 'app/util/showSaveDialog'
+
 ###
   todo:
 
@@ -7,7 +18,8 @@
 
 ###
 
-class AceView extends JView
+
+module.exports = class AceView extends JView
 
   constructor: (options = {}, file) ->
 
@@ -98,14 +110,14 @@ class AceView extends JView
 
     @on 'KDObjectWillBeDestroyed', =>
       file = @getData()
-      KD.singletons.localSync.removeFromOpenedFiles file
+      kd.singletons.localSync.removeFromOpenedFiles file
       @getDelegate().removeOpenDocument @
 
     @ace.on 'ace.changeSetting', (setting, value)->
       if setting is 'syntax'
         file = @getData()
         fileExtension = file.getExtension()
-        appStorage = KD.getSingleton('appStorageController').storage 'Ace', '1.0.1'
+        appStorage = kd.getSingleton('appStorageController').storage 'Ace', '1.0.1'
         appStorage.setValue "syntax_#{fileExtension}", value
 
     @ace.on 'FileIsReadOnly', =>
@@ -123,12 +135,12 @@ class AceView extends JView
         """
         buttons         :
           'Edit Anyway' :
-            cssClass    : 'solid red medium'
+            cssClass    : 'modal-clean-red'
             callback    : =>
               @ace.setReadOnly no
               modal.destroy()
           'Cancel'      :
-            cssClass    : 'solid light-gray medium'
+            cssClass    : 'modal-cancel'
             callback    : ->
               modal.destroy()
 
@@ -136,7 +148,7 @@ class AceView extends JView
     return  @getDelegate().tabView.getActivePane().tabHandle
 
   toggleFullscreen: ->
-    mainView = KD.getSingleton 'mainView'
+    mainView = kd.getSingleton 'mainView'
     mainView.toggleFullscreen()
 
   getAdvancedSettingsMenuItems:->
@@ -150,7 +162,7 @@ class AceView extends JView
     file = @getData()
     container = @getOptions().delegate or this
 
-    KD.utils.showSaveDialog container, (input, finderController, dialog) =>
+    showSaveDialog container, (input, finderController, dialog) =>
 
       [node] = finderController.treeController.selectedNodes
       name   = input.getValue()

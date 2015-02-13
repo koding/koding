@@ -1,4 +1,10 @@
-class EditorMacroView extends KDModalView
+kd = require 'kd'
+KDModalView = kd.ModalView
+applyMarkdown = require 'app/util/applyMarkdown'
+isNavigatorApple = require 'app/util/isNavigatorApple'
+
+
+module.exports = class EditorMacroView extends KDModalView
   # we copy paste that markdown from https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts
   # if we want to update keybindings, just change the keyBindings markdown content.
   keyBindings = """
@@ -87,7 +93,7 @@ class EditorMacroView extends KDModalView
     keyBindings      = @getKeyboardBindings()
     options.title    = "Editor Key Bindings"
     options.width    = 760
-    options.content  = KD.utils.applyMarkdown keyBindings
+    options.content  = applyMarkdown keyBindings
     options.cssClass = "key-bindings"
     super options, data
 
@@ -109,9 +115,7 @@ class EditorMacroView extends KDModalView
     return  markdown
 
   getUserPlatformId:->
-    if KD.utils.isNavigatorApple()
+    if isNavigatorApple()
       return  2
     return 1
-
-
 

@@ -1,4 +1,11 @@
-class AceSettingsView extends JView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDSelectBox = kd.SelectBox
+KodingSwitch = require 'app/commonviews/kodingswitch'
+JView = require 'app/jview'
+settings = require './settings'
+
+module.exports = class AceSettingsView extends JView
 
   constructor:->
     super
@@ -35,19 +42,19 @@ class AceSettingsView extends JView
       callback      : (state) -> button.emit "ace.changeSetting", "openRecentFiles", state
 
     @keyboardHandler= new KDSelectBox
-      selectOptions : __aceSettings.keyboardHandlers
+      selectOptions : settings.keyboardHandlers
       callback      : (value) -> button.emit "ace.changeSetting", "keyboardHandler", value
     @syntax         = new KDSelectBox
-      selectOptions : __aceSettings.getSyntaxOptions()
+      selectOptions : settings.getSyntaxOptions()
       callback      : (value) -> button.emit "ace.changeSetting", "syntax", value
     @fontSize       = new KDSelectBox
-      selectOptions : __aceSettings.fontSizes
+      selectOptions : settings.fontSizes
       callback      : (value) -> button.emit "ace.changeSetting", "fontSize", value
     @theme          = new KDSelectBox
-      selectOptions : __aceSettings.themes
+      selectOptions : settings.themes
       callback      : (value) -> button.emit "ace.changeSetting", "theme", value
     @tabSize        = new KDSelectBox
-      selectOptions : __aceSettings.tabSizes
+      selectOptions : settings.tabSizes
       callback      : (value) -> button.emit "ace.changeSetting", "tabSize", value
 
     @shortcuts      = new KDCustomHTMLView
@@ -56,7 +63,7 @@ class AceSettingsView extends JView
       attributes    :
         href        : "#"
       partial       : "⌘ Keyboard Shortcuts"
-      click         : => log "show shortcuts"
+      click         : => kd.log "show shortcuts"
 
   setDefaultValues:(settings)->
 

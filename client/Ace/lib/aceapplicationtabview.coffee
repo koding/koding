@@ -1,4 +1,10 @@
-class AceApplicationTabView extends ApplicationTabView
+kd = require 'kd'
+KDModalView = kd.ModalView
+KDTabView = kd.TabView
+ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
+
+
+module.exports = class AceApplicationTabView extends ApplicationTabView
 
   removePane_: KDTabView::removePane
 
@@ -20,7 +26,7 @@ class AceApplicationTabView extends ApplicationTabView
       overlay       : yes
       buttons       :
         "SaveClose" :
-          cssClass  : "solid green medium"
+          cssClass  : "modal-clean-green"
           title     : "Save and Close"
           callback  : =>
             if file.path.indexOf("localfile:") is 0
@@ -32,12 +38,12 @@ class AceApplicationTabView extends ApplicationTabView
               ace.requestSave()
               @closePaneAndModal pane, modal
         "DontSave"  :
-          cssClass  : "solid red medium"
+          cssClass  : "modal-clean-red"
           title     : "Don't Save"
           callback  : =>
             @closePaneAndModal pane, modal
         "Cancel"    :
-          cssClass  : "solid light-gray medium"
+          cssClass  : "modal-cancel"
           title     : "Cancel"
           callback  : =>
             modal.destroy()
