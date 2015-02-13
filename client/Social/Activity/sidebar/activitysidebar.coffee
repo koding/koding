@@ -681,15 +681,24 @@ class ActivitySidebar extends KDCustomHTMLView
 
   fetchMachines: (callback) ->
 
-    {computeController} = KD.singletons
-
-    # force refetch from server everytime machines fetched.
-    computeController.reset()
-    computeController.fetchMachines (err, machines)=>
+    KD.remote.api.Sidebar.fetchEnvironment (err, data) =>
       if err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
-      callback machines
+      callback data
+
+
+    # {computeController} = KD.singletons
+
+    # force refetch from server everytime machines fetched.
+    # computeController.reset()
+    # computeController.fetchMachines (err, machines)=>
+    #   if err
+    #     return new KDNotificationView title : 'Couldn\'t fetch your VMs'
+
+    #   callback machines
+
+
 
 
   # addVMTree: ->
