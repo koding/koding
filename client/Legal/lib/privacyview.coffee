@@ -1,4 +1,7 @@
-class PrivacyView extends JView
+JView = require 'app/jview'
+
+
+module.exports = class PrivacyView extends JView
 
   constructor: (options = {}) ->
 
@@ -302,5 +305,7 @@ class PrivacyView extends JView
       </p>
     </div>
     """
+
+
 
 

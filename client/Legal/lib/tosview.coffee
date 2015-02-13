@@ -1,4 +1,7 @@
-class TosView extends JView
+JView = require 'app/jview'
+
+
+module.exports = class TosView extends JView
 
   constructor: (options = {}) ->
 
@@ -1112,5 +1115,7 @@ class TosView extends JView
       </p>
     </div>
     """
+
+
 
 

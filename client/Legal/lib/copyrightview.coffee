@@ -1,4 +1,7 @@
-class CopyrightView extends JView
+JView = require 'app/jview'
+
+
+module.exports = class CopyrightView extends JView
 
   constructor: (options = {}) ->
 
@@ -123,5 +126,7 @@ class CopyrightView extends JView
 
     </div>
     """
+
+
 
 

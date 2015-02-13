@@ -1,4 +1,7 @@
-class UserPolicyView extends JView
+JView = require 'app/jview'
+
+
+module.exports = class UserPolicyView extends JView
 
   constructor: (options = {}) ->
 
@@ -261,5 +264,4 @@ class UserPolicyView extends JView
 
     </div>
     """
-
 

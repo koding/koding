@@ -1,4 +1,15 @@
-class LegalAppView extends JView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+CopyrightView = require './copyrightview'
+PrivacyView = require './privacyview'
+TosView = require './tosview'
+UserPolicyView = require './userpolicyview'
+JView = require 'app/jview'
+FooterView = require 'app/commonviews/footerview'
+CustomLinkView = require 'app/customlinkview'
+
+
+module.exports = class LegalAppView extends JView
 
   SECTIONS     =
     'User Policy'       :
@@ -69,3 +80,5 @@ class LegalAppView extends JView
       </article>
     </section>
     """
+
+
