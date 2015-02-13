@@ -58,16 +58,16 @@ CollaborationController =
 
   fetchSocialChannel: (callback) ->
 
-    return callback @socialChannel  if @socialChannel
+    return callback null, @socialChannel  if @socialChannel
 
     id = @channelId or @workspaceData.channelId
 
     KD.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
-      return KD.showError err  if err
+      return callback err  if err
 
       @setSocialChannel channel
 
-      callback @socialChannel
+      callback null, @socialChannel
 
 
   deletePrivateMessage: (callback = noop) ->
@@ -78,18 +78,17 @@ CollaborationController =
     options = channelId: @socialChannel.getId()
     channel.delete options, (err) =>
 
-      return KD.showError err  if err
+      return callback err  if err
 
       @channelId = @socialChannel = null
 
       options = $unset: channelId: 1
       JWorkspace.update @workspaceData._id, options, (err) =>
 
-        return KD.showError err  if err
+        return callback err  if err
 
         @workspaceData.channelId = null
-
-        callback()
+        callback null
 
 
   # FIXME: This method is called more than once. It should cache the result and
@@ -116,7 +115,7 @@ CollaborationController =
       @listChatParticipants (accounts) =>
         @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
 
-      callback()
+      callback null
 
 
   startChatSession: (callback) ->
@@ -132,12 +131,11 @@ CollaborationController =
 
     if channelId
 
-      @fetchSocialChannel (channel) =>
+      @fetchSocialChannel (err, channel) =>
+        return callback err  if err
 
         @createChatPaneView channel
-
         @isRealtimeSessionActive channelId, (isActive, file) =>
-
           if isActive
             @loadCollaborationFile file.result.items[0].id
             return @continuePrivateMessage callback
@@ -652,7 +650,8 @@ CollaborationController =
         IDE.Metrics.collect 'StatusBar.collaboration_button', 'shown'
         return @statusBar.share.show()
 
-      @fetchSocialChannel (channel) =>
+      @fetchSocialChannel (err, channel) =>
+        return throwError "no social channel"  if err
         @isRealtimeSessionActive channelId, (isActive) =>
           if isActive or @isInSession
             @startChatSession => @chat.showChatPane()
@@ -772,7 +771,7 @@ CollaborationController =
     method   = if share then 'share' else 'unshare'
     jMachine[method] usernames, (err) =>
 
-      return KD.showError err  if err
+      return callback err  if err
 
       kite   = @mountedMachine.getBaseKite()
       method = if share then 'klientShare' else 'klientUnshare'
@@ -790,8 +789,9 @@ CollaborationController =
               ]
 
               action = if share then 'added' else 'removed'
-              KD.showError "#{username} couldn't be #{action} as an user"
-              console.error err
+              message = "#{username} couldn't be #{action} as an user"
+              callback { message }
+              console.error message
 
       Bongo.dash queue, callback
 
