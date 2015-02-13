@@ -1,241 +1,261 @@
-do ->
+kd = require 'kd'
+nick = require 'app/util/nick'
+whoami = require 'app/util/whoami'
+registerRoutes = require 'app/util/registerRoutes'
+globals = require 'globals'
+remote = require('app/remote').getInstance()
+Machine = require 'app/providers/machine'
+lazyrouter = require 'app/lazyrouter'
 
-  loadWorkspace = (options, workspace) ->
+loadWorkspace = (workspace, options) ->
 
-    {machineLabel, workspaceSlug, username} = options
+  {machine, machineLabel, username} = options
 
-    machine = getMachine machineLabel, username
+  username or= nick()
+  machine  or= getMachine machineLabel, username
 
-    if workspace
-      loadIDE { machine, workspace, username }
+  loadIDE { machine, workspace, username }
 
-    else if workspaceSlug is 'my-workspace'
-      workspace = new KD.remote.api.JWorkspace
-        _id          : 'my-workspace'
-        isDummy      : yes
-        isDefault    : yes
-        slug         : 'my-workspace'
-        machineLabel : machine?.slug or machine?.label
+findWorkspace = (options, callback) ->
 
-      loadIDE { machine, workspace, username }
+  {machineLabel, workspaceSlug, username} = options
 
-    else
-      routeToLatestWorkspace()
+  kallback = (workspaces) ->
 
+    username ?= nick()
 
-  findWorkspace = (options, callback) ->
+    for machine in globals.userMachines
+      unless machine instanceof Machine
+        machine = new Machine machine: remote.revive machine
 
-    {machineLabel, workspaceSlug, username} = options
+      sameLabel = (machine.slug or machine.label) is machineLabel
+      sameOwner = machine.getOwner() is username
 
-    kallback = (workspaces) ->
+      if sameLabel and sameOwner
+        machineUId = machine.uid
+        break
 
-      for machine in KD.userMachines \
-        when (machine.slug or machine.label) is machineLabel
-          machineUId = machine.uid
+    for workspace in workspaces
+      continue  unless workspace.machineUId is machineUId
+      continue  unless workspace.slug is workspaceSlug
 
-      for workspace in workspaces
-        continue  unless workspace.machineUId is machineUId
-        continue  unless workspace.slug is workspaceSlug
+      return callback workspace
 
-        return callback workspace
+    return callback null
 
-      return callback null
-
-    if username
-    then filterWorkspacesByUsername username, kallback
-    else filterOwnWorkspaces kallback
-
-
-  filterWorkspacesByUsername = (username, callback) ->
-
-    KD.remote.cacheable username, (err, [account]) ->
-      if err
-        console.error err
-        callback []
-
-      originId = account.getId()
-
-      callback KD.userWorkspaces.filter (workspace) ->
-        originId is workspace.originId
+  if username
+  then filterWorkspacesByUsername username, kallback
+  else filterOwnWorkspaces kallback
 
 
-  filterOwnWorkspaces = (callback) ->
+filterWorkspacesByUsername = (username, callback) ->
 
-    callback KD.userWorkspaces.filter (workspace) ->
-      workspace.originId is KD.whoami()._id
+  remote.cacheable username, (err, [account]) ->
+    if err
+      console.error err
+      callback []
 
+    originId = account.getId()
 
-  selectWorkspaceOnSidebar = (data) ->
-    mainView = KD.getSingleton 'mainView'
-    mainView.activitySidebar.selectWorkspace data
-
-
-  getMachine = (label, username) ->
-    machine = null
-
-    for m in KD.userMachines
-
-      hasSameLabel = (m.label is label) or (m.slug is label)
-      hasSameUser  = m.getOwner() is username
-
-      if hasSameLabel and hasSameUser
-        machine = m
-
-    return machine
+    callback globals.userWorkspaces.filter (workspace) ->
+      originId is workspace.originId
 
 
-  loadIDE = (data) ->
+filterOwnWorkspaces = (callback) ->
 
-    { machine, workspace, username, channelId } = data
+  callback globals.userWorkspaces.filter (workspace) ->
+    workspace.originId is whoami()._id
 
-    appManager = KD.getSingleton 'appManager'
-    ideApps    = appManager.appControllers.IDE
-    machineUId = machine?.uid
-    callback   = ->
-      appManager.open 'IDE', { forceNew: yes }, (app) ->
-        app.mountedMachineUId   = machineUId
-        app.workspaceData       = workspace
 
-        if username and username isnt KD.nick()
-          app.isInSession       = yes
-          app.amIHost           = no
-          app.collaborationHost = username
-          app.channelId         = channelId
-        else
-          app.amIHost           = yes
+selectWorkspaceOnSidebar = (data) ->
+  mainView = kd.getSingleton 'mainView'
+  mainView.activitySidebar.selectWorkspace data
 
-        appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
-        selectWorkspaceOnSidebar data
 
-    return callback()  unless ideApps?.instances
+getMachine = (label, username = nick()) ->
 
-    for instance in ideApps.instances
-      isSameMachine   = instance.mountedMachineUId is machineUId
-      isSameWorkspace = instance.workspaceData?.getId() is workspace.getId()
+  for m in globals.userMachines
 
-      if isSameMachine
-        if isSameWorkspace then ideInstance = instance
-        else if workspace.slug is 'my-workspace'
-          if instance.workspaceData?.isDefault
-            ideInstance = instance
+    unless m instanceof Machine
+      m = new Machine machine: remote.revive m
 
-    if ideInstance
-      appManager.showInstance ideInstance
+    sameUser  = m.getOwner() is username
+    sameLabel = (m.slug or m.label) is label
+
+    return m  if sameLabel and sameUser
+
+
+getLatestWorkspace = ->
+
+  storage = kd.getSingleton('localStorageController').storage 'IDE'
+  return storage.getValue 'LatestWorkspace'
+
+
+loadIDE = (data) ->
+
+  { machine, workspace, username, channelId } = data
+
+  appManager = kd.getSingleton 'appManager'
+  ideApps    = appManager.appControllers.IDE
+  machineUId = machine?.uid
+  callback   = ->
+    appManager.open 'IDE', { forceNew: yes }, (app) ->
+      app.mountedMachineUId   = machineUId
+      app.workspaceData       = workspace
+
+      if username and username isnt nick()
+        app.isInSession       = yes
+        app.amIHost           = no
+        app.collaborationHost = username
+        app.channelId         = channelId
+      else
+        app.amIHost           = yes
+
+      appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
       selectWorkspaceOnSidebar data
-    else
-      callback()
+
+  return callback()  unless ideApps?.instances
+
+  for instance in ideApps.instances
+    isSameMachine   = instance.mountedMachineUId is machineUId
+    isSameWorkspace = instance.workspaceData?.getId() is workspace.getId()
+
+    if isSameMachine
+      if isSameWorkspace then ideInstance = instance
+      else if workspace.slug is 'my-workspace'
+        if instance.workspaceData?.isDefault
+          ideInstance = instance
+
+  if ideInstance
+    appManager.showInstance ideInstance
+    selectWorkspaceOnSidebar data
+  else
+    callback()
 
 
-  putVMInWorkspace = (machine) ->
+routeToFallback = ->
 
-    localStorage    = KD.getSingleton("localStorageController").storage "IDE"
-    latestWorkspace = localStorage.getValue 'LatestWorkspace'
+  router = kd.getSingleton 'router'
 
-    machineLabel    = machine.slug or machine.label
-    workspaceSlug   = 'my-workspace'
-    username        = machine.getOwner()
+  for machine in globals.userMachines when machine.isMine()
+    return routeToMachineWorkspace machine
 
-    if latestWorkspace and latestWorkspace.machineLabel is machineLabel
-      for ws in KD.userWorkspaces when ws.slug is latestWorkspace.workspaceSlug
-        {workspaceSlug} = latestWorkspace
+  kd.singletons.computeController.fetchMachines (err, machines) ->
 
-    if workspaceSlug is 'my-workspace'
-      loadWorkspace {machineLabel, workspaceSlug, username}
-
-    KD.utils.defer ->
-      KD.getSingleton('router').handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+    if err or not machines.length
+    then router.handleRoute "/IDE/koding-vm-0/my-workspace"
+    else routeToMachineWorkspace machines.first
 
 
-  routeToLatestWorkspace = (options = {}) ->
+routeToMachineWorkspace = (machine) ->
 
-    {params}       = options
-    {machineLabel} = params  if params
+  if latestWorkspace = getLatestWorkspace()
+    {machineLabel} = latestWorkspace
+    if machineLabel is machine.label
+      workspaceSlug = latestWorkspace.workspaceSlug
 
-    # we assume that if machineLabel is all numbers it is the channelId - SY
-    return loadCollaborativeIDE machineLabel  if machineLabel and /^[0-9]+$/.test machineLabel
+  workspaceSlug ?= 'my-workspace'
 
-    machine = KD.userMachines.first
-    return putVMInWorkspace machine  if machine
-
-    KD.singletons.computeController.fetchMachines (err, machines)->
-
-      if err or not machines.length
-        KD.getSingleton('router').handleRoute "/IDE/koding-vm-0/my-workspace"
-        return
-
-      putVMInWorkspace machines.first
+  kd.getSingleton('router').handleRoute "/IDE/#{machine.slug}/#{workspaceSlug}"
 
 
-  loadCollaborativeIDE = (id) ->
+routeToLatestWorkspace = ->
 
-    KD.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
+  router = kd.getSingleton 'router'
 
-      return routeToLatestWorkspace()  if err
+  if latestWorkspace = getLatestWorkspace()
+    {machineLabel, workspaceSlug, channelId} = latestWorkspace
+  else
+    return routeToFallback()
 
-      try
+  if channelId
+    for workspace in globals.userWorkspaces when workspace.channelId is channelId
+      return router.handleRoute "/IDE/#{channelId}"
+    routeToFallback()
 
-        return routeToLatestWorkspace()  unless KD.userWorkspaces.length
+  else if machineLabel and workspaceSlug
+    return routeToFallback()  unless machine = getMachine machineLabel
 
-        KD.userWorkspaces.forEach (workspace, index) =>
+    findWorkspace {workspaceSlug, machineLabel}, (workspace) ->
 
-          if workspace.channelId is channel.id
-
-            machine = (KD.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
-            query   = socialApiId: channel.creatorId
-
-            KD.remote.api.JAccount.some query, {}, (err, account) =>
-
-              return throw new Error err  if err
-
-              username  = account.first.profile.nickname
-              channelId = channel.id
-
-              return loadIDE { machine, workspace, username, channelId }
-
-          # Commented out because of the side effects. ~Umut
-          # (e.g can't select random vms/workspaces)
-
-          # else
-          #   if index + 1 is KD.userWorkspaces.length
-          #     routeToLatestWorkspace()
-
-      catch e
-
-        console.error e
-        return routeToLatestWorkspace()
+      if workspace
+      then router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+      else routeToMachineWorkspace machine
 
 
-  refreshWorkspaces = (callback) ->
+loadCollaborativeIDE = (id) ->
 
-    {mainView, computeController} = KD.singletons
+  kd.singletons.socialapi.cacheable 'channel', id, (err, channel) ->
 
-    computeController.ready ->
-      mainView.activitySidebar.fetchWorkspaces callback
+    return routeToLatestWorkspace()  if err
+
+    try
+
+      return routeToLatestWorkspace()  unless globals.userWorkspaces.length
+
+      globals.userWorkspaces.forEach (workspace, index) =>
+
+        return  if workspace.channelId isnt channel.id
+
+        machine = (globals.userMachines.filter (m) -> m.uid is workspace.machineUId)[0]
+        query   = socialApiId: channel.creatorId
+
+        remote.api.JAccount.some query, {}, (err, account) =>
+
+          return throw new Error err  if err
+
+          username  = account.first.profile.nickname
+          channelId = channel.id
+
+          return loadIDE { machine, workspace, username, channelId }
+
+    catch e
+
+      console.error e
+      return routeToLatestWorkspace()
 
 
-  KD.registerRoutes 'IDE',
+refreshWorkspaces = (callback) ->
 
-    '/:name?/IDE': (rest...) ->
-      refreshWorkspaces -> routeToLatestWorkspace rest...
+  {mainView, computeController} = kd.singletons
 
-    '/:name?/IDE/:machineLabel': (rest...) ->
-      refreshWorkspaces -> routeToLatestWorkspace rest...
+  computeController.ready ->
+    mainView.activitySidebar.fetchWorkspaces callback
 
-    '/:name?/IDE/:machineLabel/:workspaceSlug': (routeInfo) ->
+module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
 
-      {params} = routeInfo
+  switch type
+    when 'home'
+      refreshWorkspaces -> routeToLatestWorkspace()
+
+    when 'machine'
+      {params : machineLabel} = info
+      # we assume that if machineLabel is all numbers it is the channelId - SY
+      if /^[0-9]+$/.test machineLabel
+        refreshWorkspaces -> loadCollaborativeIDE machineLabel
+      else if machine = getMachine machineLabel
+        routeToMachineWorkspace machine
+      else
+        routeToLatestWorkspace()
+
+    when 'workspace'
+      {params} = info
       {machineLabel} = params
+      params.username = nick()
 
       refreshWorkspaces ->
 
         findWorkspace params, (workspace) ->
 
-          params.username = KD.nick()
-
           if workspace
-          then loadWorkspace params, workspace
+            return loadWorkspace workspace, params
           else
-            for machine in KD.userMachines when machine.label is machineLabel
-              return loadWorkspace params
+            for machine in globals.userMachines when machine.slug is machineLabel
+              break
 
-            routeToLatestWorkspace {params}
+            if machine
+            then routeToMachineWorkspace machine
+            else loadWorkspace null, params
+
+          routeToLatestWorkspace()
+
