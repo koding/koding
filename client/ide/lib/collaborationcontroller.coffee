@@ -943,7 +943,7 @@ module.exports =
 
     argIndex = 0
     error = new Error """
-      CollaboratonController:
+      IDE.CollaborationController:
       #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
     """
 
