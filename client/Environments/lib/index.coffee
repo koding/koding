@@ -1,14 +1,13 @@
-class EnvironmentsAppController extends AppController
+kd = require 'kd'
+EnvironmentsMainScene = require './views/environmentsmainscene'
+AppController = require 'app/appcontroller'
 
-  KD.registerAppClass this,
+
+module.exports = class EnvironmentsAppController extends AppController
+
+  @options =
     name         : 'Environments'
-    # route        : '/:name?/Environments'
     behavior     : 'application'
-    preCondition :
-      condition  : (options, cb)-> cb KD.isLoggedIn() or KD.isLoggedInOnLoad
-      failure    : (options, cb)->
-        KD.singletons.appManager.open 'Environments', conditionPassed : yes
-        KD.showEnforceLoginModal()
 
   constructor:(options = {}, data)->
 
