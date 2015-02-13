@@ -784,24 +784,6 @@ module.exports =
     kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
 
 
-  unshareMachineAndKlient: (username, fetchUser = no) ->
-
-    if fetchUser
-      return remote.cacheable username, (err, accounts) =>
-
-        return showError err  if err
-
-        @setMachineUser accounts, no
-
-
-    @listChatParticipants (accounts) =>
-
-      for account in accounts when account.profile.nickname is username
-        target = account
-
-      @setMachineUser [target], no  if target
-
-
   setMachineSharingStatus: (status, callback) ->
 
     getUsernames = (accounts) ->
