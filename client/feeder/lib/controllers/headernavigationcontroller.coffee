@@ -1,4 +1,11 @@
-class HeaderNavigationController extends KDController
+kd = require 'kd'
+KDContextMenu = kd.ContextMenu
+KDController = kd.Controller
+KDCustomHTMLView = kd.CustomHTMLView
+JCustomHTMLView = require 'app/jcustomhtmlview'
+
+
+module.exports = class HeaderNavigationController extends KDController
 
   constructor:(options, data)->
 
@@ -55,3 +62,5 @@ class HeaderNavigationController extends KDController
     {title}      = item
     @activeFacet.setData { title }
     @activeFacet.render()
+
+

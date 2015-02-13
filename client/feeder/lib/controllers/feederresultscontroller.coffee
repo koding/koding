@@ -1,4 +1,17 @@
-class FeederResultsController extends KDViewController
+globals = require 'globals'
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+KDListItemView = kd.ListItemView
+KDListViewController = kd.ListViewController
+KDTabPaneView = kd.TabPaneView
+KDView = kd.View
+KDViewController = kd.ViewController
+FeederOnboardingView = require '../views/feederonboardingview'
+FeederTabView = require '../views/feedertabview'
+CommonListHeader = require 'app/commonviews/commonlistheader'
+
+
+module.exports = class FeederResultsController extends KDViewController
 
   constructor:(options = {}, data)->
 
@@ -95,7 +108,7 @@ class FeederResultsController extends KDViewController
 
     return unless view
 
-    appManager = KD.getSingleton("appManager")
+    appManager = kd.getSingleton("appManager")
     app        = appManager.getFrontApp()
 
     cb = ->
@@ -106,7 +119,7 @@ class FeederResultsController extends KDViewController
         view.setClass 'no-anim'
         view.$().css marginTop : -view.getHeight() - 50 # some
         view.unsetClass 'no-anim'
-        KD.utils.wait 1000, ->
+        kd.utils.wait 1000, ->
           view.once 'transitionend', tabView.bound "_windowDidResize"
           view.$().css marginTop : 1
           view.setClass 'in'
@@ -117,12 +130,14 @@ class FeederResultsController extends KDViewController
         view.unsetClass 'in'
         # ux illusion: real values will be put
         # with _windowDidResize
-        pane.listWrapper.setHeight window.innerHeight
+        pane.listWrapper.setHeight global.innerHeight
 
     # unless KD.isLoggedIn()
-    #   KD.utils.wait 1000, cb
+    #   kd.utils.wait 1000, cb
     # else
     app.appStorage?.fetchValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", (value)->
       return if value
-      KD.utils.wait 1000, cb
+      kd.utils.wait 1000, cb
+
+
 

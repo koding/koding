@@ -1,4 +1,6 @@
-class FeederSingleView extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+module.exports = class FeederSingleView extends KDCustomHTMLView
 
   constructor:(options = {})->
 
@@ -26,3 +28,5 @@ class FeederSingleView extends KDCustomHTMLView
     # else if width < 900 and width > 600  then "medium"
     # else if width < 600 and width > 300  then "narrow"
     # else                                      "extra-narrow"
+
+

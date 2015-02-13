@@ -1,7 +1,13 @@
-class FeederAppController extends KDController
+kd = require 'kd'
+KDController = kd.Controller
+KDView = kd.View
+FeedController = require './feedcontroller'
 
-  KD.registerAppClass this,
-    name       : "Feeder"
+
+module.exports = class FeederAppController extends KDController
+
+  @options =
+    name       : 'Feeder'
     background : yes
 
   constructor:(options={}, data)->
@@ -18,3 +24,5 @@ class FeederAppController extends KDController
         new feedControllerConstructor options
       else
         new FeedController options
+
+

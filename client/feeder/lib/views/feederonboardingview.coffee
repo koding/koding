@@ -1,4 +1,10 @@
-class FeederOnboardingView extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+JView = require 'app/jview'
+CustomLinkView = require 'app/customlinkview'
+
+
+module.exports = class FeederOnboardingView extends KDCustomHTMLView
 
   JView.mixin @prototype
 
@@ -18,9 +24,11 @@ class FeederOnboardingView extends KDCustomHTMLView
         cssClass : "close-icon"
       click      : (event)=>
         event.preventDefault()
-        appManager = KD.getSingleton("appManager")
+        appManager = kd.getSingleton("appManager")
         app        = appManager.getFrontApp()
         app.appStorage?.fetchStorage =>
           {name} = @getOptions()
           app.appStorage.setValue "onboardingMessageIsReadFor#{name.capitalize()}Tab", yes
           @emit "OnboardingMessageCloseIconClicked"
+
+

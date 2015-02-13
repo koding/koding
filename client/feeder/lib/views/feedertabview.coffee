@@ -1,4 +1,6 @@
-class FeederTabView extends KDTabView
+kd = require 'kd'
+KDTabView = kd.TabView
+module.exports = class FeederTabView extends KDTabView
 
   constructor:(options = {}, data)->
 
@@ -7,3 +9,5 @@ class FeederTabView extends KDTabView
     super options, data
 
     @unsetClass "kdscrollview"
+
+

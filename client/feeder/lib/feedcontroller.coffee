@@ -1,6 +1,20 @@
-class FeedController extends KDViewController
+kd = require 'kd'
+globals = require 'globals'
+KDViewController = kd.ViewController
+FeederFacetsController = require './controllers/feederfacetscontroller'
+FeederHeaderFacetsController = require './controllers/feederheaderfacetscontroller'
+FeederResultsController = require './controllers/feederresultscontroller'
+FeederSingleView = require './views/feedersingleview'
+FeederSplitView = require './views/feedersplitview'
+remote = require('app/remote').getInstance()
+globals = require 'globals'
+jspath = require 'jspath'
+
+
+module.exports = class FeedController extends KDViewController
 
   USEDFEEDS = []
+  {warn, log} = kd
 
   constructor:(options={})->
 
@@ -68,7 +82,7 @@ class FeedController extends KDViewController
     @getNewFeedItems() if options.dynamicDataType?
 
     @on "FilterLoaded", ->
-      KD.getSingleton("windowController").notifyWindowResizeListeners()
+      kd.getSingleton("windowController").notifyWindowResizeListeners()
 
   highlightFacets:->
     filterName  = @selection.name
@@ -152,8 +166,8 @@ class FeedController extends KDViewController
   # bongo returns correct result set in a wrong order
   sortByKey : (array, key) ->
     array.sort (first, second) ->
-      firstVar  = JsPath.getAt first,  key
-      secondVar = JsPath.getAt second, key
+      firstVar  = jspath.getAt first,  key
+      secondVar = jspath.getAt second, key
       #quick sort-ware
       if (firstVar < secondVar) then return 1
       else if (firstVar > secondVar) then return -1
@@ -169,10 +183,10 @@ class FeedController extends KDViewController
     selector   = @getFeedSelector()
     {itemClass, feedId}  = @getOptions()
     feedId = "" unless feedId
-    {groupsController} = KD.singletons
+    {groupsController} = kd.singletons
 
-    if KD.config.entryPoint?.type is 'group'
-    then group = KD.config.entryPoint.slug
+    if globals.config.entryPoint?.type is 'group'
+    then group = globals.config.entryPoint.slug
     else group = 'koding'
 
     groupsController.ready =>
@@ -204,8 +218,8 @@ class FeedController extends KDViewController
         @emit "FilterLoaded"
       else unless feedId in USEDFEEDS
         USEDFEEDS.push feedId
-        if KD.prefetchedFeeds and prefetchedItems = KD.prefetchedFeeds[feedId]
-          kallback null, (KD.remote.revive item for item in prefetchedItems)
+        if globals.prefetchedFeeds and prefetchedItems = globals.prefetchedFeeds[feedId]
+          kallback null, (remote.revive item for item in prefetchedItems)
         else
           @loadFeed filter
       else
@@ -214,3 +228,5 @@ class FeedController extends KDViewController
         @feedIsLoading = yes
 
         filter.dataSource selector, options, kallback
+
+

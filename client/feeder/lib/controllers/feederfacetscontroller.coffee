@@ -1,4 +1,12 @@
-class FeederFacetsController extends KDViewController
+kd = require 'kd'
+KDView = kd.View
+KDViewController = kd.ViewController
+isLoggedIn = require 'app/util/isLoggedIn'
+CommonInnerNavigationListController = require 'app/commonviews/commoninnernavigationlistcontroller'
+HelpBox = require 'app/commonviews/helpbox'
+
+
+module.exports = class FeederFacetsController extends KDViewController
 
   constructor:(options = {}, data)->
 
@@ -10,7 +18,7 @@ class FeederFacetsController extends KDViewController
     @facetTypes = ['filter', 'sort']
     @state = {}
 
-  facetChange:-> KD.getSingleton('router').handleQuery @state
+  facetChange:-> kd.getSingleton('router').handleQuery @state
 
   loadView:(mainView)->
 
@@ -25,7 +33,7 @@ class FeederFacetsController extends KDViewController
           title   : item.title
           type    : type
           action  : facet
-        ) for own type, item of options["#{facet}s"] when not item.loggedInOnly or KD.isLoggedIn())
+        ) for own type, item of options["#{facet}s"] when not item.loggedInOnly or isLoggedIn())
 
       @["#{facet}Controller"] = controller
 
@@ -47,3 +55,5 @@ class FeederFacetsController extends KDViewController
           when 'sort'   then sortName is type
         isSelectedItem = typeMatches and controller.itemsOrdered.length > 1
         controller.selectItem item  if isSelectedItem
+
+
