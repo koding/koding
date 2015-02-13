@@ -85,8 +85,9 @@ class ActivitySidebar extends KDCustomHTMLView
 
     if KD.utils.isChannelCollaborative channel
       if channelMessage.payload['system-message'] in ['start', 'stop']
-        @fetchMachines => @fetchWorkspaces =>
-          @setWorkspaceUnreadCount channel, unreadCount
+        alert 'acet, handle here... [messageAddedToChannel]'
+        # @fetchMachines => @fetchWorkspaces =>
+        #   @setWorkspaceUnreadCount channel, unreadCount
 
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
