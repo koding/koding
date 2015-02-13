@@ -39,10 +39,14 @@ class SidebarMachineList extends KDCustomHTMLView
     @machineBoxes = []
 
     for machineData in @getData()
+      @addMachineBox machineData
 
-      machineBox = new SidebarMachineBox {}, machineData
-      @addSubView machineBox
-      @machineBoxes.push machineBox
+
+  addMachineBox: (machineData) ->
+
+    machineBox = new SidebarMachineBox {}, machineData
+    @addSubView machineBox
+    @machineBoxes.push machineBox
 
 
   deselectMachines: ->
