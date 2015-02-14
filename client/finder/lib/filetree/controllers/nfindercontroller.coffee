@@ -231,7 +231,7 @@ module.exports = class NFinderController extends KDViewController
     for own path, node of @treeController.nodes when node.getData().type is 'machine'
       return if node.getData().machine.uid is uid
         @treeController.collapseFolder node, =>
-          @reloadPreviousState uid
+          @treeController.expandFolder node, => @reloadPreviousState uid
         , yes
 
 

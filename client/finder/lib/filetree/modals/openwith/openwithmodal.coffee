@@ -26,7 +26,7 @@ module.exports = class OpenWithModal extends KDObject
       buttons       :
         Open        :
           title     : "Open"
-          style     : "modal-clean-green"
+          style     : "solid green medium"
           callback  : =>
             appName = modal.selectedApp.getData()
 
@@ -37,7 +37,7 @@ module.exports = class OpenWithModal extends KDObject
             modal.destroy()
         Cancel     :
           title    : "Cancel"
-          style    : "modal-cancel"
+          style    : "solid light-gray medium"
           callback : => modal.destroy()
 
     # {extensionToApp} = appsController
