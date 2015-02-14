@@ -6,6 +6,7 @@ $ = require 'jquery'
 
 module.exports = class GoogleApiClient extends KDObject
 
+  {noop} = kd
   @_e = {}
 
 

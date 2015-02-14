@@ -219,7 +219,7 @@ module.exports = class IDEChatSettingsPane extends KDTabPaneView
 
   addParticipant: (nickname) ->
 
-    return no if nickname is KD.nick()
+    return no if nickname is nick()
 
     participantView = @participantViews[nickname]
 

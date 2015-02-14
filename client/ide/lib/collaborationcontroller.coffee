@@ -1,6 +1,7 @@
 remote = require('app/remote').getInstance()
 dateFormat = require 'dateformat'
 sinkrow = require 'sinkrow'
+globals = require 'globals'
 kd = require 'kd'
 KDNotificationView = kd.NotificationView
 nick = require 'app/util/nick'
@@ -556,7 +557,7 @@ module.exports = CollaborationController =
 
     return ->
 
-      diffInterval  = KD.config.collaboration.timeout
+      diffInterval  = globals.config.collaboration.timeout
 
       ping = @pingTime.getText()
 

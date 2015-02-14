@@ -917,7 +917,7 @@ module.exports = class IDEAppController extends AppController
           {isActive} = @getActiveInstance()
 
           if not @isInSession and isActive
-            KD.utils.wait 400, -> # defer was not enough.
+            kd.utils.wait 400, -> # defer was not enough.
               webtermView.triggerFitToWindow()
 
         when 'editor'
