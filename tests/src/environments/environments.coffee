@@ -204,17 +204,15 @@ module.exports =
     vmSelector        = 'a[href="/IDE/koding-vm-1/my-workspace"]'
 
     helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
 
-    browser.element 'css selector', vmSelector, (result) =>
+    clickAddVMButton(browser)
+
+    browser.pause 5000 # wait to see the modal
+
+    browser.element 'css selector', freeModalSelector, (result) =>
       if result.status is 0
-        browser.end()
-      else
-        helpers.waitForVMRunning(browser)
-
-        clickAddVMButton(browser)
-
         browser
-          .pause 5000 # wait to see the modal
           .waitForElementVisible   freeModalSelector, 20000
           .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
           .click                   freeModalSelector + ' a.custom-link-view span'
@@ -228,6 +226,9 @@ module.exports =
         browser.url helpers.getUrl() + '/IDE'
         clickAddVMButton(browser)
         clickCreateVMButton(browser)
+      else
+        clickCreateVMButton(browser)
+
 
 
   # this test depends addVM test.
