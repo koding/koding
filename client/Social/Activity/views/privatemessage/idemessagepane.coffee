@@ -1,1 +1,0 @@
-class IDEMessagePane extends PrivateMessagePane

@@ -1,1 +1,0 @@
-# This folder should be present, therefore this file.
