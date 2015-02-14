@@ -255,6 +255,8 @@ class RealtimeController extends KDController
 
 
   reconnect: (channel, pbInstance) ->
+    KDTimeAgoView.emit 'OneMinutePassed'
+
     @once 'Ping', (serverTimestamp) =>
 
       return  unless @lastSeenOnline
