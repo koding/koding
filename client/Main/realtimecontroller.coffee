@@ -245,7 +245,8 @@ class RealtimeController extends KDController
         # for this reason for every subscribe request, we are fetching all messages sent
         # in last 3 seconds
         timetoken: @serverTimestamp - 30000000
-        restore : yes
+        # Since we are using Storage service of PubNub, we no longer need this parameter
+        # restore : yes
 
 
   isDisconnected: (err) ->
