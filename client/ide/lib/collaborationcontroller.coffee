@@ -9,6 +9,7 @@ showError = require 'app/util/showError'
 whoami = require 'app/util/whoami'
 RealTimeManager = require './realtimemanager'
 IDEChatView = require './views/chat/idechatview'
+IDEMetrics = require './idemetrics'
 # Attn!!
 #
 # This object is designed to be a mixin for IDEAppController.
@@ -659,7 +660,7 @@ module.exports = CollaborationController =
 
     @rtm.ready =>
       unless @workspaceData.channelId
-        IDE.Metrics.collect 'StatusBar.collaboration_button', 'shown'
+        IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
         return @statusBar.share.show()
 
       @fetchSocialChannel (err, channel) =>
@@ -670,7 +671,7 @@ module.exports = CollaborationController =
             @chat.hide()
             @statusBar.share.updatePartial 'Chat'
 
-          IDE.Metrics.collect 'StatusBar.collaboration_button', 'shown'
+          IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
           @statusBar.share.show()
 
 
@@ -898,7 +899,7 @@ module.exports = CollaborationController =
 
     argIndex = 0
     error = new Error """
-      IDE.CollaboratonController:
+      CollaboratonController:
       #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
     """
 
