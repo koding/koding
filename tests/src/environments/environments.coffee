@@ -206,29 +206,31 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    clickAddVMButton(browser)
-
-    browser.pause 5000 # wait to see the modal
-
-    browser.element 'css selector', freeModalSelector, (result) =>
+    browser.element 'css selector', vmSelector, (result) =>
       if result.status is 0
-        browser
-          .waitForElementVisible   freeModalSelector, 20000
-          .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
-          .click                   freeModalSelector + ' a.custom-link-view span'
-          .waitForElementVisible   pricingPage, 25000
-          .waitForElementVisible   pricingPage + ' .plans .developer', 25000
-          .pause 2000
-          .click                   pricingPage + ' .plans .developer .plan-buy-button'
-
-        helpers.fillPaymentForm(browser)
-
-        browser.url helpers.getUrl() + '/IDE'
-        clickAddVMButton(browser)
-        clickCreateVMButton(browser)
+        browser.end()
       else
-        clickCreateVMButton(browser)
+        clickAddVMButton(browser)
+        browser.pause 5000 # wait to see the modal
 
+        browser.element 'css selector', freeModalSelector, (result) =>
+          if result.status is 0
+            browser
+              .waitForElementVisible   freeModalSelector, 20000
+              .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
+              .click                   freeModalSelector + ' a.custom-link-view span'
+              .waitForElementVisible   pricingPage, 25000
+              .waitForElementVisible   pricingPage + ' .plans .developer', 25000
+              .pause 2000
+              .click                   pricingPage + ' .plans .developer .plan-buy-button'
+
+            helpers.fillPaymentForm(browser)
+
+            browser.url helpers.getUrl() + '/IDE'
+            clickAddVMButton(browser)
+            clickCreateVMButton(browser)
+          else
+            clickCreateVMButton(browser)
 
 
   # this test depends addVM test.
