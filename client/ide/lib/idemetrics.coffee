@@ -1,4 +1,6 @@
-class IDE.Metrics extends DatadogMetrics
+DatadogMetrics = require 'app/datadogmetrics'
+
+module.exports = class IDEMetrics extends DatadogMetrics
 
   @collect = (name, state, count = 1) ->
 

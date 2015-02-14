@@ -1,4 +1,10 @@
-class GoogleApiClient extends KDObject
+kd = require 'kd'
+KDObject = kd.Object
+KodingAppsController = require 'app/kodingappscontroller'
+IDEMetrics = require './idemetrics'
+$ = require 'jquery'
+
+module.exports = class GoogleApiClient extends KDObject
 
   @_e = {}
 
@@ -41,7 +47,7 @@ class GoogleApiClient extends KDObject
       gapi.auth.setToken token
 
       unless interval
-        interval = KD.utils.repeat 60 * 55 * 1000, =>
+        interval = kd.utils.repeat 60 * 55 * 1000, =>
           @metric 'drive', 'reauthorization_request'
           @authorizeDriveClient()
 
@@ -58,17 +64,17 @@ class GoogleApiClient extends KDObject
     then "google_api_client.#{name}"
     else 'google_api_client'
 
-    IDE.Metrics.collect name, state, count, callback
+    IDEMetrics.collect name, state, count, callback
 
 
   do ->
 
-    window.handleGoogleApiLoaded = ->
+    global.handleGoogleApiLoaded = ->
       GoogleApiClient.metric null, 'loaded'
       GoogleApiClient.readyState = yes
       GoogleApiClient.emit 'ready'
 
-    return window.handleGoogleApiLoaded()  if window.gapi
+    return global.handleGoogleApiLoaded()  if global.gapi
 
     identifier = 'google-api-client'
     url = 'https://apis.google.com/js/client.js?onload=handleGoogleApiLoaded'
