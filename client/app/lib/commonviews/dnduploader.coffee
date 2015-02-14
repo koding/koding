@@ -67,7 +67,7 @@ module.exports = class DNDUploader extends KDView
       content      : "<div class='modalformline'>#{message}</div>"
       buttons      :
         Ok         :
-          style    : "modal-clean-green"
+          style    : "solid green medium"
           callback : -> modal.destroy()
 
 
@@ -272,17 +272,17 @@ module.exports = class DNDUploader extends KDView
             buttons        :
 
               overwrite    :
-                cssClass   : "modal-clean-green"
+                cssClass   : "solid green medium"
                 callback   : =>
                   @saveFile fsFileItem, contents
                   modal.destroy()
 
               cancel       :
-                cssClass   : "modal-cancel"
+                cssClass   : "solid light-gray medium"
                 callback   : -> modal.destroy()
 
               "cancel all" :
-                cssClass   : "modal-cancel"
+                cssClass   : "solid light-gray medium"
                 callback   : -> modalStack.destroy()
 
 
