@@ -32,7 +32,7 @@ splashMarkups = require './util/splash-markups'
 AceApplicationTabView = require 'ace/aceapplicationtabview'
 AceFindAndReplaceView = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
-require('./routehandler')()
+require('./routes')()
 
 
 module.exports = class IDEAppController extends AppController
