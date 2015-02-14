@@ -1,9 +1,20 @@
+remote = require('app/remote').getInstance()
+dateFormat = require 'dateformat'
+sinkrow = require 'sinkrow'
+kd = require 'kd'
+KDNotificationView = kd.NotificationView
+nick = require 'app/util/nick'
+getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
+showError = require 'app/util/showError'
+whoami = require 'app/util/whoami'
+RealTimeManager = require './realtimemanager'
+IDEChatView = require './views/chat/idechatview'
 # Attn!!
 #
 # This object is designed to be a mixin for IDEAppController.
 #
 # @see `IDEAppController`
-CollaborationController =
+module.exports = CollaborationController =
 
   # social related
 
@@ -22,21 +33,21 @@ CollaborationController =
         @watchParticipant nickname
 
       if originOrAccount.constructorName
-        KD.remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
+        remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
       else if 'string' is typeof originOrAccount
-        KD.remote.cacheable originOrAccount, kallback
+        remote.cacheable originOrAccount, kallback
       else
         kallback originOrAccount
 
 
   initPrivateMessage: (callback) ->
 
-    {message} = KD.singletons.socialapi
-    nick      = KD.nick()
+    {message} = kd.singletons.socialapi
+    nick      = nick()
 
     message.initPrivateMessage
       body       : "@#{nick} initiated the IDE session."
-      purpose    : "#{KD.utils.getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
+      purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
       recipients : [ nick ]
       payload    :
         'system-message' : 'initiate'
@@ -62,7 +73,7 @@ CollaborationController =
 
     id = @channelId or @workspaceData.channelId
 
-    KD.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
+    kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return callback err  if err
 
       @setSocialChannel channel
@@ -72,8 +83,8 @@ CollaborationController =
 
   deletePrivateMessage: (callback = noop) ->
 
-    {channel}    = KD.getSingleton 'socialapi'
-    {JWorkspace} = KD.remote.api
+    {channel}    = kd.getSingleton 'socialapi'
+    {JWorkspace} = remote.api
 
     options = channelId: @socialChannel.getId()
     channel.delete options, (err) =>
@@ -97,13 +108,13 @@ CollaborationController =
 
     channelId = @socialChannel.getId()
 
-    {socialapi} = KD.singletons
+    {socialapi} = kd.singletons
     socialapi.channel.listParticipants {channelId}, (err, participants) ->
 
       idList = participants.map ({accountId}) -> accountId
       query  = socialApiId: $in: idList
 
-      KD.remote.api.JAccount.some query, {}
+      remote.api.JAccount.some query, {}
         .then callback
 
 
@@ -153,9 +164,9 @@ CollaborationController =
       if @channelId          then id = @channelId
       else if @socialChannel then id = @socialChannel.id
       else
-        return KD.showError 'social channel id is not provided'
+        return showError 'social channel id is not provided'
 
-    hostName = if @amIHost then KD.nick() else @collaborationHost
+    hostName = if @amIHost then nick() else @collaborationHost
 
     return "#{hostName}.#{id}"
 
@@ -177,7 +188,7 @@ CollaborationController =
 
     @startChatSession (err, channel) =>
 
-      return KD.showError err  if err
+      return showError err  if err
 
       @createChatPaneView channel
 
@@ -186,7 +197,7 @@ CollaborationController =
     return throwError 'RealTimeManager is not set'  unless @rtm
 
     options = { @rtm, @isInSession }
-    @getView().addSubView @chat = new IDE.ChatView options, channel
+    @getView().addSubView @chat = new IDEChatView options, channel
     @chat.show()
 
     @on 'RTMIsReady', =>
@@ -211,14 +222,14 @@ CollaborationController =
 
     @setMachineUser [account], no, =>
 
-      KD.singletons.socialapi.channel.kickParticipants options, (err, result) =>
+      kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
 
-        return KD.showError err  if err
+        return showError err  if err
 
         targetUser = account.profile.nickname
         message    =
           type     : 'ParticipantKicked'
-          origin   : KD.nick()
+          origin   : nick()
           target   : targetUser
 
         @broadcastMessages.push message
@@ -236,7 +247,7 @@ CollaborationController =
 
   handleParticipantAction: (actionType, changeData) ->
 
-    KD.utils.wait 2000, =>
+    kd.utils.wait 2000, =>
       participants  = @participants.asArray()
       {sessionId}   = changeData.collaborator
       targetUser    = null
@@ -281,7 +292,7 @@ CollaborationController =
     @rtm.getFile fileId
 
     @rtm.once 'FileLoaded', (doc) =>
-      nickname = KD.nick()
+      nickname = nick()
       hostName = @collaborationHost
 
       @rtm.setRealtimeDoc doc
@@ -299,7 +310,7 @@ CollaborationController =
         isInList = yes  if participant.nickname is nickname
 
       if not isInList
-        @addParticipant KD.whoami(), no
+        @addParticipant whoami(), no
 
       @rtm.on 'CollaboratorJoined', (doc, participant) =>
         @handleParticipantAction 'join', participant
@@ -334,7 +345,7 @@ CollaborationController =
 
   setCollaborativeReferences: ->
 
-    nickname           = KD.nick()
+    nickname           = nick()
     myWatchMapName     = "#{nickname}WatchMap"
     mySnapshotName     = "#{nickname}Snapshot"
     defaultPermission  = default: 'edit'
@@ -365,8 +376,8 @@ CollaborationController =
     for collaborator in collaborators when collaborator.isMe
       participants = @participants.asArray()
 
-      for user, index in participants when user.nickname is KD.nick()
-        newData = KD.utils.dict()
+      for user, index in participants when user.nickname is nick()
+        newData = kd.utils.dict()
 
         newData[key] = value  for key, value of user
 
@@ -512,8 +523,8 @@ CollaborationController =
     pongInterval = 1000 * 15
 
     @pingInterval = if @amIHost
-    then KD.utils.repeat pingInterval, @bound 'sendPing'
-    else KD.utils.repeat pongInterval, @bound 'checkPing'
+    then kd.utils.repeat pingInterval, @bound 'sendPing'
+    else kd.utils.repeat pongInterval, @bound 'checkPing'
 
 
   sendPing: -> @pingTime.setText Date.now().toString()
@@ -521,12 +532,12 @@ CollaborationController =
 
   forceQuitCollaboration: ->
 
-    { Collaboration } = KD.remote.api
+    { Collaboration } = remote.api
     Collaboration.stop @rtmFileId, @workspaceData, (err) =>
 
       return warn err  if err
 
-      KD.utils.killRepeat @pingInterval
+      kd.utils.killRepeat @pingInterval
 
       @stopCollaborationSession =>
         @quit()
@@ -573,7 +584,7 @@ CollaborationController =
 
     {origin, type} = data
 
-    if origin is KD.nick()
+    if origin is nick()
       switch type
         when 'ParticipantWantsToLeave'
           return @quit()
@@ -595,7 +606,7 @@ CollaborationController =
 
         return  unless data.origin is @collaborationHost
 
-        if data.target is KD.nick()
+        if data.target is nick()
           @removeMachineNode()
           @showKickedModal()
         else
@@ -608,7 +619,7 @@ CollaborationController =
 
     {property, newValue} = event
 
-    return  unless property is KD.nick()
+    return  unless property is nick()
 
     if      newValue is 'edit' then @makeEditable()
     else if newValue is 'read' then @makeReadOnly()
@@ -667,8 +678,8 @@ CollaborationController =
 
     return callback msg : 'no social channel'  unless @socialChannel
 
-    {message} = KD.singletons.socialapi
-    nick      = KD.nick()
+    {message} = kd.singletons.socialapi
+    nick      = nick()
 
     message.sendPrivateMessage
       body       : "@#{nick} activated collaboration."
@@ -695,10 +706,10 @@ CollaborationController =
 
     return callback msg : 'no social channel'  unless @socialChannel
 
-    {message} = KD.singletons.socialapi
-    nick      = KD.nick()
+    {message} = kd.singletons.socialapi
+    nick      = nick()
 
-    @broadcastMessages.push origin: KD.nick(), type: 'SessionEnded'
+    @broadcastMessages.push origin: nick(), type: 'SessionEnded'
 
     @rtm.once 'FileDeleted', =>
       @statusBar.emit 'CollaborationEnded'
@@ -706,8 +717,8 @@ CollaborationController =
       @modal.destroy()
       @rtm.dispose()
       @rtm = null
-      KD.utils.killRepeat @pingInterval
-      KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+      kd.utils.killRepeat @pingInterval
+      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
       @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
 
     @mySnapshot.clear()
@@ -718,12 +729,12 @@ CollaborationController =
       @deletePrivateMessage callback
 
 
-  getCollaborationHost: -> if @amIHost then KD.nick() else @collaborationHost
+  getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
 
 
   cleanupCollaboration: ->
 
-    KD.utils.killRepeat @pingInterval
+    kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
     @rtm = null
 
@@ -732,15 +743,15 @@ CollaborationController =
 
   removeMachineNode: ->
 
-    KD.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
+    kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
 
 
   unshareMachineAndKlient: (username, fetchUser = no) ->
 
     if fetchUser
-      return KD.remote.cacheable username, (err, accounts) =>
+      return remote.cacheable username, (err, accounts) =>
 
-        return KD.showError err  if err
+        return showError err  if err
 
         @setMachineUser accounts, no
 
@@ -764,7 +775,7 @@ CollaborationController =
     usernames = accounts.map (account) -> account.profile.nickname
 
     if @amIHost
-      usernames = usernames.filter (username) -> username isnt KD.nick()
+      usernames = usernames.filter (username) -> username isnt nick()
 
     return  unless usernames.length
 
@@ -794,7 +805,7 @@ CollaborationController =
               callback { message }
               console.error message
 
-      Bongo.dash queue, callback
+      sinkrow.dash queue, callback
 
 
   getWorkspaceName: (callback) -> callback @workspaceData.name
@@ -803,10 +814,10 @@ CollaborationController =
   createWorkspace: (options = {}) ->
 
     name         = options.name or 'My Workspace'
-    rootPath     = "/home/#{KD.nick()}"
+    rootPath     = "/home/#{nick()}"
     {label, uid} = @mountedMachine
 
-    return KD.remote.api.JWorkspace.create
+    return remote.api.JWorkspace.create
       name         : name
       label        : options.label        or label
       machineUId   : options.machineUId   or uid
@@ -817,7 +828,7 @@ CollaborationController =
 
   updateWorkspace: (options = {}) ->
 
-    return KD.remote.api.JWorkspace.update @workspaceData._id, { $set : options }
+    return remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
 
   # collab related modals (should be its own mixin)
@@ -871,16 +882,16 @@ CollaborationController =
       content : "If you leave this session you won't be able to return back."
 
     @showModal options, =>
-      @broadcastMessages.push origin: KD.nick(), type: 'ParticipantWantsToLeave'
+      @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
       @stopChatSession()
       @modal.destroy()
 
       options = channelId: @socialChannel.getId()
-      KD.singletons.socialapi.channel.leave options, (err) =>
-        return KD.showError err  if err
-        @setMachineUser [KD.whoami()], no, => @quit()
+      kd.singletons.socialapi.channel.leave options, (err) =>
+        return showError err  if err
+        @setMachineUser [whoami()], no, => @quit()
         # remove the leaving participant's info from the collaborative doc
-        @removeParticipant KD.nick()
+        @removeParticipant nick()
 
 
   throwError: throwError = (format, args...) ->
