@@ -1,4 +1,5 @@
-Koding Filetree
-========
+# finder
 
-Koding's filetree
+# license
+
+2015 Koding, Inc
