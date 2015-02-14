@@ -24,10 +24,18 @@ class RealtimeController extends KDController
     @authenticated = false
 
     if KD.isPubnubEnabled()
-      @pubnub = PUBNUB.init
+      options =
         subscribe_key : subscribekey
         uuid          : KD.whoami()._id
         ssl           : if KD.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
+
+      @pubnub = PUBNUB.init options
+
+      # when we send a new message, a user receives both the message itself and notification message
+      # consecutively, which sometimes causes one of these messages to be dropped.
+      # until we learn a better solution, we have seperated notification channel for a new pubnub connection
+      # https://www.pivotaltracker.com/story/show/88210800
+      @pbNotification = PUBNUB.init options
 
       realtimeToken = Cookies.get("realtimeToken")
 
@@ -37,7 +45,8 @@ class RealtimeController extends KDController
       , 10000
 
       if realtimeToken?
-        @pubnub.auth realtimeToken
+        @setAuthToken realtimeToken
+
         @authenticated = yes
 
         return
@@ -60,6 +69,11 @@ class RealtimeController extends KDController
       @emit 'Ping', timestamp
 
 
+  setAuthToken: (token) ->
+    @pubnub.auth token
+    @pbNotification.auth token
+
+
   # channel authentication is needed for notification channel and
   # private channels
   authenticate: (options, callback) ->
@@ -80,7 +94,7 @@ class RealtimeController extends KDController
 
       return callback { message : 'Could not find realtime token'}  unless realtimeToken
 
-      @pubnub.auth realtimeToken
+      @setAuthToken realtimeToken
 
       callback null
 
@@ -111,6 +125,8 @@ class RealtimeController extends KDController
       options.authenticate =
         endPoint : "/api/gatekeeper/subscribe/channel"
         data     : { name: channelName, typeConstant, groupName: group }
+
+    options.pbInstance = @pubnub
 
     return @subscribePubnub options, callback
 
@@ -183,6 +199,8 @@ class RealtimeController extends KDController
       endPoint : "/api/gatekeeper/subscribe/notification"
       data     : { id: KD.whoami().socialApiId }
 
+    options.pbInstance = @pbNotification
+
     @subscribePubnub options, callback
 
 
@@ -206,7 +224,10 @@ class RealtimeController extends KDController
       channelInstance = new PubnubChannel name: pubnubChannelName
 
       callbackCalled = no
-      @pubnub.subscribe
+
+      pb = options.pbInstance or @pubnub
+
+      pb.subscribe
         channel : pubnubChannelName
         message : (message, env, channel) => @handleMessage message, channel
         connect : =>
@@ -217,7 +238,7 @@ class RealtimeController extends KDController
         error   : (err) =>
           @handleError err
           callback err  unless callbackCalled
-        reconnect: (channel) => @reconnect channel
+        reconnect: (channel) => @reconnect channel, pb
 
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
@@ -232,7 +253,7 @@ class RealtimeController extends KDController
     return err?.message is 'Offline. Please check your network settings.'
 
 
-  reconnect: (channel) ->
+  reconnect: (channel, pbInstance) ->
     @once 'Ping', (serverTimestamp) =>
 
       return  unless @lastSeenOnline
@@ -241,15 +262,19 @@ class RealtimeController extends KDController
       if @lastSeenOnline < serverTimestamp - 864000000000
         return window.location.reload()
 
-      @fetchHistory channel, @lastSeenOnline
+      @fetchHistory {channel, timestamp: @lastSeenOnline, pbInstance}
 
 
-  fetchHistory: (channel, timestamp) ->
+  fetchHistory: (options) ->
+
+    {channel, timestamp, pbInstance} = options
 
     return  unless timestamp
 
+    pb = pbInstance or @pubnub
+
     limit = 100
-    @pubnub.history
+    historyOptions =
       channel : channel
       start   : "#{timestamp}"
       count   : limit
@@ -270,6 +295,8 @@ class RealtimeController extends KDController
       err: (err) ->
         # instead of getting into a stale state, just reload the page
         window.location.reload()  if err
+
+    pb.history historyOptions
 
 
   handleMessage: (message, channel) ->
