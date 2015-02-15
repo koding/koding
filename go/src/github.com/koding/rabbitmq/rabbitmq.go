@@ -135,11 +135,6 @@ func (r *RabbitMQ) Conn() *amqp.Connection {
 
 // Dial dials the RMQ server
 func (r *RabbitMQ) Dial() error {
-	// if we alredy connected do not re-connect
-	if r.conn != nil {
-		return nil
-	}
-
 	// if config is nil do not continue
 	if r.config == nil {
 		return errors.New("config is nil")
@@ -170,6 +165,11 @@ func (r *RabbitMQ) Dial() error {
 //
 // TODO this should not return RabbitMQ struct - cihangir,arslan config changes
 func (r *RabbitMQ) Connect() (*RabbitMQ, error) {
+	// if we alredy connected do not re-connect
+	if r.conn != nil {
+		return r, nil
+	}
+
 	// r.Dial sets the conn variable
 	if err := r.Dial(); err != nil {
 		return nil, err
