@@ -52,7 +52,7 @@ type Broker struct {
 	config *Config
 
 	// broker has rabbitmq dependency for now
-	mq *rabbitmq.RabbitMQ
+	MQ *rabbitmq.RabbitMQ
 
 	// logging
 	log logging.Logger
@@ -80,7 +80,7 @@ func New(appName string, c *Config, l logging.Logger) *Broker {
 
 	// init broker
 	return &Broker{
-		mq:      rabbitmq.New(c.RMQConfig, l),
+		MQ:      rabbitmq.New(c.RMQConfig, l),
 		log:     l,
 		config:  c,
 		AppName: appName,
@@ -90,6 +90,13 @@ func New(appName string, c *Config, l logging.Logger) *Broker {
 
 // Connect opens connections to prducer and consumer
 func (b *Broker) Connect() error {
+	// first connect to RMQ
+	mq, err := b.MQ.Connect()
+	if err != nil {
+		return err
+	}
+	b.MQ = mq
+
 	producer, err := b.NewPublisher()
 	if err != nil {
 		return err
@@ -111,29 +118,47 @@ func (b *Broker) Connect() error {
 
 // Close, shutdowns all connections
 func (b *Broker) Close() error {
-	var err, err2 error
-	if b.Pub != nil {
-		err = b.Pub.Close()
-	}
-	b.log.Info("Publisher closed %t", err == nil)
+	var pubErr, subErr, connErr error
+	defer func() {
+		if pubErr != nil {
+			b.log.Error("Publisher close err %s", pubErr.Error())
+		}
 
+		if subErr != nil {
+			b.log.Error("Subscriber close err %s", subErr.Error())
+		}
+
+		b.log.Info("Publisher  closed = %t", pubErr == nil)
+		b.log.Info("Subscriber closed = %t", subErr == nil)
+		b.log.Info("RMQ Conn   closed = %t", connErr == nil)
+	}()
+
+	// close publisher
+	if b.Pub != nil {
+		pubErr = b.Pub.Close()
+	}
+
+	// close subscriber
 	if b.Sub != nil {
 		// i could return the result of b.Sub.Close here, but this can lead a
 		// misconception about closing other connections which are added after
 		// this line
-		err2 = b.Sub.Close()
+		subErr = b.Sub.Close()
 	}
 
-	b.log.Info("Subscriber closed %t", err2 == nil)
-
-	if err == nil && err2 == nil {
-		return nil
+	// close the real connection
+	if b.MQ != nil {
+		if connErr = b.MQ.Shutdown(); connErr == nil {
+			return nil // dont bother with other errors, conn is already closed
+		}
+		b.log.Error("RMQ conn close err %s", connErr.Error())
 	}
 
 	return fmt.Errorf(
-		"got error while closing conns: PubErr: %s, SubErr: %s",
-		err.Error(),
-		err2.Error(),
+		"got error while closing conns: PubErr: %s, SubErr: %s, ConnErr:%s ",
+		pubErr.Error(),
+		subErr.Error(),
+		connErr.Error(),
 	)
 }
 
