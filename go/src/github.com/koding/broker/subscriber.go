@@ -30,7 +30,7 @@ func (b *Broker) NewSubscriber() (Subscriber, error) {
 	}
 
 	// create the consumer
-	consumer, err := l.createConsumer(b.mq)
+	consumer, err := l.createConsumer(b.MQ)
 	if err != nil {
 		return nil, err
 	}
@@ -43,7 +43,7 @@ func (b *Broker) NewSubscriber() (Subscriber, error) {
 	}
 
 	if b.config.EnableMaintenanceQueue {
-		maintenanceQ, err := l.createMaintenancePublisher(b.mq)
+		maintenanceQ, err := l.createMaintenancePublisher(b.MQ)
 		if err != nil {
 			return nil, err
 		}
