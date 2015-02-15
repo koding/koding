@@ -134,7 +134,7 @@ func (r *RabbitMQ) Conn() *amqp.Connection {
 }
 
 func (r *RabbitMQ) Dial() error {
-	// if we alredy connected do not re-connected
+	// if we alredy connected do not re-connect
 	if r.conn != nil {
 		return nil
 	}
