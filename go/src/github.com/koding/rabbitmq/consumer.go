@@ -147,9 +147,9 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) error {
 	return nil
 }
 
-// Controls how many messages the server will try to keep on
-// the network for consumers before receiving delivery acks.  The intent of Qos is
-// to make sure the network buffers stay full between the server and client.
+// QOS controls how many messages the server will try to keep on the network for
+// consumers before receiving delivery acks.  The intent of Qos is to make sure
+// the network buffers stay full between the server and client.
 func (c *Consumer) QOS(messageCount int) error {
 	return c.channel.Qos(messageCount, 0, false)
 }

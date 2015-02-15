@@ -133,6 +133,7 @@ func (r *RabbitMQ) Conn() *amqp.Connection {
 	return r.conn
 }
 
+// Dial dials the RMQ server
 func (r *RabbitMQ) Dial() error {
 	// if we alredy connected do not re-connect
 	if r.conn != nil {
@@ -165,10 +166,8 @@ func (r *RabbitMQ) Dial() error {
 	return nil
 }
 
-// Connect opens a connection and a channel to RabbitMq
-// In order to prevent developers from misconfiguration
-// and using same channel for publishing and consuming it opens a new channel for
-// every connection
+// Connect opens a connection to RabbitMq
+//
 // TODO this should not return RabbitMQ struct - cihangir,arslan config changes
 func (r *RabbitMQ) Connect() (*RabbitMQ, error) {
 	// r.Dial sets the conn variable
