@@ -485,11 +485,14 @@ Configuration = (options={}) ->
       return workers
 
     installScript = """
-        npm i --unsafe-perm --silent
-        echo '#---> BUILDING CLIENT (@gokmen) <---#'
+        npm install --unsafe-perm
+
+        echo '#---> BUILDING CLIENT <---#'
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make &
+
         cd #{projectRoot}
-        chmod +x ./build-client.coffee
-        ulimit -n 1024 && #{projectRoot}/build-client.coffee --watch false  --verbose
         git submodule init
         git submodule update
 
@@ -979,7 +982,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        ./build-client.coffee --watch false  --verbose
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies

@@ -530,7 +530,10 @@ Configuration = (options={}) ->
       #!/bin/bash
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      coffee ./build-client.coffee --watch false
+
+      cd #{projectRoot}/client
+      npm install --unsafe-perm
+      make
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
