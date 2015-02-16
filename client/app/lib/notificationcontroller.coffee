@@ -71,6 +71,10 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
+    console.log 'acet should look here'
+    @on 'MachineListUpdated', ->
+      kd.singletons.computeController.reset yes
+
     @on 'UsernameChanged', ({username, oldUsername}) ->
       # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
       deleteUserCookie()
@@ -90,10 +94,10 @@ module.exports = class NotificationController extends KDObject
           """
         buttons       :
           "Refresh":
-            style     : "modal-clean-red"
+            style     : 'solid red medium'
             callback  : (event) -> global.location.replace '/Login'
           "Close"     :
-            style     : "modal-clean-gray"
+            style     : 'solid light-gray medium'
             callback  : (event) -> modal.destroy()
 
     @on 'UserBlocked', ({blockedDate}) ->
@@ -115,7 +119,7 @@ module.exports = class NotificationController extends KDObject
           """
         buttons       :
           "Ok"        :
-            style     : "modal-clean-gray"
+            style     : 'solid light-gray medium'
             callback  : (event) ->
               kookies.expire 'clientId'
               modal.destroy()

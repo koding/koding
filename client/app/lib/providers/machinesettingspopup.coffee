@@ -66,6 +66,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue  : running
           itemClass     : KodingSwitch
           cssClass      : "tiny"
+          disabled      : data.isPermanent?()
           callback      : (state) => @emit 'StateChange', state
           nextElement   :
             statusLoader:
@@ -102,12 +103,16 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         moreView        :
           label         : "More"
           itemClass     : KDCustomHTMLView
+          cssClass      : if data.isPermanent() then 'hidden'
 
     super options, data
 
     { computeController } = kd.singletons
 
+    @isPaidAccount = no
     @machine = @getData()
+
+    @setClass 'read-only'  if @machine.isPermanent()
 
     @on 'StateChange', (state)=>
       if state then computeController.start @machine
@@ -217,6 +222,13 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         diskUsage.updateBar 0, '%', 'failed to fetch usage!'
 
 
+    if @machine.isPermanent()
+      statusToggle.setTooltip
+        title     : 'Only owners can change machine state.'
+        placement : 'right'
+
+      return
+
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
 
     moreLabel = moreView.getOption 'label'
@@ -248,13 +260,23 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : @machine.alwaysOn
           cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        sharedWith     :
+          label        : "
+            VM Shared With
+            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+              <span class='help'></span>
+            </a>
+            <span class='toggle'></span>
+          "
+          itemClass    : ManageSharedView
+          machine      : @machine
         domains        :
           label        : "
             Domains
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
-              <span class='domain-help'></span>
+              <span class='help'></span>
             </a>
-            <span class='domain-toggle'></span>
+            <span class='toggle'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine
@@ -262,22 +284,41 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
 
-    {advancedView, domains} = @moreForm.inputs
+    {advancedView, domains, sharedWith} = @moreForm.inputs
     advancedLabel = advancedView.getOption 'label'
 
     advancedLabel.on 'click', =>
       advancedLabel.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
-    {label} = domains.getOptions()
+    domainLabel = domains.getOption 'label'
 
-    label.on 'click', (event)->
-      return  unless $(event.target).hasClass 'domain-toggle'
-      label.toggleClass 'expanded'
+    domainLabel.on 'click', (event)->
+      return  unless $(event.target).hasClass 'toggle'
+      domainLabel.toggleClass 'expanded'
       domains.toggleInput()
 
     domains.on 'DomainInputCancelled', ->
-      label.unsetClass 'expanded'
+      domainLabel.unsetClass 'expanded'
+
+    shareVMLabel = sharedWith.getOption 'label'
+
+    shareVMLabel.on 'click', (event)=>
+      return  unless $(event.target).hasClass 'toggle'
+
+      unless @isPaidAccount
+        kd.utils.defer =>
+          new ComputeErrorModal.Usage
+            plan    : 'free'
+            message : 'VM share feature is only available for paid accounts.'
+        @destroy()
+
+      else
+        shareVMLabel.toggleClass 'expanded'
+        sharedWith.toggleInput()
+
+    sharedWith.on 'UserInputCancelled', ->
+      shareVMLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'
