@@ -29,11 +29,6 @@ build:
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
     - script:
-        name: kd node modules
-        code: |
-          cd client/Framework
-          $WERCKER_ROOT/scripts/wercker/install-node-modules kd
-    - script:
         name: landing node modules
         code: |
           cd client/landing
