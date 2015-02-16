@@ -39,26 +39,24 @@ func (u *Updater) ServeKite(r *kite.Request) (interface{}, error) {
 
 	go func() {
 		r.LocalKite.Log.Info("klient.Update is called. Updating binary via latest version")
+
+		updatingState(true)
 		if err := u.checkAndUpdate(); err != nil {
 			u.Log.Warning("klient.update: %s", err)
 		}
+		updatingState(false)
 	}()
 
 	return true, nil
 }
 
-func (u *Updater) checkAndUpdate() error {
+func updatingState(state bool) {
 	updatingMu.Lock()
-	updating = true
+	updating = state
 	updatingMu.Unlock()
+}
 
-	// if something goes wrong
-	defer func() {
-		updatingMu.Lock()
-		updating = false
-		updatingMu.Unlock()
-	}()
-
+func (u *Updater) checkAndUpdate() error {
 	l, err := u.latestVersion()
 	if err != nil {
 		return err
@@ -126,10 +124,6 @@ func (u *Updater) updateBinary(url string) error {
 	// we need to call it here now too, because syscall.Exec will prevent to
 	// call the defer that we've defined in the beginning.
 
-	updatingMu.Lock()
-	updating = false
-	updatingMu.Unlock()
-
 	u.Log.Info("Updating was successfull. Replacing current process with args: %v\n=====> RESTARTING...\n\n", args)
 
 	execErr := syscall.Exec(self, args, env)
@@ -188,8 +182,12 @@ func (u *Updater) Run() {
 		u.Interval, u.Endpoint)
 
 	for _ = range time.Tick(u.Interval) {
+		updatingState(true)
+
 		if err := u.checkAndUpdate(); err != nil {
 			u.Log.Warning("Self-update: %s", err)
 		}
+
+		updatingState(false)
 	}
 }
