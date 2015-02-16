@@ -10,7 +10,6 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
-	"github.com/koding/klient/docker"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/terminal"
 	"github.com/koding/klient/usage"
@@ -35,8 +34,8 @@ type Klient struct {
 	// terminal provides wmethods
 	terminal *terminal.Terminal
 
-	// doccker provides the docker related methods.
-	docker *docker.Docker
+	// docker provides the docker related methods.
+	// docker *docker.Docker
 
 	// usage counts and tracks all called metrics. It also provides a method
 	// that return those informations
@@ -94,12 +93,12 @@ func NewKlient(conf *KlientConfig) *Klient {
 		"klient.share":        true,
 		"klient.unshare":      true,
 		"klient.shared":       true,
-		"docker.create":       true,
-		"docker.connect":      true,
-		"docker.stop":         true,
-		"docker.start":        true,
-		"docker.remove":       true,
-		"docker.list":         true,
+		// "docker.create":       true,
+		// "docker.connect":      true,
+		// "docker.stop":         true,
+		// "docker.start":        true,
+		// "docker.remove":       true,
+		// "docker.list":         true,
 	})
 
 	k := newKite(conf)
@@ -107,9 +106,9 @@ func NewKlient(conf *KlientConfig) *Klient {
 	term.InputHook = usg.Reset
 
 	kl := &Klient{
-		kite:     k,
-		collab:   collaboration.New(),
-		docker:   docker.New("unix://var/run/docker.sock", k.Log),
+		kite:   k,
+		collab: collaboration.New(),
+		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
 		log:      k.Log,
@@ -168,12 +167,12 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("fs.copy", fs.Copy)
 
 	// Docker
-	k.kite.HandleFunc("docker.create", k.docker.Create)
-	k.kite.HandleFunc("docker.connect", k.docker.Connect)
-	k.kite.HandleFunc("docker.stop", k.docker.Stop)
-	k.kite.HandleFunc("docker.start", k.docker.Start)
-	k.kite.HandleFunc("docker.remove", k.docker.RemoveContainer)
-	k.kite.HandleFunc("docker.list", k.docker.List)
+	// k.kite.HandleFunc("docker.create", k.docker.Create)
+	// k.kite.HandleFunc("docker.connect", k.docker.Connect)
+	// k.kite.HandleFunc("docker.stop", k.docker.Stop)
+	// k.kite.HandleFunc("docker.start", k.docker.Start)
+	// k.kite.HandleFunc("docker.remove", k.docker.RemoveContainer)
+	// k.kite.HandleFunc("docker.list", k.docker.List)
 
 	// Execution
 	k.kite.HandleFunc("exec", command.Exec)
