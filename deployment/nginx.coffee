@@ -232,6 +232,13 @@ module.exports.create = (KONFIG, environment)->
     server {
       # just a random port
       listen #{if environment is "dev" then 8091 else 81};
+
+
+      # redirect http://kodingen.com to https://koding.com
+      if ($host = "kodingen.com") {
+        return 301 https://koding.com;
+      }
+
       # use generic names, do not hardcode values
       return 301 https://$host$request_uri;
     }
