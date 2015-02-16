@@ -186,7 +186,15 @@ build:
 	@echo "building with ../../build.sh"
 	../../build.sh
 
-testapi:
+# testcollaboration runs the unit and integration tests of collaboration worker
+testcollaboration:
+	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
+	@`which go` test -c workers/collaboration/tests/*.go
+	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./collaboration.test
+	# todo add unit tests
+
+testapi: testcollaboration
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
