@@ -18,6 +18,7 @@ import (
 	paymentapi "socialapi/workers/payment/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
+	mailapi "socialapi/workers/mail/api"
 	"strconv"
 )
 
@@ -41,7 +42,6 @@ func main() {
 	m.Metrics = r.Metrics
 	handlers.AddHandlers(m)
 	m.Listen()
-
 	// shutdown server
 	defer m.Close()
 
@@ -50,6 +50,7 @@ func main() {
 	notificationapi.AddHandlers(m)
 	trollmodeapi.AddHandlers(m)
 	sitemapapi.AddHandlers(m)
+	mailapi.AddHandlers(m)
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
