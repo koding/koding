@@ -13,6 +13,7 @@
     "emojify.js": "^0.9.5",
     "getscript": "^0.1.0",
     "gulp-debug": "^2.0.0",
+    "gulp-rename": "^1.2.0",
     "highlight.js": "^8.4.0",
     "htmlencode": "0.0.4",
     "jquery": "^2.1.3",
