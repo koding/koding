@@ -544,7 +544,7 @@ Configuration = (options={}) ->
 
       cd #{projectRoot}/client
       npm install --unsafe-perm
-      make
+      make build
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

@@ -347,6 +347,11 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
+    clientWatcher       :
+      group             : "webserver"
+      supervisord       :
+        command         : "cd #{projectRoot}/client && make"
+
     socialapi:
       group             : "socialapi"
       instances         : 1
@@ -490,7 +495,7 @@ Configuration = (options={}) ->
         echo '#---> BUILDING CLIENT <---#'
         cd #{projectRoot}/client
         npm install --unsafe-perm
-        make &
+        make build
 
         cd #{projectRoot}
         git submodule init
