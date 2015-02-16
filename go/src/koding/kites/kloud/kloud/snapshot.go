@@ -31,6 +31,7 @@ func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr err
 		if err != nil {
 			k.Log.Error("[%s] updating data after createSnapshot method was not possible: %s",
 				m.Id, err.Error())
+			return fmt.Errorf("[%s] could not update data for snapshot. Please contact support", m.Id), nil
 		}
 
 		return resp, nil
@@ -57,8 +58,6 @@ func (k *Kloud) DeleteSnapshot(r *kite.Request) (interface{}, error) {
 	if args.SnapshotId == "" {
 		return nil, NewError(ErrSnapshotIdMissing)
 	}
-
-	fmt.Printf("args = %+v\n", args)
 
 	m, err := k.PrepareMachine(r)
 	if err != nil {

@@ -47,9 +47,8 @@ const (
 	// physically doesn't exist anymore.
 	Terminated
 
-	// Snapshotting defines the state where the machine is stopped and a
-	// Snapshot creating is in process. After a successfull snapshot the
-	// machine is in Running state.
+	// Snapshotting defines the state where the machine is in a snapshotting
+	// process.
 	Snapshotting
 
 	// Pending defines the state where the machine is in a work-in-progress

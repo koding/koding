@@ -11,6 +11,10 @@ import (
 
 func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 	buildFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		if r.Args == nil {
+			return nil, NewError(ErrNoArguments)
+		}
+
 		var args struct {
 			SnapshotId string
 		}
