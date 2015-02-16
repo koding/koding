@@ -128,6 +128,10 @@ func (b *Broker) Close() error {
 			b.log.Error("Subscriber close err %s", subErr.Error())
 		}
 
+		if connErr != nil {
+			b.log.Error("RMQ conn close err %s", connErr.Error())
+		}
+
 		b.log.Info("Publisher  closed = %t", pubErr == nil)
 		b.log.Info("Subscriber closed = %t", subErr == nil)
 		b.log.Info("RMQ Conn   closed = %t", connErr == nil)
@@ -151,7 +155,6 @@ func (b *Broker) Close() error {
 		if connErr = b.MQ.Shutdown(); connErr == nil {
 			return nil // dont bother with other errors, conn is already closed
 		}
-		b.log.Error("RMQ conn close err %s", connErr.Error())
 	}
 
 	return fmt.Errorf(
