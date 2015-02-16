@@ -119,7 +119,18 @@ module.exports = class Machine extends KDObject
         return @data.credential
 
 
-  isMine: ->
+  _ruleChecker: (rules)->
+	alert('gokmen, what is kd.userId')
 
-    @getOwner() is nick()
+    for user in @jMachine.users
+      if user.id is KD.userId
+        for rule in rules
+          return no  unless user[rule]
+        return yes
 
+    return no
+
+
+  isMine      : -> @_ruleChecker ['owner', 'sudo']
+  isApproved  : -> @isMine() or @_ruleChecker ['approved']
+  isPermanent : -> @_ruleChecker ['permanent']

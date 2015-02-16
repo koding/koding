@@ -9,6 +9,7 @@ KDFormViewWithFields = kd.FormViewWithFields
 KDHitEnterInputView = kd.HitEnterInputView
 KDLoaderView = kd.LoaderView
 KDModalViewWithForms = kd.ModalViewWithForms
+KDProgressBarView = kd.ProgressBarView
 KDView = kd.View
 CustomLinkView = require '../customlinkview'
 GuidesLinksView = require '../guideslinksview'
@@ -65,6 +66,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue  : running
           itemClass     : KodingSwitch
           cssClass      : "tiny"
+          disabled      : data.isPermanent?()
           callback      : (state) => @emit 'StateChange', state
           nextElement   :
             statusLoader:
@@ -76,6 +78,10 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
               loaderOptions :
                 color   : '#333333'
               showLoader: yes
+        diskUsage       :
+          label         : 'Disk Usage'
+          itemClass     : KDProgressBarView
+          cssClass      : if running then 'disk-usage' else 'hidden'
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
@@ -84,7 +90,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         specs           :
           label         : "Specs"
           itemClass     : KDView
-          partial       : "1GB RAM, 1Core, #{storage}GB Disk"
+          partial       : "1GB RAM, 1Core CPU, #{storage}GB Disk"
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
@@ -97,12 +103,16 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         moreView        :
           label         : "More"
           itemClass     : KDCustomHTMLView
+          cssClass      : if data.isPermanent() then 'hidden'
 
     super options, data
 
     { computeController } = kd.singletons
 
+    @isPaidAccount = no
     @machine = @getData()
+
+    @setClass 'read-only'  if @machine.isPermanent()
 
     @on 'StateChange', (state)=>
       if state then computeController.start @machine
@@ -160,7 +170,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
     {windowController, computeController} = kd.singletons
 
-    {statusToggle, statusLoader} = @modalTabs.forms.Settings.inputs
+    {statusToggle, statusLoader, diskUsage} = @modalTabs.forms.Settings.inputs
 
     statusToggle.hide()
 
@@ -187,6 +197,37 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         statusToggle.setOff no
         statusToggle.show()
 
+    diskUsage.updateBar 0, '%', 'checking usage...'
+
+    baseKite.systemInfo()
+
+      .then (info)->
+
+        format = kd.utils.formatBytesToHumanReadable
+
+        total  = info.diskTotal * 1024
+        usage  = info.diskUsage * 1024
+        free   = total - usage
+
+        kd.utils.wait 200, ->
+          diskUsage.updateBar \
+            (info.diskUsage / info.diskTotal) * 100, '%', format usage
+
+          diskUsage.setTooltip
+            title: "#{format total} total and #{format free} free"
+
+      .catch (err)->
+
+        warn "Failed to fetch system info for machine settings:", err
+        diskUsage.updateBar 0, '%', 'failed to fetch usage!'
+
+
+    if @machine.isPermanent()
+      statusToggle.setTooltip
+        title     : 'Only owners can change machine state.'
+        placement : 'right'
+
+      return
 
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
 
@@ -219,13 +260,23 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue : @machine.alwaysOn
           cssClass     : 'tiny'
           callback     : (state) => @emit 'AlwaysOnStateChange', state
+        sharedWith     :
+          label        : "
+            VM Shared With
+            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+              <span class='help'></span>
+            </a>
+            <span class='toggle'></span>
+          "
+          itemClass    : ManageSharedView
+          machine      : @machine
         domains        :
           label        : "
             Domains
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
-              <span class='domain-help'></span>
+              <span class='help'></span>
             </a>
-            <span class='domain-toggle'></span>
+            <span class='toggle'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine
@@ -233,22 +284,41 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           label        : "Advanced"
           itemClass    : KDCustomHTMLView
 
-    {advancedView, domains} = @moreForm.inputs
+    {advancedView, domains, sharedWith} = @moreForm.inputs
     advancedLabel = advancedView.getOption 'label'
 
     advancedLabel.on 'click', =>
       advancedLabel.toggleClass 'expanded'
       @buttonContainer.toggleClass 'hidden'
 
-    {label} = domains.getOptions()
+    domainLabel = domains.getOption 'label'
 
-    label.on 'click', (event)->
-      return  unless $(event.target).hasClass 'domain-toggle'
-      label.toggleClass 'expanded'
+    domainLabel.on 'click', (event)->
+      return  unless $(event.target).hasClass 'toggle'
+      domainLabel.toggleClass 'expanded'
       domains.toggleInput()
 
     domains.on 'DomainInputCancelled', ->
-      label.unsetClass 'expanded'
+      domainLabel.unsetClass 'expanded'
+
+    shareVMLabel = sharedWith.getOption 'label'
+
+    shareVMLabel.on 'click', (event)=>
+      return  unless $(event.target).hasClass 'toggle'
+
+      unless @isPaidAccount
+        kd.utils.defer =>
+          new ComputeErrorModal.Usage
+            plan    : 'free'
+            message : 'VM share feature is only available for paid accounts.'
+        @destroy()
+
+      else
+        shareVMLabel.toggleClass 'expanded'
+        sharedWith.toggleInput()
+
+    sharedWith.on 'UserInputCancelled', ->
+      shareVMLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
       cssClass : 'button-container hidden'
@@ -274,9 +344,11 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         computeController.destroy @machine
         @destroy()
 
-    @addSubView new KDCustomHTMLView
+    _addSubview = KDView::addSubView.bind this
+
+    _addSubview new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 20
+      position : top : 40
 
     computeController.fetchUserPlan (plan)=>
 

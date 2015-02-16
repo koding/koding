@@ -60,6 +60,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     super options
 
     {
+      mainController
       notificationController
       computeController
       socialapi
@@ -93,11 +94,15 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     computeController
       .on 'MachineDataModified',       @bound 'updateMachineTree'
-      .on 'RenderMachines',            @bound 'renderMachines'
+      .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
-    @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
+    # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
+
+    mainController.ready =>
+      kd.whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
+
 
   # event handling
 
@@ -107,8 +112,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if isChannelCollaborative channel
       if channelMessage.payload['system-message'] in ['start', 'stop']
-        @fetchMachines => @fetchWorkspaces =>
-          @setWorkspaceUnreadCount channel, unreadCount
+        alert 'acet, handle here... [messageAddedToChannel]'
+        # @fetchMachines => @fetchWorkspaces =>
+        #   @setWorkspaceUnreadCount channel, unreadCount
 
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
@@ -134,7 +140,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     return  unless item
 
-    {windowController, appManager} = kd.singletons
+    { windowController, appManager } = kd.singletons
 
     app = appManager.getFrontApp()
 
@@ -424,11 +430,14 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @selectedItem = candidates.first
 
 
-  deselectAllItems: ->
+  deselectAllItems: (route) ->
 
     @selectedItem = null
+    isVisitedIDE  = route?.params?.machineLabel
 
-    @machineTree.deselectAllNodes()
+    if @machineLists and not isVisitedIDE
+      for machineList in @machineLists
+        machineList.deselectMachinesAndCollapseWorkspaces()
 
     for own name, {listController} of @sections
       listController.deselectAllItems()
@@ -438,7 +447,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    @addVMTree()
+    @addMachineList()
     @addFollowedTopics()
     @addConversations()
 
@@ -486,7 +495,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         myMachineUIds    = []
 
         globals.userMachines.forEach (m) ->
-          if m.isMine()
+          if m.isMine() or m.isPermanent()
           then myMachineUIds.push m.uid
           else otherMachineUIds.push m.uid
 
@@ -509,13 +518,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             return  unless machine.isMine()
 
             for workspace in userWorkspaces \
-              when workspace.slug is 'my-workspace' \
+              when workspace and workspace.slug is 'my-workspace' \
               and workspace.machineUId is machine.uid
                 return
 
             userWorkspaces.push @getDummyWorkspace machine
 
-          globals.userWorkspaces     = userWorkspaces
+          globals.userWorkspaces  = userWorkspaces
           # workspacesFetched     = yes
           activitySidebar.updateMachineTree()
 
@@ -531,147 +540,156 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   listMachines: (machines) ->
 
-    treeData = []
-    nickname = nick()
+    # treeData = []
+    # nickname = KD.nick()
 
-    for machine in machines
+    # for machine in machines
 
-      treeData.push machine
+    #   treeData.push machine
 
-      treeData.push
-        title        : 'Workspaces'
-        type         : 'title'
-        parentId     : machine.getId()
-        id           : machine.getData().getId()
-        machineUId   : machine.uid
-        machineLabel : machine.slug or machine.label
+    #   unless machine.isPermanent()
+    #     treeData.push
+    #       title        : 'Workspaces'
+    #       type         : 'title'
+    #       parentId     : machine.getId()
+    #       id           : machine.getData().getId()
+    #       machineUId   : machine.uid
+    #       machineLabel : machine.slug or machine.label
 
-      ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
-      machineOwner = machine.getOwner()
-      isMyMachine  = machine.isMine()
-      ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
-      hasWorkspace = (globals.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
+    #   ideRoute     = "/IDE/#{machine.slug or machine.label}/my-workspace"
+    #   machineOwner = machine.getOwner()
+    #   isMyMachine  = machine.isMine()
+    #   ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
+    #   hasWorkspace = (KD.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
-      unless hasWorkspace
-        globals.userWorkspaces.push @getDummyWorkspace machine
+    #   if machine.isMine() and not hasWorkspace
+    #     KD.userWorkspaces.push @getDummyWorkspace machine
 
-      @sortWorkspaces globals.userWorkspaces
+    #   @sortWorkspaces KD.userWorkspaces
 
-      globals.userWorkspaces.forEach (workspace) ->
+    #   KD.userWorkspaces.forEach (workspace) ->
 
-        unless workspace instanceof remote.api.JWorkspace
-          workspace = remote.revive workspace
+    #     unless workspace instanceof KD.remote.api.JWorkspace
+    #       workspace = KD.remote.revive workspace
 
-        if workspace.machineUId is machine.uid
-          ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-          title    = "#{workspace.name}"
+    #     if workspace.machineUId is machine.uid
+    #       ideRoute = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+    #       title    = "#{workspace.name}"
 
-          unless isMyMachine
-            if channelId = workspace.channelId
-            then ideRoute = "/IDE/#{channelId}"
-            else
-              return
+    #       unless isMyMachine
+    #         if channelId = workspace.channelId
+    #         then ideRoute = "/IDE/#{channelId}"
+    #         else
+    #           return
 
-          if not workspace.isDefault or workspace.slug isnt 'my-workspace'
-            title += "<span class='ws-settings-icon'></span>"
+    #       if not workspace.isDefault or workspace.slug isnt 'my-workspace'
+    #         title += "<span class='ws-settings-icon'></span>"
 
-          treeData.push
-            title        : title
-            type         : 'workspace'
-            href         : ideRoute
-            machineLabel : machine.slug or machine.label
-            data         : workspace
-            id           : workspace._id
-            parentId     : machine.getId()
+    #       treeData.push
+    #         title        : title
+    #         type         : 'workspace'
+    #         href         : ideRoute
+    #         machineLabel : machine.slug or machine.label
+    #         data         : workspace
+    #         id           : workspace._id
+    #         parentId     : machine.getId()
 
-    for data in treeData
+    # for data in treeData
 
-      node = @machineTree.addNode data
+    #   node = @machineTree.addNode data
 
-      @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
+    #   @mapWorkspaceWithChannel data, node  if data.type is 'workspace'
 
-    @emit 'MachinesListed'
+    # @emit 'MachinesListed'
 
 
   getDummyWorkspace: (machine) ->
 
-    new remote.api.JWorkspace
-      _id          : "#{machine.getId()}-my-workspace"
-      isDummy      : yes
-      isDefault    : yes
-      originId     : whoami()._id # In case JAccount is not revived yet
-      slug         : 'my-workspace'
-      machineUId   : machine.uid
-      machineLabel : machine.label
-      name         : 'My Workspace'
+    # new KD.remote.api.JWorkspace
+    #   _id          : "#{machine.getId()}-my-workspace"
+    #   isDummy      : yes
+    #   isDefault    : yes
+    #   originId     : KD.whoami()._id # In case JAccount is not revived yet
+    #   slug         : 'my-workspace'
+    #   machineUId   : machine.uid
+    #   machineLabel : machine.label
+    #   name         : 'My Workspace'
 
 
   sortWorkspaces: (workspaces) ->
 
-    workspaces.sort (a, b) ->
-      switch
-        when a.slug is 'my-workspace' then -1
-        when b.slug is 'my-workspace' then 1
-        when a.slug < b.slug then -1
-        when a.slug > b.slug then 1
-        else 0
+    # workspaces.sort (a, b) ->
+    #   switch
+    #     when a.slug is 'my-workspace' then -1
+    #     when b.slug is 'my-workspace' then 1
+    #     when a.slug < b.slug then -1
+    #     when a.slug > b.slug then 1
+    #     else 0
 
 
   mapWorkspaceWithChannel: (data, node) ->
 
-    return  unless data.data?.channelId?
+    # return  unless data.data?.channelId?
 
-    { channelId } = data.data
+    # { channelId } = data.data
 
-    @workspaceItemChannelMap[channelId] = node
+    # @workspaceItemChannelMap[channelId] = node
 
 
   selectWorkspace: (data) ->
 
-    data = @latestWorkspaceData or {}  unless data
-    { workspace, machine } = data
+    { machine, workspace } = data
 
-    return if not machine or not workspace
+    for machineList in @machineLists
+      machineList.selectMachineAndWorkspace machine.uid, workspace.slug
 
-    tree = @machineTree
+    # data = @latestWorkspaceData or {}  unless data
+    # { workspace, machine } = data
 
-    for key, node of tree.nodes
-      nodeData         = node.getData()
-      isSameMachine    = nodeData.uid is machine.uid
-      isMachineRunning = machine.status.state is Machine.State.Running
+    # return if not machine or not workspace
 
-      if node.type is 'machine'
-        if isSameMachine
-          if isMachineRunning
-            tree.expand node
-          else
-            tree.selectNode node
-            @watchMachineState workspace, machine
-        else
-          tree.collapse node
+    # tree = @machineTree
 
-      else if node.type is 'workspace'
-        if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
-          slug = nodeData.data?.slug or kd.utils.slugify nodeData.title
-          tree.selectNode node  if slug is workspace.slug
+    # for key, node of tree.nodes
+    #   nodeData         = node.getData()
+    #   isSameMachine    = nodeData.uid is machine.uid
+    #   isMachineRunning = machine.status.state is Machine.State.Running
 
-    @latestWorkspaceData = data
+    #   if node.type is 'machine'
+    #     if isSameMachine
+    #       if isMachineRunning
+    #         tree.expand node
+    #       else
+    #         tree.selectNode node
+    #         @watchMachineState data
+    #     else
+    #       tree.collapse node
 
-    localStorage         = kd.getSingleton("localStorageController").storage "IDE"
+    #   else if node.type is 'workspace'
+    #     if isMachineRunning and nodeData.machineLabel is (machine.slug or machine.label)
+    #       slug = nodeData.data?.slug or KD.utils.slugify nodeData.title
+    #       tree.selectNode node  if slug is workspace.slug
 
-    minimumDataToStore =
-      machineLabel     : machine.slug or machine.label
-      workspaceSlug    : workspace.slug
-      channelId        : data.channelId
+    # @latestWorkspaceData = data
 
-    localStorage.setValue 'LatestWorkspace', minimumDataToStore
+    # localStorage, what a good name, acet!
+    # localStorage = KD.getSingleton("localStorageController").storage "IDE"
+
+    # minimumDataToStore =
+    #   machineLabel     : machine.slug or machine.label
+    #   workspaceSlug    : workspace.slug
+    #   channelId        : data.channelId
+
+    # localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
-  watchMachineState: (workspace, machine) ->
+  watchMachineState: (data) ->
+
+    {workspace, machine} = data
+
     @watchedMachines  or= {}
-    computeController   = kd.getSingleton 'computeController'
-    appManager          = kd.getSingleton 'appManager'
-    {Running}           = Machine.State
+
+    {Running} = Machine.State
 
     return  if @watchedMachines[machine._id]
 
@@ -681,100 +699,141 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         if appManager.getFrontApp().mountedMachineUId is machine.uid
           delete @watchedMachines[machine._id]
 
-    computeController.on "public-#{machine._id}", callback
+      machine.status.state = Running
+      delete @watchedMachines[machine._id]
+
+      if data is @latestWorkspaceData
+        @selectWorkspace data
+
+    KD.getSingleton 'computeController'
+      .on "public-#{machine._id}", callback
+
     @watchedMachines[machine._id] = yes
 
 
   fetchMachines: (callback) ->
 
-    {computeController} = kd.singletons
-
-    # force refetch from server everytime machines fetched.
-    computeController.reset()
-    computeController.fetchMachines (err, machines)=>
+    KD.remote.api.Sidebar.fetchEnvironment (err, data) =>
       if err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
-      callback machines
+      callback data
 
 
-  addVMTree: ->
+    # {computeController} = KD.singletons
 
-    @addSubView section = new KDCustomHTMLView
-      tagName  : 'section'
-      cssClass : 'vms'
+    # force refetch from server everytime machines fetched.
+    # computeController.reset()
+    # computeController.fetchMachines (err, machines)=>
+    #   if err
+    #     return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 
-    @machineTree = new JTreeViewController
-      type                : 'main-nav'
-      treeItemClass       : NavigationItem
-      addListsCollapsed   : yes
-
-    @machineTree.getView().unsetClass 'kdscrollview'
-
-    # This is temporary, we will create a separate TreeViewController
-    # for this and put this logic into there ~ FIXME ~ GG
-    @machineTree.dblClick = (nodeView, event)->
-      machine = nodeView.getData()
-      if machine.status?.state is Machine.State.Running
-        @toggle nodeView
-
-    section.addSubView header = new KDCustomHTMLView
-      tagName  : 'h3'
-      cssClass : 'sidebar-title'
-      partial  : 'VMs'
-      click    : @bound 'handleMoreVMsClick'
-
-    header.addSubView new CustomLinkView
-      cssClass : 'add-icon buy-vm'
-      title    : ' '
-
-    section.addSubView @machineTree.getView()
-
-    @machineTree.on 'NodeWasAdded', (machineItem) =>
-      machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
-
-    if globals.userMachines.length
-    then @listMachines (new Machine machine: (remote.revive machine) for machine in globals.userMachines)
-    else @fetchMachines @bound 'listMachines'
+    #   callback machines
 
 
-  handleMachineItemClick: (machineItem, event) ->
-
-    machine  = machineItem.getData()
-    {status} = machine
-    {Building, Running} = Machine.State
-
-    @activityLink?.unsetClass 'selected'
-
-    if event.target.nodeName is 'SPAN'
-
-      if status?.state is Running
-        kd.utils.stopDOMEvent event
-        kd.singletons.mainView.openMachineModal machine, machineItem
-      else return
-
-    else if machineItem.getData().status?.state is Machine.State.Building
-
-      return
 
 
-  handleMoreVMsClick: (ev) ->
+  # addVMTree: ->
 
-    kd.utils.stopDOMEvent ev
+  #   @addSubView section = new KDCustomHTMLView
+  #     tagName  : 'section'
+  #     cssClass : 'vms'
 
-    if 'add-icon' in ev.target.classList
-    then ComputeHelpers.handleNewMachineRequest()
-    else new MoreVMsModal {}, globals.userMachines
+  #   @machineTree = new JTreeViewController
+  #     type                : 'main-nav'
+  #     treeItemClass       : NavigationItem
+  #     addListsCollapsed   : yes
+
+  #   @machineTree.getView().unsetClass 'kdscrollview'
+
+  #   # This is temporary, we will create a separate TreeViewController
+  #   # for this and put this logic into there ~ FIXME ~ GG
+  #   @machineTree.dblClick = (nodeView, event)->
+  #     machine = nodeView.getData()
+  #     if machine.status?.state is Machine.State.Running
+  #       @toggle nodeView
+
+  #   section.addSubView header = new KDCustomHTMLView
+  #     tagName  : 'h3'
+  #     cssClass : 'sidebar-title'
+  #     partial  : 'VMs'
+  #     click    : @bound 'handleMoreVMsClick'
+
+  #   header.addSubView new CustomLinkView
+  #     cssClass : 'add-icon buy-vm'
+  #     title    : ' '
+
+  #   section.addSubView @machineTree.getView()
+
+  #   @machineTree.on 'NodeWasAdded', (machineItem) =>
+  #     machineItem.on 'click', @lazyBound 'handleMachineItemClick', machineItem
+
+  #   if KD.userMachines.length
+  #   then @listMachines (new Machine machine: (KD.remote.revive machine) for machine in KD.userMachines)
+  #   else @fetchMachines @bound 'listMachines'
 
 
-  handleMoreWorkspacesClick: (data) ->
-    workspaces = for workspace in globals.userWorkspaces when workspace.machineUId is data.machineUId
-      workspace.machineLabel = data.machineLabel
-      workspace
+  addMachineList: ->
 
-    data.workspaces = workspaces or []
+    @fetchMachines (machines) =>
+      @machineLists = []
+      @machineListsByName = {}
+      @addSubView @ownMachinesList = new SidebarOwnMachinesList {}, machines.own
 
-    new MoreWorkspacesModal {}, data
+      @machineLists.push @ownMachinesList
+      @machineListsByName.own = @ownMachinesList
+
+
+  # handleMachineItemClick: (machineItem, event) ->
+
+  #   machine  = machineItem.getData()
+  #   {status} = machine
+  #   {Building, Running} = Machine.State
+
+  #   @activityLink?.unsetClass 'selected'
+
+  #   if event.target.nodeName is 'SPAN'
+
+  #     if status?.state is Running
+  #       KD.utils.stopDOMEvent event
+  #       KD.singletons.mainView.openMachineModal machine, machineItem
+  #     else return
+
+  #   else if machineItem.getData().status?.state is Machine.State.Building
+
+  #     return
+
+
+  # handleMoreVMsClick: (ev) ->
+
+  #   KD.utils.stopDOMEvent ev
+
+  #   if 'add-icon' in ev.target.classList
+  #   then ComputeHelpers.handleNewMachineRequest()
+  #   else new MoreVMsModal {}, KD.userMachines
+
+
+  # handleMoreWorkspacesClick: (data) ->
+  #   workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
+  #     workspace.machineLabel = data.machineLabel
+  #     workspace
+
+  # ======= start of conflict block
+  # ======= preserved conflict since it's already commented out on refactor
+  # handleMoreWorkspacesClick: (data) ->
+
+  #   machine = m for m in KD.userMachines when m.uid is data.machineUId
+
+  #   return no  if not machine or not machine.isMine()
+
+  #   workspaces = for workspace in KD.userWorkspaces when workspace.machineUId is data.machineUId
+  #     workspace.machineLabel = data.machineLabel
+  #     workspace
+  # ======= end of conflict block
+
+  #   data.workspaces = workspaces or []
+
+  #   new MoreWorkspacesModal {}, data
 
 
   addFollowedTopics: ->
@@ -816,9 +875,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       noItemText : 'You didn\'t participate in any conversations yet.'
       headerLink : groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
-        kd.singletons.socialapi.channel.fetchPinnedMessages
-          limit : 5
-        , callback
+        # we disabled pinned messages a long time ago but we are still sending
+        # the requests to the backed, those are useless operations ~ CS
+        return callback null, null
+
+        # kd.singletons.socialapi.channel.fetchPinnedMessages
+        #   limit : 5
+        # , callback
 
     if kd.singletons.mainController.isFeatureDisabled 'threads'
       @sections.conversations.hide()
@@ -876,110 +939,110 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
 
 
-  addNewWorkspace: (machineData) ->
-    return if @addWorkspaceView
+  # addNewWorkspace: (machineData) ->
+  #   return if @addWorkspaceView
 
-    {machineUId, machineLabel, delegate} = machineData
-    type     = 'new-workspace'
-    parentId = machineUId
-    id       = "#{machineUId}-input"
-    data     = { type, machineUId, machineLabel, parentId, id }
-    tree     = @machineTree
+  #   {machineUId, machineLabel, delegate} = machineData
+  #   type     = 'new-workspace'
+  #   parentId = machineUId
+  #   id       = "#{machineUId}-input"
+  #   data     = { type, machineUId, machineLabel, parentId, id }
+  #   tree     = @machineTree
 
-    @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
+  #   @addWorkspaceView = delegate.addItem { type, machineUId, machineLabel }
 
-    @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
-      delegate.removeItem @addWorkspaceView
-      @addWorkspaceView = null
+  #   @addWorkspaceView.child.once 'KDObjectWillBeDestroyed', =>
+  #     delegate.removeItem @addWorkspaceView
+  #     @addWorkspaceView = null
 
-    kd.utils.wait 177, => @addWorkspaceView.child.input.setFocus()
-
-
-  createNewWorkspace: (options = {}) ->
-    {name, machineUId, rootPath, machineLabel} = options
-    {computeController, router } = kd.singletons
-    layout = {}
-
-    if not name or not machineUId
-      return kd.warn 'Missing options to create a new workspace'
-
-    machine = m for m in computeController.machines when m.uid is machineUId
-    data    = { name, machineUId, machineLabel, rootPath, layout }
-
-    return kd.warn "Machine not found."  unless machine
-
-    remote.api.JWorkspace.create data, (err, workspace) =>
-      if err
-        @emit 'WorkspaceCreateFailed'
-        return showError "Couldn't create your new workspace"
-
-      folderOptions  =
-        type         : 'folder'
-        path         : workspace.rootPath
-        recursive    : yes
-        samePathOnly : yes
-
-      machine.fs.create folderOptions, (err, folder) =>
-        if err
-          @emit 'WorkspaceCreateFailed'
-          return showError "Couldn't create your new workspace"
-
-        filePath   = "#{workspace.rootPath}/README.md"
-        readMeFile = FSHelper.createFileInstance { path: filePath, machine }
-
-        readMeFile.save globals.WORKSPACE_WELCOME_TXT, (err) =>
-          if err
-            @emit 'WorkspaceCreateFailed'
-            return showError "Couldn't create your new workspace"
-
-          for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
-            parentId = nodeData.id
-
-          view    = @addWorkspaceView
-          data    =
-            title : "#{workspace.name} <span class='ws-settings-icon'></span>"
-            type  : 'workspace'
-            href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-            data  : workspace
-            id    : workspace._id
-            machineLabel : machineLabel
-            parentId: parentId
-
-          if view
-            list  = view.getDelegate()
-            list.removeItem view  if view
-          else
-            for key, node of @machineTree.nodes when node.type is 'title'
-              list = node.getDelegate()
-
-          globals.userWorkspaces.push workspace
-          @sortWorkspaces globals.userWorkspaces
-
-          index = 1 + globals.userWorkspaces
-            .filter (w) -> w.machineUId is machine.uid
-            .map    (w) -> w.slug
-            .indexOf workspace.slug
-
-          @machineTree.addNode data, index
-
-          router.handleRoute data.href
-          @emit 'WorkspaceCreated', workspace
+  #   KD.utils.wait 177, => @addWorkspaceView.child.input.setFocus()
 
 
-  updateMachineTree: (callback = kd.noop) ->
+  # createNewWorkspace: (options = {}) ->
+
+  #   {name, machineUId, rootPath, machineLabel} = options
+  #   {computeController, router } = KD.singletons
+  #   layout = {}
+
+  #   if not name or not machineUId
+  #     return warn 'Missing options to create a new workspace'
+
+  #   machine = m for m in computeController.machines when m.uid is machineUId
+  #   data    = { name, machineUId, machineLabel, rootPath, layout }
+
+  #   return warn "Machine not found."  unless machine
+
+  #   KD.remote.api.JWorkspace.create data, (err, workspace) =>
+  #     if err
+  #       @emit 'WorkspaceCreateFailed'
+  #       return KD.showError "Couldn't create your new workspace"
+
+  #     folderOptions  =
+  #       type         : 'folder'
+  #       path         : workspace.rootPath
+  #       recursive    : yes
+  #       samePathOnly : yes
+
+  #     machine.fs.create folderOptions, (err, folder) =>
+  #       if err
+  #         @emit 'WorkspaceCreateFailed'
+  #         return KD.showError "Couldn't create your new workspace"
+
+  #       filePath   = "#{workspace.rootPath}/README.md"
+  #       readMeFile = FSHelper.createFileInstance { path: filePath, machine }
+
+  #       readMeFile.save IDE.contents.workspace, (err) =>
+  #         if err
+  #           @emit 'WorkspaceCreateFailed'
+  #           return KD.showError "Couldn't create your new workspace"
+
+  #         for nodeData in @machineTree.indexedNodes when nodeData.uid is machine.uid
+  #           parentId = nodeData.id
+
+  #         view    = @addWorkspaceView
+  #         data    =
+  #           title : "#{workspace.name} <span class='ws-settings-icon'></span>"
+  #           type  : 'workspace'
+  #           href  : "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+  #           data  : workspace
+  #           id    : workspace._id
+  #           machineLabel : machineLabel
+  #           parentId: parentId
+
+  #         if view
+  #           list  = view.getDelegate()
+  #           list.removeItem view  if view
+  #         else
+  #           for key, node of @machineTree.nodes when node.type is 'title'
+  #             list = node.getDelegate()
+
+  #         KD.userWorkspaces.push workspace
+  #         @sortWorkspaces KD.userWorkspaces
+
+  #         index = 1 + KD.userWorkspaces
+  #           .filter (w) -> w.machineUId is machine.uid
+  #           .map    (w) -> w.slug
+  #           .indexOf workspace.slug
+
+  #         @machineTree.addNode data, index
+
+  #         router.handleRoute data.href
+  #         @emit 'WorkspaceCreated', workspace
+
+
+  updateMachineTree: ->
+
+
+  updateMachines: (callback = noop) ->
 
     @fetchMachines (machines) =>
+      @ownMachinesList.updateList machines.own
 
-      @renderMachines machines, callback
 
+    # @machineTree.removeAllNodes()
+    # @listMachines machines
 
-  renderMachines: (machines, callback = kd.noop)->
-
-    @machineTree.removeAllNodes()
-    @listMachines machines
-
-    @selectWorkspace()
-    callback()
+    # @selectWorkspace()
 
 
   invalidateWorkspaces: (machine)->
@@ -997,10 +1060,30 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
 
   removeMachineNode: (machine) ->
-    {nodes}    = @machineTree
-    {jMachine} = machine
 
-    for nodeId, node of nodes when node.data?.jMachine is jMachine
-      @machineTree.removeNode nodeId
+    box = @getMachineBoxByMachineUId machine.uid
+    box?.destroy()
 
 
+  getMachineBoxByMachineUId: (uid) ->
+
+    box = null
+
+    for machineList in @machineLists
+      for machineBox in machineList.machineBoxes
+        if machineBox.machine.uid is uid
+          box = machineBox
+
+    return box
+
+
+  newWorkspaceCreated: (workspace) ->
+
+    matches = globals.userWorkspaces.filter (w) ->
+      w.machineUId is workspace.machineUId and \
+      w.slug is workspace.slug
+
+    return  if matches.length
+
+    globals.userWorkspaces.push workspace
+    @updateMachineTree()

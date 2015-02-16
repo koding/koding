@@ -33,7 +33,10 @@ module.exports = class NavigationMachineItem extends JView
         if ws.machineUId is machine.uid and ws.channelId
           channelId = ws.channelId
 
-      ideRoute = "/IDE/#{channelId}"
+      ideRoute = if channelId
+        "/IDE/#{channelId}"
+      else
+        "/IDE/#{machine.uid}/my-workspace"
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
@@ -64,6 +67,13 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
+    if @getData().isMine()
+      @settingsIcon = new KDCustomHTMLView
+        tagName     : 'span'
+        click       : @bound 'handleMachineSettingsClick'
+    else
+      @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
+
     kd.singletons.computeController
 
       .on "public-#{@machine._id}", (event)=>
@@ -83,6 +93,19 @@ module.exports = class NavigationMachineItem extends JView
       #   @setAttributes
       #     href   : newPath
       #     title  : "Open IDE for #{@alias}"
+
+
+  handleMachineSettingsClick: (event) ->
+
+    machine    = @getData()
+    { status } = machine
+    { Building, Running } = Machine.State
+
+    kd.utils.stopDOMEvent event
+
+    if status?.state is Running
+      kd.singletons.mainView.openMachineModal machine, this
+    else return
 
 
   handleMachineEvent: (event) ->
@@ -118,13 +141,11 @@ module.exports = class NavigationMachineItem extends JView
       kd.utils.wait 1000, @progress.bound 'hide'
 
 
-  pistachio:->
+  pistachio: ->
 
     return """
       <figure></figure>
       {{> @label}}
-      <span></span>
+      {{> @settingsIcon}}
       {{> @progress}}
     """
-
-
