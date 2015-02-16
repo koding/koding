@@ -80,6 +80,22 @@ func (t *Terminal) DeleteUserSession(username, session string) {
 	}
 }
 
+// RenameUserSession renames the given users session in the Users map
+func (t *Terminal) RenameUserSession(username, oldName, newName string) error {
+	t.Lock()
+	defer t.Unlock()
+
+	user, ok := t.Users[username]
+	if !ok {
+		return errors.New("username not available")
+	}
+
+	user.RenameSession(oldName, newName)
+	t.Users[username] = user
+
+	return nil
+}
+
 // KillSession kills the given screen session
 func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 	var params struct {
@@ -108,6 +124,34 @@ func (t *Terminal) KillSessions(r *kite.Request) (interface{}, error) {
 	if err := killSessions(r.Username); err != nil {
 		return nil, err
 	}
+
+	return true, nil
+}
+
+// RenameSession renames the given session to the new session name
+func (t *Terminal) RenameSession(r *kite.Request) (interface{}, error) {
+	var params struct {
+		OldName string `json:"oldName"`
+		NewName string `json:"newName"`
+	}
+
+	if r.Args.One().Unmarshal(&params) != nil {
+		return nil, errors.New("{ oldName: [string] newName: [string] }")
+	}
+
+	if params.OldName == "" {
+		return nil, errors.New("session name empty")
+	}
+
+	if params.NewName == "" {
+		return nil, errors.New("session name to be renamed is empty")
+	}
+
+	if err := renameSession(params.OldName, params.NewName); err != nil {
+		return nil, err
+	}
+
+	t.RenameUserSession(r.Username, params.OldName, params.NewName)
 
 	return true, nil
 }
@@ -223,7 +267,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 
 	// Read the STDOUT from shell process and send to the connected client.
 	go func() {
-		buf := make([]byte, (1<<12)-utf8.UTFMax, 1<<12)
+		buf := make([]byte, (4096)-utf8.UTFMax, 4096)
 		for {
 			n, err := server.pty.Master.Read(buf)
 			for n < cap(buf)-1 {

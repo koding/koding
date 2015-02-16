@@ -183,6 +183,7 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("webterm.connect", k.terminal.Connect)
 	k.kite.HandleFunc("webterm.killSession", k.terminal.KillSession)
 	k.kite.HandleFunc("webterm.killSessions", k.terminal.KillSessions)
+	k.kite.HandleFunc("webterm.rename", k.terminal.RenameSession)
 
 	k.kite.OnFirstRequest(func(c *kite.Client) {
 		// Koding (kloud) connects to much, don't display it.

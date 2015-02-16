@@ -1,6 +1,9 @@
 package terminal
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
 
 type User struct {
 	username   string
@@ -49,6 +52,27 @@ func (u *User) DeleteSession(session string) {
 	defer u.Unlock()
 
 	delete(u.Sessions, session)
+}
+
+func (u *User) RenameSession(oldName, newName string) error {
+	u.Lock()
+	defer u.Unlock()
+
+	server, ok := u.Sessions[oldName]
+	if !ok {
+		return errors.New("session not available")
+	}
+
+	// check so we don't override already existing session
+	_, ok = u.Sessions[newName]
+	if !ok {
+		return errors.New("new session exists already")
+	}
+
+	delete(u.Sessions, oldName)
+	u.Sessions[newName] = server
+
+	return nil
 }
 
 // CloseSessions close the users all active sessions

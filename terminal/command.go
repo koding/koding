@@ -98,7 +98,10 @@ func newCommand(mode, session, username string) (*Command, error) {
 		name = defaultShell
 		args = []string{}
 	case "create":
-		session = randomString()
+		// if the user didn't send a session name, create a custom randomized
+		if session == "" {
+			session = randomString()
+		}
 		args = append(args, sessionPrefix+"."+session)
 	default:
 		return nil, fmt.Errorf("mode '%s' is unknown. Valid modes are:  [shared|noscreen|resume|create]", mode)
@@ -169,6 +172,15 @@ func killSession(session string) error {
 	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+session, "kill").Output()
 	if err != nil {
 		return commandError("screen kill failed", err, out)
+	}
+
+	return nil
+}
+
+func renameSession(oldName, newName string) error {
+	out, err := exec.Command(defaultScreenPath, "-X", "-S", sessionPrefix+"."+oldName, "sessionname", newName).Output()
+	if err != nil {
+		return commandError("screen renaming failed", err, out)
 	}
 
 	return nil
