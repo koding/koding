@@ -146,7 +146,7 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (
 
   # opts.globals.modules = modules
 
-  b = watchify browserify xtend opts.browserify, watchify.args
+  b = browserify xtend opts.browserify, watchify.args
     .transform coffeeify, global: yes
     .transform pistachioify, global: yes
     .transform rewritify,
@@ -154,6 +154,8 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (
       extensions: ['coffee']
       basedir: __dirname
       mapping: mapping
+
+  b = watchify b  if devMode
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->

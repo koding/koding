@@ -2,9 +2,11 @@ BIN=./node_modules/.bin
 
 all:
 	@clear
-	@DEBUG=client:* $(BIN)/gulp
+	@DEBUG=client:* $(BIN)/gulp --devMode
 
 scripts:
 	@clear
-	@DEBUG=client:* $(BIN)/gulp scripts
+	@DEBUG=client:* $(BIN)/gulp scripts --devMode
 
+build:
+	@DEBUG=client:* $(BIN)/gulp
