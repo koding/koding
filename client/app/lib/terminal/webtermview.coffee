@@ -278,6 +278,12 @@ module.exports = class WebTermView extends KDCustomScrollView
       mainView.toggleFullscreen()
       event.preventDefault()
 
+  triggerFitToWindow: ->
+
+    return  unless @terminal?.server?
+
+    @terminal.server.controlSequence String.fromCharCode 2
+    @terminal.server.input 'F'
 
   mainTabPaneShown: (pane) ->
 
@@ -285,5 +291,3 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     el = @container.getElement()
     el.scrollTop = el.scrollHeight
-
-
