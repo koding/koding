@@ -50,7 +50,7 @@ module.exports = class EnvironmentDomainContainer extends EnvironmentContainer
         buttons        :
           createButton :
             title      : "Create"
-            style      : "modal-clean-green"
+            style      : "solid green medium"
             type       : "button"
             loader     :
               color    : "#1aaf5d"

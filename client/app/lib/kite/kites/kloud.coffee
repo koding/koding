@@ -69,7 +69,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     {klient} = kontrol.kites
     machine  = computeController.findMachineFromMachineId machineId
 
-    unless machineId?
+    if not machine or not machineId
       return callback null
 
     klientKite = klient?[machine.uid]
