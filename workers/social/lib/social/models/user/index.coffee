@@ -793,7 +793,7 @@ module.exports = class JUser extends jraphical.Module
             }
 
 
-  @validateAll = (userFormData, skipValidationFor, callback)=>
+  @validateAll = (userFormData, callback)=>
 
     validator  = require './validators'
 
@@ -802,8 +802,6 @@ module.exports = class JUser extends jraphical.Module
     queue      = []
 
     (key for key of validator).forEach (field)=>
-
-      return  if (skipValidationFor.indexOf field) > -1
 
       queue.push => validator[field].call this, userFormData, (err)->
 
@@ -886,19 +884,20 @@ module.exports = class JUser extends jraphical.Module
     error          = null
 
     aNewRegister   = oldUsername is 'guestuser'
-    isOauthUser    = no
 
     queue = [
       =>
         @extractOauthFromSession client.sessionToken, (err, foreignAuthInfo)=>
           return callback err  if err
-          isOauthUser = foreignAuthInfo?
+
+          if foreignAuthInfo?.foreignAuthType is 'github' and not password?
+            password = userFormData.password = createId()
+            passwordConfirm = userFormData.passwordConfirm = password
+
           queue.next()
 
       =>
-        skipValidationFor = []
-        skipValidationFor.push "password"  if isOauthUser
-        @validateAll userFormData, skipValidationFor, (err) =>
+        @validateAll userFormData, (err) =>
           return callback err  if err
           queue.next()
 
@@ -1000,9 +999,6 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
-        if isOauthUser
-          return queue.next()
-
         user.setPassword password, (err) ->
           return callback err  if err?
           queue.next()
