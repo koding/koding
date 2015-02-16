@@ -373,13 +373,6 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
-    # clientWatcher       :
-    #   group             : "webserver"
-    #   supervisord       :
-    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
-
-
-
     # Social API workers
     socialapi           :
       group             : "socialapi"
