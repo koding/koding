@@ -45,7 +45,7 @@ module.exports = class ShowMoreDataModalView extends KDModalView
     options.cssClass = css
     options.buttons  =
       Close :
-        style : "modal-clean-gray"
+        style : "solid light-gray medium"
         callback : =>
           @destroy()
 

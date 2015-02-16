@@ -9,6 +9,7 @@ KDFormViewWithFields = kd.FormViewWithFields
 KDHitEnterInputView = kd.HitEnterInputView
 KDLoaderView = kd.LoaderView
 KDModalViewWithForms = kd.ModalViewWithForms
+KDProgressBarView = kd.ProgressBarView
 KDView = kd.View
 CustomLinkView = require '../customlinkview'
 GuidesLinksView = require '../guideslinksview'
@@ -76,6 +77,10 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
               loaderOptions :
                 color   : '#333333'
               showLoader: yes
+        diskUsage       :
+          label         : 'Disk Usage'
+          itemClass     : KDProgressBarView
+          cssClass      : if running then 'disk-usage' else 'hidden'
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
@@ -84,7 +89,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         specs           :
           label         : "Specs"
           itemClass     : KDView
-          partial       : "1GB RAM, 1Core, #{storage}GB Disk"
+          partial       : "1GB RAM, 1Core CPU, #{storage}GB Disk"
         provider        :
           label         : "Provider"
           itemClass     : CustomLinkView
@@ -160,7 +165,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
     {windowController, computeController} = kd.singletons
 
-    {statusToggle, statusLoader} = @modalTabs.forms.Settings.inputs
+    {statusToggle, statusLoader, diskUsage} = @modalTabs.forms.Settings.inputs
 
     statusToggle.hide()
 
@@ -186,6 +191,30 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         statusLoader.hide()
         statusToggle.setOff no
         statusToggle.show()
+
+    diskUsage.updateBar 0, '%', 'checking usage...'
+
+    baseKite.systemInfo()
+
+      .then (info)->
+
+        format = kd.utils.formatBytesToHumanReadable
+
+        total  = info.diskTotal * 1024
+        usage  = info.diskUsage * 1024
+        free   = total - usage
+
+        kd.utils.wait 200, ->
+          diskUsage.updateBar \
+            (info.diskUsage / info.diskTotal) * 100, '%', format usage
+
+          diskUsage.setTooltip
+            title: "#{format total} total and #{format free} free"
+
+      .catch (err)->
+
+        kd.warn "Failed to fetch system info for machine settings:", err
+        diskUsage.updateBar 0, '%', 'failed to fetch usage!'
 
 
     {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
@@ -274,9 +303,11 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         computeController.destroy @machine
         @destroy()
 
-    @addSubView new KDCustomHTMLView
+    _addSubview = KDView::addSubView.bind this
+
+    _addSubview new KDCustomHTMLView
       cssClass : 'modal-arrow'
-      position : top : 20
+      position : top : 40
 
     computeController.fetchUserPlan (plan)=>
 

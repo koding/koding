@@ -26,9 +26,10 @@ module.exports = class VerifyPasswordModal extends KDModalViewWithForms
             buttons               :
               Submit              :
                 title             : buttonTitle
-                cssClass          : "modal-clean-green"
+                style             : "solid green medium"
                 type              : "submit"
               Forgot              :
+                style             : "solid light-gray medium"
                 title             : "Forgot Password?"
                 callback          : =>
                   {entryPoint} = globals.config

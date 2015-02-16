@@ -586,6 +586,16 @@ module.exports = class ComputeController extends KDController
         callback err, machine
 
 
+  @reviveProvisioner = (machine, callback)->
+
+    provisioner = machine.provisioners.first
+
+    return callback null  unless provisioner
+
+    {JProvisioner} = remote.api
+    JProvisioner.one slug: provisioner, callback
+
+
   @runInitScript = (machine, inTerminal = yes)->
 
     { status: { state } } = machine
@@ -679,14 +689,33 @@ module.exports = class ComputeController extends KDController
     .nodeify callback
 
 
-  fetchPlanCombo:(provider, callback)->
+  fetchPlanCombo: (provider, callback)->
 
     [callback, provider] = [provider, callback]  unless callback?
     provider ?= "koding"
 
     @fetchUserPlan (plan)=> @fetchPlans (plans)=>
-      @fetchUsage { provider }, (err, usage)->
-        callback err, { plan, plans, usage }
+      @fetchUsage { provider }, (err, usage)=>
+        @fetchRewards { unit: 'GB' }, (err, reward)->
+          callback err, { plan, plans, usage, reward }
+
+  fetchRewards: (options, callback)->
+
+    {unit} = options
+
+    options =
+      unit  : 'MB'
+      type  : 'disk'
+
+    remote.api.JReward.fetchEarnedAmount options, (err, amount)->
+
+      if err
+        amount = 0
+        kd.warn err
+
+      amount = Math.floor amount / 1000  if unit is 'GB'
+
+      callback null, amount
 
 
   findMachineFromMachineId: (machineId)->

@@ -14,7 +14,7 @@ module.exports = class DomainDeletionModal extends KDModalView
     options.deleteMesage or= "<b>#{data.domain}</b> has been removed."
     options.buttons      or=
       "Remove"   :
-        cssClass : "modal-clean-red"
+        cssClass : "solid red medium"
         callback : =>
           domain = @getData()
           domain.remove (err)=>
@@ -28,7 +28,7 @@ module.exports = class DomainDeletionModal extends KDModalView
               duration : 5000
 
       "Keep it"  :
-        cssClass : "modal-clean-green"
+        cssClass : "solid green medium"
         callback : => @cancel()
 
     super options, data
