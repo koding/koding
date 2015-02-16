@@ -233,9 +233,16 @@ module.exports.create = (KONFIG, environment)->
       # just a random port
       listen #{if environment is "dev" then 8091 else 81};
 
+      # why we have 2 different if checks? because www redirector block catches
+      # all the requests, we should be more precise with the host
 
       # redirect http://kodingen.com to https://koding.com
       if ($host = "kodingen.com") {
+        return 301 https://koding.com;
+      }
+
+      # redirect http://www.kodingen.com to https://koding.com
+      if ($host = "www.kodingen.com") {
         return 301 https://koding.com;
       }
 
