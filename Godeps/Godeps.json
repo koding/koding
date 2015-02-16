@@ -106,7 +106,7 @@
 		},
 		{
 			"ImportPath": "github.com/koding/kite",
-			"Rev": "c0c40a2b933d426516e36b60387b5c20d7c32f92"
+			"Rev": "eae05a24fcde797befffdf6b2571840630639a0b"
 		},
 		{
 			"ImportPath": "github.com/koding/logging",
