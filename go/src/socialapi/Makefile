@@ -126,6 +126,10 @@ gatekeeperdev:
 	@echo "$(OK_COLOR)==> Running Gatekeeper Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(METRICS)
 
+collaborationdev:
+	@echo "$(OK_COLOR)==> Running Collaboration Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -c $(CONFIG) $(DBG) $(METRICS)
+
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
