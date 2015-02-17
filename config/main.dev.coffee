@@ -2,6 +2,7 @@ traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
 os                    = require 'os'
+path                  = require 'path'
 
 Configuration = (options={}) ->
 
@@ -14,7 +15,7 @@ Configuration = (options={}) ->
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
   environment         = options.environment    or "dev"
-  projectRoot         = options.projectRoot    or __dirname
+  projectRoot         = options.projectRoot    or path.join __dirname, '/..'
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
