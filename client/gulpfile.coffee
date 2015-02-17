@@ -135,7 +135,28 @@ gulp.task 'copy-thirdparty', ['create-dirs'], (callback) ->
         callback()  if i - j is 0
 
 
-gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (callback) ->
+gulp.task 'copy-assets', ['create-dirs'], (callback) ->
+
+  i = 0
+
+  glob 'assets/**/*', nodir: yes, (err, files) ->
+    i = files.length - 1
+
+    throw err  if err
+
+    files.forEach (file, j) ->
+      return  if file is 'assets/Readme.md'
+
+      components = file.split('/').slice(0, -1).join '/'
+
+      mkdirp "#{opts.outdir}/#{components}", (err) ->
+        throw err  if err
+        stream = fs.createReadStream "#{__dirname}/#{file}"
+        stream.pipe fs.createWriteStream "#{opts.outdir}/#{file}"
+        callback()  if i - j is 0
+
+
+gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'copy-assets'], (callback) ->
 
   debug "modules:\t#{modules.join ', '}"
   debug "outdir:\t#{opts.outdir}"
@@ -157,6 +178,7 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (
       mapping: mapping
 
   b = watchify b  if devMode
+
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->

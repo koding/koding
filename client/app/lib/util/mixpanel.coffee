@@ -1,6 +1,6 @@
 globals = require 'globals'
 whoami = require './whoami'
-isLoggedIn = require './isloggedin'
+isLoggedIn = require './isLoggedIn'
 gaEvent = require './gaEvent'
 
 # Access control wrapper around mixpanel object.
