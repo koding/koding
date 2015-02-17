@@ -245,7 +245,7 @@ module.exports = class PricingAppView extends KDView
         @state.currentPlanInterval = state.planInterval
         @plans.setState @state
 
-        KD.singletons.router.handleRoute '/'
+        kd.singletons.router.handleRoute '/'
 
 
   continueFrom: (planTitle, planInterval) ->

@@ -147,7 +147,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	// if there is already a machine just check it again
 	if instanceId == "" {
 		b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
-		b.log.Info("[%s] Generating and fetching build data", b.machine.Id)
+		b.log.Debug("[%s] Generating and fetching build data", b.machine.Id)
 		buildData, err := b.buildData()
 		if err != nil {
 			return nil, err
@@ -157,13 +157,13 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
-		b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
+		b.log.Debug("[%s] Checking user limitation and machine quotas", b.machine.Id)
 		if err := b.checkLimits(buildData); err != nil {
 			return nil, err
 		}
 
 		b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
-		b.log.Info("[%s] Initiating creating process of instance", b.machine.Id)
+		b.log.Debug("[%s] Initiating creating process of instance", b.machine.Id)
 		instanceId, err = b.create(buildData)
 		if err != nil {
 			return nil, err
@@ -180,7 +180,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			},
 		})
 	} else {
-		b.log.Info("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
+		b.log.Debug("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
 			b.machine.Id, instanceId, queryString)
 	}
 
@@ -205,7 +205,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
-	b.log.Info("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
+	b.log.Debug("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
 	buildArtifact, err := b.checkBuild(instanceId)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
@@ -261,12 +261,12 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
 	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
-	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
+	b.log.Debug("[%s] Adding and setting up domain and tags", b.machine.Id)
 	b.addDomainAndTags(buildArtifact)
 
 	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
 		b.normalize(90), machinestate.Building)
-	b.log.Info("[%s] All finished, testing for klient connection IP [%s]",
+	b.log.Debug("[%s] All finished, testing for klient connection IP [%s]",
 		b.machine.Id, buildArtifact.IpAddress)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err

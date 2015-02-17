@@ -58,7 +58,7 @@ services=(
   socialapi/workers/email/privatemessageemail/privatemessageemailfeeder
   socialapi/workers/email/privatemessageemail/privatemessageemailsender
   socialapi/workers/payment/paymentwebhook
-  socialapi/workers/collaboration/cmd
+  socialapi/workers/cmd/collaboration
 )
 
 
