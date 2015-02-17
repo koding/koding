@@ -145,7 +145,7 @@ gulp.task 'copy-assets', ['create-dirs'], (callback) ->
     throw err  if err
 
     files.forEach (file, j) ->
-      return  if file is 'thirdparty/Readme.md'
+      return  if file is 'assets/Readme.md'
 
       components = file.split('/').slice(0, -1).join '/'
 
