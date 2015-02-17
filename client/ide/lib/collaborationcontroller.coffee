@@ -18,6 +18,7 @@ IDEMetrics                    = require './idemetrics'
 # @see `IDEAppController`
 module.exports = CollaborationController =
 
+  {noop} = kd
   # social related
 
   setSocialChannel: (channel) ->
