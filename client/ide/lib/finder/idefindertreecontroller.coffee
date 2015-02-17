@@ -1,6 +1,9 @@
 kd = require 'kd'
 FSHelper = require 'app/util/fs/fshelper'
 NFinderTreeController = require 'finder/filetree/controllers/nfindertreecontroller'
+IDEHelpers = require '../idehelpers'
+
+
 module.exports = class IDEFinderTreeController extends NFinderTreeController
 
   cmCreateWorkspace: (node) -> @createWorkspace node
@@ -52,9 +55,9 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
     eventObj     = this
     options      = { name, machineUId, rootPath, machineLabel, eventObj }
 
-    IDE.helpers.createWorkspace options
+    IDEHelpers.createWorkspace options
 
     @once 'WorkspaceCreated', (workspace) =>
-      { activitySidebar } = KD.singletons.mainView
+      { activitySidebar } = kd.singletons.mainView
       machineBox = activitySidebar.getMachineBoxByMachineUId machineUId
       machineBox.addWorkspace workspace, yes
