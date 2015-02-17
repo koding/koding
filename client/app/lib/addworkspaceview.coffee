@@ -1,7 +1,9 @@
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDInputView = kd.InputView
-# IDEHelpers = require 'ide/helpers/idehelpers'
+IDEHelpers = require 'ide/idehelpers'
+
+
 module.exports = class AddWorkspaceView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
@@ -42,8 +44,7 @@ module.exports = class AddWorkspaceView extends KDCustomHTMLView
         machineLabel : data.machineLabel
         eventObj     : this # dirty vibe!
 
-      console.log 'acet browserify ide.helpers'
-      IDE.helpers.createWorkspace options
+      IDEHelpers.createWorkspace options
       @hasPendingRequest = yes
 
 
