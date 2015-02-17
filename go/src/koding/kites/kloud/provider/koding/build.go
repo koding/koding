@@ -140,6 +140,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	var err error
 	imageId := ""
+	publicIp := ""
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
 
@@ -166,6 +167,24 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		instanceId, err = b.create(buildData)
 		if err != nil {
 			return nil, err
+		}
+
+		// allocate and associate a new Public IP for paying users, we can do
+		// this after we create the instance
+		if b.plan != Free {
+			allocateResp, err := b.amazon.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+			if err != nil {
+				return nil, err
+			}
+			publicIp = allocateResp.PublicIp
+
+			if _, err := b.amazon.Client.AssociateAddress(&ec2.AssociateAddress{
+				InstanceId:   instanceId,
+				PublicIp:     allocateResp.PublicIp,
+				AllocationId: allocateResp.AllocationId,
+			}); err != nil {
+				return nil, err
+			}
 		}
 
 		// update the intermediate information
@@ -231,6 +250,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	buildArtifact.KiteQuery = queryString
 	buildArtifact.ImageId = imageId
+	buildArtifact.IpAddress = publicIp
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
