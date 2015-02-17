@@ -3,6 +3,7 @@ KDAutoCompleteController = kd.AutoCompleteController
 
 module.exports = class ParticipantSearchController extends KDAutoCompleteController
 
+  {log} = kd
   ### @constant {number} ###
   SHOW_LOADER_TIMEOUT = 1000
 
