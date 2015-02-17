@@ -161,7 +161,7 @@ func (r *RabbitMQ) Dial() error {
 	return nil
 }
 
-// Connect opens a connection to RabbitMq
+// Connect opens a connection to RabbitMq. This function is idempotent
 //
 // TODO this should not return RabbitMQ struct - cihangir,arslan config changes
 func (r *RabbitMQ) Connect() (*RabbitMQ, error) {
@@ -174,12 +174,6 @@ func (r *RabbitMQ) Connect() (*RabbitMQ, error) {
 	if err := r.Dial(); err != nil {
 		return nil, err
 	}
-
-	// // getting a channel
-	// r.channel, err = r.conn.Channel()
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	return r, nil
 }
