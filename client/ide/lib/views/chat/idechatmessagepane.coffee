@@ -1,12 +1,12 @@
-$ = require 'jquery'
-kd = require 'kd'
+$                    = require 'jquery'
+kd                   = require 'kd'
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
-KDCustomHTMLView = kd.CustomHTMLView
-groupifyLink = require 'app/util/groupifyLink'
+KDCustomHTMLView     = kd.CustomHTMLView
+groupifyLink         = require 'app/util/groupifyLink'
 ActivityItemMenuItem = require 'activity/views/activityitemmenuitem'
-ReplyInputWidget = require 'activity/views/privatemessage/replyinputwidget'
-PrivateMessagePane = require 'activity/views/privatemessage/privatemessagepane'
-isMyChannel = require 'app/util/isMyChannel'
+ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
+PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
+isMyChannel          = require 'app/util/isMyChannel'
 
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
