@@ -490,23 +490,15 @@ Configuration = (options={}) ->
       return workers
 
     installScript = """
+        cd #{projectRoot}
+        git submodule update --init
+
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
         cd #{projectRoot}/client
         npm install --unsafe-perm
         make build
-
-        cd #{projectRoot}
-        git submodule init
-        git submodule update
-
-        # Disabled for now, if any of installed globally with sudo
-        # this overrides them and broke developers machine ~
-        # npm i gulp stylus coffee-script -g --silent
-
-
-
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
