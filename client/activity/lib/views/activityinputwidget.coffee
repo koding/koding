@@ -4,7 +4,6 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDView = kd.View
 ActivityInputHelperView = require './activityinputhelperview'
 ActivityInputView = require './activityinputview'
-ActivityListItemView = require './activitylistitemview'
 EmbedBoxWidget = require './embedboxwidget'
 globals = require 'globals'
 mixpanel = require 'app/util/mixpanel'
@@ -213,6 +212,7 @@ module.exports = class ActivityInputWidget extends KDView
     data = generateDummyMessage value
 
     @preview?.destroy()
+    ActivityListItemView = require './activitylistitemview'
     @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
     @preview.addSubView new KDCustomHTMLView
       cssClass : 'preview-indicator'
