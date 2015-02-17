@@ -119,11 +119,11 @@ module.exports = class Machine extends KDObject
         return @data.credential
 
 
-  _ruleChecker: (rules)->
-	alert('gokmen, what is kd.userId')
+  _ruleChecker: (rules) ->
+    kd.log 'gokmen, KD.userId ?'
 
     for user in @jMachine.users
-      if user.id is KD.userId
+      if user.id is kd.userId
         for rule in rules
           return no  unless user[rule]
         return yes

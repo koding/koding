@@ -1,4 +1,13 @@
-class NavigationWorkspaceItem extends KDListItemView
+kd = require 'kd'
+KDListItemView = kd.ListItemView
+KDCustomHTMLView = kd.CustomHTMLView
+JView = require 'app/jview'
+CustomLinkView = require 'app/customlinkview'
+groupifyLink = require 'app/util/groupifyLink'
+WorkspaceSettingsPopup = require 'app/workspacesettingspopup'
+
+
+module.exports = class SidebarWorkspaceItem extends KDListItemView
 
   JView.mixin @prototype
 
@@ -11,7 +20,7 @@ class NavigationWorkspaceItem extends KDListItemView
     {machine} = options
     workspace = data # to make it more sense in the following lines.
     path      = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-    href      = KD.utils.groupifyLink path
+    href      = groupifyLink path
     title     = workspace.name
 
     @title = new CustomLinkView { href, title }

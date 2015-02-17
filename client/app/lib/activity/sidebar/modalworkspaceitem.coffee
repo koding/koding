@@ -1,6 +1,7 @@
 JView = require '../../jview'
 kd = require 'kd'
 KDListItemView = kd.ListItemView
+KDCustomHTMLView = kd.CustomHTMLView
 
 
 module.exports = class ModalWorkspaceItem extends KDListItemView
@@ -21,6 +22,6 @@ module.exports = class ModalWorkspaceItem extends KDListItemView
       attributes: { href }
       partial   : data.name
       click     : (e) =>
-        KD.utils.stopDOMEvent e
+        kd.utils.stopDOMEvent e
         @emit 'WorkspaceSelected'
         kd.singletons.router.handleRoute href

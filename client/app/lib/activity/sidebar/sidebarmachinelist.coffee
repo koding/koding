@@ -1,10 +1,16 @@
-class SidebarMachineList extends KDCustomHTMLView
+kd = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
+CustomLinkView = require 'app/customlinkview'
+SidebarMachineBox = require './sidebarmachinebox'
+
+
+module.exports = class SidebarMachineList extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
     options.tagName        = 'section'
     options.title        or= ''
-    options.cssClass       = KD.utils.curry 'vms', options.cssClass
+    options.cssClass       = kd.utils.curry 'vms', options.cssClass
     options.hasPlusIcon   ?= no
 
     super options, data
@@ -31,7 +37,7 @@ class SidebarMachineList extends KDCustomHTMLView
         cssClass : 'add-icon buy-vm'
         title    : ' '
         click    : (e) =>
-          KD.utils.stopDOMEvent e
+          kd.utils.stopDOMEvent e
           @emit 'ListHeaderPlusIconClicked'
 
     @addSubView @header

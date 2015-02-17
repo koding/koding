@@ -23,6 +23,7 @@ SidebarMessageItem = require './sidebarmessageitem'
 SidebarPinnedItem = require './sidebarpinneditem'
 SidebarTopicItem = require './sidebartopicitem'
 ComputeHelpers = require '../../providers/computehelpers'
+SidebarOwnMachinesList = require './sidebarownmachineslist'
 
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
@@ -710,7 +711,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   fetchMachines: (callback) ->
 
-    KD.remote.api.Sidebar.fetchEnvironment (err, data) =>
+    remote.api.Sidebar.fetchEnvironment (err, data) =>
       if err
         return new KDNotificationView title : 'Couldn\'t fetch your VMs'
 

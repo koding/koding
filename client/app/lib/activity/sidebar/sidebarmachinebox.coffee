@@ -1,4 +1,16 @@
-class SidebarMachineBox extends KDView
+kd = require 'kd'
+remote = require('app/remote').getInstance()
+KDView = kd.View
+KDListViewController = kd.ListViewController
+KDCustomHTMLView = kd.CustomHTMLView
+Machine = require '../../providers/Machine'
+NavigationMachineItem = require 'app/navigation/navigationmachineitem'
+SidebarWorkspaceItem = require './sidebarworkspaceitem'
+MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
+AddWorkspaceView = require 'app/addworkspaceview'
+
+
+module.exports = class SidebarMachineBox extends KDView
 
   constructor: (options = {}, data) ->
 
@@ -8,7 +20,7 @@ class SidebarMachineBox extends KDView
 
     { machine } = data
 
-    @machine = new Machine machine: KD.remote.revive machine
+    @machine = new Machine machine: remote.revive machine
 
     @addSubView @machineItem = new NavigationMachineItem {}, @machine
 
@@ -21,7 +33,7 @@ class SidebarMachineBox extends KDView
     { machine, workspaces } = @getData()
 
     @listController = new KDListViewController
-      itemClass     : NavigationWorkspaceItem
+      itemClass     : SidebarWorkspaceItem
       itemOptions   : { machine }
 
     @listWrapper = @listController.getView()
@@ -77,7 +89,7 @@ class SidebarMachineBox extends KDView
 
     @listWrapper.addSubView @addWorkspaceView
 
-    KD.utils.wait 177, => @addWorkspaceView.input.setFocus()
+    kd.utils.wait 177, => @addWorkspaceView.input.setFocus()
 
 
   removeAddWorkspaceInput: ->
