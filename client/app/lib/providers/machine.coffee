@@ -4,6 +4,7 @@ KDObject = kd.Object
 doesQueryStringValid = require '../util/doesQueryStringValid'
 nick = require '../util/nick'
 #FSItem = require '../util/fs/fsitem'
+globals = require 'globals'
 
 
 module.exports = class Machine extends KDObject
@@ -120,10 +121,9 @@ module.exports = class Machine extends KDObject
 
 
   _ruleChecker: (rules) ->
-    kd.log 'gokmen, KD.userId ?'
 
     for user in @jMachine.users
-      if user.id is kd.userId
+      if user.id is globals.userId
         for rule in rules
           return no  unless user[rule]
         return yes

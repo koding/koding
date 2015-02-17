@@ -21,6 +21,7 @@ var LoggedInHome = `
     <script>
       require('app')({
         config: {{.Runtime}},
+        userId: {{.User.GetWithDefault "UserId" "null" }},
         userAccount: {{.User.GetWithDefault "Account" "null" }},
         userMachines: {{.User.GetWithDefault "Machines" "null"}},
         userWorkspaces: {{.User.GetWithDefault "Workspaces" "null"}},
