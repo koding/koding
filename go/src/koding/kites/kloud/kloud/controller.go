@@ -64,6 +64,12 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 				m.Id, err.Error())
 		}
 
+		resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s]",
+			resp.Username, resp.InstanceId, resp.IpAddress)
+
+		k.Log.Info("[%s] ========== START results ========== %s",
+			m.Id, resultInfo)
+
 		// do not return the error, the machine is already prepared and
 		// started, it should be ready
 		return resp, nil
