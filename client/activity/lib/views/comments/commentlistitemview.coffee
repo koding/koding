@@ -6,6 +6,7 @@ KDTimeAgoView = kd.TimeAgoView
 KDView = kd.View
 emojify = require 'emojify.js'
 CommentDeleteModal = require './commentdeletemodal'
+EmbedBox = require '../embedbox'
 CommentInputEditWidget = require './commentinputeditwidget'
 CommentLikeView = require './commentlikeview'
 CommentSettingsButton = require './commentsettingsbutton'
@@ -26,7 +27,7 @@ module.exports = class CommentListItemView extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type            = 'comment'
+    options.type = 'comment'
 
     super options, data
 
@@ -69,6 +70,7 @@ module.exports = class CommentListItemView extends KDListItemView
     @unsetClass 'edited'
     @likeView.hide()
     @replyView?.hide()
+    @embedBoxWrapper.hide()
 
     activity   = @getData()
     @editInput = new CommentInputEditWidget {}, activity
@@ -81,6 +83,8 @@ module.exports = class CommentListItemView extends KDListItemView
     @editInput
       .once 'SubmitStarted', @bound 'hideEditForm'
       .once 'Cancel', @bound 'hideEditForm'
+      .once 'SubmitSucceeded', @bound 'updateEmbedBox'
+      .once 'EditSucceeded', @bound 'updateEmbedBox'
 
 
   showResend: ->
@@ -134,8 +138,9 @@ module.exports = class CommentListItemView extends KDListItemView
 
   hide          : (rest...) -> require('../activitylistitemview')::hide this, rest...
   show          : (rest...) -> require('../activitylistitemview')::show this, rest...
-  delete          : (rest...) -> require('../activitylistitemview')::delete this, rest...
-  whenSubmitted          : (rest...) -> require('../activitylistitemview')::whenSubmitted this, rest...
+  delete        : (rest...) -> require('../activitylistitemview')::delete this, rest...
+  whenSubmitted : (rest...) -> require('../activitylistitemview')::whenSubmitted this, rest...
+
 
   createReplyLink: ->
 
@@ -164,12 +169,30 @@ module.exports = class CommentListItemView extends KDListItemView
       @emit 'MentionHappened', account.profile.nickname
 
 
+  updateEmbedBox: ->
+
+
+    data     = @getData()
+
+    embedBox = if data.link?
+      @setClass 'two-columns'  if @twoColumns
+      new EmbedBox @embedOptions, data.link
+    else
+      new KDCustomHTMLView
+
+    @embedBoxWrapper.destroySubViews()
+    @embedBoxWrapper.addSubView embedBox
+    @embedBoxWrapper.show()
+
+
   addMenu: ->
 
     comment       = @getData()
     {activity}    = @getOptions()
     owner         = isMyPost comment
     postOwner     = isMyPost activity
+    canEdit       = hasPermission 'edit posts'
+    canEditOwn    = hasPermission 'edit own posts'
 
     kd.singletons.mainController.ready =>
 
@@ -233,6 +256,13 @@ module.exports = class CommentListItemView extends KDListItemView
 
     @resend = new KDCustomHTMLView cssClass: 'resend hidden'
 
+
+    @embedOptions  =
+      hasDropdown : no
+      delegate    : this
+    @embedBoxWrapper = new KDCustomHTMLView
+    @updateEmbedBox()
+
     @addMenu()
     @createReplyLink()
 
@@ -271,5 +301,6 @@ module.exports = class CommentListItemView extends KDListItemView
     {{> @timeAgoView}}
     {{> @likeView}}
     {{> @replyView}}
+    {{> @embedBoxWrapper}}
     </div>
     '''

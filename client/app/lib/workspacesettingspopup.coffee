@@ -1,6 +1,7 @@
 remote = require('./remote').getInstance()
 showError = require './util/showError'
 kd = require 'kd'
+KDView = kd.View
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDModalViewWithForms = kd.ModalViewWithForms
@@ -80,6 +81,8 @@ module.exports = class WorkspaceSettingsPopup extends KDModalViewWithForms
     field.addSubView title
     field.addSubView fieldSwitch
 
-    @addSubView new KDCustomHTMLView
+    _addSubView = KDView::addSubView.bind this
+
+    _addSubView new KDCustomHTMLView
       cssClass : 'modal-arrow'
       position : top : 40

@@ -50,6 +50,7 @@ module.exports = class NavigationItem extends JTreeItemView
         kd.utils.stopDOMEvent event
         activitySidebar.emit 'MoreWorkspaceModalRequested', data
 
+
   createWorkspaceItem: (data) ->
 
     @setClass 'workspace'

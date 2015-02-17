@@ -232,20 +232,15 @@ module.exports = class ManageDomainsView extends KDView
       buttons       :
         OK          :
           title     : "Yes"
-          style     : 'modal-clean-red'
+          style     : 'solid red medium'
           loader    :
             color   : 'darkred'
           callback  : ->
-            computeController.getKloud()
-              .unsetDomain {domainName: domain, machineId}
-              .then -> callback yes
-              .catch (err)->
-                kd.warn err
-                callback no
-              .finally -> modal.destroy()
+            modal.destroy()
+            callback yes
         cancel      :
           title     : "Cancel"
-          style     : 'modal-cancel'
+          style     : 'solid light-gray medium'
           callback  : -> modal.cancel()
 
 

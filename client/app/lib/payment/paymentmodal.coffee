@@ -2,7 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 PaymentBaseModal = require './paymentbasemodal'
 PaymentForm = require './paymentform'
-PaymentConstants = require './constants'
+PaymentConstants = require './paymentconstants'
 showError = require '../util/showError'
 
 

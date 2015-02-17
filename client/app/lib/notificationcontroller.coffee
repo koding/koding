@@ -94,10 +94,10 @@ module.exports = class NotificationController extends KDObject
           """
         buttons       :
           "Refresh":
-            style     : 'solid red medium'
-            callback  : (event) -> global.location.replace '/Login'
+            style     : "solid red medium"
+            callback  : (event) -> location.replace '/Login'
           "Close"     :
-            style     : 'solid light-gray medium'
+            style     : "solid light-gray medium"
             callback  : (event) -> modal.destroy()
 
     @on 'UserBlocked', ({blockedDate}) ->
@@ -119,7 +119,7 @@ module.exports = class NotificationController extends KDObject
           """
         buttons       :
           "Ok"        :
-            style     : 'solid light-gray medium'
+            style     : "solid light-gray medium"
             callback  : (event) ->
               kookies.expire 'clientId'
               modal.destroy()

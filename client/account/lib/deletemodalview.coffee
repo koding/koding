@@ -69,14 +69,14 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
           buttons            :
             confirmButton    :
               title          : 'Delete Account'
-              style          : 'modal-clean-red'
+              style          : 'solid red medium'
               type           : 'submit'
               disabled       : yes
               loader         :
                 color        : '#ffffff'
               callback       : -> @showLoader()
             Cancel           :
-              style          : 'modal-cancel'
+              style          : 'solid light-gray medium'
               callback       : @bound 'destroy'
           fields             :
             username         :

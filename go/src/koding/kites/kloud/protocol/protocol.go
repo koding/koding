@@ -12,7 +12,7 @@ import (
 type Provider interface {
 	// Build the machine and creates an artifact that can be pass to other
 	// methods
-	Build(*Machine) (*Artifact, error)
+	Build(string, *Machine) (*Artifact, error)
 
 	// Start starts the machine
 	Start(*Machine) (*Artifact, error)
@@ -33,6 +33,12 @@ type Provider interface {
 	// Resize the machine and creates an artifact that can be pass to other
 	// methods
 	Resize(*Machine) (*Artifact, error)
+
+	// CreateSnapshot creates a new snapshot from the given machine
+	CreateSnapshot(*Machine) (*Artifact, error)
+
+	// DeleteSnapshot deletes a snapshot from the given machine
+	DeleteSnapshot(string, *Machine) error
 
 	// Info returns full information about a single machine
 	Info(*Machine) (*InfoArtifact, error)
@@ -116,6 +122,9 @@ type Artifact struct {
 
 	// IpAddress defines the public ip address of the running machine.
 	IpAddress string
+
+	// ImageId specifies the image which is used to build the Machine
+	ImageId string
 
 	// DomainName defines the current domain record that is bound to the given
 	// IpAddress

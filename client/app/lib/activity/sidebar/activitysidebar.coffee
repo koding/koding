@@ -101,7 +101,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     mainController.ready =>
-      kd.whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
+      whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
 
 
   # event handling
@@ -694,10 +694,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     return  if @watchedMachines[machine._id]
 
     callback = (state) =>
-      if state.status is Running
-        machine.status.state = Running
-        if appManager.getFrontApp().mountedMachineUId is machine.uid
-          delete @watchedMachines[machine._id]
+      return  if state.status isnt Running
 
       machine.status.state = Running
       delete @watchedMachines[machine._id]
@@ -705,7 +702,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       if data is @latestWorkspaceData
         @selectWorkspace data
 
-    KD.getSingleton 'computeController'
+    kd.getSingleton 'computeController'
       .on "public-#{machine._id}", callback
 
     @watchedMachines[machine._id] = yes
