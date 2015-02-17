@@ -430,6 +430,18 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		}
 	}
 
+	// try to release/delete a public elastic IP, if there is an error we don't
+	// care (the instance might not have an elastic IP, aka a free user.
+	if resp, err := a.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter()); err == nil {
+		if len(resp.Addresses) == 0 {
+			return nil // nothing to do
+		}
+
+		address := resp.Addresses[0]
+		p.Log.Debug("[%s] Got an elastic IP %+v. Going to relaease it", m.Id, address)
+
+		a.Client.ReleaseAddress(address.AllocationId)
+	}
 	return nil
 }
 
