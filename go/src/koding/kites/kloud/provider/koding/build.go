@@ -67,6 +67,8 @@ type Build struct {
 	start, finish int
 	log           logging.Logger
 	retryCount    int
+	plan          Plan
+	checker       *PlanChecker
 
 	// if available, create the instance via the snapshot -> AMI way
 	snapshotId string
@@ -93,10 +95,29 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		return nil, err
 	}
 
+	// check current plan
+	fetcherResp, err := p.Fetcher(m)
+	if err != nil {
+		return nil, err
+	}
+
+	checker := &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      p.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}
+
 	b := &Build{
 		amazon:     a,
 		machine:    m,
 		provider:   p,
+		plan:       fetcherResp.Plan,
+		checker:    checker,
 		start:      10,
 		finish:     90,
 		log:        p.Log,
@@ -465,17 +486,11 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 
 // checkLimits checks whether the given buildData is valid to be used to create a new instance
 func (b *Build) checkLimits(buildData *BuildData) error {
-	// Check for total machine allowance
-	checker, err := b.provider.PlanChecker(b.machine)
-	if err != nil {
+	if err := b.checker.Total(); err != nil {
 		return err
 	}
 
-	if err := checker.Total(); err != nil {
-		return err
-	}
-
-	if err := checker.AlwaysOn(); err != nil {
+	if err := b.checker.AlwaysOn(); err != nil {
 		return err
 	}
 
@@ -483,14 +498,14 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 		b.machine.Id, buildData.EC2Data.InstanceType)
 
 	// check if the user is egligible to create a vm with this instance type
-	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
+	if err := b.checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
 		b.log.Critical("[%s] Instance type (%s) is not allowed. Fallback to t2.micro",
 			b.machine.Id, buildData.EC2Data.InstanceType)
 		buildData.EC2Data.InstanceType = T2Micro.String()
 	}
 
 	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
+	if err := b.checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
 		return err
 	}
 
