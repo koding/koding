@@ -1,11 +1,8 @@
-[submodule "client/Framework"]
-	path = client/Framework
-	url = git@github.com:koding/kd.git
-[submodule "client/IDE"]
-	path = client/IDE
+[submodule "client/ide"]
+	path = client/ide
 	url = git@github.com:koding/IDE.git
-[submodule "client/Finder"]
-	path = client/Finder
+[submodule "client/finder"]
+	path = client/finder
 	url = git@github.com:koding/finder.git
 [submodule "client/landing"]
 	path = client/landing

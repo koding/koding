@@ -1,1 +1,0 @@
-../../node_modules_koding/koding-broker-client/browser/broker.js

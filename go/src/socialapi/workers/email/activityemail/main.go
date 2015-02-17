@@ -23,23 +23,16 @@ func main() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
 
 	// init redis connection
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	//create connection to RMQ for publishing realtime events
-	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-	rmqConn, err := rmq.Connect("NewActivityEmailWorkerController")
-	if err != nil {
-		panic(err)
-	}
-	defer rmqConn.Conn().Close()
-
 	es := emailmodels.NewEmailSettings(r.Conf)
 
 	handler := activityemail.New(
-		rmq,
+		r.Bongo.Broker.MQ,
 		r.Log,
 		es,
 	)
