@@ -63,11 +63,19 @@ module.exports = class SocialApiController extends KDController
 
 
   leaveChannel = (response) ->
+
     {first} = response
     return  unless first
 
-    {socialapi} = kd.singletons
     {channelId} = first
+
+    removeChannel channelId
+
+
+  removeChannel = (channelId) ->
+
+    {socialapi} = kd.singletons
+
     channel = socialapi._cache["privatemessage"][channelId]
 
     return  unless channel
@@ -261,7 +269,7 @@ module.exports = class SocialApiController extends KDController
   forwardMessageEvents : forwardMessageEvents
   forwardMessageEvents = (source, target, events) ->
 
-    events.forEach ({event, mapperFn, validatorFn}) ->
+    events.forEach ({event, mapperFn, validatorFn, filterFn}) ->
       source.on event, (data, rest...) ->
 
         if validatorFn
@@ -270,9 +278,25 @@ module.exports = class SocialApiController extends KDController
 
           return  unless validatorFn(data)
 
+        if filterFn
+          if typeof filterFn isnt "function"
+            return warn "filter function is not valid"
+
+          return  unless filterFn(data)
+
         data = mapperFn data
 
         target.emit event, data, rest...
+
+
+  # While making retrospective realtime message query, it is possible to fetch an already
+  # existing message. This is for preventing the case. - ctf
+  filterMessage = (data) ->
+    {message} = data  unless data.typeConstant?
+    if cachedMessage = kd.singletons.socialapi._cache?[message.typeConstant]?[message.id]
+      return yes  if cachedMessage.isShown
+
+    message.isShown = yes
 
 
   registerAndOpenChannels = (socialApiChannels) ->
@@ -428,7 +452,7 @@ module.exports = class SocialApiController extends KDController
 
   getMessageEvents = ->
     [
-      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
+      {event: "MessageAdded",       mapperFn: mapActivity, validatorFn: isFromOtherBrowser, filterFn: filterMessage}
       {event: "MessageRemoved",     mapperFn: mapActivity, validatorFn: isFromOtherBrowser}
       {event: "AddedToChannel",     mapperFn: mapParticipant}
       {event: "RemovedFromChannel", mapperFn: mapParticipant}
@@ -622,6 +646,7 @@ module.exports = class SocialApiController extends KDController
     delete               : channelRequesterFn
       fnName             : 'delete'
       validateOptionsWith: ["channelId"]
+      successFn          : removeChannel
 
     revive               : mapChannel
 

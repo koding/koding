@@ -131,10 +131,10 @@ module.exports = class AccountAppController extends AppController
       content          : "<div class='modalformline'>#{Encoder.htmlDecode message}</div>"
       buttons          :
         "Resend Confirmation Email" :
-          style        : "modal-clean-red"
+          style        : "solid green medium"
           callback     : => @resendHandler modal, username
         Close          :
-          style        : "modal-cancel"
+          style        : "solid light-gray medium"
           callback     : -> modal.destroy()
 
     callback modal
@@ -171,10 +171,10 @@ module.exports = class AccountAppController extends AppController
       overlay         : yes
       buttons         :
         "Login"       :
-          style       : "modal-clean-gray"
+          style       : "solid light-gray medium"
           callback    : => handler @modal, "/Login"
         "Register"    :
-          style       : "modal-clean-gray"
+          style       : "solid light-gray medium"
           callback    : => handler @modal, "/Register"
 
 

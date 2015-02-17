@@ -11,12 +11,12 @@ module.exports = class CommentDeleteModal extends KDModalView
     options.overlay ?= yes
     options.buttons  =
       Delete         :
-        style        : 'modal-clean-red'
+        style        : 'solid red medium'
         loader       :
           color      : '#e94b35'
         callback     : @bound 'submit'
       Cancel         :
-        style        : 'modal-cancel'
+        style        : 'solid light-gray medium'
         callback     : @bound 'destroy'
 
     super options, data

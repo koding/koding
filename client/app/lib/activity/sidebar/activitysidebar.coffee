@@ -60,6 +60,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     super options
 
     {
+      mainController
       notificationController
       computeController
       socialapi
@@ -98,6 +99,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
+
+    mainController.ready =>
+      whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
+
 
   # event handling
 
@@ -552,7 +557,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       ideRoute     = "#{ideRoute}/#{machineOwner}"  unless isMyMachine
       hasWorkspace = (globals.userWorkspaces.filter ({name, machineUId}) -> return name is 'My Workspace' and machineUId is machine.uid).length > 0
 
-      unless hasWorkspace
+      if machine.isMine() and not hasWorkspace
         globals.userWorkspaces.push @getDummyWorkspace machine
 
       @sortWorkspaces globals.userWorkspaces
@@ -646,7 +651,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
             tree.expand node
           else
             tree.selectNode node
-            @watchMachineState workspace, machine
+            @watchMachineState data
         else
           tree.collapse node
 
@@ -667,21 +672,27 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
-  watchMachineState: (workspace, machine) ->
+  watchMachineState: (data) ->
+    {workspace, machine} = data
+
     @watchedMachines  or= {}
-    computeController   = kd.getSingleton 'computeController'
-    appManager          = kd.getSingleton 'appManager'
-    {Running}           = Machine.State
+
+    {Running} = Machine.State
 
     return  if @watchedMachines[machine._id]
 
     callback = (state) =>
-      if state.status is Running
-        machine.status.state = Running
-        if appManager.getFrontApp().mountedMachineUId is machine.uid
-          delete @watchedMachines[machine._id]
+      return  if state.status isnt Running
 
-    computeController.on "public-#{machine._id}", callback
+      machine.status.state = Running
+      delete @watchedMachines[machine._id]
+
+      if data is @latestWorkspaceData
+        @selectWorkspace data
+
+    kd.getSingleton 'computeController'
+      .on "public-#{machine._id}", callback
+
     @watchedMachines[machine._id] = yes
 
 
@@ -768,6 +779,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
 
   handleMoreWorkspacesClick: (data) ->
+
+    machine = m for m in globals.userMachines when m.uid is data.machineUId
+
+    return no  if not machine or not machine.isMine()
+
     workspaces = for workspace in globals.userWorkspaces when workspace.machineUId is data.machineUId
       workspace.machineLabel = data.machineLabel
       workspace
@@ -816,9 +832,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       noItemText : 'You didn\'t participate in any conversations yet.'
       headerLink : groupifyLink '/Activity/Post/All'
       dataSource : (callback) ->
-        kd.singletons.socialapi.channel.fetchPinnedMessages
-          limit : 5
-        , callback
+        # we disabled pinned messages a long time ago but we are still sending
+        # the requests to the backed, those are useless operations ~ CS
+        return callback null, null
+
+        # kd.singletons.socialapi.channel.fetchPinnedMessages
+        #   limit : 5
+        # , callback
 
     if kd.singletons.mainController.isFeatureDisabled 'threads'
       @sections.conversations.hide()
@@ -1004,3 +1024,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @machineTree.removeNode nodeId
 
 
+  newWorkspaceCreated: (workspace) ->
+
+    matches = globals.userWorkspaces.filter (w) ->
+      w.machineUId is workspace.machineUId and \
+      w.slug is workspace.slug
+
+    return  if matches.length
+
+    globals.userWorkspaces.push workspace
+    @updateMachineTree()

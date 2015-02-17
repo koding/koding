@@ -123,7 +123,7 @@ module.exports = class NavigationMachineItem extends JView
     return """
       <figure></figure>
       {{> @label}}
-      <span></span>
+      #{if @getData().isMine() then '<span></span>' else ''}
       {{> @progress}}
     """
 

@@ -1,10 +1,10 @@
 kd = require 'kd'
-KDAutoCompleteController = kd.AutoCompleteController
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDFormViewWithFields = kd.FormViewWithFields
 KDView = kd.View
 ActivityAutoCompleteUserItemView = require '../activityautocompleteuseritemview'
+ParticipantSearchController = './participantsearchcontroller'
 MessagePane = require '../messagepane'
 PrivateMessageForm = require './privatemessageform'
 PrivateMessageListItemView = require './privatemessagelistitemview'
@@ -15,6 +15,8 @@ showError = require 'app/util/showError'
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 dateFormat = require 'dateformat'
 isMyPost = require 'app/util/isMyPost'
+remote = require('app/remote').getInstance()
+
 
 
 module.exports = class PrivateMessagePane extends MessagePane
@@ -357,8 +359,14 @@ module.exports = class PrivateMessagePane extends MessagePane
     return  unless participant
     return  unless @participantMap[participant._id]?
 
-    @participantMap[participant._id].destroy()
-    delete @participantMap[participant._id]
+    remote.cacheable 'JAccount', participant._id, (err, account) =>
+
+      return warn err  if err
+
+      @participantMap[participant._id].destroy()
+      delete @participantMap[participant._id]
+
+      @autoComplete.removeSelectedParticipant account
 
 
   createPreviousLink: ->
@@ -390,21 +398,16 @@ module.exports = class PrivateMessagePane extends MessagePane
     @participantsView.addSubView @newParticipantButton = new KDButtonView
       cssClass    : 'new-participant'
       iconOnly    : yes
-      callback    : @bound 'showAutoCompleteInput'
+      callback    : @bound 'toggleAutoCompleteInput'
 
 
-  showAutoCompleteInput: ->
+  toggleAutoCompleteInput: ->
 
     @emit 'NewParticipantButtonClicked'
 
     @autoCompleteForm.toggleClass 'active'
     @newParticipantButton.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
-
-    @autoComplete.getView().once 'blur',=>
-      @autoCompleteForm.toggleClass 'active'
-      @newParticipantButton.toggleClass 'active'
-      @input.input.setFocus()
 
 
   createAddParticipantForm: ->
@@ -417,17 +420,20 @@ module.exports = class PrivateMessagePane extends MessagePane
           itemClass      : KDView
       submit             : (e) -> e.preventDefault()
 
-    @autoComplete = new KDAutoCompleteController
+    @autoComplete = new ParticipantSearchController
       name                : 'userController'
       placeholder         : 'Type a username...'
       itemClass           : ActivityAutoCompleteUserItemView
       itemDataPath        : 'profile.nickname'
+      fetchInterval       : 0
       outputWrapper       : new KDView cssClass: 'hidden'
       listWrapperCssClass : 'private-message hidden'
       submitValuesAsText  : yes
       dataSource          : @bound 'fetchAccounts'
 
     @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
+
+    @autoComplete.on 'ItemSelected', @bound 'toggleAutoCompleteInput'
 
     @autoComplete.on 'ItemListChanged', (count) =>
       participant  = @autoComplete.getSelectedItemData()[count - 1]

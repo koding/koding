@@ -74,7 +74,7 @@ module.exports = class ActivityController extends KDObject
             buttons           :
               blockUser       :
                 title         : "Block User"
-                style         : "modal-clean-gray"
+                style         : "solid light-gray medium"
                 type          : "submit"
                 loader        :
                   color       : "#444444"
@@ -82,7 +82,7 @@ module.exports = class ActivityController extends KDObject
                 callback      : -> @hideLoader()
               cancel          :
                 title         : "Cancel"
-                style         : "modal-cancel"
+                style         : "solid light-gray medium"
             fields            :
               duration        :
                 label         : "Block User For"
@@ -185,7 +185,7 @@ module.exports = class ActivityController extends KDObject
       width          : 475
       buttons        :
         "YES, THIS USER IS DEFINITELY A TROLL" :
-          style      : "modal-clean-red"
+          style      : "solid red medium"
           loader     :
             color    : "#ffffff"
             diameter : 16

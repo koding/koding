@@ -46,7 +46,7 @@ module.exports = class TrollButtonView extends KDToggleButton
       width          : 475
       buttons        :
         "YES, THIS USER IS DEFINITELY A TROLL" :
-          style      : "modal-clean-red"
+          style      : "solid red medium"
           loader     :
             color    : "#ffffff"
             diameter : 16

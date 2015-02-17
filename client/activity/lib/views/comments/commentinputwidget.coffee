@@ -98,7 +98,7 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
 
     { appManager } = kd.singletons
 
-    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId}, (err, reply) =>
+    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId, payload}, (err, reply) =>
 
       return showError err  if err
 
