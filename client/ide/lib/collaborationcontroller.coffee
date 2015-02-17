@@ -11,14 +11,15 @@ whoami                        = require 'app/util/whoami'
 RealTimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
+
 # Attn!!
 #
 # This object is designed to be a mixin for IDEAppController.
 #
 # @see `IDEAppController`
-module.exports = CollaborationController =
 
-  {noop} = kd
+module.exports =
+
   # social related
 
   setSocialChannel: (channel) ->
@@ -84,7 +85,7 @@ module.exports = CollaborationController =
       callback null, @socialChannel
 
 
-  deletePrivateMessage: (callback = noop) ->
+  deletePrivateMessage: (callback = kd.noop) ->
 
     {channel}    = kd.getSingleton 'socialapi'
     {JWorkspace} = remote.api
@@ -490,7 +491,7 @@ module.exports = CollaborationController =
       @rtm.ready => kallback()
 
 
-  getCollaborationData: (callback = noop) ->
+  getCollaborationData: (callback = kd.noop) ->
 
     collaborationData =
       watchMap        : @myWatchMap?.values()
@@ -703,7 +704,7 @@ module.exports = CollaborationController =
     @setMachineSharingStatus on
 
 
-  stopCollaborationSession: (callback = noop) ->
+  stopCollaborationSession: (callback = kd.noop) ->
 
     @chat.settingsPane.endSession.disable()
 
@@ -773,7 +774,7 @@ module.exports = CollaborationController =
       @setMachineUser accounts, status
 
 
-  setMachineUser: (accounts, share = yes, callback = noop) ->
+  setMachineUser: (accounts, share = yes, callback = kd.noop) ->
 
     usernames = accounts.map (account) -> account.profile.nickname
 
