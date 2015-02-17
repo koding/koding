@@ -34,7 +34,7 @@ module.exports = class GroupPaymentSettingsView extends JView
 
       # buttons:
       #   Save                :
-      #     style             : "modal-clean-green"
+      #     style             : "solid green medium"
       #     type              : "submit"
       #     loader            :
       #       color           : "#444444"

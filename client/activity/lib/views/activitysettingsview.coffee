@@ -135,12 +135,12 @@ module.exports = class ActivitySettingsView extends KDCustomHTMLView
       overlay        : yes
       buttons        :
         Delete       :
-          style      : "modal-clean-red"
+          style      : "solid red medium"
           loader     :
             color    : "#e94b35"
           callback   : => @deletePostConfirmed modal
         Cancel       :
-          style      : "modal-cancel"
+          style      : "solid light-gray medium"
           title      : "cancel"
           callback   : ->
             modal.destroy()
@@ -161,7 +161,7 @@ module.exports = class ActivitySettingsView extends KDCustomHTMLView
       overlay      : no
       buttons      :
         Cancel     :
-          style    : "modal-cancel"
+          style    : "solid light-gray medium"
           title    : "cancel"
           callback : ->
             modal.destroy()

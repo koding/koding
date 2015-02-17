@@ -18,10 +18,10 @@ module.exports = class GroupProductEditForm extends KDFormViewWithFields
 
     options.buttons ?=
       Save        :
-        cssClass  : "modal-clean-green"
+        cssClass  : "solid green medium"
         type      : "submit"
       cancel      :
-        cssClass  : "modal-cancel"
+        cssClass  : "solid light-gray medium"
         callback  : => @emit 'CancelRequested'
 
     options.fields ?= {}
