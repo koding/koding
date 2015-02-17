@@ -1,4 +1,11 @@
-IDE.helpers =
+remote = require('app/remote').getInstance()
+showError = require 'app/util/showError'
+kd = require 'kd'
+globals = require 'globals'
+FSHelper = require 'app/util/fs/fshelper'
+
+
+module.exports = helpers =
 
   # This helper method will emit `WorkspaceCreateFailed` or `WorkspaceCreated`
   # event by using the `options.eventObj`. So you must pass an `eventObj` in
@@ -7,11 +14,11 @@ IDE.helpers =
   createWorkspace: (options) ->
 
     { name, machineUId, rootPath, machineLabel, eventObj } = options
-    { computeController, router } = KD.singletons
+    { computeController, router } = kd.singletons
 
     if not name or not machineUId or not eventObj
       err = message: 'Missing options to create a new workspace'
-      return IDE.helpers.handleWorkspaceCreateError_ eventObj, err
+      return helpers.handleWorkspaceCreateError_ eventObj, err
 
     machine = m for m in computeController.machines when m.uid is machineUId
     layout  = {}
@@ -19,10 +26,10 @@ IDE.helpers =
 
     unless machine
       err = mesage: "Machine not found."
-      return IDE.helpers.handleWorkspaceCreateError_ eventObj, err
+      return helpers.handleWorkspaceCreateError_ eventObj, err
 
-    KD.remote.api.JWorkspace.create data, (err, workspace) =>
-      return IDE.helpers.handleWorkspaceCreateError_ eventObj, err  if err
+    remote.api.JWorkspace.create data, (err, workspace) =>
+      return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
       folderOptions  =
         type         : 'folder'
@@ -31,13 +38,13 @@ IDE.helpers =
         samePathOnly : yes
 
       machine.fs.create folderOptions, (err, folder) =>
-        return IDE.helpers.handleWorkspaceCreateError_ eventObj, err  if err
+        return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
         filePath   = "#{workspace.rootPath}/README.md"
         readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-        readMeFile.save IDE.contents.workspace, (err) =>
-          return IDE.helpers.handleWorkspaceCreateError_ eventObj, err  if err
+        readMeFile.save globals.WORKSPACE_WELCOME_TXT, (err) =>
+          return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
           eventObj.emit 'WorkspaceCreated', workspace
 
@@ -48,5 +55,5 @@ IDE.helpers =
   handleWorkspaceCreateError_: (eventObj, error) ->
 
     eventObj.emit 'WorkspaceCreateFailed', error
-    KD.showError "Couldn't create your new workspace."
-    warn error
+    showError "Couldn't create your new workspace."
+    kd.warn error
