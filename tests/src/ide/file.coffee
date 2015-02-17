@@ -92,6 +92,20 @@ module.exports =
     browser.end()
 
 
+  deleteFolder: (browser) ->
+
+    user = helpers.beginTest(browser)
+
+    helpers.waitForVMRunning(browser)
+
+    folderData = helpers.createFolder(browser, user)
+    webPath    = '/home/' + user.username
+    selector   = "span[title='" + webPath + '/' + folderData.name + "']"
+
+    helpers.deleteFolder(browser, folderData.selector)
+    browser.end()
+
+
   renameFile: (browser) ->
 
     user = helpers.beginTest(browser)
