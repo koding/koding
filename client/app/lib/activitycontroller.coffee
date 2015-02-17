@@ -1,12 +1,13 @@
-remote = require('./remote').getInstance()
-whoami = require './util/whoami'
+remote                = require('./remote').getInstance()
+whoami                = require './util/whoami'
 showErrorNotification = require './util/showErrorNotification'
-showNotification = require './util/showNotification'
-kd = require 'kd'
-KDInputView = kd.InputView
-KDModalView = kd.ModalView
-KDModalViewWithForms = kd.ModalViewWithForms
-KDObject = kd.Object
+showNotification      = require './util/showNotification'
+kd                    = require 'kd'
+KDObject              = kd.Object
+KDInputView           = kd.InputView
+KDModalView           = kd.ModalView
+KDModalViewWithForms  = kd.ModalViewWithForms
+
 module.exports = class ActivityController extends KDObject
 
   constructor: (options = {}, data) ->
