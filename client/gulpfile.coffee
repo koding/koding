@@ -221,11 +221,7 @@ gulp.task 'styles', ['clean', 'styles-kd', 'sprites', unf], ->
 
     compile = ->
       src = [ "./#{folder}/lib/**/*.styl", "!#{appfnPath}" ]
-      includes = [ appfnPath ]
-
-      [1,2].forEach (i) ->
-        filepath = "#{__dirname}/.sprites/#{folder}/sprite@#{i}x.styl"
-        try includes.push filepath  if fs.statSync filepath
+      includes = [ appfnPath, "#{__dirname}/.sprites/*/sprite@*x.styl" ]
 
       stream = styleHelper {
         fileName : "#{folder}.css"
