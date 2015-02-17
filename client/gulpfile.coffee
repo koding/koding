@@ -145,6 +145,7 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (
   modules.forEach (name) -> mapping[name] = "../#{name}/lib"
 
   # opts.globals.modules = modules
+  opts.browserify.debug = yes
 
   b = browserify xtend opts.browserify, watchify.args
     .transform coffeeify, global: yes
