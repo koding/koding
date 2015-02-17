@@ -31,6 +31,7 @@ func MustInitBongo(
 	bConf := &broker.Config{
 		RMQConfig:    rmqConf,
 		ExchangeName: eventExchangeName,
+		QOS:          10,
 	}
 
 	db := db.MustInit(c, log, debug)
