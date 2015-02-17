@@ -40,6 +40,11 @@ type Checker interface {
 	// inactivity timeout.
 	Timeout() error
 
+	// SnapshotTotal checks whether the user reached the current plan's limit
+	// of having a total numbers of snapshots. It returns an error if the limit
+	// is reached or an unexplained error happened
+	SnapshotTotal() error
+
 	// Storage checks whether the user has reached the current plan's limit
 	// total storage with the supplied wantStorage information. It returns an
 	// error if the limit is reached or an unexplained error happaned.
@@ -280,6 +285,45 @@ func (p *PlanChecker) Total() error {
 		p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
 
 	return nil
+}
+
+func (p *PlanChecker) SnapshotTotal() error {
+	allowedSnapshotCount := p.Plan.Plan.Limits().SnapshotTotal
+
+	// lazy return
+	if allowedSnapshotCount == 0 {
+		p.Log.Debug("[%s] denying user to for snapshots, limit is zero already", p.Machine.Id)
+		return fmt.Errorf("total snapshot limit has been reached. Plan limit: %d", allowedSnapshotCount)
+	}
+
+	currentSnapshotCount := 0
+	if err := p.DB.Run("jSnapshots", func(c *mgo.Collection) error {
+		var err error
+		currentSnapshotCount, err = c.Find(bson.M{
+			"machineId": bson.ObjectIdHex(p.Machine.Id),
+		}).Count()
+
+		return err
+	}); err != nil && err != mgo.ErrNotFound {
+		// if it's something else just return an error, needs to be fixed
+		return err
+	}
+
+	p.Log.Debug("[%s] checking snapshot limit. current count: %d, plan limit: %d (plan: %s)",
+		p.Machine.Id, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
+
+	// the user has still not reached the limit
+	if currentSnapshotCount <= allowedSnapshotCount {
+		p.Log.Debug("[%s] allowing user '%s'. current snapshot count: %d (plan limit: %d, plan: %s)",
+			p.Machine.Id, p.Username, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
+		return nil // allow user, it didn't reach the limit
+	}
+
+	p.Log.Info("[%s] denying user '%s'. current snapshot count: %d (plan limit: %d, plan: %s)",
+		p.Machine.Id, p.Username, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
+	return fmt.Errorf("total snapshot limit has been reached. Current count: %d Plan limit: %d",
+		currentSnapshotCount, allowedSnapshotCount)
+
 }
 
 func (p *PlanChecker) Storage(wantStorage int) error {
