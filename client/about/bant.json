@@ -1,0 +1,4 @@
+{
+  "name": "about",
+  "main": "./lib/index.coffee"
+}

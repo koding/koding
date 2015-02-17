@@ -350,7 +350,7 @@ Configuration = (options={}) ->
     clientWatcher       :
       group             : "webserver"
       supervisord       :
-        command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
+        command         : "cd #{projectRoot}/client && make"
 
     socialapi:
       group             : "socialapi"
@@ -490,20 +490,15 @@ Configuration = (options={}) ->
       return workers
 
     installScript = """
-        npm i --unsafe-perm --silent
-        echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
-        chmod +x ./build-client.coffee
-        ulimit -n 1024 && #{projectRoot}/build-client.coffee --watch false  --verbose
-        git submodule init
-        git submodule update
+        git submodule update --init
 
-        # Disabled for now, if any of installed globally with sudo
-        # this overrides them and broke developers machine ~
-        # npm i gulp stylus coffee-script -g --silent
+        npm install --unsafe-perm
 
-
-
+        echo '#---> BUILDING CLIENT <---#'
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make build
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -984,7 +979,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        ./build-client.coffee --watch false  --verbose
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies

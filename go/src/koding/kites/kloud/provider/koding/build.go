@@ -15,6 +15,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
+	"koding/kites/kloud/waitstate"
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -49,8 +50,14 @@ var (
 
 type BuildData struct {
 	// This is passed directly to goamz to create the final instance
-	EC2Data *ec2.RunInstances
-	KiteId  string
+	EC2Data   *ec2.RunInstances
+	ImageData *ImageData
+	KiteId    string
+}
+
+type ImageData struct {
+	blockDeviceMapping ec2.BlockDeviceMapping
+	imageId            string
 }
 
 type Build struct {
@@ -60,6 +67,13 @@ type Build struct {
 	start, finish int
 	log           logging.Logger
 	retryCount    int
+
+	// if available, create the instance via the snapshot -> AMI way
+	snapshotId string
+
+	// cleanFuncs are a list of functions that are called once a run() method
+	// is returned (for an error or non error doesn't matter)
+	cleanFuncs []func()
 }
 
 // normalize returns the normalized step according to the initial start and finish
@@ -73,26 +87,38 @@ func (b *Build) normalize(percentage int) int {
 
 }
 
-func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
 
 	b := &Build{
-		amazon:   a,
-		machine:  m,
-		provider: p,
-		start:    10,
-		finish:   90,
-		log:      p.Log,
+		amazon:     a,
+		machine:    m,
+		provider:   p,
+		start:      10,
+		finish:     90,
+		log:        p.Log,
+		snapshotId: snapshotId,
+		cleanFuncs: make([]func(), 0),
 	}
 
 	return b.run()
 }
 
 func (b *Build) run() (*protocol.Artifact, error) {
+	// run the cleanFuncs once we are finished with the build
+	defer func() {
+		if b.cleanFuncs != nil {
+			for _, fn := range b.cleanFuncs {
+				fn()
+			}
+		}
+	}()
+
 	var err error
+	imageId := ""
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
 
@@ -105,6 +131,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			return nil, err
 		}
 
+		imageId = buildData.ImageData.imageId
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
@@ -125,6 +152,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			Type: "building",
 			Data: map[string]interface{}{
 				"instanceId":  instanceId,
+				"imageId":     imageId,
 				"queryString": queryString,
 				"region":      b.amazon.Builder.Region,
 			},
@@ -181,6 +209,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	}
 
 	buildArtifact.KiteQuery = queryString
+	buildArtifact.ImageId = imageId
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
@@ -199,26 +228,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	return buildArtifact, nil
 }
 
-// buildData returns all necessary data that is needed to build a machine.
-func (b *Build) buildData() (*BuildData, error) {
-	// get all subnets belonging to Kloud
-	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
-		b.machine.Id)
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
-	if err != nil {
-		return nil, err
-	}
-
-	// sort and get the lowest
-	subnet := subnets.WithMostIps()
-
-	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
-		b.machine.Id, subnet.VpcId)
-	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-	if err != nil {
-		return nil, err
-	}
-
+func (b *Build) imageData() (*ImageData, error) {
 	b.log.Debug("[%s] Fetching image which is tagged with '%s'",
 		b.machine.Id, DefaultCustomAMITag)
 	image, err := b.amazon.ImageByTag(DefaultCustomAMITag)
@@ -243,7 +253,105 @@ func (b *Build) buildData() (*BuildData, error) {
 		DeleteOnTermination: true,
 		Encrypted:           false,
 	}
-	b.log.Debug("[%s] Using block device settings %v", b.machine.Id, blockDeviceMapping)
+
+	if b.snapshotId != "" {
+		b.log.Debug("[%s] checking for snapshot permissions", b.machine.Id)
+		// check first if the snapshot belongs to the user, it might belong to someone else!
+		if err := b.provider.CheckSnapshotExistence(b.machine.Username, b.snapshotId); err != nil {
+			return nil, err
+		}
+
+		b.log.Debug("[%s] creating AMI from the snapshot '%s'", b.machine.Id, b.snapshotId)
+
+		blockDeviceMapping.SnapshotId = b.snapshotId
+		amiDesc := fmt.Sprintf("user-%s-%s", b.machine.Username, b.machine.Id)
+
+		registerOpts := &ec2.RegisterImage{
+			Name:           amiDesc,
+			Description:    amiDesc,
+			Architecture:   image.Architecture,
+			RootDeviceName: image.RootDeviceName,
+			VirtType:       image.VirtualizationType,
+			KernelId:       image.KernelId,
+			RamdiskId:      image.RamdiskId,
+			BlockDevices:   []ec2.BlockDeviceMapping{blockDeviceMapping},
+		}
+
+		registerResp, err := b.amazon.Client.RegisterImage(registerOpts)
+		if err != nil {
+			return nil, err
+		}
+
+		// if we build the instance from a snapshot, it'll create a temporary
+		// AMI. Destroy it after we are finished or if something goes wrong.
+		b.cleanFuncs = append(b.cleanFuncs, func() {
+			b.log.Debug("[%s] Deleting temporary AMI '%s'", b.machine.Id, registerResp.ImageId)
+			if _, err := b.amazon.Client.DeregisterImage(registerResp.ImageId); err != nil {
+				b.log.Warning("[%s] Couldn't delete AMI '%s': %s", b.machine.Id, registerResp.ImageId, err)
+			}
+		})
+
+		// wait until the AMI is ready
+		checkAMI := func(currentPercentage int) (machinestate.State, error) {
+			resp, err := b.amazon.Client.Images([]string{registerResp.ImageId}, ec2.NewFilter())
+			if err != nil {
+				return 0, err
+			}
+
+			// shouldn't happen but let's check it anyway
+			if len(resp.Images) == 0 {
+				return machinestate.Pending, nil
+			}
+
+			image := resp.Images[0]
+			if image.State != "available" {
+				return machinestate.Pending, nil
+			}
+
+			return machinestate.NotInitialized, nil
+		}
+
+		ws := waitstate.WaitState{StateFunc: checkAMI, Action: "check-ami"}
+		if err := ws.Wait(); err != nil {
+			return nil, err
+		}
+
+		image.Id = registerResp.ImageId
+	}
+
+	b.log.Debug("[%s] Using image Id: %s and block device settings %v",
+		b.machine.Id, image.Id, blockDeviceMapping)
+
+	return &ImageData{
+		imageId:            image.Id,
+		blockDeviceMapping: blockDeviceMapping,
+	}, nil
+}
+
+// buildData returns all necessary data that is needed to build a machine.
+func (b *Build) buildData() (*BuildData, error) {
+	// get all subnets belonging to Kloud
+	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
+		b.machine.Id)
+	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
+	if err != nil {
+		return nil, err
+	}
+
+	// sort and get the lowest
+	subnet := subnets.WithMostIps()
+
+	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
+		b.machine.Id, subnet.VpcId)
+	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	imageData, err := b.imageData()
+	if err != nil {
+		return nil, err
+	}
 
 	b.log.Debug("[%s] Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
 		b.machine.Id, subnet.SubnetId, subnet.AvailabilityZone,
@@ -269,7 +377,7 @@ func (b *Build) buildData() (*BuildData, error) {
 	}
 
 	ec2Data := &ec2.RunInstances{
-		ImageId:                  image.Id,
+		ImageId:                  imageData.imageId,
 		MinCount:                 1,
 		MaxCount:                 1,
 		KeyName:                  b.provider.KeyName,
@@ -278,13 +386,14 @@ func (b *Build) buildData() (*BuildData, error) {
 		SubnetId:                 subnet.SubnetId,
 		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
 		AvailZone:                subnet.AvailabilityZone,
-		BlockDevices:             []ec2.BlockDeviceMapping{blockDeviceMapping},
+		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userData,
 	}
 
 	return &BuildData{
-		EC2Data: ec2Data,
-		KiteId:  kiteId,
+		EC2Data:   ec2Data,
+		ImageData: imageData,
+		KiteId:    kiteId,
 	}, nil
 }
 

@@ -373,13 +373,6 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
 
-    # clientWatcher       :
-    #   group             : "webserver"
-    #   supervisord       :
-    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
-
-
-
     # Social API workers
     socialapi           :
       group             : "socialapi"
@@ -537,7 +530,10 @@ Configuration = (options={}) ->
       #!/bin/bash
       export HOME=/root
       export KONFIG_JSON='#{KONFIG.JSON}'
-      coffee ./build-client.coffee --watch false
+
+      cd #{projectRoot}/client
+      npm install --unsafe-perm
+      make build
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

@@ -1,0 +1,8 @@
+{
+  "name": "dashboard",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/:name?/Dashboard": "home",
+    "/:name?/Dashboard/:section": "section"
+  }
+}

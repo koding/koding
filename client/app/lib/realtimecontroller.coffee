@@ -1,0 +1,325 @@
+kookies = require 'kookies'
+globals = require 'globals'
+doXhrRequest = require './util/doXhrRequest'
+sendDataDogEvent = require './util/sendDataDogEvent'
+remote = require('./remote').getInstance()
+whoami = require './util/whoami'
+isPubnubEnabled = require './util/isPubnubEnabled'
+kd = require 'kd'
+KDController = kd.Controller
+PubnubChannel = require './pubnubchannel'
+
+
+module.exports = class RealtimeController extends KDController
+
+  constructor: (options = {}, data) ->
+
+    # when we remove broker completely, we no longer need to
+    # make another caching here
+    @channels = {}
+
+    # this is used for discarding events that are received multiple times
+    @eventCache = {}
+
+    @localStorage  = kd.getSingleton("localStorageController").storage "realtime"
+
+    # each forbidden channel name is stored in local storage
+    # this is used for preventing datadog
+    unless @localStorage.getValue 'ForbiddenChannels'
+      @localStorage.setValue 'ForbiddenChannels', {}
+
+    super options, data
+
+    {subscribekey, ssl} = globals.config.pubnub
+    @timeDiff = 0
+
+    @authenticated = false
+
+    if isPubnubEnabled()
+
+      @pubnub = PUBNUB.init
+        subscribe_key : subscribekey
+        uuid          : whoami()._id
+        ssl           : ssl
+
+      @getTimeDiffWithServer()
+
+      realtimeToken = Cookies.get("realtimeToken")
+
+      if realtimeToken?
+        @pubnub.auth realtimeToken
+        @authenticated = yes
+
+        return
+
+      # in case of realtime token does not exist, fetch it from Gatekeeper
+      options = { endPoint : "/api/gatekeeper/token", data: { id: whoami().socialApiId } }
+      @authenticate options, (err) =>
+
+        return kd.warn err  if err
+
+        @authenticated = yes
+        @emit 'authenticated'
+
+
+  # channel authentication is needed for notification channel and
+  # private channels
+  authenticate: (options, callback) ->
+
+    return callback null  unless options?
+
+    { endPoint, data } = options
+    return callback { message : "endPoint is not set"}  unless endPoint
+
+    doXhrRequest {endPoint, data}, (err) =>
+
+      return callback err  if err
+
+      # when we make an authentication request, server responses with realtimeToken
+      # in cookie here. If it is not set, then there is no need to subscription attempt
+      # to pubnub
+      realtimeToken = kookies.get("realtimeToken")
+
+      return callback { message : 'Could not find realtime token'}  unless realtimeToken
+
+      @pubnub.auth realtimeToken
+
+      callback null
+
+
+  # subscriptionData =
+  #   serviceType: 'socialapi'
+  #   group      : group.slug
+  #   channelType: typeConstant
+  #   channelName: name
+  #   isExclusive: yes
+  #   connectDirectly: yes
+  #   brokerChannelName: channelName
+  subscribeChannel: (subscriptionData, callback) ->
+
+    # validate first
+    { channelName, channelType: typeConstant, group, token } = subscriptionData
+
+    return callback { message: 'channel name is not defined' }  unless channelName
+
+    return @subscribeBroker subscriptionData, callback  unless isPubnubEnabled()
+
+    pubnubChannelName = "channel-#{token}"
+
+    options = { channelName: pubnubChannelName }
+
+    # authentication needed for private message channels (pinnedactivity is for future use )
+    if typeConstant in ['privatemessage', 'pinnedactivity']
+      options.authenticate =
+        endPoint : "/api/gatekeeper/subscribe/channel"
+        data     : { name: channelName, typeConstant, groupName: group }
+
+    return @subscribePubnub options, callback
+
+
+  # unsubscribeChannel unsubscribes the user from given channel
+  unsubscribeChannel: (channel) ->
+
+    return @unsubscribeBroker channel  unless isPubnubEnabled()
+
+    @unsubscribePubnub channel
+
+
+  unsubscribeBroker: (channel) ->
+    {groupName, typeConstant, name} = channel
+    channelName = "socialapi.#{groupName}-#{typeConstant}-#{name}"
+    # unsubscribe from the channel.
+    # When a user leaves, and then rejoins a private channel, broker sends
+    # related channel from cache, but this channel contains old secret name.
+    # For this reason I have added this unsubscribe call.
+    # !!! This cache invalidation must be handled when cycleChannel event is received
+    remote.mq.unsubscribe channelName
+
+
+  unsubscribePubnub: (channel) ->
+
+    return  unless channel
+
+    {token} = channel
+    channelName = "channel-#{token}"
+    @pubnub.unsubscribe({
+      channel : channelName,
+    })
+
+    delete @channels[channelName]
+
+
+  # subcribeMessage subscribes to message channels for instance update events
+  # message channels do not need any authentication
+  subscribeMessage: (message, callback) ->
+
+    return callback null, message  unless isPubnubEnabled()
+
+    {token} = message
+
+    channelName = "instance-#{token}"
+
+    return callback null, @channels[channelName]  if @channels[channelName]
+
+    # just create a channel for instance event reception
+    channelInstance = new PubnubChannel name: channelName
+
+    @channels[channelName] = channelInstance
+
+    return callback null, channelInstance
+
+
+  subscribeNotification: (callback) ->
+    unless isPubnubEnabled()
+      notificationChannel = remote.subscribe 'notification',
+        serviceType : 'notification'
+        isExclusive : yes
+
+      return callback null, notificationChannel
+
+    { nickname } = whoami().profile
+    { environment } = globals.config
+    channelName = "notification-#{environment}-#{nickname}"
+    options = { channelName }
+    options.authenticate =
+      endPoint : "/api/gatekeeper/subscribe/notification"
+      data     : { id: whoami().socialApiId }
+
+    @subscribePubnub options, callback
+
+
+  subscribePubnub: (options = {}, callback) ->
+
+    return @subscribeHelper options, callback  if @authenticated
+
+    @once 'authenticated', => @subscribeHelper options, callback
+
+
+  subscribeHelper: (options = {}, callback) ->
+    pubnubChannelName = options.channelName
+
+    # return channel if it already exists
+    return callback null, @channels[pubnubChannelName]  if @channels[pubnubChannelName]
+
+    @authenticate options.authenticate, (err) =>
+
+      return callback err  if err
+
+      channelInstance = new PubnubChannel name: pubnubChannelName
+
+      err = @pubnub.subscribe
+        channel : pubnubChannelName
+        message : (message, env, channel) =>
+
+          return  unless message
+
+          {eventName, body, eventId} = message
+
+          return  unless eventName and body
+
+          if eventId?
+            return  if @eventCache[eventId]
+
+            # TODO delete this periodically
+            @eventCache[eventId] = yes
+
+
+          # when a user is connected in two browsers, and leaves a channel, in second one
+          # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
+          # user from all connected devices.
+          if eventName is 'RemovedFromChannel' and body.accountId is whoami().socialApiId
+            return @unsubscribePubnub message.channel
+
+          # no need to emit any events when not subscribed
+          return  unless @channels[channel]
+
+          # instance events are received via public channel. For this reason
+          # if an event name includes "instance-", update the related message channel
+          # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded" - ctf
+          if eventName.indexOf("instance-") < 0
+            return @channels[channel].emit eventName, body
+
+          events = eventName.split "."
+          if events.length < 2
+            warn 'could not parse event name', eventName
+            return
+
+          [instanceChannel, eventName] = events
+
+          return  unless @channels[instanceChannel]
+
+          @channels[instanceChannel].emit eventName, body
+
+
+        connect : =>
+          @channels[pubnubChannelName] = channelInstance
+          @removeFromForbiddenChannels pubnubChannelName
+          callback null, channelInstance
+        error   : (err) => @handleError err
+        reconnect: => @getTimeDiffWithServer()
+        # with each channel subscription pubnub resubscribes to every channel
+        # and some messages are dropped in this resubscription time interval
+        # for this reason for every subscribe request, we are fetching all messages sent
+        # in last 3 seconds
+        # another issue is if user's computer time is ahead of server, it is not receiving the events.
+        # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
+        timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
+        restore : yes
+
+      return callback err  if err
+
+  getTimeDiffWithServer: ->
+    @pubnub.time (serverTime) =>
+
+      return  unless serverTime
+
+      diff = new Date() * 10000 - serverTime
+      # when time difference between pubnub server and client is less than 500ms
+      # ignore the difference
+      @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
+
+  handleError: (err) ->
+    {message, payload} = err
+
+    return kd.warn err  unless payload?.channels
+
+    {channels} = payload
+
+    forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
+
+    for channel in channels
+      # if somehow we are not able to subscribe to a channel (public access is not granted etc.)
+      # unsubscribe from that channel. Otherwise user will not be able to receive
+      # further realtime events
+      @pubnub.unsubscribe {channel}
+      unless forbiddenChannels[channel]
+        channelToken = channel.replace "channel-", ""
+        forbiddenChannels[channel] = yes
+        @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
+        sendDataDogEvent "ForbiddenChannel", tags: {channelToken}, sendLogs: no
+
+
+  removeFromForbiddenChannels: (channelName) ->
+    forbiddenChannels = @localStorage.getValue 'ForbiddenChannels'
+
+    return  unless forbiddenChannels[channelName]
+
+    delete forbiddenChannels[channelName]
+
+    @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
+
+
+  # subscribeBroker subscribes the broker channels when it is enabled.
+  # This will be deleted later on
+  subscribeBroker: (subscriptionData = {}, callback) ->
+    {brokerChannelName:channelName} = subscriptionData
+    # do not use callbacks while subscribing, remote.subscribe already
+    # returns the required channel object. Use it. Callbacks are called
+    # twice in the subscribe function
+    realtimeChannel = remote.subscribe channelName, subscriptionData
+
+    callback null, realtimeChannel
+
+
+
+

@@ -11,6 +11,18 @@ import (
 
 func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 	buildFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		if r.Args == nil {
+			return nil, NewError(ErrNoArguments)
+		}
+
+		var args struct {
+			SnapshotId string
+		}
+
+		if err := r.Args.One().Unmarshal(&args); err != nil {
+			return nil, err
+		}
+
 		// prepare instance name
 		instanceName := "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		i, ok := m.Builder["instanceName"]
@@ -24,7 +36,7 @@ func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 			}
 		}
 
-		artifact, err := p.Build(m)
+		artifact, err := p.Build(args.SnapshotId, m)
 		if err != nil {
 			return nil, err
 		}
@@ -59,6 +71,7 @@ kite query : %s`
 				"instanceName": artifact.InstanceName,
 				"instanceType": artifact.InstanceType,
 				"queryString":  artifact.KiteQuery,
+				"imageId":      artifact.ImageId,
 			},
 		}), nil
 	}
