@@ -100,8 +100,8 @@ gulp.task 'set-config-apps', ['set-revid'], (callback) ->
     apps[name] =
       identifier: id
       name: name
-      style: "#{baseurl}/#{id}/.css?v=#{opts.rev}"
-      script: "#{baseurl}/#{id}/.js?v=#{opts.rev}"
+      style: "#{baseurl}/#{id}.css?v=#{opts.rev}"
+      script: "#{baseurl}/#{id}.js?v=#{opts.rev}"
 
   opts.globals.config = xtend opts.globals.config, {apps}
   callback()
