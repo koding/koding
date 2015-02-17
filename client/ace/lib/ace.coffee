@@ -150,7 +150,7 @@ module.exports = class Ace extends KDView
 
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
-      @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
+      @addKeyCombo 'saveAs',     'Ctrl-Shift-S',     @bound 'requestSaveAs'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
@@ -233,10 +233,6 @@ module.exports = class Ace extends KDView
     file = @getData()
     unless /localfile:/.test file.path
       file.fetchContents callback
-      # {vmName, path} = file
-      # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
-      #   return if err or not info
-      #   @emit 'FileIsReadOnly'  unless info.writable
     else
       callback null, file.contents or ''
 

@@ -3,7 +3,7 @@ globals = require 'globals'
 kookies = require 'kookies'
 getscript = require 'getscript'
 Promise = require 'bluebird'
-kd = require 'kd'
+global.kd = kd = require 'kd'
 KDModalView = kd.ModalView
 KDNotificationView = kd.NotificationView
 getFullnameFromAccount = require './util/getFullnameFromAccount'
