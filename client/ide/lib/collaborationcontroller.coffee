@@ -46,7 +46,7 @@ module.exports = CollaborationController =
   initPrivateMessage: (callback) ->
 
     {message} = kd.singletons.socialapi
-    nick      = nick()
+    nickname  = nick()
 
     message.initPrivateMessage
       body       : "@#{nick} initiated the IDE session."
@@ -682,7 +682,7 @@ module.exports = CollaborationController =
     return callback msg : 'no social channel'  unless @socialChannel
 
     {message} = kd.singletons.socialapi
-    nick      = nick()
+    nickname  = nick()
 
     message.sendPrivateMessage
       body       : "@#{nick} activated collaboration."
@@ -710,9 +710,9 @@ module.exports = CollaborationController =
     return callback msg : 'no social channel'  unless @socialChannel
 
     {message} = kd.singletons.socialapi
-    nick      = nick()
+    nickname  = nick()
 
-    @broadcastMessages.push origin: nick(), type: 'SessionEnded'
+    @broadcastMessages.push origin: nickname, type: 'SessionEnded'
 
     @rtm.once 'FileDeleted', =>
       @statusBar.emit 'CollaborationEnded'
