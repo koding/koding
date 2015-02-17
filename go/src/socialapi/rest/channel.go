@@ -59,10 +59,15 @@ func FetchChannels(accountId int64) ([]*models.Channel, error) {
 		return nil, err
 	}
 
-	var channels []*models.Channel
-	err = json.Unmarshal(res, &channels)
+	var ccs []*models.ChannelContainer
+	err = json.Unmarshal(res, &ccs)
 	if err != nil {
 		return nil, err
+	}
+
+	channels := make([]*models.Channel, len(ccs))
+	for i, cc := range ccs {
+		channels[i] = cc.Channel
 	}
 
 	return channels, nil
