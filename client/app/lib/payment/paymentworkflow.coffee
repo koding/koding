@@ -14,7 +14,7 @@
 kd = require 'kd'
 KDController = kd.Controller
 PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
-PaymentConstants = require './constants'
+PaymentConstants = require './paymentconstants'
 PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
