@@ -3,10 +3,10 @@ BIN=./node_modules/.bin
 .PHONY: landing
 
 all:
-	@DEBUG=client:* $(BIN)/gulp --devMode --watchMode
+	@DEBUG=client:*,bant:* $(BIN)/gulp --devMode --watchMode
 
 scripts:
-	@DEBUG=client:* $(BIN)/gulp scripts --devMode --watchMode
+	@DEBUG=client:*,bant:* $(BIN)/gulp scripts --devMode --watchMode
 
 build: landing
 	@DEBUG=client:* $(BIN)/gulp
