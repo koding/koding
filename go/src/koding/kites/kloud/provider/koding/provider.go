@@ -72,9 +72,13 @@ type Provider struct {
 	InactiveMachines   map[string]*time.Timer
 	InactiveMachinesMu sync.Mutex
 
-	PlanChecker func(*protocol.Machine) (Checker, error)
-
 	Stats *metrics.DogStatsD
+
+	// PaymendEndpoint is used to fetch a machines plan
+	PaymentEndpoint string
+
+	// NetworkUsageEndpoint is used to fetch a machines network usage
+	NetworkUsageEndpoint string
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -121,6 +125,30 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	a.Builder.PublicKey = p.PublicKey
 	a.Builder.PrivateKey = p.PrivateKey
 	return a, nil
+}
+
+func (p *Provider) PlanChecker(m *protocol.Machine) (*PlanChecker, error) {
+	a, err := p.NewClient(m)
+	if err != nil {
+		return nil, err
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      p.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}, nil
 }
 
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
