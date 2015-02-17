@@ -50,9 +50,9 @@ module.exports =
     nickname  = nick()
 
     message.initPrivateMessage
-      body       : "@#{nick} initiated the IDE session."
+      body       : "@#{nickname} initiated the IDE session."
       purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
-      recipients : [ nick ]
+      recipients : [ nickname ]
       payload    :
         'system-message' : 'initiate'
         collaboration    : yes
@@ -686,7 +686,7 @@ module.exports =
     nickname  = nick()
 
     message.sendPrivateMessage
-      body       : "@#{nick} activated collaboration."
+      body       : "@#{nickname} activated collaboration."
       channelId  : @socialChannel.id
       payload    :
         'system-message' : 'start'
