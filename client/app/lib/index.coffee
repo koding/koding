@@ -14,10 +14,9 @@ isLoggedIn = require './util/isLoggedIn'
 ConnectionChecker = require './connectionchecker'
 lazyrouter = require './lazyrouter'
 
+isStarted = false
 
 module.exports = (defaults) ->
-
-  isStarted = false
 
   if isStarted then throw 'already running' else isStarted = true
 
