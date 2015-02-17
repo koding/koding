@@ -2,6 +2,8 @@ kd = require 'kd'
 nick = require 'app/util/nick'
 WebTermView = require 'app/terminal/webtermview'
 IDEPane = require './idepane'
+FSHelper = require 'app/util/fs/fshelper'
+
 module.exports = class IDETerminalPane extends IDEPane
 
   constructor: (options = {}, data) ->
