@@ -1,16 +1,16 @@
-remote = require('app/remote').getInstance()
-dateFormat = require 'dateformat'
-sinkrow = require 'sinkrow'
-globals = require 'globals'
-kd = require 'kd'
-KDNotificationView = kd.NotificationView
-nick = require 'app/util/nick'
+remote                        = require('app/remote').getInstance()
+dateFormat                    = require 'dateformat'
+sinkrow                       = require 'sinkrow'
+globals                       = require 'globals'
+kd                            = require 'kd'
+KDNotificationView            = kd.NotificationView
+nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
-showError = require 'app/util/showError'
-whoami = require 'app/util/whoami'
-RealTimeManager = require './realtimemanager'
-IDEChatView = require './views/chat/idechatview'
-IDEMetrics = require './idemetrics'
+showError                     = require 'app/util/showError'
+whoami                        = require 'app/util/whoami'
+RealTimeManager               = require './realtimemanager'
+IDEChatView                   = require './views/chat/idechatview'
+IDEMetrics                    = require './idemetrics'
 # Attn!!
 #
 # This object is designed to be a mixin for IDEAppController.
