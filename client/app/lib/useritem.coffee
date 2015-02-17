@@ -1,4 +1,10 @@
-class UserItem extends KDListItemView
+kd = require 'kd'
+KDListItemView = kd.ListItemView
+KDCustomHTMLView = kd.CustomHTMLView
+AvatarView = require 'app/commonviews/avatarviews/avatarview'
+
+
+module.exports = class UserItem extends KDListItemView
 
   constructor: (options = {}, data)->
 

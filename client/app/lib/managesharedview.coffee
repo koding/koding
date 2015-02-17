@@ -1,8 +1,17 @@
-class ManageSharedView extends KDView
+kd = require 'kd'
+KDView = kd.View
+KDListViewController = kd.ListViewController
+KDAutoCompleteController = kd.AutoCompleteController
+ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
+UserItem = require './useritem'
+nick = require 'app/util/nick'
+
+
+module.exports = class ManageSharedView extends KDView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = KD.utils.curry 'users-view', options.cssClass
+    options.cssClass = kd.utils.curry 'users-view', options.cssClass
 
     super options, data
 
@@ -140,14 +149,14 @@ class ManageSharedView extends KDView
 
     # For blacklisting the users in auto complete fetcher
     users  ?= (item.getData() for item in @usersController.getListItems())
-    @_users = [KD.nick()].concat (user.profile.nickname for user in users)
+    @_users = [nick()].concat (user.profile.nickname for user in users)
 
 
   toggleInput: (informOthers = no)->
 
     @inputView.toggleClass 'hidden'
 
-    {windowController} = KD.singletons
+    {windowController} = kd.singletons
 
     windowController.addLayer @inputView
     @inputView.setFocus()
@@ -163,7 +172,7 @@ class ManageSharedView extends KDView
 
   fetchAccounts: ({inputValue}, callback) ->
 
-    KD.singletons.search.searchAccounts inputValue
+    kd.singletons.search.searchAccounts inputValue
       .filter (it) => it.profile.nickname not in @_users
       .then callback
       .timeout 1e4
