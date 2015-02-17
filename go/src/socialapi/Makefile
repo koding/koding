@@ -196,7 +196,10 @@ testcollaboration:
 	@`which go` test -c workers/collaboration/tests/*.go
 	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
-	# todo add unit tests
+
+	@`which go` test -c workers/collaboration/*.go
+	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./collaboration.test
 
 testapi: testcollaboration
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
