@@ -1,7 +1,7 @@
 kd = require 'kd'
 ActivityBaseWidget = require './activitybasewidget'
 
-class ActivitySocialMediaWidget extends ActivityBaseWidget
+module.exports = class ActivitySocialMediaWidget extends ActivityBaseWidget
 
   constructor: (options = {}, data) ->
 
