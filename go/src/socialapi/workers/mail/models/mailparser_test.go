@@ -1,7 +1,9 @@
 package models
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
+	socialapimodels "socialapi/models"
 	"socialapi/workers/common/runner"
 	"testing"
 
@@ -81,21 +83,30 @@ func TestPersist(t *testing.T) {
 	}
 	defer r.Close()
 
+	// init mongo connection
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
 	Convey("while testing Persist", t, func() {
-		Convey("", func() {
-			m := &Mail{From: "mehmet@koding.com",
-				OriginalRecipient: "post+channelid.5678@inbound.koding.com",
-				MailboxHash:       "channelid.5678",
-				TextBody:          "Its a example of text message",
+		Convey("testing post message", func() {
+			acc, err := socialapimodels.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+
+			c := socialapimodels.CreateChannelWithTest(acc.Id)
+
+			//cm := socialapimodels.CreateMessage(c.Id, acc.Id)
+			mongoUser, err := modelhelper.GetUser(acc.Nick)
+			So(err, ShouldBeNil)
+
+			m := &Mail{
+				From:              mongoUser.Email,
+				OriginalRecipient: fmt.Sprintf("post+channelid.%d@inbound.koding.com", c.Id),
+				MailboxHash:       fmt.Sprintf("channelid.%d", c.Id),
+				TextBody:          "Its an example of text message",
 			}
 
-			acc := socialapimodels.CreateAccountWithTest()
-			cm := socialapimodels.NewChannelMessage()
-			cm.c
-
-			err := m.Persist()
-			So(err, ShouldContainSubstring, "")
+			err = m.Persist()
+			So(err, ShouldBeNil)
 		})
-
 	})
 }
