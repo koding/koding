@@ -202,7 +202,7 @@ testcollaboration:
 	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
-testapi: testcollaboration
+testapi: testcollaboration testmail
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
@@ -337,7 +337,7 @@ dep:
 
 	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
 
-mailtest:
+testmail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
 	@`which go` test -c workers/mail/models/*.go
 	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
