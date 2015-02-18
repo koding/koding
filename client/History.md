@@ -5,7 +5,7 @@ The primary goal of this release is browserify compatibility.
 
 ## commonjs migration
 
-Up until now we were exposing classes with unique names into `window` object, so everything was accessible from everywhere. This release introduces commonjs/node.js style modularity and `require` is the only exported method now on. Every file is encapsulated in its own space and there is no possible way to access top-level scope without being explicit. (eg `window.xyz = 1`) 
+Up until now we were exposing classes with unique names into `window` object, so everything was accessible from everywhere. This release introduces commonjs/node.js style modularity and `require` is the only exported method now on. Every file is encapsulated in its own space and there is no possible way to access top-level scope without being explicit. (eg `window.xyz = 1`)
 
 This also requires a file to `require` its dependencies apparently.
 
@@ -17,7 +17,7 @@ This also requires a file to `require` its dependencies apparently.
 
 Example:
 
-```js
+```coffeescript
 kd = require 'kd'
 
 class X extends kd.View
@@ -41,25 +41,25 @@ class X extends kd.View
 Besides for being the framework itself, `KD` was also being extended in runtime in two separate occasions:
 
 * As a globally accessible object, it was being extended with configuration stuff. See go-webserver entry html.
-* And with `KD.extend` and `KD.utils.extend` it was possible mix-in new methods onto it. 
+* And with `KD.extend` and `KD.utils.extend` it was possible mix-in new methods onto it.
 
 These two are separated. (See `globals` and `app/util`)
 
 ## bongo-client
 
-(TODO)
+It was a module under `node_modules_koding` now it is in its separate package at github.com/koding/bongo-client
 
 ## broker-client
 
-(TODO)
+It was a module under `node_modules_koding` now it is in its separate package at github.com/koding/broker-client
 
 ## sinkrow (daisy, dash)
 
-(TODO)
+It was a module under `node_modules_koding` now it is in its separate package at github.com/koding/sinkrow , we didn't name this, this was already there and used by `Bongo` and we just separated it since it is not wise to require bongo to only use `dash` or `daisy` methods.
 
 ## kookies
 
-(TODO)
+`Cookies` mini library we used became `kookies`, I don't remember why we changed the name. - SY
 
 ## kite.js
 
@@ -67,7 +67,7 @@ These two are separated. (See `globals` and `app/util`)
 
 ## underscore -> lodash
 
-(TODO)
+We use `lodash` as underscore, because we mapped it in `package.json` where you ask for underscore it gives you lodash. The reason is that we already used `underscore` in many places and instead of refactoring those we mapped the package. As for why we decided for `lodash` same api and more, better maintained, faster etc. Google it for more.
 
 ## jquery.timeago -> timeago
 
@@ -129,7 +129,7 @@ These two are separated. (See `globals` and `app/util`)
 
 (TODO)
 
-## gulp 
+## gulp
 
 (TODO)
 
