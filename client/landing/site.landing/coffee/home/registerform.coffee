@@ -53,8 +53,7 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
 
     return super  unless @oauthData?.email is email
 
-    formData = { email: email }
-    @getCallback() formData
+    @getCallback() { email }
 
 
   showEmailError: ->
