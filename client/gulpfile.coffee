@@ -30,6 +30,7 @@ styleHelper    = require './gulptasks/style'
 concat         = require 'gulp-concat'
 
 devMode        = argv.devMode?
+watchMode      = argv.watchMode?
 version        = argv.ver? or 1
 
 log            = (color, message) -> gutil.log gutil.colors[color] message
@@ -166,19 +167,20 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
   modules.forEach (name) -> mapping[name] = "../#{name}/lib"
 
   # opts.globals.modules = modules
-  opts.browserify.debug = yes
+  opts.browserify.debug = yes  if devMode
 
-  b = browserify xtend opts.browserify, watchify.args
-    .transform coffeeify, global: yes
-    .transform pistachioify, global: yes
-    .transform rewritify,
+  if watchMode
+    b = watchify(browserify(xtend(opts.browserify, watchify.args)))
+  else
+    b = browserify opts.browserify
+
+  b.transform coffeeify, global: yes
+   .transform pistachioify, global: yes
+   .transform rewritify,
       global: yes
       extensions: ['coffee']
       basedir: __dirname
       mapping: mapping
-
-  b = watchify b  if devMode
-
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->

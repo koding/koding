@@ -1,4 +1,4 @@
-Algolia = require 'algolia-search'
+Algolia = require 'algoliasearch'
 Promise = require 'bluebird'
 globals = require 'globals'
 kd = require 'kd'

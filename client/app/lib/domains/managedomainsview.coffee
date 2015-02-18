@@ -33,6 +33,8 @@ module.exports = class ManageDomainsView extends KDView
         spellcheck      : no
       callback          : @bound 'addDomain'
 
+    @input.on 'EscapePerformed', @bound 'resetInput'
+
     @inputView.addSubView new KDView
       partial           : @domainSuffix
       cssClass          : 'domain-suffix'
@@ -105,9 +107,7 @@ module.exports = class ManageDomainsView extends KDView
         @domainController.addItem { domain, machineId }
         computeController.domains = []
 
-        @input.setValue ""
-        @inputView.hide()
-        @emit "DomainInputCancelled"
+        @hideInput()
 
       .catch (err)=>
         kd.warn "Failed to create domain:", err
@@ -244,6 +244,18 @@ module.exports = class ManageDomainsView extends KDView
           callback  : -> modal.cancel()
 
 
+  resetInput:->
+
+    @input.setValue('')
+    @hideInput()
+
+
+  hideInput:->
+
+    @inputView.hide()
+    @warning.hide()
+    @emit "DomainInputCancelled"
+
   toggleInput:->
 
     @inputView.toggleClass 'hidden'
@@ -253,11 +265,12 @@ module.exports = class ManageDomainsView extends KDView
     windowController.addLayer @input
     @input.setFocus()
 
-    @input.off  "ReceivedClickElsewhere"
-    @input.once "ReceivedClickElsewhere", (event)=>
+    @input.off "ReceivedClickElsewhere"
+    @input.on "ReceivedClickElsewhere", (event)=>
+
+      if $(event.target).hasClass 'domain-suffix'
+        windowController.addLayer @input
+        return
+
       return  if $(event.target).hasClass 'domain-toggle'
-      @emit "DomainInputCancelled"
-      @inputView.hide()
-      @warning.hide()
-
-
+      @hideInput()
