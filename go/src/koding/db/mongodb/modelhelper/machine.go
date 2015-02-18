@@ -91,6 +91,41 @@ func GetMachineByUid(uid string) (*models.Machine, error) {
 
 	return machine, nil
 }
+
+// UnshareMachineByUid unshares the machine from all other users except the
+// owner
+func UnshareMachineByUid(uid string) error {
+	machine, err := GetMachineByUid(uid)
+	if err != nil {
+		return err
+	}
+
+	owner := make([]models.MachineUser, 1)
+	for _, user := range machine.Users {
+		// this is the correct way to remove all users but the owner from a
+		// machine
+		if user.Sudo && user.Owner {
+			owner[0] = user
+			break
+		}
+	}
+
+	if len(owner) == 0 {
+		return errors.New("owner couldnt found")
+	}
+
+	s := Selector{"_id": machine.ObjectId}
+	o := Selector{"$set": Selector{
+		"users": owner,
+	}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(s, o)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
