@@ -14,6 +14,7 @@ GroupsMembershipPolicyDetailView = require './views/groupsmembershippolicydetail
 OnboardingDashboardView = require './views/onboarding/onboardingdashboardview'
 AppController = require 'app/appcontroller'
 Encoder = require 'htmlencode'
+require('./routehandler')()
 
 
 module.exports = class DashboardAppController extends AppController
