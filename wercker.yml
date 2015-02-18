@@ -226,9 +226,8 @@ deploy:
           cd $WERCKER_ROOT
 
           ./configure --config $CONFIG --projectRoot /opt/koding
-          ./run
 
-          rm -rf .git .build node_modules
+          rm -rf .git .build node_modules client/node_modules
           rm -rf go/bin go/pkg
           rm -rf website/a/js/*.map
           zip -q --symlinks -r $ARCHIVE .
