@@ -48,7 +48,13 @@ func TestGroupChannel(t *testing.T) {
 			account, err := models.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 
-			channels, err := rest.FetchChannels(account.Id)
+			_, err = rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+
+			_, err = rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_ANNOUNCEMENT)
+			So(err, ShouldBeNil)
+
+			channels, err := rest.FetchChannelsByGroupName(account.Id, groupName)
 			So(err, ShouldBeNil)
 			So(len(channels), ShouldEqual, 2)
 			So(channels[0].TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
