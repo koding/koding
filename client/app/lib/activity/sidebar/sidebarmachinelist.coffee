@@ -78,14 +78,6 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
       callback box
 
 
-  deselectMachinesAndCollapseWorkspaces: ->
-
-    @deselectMachines()
-    @forEachMachineBoxes (box) ->
-      box.deselectWorkspaces()
-      box.collapseList()
-
-
   updateList: (listData) ->
 
     for data in listData

@@ -437,7 +437,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if @machineLists and not isVisitedIDE
       for machineList in @machineLists
-        machineList.deselectMachinesAndCollapseWorkspaces()
+        machineList.deselectMachines()
 
     for own name, {listController} of @sections
       listController.deselectAllItems()
