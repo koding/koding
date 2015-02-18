@@ -11,6 +11,7 @@ import (
 
 	"socialapi/config"
 
+	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/streadway/amqp"
@@ -97,8 +98,7 @@ func (c *Controller) Ping(ping *models.Ping) error {
 		return nil
 	}
 
-	// wait syncronously
-	err = c.wait(ping)
+	err = c.wait(ping) // wait syncronously
 	if err != nil && err != errSessionInvalid {
 		return err
 	}
@@ -162,6 +162,71 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
 	}
 
 	// session is valid
+	return nil
+}
+
+func (c *Controller) EndSession(ping *models.Ping) error {
+	errChan := make(chan error, 3)
+	c.goWithRetry(func() error {
+		return c.EndPrivateMessage(ping)
+	}, errChan)
+
+	c.goWithRetry(func() error {
+		return c.UnshareVM(ping)
+	}, errChan)
+
+	c.goWithRetry(func() error {
+		return c.DeleteDriveDoc(ping)
+	}, errChan)
+
+	var err error
+
+	for errC := range errChan {
+		if err == nil && errC != nil {
+			err = errC
+		}
+	}
+
+	return err
+}
+
+func (c *Controller) goWithRetry(f func() error, errChan chan error) {
+	go func() {
+		bo := backoff.NewExponentialBackOff()
+		bo.InitialInterval = time.Millisecond * 250
+		bo.MaxInterval = time.Second * 1
+		bo.MaxElapsedTime = time.Second * 10
+
+		ticker := backoff.NewTicker(bo)
+		defer ticker.Stop()
+
+		var err error
+		for _ = range ticker.C {
+			if err = f(); err != nil {
+				c.log.Error("err while connecting: %s  will retry...", err.Error())
+				continue
+			}
+
+			break
+		}
+
+		if err != nil {
+			errChan <- err
+		}
+
+		errChan <- nil
+	}()
+}
+
+func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
+	return nil
+}
+
+func (c *Controller) UnshareVM(ping *models.Ping) error {
+	return nil
+}
+
+func (c *Controller) DeleteDriveDoc(ping *models.Ping) error {
 	return nil
 }
 
