@@ -27,9 +27,6 @@ module.exports = class MoreWorkspacesModal extends SidebarSearchModal
 
     @addSubView @addButton, '.kdmodal-content'
 
-    super
-
-
   populate: ->
 
     for workspace in @getData()
