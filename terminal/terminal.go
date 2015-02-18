@@ -233,7 +233,7 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 	}
 
 	// check if we have custom screenrc path and there is a file for it. If yes
-	// use it for screen binary.
+	// use it for screen binary otherwise it'll just start without any screenrc.
 	if t.screenrcPath != "" {
 		if _, err := os.Stat(t.screenrcPath); err == nil {
 			args = append(args, "-c", t.screenrcPath)
