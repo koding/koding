@@ -4,7 +4,7 @@ KDFormView = kd.FormView
 KDInputView = kd.InputView
 KDLabelView = kd.LabelView
 KDView = kd.View
-IDEFinderItem = require '../../../ide/lib/finder/idefinderitem'
+IDEFinderItem = require 'ide/finder/idefinderitem'
 
 
 module.exports = (container, callback = kd.noop, options = {}) ->
