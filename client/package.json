@@ -19,6 +19,7 @@
     "kd-shim-algoliasearch": "2.9.2-commonjs",
     "kd-shim-jspath": "^0.1.4",
     "kd-shim-sockjs-client": "^0.3.4",
+    "kd-shim-jquery-sketchpad": "^0.1.1",
     "kd.js": "^1.0.1",
     "kite.js": "git://github.com/tetsuo/kite.js#0.4.0",
     "kookies": "^0.1.1",
