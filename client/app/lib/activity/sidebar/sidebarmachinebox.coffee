@@ -18,9 +18,7 @@ module.exports = class SidebarMachineBox extends KDView
 
     super options, data
 
-    { machine } = data
-
-    @machine = new Machine machine: remote.revive machine
+    @machine = new Machine machine: remote.revive data.machine
 
     @addSubView @machineItem = new NavigationMachineItem {}, @machine
 
@@ -73,11 +71,9 @@ module.exports = class SidebarMachineBox extends KDView
       @addWorkspaceView.input.setFocus()
       return no
 
-    { machine } = @getData()
-
     data =
-      machineUId   : machine.uid
-      machineLabel : machine.label
+      machineUId   : @machine.uid
+      machineLabel : @machine.label
 
     @addWorkspaceView = new AddWorkspaceView {}, data
 
@@ -116,9 +112,7 @@ module.exports = class SidebarMachineBox extends KDView
 
   selectWorkspace: (slug) ->
 
-    { machine } = @getData()
-
-    if machine.status.state is Machine.State.Running
+    if @machine.status.state is Machine.State.Running
       @expandList()
 
     @deselectWorkspaces()
