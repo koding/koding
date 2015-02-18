@@ -95,7 +95,7 @@ func TestCollaborationPing(t *testing.T) {
 			Convey("after sleep time", func() {
 				req := req
 
-				Convey("after expire should get invalidSessoin", func() {
+				Convey("expired session should get invalidSessoin", func() {
 					st := sleepTime
 					sleepTime = time.Millisecond * 110
 
@@ -125,7 +125,7 @@ func TestCollaborationPing(t *testing.T) {
 					So(err, ShouldEqual, errSessionInvalid)
 				})
 
-				Convey("after deadline duration should get errDeadlineReached", func() {
+				Convey("deadlined session should get errDeadlineReached", func() {
 					st := sleepTime
 					sleepTime = time.Millisecond * 110
 
@@ -198,8 +198,5 @@ func TestCollaborationPing(t *testing.T) {
 				So(err, ShouldEqual, errSessionInvalid)
 			})
 		})
-
-		// err := handler.Ping(p)
-		// So(err, ShouldBeNil)
 	})
 }
