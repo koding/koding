@@ -17,6 +17,7 @@ KodingSwitch = require '../commonviews/kodingswitch'
 Machine = require './machine'
 ManageDomainsView = require '../domains/managedomainsview'
 ComputeErrorUsageModal = require './computeerrorusagemodal'
+ManageSharedView = require '../managesharedview'
 
 
 module.exports = class MachineSettingsPopup extends KDModalViewWithForms
@@ -128,7 +129,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           return  unless err?
           if err.name is "UsageLimitReached" and plan isnt 'hobbyist'
             @destroy()
-            kd.utils.defer => new Usage { plan }
+            kd.utils.defer => new ComputeErrorUsageModal { plan }
           else
             showError err
           alwaysOn.setOff no
@@ -308,7 +309,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
       unless @isPaidAccount
         kd.utils.defer =>
-          new ComputeErrorModal.Usage
+          new ComputeErrorUsageModal
             plan    : 'free'
             message : 'VM share feature is only available for paid accounts.'
         @destroy()
