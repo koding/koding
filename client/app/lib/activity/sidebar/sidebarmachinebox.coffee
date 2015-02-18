@@ -141,5 +141,5 @@ module.exports = class SidebarMachineBox extends KDView
 
     { workspaces } = @getData()
 
-    for ws, index in workspaces when ws?.getId() is wsId
-      workspaces.splice index, 1
+    for ws, index in workspaces when ws.getId() is wsId
+      return workspaces.splice index, 1
