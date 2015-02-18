@@ -1,18 +1,17 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDCustomHTMLView        = kd.CustomHTMLView
+KDView                  = kd.View
 ActivityInputHelperView = require './activityinputhelperview'
-ActivityInputView = require './activityinputview'
-ActivityListItemView = require './activitylistitemview'
-EmbedBoxWidget = require './embedboxwidget'
-globals = require 'globals'
-mixpanel = require 'app/util/mixpanel'
-showError = require 'app/util/showError'
-generateDummyMessage = require 'app/util/generateDummyMessage'
-generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
-showErrorNotification = require 'app/util/showErrorNotification'
-isLoggedIn = require 'app/util/isLoggedIn'
+ActivityInputView       = require './activityinputview'
+EmbedBoxWidget          = require './embedboxwidget'
+globals                 = require 'globals'
+mixpanel                = require 'app/util/mixpanel'
+showError               = require 'app/util/showError'
+generateDummyMessage    = require 'app/util/generateDummyMessage'
+generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
+showErrorNotification   = require 'app/util/showErrorNotification'
+isLoggedIn              = require 'app/util/isLoggedIn'
 
 module.exports = class ActivityInputWidget extends KDView
 
@@ -158,9 +157,7 @@ module.exports = class ActivityInputWidget extends KDView
 
       activity.body = body
 
-      if payload
-        activity.link.link_url = payload.link_url
-        activity.link.link_embed = payload.link_embed
+      activity.link = payload if payload
 
       activity.emit 'update'
 
@@ -215,6 +212,7 @@ module.exports = class ActivityInputWidget extends KDView
     data = generateDummyMessage value
 
     @preview?.destroy()
+    ActivityListItemView = require './activitylistitemview'
     @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
     @preview.addSubView new KDCustomHTMLView
       cssClass : 'preview-indicator'

@@ -54,14 +54,14 @@ module.exports = class GroupPlanAddProductsModal extends KDModalView
 
     @buttonField.addSubView new KDButtonView
       title     : 'Save'
-      cssClass  : 'modal-clean-green'
+      cssClass  : 'solid green medium'
       callback  : =>
         @save()
         @destroy()
 
     @buttonField.addSubView new KDButtonView
       title     : 'cancel'
-      cssClass  : 'modal-cancel'
+      cssClass  : 'solid light-gray medium'
       callback  : @bound 'destroy'
 
     @addSubView @planExplanation

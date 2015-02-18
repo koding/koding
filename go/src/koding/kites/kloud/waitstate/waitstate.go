@@ -30,6 +30,7 @@ var MetaStates = map[string]MetaState{
 	"create-volume":   {[]machinestate.State{machinestate.Stopped}, machinestate.Pending},
 	"detach-volume":   {[]machinestate.State{machinestate.Stopped}, machinestate.Pending},
 	"attach-volume":   {[]machinestate.State{machinestate.Stopped}, machinestate.Pending},
+	"check-ami":       {[]machinestate.State{machinestate.NotInitialized}, machinestate.Pending},
 }
 
 type MetaState struct {

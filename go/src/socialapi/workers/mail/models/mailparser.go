@@ -9,33 +9,14 @@ import (
 	"strings"
 )
 
-// type Message struct {
-// 	Name string
-// 	Body string
-// 	Time int64
-// }
-
 type Mail struct {
-	FromName string
-	From     string
-	//ToFull string
+	FromName          string
+	From              string
 	OriginalRecipient string
 	MailboxHash       string
 	TextBody          string
 	StrippedTextReply string
 }
-
-// type ToFull struct {
-// 	Email string
-// 	MailboxHash string
-// }
-
-// type ValidRequestFromMail struct {
-// 	AccountId int64
-// 	Email     string
-// 	TargetId  int64
-// 	Body      string
-// }
 
 // errors
 var (
@@ -60,13 +41,6 @@ func GetAccount(mailAddress string) (*mongomodels.Account, error) {
 	return account, nil
 }
 
-//post+fhasldjfaslhdfkjas@koding.cpmo
-//reply+fasdfasdfasfd@koding.com
-// AddMessageToRelatedChannel adds the taken message to the related channel
-func AddMessageToRelatedChannel() {
-	// to Do...
-}
-
 func (m *Mail) Validate() error {
 	if m.From == "" {
 		return ErrFromFieldIsNotSet
@@ -83,13 +57,16 @@ func (m *Mail) Validate() error {
 // reply+messageid.1234@inbound.koding.com
 // post+channelid.5678@inbound.koding.com
 func (m *Mail) Persist() error {
-	acc := socialapimodels.NewAccount()
+	//acc := socialapimodels.NewAccount()
 	acc, err := GetAccount(m.From)
+	if err != nil {
+		return errInvalidMailPrefix
+	}
+
+	accountId, err := acc.GetSocialApiId()
 	if err != nil {
 		return err
 	}
-
-	accountId := acc.Id
 
 	if strings.HasPrefix(m.OriginalRecipient, "post") {
 		// Split method get the MailboxHash field
@@ -108,8 +85,6 @@ func (m *Mail) Persist() error {
 		if err != nil {
 			return err
 		}
-
-		// accountId := 1
 
 		cm := socialapimodels.NewChannelMessage()
 		cm.Body = m.TextBody // set the body
@@ -141,21 +116,18 @@ func (m *Mail) Persist() error {
 			return err
 		}
 
-		// accountId := 1
-
 		// create reply
-
 		reply := socialapimodels.NewChannelMessage()
 		reply.Body = m.StrippedTextReply // set the body
 		// todo set this type according to the the channel id
 		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_REPLY
-		reply.InitialChannelId = channelId
+		reply.InitialChannelId = cm.InitialChannelId
 		reply.AccountId = accountId
 		if err := reply.Create(); err != nil {
 			return err
 		}
 
-		if err = cm.AddReply(reply); err != nil {
+		if _, err = cm.AddReply(reply); err != nil {
 			return err
 		}
 	}

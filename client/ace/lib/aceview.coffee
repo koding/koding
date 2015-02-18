@@ -135,12 +135,12 @@ module.exports = class AceView extends JView
         """
         buttons         :
           'Edit Anyway' :
-            cssClass    : 'modal-clean-red'
+            cssClass    : 'solid red medium'
             callback    : =>
               @ace.setReadOnly no
               modal.destroy()
           'Cancel'      :
-            cssClass    : 'modal-cancel'
+            cssClass    : 'solid light-gray medium'
             callback    : ->
               modal.destroy()
 

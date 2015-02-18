@@ -33,6 +33,8 @@ module.exports = class ManageDomainsView extends KDView
         spellcheck      : no
       callback          : @bound 'addDomain'
 
+    @input.on 'EscapePerformed', @bound 'resetInput'
+
     @inputView.addSubView new KDView
       partial           : @domainSuffix
       cssClass          : 'domain-suffix'
@@ -105,9 +107,7 @@ module.exports = class ManageDomainsView extends KDView
         @domainController.addItem { domain, machineId }
         computeController.domains = []
 
-        @input.setValue ""
-        @inputView.hide()
-        @emit "DomainInputCancelled"
+        @hideInput()
 
       .catch (err)=>
         kd.warn "Failed to create domain:", err
@@ -232,22 +232,29 @@ module.exports = class ManageDomainsView extends KDView
       buttons       :
         OK          :
           title     : "Yes"
-          style     : 'modal-clean-red'
+          style     : 'solid red medium'
           loader    :
             color   : 'darkred'
           callback  : ->
-            computeController.getKloud()
-              .unsetDomain {domainName: domain, machineId}
-              .then -> callback yes
-              .catch (err)->
-                kd.warn err
-                callback no
-              .finally -> modal.destroy()
+            modal.destroy()
+            callback yes
         cancel      :
           title     : "Cancel"
-          style     : 'modal-cancel'
+          style     : 'solid light-gray medium'
           callback  : -> modal.cancel()
 
+
+  resetInput:->
+
+    @input.setValue('')
+    @hideInput()
+
+
+  hideInput:->
+
+    @inputView.hide()
+    @warning.hide()
+    @emit "DomainInputCancelled"
 
   toggleInput:->
 
@@ -258,11 +265,12 @@ module.exports = class ManageDomainsView extends KDView
     windowController.addLayer @input
     @input.setFocus()
 
-    @input.off  "ReceivedClickElsewhere"
-    @input.once "ReceivedClickElsewhere", (event)=>
+    @input.off "ReceivedClickElsewhere"
+    @input.on "ReceivedClickElsewhere", (event)=>
+
+      if $(event.target).hasClass 'domain-suffix'
+        windowController.addLayer @input
+        return
+
       return  if $(event.target).hasClass 'domain-toggle'
-      @emit "DomainInputCancelled"
-      @inputView.hide()
-      @warning.hide()
-
-
+      @hideInput()

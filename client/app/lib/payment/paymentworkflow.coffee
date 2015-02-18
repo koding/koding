@@ -14,7 +14,7 @@
 kd = require 'kd'
 KDController = kd.Controller
 PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
-PaymentConstants = require './constants'
+PaymentConstants = require './paymentconstants'
 PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
@@ -216,11 +216,7 @@ module.exports = class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
-    initiatorView = @getDelegate()
-
     @emit 'PaymentWorkflowFinishedSuccessfully', state
-
-    initiatorView.state.currentPlan = state.currentPlan
 
     @modal.destroy()
 

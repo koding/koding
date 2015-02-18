@@ -111,8 +111,10 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 		data["domain"] = s.Data["domainName"]
 		data["meta.instanceId"] = s.Data["instanceId"]
 		data["meta.instanceName"] = s.Data["instanceName"]
+		data["meta.source_ami"] = s.Data["imageId"]
 	case "building":
 		data["meta.instanceId"] = s.Data["instanceId"]
+		data["meta.source_ami"] = s.Data["imageId"]
 		data["queryString"] = s.Data["queryString"]
 		if s.Data["region"] != "" {
 			data["meta.region"] = s.Data["region"]
@@ -129,7 +131,7 @@ func (p *Provider) Update(id string, s *kloud.StorageData) error {
 		data["ipAddress"] = s.Data["ipAddress"]
 	case "domain":
 		data["domain"] = s.Data["domainName"]
-	case "resize":
+	case "resize", "createSnapshot":
 		data["ipAddress"] = s.Data["ipAddress"]
 	default:
 		return fmt.Errorf("Storage type unknown: '%s'", s.Type)

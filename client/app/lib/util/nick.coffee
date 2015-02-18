@@ -1,4 +1,3 @@
 whoami = require './whoami'
 
-module.exports = () ->
-  whoami()?.profile?.nickname
+module.exports = -> whoami()?.profile?.nickname

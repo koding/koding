@@ -269,7 +269,7 @@ module.exports = class ComputeController extends KDController
         @_clearTrialCounts machine
         @eventListener.addListener 'destroy', machine._id
 
-      .timeout ComputeController.timeout
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
       .catch (err)=>
 
@@ -303,7 +303,7 @@ module.exports = class ComputeController extends KDController
         @_clearTrialCounts machine
         @eventListener.addListener 'reinit', machine._id
 
-      .timeout ComputeController.timeout
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
       .catch (err)=>
 
@@ -339,7 +339,7 @@ module.exports = class ComputeController extends KDController
           @_clearTrialCounts machine
           @eventListener.addListener 'resize', machine._id
 
-        .timeout ComputeController.timeout
+        .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
         .catch (err)=>
 
@@ -363,7 +363,7 @@ module.exports = class ComputeController extends KDController
       @_clearTrialCounts machine
       @eventListener.addListener 'build', machine._id
 
-    .timeout ComputeController.timeout
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err)=>
 
@@ -387,7 +387,7 @@ module.exports = class ComputeController extends KDController
       @_clearTrialCounts machine
       @eventListener.addListener 'start', machine._id
 
-    .timeout ComputeController.timeout
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err)=>
 
@@ -412,7 +412,7 @@ module.exports = class ComputeController extends KDController
       @_clearTrialCounts machine
       @eventListener.addListener 'stop', machine._id
 
-    .timeout ComputeController.timeout
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err)=>
 
@@ -470,7 +470,7 @@ module.exports = class ComputeController extends KDController
 
       response
 
-    .timeout ComputeController.timeout
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
     .catch (err)=>
 

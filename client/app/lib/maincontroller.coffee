@@ -175,8 +175,17 @@ module.exports = class MainController extends KDController
 
 
 
-  accountChanged:(account, firstLoad = no)->
-    account = remote.revive account  unless account instanceof remote.api.JAccount
+  accountChanged: (account, firstLoad = no)->
+
+    unless account instanceof remote.api.JAccount
+      account = remote.revive account
+
+    # this is last guard that we can take for guestuser issue ~ GG
+    if account.profile?.nickname is "guestuser"
+      kookies.expire 'clientId'
+      global.location.href = '/'
+      return
+
     globals.userAccount = account
     connectedState.connected = yes
 
@@ -256,7 +265,6 @@ module.exports = class MainController extends KDController
     cookieChangeHandler = do (cookie = kookies.get 'clientId') => =>
       cookieExists = cookie?
       cookieMatches = cookie is (kookies.get 'clientId')
-      cookie = kookies.get 'clientId'
 
       if cookieExists and not cookieMatches
         return @isLoggingIn off  if @isLoggingIn() is on

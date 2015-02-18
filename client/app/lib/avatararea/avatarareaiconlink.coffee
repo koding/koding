@@ -30,11 +30,11 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
     then @$('.count').addClass "hidden"
     else @$('.count').removeClass "hidden"
 
-  click: (event) ->
+  click: do (skipNextClick = no) -> (event) ->
 
     kd.utils.stopDOMEvent event
 
-    return clickedInside = no  if clickedInside
+    return skipNextClick = no  if skipNextClick
 
     popup = @getDelegate()
 
@@ -44,7 +44,7 @@ module.exports = class AvatarAreaIconLink extends KDCustomHTMLView
       @setClass 'active'
       popup.show()
       popup.once "ReceivedClickElsewhere", (event) =>
-        clickedInside = @isInside event.target
+        skipNextClick = @isInside event.target
         @unsetClass 'active'
         popup.hide()
 

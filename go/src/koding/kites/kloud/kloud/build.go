@@ -11,6 +11,18 @@ import (
 
 func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 	buildFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+		if r.Args == nil {
+			return nil, NewError(ErrNoArguments)
+		}
+
+		var args struct {
+			SnapshotId string
+		}
+
+		if err := r.Args.One().Unmarshal(&args); err != nil {
+			return nil, err
+		}
+
 		// prepare instance name
 		instanceName := "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 		i, ok := m.Builder["instanceName"]
@@ -24,7 +36,7 @@ func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 			}
 		}
 
-		artifact, err := p.Build(m)
+		artifact, err := p.Build(args.SnapshotId, m)
 		if err != nil {
 			return nil, err
 		}
@@ -38,15 +50,9 @@ func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 			artifact.Username = m.Username
 		}
 
-		resultStub := `
-username   : %s
-domain     : %s
-ip address : %s
-instance   : %s
-kite query : %s`
+		resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
+			artifact.Username, artifact.InstanceId, artifact.IpAddress, artifact.KiteQuery)
 
-		resultInfo := fmt.Sprintf(resultStub, artifact.Username, artifact.DomainName,
-			artifact.IpAddress, artifact.InstanceName, artifact.KiteQuery)
 		k.Log.Info("[%s] ========== BUILD results ========== %s",
 			m.Id, resultInfo)
 
@@ -59,6 +65,7 @@ kite query : %s`
 				"instanceName": artifact.InstanceName,
 				"instanceType": artifact.InstanceType,
 				"queryString":  artifact.KiteQuery,
+				"imageId":      artifact.ImageId,
 			},
 		}), nil
 	}

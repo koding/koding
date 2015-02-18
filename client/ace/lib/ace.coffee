@@ -115,10 +115,7 @@ module.exports = class Ace extends KDView
       @setKeyboardHandler     @appStorage.getValue('keyboardHandler')     ? 'default'
       @setScrollPastEnd       @appStorage.getValue('scrollPastEnd')       ? yes
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
-
-    @editor.setOptions
-      enableBasicAutocompletion: yes
-      enableSnippets: yes
+      @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
 
   saveStarted:->
     @lastContentsSentForSave = @getContents()
@@ -153,7 +150,7 @@ module.exports = class Ace extends KDView
 
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
-      @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
+      @addKeyCombo 'saveAs',     'Ctrl-Shift-S',     @bound 'requestSaveAs'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
@@ -236,10 +233,6 @@ module.exports = class Ace extends KDView
     file = @getData()
     unless /localfile:/.test file.path
       file.fetchContents callback
-      # {vmName, path} = file
-      # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
-      #   return if err or not info
-      #   @emit 'FileIsReadOnly'  unless info.writable
     else
       callback null, file.contents or ''
 
@@ -286,6 +279,9 @@ module.exports = class Ace extends KDView
   getOpenRecentFiles:->
     @appStorage.getValue('openRecentFiles') ? yes
 
+  getEnableAutocomplete:->
+    @appStorage.getValue('enableAutocomplete') ? yes
+
   getSettings:->
     theme               : @getTheme()
     syntax              : @getSyntax()
@@ -300,6 +296,7 @@ module.exports = class Ace extends KDView
     keyboardHandler     : @getKeyboardHandler()
     scrollPastEnd       : @getScrollPastEnd()
     openRecentFiles     : @getOpenRecentFiles()
+    enableAutocomplete  : @getEnableAutocomplete()
 
   ###
   SETTERS
@@ -328,8 +325,7 @@ module.exports = class Ace extends KDView
     themeName or= @appStorage.getValue('theme') or 'base16'
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
-    #@appStorage.setValue 'theme', themeName, =>
-      #callback
+    @appStorage.setValue 'theme', themeName, => # do what is necessary here if any - SY
 
   setUseSoftTabs:(value, save = yes)->
 
@@ -374,6 +370,9 @@ module.exports = class Ace extends KDView
       done binding.handler
 
     done null
+	# we need to inject keyboard files before ace loads - SY
+	# needs a bit of work here by ~og.
+
     #if name is 'default'
       #done null
     #else
@@ -420,6 +419,14 @@ module.exports = class Ace extends KDView
 
   setOpenRecentFiles:(value, save = yes)->
     @appStorage.setValue 'openRecentFiles', value
+
+  setEnableAutocomplete:(value, save = yes)->
+
+    @editor.setOptions
+      enableBasicAutocompletion: value
+      enableSnippets: value
+
+    @appStorage.setValue 'enableAutocomplete', value  if save
 
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber

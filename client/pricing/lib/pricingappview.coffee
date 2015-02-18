@@ -6,6 +6,7 @@ PricingPlansView = require './views/pricingplansview'
 isLoggedIn = require 'app/util/isLoggedIn'
 showError = require 'app/util/showError'
 PaymentWorkflow = require 'app/payment/paymentworkflow'
+PaymentConstants = require 'app/payment/paymentconstants'
 JView = require 'app/jview'
 FooterView = require 'app/commonviews/footerview'
 CustomLinkView = require 'app/customlinkview'
@@ -200,36 +201,51 @@ module.exports = class PricingAppView extends KDView
    * before filter, that filter will decide
    * if this method will be called or not.
   ###
-  planSelected: (options) -> @preventBlockedUser options, =>
+  planSelected: do (inProcess = no) -> (options) ->
 
-    return kd.singletons
-      .router
-      .handleRoute '/Login'  unless isLoggedIn()
+    return  if inProcess
 
-    # wait for loading the current plan,
-    # call this method until it's ready.
-    unless @state.currentPlan?
-      return @loadPlan => @planSelected options
+    @preventBlockedUser options, =>
 
-    isCurrentPlan =
-      options.planTitle    is @state.currentPlan and
-      options.planInterval is @state.currentPlanInterval and
-      'expired'          isnt @state.subscriptionState
-
-    return showError "That's already your current plan."  if isCurrentPlan
-
-    @setState options
-
-    @workflowController = new PaymentWorkflow { @state, delegate: this }
-
-    @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
-
-      @state.currentPlan = state.planTitle
-      @plans.setState @state
-
-      kd.singletons
+      return kd.singletons
         .router
-        .handleRoute '/'
+        .handleRoute '/Login'  unless isLoggedIn()
+
+      # To prevent any other thing to happen when a plan selected
+      # (not starting the whole payment process)
+      # we are not letting the rest of the process happen.
+      return  if inProcess
+
+      # wait for loading the current plan,
+      # call this method until it's ready.
+      unless @state.currentPlan?
+        return @loadPlan => @planSelected options
+
+      inProcess = yes
+
+      isCurrentPlan =
+        options.planTitle     is @state.currentPlan and
+        (options.planInterval is @state.currentPlanInterval or
+        options.planTitle     is PaymentConstants.planTitle.FREE) and
+        'expired'             isnt @state.subscriptionState
+
+      if isCurrentPlan
+        inProcess = no
+        return kd.showError "That's already your current plan."
+
+      @setState options
+
+      @workflowController = new PaymentWorkflow { @state, delegate: this }
+
+      @workflowController.on 'WorkflowStarted', -> inProcess = no
+
+      @workflowController.once 'PaymentWorkflowFinishedSuccessfully', (state) =>
+
+        @state.currentPlan = state.planTitle
+        @state.currentPlanInterval = state.planInterval
+        @plans.setState @state
+
+        kd.singletons.router.handleRoute '/'
 
 
   continueFrom: (planTitle, planInterval) ->

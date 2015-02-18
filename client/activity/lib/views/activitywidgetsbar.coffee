@@ -3,6 +3,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 ActivityGuideWidget = require './activityguidewidget'
 ActivityTopicsWidget = require './activitytopicswidget'
 ActivityUniversityWidget = require './activityuniversitywidget'
+ActivitySocialMediaWidget = require './activitysocialmediawidget' 
 
 
 module.exports = class ActivityWidgetsBar extends KDCustomHTMLView
@@ -17,4 +18,4 @@ module.exports = class ActivityWidgetsBar extends KDCustomHTMLView
     @addSubView new ActivityGuideWidget
     @addSubView new ActivityTopicsWidget
     @addSubView new ActivityUniversityWidget
-
+    @addSubView new ActivitySocialMediaWidget

@@ -88,7 +88,7 @@ module.exports = class AdministrationView extends KDTabViewWithForms
                   overlay        : yes
                   buttons        :
                     Impersonate  :
-                      style      : "modal-clean-green"
+                      style      : "solid green medium"
                       loader     :
                         color    : "#444444"
                       callback   : =>

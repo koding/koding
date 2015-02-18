@@ -26,7 +26,7 @@ module.exports = class AceApplicationTabView extends ApplicationTabView
       overlay       : yes
       buttons       :
         "SaveClose" :
-          cssClass  : "modal-clean-green"
+          cssClass  : "solid green medium"
           title     : "Save and Close"
           callback  : =>
             if file.path.indexOf("localfile:") is 0
@@ -38,12 +38,12 @@ module.exports = class AceApplicationTabView extends ApplicationTabView
               ace.requestSave()
               @closePaneAndModal pane, modal
         "DontSave"  :
-          cssClass  : "modal-clean-red"
+          cssClass  : "solid red medium"
           title     : "Don't Save"
           callback  : =>
             @closePaneAndModal pane, modal
         "Cancel"    :
-          cssClass  : "modal-cancel"
+          cssClass  : "solid light-gray medium"
           title     : "Cancel"
           callback  : =>
             modal.destroy()

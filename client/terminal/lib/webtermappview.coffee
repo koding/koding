@@ -178,12 +178,12 @@ module.exports = class WebTermAppView extends JView
       """
       buttons :
         "Run" :
-          cssClass: "modal-clean-green"
+          cssClass: "solid green medium"
           callback: ->
             remote.input "#{command}\n"
             modal.destroy()
         "Cancel":
-          cssClass: "modal-clean-red"
+          cssClass: "solid red medium"
           callback: ->
             modal.destroy()
 

@@ -6,6 +6,9 @@ type Producer struct {
 	// Base struct for Producer
 	*RabbitMQ
 
+	// The communication channel over connection
+	channel *amqp.Channel
+
 	// A notifiyng channel for publishings
 	done chan error
 
@@ -28,20 +31,26 @@ type PublishingOptions struct {
 	Immediate bool
 }
 
-// NewProducer is a constructor function for producer creation
-// Accepts Exchange, Queue, PublishingOptions. On the other hand
-// we are not declaring our topology on both the publisher and consumer
-// to be able to change the settings only in one place.
-// We can declare those settings on both place to ensure they are same. But this
-// package will not support it.
+// NewProducer is a constructor function for producer creation Accepts Exchange,
+// Queue, PublishingOptions. On the other hand we are not declaring our topology
+// on both the publisher and consumer to be able to change the settings only in
+// one place. We can declare those settings on both place to ensure they are
+// same. But this package will not support it.
 func (r *RabbitMQ) NewProducer(e Exchange, q Queue, po PublishingOptions) (*Producer, error) {
-	rmq, err := r.Connect(po.Tag)
+	rmq, err := r.Connect()
+	if err != nil {
+		return nil, err
+	}
+
+	// getting a channel
+	channel, err := r.conn.Channel()
 	if err != nil {
 		return nil, err
 	}
 
 	return &Producer{
 		RabbitMQ: rmq,
+		channel:  channel,
 		session: Session{
 			Exchange:          e,
 			Queue:             q,
@@ -110,16 +119,13 @@ func (p *Producer) NotifyReturn(notifier func(message amqp.Return)) {
 
 // Shutdown gracefully closes all connections
 func (p *Producer) Shutdown() error {
-	err := shutdown(p.conn, p.channel, p.tag)
+	co := p.session.ConsumerOptions
+	if err := shutdownChannel(p.channel, co.Tag); err != nil {
+		return err
+	}
 
 	// Since publishing is asynchronous this can happen
 	// instantly without waiting for a done message.
 	defer p.RabbitMQ.log.Info("Producer shutdown OK")
-	return err
-}
-
-// RegisterSignalHandler watchs for interrupt signals
-// and gracefully closes consumer
-func (p *Producer) RegisterSignalHandler() {
-	registerSignalHandler(p)
+	return nil
 }

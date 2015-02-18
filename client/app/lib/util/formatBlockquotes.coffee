@@ -1,3 +1,5 @@
+hljs = require 'highlight.js'
+
 module.exports = (text = '') ->
 
   parts = text.split '```'

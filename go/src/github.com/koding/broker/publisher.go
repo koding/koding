@@ -16,7 +16,7 @@ func (b *Broker) NewPublisher() (Publisher, error) {
 	}
 
 	// for now, use amqp publisher
-	publisher, err := producer.createAMQPPublisher(b.mq)
+	publisher, err := producer.createAMQPPublisher(b.MQ)
 	if err != nil {
 		return nil, err
 	}
