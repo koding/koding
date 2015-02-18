@@ -4,11 +4,12 @@ LoginInputViewWithLoader = require './logininputwithloader'
 
 module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
-  EMAIL_VALID    = yes
   ENTER          = 13
 
   constructor:(options={},data)->
     super options, data
+
+    @emailIsAvailable = no
 
     @email?.destroy()
     @email = new LoginInputViewWithLoader
@@ -22,6 +23,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         focus             : => @email.icon.unsetTooltip()
         keyup             : (event) => @submitForm event  if event.which is ENTER
         blur              : => @fetchGravatarInfo @email.input.getValue()
+        change            : => @emailIsAvailable = no
 
     @password?.destroy()
     @password = new LoginInputView
@@ -87,29 +89,48 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   getEmailValidator: ->
     container   : this
-    event       : 'blur'
+    event       : 'submit'
     rules       :
       required  : yes
+      minLength : 4
       email     : yes
       available : (input, event) =>
         return if event?.which is 9
-        input.setValidationResult 'available', null
-        email = input.getValue()
 
+        {required, email, minLength} = input.validationResults
+
+        return  if required or minLength
+
+        input.setValidationResult 'available', null
+        email     = input.getValue()
+        passInput = @password.input
+
+        @emailIsAvailable = no
         if input.valid
           $.ajax
             url         : "/Validate/Email/#{email}"
             type        : 'POST'
+            data        : password : passInput.getValue()
             xhrFields   : withCredentials : yes
-            success     : ->
+            success     : (res) =>
+              return location.replace("/")  if res is 'User is logged in!'
+
+              @emailIsAvailable = yes
               input.setValidationResult 'available', null
-              EMAIL_VALID = yes
-            error       : ({responseJSON}) ->
+
+              if res is yes
+                @callbackAfterValidation()
+            error       : ({responseJSON}) =>
+              @emailIsAvailable = no
               input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
-              EMAIL_VALID = no
     messages    :
       required  : 'Please enter your email address.'
       email     : 'That doesn\'t seem like a valid email address.'
+
+
+  callbackAfterValidation: ->
+
+    @getCallback() @getFormData()  if @password.input.valid
 
 
   fetchGravatarInfo : (email) ->
@@ -118,7 +139,6 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     return unless isEmail
 
-    @gravatarInfoFetched = no
     @gravatars ?= {}
 
     return @emit 'gravatarInfoFetched', @gravatars[email]  if @gravatars[email]
@@ -161,10 +181,10 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
     # KDInputView doesn't give clear results with
     # async results that's why we maintain those
-    # results manually in EMAIL_VALID
+    # results manually in @emailIsAvailable
     # at least for now - SY
-    if EMAIL_VALID and @password.input.valid and @email.input.valid
-      @submit event
+    if @emailIsAvailable and @password.input.valid and @email.input.valid
+      @callbackAfterValidation()
       return yes
     else
       @button.hideLoader()
