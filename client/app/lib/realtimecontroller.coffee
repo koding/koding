@@ -44,7 +44,7 @@ module.exports = class RealtimeController extends KDController
 
       @getTimeDiffWithServer()
 
-      realtimeToken = Cookies.get("realtimeToken")
+      realtimeToken = kookies.get("realtimeToken")
 
       if realtimeToken?
         @pubnub.auth realtimeToken
