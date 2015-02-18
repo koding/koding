@@ -46,7 +46,6 @@ module.exports = class Terminal extends KDObject
     @server               = null
     @sessionEndedCallback = null
     @setTitleCallback     = null
-    @ringBellCallback     = null
 
     @keyInput = new KDCustomHTMLView
       tagName   : 'input'
