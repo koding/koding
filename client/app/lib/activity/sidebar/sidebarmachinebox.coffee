@@ -8,6 +8,7 @@ NavigationMachineItem = require 'app/navigation/navigationmachineitem'
 SidebarWorkspaceItem = require './sidebarworkspaceitem'
 MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
 AddWorkspaceView = require 'app/addworkspaceview'
+IDEAppController = require 'ide'
 
 
 module.exports = class SidebarMachineBox extends KDView
@@ -24,6 +25,7 @@ module.exports = class SidebarMachineBox extends KDView
 
     @createWorkspacesLabel()
     @createWorkspacesList()
+    @watchMachineState()
 
 
   createWorkspacesList: ->
@@ -148,3 +150,23 @@ module.exports = class SidebarMachineBox extends KDView
 
     for ws, index in workspaces when ws.getId() is wsId
       return workspaces.splice index, 1
+
+
+  watchMachineState: ->
+
+    { Stopping, Running } = Machine.State
+
+    kd.singletons.computeController.on "public-#{@machine._id}", (event) =>
+      state = event.status
+
+      return  if @latestMachineState is state
+
+      @latestMachineState = state
+      @machine.status.state = state # FIXME: why it is not setting the state itself?
+
+      switch state
+        when Stopping then @deselect()
+        when Running
+          { frontApp } = kd.singletons.appManager
+          if frontApp instanceof IDEAppController
+            @selectWorkspace frontApp.workspaceData.slug
