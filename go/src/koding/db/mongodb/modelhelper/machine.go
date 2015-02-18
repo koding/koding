@@ -76,6 +76,21 @@ func GetRunningVms() ([]models.Machine, error) {
 	return machines, nil
 }
 
+// GetMachineByUid returns the machine by its uid field
+func GetMachineByUid(uid string) (*models.Machine, error) {
+	machine := &models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"uid": uid}).One(machine)
+	}
+
+	err := Mongo.Run(MachineColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
