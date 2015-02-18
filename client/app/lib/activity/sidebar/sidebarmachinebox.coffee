@@ -94,6 +94,17 @@ module.exports = class SidebarMachineBox extends KDView
     @addWorkspaceView = null
 
 
+  select: -> @setClass 'selected'
+
+
+  deselect: ->
+
+    @unsetClass 'selected'
+
+    @collapseList()
+    @deselectWorkspaces()
+
+
   collapseList: ->
 
     return  if @isListCollapsed
