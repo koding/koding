@@ -48,7 +48,8 @@ PACKAGES = \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
 	socialapi/workers/sitemap/sitemapinitializer \
-	socialapi/workers/algoliaconnector
+	socialapi/workers/algoliaconnector 
+
 
 all: testapi
 
@@ -328,3 +329,9 @@ dep:
 	done;
 
 	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
+
+mailtest:
+	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
+	@`which go` test -c workers/mail/models/*.go
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./models.test
