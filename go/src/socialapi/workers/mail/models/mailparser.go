@@ -130,7 +130,10 @@ func (m *Mail) Persist() error {
 		if _, err = cm.AddReply(reply); err != nil {
 			return err
 		}
+
+		return nil
 	}
 
 	return errInvalidMailPrefix
+
 }
