@@ -59,20 +59,17 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
   deselectMachines: ->
 
-    @forEachMachineBoxes (box) ->
-      box.unsetClass 'selected'
+    @forEachMachineBoxes (box) -> box.deselect()
 
 
   selectMachineAndWorkspace: (machineUId, workspaceSlug) ->
 
     @forEachMachineBoxes (box) ->
       if box.machine.uid is machineUId
-        box.setClass 'selected'
+        box.select()
         box.selectWorkspace workspaceSlug
       else
-        box.unsetClass 'selected'
-        box.deselectWorkspaces()
-        box.collapseList()
+        box.deselect()
 
 
   forEachMachineBoxes: (callback) ->
