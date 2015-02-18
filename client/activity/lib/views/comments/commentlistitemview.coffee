@@ -136,10 +136,10 @@ module.exports = class CommentListItemView extends KDListItemView
     modal.once 'DeleteError'     , @bound 'show'
 
 
-  hide          : (rest...) -> require('../activitylistitemview')::hide this, rest...
-  show          : (rest...) -> require('../activitylistitemview')::show this, rest...
-  delete        : (rest...) -> require('../activitylistitemview')::delete this, rest...
-  whenSubmitted : (rest...) -> require('../activitylistitemview')::whenSubmitted this, rest...
+  hide          : (rest...) -> require('../activitylistitemview')::hide.apply this, rest
+  show          : (rest...) -> require('../activitylistitemview')::show.apply this, rest
+  delete        : (rest...) -> require('../activitylistitemview')::delete.apply this, rest
+  whenSubmitted : (rest...) -> require('../activitylistitemview')::whenSubmitted.apply this, rest
 
 
   createReplyLink: ->
@@ -191,8 +191,6 @@ module.exports = class CommentListItemView extends KDListItemView
     {activity}    = @getOptions()
     owner         = isMyPost comment
     postOwner     = isMyPost activity
-    canEdit       = hasPermission 'edit posts'
-    canEditOwn    = hasPermission 'edit own posts'
 
     kd.singletons.mainController.ready =>
 
