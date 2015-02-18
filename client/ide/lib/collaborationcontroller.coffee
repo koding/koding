@@ -751,7 +751,7 @@ module.exports =
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
     @rtm = null
-    KD.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+    kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
     @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
 
     { reinit } = options
