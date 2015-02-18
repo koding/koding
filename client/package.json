@@ -53,7 +53,7 @@
     "gulp-stylus": "^2.0.0",
     "gulp-util": "^3.0.3",
     "gulp-watch": "^4.1.1",
-    "gulp.spritesmith": "^2.5.1",
+    "gulp.spritesmith": "2.5.1",
     "merge-stream": "^0.1.7",
     "mkdirp": "^0.5.0",
     "pistachioify": "^0.1.0",
