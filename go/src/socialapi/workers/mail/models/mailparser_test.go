@@ -7,6 +7,7 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -88,7 +89,8 @@ func TestPersist(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("while testing Persist", t, func() {
-		Convey("testing post message", func() {
+
+		Convey("testing post message while all is well", func() {
 			acc, err := socialapimodels.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 
@@ -103,6 +105,51 @@ func TestPersist(t *testing.T) {
 				OriginalRecipient: fmt.Sprintf("post+channelid.%d@inbound.koding.com", c.Id),
 				MailboxHash:       fmt.Sprintf("channelid.%d", c.Id),
 				TextBody:          "Its an example of text message",
+			}
+
+			err = m.Persist()
+			So(err, ShouldBeNil)
+		})
+
+		Convey("testing reply message if message channel is not set", func() {
+			acc, err := socialapimodels.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+
+			c := socialapimodels.CreateChannelWithTest(acc.Id)
+
+			//cm := socialapimodels.CreateMessage(c.Id, acc.Id)
+			mongoUser, err := modelhelper.GetUser(acc.Nick)
+			So(err, ShouldBeNil)
+
+			m := &Mail{
+				From:              mongoUser.Email,
+				OriginalRecipient: fmt.Sprintf("reply+channelid.%d@inbound.koding.com", c.Id),
+				MailboxHash:       fmt.Sprintf("channelid.%d", c.Id),
+				TextBody:          "Its an example of text message",
+			}
+
+			err = m.Persist()
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("testing reply message if all is well", func() {
+			acc, err := socialapimodels.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+
+			c := socialapimodels.CreateChannelWithTest(acc.Id)
+
+			cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
+			So(cm, ShouldNotBeNil)
+
+			mongoUser, err := modelhelper.GetUser(acc.Nick)
+			So(err, ShouldBeNil)
+
+			m := &Mail{
+				From:              mongoUser.Email,
+				OriginalRecipient: fmt.Sprintf("reply+messageid.%d@inbound.koding.com", c.Id),
+				MailboxHash:       fmt.Sprintf("messageid.%d", cm.Id),
+				TextBody:          "Its an example of text message",
+				StrippedTextReply: "This one is reply message",
 			}
 
 			err = m.Persist()
