@@ -683,29 +683,29 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # localStorage.setValue 'LatestWorkspace', minimumDataToStore
 
 
-  watchMachineState: (data) ->
+  # watchMachineState: (data) ->
 
-    {workspace, machine} = data
+  #   {workspace, machine} = data
 
-    @watchedMachines  or= {}
+  #   @watchedMachines  or= {}
 
-    {Running} = Machine.State
+  #   {Running} = Machine.State
 
-    return  if @watchedMachines[machine._id]
+  #   return  if @watchedMachines[machine._id]
 
-    callback = (state) =>
-      return  if state.status isnt Running
+  #   callback = (state) =>
+  #     return  if state.status isnt Running
 
-      machine.status.state = Running
-      delete @watchedMachines[machine._id]
+  #     machine.status.state = Running
+  #     delete @watchedMachines[machine._id]
 
-      if data is @latestWorkspaceData
-        @selectWorkspace data
+  #     if data is @latestWorkspaceData
+  #       @selectWorkspace data
 
-    kd.getSingleton 'computeController'
-      .on "public-#{machine._id}", callback
+  #   kd.getSingleton 'computeController'
+  #     .on "public-#{machine._id}", callback
 
-    @watchedMachines[machine._id] = yes
+  #   @watchedMachines[machine._id] = yes
 
 
   fetchMachines: (callback) ->
