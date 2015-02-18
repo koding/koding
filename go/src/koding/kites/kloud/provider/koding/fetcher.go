@@ -86,7 +86,6 @@ func (p *Provider) Fetcher(m *protocol.Machine) (fetcherResp *FetcherResponse, p
 			m.Id, subscription.PlanTitle)
 	}
 
-	p.Log.Debug("[%s] user has plan: %s", m.Id, plan)
 	return &FetcherResponse{
 		Plan:  plan,
 		State: subscription.State,
