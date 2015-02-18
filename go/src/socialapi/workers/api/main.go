@@ -13,12 +13,12 @@ import (
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
+	mailapi "socialapi/workers/mail/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
-	mailapi "socialapi/workers/mail/api"
 	"strconv"
 )
 
