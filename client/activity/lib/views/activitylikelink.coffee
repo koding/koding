@@ -15,8 +15,6 @@ module.exports = class ActivityLikeLink extends CustomLinkView
 
     super options, data
 
-    { @isInteracted } = data.interactions.like
-
     @update()
 
     data
@@ -26,7 +24,8 @@ module.exports = class ActivityLikeLink extends CustomLinkView
 
 
   setLikeState: (state) ->
-    @isInteracted = state
+    { like } = @getData().interactions
+    like.isInteracted = state
     @update()
 
 
@@ -56,9 +55,11 @@ module.exports = class ActivityLikeLink extends CustomLinkView
 
   update: ->
 
+    { isInteracted } = @getData().interactions.like
+
     @setTemplate @pistachio()
 
-    if @isInteracted
+    if isInteracted
     then @setClass 'liked'
     else @unsetClass 'liked'
 
@@ -72,5 +73,6 @@ module.exports = class ActivityLikeLink extends CustomLinkView
 
   pistachio: ->
 
-    "#{if @isInteracted then "Unlike" else "Like"}"
+    { isInteracted } = @getData().interactions.like
+    "#{if isInteracted then "Unlike" else "Like"}"
 
