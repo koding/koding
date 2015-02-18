@@ -16,7 +16,7 @@ GuidesLinksView = require '../guideslinksview'
 KodingSwitch = require '../commonviews/kodingswitch'
 Machine = require './machine'
 ManageDomainsView = require '../domains/managedomainsview'
-Usage = require './usage'
+ComputeErrorUsageModal = require './computeerrorusagemodal'
 
 
 module.exports = class MachineSettingsPopup extends KDModalViewWithForms
