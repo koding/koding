@@ -58,6 +58,7 @@ func main() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
 
 	// set default values for dev env
 	if r.Conf.Environment == "dev" {
