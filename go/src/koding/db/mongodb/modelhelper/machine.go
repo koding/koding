@@ -1,6 +1,7 @@
 package modelhelper
 
 import (
+	"errors"
 	"koding/db/models"
 
 	"labix.org/v2/mgo"
@@ -156,6 +157,19 @@ func CreateMachine(m *models.Machine) error {
 	return Mongo.Run(MachineColl, query)
 }
 
+// DeleteMachine deletes the machine from mongodb, it is here just for cleaning
+// purposes(after tests), machines should not be removed from database  unless
+// you are kloud
+func DeleteMachine(id bson.ObjectId) error {
+	selector := bson.M{"_id": id}
+
+	query := func(c *mgo.Collection) error {
+		return c.Remove(selector)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
 func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(
@@ -164,5 +178,5 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 		)
 	}
 
-	return Mongo.Run("jMachines", query)
+	return Mongo.Run(MachineColl, query)
 }
