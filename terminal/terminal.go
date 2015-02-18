@@ -232,6 +232,14 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 		args = []string{"-i", "-u", "#" + user.Uid, "--", command.Name}
 	}
 
+	// check if we have custom screenrc path and there is a file for it. If yes
+	// use it for screen binary.
+	if t.screenrcPath != "" {
+		if _, err := os.Stat(t.screenrcPath); err == nil {
+			args = append(args, "-c", t.screenrcPath)
+		}
+	}
+
 	args = append(args, command.Args...)
 	cmd := exec.Command("/usr/bin/sudo", args...)
 
