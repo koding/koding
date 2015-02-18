@@ -298,8 +298,8 @@ module.exports = class WebTermView extends KDCustomScrollView
 
 
   ringBell: do (bell = try new Audio '/a/audio/bell.wav') -> (event) ->
-      event?.preventDefault()
+    event?.preventDefault()
 
-      if not bell? or @terminal.controlCodeReader.visualBell
-      then new KDNotificationView title: 'Bell!', duration: 100
-      else bell.play()
+    if not bell? or @terminal.controlCodeReader.visualBell
+    then new KDNotificationView title: 'Bell!', duration: 100
+    else bell.play()
