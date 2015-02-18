@@ -23,6 +23,10 @@ module.exports = class GroupsInvitationView extends KDView
     super options, data
 
     @getData().fetchMembershipPolicy (err, @policy)=>
+      if err?
+        warn "Failed to fetch membershippolicy:", err
+        @policy = {}
+
       @addSubView tabHandleContainer = new KDTabHandleContainer
       @addSubView @tabView = new GroupsInvitationTabView {
         delegate           : this
@@ -147,7 +151,7 @@ module.exports = class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : Encoder.htmlDecode @policy.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
+          defaultValue   : Encoder.htmlDecode @policy?.communications?.inviteApprovedMessage or @getDefaultInvitationMessage()
           validate       :
             rules        :
               required   : yes
@@ -199,7 +203,7 @@ module.exports = class GroupsInvitationView extends KDView
           label          : 'Message'
           type           : 'textarea'
           cssClass       : 'message-input'
-          defaultValue   : Encoder.htmlDecode @policy.communications?.invitationMessage or @getDefaultInvitationMessage()
+          defaultValue   : Encoder.htmlDecode @policy?.communications?.invitationMessage or @getDefaultInvitationMessage()
           validate       :
             notifications: yes
             rules        :
