@@ -30,34 +30,30 @@ module.exports = class HomeRegisterForm extends RegisterInlineForm
     @on 'EmailError', @bound 'showEmailError'
 
 
-  handleOauthData: (userData) ->
+  handleOauthData: (oauthData) ->
 
-    { input } = @email
-    input.setValue userData.email
+    @oauthData = oauthData
+    { input }  = @email
+
+    input.setValue oauthData.email
     @email.placeholder.setClass 'out'
-    input.validate()
 
-    if input.valid
-      @once 'emailValidatedOnServer', =>
-        @submitOAuthData userData
+    @emailIsAvailable = no
+    @once 'gravatarInfoFetched', (gravatar) =>
+      # oath username has more priority over gravatar username
+      gravatar.preferredUsername = @oauthData.username  if @oauthData.username
+      input.validate()
 
-      @once 'gravatarInfoFetched', =>
-        @submitOAuthData userData
-
-      @fetchGravatarInfo input.getValue()
+    @fetchGravatarInfo input.getValue()
 
 
-  submitOAuthData: (userData) ->
+  callbackAfterValidation: ->
 
     email = @email.input.getValue()
-    gravatar = @gravatars[email]
 
-    return  if not @emailIsAvailable or not gravatar?
+    return super  unless @oauthData?.email is email
 
-    # oath username has more priority over gravatar username
-    gravatar.preferredUsername = userData.username  if userData.username?
-
-    formData = { email: @email.input.getValue() }
+    formData = { email: email }
     @getCallback() formData
 
 

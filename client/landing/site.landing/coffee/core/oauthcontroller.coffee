@@ -55,7 +55,7 @@ module.exports = class OAuthController extends KDController
   setupOauthListeners:->
 
     {mainController} = KD.singletons
-    mainController.on "ForeignAuthCompleted", (provider)=>
+    mainController.once "ForeignAuthCompleted", (provider)=>
       isUserLoggedIn = KD.isLoggedIn()
       params = {isUserLoggedIn, provider}
 

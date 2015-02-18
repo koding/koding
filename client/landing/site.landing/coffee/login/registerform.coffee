@@ -23,6 +23,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         focus             : => @email.icon.unsetTooltip()
         keyup             : (event) => @submitForm event  if event.which is ENTER
         blur              : => @fetchGravatarInfo @email.input.getValue()
+        change            : => @emailIsAvailable = no
 
     @password?.destroy()
     @password = new LoginInputView
@@ -88,32 +89,48 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
 
   getEmailValidator: ->
     container   : this
-    event       : 'blur'
+    event       : 'submit'
     rules       :
       required  : yes
+      minLength : 4
       email     : yes
       available : (input, event) =>
         return if event?.which is 9
+
+        {required, email, minLength} = input.validationResults
+
+        return  if required or minLength
+
         input.setValidationResult 'available', null
-        email = input.getValue()
+        email     = input.getValue()
+        passInput = @password.input
 
         @emailIsAvailable = no
         if input.valid
           $.ajax
             url         : "/Validate/Email/#{email}"
             type        : 'POST'
+            data        : password : passInput.getValue()
             xhrFields   : withCredentials : yes
-            success     : =>
-              input.setValidationResult 'available', null
+            success     : (res) =>
+              return location.replace("/")  if res is 'User is logged in!'
+
               @emailIsAvailable = yes
-              @emit 'emailValidatedOnServer'
+              input.setValidationResult 'available', null
+
+              if res is yes
+                @callbackAfterValidation()
             error       : ({responseJSON}) =>
-              input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
               @emailIsAvailable = no
-              @emit 'emailValidatedOnServer'
+              input.setValidationResult 'available', "Sorry, \"#{email}\" is already in use!"
     messages    :
       required  : 'Please enter your email address.'
       email     : 'That doesn\'t seem like a valid email address.'
+
+
+  callbackAfterValidation: ->
+
+    @getCallback() @getFormData()  if @password.input.valid
 
 
   fetchGravatarInfo : (email) ->
@@ -167,7 +184,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
     # results manually in @emailIsAvailable
     # at least for now - SY
     if @emailIsAvailable and @password.input.valid and @email.input.valid
-      @submit event
+      @callbackAfterValidation()
       return yes
     else
       @button.hideLoader()
