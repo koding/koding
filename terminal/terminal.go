@@ -19,14 +19,15 @@ import (
 )
 
 type Terminal struct {
-	InputHook func()
-	Log       kite.Logger
+	InputHook    func()
+	Log          kite.Logger
+	screenrcPath string
 
 	Users      map[string]*User
 	sync.Mutex // protects Users
 }
 
-func New(log kite.Logger) *Terminal {
+func New(log kite.Logger, screenPath string) *Terminal {
 	return &Terminal{
 		Users: make(map[string]*User),
 		Log:   log,
