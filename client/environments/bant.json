@@ -1,0 +1,4 @@
+{
+  "name": "environments",
+  "main": "./lib/index.coffee"
+}

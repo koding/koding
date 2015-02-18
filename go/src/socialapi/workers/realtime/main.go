@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
 	"socialapi/workers/realtime/realtime"
 )
@@ -23,18 +22,9 @@ func main() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
 
-	//create connection to RMQ for publishing realtime events
-	rmq := helper.NewRabbitMQ(r.Conf, r.Log)
-	rmqConn, err := rmq.Connect("NewRealtimeWorkerController")
-	if err != nil {
-		panic(err)
-	}
-	defer rmqConn.Conn().Close()
-
-	c := realtime.New(rmq, r.Log)
-
-	r.SetContext(c)
+	r.SetContext(realtime.New(r.Bongo.Broker.MQ, r.Log))
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*realtime.Controller).MessageUpdated)
 	r.Register(models.Interaction{}).OnCreate().Handle((*realtime.Controller).InteractionSaved)
 	r.Register(models.Interaction{}).OnDelete().Handle((*realtime.Controller).InteractionDeleted)

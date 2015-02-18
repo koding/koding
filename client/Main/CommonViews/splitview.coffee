@@ -1,1 +1,0 @@
-class SplitView extends KDSplitView

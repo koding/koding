@@ -231,7 +231,7 @@ func newKite(conf *Config) *kite.Kite {
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaners(time.Minute * 2)
 
-	kld := kloud.NewWithDefaults()
+	kld := kloud.New()
 	kld.Storage = kodingProvider
 	kld.DomainStorage = domainStorage
 	kld.Domainer = dnsInstance
@@ -253,6 +253,10 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("reinit", kld.Reinit)
+
+	// Snapshot functionality
+	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	// Domain records handling methods
 	k.HandleFunc("domain.set", kld.DomainSet)
