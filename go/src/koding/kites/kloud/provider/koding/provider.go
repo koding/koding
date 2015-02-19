@@ -278,7 +278,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	// assigned yet (Elastic IP's are assigned only during the Build). We
 	// lookup the IP from the Elastic IPs, if it's not available (returns an
 	// error) we proceed and create it.
-	if _, err := a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter()); err != nil && checker.Plan.Plan != Free {
+	_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
+	if isAddressNotFoundError(err) && checker.Plan.Plan != Free {
 		p.Log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", m.Id)
 		allocateResp, err := a.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
 		if err != nil {
