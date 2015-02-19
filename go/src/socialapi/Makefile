@@ -194,11 +194,11 @@ build:
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
 	@`which go` test -c workers/collaboration/tests/*.go
-	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
+	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
 	@`which go` test -c workers/collaboration/*.go
-	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
+	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
 testapi: testcollaboration
