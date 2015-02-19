@@ -806,8 +806,8 @@ syncWithRedis = (callback)->
 
   unless redisClient
     redisClient = redis.createClient(
-      KONFIG.monitoringRedis.split(":")[1]
-      KONFIG.monitoringRedis.split(":")[0]
+      KONFIG.redis.split(":")[1]
+      KONFIG.redis.split(":")[0]
       {}
     )
 
