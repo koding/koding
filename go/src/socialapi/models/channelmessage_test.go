@@ -590,16 +590,7 @@ func TestChannelMessageAddReply(t *testing.T) {
 
 		Convey("channel message should have an id", func() {
 			chm := NewChannelMessage()
-			cm, err := c.AddReply(chm)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrChannelMessageIdIsNotSet)
-			So(cm, ShouldBeNil)
-		})
-
-		Convey("returns not found if message id ", func() {
-			chm := NewChannelMessage()
-			chm.Id = 123
-			cm, err := c.AddReply(chm)
+			cm, err := chm.AddReply(chm)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrChannelMessageIdIsNotSet)
 			So(cm, ShouldBeNil)
@@ -607,7 +598,10 @@ func TestChannelMessageAddReply(t *testing.T) {
 
 		Convey("channel message id should equal to reply message id ", func() {
 			c := createMessageWithTest()
-			cm, err := c.AddReply(c)
+			So(c.Create(), ShouldBeNil)
+			c2 := createMessageWithTest()
+			So(c2.Create(), ShouldBeNil)
+			cm, err := c.AddReply(c2)
 			So(err, ShouldBeNil)
 			So(cm.MessageId, ShouldEqual, c.Id)
 		})
