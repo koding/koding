@@ -29,8 +29,9 @@ type Terminal struct {
 
 func New(log kite.Logger, screenPath string) *Terminal {
 	return &Terminal{
-		Users: make(map[string]*User),
-		Log:   log,
+		Users:        make(map[string]*User),
+		screenrcPath: screenPath,
+		Log:          log,
 	}
 }
 
