@@ -4,12 +4,13 @@ KDFormView = kd.FormView
 KDInputView = kd.InputView
 KDLabelView = kd.LabelView
 KDView = kd.View
+IDEFinderItem = require 'ide/finder/idefinderitem'
 
 
 module.exports = (container, callback = kd.noop, options = {}) ->
 
   container.addSubView dialog = new KDDialogView
-    cssClass      : kd.curry "save-as-dialog", options.cssClass
+    cssClass      : kd.utils.curry "save-as-dialog", options.cssClass
     overlay       : yes
     container     : container
     height        : "auto"
@@ -46,7 +47,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
 
   finderController = kd.singletons['appManager'].get('Finder').create
     addAppTitle       : no
-    treeItemClass     : IDE.FinderItem
+    treeItemClass     : IDEFinderItem
     nodeIdPath        : 'path'
     nodeParentIdPath  : 'parentPath'
     foldersOnly       : yes

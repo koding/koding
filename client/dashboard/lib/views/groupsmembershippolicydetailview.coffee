@@ -22,6 +22,8 @@ module.exports = class GroupsMembershipPolicyDetailView extends JView
     group.fetchMembershipPolicy (err, policy)=>
       if err
         new KDNotificationView { title: err.message, duration: 1000 }
+      else unless policy?
+        new KDNotificationView title: "No policy found, this shouldn't happen!"
       else
         @on 'MembershipPolicyChanged', (formData)->
           kd.getSingleton('appManager').tell 'Groups',

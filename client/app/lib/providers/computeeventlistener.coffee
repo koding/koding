@@ -59,7 +59,7 @@ module.exports = class ComputeEventListener extends KDObject
 
     return  unless machine?
 
-    {computeController} = kd.singletons
+    {computeController, kontrol} = kd.singletons
 
     state = { status : event.status, reverted : event.reverted }
     state.percentage = event.percentage  if event.percentage?
@@ -73,8 +73,7 @@ module.exports = class ComputeEventListener extends KDObject
     unless event.status is Running
       computeController.invalidateCache machine._id
 
-      KodingKontrol.dcNotification?.destroy()
-      KodingKontrol.dcNotification = null
+      kontrol.setTryingToReconnect no
 
 
   revertToPreviousState:(machine)->

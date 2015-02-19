@@ -10,8 +10,8 @@ objectToString = require 'app/util/objectToString'
 applyMarkdown = require 'app/util/applyMarkdown'
 impersonate = require 'app/util/impersonate'
 showError = require 'app/util/showError'
-MemberAutoCompleteItemView = 'app/commonviews/memberautocompleteitemview'
-MemberAutoCompletedItemView = 'app/commonviews/memberautocompleteditemview'
+MemberAutoCompleteItemView = require 'app/commonviews/memberautocompleteitemview'
+MemberAutoCompletedItemView = require 'app/commonviews/memberautocompleteditemview'
 
 
 module.exports = class AdministrationView extends KDTabViewWithForms

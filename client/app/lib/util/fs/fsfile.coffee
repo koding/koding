@@ -48,7 +48,7 @@ module.exports = class FSFile extends FSItem
     @fetchRawContents().then (response)=>
 
       content = atob response.content
-      content = kd.utf8Decode content  if useEncoding # Convert to String
+      content = kd.utils.utf8Decode content  if useEncoding # Convert to String
 
       mixpanel "Fetch contents, success"
 

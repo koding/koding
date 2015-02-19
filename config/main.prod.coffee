@@ -539,7 +539,7 @@ Configuration = (options={}) ->
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export HOME=/root
+      export HOME=/home/user-ec2
       export KONFIG_JSON='#{KONFIG.JSON}'
 
       cd #{projectRoot}/client

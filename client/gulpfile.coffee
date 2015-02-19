@@ -30,6 +30,7 @@ styleHelper    = require './gulptasks/style'
 concat         = require 'gulp-concat'
 
 devMode        = argv.devMode?
+watchMode      = argv.watchMode?
 version        = argv.ver? or 1
 
 log            = (color, message) -> gutil.log gutil.colors[color] message
@@ -135,7 +136,28 @@ gulp.task 'copy-thirdparty', ['create-dirs'], (callback) ->
         callback()  if i - j is 0
 
 
-gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (callback) ->
+gulp.task 'copy-assets', ['create-dirs'], (callback) ->
+
+  i = 0
+
+  glob 'assets/**/*', nodir: yes, (err, files) ->
+    i = files.length - 1
+
+    throw err  if err
+
+    files.forEach (file, j) ->
+      return  if file is 'assets/Readme.md'
+
+      components = file.split('/').slice(0, -1).join '/'
+
+      mkdirp "#{opts.outdir}/#{components}", (err) ->
+        throw err  if err
+        stream = fs.createReadStream "#{__dirname}/#{file}"
+        stream.pipe fs.createWriteStream "#{opts.outdir}/#{file}"
+        callback()  if i - j is 0
+
+
+gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'copy-assets'], (callback) ->
 
   debug "modules:\t#{modules.join ', '}"
   debug "outdir:\t#{opts.outdir}"
@@ -145,18 +167,20 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty'], (
   modules.forEach (name) -> mapping[name] = "../#{name}/lib"
 
   # opts.globals.modules = modules
-  opts.browserify.debug = yes
+  opts.browserify.debug = yes  if devMode
 
-  b = browserify xtend opts.browserify, watchify.args
-    .transform coffeeify, global: yes
-    .transform pistachioify, global: yes
-    .transform rewritify,
+  if watchMode
+    b = watchify(browserify(xtend(opts.browserify, watchify.args)))
+  else
+    b = browserify opts.browserify
+
+  b.transform coffeeify, global: yes
+   .transform pistachioify, global: yes
+   .transform rewritify,
       global: yes
       extensions: ['coffee']
       basedir: __dirname
       mapping: mapping
-
-  b = watchify b  if devMode
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->
@@ -199,11 +223,7 @@ gulp.task 'styles', ['clean', 'styles-kd', 'sprites', unf], ->
 
     compile = ->
       src = [ "./#{folder}/lib/**/*.styl", "!#{appfnPath}" ]
-      includes = [ appfnPath ]
-
-      [1,2].forEach (i) ->
-        filepath = "#{__dirname}/.sprites/#{folder}/sprite@#{i}x.styl"
-        try includes.push filepath  if fs.statSync filepath
+      includes = [ appfnPath, "#{__dirname}/.sprites/*/sprite@*x.styl" ]
 
       stream = styleHelper {
         fileName : "#{folder}.css"

@@ -1,21 +1,21 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDFormViewWithFields = kd.FormViewWithFields
-KDView = kd.View
+kd                               = require 'kd'
+KDButtonView                     = kd.ButtonView
+KDCustomHTMLView                 = kd.CustomHTMLView
+KDFormViewWithFields             = kd.FormViewWithFields
+KDView                           = kd.View
 ActivityAutoCompleteUserItemView = require '../activityautocompleteuseritemview'
-ParticipantSearchController = './participantsearchcontroller'
-MessagePane = require '../messagepane'
-PrivateMessageForm = require './privatemessageform'
-PrivateMessageListItemView = require './privatemessagelistitemview'
-PrivateMessageSettingsView = require './privatemessagesettingsview'
-ReplyInputWidget = require './replyinputwidget'
-ReplyPreviousLink = require './replypreviouslink'
-showError = require 'app/util/showError'
-AvatarView = require 'app/commonviews/avatarviews/avatarview'
-dateFormat = require 'dateformat'
-isMyPost = require 'app/util/isMyPost'
-remote = require('app/remote').getInstance()
+ParticipantSearchController      = require './participantsearchcontroller'
+MessagePane                      = require '../messagepane'
+PrivateMessageForm               = require './privatemessageform'
+PrivateMessageListItemView       = require './privatemessagelistitemview'
+PrivateMessageSettingsView       = require './privatemessagesettingsview'
+ReplyInputWidget                 = require './replyinputwidget'
+ReplyPreviousLink                = require './replypreviouslink'
+showError                        = require 'app/util/showError'
+AvatarView                       = require 'app/commonviews/avatarviews/avatarview'
+dateFormat                       = require 'dateformat'
+isMyPost                         = require 'app/util/isMyPost'
+remote                           = require('app/remote').getInstance()
 
 
 

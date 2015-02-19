@@ -67,6 +67,8 @@ type Build struct {
 	start, finish int
 	log           logging.Logger
 	retryCount    int
+	plan          Plan
+	checker       *PlanChecker
 
 	// if available, create the instance via the snapshot -> AMI way
 	snapshotId string
@@ -93,10 +95,29 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		return nil, err
 	}
 
+	// check current plan
+	fetcherResp, err := p.Fetcher(m)
+	if err != nil {
+		return nil, err
+	}
+
+	checker := &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      p.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}
+
 	b := &Build{
 		amazon:     a,
 		machine:    m,
 		provider:   p,
+		plan:       fetcherResp.Plan,
+		checker:    checker,
 		start:      10,
 		finish:     90,
 		log:        p.Log,
@@ -119,13 +140,14 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	var err error
 	imageId := ""
+	publicIp := ""
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
 
 	// if there is already a machine just check it again
 	if instanceId == "" {
 		b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
-		b.log.Info("[%s] Generating and fetching build data", b.machine.Id)
+		b.log.Debug("[%s] Generating and fetching build data", b.machine.Id)
 		buildData, err := b.buildData()
 		if err != nil {
 			return nil, err
@@ -135,13 +157,13 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
-		b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
+		b.log.Debug("[%s] Checking user limitation and machine quotas", b.machine.Id)
 		if err := b.checkLimits(buildData); err != nil {
 			return nil, err
 		}
 
 		b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
-		b.log.Info("[%s] Initiating creating process of instance", b.machine.Id)
+		b.log.Debug("[%s] Initiating creating process of instance", b.machine.Id)
 		instanceId, err = b.create(buildData)
 		if err != nil {
 			return nil, err
@@ -158,12 +180,32 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			},
 		})
 	} else {
-		b.log.Info("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
+		b.log.Debug("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
 			b.machine.Id, instanceId, queryString)
 	}
 
+	// allocate and associate a new Public IP for paying users, we can do
+	// this after we create the instance
+	if b.plan != Free {
+		b.log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", b.machine.Id)
+		allocateResp, err := b.amazon.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+		if err != nil {
+			return nil, err
+		}
+		publicIp = allocateResp.PublicIp
+
+		b.log.Debug("[%s] Elastic IP allocated %+v", b.machine.Id, allocateResp)
+
+		if _, err := b.amazon.Client.AssociateAddress(&ec2.AssociateAddress{
+			InstanceId:   instanceId,
+			AllocationId: allocateResp.AllocationId,
+		}); err != nil {
+			return nil, err
+		}
+	}
+
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
-	b.log.Info("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
+	b.log.Debug("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
 	buildArtifact, err := b.checkBuild(instanceId)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
@@ -211,15 +253,20 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	buildArtifact.KiteQuery = queryString
 	buildArtifact.ImageId = imageId
 
+	// only replace when have an Elastic IP
+	if publicIp != "" {
+		buildArtifact.IpAddress = publicIp
+	}
+
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
 	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
-	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
+	b.log.Debug("[%s] Adding and setting up domain and tags", b.machine.Id)
 	b.addDomainAndTags(buildArtifact)
 
 	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
 		b.normalize(90), machinestate.Building)
-	b.log.Info("[%s] All finished, testing for klient connection IP [%s]",
+	b.log.Debug("[%s] All finished, testing for klient connection IP [%s]",
 		b.machine.Id, buildArtifact.IpAddress)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
@@ -465,17 +512,11 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 
 // checkLimits checks whether the given buildData is valid to be used to create a new instance
 func (b *Build) checkLimits(buildData *BuildData) error {
-	// Check for total machine allowance
-	checker, err := b.provider.PlanChecker(b.machine)
-	if err != nil {
+	if err := b.checker.Total(); err != nil {
 		return err
 	}
 
-	if err := checker.Total(); err != nil {
-		return err
-	}
-
-	if err := checker.AlwaysOn(); err != nil {
+	if err := b.checker.AlwaysOn(); err != nil {
 		return err
 	}
 
@@ -483,14 +524,14 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 		b.machine.Id, buildData.EC2Data.InstanceType)
 
 	// check if the user is egligible to create a vm with this instance type
-	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
+	if err := b.checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
 		b.log.Critical("[%s] Instance type (%s) is not allowed. Fallback to t2.micro",
 			b.machine.Id, buildData.EC2Data.InstanceType)
 		buildData.EC2Data.InstanceType = T2Micro.String()
 	}
 
 	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
+	if err := b.checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
 		return err
 	}
 
