@@ -18,6 +18,7 @@ var (
 	flagRegion      = flag.String("region", protocol.Region, "Change region")
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
+	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
 
 	// update parameters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
@@ -52,6 +53,7 @@ func realMain() int {
 		Debug:          *flagDebug,
 		UpdateInterval: *flagUpdateInterval,
 		UpdateURL:      *flagUpdateURL,
+		ScreenrcPath:   *flagScreenrc,
 	}
 
 	a := app.NewKlient(conf)

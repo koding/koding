@@ -19,17 +19,19 @@ import (
 )
 
 type Terminal struct {
-	InputHook func()
-	Log       kite.Logger
+	InputHook    func()
+	Log          kite.Logger
+	screenrcPath string
 
 	Users      map[string]*User
 	sync.Mutex // protects Users
 }
 
-func New(log kite.Logger) *Terminal {
+func New(log kite.Logger, screenPath string) *Terminal {
 	return &Terminal{
-		Users: make(map[string]*User),
-		Log:   log,
+		Users:        make(map[string]*User),
+		screenrcPath: screenPath,
+		Log:          log,
 	}
 }
 
@@ -229,6 +231,14 @@ func (t *Terminal) Connect(r *kite.Request) (interface{}, error) {
 		args = []string{"-i", command.Name}
 	} else {
 		args = []string{"-i", "-u", "#" + user.Uid, "--", command.Name}
+	}
+
+	// check if we have custom screenrc path and there is a file for it. If yes
+	// use it for screen binary otherwise it'll just start without any screenrc.
+	if t.screenrcPath != "" {
+		if _, err := os.Stat(t.screenrcPath); err == nil {
+			args = append(args, "-c", t.screenrcPath)
+		}
 	}
 
 	args = append(args, command.Args...)

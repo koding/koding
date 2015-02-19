@@ -64,6 +64,8 @@ type KlientConfig struct {
 	RegisterURL string
 	Debug       bool
 
+	ScreenrcPath string
+
 	UpdateInterval time.Duration
 	UpdateURL      string
 }
@@ -102,7 +104,7 @@ func NewKlient(conf *KlientConfig) *Klient {
 	})
 
 	k := newKite(conf)
-	term := terminal.New(k.Log)
+	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
 	kl := &Klient{
