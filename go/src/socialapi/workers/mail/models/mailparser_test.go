@@ -36,7 +36,16 @@ func TestGetAccount(t *testing.T) {
 		})
 
 		Convey("Function should return blank if parameter is empty", func() {
-			ga, err := GetAccount("mehmet@koding.com")
+			acc, err := socialapimodels.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+
+			mongoUser, err := modelhelper.GetUser(acc.Nick)
+			So(err, ShouldBeNil)
+
+			m := &Mail{
+				From: mongoUser.Email,
+			}
+			ga, err := GetAccount(m.From)
 			So(err, ShouldBeNil)
 			So(ga, ShouldNotBeNil)
 		})
