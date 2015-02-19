@@ -1,9 +1,11 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
@@ -12,6 +14,16 @@ import (
 )
 
 func TestGroupChannel(t *testing.T) {
+
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
 	Convey("while  testing pinned activity channel", t, func() {
 		rand.Seed(time.Now().UnixNano())
 		groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)
@@ -30,6 +42,24 @@ func TestGroupChannel(t *testing.T) {
 			channel2, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldNotBeNil)
 			So(channel2, ShouldBeNil)
+		})
+
+		Convey("group channel should be shown before announcement", func() {
+			account, err := models.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+
+			_, err = rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
+			So(err, ShouldBeNil)
+
+			_, err = rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_ANNOUNCEMENT)
+			So(err, ShouldBeNil)
+
+			channels, err := rest.FetchChannelsByGroupName(account.Id, groupName)
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 2)
+			So(channels[0].TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
+			So(channels[1].TypeConstant, ShouldEqual, models.Channel_TYPE_ANNOUNCEMENT)
+
 		})
 
 		Convey("owner should be able to update it", func() {

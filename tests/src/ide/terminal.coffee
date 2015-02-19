@@ -95,37 +95,37 @@ module.exports =
       .end()
 
 
-  terminateSession: (browser) ->
+  # terminateSession: (browser) ->
 
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  #   helpers.beginTest(browser)
+  #   helpers.waitForVMRunning(browser)
 
-    openNewTerminalMenu(browser)
+  #   openNewTerminalMenu(browser)
 
-    getSessionData = =>
+  #   getSessionData = =>
 
-      selector = '.kdcontextmenu:visible ul + li:not(.disabled)'
-      matcher  = /session-(\w+)\S+/
+  #     selector = '.kdcontextmenu:visible ul + li:not(.disabled)'
+  #     matcher  = /session-(\w+)\S+/
 
-      return $(selector).eq(0).attr('class').match(matcher)
+  #     return $(selector).eq(0).attr('class').match(matcher)
 
-    browser.execute getSessionData, [], (result) =>
+  #   browser.execute getSessionData, [], (result) =>
 
-      [cssClass, sessionId] = result.value
-      sessionListSelector   = '.kdcontextmenu ul ul:nth-of-type(1).expanded'
+  #     [cssClass, sessionId] = result.value
+  #     sessionListSelector   = '.kdcontextmenu ul ul:nth-of-type(1).expanded'
 
-      browser
-        .waitForElementVisible  '.' + cssClass, 25000
-        .moveToElement          '.' + cssClass, 10, 10
-        .pause                  1000
-        .click                  '.context-list-wrapper ul > ul.expanded ul.expanded .terminate'
-        .pause                  5000
+  #     browser
+  #       .waitForElementVisible  '.' + cssClass, 25000
+  #       .moveToElement          '.' + cssClass, 10, 10
+  #       .pause                  1000
+  #       .click                  '.context-list-wrapper ul > ul.expanded ul.expanded .terminate'
+  #       .pause                  5000
 
-        openNewTerminalMenu(browser)
+  #       openNewTerminalMenu(browser)
 
-        browser
-          .pause   1000
-          .getText sessionListSelector, (result) =>
-            assert.equal(result.value.indexOf(sessionId), -1)
+  #       browser
+  #         .pause   1000
+  #         .getText sessionListSelector, (result) =>
+  #           assert.equal(result.value.indexOf(sessionId), -1)
 
-            browser.end()
+  #           browser.end()
