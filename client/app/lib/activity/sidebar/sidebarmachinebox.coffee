@@ -21,6 +21,9 @@ module.exports = class SidebarMachineBox extends KDView
 
     @machine = new Machine machine: remote.revive data.machine
 
+    @machine.isCollaborationMachine = data.machine.isCollaborationMachine
+    @machine.isSharedMachine = data.machine.isSharedMachine
+
     { workspaces } = @getData()
     machineData    = { @machine, workspaces }
 
