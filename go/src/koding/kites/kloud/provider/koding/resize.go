@@ -205,11 +205,6 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		}
 	}
 
-	infoLog("updating user domain tag %s of instance %s", m.Domain.Name, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-		return nil, err
-	}
-
 	a.Push("Checking connectivity", 90, machinestate.Pending)
 	artifact.DomainName = m.Domain.Name
 

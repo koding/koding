@@ -25,13 +25,15 @@ type statePair struct {
 }
 
 var states = map[string]*statePair{
-	"build":   &statePair{initial: machinestate.Building, final: machinestate.Running},
-	"start":   &statePair{initial: machinestate.Starting, final: machinestate.Running},
-	"stop":    &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
-	"destroy": &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
-	"restart": &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
-	"resize":  &statePair{initial: machinestate.Pending, final: machinestate.Running},
-	"reinit":  &statePair{initial: machinestate.Terminating, final: machinestate.Running},
+	"build":          &statePair{initial: machinestate.Building, final: machinestate.Running},
+	"start":          &statePair{initial: machinestate.Starting, final: machinestate.Running},
+	"stop":           &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
+	"destroy":        &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
+	"restart":        &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
+	"resize":         &statePair{initial: machinestate.Pending, final: machinestate.Running},
+	"reinit":         &statePair{initial: machinestate.Terminating, final: machinestate.Running},
+	"createSnapshot": &statePair{initial: machinestate.Snapshotting, final: machinestate.Running},
+	"deleteSnapshot": &statePair{initial: machinestate.Snapshotting, final: machinestate.Running},
 }
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
@@ -61,6 +63,12 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 			k.Log.Error("[%s] updating data after start method was not possible: %s",
 				m.Id, err.Error())
 		}
+
+		resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s]",
+			resp.Username, resp.InstanceId, resp.IpAddress)
+
+		k.Log.Info("[%s] ========== START results ========== %s",
+			m.Id, resultInfo)
 
 		// do not return the error, the machine is already prepared and
 		// started, it should be ready

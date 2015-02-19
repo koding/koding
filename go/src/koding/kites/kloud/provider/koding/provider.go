@@ -72,9 +72,13 @@ type Provider struct {
 	InactiveMachines   map[string]*time.Timer
 	InactiveMachinesMu sync.Mutex
 
-	PlanChecker func(*protocol.Machine) (Checker, error)
-
 	Stats *metrics.DogStatsD
+
+	// PaymendEndpoint is used to fetch a machines plan
+	PaymentEndpoint string
+
+	// NetworkUsageEndpoint is used to fetch a machines network usage
+	NetworkUsageEndpoint string
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
@@ -121,6 +125,30 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	a.Builder.PublicKey = p.PublicKey
 	a.Builder.PrivateKey = p.PrivateKey
 	return a, nil
+}
+
+func (p *Provider) PlanChecker(m *protocol.Machine) (*PlanChecker, error) {
+	a, err := p.NewClient(m)
+	if err != nil {
+		return nil, err
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      p.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}, nil
 }
 
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
@@ -402,6 +430,18 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 		}
 	}
 
+	// try to release/delete a public elastic IP, if there is an error we don't
+	// care (the instance might not have an elastic IP, aka a free user.
+	if resp, err := a.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter()); err == nil {
+		if len(resp.Addresses) == 0 {
+			return nil // nothing to do
+		}
+
+		address := resp.Addresses[0]
+		p.Log.Debug("[%s] Got an elastic IP %+v. Going to relaease it", m.Id, address)
+
+		a.Client.ReleaseAddress(address.AllocationId)
+	}
 	return nil
 }
 

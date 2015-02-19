@@ -16,7 +16,7 @@ templateFn = (err, res)->
     <html lang="en">
       <head>
         <script>
-          window.opener.KD.singletons.paymentController.paypalReturn(#{err});
+          window.opener.kd.singletons.paymentController.paypalReturn(#{err});
           window.close();
         </script>
       </head>
@@ -25,6 +25,10 @@ templateFn = (err, res)->
 
   serve template, res
 
+###*
+ * This function requires you to test with ngrok and https protocol.
+ * Please make sure that it's not your local url when testing this.
+###
 module.exports = (req, res) ->
   {token}    = req.query
   {clientId} = req.cookies

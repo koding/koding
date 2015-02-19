@@ -115,7 +115,6 @@ func (p *Provider) CleanDeletedVMs() error {
 // CleanNotInitializedVMs purges AWS machines that were created but wasn't used
 // to finish the final build.
 func (p *Provider) CleanNotInitializedVMs() error {
-	p.Log.Debug("cleaner for NotInitialized vms has started")
 	machines := make([]MachineDocument, 0)
 
 	query := func(c *mgo.Collection) error {

@@ -16,6 +16,7 @@ const (
 	ErrMachineTerminating    = 105
 	ErrMachineNotFound       = 106
 	ErrMachineIsLocked       = 107
+	ErrSnapshotIdMissing     = 108
 
 	ErrEventNotFound    = 200
 	ErrEventIdMissing   = 201
@@ -49,6 +50,7 @@ var errors = map[int]string{
 	ErrMachineTerminating:    "Machine is terminated.",
 	ErrMachineNotFound:       "Machine is not found",
 	ErrMachineIsLocked:       "Machine is locked by someone else",
+	ErrSnapshotIdMissing:     "Snapshot id is missing.",
 
 	// Event errors
 	ErrEventIdMissing:   "Event id is missing.",

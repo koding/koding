@@ -1028,6 +1028,7 @@ module.exports = class JGroup extends Module
     success: (client, messageType, message, callback=->)->
       @fetchMembershipPolicy (err, policy)=>
         return callback err  if err
+        return callback new KodingError "No policy found"  unless policy
         set = {}
         set["communications.#{messageType}"] = message
         policy.update $set: set, callback

@@ -1,0 +1,4 @@
+{
+  "name": "feeder",
+  "main": "./lib/index.coffee"
+}

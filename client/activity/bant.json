@@ -1,0 +1,21 @@
+{
+  "name": "activity",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/:name?/Activity/Public" : 10,
+    "/:name?/Activity/Public/Liked" : 20,
+    "/:name?/Activity/Public/Recent" : 30,
+    "/:name?/Activity/Public/Search" : 40,
+    "/:name?/Activity/Announcement/:slug" : 50,
+    "/:name?/Activity/Topic/:slug?" : 60,
+    "/:name?/Activity/Post/:slug?" : 70,
+    "/:name?/Activity/Message/:slug?" : 80,
+    "/:name?/Activity/:slug" : 90,
+    "/:name?/Activity/Message/New" : 100,
+    "/:name?/Activity/Topic/All" : 110,
+    "/:name?/Activity/Topic/Following" : 120,
+    "/:name?/Activity/Post/All" : 130,
+    "/:name?/Activity/Chat/All" : 140,
+    "/:name?/Activity" : 150
+  }
+}

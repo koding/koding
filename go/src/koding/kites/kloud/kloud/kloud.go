@@ -1,16 +1,11 @@
 package kloud
 
 import (
-	"io/ioutil"
-	"log"
 	"os"
 
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/amazon"
-	"koding/kites/kloud/provider/digitalocean"
-	"koding/kites/kloud/provider/openstack"
 
 	"github.com/koding/logging"
 )
@@ -59,39 +54,6 @@ func New() *Kloud {
 	}
 
 	return kld
-}
-
-// NewWithDefaults creates a new Kloud instance with default providers.
-func NewWithDefaults() *Kloud {
-	kld := New()
-	kld.initializeProviders()
-
-	return kld
-}
-
-func (k *Kloud) initializeProviders() {
-	// digitalocean logs trendemenous amount of log, disable it
-	log.SetOutput(ioutil.Discard)
-
-	// be sure they they satisfy the builder interface, makes it easy to catch
-	// it on compile time :)
-	var _ protocol.Provider = &digitalocean.Provider{}
-	var _ protocol.Provider = &amazon.Provider{}
-	var _ protocol.Provider = &openstack.Provider{}
-
-	k.AddProvider("digitalocean", &digitalocean.Provider{
-		Log: k.newLogger("digitalocean"),
-	})
-
-	k.AddProvider("amazon", &amazon.Provider{
-		Log: k.newLogger("amazon"),
-	})
-
-	k.AddProvider("rackspace", &openstack.Provider{
-		Log:          k.newLogger("rackspace"),
-		AuthURL:      "https://identity.api.rackspacecloud.com/v2.0",
-		ProviderName: "rackspace",
-	})
 }
 
 func (k *Kloud) newLogger(name string) logging.Logger {
