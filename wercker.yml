@@ -100,7 +100,6 @@ build:
     - script: # todo generalize this part when we have more tests
         name: test koding mongo models
         code: |
-          export=GOPATH=`pwd`/go
           go test ./go/src/koding/db/mongodb/modelhelper/*go
     - script:
         name: testing backend finished
