@@ -132,12 +132,20 @@ module.exports = class KodingKite extends KDObject
 
 
   disconnect: ->
+
+    {kontrol} = kd.singletons
+    kontrol.setTryingToReconnect no
+
     @isDisconnected = yes
     @transport?.disconnect()
     @transport = null
 
 
   reconnect:  ->
+
+    {kontrol} = kd.singletons
+    kontrol.setTryingToReconnect()
+
     @transport?.disconnect()
 
     kd.utils.wait 1000, =>
@@ -160,5 +168,5 @@ module.exports = class KodingKite extends KDObject
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
 
-
-
+        {kontrol} = kd.singletons
+        kontrol.setTryingToReconnect no
