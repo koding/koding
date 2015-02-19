@@ -198,7 +198,7 @@ testcollaboration:
 	@rm  ./collaboration.test
 
 	@`which go` test -c workers/collaboration/*.go
-	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
+	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
 testapi: testcollaboration
