@@ -262,7 +262,7 @@ module.exports =
         targetIndex = index
 
       unless targetUser
-        return warn 'Unknown user in collaboration, we should handle this case...'
+        return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
       if actionType is 'join'
         @chat.emit 'ParticipantJoined', targetUser
@@ -539,7 +539,7 @@ module.exports =
     { Collaboration } = remote.api
     Collaboration.stop @rtmFileId, @workspaceData, (err) =>
 
-      return warn err  if err
+      return kd.warn err  if err
 
       kd.utils.killRepeat @pingInterval
 
