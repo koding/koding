@@ -40,4 +40,5 @@ sudo mkdir -p /opt/koding/userdata/Web
 sudo mkdir -p /opt/koding/userdata/Applications
 sudo mkdir -p /opt/koding/userdata/Backup
 sudo mkdir -p /opt/koding/userdata/Documents
+sudo mkdir -p /opt/koding/etc/
 sudo mkdir -p /etc/koding
