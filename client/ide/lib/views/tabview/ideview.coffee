@@ -67,7 +67,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     # to distinguish between user actions and programmed actions
     @tabView.on 'PaneRemovedByUserAction', (pane)=>
       {view} = pane
-      if view instanceof IDE.TerminalPane
+      if view instanceof IDETerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
