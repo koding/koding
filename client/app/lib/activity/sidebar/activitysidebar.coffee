@@ -23,6 +23,7 @@ SidebarPinnedItem = require './sidebarpinneditem'
 SidebarTopicItem = require './sidebartopicitem'
 ComputeHelpers = require '../../providers/computehelpers'
 SidebarOwnMachinesList = require './sidebarownmachineslist'
+SidebarSharedMachinesList = require './sidebarsharedmachineslist'
 
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
@@ -776,11 +777,26 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @machineLists = []
       @machineListsByName = {}
 
-      @ownMachinesList = new SidebarOwnMachinesList {}, machines.own
+      { shared, collaboration } = machines
 
-      @machineLists.push @ownMachinesList
-      @machineListsByName.own = @ownMachinesList
-      @addSubView @ownMachinesList, null, yes
+      if shared.length or collaboration.length
+        @createMachineList 'shared', {}, { shared, collaboration }
+
+      @createMachineList 'own', {}, machines.own
+
+
+  createMachineList: (type, options, data) ->
+
+    MachineListClasses =
+      own              : SidebarOwnMachinesList
+      shared           : SidebarSharedMachinesList
+
+    list = new MachineListClasses[type] options, data
+    @machineLists.push list
+    @machineListsByName[type] = list
+
+    @addSubView list, null, yes
+
 
 
   # handleMachineItemClick: (machineItem, event) ->
