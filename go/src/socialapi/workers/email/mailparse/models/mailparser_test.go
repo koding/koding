@@ -23,19 +23,19 @@ func TestGetAccount(t *testing.T) {
 	defer modelhelper.Close()
 
 	Convey("while testing get account", t, func() {
-		Convey("function return empty if parameter is invalid", func() {
+		Convey("returns empty if parameter is invalid", func() {
 			acc, err := GetAccount("interestingEmail@somethinglikethat")
 			So(err, ShouldNotBeNil)
 			So(acc, ShouldBeNil)
 		})
 
-		Convey("function return empty if parameter is empty", func() {
+		Convey("returns empty if parameter is empty", func() {
 			acc, err := GetAccount("")
 			So(err, ShouldNotBeNil)
 			So(acc, ShouldBeNil)
 		})
 
-		Convey("Function should return blank if parameter is empty", func() {
+		Convey("Should return blank if parameter is empty", func() {
 			acc, err := socialapimodels.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 
@@ -79,7 +79,7 @@ func TestValidate(t *testing.T) {
 			So(err, ShouldEqual, ErrTextBodyIsNotSet)
 		})
 
-		Convey("Function return nil if Mail struct is set ", func() {
+		Convey("returns nil if Mail struct is set ", func() {
 			m := &Mail{From: "mehmet@koding.com", TextBody: "Some text parapraph"}
 			So(m.Validate(), ShouldBeNil)
 		})
@@ -120,7 +120,7 @@ func TestPersist(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		Convey("testing reply message if message channel is not set", func() {
+		Convey("reply should have messageid", func() {
 			acc, err := socialapimodels.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 

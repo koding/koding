@@ -140,8 +140,8 @@ func (m *Mail) Persist() error {
 		reply.Body = m.StrippedTextReply // set the body
 		// todo set this type according to the the channel id
 		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_REPLY
-		if c.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
-			cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
+		if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+			reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
 		}
 		reply.InitialChannelId = cm.InitialChannelId
 		reply.AccountId = accountId
