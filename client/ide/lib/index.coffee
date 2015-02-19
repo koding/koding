@@ -29,7 +29,7 @@ IDETerminalPane = require './workspace/panes/ideterminalpane'
 IDEView = require './views/tabview/ideview'
 IDEWorkspace = require './workspace/ideworkspace'
 splashMarkups = require './util/splash-markups'
-AceApplicationTabView = require 'ace/aceapplicationtabview'
+IDEApplicationTabView = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 require('./routes')()
@@ -250,7 +250,7 @@ module.exports = class IDEAppController extends AppController
       {tabView} = view
 
       for p in tabView.panes by -1
-        {pane} = tabView.removePane p, yes, (yes if tabView instanceof AceApplicationTabView)
+        {pane} = tabView.removePane p, yes, (yes if tabView instanceof IDEApplicationTabView)
         panes.push pane
 
       view.destroy()
