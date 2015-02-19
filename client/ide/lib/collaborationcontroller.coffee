@@ -887,6 +887,7 @@ module.exports =
       blocking     : yes
       buttons      :
         quit       :
+          style    : 'solid light-gray medium'
           title    : 'LEAVE'
           callback : =>
             @modal.destroy()
