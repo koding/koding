@@ -13,8 +13,6 @@ getGroup = require 'app/util/getGroup'
 
 module.exports = class GroupProductsController extends KDController
 
-  { dash } = Bongo
-
   constructor: (options = {}, data) ->
     super options, data
 

@@ -2,7 +2,7 @@ BIN=./node_modules/.bin
 
 .PHONY: landing
 
-all:
+all: landing
 	@DEBUG=client:*,bant:* $(BIN)/gulp --devMode --watchMode
 
 scripts:
