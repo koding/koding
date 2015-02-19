@@ -69,6 +69,9 @@ module.exports = class SidebarMachineBox extends KDView
       cssClass : 'workspaces-link'
       partial  : 'Workspaces'
       click    : =>
+
+        return no  unless @machine.isMine()
+
         modal = new MoreWorkspacesModal {}, @getData().workspaces
         modal.once 'NewWorkspaceRequested', @bound 'createAddWorkspaceInput'
 
