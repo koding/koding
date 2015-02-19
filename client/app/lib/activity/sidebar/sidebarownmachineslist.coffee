@@ -1,7 +1,7 @@
 SidebarMachineList = require './sidebarmachinelist'
 MoreVMsModal = require 'app/activity/sidebar/morevmsmodal'
-globals = require 'globals'
 ComputeHelpers = require '../../providers/computehelpers'
+Machine = require 'app/providers/machine'
 
 
 module.exports = class SidebarOwnMachinesList extends SidebarMachineList
@@ -14,8 +14,12 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
 
     super options, data
 
-    @on 'ListHeaderClicked', ->
-      new MoreVMsModal {}, globals.userMachines
+    @on 'ListHeaderPlusIconClicked', -> ComputeHelpers.handleNewMachineRequest()
 
-    @on 'ListHeaderPlusIconClicked', ->
-      ComputeHelpers.handleNewMachineRequest()
+    @on 'ListHeaderClicked', =>
+
+      machines = []
+
+      machines.push new Machine machine: obj.machine  for obj in data
+
+      new MoreVMsModal {}, machines
