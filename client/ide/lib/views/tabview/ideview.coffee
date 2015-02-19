@@ -13,14 +13,14 @@ IDEPreviewPane = require '../../workspace/panes/idepreviewpane'
 IDEShortcutsView = require '../shortcutsview/ideshortcutsview'
 IDETerminalPane = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
-AceApplicationTabView = require 'ace/aceapplicationtabview'
+IDEApplicationTabView = require './ideapplicationtabview.coffee'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
 
   constructor: (options = {}, data) ->
 
-    options.tabViewClass     = AceApplicationTabView
+    options.tabViewClass     = IDEApplicationTabView
     options.createNewEditor ?= yes
 
     super options, data
@@ -63,11 +63,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       tabHandle.addSubView icon, null, yes
 
-    @tabView.on 'PaneRemoved', (obj) =>
-      { view } = obj.pane
-      { detachInProgress } = obj.pane.getDelegate()
-
-      if view instanceof IDETerminalPane and not detachInProgress
+    # This is a custom event for IDEApplicationTabView
+    # to distinguish between user actions and programmed actions
+    @tabView.on 'PaneRemovedByUserAction', (pane)=>
+      {view} = pane
+      if view instanceof IDETerminalPane
         sessionId = view.session or view.webtermView.sessionId
         @terminateSession @mountedMachine, sessionId
 
@@ -109,7 +109,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     paneOptions =
       name      : file.name
       editor    : editorPane
-      aceView   : editorPane.aceView # this is required for ace app. see AceApplicationTabView:6
+      aceView   : editorPane.aceView
 
     editorPane.once 'EditorIsReady', =>
       ace        = editorPane.getAce()
