@@ -44,7 +44,7 @@ var (
 	sleepTime = terminateSessionDuration + offsetDuration
 
 	// every go routine should be completed in this duration
-	deadLineDuration = sleepTime + time.Second*5
+	deadLineDuration = time.Minute * 3
 
 	// errors
 	//
@@ -56,13 +56,15 @@ var (
 type Controller struct {
 	log   logging.Logger
 	redis *redis.RedisSession
+	conf  *config.Config
 }
 
 // New creates a controller
-func New(log logging.Logger, redis *redis.RedisSession) *Controller {
+func New(log logging.Logger, redis *redis.RedisSession, conf *config.Config) *Controller {
 	return &Controller{
 		log:   log,
 		redis: redis,
+		conf:  conf,
 	}
 }
 
@@ -195,7 +197,7 @@ func (c *Controller) goWithRetry(f func() error, errChan chan error) {
 		bo := backoff.NewExponentialBackOff()
 		bo.InitialInterval = time.Millisecond * 250
 		bo.MaxInterval = time.Second * 1
-		bo.MaxElapsedTime = time.Second * 10
+		bo.MaxElapsedTime = time.Minute * 2 // channel message can take some time
 
 		ticker := backoff.NewTicker(bo)
 		defer ticker.Stop()
