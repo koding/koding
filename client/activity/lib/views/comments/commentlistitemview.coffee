@@ -268,6 +268,9 @@ module.exports = class CommentListItemView extends KDListItemView
     @timeAgoView = new KDTimeAgoView {}, createdAt
 
     JView::viewAppended.call this
+
+    kd.utils.defer => emojify.run @getElement()
+
     # @setAnchors()
 
 

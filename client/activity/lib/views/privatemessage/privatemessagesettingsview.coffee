@@ -35,8 +35,13 @@ module.exports = class PrivateMessageSettingsView extends KDCustomHTMLView
         title        : 'Are you sure?'
         description  : 'Other participants in this chat will see that you have left and you will stop receiving further notifications.'
         ok           :
+          style      : 'solid medium red'
           title      : 'Leave'
           callback   : @bound 'leaveConversation'
+        cancel       :
+          style      : 'solid medium light-gray'
+          title      : 'cancel'
+          callback   : => @leaveModal.destroy()
 
     @menu
 
