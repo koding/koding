@@ -30,7 +30,7 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler := collaboration.New(r.Log, redisConn)
+	handler := collaboration.New(r.Log, redisConn, r.Conf)
 	r.SetContext(handler)
 	// only listen and operate on collaboration ping messages that are fired by the handler
 	r.Register(models.Ping{}).On(collaboration.FireEventName).Handle((*collaboration.Controller).Ping)
