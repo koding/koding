@@ -64,6 +64,8 @@ type (
 		ProxyURL string
 
 		CustomDomain CustomDomain
+
+		GoogleapiServiceAccount GoogleapiServiceAccount
 	}
 
 	// Postgres holds Postgresql database related configuration
@@ -143,31 +145,38 @@ type (
 	}
 
 	GateKeeper struct {
-		Host   string `env:"key=KONFIG_GATEKEEPER_HOST"`
-		Port   int    `env:"key=KONFIG_GATEKEEPER_PORT"`
+		Host   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_HOST"`
+		Port   int    `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
 		Pubnub Pubnub
 	}
 
 	Pubnub struct {
-		PublishKey    string `env:"key=KONFIG_GATEKEEPER_PUBNUB_PUBLISHKEY"`
-		SubscribeKey  string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
-		SecretKey     string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SECRETKEY"`
-		ServerAuthKey string `env:"key=KONFIG_GATEKEEPER_PUBNUB_SERVERAUTHKEY"`
-		Enabled       bool   `env:"key=KONFIG_GATEKEEPER_PUBNUB_ENABLED"`
-		Origin        string `env:"key=KONFIG_GATEKEEPER_PUBNUB_ORIGIN"`
+		PublishKey    string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_PUBLISHKEY"`
+		SubscribeKey  string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_SUBSCRIBEKEY"`
+		SecretKey     string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_SECRETKEY"`
+		ServerAuthKey string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_SERVERAUTHKEY"`
+		Enabled       bool   `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_ENABLED"`
+		Origin        string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PUBNUB_ORIGIN"`
 	}
 
 	CustomDomain struct {
-		Public string `env:"key=KONFIG_CUSTOMDOMAIN_PUBLIC"`
-		Local  string `env:"key=KONFIG_CUSTOMDOMAIN_LOCAL"`
+		Public string `env:"key=KONFIG_SOCIALAPI_CUSTOMDOMAIN_PUBLIC"`
+		Local  string `env:"key=KONFIG_SOCIALAPI_CUSTOMDOMAIN_LOCAL"`
 	}
 
 	Kloud struct {
-		SecretKey string `env:"key=KONFIG_KLOUD_SECRETKEY"`
-		Address   string `env:"key=KONFIG_KLOUD_ADDRESS"`
+		SecretKey string `env:"key=KONFIG_SOCIALAPI_KLOUD_SECRETKEY"`
+		Address   string `env:"key=KONFIG_SOCIALAPI_KLOUD_ADDRESS"`
 	}
 
 	PaymentWebhook struct {
-		Port string `env:"key=KONFIG_PAYMENTWEBHOOK_PORT"`
+		Port string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
+	}
+
+	GoogleapiServiceAccount struct {
+		ClientId              string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_CLIENTID"`
+		ClientSecret          string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_CLIENTSECRET"`
+		ServiceAccountEmail   string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_SERVICEACCOUNTEMAIL"`
+		ServiceAccountKeyFile string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_SERVICEACCOUNTKEYFILE"`
 	}
 )
