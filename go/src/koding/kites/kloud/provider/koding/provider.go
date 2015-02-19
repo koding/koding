@@ -278,22 +278,24 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	// assigned yet (Elastic IP's are assigned only during the Build). We
 	// lookup the IP from the Elastic IPs, if it's not available (returns an
 	// error) we proceed and create it.
-	_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
-	if isAddressNotFoundError(err) && checker.Plan.Plan != Free {
-		p.Log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", m.Id)
-		allocateResp, err := a.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
-		if err != nil {
-			return nil, err
-		}
-		artifact.IpAddress = allocateResp.PublicIp
+	if checker.Plan.Plan != Free { // check this first to avoid an additional AWS call
+		_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
+		if isAddressNotFoundError(err) {
+			p.Log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", m.Id)
+			allocateResp, err := a.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+			if err != nil {
+				return nil, err
+			}
+			artifact.IpAddress = allocateResp.PublicIp
 
-		p.Log.Debug("[%s] Elastic IP allocated %+v", m.Id, allocateResp)
+			p.Log.Debug("[%s] Elastic IP allocated %+v", m.Id, allocateResp)
 
-		if _, err := a.Client.AssociateAddress(&ec2.AssociateAddress{
-			InstanceId:   artifact.InstanceId,
-			AllocationId: allocateResp.AllocationId,
-		}); err != nil {
-			return nil, err
+			if _, err := a.Client.AssociateAddress(&ec2.AssociateAddress{
+				InstanceId:   artifact.InstanceId,
+				AllocationId: allocateResp.AllocationId,
+			}); err != nil {
+				return nil, err
+			}
 		}
 	}
 
