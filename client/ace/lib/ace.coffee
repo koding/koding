@@ -203,28 +203,10 @@ module.exports = class Ace extends KDView
       if @getDelegate().parent.active
         @notify 'Nothing to save!'
       return
-    file = @getData()
-    {localSync} = kd.singletons
-    # update the localStorage each time user requested save.
-    if remote.isConnected()
-      @askedForSave = yes
-      @emit 'ace.requests.save', contents
-      # if file is saved, remove it from localStorage
-      localSync.removeFromSaveArray file
-    else
-      # add to list of files that need to be synced.
-      localSync.updateFileContentOnLocalStorage file, contents
-      localSync.addToSaveArray file
-      @prepareSyncListeners()
 
-  prepareSyncListeners: ->
-    {localSync} = kd.singletons
+    @askedForSave = yes
+    @emit 'ace.requests.save', contents
 
-    localSync.on 'LocalContentSynced', (file) =>
-      @notify 'File synced to remote...', null, null, 5000
-
-    localSync.on 'LocalContentCouldntSynced', (file) =>
-      @notify 'File coudn\'t be synced to remote please try again...', null, null, 5000
 
   requestSaveAs: ->
     @emit 'ace.requests.saveAs', @getContents()
