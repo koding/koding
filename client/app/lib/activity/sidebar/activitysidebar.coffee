@@ -775,10 +775,12 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @fetchMachines (machines) =>
       @machineLists = []
       @machineListsByName = {}
-      @addSubView @ownMachinesList = new SidebarOwnMachinesList {}, machines.own
+
+      @ownMachinesList = new SidebarOwnMachinesList {}, machines.own
 
       @machineLists.push @ownMachinesList
       @machineListsByName.own = @ownMachinesList
+      @addSubView @ownMachinesList, null, yes
 
 
   # handleMachineItemClick: (machineItem, event) ->
