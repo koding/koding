@@ -428,6 +428,7 @@ module.exports =
       .waitForElementVisible   saveButtonSelector, 20000
       .click                   saveButtonSelector
       .refresh()
+      .pause                   5000 #required
       .waitForElementVisible   inputSelector, 20000
       .getValue                inputSelector, (result) ->
         assert.equal           result.value, newName
