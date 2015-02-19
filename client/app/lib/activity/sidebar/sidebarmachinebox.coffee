@@ -21,7 +21,10 @@ module.exports = class SidebarMachineBox extends KDView
 
     @machine = new Machine machine: remote.revive data.machine
 
-    @addSubView @machineItem = new NavigationMachineItem {}, @machine
+    { workspaces } = @getData()
+    machineData    = { @machine, workspaces }
+
+    @addSubView @machineItem = new NavigationMachineItem {}, machineData
 
     @createWorkspacesLabel()
     @createWorkspacesList()
