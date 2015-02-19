@@ -58,7 +58,7 @@ build:
           cat $INSTANCE_DATA
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot /opt/koding
+        code: ./configure --config $CONFIG --projectRoot /pipeline/build
     - script:
         name: build client
         code: |
