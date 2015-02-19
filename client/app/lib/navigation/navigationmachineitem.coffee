@@ -19,38 +19,30 @@ module.exports = class NavigationMachineItem extends JView
 
   constructor: (options = {}, data) ->
 
-    machine      = data
-    @alias       = machine.slug or machine.label
-    ideRoute     = "/IDE/#{@alias}/my-workspace"
-    machineOwner = machine.getOwner()
-    isMyMachine  = machine.isMine()
-    channelId    = ''
+    { machine, workspaces } = data
 
-    if not isMyMachine and globals.userWorkspaces
-      globals.userWorkspaces.forEach (ws) ->
-        return if channelId
+    @alias             = machine.slug or machine.label
+    machineOwner       = machine.getOwner()
+    isMyMachine        = machine.isMine()
+    myMachineRoute     = "/IDE/#{@alias}/my-workspace"
+    collabMachineRoute = "/IDE/#{workspaces.first.channelId}"
+    sharedMachineRoute = "/IDE/#{machine.uid}/my-workspace"
 
-        if ws.machineUId is machine.uid and ws.channelId
-          channelId = ws.channelId
-
-      ideRoute = if channelId
-        "/IDE/#{channelId}"
-      else
-        "/IDE/#{machine.uid}/my-workspace"
+    machineRoute = if machine.isCollaborationMachine then collabMachineRoute
+    else if machine.isSharedMachine then sharedMachineRoute else myMachineRoute
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : groupifyLink ideRoute
+      href             : groupifyLink machineRoute
       title            : "Open IDE for #{@alias}"
 
-    unless machineOwner is nick()
+    unless isMyMachine
       options.attributes.title += " (shared by @#{htmlencode.htmlDecode machineOwner})"
 
     super options, data
 
-    @machine   = @getData()
-
+    { @machine } = @getData()
     labelPartial = machine.label or @alias
 
     unless isMyMachine
@@ -67,7 +59,7 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    if @getData().isMine()
+    if @machine.isMine()
       @settingsIcon = new KDCustomHTMLView
         tagName     : 'span'
         click       : @bound 'handleMachineSettingsClick'
@@ -97,14 +89,13 @@ module.exports = class NavigationMachineItem extends JView
 
   handleMachineSettingsClick: (event) ->
 
-    machine    = @getData()
-    { status } = machine
+    { status } = @machine
     { Building, Running } = Machine.State
 
     kd.utils.stopDOMEvent event
 
     if status?.state is Running
-      kd.singletons.mainView.openMachineModal machine, this
+      kd.singletons.mainView.openMachineModal @machine, this
     else return
 
 
