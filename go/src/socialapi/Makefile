@@ -339,6 +339,6 @@ dep:
 
 testmail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
-	@`which go` test -c workers/mail/models/*.go
+	@`which go` test -c workers/email/mailparse/models/*.go
 	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./models.test
