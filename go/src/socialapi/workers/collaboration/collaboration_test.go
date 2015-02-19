@@ -1,6 +1,7 @@
 package collaboration
 
 import (
+	"bytes"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
@@ -10,6 +11,8 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 	"time"
+
+	"code.google.com/p/google-api-go-client/drive/v2"
 
 	"socialapi/workers/collaboration"
 	"socialapi/workers/helper"
@@ -39,7 +42,7 @@ func TestCollaborationPing(t *testing.T) {
 
 	redis := helper.MustGetRedisConn()
 
-	handler := New(r.Log, redisConn)
+	handler := New(r.Log, redisConn, r.Conf)
 
 	Convey("while pinging collaboration", t, func() {
 		// owner
@@ -198,5 +201,55 @@ func TestCollaborationPing(t *testing.T) {
 				So(err, ShouldEqual, errSessionInvalid)
 			})
 		})
+
+		Convey("while testing drive operations", func() {
+			req := req
+			req.CreatedAt = time.Now().UTC()
+			Convey("should be able to create the file", func() {
+				f, err := createFile(handler)
+				So(err, ShouldBeNil)
+				req.FileId = f.Id
+				Convey("should be able to get the created file", func() {
+					f2, err := handler.getFile(f.Id)
+					So(err, ShouldBeNil)
+					So(f2, ShouldNotBeNil)
+					Convey("should be able to delete the created file", func() {
+						err = handler.deleteFile(req.FileId)
+						So(err, ShouldBeNil)
+						Convey("should not be able to get the deleted file", func() {
+							f2, err = handler.getFile(f.Id)
+							So(err, ShouldNotBeNil)
+							So(f2, ShouldBeNil)
+						})
+						Convey("deleting the deleted file should not give error", func() {
+							err = handler.deleteFile(req.FileId)
+							So(err, ShouldBeNil)
+						})
+					})
+				})
+			})
+		})
 	})
+}
+
+func createFile(c *Controller) (*drive.File, error) {
+	svc, err := c.createService()
+	if err != nil {
+		return nil, err
+	}
+
+	// Define the metadata for the file we are going to create.
+	f := &drive.File{
+		Title:       "My Document",
+		Description: "My test document",
+	}
+
+	m := bytes.NewReader([]byte(`selamlar nasilsin?`))
+	// Make the API request to upload metadata and file data.
+	r, err := svc.Files.Insert(f).Media(m).Do()
+	if err != nil {
+		return nil, err
+	}
+
+	return r, nil
 }
