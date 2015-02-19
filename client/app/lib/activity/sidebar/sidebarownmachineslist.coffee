@@ -8,9 +8,9 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
 
   constructor: (options = {}, data) ->
 
-    options.title       = 'VMs'
+    options.title       = 'Your VMs'
     options.hasPlusIcon = yes
-    options.cssClass    = 'my-machines-list'
+    options.cssClass    = 'my-machines'
 
     super options, data
 
