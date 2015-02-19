@@ -128,7 +128,7 @@ gatekeeperdev:
 
 collaborationdev:
 	@echo "$(OK_COLOR)==> Running Collaboration Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -kite-init -c $(CONFIG) kite-init $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
@@ -194,11 +194,11 @@ build:
 testcollaboration:
 	@echo "$(OK_COLOR)--> collaboration tests... $(NO_COLOR)"
 	@`which go` test -c workers/collaboration/tests/*.go
-	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
+	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
 	@`which go` test -c workers/collaboration/*.go
-	@./collaboration.test $(DBG) $(METRICS) -c $(CONFIG)
+	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
 testapi: testcollaboration
