@@ -42,6 +42,8 @@ class X extends kd.View
 
 ## Developing framework
 
+__IMPORTANT :__ *currently only possible with node v0.12.0*
+
 We were using `gulp` to watch for changes in Framework submodule. Since this submodule is removed, this mechanism is changed dramatically.
 
 So in order to watch for changes in framework you have two options:
