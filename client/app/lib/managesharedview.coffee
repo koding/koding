@@ -81,7 +81,7 @@ module.exports = class ManageSharedView extends KDView
     @loader.show()
 
     @machine.jMachine.reviveUsers permanentOnly: yes, (err, users)=>
-      warn err  if err?
+      kd.warn err  if err?
 
       users  ?= []
       @updateInMemoryListOfUsers users
