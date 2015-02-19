@@ -704,7 +704,16 @@ module.exports =
     @setMachineSharingStatus on
 
 
-  stopCollaborationSession: (callback = kd.noop) ->
+  # should clean realtime manager.
+  # should delete workspace channel id.
+  # should broadcast the session ended message.
+  # IF USER IS HOST
+  #   should delete private message.
+  #   should set machine sharing status to off.
+  # IF USER IS NOT HOST
+  #   should only call the callback without an error.
+  #   given callback should do the rest. (e.g cleaning-up, quitting..)
+  stopCollaborationSession: (callback) ->
 
     @chat.settingsPane.endSession.disable()
 
@@ -719,28 +728,35 @@ module.exports =
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
       @modal.destroy()
-      @rtm.dispose()
-      @rtm = null
-      kd.utils.killRepeat @pingInterval
-      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
-      @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
+
+      if @amIHost
+        @setMachineSharingStatus off, (err) =>
+          return callback err  if err
+          @deletePrivateMessage (err) =>
+            return callback err  if err
+            @cleanupCollaboration { reinit: yes }
+      else
+        callback null
 
     @mySnapshot.clear()
     @rtm.deleteFile @getRealTimeFileName()
-
-    if @amIHost
-      @setMachineSharingStatus off
-      @deletePrivateMessage callback
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
 
 
-  cleanupCollaboration: ->
+  cleanupCollaboration: (options = {}) ->
+    return throwError 'RealTimeManager is not set'  unless @rtm
 
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
     @rtm = null
+    kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
+    @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
+
+    { reinit } = options
+
+    @prepareCollaboration()  if reinit
 
   # environment related
 
@@ -768,10 +784,10 @@ module.exports =
       @setMachineUser [target], no  if target
 
 
-  setMachineSharingStatus: (status) ->
+  setMachineSharingStatus: (status, callback) ->
 
     @listChatParticipants (accounts) =>
-      @setMachineUser accounts, status
+      @setMachineUser accounts, status, callback
 
 
   setMachineUser: (accounts, share = yes, callback = kd.noop) ->
@@ -871,12 +887,14 @@ module.exports =
       blocking     : yes
       buttons      :
         quit       :
+          style    : 'solid light-gray medium'
           title    : 'LEAVE'
-          callback : => @modal.destroy()
+          callback : =>
+            @modal.destroy()
+            @quit()
+            @removeMachineNode()
 
     @showModal options
-    @removeMachineNode()
-    @quit()
 
 
   handleParticipantLeaveAction: ->

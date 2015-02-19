@@ -4,6 +4,10 @@ KDCustomScrollView = kd.CustomScrollView
 KDNotificationView = kd.NotificationView
 nick = require 'app/util/nick'
 IDEPane = require './idepane'
+
+$ = require 'jquery'
+require('kd-shim-jquery-sketchpad') $
+
 module.exports = class IDEDrawingPane extends IDEPane
 
 

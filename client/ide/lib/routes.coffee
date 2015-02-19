@@ -246,7 +246,7 @@ module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
       refreshWorkspaces -> routeToLatestWorkspace()
 
     when 'machine'
-      {params : machineLabel} = info
+      {machineLabel} = info.params
       # we assume that if machineLabel is all numbers it is the channelId - SY
       if /^[0-9]+$/.test machineLabel
         refreshWorkspaces -> loadCollaborativeIDE machineLabel
