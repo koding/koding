@@ -47,6 +47,8 @@ module.exports = class ApplicationManager extends KDObject
   isAppInternal : (name='')->
     return globals.config.apps[name] and (name not in Object.keys globals.appClasses)
 
+  isAppLoaded: (name = '') -> (name in Object.keys globals.appClasses)
+
   open: do ->
 
     createOrShow = (appOptions = {}, appParams, callback = kd.noop)->
