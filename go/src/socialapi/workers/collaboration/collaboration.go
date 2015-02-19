@@ -18,6 +18,7 @@ import (
 	"code.google.com/p/goauth2/oauth/jwt"
 	"code.google.com/p/google-api-go-client/drive/v2"
 	"code.google.com/p/google-api-go-client/googleapi"
+	"github.com/koding/kite"
 
 	"github.com/cenkalti/backoff"
 	"github.com/koding/logging"
@@ -65,14 +66,21 @@ type Controller struct {
 	log   logging.Logger
 	redis *redis.RedisSession
 	conf  *config.Config
+	kite  *kite.Kite
 }
 
 // New creates a controller
-func New(log logging.Logger, redis *redis.RedisSession, conf *config.Config) *Controller {
+func New(
+	log logging.Logger,
+	redis *redis.RedisSession,
+	conf *config.Config,
+	kite *kite.Kite,
+) *Controller {
 	return &Controller{
 		log:   log,
 		redis: redis,
 		conf:  conf,
+		kite:  kite,
 	}
 }
 

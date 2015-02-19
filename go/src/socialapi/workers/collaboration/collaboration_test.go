@@ -42,7 +42,7 @@ func TestCollaborationPing(t *testing.T) {
 
 	redis := helper.MustGetRedisConn()
 
-	handler := New(r.Log, redisConn, r.Conf)
+	handler := New(r.Log, redisConn, r.Conf, r.Kite)
 
 	Convey("while pinging collaboration", t, func() {
 		// owner
