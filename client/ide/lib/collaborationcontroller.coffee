@@ -604,6 +604,8 @@ module.exports =
 
       when 'SessionEnded'
 
+        return  unless origin is @collaborationHost
+
         @showSessionEndedModal()
 
       when 'ParticipantWantsToLeave'
@@ -726,7 +728,8 @@ module.exports =
     {message} = kd.singletons.socialapi
     nickname  = nick()
 
-    @broadcastMessages.push origin: nickname, type: 'SessionEnded'
+    if @amIHost
+      @broadcastMessages.push origin: nickname, type: 'SessionEnded'
 
     @rtm.once 'FileDeleted', =>
       @statusBar.emit 'CollaborationEnded'
