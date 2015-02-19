@@ -34,7 +34,84 @@ class X extends kd.View
 
 * [Styl entry file](https://github.com/tetsuo/kd/blob/1.0.1/lib/styles/index.styl) is being transpiled with `--include-css` now on.
 
-* playground/test/docs folders were obsolete and removed.
+* `playground` folder is gone. Typing `make example` starts a simple development server and recompiles files upon changes in `example` folder.
+
+* `test` & `docs` became obsolete and removed.
+
+* `KD.EventEmitter.Wildcard` is changed to `kd.EventEmitterWildcard`
+
+## Developing framework
+
+We were using `gulp` to watch for changes in Framework submodule. Since this submodule is removed, this mechanism is changed dramatically.
+
+So in order to watch for changes in framework you have two options:
+
+But before that, you need to clone [kd.js](https://github.com/tetsuo/kd) repo separately.
+
+#### watching dist files
+
+To watch `lib` folder and build a standalone umd package into `dist` folder, you type `make development-dist`. But the thing is we are not bundling `kd.js` as an umd package in koding browserify bundle, so this won't help much.
+
+#### recompiling coffees and npm link
+
+Second option and working one in our situation is `make development` and requires some explanation:
+
+Each file in `kd.js/lib` folder is individualy compiled with coffee-script compiler into `kd.js/build` folder before publishing to npm. So what you see in `dist` folder is a browserify bundle and it doesn't exists in npm, but in `build` folder there are raw js files and these are the files that we need to watch.
+
+When you do `require 'kd'` browserify resolves this to `node_modules/kd.js/build/lib/index.js`, and if you change this file you will see watcher will be triggered and recompile stuff.
+
+But we don't really want to make changes in node_modules folder since it is not a git repo.
+
+What we need is to link `kd.js` working dir into `client`.
+
+Long story short this is how you do it:
+
+Clone `kd.js` first:
+
+```sh
+git clone git@github.com:tetsuo/kd.git
+```
+
+Install its dependencies:
+
+```sh
+npm install
+```
+
+And [link](https://docs.npmjs.com/cli/link) it:
+
+```sh
+npm link
+```
+
+Go back to `koding/client` folder, and remove `kd.js` in `node_modules`: 
+
+```sh
+rm -fr node_modules/kd.js
+```
+
+And link it:
+
+```sh
+npm link kd.js
+```
+
+Now when you take a look at `node_modules/kd.js` folder, you will see it's just a symlink to your previously cloned directory.
+
+Start for listening changes in `koding/client`:
+
+```sh
+make scripts
+```
+
+This will start watching your symlinked clone, change to your clone dir again, and type in the holy letters: 
+
+```sh
+make development
+```
+
+That's it. Now whenever you change a file in `lib` directory in your clone, its js equivalent is gonna be recompiled in `build` folder which is linked to `koding/client`.
+
 
 ## KD
 
