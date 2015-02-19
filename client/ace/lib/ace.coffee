@@ -40,7 +40,7 @@ module.exports = class Ace extends KDView
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
-          return  unless global.document.getElementById id
+          return  unless @getElement().querySelector "##{id}"
           @editor = ace.edit id
           @prepareEditor()
           if contents
