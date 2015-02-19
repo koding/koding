@@ -29,8 +29,7 @@ type FetcherResponse struct {
 	State string
 }
 
-func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *FetcherResponse, planErr error) {
-
+func (p *Provider) Fetcher(m *protocol.Machine) (fetcherResp *FetcherResponse, planErr error) {
 	defer func() {
 		if planErr != nil {
 			p.Log.Warning("[%s] username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
@@ -41,7 +40,7 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *F
 		}
 	}()
 
-	userEndpoint, err := url.Parse(endpoint)
+	userEndpoint, err := url.Parse(p.PaymentEndpoint)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +86,6 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *F
 			m.Id, subscription.PlanTitle)
 	}
 
-	p.Log.Debug("[%s] user has plan: %s", m.Id, plan)
 	return &FetcherResponse{
 		Plan:  plan,
 		State: subscription.State,
