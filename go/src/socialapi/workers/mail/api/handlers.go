@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"socialapi/workers/common/response"
@@ -10,12 +9,12 @@ import (
 
 func Parse(u *url.URL, h http.Header, req *models.Mail) (int, http.Header, interface{}, error) {
 	if err := req.Validate(); err != nil {
-		// faily silently, we dont want mail parser service to retry on 
+		// faily silently, we dont want mail parser service to retry on
 		// the failed validation
 		return response.NewDefaultOK()
 	}
-	
-	if err  := req.Persist(); err!= nil {
+
+	if err := req.Persist(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
