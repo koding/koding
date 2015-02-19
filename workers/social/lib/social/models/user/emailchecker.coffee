@@ -557,7 +557,7 @@ DOMAINS = [
   "schafmail.de",
   "selfdestructingmail.com",
   "selfdestructingmail.org",
-  "SendSpamHere.com",
+  "sendspamhere.com",
   "sharklasers.com",
   "shieldedmail.com",
   "shiftmail.com",
@@ -645,6 +645,7 @@ DOMAINS = [
   "spoofmail.de",
   "squizzy.de",
   "startkeys.com",
+  "streetwisemail.com",
   "stinkefinger.net",
   "stop-my-spam.com",
   "stuffmail.de",
@@ -792,7 +793,7 @@ DOMAINS = [
 ]
 
 endsWith = (str, suffix) ->
-  str.indexOf(suffix, str.length - suffix.length) != -1
+  str.toLowerCase().indexOf(suffix.toLowerCase(), str.length - suffix.length) != -1
 
 redisClient = null
 
