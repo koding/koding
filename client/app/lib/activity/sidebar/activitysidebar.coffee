@@ -438,9 +438,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   deselectAllItems: (route) ->
 
     @selectedItem = null
-    isVisitedIDE  = route?.params?.machineLabel
+    isIDEVisited  = route?.params?.machineLabel
 
-    if @machineLists and not isVisitedIDE
+    if @machineLists and not isIDEVisited
       for machineList in @machineLists
         machineList.deselectMachines()
 
