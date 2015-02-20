@@ -6,6 +6,7 @@ remote = require('app/remote').getInstance()
 isGuest = require 'app/util/isGuest'
 Machine = require 'app/providers/machine'
 ComputeController = require 'app/providers/computecontroller'
+ComputeController_UI = require 'app/providers/computecontroller.ui'
 MachineItem = require 'app/providers/machineitem'
 
 
