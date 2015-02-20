@@ -34,9 +34,12 @@ func WithPassword(kontrolURL, username string) error {
 	k := kite.New("klient", protocol.Version)
 	k.Config.Environment = protocol.Environment
 	k.Config.Region = protocol.Region
-	k.Config.Transport = config.XHRPolling
 	k.Config.Username = username
 
+	// Production Koding servers are only working over HTTP
+	k.Config.Transport = config.XHRPolling
+
+	// Give a warning if an existing kite.key exists
 	if _, err := kitekey.Read(); err == nil {
 		result, err := ask("An existing ~/.kite/kite.key detected. Type 'yes' to override and continue:")
 		if err != nil {
@@ -53,11 +56,18 @@ func WithPassword(kontrolURL, username string) error {
 		return err
 	}
 
+	// This causes Kontrol to execute the 'kite.getPass' method (builtin method
+	// in the Kite library) on our own local kite (the one we declared above)
+	// method bidirectional. So once we execute this, we immediately get a
+	// prompt asking for our password, which is then transfered back to
+	// Kontrol.
 	result, err := kontrol.TellWithTimeout("registerMachine", 5*time.Minute, username)
 	if err != nil {
 		return err
 	}
 
+	// If the password is correct a valid and signed `kite.key` is returned
+	// back. We go and create/override the ~/.kite/kite.key with this content.
 	if err := kitekey.Write(result.MustString()); err != nil {
 		return err
 	}
