@@ -58,6 +58,8 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @machineBoxes.push machineBox
     @machineBoxesByMachineUId[machineData.machine.uid] = machineBox
 
+    @show() if @machineBoxes.length is 1
+
 
   deselectMachines: ->
 
