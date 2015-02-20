@@ -801,7 +801,8 @@ module.exports = class JUser extends jraphical.Module
                 Account is already linked with another user.
               """
           else
-            @fetchUser client, (err, user)=>
+            @fetchUser client, (err, user) =>
+              return callback createKodingError err.message  if err
               @persistOauthInfo user.username, sessionToken, kallback
         else
           if user
