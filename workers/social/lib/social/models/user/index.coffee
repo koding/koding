@@ -673,6 +673,10 @@ module.exports = class JUser extends jraphical.Module
 
       return callback err  if err?
 
+      unless user?
+        console.log "guestuser not found! FIXME @gokmen"
+        return callback new KodingError 'No Guest available!'
+
       username      = @createGuestUsername()
 
       user.username = username
@@ -684,7 +688,7 @@ module.exports = class JUser extends jraphical.Module
 
         account.profile.nickname = username
 
-        @configureNewAcccount account, user, createId(), callback
+        callback null, { account, replacementToken: createId() }
 
 
   @createUser = (userInfo, callback)->
