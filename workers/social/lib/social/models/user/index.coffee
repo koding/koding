@@ -737,6 +737,7 @@ module.exports = class JUser extends jraphical.Module
 
 
   @fetchUserByProvider = (provider, session, callback)->
+
     {foreignAuth} = session
     unless foreignAuth
       return callback createKodingError "No foreignAuth:#{provider} info in session"
@@ -746,9 +747,12 @@ module.exports = class JUser extends jraphical.Module
 
     JUser.one query, callback
 
+
   @authenticateWithOauth = secure (client, resp, callback)->
+
     {isUserLoggedIn, provider} = resp
     {sessionToken} = client
+
     JSession.one {clientId: sessionToken}, (err, session) =>
       return callback createKodingError err  if err
 
@@ -766,8 +770,11 @@ module.exports = class JUser extends jraphical.Module
           account
           replacementToken
         }
+
       @fetchUserByProvider provider, session, (err, user) =>
+
         return callback createKodingError err.message  if err
+
         if isUserLoggedIn
           if user
             @clearOauthFromSession session, ->
@@ -1054,7 +1061,9 @@ module.exports = class JUser extends jraphical.Module
     JInvitation.grant {'profile.nickname': username}, 3, (err)->
       console.log 'An error granting invitations', err if err
 
+
   @fetchUser = secure (client, callback)->
+
     JSession.one {clientId: client.sessionToken}, (err, session)->
       if err
         callback err

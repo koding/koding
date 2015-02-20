@@ -12,8 +12,6 @@ module.exports = class JSession extends Model
 
   { v4: createId } = require 'node-uuid'
 
-  # JUser    = require './guest'
-
   @set
     indexes         :
       clientId      : 'unique'
@@ -57,7 +55,6 @@ module.exports = class JSession extends Model
   safeGuestSessionName = (username)->
 
     if username is "guestuser"
-      console.log "FIXME @gokmen --- denying to create session for guestuser"
       username = JUser.createGuestUsername()
       console.log "FIXME @gokmen --- overwritten with #{username}."
 
@@ -90,17 +87,17 @@ module.exports = class JSession extends Model
 
 
   @fetchSession = (clientId, callback)->
-    # if clientId is undefined or null
+
     return @createSession callback  unless clientId
 
-    selector = {clientId}
-    @one selector, (err, session)=>
+    @one {clientId}, (err, session)=>
       if err
         callback err
       else if session?
         callback null, { session }
       else
         @createSession callback
+
 
   @fetchGuestUserSession = (callback) ->
 
@@ -117,6 +114,7 @@ module.exports = class JSession extends Model
       session.save (err)->
         return callback err  if err?
         callback null, session
+
 
   @updateClientIP = (clientId, ipAddress, callback)->
 
