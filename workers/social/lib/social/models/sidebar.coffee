@@ -128,6 +128,8 @@ module.exports = class Sidebar extends bongo.Base
 
           ->
 
+            return filterQueue.fin()  unless workspace.channelId
+
             isOwner  = isMachineOwner  user, machine
             isShared = isMachineShared user, machine
             skip     = workspace.channelId and (isOwner or isShared)
