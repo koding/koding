@@ -468,7 +468,7 @@ func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error 
 	return c.Delete()
 }
 
-// AddReply adds the reply message to db,
+// AddReply adds the reply message to db ,
 // according to message id
 func (c *ChannelMessage) AddReply(reply *ChannelMessage) (*MessageReply, error) {
 	if c.Id == 0 {
