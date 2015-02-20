@@ -20,6 +20,7 @@ module.exports = class SidebarMachineBox extends KDView
     super options, data
 
     @machine = new Machine machine: remote.revive data.machine
+    @workspaceListItemsById = {}
 
     @machine.isCollaborationMachine = data.machine.isCollaborationMachine
     @machine.isSharedMachine = data.machine.isSharedMachine
@@ -45,6 +46,7 @@ module.exports = class SidebarMachineBox extends KDView
     @listWrapper = @listController.getView()
 
     @listController.getListView().on 'ItemWasAdded', (item) =>
+      @workspaceListItemsById[item.getData().getId()] = item
       item.once 'WorkspaceDeleted', @bound 'handleWorkspaceDeleted'
 
     @addWorkspace ws  for ws in workspaces
@@ -156,6 +158,8 @@ module.exports = class SidebarMachineBox extends KDView
   handleWorkspaceDeleted: (wsId) ->
 
     { workspaces } = @getData()
+
+    delete @workspaceListItemsById[wsId]
 
     for ws, index in workspaces when ws.getId() is wsId
       return workspaces.splice index, 1
