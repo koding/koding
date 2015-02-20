@@ -12,13 +12,23 @@ var (
 )
 
 func GetWorkspaces(accountId bson.ObjectId) ([]*models.Workspace, error) {
+	query := bson.M{"originId": accountId}
+	return get(query)
+}
+
+func GetWorkspacesForMachine(machineId bson.ObjectId) ([]*models.Workspace, error) {
+	query := bson.M{"machineUId": bson.M{"$in": machineId}}
+	return get(query)
+}
+
+func get(query bson.M) ([]*models.Workspace, error) {
 	workspaces := []*models.Workspace{}
 
-	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"originId": accountId}).All(&workspaces)
+	queryFn := func(c *mgo.Collection) error {
+		return c.Find(query).All(&workspaces)
 	}
 
-	err := Mongo.Run(WorkspaceColl, query)
+	err := Mongo.Run(WorkspaceColl, queryFn)
 	if err != nil {
 		return nil, err
 	}

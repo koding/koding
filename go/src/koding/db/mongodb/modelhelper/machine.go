@@ -98,6 +98,20 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	return machines, nil
 }
 
+func GetSharedAndOwnMachines(userId bson.ObjectId) ([]*models.Machine, error) {
+	machines := []*models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"users.id": userId}).All(&machines)
+	}
+
+	if err := Mongo.Run(MachineColl, query); err != nil {
+		return nil, err
+	}
+
+	return machines, nil
+}
+
 func CreateMachine(m *models.Machine) error {
 	query := func(c *mgo.Collection) error {
 		return c.Insert(m)
