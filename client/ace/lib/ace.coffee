@@ -10,11 +10,26 @@ FSHelper = require 'app/util/fs/fshelper'
 $ = require 'jquery'
 settings = require './settings'
 getscript = require 'getscript'
+_ = require 'underscore'
 
-
-aceLoaded = false
 
 module.exports = class Ace extends KDView
+
+  ACE_LOADED = false
+  @registerStaticEmitter()
+
+  getscript '/a/p/p/thirdparty/ace/_ace.js', (err) =>
+
+    throw err  if err
+
+    ace.config.set 'basePath', '/a/p/p/thirdparty/ace'
+    ace.config.set 'themePath', '/a/p/p/thirdparty/ace'
+    ace.config.set 'modePath', '/a/p/p/thirdparty/ace'
+    ace.config.set 'workerPath', '/a/p/p/thirdparty/ace'
+
+    ACE_LOADED = true
+    Ace.emit 'ScriptLoaded'
+
 
   constructor:(options, file)->
 
@@ -33,61 +48,51 @@ module.exports = class Ace extends KDView
     @hide()
     @appStorage.fetchStorage (storage)=>
 
-      onAceLoad = =>
-
-        @keyHandlers = {}
-
-        @fetchContents (err, contents)=>
-          notification?.destroy()
-          id = "editor#{@getId()}"
-          return  unless @getElement().querySelector "##{id}"
-          @editor = ace.edit id
-          @prepareEditor()
-          if contents
-            @setContents contents
-            @lastSavedContents = contents
-
-          @editor.on 'change', =>
-            @emit 'FileContentChanged'  unless @suppressListeners
-            @emit 'FileContentRestored'  unless @isCurrentContentChanged()
-
-          @editor.gotoLine 0
-
-          # remove cmd+L binding. we have already defined cmd+g for this purpose
-          @editor.commands.removeCommand 'gotoline'
-
-          # we are using ctrl+alt+s for 'Save All' action
-          @editor.commands.removeCommand 'sortlines'
-
-          @focus()
-          @show()
-
-          kd.utils.defer => @emit 'ace.ready'
-
-          mixpanel 'Open Ace, success'
-
-        @once 'ace.ready', =>
-          LineWidgets = ace.require('ace/line_widgets').LineWidgets
-          @Range      = ace.require('ace/range').Range
-          @Anchor     = ace.require('ace/anchor').Anchor
-
-          @lineWidgetManager = new LineWidgets @editor.session
-          @lineWidgetManager.attach @editor
+    if ACE_LOADED
+    then @scriptLoaded()
+    else Ace.once 'ScriptLoaded', @bound 'scriptLoaded'
 
 
-      unless aceLoaded
-        getscript '/a/p/p/thirdparty/ace/_ace.js', (err) ->
-          throw err  if err
+  scriptLoaded: ->
 
-          ace.config.set 'basePath', '/a/p/p/thirdparty/ace'
-          ace.config.set 'themePath', '/a/p/p/thirdparty/ace'
-          ace.config.set 'modePath', '/a/p/p/thirdparty/ace'
-          ace.config.set 'workerPath', '/a/p/p/thirdparty/ace'
+    @keyHandlers = {}
 
-          aceLoaded = true
-          onAceLoad()
-      else
-        onAceLoad()
+    @fetchContents (err, contents)=>
+      notification?.destroy()
+      id = "editor#{@getId()}"
+      return  unless @getElement().querySelector "##{id}"
+      @editor = ace.edit id
+      @prepareEditor()
+      if contents
+        @setContents contents
+        @lastSavedContents = contents
+
+      @editor.on 'change', =>
+        @emit 'FileContentChanged'  unless @suppressListeners
+        @emit 'FileContentRestored'  unless @isCurrentContentChanged()
+
+      @editor.gotoLine 0
+
+      # remove cmd+L binding. we have already defined cmd+g for this purpose
+      @editor.commands.removeCommand 'gotoline'
+
+      # we are using ctrl+alt+s for 'Save All' action
+      @editor.commands.removeCommand 'sortlines'
+
+      @focus()
+      @show()
+
+      kd.utils.defer => @emit 'ace.ready'
+
+      mixpanel 'Open Ace, success'
+
+    @once 'ace.ready', =>
+      LineWidgets = ace.require('ace/line_widgets').LineWidgets
+      @Range      = ace.require('ace/range').Range
+      @Anchor     = ace.require('ace/anchor').Anchor
+
+      @lineWidgetManager = new LineWidgets @editor.session
+      @lineWidgetManager.attach @editor
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
