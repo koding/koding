@@ -778,15 +778,19 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   addMachineList: ->
 
-    @fetchMachines (machines) =>
-      @machineLists = []
-      @machineListsByName = {}
+    @machineLists = []
+    @machineListsByName = {}
 
-      { shared, collaboration } = machines
-      sharedData = { shared, collaboration }
+    @ownMachinesList    = @createMachineList 'own', {}, []
+    @sharedMachinesList = @createMachineList 'shared', {}, []
 
-      @sharedMachinesList = @createMachineList 'shared', {}, sharedData
-      @ownMachinesList    = @createMachineList 'own', {}, machines.own
+    @fetchMachines (data) =>
+
+      { shared, collaboration } = data
+      sharedData = shared.concat collaboration
+
+      @ownMachinesList.addMachineBoxes data.own
+      @sharedMachinesList.addMachineBoxes sharedData
 
 
   createMachineList: (type, options, data) ->
@@ -799,7 +803,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineLists.push list
     @machineListsByName[type] = list
 
-    @addSubView list, null, yes
+    @addSubView list
 
     return list
 
