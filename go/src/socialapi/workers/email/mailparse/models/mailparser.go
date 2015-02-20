@@ -9,20 +9,26 @@ import (
 	"strings"
 )
 
+// Mail holds the structure for parsed email
 type Mail struct {
 	// FromName is the name of the user who sent the message
 	FromName string
+
 	// From holds the mail address of user
 	From string
+
 	// OriginalRecipient holds the inbound mail
 	// adress which user sent the message
 	OriginalRecipient string
+
 	// MailboxHash holds the data according to OriginalRecipient
 	// As an example if Original Recipient is mehmetali+channel@inbound.koding.com
 	// then MailboxHash would be "channel".
 	MailboxHash string
+
 	// TextBody is the body of the message
 	TextBody string
+
 	// StrippedTextReply is message body if the message is reply (not post)
 	StrippedTextReply string
 }
@@ -35,15 +41,17 @@ var (
 	ErrTextBodyIsNotSet  = errors.New("TextBody is not set")
 	errInvalidMailPrefix = errors.New("invalid prefix")
 	errLengthIsNotEnough = errors.New("Lenght is not enough")
+	errCannotOpen        = errors.New("cant open channel")
 )
 
-// GetAccount gets the account which sent the message
+// GetAccount gets the account which sent the message by email of user
 func GetAccount(mailAddress string) (*mongomodels.Account, error) {
 	user, err := modelhelper.FetchUserByEmail(mailAddress)
 	if err != nil {
 		return nil, err
 	}
 
+	// This GetAccount
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {
 		return nil, err
@@ -63,57 +71,147 @@ func (m *Mail) Validate() error {
 	return nil
 }
 
+// getIdsFromMaiboxHash returns the id inside of the MailboxHash
+//
+func (m *Mail) getIdsFromMaiboxHash() (int64, error) {
+	// Split method get the MailboxHash field
+	// MailboxHash seems like "channelid.5678",
+	// or MailboxHash seems like "messageid.1234"
+	s := strings.Split(m.MailboxHash, ".")
+	if len(s) < 1 {
+		return 0, errLengthIsNotEnough
+	}
+
+	// ParseInt get the 1. index (2.parameter) of "s" value
+	// As explained above, we got 1. index that "5678" as string
+	// and then, we convert string to int64
+	id, err := strconv.ParseInt(s[1], 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (m *Mail) persistPost(accountId int64) error {
+
+	cid, err := m.getIdsFromMaiboxHash()
+	if err != nil {
+		return err
+	}
+
+	channelId := cid
+	c, err := socialapimodels.ChannelById(channelId)
+	if err != nil {
+		return err
+	}
+
+	canOpen, err := c.CanOpen(accountId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		return errCannotOpen //silently sucess here, we dont want retries here
+	}
+
+	cm := socialapimodels.NewChannelMessage()
+	cm.Body = m.TextBody // set the body
+	// todo set this type according to the the channel id
+	cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_POST
+	if c.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+		cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
+	}
+	cm.InitialChannelId = channelId
+	cm.AccountId = accountId
+	if err := cm.Create(); err != nil {
+		return err
+	}
+
+	_, err = c.EnsureMessage(cm, true)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *Mail) persistReply(accountId int64) error {
+
+	mId, err := m.getIdsFromMaiboxHash()
+	if err != nil {
+		return err
+	}
+	messageId := mId
+	cm, err := socialapimodels.ChannelMessageById(messageId)
+	if err != nil {
+		return err
+	}
+
+	c, err := socialapimodels.ChannelById(cm.InitialChannelId)
+	if err != nil {
+		return err
+	}
+
+	canOpen, err := c.CanOpen(accountId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		return nil //silently sucess here, we dont want retries here
+	}
+
+	// create reply
+	reply := socialapimodels.NewChannelMessage()
+	reply.Body = m.StrippedTextReply // set the body
+	// todo set this type according to the the channel id
+	reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_REPLY
+	if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
+	}
+	reply.InitialChannelId = cm.InitialChannelId
+	reply.AccountId = accountId
+	if err := reply.Create(); err != nil {
+		return err
+	}
+
+	if _, err = cm.AddReply(reply); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *Mail) getSocialIdInFromField() (int64, error) {
+
+	acc, err := GetAccount(m.From)
+	if err != nil {
+		return 0, ErrAccountIsNotFound
+	}
+
+	accountId, err := acc.GetSocialApiId()
+	if err != nil {
+		return 0, err
+	}
+
+	return accountId, nil
+}
+
 // Examples of postmark inbound messages
 // reply+messageid.1234@inbound.koding.com
 // post+channelid.5678@inbound.koding.com
 func (m *Mail) Persist() error {
-	//acc := socialapimodels.NewAccount()
-	acc, err := GetAccount(m.From)
-	if err != nil {
-		return errInvalidMailPrefix
-	}
 
-	accountId, err := acc.GetSocialApiId()
+	accountId, err := m.getSocialIdInFromField()
 	if err != nil {
 		return err
 	}
 
 	if strings.HasPrefix(m.OriginalRecipient, "post") {
-		// Split method get the MailboxHash field
-		// MailboxHash seems like "channelid.5678"
-		s := strings.Split(m.MailboxHash, ".")
-		if len(s) < 1 {
-			return errLengthIsNotEnough
-		}
-		// ParseInt get the 1. index (2.parameter) of "s" value
-		// As explained above, we got 1. index that "5678" as string
-		// and then, we convert string to int64
-		cid, err := strconv.ParseInt(s[1], 10, 64)
-		if err != nil {
-			return err
-		}
 
-		channelId := cid
-		c, err := socialapimodels.ChannelById(channelId)
-		if err != nil {
-			return err
-		}
+		err := m.persistPost(accountId)
 
-		cm := socialapimodels.NewChannelMessage()
-		cm.Body = m.TextBody // set the body
-		// todo set this type according to the the channel id
-		cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_POST
-		if c.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
-			cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
-		}
-		cm.InitialChannelId = channelId
-		cm.AccountId = accountId
-		if err := cm.Create(); err != nil {
-			return err
-		}
-
-		_, err = c.EnsureMessage(cm, true)
-		if err != nil {
+		if err != nil && err != errCannotOpen {
 			return err
 		}
 
@@ -121,35 +219,10 @@ func (m *Mail) Persist() error {
 	}
 
 	if strings.HasPrefix(m.OriginalRecipient, "reply") {
-		s := strings.Split(m.MailboxHash, ".")
-		if len(s) < 1 {
-			return errLengthIsNotEnough
-		}
-		mId, err := strconv.ParseInt(s[1], 10, 64)
-		if err != nil {
-			return err
-		}
-		messageId := mId
-		cm, err := socialapimodels.ChannelMessageById(messageId)
-		if err != nil {
-			return err
-		}
 
-		// create reply
-		reply := socialapimodels.NewChannelMessage()
-		reply.Body = m.StrippedTextReply // set the body
-		// todo set this type according to the the channel id
-		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_REPLY
-		if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
-			reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
-		}
-		reply.InitialChannelId = cm.InitialChannelId
-		reply.AccountId = accountId
-		if err := reply.Create(); err != nil {
-			return err
-		}
+		err := m.persistReply(accountId)
 
-		if _, err = cm.AddReply(reply); err != nil {
+		if err != nil && err != errCannotOpen {
 			return err
 		}
 

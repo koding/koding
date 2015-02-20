@@ -86,6 +86,89 @@ func TestValidate(t *testing.T) {
 	})
 }
 
+func TestGetIdsFromMailboxHash(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	// init mongo connection
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
+	Convey("while getting ids from mailboxhash", t, func() {
+
+		Convey("returns error if 1.index of mailboxhash doesn't exist", func() {
+			m := &Mail{
+				MailboxHash: "message.",
+			}
+
+			gid, err := m.getIdsFromMaiboxHash()
+			So(err, ShouldNotBeNil)
+			So(gid, ShouldEqual, 0)
+		})
+
+		Convey("returns error if 1.index doesn't exist", func() {
+			m := &Mail{
+				MailboxHash: "message.1234",
+			}
+
+			gid, err := m.getIdsFromMaiboxHash()
+			So(err, ShouldBeNil)
+			So(gid, ShouldEqual, 1234)
+		})
+	})
+}
+
+func TestGetSocialIdInFromField(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	// init mongo connection
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
+
+	Convey("while getting account id in the mail", t, func() {
+		Convey("From fields should be saved in db, otherwise return err", func() {
+
+			m := &Mail{
+				From: "mailisnotexist@abo",
+			}
+
+			gid, err := m.getSocialIdInFromField()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrAccountIsNotFound)
+			So(gid, ShouldEqual, 0)
+		})
+
+		Convey("should not be any error if all is well", func() {
+
+			acc, err := socialapimodels.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
+
+			//c := socialapimodels.CreateChannelWithTest(acc.Id)
+
+			//cm := socialapimodels.CreateMessage(c.Id, acc.Id)
+			mongoUser, err := modelhelper.GetUser(acc.Nick)
+			So(err, ShouldBeNil)
+
+			m := &Mail{
+				From: mongoUser.Email,
+			}
+
+			gid, err := m.getSocialIdInFromField()
+			So(err, ShouldBeNil)
+			So(gid, ShouldEqual, acc.Id)
+
+		})
+
+	})
+}
+
 func TestPersist(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
@@ -125,6 +208,7 @@ func TestPersist(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			c := socialapimodels.CreateChannelWithTest(acc.Id)
+			socialapimodels.AddParticipants(c.Id, acc.Id)
 
 			//cm := socialapimodels.CreateMessage(c.Id, acc.Id)
 			mongoUser, err := modelhelper.GetUser(acc.Nick)
@@ -146,6 +230,7 @@ func TestPersist(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			c := socialapimodels.CreateChannelWithTest(acc.Id)
+			socialapimodels.AddParticipants(c.Id, acc.Id)
 
 			cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
 			So(cm, ShouldNotBeNil)
@@ -164,5 +249,29 @@ func TestPersist(t *testing.T) {
 			err = m.Persist()
 			So(err, ShouldBeNil)
 		})
+
+		// Convey("testing reply message, record not found if user is not a participant", func() {
+		// 	acc, err := socialapimodels.CreateAccountInBothDbs()
+		// 	So(err, ShouldBeNil)
+
+		// 	c := socialapimodels.CreateChannelWithTest(acc.Id)
+
+		// 	cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
+		// 	So(cm, ShouldNotBeNil)
+
+		// 	mongoUser, err := modelhelper.GetUser(acc.Nick)
+		// 	So(err, ShouldBeNil)
+
+		// 	m := &Mail{
+		// 		From:              mongoUser.Email,
+		// 		OriginalRecipient: fmt.Sprintf("reply+messageid.%d@inbound.koding.com", c.Id),
+		// 		MailboxHash:       fmt.Sprintf("messageid.%d", cm.Id),
+		// 		TextBody:          "Its an example of text message",
+		// 		StrippedTextReply: "This one is reply message",
+		// 	}
+
+		// 	err = m.persistPost(acc.Id)
+		// 	So(err, ShouldNotBeNil)
+		// })
 	})
 }
