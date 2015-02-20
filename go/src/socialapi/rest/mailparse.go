@@ -1,6 +1,8 @@
 package rest
 
-import "socialapi/workers/email/mailparse/models"
+import (
+	"socialapi/workers/email/mailparse/models"
+)
 
 func MailParse(m *models.Mail) (*models.Mail, error) {
 	url := "/mail/parse"
