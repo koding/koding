@@ -299,68 +299,81 @@ module.exports = class JUser extends jraphical.Module
 
   @authenticateClient: (clientId, context, callback)->
 
-    error = (message, rest...)->
+    logError = (message, rest...) ->
       console.error "[JUser::authenticateClient] #{message}", rest...
 
+    logout = (reason, clientId, callback) =>
+
+      @logout clientId, (err)->
+        logError reason, clientId
+        callback createKodingError reason
+
+    # Let's try to lookup provided session first
     JSession.one { clientId }, (err, session)=>
 
       if err
 
-        error "error finding session", { err, clientId }
+        # This is a very rare state here
+        logError "error finding session", { err, clientId }
         callback createKodingError err
 
       else unless session?
 
+        # We couldn't find the session with given token
+        # so we are creating a new one now.
         JSession.createSession (err, { session, account })->
 
           if err?
-            error "failed to create session", { err }
-            return callback err
+            logError "failed to create session", { err }
+            callback err
           else
+
+            # Voila session created and sent back, scenario #1
             callback null, { session, account }
 
       else
 
+        # So we have a session, let's check it out if its a valid one
         { username } = session
 
         unless username?
 
-          error "no username found", { session }
-          @logout clientId, (err)->
-
-            callback createKodingError "no username found, logged out."
+          # A session without a username is nothing, let's kill it
+          # and logout the user, this is also a rare condition
+          logout "no username found", clientId, callback
 
           return
 
+        # If we are dealing with a guest session we know that we need to
+        # use guestuser's JUser, we are overriding it here
         username = 'guestuser'  if /^guest-/.test username
 
         JUser.one {username}, (err, user)=>
 
           if err?
 
-            error "error finding user with username", { err, username }
-            callback createKodingError err
+            logout "error finding user with username", clientId, callback
 
           else unless user?
 
-            error "no user found with username", { username }
-            @logout clientId, callback
+            logError "no user found with username", { username }
+            logout   "no user found with username", clientId, callback
 
           else
 
             user.fetchAccount context, (err, account)->
 
               if err?
-
-                error "error fetching account", { context }
-                callback createKodingError err
+                logout "error fetching account", clientId, callback
 
               else
 
+                # A valid session, a valid user attached to
+                # it voila, scenario #2
                 callback null, { session, account }
 
 
-  getHash =(value)->
+  getHash = (value)->
     require('crypto').createHash('md5').update(value.toLowerCase()).digest('hex')
 
   @whoami = secure ({connection:{delegate}}, callback)-> callback null, delegate
