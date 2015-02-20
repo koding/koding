@@ -21,20 +21,23 @@ module.exports = class NavigationMachineItem extends JView
 
     { machine, workspaces } = data
 
-    @alias             = machine.slug or machine.label
-    machineOwner       = machine.getOwner()
-    isMyMachine        = machine.isMine()
-    myMachineRoute     = "/IDE/#{@alias}/my-workspace"
-    collabMachineRoute = "/IDE/#{workspaces.first.channelId}"
-    sharedMachineRoute = "/IDE/#{machine.uid}/my-workspace"
+    @alias           = machine.slug or machine.label
+    machineOwner     = machine.getOwner()
+    isMyMachine      = machine.isMine()
+    machineRoutes    =
+      own            : "/IDE/#{@alias}/my-workspace"
+      collaboration  : "/IDE/#{workspaces.first.channelId}"
+      permanentShare : "/IDE/#{machine.uid}/my-workspace"
 
-    machineRoute = if machine.isCollaborationMachine then collabMachineRoute
-    else if machine.isSharedMachine then sharedMachineRoute else myMachineRoute
+    machineType = 'own'
+
+    unless isMyMachine
+      machineType = if machine.isPermanent() then 'permanentShare' else 'collaboration'
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : groupifyLink machineRoute
+      href             : groupifyLink machineRoutes[machineType]
       title            : "Open IDE for #{@alias}"
 
     unless isMyMachine
