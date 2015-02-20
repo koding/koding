@@ -57,7 +57,7 @@ func realMain() int {
 
 	if *flagRegister {
 		if err := registerWithPassword(*flagKontrolURL, *flagUsername); err != nil {
-			fmt.Fprint(os.Stderr, err.Error())
+			fmt.Fprintln(os.Stderr, err.Error())
 			return 1
 		}
 		return 0
@@ -109,7 +109,14 @@ func registerWithPassword(kontrolURL, username string) error {
 	k.Config.Username = username
 
 	if _, err := kitekey.Read(); err == nil {
-		fmt.Println("Already registered. Registering again...")
+		result, err := ask("An existing ~/.kite/kite.key detected. Type 'yes' to override and continue:")
+		if err != nil {
+			return err
+		}
+
+		if result != "yes" {
+			return errors.New("aborting registration")
+		}
 	}
 
 	kontrol := k.NewClient(kontrolURL)
