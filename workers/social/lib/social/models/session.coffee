@@ -68,22 +68,19 @@ module.exports = class JSession extends Model
 
     JUser.fetchGuestUser (err, resp) =>
 
-      if not resp
+      return @emit 'error', err  if err
+
+      unless resp
         console.error message = "Failed to create guest user :/ ~ This is critical!"
         return @emit 'error', {message}
 
       {account} = resp
+      username  = safeGuestSessionName account.profile.nickname
+      session   = new JSession { clientId, username }
 
-      if err then @emit 'error', err
-      else
-        {nickname: username} = account.profile
-        username = safeGuestSessionName username
-        session  = new JSession { clientId, username }
-        session.save (err)->
-          if err
-            callback err
-          else
-            callback null, { session, account }
+      session.save (err)->
+        if err then callback err
+        else callback null, { session, account }
 
 
   @fetchSession = (clientId, callback)->
