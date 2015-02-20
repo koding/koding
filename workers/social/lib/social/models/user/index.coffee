@@ -579,6 +579,7 @@ module.exports = class JUser extends jraphical.Module
       callback null
 
   afterLogin = (user, clientId, session, callback)->
+
     user.fetchOwnAccount (err, account)->
       if err then return callback err
       checkLoginConstraints user, account, (err)->
@@ -594,25 +595,22 @@ module.exports = class JUser extends jraphical.Module
             $unset:
               guestId       : 1
           }, (err)->
+            return callback err  if err
+
+            user.update { $set: lastLoginDate: new Date }, (err) ->
               return callback err  if err
-              user.update { $set: lastLoginDate: new Date }, (err) ->
-                return callback err  if err
-                JAccount.emit "AccountAuthenticated", account
-                # This should be called after login and this
-                # is not correct place to do it, FIXME GG
-                # p.s. we could do that in workers
-                JLog.log { type: "login", username: account.username, success: yes }, ->
-                account.updateCounts()
-                JUser.clearOauthFromSession session, ->
-                  callback null, {account, replacementToken}
-                  # options = targetOptions: selector: tags: $in: ["nosync"]
-                  # account.fetchSubscriptions {}, options, (err, subscriptions) ->
-                  #   console.warn err  if err
-                  #   if subscriptions.length is 0
-                  #     JPaymentSubscription.createFreeSubscription account, (err, subscription) ->
-                  #       console.warn err  if err
-                  #       subscription.debitPack tag: "vm", (err) ->
-                  #         console.warn "VM pack couldn't be debited from subscription: #{err}"  if err
+
+              # This should be called after login and this
+              # is not correct place to do it, FIXME GG
+              # p.s. we could do that in workers
+              account.updateCounts()
+
+              JLog.log
+                type: "login", username: account.username, success: yes
+
+              JUser.clearOauthFromSession session, ->
+                callback null, { account, replacementToken }
+
 
   @logout = secure (client, callback)->
     if 'string' is typeof client
