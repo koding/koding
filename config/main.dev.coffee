@@ -952,6 +952,10 @@ Configuration = (options={}) ->
         node #{projectRoot}/scripts/user-importer
 
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
+
+        # Required step for guestuser
+        mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered"}});'
+
       }
 
       function updateusers () {
