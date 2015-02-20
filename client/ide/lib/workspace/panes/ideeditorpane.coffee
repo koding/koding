@@ -406,25 +406,25 @@ module.exports = class IDEEditorPane extends IDEPane
 
     return  if file.isDummyFile() or not notifyIfReadOnlyFile
 
-    file.checkIfReadOnly (err, readOnly) =>
+    file.isReadOnly (err, readOnly) =>
 
-      return console.log "Error while checking if file is read-only", err  if err
+      return kd.log 'Error while getting file info', err  if err
       return  unless readOnly
 
       modal = new KDModalView
-        title    : "Read-only file"
-        content  : """
+        title    : 'Read-only file'
+        content  : '''
           <div class="modalformline">
             <p>
               You can proceed with opening the file but it is opened in read-only mode.
-              Read more about permissions <a class='help' href='http://learn.koding.com/permissions' target='_blank'>here</a>.
+              Read more about permissions <a class="help" href="http://learn.koding.com/permissions" target="_blank">here</a>.
             </p>
           </div>
-          """
+          '''
         overlay  : yes
-        cssClass : "editor-read-only-file-modal"
+        cssClass : 'editor-read-only-file-modal'
         buttons  :
           ok     :
-            cssClass  : "solid green medium"
-            title     : "OK"
+            cssClass  : 'solid green medium'
+            title     : 'OK'
             callback  : -> modal.destroy()

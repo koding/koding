@@ -109,7 +109,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       file
       content
       delegate: this
-      notifyIfReadOnlyFile: emitChange is yes
+      # we need to show a notification that file is read-only
+      # only if it is opened by user action
+      # we use emitChange to detect this case for now
+      notifyIfReadOnlyFile: emitChange
     }
 
     paneOptions =
