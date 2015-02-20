@@ -9,11 +9,12 @@ import (
 
 type EnvData struct {
 	Own           []*MachineAndWorkspaces
+	Shared        []*MachineAndWorkspaces
 	Collaboration []*MachineAndWorkspaces
 }
 
 type MachineAndWorkspaces struct {
-	Machine    *models.Machine
+	Machine    models.Machine
 	Workspaces []*models.Workspace
 }
 
@@ -29,25 +30,25 @@ func getEnvData(userInfo *UserInfo) (*EnvData, error) {
 	}
 
 	envData := &EnvData{
-		Own:           getWorkspacesForEachMachine(ownMachines),
-		Collaboration: getWorkspacesForEachMachine(sharedMachines),
+		Own:    getWorkspacesForEachMachine(ownMachines),
+		Shared: getWorkspacesForEachMachine(sharedMachines),
 	}
 
 	return envData, nil
 }
 
-func getOwnMachines(userId bson.ObjectId) ([]*models.Machine, error) {
-	return []*models.Machine{}, nil
+func getOwnMachines(userId bson.ObjectId) ([]models.Machine, error) {
+	return modelhelper.GetOwnMachines(userId)
 }
 
-func getSharedMachines(userId bson.ObjectId) ([]*models.Machine, error) {
-	return []*models.Machine{}, nil
+func getSharedMachines(userId bson.ObjectId) ([]models.Machine, error) {
+	return modelhelper.GetSharedMachines(userId)
 }
 
-func getWorkspacesForEachMachine(machines []*models.Machine) []*MachineAndWorkspaces {
+func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspaces {
 	mws := []*MachineAndWorkspaces{}
 
-	for _, machine := range ownMachines {
+	for _, machine := range machines {
 		machineAndWorkspace := &MachineAndWorkspaces{
 			Machine: machine,
 		}
