@@ -735,10 +735,6 @@ module.exports = class JUser extends jraphical.Module
                 return callback err  if err
                 callback null, user, account
 
-  @configureNewAcccount = (account, user, replacementToken, callback) ->
-    JUser.emit 'UserCreated', user
-    JAccount.emit "AccountAuthenticated", account
-    callback null, {account, replacementToken}
 
   @fetchUserByProvider = (provider, session, callback)->
     {foreignAuth} = session
