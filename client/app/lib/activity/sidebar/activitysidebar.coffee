@@ -270,8 +270,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @removeItem id
 
-    if @workspaceItemChannelMap[id]
-      @fetchMachines => @fetchWorkspaces()
+    @sharedMachinesList.removeWorkspaceByChannelId id
+
+    # if @workspaceItemChannelMap[id]
+    #   @fetchMachines => @fetchWorkspaces()
 
     # TODO update participants in sidebar
 
