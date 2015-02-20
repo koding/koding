@@ -15,7 +15,7 @@ import (
 	"github.com/koding/klient/protocol"
 )
 
-// registerWithPassword registers to the given kontrolURL. The user
+// WithPassword registers with the username to the given kontrolURL via the users password
 func WithPassword(kontrolURL, username string) error {
 	var err error
 
