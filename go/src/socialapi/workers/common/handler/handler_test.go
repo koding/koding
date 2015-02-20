@@ -23,7 +23,9 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 
 	Convey("while testing get account", t, func() {
 		Convey("if cookie is not set, should return nil", func() {
-			So(getAccount(&http.Request{}), ShouldBeNil)
+			a := getAccount(&http.Request{})
+			So(a, ShouldNotBeNil)
+			So(a.Id, ShouldBeZeroValue)
 		})
 
 		Convey("if cookie value is not set, should return nil", func() {
@@ -40,7 +42,9 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 
 			req.AddCookie(&cookie)
 
-			So(getAccount(req), ShouldBeNil)
+			a := getAccount(req)
+			So(a, ShouldNotBeNil)
+			So(a.Id, ShouldBeZeroValue)
 		})
 
 		Convey("if session doesnt have username, should return nil", func() {
@@ -60,7 +64,9 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 
 			req.AddCookie(&cookie)
 
-			So(getAccount(req), ShouldBeNil)
+			a := getAccount(req)
+			So(a, ShouldNotBeNil)
+			So(a.Id, ShouldBeZeroValue)
 		})
 
 		Convey("if session is valid, should return account", func() {
