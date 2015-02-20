@@ -84,7 +84,7 @@ module.exports = class EnvironmentMachineItem extends EnvironmentItem
 
       'Update build script':
         callback          : ->
-          ComputeController.UI.showBuildScriptEditorModal machine
+          ComputeController_UI.showBuildScriptEditorModal machine
 
       'Run build script'  :
         disabled          : !running

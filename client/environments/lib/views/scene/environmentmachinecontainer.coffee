@@ -14,4 +14,4 @@ module.exports = class EnvironmentMachineContainer extends EnvironmentContainer
     super options, data
 
     @on 'PlusButtonClicked', =>
-      ComputeController.UI.showProvidersModal @getData()
+      ComputeController_UI.showProvidersModal @getData()
