@@ -16,7 +16,7 @@ templateFn = (err, res)->
     <html lang="en">
       <head>
         <script>
-          window.opener.kd.singletons.paymentController.paypalReturn(#{err});
+          window.opener.require('kd').singletons.paymentController.paypalReturn(#{err});
           window.close();
         </script>
       </head>

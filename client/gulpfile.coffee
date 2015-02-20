@@ -166,9 +166,6 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
   mapping = {}
   modules.forEach (name) -> mapping[name] = "../#{name}/lib"
 
-  # opts.globals.modules = modules
-  opts.browserify.debug = yes  if devMode
-
   if watchMode
     b = watchify(browserify(xtend(opts.browserify, watchify.args)))
   else
@@ -181,6 +178,8 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       extensions: ['coffee']
       basedir: __dirname
       mapping: mapping
+
+  b.require 'kd.js', expose: 'kd'
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->

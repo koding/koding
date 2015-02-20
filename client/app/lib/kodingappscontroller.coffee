@@ -51,9 +51,26 @@ module.exports = class KodingAppsController extends KDController
 
     app = globals.config.apps[name]
 
-    @putAppScript app, (err, res) ->
-      registerAppClass require res.app.identifier
-      callback err, res
+    @putAppScript app, (err, res) =>
+      AppClass = require res.app.identifier
+      register = (klass) ->
+        registerAppClass klass
+        callback err, res
+
+      if dependencies = AppClass.options?.dependencies
+      then @loadDependencies dependencies, -> register AppClass
+      else register AppClass
+
+
+  @loadDependencies = (dependencies, callback) ->
+    sinkrow = require 'sinkrow'
+    queue   = []
+
+    for dependency in dependencies
+      fn = @loadInternalApp.bind this, dependency, -> queue.fin()
+      queue.push fn
+
+    sinkrow.dash queue, callback
 
   # This is the most important method to put & run additional apps on Koding
   # Please make sure about your changes on it.
