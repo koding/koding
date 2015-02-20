@@ -427,6 +427,7 @@ module.exports =
       .setValue                inputSelector, newName + '\n'
       .waitForElementVisible   saveButtonSelector, 20000
       .click                   saveButtonSelector
+      .waitForElementVisible   '.kdnotification.main', 20000
       .refresh()
       .waitForElementVisible   inputSelector, 20000
       .getValue                inputSelector, (result) ->

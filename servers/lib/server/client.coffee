@@ -9,6 +9,7 @@ handleError = (err, callback) ->
 
 
 isInAppRoute = (name)->
+  return no  unless name
   [firstLetter] = name
   if /^\d/.test firstLetter then no
   else if firstLetter.toUpperCase() is firstLetter then yes
