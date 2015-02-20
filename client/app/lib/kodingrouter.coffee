@@ -53,7 +53,7 @@ module.exports = class KodingRouter extends KDRouter
       name = _slug
 
     appManager = kd.getSingleton 'appManager'
-    if appManager.isAppInternal name
+    if appManager.shouldLoadApp name
       return KodingAppsController.loadInternalApp name, (err, res) =>
         return kd.warn err  if err
         kd.utils.defer => @handleRoute route, options

@@ -231,7 +231,7 @@ module.exports = class PricingAppView extends KDView
 
       if isCurrentPlan
         inProcess = no
-        return kd.showError "That's already your current plan."
+        return showError "That's already your current plan."
 
       @setState options
 
