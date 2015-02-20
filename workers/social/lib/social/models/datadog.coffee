@@ -29,19 +29,19 @@ module.exports = class DataDog extends Base
       title  : "vms.failed"
       text   : "VM start failed for user: %nickname%"
       notify : "@slack-alerts"
-      tags   : ["user:%nickname%", "context:vms"]
+      tags   : ["user:%nickname%", "version:%version%", "context:vms"]
 
     TerminalConnectionFailed:
       title  : "terminal.failed"
       text   : "Terminal connection failed for user: %nickname%"
       notify : "@slack-alerts"
-      tags   : ["user:%nickname%", "context:terminal"]
+      tags   : ["user:%nickname%", "version:%version%", "context:terminal"]
 
     ForbiddenChannel:
       title  : "channel.forbidden"
       text   : "Access is prohibited for channel with token: %channelToken%"
       notify : "@slack-alerts"
-      tags   : ["user:%nickname%", "context:pubnub-channel", "channel-token:%channelToken%"]
+      tags   : ["user:%nickname%", "version:%version%", "context:pubnub-channel", "channel-token:%channelToken%"]
 
 
   tagReplace = (sourceTag, userTags)->
@@ -55,14 +55,15 @@ module.exports = class DataDog extends Base
 
       # check if tag variable value is set in userTags
       tagValue = userTags[tagMatch[1]]
-      return tag  unless tagValue
+      return ""  unless tagValue
 
       return tag.replace /%(.*)%$/g, tagValue
 
     tags = []
 
     for tag in sourceTag
-      tags.push parseTag tag
+      t = parseTag tag
+      tags.push t  unless t is ""
 
     return tags
 

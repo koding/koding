@@ -15,6 +15,7 @@ module.exports = (options = {}, callback)->
   currentGroup     = null
   userMachines     = null
   userWorkspaces   = null
+  sidebarEnvironmentData = null
 
   {bongoModels, client, slug} = options
 
@@ -32,6 +33,7 @@ module.exports = (options = {}, callback)->
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
+    sidebarEnvironmentData = JSON.stringify sidebarEnvironmentData
 
     """
     <!-- SEGMENT.IO -->
@@ -73,6 +75,8 @@ module.exports = (options = {}, callback)->
     " else '' }
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
+
+    <script>window.sidebarEnvironmentData = #{sidebarEnvironmentData}</script>
     """
 
   selector =
@@ -105,6 +109,10 @@ module.exports = (options = {}, callback)->
       bongoModels.JMachine.some$ client, {}, (err, machines) ->
         console.log err  if err
         userMachines = machines or []
+        queue.fin()
+    ->
+      bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
+        sidebarEnvironmentData = data
         queue.fin()
   ]
 

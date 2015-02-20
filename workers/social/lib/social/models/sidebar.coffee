@@ -18,7 +18,7 @@ module.exports = class Sidebar extends bongo.Base
         fetchEnvironment: (signature Function)
 
 
-  @fetchEnvironment$ = secure (client, callback) ->
+  @fetchEnvironment = secure (client, callback) ->
 
     data =
       own: []
