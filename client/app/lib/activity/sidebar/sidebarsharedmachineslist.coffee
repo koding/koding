@@ -20,3 +20,6 @@ module.exports = class SidebarSharedMachinesList extends SidebarMachineList
     super options, data
 
     @hide()  if data.length is 0
+
+    @on 'MachineBoxDestroyed', =>
+      @hide()  if @machineBoxes.length is 0
