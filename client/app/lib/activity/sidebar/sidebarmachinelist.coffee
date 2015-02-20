@@ -60,6 +60,12 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     @show() if @machineBoxes.length is 1
 
+    machineBox.once 'KDObjectWillBeDestroyed', =>
+      @machineBoxes.splice @machineBoxes.indexOf(machineBox), 1
+      delete @machineBoxesByMachineUId[machineBox.machine.uid]
+      @emit 'MachineBoxDestroyed', machineBox
+
+
   removeWorkspaceByChannelId: (channelId) ->
 
     @forEachMachineBoxes (box) ->
