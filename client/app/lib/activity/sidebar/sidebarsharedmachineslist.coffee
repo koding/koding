@@ -1,4 +1,5 @@
 SidebarMachineList = require './sidebarmachinelist'
+kd = require 'kd'
 
 
 module.exports = class SidebarSharedMachinesList extends SidebarMachineList
@@ -17,3 +18,5 @@ module.exports = class SidebarSharedMachinesList extends SidebarMachineList
     data = shared.concat collaboration
 
     super options, data
+
+    @hide()  if data.length is 0
