@@ -60,6 +60,14 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
 
     @show() if @machineBoxes.length is 1
 
+  removeWorkspaceByChannelId: (channelId) ->
+
+    @forEachMachineBoxes (box) ->
+      {workspaces} = box.getData()
+      for workspace in workspaces when workspace
+        if workspace.channelId is channelId
+          return box.removeWorkspace workspace.getId()
+
 
   deselectMachines: ->
 
