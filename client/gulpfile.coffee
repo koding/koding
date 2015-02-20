@@ -179,6 +179,8 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       basedir: __dirname
       mapping: mapping
 
+  b.require 'kd.js', expose: 'kd'
+
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->
       outfile = path.join opts.outdir, "#{bundle.name}.js"
