@@ -44,8 +44,11 @@ module.exports = class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
-  isAppInternal : (name='')->
-    return globals.config.apps[name] and (name not in Object.keys globals.appClasses)
+  isAppInternal: (name = '') -> globals.config.apps[name]?
+
+  isAppLoaded: (name = '') -> (name in Object.keys globals.appClasses)
+
+  shouldLoadApp: (name = '') -> (@isAppInternal name) and not (@isAppLoaded name)
 
   open: do ->
 
@@ -96,7 +99,7 @@ module.exports = class ApplicationManager extends KDObject
 
       if not appOptions? and not options.avoidRecursion?
 
-        if @isAppInternal name
+        if @shouldLoadApp name
           return KodingAppsController.loadInternalApp name, (err)=>
             return kd.warn err  if err
             kd.utils.defer => @open name, options, callback
@@ -177,7 +180,7 @@ module.exports = class ApplicationManager extends KDObject
     appOptions.params     = params
     @register appInstance = new AppClass appOptions  if AppClass
 
-    if @isAppInternal name
+    if @shouldLoadApp name
       return KodingAppsController.loadInternalApp name, (err)=>
         return kd.warn err  if err
         kd.utils.defer => @create name, params, callback

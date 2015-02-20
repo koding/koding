@@ -92,13 +92,13 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
     kd.utils.defer @bound 'focus'
 
 
-  create: ({body, clientRequestId}, callback) ->
+  create: ({body, payload, clientRequestId}, callback) ->
 
     { activity } = @getOptions()
 
     { appManager } = kd.singletons
 
-    appManager.tell 'Activity', 'reply', {activity, body, clientRequestId, payload}, (err, reply) =>
+    appManager.tell 'Activity', 'reply', {activity, body, payload, clientRequestId}, (err, reply) =>
 
       return showError err  if err
 
@@ -169,6 +169,3 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
     @addSubView inputWrapper
     @addSubView @embedBox
     @addSubView @submitButton
-
-
-

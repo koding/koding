@@ -341,6 +341,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 		q.GroupName,
 		[]string{Channel_TYPE_GROUP, Channel_TYPE_ANNOUNCEMENT},
 	).
+		Order("type_constant ASC").
 		// no need to traverse all database, limit with a known count
 		Limit(2).
 		// only select ids

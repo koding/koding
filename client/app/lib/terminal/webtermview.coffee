@@ -2,6 +2,7 @@ mixpanel = require '../util/mixpanel'
 kd = require 'kd'
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomScrollView = kd.CustomScrollView
+KDNotificationView = kd.NotificationView
 Machine = require '../providers/machine'
 Terminal = require './terminal'
 TerminalWrapper = require './terminalwrapper'
@@ -60,6 +61,9 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     @terminal.flushedCallback = =>
       @emit 'WebTerm.flushed'
+
+    @terminal.on 'command',(param) =>
+      @ringBell() if param is 'ring bell'
 
     @listenWindowResize()
 
@@ -291,3 +295,11 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     el = @container.getElement()
     el.scrollTop = el.scrollHeight
+
+
+  ringBell: do (bell = try new Audio '/a/audio/bell.wav') -> (event) ->
+    event?.preventDefault()
+
+    if not bell? or @terminal.controlCodeReader.visualBell
+    then new KDNotificationView title: 'Bell!', duration: 100
+    else bell.play()

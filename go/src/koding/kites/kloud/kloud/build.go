@@ -50,15 +50,9 @@ func (k *Kloud) Build(r *kite.Request) (resp interface{}, reqErr error) {
 			artifact.Username = m.Username
 		}
 
-		resultStub := `
-username   : %s
-domain     : %s
-ip address : %s
-instance   : %s
-kite query : %s`
+		resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
+			artifact.Username, artifact.InstanceId, artifact.IpAddress, artifact.KiteQuery)
 
-		resultInfo := fmt.Sprintf(resultStub, artifact.Username, artifact.DomainName,
-			artifact.IpAddress, artifact.InstanceName, artifact.KiteQuery)
 		k.Log.Info("[%s] ========== BUILD results ========== %s",
 			m.Id, resultInfo)
 

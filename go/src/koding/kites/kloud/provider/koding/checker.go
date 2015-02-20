@@ -63,15 +63,14 @@ type Checker interface {
 }
 
 type PlanChecker struct {
-	Api                  *amazon.AmazonClient
-	DB                   *mongodb.MongoDB
-	Machine              *protocol.Machine
-	Provider             *Provider
-	Kite                 *kite.Kite
-	Username             string
-	Log                  logging.Logger
-	Plan                 *FetcherResponse
-	NetworkUsageEndpoint string
+	Api      *amazon.AmazonClient
+	DB       *mongodb.MongoDB
+	Machine  *protocol.Machine
+	Provider *Provider
+	Kite     *kite.Kite
+	Username string
+	Log      logging.Logger
+	Plan     *FetcherResponse
 }
 
 type networkUsageResponse struct {
@@ -82,10 +81,10 @@ type networkUsageResponse struct {
 }
 
 func (p *PlanChecker) NetworkUsage() error {
-	networkEndpoint, err := url.Parse(p.NetworkUsageEndpoint)
+	networkEndpoint, err := url.Parse(p.Provider.NetworkUsageEndpoint)
 	if err != nil {
 		p.Log.Debug("[%s] Failed to parse network-usage endpoint: %v. err: %v",
-			p.Machine.Id, p.NetworkUsageEndpoint, err)
+			p.Machine.Id, p.Provider.NetworkUsageEndpoint, err)
 		return err
 	}
 

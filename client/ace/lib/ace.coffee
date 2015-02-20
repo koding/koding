@@ -40,7 +40,7 @@ module.exports = class Ace extends KDView
         @fetchContents (err, contents)=>
           notification?.destroy()
           id = "editor#{@getId()}"
-          return  unless global.document.getElementById id
+          return  unless @getElement().querySelector "##{id}"
           @editor = ace.edit id
           @prepareEditor()
           if contents
@@ -150,7 +150,7 @@ module.exports = class Ace extends KDView
 
     if enableShortcuts
       @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
-      @addKeyCombo "saveAs",     "Ctrl-Shift-S",     @bound 'requestSaveAs'
+      @addKeyCombo 'saveAs',     'Ctrl-Shift-S',     @bound 'requestSaveAs'
       @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
       @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
       @addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
@@ -203,28 +203,10 @@ module.exports = class Ace extends KDView
       if @getDelegate().parent.active
         @notify 'Nothing to save!'
       return
-    file = @getData()
-    {localSync} = kd.singletons
-    # update the localStorage each time user requested save.
-    if remote.isConnected()
-      @askedForSave = yes
-      @emit 'ace.requests.save', contents
-      # if file is saved, remove it from localStorage
-      localSync.removeFromSaveArray file
-    else
-      # add to list of files that need to be synced.
-      localSync.updateFileContentOnLocalStorage file, contents
-      localSync.addToSaveArray file
-      @prepareSyncListeners()
 
-  prepareSyncListeners: ->
-    {localSync} = kd.singletons
+    @askedForSave = yes
+    @emit 'ace.requests.save', contents
 
-    localSync.on 'LocalContentSynced', (file) =>
-      @notify 'File synced to remote...', null, null, 5000
-
-    localSync.on 'LocalContentCouldntSynced', (file) =>
-      @notify 'File coudn\'t be synced to remote please try again...', null, null, 5000
 
   requestSaveAs: ->
     @emit 'ace.requests.saveAs', @getContents()
@@ -233,10 +215,6 @@ module.exports = class Ace extends KDView
     file = @getData()
     unless /localfile:/.test file.path
       file.fetchContents callback
-      # {vmName, path} = file
-      # FSHelper.getInfo FSHelper.plainPath(path), vmName, (err, info)=>
-      #   return if err or not info
-      #   @emit 'FileIsReadOnly'  unless info.writable
     else
       callback null, file.contents or ''
 

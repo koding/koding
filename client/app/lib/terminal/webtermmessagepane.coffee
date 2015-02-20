@@ -67,7 +67,7 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
     else if err.name is "TimeoutError"
 
       @setMessage \
-        "Failed to connect your terminal,
+        "Failed to connect to terminal,
         click here to try again.", 'RequestReconnect'
 
       sendDataDogEvent "TerminalConnectionFailed"

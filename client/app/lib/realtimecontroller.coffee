@@ -36,18 +36,27 @@ module.exports = class RealtimeController extends KDController
     @authenticated = false
 
     if isPubnubEnabled()
-
-      @pubnub = PUBNUB.init
+      options =
         subscribe_key : subscribekey
         uuid          : whoami()._id
-        ssl           : ssl
+        ssl           : if globals.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
 
-      @getTimeDiffWithServer()
+      @pubnub = PUBNUB.init options
 
-      realtimeToken = Cookies.get("realtimeToken")
+      # when we send a new message, a user receives both the message itself and notification message
+      # consecutively, which sometimes causes one of these messages to be dropped.
+      # until we learn a better solution, we have seperated notification channel for a new pubnub connection
+      # https://www.pivotaltracker.com/story/show/88210800
+      @pbNotification = PUBNUB.init options
+
+      realtimeToken = kookies.get("realtimeToken")
+      @fetchServerTime()
+      setInterval =>
+        @fetchServerTime()
+      , 10000
 
       if realtimeToken?
-        @pubnub.auth realtimeToken
+        @setAuthToken realtimeToken
         @authenticated = yes
 
         return
@@ -60,6 +69,19 @@ module.exports = class RealtimeController extends KDController
 
         @authenticated = yes
         @emit 'authenticated'
+
+
+  fetchServerTime: ->
+    @pubnub.time (timestamp) =>
+      return  unless timestamp
+
+      @serverTimestamp = timestamp
+      @emit 'Ping', timestamp
+
+
+  setAuthToken: (token) ->
+    @pubnub.auth token
+    @pbNotification.auth token
 
 
   # channel authentication is needed for notification channel and
@@ -82,7 +104,7 @@ module.exports = class RealtimeController extends KDController
 
       return callback { message : 'Could not find realtime token'}  unless realtimeToken
 
-      @pubnub.auth realtimeToken
+      @setAuthToken realtimeToken
 
       callback null
 
@@ -113,6 +135,8 @@ module.exports = class RealtimeController extends KDController
       options.authenticate =
         endPoint : "/api/gatekeeper/subscribe/channel"
         data     : { name: channelName, typeConstant, groupName: group }
+
+    options.pbInstance = @pubnub
 
     return @subscribePubnub options, callback
 
@@ -185,6 +209,8 @@ module.exports = class RealtimeController extends KDController
       endPoint : "/api/gatekeeper/subscribe/notification"
       data     : { id: whoami().socialApiId }
 
+    options.pbInstance = @pbNotification
+
     @subscribePubnub options, callback
 
 
@@ -207,56 +233,22 @@ module.exports = class RealtimeController extends KDController
 
       channelInstance = new PubnubChannel name: pubnubChannelName
 
-      err = @pubnub.subscribe
+      callbackCalled = no
+
+      pb = options.pbInstance or @pubnub
+
+      pb.subscribe
         channel : pubnubChannelName
-        message : (message, env, channel) =>
-
-          return  unless message
-
-          {eventName, body, eventId} = message
-
-          return  unless eventName and body
-
-          if eventId?
-            return  if @eventCache[eventId]
-
-            # TODO delete this periodically
-            @eventCache[eventId] = yes
-
-
-          # when a user is connected in two browsers, and leaves a channel, in second one
-          # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
-          # user from all connected devices.
-          if eventName is 'RemovedFromChannel' and body.accountId is whoami().socialApiId
-            return @unsubscribePubnub message.channel
-
-          # no need to emit any events when not subscribed
-          return  unless @channels[channel]
-
-          # instance events are received via public channel. For this reason
-          # if an event name includes "instance-", update the related message channel
-          # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded" - ctf
-          if eventName.indexOf("instance-") < 0
-            return @channels[channel].emit eventName, body
-
-          events = eventName.split "."
-          if events.length < 2
-            warn 'could not parse event name', eventName
-            return
-
-          [instanceChannel, eventName] = events
-
-          return  unless @channels[instanceChannel]
-
-          @channels[instanceChannel].emit eventName, body
-
-
+        message : (message, env, channel) => @handleMessage message, channel
         connect : =>
           @channels[pubnubChannelName] = channelInstance
           @removeFromForbiddenChannels pubnubChannelName
+          callbackCalled = yes
           callback null, channelInstance
-        error   : (err) => @handleError err
-        reconnect: => @getTimeDiffWithServer()
+        error   : (err) =>
+          @handleError err
+          callback err  unless callbackCalled
+        reconnect: (channel) => @reconnect channel, pb
         # with each channel subscription pubnub resubscribes to every channel
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
@@ -268,18 +260,105 @@ module.exports = class RealtimeController extends KDController
 
       return callback err  if err
 
-  getTimeDiffWithServer: ->
-    @pubnub.time (serverTime) =>
 
-      return  unless serverTime
+  isDisconnected: (err) ->
+    # I know this is so error prone, but they are not sending any error code; just message. :(
+    return err?.message is 'Offline. Please check your network settings.'
 
-      diff = new Date() * 10000 - serverTime
-      # when time difference between pubnub server and client is less than 500ms
-      # ignore the difference
-      @timeDiff = if Math.abs(diff) < 5000000 then 0 else diff
+
+  reconnect: (channel, pbInstance) ->
+    KDTimeAgoView.emit 'OneMinutePassed'
+
+    @once 'Ping', (serverTimestamp) =>
+
+      return  unless @lastSeenOnline
+
+      # if user is not online for more than a day, then reload the page
+      if @lastSeenOnline < serverTimestamp - 864000000000
+        return window.location.reload()
+
+      @fetchHistory {channel, timestamp: @lastSeenOnline, pbInstance}
+
+
+  fetchHistory: (options) ->
+
+    {channel, timestamp, pbInstance} = options
+
+    return  unless timestamp
+
+    pb = pbInstance or @pubnub
+
+    limit = 100
+    historyOptions =
+      channel : channel
+      start   : "#{timestamp}"
+      count   : limit
+      reverse : true
+      callback: (response) =>
+
+        return  unless response?.length and Array.isArray(response)
+
+        [messages, start] = response
+
+        return  unless messages?.length and Array.isArray(messages)
+
+        @handleMessage message, channel  for message in messages
+
+        # since the maximum message limit is 100, we are making a recursive call here
+        @fetchHistory channel, start  if messages.length is limit
+      err: (err) ->
+        # instead of getting into a stale state, just reload the page
+        window.location.reload()  if err
+
+    pb.history historyOptions
+
+
+  handleMessage: (message, channel) ->
+
+    return  unless message
+
+    {eventName, body, eventId} = message
+
+    return  unless eventName and body
+
+    if eventId?
+      return  if @eventCache[eventId]
+
+      @eventCache[eventId] = yes
+
+
+    # when a user is connected in two browsers, and leaves a channel, in second one
+    # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
+    # user from all connected devices.
+    if eventName is 'RemovedFromChannel' and body.accountId is whoami().socialApiId
+      return @unsubscribePubnub message.channel
+
+    # no need to emit any events when not subscribed
+    return  unless @channels[channel]
+
+    # instance events are received via public channel. For this reason
+    # if an event name includes "instance-", update the related message channel
+    # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded" - ctf
+    if eventName.indexOf("instance-") < 0
+      return @channels[channel].emit eventName, body
+
+    events = eventName.split "."
+    if events.length < 2
+      warn 'could not parse event name', eventName
+      return
+
+    [instanceChannel, eventName] = events
+
+    return  unless @channels[instanceChannel]
+
+    @channels[instanceChannel].emit eventName, body
+
 
   handleError: (err) ->
     {message, payload} = err
+
+    if @isDisconnected err
+      @lastSeenOnline = @serverTimestamp
 
     return kd.warn err  unless payload?.channels
 
