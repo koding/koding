@@ -234,34 +234,19 @@ module.exports = class FSFile extends FSItem
         return response
 
 
-  checkIfReadOnly: (callback) ->
+  isReadOnly: (callback) ->
 
     kite = @getKite()
-
-    writable = 'writable'
-    readOnly = 'read only'
-    path = @getPath()
 
     kite.init()
 
     .then =>
 
-      ###
-      Since touching file works without error if file is not writable but user is owner,
-      let's do 2 separate checks:
-      - user is owner and file is not writable
-      - user is not owner and touch throws an error
-      ###
-      command = "if [ -O #{path} ]; then [ -w #{path} ]
-        && echo '#{writable}' || echo '#{readOnly}';
-        else touch -a #{path} && echo '#{writable}' || echo '#{readOnly}'; fi"
-
-      kite.exec({command})
+      kite.fsGetInfo path: @getPath()
 
     .nodeify (err, result) ->
 
       return callback err  if err
 
-      { stdout, stderr } = result
-      readOnly = (stdout.indexOf writable) is -1
+      readOnly = result.readable and not result.writable
       callback null, readOnly
