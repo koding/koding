@@ -692,8 +692,9 @@ module.exports = class JUser extends jraphical.Module
 
 
   @createUser = (userInfo, callback)->
-    { username, email, password, passwordStatus, firstName, lastName, foreignAuth,
-      silence } = userInfo
+
+    { username, email, password, passwordStatus,
+      firstName, lastName, foreignAuth, silence } = userInfo
 
     slug =
       slug            : username
@@ -701,54 +702,57 @@ module.exports = class JUser extends jraphical.Module
       usedAsPath      : 'username'
       collectionName  : 'jUsers'
 
-    JName.claim username, [slug], 'JUser', (err)=>
-      if err then callback err
-      else
-        salt = createSalt()
-        user = new JUser {
-          username
-          email
-          salt
-          password: hashPassword(password, salt)
-          passwordStatus: passwordStatus or 'valid'
-          emailFrequency: {
-            global         : on
-            daily          : on
-            privateMessage : on
-            followActions  : off
-            comment        : on
-            likeActivities : off
-            groupInvite    : on
-            groupRequest   : on
-            groupApproved  : on
-            groupJoined    : on
-            groupLeft      : off
-            mention        : on
-            marketing      : on
-          }
+    JName.claim username, [slug], 'JUser', (err) ->
+
+      return callback err  if err
+
+      salt = createSalt()
+      user = new JUser {
+        username
+        email
+        salt
+        password         : hashPassword password, salt
+        passwordStatus   : passwordStatus or 'valid'
+        emailFrequency   : {
+          global         : on
+          daily          : on
+          privateMessage : on
+          followActions  : off
+          comment        : on
+          likeActivities : off
+          groupInvite    : on
+          groupRequest   : on
+          groupApproved  : on
+          groupJoined    : on
+          groupLeft      : off
+          mention        : on
+          marketing      : on
         }
+      }
 
-        user.foreignAuth = foreignAuth  if foreignAuth
+      user.foreignAuth = foreignAuth  if foreignAuth
 
-        user.save (err)=>
-          if err
-            if err.code is 11000
-              callback createKodingError "Sorry, \"#{email}\" is already in use!"
-            else callback err
-          else
-            hash = getHash email
-            account = new JAccount
-              profile: {
-                nickname: username
-                firstName
-                lastName
-                hash
-              }
-            account.save (err)=>
-              if err then callback err
-              else user.addOwnAccount account, (err) ->
-                return callback err  if err
-                callback null, user, account
+      user.save (err)->
+
+        return  if err
+          if err.code is 11000
+          then callback createKodingError "Sorry, \"#{email}\" is already in use!"
+          else callback err
+
+        account      = new JAccount
+          profile    : {
+            nickname : username
+            hash     : getHash email
+            firstName
+            lastName
+          }
+
+        account.save (err)->
+
+          if err then callback err
+          else user.addOwnAccount account, (err) ->
+            if err then callback err
+            else callback null, user, account
 
 
   @fetchUserByProvider = (provider, session, callback)->
