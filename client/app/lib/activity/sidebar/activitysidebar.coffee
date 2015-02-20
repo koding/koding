@@ -253,8 +253,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       index = 0  if isPrivateMessage
 
       if isChannelCollaborative channel
-        @fetchMachines => @fetchWorkspaces =>
-          @setWorkspaceUnreadCount channel, unreadCount
+        # @fetchMachines => @fetchWorkspaces =>
+        #   @setWorkspaceUnreadCount channel, unreadCount
+        @fetchMachines (data) =>
+          @sharedMachinesList.updateList data.shared.concat data.collaboration
       else
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
