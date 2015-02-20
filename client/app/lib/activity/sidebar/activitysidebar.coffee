@@ -709,6 +709,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   #   @watchedMachines[machine._id] = yes
 
 
+  # TODO: Rename this method to fetchEnvironment - acet!
   fetchMachines: (callback) ->
 
     remote.api.Sidebar.fetchEnvironment (err, data) =>
@@ -778,11 +779,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @machineListsByName = {}
 
       { shared, collaboration } = machines
+      sharedData = { shared, collaboration }
 
-      if shared.length or collaboration.length
-        @createMachineList 'shared', {}, { shared, collaboration }
-
-      @createMachineList 'own', {}, machines.own
+      @sharedMachinesList = @createMachineList 'shared', {}, sharedData
+      @ownMachinesList    = @createMachineList 'own', {}, machines.own
 
 
   createMachineList: (type, options, data) ->
@@ -796,6 +796,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineListsByName[type] = list
 
     @addSubView list, null, yes
+
+    return list
 
 
 
