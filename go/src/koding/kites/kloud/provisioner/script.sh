@@ -33,6 +33,7 @@ sudo a2enmod proxy_fcgi
 
 mkdir -p /tmp/userdata/Web
 mkdir -p /tmp/userdata/bash
+mkdir -p /tmp/userdata/screen
 mkdir -p /tmp/userdata/kodingart
 
 sudo mkdir -p /opt/koding/userdata/
@@ -40,4 +41,5 @@ sudo mkdir -p /opt/koding/userdata/Web
 sudo mkdir -p /opt/koding/userdata/Applications
 sudo mkdir -p /opt/koding/userdata/Backup
 sudo mkdir -p /opt/koding/userdata/Documents
+sudo mkdir -p /opt/koding/etc/
 sudo mkdir -p /etc/koding

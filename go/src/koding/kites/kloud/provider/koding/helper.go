@@ -71,3 +71,12 @@ func isCapacityError(err error) bool {
 	// here and probably it's need a more tailored solution
 	return false
 }
+
+func isAddressNotFoundError(err error) bool {
+	ec2Error, ok := err.(*ec2.Error)
+	if !ok {
+		return false
+	}
+
+	return ec2Error.Code == "InvalidAddress.NotFound"
+}

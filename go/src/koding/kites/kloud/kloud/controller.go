@@ -65,7 +65,7 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s]",
-			resp.Username, resp.InstanceId, resp.IpAddress)
+			r.Username, resp.InstanceId, resp.IpAddress)
 
 		k.Log.Info("[%s] ========== START results ========== %s",
 			m.Id, resultInfo)
