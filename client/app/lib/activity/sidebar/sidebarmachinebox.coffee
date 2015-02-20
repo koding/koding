@@ -65,6 +65,15 @@ module.exports = class SidebarMachineBox extends KDView
     workspaces.push wsData
 
 
+  removeWorkspace: (wsId) ->
+
+    @listController.removeItem @workspaceListItemsById[wsId]
+    @handleWorkspaceDeleted wsId
+
+    if @getData().workspaces.length is 0
+      @destroy()
+
+
   createWorkspacesLabel: ->
 
     @addSubView @workspacesLabel = new KDCustomHTMLView
