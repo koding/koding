@@ -23,3 +23,12 @@ func DeleteUser(userId bson.ObjectId) error {
 
 	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
 }
+
+func DeleteUsersByUsername(username string) error {
+	query := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(bson.M{"username": username})
+		return err
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+}
