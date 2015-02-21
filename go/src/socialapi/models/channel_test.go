@@ -306,14 +306,24 @@ func TestChannelCanOpen(t *testing.T) {
 			So(canOpen, ShouldBeFalse)
 		})
 
-		Convey("uninitialized account can not open channel", func() {
+		Convey("uninitialized account can open group channel", func() {
 			c := NewChannel()
 			c.Id = 123
 			c.CreatorId = 312
+			c.TypeConstant = Channel_TYPE_GROUP
 			canOpen, err := c.CanOpen(0)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAccountIdIsNotSet)
-			So(canOpen, ShouldBeFalse)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeTrue)
+		})
+
+		Convey("uninitialized account can open announcement channel", func() {
+			c := NewChannel()
+			c.Id = 123
+			c.CreatorId = 312
+			c.TypeConstant = Channel_TYPE_ANNOUNCEMENT
+			canOpen, err := c.CanOpen(0)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeTrue)
 		})
 
 		Convey("participants can open group channel", func() {

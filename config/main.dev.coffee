@@ -2,6 +2,7 @@ traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
 os                    = require 'os'
+path                  = require 'path'
 
 Configuration = (options={}) ->
 
@@ -14,7 +15,7 @@ Configuration = (options={}) ->
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
   environment         = options.environment    or "dev"
-  projectRoot         = options.projectRoot    or __dirname
+  projectRoot         = options.projectRoot    or path.join __dirname, '/..'
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
@@ -351,11 +352,6 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    clientWatcher       :
-      group             : "webserver"
-      supervisord       :
-        command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
-
     socialapi:
       group             : "socialapi"
       instances         : 1
@@ -494,20 +490,15 @@ Configuration = (options={}) ->
       return workers
 
     installScript = """
-        npm i --unsafe-perm --silent
-        echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
-        chmod +x ./build-client.coffee
-        ulimit -n 1024 && #{projectRoot}/build-client.coffee --watch false  --verbose
-        git submodule init
-        git submodule update
+        git submodule update --init
 
-        # Disabled for now, if any of installed globally with sudo
-        # this overrides them and broke developers machine ~
-        # npm i gulp stylus coffee-script -g --silent
+        npm install --unsafe-perm
 
-
-
+        echo '#---> BUILDING CLIENT <---#'
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make build
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -674,6 +665,8 @@ Configuration = (options={}) ->
       }
 
       function run () {
+
+        # Check if PG DB schema update required
         go run go/src/socialapi/tests/pg-update.go #{postgres.host} #{postgres.port}
         RESULT=$?
 
@@ -681,23 +674,51 @@ Configuration = (options={}) ->
           exit 1
         fi
 
+        # Check everything else
         check
+
+        # Do npm i incase of packages.json changes
         npm i --silent
+
         # this is a temporary adition, normally file watcher should delete the created file later on
         cd #{projectRoot}/go/bin
-        rm goldorf-main-*
-        rm watcher-*
+
+        # Remove old watcher files (do we still need this?)
+        rm -rf goldorf-main-*
+        rm -rf watcher-*
+
+        # Run Go builder
         #{projectRoot}/go/build.sh
+
+        # Run Social Api builder
         cd #{projectRoot}/go/src/socialapi
         make configure
+
         cd #{projectRoot}
 
+        # Do PG Migration if necessary
         migrate up
-        # a temporary migration line
+
+        # a temporary migration line (do we still need this?)
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
 
+        # Run all the worker daemons in KONFIG.workers
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
+        # Check backend option, if it's then bypass client build
+        if [ "$1" == "backend" ] ; then
+
+          echo
+          echo '---------------------------------------------------------------'
+          echo '>>> CLIENT BUILD DISABLED! DO "cd client/ && make" MANUALLY <<<'
+          echo '---------------------------------------------------------------'
+          echo
+
+        else
+          cd #{projectRoot}/client && make &
+        fi
+
+        # Show the all logs of workers
         tail -fq ./.logs/*.log
 
       }
@@ -710,6 +731,7 @@ Configuration = (options={}) ->
         echo "Usage: "
         echo ""
         echo "  run                       : to start koding"
+        echo "  run backend               : to start only backend of koding"
         echo "  run killall               : to kill every process started by run script"
         echo "  run install               : to compile/install client and "
         echo "  run buildclient           : to see of specified worker logs only"
@@ -988,7 +1010,9 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        ./build-client.coffee --watch false  --verbose
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
@@ -1073,10 +1097,10 @@ Configuration = (options={}) ->
           migrate $2 $3
         fi
 
-      elif [ "$#" == "0" ]; then
+      elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
-        run
+        run $1
 
       else
         echo "Unknown command: $1"

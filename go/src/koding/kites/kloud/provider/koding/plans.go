@@ -56,7 +56,7 @@ func (i InstanceType) Instance() Instance {
 
 // Limits defines several independent limits that are applied to a Plan.
 type Limits struct {
-	// Total defines the total limit of machines a a plan can have
+	// Total defines the total limit of machines a plan can have
 	Total int
 
 	// AlwaysOn defines the total limit of machines that can be always on.
@@ -75,6 +75,9 @@ type Limits struct {
 	// Timeout defines the timeout in which a machine is shutdown after an
 	// inactivity. AlwaysOn vm's are not subject to this limitation
 	Timeout time.Duration
+
+	// SnapshotTotal defines the Total limit of snapshots a machine can have
+	SnapshotTotal int
 
 	// AllowedInstances defines the instance types a plan can have when building a
 	// machine.
@@ -122,64 +125,71 @@ var plans = map[string]Plan{
 
 var planLimits = map[Plan]Limits{
 	Free: {
-		Total:    1,
-		AlwaysOn: 0,
-		Storage:  3,
-		Timeout:  60 * time.Minute,
+		Total:         1,
+		SnapshotTotal: 0,
+		AlwaysOn:      0,
+		Storage:       3,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Hobbyist: {
-		Total:    1,
-		AlwaysOn: 1,
-		Storage:  10,
-		Timeout:  60 * time.Minute,
+		Total:         1,
+		SnapshotTotal: 1,
+		AlwaysOn:      1,
+		Storage:       10,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Developer: {
-		Total:    3,
-		AlwaysOn: 1,
-		Storage:  25,
-		Timeout:  60 * time.Minute,
+		Total:         3,
+		SnapshotTotal: 3,
+		AlwaysOn:      1,
+		Storage:       25,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Professional: {
-		Total:    5,
-		AlwaysOn: 2,
-		Storage:  50,
-		Timeout:  60 * time.Minute,
+		Total:         5,
+		SnapshotTotal: 5,
+		AlwaysOn:      2,
+		Storage:       50,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Super: {
-		Total:    10,
-		AlwaysOn: 5,
-		Storage:  100,
-		Timeout:  60 * time.Minute,
+		Total:         10,
+		SnapshotTotal: 10,
+		AlwaysOn:      5,
+		Storage:       100,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},
 	},
 	Koding: {
-		Total:    20,
-		AlwaysOn: 20,
-		Storage:  200,
-		Timeout:  60 * time.Minute,
+		Total:         20,
+		SnapshotTotal: 20,
+		AlwaysOn:      20,
+		Storage:       200,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {}, T2Small: {}, T2Medium: {},
 		},
 	},
 	Betatester: {
-		Total:    1,
-		AlwaysOn: 1,
-		Storage:  3,
-		Timeout:  60 * time.Minute,
+		Total:         1,
+		SnapshotTotal: 0,
+		AlwaysOn:      1,
+		Storage:       3,
+		Timeout:       60 * time.Minute,
 		AllowedInstances: map[InstanceType]struct{}{
 			T2Micro: {},
 		},

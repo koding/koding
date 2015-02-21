@@ -1,0 +1,7 @@
+{
+  "name": "kites",
+  "main": "./lib/index.coffee",
+  "routes": {
+    "/:name?/Kites?/:username?/:kite?": "home"
+  }
+}
