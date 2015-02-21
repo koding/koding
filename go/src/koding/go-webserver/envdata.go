@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
@@ -18,31 +19,46 @@ type MachineAndWorkspaces struct {
 	Workspaces []*models.Workspace
 }
 
-func getEnvData(userInfo *UserInfo) (*EnvData, error) {
-	ownMachines, err := getOwnMachines(userInfo.UserId)
-	if err != nil {
-		return nil, err
-	}
+func getEnvData(user *models.User) *EnvData {
+	userId := user.ObjectId
 
-	sharedMachines, err := getSharedMachines(userInfo.UserId)
-	if err != nil {
-		return nil, err
+	return &EnvData{
+		Own:           getOwn(userId),
+		Shared:        getShared(userId),
+		Collaboration: getCollab(user),
 	}
-
-	envData := &EnvData{
-		Own:    getWorkspacesForEachMachine(ownMachines),
-		Shared: getWorkspacesForEachMachine(sharedMachines),
-	}
-
-	return envData, nil
 }
 
-func getOwnMachines(userId bson.ObjectId) ([]models.Machine, error) {
-	return modelhelper.GetOwnMachines(userId)
+func getOwn(userId bson.ObjectId) []*MachineAndWorkspaces {
+	ownMachines, err := modelhelper.GetOwnMachines(userId)
+	if err != nil {
+		return nil
+	}
+
+	return getWorkspacesForEachMachine(ownMachines)
 }
 
-func getSharedMachines(userId bson.ObjectId) ([]models.Machine, error) {
-	return modelhelper.GetSharedMachines(userId)
+func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
+	sharedMachines, err := modelhelper.GetSharedMachines(userId)
+	if err != nil {
+		return nil
+	}
+
+	return getWorkspacesForEachMachine(sharedMachines)
+}
+
+func getCollab(user *models.User) []*MachineAndWorkspaces {
+	_, err := modelhelper.GetCollabMachines(user.ObjectId)
+	if err != nil {
+		return nil
+	}
+
+	_, err = getCollabChannels(user.Name)
+	if err != nil {
+		return nil
+	}
+
+	return nil
 }
 
 func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspaces {
@@ -60,4 +76,26 @@ func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspa
 	}
 
 	return mws
+}
+
+func getCollabChannels(username string) ([]string, error) {
+	account, err := modelhelper.GetAccount(username)
+	if err != nil {
+		return nil, err
+	}
+
+	path := "/privatechannel/list?accountId="
+	url := buildUrl(path, account.Id.Hex(), "type=collaboration")
+
+	raw, err := fetchSocialItem(url)
+	if err != nil {
+		return nil, err
+	}
+
+	response, ok := raw.([]string)
+	if !ok {
+		return nil, errors.New("error unmarshalling repsonse")
+	}
+
+	return response, nil
 }
