@@ -277,14 +277,13 @@ module.exports = class ComputeController extends KDController
 
     return destroy machine  if force or @_force
 
-    ComputeController
-      .UI.askFor 'destroy', machine, force, =>
-        destroy machine
+    ComputeController_UI.askFor 'destroy', machine, force, =>
+      destroy machine
 
 
   reinit: (machine)->
 
-    ComputeController.UI.askFor 'reinit', machine, @_force, =>
+    ComputeController_UI.askFor 'reinit', machine, @_force, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -312,7 +311,7 @@ module.exports = class ComputeController extends KDController
 
   resize: (machine, resizeTo = 10)->
 
-    ComputeController.UI.askFor 'resize', machine, @_force, =>
+    ComputeController_UI.askFor 'resize', machine, @_force, =>
 
       options =
         machineId : machine._id
@@ -578,7 +577,7 @@ module.exports = class ComputeController extends KDController
                 not available now. Asking for another one."""
         @storage.unsetKey identifier
 
-      ComputeController.UI.askMachineForApp app, (err, machine, remember)=>
+      ComputeController_UI.askMachineForApp app, (err, machine, remember)=>
 
         if not err and remember
           @storage.setValue identifier, machine.uid
