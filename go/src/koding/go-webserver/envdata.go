@@ -49,9 +49,7 @@ func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspa
 	mws := []*MachineAndWorkspaces{}
 
 	for _, machine := range machines {
-		machineAndWorkspace := &MachineAndWorkspaces{
-			Machine: machine,
-		}
+		machineAndWorkspace := &MachineAndWorkspaces{Machine: machine}
 
 		workspaces, err := modelhelper.GetWorkspacesForMachine(machine.ObjectId)
 		if err != nil {
