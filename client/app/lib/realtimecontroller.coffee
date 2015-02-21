@@ -7,6 +7,8 @@ whoami = require './util/whoami'
 isPubnubEnabled = require './util/isPubnubEnabled'
 kd = require 'kd'
 KDController = kd.Controller
+KDTimeAgoView = kd.TimeAgoView
+backoff = require 'backoff'
 PubnubChannel = require './pubnubchannel'
 
 
@@ -93,20 +95,37 @@ module.exports = class RealtimeController extends KDController
     { endPoint, data } = options
     return callback { message : "endPoint is not set"}  unless endPoint
 
-    doXhrRequest {endPoint, data}, (err) =>
+    bo = backoff.exponential
+      initialDelay: 700
+      maxDelay    : 15000
 
-      return callback err  if err
+    bo.on 'fail', -> callback {message: "Authentication failed."}
+    bo.failAfter 5
 
-      # when we make an authentication request, server responses with realtimeToken
-      # in cookie here. If it is not set, then there is no need to subscription attempt
-      # to pubnub
-      realtimeToken = kookies.get("realtimeToken")
+    bo.on 'ready', -> bo.backoff()
 
-      return callback { message : 'Could not find realtime token'}  unless realtimeToken
+    requestFn = =>
+      doXhrRequest {endPoint, data}, (err) =>
+        if err
+          kd.warn "Channel authentication failed: #{err.message}"
+          return
 
-      @setAuthToken realtimeToken
+        # when we make an authentication request, server responses with realtimeToken
+        # in cookie here. If it is not set, then there is no need to subscription attempt
+        # to pubnub
+        realtimeToken = kookies.get("realtimeToken")
 
-      callback null
+        return callback { message : 'Could not find realtime token'}  unless realtimeToken
+
+        @setAuthToken realtimeToken
+
+        bo.reset()
+
+        callback null
+
+    bo.on 'backoff', requestFn
+
+    bo.backoff()
 
 
   # subscriptionData =
