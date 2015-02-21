@@ -71,7 +71,7 @@ module.exports = class FeaturesView extends KDView
         Get help and help others.</p>
 
         <h4>Chat</h4>
-        <p>Not all conversations are publick, so if you want to take something private,
+        <p>Not all conversations are public, so if you want to take something private,
         we offer the ability to easily host private one-on-one and private group
         conversations.</p>
       "
