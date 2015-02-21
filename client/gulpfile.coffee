@@ -179,7 +179,6 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       basedir: __dirname
       mapping: mapping
 
-  b.require 'kd.js', expose: 'kd'
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->
@@ -187,6 +186,8 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       fs.writeFile outfile, bundle.source, (err, res) ->
         debug "could not write #{outfile}"  if err
         debug "#{pretty bundle.source.length} written to #{path.basename outfile}"
+
+  #b.require(require.resolve('kd.js'), { expose: 'kd' })
 
   gulp.src(['*/bant.json']).pipe bant
 
