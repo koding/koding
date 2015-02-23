@@ -797,7 +797,7 @@ module.exports =
     if @amIHost
       usernames = usernames.filter (username) -> username isnt nick()
 
-    return  unless usernames.length
+    return callback()  unless usernames.length
 
     jMachine = @mountedMachine.getData()
     method   = if share then 'share' else 'unshare'
