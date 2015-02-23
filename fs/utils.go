@@ -164,6 +164,10 @@ func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
 	} else if fileGid == uint32(os.Getgid()) {
 		readable = fi.Mode()&0040 != 0
 		writable = fi.Mode()&0020 != 0
+	} else {
+		// all users
+		readable = fi.Mode()&0004 != 0
+		writable = fi.Mode()&0002 != 0
 	}
 
 	entry := &FileEntry{

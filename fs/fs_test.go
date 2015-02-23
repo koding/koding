@@ -447,6 +447,27 @@ func TestPermissions(t *testing.T) {
 		}
 	}
 
+	// hosts file is owned by root but is readable for all users
+	testFile := "/etc/hosts"
+
+	resp, err = remote.Tell("getInfo", struct {
+		Path string
+	}{
+		Path: testFile,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h := &FileEntry{}
+	err = resp.Unmarshal(h)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !h.Readable {
+		t.Error("/etc/hosts file is readable for all users, however GetInfo returns false")
+	}
 }
 
 func TestSetPermissions(t *testing.T) {
