@@ -2,12 +2,12 @@ package fs
 
 import (
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -142,7 +142,7 @@ func TestWatcher(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println("Creating file")
+	t.Log("Creating file")
 	time.Sleep(time.Millisecond * 100)
 
 	ioutil.WriteFile(addFile, []byte("example"), 0755)
@@ -153,7 +153,7 @@ func TestWatcher(t *testing.T) {
 		t.Fatal("timeout adding watcher after two seconds")
 	}
 
-	fmt.Println("Renaming file")
+	t.Log("Renaming file")
 	time.Sleep(time.Millisecond * 100)
 
 	err = os.Rename(addFile, newFile)
@@ -167,7 +167,7 @@ func TestWatcher(t *testing.T) {
 		t.Fatal("timeout removing watcher after two seconds")
 	}
 
-	fmt.Println("Removing file")
+	t.Log("Removing file")
 	time.Sleep(time.Millisecond * 100)
 
 	err = os.Remove(newFile)
@@ -383,6 +383,90 @@ func TestGetInfo(t *testing.T) {
 
 	if !f.Exists {
 		t.Errorf("file %s should exists", testFile)
+	}
+}
+
+func TestPermissions(t *testing.T) {
+	var files = map[string]struct {
+		mode               int
+		readable, writable bool
+	}{
+		"permissions.txt":  {0100, false, false}, // no read and write
+		"permissions2.txt": {0400, true, false},  // only read
+		"permissions3.txt": {0600, true, true},   // read and write
+	}
+
+	for name, file := range files {
+		os.Create("testdata/" + name) // if it exists continue
+		os.Chmod("testdata/"+name, os.FileMode(file.mode))
+	}
+
+	testDir := "testdata"
+
+	resp, err := remote.Tell("readDirectory", struct {
+		Path string
+	}{
+		Path: testDir,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := resp.Map()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	entries, err := f["files"].Slice()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	respFiles := make([]*FileEntry, 0)
+	for _, e := range entries {
+		f := &FileEntry{}
+		err := e.Unmarshal(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if strings.HasPrefix(f.Name, "perm") {
+			respFiles = append(respFiles, f)
+		}
+	}
+
+	for _, file := range respFiles {
+		f := files[file.Name]
+
+		if f.readable != file.Readable {
+			t.Errorf("File %s should have readable flag: %+v but got: %+v", file.Name, file.Readable, f.readable)
+		}
+
+		if f.writable != file.Writable {
+			t.Errorf("File %s should have writable flag: %+v but got: %+v", file.Name, file.Writable, f.writable)
+		}
+	}
+
+	// hosts file is owned by root but is readable for all users
+	testFile := "/etc/hosts"
+
+	resp, err = remote.Tell("getInfo", struct {
+		Path string
+	}{
+		Path: testFile,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	h := &FileEntry{}
+	err = resp.Unmarshal(h)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !h.Readable {
+		t.Error("/etc/hosts file is readable for all users, however GetInfo returns false")
 	}
 }
 
