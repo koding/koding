@@ -18,6 +18,7 @@ JView = require 'app/jview'
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 Promise = require 'bluebird'
 emojify = require 'emojify.js'
+htmlencode = require 'htmlencode'
 
 
 module.exports = class ActivityListItemView extends KDListItemView
@@ -138,10 +139,15 @@ module.exports = class ActivityListItemView extends KDListItemView
 
   handleUpdate: (fields) ->
 
-    { createdAt, updatedAt } = @getData()
+    { createdAt, updatedAt, link, payload } = @getData()
 
     if updatedAt > createdAt
-    then @setClass 'edited'
+      @setClass 'edited'
+      if link?.link_url isnt payload?.link_url and payload?.link_embed
+        link.link_embed =
+          try JSON.parse htmlencode.htmlDecode payload.link_embed
+          catch e then null
+        @updateEmbedBox()
     else @unsetClass 'edited'
 
 
