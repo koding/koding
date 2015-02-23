@@ -901,19 +901,7 @@ Configuration = (options={}) ->
         docker run -d -p 6379:6379                --name=redis    redis
         docker run -d -p 5432:5432                --name=postgres koding/postgres
 
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-
-        cd #{projectRoot}/install/docker-mongo
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
-
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
-        cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
-
-        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+        restoredefaultmongodump
 
         echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
         cd #{projectRoot}
@@ -951,10 +939,36 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/user-importer
 
+        migrateusers
+
+      }
+
+      function migrateusers () {
+
+        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
+        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
 
         # Required step for guestuser
         mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered"}});'
+
+      }
+
+      function restoredefaultmongodump () {
+
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+
+        mongo #{mongo} --eval "db.dropDatabase()"
+
+        cd #{projectRoot}/install/docker-mongo
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
 
       }
 
