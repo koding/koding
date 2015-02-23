@@ -735,6 +735,7 @@ Configuration = (options={}) ->
         echo "  run log [worker]          : to see of specified worker logs only"
         echo "  run buildservices         : to initialize and start services"
         echo "  run buildservices sandbox : to initialize and start services on sandbox"
+        echo "  run resetdb               : to reset databases"
         echo "  run services              : to stop and restart services"
         echo "  run worker                : to list workers"
         echo "  run chaosmonkey           : to restart every service randomly to test resilience."
@@ -1031,6 +1032,27 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
+
+      elif [ "$1" == "resetdb" ]; then
+
+        if [ "$2" == "--yes" ]; then
+
+          restoredefaultmongodump
+          migrateusers
+
+          exit 0
+
+        fi
+
+        read -p "This will reset current databases, all data will be lost! (y/N)" -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            exit 1
+        fi
+
+        restoredefaultmongodump
+        migrateusers
 
       elif [ "$1" == "buildservices" ]; then
 
