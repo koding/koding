@@ -13,7 +13,7 @@ func TestEnvData(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should return machines", t, func() {
-			envData, err := getEnvData(user.ObjectId)
+			envData := getEnvData(user)
 			So(err, ShouldBeNil)
 
 			own := envData.Own
