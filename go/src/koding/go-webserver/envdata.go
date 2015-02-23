@@ -48,17 +48,41 @@ func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 }
 
 func getCollab(user *models.User) []*MachineAndWorkspaces {
-	_, err := modelhelper.GetCollabMachines(user.ObjectId)
+	machines, err := modelhelper.GetCollabMachines(user.ObjectId)
 	if err != nil {
 		return nil
 	}
 
-	_, err = getCollabChannels(user.Name)
+	channelIds, err := getCollabChannels(user.Name)
 	if err != nil {
 		return nil
 	}
 
-	return nil
+	workspaces, err := modelhelper.GetWorkspacesByChannelIds(channelIds)
+	if err != nil {
+		return nil
+	}
+
+	mwByMachineUids := map[string]*MachineAndWorkspaces{}
+	for _, machine := range machines {
+		mwByMachineUids[machine.Uid] = &MachineAndWorkspaces{
+			Machine: machine, Workspaces: []*models.Workspace{},
+		}
+	}
+
+	for _, workspace := range workspaces {
+		mw, ok := mwByMachineUids[workspace.MachineUID]
+		if ok {
+			mw.Workspaces = append(mw.Workspaces, workspace)
+		}
+	}
+
+	mws := []*MachineAndWorkspaces{}
+	for _, machineWorkspace := range mwByMachineUids {
+		mws = append(mws, machineWorkspace)
+	}
+
+	return mws
 }
 
 func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspaces {

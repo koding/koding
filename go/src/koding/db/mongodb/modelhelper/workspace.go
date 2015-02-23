@@ -16,6 +16,11 @@ func GetWorkspaces(accountId bson.ObjectId) ([]*models.Workspace, error) {
 	return get(query)
 }
 
+func GetWorkspacesByChannelIds(ids []string) ([]*models.Workspace, error) {
+	query := bson.M{"channelId": bson.M{"$in": ids}}
+	return get(query)
+}
+
 func GetWorkspacesForMachine(machineId bson.ObjectId) ([]*models.Workspace, error) {
 	query := bson.M{"machineUId": bson.M{"$in": machineId}}
 	return get(query)
