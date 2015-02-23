@@ -43,8 +43,19 @@ module.exports = class MessagePane extends KDTabPaneView
 
     {typeConstant} = @getData()
 
+    # this hack is mainly for css.
+    # collaboration chat pane depends on the css
+    # from activity private message, especially
+    # the specifity of the list items.
+    # This way, the activity list controller of collaboration
+    # chat window will have `kdlistview-privatemessage`
+    # cssClass. ~Umut
+    listType = if typeConstant is 'collaboration'
+    then 'privatemessage'
+    else typeConstant
+
     @listController = new ActivityListController {
-      type          : typeConstant
+      type          : listType
       viewOptions   :
         itemOptions : {channelId}
       wrapper
