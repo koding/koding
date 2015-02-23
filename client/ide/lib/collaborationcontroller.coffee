@@ -12,6 +12,8 @@ RealTimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 
+{warn} = kd
+
 # Attn!!
 #
 # This object is designed to be a mixin for IDEAppController.
