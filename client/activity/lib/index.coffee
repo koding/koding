@@ -38,20 +38,20 @@ module.exports = class ActivityAppController extends AppController
 
   edit: (options = {}, callback = noop) ->
 
-    {id, body} = options
+    {id, body, payload} = options
     {socialapi} = kd.singletons
 
-    socialapi.message.edit {id, body}, callback
+    socialapi.message.edit {id, body, payload}, callback
 
 
   reply: (options = {}, callback = noop) ->
 
-    {activity, body, clientRequestId} = options
+    {activity, body, clientRequestId, payload} = options
 
     messageId = activity.id
 
     {socialapi} = kd.singletons
-    socialapi.message.reply {body, messageId, clientRequestId}, callback
+    socialapi.message.reply {body, messageId, clientRequestId, payload}, callback
 
 
   delete: ({id}, callback) ->
