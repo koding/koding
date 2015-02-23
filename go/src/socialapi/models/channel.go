@@ -676,10 +676,6 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return false, ErrCreatorIdIsNotSet
 	}
 
-	if accountId == 0 {
-		return false, ErrAccountIdIsNotSet
-	}
-
 	// see only your pinned posts
 	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
 		if c.CreatorId == accountId {

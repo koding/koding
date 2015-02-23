@@ -115,7 +115,7 @@ module.exports = class ComputeController_UI
           callback      : -> @hideLoader()
 
         Cancel          :
-          style         : "solid medium"
+          style         : "solid light-gray medium"
           type          : "button"
           callback      : -> form.emit "Cancel"
 
@@ -169,9 +169,15 @@ module.exports = class ComputeController_UI
       description : message ? "Do you want to remove ?"
       ok          :
         title     : button  ? "Yes, remove"
+        style     : 'solid red medium'
         callback  : ->
           modal.destroy()
           callback()
+      cancel      :
+        style     : "solid light-gray medium"
+        type      : "button"
+        callback  : ->
+          modal.destroy()
 
 
   @askMachineForApp: (app, callback)->
