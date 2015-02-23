@@ -46,12 +46,13 @@ module.exports =
       .click                  '[testpath=login-button]'
       .pause                  5000
 
+
   waitForVMRunning: (browser, machineName) ->
-    vmSelector = '.vm.running.koding'
 
-    if machineName
-      vmSelector   = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
+    unless machineName
+      machineName = 'koding-vm-0'
 
+    vmSelector     = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
     modalSelector  = '.env-modal.env-machine-state'
     loaderSelector = modalSelector + ' .kdloader'
     buildingLabel  = modalSelector + ' .state-label.building'
@@ -83,16 +84,15 @@ module.exports =
   doLogin: (browser, user) ->
     @attemptLogin(browser, user)
 
-    browser
-      .element                'css selector', '[testpath=main-sidebar]', (result) =>
-        if result.status is 0
-          console.log 'log in success'
+    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
+      if result.status is 0
+        console.log 'log in success'
 
-          browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
-        else
-          console.log 'user is not registered yet. registering the user.'
+        browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
+      else
+        console.log 'user is not registered yet. registering the user.'
 
-          @doRegister browser, user
+        @doRegister browser, user
 
 
   doLogout: (browser) ->
@@ -116,6 +116,19 @@ module.exports =
       .waitForElementVisible     '.delete-container', 20000
       .click                     '.delete-container button.clean-red'
       .waitForElementNotPresent  fileSelector, 2000
+
+
+  deleteFolder: (browser, selector) ->
+
+    browser
+      .waitForElementPresent     selector, 20000
+      .click                     selector
+      .click                     selector + ' + .chevron'
+      .waitForElementVisible     'li.delete', 20000
+      .click                     'li.delete'
+      .waitForElementVisible     '.delete-container', 20000
+      .click                     '.delete-container button.clean-red'
+      .waitForElementNotPresent  selector, 2000
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
@@ -437,6 +450,43 @@ module.exports =
           browser
             .waitForElementVisible   avatarSelector, 20000
             .assert.containsText     avatarSelector, newName
+
+
+  fillPaymentForm: (browser) ->
+
+    paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
+    cardNumber    = '4111 1111 1111 1111'
+    cvc           = '123'
+    month         = '12'
+    year          = '2017'
+
+    browser
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal, 20000
+      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
+      .click                   'input[name=cardNumber]'
+      .setValue                'input[name=cardNumber]', cardNumber
+      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
+      .click                   'input[name=cardCVC]'
+      .setValue                'input[name=cardCVC]', cvc
+      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
+      .click                   'input[name=cardMonth]'
+      .setValue                'input[name=cardMonth]', month
+      .waitForElementVisible   paymentModal + ' .cardyear', 20000
+      .click                   'input[name=cardYear]'
+      .setValue                'input[name=cardYear]', year
+      .waitForElementVisible   paymentModal + ' .cardname', 20000
+      .click                   'input[name=cardName]'
+      .click                   '.year-price-msg'
+      .waitForElementVisible   'button.submit-btn', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+      .url                     @getUrl() + '/Pricing'
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.single-plan.developer.current', 20000
+
 
 
   getUrl: ->
