@@ -9,8 +9,10 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -144,6 +146,26 @@ func getInfo(path string) (*FileEntry, error) {
 }
 
 func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
+	var fileUid uint32
+	var fileGid uint32
+	if runtime.GOOS != "windows" && fi.Sys() != nil {
+		if f, ok := fi.Sys().(*syscall.Stat_t); ok {
+			fileUid = f.Uid
+			fileGid = f.Gid
+		}
+	}
+
+	// check only if the files owner or group are the same, otherwise they
+	// don't have any permission by default
+	readable, writable := false, false
+	if fileUid == uint32(os.Getuid()) {
+		readable = fi.Mode()&0400 != 0
+		writable = fi.Mode()&0200 != 0
+	} else if fileGid == uint32(os.Getgid()) {
+		readable = fi.Mode()&0040 != 0
+		writable = fi.Mode()&0020 != 0
+	}
+
 	entry := &FileEntry{
 		Name:     fi.Name(),
 		Exists:   true,
@@ -152,8 +174,8 @@ func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
 		Size:     fi.Size(),
 		Mode:     fi.Mode(),
 		Time:     fi.ModTime(),
-		Readable: isReadable(fi.Mode()),
-		Writable: isWritable(fi.Mode()),
+		Readable: readable,
+		Writable: writable,
 	}
 
 	if fi.Mode()&os.ModeSymlink != 0 {
@@ -170,10 +192,6 @@ func makeFileEntry(fullPath string, fi os.FileInfo) *FileEntry {
 
 	return entry
 }
-
-func isReadable(mode os.FileMode) bool { return mode&0400 != 0 }
-
-func isWritable(mode os.FileMode) bool { return mode&0200 != 0 }
 
 func setPermissions(name string, mode os.FileMode, recursive bool) error {
 	var doChange func(name string) error
