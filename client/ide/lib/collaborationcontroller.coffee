@@ -51,14 +51,16 @@ module.exports =
     {message} = kd.singletons.socialapi
     nickname  = nick()
 
-    message.initPrivateMessage
+    options =
+      type       : 'collaboration'
       body       : "@#{nickname} initiated the IDE session."
       purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
       recipients : [ nickname ]
       payload    :
         'system-message' : 'initiate'
         collaboration    : yes
-    , (err, channels) =>
+
+    message.initPrivateMessage options, (err, channels) =>
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
