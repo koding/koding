@@ -223,7 +223,7 @@ create = (channelId) ->
 ###*
  * Following are convenient functions to wrap
  * socialapicontroller calls.
- * Since because those are stateless functions,
+ * Since those are stateless functions,
  * tried to use those to keep public api as clean as possible. ~Umut
 ###
 addParticipants = (opts, callback) ->
