@@ -952,7 +952,7 @@ Configuration = (options={}) ->
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
 
         # Required step for guestuser
-        mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered"}});'
+        mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
 
       }
 
