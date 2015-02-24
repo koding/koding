@@ -317,14 +317,16 @@ module.exports = class RealtimeController extends KDController
 
         return  unless response?.length and Array.isArray(response)
 
-        [messages, start] = response
+        [messages, start, end] = response
 
         return  unless messages?.length and Array.isArray(messages)
 
         @handleMessage message, channel  for message in messages
 
         # since the maximum message limit is 100, we are making a recursive call here
-        @fetchHistory channel, start  if messages.length is limit
+        if messages.length is limit
+          historyOptions.start = end
+          @fetchHistory {channel, timestamp: end}
       err: (err) ->
         # instead of getting into a stale state, just reload the page
         window.location.reload()  if err
