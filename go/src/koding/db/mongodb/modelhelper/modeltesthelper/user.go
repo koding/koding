@@ -13,11 +13,25 @@ func CreateUser(username string) (*models.User, error) {
 		ObjectId: bson.NewObjectId(), Name: username,
 	}
 
-	query := func(c *mgo.Collection) error {
+	userQuery := func(c *mgo.Collection) error {
 		return c.Insert(user)
 	}
 
-	err := modelhelper.Mongo.Run(modelhelper.UserColl, query)
+	err := modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
+	if err != nil {
+		return nil, err
+	}
+
+	account := &models.Account{
+		Id:      bson.NewObjectId(),
+		Profile: models.AccountProfile{Nickname: username},
+	}
+
+	accQuery := func(c *mgo.Collection) error {
+		return c.Insert(account)
+	}
+
+	err = modelhelper.Mongo.Run(modelhelper.AccountsColl, accQuery)
 	if err != nil {
 		return nil, err
 	}
@@ -26,23 +40,52 @@ func CreateUser(username string) (*models.User, error) {
 }
 
 func DeleteUser(userId bson.ObjectId) error {
-	query := func(c *mgo.Collection) error {
+	user, err := modelhelper.GetUserById(userId.Hex())
+	if err != nil {
+		return err
+	}
+
+	userQuery := func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"_id": userId})
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+	err = modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
+	if err != nil {
+		return err
+	}
+
+	accQuery := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"profile.nickname": user.Name})
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.AccountsColl, accQuery)
 }
 
 func DeleteUsersByUsername(username string) error {
-	query := func(c *mgo.Collection) error {
+	accQuery := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(bson.M{"username": username})
 		return err
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+	err := modelhelper.Mongo.Run(modelhelper.UserColl, accQuery)
+	if err != nil {
+		return err
+	}
+
+	userQuery := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(bson.M{"profile.nickname": username})
+		return err
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
 }
 
 func DeleteUsersAndMachines(username string) error {
+	err := DeleteUsersByUsername(username)
+	if err != nil {
+		return err
+	}
+
 	query := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(bson.M{"username": username})
 		return err
