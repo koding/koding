@@ -19,7 +19,9 @@ FilterLinksView = require 'activity/views/filterlinksview'
 
 module.exports = class MembersAppController extends AppController
 
-  @options = name  : 'Members'
+  @options =
+    name         : 'Members'
+    dependencies : [ 'Activity' ]
 
   {externalProfiles} = globals.config
 

@@ -9,6 +9,8 @@ KDNotificationView = kd.NotificationView
 KDTabPaneView = kd.TabPaneView
 showError = require 'app/util/showError'
 CloudInstanceItemView = './cloudinstanceitemview'
+ComputeController_UI = require 'app/providers/computecontroller.ui'
+
 
 module.exports = class ProviderBaseView extends KDTabPaneView
 
@@ -118,7 +120,7 @@ module.exports = class ProviderBaseView extends KDTabPaneView
 
   createNewInstanceForm:->
 
-    @createInstanceForm = ComputeController.UI.generateCreateInstanceForm()
+    @createInstanceForm = ComputeController_UI.generateCreateInstanceForm()
 
     @createInstanceForm.on "Cancel", =>
       @createInstanceForm.unsetClass 'in'
@@ -134,7 +136,7 @@ module.exports = class ProviderBaseView extends KDTabPaneView
     @addCredentialForm?.destroy()
 
     return unless @addCredentialForm = \
-      ComputeController.UI.generateAddCredentialFormFor provider
+      ComputeController_UI.generateAddCredentialFormFor provider
 
     @addCredentialForm.on "Cancel", =>
       @addCredentialForm.unsetClass 'in'

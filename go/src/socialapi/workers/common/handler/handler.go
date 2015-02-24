@@ -51,31 +51,27 @@ type Request struct {
 func getAccount(r *http.Request) *models.Account {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
-		return nil
+		return models.NewAccount()
 	}
 
-	// if cookie doenst exists return nil
+	// if cookie doenst exists return empty account
 	if cookie.Value == "" {
-		return nil
+		return models.NewAccount()
 	}
 
 	session, err := models.Cache.Session.ById(cookie.Value)
 	if err != nil {
-		return nil
+		return models.NewAccount()
 	}
 
-	if strings.Contains(session.Username, "guest-") {
-		session.Username = "guestuser"
-	}
-
-	// if session doesnt have username, return nil
+	// if session doesnt have username, return empty account
 	if session.Username == "" {
-		return nil
+		return models.NewAccount()
 	}
 
 	acc, err := models.Cache.Account.ByNick(session.Username)
 	if err != nil {
-		return nil
+		return models.NewAccount()
 	}
 
 	return acc
