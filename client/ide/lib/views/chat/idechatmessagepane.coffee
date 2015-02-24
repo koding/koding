@@ -15,6 +15,9 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     options.cssClass = 'privatemessage'
 
+    # this is backwards compatibility related. ~Umut
+    options.type = 'privatemessage'
+
     super options, data
 
     @isInSession = options.isInSession

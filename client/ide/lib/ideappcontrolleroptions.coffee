@@ -6,6 +6,7 @@ module.exports =
   name        : 'IDE'
   behavior    : 'application'
   multiple    : yes
+  dependencies: [ 'Ace', 'Finder' ]
   preCondition:
     condition  : (options, cb) -> cb isLoggedIn()
     failure    : (options, cb) ->

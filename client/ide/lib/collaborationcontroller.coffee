@@ -12,6 +12,8 @@ RealTimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 
+{warn} = kd
+
 # Attn!!
 #
 # This object is designed to be a mixin for IDEAppController.
@@ -49,14 +51,16 @@ module.exports =
     {message} = kd.singletons.socialapi
     nickname  = nick()
 
-    message.initPrivateMessage
+    options =
+      type       : 'collaboration'
       body       : "@#{nickname} initiated the IDE session."
       purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
       recipients : [ nickname ]
       payload    :
         'system-message' : 'initiate'
         collaboration    : yes
-    , (err, channels) =>
+
+    message.initPrivateMessage options, (err, channels) =>
 
       return callback err  if err or (not Array.isArray(channels) and not channels[0])
 
@@ -797,7 +801,7 @@ module.exports =
     if @amIHost
       usernames = usernames.filter (username) -> username isnt nick()
 
-    return  unless usernames.length
+    return callback()  unless usernames.length
 
     jMachine = @mountedMachine.getData()
     method   = if share then 'share' else 'unshare'
