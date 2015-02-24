@@ -102,6 +102,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
+    environmentDataProvider.revive()
+
     mainController.ready =>
       whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
 
