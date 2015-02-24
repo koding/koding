@@ -225,7 +225,7 @@ deploy:
         code: |
           cd $WERCKER_ROOT
 
-          ./configure --config $CONFIG --projectRoot /opt/koding
+          echo $CONFIG > CONFIG
 
           rm -rf .git .build node_modules client/node_modules
           rm -rf go/bin go/pkg
