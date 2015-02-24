@@ -285,6 +285,9 @@ module.exports = class WebTermView extends KDCustomScrollView
   triggerFitToWindow: ->
 
     return  unless @terminal?.server?
+    # bc a hidden terminal has 1 col and 1 row
+    # we assume that the terminal is hidden and do not trigger resize
+    # maybe, better would be to check if the dom element is in the body - SY
     return  if @terminal.sizeX + @terminal.sizeY <= 2
 
     @terminal.server.controlSequence String.fromCharCode 2
