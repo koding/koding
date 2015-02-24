@@ -378,6 +378,9 @@ module.exports = class RealtimeController extends KDController
 
 
   handleError: (err) ->
+
+    return  unless err
+
     {message, payload} = err
 
     if @isDisconnected err
