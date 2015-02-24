@@ -19,11 +19,11 @@ create = (channelId) ->
       ###
       loading:
         _onEnter: ->
-          if channelId
-          then @_fetchChannel channelId
-          else @transition 'uninitialized'
-
-        '*': -> @deferUntilTransition()
+          return @transition 'uninitialized'  unless channelId
+          @transition 'busy'
+          @_fetchChannel channelId,
+            success : => @handle 'channelReady'
+            error   : (error) => handleError error
 
       ###*
        * This state means basically it is ready but still doesn't
@@ -37,7 +37,10 @@ create = (channelId) ->
           @channel = null
 
         init: ->
-          @makeBusy => @_initChannel()
+          @transition 'busy'
+          @_initChannel
+            success : => @handle 'channelReady'
+            error   : (error) => handleError error
 
         '*': -> @deferUntilTransition()
 
@@ -47,13 +50,22 @@ create = (channelId) ->
       ####
       ready:
         terminate: ->
-          @makeBusy => @_destroyChannel()
+          @transition 'busy'
+          @_destroyChannel
+            success : => @handle 'channelDestroyed'
+            error   : (error) -> handleError error
 
         addParticipant: (userId) ->
-          @makeBusy => @_addParticipant userId
+          @transition 'busy'
+          @_addParticipant userId,
+            success : => @handle 'participantAdded'; console.log 'hello'
+            error   : (error) -> handleError error
 
         removeParticipant: (userId) ->
-          @makeBusy => @_removeParticipant userId
+          @transition 'busy'
+          @_removeParticipant userId,
+            success : => @handle 'participantRemoved'
+            error   : (error) -> handleError error
 
         '*': ->
           @deferUntilTransition()
@@ -63,13 +75,14 @@ create = (channelId) ->
        * State to indicate that there is some operation happening.
       ###
       busy:
-        channelDeleted: 'loading'
+        channelDestroyed: 'loading'
         # following could be written as
         # '*': 'ready'
         # keeping them here for clarity. ~Umut
         channelReady: 'ready'
         participantAdded: 'ready'
         participantRemoved: 'ready'
+
 
     ###*
      * Action to get healthcheck from outside.
@@ -122,108 +135,87 @@ create = (channelId) ->
     removeParticipant: (userId) -> @handle 'removeParticipant', userId
 
     ###*
-     * Puts machine into `busy` state and executes the callback.
-     *
-     * @param {function=} callback
-    ####
-    makeBusy: (callback) ->
-      @transition 'busy'
-      callback?()
-
-    ###*
      * Initiate a social channel.
      *
-     * @emits 'ChannelReady'
-     * @successAction 'channelReady'
-     * @nextState 'ready'
-     *
      * @api private
+     * @param {object=} callbacks
+     * @param {function=} callbacks.success - success callback
+     * @param {function=} callbacks.error   - error calback
     ###
-    _initChannel: ->
+    _initChannel: (callbacks = {}) ->
       initChannel (err, channel) =>
-        return handleError err  if err
+        return callback.error()  if err
         @channel = channel
-        @handle 'channelReady'
+        callbacks.success()
         @emit 'ChannelReady', { channel }
 
 
     ###*
      * Destroy a social channel.
      *
-     * @emits 'ChannelDeleted'
-     * @successAction 'channelDeleted'
-     * @nextState 'uninitialized'
-     *
      * @api private
+     * @param {object=} callbacks
+     * @param {function=} callbacks.success - success callback
+     * @param {function=} callbacks.error   - error calback
     ###
-    _destroyChannel: ->
+    _destroyChannel: (callbacks) ->
       destroyChannel @channel, (err) =>
-        return handleError err  if err
+        return callbacks.error()  if err
         @channel = null
-        @handle 'channelDeleted'
+        callbacks.success()
         @emit 'ChannelDeleted'
-
 
     ###*
      * Fetch social channel with given id.
      *
-     * @emits 'ChannelReady'
-     * @successAction 'channelReady'
-     * @nextState 'ready'
-     *
      * @api private
-     *
      * @param {string} id - channel id
+     * @param {object=} callbacks
+     * @param {function=} callbacks.success - success callback
+     * @param {function=} callbacks.error   - error calback
     ###
-    _fetchChannel: (id) ->
+    _fetchChannel: (id, callbacks) ->
       fetchChannel id, (err, channel) =>
-        return handleError err  if err
+        return callbacks.error err  if err
         @channel = channel
-        @handle 'channelReady'
+        callbacks.success()
         @emit 'ChannelReady', { channel }
 
 
     ###*
      * Add user with given id as participant.
      *
-     * @emits 'ParticipantAdded'
-     * @successAction 'participantAdded'
-     * @nextState 'ready'
-     *
      * @api private
-     *
      * @param {string} userId
+     * @param {object=} callbacks
+     * @param {function=} callbacks.success - success callback
+     * @param {function=} callbacks.error   - error calback
     ###
-    _addParticipant: (userId) ->
+    _addParticipant: (userId, callbacks) ->
       getAccount userId, (err, account) =>
         return handleError err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         addParticipants opts, (err) =>
-          return handleError err  if err
-          @channel.emit 'AddedToChannel', account
-          @handle 'participantAdded'
+          return callbacks.error err  if err
+          callbacks.success account
           @emit 'ParticipantAdded', { account }
 
 
     ###*
      * Remove participant with given user id.
      *
-     * @emits 'ParticipantRemoved'
-     * @successAction 'participantRemoved'
-     * @nextState 'ready'
-     *
      * @api private
-     *
-     * @param {string} userId
+     * @param {object=} callbacks
+     * @param {function=} callbacks.success - success callback
+     * @param {function=} callbacks.error   - error calback
     ###
-    _removeParticipant: (userId) ->
+    _removeParticipant: (userId, callbacks) ->
       getAccount userId, (err, account) =>
-        return handleError err  if err
-        opts = { channelId: @channel.id, accountIds: [userId] }
+        return callbacks.error err  if err
+        opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         removeParticipants opts, (err) =>
-          return handleError err  if err
-          @channel.emit 'RemovedFromChannel', account
-          @handle 'participantRemoved'
+          return callbacks.error err  if err
+          callbacks.success()
           @emit 'ParticipantRemoved', { id: userId }
 
   return channelMachine
