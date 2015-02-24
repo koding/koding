@@ -50,10 +50,7 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
       return showError err  if err
 
       activity.body = body
-
-      if payload
-        activity.link.link_url = payload.link_url
-        activity.link.link_embed = payload.link_embed
+      activity.link = payload
 
       activity.emit 'update'
 
