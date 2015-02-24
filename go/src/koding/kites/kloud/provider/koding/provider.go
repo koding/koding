@@ -274,19 +274,12 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
 		if isAddressNotFoundError(err) {
 			p.Log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", m.Id)
-			allocateResp, err := a.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+
+			elasticIp, err := allocateAndAssociateIP(a.Client, artifact.InstanceId)
 			if err != nil {
-				return nil, err
-			}
-			artifact.IpAddress = allocateResp.PublicIp
-
-			p.Log.Debug("[%s] Elastic IP allocated %+v", m.Id, allocateResp)
-
-			if _, err := a.Client.AssociateAddress(&ec2.AssociateAddress{
-				InstanceId:   artifact.InstanceId,
-				AllocationId: allocateResp.AllocationId,
-			}); err != nil {
-				return nil, err
+				p.Log.Warning("[%s] couldn't not create elastic IP: %s", m.Id, err)
+			} else {
+				artifact.IpAddress = elasticIp
 			}
 		}
 	}
