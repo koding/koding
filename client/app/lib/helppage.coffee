@@ -1,4 +1,4 @@
-trackEvent = require './util/track_event'
+trackEvent = require './util/trackEvent'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDSlidePageView = kd.SlidePageView

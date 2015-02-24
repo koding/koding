@@ -1,6 +1,6 @@
 htmlencode = require 'htmlencode'
 $ = require 'jquery'
-trackEvent = require '../util/track_event'
+trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView

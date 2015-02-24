@@ -2,7 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CommentInputWidget = require './commentinputwidget'
 showError = require 'app/util/showError'
-trackEvent = require 'app/util/track_event'
+trackEvent = require 'app/util/trackEvent'
 Encoder = require 'htmlencode'
 
 module.exports = class CommentInputEditWidget extends CommentInputWidget

@@ -1,7 +1,7 @@
 globals = require 'globals'
 getGroup = require '../util/getGroup'
 remote = require('../remote').getInstance()
-trackEvent = require '../util/track_event'
+trackEvent = require '../util/trackEvent'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 kd = require 'kd'

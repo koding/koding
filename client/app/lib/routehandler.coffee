@@ -4,7 +4,7 @@ KDRouter = kd.Router
 KDModalView = kd.ModalView
 KodingAppsController = require './kodingappscontroller'
 registerRoutes = require './util/registerRoutes'
-trackEvent = require './util/track_event'
+trackEvent = require './util/trackEvent'
 remote = require('./remote').getInstance()
 lazyrouter = require './lazyrouter'
 

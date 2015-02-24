@@ -1,6 +1,6 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
-trackEvent = require '../util/track_event'
+trackEvent = require '../util/trackEvent'
 nick = require '../util/nick'
 
 

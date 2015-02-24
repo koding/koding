@@ -1,5 +1,5 @@
 ReplyLikeView = require './replylikeview'
-trackEvent = require 'app/util/track_event'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class ActivityLikeCount extends ReplyLikeView

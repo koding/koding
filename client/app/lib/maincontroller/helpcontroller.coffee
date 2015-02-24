@@ -1,5 +1,5 @@
 registerAppClass = require '../util/registerAppClass'
-trackEvent = require '../util/track_event'
+trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDController = kd.Controller
 HelpModal = require './helpmodal'

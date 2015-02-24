@@ -2,7 +2,7 @@ kd = require 'kd'
 Promise = require 'bluebird'
 FSItem = require './fsitem'
 FSHelper = require './fshelper'
-trackEvent = require '../track_event'
+trackEvent = require '../trackEvent'
 
 
 module.exports = class FSFile extends FSItem

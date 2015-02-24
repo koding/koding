@@ -5,7 +5,7 @@ ActivityCommentCount = require './comments/activitycommentcount'
 ActivityLikeView = require './activitylikeview'
 ActivitySharePopup = require './activitysharepopup'
 groupifyLink = require 'app/util/groupifyLink'
-trackEvent = require 'app/util/track_event'
+trackEvent = require 'app/util/trackEvent'
 JView = require 'app/jview'
 CustomLinkView = require 'app/customlinkview'
 

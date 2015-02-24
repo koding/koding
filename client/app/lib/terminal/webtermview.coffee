@@ -1,4 +1,4 @@
-trackEvent = require '../util/track_event'
+trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomScrollView = kd.CustomScrollView

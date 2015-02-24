@@ -4,7 +4,7 @@ KDNotificationView = kd.NotificationView
 Machine = require 'app/providers/machine'
 remote = require('app/remote').getInstance()
 nick = require 'app/util/nick'
-trackEvent = require 'app/util/track_event'
+trackEvent = require 'app/util/trackEvent'
 kookies = require 'kookies'
 globals = require 'globals'
 
