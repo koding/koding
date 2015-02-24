@@ -7,7 +7,7 @@ gaEvent = require './gaEvent'
 # Access control wrapper around segmentio object.
 module.exports = exports = (args...) ->
 
-  return  unless analytics and globals.config.logToExternal
+  return  unless analytics? and globals.config.logToExternal
 
   identifyUser = (account)->
     {_id, meta, profile} = account
@@ -65,5 +65,5 @@ module.exports = exports = (args...) ->
   analytics.track args...
 
 exports.alias = (args...)->
-  return  unless analytics and globals.config.logToExternal
+  return  unless analytics? and globals.config.logToExternal
   analytics.alias args...
