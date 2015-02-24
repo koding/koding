@@ -221,7 +221,7 @@ create = (channelId) ->
   return channelMachine
 
 ###*
- * Following are convinient functions to wrap
+ * Following are convenient functions to wrap
  * socialapicontroller calls.
  * Since because those are stateless functions,
  * tried to use those to keep public api as clean as possible. ~Umut
