@@ -1060,8 +1060,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = noop) ->
 
-    @fetchMachines (machines) =>
-      @ownMachinesList.updateList machines.own
+    @fetchMachines (data) =>
+      @ownMachinesList.updateList data.own
+      @sharedMachinesList.updateList data.shared.concat data.collaboration
 
 
     # @machineTree.removeAllNodes()
