@@ -185,7 +185,9 @@ module.exports = class SidebarMachineBox extends KDView
 
       switch state
         when Stopping then @deselect()
-        when Running
-          { frontApp } = kd.singletons.appManager
-          if frontApp instanceof IDEAppController
-            @selectWorkspace frontApp.workspaceData.slug
+        # it was selecting koding-vm-0 my workspace if koding-vm-1 is
+        # turned off and navigated to /IDE/koding-vm-1/my-workspace
+        # when Running
+        #   { frontApp } = kd.singletons.appManager
+        #   if frontApp instanceof IDEAppController
+        #     @selectWorkspace frontApp.workspaceData.slug
