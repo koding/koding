@@ -40,9 +40,9 @@ func CreateMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
 	return createMachine(machineUser)
 }
 
-func ShareMachineWithUser(machineId, userId bson.ObjectId) error {
+func ShareMachineWithUser(machineId, userId bson.ObjectId, p bool) error {
 	machineUser := models.MachineUser{
-		Id: userId, Owner: false, Permanent: true,
+		Id: userId, Owner: false, Permanent: p,
 	}
 
 	selector := bson.M{"_id": machineId}
