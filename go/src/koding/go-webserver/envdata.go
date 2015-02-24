@@ -9,14 +9,19 @@ import (
 )
 
 type EnvData struct {
-	Own           []*MachineAndWorkspaces
-	Shared        []*MachineAndWorkspaces
-	Collaboration []*MachineAndWorkspaces
+	Own           []*MachineAndWorkspaces `json:"own"`
+	Shared        []*MachineAndWorkspaces `json:"shared"`
+	Collaboration []*MachineAndWorkspaces `json:"collaboration"`
 }
 
 type MachineAndWorkspaces struct {
-	Machine    *models.Machine
-	Workspaces []*models.Workspace
+	Machine    *models.Machine     `json:"machine"`
+	Workspaces []*models.Workspace `json:"workspaces"`
+}
+
+func fetchEnvData(userInfo *UserInfo, outputter *Outputter) {
+	envData := getEnvData(userInfo)
+	outputter.OnItem <- &Item{Name: "EnvData", Data: envData}
 }
 
 func getEnvData(userInfo *UserInfo) *EnvData {
