@@ -11,6 +11,31 @@ deleteRed  = rgba(217, 58, 55, 0.9)
 timeColor  = #d2d2d2
 timeColor2 = #5F9E5E
 
+.kdlistview-collaboration
+.kdlistview-privatemessage
+  opacity                   1
+  vendor                    transition, opacity .177s ease-in
+  margin-top                0
+
+  &.padded
+    height                  auto
+    abs                     0 0 0px 0
+    kalc                    width (100%\-34px)
+
+
+  > section
+    &:last-child
+      margin-bottom         16px
+
+    > time
+      color                 timeColor2
+      display               block
+      margin                8px 0 0 34px
+      line-height           30px
+      font-size             11px
+      z-index               1
+      text-transform        uppercase
+
 #content-page-activity
 
   > .kdtabview.privatemessage
@@ -204,30 +229,6 @@ timeColor2 = #5F9E5E
     display             block
     margin              4px 0 0 34px
     noTextDeco()
-
-  .kdlistview-privatemessage
-    opacity               1
-    vendor                transition, opacity .177s ease-in
-    margin-top            0
-
-    &.padded
-      height              auto
-      abs                 0 0 0px 0
-      kalc                width (100%\-34px)
-
-
-    > section
-      &:last-child
-        margin-bottom     16px
-
-      > time
-        color             timeColor2
-        display           block
-        margin            8px 0 0 34px
-        line-height       30px
-        font-size         11px
-        z-index           1
-        text-transform    uppercase
 
   .kdlistitemview-activity.privatemessage
     padding               0

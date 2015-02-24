@@ -148,6 +148,11 @@ func (m *Mail) persistPost(accountId int64) error {
 	if c.TypeConstant == socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
 		cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
 	}
+
+	if c.TypeConstant == socialapimodels.Channel_TYPE_COLLABORATION {
+		cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
+	}
+
 	cm.InitialChannelId = channelId
 	cm.AccountId = accountId
 	if err := cm.Create(); err != nil {
@@ -174,7 +179,7 @@ func (m *Mail) persistReply(accountId int64) error {
 		return err
 	}
 
-	_, err = channelPermission(cm.InitialChannelId, accountId)
+	c, err := channelPermission(cm.InitialChannelId, accountId)
 	if err != nil {
 		return err
 	}
@@ -200,6 +205,11 @@ func (m *Mail) persistReply(accountId int64) error {
 	if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
 		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
 	}
+
+	if c.TypeConstant == socialapimodels.Channel_TYPE_COLLABORATION {
+		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
+	}
+
 	reply.InitialChannelId = cm.InitialChannelId
 	reply.AccountId = accountId
 	if err := reply.Create(); err != nil {
