@@ -4,7 +4,7 @@ KDModalView = kd.ModalView
 KDNotificationView = kd.NotificationView
 KDTabPaneView = kd.TabPaneView
 KDView = kd.View
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/utiltrack_event'
 isLoggedIn = require 'app/util/isLoggedIn'
 WebtermSettingsView = require 'app/terminal/webtermsettingsview'
 WebTermView = require 'app/terminal/webtermview'
@@ -64,7 +64,7 @@ module.exports = class WebTermAppView extends JView
       @removeSession { machineId: machine.uid, sessionId: session }
 
     @on 'TerminalStarted', ->
-      mixpanel "Open new Webterm, success"
+      trackEvent "Open new Webterm, success"
 
 
   viewAppended: ->

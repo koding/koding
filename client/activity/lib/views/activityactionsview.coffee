@@ -5,7 +5,7 @@ ActivityCommentCount = require './comments/activitycommentcount'
 ActivityLikeView = require './activitylikeview'
 ActivitySharePopup = require './activitysharepopup'
 groupifyLink = require 'app/util/groupifyLink'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/track_event'
 JView = require 'app/jview'
 CustomLinkView = require 'app/customlinkview'
 
@@ -53,7 +53,7 @@ module.exports = class ActivityActionsView extends JView
           lazyLoad    : yes
         , customView  : new ActivitySharePopup delegate: this, url: shareUrl
 
-        mixpanel "Activity share, click"
+        trackEvent "Activity share, click"
 
     @likeView = new ActivityLikeView {}, data
 

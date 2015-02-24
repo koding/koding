@@ -2,7 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CommentInputWidget = require './commentinputwidget'
 showError = require 'app/util/showError'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/track_event'
 Encoder = require 'htmlencode'
 
 module.exports = class CommentInputEditWidget extends CommentInputWidget
@@ -68,7 +68,7 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
 
     @emit 'EditSucceeded', activity
 
-    mixpanel "Comment edit, success", { length: activity?.body?.length }
+    trackEvent "Comment edit, success", { length: activity?.body?.length }
 
 
   getPayload: ->

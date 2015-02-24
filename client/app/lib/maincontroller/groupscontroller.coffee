@@ -1,7 +1,7 @@
 globals = require 'globals'
 getGroup = require '../util/getGroup'
 remote = require('../remote').getInstance()
-mixpanel = require '../util/mixpanel'
+trackEvent = require '../util/track_event'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 kd = require 'kd'
@@ -100,7 +100,7 @@ module.exports = class GroupsController extends KDController
       return showError err  if err?
       callback err, response
       kd.getSingleton('mainController').emit 'JoinedGroup'
-      mixpanel "Join group, success", slug:group.slug
+      trackEvent "Join group, success", slug:group.slug
 
   acceptInvitation:(group, callback)->
     whoami().acceptInvitation group, (err, res)=>

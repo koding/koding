@@ -2,7 +2,7 @@ kd = require 'kd'
 Promise = require 'bluebird'
 FSItem = require './fsitem'
 FSHelper = require './fshelper'
-mixpanel = require '../mixpanel'
+trackEvent = require '../track_event'
 
 
 module.exports = class FSFile extends FSItem
@@ -50,7 +50,7 @@ module.exports = class FSFile extends FSItem
       content = atob response.content
       content = kd.utils.utf8Decode content  if useEncoding # Convert to String
 
-      mixpanel "Fetch contents, success"
+      trackEvent "Fetch contents, success"
 
       @emit "fs.job.finished"
 

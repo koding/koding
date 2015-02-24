@@ -5,7 +5,7 @@ KDScrollView = kd.ScrollView
 KDView = kd.View
 sinkrow = require 'sinkrow'
 globals = require 'globals'
-mixpanel = require './util/mixpanel'
+trackEvent = require './util/track_event'
 remote = require('./remote').getInstance()
 isLoggedIn = require './util/isLoggedIn'
 whoami = require './util/whoami'
@@ -101,7 +101,7 @@ module.exports = class MainView extends KDView
       partial    : '<figure></figure>'
       click      : (event) =>
         kd.utils.stopDOMEvent event
-        mixpanel 'Koding Logo, click'
+        trackEvent 'Koding Logo, click'
 
     @aside.addSubView logoWrapper
 

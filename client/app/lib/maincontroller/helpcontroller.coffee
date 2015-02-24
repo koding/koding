@@ -1,5 +1,5 @@
 registerAppClass = require '../util/registerAppClass'
-mixpanel = require '../util/mixpanel'
+trackEvent = require '../util/track_event'
 kd = require 'kd'
 KDController = kd.Controller
 HelpModal = require './helpmodal'
@@ -13,7 +13,7 @@ module.exports = class HelpController extends KDController
   registerAppClass this, {name, version, background: yes}
 
   showHelp:(delegate)->
-    mixpanel "Help modal show, success"
+    trackEvent "Help modal show, success"
 
     @_modal?.destroy?()
     @_modal = new HelpModal {delegate}

@@ -5,7 +5,7 @@ ActivityInputWidget = require '../activityinputwidget'
 CommentInputView = require './commentinputview'
 EmbedBoxWidget = require '../embedboxwidget'
 showError = require 'app/util/showError'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/track_event'
 whoami = require 'app/util/whoami'
 generateFakeIdentifier = require 'app/util/generateFakeIdentifier'
 AvatarStaticView = require 'app/commonviews/avatarviews/avatarstaticview'
@@ -108,7 +108,7 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
   inputFocused: ->
 
     @emit 'Focused'
-    mixpanel 'Comment activity, focus'
+    trackEvent 'Comment activity, focus'
 
     @submitButton.show()
 

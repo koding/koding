@@ -1,6 +1,6 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
-mixpanel = require '../util/mixpanel'
+trackEvent = require '../util/track_event'
 nick = require '../util/nick'
 
 
@@ -23,4 +23,4 @@ module.exports = class ShareLink extends KDButtonView
       "width=626,height=436,left=#{Math.floor (global.screen.width/2) - (500/2)},top=#{Math.floor (global.screen.height/2) - (350/2)}"
     )
 
-    mixpanel "#{provider} share link, click in #{trackingName}", user: nick()
+    trackEvent "#{provider} share link, click in #{trackingName}", user: nick()

@@ -1,4 +1,4 @@
-mixpanel = require './util/mixpanel'
+trackEvent = require './util/track_event'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDSlidePageView = kd.SlidePageView
@@ -26,7 +26,7 @@ module.exports = class HelpPage extends KDSlidePageView
       if link.command
         options.click = (event)=>
           kd.utils.stopDOMEvent event
-          mixpanel "Help modal link, click", title:link.title
+          trackEvent "Help modal link, click", title:link.title
 
           kd.singletons.appManager.require 'Terminal',(app)=>
             @getDelegate().emit 'InternalLinkClicked', link
@@ -35,7 +35,7 @@ module.exports = class HelpPage extends KDSlidePageView
               kd.singletons.appManager.tell 'Terminal', 'runCommand', link.command
       else
         options.click = (event)=>
-          mixpanel "Help modal link, click", title:link.title
+          trackEvent "Help modal link, click", title:link.title
 
       @addSubView (new KDCustomHTMLView options), 'ul'
 
