@@ -54,12 +54,12 @@ var (
 	MachineStateRunning = "Running"
 )
 
-func GetRunningVms() ([]models.Machine, error) {
+func GetRunningVms() ([]*models.Machine, error) {
 	query := bson.M{"status.state": MachineStateRunning}
 	return findMachine(query)
 }
 
-func GetMachinesByUsername(username string) ([]models.Machine, error) {
+func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func GetMachinesByUsername(username string) ([]models.Machine, error) {
 	return GetOwnMachines(user.ObjectId)
 }
 
-func GetOwnMachines(userId bson.ObjectId) ([]models.Machine, error) {
+func GetOwnMachines(userId bson.ObjectId) ([]*models.Machine, error) {
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": userId, "owner": true},
 	}}
@@ -76,7 +76,7 @@ func GetOwnMachines(userId bson.ObjectId) ([]models.Machine, error) {
 	return findMachine(query)
 }
 
-func GetSharedMachines(userId bson.ObjectId) ([]models.Machine, error) {
+func GetSharedMachines(userId bson.ObjectId) ([]*models.Machine, error) {
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": true},
 	}}
@@ -84,7 +84,7 @@ func GetSharedMachines(userId bson.ObjectId) ([]models.Machine, error) {
 	return findMachine(query)
 }
 
-func GetCollabMachines(userId bson.ObjectId) ([]models.Machine, error) {
+func GetCollabMachines(userId bson.ObjectId) ([]*models.Machine, error) {
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": false},
 	}}
@@ -92,15 +92,15 @@ func GetCollabMachines(userId bson.ObjectId) ([]models.Machine, error) {
 	return findMachine(query)
 }
 
-func findMachine(query bson.M) ([]models.Machine, error) {
-	machines := []models.Machine{}
+func findMachine(query bson.M) ([]*models.Machine, error) {
+	machines := []*models.Machine{}
 
 	queryFn := func(c *mgo.Collection) error {
 		iter := c.Find(query).Iter()
 
 		var machine models.Machine
-		for iter.Next(&machine) {
-			machines = append(machines, machine)
+		for iter.Next(machine) {
+			machines = append(machines, &machine)
 		}
 
 		return iter.Close()

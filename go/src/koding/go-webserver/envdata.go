@@ -15,7 +15,7 @@ type EnvData struct {
 }
 
 type MachineAndWorkspaces struct {
-	Machine    models.Machine
+	Machine    *models.Machine
 	Workspaces []*models.Workspace
 }
 
@@ -91,13 +91,13 @@ func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces
 	return mws
 }
 
-func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspaces {
+func getWorkspacesForEachMachine(machines []*models.Machine) []*MachineAndWorkspaces {
 	mws := []*MachineAndWorkspaces{}
 
 	for _, machine := range machines {
 		machineAndWorkspace := &MachineAndWorkspaces{Machine: machine}
 
-		workspaces, err := modelhelper.GetWorkspacesForMachine(&machine)
+		workspaces, err := modelhelper.GetWorkspacesForMachine(machine)
 		if err == nil {
 			machineAndWorkspace.Workspaces = workspaces
 		}
