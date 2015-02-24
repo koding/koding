@@ -100,7 +100,10 @@ func findMachine(query bson.M) ([]*models.Machine, error) {
 
 		var machine models.Machine
 		for iter.Next(&machine) {
-			machines = append(machines, &machine)
+			var newMachine models.Machine
+			newMachine = machine
+
+			machines = append(machines, &newMachine)
 		}
 
 		return iter.Close()
