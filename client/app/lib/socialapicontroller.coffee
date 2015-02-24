@@ -444,10 +444,14 @@ module.exports = class SocialApiController extends KDController
       kallback err, data
 
     return switch type
-      when 'topic'                     then @channel.byName {name: id}, topicChannelKallback
-      when 'activity'                  then @message.bySlug {slug: id}, kallback
-      when 'channel', 'privatemessage' then @channel.byId {id}, topicChannelKallback
-      when 'post', 'message'           then @message.byId {id}, kallback
+      when 'topic'
+        @channel.byName {name: id}, topicChannelKallback
+      when 'activity'
+        @message.bySlug {slug: id}, kallback
+      when 'channel', 'privatemessage', 'collaboration'
+        @channel.byId {id}, topicChannelKallback
+      when 'post', 'message'
+        @message.byId {id}, kallback
       else callback { message: "#{type} not implemented in revive" }
 
   getMessageEvents = ->
