@@ -1,6 +1,7 @@
 remote = require('../remote').getInstance()
 parseLogs = require './parseLogs'
 s3upload = require './s3upload'
+globals = require 'globals'
 
 module.exports = (eventName, options = {})->
 
@@ -8,6 +9,9 @@ module.exports = (eventName, options = {})->
   options.sendLogs ?= yes
 
   sendEvent = (logs)->
+
+    options.tags ?= {}
+    options.tags.version = globals.config.version
 
     options.logs = logs
     remote.api.DataDog.sendEvent options

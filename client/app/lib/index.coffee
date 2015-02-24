@@ -3,7 +3,7 @@ globals = require 'globals'
 kookies = require 'kookies'
 getscript = require 'getscript'
 Promise = require 'bluebird'
-global.kd = kd = require 'kd'
+kd = require 'kd'
 KDModalView = kd.ModalView
 KDNotificationView = kd.NotificationView
 getFullnameFromAccount = require './util/getFullnameFromAccount'
@@ -31,6 +31,11 @@ bootup = ->
   # that depend on `remote`, and here we are. -og
   remote = require('./remote').getInstance()
   # it is very important that you invoke this method before anything else does, so f important.
+
+  if globals.config.environment is 'dev'
+    global._kd      = kd
+    global._remote  = remote
+    global._globals = globals
 
   remote.once 'ready', ->
     globals.currentGroup = remote.revive globals.currentGroup
@@ -157,27 +162,27 @@ bootup = ->
 
 setupAnalytics = ->
 
-  if globals.config.logToExternal then do ->
+  return  unless globals.config.logToExternal
 
-    kd.getSingleton('mainController').on 'AccountChanged', (account) ->
+  kd.getSingleton('mainController').on 'AccountChanged', (account) ->
 
-      return  unless isLoggedIn() and account and global.analytics
+    return  unless isLoggedIn() and account and global.analytics
 
-      {type, meta, profile} = account
+    {type, meta, profile} = account
 
-      return  unless profile
+    return  unless profile
 
-      {createdAt} = meta
-      {firstName, lastName, nickname} = profile
+    {createdAt} = meta
+    {firstName, lastName, nickname} = profile
 
-      analytics.identify nickname, {
-        "$username"     : nickname
-        "$first_name"   : firstName
-        "$last_name"    : lastName
-        "$created"      : createdAt
-        "Status"        : type
-        "Randomizer"    : kd.utils.getRandomNumber 4
-      }
+    analytics.identify nickname, {
+      "$username"     : nickname
+      "$first_name"   : firstName
+      "$last_name"    : lastName
+      "$created"      : createdAt
+      "Status"        : type
+      "Randomizer"    : kd.utils.getRandomNumber 4
+    }
 
 
 initialize = (defaults, next) ->
