@@ -1,18 +1,20 @@
 BIN=./node_modules/.bin
+DEBUG_TARGETS?=client:*,bant:*
+GULP_ARGS=
+ifeq ($(watch),1)
+	GULP_ARGS+=--watchMode
+endif
+ifeq ($(debug),1)
+	GULP_ARGS+=--devMode
+endif
 
-.PHONY: landing
-
-all: landing
-	@DEBUG=client:*,bant:* $(BIN)/gulp --devMode --watchMode
+all: 
+	@DEBUG=$(DEBUG_TARGETS) $(BIN)/gulp $(GULP_ARGS)
 
 scripts:
-	@DEBUG=client:*,bant:* $(BIN)/gulp scripts --devMode --watchMode
-
-build: landing
-	@DEBUG=client:* $(BIN)/gulp
+	@DEBUG=$(DEBUG_TARGETS) $(BIN)/gulp scripts $(GULP_ARGS)
 
 landing:
-	@cd landing && npm install --unsafe-perm --silent
-	@cd landing && rm -rf node_modules/gulp.spritesmith/node_modules/spritesmith/node_modules/canvassmith
-	@cd landing && gulp build-all-sites --koding-version=$(git rev-parse HEAD)
-	@cd landing && rsync -av static/a/ ../../website/a/
+	@$(MAKE) -C landing all
+
+.PHONY: landing

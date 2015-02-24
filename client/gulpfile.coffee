@@ -45,7 +45,7 @@ opts =
   rev: null
   browserify:
     extensions: ['.coffee', '.js', '.json']
-    # debug: true
+    debug: yes  if devMode
   globals:
     config: {}
     appClasses: {}
@@ -179,15 +179,12 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       basedir: __dirname
       mapping: mapping
 
-
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->
       outfile = path.join opts.outdir, "#{bundle.name}.js"
       fs.writeFile outfile, bundle.source, (err, res) ->
         debug "could not write #{outfile}"  if err
         debug "#{pretty bundle.source.length} written to #{path.basename outfile}"
-
-  #b.require(require.resolve('kd.js'), { expose: 'kd' })
 
   gulp.src(['*/bant.json']).pipe bant
 
