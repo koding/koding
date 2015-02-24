@@ -95,24 +95,6 @@ module.exports = class JSession extends Model
       else
         @createSession callback
 
-
-  @fetchGuestUserSession = (callback) ->
-
-    JUser    = require './user'
-    username = JUser.createGuestUsername()
-
-    @one {username}, (err, session) ->
-      return callback err  if err?
-      return callback null, session  if session?
-
-      clientId = createId()
-      username = safeGuestSessionName username
-      session  = new JSession { clientId, username }
-      session.save (err)->
-        return callback err  if err?
-        callback null, session
-
-
   @updateClientIP = (clientId, ipAddress, callback)->
 
     unless ipAddress
