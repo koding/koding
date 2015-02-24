@@ -285,6 +285,7 @@ module.exports = class WebTermView extends KDCustomScrollView
   triggerFitToWindow: ->
 
     return  unless @terminal?.server?
+    return  if @terminal.sizeX + @terminal.sizeY <= 2
 
     @terminal.server.controlSequence String.fromCharCode 2
     @terminal.server.input 'F'
