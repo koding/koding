@@ -94,6 +94,8 @@ func (m *Mail) getIdsFromMailboxHash() (int64, error) {
 	return id, nil
 }
 
+// channelPermission returns nil if the account can open the channel,
+// otherwise (if account cannot open), returns error
 func channelPermission(channelId int64, accountId int64) (*socialapimodels.Channel, error) {
 	c, err := socialapimodels.ChannelById(channelId)
 	if err != nil {
@@ -108,8 +110,8 @@ func channelPermission(channelId int64, accountId int64) (*socialapimodels.Chann
 	if !canOpen {
 		return nil, errCannotOpen //silently sucess here, we dont want retries here
 	}
-	return c, nil
 
+	return c, nil
 }
 
 func (m *Mail) persistPost(accountId int64) error {
@@ -210,6 +212,8 @@ func (m *Mail) persistReply(accountId int64) error {
 	return nil
 }
 
+// getSocialIdFromEmail fetchs the SocialApiId in mongodb
+// At this time, we got the account id while getting SocialApiId
 func (m *Mail) getSocialIdFromEmail() (int64, error) {
 
 	acc, err := GetAccount(m.From)

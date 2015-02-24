@@ -32,6 +32,7 @@ cd $REPOSITORY_PATH
 ./configure --host $HOST:8090
 ./run services
 ./run install
+./run resetdb --yes
 ./run &
 disown $!
 

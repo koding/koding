@@ -29,7 +29,12 @@ module.exports = koding = new Bongo
 
       if account instanceof JAccount
 
-        { clientIP } = session
+        { clientIP, clientId } = session
+
+        # If requested sessionToken is not valid JUser::authenticateClient
+        # creates and returns a new session token which then we need to
+        # override sessionToken here in case of token changes ~ GG
+        sessionToken = clientId
 
         callback {
           sessionToken, context, clientIP
