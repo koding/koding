@@ -16,6 +16,7 @@ module.exports = (options = {}, callback)->
   userMachines     = null
   userWorkspaces   = null
   sidebarEnvironmentData = null
+  userId = null
 
   {bongoModels, client, slug} = options
 
@@ -34,6 +35,7 @@ module.exports = (options = {}, callback)->
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
     sidebarEnvironmentData = JSON.stringify sidebarEnvironmentData
+    userId = JSON.stringify userId
 
     """
     <!-- SEGMENT.IO -->
@@ -50,6 +52,7 @@ module.exports = (options = {}, callback)->
     <script>
       require('app')({
         config: #{config},
+        userId: #{userId},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
@@ -113,6 +116,10 @@ module.exports = (options = {}, callback)->
     ->
       bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
         sidebarEnvironmentData = data
+    ->
+      client.connection.delegate.fetchUser (err, user) ->
+        console.err err  if err
+        userId = user.getId()
         queue.fin()
   ]
 
