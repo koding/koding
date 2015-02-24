@@ -157,7 +157,7 @@ module.exports = class ActivityInputWidget extends KDView
 
       activity.body = body
 
-      activity.link = payload if payload
+      activity.link = payload
 
       activity.emit 'update'
 
