@@ -43,6 +43,7 @@ func getEnvData(userInfo *UserInfo) *EnvData {
 func getOwn(userId bson.ObjectId) []*MachineAndWorkspaces {
 	ownMachines, err := modelhelper.GetOwnMachines(userId)
 	if err != nil {
+		Log.Error(err.Error())
 		return nil
 	}
 
@@ -52,6 +53,7 @@ func getOwn(userId bson.ObjectId) []*MachineAndWorkspaces {
 func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 	sharedMachines, err := modelhelper.GetSharedMachines(userId)
 	if err != nil {
+		Log.Error(err.Error())
 		return nil
 	}
 
@@ -61,16 +63,19 @@ func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces {
 	machines, err := modelhelper.GetCollabMachines(userId)
 	if err != nil {
+		Log.Error(err.Error())
 		return nil
 	}
 
 	channelIds, err := getCollabChannels(socialApiId)
 	if err != nil {
+		Log.Error(err.Error())
 		return nil
 	}
 
 	workspaces, err := modelhelper.GetWorkspacesByChannelIds(channelIds)
 	if err != nil {
+		Log.Error(err.Error())
 		return nil
 	}
 
@@ -105,16 +110,14 @@ func getWorkspacesForEachMachine(machines []*models.Machine) []*MachineAndWorksp
 		workspaces, err := modelhelper.GetWorkspacesForMachine(machine)
 		if err == nil {
 			machineAndWorkspace.Workspaces = workspaces
+		} else {
+			Log.Error(err.Error())
 		}
 
 		mws = append(mws, machineAndWorkspace)
 	}
 
 	return mws
-}
-
-type channelResponse struct {
-	Id string `json:"id"`
 }
 
 func getCollabChannels(socialApiId string) ([]string, error) {
