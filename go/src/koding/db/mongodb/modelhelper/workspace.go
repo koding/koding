@@ -7,9 +7,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var (
-	WorkspaceColl = "jWorkspaces"
-)
+var WorkspaceColl = "jWorkspaces"
 
 func GetWorkspaces(accountId bson.ObjectId) ([]*models.Workspace, error) {
 	query := bson.M{"originId": accountId}
@@ -21,8 +19,8 @@ func GetWorkspacesByChannelIds(ids []string) ([]*models.Workspace, error) {
 	return get(query)
 }
 
-func GetWorkspacesForMachine(machineId bson.ObjectId) ([]*models.Workspace, error) {
-	query := bson.M{"machineUId": bson.M{"$in": machineId}}
+func GetWorkspacesForMachine(machine *models.Machine) ([]*models.Workspace, error) {
+	query := bson.M{"machineUId": machine.Uid}
 	return get(query)
 }
 
@@ -33,8 +31,7 @@ func get(query bson.M) ([]*models.Workspace, error) {
 		return c.Find(query).All(&workspaces)
 	}
 
-	err := Mongo.Run(WorkspaceColl, queryFn)
-	if err != nil {
+	if err := Mongo.Run(WorkspaceColl, queryFn); err != nil {
 		return nil, err
 	}
 

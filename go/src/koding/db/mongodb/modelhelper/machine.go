@@ -69,17 +69,26 @@ func GetMachinesByUsername(username string) ([]models.Machine, error) {
 }
 
 func GetOwnMachines(userId bson.ObjectId) ([]models.Machine, error) {
-	query := bson.M{"users.id": userId, "users.owner": true}
+	query := bson.M{"users": bson.M{
+		"$elemMatch": bson.M{"id": userId, "owner": true},
+	}}
+
 	return findMachine(query)
 }
 
 func GetSharedMachines(userId bson.ObjectId) ([]models.Machine, error) {
-	query := bson.M{"users.id": userId, "users.permanent": true}
+	query := bson.M{"users": bson.M{
+		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": true},
+	}}
+
 	return findMachine(query)
 }
 
 func GetCollabMachines(userId bson.ObjectId) ([]models.Machine, error) {
-	query := bson.M{"users.id": userId, "users.permanent": false}
+	query := bson.M{
+		"users.id": userId, "users.owner": false, "users.permanent": false,
+	}
+
 	return findMachine(query)
 }
 

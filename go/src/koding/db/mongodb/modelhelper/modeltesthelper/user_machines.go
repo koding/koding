@@ -1,6 +1,7 @@
 package modeltesthelper
 
 import (
+	"crypto/rand"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
@@ -8,21 +9,30 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func CreateUserWithMachine() (*models.User, error) {
-	user := &models.User{
-		ObjectId: bson.NewObjectId(),
-		Name:     "randomuser",
-	}
-
-	if err := CreateUser(user); err != nil {
+func CreateUserWithMachine(username string) (*models.User, error) {
+	user, err := CreateUser(username)
+	if err != nil {
 		return nil, err
 	}
 
-	if _, err := CreateMachineForUser(user.ObjectId); err != nil {
+	machine, err := CreateMachineForUser(user.ObjectId)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := CreateWorkspaceForMachine(machine.Uid); err != nil {
 		return nil, err
 	}
 
 	return user, nil
+}
+
+func DeleteMachine(id bson.ObjectId) error {
+	deleteQuery := func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"_id": id})
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.MachineColl, deleteQuery)
 }
 
 func CreateMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
@@ -30,26 +40,26 @@ func CreateMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
 	return createMachine(machineUser)
 }
 
-func CreateSharedMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
+func ShareMachineWithUser(machineId, userId bson.ObjectId) error {
 	machineUser := models.MachineUser{
 		Id: userId, Owner: false, Permanent: true,
 	}
 
-	return createMachine(machineUser)
-}
+	selector := bson.M{"_id": machineId}
+	updateQuery := bson.M{"$push": bson.M{"users": machineUser}}
 
-func CreateCollabMachineForUser(userId bson.ObjectId) (*models.Machine, error) {
-	machineUser := models.MachineUser{
-		Id: userId, Owner: false, Permanent: false,
+	query := func(c *mgo.Collection) error {
+		return c.Update(selector, updateQuery)
 	}
 
-	return createMachine(machineUser)
+	return modelhelper.Mongo.Run(modelhelper.MachineColl, query)
 }
 
 func createMachine(machineUser models.MachineUser) (*models.Machine, error) {
 	machine := &models.Machine{
 		ObjectId: bson.NewObjectId(),
 		Users:    []models.MachineUser{machineUser},
+		Uid:      randStr(10),
 	}
 
 	insertQuery := func(c *mgo.Collection) error {
@@ -62,4 +72,17 @@ func createMachine(machineUser models.MachineUser) (*models.Machine, error) {
 	}
 
 	return machine, nil
+}
+
+func randStr(size int) string {
+	alphanum := "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+
+	bytes := make([]byte, size)
+	rand.Read(bytes)
+
+	for i, b := range bytes {
+		bytes[i] = alphanum[b%byte(len(alphanum))]
+	}
+
+	return string(bytes)
 }
