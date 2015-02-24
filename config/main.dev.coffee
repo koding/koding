@@ -1112,9 +1112,6 @@ Configuration = (options={}) ->
   KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile        = generateRunFile        KONFIG
 
-  fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
-
-
   return KONFIG
 
 module.exports = Configuration
