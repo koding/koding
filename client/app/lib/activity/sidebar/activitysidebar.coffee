@@ -116,7 +116,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if isChannelCollaborative channel
       if channelMessage.payload['system-message'] in ['start', 'stop']
-        alert 'acet, handle here... [messageAddedToChannel]'
+        kd.warn 'acet, handle here... [messageAddedToChannel]'
         # @fetchMachines => @fetchWorkspaces =>
         #   @setWorkspaceUnreadCount channel, unreadCount
 
