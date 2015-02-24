@@ -51,6 +51,8 @@ module.exports = class RealtimeController extends KDController
       # https://www.pivotaltracker.com/story/show/88210800
       @pbNotification = PUBNUB.init options
 
+      @lastSeenOnline = Date.now() * 10000
+
       realtimeToken = kookies.get("realtimeToken")
       @fetchServerTime()
       setInterval =>
