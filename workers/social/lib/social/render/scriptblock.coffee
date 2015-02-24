@@ -15,7 +15,7 @@ module.exports = (options = {}, callback)->
   currentGroup     = null
   userMachines     = null
   userWorkspaces   = null
-  sidebarEnvironmentData = null
+  userEnvironmentData = null
   userId = null
 
   {bongoModels, client, slug} = options
@@ -34,7 +34,7 @@ module.exports = (options = {}, callback)->
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
-    sidebarEnvironmentData = JSON.stringify sidebarEnvironmentData
+    userEnvironmentData = JSON.stringify userEnvironmentData
     userId = JSON.stringify userId
 
     """
@@ -58,7 +58,8 @@ module.exports = (options = {}, callback)->
         userWorkspaces: #{userWorkspaces},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
-        socialApiData: #{encodedSocialApiData}
+        socialApiData: #{encodedSocialApiData},
+        userEnvironmentData: #{userEnvironmentData}
       });
     </script>
 
@@ -79,7 +80,6 @@ module.exports = (options = {}, callback)->
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
 
-    <script>window.sidebarEnvironmentData = #{sidebarEnvironmentData}</script>
     """
 
   selector =
@@ -115,7 +115,8 @@ module.exports = (options = {}, callback)->
         queue.fin()
     ->
       bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
-        sidebarEnvironmentData = data
+        userEnvironmentData = data
+        queue.fin()
     ->
       client.connection.delegate.fetchUser (err, user) ->
         console.err err  if err
