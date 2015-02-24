@@ -2,16 +2,18 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"koding/tools/config"
 
 	"github.com/koding/multiconfig"
 )
 
 type Gowebserver struct {
-	Mongo string `required:"true"`
+	Mongo     string                    `required:"true"`
+	SocialApi struct{ ProxyUrl string } `required:"true"`
 }
 
 func init() {
-	conf := func() *Gowebserver {
+	c := func() *Gowebserver {
 		conf := new(Gowebserver)
 		d := &multiconfig.DefaultLoader{
 			Loader: multiconfig.MultiLoader(
@@ -24,5 +26,9 @@ func init() {
 		return conf
 	}()
 
-	modelhelper.Initialize(conf.Mongo)
+	conf = &config.Config{
+		SocialApi: struct{ ProxyUrl string }{},
+	}
+
+	modelhelper.Initialize(c.Mongo)
 }
