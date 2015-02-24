@@ -25,10 +25,10 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
     if quiet or not aceView or not aceView.ace.isContentChanged()
       return @removePane_ pane, shouldDetach
 
-    @askForSave aceView
+    @askForSave pane, aceView
 
 
-  askForSave: (aceView) ->
+  askForSave: (pane, aceView) ->
 
     {ace} = aceView
     file  = ace.getData()

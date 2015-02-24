@@ -105,7 +105,16 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
     content     = content or ''
-    editorPane  = new IDEEditorPane { file, content, delegate: this }
+    editorPane  = new IDEEditorPane {
+      file
+      content
+      delegate: this
+      # we need to show a notification that file is read-only
+      # only if it is opened by user action
+      # we use emitChange to detect this case for now
+      notifyIfReadOnlyFile: emitChange
+    }
+
     paneOptions =
       name      : file.name
       editor    : editorPane
