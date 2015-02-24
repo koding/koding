@@ -1,4 +1,4 @@
-// collaboration package provides the logical part for the long running
+// Package collaboration provides the logical part for the long running
 // operations of collaboration worker
 package collaboration
 
@@ -18,12 +18,14 @@ import (
 	"code.google.com/p/goauth2/oauth/jwt"
 	"code.google.com/p/google-api-go-client/drive/v2"
 	"code.google.com/p/google-api-go-client/googleapi"
-	"github.com/koding/kite"
-
 	"github.com/cenkalti/backoff"
+	"github.com/koding/bongo"
+	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/streadway/amqp"
+
+	"labix.org/v2/mgo"
 )
 
 const (
@@ -197,11 +199,11 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 		return c.DeleteDriveDoc(ping)
 	}, errChan)
 
-	var err error
+	var err Error
 
 	for errC := range errChan {
-		if err == nil && errC != nil {
-			err = errC
+		if errC != nil {
+			err = append(err, errC)
 		}
 	}
 
@@ -236,27 +238,50 @@ func (c *Controller) goWithRetry(f func() error, errChan chan error) {
 	}()
 }
 
+// EndPrivateMessage stops the collaboration session
 func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
-	channelId := int64(0)
+	// if channel id is nil, there is nothing to do
+	if ping.ChannelId == "" {
+		return nil
+	}
+
+	id, err := strconv.ParseInt(ping.ChannelId, 10, 64)
+	if err != nil {
+		return nil
+	}
 
 	// fetch the channel
 	channel := socialapimodels.NewChannel()
-	if err := channel.ById(channelId); err != nil {
+	if err := channel.ById(id); err != nil {
+		// if channel is not there, do not do anyting
+		if err == bongo.RecordNotFound {
+			return nil
+		}
+
 		return err
 	}
 
 	// delete the channel
-	if err := channel.Delete(); err != nil {
-		return err
-	}
-
-	return nil
+	return channel.Delete()
 }
 
 func (c *Controller) UnshareVM(ping *models.Ping) error {
-	uid := "" // how to find uid
+	// if channel id is nil, there is nothing to do
+	if ping.ChannelId == "" {
+		return nil
+	}
 
-	return modelhelper.UnshareMachineByUid(uid)
+	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	// if the workspace is not there, nothing to do
+	if err != mgo.ErrNotFound {
+		return nil
+	}
+
+	return modelhelper.UnshareMachineByUid(ws.MachineUID)
 }
 
 func (c *Controller) DeleteDriveDoc(ping *models.Ping) error {
@@ -273,6 +298,8 @@ func PrepareFileKey(fileId string) string {
 	)
 }
 
+// deleteFile deletes the file from google drive api, if file is not there
+// doesnt do anything
 func (c *Controller) deleteFile(fileId string) error {
 	svc, err := c.createService()
 	if err != nil {
@@ -293,6 +320,7 @@ func (c *Controller) deleteFile(fileId string) error {
 	return nil
 }
 
+// getFile gets the file from google drive api
 func (c *Controller) getFile(fileId string) (*drive.File, error) {
 	svc, err := c.createService()
 	if err != nil {
@@ -346,4 +374,16 @@ func (c *Controller) createService() (*drive.Service, error) {
 	}
 
 	return svc, nil
+}
+
+// Error contains error responses.
+type Error []error
+
+// Error returns the err string
+func (e Error) Error() string {
+	if len(e) == 0 {
+		return ""
+	}
+
+	return fmt.Sprintf("collaboration: %v", e)
 }
