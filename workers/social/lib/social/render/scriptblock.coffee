@@ -44,8 +44,8 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/common.js"></script>
-    <script src='/a/p/p/app.js'></script>
+    <script src="/a/p/p/common.js?#{KONFIG.version}"></script>
+    <script src="/a/p/p/app.js?#{KONFIG.version}"></script>
 
     <script>
       require('app')({

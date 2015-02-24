@@ -65,6 +65,7 @@ module.exports = class SiftScience
 
     @fetchUserInfo client, (err, userInfo)->
       return callback err   if err
+      return callback {message: "no user found"}  unless userInfo?
 
       {username, email, sessionToken} = userInfo
 
