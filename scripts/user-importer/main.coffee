@@ -62,16 +62,14 @@ createUsers = (users)->
               if err then console.log "     Failed to verify: ", err
               else        console.log "     Email verified."
 
-              JUser.configureNewAcccount account, user, createId(), (err)->
+              console.log "\n   - Adding to group #{u.group} ..."
 
-                console.log "\n   - Adding to group #{u.group} ..."
+              JUser.addToGroup account, u.group, u.email, null, (err)->
 
-                JUser.addToGroup account, u.group, u.email, null, (err)->
+                if err then console.log "     Failed to add: ", err
+                else        console.log "     Joined to group #{u.group}."
 
-                  if err then console.log "     Failed to add: ", err
-                  else        console.log "     Joined to group #{u.group}."
-
-                  next()
+                next()
 
 
     # An array like this

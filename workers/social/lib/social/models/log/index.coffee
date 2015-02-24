@@ -41,7 +41,7 @@ module.exports = class JLog extends Module
         type        : String
         required    : no
 
-  @log = (data, callback)->
+  @log = (data, callback = ->)->
     log = new JLog data
     log.save (err) -> callback err
 
