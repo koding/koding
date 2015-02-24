@@ -266,14 +266,6 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		}
 	}
 
-	// update the intermediate information
-	p.Update(m.Id, &kloud.StorageData{
-		Type: "starting",
-		Data: map[string]interface{}{
-			"ipAddress": artifact.IpAddress,
-		},
-	})
-
 	// Assign a Elastic IP for a paying customer if it doesn't have any
 	// assigned yet (Elastic IP's are assigned only during the Build). We
 	// lookup the IP from the Elastic IPs, if it's not available (returns an
@@ -298,6 +290,14 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 			}
 		}
 	}
+
+	// update the intermediate information
+	p.Update(m.Id, &kloud.StorageData{
+		Type: "starting",
+		Data: map[string]interface{}{
+			"ipAddress": artifact.IpAddress,
+		},
+	})
 
 	a.Push("Initializing domain instance", 65, machinestate.Starting)
 	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
@@ -405,13 +405,32 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	m.QueryString = ""
 	m.IpAddress = ""
 
+	fetcherResp, err := p.Fetcher(m)
+	if err != nil {
+		return nil, err
+	}
+
+	checker := &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      p.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}
+
 	b := &Build{
-		amazon:   a,
-		machine:  m,
-		provider: p,
-		start:    40,
-		finish:   90,
-		log:      p.Log,
+		amazon:     a,
+		machine:    m,
+		provider:   p,
+		plan:       fetcherResp.Plan,
+		checker:    checker,
+		start:      40,
+		finish:     90,
+		log:        p.Log,
+		cleanFuncs: make([]func(), 0),
 	}
 
 	// this updates/creates domain
