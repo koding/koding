@@ -411,6 +411,7 @@ module.exports = class IDEEditorPane extends IDEPane
       return kd.log 'Error while getting file info', err  if err
       return  unless readOnly
 
+      @makeReadOnly()
       modal = new KDModalView
         title    : 'Read-only file'
         content  : '''
