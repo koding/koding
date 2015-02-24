@@ -102,7 +102,7 @@ module.exports = class RealtimeController extends KDController
       maxDelay    : 15000
 
     bo.on 'fail', -> callback {message: "Authentication failed."}
-    bo.failAfter 5
+    bo.failAfter 15
 
     bo.on 'ready', -> bo.backoff()
 
@@ -309,6 +309,15 @@ module.exports = class RealtimeController extends KDController
 
     pb = pbInstance or @pubnub
 
+    bo = backoff.exponential
+      initialDelay: 700
+      maxDelay    : 15000
+
+    bo.on 'fail', -> kd.error "Fetch history failed for channel #{channel}"
+    bo.failAfter 15
+
+    bo.on 'ready', -> bo.backoff()
+
     limit = 100
     historyOptions =
       channel : channel
@@ -316,6 +325,8 @@ module.exports = class RealtimeController extends KDController
       count   : limit
       reverse : true
       callback: (response) =>
+
+        bo.reset()
 
         return  unless response?.length and Array.isArray(response)
 
@@ -329,11 +340,11 @@ module.exports = class RealtimeController extends KDController
         if messages.length is limit
           historyOptions.start = end
           @fetchHistory {channel, timestamp: end}
-      err: (err) ->
-        # instead of getting into a stale state, just reload the page
-        window.location.reload()  if err
+      err: (err) -> kd.warn "Could not fetch history #{err.message}"  unless err
 
-    pb.history historyOptions
+    bo.on 'backoff', => pb.history historyOptions
+
+    bo.backoff()
 
 
   handleMessage: (message, channel) ->
