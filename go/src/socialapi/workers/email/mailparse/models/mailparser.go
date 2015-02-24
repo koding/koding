@@ -39,8 +39,9 @@ var (
 	ErrAccountIsNotFound = errors.New("Account is not found")
 	ErrFromFieldIsNotSet = errors.New("From field is not set")
 	ErrTextBodyIsNotSet  = errors.New("TextBody is not set")
+	ErrEmailIsNotFetched = errors.New("Email is not fetched")
 	errInvalidMailPrefix = errors.New("invalid prefix")
-	errLengthIsNotEnough = errors.New("Lenght is not enough")
+	errLengthIsNotEnough = errors.New("Length is not enough")
 	errCannotOpen        = errors.New("cant open channel")
 )
 
@@ -48,13 +49,13 @@ var (
 func GetAccount(mailAddress string) (*mongomodels.Account, error) {
 	user, err := modelhelper.FetchUserByEmail(mailAddress)
 	if err != nil {
-		return nil, err
+		return nil, ErrEmailIsNotFetched
 	}
 
 	// This GetAccount
 	account, err := modelhelper.GetAccount(user.Name)
 	if err != nil {
-		return nil, err
+		return nil, ErrAccountIsNotFound
 	}
 	return account, nil
 }
@@ -71,9 +72,9 @@ func (m *Mail) Validate() error {
 	return nil
 }
 
-// getIdsFromMaiboxHash returns the id inside of the MailboxHash
+// getIdsFromMailboxHash returns the id inside of the MailboxHash
 //
-func (m *Mail) getIdsFromMaiboxHash() (int64, error) {
+func (m *Mail) getIdsFromMailboxHash() (int64, error) {
 	// Split method get the MailboxHash field
 	// MailboxHash seems like "channelid.5678",
 	// or MailboxHash seems like "messageid.1234"
@@ -93,33 +94,56 @@ func (m *Mail) getIdsFromMaiboxHash() (int64, error) {
 	return id, nil
 }
 
+func channelPermission(channelId int64, accountId int64) (*socialapimodels.Channel, error) {
+	c, err := socialapimodels.ChannelById(channelId)
+	if err != nil {
+		return nil, err
+	}
+
+	canOpen, err := c.CanOpen(accountId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !canOpen {
+		return nil, errCannotOpen //silently sucess here, we dont want retries here
+	}
+	return c, nil
+
+}
+
 func (m *Mail) persistPost(accountId int64) error {
 
-	cid, err := m.getIdsFromMaiboxHash()
+	cid, err := m.getIdsFromMailboxHash()
 	if err != nil {
 		return err
 	}
 
 	channelId := cid
-	c, err := socialapimodels.ChannelById(channelId)
+	c, err := channelPermission(channelId, accountId)
 	if err != nil {
 		return err
 	}
 
-	canOpen, err := c.CanOpen(accountId)
-	if err != nil {
-		return err
-	}
+	// c, err := socialapimodels.ChannelById(channelId)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if !canOpen {
-		return errCannotOpen //silently sucess here, we dont want retries here
-	}
+	// canOpen, err := c.CanOpen(accountId)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// if !canOpen {
+	// 	return errCannotOpen //silently sucess here, we dont want retries here
+	// }
 
 	cm := socialapimodels.NewChannelMessage()
 	cm.Body = m.TextBody // set the body
 	// todo set this type according to the the channel id
 	cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_POST
-	if c.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant == socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
 		cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
 	}
 	cm.InitialChannelId = channelId
@@ -138,7 +162,7 @@ func (m *Mail) persistPost(accountId int64) error {
 
 func (m *Mail) persistReply(accountId int64) error {
 
-	mId, err := m.getIdsFromMaiboxHash()
+	mId, err := m.getIdsFromMailboxHash()
 	if err != nil {
 		return err
 	}
@@ -148,19 +172,23 @@ func (m *Mail) persistReply(accountId int64) error {
 		return err
 	}
 
-	c, err := socialapimodels.ChannelById(cm.InitialChannelId)
+	_, err = channelPermission(cm.InitialChannelId, accountId)
 	if err != nil {
 		return err
 	}
+	// c, err := socialapimodels.ChannelById(cm.InitialChannelId)
+	// if err != nil {
+	// 	return err
+	// }
 
-	canOpen, err := c.CanOpen(accountId)
-	if err != nil {
-		return err
-	}
+	// canOpen, err := c.CanOpen(accountId)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if !canOpen {
-		return nil //silently sucess here, we dont want retries here
-	}
+	// if !canOpen {
+	// 	return errCannotOpen //silently sucess here, we dont want retries here
+	// }
 
 	// create reply
 	reply := socialapimodels.NewChannelMessage()
@@ -182,11 +210,11 @@ func (m *Mail) persistReply(accountId int64) error {
 	return nil
 }
 
-func (m *Mail) getSocialIdInFromField() (int64, error) {
+func (m *Mail) getSocialIdFromEmail() (int64, error) {
 
 	acc, err := GetAccount(m.From)
 	if err != nil {
-		return 0, ErrAccountIsNotFound
+		return 0, err
 	}
 
 	accountId, err := acc.GetSocialApiId()
@@ -202,7 +230,7 @@ func (m *Mail) getSocialIdInFromField() (int64, error) {
 // post+channelid.5678@inbound.koding.com
 func (m *Mail) Persist() error {
 
-	accountId, err := m.getSocialIdInFromField()
+	accountId, err := m.getSocialIdFromEmail()
 	if err != nil {
 		return err
 	}

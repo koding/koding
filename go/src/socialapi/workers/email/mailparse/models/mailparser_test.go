@@ -104,7 +104,7 @@ func TestGetIdsFromMailboxHash(t *testing.T) {
 				MailboxHash: "message.",
 			}
 
-			gid, err := m.getIdsFromMaiboxHash()
+			gid, err := m.getIdsFromMailboxHash()
 			So(err, ShouldNotBeNil)
 			So(gid, ShouldEqual, 0)
 		})
@@ -114,14 +114,14 @@ func TestGetIdsFromMailboxHash(t *testing.T) {
 				MailboxHash: "message.1234",
 			}
 
-			gid, err := m.getIdsFromMaiboxHash()
+			gid, err := m.getIdsFromMailboxHash()
 			So(err, ShouldBeNil)
 			So(gid, ShouldEqual, 1234)
 		})
 	})
 }
 
-func TestGetSocialIdInFromField(t *testing.T) {
+func TestGetSocialIdFromEmail(t *testing.T) {
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("couldnt start bongo %s", err.Error())
@@ -139,9 +139,9 @@ func TestGetSocialIdInFromField(t *testing.T) {
 				From: "mailisnotexist@abo",
 			}
 
-			gid, err := m.getSocialIdInFromField()
+			gid, err := m.getSocialIdFromEmail()
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAccountIsNotFound)
+			So(err, ShouldEqual, ErrEmailIsNotFetched)
 			So(gid, ShouldEqual, 0)
 		})
 
@@ -160,7 +160,7 @@ func TestGetSocialIdInFromField(t *testing.T) {
 				From: mongoUser.Email,
 			}
 
-			gid, err := m.getSocialIdInFromField()
+			gid, err := m.getSocialIdFromEmail()
 			So(err, ShouldBeNil)
 			So(gid, ShouldEqual, acc.Id)
 

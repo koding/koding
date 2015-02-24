@@ -7,7 +7,7 @@ module.exports = (req, res) ->
     <html lang="en">
       <head>
         <script>
-          window.opener.kd.singletons.paymentController.paypalCancel();
+          window.opener.require('kd').singletons.paymentController.paypalCancel();
           window.close();
         </script>
       </head>

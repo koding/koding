@@ -198,11 +198,17 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 		return nil, err
 	}
 
-	return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
+	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
+	return cmc, cmc.AddIsInteracted(query).Err
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
+	if query.AccountId == 0 {
+		return false, nil
+	}
+
 	channel := NewChannel()
+
 	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
 		if err == bongo.RecordNotFound {
 			return false, nil

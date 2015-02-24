@@ -57,11 +57,20 @@ func TestGetAllCustomers(t *testing.T) {
 
 			So(len(usernames), ShouldEqual, 1)
 			So(usernames[0], ShouldEqual, "indianajones")
-
-			Reset(func() {
-				modelhelper.RemoveAccount(account.Id)
-			})
 		})
+
+		Reset(func() {
+			modelhelper.RemoveAccount(account.Id)
+
+			customer := paymentmodels.NewCustomer()
+			customer.ByOldId(account.Id.Hex())
+
+			subscription, _ := customer.FindActiveSubscription()
+			subscription.Cancel()
+
+			customer.DeleteSubscriptionsAndItself()
+		})
+
 	})
 }
 
