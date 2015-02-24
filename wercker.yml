@@ -14,7 +14,9 @@ build:
 
     - script:
         name: go test
-        code: go test -v
+        code: |
+          go test -v
+          go test -v ./fs
 
 deploy:
   steps:
