@@ -19,13 +19,19 @@ type MachineAndWorkspaces struct {
 	Workspaces []*models.Workspace
 }
 
-func getEnvData(user *models.User) *EnvData {
-	userId := user.ObjectId
+func getEnvData(userInfo *UserInfo) *EnvData {
+	var collab []*MachineAndWorkspaces
+	var userId = userInfo.UserId
+
+	socialApiId := userInfo.SocialApiId
+	if socialApiId != "" {
+		collab = getCollab(userId, socialApiId)
+	}
 
 	return &EnvData{
 		Own:           getOwn(userId),
 		Shared:        getShared(userId),
-		Collaboration: getCollab(user),
+		Collaboration: collab,
 	}
 }
 
@@ -47,13 +53,13 @@ func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 	return getWorkspacesForEachMachine(sharedMachines)
 }
 
-func getCollab(user *models.User) []*MachineAndWorkspaces {
-	machines, err := modelhelper.GetCollabMachines(user.ObjectId)
+func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces {
+	machines, err := modelhelper.GetCollabMachines(userId)
 	if err != nil {
 		return nil
 	}
 
-	channelIds, err := getCollabChannels(user.Name)
+	channelIds, err := getCollabChannels(socialApiId)
 	if err != nil {
 		return nil
 	}
@@ -102,24 +108,43 @@ func getWorkspacesForEachMachine(machines []models.Machine) []*MachineAndWorkspa
 	return mws
 }
 
-func getCollabChannels(username string) ([]string, error) {
-	account, err := modelhelper.GetAccount(username)
+type channelResponse struct {
+	Id string `json:"id"`
+}
+
+func getCollabChannels(socialApiId string) ([]string, error) {
+	path := "%v/privatechannel/list?accountId=%[2]s"
+	url := buildUrl(path, socialApiId, "type=collaboration")
+
+	rawResponse, err := fetchSocialItem(url)
 	if err != nil {
 		return nil, err
 	}
 
-	path := "/privatechannel/list?accountId="
-	url := buildUrl(path, account.Id.Hex(), "type=collaboration")
-
-	raw, err := fetchSocialItem(url)
-	if err != nil {
-		return nil, err
-	}
-
-	response, ok := raw.([]string)
+	response, ok := rawResponse.([]interface{})
 	if !ok {
 		return nil, errors.New("error unmarshalling repsonse")
 	}
 
-	return response, nil
+	channelIds := []string{}
+	for _, single := range response {
+		raw, ok := single.(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		channel, ok := raw["channel"].(map[string]interface{})
+		if !ok {
+			continue
+		}
+
+		id, ok := channel["id"].(string)
+		if !ok {
+			continue
+		}
+
+		channelIds = append(channelIds, id)
+	}
+
+	return channelIds, nil
 }

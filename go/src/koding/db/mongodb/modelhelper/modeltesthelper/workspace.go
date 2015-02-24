@@ -25,6 +25,18 @@ func CreateWorkspaceForMachine(machineUId string) (*models.Workspace, error) {
 	return workspace, nil
 }
 
+func UpdateWorkspaceChannelId(machineUId, channelId string) error {
+	selector := bson.M{"machineUId": machineUId}
+	query := bson.M{"$set": bson.M{"channelId": channelId}}
+
+	updateQuery := func(c *mgo.Collection) error {
+		_, err := c.UpdateAll(selector, query)
+		return err
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.WorkspaceColl, updateQuery)
+}
+
 func DeleteWorkspaceForMachine(machineUId string) error {
 	deleteQuery := func(c *mgo.Collection) error {
 		_, err := c.RemoveAll(bson.M{"machineUId": machineUId})
