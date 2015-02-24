@@ -131,7 +131,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     { channel } = update
 
     return  unless channel
-
     return  unless item = @itemsById[channel.id]
 
     item.setUnreadCount? update.unreadCount
