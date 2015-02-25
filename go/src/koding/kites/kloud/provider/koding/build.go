@@ -140,7 +140,6 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	var err error
 	imageId := ""
-	publicIp := ""
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
 
@@ -182,26 +181,6 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	} else {
 		b.log.Debug("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
 			b.machine.Id, instanceId, queryString)
-	}
-
-	// allocate and associate a new Public IP for paying users, we can do
-	// this after we create the instance
-	if b.plan != Free {
-		b.log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", b.machine.Id)
-		allocateResp, err := b.amazon.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
-		if err != nil {
-			return nil, err
-		}
-		publicIp = allocateResp.PublicIp
-
-		b.log.Debug("[%s] Elastic IP allocated %+v", b.machine.Id, allocateResp)
-
-		if _, err := b.amazon.Client.AssociateAddress(&ec2.AssociateAddress{
-			InstanceId:   instanceId,
-			AllocationId: allocateResp.AllocationId,
-		}); err != nil {
-			return nil, err
-		}
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
@@ -250,13 +229,21 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	// allocate and associate a new Public IP for paying users, we can do
+	// this after we create the instance
+	if b.plan != Free {
+		b.log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", b.machine.Id)
+
+		elasticIp, err := allocateAndAssociateIP(b.amazon.Client, instanceId)
+		if err != nil {
+			b.log.Warning("[%s] couldn't not create elastic IP: %s", b.machine.Id, err)
+		} else {
+			buildArtifact.IpAddress = elasticIp
+		}
+	}
+
 	buildArtifact.KiteQuery = queryString
 	buildArtifact.ImageId = imageId
-
-	// only replace when have an Elastic IP
-	if publicIp != "" {
-		buildArtifact.IpAddress = publicIp
-	}
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 

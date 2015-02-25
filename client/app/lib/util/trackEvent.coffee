@@ -1,15 +1,14 @@
+kd = require 'kd'
 globals = require 'globals'
 whoami = require './whoami'
 isLoggedIn = require './isLoggedIn'
 gaEvent = require './gaEvent'
 
-# Access control wrapper around mixpanel object.
+# Access control wrapper around segmentio object.
 module.exports = exports = (args...) ->
 
-  return  unless analytics and globals.config.logToExternal
+  return  unless analytics? and globals.config.logToExternal
 
-  # We decided to move to segment.io which multiplexes to many
-  # services. This is still named mixpanel for legacy reasons. - SA
   identifyUser = (account)->
     {_id, meta, profile} = account
     return  unless profile
@@ -66,5 +65,5 @@ module.exports = exports = (args...) ->
   analytics.track args...
 
 exports.alias = (args...)->
-  return  unless analytics and globals.config.logToExternal
+  return  unless analytics? and globals.config.logToExternal
   analytics.alias args...

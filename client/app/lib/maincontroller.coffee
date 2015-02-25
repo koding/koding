@@ -263,14 +263,13 @@ module.exports = class MainController extends KDController
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
     cookieChangeHandler = do (cookie = kookies.get 'clientId') => =>
-      cookieExists = cookie?
-      cookieMatches = cookie is (kookies.get 'clientId')
+      cookieExists      = cookie?
+      cookieMatches     = cookie is (kookies.get 'clientId')
 
-      if cookieExists and not cookieMatches
-        return @isLoggingIn off  if @isLoggingIn() is on
+      if not cookieExists or (cookieExists and not cookieMatches)
+        location.reload '/'
 
-        global.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
-        @emit "clientIdChanged"
+      kd.utils.wait 1000, cookieChangeHandler
 
     # Note: I am using wait instead of repeat, for the subtle difference.  See this StackOverflow answer for more info:
     #       http://stackoverflow.com/questions/729921/settimeout-or-setinterval/731625#731625

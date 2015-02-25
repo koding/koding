@@ -127,7 +127,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @removeItem id
 
 
-  handleGlanced: (update) -> @selectedItem?.setUnreadCount? update.unreadCount
+  handleGlanced: (update) ->
+    { channel } = update
+
+    return  unless channel
+    return  unless item = @itemsById[channel.id]
+
+    item.setUnreadCount? update.unreadCount
 
 
   glanceChannelWorkspace: (channel) ->

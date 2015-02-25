@@ -187,7 +187,7 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
         debug "could not write #{outfile}"  if err
         debug "#{pretty bundle.source.length} written to #{path.basename outfile}"
 
-  #b.require(require.resolve('kd.js'), { expose: 'kd' })
+  b.require(require.resolve('kd.js'), { expose: 'kd' })  unless watchMode
 
   gulp.src(['*/bant.json']).pipe bant
 

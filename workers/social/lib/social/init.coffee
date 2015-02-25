@@ -40,7 +40,6 @@ initKodingGroup = ->
   fin = dash continuation, kodingAdmins.map (userData) -> ->
 
     JUser.createUser userData, (err, user, account) ->
-      JUser.emit 'UserCreated', user
       error err  if err
       adminAccounts.push account
       fin()

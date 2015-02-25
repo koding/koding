@@ -49,7 +49,7 @@ module.exports = class EmbedBoxWidget extends KDView
 
     @embedLinks = new EmbedBoxLinksView { delegate: this }
 
-    @embedLinks.on 'LinkAdded', ({ url }) =>
+    @embedLinks.on 'LinkAdded', (url) =>
       @show()
       # if the embed index isn't set, set it to 0
       @setEmbedIndex 0  unless @getEmbedIndex()?
@@ -76,9 +76,11 @@ module.exports = class EmbedBoxWidget extends KDView
 
     fn = @bound 'checkInputForUrls'
 
+    delay = 1000
+    timer = null
     input.on 'keydown', (event) ->
-      fn()  if event.which in [9, 13, 32]
-
+      kd.utils.killWait timer
+      timer = kd.utils.wait delay, fn
     input.on 'paste', fn
     input.on 'change', fn
 
