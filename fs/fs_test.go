@@ -2,6 +2,7 @@ package fs
 
 import (
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -16,8 +17,11 @@ import (
 )
 
 var (
-	fs     *kite.Kite
-	remote *kite.Client
+	fs *kite.Kite
+
+	// remote defines a remote user calling the fs kite
+	remote  *kite.Client
+	remote2 *kite.Client
 )
 
 func init() {
@@ -40,8 +44,18 @@ func init() {
 	go fs.Run()
 	<-fs.ServerReadyNotify()
 
-	remote = fs.NewClient("http://127.0.0.1:3636/kite")
+	remoteKite := kite.New("remote", "0.0.1")
+	remoteKite.Config.Username = "remote"
+	remote = remoteKite.NewClient("http://127.0.0.1:3636/kite")
 	err := remote.Dial()
+	if err != nil {
+		log.Fatal("err")
+	}
+
+	remoteKite2 := kite.New("remote2", "0.0.1")
+	remoteKite2.Config.Username = "remote2"
+	remote2 = remoteKite2.NewClient("http://127.0.0.1:3636/kite")
+	err = remote2.Dial()
 	if err != nil {
 		log.Fatal("err")
 	}
@@ -100,85 +114,107 @@ func TestReadDirectory(t *testing.T) {
 
 func TestWatcher(t *testing.T) {
 	testDir := "testdata"
-	addFile := "testdata/example1.txt"
-	newFile := "testdata/example2.txt"
 
-	done := make(chan struct{}, 2)
+	type change struct {
+		action string
+		name   string
+	}
 
-	onChange := dnode.Callback(func(r *dnode.Partial) {
-		s := r.MustSlice()
-		m := s[0].MustMap()
+	onChangeFunc := func(changes *[]change) dnode.Function {
+		return dnode.Callback(func(r *dnode.Partial) {
+			s := r.MustSlice()
+			m := s[0].MustMap()
 
-		e := m["event"].MustString()
+			e := m["event"].MustString()
 
-		var f = &FileEntry{}
-		m["file"].Unmarshal(f)
+			var f = &FileEntry{}
+			m["file"].Unmarshal(f)
 
-		switch e {
-		case "added":
-			if f.Name == "example1.txt" {
-				done <- struct{}{}
-			}
-		case "removed":
-			if f.Name == "example1.txt" {
-				done <- struct{}{}
-			}
+			*changes = append(*changes, change{
+				name:   f.FullPath,
+				action: e,
+			})
+		})
+	}
 
-			if f.Name == "example2.txt" {
-				done <- struct{}{}
-			}
-		}
-
-	})
+	changes1 := make([]change, 0)
+	onChange1 := onChangeFunc(&changes1)
 
 	_, err := remote.Tell("readDirectory", struct {
 		Path     string
 		OnChange dnode.Function
 	}{
 		Path:     testDir,
-		OnChange: onChange,
+		OnChange: onChange1,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	t.Log("Creating file")
-	time.Sleep(time.Millisecond * 100)
+	changes2 := make([]change, 0)
+	onChange2 := onChangeFunc(&changes2)
 
-	ioutil.WriteFile(addFile, []byte("example"), 0755)
-
-	select {
-	case <-done:
-	case <-time.After(time.Second * 2):
-		t.Fatal("timeout adding watcher after two seconds")
+	_, err = remote2.Tell("readDirectory", struct {
+		Path     string
+		OnChange dnode.Function
+	}{
+		Path:     testDir,
+		OnChange: onChange2,
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	t.Log("Renaming file")
-	time.Sleep(time.Millisecond * 100)
+	addFile := "testdata/example3.txt"
+	newFile := "testdata/example4.txt"
 
+	t.Logf("Creating file %s", addFile)
+	time.Sleep(time.Millisecond * 100)
+	ioutil.WriteFile(addFile, []byte("example"), 0755)
+
+	t.Logf("Renaming file from %s to %s", addFile, newFile)
+	time.Sleep(time.Millisecond * 100)
 	err = os.Rename(addFile, newFile)
 	if err != nil {
 		t.Error(err)
 	}
 
-	select {
-	case <-done:
-	case <-time.After(time.Second * 2):
-		t.Fatal("timeout removing watcher after two seconds")
-	}
-
-	t.Log("Removing file")
+	t.Logf("Removing file %s", newFile)
 	time.Sleep(time.Millisecond * 100)
-
 	err = os.Remove(newFile)
 	if err != nil {
 		t.Error(err)
 	}
 
-	select {
-	case <-done:
-	case <-time.After(time.Second * 2):
-		t.Fatal("timeout removing watcher after two seconds")
+	time.Sleep(time.Millisecond * 100)
+
+	var expected = map[string]bool{
+		"added_testdata/example3.txt":   true,
+		"added_testdata/example4.txt":   true,
+		"removed_testdata/example3.txt": true,
+		"removed_testdata/example4.txt": true,
+	}
+
+	t.Logf("changes1 %+v", changes1)
+	t.Logf("changes2 %+v", changes2)
+
+	testChanges := func(changes []change) error {
+		for _, change := range changes {
+			_, ok := expected[change.action+"_"+change.name]
+			if !ok {
+				fmt.Errorf("%s_%s does not exist", change.action, change.name)
+			}
+		}
+
+		return nil
+	}
+
+	if err := testChanges(changes1); err != nil {
+		t.Errorf("watcher for remote: %s", err)
+	}
+
+	if err := testChanges(changes2); err != nil {
+		t.Errorf("watcher for remote2: %s", err)
 	}
 }
 
