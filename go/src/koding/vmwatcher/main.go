@@ -41,6 +41,12 @@ var (
 	}
 )
 
+const (
+	every4MinsFrom0 = "0 0-59/4 * * * *"
+	every4MinsFrom1 = "0 1-59/4 * * * *"
+	every3MinsFrom1 = "0 1-59/3 * * * *"
+)
+
 func main() {
 	initialize()
 
@@ -58,7 +64,7 @@ func main() {
 	// the usernames so multiple workers don't queue the same usernames.
 	// this needs to be done at top of hour, so running multiple workers
 	// won't cause a problem.
-	c.AddFunc("0 0-59/4 * * * *", func() {
+	c.AddFunc(every4MinsFrom0, func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
 			Log.Fatal(err.Error())
@@ -68,7 +74,7 @@ func main() {
 	// get and save metrics every 4 mins, starting at 1st minute
 	// queue overlimit users for either stop or block depending
 	// on their usage
-	c.AddFunc("0 1-59/4 * * * *", func() {
+	c.AddFunc(every4MinsFrom1, func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
 			Log.Fatal(err.Error())
@@ -85,7 +91,7 @@ func main() {
 		}
 	})
 
-	c.AddFunc("0 1-59/3 * * * *", func() {
+	c.AddFunc(every3MinsFrom1, func() {
 		err := dealWithMachinesOverLimit()
 		if err != nil {
 			Log.Fatal(err.Error())
