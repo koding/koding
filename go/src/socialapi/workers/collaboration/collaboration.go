@@ -363,7 +363,7 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 			Username: u.Name,
 		}
 
-		_, err = klientRef.Client().Tell("klient.unshare", param)
+		_, err = klientRef.Client.Tell("klient.unshare", param)
 		if err != nil {
 			c.log.Error(err.Error())
 
