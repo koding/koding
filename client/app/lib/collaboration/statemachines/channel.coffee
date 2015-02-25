@@ -198,7 +198,7 @@ create = (channelId) ->
      * @param {function=} callbacks.error   - error calback
     ###
     _addParticipant: (userId, callbacks) ->
-      getAccount userId, (err, account) =>
+      fetchAccount userId, (err, account) =>
         return handleError err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         addParticipants opts, (err) =>
@@ -215,7 +215,7 @@ create = (channelId) ->
      * @param {function=} callbacks.error   - error calback
     ###
     _removeParticipant: (userId, callbacks) ->
-      getAccount userId, (err, account) =>
+      fetchAccount userId, (err, account) =>
         return callbacks.error err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         removeParticipants opts, (err) =>
@@ -258,7 +258,7 @@ initChannel = (callback) ->
     return callback {message: 'error'}  unless channels?.length
     return callback null, channels[0]
 
-getAccount = (userId, callback) ->
+fetchAccount = (userId, callback) ->
   remote.cacheable 'JAccount', userId, callback
 
 handleError = (err) ->
