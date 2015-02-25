@@ -15,8 +15,7 @@ import (
 )
 
 var (
-	once sync. // watcher variables
-	Once
+	once               sync.Once // watcher variables
 	newPaths, oldPaths = make(chan string), make(chan string)
 
 	// Limit of watching folders
