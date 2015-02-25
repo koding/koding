@@ -5,29 +5,16 @@ package collaboration
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/klient"
-	"net/http"
 	"socialapi/config"
-	socialapimodels "socialapi/models"
 	"socialapi/workers/collaboration/models"
 	"strconv"
-	"strings"
 	"time"
 
-	"code.google.com/p/goauth2/oauth"
-	"code.google.com/p/goauth2/oauth/jwt"
-	"code.google.com/p/google-api-go-client/drive/v2"
-	"code.google.com/p/google-api-go-client/googleapi"
 	"github.com/cenkalti/backoff"
-	"github.com/koding/bongo"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/redis"
 	"github.com/streadway/amqp"
-
-	"labix.org/v2/mgo"
 )
 
 const (
@@ -207,15 +194,15 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 		return c.DeleteDriveDoc(ping)
 	}, errChan)
 
-	var err Error
+	var multiErr Error
 
-	for errC := range errChan {
-		if errC != nil {
-			err = append(err, errC)
+	for err := range errChan {
+		if err != nil {
+			multiErr = append(multiErr, err)
 		}
 	}
 
-	return err
+	return multiErr
 }
 
 func (c *Controller) goWithRetry(f func() error, errChan chan error) {
@@ -231,7 +218,7 @@ func (c *Controller) goWithRetry(f func() error, errChan chan error) {
 		var err error
 		for _ = range ticker.C {
 			if err = f(); err != nil {
-				c.log.Error("err while connecting: %s  will retry...", err.Error())
+				c.log.Error("err while operating: %s  will retry...", err.Error())
 				continue
 			}
 
@@ -242,156 +229,6 @@ func (c *Controller) goWithRetry(f func() error, errChan chan error) {
 	}()
 }
 
-// EndPrivateMessage stops the collaboration session
-func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
-	// if channel id is nil, there is nothing to do
-	if ping.ChannelId == "" {
-		return nil
-	}
-
-	id, err := strconv.ParseInt(ping.ChannelId, 10, 64)
-	if err != nil {
-		return nil
-	}
-
-	// fetch the channel
-	channel := socialapimodels.NewChannel()
-	if err := channel.ById(id); err != nil {
-		// if channel is not there, do not do anyting
-		if err == bongo.RecordNotFound {
-			return nil
-		}
-
-		return err
-	}
-
-	// delete the channel
-	return channel.Delete()
-}
-
-func (c *Controller) UnshareVM(ping *models.Ping) error {
-	// if channel id is nil, there is nothing to do
-	if ping.ChannelId == "" {
-		return nil
-	}
-
-	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
-	if err != nil && err != mgo.ErrNotFound {
-		return err
-	}
-
-	// if the workspace is not there, nothing to do
-	if err != mgo.ErrNotFound {
-		return nil
-	}
-
-	return modelhelper.UnshareMachineByUid(ws.MachineUID)
-}
-
-func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
-	// if channel id is nil, there is nothing to do
-	if ping.ChannelId == "" {
-		return nil
-	}
-
-	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
-	if err != nil && err != mgo.ErrNotFound {
-		return err
-	}
-
-	// if the workspace is not there, nothing to do
-	if err != mgo.ErrNotFound {
-		return nil
-	}
-
-	m, err := modelhelper.GetMachineByUid(ws.MachineUID)
-	if err != nil && err != mgo.ErrNotFound {
-		return err
-	}
-
-	// if the machine is not there, nothing to do
-	if err != mgo.ErrNotFound {
-		return nil
-	}
-
-	// Get the klient.
-	klientRef, err := klient.ConnectTimeout(c.kite, m.QueryString, time.Second*10)
-	if err != nil {
-		if err == klient.ErrDialingFailed || err == kite.ErrNoKitesAvailable {
-			c.log.Error(
-				"[%s] Klient is not registered to Kontrol. Err: %s",
-				m.QueryString,
-				err,
-			)
-
-			return nil // if the machine is not open, we cant do anything
-		}
-
-		return err
-	}
-
-	type req struct {
-		Username string
-
-		// we are not gonna use this propery here, just for reference
-		Permanent bool
-	}
-
-	var iterErr error
-	for _, user := range m.Users {
-		// do not unshare from owner user
-		if user.Sudo && user.Owner {
-			continue
-		}
-
-		// fetch user for its username
-		u, err := modelhelper.GetUserById(user.Id.Hex())
-		if err != nil {
-			c.log.Error(err.Error())
-
-			// if we cant find the regarding user, do not do anything
-			if err == mgo.ErrNotFound {
-				continue
-			}
-
-			iterErr = err
-
-			continue // do not stop iterating, unshare from others
-		}
-
-		param := req{
-			Username: u.Name,
-		}
-
-		_, err = klientRef.Client.Tell("klient.unshare", param)
-		if err != nil {
-			c.log.Error(err.Error())
-
-			// those are so error prone, force klient side not to change the API
-			// or make them exported to some other package?
-			if strings.Contains(err.Error(), "user is permanent") {
-				continue
-			}
-
-			if strings.Contains(err.Error(), "user is not in the shared list") {
-				continue
-			}
-
-			iterErr = err
-
-			continue // do not stop iterating, unshare from others
-		}
-	}
-
-	// iterErr will be nil if we dont encounter to any error in iter
-	return iterErr
-
-}
-
-func (c *Controller) DeleteDriveDoc(ping *models.Ping) error {
-	return c.deleteFile(ping.FileId)
-}
-
 // PrepareFileKey prepares a key for redis
 func PrepareFileKey(fileId string) string {
 	return fmt.Sprintf(
@@ -400,84 +237,6 @@ func PrepareFileKey(fileId string) string {
 		KeyPrefix,
 		fileId,
 	)
-}
-
-// deleteFile deletes the file from google drive api, if file is not there
-// doesnt do anything
-func (c *Controller) deleteFile(fileId string) error {
-	svc, err := c.createService()
-	if err != nil {
-		return err
-	}
-
-	// files delete call
-	err = svc.Files.Delete(fileId).Do()
-	if err != nil {
-		if e, ok := err.(*googleapi.Error); ok {
-			if e.Code == 404 { // file not found
-				return nil
-			}
-		}
-		return err
-	}
-
-	return nil
-}
-
-// getFile gets the file from google drive api
-func (c *Controller) getFile(fileId string) (*drive.File, error) {
-	svc, err := c.createService()
-	if err != nil {
-		return nil, err
-	}
-
-	//get the file
-	return svc.Files.Get(fileId).Do()
-}
-
-// createService creates a service with Server auth enabled system
-func (c *Controller) createService() (*drive.Service, error) {
-	gs := c.conf.GoogleapiServiceAccount
-
-	// Settings for authorization.
-	var configG = &oauth.Config{
-		ClientId:     gs.ClientId,
-		ClientSecret: gs.ClientSecret,
-		Scope:        "https://www.googleapis.com/auth/drive",
-		RedirectURL:  "urn:ietf:wg:oauth:2.0:oob",
-		AuthURL:      "https://accounts.google.com/o/oauth2/auth",
-		TokenURL:     "https://accounts.google.com/o/oauth2/token",
-	}
-
-	// Read the pem file bytes for the private key.
-	keyBytes, err := ioutil.ReadFile(gs.ServiceAccountKeyFile)
-	if err != nil {
-		return nil, err
-	}
-
-	// Craft the ClaimSet and JWT token.
-	t := jwt.NewToken(gs.ServiceAccountEmail, configG.Scope, keyBytes)
-	t.ClaimSet.Aud = configG.TokenURL
-
-	// Get the access token.
-	o, err := t.Assert(&http.Client{}) // We need to provide a client.
-	if err != nil {
-		return nil, err
-	}
-
-	tr := &oauth.Transport{
-		Config:    configG,
-		Token:     o,
-		Transport: http.DefaultTransport,
-	}
-
-	// Create a new authorized Drive client.
-	svc, err := drive.New(tr.Client())
-	if err != nil {
-		return nil, err
-	}
-
-	return svc, nil
 }
 
 // Error contains error responses.

@@ -1,7 +1,6 @@
 package collaboration
 
 import (
-	"bytes"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
@@ -11,8 +10,6 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 	"time"
-
-	"code.google.com/p/google-api-go-client/drive/v2"
 
 	"socialapi/workers/collaboration"
 	"socialapi/workers/helper"
@@ -206,7 +203,7 @@ func TestCollaborationPing(t *testing.T) {
 			req := req
 			req.CreatedAt = time.Now().UTC()
 			Convey("should be able to create the file", func() {
-				f, err := createFile(handler)
+				f, err := handler.createFile()
 				So(err, ShouldBeNil)
 				req.FileId = f.Id
 				Convey("should be able to get the created file", func() {
@@ -230,26 +227,4 @@ func TestCollaborationPing(t *testing.T) {
 			})
 		})
 	})
-}
-
-func createFile(c *Controller) (*drive.File, error) {
-	svc, err := c.createService()
-	if err != nil {
-		return nil, err
-	}
-
-	// Define the metadata for the file we are going to create.
-	f := &drive.File{
-		Title:       "My Document",
-		Description: "My test document",
-	}
-
-	m := bytes.NewReader([]byte(`selamlar nasilsin?`))
-	// Make the API request to upload metadata and file data.
-	r, err := svc.Files.Insert(f).Media(m).Do()
-	if err != nil {
-		return nil, err
-	}
-
-	return r, nil
 }
