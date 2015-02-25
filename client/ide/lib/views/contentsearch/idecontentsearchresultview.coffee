@@ -54,4 +54,4 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
 
     file.fetchContents (err, contents) ->
       kd.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
-        editorPane.goToLine lineNumber
+        editorPane?.goToLine lineNumber

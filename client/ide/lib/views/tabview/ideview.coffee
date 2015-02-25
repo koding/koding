@@ -7,6 +7,7 @@ KDView = kd.View
 nick = require 'app/util/nick'
 FSHelper = require 'app/util/fs/fshelper'
 FSFile = require 'app/util/fs/fsfile'
+showErrorNotification = require 'app/util/showErrorNotification'
 IDEDrawingPane = require '../../workspace/panes/idedrawingpane'
 IDEEditorPane = require '../../workspace/panes/ideeditorpane'
 IDEPreviewPane = require '../../workspace/panes/idepreviewpane'
@@ -14,6 +15,7 @@ IDEShortcutsView = require '../shortcutsview/ideshortcutsview'
 IDETerminalPane = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
+FilePermissionsModal = require '../modals/filepermissionsmodal'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
@@ -104,16 +106,33 @@ module.exports = class IDEView extends IDEWorkspaceTabView
   createEditor: (file, content, callback = kd.noop, emitChange = yes) ->
 
     file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
+
+    # we need to show a notification that file is read-only or not accessible
+    # only if it is opened by user action
+    # we use emitChange to detect this case for now
+    notifyIfNoPermissions = emitChange
+
+    if file.isDummyFile() or not notifyIfNoPermissions
+      return @createEditorAfterFileCheck file, content, callback, emitChange, no
+
+    file.isReadableWritable (err, result) =>
+
+      return showErrorNotification err  if err
+
+      { readable, writable } = result
+      if not readable
+        new FilePermissionsModal
+          title      : 'Access Denied'
+          contentText: 'The file can\'t be opened because you don\'t have permission to see its contents.'
+        return callback()
+
+      @createEditorAfterFileCheck file, content, callback, emitChange, not writable
+
+
+  createEditorAfterFileCheck: (file, content, callback, emitChange, isReadOnly) ->
+
     content     = content or ''
-    editorPane  = new IDEEditorPane {
-      file
-      content
-      delegate: this
-      # we need to show a notification that file is read-only
-      # only if it is opened by user action
-      # we use emitChange to detect this case for now
-      notifyIfReadOnlyFile: emitChange
-    }
+    editorPane  = new IDEEditorPane { file, content, delegate: this }
 
     paneOptions =
       name      : file.name
@@ -135,6 +154,12 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       ace.editor.scrollToRow 0
       editorPane.goToLine 1
+
+      if isReadOnly
+        editorPane.makeReadOnly()
+        new FilePermissionsModal
+          title      : 'Read-only file'
+          contentText: 'You can proceed with opening the file but it is opened in read-only mode.'
 
       callback editorPane
 
@@ -327,8 +352,14 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       editorPane = @switchToEditorTabByFile file
       callback editorPane
     else
-      @createEditor file, content, callback, emitChange
-      @openFiles.push file
+      @createEditor(
+        file,
+        content,
+        (editorPane) =>
+          @openFiles.push file  if editorPane
+          callback editorPane
+        emitChange
+      )
 
 
   switchToEditorTabByFile: (file) ->
