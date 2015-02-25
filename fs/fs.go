@@ -74,9 +74,10 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 		if !ok {
 			// notify new paths to the watcher
 			newPaths <- params.Path
+			userCallbacks = make(map[string]func(fsnotify.Event), 0)
 		}
 
-		// now add the callback to the specific user. If it's already exists we just override
+		// now add the callback to the specific user.
 		_, ok = userCallbacks[r.Username]
 		if !ok {
 			userCallbacks[r.Username] = changer
@@ -86,7 +87,6 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 
 		removePath := func() {
 			mu.Lock()
-
 			userCallbacks, ok := watchCallbacks[params.Path]
 			if ok {
 				// delete the user callback function for this path
@@ -97,8 +97,6 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 				// path. So notify the watcher to stop watching the path and
 				// also remove it from the callbacks map
 				if len(userCallbacks) == 0 {
-					// notify the watcher that we are done with this path, because
-					// all users are removed
 					delete(watchCallbacks, params.Path)
 					oldPaths <- params.Path
 				}
@@ -151,16 +149,18 @@ func startWatcher() {
 	for {
 		select {
 		case event := <-watcher.Events:
-
 			mu.Lock()
-			f, ok := watchCallbacks[path.Dir(event.Name)]
+			callbacks, ok := watchCallbacks[path.Dir(event.Name)]
 			mu.Unlock()
 
 			if !ok {
 				continue
 			}
 
-			f(event)
+			// send the event to all callbacks added.
+			for _, f := range callbacks {
+				f(event)
+			}
 
 		case err := <-watcher.Errors:
 			log.Println("watcher error:", err)
