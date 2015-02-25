@@ -65,31 +65,56 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 		return nil, err
 	}
 
-	return GetOwnMachines(user.ObjectId)
+	query := bson.M{"users": bson.M{
+		"$elemMatch": bson.M{"id": user.ObjectId, "owner": true},
+	}}
+
+	return findMachine(query)
 }
 
-func GetOwnMachines(userId bson.ObjectId) ([]*models.Machine, error) {
+func GetOwnMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": userId, "owner": true},
 	}}
 
-	return findMachine(query)
+	return findMachineContainers(query)
 }
 
-func GetSharedMachines(userId bson.ObjectId) ([]*models.Machine, error) {
+func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": true},
 	}}
 
-	return findMachine(query)
+	return findMachineContainers(query)
 }
 
-func GetCollabMachines(userId bson.ObjectId) ([]*models.Machine, error) {
+func GetCollabMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	query := bson.M{"users": bson.M{
 		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": false},
 	}}
 
-	return findMachine(query)
+	return findMachineContainers(query)
+}
+
+func findMachineContainers(query bson.M) ([]*MachineContainer, error) {
+	machines, err := findMachine(query)
+	if err != nil {
+		return nil, err
+	}
+
+	containers := []*MachineContainer{}
+
+	for _, machine := range machines {
+		bongo := Bongo{
+			ConstructorName: MachineConstructorName,
+			InstanceId:      "1", // TODO: what should go here?
+		}
+
+		container := &MachineContainer{bongo, machine, machine}
+		containers = append(containers, container)
+	}
+
+	return containers, nil
 }
 
 func findMachine(query bson.M) ([]*models.Machine, error) {
