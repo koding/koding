@@ -55,7 +55,7 @@ func createMachine(t *testing.T) *models.Machine {
 
 	err := CreateMachine(m)
 	if err != nil {
-		t.Fatal(err.Error())
+		t.Errorf(err.Error())
 	}
 
 	return m
@@ -78,10 +78,10 @@ func TestUnshareMachine(t *testing.T) {
 	}
 
 	if len(m2.Users) != 1 {
-		t.Fatalf("user count should be 1, got: %d", len(m2.Users))
+		t.Errorf("user count should be 1, got: %d", len(m2.Users))
 	}
 
 	if !(m2.Users[0].Sudo && m2.Users[0].Owner) {
-		t.Fatalf("only owner should have sudo and owner priv.")
+		t.Errorf("only owner should have sudo and owner priv.")
 	}
 }
