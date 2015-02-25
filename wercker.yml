@@ -58,7 +58,7 @@ build:
           cat $INSTANCE_DATA
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot /pipeline/build
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: build client
         code: |
