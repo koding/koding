@@ -51,6 +51,14 @@ module.exports = class ActivityListController extends KDListViewController
     else @getItemCount() - index - 1
 
 
+  addItem: (itemData, index) ->
+
+    # add idempotent addItem support
+    {typeConstant, id} = itemData
+
+    return  if @itemsIndexed[id]
+
+    super itemData, index
   # LEGACY
 
   postIsCreated: (post) =>
