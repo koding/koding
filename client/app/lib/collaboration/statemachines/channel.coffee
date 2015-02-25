@@ -26,6 +26,27 @@ create = (channelId) ->
             error   : (error) => handleError error
 
       ###*
+       * State to indicate that there is some operation happening.
+      ###
+      busy:
+        channelReady: (channel) ->
+          @emit 'ChannelReady', { channel }
+          @transition 'ready'
+
+        participantAdded: (userId) ->
+          @emit 'ParticipantAdded', { id: userId }
+          @transition 'ready'
+
+        participantRemoved: (userId) ->
+          @emit 'ParticipantRemoved', { id: userId }
+          @transition 'ready'
+
+        channelDestroyed: ->
+          @emit 'ChannelDestroyed'
+          @transition 'loading'
+
+
+      ###*
        * This state means basically it is ready but still doesn't
        * have any `SocialChannel` instance. But it means that, it is ready to
        * be initialized.
@@ -70,18 +91,6 @@ create = (channelId) ->
         '*': ->
           @deferUntilTransition()
           @transition 'busy'
-
-      ###*
-       * State to indicate that there is some operation happening.
-      ###
-      busy:
-        channelDestroyed: 'loading'
-        # following could be written as
-        # '*': 'ready'
-        # keeping them here for clarity. ~Umut
-        channelReady: 'ready'
-        participantAdded: 'ready'
-        participantRemoved: 'ready'
 
 
     ###*
