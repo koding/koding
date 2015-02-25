@@ -19,7 +19,8 @@ var (
 	newPaths, oldPaths = make(chan string), make(chan string)
 
 	// Limit of watching folders
-	watchCallbacks = make(map[string]func(fsnotify.Event), 100)
+	// user -> path callbacks
+	watchCallbacks = make(map[string]map[string]func(fsnotify.Event), 100)
 	mu             sync.Mutex // protects watchCallbacks
 )
 
@@ -67,21 +68,42 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 			return
 		}
 
+		// first check if are watching the path, if not send it to the watcher
 		mu.Lock()
-		_, ok := watchCallbacks[params.Path]
+		userCallbacks, ok := watchCallbacks[params.Path]
 		if !ok {
 			// notify new paths to the watcher
 			newPaths <- params.Path
-			watchCallbacks[params.Path] = changer
+		}
+
+		// now add the callback to the specific user. If it's already exists we just override
+		_, ok = userCallbacks[r.Username]
+		if !ok {
+			userCallbacks[r.Username] = changer
+			watchCallbacks[params.Path] = userCallbacks
 		}
 		mu.Unlock()
 
 		removePath := func() {
 			mu.Lock()
-			delete(watchCallbacks, params.Path)
-			mu.Unlock()
 
-			oldPaths <- params.Path
+			userCallbacks, ok := watchCallbacks[params.Path]
+			if ok {
+				// delete the user callback function for this path
+				delete(userCallbacks, r.Username)
+
+				// now check if there is any user left back. If we have removed
+				// all users, we should also stop the watcher from watching the
+				// path. So notify the watcher to stop watching the path and
+				// also remove it from the callbacks map
+				if len(userCallbacks) == 0 {
+					// notify the watcher that we are done with this path, because
+					// all users are removed
+					delete(watchCallbacks, params.Path)
+					oldPaths <- params.Path
+				}
+			}
+			mu.Unlock()
 		}
 
 		// remove the path when the remote client disconnects
