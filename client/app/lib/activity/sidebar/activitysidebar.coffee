@@ -266,7 +266,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   accountRemovedFromChannel: (update) ->
 
-    {id} = update.channel
+    {id, typeConstant} = update.channel
+    {unreadCount, participantCount} = update
+    {socialapi}                     = kd.singletons
 
     return  if update.isParticipant
 
@@ -277,6 +279,15 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     # TODO update participants in sidebar
 
+    # TODO I have added these lines for channel data synchronization,
+    # but do not think that this is the right place for doing this.
+    socialapi.cacheable typeConstant, id, (err, channel) ->
+
+      return kd.warn err  if err
+
+      channel.isParticipant    = no
+      channel.participantCount = participantCount
+      channel.emit 'update'
 
   channelUpdateHappened: (update) -> kd.warn 'dont use this, :::educational purposes only!:::', update
 
