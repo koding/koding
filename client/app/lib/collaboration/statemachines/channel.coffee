@@ -22,7 +22,7 @@ create = (channelId) ->
           return @transition 'uninitialized'  unless channelId
           @transition 'busy'
           @_fetchChannel channelId,
-            success : => @handle 'channelReady'
+            success : (channel) => @handle 'channelReady'
             error   : (error) => handleError error
 
       ###*
@@ -60,7 +60,7 @@ create = (channelId) ->
         init: ->
           @transition 'busy'
           @_initChannel
-            success : => @handle 'channelReady'
+            success : (channel) => @handle 'channelReady', channel
             error   : (error) => handleError error
 
         '*': -> @deferUntilTransition()
@@ -79,13 +79,13 @@ create = (channelId) ->
         addParticipant: (userId) ->
           @transition 'busy'
           @_addParticipant userId,
-            success : => @handle 'participantAdded'; console.log 'hello'
+            success : (userId) => @handle 'participantAdded', userId
             error   : (error) -> handleError error
 
         removeParticipant: (userId) ->
           @transition 'busy'
           @_removeParticipant userId,
-            success : => @handle 'participantRemoved'
+            success : (userId) => @handle 'participantRemoved'
             error   : (error) -> handleError error
 
         '*': ->
@@ -156,7 +156,6 @@ create = (channelId) ->
         return callback.error()  if err
         @channel = channel
         callbacks.success()
-        @emit 'ChannelReady', { channel }
 
 
     ###*
@@ -172,7 +171,6 @@ create = (channelId) ->
         return callbacks.error()  if err
         @channel = null
         callbacks.success()
-        @emit 'ChannelDeleted'
 
     ###*
      * Fetch social channel with given id.
@@ -188,7 +186,6 @@ create = (channelId) ->
         return callbacks.error err  if err
         @channel = channel
         callbacks.success()
-        @emit 'ChannelReady', { channel }
 
 
     ###*
@@ -207,7 +204,6 @@ create = (channelId) ->
         addParticipants opts, (err) =>
           return callbacks.error err  if err
           callbacks.success account
-          @emit 'ParticipantAdded', { account }
 
 
     ###*
@@ -225,7 +221,6 @@ create = (channelId) ->
         removeParticipants opts, (err) =>
           return callbacks.error err  if err
           callbacks.success()
-          @emit 'ParticipantRemoved', { id: userId }
 
   return channelMachine
 
