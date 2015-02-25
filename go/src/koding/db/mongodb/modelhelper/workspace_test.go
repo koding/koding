@@ -38,19 +38,19 @@ func TestGetWorkspaceByChannelId(t *testing.T) {
 
 	w2, err := GetWorkspaceByChannelId(w.ChannelId)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Errorf(err.Error())
 	}
 
 	if w2 == nil {
-		t.Fatalf("couldnt fetch workspace by channel id got nil, expected: %+v", w)
+		t.Errorf("couldnt fetch workspace by channel id got nil, expected: %+v", w)
 	}
 
 	if w2.ObjectId.Hex() != w.ObjectId.Hex() {
-		t.Fatalf("workspaces are not same: expected: %+v, got: ", w)
+		t.Errorf("workspaces are not same: expected: %+v, got: ", w)
 	}
 
 	_, err = GetWorkspaceByChannelId(strconv.FormatInt(rand.Int63(), 10))
 	if err == nil {
-		t.Fatalf("we should not be able to find the WS")
+		t.Errorf("we should not be able to find the WS")
 	}
 }
