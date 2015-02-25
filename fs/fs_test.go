@@ -61,6 +61,46 @@ func init() {
 	}
 }
 
+func benchmarkReadDirectory(b *testing.B, numberOfFiles int) {
+	testDir, err := ioutil.TempDir("", "klient")
+	if err != nil {
+		b.Fatal(err)
+	}
+	defer os.RemoveAll(testDir)
+
+	for i := 0; i < numberOfFiles; i++ {
+		_, err := ioutil.TempFile(testDir, "fs")
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		remote.Tell("readDirectory", struct {
+			Path string
+		}{
+			Path: testDir,
+		})
+	}
+}
+
+func BenchmarkReadDirectory10(b *testing.B) {
+	benchmarkReadDirectory(b, 10)
+}
+
+func BenchmarkReadDirectory100(b *testing.B) {
+	benchmarkReadDirectory(b, 100)
+}
+
+func BenchmarkReadDirectory1000(b *testing.B) {
+	benchmarkReadDirectory(b, 1000)
+}
+
+func BenchmarkReadDirectory10000(b *testing.B) {
+	benchmarkReadDirectory(b, 10000)
+}
+
 func TestReadDirectory(t *testing.T) {
 	testDir := "."
 
@@ -98,13 +138,7 @@ func TestReadDirectory(t *testing.T) {
 
 	respFiles := make([]string, len(files))
 	for i, e := range entries {
-		f := &FileEntry{}
-		err := e.Unmarshal(f)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		respFiles[i] = f.Name
+		respFiles[i] = e.MustString()
 	}
 
 	if !reflect.DeepEqual(respFiles, currentFiles) {
@@ -437,31 +471,19 @@ func TestPermissions(t *testing.T) {
 		os.Chmod("testdata/"+name, os.FileMode(file.mode))
 	}
 
-	testDir := "testdata"
-
-	resp, err := remote.Tell("readDirectory", struct {
-		Path string
-	}{
-		Path: testDir,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	f, err := resp.Map()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	entries, err := f["files"].Slice()
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	respFiles := make([]*FileEntry, 0)
-	for _, e := range entries {
+	for name := range files {
+		resp, err := remote.Tell("getInfo", struct {
+			Path string
+		}{
+			Path: "testdata/" + name,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		f := &FileEntry{}
-		err := e.Unmarshal(f)
+		err = resp.Unmarshal(f)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -486,7 +508,7 @@ func TestPermissions(t *testing.T) {
 	// hosts file is owned by root but is readable for all users
 	testFile := "/etc/hosts"
 
-	resp, err = remote.Tell("getInfo", struct {
+	resp, err := remote.Tell("getInfo", struct {
 		Path string
 	}{
 		Path: testFile,

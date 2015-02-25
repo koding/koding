@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -37,18 +36,8 @@ func NewFileEntry(name string, fullPath string) *FileEntry {
 	}
 }
 
-func readDirectory(p string) ([]*FileEntry, error) {
-	files, err := ioutil.ReadDir(p)
-	if err != nil {
-		return nil, err
-	}
-
-	ls := make([]*FileEntry, len(files))
-	for i, info := range files {
-		ls[i] = makeFileEntry(path.Join(p, info.Name()), info)
-	}
-
-	return ls, nil
+func readDirectory(p string) ([]string, error) {
+	return filepath.Glob(p + "/*")
 }
 
 func glob(glob string) ([]string, error) {
