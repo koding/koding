@@ -165,21 +165,21 @@ func TestWatcher(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log("Creating file")
 	addFile := "testdata/example3.txt"
 	newFile := "testdata/example4.txt"
 
+	t.Logf("Creating file %s", addFile)
 	time.Sleep(time.Millisecond * 100)
 	ioutil.WriteFile(addFile, []byte("example"), 0755)
 
-	t.Log("Renaming file")
+	t.Logf("Renaming file from %s to %s", addFile, newFile)
 	time.Sleep(time.Millisecond * 100)
 	err = os.Rename(addFile, newFile)
 	if err != nil {
 		t.Error(err)
 	}
 
-	t.Log("Removing file")
+	t.Logf("Removing file %s", newFile)
 	time.Sleep(time.Millisecond * 100)
 	err = os.Remove(newFile)
 	if err != nil {
@@ -194,6 +194,9 @@ func TestWatcher(t *testing.T) {
 		{action: "removed", name: "testdata/example3.txt"},
 		{action: "removed", name: "testdata/example4.txt"},
 	}
+
+	t.Logf("changes1 %+v", changes1)
+	t.Logf("changes2 %+v", changes2)
 
 	testChanges := func(changes []change) error {
 		if len(changes) != 4 {
