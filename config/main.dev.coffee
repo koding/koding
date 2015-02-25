@@ -604,6 +604,15 @@ Configuration = (options={}) ->
             exit 1;
         fi
 
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
+            echo your run file is older than your client package json. doing npm i.
+            sleep 1
+            cd client && npm i && cd -
+
+            echo -e "\n\nPlease do ./configure and  ./run again\n"
+            exit 1;
+        fi
+
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
         if [  $OLD_COOKIE -ne 0 ]; then
             echo "You have tough-cookie@0.9.15 installed on your system, please remove node_modules directory and do npm i again";
