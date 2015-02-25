@@ -12,7 +12,7 @@ build: landing
 	@DEBUG=client:* $(BIN)/gulp
 
 shrinkwrap:
-	@$(BIN)/npm-shrinkwrap
+	@$(BIN)/npm-shrinkwrap --dev
 
 landing:
 	@cd landing && npm install --unsafe-perm --silent
