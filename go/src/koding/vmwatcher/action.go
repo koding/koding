@@ -3,7 +3,10 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 	"strings"
+	"time"
 )
+
+var KloudTimeout = time.Second * 2
 
 // request arguments
 type requestArgs struct {
@@ -17,7 +20,7 @@ func stopVm(machineId, username, reason string) error {
 		return nil
 	}
 
-	_, err := controller.Klient.Tell("stop", &requestArgs{
+	_, err := controller.Klient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
 		MachineId: machineId, Reason: reason,
 	})
 
@@ -42,18 +45,11 @@ func blockUserAndDestroyVm(machineId, username, reason string) error {
 		return err
 	}
 
-	if controller.Klient != nil {
-		for _, machine := range machines {
-			_, err := controller.Klient.Tell("stop", &requestArgs{
-				MachineId: machine.ObjectId.Hex()},
-			)
-
-			if err != nil {
-				Log.Error(err.Error())
-			}
+	for _, machine := range machines {
+		err := stopVm(machine.ObjectId.Hex(), username, reason)
+		if err != nil {
+			Log.Error(err.Error())
 		}
-	} else {
-		Log.Debug("Klient not initialized. Not stopping: %s...but blocking user", machineId)
 	}
 
 	return nil
