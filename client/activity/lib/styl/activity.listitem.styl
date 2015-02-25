@@ -308,6 +308,7 @@ activity.listitem.styl
         rounded           3px
         border            1px solid #EAEAEA
         background        #fff
+        position          relative
         borderBox()
 
         &:hover
@@ -634,12 +635,12 @@ activity.listitem.styl
     width                   auto
     height                  100px
     padding                 0
-    
+
   .embed-image-view
     margin                  0
     border                  none
     padding                 10px
-    
+
     img
       width                 auto
       height                auto
@@ -738,3 +739,6 @@ activity.listitem.styl
 
   //     .preview-image + .preview-text
   //       border-top-color    #d2d2d2
+
+.kdlistitemview-comment .preview-text
+  kalc                      width (100% \- 100px)
