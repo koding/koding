@@ -234,3 +234,19 @@ module.exports = class FSFile extends FSItem
         return response
 
 
+  isReadOnly: (callback) ->
+
+    kite = @getKite()
+
+    kite.init()
+
+    .then =>
+
+      kite.fsGetInfo path: @getPath()
+
+    .nodeify (err, result) ->
+
+      return callback err  if err
+
+      readOnly = result.readable and not result.writable
+      callback null, readOnly
