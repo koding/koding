@@ -168,4 +168,4 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
     inputWrapper.addSubView @input
     @addSubView inputWrapper
     @addSubView @embedBox
-    @addSubView @submitButton
+    inputWrapper.addSubView @submitButton
