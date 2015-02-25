@@ -188,24 +188,22 @@ func TestWatcher(t *testing.T) {
 
 	time.Sleep(time.Millisecond * 100)
 
-	var expected = []change{
-		{action: "added", name: "testdata/example3.txt"},
-		{action: "added", name: "testdata/example4.txt"},
-		{action: "removed", name: "testdata/example3.txt"},
-		{action: "removed", name: "testdata/example4.txt"},
+	var expected = map[string]bool{
+		"added_testdata/example3.txt":   true,
+		"added_testdata/example4.txt":   true,
+		"removed_testdata/example3.txt": true,
+		"removed_testdata/example4.txt": true,
 	}
 
 	t.Logf("changes1 %+v", changes1)
 	t.Logf("changes2 %+v", changes2)
 
 	testChanges := func(changes []change) error {
-		if len(changes) != 4 {
-			return fmt.Errorf("we should catch '%d' changes, but have only '%d'",
-				len(expected), len(changes))
-		}
-
-		if !reflect.DeepEqual(expected, changes) {
-			return fmt.Errorf("want '%+v', got: %+v", expected, changes)
+		for _, change := range changes {
+			_, ok := expected[change.action+"_"+change.name]
+			if !ok {
+				fmt.Errorf("%s_%s does not exist", change.action, change.name)
+			}
 		}
 
 		return nil
