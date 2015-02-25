@@ -1,4 +1,4 @@
-mixpanel = require '../util/mixpanel'
+trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomScrollView = kd.CustomScrollView
@@ -78,7 +78,7 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     @forwardEvent @terminal, 'command'
 
-    mixpanel "Open Webterm, click", {
+    trackEvent "Open Webterm, click", {
       machineName : @getMachine().getName()
     }
 
