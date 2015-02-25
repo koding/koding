@@ -263,6 +263,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
 
+        @setFollowingState item, channel.isParticipant
+
 
   accountRemovedFromChannel: (update) ->
 
@@ -288,6 +290,12 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       channel.isParticipant    = no
       channel.participantCount = participantCount
       channel.emit 'update'
+
+
+  setFollowingState: (item, state) ->
+
+    item.followButton?.setFollowingState state
+
 
   channelUpdateHappened: (update) -> kd.warn 'dont use this, :::educational purposes only!:::', update
 
