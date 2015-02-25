@@ -10,7 +10,7 @@ create = (channelId) ->
     initialState: 'loading'
     states:
       ###*
-       * Initial decide state.
+       * Initial decision state.
        *
        * It will:
        * - fetch the channel with given id if `channelId` is present.
