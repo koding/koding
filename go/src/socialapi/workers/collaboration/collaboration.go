@@ -238,11 +238,7 @@ func (c *Controller) goWithRetry(f func() error, errChan chan error) {
 			break
 		}
 
-		if err != nil {
-			errChan <- err
-		}
-
-		errChan <- nil
+		errChan <- err
 	}()
 }
 
@@ -337,7 +333,7 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 	type req struct {
 		Username string
 
-		// we are gonna use this propery here, just for reference
+		// we are not gonna use this propery here, just for reference
 		Permanent bool
 	}
 
@@ -352,14 +348,15 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 		u, err := modelhelper.GetUserById(user.Id.Hex())
 		if err != nil {
 			c.log.Error(err.Error())
+
 			// if we cant find the regarding user, do not do anything
 			if err == mgo.ErrNotFound {
 				continue
 			}
 
 			iterErr = err
-			// do not stop iterating, unshare from others
-			continue
+
+			continue // do not stop iterating, unshare from others
 		}
 
 		param := req{
@@ -368,6 +365,8 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 
 		_, err = klientRef.Client().Tell("klient.unshare", param)
 		if err != nil {
+			c.log.Error(err.Error())
+
 			// those are so error prone, force klient side not to change the API
 			// or make them exported to some other package?
 			if strings.Contains(err.Error(), "user is permanent") {
@@ -378,8 +377,8 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 				continue
 			}
 
-			c.log.Error(err.Error())
 			iterErr = err
+
 			continue // do not stop iterating, unshare from others
 		}
 	}
@@ -490,5 +489,5 @@ func (e Error) Error() string {
 		return ""
 	}
 
-	return fmt.Sprintf("collaboration: %v", e)
+	return fmt.Sprintf("collaboration: %+v", e)
 }
