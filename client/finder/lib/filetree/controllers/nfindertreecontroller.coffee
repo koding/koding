@@ -139,7 +139,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
     folder.emit "fs.job.finished", [] # in case of refresh to stop the spinner
 
     @collapseFolder nodeView, =>
-      @expandFolder nodeView, =>
+      kd.utils.defer => @expandFolder nodeView, =>
         notification.destroy()
         callback?()
 
