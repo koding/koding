@@ -9,6 +9,7 @@ package main
 
 import (
 	"koding/artifact"
+	"koding/db/mongodb/modelhelper"
 	"net"
 	"net/http"
 	"os"
@@ -124,6 +125,9 @@ func main() {
 			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
 				listener.Close()
 				controller.Klient.Close()
+				modelhelper.Close()
+				controller.Redis.Client.Close()
+
 				os.Exit(0)
 			}
 		}
