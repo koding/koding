@@ -71,7 +71,6 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
-    kd.log 'acet should look here, MachineListUpdated'
     @on 'MachineListUpdated', ->
       kd.singletons.computeController.reset yes
 

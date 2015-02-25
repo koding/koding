@@ -3,12 +3,12 @@ package metrics
 import (
 	"sync"
 
-	"github.com/rcrowley/go-metrics"
+	gometrics "github.com/rcrowley/go-metrics"
 )
 
 type Metrics struct {
 	// default registery for our metrics
-	Registry metrics.Registry
+	Registry gometrics.Registry
 
 	// all timer metrics live here
 	Timers Timers
@@ -25,25 +25,25 @@ type Metrics struct {
 
 func New(prefix string) *Metrics {
 	return &Metrics{
-		Registry: metrics.NewRegistry(),
+		Registry: gometrics.NewRegistry(),
 		Timers:   Timers{},
 		Counters: Counters{},
 		Prefix:   prefix,
 	}
 }
 
-type Timers map[string]metrics.Timer
+type Timers map[string]gometrics.Timer
 
-type Counters map[string]metrics.Counter
+type Counters map[string]gometrics.Counter
 
-func (m *Metrics) GetTimer(timerName string) metrics.Timer {
+func (m *Metrics) GetTimer(timerName string) gometrics.Timer {
 	m.Lock()
 	defer m.Unlock()
 
-	prefixedTimerName := m.Prefix + ":" + timerName
+	prefixedTimerName := m.Prefix + "_" + timerName
 	timer, exists := m.Timers[prefixedTimerName]
 	if !exists {
-		timer = metrics.NewTimer()
+		timer = gometrics.NewTimer()
 		m.Registry.Register(prefixedTimerName, timer)
 
 		m.Timers[prefixedTimerName] = timer
@@ -52,14 +52,14 @@ func (m *Metrics) GetTimer(timerName string) metrics.Timer {
 	return m.Timers[prefixedTimerName]
 }
 
-func (m *Metrics) GetCounter(counterName string) metrics.Counter {
+func (m *Metrics) GetCounter(counterName string) gometrics.Counter {
 	m.Lock()
 	defer m.Unlock()
 
-	prefixedCounterName := m.Prefix + ":" + counterName
+	prefixedCounterName := m.Prefix + "_" + counterName
 	counter, exists := m.Counters[prefixedCounterName]
 	if !exists {
-		counter = metrics.NewCounter()
+		counter = gometrics.NewCounter()
 		m.Registry.Register(prefixedCounterName, counter)
 
 		m.Counters[prefixedCounterName] = counter

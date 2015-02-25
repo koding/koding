@@ -43,20 +43,24 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     @addSubView @header
 
 
-  addMachineBoxes: ->
+  addMachineBoxes: (boxes) ->
 
-    for machineData in @getData()
-      @addMachineBox machineData
+    data = boxes or @getData()
+
+    for obj in data
+      @addMachineBox obj
 
 
-  addMachineBox: (machineData) ->
+  addMachineBox: (machineAndWorkspaceData) ->
 
-    return no  if @machineBoxesByMachineUId[machineData.uid]
+    { uid } = machineAndWorkspaceData.machine
 
-    machineBox = new SidebarMachineBox {}, machineData
+    return no  if @machineBoxesByMachineUId[uid]
+
+    machineBox = new SidebarMachineBox {}, machineAndWorkspaceData
     @addSubView machineBox
     @machineBoxes.push machineBox
-    @machineBoxesByMachineUId[machineData.machine.uid] = machineBox
+    @machineBoxesByMachineUId[uid] = machineBox
 
     @show() if @machineBoxes.length is 1
 

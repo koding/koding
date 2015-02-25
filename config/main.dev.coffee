@@ -735,6 +735,7 @@ Configuration = (options={}) ->
         echo "  run log [worker]          : to see of specified worker logs only"
         echo "  run buildservices         : to initialize and start services"
         echo "  run buildservices sandbox : to initialize and start services on sandbox"
+        echo "  run resetdb               : to reset databases"
         echo "  run services              : to stop and restart services"
         echo "  run worker                : to list workers"
         echo "  run chaosmonkey           : to restart every service randomly to test resilience."
@@ -901,19 +902,7 @@ Configuration = (options={}) ->
         docker run -d -p 6379:6379                --name=redis    redis
         docker run -d -p 5432:5432                --name=postgres koding/postgres
 
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
-        cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
-
-        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
-
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-
-        cd #{projectRoot}/install/docker-mongo
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
+        restoredefaultmongodump
 
         echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
         cd #{projectRoot}
@@ -951,7 +940,37 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/user-importer
 
+        migrateusers
+
+      }
+
+      function migrateusers () {
+
+        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
+        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
+
+        # Required step for guestuser
+        mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
+
+      }
+
+      function restoredefaultmongodump () {
+
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+
+        mongo #{mongo} --eval "db.dropDatabase()"
+
+        cd #{projectRoot}/install/docker-mongo
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+
       }
 
       function updateusers () {
@@ -1019,6 +1038,27 @@ Configuration = (options={}) ->
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
+
+      elif [ "$1" == "resetdb" ]; then
+
+        if [ "$2" == "--yes" ]; then
+
+          restoredefaultmongodump
+          migrateusers
+
+          exit 0
+
+        fi
+
+        read -p "This will reset current databases, all data will be lost! (y/N)" -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            exit 1
+        fi
+
+        restoredefaultmongodump
+        migrateusers
 
       elif [ "$1" == "buildservices" ]; then
 

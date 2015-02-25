@@ -15,7 +15,8 @@ module.exports = (options = {}, callback)->
   currentGroup     = null
   userMachines     = null
   userWorkspaces   = null
-  sidebarEnvironmentData = null
+  userEnvironmentData = null
+  userId = null
 
   {bongoModels, client, slug} = options
 
@@ -33,7 +34,8 @@ module.exports = (options = {}, callback)->
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
-    sidebarEnvironmentData = JSON.stringify sidebarEnvironmentData
+    userEnvironmentData = JSON.stringify userEnvironmentData
+    userId = JSON.stringify userId
 
     """
     <!-- SEGMENT.IO -->
@@ -44,18 +46,20 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/common.js"></script>
-    <script src='/a/p/p/app.js'></script>
+    <script src="/a/p/p/common.js?#{KONFIG.version}"></script>
+    <script src="/a/p/p/app.js?#{KONFIG.version}"></script>
 
     <script>
       require('app')({
         config: #{config},
+        userId: #{userId},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
-        socialApiData: #{encodedSocialApiData}
+        socialApiData: #{encodedSocialApiData},
+        userEnvironmentData: #{userEnvironmentData}
       });
     </script>
 
@@ -76,7 +80,6 @@ module.exports = (options = {}, callback)->
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
 
-    <script>window.sidebarEnvironmentData = #{sidebarEnvironmentData}</script>
     """
 
   selector =
@@ -112,7 +115,12 @@ module.exports = (options = {}, callback)->
         queue.fin()
     ->
       bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
-        sidebarEnvironmentData = data
+        userEnvironmentData = data
+        queue.fin()
+    ->
+      client.connection.delegate.fetchUser (err, user) ->
+        console.err err  if err
+        userId = user.getId()
         queue.fin()
   ]
 

@@ -24,6 +24,7 @@ SidebarTopicItem = require './sidebartopicitem'
 ComputeHelpers = require '../../providers/computehelpers'
 SidebarOwnMachinesList = require './sidebarownmachineslist'
 SidebarSharedMachinesList = require './sidebarsharedmachineslist'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 # this file was once nice and tidy (see https://github.com/koding/koding/blob/dd4e70d88795fe6d0ea0bfbb2ef0e4a573c08999/client/Social/Activity/sidebar/activitysidebar.coffee)
@@ -101,6 +102,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
+    environmentDataProvider.revive()
+
     mainController.ready =>
       whoami().on 'NewWorkspaceCreated', @bound 'newWorkspaceCreated'
 
@@ -113,7 +116,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if isChannelCollaborative channel
       if channelMessage.payload['system-message'] in ['start', 'stop']
-        alert 'acet, handle here... [messageAddedToChannel]'
+        kd.warn 'acet, handle here... [messageAddedToChannel]'
         # @fetchMachines => @fetchWorkspaces =>
         #   @setWorkspaceUnreadCount channel, unreadCount
 
@@ -438,9 +441,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   deselectAllItems: (route) ->
 
     @selectedItem = null
-    isVisitedIDE  = route?.params?.machineLabel
+    isIDEVisited  = route?.params?.machineLabel
 
-    if @machineLists and not isVisitedIDE
+    if @machineLists and not isIDEVisited
       for machineList in @machineLists
         machineList.deselectMachines()
 
@@ -716,10 +719,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   # TODO: Rename this method to fetchEnvironment - acet!
   fetchMachines: (callback) ->
 
-    remote.api.Sidebar.fetchEnvironment (err, data) =>
-      if err
-        return new KDNotificationView title : 'Couldn\'t fetch your VMs'
-
+    environmentDataProvider.fetch (data) =>
       callback data
 
 
@@ -778,15 +778,19 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   addMachineList: ->
 
-    @fetchMachines (machines) =>
-      @machineLists = []
-      @machineListsByName = {}
+    @machineLists = []
+    @machineListsByName = {}
 
-      { shared, collaboration } = machines
-      sharedData = { shared, collaboration }
+    @ownMachinesList    = @createMachineList 'own', {}, []
+    @sharedMachinesList = @createMachineList 'shared', {}, []
 
-      @sharedMachinesList = @createMachineList 'shared', {}, sharedData
-      @ownMachinesList    = @createMachineList 'own', {}, machines.own
+    data = globals.userEnvironmentData
+
+    { shared, collaboration } = data
+    sharedData = shared.concat collaboration
+
+    @ownMachinesList.addMachineBoxes data.own
+    @sharedMachinesList.addMachineBoxes sharedData
 
 
   createMachineList: (type, options, data) ->
@@ -799,7 +803,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineLists.push list
     @machineListsByName[type] = list
 
-    @addSubView list, null, yes
+    @addSubView list
 
     return list
 
@@ -1056,8 +1060,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = noop) ->
 
-    @fetchMachines (machines) =>
-      @ownMachinesList.updateList machines.own
+    @fetchMachines (data) =>
+      @ownMachinesList.updateList data.own
+      @sharedMachinesList.updateList data.shared.concat data.collaboration
 
 
     # @machineTree.removeAllNodes()

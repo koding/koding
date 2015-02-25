@@ -10,10 +10,6 @@ module.exports = class SidebarSharedMachinesList extends SidebarMachineList
     options.hasPlusIcon = no
     options.cssClass    = 'shared-machines'
 
-    { shared, collaboration } = data
-
-    data = shared.concat collaboration
-
     super options, data
 
     @hide()  if data.length is 0

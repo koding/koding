@@ -210,7 +210,7 @@ func (i *Interaction) IsInteracted(accountId int64) (bool, error) {
 	}
 
 	if accountId == 0 {
-		return false, ErrAccountIdIsNotSet
+		return false, nil
 	}
 
 	selector := map[string]interface{}{

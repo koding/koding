@@ -6,8 +6,8 @@ var LoggedInHome = `
   <head>
     {{template "header" . }}
 
-    <link rel="stylesheet" href="/a/p/p/kd.css" />
-    <link rel="stylesheet" href="/a/p/p/app.css" />
+    <link rel="stylesheet" href="/a/p/p/kd.css?{{.Version}}" />
+    <link rel="stylesheet" href="/a/p/p/app.css?{{.Version}}" />
   </head>
 
   <body class='logged-in dark ide'>
@@ -15,8 +15,8 @@ var LoggedInHome = `
 
     <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
     <script src="/a/p/p/thirdparty/gapi.js"></script>
-    <script src="/a/p/p/common.js"></script>
-    <script src="/a/p/p/app.js"></script>
+    <script src="/a/p/p/common.js?{{.Version}}"></script>
+    <script src="/a/p/p/app.js?{{.Version}}"></script>
 
     <script>
       require('app')({

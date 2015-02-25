@@ -1,6 +1,7 @@
 kd = require 'kd'
 KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
+Machine = require 'app/providers/machine'
 remote = require('app/remote').getInstance()
 nick = require 'app/util/nick'
 mixpanel = require 'app/util/mixpanel'
@@ -113,7 +114,13 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
       if err? or not machines? then callback()
       else
 
-        machines.forEach (machine)->
+        machines = machines.filter (machine) ->
+
+          container = new Machine {machine}
+          return container.isMine()
+
+        machines.forEach (machine) ->
+
           computeController.getKloud()
           .destroy { machineId: machine._id }
           .then  (res)->
