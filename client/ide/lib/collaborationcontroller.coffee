@@ -443,7 +443,7 @@ module.exports =
 
 
   removeParticipantFromParticipantList: (nickname) ->
-    return throwError "participants is not set"  unless @participants
+    return warn 'participants is not set'  unless @participants
 
     # find the index for participant
     for participant, index in @participants.asArray()
@@ -454,7 +454,7 @@ module.exports =
         break
 
   removeParticipantFromMaps: (nickname) ->
-    return throwError "rtm is not set"   unless @rtm
+    return warn 'rtm is not set'  unless @rtm
 
     myWatchMapName     = "#{nickname}WatchMap"
     mySnapshotName     = "#{nickname}Snapshot"
@@ -465,7 +465,7 @@ module.exports =
 
 
   removeParticipantFromPermissions: (nickname)->
-    return throwError "permissions is not set"   unless @permissions
+    return warn 'permissions is not set'  unless @permissions
     # Removes the entry for the given key (if such an entry exists).
     @permissions.delete(nickname)
 
@@ -770,7 +770,7 @@ module.exports =
 
 
   cleanupCollaboration: (options = {}) ->
-    return throwError 'RealTimeManager is not set'  unless @rtm
+    return warn 'RealTimeManager is not set'  unless @rtm
 
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
