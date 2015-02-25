@@ -81,6 +81,8 @@ module.exports =
 
     id = @channelId or @workspaceData.channelId
 
+    return callback()  unless id
+
     kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return callback err  if err
 
@@ -151,7 +153,8 @@ module.exports =
     if channelId
 
       @fetchSocialChannel (err, channel) =>
-        return callback err  if err
+        if err or not channel
+          return @initPrivateMessage callback
 
         @createChatPaneView channel
         @isRealtimeSessionActive channelId, (isActive, file) =>
@@ -660,6 +663,12 @@ module.exports =
       @createPaneFromChange change
 
 
+  showShareButton: ->
+
+    @statusBar.share.show()
+    IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
+
+
   prepareCollaboration: ->
 
     @rtm        = new RealTimeManager
@@ -667,19 +676,20 @@ module.exports =
 
     @rtm.ready =>
       unless @workspaceData.channelId
-        IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
-        return @statusBar.share.show()
+        @showShareButton()
 
       @fetchSocialChannel (err, channel) =>
-        return throwError "no social channel"  if err
+        if err or not channel
+          throwError err  if err
+          return @showShareButton()
+
         @isRealtimeSessionActive channelId, (isActive) =>
           if isActive or @isInSession
             @startChatSession => @chat.showChatPane()
             @chat.hide()
             @statusBar.share.updatePartial 'Chat'
 
-          IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
-          @statusBar.share.show()
+          @showShareButton()
 
 
   startCollaborationSession: (callback) ->
