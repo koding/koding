@@ -81,6 +81,8 @@ module.exports =
 
     id = @channelId or @workspaceData.channelId
 
+    return callback()  unless id
+
     kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return callback err  if err
 
