@@ -114,90 +114,6 @@ func TestReadDirectory(t *testing.T) {
 
 func TestWatcher(t *testing.T) {
 	testDir := "testdata"
-	addFile := "testdata/example1.txt"
-	newFile := "testdata/example2.txt"
-
-	done := make(chan struct{}, 2)
-
-	onChange := dnode.Callback(func(r *dnode.Partial) {
-		s := r.MustSlice()
-		m := s[0].MustMap()
-
-		e := m["event"].MustString()
-
-		var f = &FileEntry{}
-		m["file"].Unmarshal(f)
-
-		switch e {
-		case "added":
-			if f.Name == "example1.txt" {
-				done <- struct{}{}
-			}
-		case "removed":
-			if f.Name == "example1.txt" {
-				done <- struct{}{}
-			}
-
-			if f.Name == "example2.txt" {
-				done <- struct{}{}
-			}
-		}
-
-	})
-
-	_, err := remote.Tell("readDirectory", struct {
-		Path     string
-		OnChange dnode.Function
-	}{
-		Path:     testDir,
-		OnChange: onChange,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	t.Log("Creating file")
-	time.Sleep(time.Millisecond * 100)
-
-	ioutil.WriteFile(addFile, []byte("example"), 0755)
-
-	select {
-	case <-done:
-	case <-time.After(time.Second * 2):
-		t.Fatal("timeout adding watcher after two seconds")
-	}
-
-	t.Log("Renaming file")
-	time.Sleep(time.Millisecond * 100)
-
-	err = os.Rename(addFile, newFile)
-	if err != nil {
-		t.Error(err)
-	}
-
-	select {
-	case <-done:
-	case <-time.After(time.Second * 2):
-		t.Fatal("timeout removing watcher after two seconds")
-	}
-
-	t.Log("Removing file")
-	time.Sleep(time.Millisecond * 100)
-
-	err = os.Remove(newFile)
-	if err != nil {
-		t.Error(err)
-	}
-
-	select {
-	case <-done:
-	case <-time.After(time.Second * 2):
-		t.Fatal("timeout removing watcher after two seconds")
-	}
-}
-
-func TestWatcherMulti(t *testing.T) {
-	testDir := "testdata"
 
 	type change struct {
 		action string
@@ -249,10 +165,10 @@ func TestWatcherMulti(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	t.Log("Creating file")
 	addFile := "testdata/example3.txt"
 	newFile := "testdata/example4.txt"
 
-	t.Log("Creating file")
 	time.Sleep(time.Millisecond * 100)
 	ioutil.WriteFile(addFile, []byte("example"), 0755)
 
@@ -281,7 +197,8 @@ func TestWatcherMulti(t *testing.T) {
 
 	testChanges := func(changes []change) error {
 		if len(changes) != 4 {
-			return fmt.Errorf("we should catch three changes, but have only '%d'", len(changes))
+			return fmt.Errorf("we should catch '%d' changes, but have only '%d'",
+				len(expected), len(changes))
 		}
 
 		if !reflect.DeepEqual(expected, changes) {
