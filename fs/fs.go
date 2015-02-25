@@ -104,7 +104,7 @@ func ReadDirectory(r *kite.Request) (interface{}, error) {
 			mu.Unlock()
 		}
 
-		// remove the path when the remote client disconnects
+		// remove the user or path when the remote client disconnects
 		r.Client.OnDisconnect(removePath)
 
 		// this callback is called whenever we receive a 'stopWatching' from the client

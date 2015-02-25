@@ -2,7 +2,6 @@ package fs
 
 import (
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -199,11 +198,13 @@ func TestWatcher(t *testing.T) {
 
 func TestWatcherMulti(t *testing.T) {
 	testDir := "testdata"
+
 	type change struct {
-		name, action string
+		action string
+		name   string
 	}
 
-	onChangeFunc := func(changes []change) dnode.Function {
+	onChangeFunc := func(changes *[]change) dnode.Function {
 		return dnode.Callback(func(r *dnode.Partial) {
 			s := r.MustSlice()
 			m := s[0].MustMap()
@@ -212,18 +213,16 @@ func TestWatcherMulti(t *testing.T) {
 
 			var f = &FileEntry{}
 			m["file"].Unmarshal(f)
-			fmt.Printf("e = %+v\n", e)
-			fmt.Printf("f = %+v\n", f)
 
-			changes = append(changes, change{
-				name:   f.Name,
+			*changes = append(*changes, change{
+				name:   f.FullPath,
 				action: e,
 			})
 		})
 	}
 
 	changes1 := make([]change, 0)
-	onChange1 := onChangeFunc(changes1)
+	onChange1 := onChangeFunc(&changes1)
 
 	_, err := remote.Tell("readDirectory", struct {
 		Path     string
@@ -237,7 +236,7 @@ func TestWatcherMulti(t *testing.T) {
 	}
 
 	changes2 := make([]change, 0)
-	onChange2 := onChangeFunc(changes2)
+	onChange2 := onChangeFunc(&changes2)
 
 	_, err = remote2.Tell("readDirectory", struct {
 		Path     string
@@ -271,24 +270,22 @@ func TestWatcherMulti(t *testing.T) {
 		t.Error(err)
 	}
 
+	time.Sleep(time.Millisecond * 100)
+
+	var expected = []change{
+		{action: "added", name: "testdata/example3.txt"},
+		{action: "added", name: "testdata/example4.txt"},
+		{action: "removed", name: "testdata/example3.txt"},
+		{action: "removed", name: "testdata/example4.txt"},
+	}
+
 	testChanges := func(changes []change) error {
-		if len(changes) != 3 {
-			return errors.New("we should catch three changes, but have only one")
+		if len(changes) != 4 {
+			return fmt.Errorf("we should catch three changes, but have only '%d'", len(changes))
 		}
 
-		// now check for the changes
-		for _, change := range changes {
-			if change.action == "added" && change.name != addFile {
-				return fmt.Errorf("added name should be '%s' got: '%s'", addFile, change.name)
-			}
-
-			if change.action == "removed" && change.name != addFile {
-				return fmt.Errorf("renamed name should be '%s' got: '%s'", addFile, change.name)
-			}
-
-			if change.action == "removed" && change.name != newFile {
-				return fmt.Errorf("removed name should be '%s' got: '%s'", newFile, change.name)
-			}
+		if !reflect.DeepEqual(expected, changes) {
+			return fmt.Errorf("want '%+v', got: %+v", expected, changes)
 		}
 
 		return nil
@@ -299,7 +296,7 @@ func TestWatcherMulti(t *testing.T) {
 	}
 
 	if err := testChanges(changes2); err != nil {
-		t.Error("watcher for remote2: %s", err)
+		t.Errorf("watcher for remote2: %s", err)
 	}
 }
 
