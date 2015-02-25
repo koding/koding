@@ -684,22 +684,20 @@ body.ide.dark
 
   .kdbutton#cancel-button
     text-transform      capitalize
-    border              none
-    font-size           14px
-    color               #767676
-    padding             6px 12px !important
-    margin              0 !important
-    height              29px
+    background          transparent
+    padding             0
+    margin              0 25px 0 0
     position            relative
-    top                 9px
-    left                -6px
     &:focus
       box-shadow        none
+
+    .button-title
+      text-decoration underline
+      color           #767676
 
   .kdbutton#search-button
     rounded             5px !important
     bg                  color, #4EA04C
-    height              45px
     padding             0
     padding             13px 18px 15px 19px
     span
@@ -710,7 +708,7 @@ body.ide.dark
       top               -13px
     &.loading
       span
-        top             0
+        top             25px !important
 
   .icon
     abs()

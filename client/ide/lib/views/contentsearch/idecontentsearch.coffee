@@ -20,7 +20,7 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
           buttons           :
             searchButton    :
               title         : 'Search'
-              style         : 'search solid green'
+              style         : 'search solid green medium'
               domId         : 'search-button'
               type          : 'submit'
               loader        :
@@ -28,7 +28,7 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
               callback      : @bound 'search'
             cancel          :
               title         : 'Close'
-              style         : 'cancel'
+              style         : 'solid cancel medium'
               domId         : 'cancel-button'
               callback      : @bound 'destroy'
           fields            :
