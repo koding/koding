@@ -156,6 +156,10 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	}
 }
 
+func (k *Klient) Client() *kite.Client {
+	return k.client
+}
+
 func (k *Klient) Close() {
 	k.client.Close()
 }
