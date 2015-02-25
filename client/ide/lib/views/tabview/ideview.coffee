@@ -352,14 +352,11 @@ module.exports = class IDEView extends IDEWorkspaceTabView
       editorPane = @switchToEditorTabByFile file
       callback editorPane
     else
-      @createEditor(
-        file,
-        content,
-        (editorPane) =>
-          @openFiles.push file  if editorPane
-          callback editorPane
-        emitChange
-      )
+      kallback = (pane) =>
+        @openFiles.push file  if pane
+        callback pane
+
+      @createEditor file, content, kallback, emitChange
 
 
   switchToEditorTabByFile: (file) ->

@@ -19,6 +19,6 @@ module.exports = class FilePermissionsModal extends KDModalView
       ok :
         cssClass : 'solid green medium'
         title    : 'OK'
-        callback : => @destroy()
+        callback : @bound 'destroy'
 
     super options, data
