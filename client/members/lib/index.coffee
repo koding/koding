@@ -9,7 +9,7 @@ remote = require('app/remote').getInstance()
 globals = require 'globals'
 getFullnameFromAccount = require 'app/util/getFullnameFromAccount'
 getGroup = require 'app/util/getGroup'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/trackEvent'
 whoami = require 'app/util/whoami'
 isMine = require 'app/util/isMine'
 AppController = require 'app/appcontroller'
@@ -19,7 +19,9 @@ FilterLinksView = require 'activity/views/filterlinksview'
 
 module.exports = class MembersAppController extends AppController
 
-  @options = name  : 'Members'
+  @options =
+    name         : 'Members'
+    dependencies : [ 'Activity' ]
 
   {externalProfiles} = globals.config
 
@@ -34,7 +36,7 @@ module.exports = class MembersAppController extends AppController
     super options, data
 
     @once "MemberListLoaded", ->
-      mixpanel "Load member list, success"
+      trackEvent "Load member list, success"
 
   createContentDisplay:(model, callback=->)->
     kd.singletons.appManager.setFrontApp this

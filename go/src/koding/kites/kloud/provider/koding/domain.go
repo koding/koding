@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/koding/logging"
+	"github.com/mitchellh/goamz/ec2"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -186,4 +187,20 @@ func (p *Provider) UpdateDomain(ip, domain, username string) error {
 	}
 
 	return nil
+}
+
+func allocateAndAssociateIP(client *ec2.EC2, instanceId string) (string, error) {
+	allocateResp, err := client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+	if err != nil {
+		return "", err
+	}
+
+	if _, err := client.AssociateAddress(&ec2.AssociateAddress{
+		InstanceId:   instanceId,
+		AllocationId: allocateResp.AllocationId,
+	}); err != nil {
+		return "", err
+	}
+
+	return allocateResp.PublicIp, nil
 }

@@ -51,6 +51,10 @@ rest = ->
     fs.writeFileSync "run",KONFIG.runFile
     fs.chmodSync "./run", 0o755
 
+    fs.writeFileSync "./deployment/generated_files/supervisord.conf", KONFIG.supervisorConf
+    fs.writeFileSync "./deployment/generated_files/nginx.conf", KONFIG.nginxConf
+    fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
+
     # write supervisor config
     if o.supervisor
       fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf

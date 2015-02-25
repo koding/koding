@@ -107,7 +107,7 @@ module.exports = class ManageDomainsView extends KDView
         @domainController.addItem { domain, machineId }
         computeController.domains = []
 
-        @hideInput()
+        @resetInput()
 
       .catch (err)=>
         kd.warn "Failed to create domain:", err

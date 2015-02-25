@@ -65,6 +65,10 @@ func (a *Account) Create() error {
 		return errors.New("old id is not set")
 	}
 
+	if a.Nick == "guestuser" {
+		return ErrGuestsAreNotAllowed
+	}
+
 	return bongo.B.Create(a)
 }
 

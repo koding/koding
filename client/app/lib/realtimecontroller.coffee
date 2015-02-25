@@ -7,6 +7,8 @@ whoami = require './util/whoami'
 isPubnubEnabled = require './util/isPubnubEnabled'
 kd = require 'kd'
 KDController = kd.Controller
+KDTimeAgoView = kd.TimeAgoView
+backoff = require 'backoff'
 PubnubChannel = require './pubnubchannel'
 
 
@@ -48,6 +50,8 @@ module.exports = class RealtimeController extends KDController
       # until we learn a better solution, we have seperated notification channel for a new pubnub connection
       # https://www.pivotaltracker.com/story/show/88210800
       @pbNotification = PUBNUB.init options
+
+      @lastSeenOnline = Date.now() * 10000
 
       realtimeToken = kookies.get("realtimeToken")
       @fetchServerTime()
@@ -93,20 +97,37 @@ module.exports = class RealtimeController extends KDController
     { endPoint, data } = options
     return callback { message : "endPoint is not set"}  unless endPoint
 
-    doXhrRequest {endPoint, data}, (err) =>
+    bo = backoff.exponential
+      initialDelay: 700
+      maxDelay    : 15000
 
-      return callback err  if err
+    bo.on 'fail', -> callback {message: "Authentication failed."}
+    bo.failAfter 15
 
-      # when we make an authentication request, server responses with realtimeToken
-      # in cookie here. If it is not set, then there is no need to subscription attempt
-      # to pubnub
-      realtimeToken = kookies.get("realtimeToken")
+    bo.on 'ready', -> bo.backoff()
 
-      return callback { message : 'Could not find realtime token'}  unless realtimeToken
+    requestFn = =>
+      doXhrRequest {endPoint, data}, (err) =>
+        if err
+          kd.warn "Channel authentication failed: #{err.message}"
+          return
 
-      @setAuthToken realtimeToken
+        # when we make an authentication request, server responses with realtimeToken
+        # in cookie here. If it is not set, then there is no need to subscription attempt
+        # to pubnub
+        realtimeToken = kookies.get("realtimeToken")
 
-      callback null
+        return callback { message : 'Could not find realtime token'}  unless realtimeToken
+
+        @setAuthToken realtimeToken
+
+        bo.reset()
+
+        callback null
+
+    bo.on 'backoff', requestFn
+
+    bo.backoff()
 
 
   # subscriptionData =
@@ -288,6 +309,15 @@ module.exports = class RealtimeController extends KDController
 
     pb = pbInstance or @pubnub
 
+    bo = backoff.exponential
+      initialDelay: 700
+      maxDelay    : 15000
+
+    bo.on 'fail', -> kd.error "Fetch history failed for channel #{channel}"
+    bo.failAfter 15
+
+    bo.on 'ready', -> bo.backoff()
+
     limit = 100
     historyOptions =
       channel : channel
@@ -296,21 +326,25 @@ module.exports = class RealtimeController extends KDController
       reverse : true
       callback: (response) =>
 
+        bo.reset()
+
         return  unless response?.length and Array.isArray(response)
 
-        [messages, start] = response
+        [messages, start, end] = response
 
         return  unless messages?.length and Array.isArray(messages)
 
         @handleMessage message, channel  for message in messages
 
         # since the maximum message limit is 100, we are making a recursive call here
-        @fetchHistory channel, start  if messages.length is limit
-      err: (err) ->
-        # instead of getting into a stale state, just reload the page
-        window.location.reload()  if err
+        if messages.length is limit
+          historyOptions.start = end
+          @fetchHistory {channel, timestamp: end}
+      err: (err) -> kd.warn "Could not fetch history #{err.message}"  unless err
 
-    pb.history historyOptions
+    bo.on 'backoff', => pb.history historyOptions
+
+    bo.backoff()
 
 
   handleMessage: (message, channel) ->
@@ -355,6 +389,9 @@ module.exports = class RealtimeController extends KDController
 
 
   handleError: (err) ->
+
+    return  unless err
+
     {message, payload} = err
 
     if @isDisconnected err
