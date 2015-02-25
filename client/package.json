@@ -40,7 +40,7 @@
   },
   "devDependencies": {
     "bant-build": "0.1.7",
-    "browserify": "git://github.com/tetsuo/node-browserify#hotfix-dedupe-json",
+    "browserify": "^9.0.3",
     "coffee-script": "1.8.0",
     "coffeeify": "^1.0.0",
     "debug": "^2.1.1",
@@ -64,7 +64,7 @@
     "pretty-bytes": "^1.0.2",
     "rewritify": "^0.1.0",
     "through2": "^0.6.3",
-    "watchify": "git://github.com/tetsuo/watchify#hotfix-dedupe-json",
+    "watchify": "^2.4.0",
     "xtend": "^4.0.0"
   }
 }
