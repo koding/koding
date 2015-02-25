@@ -82,6 +82,13 @@ func main() {
 		}
 	})
 
+	c.AddFunc("0 1-59/3 * * * *", func() {
+		err := dealWithMachinesOverLimit()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+	})
+
 	c.Start()
 
 	mux := http.NewServeMux()
