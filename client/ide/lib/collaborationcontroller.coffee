@@ -921,7 +921,13 @@ module.exports =
         @removeParticipant nick()
 
 
-  throwError: throwError = (format, args...) ->
+  throwError: throwError = (err, args...) ->
+
+    format = \
+      switch typeof err
+        when 'string' then err
+        when 'object' then err.message
+        else args.join ' '
 
     argIndex = 0
     error = new Error """
