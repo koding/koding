@@ -26,7 +26,7 @@ var LoggedInHome = `
         userMachines: {{.User.GetWithDefault "Machines" "null"}},
         userWorkspaces: {{.User.GetWithDefault "Workspaces" "null"}},
         currentGroup: {{.User.GetWithDefault "Group" "null"}},
-        envData: {{.User.GetWithDefault "EnvData" "{}"}},
+        userEnvironmentData: {{.User.GetWithDefault "EnvData" "{}"}},
         isLoggedInOnLoad: true,
         socialApiData: {{.User.GetWithDefault "SocialApiData" "null"}}
       });
