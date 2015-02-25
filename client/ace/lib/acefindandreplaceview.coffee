@@ -94,7 +94,18 @@ module.exports = class AceFindAndReplaceView extends JView
 
     @$().css { height }
     @resizeEditor height
+    @toggleReplacePart(isReplaceMode)
     @show()
+
+
+  toggleReplacePart: (visible) ->
+
+    toggle = (elem, visible) -> if visible then elem.show() else elem.hide()
+
+    toggle(@replaceInput, visible)
+    toggle(@replaceButton, visible)
+    toggle(@replaceAllButton, visible)
+
 
   resizeEditor: (height) ->
     if @getDelegate()?.ace?
