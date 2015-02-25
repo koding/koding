@@ -44,6 +44,9 @@ var (
 func main() {
 	initialize()
 
+	// on disconnect, try to reconnect
+	controller.Klient.OnDisconnect(func() { initializeKlient(controller) })
+
 	startTime := time.Now()
 	defer func() {
 		Log.Info("Exited...ran for: %s", time.Since(startTime))
