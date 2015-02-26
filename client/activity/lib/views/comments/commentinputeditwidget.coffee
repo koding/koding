@@ -2,7 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CommentInputWidget = require './commentinputwidget'
 showError = require 'app/util/showError'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/trackEvent'
 Encoder = require 'htmlencode'
 
 module.exports = class CommentInputEditWidget extends CommentInputWidget
@@ -50,10 +50,7 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
       return showError err  if err
 
       activity.body = body
-
-      if payload
-        activity.link.link_url = payload.link_url
-        activity.link.link_embed = payload.link_embed
+      activity.link = payload
 
       activity.emit 'update'
 
@@ -68,7 +65,7 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
 
     @emit 'EditSucceeded', activity
 
-    mixpanel "Comment edit, success", { length: activity?.body?.length }
+    trackEvent "Comment edit, success", { length: activity?.body?.length }
 
 
   getPayload: ->

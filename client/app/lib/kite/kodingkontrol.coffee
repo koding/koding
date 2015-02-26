@@ -210,7 +210,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
           resolve (
             kite.transport?.tell args...
               .then (res)->
-                KiteLogger.logSucess name, args.first
+                KiteLogger.sucess name, args.first
                 return res
               .catch (err)->
                 KiteLogger.failed name, args.first

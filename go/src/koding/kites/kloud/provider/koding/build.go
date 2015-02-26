@@ -95,8 +95,12 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		return nil, err
 	}
 
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
 	// check current plan
-	fetcherResp, err := p.Fetcher(m)
+	fetcherResp, err := p.Fetcher.Fetch(m)
 	if err != nil {
 		return nil, err
 	}
@@ -233,19 +237,12 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	// this after we create the instance
 	if b.plan != Free {
 		b.log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", b.machine.Id)
-		allocateResp, err := b.amazon.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+
+		elasticIp, err := allocateAndAssociateIP(b.amazon.Client, instanceId)
 		if err != nil {
-			return nil, err
-		}
-		buildArtifact.IpAddress = allocateResp.PublicIp
-
-		b.log.Debug("[%s] Elastic IP allocated %+v", b.machine.Id, allocateResp)
-
-		if _, err := b.amazon.Client.AssociateAddress(&ec2.AssociateAddress{
-			InstanceId:   instanceId,
-			AllocationId: allocateResp.AllocationId,
-		}); err != nil {
-			return nil, err
+			b.log.Warning("[%s] couldn't not create elastic IP: %s", b.machine.Id, err)
+		} else {
+			buildArtifact.IpAddress = elasticIp
 		}
 	}
 

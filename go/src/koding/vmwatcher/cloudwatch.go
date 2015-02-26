@@ -103,7 +103,7 @@ func (c *Cloudwatch) GetAndSaveData(username string) error {
 	}
 
 	if sum > c.Limits[StopLimitKey] {
-		Log.Debug("'%s' has used: %v '%s'", username, sum, c.Name)
+		Log.Info("'%s' has used: %v '%s'", username, sum, c.Name)
 	}
 
 	return c.Save(username, sum)

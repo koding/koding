@@ -1,4 +1,4 @@
-// Package provides the basic data structures for the collaboration worker
+// Package models provides the basic data structures for the collaboration worker
 package models
 
 import "time"
@@ -7,6 +7,9 @@ import "time"
 type Ping struct {
 	// FileId holds the collaboration file id
 	FileId string `json:"fileId"`
+
+	// ChannelId holds channel id that is used in the collaboration
+	ChannelId string `json:"channelId"`
 
 	// AccountId holds the host's id the only one that can send this request
 	AccountId int64 `json:"accountId,string"`

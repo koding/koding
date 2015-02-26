@@ -5,7 +5,7 @@ KDNotificationView = kd.NotificationView
 KDView = kd.View
 remote = require('app/remote').getInstance()
 globals = require 'globals'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/trackEvent'
 FSHelper = require 'app/util/fs/fshelper'
 $ = require 'jquery'
 settings = require './settings'
@@ -84,7 +84,7 @@ module.exports = class Ace extends KDView
 
       kd.utils.defer => @emit 'ace.ready'
 
-      mixpanel 'Open Ace, success'
+      trackEvent 'Open Ace, success'
 
     @once 'ace.ready', =>
       LineWidgets = ace.require('ace/line_widgets').LineWidgets

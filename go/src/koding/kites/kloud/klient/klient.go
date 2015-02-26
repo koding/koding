@@ -30,7 +30,7 @@ type Usage struct {
 
 // Klient represents a remote klient instance
 type Klient struct {
-	client   *kite.Client
+	Client   *kite.Client
 	kite     *kite.Kite
 	Username string
 }
@@ -63,7 +63,7 @@ func (k *KlientPool) Get(queryString string) (*Klient, error) {
 		k.klients[queryString] = klient
 
 		// remove from the pool if we loose the connection
-		klient.client.OnDisconnect(func() {
+		klient.Client.OnDisconnect(func() {
 			k.log.Info("klient %s disconnected. removing from the pool", queryString)
 			k.Delete(queryString)
 			klient.Close()
@@ -134,7 +134,7 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	// klient connection is ready now
 	return &Klient{
 		kite:     k,
-		client:   remoteKite,
+		Client:   remoteKite,
 		Username: remoteKite.Username,
 	}, nil
 }
@@ -157,12 +157,12 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 }
 
 func (k *Klient) Close() {
-	k.client.Close()
+	k.Client.Close()
 }
 
 // Usage calls the usage method of remote and get's the result back
 func (k *Klient) Usage() (*Usage, error) {
-	resp, err := k.client.Tell("klient.usage")
+	resp, err := k.Client.Tell("klient.usage")
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +178,7 @@ func (k *Klient) Usage() (*Usage, error) {
 // Ping checks if the given klient response with "pong" to the "ping" we send.
 // A nil error means a successfull pong result.
 func (k *Klient) Ping() error {
-	resp, err := k.client.TellWithTimeout("kite.ping", 10*time.Second)
+	resp, err := k.Client.TellWithTimeout("kite.ping", 10*time.Second)
 	if err != nil {
 		return err
 	}

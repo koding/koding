@@ -108,6 +108,11 @@ module.exports = class UserPolicyView extends JView
         </li>
 
         <li>
+          Use of any kind of VOIP related software, including but not limited to Teamspeak,
+          Asterisk, FreePBX;
+        </li>
+
+        <li>
           Other material, products or services that violate or encourage conduct
           that would violate any criminal laws, any other applicable laws, or any
           third-party rights;
