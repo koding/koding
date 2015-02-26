@@ -60,9 +60,6 @@ func NewClientSettings(conf config.Pubnub) *pubnub.ClientSettings {
 func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	pmc := NewPrivateMessageChannel(*pm.Channel)
 
-	// TODO do not send these secret names
-	// pm.Channel.SecretNames = []string{}
-
 	// channel grant public access for public channels
 	typeConstant := pmc.Type
 	if typeConstant == "privatemessage" || typeConstant == "pinnedactivity" {

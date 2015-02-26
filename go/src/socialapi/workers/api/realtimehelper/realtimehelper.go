@@ -17,7 +17,6 @@ func PushMessage(c *models.Channel, eventName string, body interface{}, secretNa
 		"body":      body,
 		"channel": map[string]interface{}{
 			"id":           strconv.FormatInt(c.Id, 10),
-			"secretNames":  secretNames,
 			"name":         c.Name,
 			"typeConstant": c.TypeConstant,
 			"groupName":    c.GroupName,
