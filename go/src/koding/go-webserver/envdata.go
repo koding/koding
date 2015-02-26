@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 
 	"labix.org/v2/mgo/bson"
@@ -15,8 +14,8 @@ type EnvData struct {
 }
 
 type MachineAndWorkspaces struct {
-	Machine    *modelhelper.MachineContainer `json:"machine"`
-	Workspaces []*models.Workspace           `json:"workspaces"`
+	Machine    *modelhelper.MachineContainer     `json:"machine"`
+	Workspaces []*modelhelper.WorkspaceContainer `json:"workspaces"`
 }
 
 func fetchEnvData(userInfo *UserInfo, outputter *Outputter) {
@@ -73,7 +72,7 @@ func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces
 		return nil
 	}
 
-	workspaces, err := modelhelper.GetWorkspacesByChannelIds(channelIds)
+	workspaces, err := modelhelper.GetWorkspacesContainersByChannelIds(channelIds)
 	if err != nil {
 		Log.Error(err.Error())
 		return nil
@@ -82,7 +81,7 @@ func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces
 	mwByMachineUids := map[string]*MachineAndWorkspaces{}
 	for _, machine := range machines {
 		mwByMachineUids[machine.Uid] = &MachineAndWorkspaces{
-			Machine: machine, Workspaces: []*models.Workspace{},
+			Machine: machine, Workspaces: []*modelhelper.WorkspaceContainer{},
 		}
 	}
 
@@ -107,7 +106,7 @@ func getWorkspacesForEachMachine(machines []*modelhelper.MachineContainer) []*Ma
 	for _, machine := range machines {
 		machineAndWorkspace := &MachineAndWorkspaces{Machine: machine}
 
-		workspaces, err := modelhelper.GetWorkspacesForMachine(machine.Machine)
+		workspaces, err := modelhelper.GetWorkspacesContainers(machine.Machine)
 		if err == nil {
 			machineAndWorkspace.Workspaces = workspaces
 		} else {

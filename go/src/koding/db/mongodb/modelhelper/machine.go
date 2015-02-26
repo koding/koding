@@ -40,7 +40,7 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	for _, machine := range machines {
 		bongo := Bongo{
 			ConstructorName: MachineConstructorName,
-			InstanceId:      "1", // TODO: what should go here?
+			InstanceId:      machine.ObjectId.Hex(),
 		}
 		container := &MachineContainer{bongo, machine, machine}
 
