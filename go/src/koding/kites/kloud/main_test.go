@@ -54,10 +54,9 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
-	kloudprotocol "koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 
 	"github.com/mitchellh/goamz/aws"
@@ -97,7 +96,7 @@ func init() {
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
 
-	/ Power up kloud kite
+	// Power up kloud kite
 	kloudKite = kite.New("kloud", "0.0.1")
 	kloudKite.Config = conf.Copy()
 	kloudKite.Config.Port = 4002
@@ -594,8 +593,6 @@ func newKodingProvider() *koding.Provider {
 	db := modelhelper.Mongo
 	domainStorage := koding.NewDomainStorage(db)
 
-	testChecker := &TestChecker{}
-
 	return &koding.Provider{
 		Session:           db,
 		Kite:              kloudKite,
@@ -616,9 +613,6 @@ func newKodingProvider() *koding.Provider {
 		KeyName:       keys.DeployKeyName,
 		PublicKey:     keys.DeployPublicKey,
 		PrivateKey:    keys.DeployPrivateKey,
-		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) {
-			return testChecker, nil
-		},
 	}
 }
 

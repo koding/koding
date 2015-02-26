@@ -37,7 +37,9 @@ func TestCollaborationPing(t *testing.T) {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler := New(r.Log, redisConn)
+	redis := helper.MustGetRedisConn()
+
+	handler := New(r.Log, redisConn, r.Conf, r.Kite)
 
 	Convey("while pinging collaboration", t, func() {
 		// owner
@@ -58,17 +60,97 @@ func TestCollaborationPing(t *testing.T) {
 			FileId:    fmt.Sprintf("%d", rand.Int63()),
 		}
 
-		Convey("reponse should be success", func() {
-			err := handler.Ping(req)
-			So(err, ShouldBeNil)
+		Convey("while testing Ping", func() {
+			Convey("reponse should be success with valid ping", func() {
+				err := handler.Ping(req)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("reponse should be success with invalid FileId", func() {
+				req.FileId = ""
+				err := handler.Ping(req)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("reponse should be success with invalid AccountId", func() {
+				req.AccountId = 0
+				err := handler.Ping(req)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("reponse should be success with invalid session", func() {
+				req := req
+				// prepare an invalid session here
+				req.CreatedAt = time.Now().UTC()
+				err := redis.Setex(
+					PrepareFileKey(req.FileId),
+					collaboration.ExpireSessionKeyDuration, // expire the key after this period
+					req.CreatedAt.Add(-terminateSessionDuration),
+				)
+
+				err = handler.Ping(req)
+				So(err, ShouldBeNil)
+			})
+
+			Convey("after sleep time", func() {
+				req := req
+
+				Convey("expired session should get invalidSessoin", func() {
+					st := sleepTime
+					sleepTime = time.Millisecond * 110
+
+					tsd := terminateSessionDuration
+					terminateSessionDuration = 100
+
+					// set durations back to the original value
+					defer func() {
+						sleepTime = st
+						terminateSessionDuration = tsd
+					}()
+
+					req.CreatedAt = time.Now().UTC()
+					// prepare a valid key
+					err := redis.Setex(
+						PrepareFileKey(req.FileId),
+						terminateSessionDuration, // expire the key after this period
+						req.CreatedAt.Unix(),     // value - unix time
+					)
+
+					// while sleeping here, redis key should be removed
+					// and we can understand that the Collab session is expired
+					time.Sleep(sleepTime)
+
+					req := req
+					err = handler.wait(req)
+					So(err, ShouldEqual, errSessionInvalid)
+				})
+
+				Convey("deadlined session should get errDeadlineReached", func() {
+					st := sleepTime
+					sleepTime = time.Millisecond * 110
+
+					dd := deadLineDuration
+					deadLineDuration = 100
+
+					// set durations back to the original value
+					defer func() {
+						sleepTime = st
+						deadLineDuration = dd
+					}()
+
+					req := req
+					err := handler.wait(req)
+					So(err, ShouldEqual, errDeadlineReached)
+				})
+			})
 		})
 
 		Convey("while testing checkIfKeyIsValid", func() {
-			redis := helper.MustGetRedisConn()
 
 			req := req
 			req.CreatedAt = time.Now().UTC()
 
+			// prepare a valid key
 			err := redis.Setex(
 				PrepareFileKey(req.FileId),
 				collaboration.ExpireSessionKeyDuration, // expire the key after this period
@@ -77,49 +159,72 @@ func TestCollaborationPing(t *testing.T) {
 
 			So(err, ShouldBeNil)
 
-			Convey("while testing checkIfKeyIsValid", func() {
-				Convey("valid key should return nil", func() {
-					err := handler.checkIfKeyIsValid(req)
-					So(err, ShouldBeNil)
-				})
-
-				Convey("invalid key should return errSessionInvalid", func() {
-					req := req
-					// override fileId
-					req.FileId = fmt.Sprintf("%d", rand.Int63())
-					err := handler.checkIfKeyIsValid(req)
-					So(err, ShouldEqual, errSessionInvalid)
-				})
-
-				Convey("invalid (non-timestamp) value should return errSessionInvalid", func() {
-					req := req
-					req.CreatedAt = time.Now().UTC()
-					err := redis.Setex(
-						PrepareFileKey(req.FileId),
-						collaboration.ExpireSessionKeyDuration, // expire the key after this period
-						"req.CreatedAt.Unix()",                 // replace timestamp with unix time
-					)
-
-					err = handler.checkIfKeyIsValid(req)
-					So(err, ShouldEqual, errSessionInvalid)
-				})
-
-				Convey("old ping time should return errSessionInvalid", func() {
-					req.CreatedAt = time.Now().UTC()
-					err := redis.Setex(
-						PrepareFileKey(req.FileId),
-						collaboration.ExpireSessionKeyDuration, // expire the key after this period
-						req.CreatedAt.Add(-terminateSessionDuration),
-					)
-
-					err = handler.checkIfKeyIsValid(req)
-					So(err, ShouldEqual, errSessionInvalid)
-				})
-
+			Convey("valid key should return nil", func() {
+				err := handler.checkIfKeyIsValid(req)
+				So(err, ShouldBeNil)
 			})
 
-			// err := handler.Ping(p)
-			// So(err, ShouldBeNil)
+			Convey("invalid key should return errSessionInvalid", func() {
+				req := req
+				// override fileId
+				req.FileId = fmt.Sprintf("%d", rand.Int63())
+				err := handler.checkIfKeyIsValid(req)
+				So(err, ShouldEqual, errSessionInvalid)
+			})
+
+			Convey("invalid (non-timestamp) value should return errSessionInvalid", func() {
+				req := req
+				req.CreatedAt = time.Now().UTC()
+				err := redis.Setex(
+					PrepareFileKey(req.FileId),
+					collaboration.ExpireSessionKeyDuration, // expire the key after this period
+					"req.CreatedAt.Unix()",                 // replace timestamp with unix time
+				)
+
+				err = handler.checkIfKeyIsValid(req)
+				So(err, ShouldEqual, errSessionInvalid)
+			})
+
+			Convey("old ping time should return errSessionInvalid", func() {
+				req := req
+				req.CreatedAt = time.Now().UTC()
+				err := redis.Setex(
+					PrepareFileKey(req.FileId),
+					collaboration.ExpireSessionKeyDuration, // expire the key after this period
+					req.CreatedAt.Add(-terminateSessionDuration),
+				)
+
+				err = handler.checkIfKeyIsValid(req)
+				So(err, ShouldEqual, errSessionInvalid)
+			})
+		})
+
+		Convey("while testing drive operations", func() {
+			req := req
+			req.CreatedAt = time.Now().UTC()
+			Convey("should be able to create the file", func() {
+				f, err := handler.createFile()
+				So(err, ShouldBeNil)
+				req.FileId = f.Id
+				Convey("should be able to get the created file", func() {
+					f2, err := handler.getFile(f.Id)
+					So(err, ShouldBeNil)
+					So(f2, ShouldNotBeNil)
+					Convey("should be able to delete the created file", func() {
+						err = handler.deleteFile(req.FileId)
+						So(err, ShouldBeNil)
+						Convey("should not be able to get the deleted file", func() {
+							f2, err = handler.getFile(f.Id)
+							So(err, ShouldNotBeNil)
+							So(f2, ShouldBeNil)
+						})
+						Convey("deleting the deleted file should not give error", func() {
+							err = handler.deleteFile(req.FileId)
+							So(err, ShouldBeNil)
+						})
+					})
+				})
+			})
 		})
 	})
 }

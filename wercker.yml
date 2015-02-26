@@ -58,7 +58,7 @@ build:
           cat $INSTANCE_DATA
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot /opt/koding
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: build client
         code: |
@@ -98,6 +98,10 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+    - script: # todo generalize this part when we have more tests
+        name: test koding mongo models
+        code: |
+          go test ./go/src/koding/db/mongodb/modelhelper/*go
     - script:
         name: testing backend finished
         code: |

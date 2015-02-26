@@ -230,12 +230,12 @@ module.exports = class MainController extends KDController
 
     storage = new LocalStorage 'Koding', '1.0'
 
+    KiteCache.clearAll()
+
     remote.api.JUser.logout (err) =>
 
       mainView._logoutAnimation()
       kd.singletons.localSync.removeLocalContents()
-
-      KiteCache.clearAll()
 
       kookies.expire 'koding082014'
       kookies.expire 'useOldKoding'

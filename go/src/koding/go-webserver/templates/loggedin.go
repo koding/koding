@@ -14,7 +14,6 @@ var LoggedInHome = `
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
     <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/thirdparty/gapi.js"></script>
     <script src="/a/p/p/common.js?{{.Version}}"></script>
     <script src="/a/p/p/app.js?{{.Version}}"></script>
 
