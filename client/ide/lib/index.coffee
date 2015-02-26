@@ -380,7 +380,7 @@ module.exports = class IDEAppController extends AppController
           {state} = machineItem.status
           machineId = machineItem._id
 
-          if state is Running
+          if state is Running and (kite = machine.getBaseKite())._state is 1 # CONNECTED
             @mountMachine machineItem
           else
 
