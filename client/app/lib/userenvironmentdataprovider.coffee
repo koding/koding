@@ -100,6 +100,12 @@ module.exports = UserEnvironmentDataProvider =
 
     @machineGetter_ 'label', machineLabel, callback
 
+
+  getMachineByUId: (uid, callback) ->
+
+    @machineGetter_ 'uid', uid, callback
+
+
   getMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
     machine = null
