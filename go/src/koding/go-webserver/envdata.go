@@ -24,7 +24,7 @@ func fetchEnvData(userInfo *UserInfo, outputter *Outputter) {
 }
 
 func getEnvData(userInfo *UserInfo) *EnvData {
-	var collab []*MachineAndWorkspaces
+	var collab = []*MachineAndWorkspaces{}
 	var userId = userInfo.UserId
 
 	socialApiId := userInfo.SocialApiId
