@@ -5,7 +5,6 @@ FSFile = require 'app/util/fs/fsfile'
 IDEPane = require './idepane'
 Ace = require 'ace/ace'
 AceView = require 'ace/aceview'
-KDModalView = kd.ModalView
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -73,8 +72,6 @@ module.exports = class IDEEditorPane extends IDEPane
       @once 'RealTimeManagerSet', =>
         myPermission = @rtm.getFromModel('permissions').get nick()
         @makeReadOnly()  if myPermission is 'read'
-
-      @checkIfReadOnlyFile()
 
 
   handleAutoSave: ->
@@ -396,36 +393,3 @@ module.exports = class IDEEditorPane extends IDEPane
   makeEditable: ->
 
     @getEditor()?.setReadOnly no
-
-
-  checkIfReadOnlyFile: ->
-
-    file = @getFile()
-
-    { notifyIfReadOnlyFile } = @getOptions()
-
-    return  if file.isDummyFile() or not notifyIfReadOnlyFile
-
-    file.isReadOnly (err, readOnly) =>
-
-      return kd.log 'Error while getting file info', err  if err
-      return  unless readOnly
-
-      @makeReadOnly()
-      modal = new KDModalView
-        title    : 'Read-only file'
-        content  : '''
-          <div class="modalformline">
-            <p>
-              You can proceed with opening the file but it is opened in read-only mode.
-              Read more about permissions <a class="help" href="http://learn.koding.com/permissions" target="_blank">here</a>.
-            </p>
-          </div>
-          '''
-        overlay  : yes
-        cssClass : 'editor-read-only-file-modal'
-        buttons  :
-          ok     :
-            cssClass  : 'solid green medium'
-            title     : 'OK'
-            callback  : -> modal.destroy()
