@@ -1,0 +1,3 @@
+name,description,binding,readonly,enabled,hidden,options
+t#ringbell,Ring Bell,"[[u'alt+ctrl+k'], [u'alt+command+k']]",False,True,False,{u'mousetrap': {u'global': True}}
+t#noop,,"[[u'ctrl+v', u'ctrl+r'], [u'command+v', u'command+r']]",True,True,True,{u'mousetrap': {u'global': True}}

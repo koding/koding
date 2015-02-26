@@ -1,0 +1,582 @@
+[
+  {
+    "name": "w#findfilebyname",
+    "description": "Find File by Name",
+    "binding": [
+      [
+        "ctrl+alt+o"
+      ],
+      [
+        "ctrl+alt+o"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#searchallfiles",
+    "description": "Search in All Files",
+    "binding": [
+      [
+        "ctrl+alt+f"
+      ],
+      [
+        "ctrl+alt+f"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#splitvertically",
+    "description": "Split Vertically",
+    "binding": [
+      [
+        "ctrl+alt+v"
+      ],
+      [
+        "ctrl+alt+v"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#splithorizontally",
+    "description": "Split Horizontally",
+    "binding": [
+      [
+        "ctrl+alt+h"
+      ],
+      [
+        "ctrl+alt+h"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#mergesplitview",
+    "description": "Merge Split Panes",
+    "binding": [
+      [
+        "ctrl+alt+m"
+      ],
+      [
+        "ctrl+alt+m"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#previewfile",
+    "description": "Preview File",
+    "binding": [
+      [
+        "ctrl+alt+p"
+      ],
+      [
+        "ctrl+alt+p"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#saveallfiles",
+    "description": "Save All",
+    "binding": [
+      [
+        "ctrl+alt+s"
+      ],
+      [
+        "ctrl+alt+s"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#createnewfile",
+    "description": "New File",
+    "binding": [
+      [
+        "ctrl+alt+n"
+      ],
+      [
+        "ctrl+alt+n"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#createnewterminal",
+    "description": "New Terminal",
+    "binding": [
+      [
+        "ctrl+alt+t"
+      ],
+      [
+        "ctrl+alt+t"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#createnewbrowser",
+    "description": "New Browser",
+    "binding": [
+      [
+        "ctrl+alt+b"
+      ],
+      [
+        "ctrl+alt+b"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#createnewdrawing",
+    "description": "New Drawing Board",
+    "binding": [
+      [
+        "ctrl+alt+d"
+      ],
+      [
+        "ctrl+alt+d"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#togglesidebar",
+    "description": "Toggle Sidebar",
+    "binding": [
+      [
+        "ctrl+alt+k"
+      ],
+      [
+        "ctrl+alt+k"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#closetab",
+    "description": "Close Tab",
+    "binding": [
+      [
+        "ctrl+alt+w"
+      ],
+      [
+        "ctrl+alt+w"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gotolefttab",
+    "description": "Go to Left Tab",
+    "binding": [
+      [
+        "ctrl+alt+["
+      ],
+      [
+        "ctrl+alt+["
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gotorighttab",
+    "description": "Go to Right Tab",
+    "binding": [
+      [
+        "ctrl+alt+]"
+      ],
+      [
+        "ctrl+alt+]"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber1",
+    "description": "Go to Tab #1",
+    "binding": [
+      [
+        "ctrl+1"
+      ],
+      [
+        "command+1"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber2",
+    "description": "Go to Tab #2",
+    "binding": [
+      [
+        "ctrl+2"
+      ],
+      [
+        "command+2"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber3",
+    "description": "Go to Tab #3",
+    "binding": [
+      [
+        "ctrl+3"
+      ],
+      [
+        "command+3"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber4",
+    "description": "Go to Tab #4",
+    "binding": [
+      [
+        "ctrl+4"
+      ],
+      [
+        "command+4"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber5",
+    "description": "Go to Tab #5",
+    "binding": [
+      [
+        "ctrl+5"
+      ],
+      [
+        "command+5"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber6",
+    "description": "Go to Tab #6",
+    "binding": [
+      [
+        "ctrl+6"
+      ],
+      [
+        "command+6"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber7",
+    "description": "Go to Tab #7",
+    "binding": [
+      [
+        "ctrl+7"
+      ],
+      [
+        "command+7"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber8",
+    "description": "Go to Tab #8",
+    "binding": [
+      [
+        "ctrl+8"
+      ],
+      [
+        "command+8"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#gototabnumber9",
+    "description": "Go to Tab #9",
+    "binding": [
+      [
+        "ctrl+9"
+      ],
+      [
+        "command+9"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#fullscreen",
+    "description": "Fullscreen",
+    "binding": [
+      [
+        "ctrl+shift+enter"
+      ],
+      [
+        "command+shift+enter"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#movetabup",
+    "description": "Move Tab Up",
+    "binding": [
+      [
+        "ctrl+alt+shift+up"
+      ],
+      [
+        "command+alt+shift+up"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#movetabdown",
+    "description": "Move Tab Down",
+    "binding": [
+      [
+        "ctrl+alt+shift+down"
+      ],
+      [
+        "command+alt+shift+down"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#movetableft",
+    "description": "Move Tab Left",
+    "binding": [
+      [
+        "ctrl+alt+shift+left"
+      ],
+      [
+        "command+alt+shift+left"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "w#movetabright",
+    "description": "Move Tab Right",
+    "binding": [
+      [
+        "ctrl+alt+shift+right"
+      ],
+      [
+        "command+alt+shift+right"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  }
+]

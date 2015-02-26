@@ -1,0 +1,44 @@
+[
+  {
+    "name": "t#ringbell",
+    "description": "Ring Bell",
+    "binding": [
+      [
+        "alt+ctrl+k"
+      ],
+      [
+        "alt+command+k"
+      ]
+    ],
+    "readonly": false,
+    "enabled": true,
+    "hidden": false,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  },
+  {
+    "name": "t#noop",
+    "description": null,
+    "binding": [
+      [
+        "ctrl+v",
+        "ctrl+r"
+      ],
+      [
+        "command+v",
+        "command+r"
+      ]
+    ],
+    "readonly": true,
+    "enabled": true,
+    "hidden": true,
+    "options": {
+      "mousetrap": {
+        "global": true
+      }
+    }
+  }
+]
