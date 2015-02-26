@@ -180,7 +180,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @onboarding?.destroy()
 
     appManager = kd.getSingleton 'appManager'
-    appManager.tell 'IDE', 'setMachineUser', [participant]
+    appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
 
 
   refresh: ->
