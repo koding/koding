@@ -389,7 +389,7 @@ module.exports = class IDEAppController extends AppController
 
           if state is Running and isKiteConnected
             @mountMachine machineItem
-            kite.fetchTerminalSessions()
+            baseMachineKite.fetchTerminalSessions()
 
           else
             unless @machineStateModal
