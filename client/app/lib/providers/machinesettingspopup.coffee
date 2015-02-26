@@ -224,7 +224,25 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         diskUsage.updateBar 0, '%', 'failed to fetch usage!'
 
 
-    {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
+    {moreView, nickname,
+     nickEdit, resizeIcon} = @modalTabs.forms.Settings.inputs
+
+    resizeIcon.once 'click', =>
+
+      @fetchUsageInfo (err, info)=>
+
+        if showError err
+          return @destroy()
+
+        { plan, plans, usage, reward } = info
+
+        limits  = plans[plan]
+        options = { plan, limits, usage, reward, @machine }
+
+        new (require './computeresizemodal') options
+
+        @destroy()
+
 
     moreLabel = moreView.getOption 'label'
     moreLabel.on 'click', =>
