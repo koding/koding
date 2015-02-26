@@ -18,7 +18,8 @@ PSSH_PROGRAM=$(which pssh || which parallel-ssh)
 BROWSER=$()
 
 function run_i2cssh() {
-    i2cssh --login $USER $COMMAND_OPTIONS $HOSTS
+    MACHINES=$(echo $HOSTS | tr ' ' ',')
+    i2cssh --login $USER --machines $MACHINES $COMMAND_OPTIONS
 }
 
 function pssh_host_option() {

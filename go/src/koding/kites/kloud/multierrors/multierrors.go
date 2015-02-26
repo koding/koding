@@ -1,4 +1,4 @@
-// package multierrors is a convenient helper package to return multipl errors
+// Package multierrors is a convenient helper package to return multiple errors
 // in type error
 package multierrors
 

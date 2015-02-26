@@ -32,7 +32,7 @@ module.exports = class AccountReferralSystemListController extends AccountListVi
     @loadItems()
 
   # showRedeemReferralPointModal:->
-  #   KD.mixpanel "Referer Redeem Point modal, click"
+  #   trackEvent "Referer Redeem Point modal, click"
 
   #   appManager = KD.getSingleton "appManager"
   #   appManager.tell "Account", "showRedeemReferralPointModal"
