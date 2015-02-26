@@ -784,7 +784,16 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @ownMachinesList    = @createMachineList 'own', {}, []
     @sharedMachinesList = @createMachineList 'shared', {}, []
 
-    data = globals.userEnvironmentData
+    data = environmentDataProvider.get()
+
+    if environmentDataProvider.isRevived
+      @addMachines_ data
+    else
+      environmentDataProvider.fetch (data) =>
+        @addMachines_ data
+
+
+  addMachines_: (data) ->
 
     { shared, collaboration } = data
     sharedData = shared.concat collaboration
