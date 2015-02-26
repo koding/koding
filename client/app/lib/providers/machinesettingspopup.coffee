@@ -18,7 +18,6 @@ Machine = require './machine'
 ManageDomainsView = require '../domains/managedomainsview'
 Usage = require './usage'
 
-
 module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
   { Running, Starting } = Machine.State
@@ -81,6 +80,11 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           label         : 'Disk Usage'
           itemClass     : KDProgressBarView
           cssClass      : if running then 'disk-usage' else 'hidden'
+          nextElement   :
+            resizeIcon  :
+              itemClass : KDCustomHTMLView
+              cssClass  : 'resize-icon'
+              tooltip   : title: 'Add more space', placement: top
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
