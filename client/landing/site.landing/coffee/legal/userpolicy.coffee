@@ -72,7 +72,7 @@ module.exports = class UserPolicyView extends JView
         <li>
           Malicious content;
         </li>
-        
+
         <li>
           Any type of proxy services including but not exclusively VPN servers, TOR servers, etc.
         </li>
@@ -103,6 +103,11 @@ module.exports = class UserPolicyView extends JView
 
         <li>
           Pornography and Sexually Explicit Content;
+        </li>
+
+        <li>
+          Use of any kind of VOIP related software, including but not limited to Teamspeak,
+          Asterisk, FreePBX;
         </li>
 
         <li>
