@@ -177,6 +177,9 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
     currentState = @machine.status.state
     baseKite     = @machine.getBaseKite()
 
+    # To cache it before user request
+    @fetchUsageInfo()
+
     computeController.getKloud()
 
       .info { machineId, currentState }
@@ -327,3 +330,10 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
     @machine.getBaseKite().klientShare { username }
 
 
+  fetchUsageInfo: (callback = kd.noop)->
+
+    return callback null, @fetchedInfo  if @fetchedInfo?
+
+    kd.singletons.computeController.fetchPlanCombo 'koding', (err, info) =>
+      if err then callback err
+      else callback null, @fetchedInfo = info
