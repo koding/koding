@@ -16,6 +16,7 @@ showError = require '../util/showError'
 ComputeHelpers = require './computehelpers'
 sendDataDogEvent = require '../util/sendDataDogEvent'
 HelpSupportModal = '../commonviews/helpsupportmodal'
+showError = require 'app/util/showError'
 
 
 module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalView
@@ -50,6 +51,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     whoami().isEmailVerified (err, verified)=>
 
       kd.warn err  if err?
+
+      debugger
 
       if not verified
         @buildVerifyView()
@@ -277,7 +280,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       callback : =>
         @showBusy "Working..."
         @machine.jMachine.approve (err)=>
-          unless kd.showError err
+          unless showError err
             @_busy = no
             @buildInitial()
 
@@ -293,7 +296,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
           @_busy = no
 
-          unless kd.showError err
+          unless showError err
             computeController.once 'RenderMachines', ->
               router.handleRoute '/IDE'
             computeController.reset yes
