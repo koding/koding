@@ -115,7 +115,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     if file.isDummyFile() or not notifyIfNoPermissions
       return @createEditorAfterFileCheck file, content, callback, emitChange, no
 
-    file.isReadableWritable (err, result) =>
+    file.permissions (err, result) =>
 
       return showErrorNotification err  if err
 
