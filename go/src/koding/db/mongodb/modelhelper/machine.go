@@ -90,7 +90,8 @@ func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 
 func GetCollabMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	query := bson.M{"users": bson.M{
-		"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": false},
+		"$elemMatch": bson.M{"id": userId, "owner": false,
+			"permanent": bson.M{"$ne": true}},
 	}}
 
 	return findMachineContainers(query)
