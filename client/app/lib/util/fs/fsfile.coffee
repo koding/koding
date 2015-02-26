@@ -234,7 +234,7 @@ module.exports = class FSFile extends FSItem
         return response
 
 
-  isReadOnly: (callback) ->
+  isReadableWritable: (callback) ->
 
     kite = @getKite()
 
@@ -248,5 +248,5 @@ module.exports = class FSFile extends FSItem
 
       return callback err  if err
 
-      readOnly = result.readable and not result.writable
-      callback null, readOnly
+      { readable, writable } = result
+      callback null, { readable, writable }
