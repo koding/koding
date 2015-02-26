@@ -27,7 +27,7 @@ getLatestWorkspace = ->
   ws = null
 
   if checkWorkspace machineLabel, workspaceSlug, channelId
-   ws = workspace
+    ws = workspace
 
   return ws
 
