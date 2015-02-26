@@ -160,9 +160,6 @@ loadCollaborativeIDE = (id) ->
 
 module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
 
-  globals.userMachines = []
-  globals.userWorkspaces = []
-
   switch type
 
     when 'home' then routeToLatestWorkspace()
