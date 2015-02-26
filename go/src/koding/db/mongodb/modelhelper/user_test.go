@@ -2,26 +2,36 @@ package modelhelper
 
 import (
 	"koding/db/models"
+	"os"
 	"testing"
 	"time"
 
-	"labix.org/v2/mgo/bson"
+	"log"
 
-	"github.com/koding/multiconfig"
+	"labix.org/v2/mgo/bson"
 )
 
-type Config struct {
-	MongoURL string `required:"true"`
-}
+func initMongoConn() {
+	// i didnt write this
+	mongoURL := ""
 
-func init() {
-	conf := new(Config)
-	multiconfig.New().MustLoad(conf)
+	if url := os.Getenv("WERCKER_MONGODB_URL"); url != "" {
+		mongoURL = url
+	} else {
+		mongoURL = os.Getenv("MONGODB_URL")
+	}
 
-	Initialize(conf.MongoURL)
+	if mongoURL == "" {
+		log.Fatalf("either WERCKER_MONGODB_URL or MONGODB_URL should be set")
+	}
+
+	Initialize(mongoURL)
 }
 
 func TestBlockUser(t *testing.T) {
+	initMongoConn()
+	defer Close()
+
 	username, blockedReason := "testuser", "testing"
 
 	user := &models.User{
@@ -61,6 +71,9 @@ func TestBlockUser(t *testing.T) {
 }
 
 func TestRemoveUser(t *testing.T) {
+	initMongoConn()
+	defer Close()
+
 	username := "testuser"
 	user := &models.User{
 		Name: username, ObjectId: bson.NewObjectId(),
