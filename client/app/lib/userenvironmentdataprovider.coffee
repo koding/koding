@@ -16,7 +16,8 @@ module.exports = UserEnvironmentDataProvider =
 
   revive: ->
 
-    data = globals.userEnvironmentData
+    empty = own: [], shared: [], collaboration: []
+    data  = globals.userEnvironmentData or empty
 
     for section in [ data.own, data.shared, data.collaboration ]
       for obj in section
