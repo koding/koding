@@ -11,9 +11,6 @@ scripts:
 build: landing
 	@DEBUG=client:* $(BIN)/gulp
 
-shrinkwrap:
-	@$(BIN)/npm-shrinkwrap --dev
-
 landing:
 	@cd landing && npm install --unsafe-perm --silent
 	@cd landing && rm -rf node_modules/gulp.spritesmith/node_modules/spritesmith/node_modules/canvassmith
