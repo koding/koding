@@ -81,13 +81,13 @@ module.exports = UserEnvironmentDataProvider =
     callback machine, workspace
 
 
-  getMachineByLabel: (machineLabel, callback) ->
+  machineGetter_: (field, expectedValue, callback) ->
 
     m = null
     w = null
 
     for obj in @getAllMachines()
-      if obj.machine.label is machineLabel
+      if obj.machine[field] is expectedValue
         m = obj.machine
         w = obj.workspaces
 
@@ -95,6 +95,10 @@ module.exports = UserEnvironmentDataProvider =
 
     callback m, w
 
+
+  getMachineByLabel: (machineLabel, callback) ->
+
+    @machineGetter_ 'label', machineLabel, callback
 
   getMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
