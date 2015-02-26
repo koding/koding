@@ -381,10 +381,13 @@ module.exports = class IDEAppController extends AppController
       callback = =>
 
         if machineItem
-          {state} = machineItem.status
-          machineId = machineItem._id
+          {state}         = machineItem.status
+          machineId       = machineItem._id
+          baseMachineKite = machineItem.getBaseKite()
+          isKiteConnected = baseMachineKite._state is 1
 
-          if state is Running and (kite = machine.getBaseKite())._state is 1 # CONNECTED
+
+          if state is Running and isKiteConnected
             @mountMachine machineItem
             kite.fetchTerminalSessions()
 
