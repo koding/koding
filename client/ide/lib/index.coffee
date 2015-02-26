@@ -384,10 +384,11 @@ module.exports = class IDEAppController extends AppController
           {state} = machineItem.status
           machineId = machineItem._id
 
-          if state is Running
+          if state is Running and (kite = machine.getBaseKite())._state is 1 # CONNECTED
             @mountMachine machineItem
-          else
+            kite.fetchTerminalSessions()
 
+          else
             unless @machineStateModal
 
               @createMachineStateModal {
@@ -877,6 +878,8 @@ module.exports = class IDEAppController extends AppController
       finderController.reset()
 
     snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
+
+    machine.getBaseKite().fetchTerminalSessions()
 
     unless @fakeViewsDestroyed
       for ideView in @ideViews
