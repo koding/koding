@@ -1,5 +1,6 @@
 kd = require 'kd'
 nick = require 'app/util/nick'
+showError = require 'app/util/showError'
 IDEFinderContextMenuController = require '../../finder/idefindercontextmenucontroller'
 IDEFinderItem = require '../../finder/idefinderitem'
 IDEFinderTreeController = require '../../finder/idefindertreecontroller'
@@ -34,6 +35,10 @@ module.exports = class IDEFinderPane extends IDEPane
 
     fc.on 'FileNeedsToBeOpened', (file) ->
       file.fetchContents (err, contents) ->
+        if err
+          console.error err
+          return showError 'File could not be opened'
+
         mgr.tell 'IDE', 'openFile', file, contents
         kd.getSingleton('windowController').setKeyView null
 
@@ -51,7 +56,7 @@ module.exports = class IDEFinderPane extends IDEPane
 
     @on 'MachineUnmountRequested', (machine) ->
       fc.unmountMachine machine.uid
-      
+
     @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
       @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
 
