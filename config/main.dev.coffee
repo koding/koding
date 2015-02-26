@@ -610,7 +610,7 @@ Configuration = (options={}) ->
 
         sh -c scripts/check-client-deps.sh
 
-        if [ $? -eq 0 ]
+        if [ $? -ne 0 ]
         then
           echo -e "\n\nPlease do ./configure and  ./run again after resolving issues\n"
           exit 1;
