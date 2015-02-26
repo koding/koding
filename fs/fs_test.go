@@ -138,7 +138,12 @@ func TestReadDirectory(t *testing.T) {
 
 	respFiles := make([]string, len(files))
 	for i, e := range entries {
-		respFiles[i] = e.MustString()
+		f := &FileEntry{}
+		err := e.Unmarshal(f)
+		if err != nil {
+			t.Fatal(err)
+		}
+		respFiles[i] = f.Name
 	}
 
 	if !reflect.DeepEqual(respFiles, currentFiles) {
