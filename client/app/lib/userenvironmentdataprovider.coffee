@@ -14,6 +14,9 @@ module.exports = UserEnvironmentDataProvider =
       callback data
 
 
+  get: -> return globals.userEnvironmentData
+
+
   revive: ->
 
     empty = own: [], shared: [], collaboration: []
