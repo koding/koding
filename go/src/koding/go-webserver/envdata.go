@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 
 	"labix.org/v2/mgo/bson"
@@ -42,7 +43,7 @@ func getEnvData(userInfo *UserInfo) *EnvData {
 func getOwn(userId bson.ObjectId) []*MachineAndWorkspaces {
 	ownMachines, err := modelhelper.GetOwnMachines(userId)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf("Error fetching machines for: %s %s", userId, err))
 		return nil
 	}
 
@@ -52,7 +53,8 @@ func getOwn(userId bson.ObjectId) []*MachineAndWorkspaces {
 func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 	sharedMachines, err := modelhelper.GetSharedMachines(userId)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf(
+			"Error fetching shared machines for: %s %s", userId, err))
 		return nil
 	}
 
@@ -62,19 +64,24 @@ func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces {
 	machines, err := modelhelper.GetCollabMachines(userId)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf(
+			"Error fetching collaboration machines for: %s %s", userId, err))
 		return nil
 	}
 
 	channelIds, err := getCollabChannels(socialApiId)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf(
+			"Error fetching collaboration channelIds for: %s %s %s",
+			userId, socialApiId, err))
 		return nil
 	}
 
 	workspaces, err := modelhelper.GetWorkspacesContainersByChannelIds(channelIds)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf(
+			"Error fetching workspaces channelIds for: %s %s %s",
+			userId, channelIds, err))
 		return nil
 	}
 
@@ -103,14 +110,16 @@ func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces
 func getWorkspacesForEachMachine(machines []*modelhelper.MachineContainer) []*MachineAndWorkspaces {
 	mws := []*MachineAndWorkspaces{}
 
-	for _, machine := range machines {
-		machineAndWorkspace := &MachineAndWorkspaces{Machine: machine}
+	for _, mContainer := range machines {
+		machineAndWorkspace := &MachineAndWorkspaces{Machine: mContainer}
+		machine := mContainer.Machine
 
-		workspaces, err := modelhelper.GetWorkspacesContainers(machine.Machine)
+		workspaces, err := modelhelper.GetWorkspacesContainers(machine)
 		if err == nil {
 			machineAndWorkspace.Workspaces = workspaces
 		} else {
-			Log.Error(err.Error())
+			Log.Error(fmt.Sprintf(
+				"Error fetching workspaces for: %s %s", machine.ObjectId, err))
 		}
 
 		mws = append(mws, machineAndWorkspace)
