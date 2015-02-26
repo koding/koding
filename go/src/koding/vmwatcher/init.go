@@ -9,6 +9,7 @@ import (
 	kiteConfig "github.com/koding/kite/config"
 	"github.com/koding/multiconfig"
 
+	"github.com/cenkalti/backoff"
 	"github.com/crowdmob/goamz/aws"
 	"github.com/koding/kite"
 	"github.com/koding/redis"
@@ -132,8 +133,12 @@ func initializeKlient(c *VmController) {
 		Key:  KloudSecretKey,
 	}
 
-	// dial the kloud address
-	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
+	operation := func() error {
+		return kiteClient.DialTimeout(time.Second * 10)
+	}
+
+	err = backoff.Retry(operation, backoff.NewExponentialBackOff())
+	if err != nil {
 		Log.Fatal("%s. Is kloud/kontrol running?", err.Error())
 	}
 
