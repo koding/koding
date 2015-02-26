@@ -103,6 +103,10 @@ build:
         code: |
           go test ./go/src/koding/db/mongodb/modelhelper/*go
     - script:
+        name: test gowebserver
+        code: |
+          go test ./go/src/koding/go-webserver/*.go
+    - script:
         name: testing backend finished
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test backend finished" "building" 45
