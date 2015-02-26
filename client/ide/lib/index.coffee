@@ -32,6 +32,8 @@ splashMarkups = require './util/splash-markups'
 IDEApplicationTabView = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
+
 require('./routes')()
 
 
@@ -319,6 +321,8 @@ module.exports = class IDEAppController extends AppController
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
 
+        machine = new Machine { machine }  unless machine instanceof Machine
+
         return unless machine
 
         for ideView in @ideViews
@@ -353,13 +357,10 @@ module.exports = class IDEAppController extends AppController
 
   getMountedMachine: (callback = noop) ->
 
-    kd.getSingleton('computeController').fetchMachines (err, machines) =>
-      if err
-        showError "Couldn't fetch your VMs"
-        return callback err, null
-
-      kd.utils.defer =>
-        @mountedMachine = m for m in machines when m.uid is @mountedMachineUId
+    kd.utils.defer =>
+      environmentDataProvider.getMachineByUId @mountedMachineUId, (machine, ws) =>
+        machine = new Machine { machine }  unless machine instanceof Machine
+        @mountedMachine = machine
 
         callback null, @mountedMachine
 
@@ -369,12 +370,15 @@ module.exports = class IDEAppController extends AppController
     computeController = kd.getSingleton 'computeController'
     container         = @getView()
 
-    computeController.fetchMachines (err, machines) =>
-      return showError 'Something went wrong. Try again.'  if err
+    environmentDataProvider.getMachineByUId machineUId, (machineItem) =>
+      return showError 'Something went wrong. Try again.'  unless machineItem
+
+      unless machineItem instanceof Machine
+        machineItem = new Machine machine: machineItem
+
+      @mountedMachine = machineItem
 
       callback = =>
-        for machine in machines when machine.uid is machineUId
-          machineItem = machine
 
         if machineItem
           {state} = machineItem.status
