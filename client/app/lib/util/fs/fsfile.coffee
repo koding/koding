@@ -234,7 +234,7 @@ module.exports = class FSFile extends FSItem
         return response
 
 
-  isReadableWritable: (callback) ->
+  fetchPermissions: (callback) ->
 
     kite = @getKite()
 
