@@ -25,6 +25,8 @@ module.exports = UserEnvironmentDataProvider =
         for ws, i in obj.workspaces
           obj.workspaces[i] = remote.revive ws
 
+      @isRevived = yes
+
 
   getMyMachines: -> return globals.userEnvironmentData.own
 
