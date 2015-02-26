@@ -921,7 +921,7 @@ module.exports =
       options = channelId: @socialChannel.getId()
       kd.singletons.socialapi.channel.leave options, (err) =>
         return showError err  if err
-        @setMachineUser [nick()], no, => @quit()
+        @setMachineUser [nick()], no, kd.noop
         # remove the leaving participant's info from the collaborative doc
         @removeParticipant nick()
 
