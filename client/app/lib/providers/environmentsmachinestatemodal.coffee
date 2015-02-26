@@ -52,7 +52,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
       kd.warn err  if err?
 
-      debugger
 
       if not verified
         @buildVerifyView()
