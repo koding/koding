@@ -9,13 +9,12 @@ import (
 	"github.com/koding/bongo"
 )
 
-func PushMessage(c *models.Channel, eventName string, body interface{}, secretNames []string) error {
+func PushMessage(c *models.Channel, eventName string, body interface{}) error {
 	request := map[string]interface{}{
 		"eventName": eventName,
 		"body":      body,
 		"channel": map[string]interface{}{
 			"id":           strconv.FormatInt(c.Id, 10),
-			"secretNames":  secretNames,
 			"name":         c.Name,
 			"typeConstant": c.TypeConstant,
 			"groupName":    c.GroupName,
