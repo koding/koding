@@ -1,4 +1,4 @@
-mixpanel = require '../util/mixpanel'
+trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomScrollView = kd.CustomScrollView
@@ -78,7 +78,7 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     @forwardEvent @terminal, 'command'
 
-    mixpanel "Open Webterm, click", {
+    trackEvent "Open Webterm, click", {
       machineName : @getMachine().getName()
     }
 
@@ -86,9 +86,17 @@ module.exports = class WebTermView extends KDCustomScrollView
 
     # watch machine state:
     { computeController } = kd.singletons
+    { Stopped, Stopping } = Machine.State
+
     computeController.on "public-#{@getMachine()._id}", (event) =>
-      if event.status in [Machine.State.Stopping, Machine.State.Stopped]
+      if event.status in [Stopping, Stopped]
         @terminal.cursor.stopBlink()
+
+        # If machine is stopped we need to invalidate current sessions
+        # user can decide to create a new one or destroy this one.
+        if event.status is Stopped
+          @messagePane.handleError message: "ErrNoSession"
+
 
     @setKeyView()
 
@@ -285,6 +293,10 @@ module.exports = class WebTermView extends KDCustomScrollView
   triggerFitToWindow: ->
 
     return  unless @terminal?.server?
+    # bc a hidden terminal has 1 col and 1 row
+    # we assume that the terminal is hidden and do not trigger resize
+    # maybe, better would be to check if the dom element is in the body - SY
+    return  if @terminal.sizeX + @terminal.sizeY <= 2
 
     @terminal.server.controlSequence String.fromCharCode 2
     @terminal.server.input 'F'

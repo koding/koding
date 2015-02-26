@@ -4,6 +4,7 @@
   "private": "true",
   "dependencies": {
     "accounting": "^0.4.1",
+    "backoff": "2.4.1",
     "bluebird": "^2.8.2",
     "bongo-client": "git+ssh://git@github.com:koding/bongo-client",
     "broker-client": "git+ssh://git@github.com:koding/broker-client",

@@ -118,6 +118,4 @@ module.exports.create = (KONFIG)->
 
   """
 
-  fs.writeFileSync "./deployment/generated_files/supervisord.conf", conf
-
   return conf

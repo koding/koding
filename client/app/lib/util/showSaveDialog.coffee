@@ -53,6 +53,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     foldersOnly       : yes
     contextMenu       : no
     loadFilesOnInit   : yes
+    machineToMount    : options.machine
 
   finder = finderController.getView()
   finderController.reset()

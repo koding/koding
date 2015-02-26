@@ -9,6 +9,10 @@ Up until now we were exposing classes with unique names into `window` object, so
 
 This also requires a file to `require` its dependencies apparently.
 
+## Accessing KD -> kd
+
+`window.KD` global that we used for almost anything is now gone. But we have a shortcut for it in `dev/sandbox` environments which is `window._kd` _(only for testing purposes, i.e. only for using from the browser console)_ __(should not be used in the code)__. On `prod/latest` environments you can use `require('kd')` to access the global. Some of them old `KD` properties are moved under `require('globals')` such as `config`, `apps`, `appClasses` etc.
+
 ## Framework
 
 * `kd` is re-designed and re-listed on npm as `kd.js`. It is also added to `browser` field of `package.json` as `kd`, so you can `require('kd')` whenever it is needed.

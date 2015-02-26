@@ -2,6 +2,7 @@ sendDataDogEvent = require '../util/sendDataDogEvent'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDCustomScrollView = kd.CustomScrollView
+
 module.exports = class WebTermMessagePane extends KDCustomScrollView
 
 
@@ -45,8 +46,8 @@ module.exports = class WebTermMessagePane extends KDCustomScrollView
 
     @message.updatePartial message
 
-    @off 'click'
-    @on  'click', @lazyBound 'emit', signal
+    @off  'click'
+    @once 'click', @lazyBound 'emit', signal
 
     @message.show()
 

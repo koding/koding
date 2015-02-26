@@ -355,5 +355,4 @@ module.exports.create = (KONFIG, environment)->
   # close http
   }
   """
-  fs.writeFileSync "./deployment/generated_files/nginx.conf", config
   return config

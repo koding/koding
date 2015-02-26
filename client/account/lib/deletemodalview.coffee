@@ -4,7 +4,7 @@ KDNotificationView = kd.NotificationView
 Machine = require 'app/providers/machine'
 remote = require('app/remote').getInstance()
 nick = require 'app/util/nick'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/trackEvent'
 kookies = require 'kookies'
 globals = require 'globals'
 
@@ -56,7 +56,7 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
                     """
                     # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
                   @_windowDidResize()
-                  mixpanel "Delete account, success"
+                  trackEvent "Delete account, success"
 
                   logout =->
                     kookies.expire 'clientId'

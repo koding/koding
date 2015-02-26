@@ -6,7 +6,7 @@ ActivityInputHelperView = require './activityinputhelperview'
 ActivityInputView       = require './activityinputview'
 EmbedBoxWidget          = require './embedboxwidget'
 globals                 = require 'globals'
-mixpanel                = require 'app/util/mixpanel'
+trackEvent                = require 'app/util/trackEvent'
 showError               = require 'app/util/showError'
 generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
@@ -103,7 +103,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     @emit 'SubmitSucceeded', activity
 
-    mixpanel "Status update create, success", { length: activity?.body?.length }
+    trackEvent "Status update create, success", { length: activity?.body?.length }
 
 
   create: (options, callback) ->
@@ -157,13 +157,13 @@ module.exports = class ActivityInputWidget extends KDView
 
       activity.body = body
 
-      activity.link = payload if payload
+      activity.link = payload
 
       activity.emit 'update'
 
       callback err, activity
 
-      mixpanel "Status update edit, success"
+      trackEvent "Status update edit, success"
 
 
   reset: (unlock = yes) ->
