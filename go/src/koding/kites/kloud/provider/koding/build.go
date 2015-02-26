@@ -95,8 +95,12 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		return nil, err
 	}
 
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
 	// check current plan
-	fetcherResp, err := p.Fetcher(m)
+	fetcherResp, err := p.Fetcher.Fetch(m)
 	if err != nil {
 		return nil, err
 	}
