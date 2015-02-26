@@ -1,6 +1,4 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
@@ -53,6 +51,7 @@ module.exports =
     browser
       .waitForElementVisible    commentSelector, 25000
       .click                    commentSelector + ' [testpath=activity-like-link]'
+      .pause  2000
       .waitForElementVisible    commentSelector + ' .liked:not(.count)', 25000 # Assertion
       .end()
 

@@ -1,68 +1,85 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
 
 modalSelector = '.activity-modal.vm-settings'
 
 
-openVmSettingsModal = (browser) ->
+openVmSettingsModal = (browser, vmName) ->
 
-    vmSelector = '.activity-sidebar a.running'
+  if not vmName
+    vmName = 'koding-vm-0'
 
-    browser
-      .waitForElementVisible   vmSelector, 20000
-      .pause                   5000
-      .moveToElement           vmSelector + ' span', 125, 20
-      .click                   vmSelector + ' span'
-      .waitForElementVisible   modalSelector, 20000 # Assertion
+  vmSelector = '.activity-sidebar a[href="/IDE/' + vmName + '/my-workspace"].running'
+
+  browser
+    .waitForElementVisible   vmSelector, 20000
+    .pause                   5000
+    .moveToElement           vmSelector + ' span', 125, 20
+    .click                   vmSelector + ' span'
+    .waitForElementVisible   modalSelector, 20000 # Assertion
+    .pause                   2500
 
 
 clickMoreButtonInVMSettingsModal = (browser) ->
 
-    browser
-      .waitForElementVisible  '.settings form.with-fields .moreview', 20000
-      .click                  '.settings form.with-fields .moreview label.more'
-      .pause  200
+  browser
+    .waitForElementVisible  '.settings form.with-fields .moreview', 20000
+    .click                  '.settings form.with-fields .moreview'
+    .pause                  2000
+
+
+clickAddVMButton = (browser) ->
+
+  sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+
+  browser
+    .waitForElementVisible   '[testpath=main-sidebar]', 20000
+    .waitForElementVisible   sidebarTitle, 20000
+    .moveToElement           sidebarTitle + ' a.buy-vm', 10, 10
+    .click                   sidebarTitle + ' a.buy-vm'
 
 
 seeUpgradeModal = (browser) ->
 
-    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
-
-    browser
-      .waitForElementVisible   '[testpath=main-sidebar]', 20000
-      .waitForElementVisible   sidebarTitle, 20000
-      .moveToElement           sidebarTitle + ' a.buy-vm', 10, 10
-      .click                   sidebarTitle + ' a.buy-vm'
-      .waitForElementVisible   '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+  clickAddVMButton(browser)
+  browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
 
-  addDomain = (browser) ->
+addDomain = (browser) ->
 
-    user = helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
+  user = helpers.beginTest(browser)
+  helpers.waitForVMRunning(browser)
 
-    domainSelector    = '.more-form .domains .domains-a-hrefhttplearnkodingcomfaqvm-hostname-target-blank-span-classdomain-helpspan-a-span-classdomain-togglespan span.domain-toggle'
-    paragraph         = helpers.getFakeText()
-    createDomainName  = paragraph.split(' ')[0]
-    domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
+  domainSelector    = '.more-form .domains .domains-a-hrefhttplearnkodingcomfaqvm-hostname-target-blank-span-classdomain-helpspan-a-span-classdomain-togglespan span.domain-toggle'
+  paragraph         = helpers.getFakeText()
+  createDomainName  = paragraph.split(' ')[0]
+  domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
 
-    openVmSettingsModal(browser)
+  openVmSettingsModal(browser)
 
-    clickMoreButtonInVMSettingsModal(browser)
+  clickMoreButtonInVMSettingsModal(browser)
 
-    browser
-      .waitForElementVisible    '.more-form .domains', 20000
-      .waitForElementVisible    domainSelector, 20000
-      .click                    domainSelector
-      .waitForElementVisible    '.domains-view input.text', 20000
-      .setValue                 '.domains-view input.text', createDomainName + '\n'
-      .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
-      .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
-      .assert.containsText      '.domains-view .listview-wrapper', domainName
+  browser
+    .waitForElementVisible    '.more-form .domains', 20000
+    .waitForElementVisible    domainSelector, 20000
+    .click                    domainSelector
+    .waitForElementVisible    '.domains-view input.text', 20000
+    .setValue                 '.domains-view input.text', createDomainName + '\n'
+    .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
+    .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
+    .assert.containsText      '.domains-view .listview-wrapper', domainName
 
-    return domainName
+  return domainName
+
+
+clickCreateVMButton = (browser) ->
+
+  browser
+    .waitForElementVisible    '.env-modal.paid-plan', 25000
+    .click                    '.env-modal.paid-plan button'
+    .waitForElementNotVisible '.env-modal.paid-plan', 250000
+    .waitForElementVisible    'a[href="/IDE/koding-vm-1/my-workspace"]', 25000
+    .end()
 
 
 module.exports =
@@ -115,28 +132,45 @@ module.exports =
     browser.end()
 
 
-  seeUpgradeModal: (browser) ->
+  seeUpgradeModalForNotPaidUser: (browser) ->
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
-    seeUpgradeModal(browser)
-    browser.end()
+
+    clickAddVMButton(browser)
+
+    browser.pause 5000 # wait to see the modal
+
+    browser.element 'css selector', '.env-modal.paid-plan', (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        browser
+          .waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
+          .end()
+
+
   makeAlwaysOnForNotPaidUser: (browser) ->
 
     buttonSelector = '.more-form .alwayson'
+    vmSelector     = 'a[href="/IDE/koding-vm-1/my-workspace"]'
 
     helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
 
-    openVmSettingsModal(browser)
+    browser.element 'css selector', vmSelector, (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        helpers.waitForVMRunning(browser)
+        openVmSettingsModal(browser)
+        clickMoreButtonInVMSettingsModal(browser)
 
-    clickMoreButtonInVMSettingsModal(browser)
-
-    browser
-      .waitForElementVisible  buttonSelector, 20000
-      .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
-      .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
-      .end()
+        browser
+          .waitForElementVisible  buttonSelector, 20000
+          .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
+          .pause                  2000
+          .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
+          .end()
 
 
   addDomain: (browser) ->
@@ -161,3 +195,86 @@ module.exports =
         assert.notEqual          result.value, domainName # Assertion
 
         browser.end()
+
+
+  addVM: (browser) ->
+
+    freeModalSelector = '.computeplan-modal.free-plan'
+    pricingPage       = '.content-page.pricing'
+    vmSelector        = 'a[href="/IDE/koding-vm-1/my-workspace"]'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    browser.element 'css selector', vmSelector, (result) =>
+      if result.status is 0
+        browser.end()
+      else
+        clickAddVMButton(browser)
+        browser.pause 5000 # wait to see the modal
+
+        browser.element 'css selector', freeModalSelector, (result) =>
+          if result.status is 0
+            browser
+              .waitForElementVisible   freeModalSelector, 20000
+              .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
+              .click                   freeModalSelector + ' a.custom-link-view span'
+              .waitForElementVisible   pricingPage, 25000
+              .waitForElementVisible   pricingPage + ' .plans .developer', 25000
+              .pause 2000
+              .click                   pricingPage + ' .plans .developer .plan-buy-button'
+
+            helpers.fillPaymentForm(browser)
+
+            browser.url helpers.getUrl() + '/IDE'
+            clickAddVMButton(browser)
+            clickCreateVMButton(browser)
+          else
+            clickCreateVMButton(browser)
+
+
+  # this test depends addVM test.
+  turnOnNewPaidVM: (browser) ->
+
+    vmName     = 'koding-vm-1'
+    vmSelector = 'a[href="/IDE/' + vmName + '/my-workspace"]'
+
+    helpers.beginTest(browser)
+
+    browser
+      .waitForElementVisible vmSelector, 25000
+      .pause                 10000 # required, wait for IDE open.
+      .click                 vmSelector
+
+    helpers.waitForVMRunning(browser, vmName)
+
+    browser.end()
+
+
+  # this test depends addVM and turnOnNewPaidVM tests.
+  makePaidVMAlwaysOn: (browser) ->
+
+    helpers.beginTest(browser)
+
+    openVmSettingsModal(browser, 'koding-vm-1')
+    clickMoreButtonInVMSettingsModal(browser)
+
+    browser.element  'css selector', '.more-form .alwayson .koding-on-off.on', (result) =>
+      if result.status is 0
+        console.log 'VM is already always on, ending test...'
+        browser.end()
+
+      else
+        browser
+          .waitForElementVisible    '.more-form .alwayson', 20000
+          .click                    '.more-form .alwayson .koding-on-off'
+          .pause                    1000
+          .refresh()
+          .waitForElementVisible    '[testpath=main-sidebar]', 25000, =>
+
+            openVmSettingsModal(browser, 'koding-vm-1')
+            clickMoreButtonInVMSettingsModal(browser) # Assertion
+
+            browser
+              .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
+              .end()
