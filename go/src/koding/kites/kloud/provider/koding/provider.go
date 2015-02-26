@@ -74,8 +74,8 @@ type Provider struct {
 
 	Stats *metrics.DogStatsD
 
-	// PaymendEndpoint is used to fetch a machines plan
-	PaymentEndpoint string
+	// Fetcher is used to fetch a machines plan
+	Fetcher Fetcher
 
 	// NetworkUsageEndpoint is used to fetch a machines network usage
 	NetworkUsageEndpoint string
@@ -133,8 +133,12 @@ func (p *Provider) PlanChecker(m *protocol.Machine) (*PlanChecker, error) {
 		return nil, err
 	}
 
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
 	// check current plan
-	fetcherResp, err := p.Fetcher(m)
+	fetcherResp, err := p.Fetcher.Fetch(m)
 	if err != nil {
 		return nil, err
 	}
@@ -398,7 +402,12 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	m.QueryString = ""
 	m.IpAddress = ""
 
-	fetcherResp, err := p.Fetcher(m)
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher.Fetch(m)
 	if err != nil {
 		return nil, err
 	}
