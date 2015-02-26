@@ -392,8 +392,8 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		p.Machine.Id, currentStorage, wantStorage, totalStorage, p.Plan)
 
 	if currentStorage+wantStorage > totalStorage {
-		return fmt.Errorf("total storage limit has been reached. Can use %dGB of %dGB (plan: %s)",
-			totalStorage-currentStorage, totalStorage, p.Plan)
+		return fmt.Errorf("total storage limit has been reached. Can have %dGB. User wants %dGB (plan: %s)",
+			totalStorage, currentStorage+wantStorage, p.Plan)
 	}
 
 	p.Log.Debug("[%s] Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
