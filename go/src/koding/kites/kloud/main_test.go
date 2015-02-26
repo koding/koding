@@ -56,6 +56,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
+	kloudprotocol "koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 
@@ -631,6 +632,7 @@ func newKodingProvider() *koding.Provider {
 		KeyName:       keys.DeployKeyName,
 		PublicKey:     keys.DeployPublicKey,
 		PrivateKey:    keys.DeployPrivateKey,
+		Fetcher:       NewTestFetcher(koding.Hobbyist), // test with hobbyist, so we can test resize and co
 	}
 }
 
@@ -683,25 +685,20 @@ func getAmazonStorageSize(machineId string) (int, error) {
 	return currentSize, nil
 }
 
-// TestChecker satisfies Checker interface
-type TestChecker struct{}
-
-func (c *TestChecker) Total() error {
-	return nil
+// TestFetcher satisfies the fetcher interface
+type TestFetcher struct {
+	Plan koding.Plan
 }
 
-func (c *TestChecker) AlwaysOn() error {
-	return nil
+func NewTestFetcher(plan koding.Plan) *TestFetcher {
+	return &TestFetcher{
+		Plan: plan,
+	}
 }
 
-func (c *TestChecker) Timeout() error {
-	return nil
-}
-
-func (c *TestChecker) Storage(wantStorage int) error {
-	return nil
-}
-
-func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
-	return nil
+func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*koding.FetcherResponse, error) {
+	return &koding.FetcherResponse{
+		Plan:  t.Plan,
+		State: "active",
+	}, nil
 }
