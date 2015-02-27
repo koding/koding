@@ -21,7 +21,7 @@
     "kd-shim-jspath": "^0.1.4",
     "kd-shim-sockjs-client": "^0.3.4",
     "kd-shim-jquery-sketchpad": "^0.1.1",
-    "kd.js": "^1.0.1",
+    "kd.js": "^1.0.7",
     "kite.js": "git://github.com/tetsuo/kite.js#0.4.0",
     "kookies": "^0.1.1",
     "lodash": "^2.4.1",
