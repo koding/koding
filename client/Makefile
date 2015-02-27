@@ -16,3 +16,6 @@ landing:
 	@cd landing && rm -rf node_modules/gulp.spritesmith/node_modules/spritesmith/node_modules/canvassmith
 	@cd landing && $(BIN)/gulp build-all-sites --koding-version=$(git rev-parse HEAD)
 	@cd landing && rsync -av static/a/ ../../website/a/
+
+production: landing
+	$(BIN)/gulp
