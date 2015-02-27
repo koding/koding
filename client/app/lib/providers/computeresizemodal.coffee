@@ -33,11 +33,20 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
     @addSubView content = new KDView
       cssClass : 'container'
 
+    rewardTip = if reward > 0 \
+      then "<br>and you have #{reward}GB extra storage from referrals" else ''
+
     content.addSubView title = new KDView
-      cssClass : 'modal-title'
-      partial  : "
+      cssClass    : 'modal-title'
+      partial     : "
         Remaining disk usage:
           <strong>#{remaining}</strong> GB / #{maxStorage} GB"
+      tooltip     :
+        placement : 'top'
+        title     : "
+          Current plan: '#{plan}' has #{limits.storage}GB storage#{rewardTip}
+        "
+
 
     title.setClass 'warn'  if usage.storage >= maxStorage
 
