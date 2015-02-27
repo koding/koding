@@ -77,6 +77,8 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		return nil, err
 	}
 
+	p.Log.Debug("[%s] DesiredSize: %d, Currentsize %d", m.Id, desiredSize, currentSize)
+
 	// Storage is counting all current sizes. So we need ask only for the
 	// difference that we want to add. So say if the current size is 3
 	// and our desired size is 10, we need to ask if we have still

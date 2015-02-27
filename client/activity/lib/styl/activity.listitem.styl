@@ -567,6 +567,9 @@ activity.listitem.styl
   .settings-menu-wrapper
     display                 none
 
+  .show-more
+    bottom                  8px
+
   &:after
     content                 ''
     size                    0 0
@@ -740,5 +743,12 @@ activity.listitem.styl
   //     .preview-image + .preview-text
   //       border-top-color    #d2d2d2
 
-.kdlistitemview-comment .preview-text
+.kdlistitemview-comment .link-embed-box .preview-text
   kalc                      width (100% \- 100px)
+
+  .preview-text-link
+    height                  34px
+
+.comment-input-widget
+  .link-embed-box .preview-text
+    kalc                    width (100% \- 100px)
