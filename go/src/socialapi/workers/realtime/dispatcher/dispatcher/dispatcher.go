@@ -12,17 +12,15 @@ import (
 )
 
 type Controller struct {
-	Broker  *models.Broker
 	Pubnub  *models.PubNub
 	logger  logging.Logger
 	rmqConn *amqp.Connection
 }
 
-func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *models.Broker) *Controller {
+func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub) *Controller {
 
 	return &Controller{
 		Pubnub:  pubnub,
-		Broker:  broker,
 		logger:  helper.MustGetLogger(),
 		rmqConn: rmqConn.Conn(),
 	}
@@ -73,13 +71,6 @@ func (c *Controller) UpdateMessage(um *models.UpdateInstanceMessage) error {
 	}
 
 	um.EventId = createEventId()
-
-	go func() {
-		err := c.Broker.UpdateInstance(um)
-		if err != nil {
-			c.logger.Error("Could not push update instance message with id %d to broker: %s", um.Message.Id, err)
-		}
-	}()
 
 	return c.Pubnub.UpdateInstance(um)
 }
