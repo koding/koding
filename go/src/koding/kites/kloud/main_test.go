@@ -116,6 +116,7 @@ func init() {
 	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("stop", kld.Stop)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
 
@@ -244,6 +245,11 @@ func TestSingleMachine(t *testing.T) {
 	// reinit
 	log.Println("Reinitializing machine")
 	if err := reinit(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+
+	log.Println("Restarting machine")
+	if err := restart(userData.MachineId); err != nil {
 		t.Error(err)
 	}
 
@@ -529,6 +535,32 @@ func reinit(id string) error {
 		kloud.EventArg{
 			EventId: reinitArgs.MachineId,
 			Type:    "reinit",
+		},
+	})
+
+	return listenEvent(eArgs, machinestate.Running)
+}
+
+func restart(id string) error {
+	restartArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("restart", restartArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: restartArgs.MachineId,
+			Type:    "restart",
 		},
 	})
 
