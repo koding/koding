@@ -95,11 +95,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       # .on 'ChannelUpdateHappened',     @bound 'channelUpdateHappened'
 
     computeController
-      .on 'MachineDataModified',       @bound 'updateMachineTree'
+      .on 'MachineDataModified',       @bound 'updateMachines'
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
 
-    # @on 'MoreWorkspaceModalRequested', @bound 'handleMoreWorkspacesClick'
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     environmentDataProvider.revive()
@@ -116,9 +115,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if isChannelCollaborative channel
       if channelMessage.payload['system-message'] in ['start', 'stop']
-        kd.warn 'acet, handle here... [messageAddedToChannel]'
-        # @fetchMachines => @fetchWorkspaces =>
-        #   @setWorkspaceUnreadCount channel, unreadCount
+        @fetchMachines =>
+          @setWorkspaceUnreadCount channel, unreadCount
 
     switch update.channel.typeConstant
       when 'pinnedactivity' then @replyAdded update
@@ -262,10 +260,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       index = 0  if isPrivateMessage
 
       if isChannelCollaborative channel
-        # @fetchMachines => @fetchWorkspaces =>
-        #   @setWorkspaceUnreadCount channel, unreadCount
         @fetchMachines (data) =>
           @sharedMachinesList.updateList data.shared.concat data.collaboration
+          @setWorkspaceUnreadCount channel, unreadCount
       else
         item = @addItem channel, index
         @setUnreadCount item, channel, unreadCount
@@ -285,6 +282,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @sharedMachinesList.removeWorkspaceByChannelId id
 
+    # acet - refactor required.
     # if @workspaceItemChannelMap[id]
     #   @fetchMachines => @fetchWorkspaces()
 
@@ -484,8 +482,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @addFollowedTopics()
     @addConversations()
 
-    kd.getSingleton 'computeController'
-      .ready @lazyBound 'fetchWorkspaces', @lazyBound 'addMessages'
+    kd.getSingleton('computeController').ready @lazyBound 'addMessages'
 
 
   initiateFakeCounter: ->
@@ -503,75 +500,75 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
 
   # workspacesFetched  = no
-  fetchingWorkspaces = no
+  # fetchingWorkspaces = no
 
-  fetchWorkspaces: do (callbackQueue = []) -> (callback = kd.noop) ->
+  # fetchWorkspaces: do (callbackQueue = []) -> (callback = kd.noop) ->
 
-    activitySidebar = this
+  #   activitySidebar = this
 
-    # return callback null, globals.userWorkspaces  if workspacesFetched
-    return callbackQueue.push callback       if fetchingWorkspaces
+  #   # return callback null, globals.userWorkspaces  if workspacesFetched
+  #   return callbackQueue.push callback       if fetchingWorkspaces
 
-    fetchingWorkspaces = yes
+  #   fetchingWorkspaces = yes
 
-    # put first callback to queue as well.
-    callbackQueue.push callback
+  #   # put first callback to queue as well.
+  #   callbackQueue.push callback
 
-    remote.api.JWorkspace.fetchByMachines()
+  #   remote.api.JWorkspace.fetchByMachines()
 
-      .then (workspaces) =>
-        fetchingWorkspaces = no
+  #     .then (workspaces) =>
+  #       fetchingWorkspaces = no
 
-        {socialapi} = kd.singletons
+  #       {socialapi} = kd.singletons
 
-        otherMachineUIds = []
-        myMachineUIds    = []
+  #       otherMachineUIds = []
+  #       myMachineUIds    = []
 
-        globals.userMachines.forEach (m) ->
-          if m.isMine() or m.isPermanent()
-          then myMachineUIds.push m.uid
-          else otherMachineUIds.push m.uid
+  #       globals.userMachines.forEach (m) ->
+  #         if m.isMine() or m.isPermanent()
+  #         then myMachineUIds.push m.uid
+  #         else otherMachineUIds.push m.uid
 
-        otherWorkspaces  = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in otherMachineUIds
-        myWorkspaces     = workspaces.filter (ws) -> return ws.machineUId in myMachineUIds
+  #       otherWorkspaces  = workspaces.filter (ws) -> return ws.channelId and ws.machineUId in otherMachineUIds
+  #       myWorkspaces     = workspaces.filter (ws) -> return ws.machineUId in myMachineUIds
 
-        myChannels = []
-        queue      = []
-        otherWorkspaces.forEach (ws) ->
-          queue.push ->
-            socialapi.channel.byId id : ws.channelId, (err, channel) ->
-              myChannels.push channel.id  if channel
-              queue.fin()
+  #       myChannels = []
+  #       queue      = []
+  #       otherWorkspaces.forEach (ws) ->
+  #         queue.push ->
+  #           socialapi.channel.byId id : ws.channelId, (err, channel) ->
+  #             myChannels.push channel.id  if channel
+  #             queue.fin()
 
-        sinkrow.dash queue, =>
-          workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
-          userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
+  #       sinkrow.dash queue, =>
+  #         workspacesIHaveAccess = otherWorkspaces.filter (ws) -> ws.channelId in myChannels
+  #         userWorkspaces        = myWorkspaces.concat workspacesIHaveAccess
 
-          globals.userMachines.forEach (machine) =>
-            return  unless machine.isMine()
+  #         globals.userMachines.forEach (machine) =>
+  #           return  unless machine.isMine()
 
-            for workspace in userWorkspaces \
-              when workspace and workspace.slug is 'my-workspace' \
-              and workspace.machineUId is machine.uid
-                return
+  #           for workspace in userWorkspaces \
+  #             when workspace and workspace.slug is 'my-workspace' \
+  #             and workspace.machineUId is machine.uid
+  #               return
 
-            userWorkspaces.push @getDummyWorkspace machine
+  #           userWorkspaces.push @getDummyWorkspace machine
 
-          globals.userWorkspaces  = userWorkspaces
-          # workspacesFetched     = yes
-          activitySidebar.updateMachineTree()
+  #         globals.userWorkspaces  = userWorkspaces
+  #         # workspacesFetched     = yes
+  #         activitySidebar.updateMachineTree()
 
-          callbackQueue.forEach (fn) -> fn null, userWorkspaces
-          callbackQueue = []
+  #         callbackQueue.forEach (fn) -> fn null, userWorkspaces
+  #         callbackQueue = []
 
-      .error (rest...) ->
-        fetchingWorkspaces = no
-        callbackQueue.forEach (fn) -> fn rest...
-        callbackQueue = []
+  #     .error (rest...) ->
+  #       fetchingWorkspaces = no
+  #       callbackQueue.forEach (fn) -> fn rest...
+  #       callbackQueue = []
 
 
 
-  listMachines: (machines) ->
+  # listMachines: (machines) ->
 
     # treeData = []
     # nickname = KD.nick()
@@ -636,7 +633,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     # @emit 'MachinesListed'
 
 
-  getDummyWorkspace: (machine) ->
+  # getDummyWorkspace: (machine) ->
 
     # new KD.remote.api.JWorkspace
     #   _id          : "#{machine.getId()}-my-workspace"
@@ -649,7 +646,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     #   name         : 'My Workspace'
 
 
-  sortWorkspaces: (workspaces) ->
+  # sortWorkspaces: (workspaces) ->
 
     # workspaces.sort (a, b) ->
     #   switch
@@ -660,7 +657,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     #     else 0
 
 
-  mapWorkspaceWithChannel: (data, node) ->
+  # mapWorkspaceWithChannel: (data, node) ->
 
     # return  unless data.data?.channelId?
 
@@ -977,7 +974,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @sections.messages.hide()
 
 
-  handleReloadMessages: -> @fetchWorkspaces => @sections.messages.reload()
+  handleReloadMessages: ->
+
+    environmentDataProvider.fetch => @sections.messages.reload()
 
 
   machinesListed = no
@@ -1089,7 +1088,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   #         @emit 'WorkspaceCreated', workspace
 
 
-  updateMachineTree: ->
+  # updateMachineTree: ->
 
 
   updateMachines: (callback = noop) ->
@@ -1113,10 +1112,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       return kd.warn err  if err?
 
-      globals.userWorkspaces =
-        ws for ws in globals.userWorkspaces when ws.machineUId isnt machine.uid
+      # globals.userWorkspaces =
+      #   ws for ws in globals.userWorkspaces when ws.machineUId isnt machine.uid
 
-      @updateMachineTree()
+      # @updateMachineTree()
 
 
   removeMachineNode: (machine) ->
@@ -1139,11 +1138,14 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   newWorkspaceCreated: (workspace) ->
 
-    matches = globals.userWorkspaces.filter (w) ->
-      w.machineUId is workspace.machineUId and \
-      w.slug is workspace.slug
+    @updateMachines()
 
-    return  if matches.length
 
-    globals.userWorkspaces.push workspace
-    @updateMachineTree()
+    # matches = globals.userWorkspaces.filter (w) ->
+    #   w.machineUId is workspace.machineUId and \
+    #   w.slug is workspace.slug
+
+    # return  if matches.length
+
+    # globals.userWorkspaces.push workspace
+    # @updateMachineTree()
