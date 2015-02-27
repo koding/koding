@@ -212,8 +212,16 @@ func TestSingleMachine(t *testing.T) {
 		t.Error(err)
 	}
 
-	// once deleted there shouldn't be any snapshot data
-	if err := checkSnapshotExistence(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+	// once deleted there shouldn't be any snapshot data in MongoDB
+	log.Println("Checking snapshot data in MongoDB")
+	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+		t.Error(err)
+	}
+
+	// also check AWS, be sure it's been deleted
+	log.Println("Checking snapshot data in AWS")
+	err = checkSnapshotAWS(userData.MachineId, snapshotId)
+	if err != nil && !isSnapshotNotFoundError(err) {
 		t.Error(err)
 	}
 
@@ -807,7 +815,22 @@ func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
 	return snapshot.SnapshotId, nil
 }
 
-func checkSnapshotExistence(snapshotId string, accountId bson.ObjectId) error {
+func checkSnapshotAWS(machineId, snapshotId string) error {
+	m, err := provider.Get(machineId)
+	if err != nil {
+		return err
+	}
+
+	a, err := provider.NewClient(m)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
+	return err // nil means it exists
+}
+
+func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
 	var err error
 	var count int
 
@@ -830,6 +853,15 @@ func checkSnapshotExistence(snapshotId string, accountId bson.ObjectId) error {
 
 	return nil
 
+}
+
+func isSnapshotNotFoundError(err error) bool {
+	ec2Error, ok := err.(*ec2.Error)
+	if !ok {
+		return false
+	}
+
+	return ec2Error.Code == "InvalidSnapshot.NotFound"
 }
 
 // TestFetcher satisfies the fetcher interface
