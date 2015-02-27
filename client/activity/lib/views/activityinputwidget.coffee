@@ -66,6 +66,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     @input.on 'Escape', @bound 'reset'
     @input.on 'Enter',  @bound 'submit'
+    @input.on 'keypress', @bound 'updatePreview'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
@@ -205,6 +206,16 @@ module.exports = class ActivityInputWidget extends KDView
     @submitButton.hideLoader()
 
 
+  updatePreview: ->
+    return unless value = @input.getValue().trim()
+    return unless @preview
+
+    data = generateDummyMessage value
+
+    @preview.setData data
+    @preview.render()
+
+
   showPreview: ->
 
     return unless value = @input.getValue().trim()
@@ -213,7 +224,11 @@ module.exports = class ActivityInputWidget extends KDView
 
     @preview?.destroy()
     ActivityListItemView = require './activitylistitemview'
-    @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
+    @addSubView @preview = new ActivityListItemView
+      cssClass: 'preview'
+      showMore: no,
+      data
+
     @preview.addSubView new KDCustomHTMLView
       cssClass : 'preview-indicator'
       partial  : 'Previewing'
