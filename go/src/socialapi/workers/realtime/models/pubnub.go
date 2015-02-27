@@ -124,6 +124,10 @@ func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 		return err
 	}
 
+	if um.EventName == "updateInstance" {
+		um.Body = map[string]interface{}{"$set": um.Body}
+	}
+
 	// Prepend instance id to event name. We are no longer creating a channel
 	// for each message by doing this.
 	um.EventName = fmt.Sprintf("instance-%s.%s", um.Token, um.EventName)
