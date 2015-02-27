@@ -799,7 +799,7 @@ func getAmazonStorageSize(machineId string) (int, error) {
 func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
 	var snapshot *koding.SnapshotDocument
 	if err := provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"originId": accountId, "machineId": machineId}).One(&snapshot)
+		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
 	}); err != nil {
 		return "", err
 	}
