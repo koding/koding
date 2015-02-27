@@ -97,27 +97,27 @@ func (c *Controller) Ping(ping *models.Ping) error {
 
 	err := c.checkIfKeyIsValid(ping)
 	if err != nil && err != errSessionInvalid {
+		c.log.Error("key is not valid %+v", err.Error())
 		return err
 	}
 
 	if err == errSessionInvalid {
-		// key should be there
-		// end the collab session
-		c.log.Info("session is not valid anymore, collab should be terminated")
-		return nil
+		c.log.Info("session is not valid anymore, collab should be terminated %+v", ping)
+		return c.EndSession(ping)
 	}
 
 	err = c.wait(ping) // wait syncronously
 	if err != nil && err != errSessionInvalid {
+		c.log.Error("err while waiting %+v", err)
 		return err
 	}
 
 	if err == errSessionInvalid {
-		// key should be there
-		// end the collab session
-		c.log.Info("session is not valid anymore, collab should be terminated")
-		return nil
+		c.log.Info("session is not valid anymore, collab should be terminated %+v", ping)
+		return c.EndSession(ping)
 	}
+
+	c.log.Debug("session is valid %+v", ping)
 
 	return nil
 }
@@ -145,28 +145,34 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
 
 	// check the redis key if it doesnt exist
 	key := PrepareFileKey(ping.FileId)
-	file, err := c.redis.Get(key)
+	pingTime, err := c.redis.Get(key)
 	if err != nil && err != redis.ErrNil {
 		return err
 	}
 
 	if err == redis.ErrNil {
+		c.log.Debug("redis key not found %+v", ping)
 		return errSessionInvalid // key is not there
 	}
 
-	unixSec, err := strconv.ParseInt(file, 10, 64)
+	unixSec, err := strconv.ParseInt(pingTime, 10, 64)
 	if err != nil {
+		c.log.Debug("couldn't parse the time", pingTime)
+
 		// discard this case, if the time is invalid, we should not try
 		// to process it again
 		return errSessionInvalid // key is not valid
 	}
 
-	t := time.Unix(unixSec, 0)
+	lastPingTimeOnRedis := time.Unix(unixSec, 0).UTC()
 
-	newPingTime := ping.CreatedAt
+	currentPingTime := ping.CreatedAt.UTC()
+
+	now := time.Now().UTC()
+
 	// if sum of previous ping time and terminate session duration is before the
 	// current ping time, terminate the session
-	if t.Add(terminateSessionDuration).Before(newPingTime) {
+	if now.Add(-terminateSessionDuration).After(lastPingTimeOnRedis) {
 		return errSessionInvalid
 	}
 
