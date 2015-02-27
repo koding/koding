@@ -94,7 +94,12 @@ module.exports = class AceFindAndReplaceView extends JView
 
     @$().css { height }
     @resizeEditor height
+
+    for widget in [@replaceInput, @replaceButton, @replaceAllButton]
+      if isReplaceMode then widget.show() else widget.hide()
+
     @show()
+
 
   resizeEditor: (height) ->
     if @getDelegate()?.ace?

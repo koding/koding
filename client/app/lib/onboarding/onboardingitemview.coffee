@@ -1,6 +1,6 @@
 htmlencode = require 'htmlencode'
 $ = require 'jquery'
-mixpanel = require '../util/mixpanel'
+trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
@@ -124,15 +124,15 @@ module.exports = class OnboardingItemView extends KDView
   listenEvents: ->
     @on "NavigationRequested", (direction) =>
       @destroy()
-      mixpanel "Onboarding navigation, click"
+      trackEvent "Onboarding navigation, click"
 
     @on "OnboardingCompleted", =>
       @destroy()
-      mixpanel "Onboarding navigation, success"
+      trackEvent "Onboarding navigation, success"
 
     @on "OnboardingCancelled", =>
       @destroy()
-      mixpanel "Onboarding navigation, failure"
+      trackEvent "Onboarding navigation, failure"
 
     {setStorage, slug} = @getOptions()
     if setStorage

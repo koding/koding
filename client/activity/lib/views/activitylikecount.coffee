@@ -1,5 +1,5 @@
 ReplyLikeView = require './replylikeview'
-mixpanel = require 'app/util/mixpanel'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class ActivityLikeCount extends ReplyLikeView
@@ -43,7 +43,7 @@ module.exports = class ActivityLikeCount extends ReplyLikeView
 
     @show()
 
-    mixpanel "Activity like, success"
+    trackEvent "Activity like, success"
 
 
   removeLike: ->
@@ -52,7 +52,7 @@ module.exports = class ActivityLikeCount extends ReplyLikeView
 
     @hide()  unless @actorsCount
 
-    mixpanel "Activity unlike, success"
+    trackEvent "Activity unlike, success"
 
 
   pistachio: ->

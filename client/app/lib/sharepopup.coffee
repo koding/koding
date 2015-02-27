@@ -4,8 +4,10 @@ KDView = kd.View
 KDCustomHTMLView = kd.CustomHTMLView
 JView = require './jview'
 
+shortenUrl = require 'app/util/shortenUrl'
 
-class SharePopup extends JView
+
+module.exports = class SharePopup extends JView
 
   constructor: (options={}, data)->
 
@@ -70,7 +72,7 @@ class SharePopup extends JView
 
     options = @getOptions()
     if options.shortenURL
-      kd.utils.shortenUrl options.url, (shorten)=>
+      shortenUrl options.url, (shorten)=>
         @urlInput.setValue shorten
         @urlInput.$().select()
         return @urlInput

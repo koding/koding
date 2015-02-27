@@ -4,7 +4,7 @@ KDRouter = kd.Router
 KDModalView = kd.ModalView
 KodingAppsController = require './kodingappscontroller'
 registerRoutes = require './util/registerRoutes'
-mixpanel = require './util/mixpanel'
+trackEvent = require './util/trackEvent'
 remote = require('./remote').getInstance()
 lazyrouter = require './lazyrouter'
 
@@ -65,7 +65,7 @@ module.exports = -> lazyrouter.bind 'app', (type, info, state, path, ctx) ->
 
     when 'referrer'
       {params:{username}} = info
-      mixpanel "Visit referrer url, success", {username}
+      trackEvent "Visit referrer url, success", {username}
       # give a notification to tell that this is a referral link here - SY
       handleRoot()
 

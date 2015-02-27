@@ -6,7 +6,7 @@ ActivityInputHelperView = require './activityinputhelperview'
 ActivityInputView       = require './activityinputview'
 EmbedBoxWidget          = require './embedboxwidget'
 globals                 = require 'globals'
-mixpanel                = require 'app/util/mixpanel'
+trackEvent                = require 'app/util/trackEvent'
 showError               = require 'app/util/showError'
 generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
@@ -66,6 +66,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     @input.on 'Escape', @bound 'reset'
     @input.on 'Enter',  @bound 'submit'
+    @input.on 'keypress', @bound 'updatePreview'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
 
@@ -103,7 +104,7 @@ module.exports = class ActivityInputWidget extends KDView
 
     @emit 'SubmitSucceeded', activity
 
-    mixpanel "Status update create, success", { length: activity?.body?.length }
+    trackEvent "Status update create, success", { length: activity?.body?.length }
 
 
   create: (options, callback) ->
@@ -157,13 +158,13 @@ module.exports = class ActivityInputWidget extends KDView
 
       activity.body = body
 
-      activity.link = payload if payload
+      activity.link = payload
 
       activity.emit 'update'
 
       callback err, activity
 
-      mixpanel "Status update edit, success"
+      trackEvent "Status update edit, success"
 
 
   reset: (unlock = yes) ->
@@ -205,6 +206,16 @@ module.exports = class ActivityInputWidget extends KDView
     @submitButton.hideLoader()
 
 
+  updatePreview: ->
+    return unless value = @input.getValue().trim()
+    return unless @preview
+
+    data = generateDummyMessage value
+
+    @preview.setData data
+    @preview.render()
+
+
   showPreview: ->
 
     return unless value = @input.getValue().trim()
@@ -213,7 +224,11 @@ module.exports = class ActivityInputWidget extends KDView
 
     @preview?.destroy()
     ActivityListItemView = require './activitylistitemview'
-    @addSubView @preview = new ActivityListItemView cssClass: 'preview', data
+    @addSubView @preview = new ActivityListItemView
+      cssClass: 'preview'
+      showMore: no,
+      data
+
     @preview.addSubView new KDCustomHTMLView
       cssClass : 'preview-indicator'
       partial  : 'Previewing'

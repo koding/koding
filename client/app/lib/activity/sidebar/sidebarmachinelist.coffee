@@ -1,7 +1,7 @@
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CustomLinkView = require 'app/customlinkview'
-SidebarMachineBox = require './sidebarmachinebox'
+SidebarMachineBox = require 'app/activity/sidebar/sidebarmachinebox'
 
 
 module.exports = class SidebarMachineList extends KDCustomHTMLView

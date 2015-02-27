@@ -24,13 +24,6 @@ module.exports = class UserPolicyView extends JView
       </p>
 
       <p>
-        <b>Quotas and Limits</b><br />
-        The Service is intended for development purposes and is not a production
-        platform. We operate on shared servers and so we will rapidly suspend
-        accounts that generate sustained high levels of load.
-      </p>
-
-      <p>
         <span class='s1'><b>Prohibited Content</b></span><br />
         The Content displayed and/or processed through your Application or other
         web site utilizing the Service shall not contain any of the following
@@ -105,6 +98,11 @@ module.exports = class UserPolicyView extends JView
 
         <li>
           Pornography and Sexually Explicit Content;
+        </li>
+
+        <li>
+          Use of any kind of VOIP related software, including but not limited to Teamspeak,
+          Asterisk, FreePBX;
         </li>
 
         <li>
@@ -249,6 +247,18 @@ module.exports = class UserPolicyView extends JView
           other terms and conditions for use of such Koding product or service.
         </li>
       </ul>
+
+      <p>
+        <b>Quotas and Limits</b><br />
+        The Service is intended for development purposes and is not a production
+        platform. We operate on shared servers and so we will rapidly suspend
+        accounts that generate sustained high levels of load or use provided
+        resources in a way that deteriorates the experience for other users.
+
+        <li>Disk: 3GB per VM (or what your paid account comes with)</li>
+        <li>Ram: 1GB per VM</li>
+        <li>Network output: 7GB/week (free accounts), 14GB/week (paid accounts)</li>
+      </p>
 
       Koding reserves the right to suspend or terminate accounts found in violation of these items with or without prior notice given and without liability.
       <p>
