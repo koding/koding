@@ -15,7 +15,7 @@ IDEShortcutsView = require '../shortcutsview/ideshortcutsview'
 IDETerminalPane = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
-FilePermissionsModal = require '../modals/filepermissionsmodal'
+FileNotificationHelper = require '../../util/filenotificationhelper.coffee'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
@@ -121,9 +121,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       { readable, writable } = result
       if not readable
-        new FilePermissionsModal
-          title      : 'Access Denied'
-          contentText: 'The file can\'t be opened because you don\'t have permission to see its contents.'
+        FileNotificationHelper.showAccessDeniedModal()
         return callback()
 
       @createEditorAfterFileCheck file, content, callback, emitChange, not writable
@@ -157,9 +155,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       if isReadOnly
         editorPane.makeReadOnly()
-        new FilePermissionsModal
-          title      : 'Read-only file'
-          contentText: 'You can proceed with opening the file but it is opened in read-only mode.'
+        FileNotificationHelper.showReadOnlyModal()
 
       callback editorPane
 
