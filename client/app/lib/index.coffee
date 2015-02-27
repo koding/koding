@@ -161,8 +161,6 @@ bootup = ->
 # segment.io
 
 identifyUser = (account)->
-  return  unless analytics? and globals.config.logToExternal
-
   {_id, meta, profile} = account
   return  unless profile
   remote = require('app/remote').getInstance()
@@ -200,9 +198,27 @@ identifyUser = (account)->
       analytics?.identify nickname, args
 
 setupAnalytics = ->
+  return  unless analytics? and globals.config.logToExternal
+
   kd.getSingleton('mainController').on 'AccountChanged', (account) ->
     return  unless isLoggedIn() and account
+
+    setupAnalyticsEvents()
     kd.utils.defer -> identifyUser account
+
+setupAnalyticsEvents = ->
+  setupPageAnalyticsEvent()
+
+setupPageAnalyticsEvent = ->
+  kd.singletons.router.on "RouteInfoHandled", (args) ->
+    return  unless args
+    {params, query, path} = args
+
+    categ = getCategoryFrompath(path)
+
+    analytics.page(categ, {title:document.title, path})
+
+getCategoryFrompath = (path) -> return path.split("/")[1] or path
 
 initialize = (defaults, next) ->
   apps_ = globals.config.apps
