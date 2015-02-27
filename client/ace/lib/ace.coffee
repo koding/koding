@@ -55,8 +55,6 @@ module.exports = class Ace extends KDView
 
   scriptLoaded: ->
 
-    @keyHandlers = {}
-
     @fetchContents (err, contents)=>
       notification?.destroy()
       id = "editor#{@getId()}"
@@ -347,28 +345,9 @@ module.exports = class Ace extends KDView
     @appStorage.setValue 'showInvisibles', value
 
   setKeyboardHandler: (name = 'default') ->
-    done = (handler) =>
-      @editor.setKeyboardHandler handler
-      @appStorage.setValue 'keyboardHandler', name
-
-    next = (path) =>
-      binding = ace.require path
-      @keyHandlers[name] = binding.handler
-      done binding.handler
-
-    done null
-	# we need to inject keyboard files before ace loads - SY
-	# needs a bit of work here by ~og.
-
-    #if name is 'default'
-      #done null
-    #else
-      #path = "ace/keyboard/#{name}"
-      #unless name of @keyHandlers
-        #requirejs [path.replace('board/', 'binding-')], ->
-          #next path
-      #else
-        #done @keyHandlers[name]
+    @appStorage.setValue 'keyboardHandler', name
+    handler = if name isnt 'default' then "ace/keyboard/#{name}" else null
+    @editor.setKeyboardHandler handler
 
   setScrollPastEnd: (value = yes) ->
     @editor.setOption 'scrollPastEnd', value
