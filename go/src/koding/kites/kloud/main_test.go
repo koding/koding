@@ -31,6 +31,7 @@ Create a nice graph from the cpu profile
 */
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -70,10 +71,13 @@ var (
 	remote    *kite.Client
 	conf      *config.Config
 	provider  *koding.Provider
+
+	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 )
 
 type args struct {
-	MachineId string
+	MachineId  string
+	SnapshotId string
 }
 
 func init() {
@@ -119,6 +123,8 @@ func init() {
 	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
+	kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
@@ -189,10 +195,32 @@ func TestSingleMachine(t *testing.T) {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
 
+	// snapshot
+	log.Println("Creating snapshot")
+	if err := createSnapshot(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+
+	log.Println("Retrieving snapshot id")
+	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Deleting snapshot")
+	if err := deleteSnapshot(userData.MachineId, snapshotId); err != nil {
+		t.Error(err)
+	}
+
+	// once deleted there shouldn't be any snapshot data
+	if err := checkSnapshotExistence(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+		t.Error(err)
+	}
+
 	// stop
 	log.Println("Stopping machine")
 	if err := stop(userData.MachineId); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if err := build(userData.MachineId); err == nil {
@@ -284,6 +312,7 @@ type singleUser struct {
 	MachineId  string
 	PrivateKey string
 	PublicKey  string
+	AccountId  bson.ObjectId
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
@@ -376,6 +405,7 @@ func createUser(username string) (*singleUser, error) {
 		MachineId:  machineId.Hex(),
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
+		AccountId:  accountId,
 	}, nil
 }
 
@@ -593,6 +623,55 @@ func resize(id string) error {
 	return listenEvent(eArgs, machinestate.Running)
 }
 
+func createSnapshot(id string) error {
+	createSnapshotArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("createSnapshot", createSnapshotArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: createSnapshotArgs.MachineId,
+			Type:    "createSnapshot",
+		},
+	})
+
+	return listenEvent(eArgs, machinestate.Running)
+}
+
+func deleteSnapshot(id, snapshotId string) error {
+	deleteSnapshotArgs := &args{
+		MachineId:  id,
+		SnapshotId: snapshotId,
+	}
+
+	resp, err := remote.Tell("deleteSnapshot", deleteSnapshotArgs)
+	if err != nil {
+		return err
+	}
+
+	result, err := resp.Bool()
+	if err != nil {
+		return err
+	}
+
+	if !result {
+		return errors.New("Successfull snapshot deletion should return true, got false")
+	}
+
+	return nil
+}
+
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not
 // reached in 10 miunuts.
@@ -715,6 +794,42 @@ func getAmazonStorageSize(machineId string) (int, error) {
 	}
 
 	return currentSize, nil
+}
+
+func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
+	var snapshot *koding.SnapshotDocument
+	if err := provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"originId": accountId, "machineId": machineId}).One(&snapshot)
+	}); err != nil {
+		return "", err
+	}
+
+	return snapshot.SnapshotId, nil
+}
+
+func checkSnapshotExistence(snapshotId string, accountId bson.ObjectId) error {
+	var err error
+	var count int
+
+	err = provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{
+			"originId":   accountId,
+			"snapshotId": snapshotId,
+		}).Count()
+		return err
+	})
+
+	if err != nil {
+		log.Printf("Could not fetch %v: err: %v", snapshotId, err)
+		return errors.New("could not check Snapshot existency")
+	}
+
+	if count == 0 {
+		return errNoSnapshotFound
+	}
+
+	return nil
+
 }
 
 // TestFetcher satisfies the fetcher interface
