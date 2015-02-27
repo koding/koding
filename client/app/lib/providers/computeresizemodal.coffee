@@ -17,26 +17,27 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
 
     super options, data
 
+    {@machine} = @getOptions()
+
   viewAppended:->
 
-    console.log { usage, limits, plan, reward, machine } = @getOptions()
+    { usage, limits, plan, reward } = @getOptions()
 
     # Add reward on top of current plan storage limit
     maxStorage = limits.storage + reward
 
     remaining = Math.max 0, maxStorage - usage.storage
-    @machineCurrentStorage = machine.jMachine.meta?.storage_size or 3
+    @machineCurrentStorage = @machine.jMachine.meta?.storage_size or 3
     newPossibleStorage = @machineCurrentStorage + remaining
 
     @addSubView content = new KDView
       cssClass : 'container'
 
     content.addSubView title = new KDView
-      cssClass : "modal-title"
-      partial  : """
+      cssClass : 'modal-title'
+      partial  : "
         Remaining disk usage:
-          <strong>#{remaining}</strong> GB / #{maxStorage} GB
-      """
+          <strong>#{remaining}</strong> GB / #{maxStorage} GB"
 
     title.setClass 'warn'  if usage.storage >= maxStorage
 
@@ -45,7 +46,7 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
 
     storageContainer.addSubView new KDView
       cssClass : 'container-title'
-      partial  : "Resizing vm <strong>#{machine.label}</strong>"
+      partial  : "Resizing vm <strong>#{@machine.label}</strong>"
 
     storageContainer.addSubView @storageSlider = new CustomPlanStorageSlider
       cssClass : 'storage-slider'
@@ -68,7 +69,7 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
 
     @updateUsageText newPossibleStorage, usage, maxStorage
 
-    @storageSlider.on "ValueIsChanging", (val)=>
+    @storageSlider.on 'ValueIsChanging', (val)=>
       @updateUsageText val, usage, maxStorage
 
 
@@ -85,10 +86,15 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
 
     if newUsage is @machineCurrentStorage
       @resizeVMButton.disable()
-
-    @usageTextView.updatePartial """
-      You will be using <strong>#{newUsage}GB/#{maxStorage}GB</strong> storage
-    """
+      @usageTextView.updatePartial "
+        Currently <strong>#{@machine.label}</strong>
+        has <strong>#{@machineCurrentStorage}GB</strong> storage
+      "
+    else
+      @usageTextView.updatePartial "
+        You will be using
+        <strong>#{newUsage}GB/#{maxStorage}GB</strong> storage
+      "
 
 
   resizeVM: ->
