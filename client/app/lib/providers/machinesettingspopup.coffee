@@ -84,7 +84,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
             resizeIcon  :
               itemClass : KDCustomHTMLView
               cssClass  : 'resize-icon'
-              tooltip   : title: 'Add more space', placement: top
+              tooltip   : title: 'Add more space', placement: 'top'
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
