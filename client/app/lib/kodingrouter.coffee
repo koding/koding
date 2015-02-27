@@ -1,4 +1,3 @@
-htmlencode = require 'htmlencode'
 globals = require 'globals'
 remote = require('./remote').getInstance()
 isLoggedIn = require './util/isLoggedIn'
@@ -43,6 +42,7 @@ module.exports = class KodingRouter extends KDRouter
     @breadcrumb.push route
 
     entryPoint = options.entryPoint or globals.config.entryPoint
+    route      = route.replace /\/+/g, '/'
     frags      = route.split("?")[0].split "/"
 
     [_root, _slug, _content, _extra] = frags
@@ -93,7 +93,7 @@ module.exports = class KodingRouter extends KDRouter
 
   getDefaultRoute: -> if isLoggedIn() then '/IDE' else '/Home'
 
-  setPageTitle: (title = 'Koding') -> global.document.title = htmlencode.htmlDecode title
+  setPageTitle: (title = 'Koding') -> kd.singletons.pageTitle.update title
 
   openContent : (name, section, models, route, query, passOptions=no) ->
     method   = 'createContentDisplay'

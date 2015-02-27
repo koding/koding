@@ -32,7 +32,7 @@ module.exports = class SidebarMessageItem extends SidebarItem
 
   channelDeleted: ->
 
-    if global.location.pathname is "/#{@getOption 'route'}"
+    if global.location.pathname is @getOption 'route'
       kd.singletons.router.clear()
 
     @getDelegate().removeItem this
@@ -41,7 +41,7 @@ module.exports = class SidebarMessageItem extends SidebarItem
   click: (event) ->
 
     kd.utils.stopDOMEvent event
-    kd.singleton('router').handleRoute "/#{@getOption 'route'}"
+    kd.singleton('router').handleRoute @getOption 'route'
 
     super event
 
