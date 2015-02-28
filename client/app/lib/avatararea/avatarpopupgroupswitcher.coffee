@@ -168,6 +168,11 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
         new HelpSupportModal
         @hide()
 
+        trackEvent 'Contact support, click',
+          category : 'userInteraction'
+          action   : 'formsubmits'
+          label    : 'contactKodingSupport'
+
 
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Account Settings'

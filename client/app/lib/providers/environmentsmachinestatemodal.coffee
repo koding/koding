@@ -583,6 +583,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
       else
         kd.utils.defer @bound 'buildInitial'
+        trackEvent 'Account verfication, success',
+          category : 'userInteraction'
+          action   : 'microConversions'
+          label    : 'completedAccountVerification'
 
 
   downgradePlan: (callback)->
