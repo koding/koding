@@ -18,19 +18,9 @@ import (
 //
 // TOOD add throttling here
 func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
-	// realtime doc id
-	if req.FileId == "" {
-		return response.NewBadRequest(nil)
+	if err := validateOperation(req, context); err != nil {
+		return response.NewBadRequest(err)
 	}
-
-	// only logged in users can send a ping
-	if !context.IsLoggedIn() {
-		return response.NewBadRequest(errors.New("not logged in"))
-	}
-
-	// override the account id and set created at
-	req.AccountId = context.Client.Account.Id // if client is logged in, those values are all set
-	req.CreatedAt = time.Now().UTC()
 
 	// set the last seen at time
 	redis := helper.MustGetRedisConn()
@@ -50,4 +40,44 @@ func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Contex
 
 	// send back the updated ping as response
 	return response.NewOK(req)
+}
+
+// // End handles the terminate signals coming from client side
+// func End(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
+
+// 	if err := validateOperation(req, context); err != nil {
+// 		return response.NewBadRequest(err)
+// 	}
+
+// 	// set the last seen at time
+// 	redis := helper.MustGetRedisConn()
+
+// 	// check the redis key if it doesnt exist
+// 	key := collaboration.PrepareFileKey(req.FileId)
+// 	file, err := redis.Get(key)
+// 	if err != nil {
+// 		// it is safe to return error even if the key is not found
+// 		return response.NewBadRequest(err)
+// 	}
+
+// 	// send back the updated ping as response
+// 	return response.NewOK(req)
+// }
+
+func validateOperation(req *models.Ping, context *apimodels.Context) error {
+	// realtime doc id
+	if req.FileId == "" {
+		return errors.New("fileId not set")
+	}
+
+	// only logged in users can send a ping
+	if !context.IsLoggedIn() {
+		return errors.New("not logged in")
+	}
+
+	// override the account id and set created at
+	req.AccountId = context.Client.Account.Id // if client is logged in, those values are all set
+	req.CreatedAt = time.Now().UTC()
+
+	return nil
 }
