@@ -110,6 +110,7 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 
 		return err
 	}
+	defer klientRef.Close()
 
 	type args struct {
 		Username string
