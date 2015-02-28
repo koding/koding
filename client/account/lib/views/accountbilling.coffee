@@ -8,6 +8,7 @@ showError = require 'app/util/showError'
 SubscriptionView = require 'app/payment/subscriptionview'
 PaymentMethodView = require 'app/payment/paymentmethodview'
 UpdateCreditCardWorkflow = require 'app/payment/updatecreditcardworkflow'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class AccountBilling extends KDView
@@ -60,6 +61,12 @@ module.exports = class AccountBilling extends KDView
 
       @subscription.on 'ChangeSubscriptionRequested', ->
         kd.singletons.router.handleRoute '/Pricing'
+
+        trackEvent 'Account Upgrade, click',
+          path     : '/Account/Billing'
+          category : 'userInteraction'
+          action   : 'clicks'
+          label    : 'billingUpgrade'
 
       @subscriptionWrapper.addSubView @subscription
 

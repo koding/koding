@@ -15,6 +15,7 @@ HelpSupportModal = require '../commonviews/helpsupportmodal'
 PopupGroupListItem = require '../popupgrouplistitem'
 PopupGroupListItemPending = require './popupgrouplistitempending'
 PopupList = require './popuplist'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
@@ -148,6 +149,11 @@ module.exports = class AvatarPopupGroupSwitcher extends AvatarPopup
         kd.utils.stopDOMEvent event
         router.handleRoute '/Pricing'
         @hide()
+
+        trackEvent 'Account upgrade plan, click',
+          category : 'userInteraction'
+          action   : 'clicks'
+          label    : 'settingsUpgradePlan'
 
     @avatarPopupContent.addSubView new CustomLinkView
       title      : 'Koding University'

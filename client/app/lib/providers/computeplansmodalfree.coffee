@@ -2,6 +2,7 @@ kd = require 'kd'
 KDView = kd.View
 ComputePlansModal = require './computeplansmodal'
 CustomLinkView = require '../customlinkview'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class ComputePlansModalFree extends ComputePlansModal
@@ -24,5 +25,8 @@ module.exports = class ComputePlansModalFree extends ComputePlansModal
     @addSubView new CustomLinkView
       title    : 'Upgrade your account for more VMs RAM and Storage'
       href     : '/Pricing'
-
-
+      click    : ->
+        trackEvent 'Upgrade your account, click',
+          category : 'userInteraction'
+          action   : 'clicks'
+          label    : 'upgradeAccountOverlay'
