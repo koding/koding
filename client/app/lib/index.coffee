@@ -110,8 +110,6 @@ bootup = ->
   status.on 'disconnected', (options={})->
     kd.log "kd remote disconnected"
 
-  remote.connect()
-
   ###
   # INTERNET CONNECTIVITIY
   ###

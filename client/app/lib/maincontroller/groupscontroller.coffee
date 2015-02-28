@@ -35,30 +35,6 @@ module.exports = class GroupsController extends KDController
     throw 'FIXME: array should never be passed'  if Array.isArray @currentGroupData.data
     return @currentGroupData.data
 
-  filterXssAndForwardEvents: (target, events) ->
-    events.forEach (event) =>
-      target.on event, (rest...) =>
-        rest = remote.revive rest
-        @emit event, rest...
-
-  openGroupChannel:(group, callback=->)->
-    @groupChannel = remote.subscribe "group.#{group.slug}",
-      serviceType : 'group'
-      group       : group.slug
-      isExclusive : yes
-
-    @filterXssAndForwardEvents @groupChannel, [
-      "MemberJoinedGroup"
-      "FollowHappened"
-      "LikeIsAdded"
-      "PostIsCreated"
-      "ReplyIsAdded"
-      "PostIsDeleted"
-      "LikeIsRemoved"
-    ]
-
-    @groupChannel.once 'setSecretNames', callback
-
   changeGroup:(groupName = 'koding', callback = (->))->
     return callback()  if @currentGroupName is groupName
 
@@ -75,7 +51,6 @@ module.exports = class GroupsController extends KDController
           @setGroup groupName
           @currentGroupData.setGroup group
           callback null, groupName, group
-          @openGroupChannel getGroup()
           @emit 'ready'
 
   getUserArea:->
