@@ -13,7 +13,6 @@ create = (workspace = null, initialSnapshot) ->
       @channelMachine  = ChannelStateMachine.create channelId
       @realtimeMachine = RealtimeStateMachine.create getFileIdentifier channelId
       @workspace       = workspace
-      console.log {@channelMachine, @realtimeMachine, a: this}
 
     constraints:
       loading:
@@ -24,19 +23,20 @@ create = (workspace = null, initialSnapshot) ->
       uninitialized:
         nextState: 'active'
         checkList: [
-          -> (@channelMachine.state is 'ready') or (@realtimeMachine.state is 'active')
+          -> @channelMachine.state is 'active'
+          -> @realtimeMachine.state is 'active'
         ]
       activating:
         nextState: 'activated'
         checkList: [
-          -> @channelMachine.state is 'ready'
+          -> @channelMachine.state is 'active'
           -> @realtimeMachine.state is 'active'
           -> @workspace?
         ]
       terminating:
         nextState: 'terminated'
         checkList: [
-          -> @channelMachine.state is 'uninitialized'
+          -> @channelMachine.state is 'terminated'
           -> @realtimeMachine.state is 'terminated'
         ]
 
