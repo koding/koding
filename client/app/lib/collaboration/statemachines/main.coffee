@@ -45,8 +45,10 @@ create = (workspace = null, initialSnapshot) ->
         _onEnter: ->
           @channelMachine.on 'LoadingFinished', =>
             @constraints.loading.checkList.channelMachineLoaded = yes
+            @nextIfReady()
           @realtimeMachine.on 'LoadingFinished', =>
             @constraints.loading.checkList.realtimeMachineLoaded = yes
+            @nextIfReady()
 
       uninitialized:
         _onEnter: ->
