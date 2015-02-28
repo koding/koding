@@ -95,37 +95,21 @@ create = (channelId) ->
 
     ###*
      * Action to initiate a collaboration channel.
-     *
-     * @state 'uninitialized'
-     * @nextState 'ready'
-     * @via 'busy'
     ###
     init: -> @handle 'init'
 
     ###*
      * Action to terminate a collaboration channel.
-     *
-     * @state 'ready'
-     * @nextState 'uninitialized'
-     * @via 'busy'
     ###
     terminate: -> @handle 'terminate'
 
     ###*
      * Action to add a participant to collaboration channel.
-     *
-     * @state 'ready'
-     * @nextState 'uninitialized'
-     * @via 'busy'
     ###
     addParticipant: (userId) -> @handle 'addParticipant', userId
 
     ###*
      * Action to remove a participant to collaboration channel.
-     *
-     * @state 'ready'
-     * @nextState 'uninitialized'
-     * @via 'busy'
     ###
     removeParticipant: (userId) -> @handle 'removeParticipant', userId
 
