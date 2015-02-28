@@ -18,6 +18,7 @@ import (
 
 // DeleteDriveDoc deletes the file from google drive
 func (c *Controller) DeleteDriveDoc(ping *models.Ping) error {
+
 	return c.deleteFile(ping.FileId)
 }
 
@@ -45,7 +46,22 @@ func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 	}
 
 	// delete the channel
-	return channel.Delete()
+	err = channel.Delete()
+	if err != nil {
+		return err
+	}
+
+	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
+	if err != nil && err != mgo.ErrNotFound {
+		return err
+	}
+
+	// if the workspace is not there, nothing to do
+	if err == mgo.ErrNotFound {
+		return nil
+	}
+
+	return modelhelper.UnsetSocialChannelFromWorkspace(ws.ObjectId)
 }
 
 // UnshareVM removes the users from JMachine document
