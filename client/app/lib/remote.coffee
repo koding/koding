@@ -2,7 +2,6 @@ globals = require 'globals'
 kd = require 'kd'
 kookies = require 'kookies'
 Bongo = require 'bongo-client'
-broker = require 'broker-client'
 sinkrow = require 'sinkrow'
 
 
@@ -41,33 +40,21 @@ createInstance = ->
           queue = name.slugs.map (slug) => =>
             selector = {}
             selector[slug.usedAsPath] = slug.slug
+
             @api[slug.constructorName].one? selector, (err, model)->
-              if err then callback err
+
+              return callback err  if err
+
+              unless model?
+                err = new Error \
+                  "Unable to find model: #{nameStr} of type #{name.constructorName}"
               else
-                unless model?
-                  err = new Error \
-                    "Unable to find model: #{nameStr} of type #{name.constructorName}"
-                else
-                  models.push model
-                queue.fin()
+                models.push model
+              queue.fin()
 
           sinkrow.dash queue, =>
             @emit "modelsReady"
             callback err, models, name
-
-    mq: do ->
-      {authExchange} = globals.config
-
-      options = {
-        authExchange
-        autoReconnect: yes
-        getSessionToken
-      }
-
-      console.log "connecting to:" + globals.config.broker.uri
-
-      new broker.Broker "#{globals.config.broker.uri}", options
-
 
 instance = null
 
