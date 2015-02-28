@@ -8,90 +8,76 @@ create = (channelId) ->
 
   channelMachine = new machina.Fsm
     initialState: 'loading'
+
+    constraints:
+      loading:
+        nextState: 'uninitialized'
+        checkList: { ready: no }
+
+      uninitialized:
+        nextState: 'active'
+        checkList: { active: no }
+
+      activating:
+        nextState: 'active'
+        checkList: { active: no }
+
+      terminating:
+        nextState: 'terminated'
+        checkList: { terminated: no }
+
     states:
-      ###*
-       * Initial decision state.
-       *
-       * It will:
-       * - fetch the channel with given id if `channelId` is present.
-       * or
-       * - switch state to 'uninitialized' if no `channelId` is present.
-      ###
       loading:
         _onEnter: ->
-          return @transition 'uninitialized'  unless channelId
-          @transition 'busy'
-          @_fetchChannel channelId,
-            success : (channel) => @handle 'channelReady'
-            error   : (error) => handleError error
+          @constraints.loading.checkList.ready = yes
+          @nextIfReady()
 
-      ###*
-       * State to indicate that there is some operation happening.
-      ###
-      busy:
-        channelReady: (channel) ->
-          @emit 'ChannelReady', { channel }
-          @transition 'ready'
-
-        participantAdded: (userId) ->
-          @emit 'ParticipantAdded', { id: userId }
-          @transition 'ready'
-
-        participantRemoved: (userId) ->
-          @emit 'ParticipantRemoved', { id: userId }
-          @transition 'ready'
-
-        channelDestroyed: ->
-          @emit 'ChannelDestroyed'
-          @transition 'loading'
-
-
-      ###*
-       * This state means basically it is ready but still doesn't
-       * have any `SocialChannel` instance. But it means that, it is ready to
-       * be initialized.
-       *
-       * Only `init` action can happen here.
-      ###
       uninitialized:
-        _onEnter: ->
-          @channel = null
+        _onEnter          : -> @_fetchChannel()
+        channelFound      : ->
+          @constraints.uninitialized.checkList.active = yes
+          @nextIfReady()
+        fetchChannelError : (err) -> handleError error
 
-        init: ->
-          @transition 'busy'
-          @_initChannel
-            success : (channel) => @handle 'channelReady', channel
-            error   : (error) => handleError error
+        activate: -> @transition 'activating'
 
-        '*': -> @deferUntilTransition()
+      activating: ->
+        _onEnter: -> @_initChannel()
+        channelActive: ->
+          @constraints.activating.checkList.active = yes
+          @nextIfReady()
+        initChannelError: (error) -> handleError error
 
-      ###*
-       * State to indicate that collaboration channel
-       * instance is ready for action.
-      ####
-      ready:
-        terminate: ->
-          @transition 'busy'
-          @_destroyChannel
-            success : => @handle 'channelDestroyed'
-            error   : (error) -> handleError error
+      active: ->
+        _onEnter  : -> @emit 'ChannelReady', { @channel }
+        terminate : -> @transition 'terminating'
 
         addParticipant: (userId) ->
           @transition 'busy'
-          @_addParticipant userId,
-            success : (userId) => @handle 'participantAdded', userId
-            error   : (error) -> handleError error
+          @_addParticipant userId
 
         removeParticipant: (userId) ->
           @transition 'busy'
-          @_removeParticipant userId,
-            success : (userId) => @handle 'participantRemoved'
-            error   : (error) -> handleError error
+          @_removeParticipant userId
 
-        '*': ->
-          @deferUntilTransition()
-          @transition 'busy'
+      busy:
+        participantAdded: (participant) ->
+          @emit 'ParticipantAdded', { participant }
+          @transition 'active'
 
+        participantRemoved: (participant) ->
+          @emit 'ParticipantRemoved', { participant }
+          @transition 'active'
+
+      terminating:
+        _onEnter  : -> @_destroyChannel()
+        channelDestroyed: ->
+          @constraints.terminating.checkList.terminated = yes
+          @nextIfReady()
+        destroyChannelError: (error) -> handleError error
+
+      terminated:
+        _onEnter: -> @emit 'ChannelTerminated'
 
     ###*
      * Action to get healthcheck from outside.
@@ -147,45 +133,37 @@ create = (channelId) ->
      * Initiate a social channel.
      *
      * @api private
-     * @param {object=} callbacks
-     * @param {function=} callbacks.success - success callback
-     * @param {function=} callbacks.error   - error calback
     ###
-    _initChannel: (callbacks = {}) ->
+    _initChannel: ->
       initChannel (err, channel) =>
-        return callback.error()  if err
+        return @handle 'initChannelError', err  if err
         @channel = channel
-        callbacks.success()
+        @handle 'channelActive', channel
 
 
     ###*
      * Destroy a social channel.
      *
      * @api private
-     * @param {object=} callbacks
-     * @param {function=} callbacks.success - success callback
-     * @param {function=} callbacks.error   - error calback
     ###
-    _destroyChannel: (callbacks) ->
+    _destroyChannel: ->
       destroyChannel @channel, (err) =>
-        return callbacks.error()  if err
+        return @handle 'destroyChannelError', err  if err
         @channel = null
-        callbacks.success()
+        channelId = null
+        @handle 'channelDestroyed'
 
     ###*
      * Fetch social channel with given id.
      *
      * @api private
      * @param {string} id - channel id
-     * @param {object=} callbacks
-     * @param {function=} callbacks.success - success callback
-     * @param {function=} callbacks.error   - error calback
     ###
-    _fetchChannel: (id, callbacks) ->
+    _fetchChannel: (id) ->
       fetchChannel id, (err, channel) =>
-        return callbacks.error err  if err
+        return @handle 'fetchChannelError'  if err
         @channel = channel
-        callbacks.success()
+        @handle 'channelFound', @channel
 
 
     ###*
@@ -193,34 +171,28 @@ create = (channelId) ->
      *
      * @api private
      * @param {string} userId
-     * @param {object=} callbacks
-     * @param {function=} callbacks.success - success callback
-     * @param {function=} callbacks.error   - error calback
     ###
-    _addParticipant: (userId, callbacks) ->
+    _addParticipant: (userId) ->
       fetchAccount userId, (err, account) =>
         return handleError err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         addParticipants opts, (err) =>
-          return callbacks.error err  if err
-          callbacks.success account
+          return @handle 'addParticipantError' err  if err
+          @handle 'participantAdded', account
 
 
     ###*
      * Remove participant with given user id.
      *
      * @api private
-     * @param {object=} callbacks
-     * @param {function=} callbacks.success - success callback
-     * @param {function=} callbacks.error   - error calback
     ###
-    _removeParticipant: (userId, callbacks) ->
+    _removeParticipant: (userId) ->
       fetchAccount userId, (err, account) =>
         return callbacks.error err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         removeParticipants opts, (err) =>
-          return callbacks.error err  if err
-          callbacks.success()
+          return @handle 'removeParticipantError' err  if err
+          @handle 'participantRemoved', account
 
   return channelMachine
 
