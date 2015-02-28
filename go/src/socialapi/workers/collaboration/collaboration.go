@@ -8,6 +8,7 @@ import (
 	"socialapi/config"
 	"socialapi/workers/collaboration/models"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -135,11 +136,10 @@ func (c *Controller) wait(ping *models.Ping) error {
 	}
 }
 
-func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
-	var err error
+func (c *Controller) checkIfKeyIsValid(ping *models.Ping) (err error) {
 	defer func() {
 		if err != nil {
-			c.log.Debug("ping: %+v is not valid %+v err: %+v", ping, err)
+			c.log.Debug("ping: %+v is not valid err: %+v", ping, err)
 		}
 	}()
 
@@ -166,12 +166,8 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
 
 	lastPingTimeOnRedis := time.Unix(unixSec, 0).UTC()
 
-	currentPingTime := ping.CreatedAt.UTC()
-
 	now := time.Now().UTC()
 
-	// if sum of previous ping time and terminate session duration is before the
-	// current ping time, terminate the session
 	if now.Add(-terminateSessionDuration).After(lastPingTimeOnRedis) {
 		return errSessionInvalid
 	}
@@ -181,10 +177,20 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
 }
 
 func (c *Controller) EndSession(ping *models.Ping) error {
-	errChan := make(chan error, 3)
+	var multiErr Error
+
+	defer func() {
+		if multiErr != nil {
+			c.log.Debug("ping: %+v is not valid %+v err: %+v", ping, multiErr)
+		}
+	}()
+
+	errChan := make(chan error)
+	var wg sync.WaitGroup
+
 	c.goWithRetry(func() error {
 		return c.EndPrivateMessage(ping)
-	}, errChan)
+	}, errChan, &wg)
 
 	c.goWithRetry(func() error {
 		// first remove the users from klient
@@ -194,13 +200,19 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 
 		// then remove them from the db
 		return c.UnshareVM(ping)
-	}, errChan)
+	}, errChan, &wg)
 
 	c.goWithRetry(func() error {
 		return c.DeleteDriveDoc(ping)
-	}, errChan)
+	}, errChan, &wg)
 
-	var multiErr Error
+	go func() {
+		// wait until all of them are finised
+		wg.Wait()
+
+		// we are done with the operations
+		close(errChan)
+	}()
 
 	for err := range errChan {
 		if err != nil {
@@ -208,11 +220,17 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 		}
 	}
 
+	if len(multiErr) == 0 {
+		return nil
+	}
+
 	return multiErr
 }
 
-func (c *Controller) goWithRetry(f func() error, errChan chan error) {
+func (c *Controller) goWithRetry(f func() error, errChan chan error, wg *sync.WaitGroup) {
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		bo := backoff.NewExponentialBackOff()
 		bo.InitialInterval = time.Millisecond * 250
 		bo.MaxInterval = time.Second * 1
