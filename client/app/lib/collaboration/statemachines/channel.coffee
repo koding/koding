@@ -43,14 +43,14 @@ create = (channelId) ->
 
         activate: -> @transition 'activating'
 
-      activating: ->
+      activating:
         _onEnter         : -> @_initChannel()
         channelActive    : ->
           @constraints.activating.checkList.active = yes
           @nextIfReady()
         initChannelError : (error) -> handleError error
 
-      active: ->
+      active:
         _onEnter  : -> @emit 'ChannelReady', { @channel }
         terminate : -> @transition 'terminating'
 
