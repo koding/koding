@@ -28,9 +28,11 @@ create = (channelId) ->
 
     states:
       loading:
-        _onEnter: ->
+        _onEnter : ->
           @constraints.loading.checkList.ready = yes
           @nextIfReady()
+        _onExit  : ->
+          @emit 'LoadingFinished'
 
       uninitialized:
         _onEnter          : -> @_fetchChannel()
@@ -42,11 +44,11 @@ create = (channelId) ->
         activate: -> @transition 'activating'
 
       activating: ->
-        _onEnter: -> @_initChannel()
-        channelActive: ->
+        _onEnter         : -> @_initChannel()
+        channelActive    : ->
           @constraints.activating.checkList.active = yes
           @nextIfReady()
-        initChannelError: (error) -> handleError error
+        initChannelError : (error) -> handleError error
 
       active: ->
         _onEnter  : -> @emit 'ChannelReady', { @channel }
@@ -60,24 +62,24 @@ create = (channelId) ->
           @transition 'busy'
           @_removeParticipant userId
 
-      busy:
-        participantAdded: (participant) ->
-          @emit 'ParticipantAdded', { participant }
-          @transition 'active'
-
-        participantRemoved: (participant) ->
-          @emit 'ParticipantRemoved', { participant }
-          @transition 'active'
-
       terminating:
-        _onEnter  : -> @_destroyChannel()
-        channelDestroyed: ->
+        _onEnter            : -> @_destroyChannel()
+        channelDestroyed    : ->
           @constraints.terminating.checkList.terminated = yes
           @nextIfReady()
-        destroyChannelError: (error) -> handleError error
+        destroyChannelError : (error) -> handleError error
 
       terminated:
         _onEnter: -> @emit 'ChannelTerminated'
+
+      busy:
+        participantAdded   : (participant) ->
+          @emit 'ParticipantAdded', { participant }
+          @transition 'active'
+
+        participantRemoved : (participant) ->
+          @emit 'ParticipantRemoved', { participant }
+          @transition 'active'
 
     ###*
      * Action to get healthcheck from outside.
