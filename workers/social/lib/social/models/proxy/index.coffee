@@ -10,9 +10,6 @@ module.exports = class JProxyFilter extends jraphical.Module
   @share()
 
   @set
-    sharedEvents      :
-      static          : []
-      instance        : []
     schema            :
       name            :
         type          : String

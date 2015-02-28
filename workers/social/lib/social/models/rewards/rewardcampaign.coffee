@@ -64,10 +64,6 @@ module.exports = class JRewardCampaign extends jraphical.Module
     permissions         :
       'manage campaign' : []
 
-    sharedEvents        :
-      static            : []
-      instance          : []
-
     indexes             :
       name              : 'unique'
 

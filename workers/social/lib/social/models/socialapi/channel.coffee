@@ -60,8 +60,6 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         glancePinnedPost     :
           (signature Object, Function)
-        cycleChannel:
-          (signature Object, Function)
         delete:
           (signature Object, Function)
 
@@ -76,10 +74,6 @@ module.exports = class SocialChannel extends Base
       privacyConstant  : String
       createdAt        : Date
       updatedAt        : Date
-    sharedEvents    :
-      static        : [
-        { name: 'broadcast' }
-      ]
 
   JAccount = require '../account'
 
@@ -88,42 +82,6 @@ module.exports = class SocialChannel extends Base
 
   { secureRequest, ensureGroupChannel,
     doRequest, permittedRequest } = require "./helper"
-
-  @generateChannelName = ({groupSlug, apiChannelType, apiChannelName})->
-    return "socialapi-\
-    group-#{groupSlug}-\
-    type-#{apiChannelType}-\
-    name-#{apiChannelName}"
-
-  @fetchSecretChannelName =(options, callback)->
-    {groupSlug, apiChannelType, apiChannelName} = options
-    name = @generateChannelName options
-    JName = require '../name'
-    JName.fetchSecretName name, (err, secretName, oldSecretName)->
-      # just to know, how many parameters does this function return
-      # callback err, secretName, oldSecretName
-      if err then callback err
-      else callback null, "socialapi.channelsecret.#{secretName}",
-        if oldSecretName then "socialapi.channelsecret.#{oldSecretName}"
-
-  @cycleChannel =do->
-    cycleChannel = (options, callback=->)->
-      JName = require '../name'
-      name = @generateChannelName options
-      JName.cycleSecretName name, (err, oldSecretName, newSecretName)=>
-        return callback err if err
-        routingKey = "socialapi.channelsecret.#{oldSecretName}.cycleChannel"
-        @emit 'broadcast', routingKey, null
-        return callback null
-    return throttle cycleChannel, 5000
-
-  cycleChannel:(callback)->
-    options =
-      groupSlug     : @groupName
-      apiChannelType: @typeConstant
-      apiChannelName: @name
-
-    @constructor.cycleChannel options, callback
 
   @checkChannelParticipation = secureRequest
     fnName   : 'checkChannelParticipation'

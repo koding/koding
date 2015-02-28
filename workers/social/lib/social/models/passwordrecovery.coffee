@@ -16,9 +16,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @share()
 
   @set
-    sharedEvents  :
-      static      : []
-      instance    : []
     sharedMethods :
       static:
         validate:

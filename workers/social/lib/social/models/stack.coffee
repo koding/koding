@@ -42,12 +42,6 @@ module.exports = class JComputeStack extends jraphical.Module
         modify           :
           (signature Object, Function)
 
-    sharedEvents         :
-      static             : [ ]
-      instance           : [
-        { name : 'updateInstance' }
-      ]
-
     indexes              :
       publicKey          : 'unique'
 

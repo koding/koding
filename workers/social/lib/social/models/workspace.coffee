@@ -38,10 +38,6 @@ module.exports = class JWorkspace extends Module
         fetchByMachines: signature Function
       instance     :
         delete     : signature Function
-    sharedEvents   :
-      static       : []
-      instance     : []
-
 
   @create = secure (client, data, callback) ->
 

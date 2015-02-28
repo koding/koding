@@ -59,10 +59,6 @@ module.exports = class JProposedDomain extends jraphical.Module
         remove        :
           (signature Function)
 
-    sharedEvents      :
-      static          : []
-      instance        : []
-
     indexes           :
       domain          : ['unique', 'sparse']
       machines        : 'sparse'

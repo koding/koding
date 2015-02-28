@@ -36,9 +36,6 @@ module.exports = class JSession extends Model
         linkedin    : Object
       foreignAuthType : String
       impersonating : Boolean
-    sharedEvents    :
-      instance      : []
-      static        : []
 
   do ->
     JAccount  = require './account'

@@ -30,10 +30,6 @@ module.exports = class JDomainAlias extends Module
           (signature Object, Object, Function)
         ]
 
-    sharedEvents      :
-      static          : []
-      instance        : []
-
     indexes           :
       domain          : 'unique'
       machineId       : 'sparse'

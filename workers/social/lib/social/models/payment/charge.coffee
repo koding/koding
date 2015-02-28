@@ -16,9 +16,6 @@ module.exports = class JPaymentCharge extends jraphical.Module
   @set
     indexes:
       uuid            : 'unique'
-    sharedEvents      :
-      static          : []
-      instance        : []
     sharedMethods     :
       static          :
         # TODO: this is a really big WTF, and needs to be removed:

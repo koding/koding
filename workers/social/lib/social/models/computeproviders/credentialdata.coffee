@@ -9,11 +9,6 @@ module.exports = class JCredentialData extends Module
     indexes           :
       publicKey       : 'unique'
 
-    sharedEvents      :
-
-      static          : [ ]
-      instance        : [ ]
-
     schema            :
 
       publicKey       :

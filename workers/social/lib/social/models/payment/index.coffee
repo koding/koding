@@ -13,9 +13,6 @@ module.exports = class JPayment extends Base
   @share()
 
   @set
-    sharedEvents   :
-      static       : []
-      instance     : []
     sharedMethods  :
       static       :
         setPaymentInfo:
