@@ -32,11 +32,11 @@ module.exports = class NotificationController extends KDObject
     @off 'NotificationHasArrived'
     @notificationChannel?.close().off()
     @notificationChannel?.off()
-    @subscribeToRealimeUpdates()
+    @subscribeToRealtimeUpdates()
     @setListeners()
 
 
-  subscribeToRealimeUpdates:->
+  subscribeToRealtimeUpdates:->
 
     @notificationChannel = null
 
