@@ -117,8 +117,12 @@ func (r *Runner) initKite() error {
 	// init kite here
 	k := kite.New(r.Name, "0.0."+strconv.Itoa(*flagVersion))
 
-	// TODO use get
-	k.Config = kiteconfig.MustGet()
+	var err error
+	k.Config, err = kiteconfig.Get()
+	if err != nil {
+		return err
+	}
+
 	// no need to set, will be set randomly.
 	// k.Config.Port = 9876
 	k.Config.Environment = r.Conf.Environment
@@ -132,9 +136,11 @@ func (r *Runner) initKite() error {
 	// set kite
 	r.Kite = k
 
-	return r.RegisterToKontrol()
+	return nil
 }
 
+// RegisterToKontrol registers the worker to the kontrol, this should be called
+// explicitly until further notice :)
 func (r *Runner) RegisterToKontrol() error {
 	if r.Kite == nil {
 		return errors.New("kite is not initialized yet")

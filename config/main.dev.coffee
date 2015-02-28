@@ -2,6 +2,7 @@ traverse              = require 'traverse'
 log                   = console.log
 fs                    = require 'fs'
 os                    = require 'os'
+path                  = require 'path'
 
 Configuration = (options={}) ->
 
@@ -14,7 +15,7 @@ Configuration = (options={}) ->
   region              = options.region         or "dev"
   configName          = options.configName     or "dev"
   environment         = options.environment    or "dev"
-  projectRoot         = options.projectRoot    or __dirname
+  projectRoot         = options.projectRoot    or path.join __dirname, '/..'
   version             = options.version        or "2.0" # TBD
   branch              = options.branch         or "cake-rewrite"
   build               = options.build          or "1111"
@@ -64,32 +65,36 @@ Configuration = (options={}) ->
   kloudPort           = 5500
   kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
 
+  googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+
+
   socialapi =
-    proxyUrl          : "#{customDomain.local}/api/social"
-    port              : "7000"
-    configFilePath    : "#{projectRoot}/go/src/socialapi/config/dev.toml"
-    postgres          : postgres
-    mq                : mq
-    redis             :  url: redis.url
-    mongo             : mongo
-    environment       : environment
-    region            : region
-    hostname          : host
-    protocol          : protocol
-    email             : email
-    sitemap           : { redisDB: 0, updateInterval:  "1m" }
-    algolia           : algoliaSecret
-    mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
-    eventExchangeName : "BrokerMessageBus"
-    disableCaching    : no
-    debug             : no
-    stripe            : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
-    paypal            : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
-    gatekeeper        : gatekeeper
-    customDomain      : customDomain
-    kloud             : { secretKey: kloud.secretKey, address: kloud.address }
-    paymentwebhook    : paymentwebhook
+    proxyUrl                : "#{customDomain.local}/api/social"
+    port                    : "7000"
+    configFilePath          : "#{projectRoot}/go/src/socialapi/config/dev.toml"
+    postgres                : postgres
+    mq                      : mq
+    redis                   :  url: redis.url
+    mongo                   : mongo
+    environment             : environment
+    region                  : region
+    hostname                : host
+    protocol                : protocol
+    email                   : email
+    sitemap                 : { redisDB: 0, updateInterval:  "1m" }
+    algolia                 : algoliaSecret
+    mixpanel                : mixpanel
+    limits                  : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 30 }
+    eventExchangeName       : "BrokerMessageBus"
+    disableCaching          : no
+    debug                   : no
+    stripe                  : { secretToken : "sk_test_2ix1eKPy8WtfWTLecG9mPOvN" }
+    paypal                  : { username: 'senthil+1_api1.koding.com', password: 'JFH6LXW97QN588RC', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AjnvzeXiWRC89GOtfhnGMSsO563z', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: yes }
+    gatekeeper              : gatekeeper
+    customDomain            : customDomain
+    kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
+    paymentwebhook          : paymentwebhook
+    googleapiServiceAccount : googleapiServiceAccount
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -165,7 +170,7 @@ Configuration = (options={}) ->
     recaptcha                      : '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
     mixpanel                       : mixpanel.token
     segment                        : '4c570qjqo0'
-    googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+    googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
 
     collaboration :
@@ -347,11 +352,6 @@ Configuration = (options={}) ->
       healthCheckURL    : "http://localhost:#{KONFIG.social.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.social.port}/version"
 
-    clientWatcher       :
-      group             : "webserver"
-      supervisord       :
-        command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
-
     socialapi:
       group             : "socialapi"
       instances         : 1
@@ -490,20 +490,15 @@ Configuration = (options={}) ->
       return workers
 
     installScript = """
-        npm i --unsafe-perm --silent
-        echo '#---> BUILDING CLIENT (@gokmen) <---#'
         cd #{projectRoot}
-        chmod +x ./build-client.coffee
-        ulimit -n 1024 && #{projectRoot}/build-client.coffee --watch false  --verbose
-        git submodule init
-        git submodule update
+        git submodule update --init
 
-        # Disabled for now, if any of installed globally with sudo
-        # this overrides them and broke developers machine ~
-        # npm i gulp stylus coffee-script -g --silent
+        npm install --unsafe-perm
 
-
-
+        echo '#---> BUILDING CLIENT <---#'
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make build
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -613,6 +608,15 @@ Configuration = (options={}) ->
             exit 1;
         fi
 
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
+            echo your run file is older than your client package json. doing npm i.
+            sleep 1
+            cd client && npm i && cd -
+
+            echo -e "\n\nPlease do ./configure and  ./run again\n"
+            exit 1;
+        fi
+
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
         if [  $OLD_COOKIE -ne 0 ]; then
             echo "You have tough-cookie@0.9.15 installed on your system, please remove node_modules directory and do npm i again";
@@ -670,6 +674,8 @@ Configuration = (options={}) ->
       }
 
       function run () {
+
+        # Check if PG DB schema update required
         go run go/src/socialapi/tests/pg-update.go #{postgres.host} #{postgres.port}
         RESULT=$?
 
@@ -677,23 +683,51 @@ Configuration = (options={}) ->
           exit 1
         fi
 
+        # Check everything else
         check
+
+        # Do npm i incase of packages.json changes
         npm i --silent
+
         # this is a temporary adition, normally file watcher should delete the created file later on
         cd #{projectRoot}/go/bin
-        rm goldorf-main-*
-        rm watcher-*
+
+        # Remove old watcher files (do we still need this?)
+        rm -rf goldorf-main-*
+        rm -rf watcher-*
+
+        # Run Go builder
         #{projectRoot}/go/build.sh
+
+        # Run Social Api builder
         cd #{projectRoot}/go/src/socialapi
         make configure
+
         cd #{projectRoot}
 
+        # Do PG Migration if necessary
         migrate up
-        # a temporary migration line
+
+        # a temporary migration line (do we still need this?)
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
 
+        # Run all the worker daemons in KONFIG.workers
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 
+        # Check backend option, if it's then bypass client build
+        if [ "$1" == "backend" ] ; then
+
+          echo
+          echo '---------------------------------------------------------------'
+          echo '>>> CLIENT BUILD DISABLED! DO "cd client/ && make" MANUALLY <<<'
+          echo '---------------------------------------------------------------'
+          echo
+
+        else
+          cd #{projectRoot}/client && make &
+        fi
+
+        # Show the all logs of workers
         tail -fq ./.logs/*.log
 
       }
@@ -706,6 +740,7 @@ Configuration = (options={}) ->
         echo "Usage: "
         echo ""
         echo "  run                       : to start koding"
+        echo "  run backend               : to start only backend of koding"
         echo "  run killall               : to kill every process started by run script"
         echo "  run install               : to compile/install client and "
         echo "  run buildclient           : to see of specified worker logs only"
@@ -713,6 +748,7 @@ Configuration = (options={}) ->
         echo "  run log [worker]          : to see of specified worker logs only"
         echo "  run buildservices         : to initialize and start services"
         echo "  run buildservices sandbox : to initialize and start services on sandbox"
+        echo "  run resetdb               : to reset databases"
         echo "  run services              : to stop and restart services"
         echo "  run worker                : to list workers"
         echo "  run chaosmonkey           : to restart every service randomly to test resilience."
@@ -879,19 +915,7 @@ Configuration = (options={}) ->
         docker run -d -p 6379:6379                --name=redis    redis
         docker run -d -p 5432:5432                --name=postgres koding/postgres
 
-        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
-        cd #{projectRoot}
-        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
-
-        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
-        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
-
-        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
-
-        cd #{projectRoot}/install/docker-mongo
-        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
-        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
-        rm -rf ./dump
+        restoredefaultmongodump
 
         echo "#---> CLEARING ALGOLIA INDEXES: @chris <---#"
         cd #{projectRoot}
@@ -929,7 +953,37 @@ Configuration = (options={}) ->
         cd #{projectRoot}
         node #{projectRoot}/scripts/user-importer
 
+        migrateusers
+
+      }
+
+      function migrateusers () {
+
+        echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
+        mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
+
         go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
+
+        # Required step for guestuser
+        mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
+
+      }
+
+      function restoredefaultmongodump () {
+
+        echo '#---> CREATING VANILLA KODING DB @gokmen <---#'
+
+        mongo #{mongo} --eval "db.dropDatabase()"
+
+        cd #{projectRoot}/install/docker-mongo
+        tar jxvf #{projectRoot}/install/docker-mongo/default-db-dump.tar.bz2
+        mongorestore -h#{boot2dockerbox} -dkoding dump/koding
+        rm -rf ./dump
+
+        echo '#---> UPDATING MONGO DATABASE ACCORDING TO LATEST CHANGES IN CODE (UPDATE PERMISSIONS @chris) <---#'
+        cd #{projectRoot}
+        node #{projectRoot}/scripts/permission-updater  -c #{socialapi.configFilePath} --hard >/dev/null
+
       }
 
       function updateusers () {
@@ -984,11 +1038,34 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        ./build-client.coffee --watch false  --verbose
+        cd #{projectRoot}/client
+        npm install --unsafe-perm
+        make
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
         services
+
+      elif [ "$1" == "resetdb" ]; then
+
+        if [ "$2" == "--yes" ]; then
+
+          restoredefaultmongodump
+          migrateusers
+
+          exit 0
+
+        fi
+
+        read -p "This will reset current databases, all data will be lost! (y/N)" -n 1 -r
+        echo ""
+        if [[ ! $REPLY =~ ^[Yy]$ ]]
+        then
+            exit 1
+        fi
+
+        restoredefaultmongodump
+        migrateusers
 
       elif [ "$1" == "buildservices" ]; then
 
@@ -1069,10 +1146,10 @@ Configuration = (options={}) ->
           migrate $2 $3
         fi
 
-      elif [ "$#" == "0" ]; then
+      elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
-        run
+        run $1
 
       else
         echo "Unknown command: $1"
@@ -1087,9 +1164,6 @@ Configuration = (options={}) ->
   KONFIG.supervisorConf = (require "../deployment/supervisord.coffee").create KONFIG
   KONFIG.nginxConf      = (require "../deployment/nginx.coffee").create KONFIG, environment
   KONFIG.runFile        = generateRunFile        KONFIG
-
-  fs.writeFileSync "./.dev.nginx.conf", KONFIG.nginxConf
-
 
   return KONFIG
 

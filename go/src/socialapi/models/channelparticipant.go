@@ -341,6 +341,7 @@ func (c *ChannelParticipant) fetchDefaultChannels(q *request.Query) ([]int64, er
 		q.GroupName,
 		[]string{Channel_TYPE_GROUP, Channel_TYPE_ANNOUNCEMENT},
 	).
+		Order("type_constant ASC").
 		// no need to traverse all database, limit with a known count
 		Limit(2).
 		// only select ids
@@ -387,6 +388,11 @@ func (c *ChannelParticipant) FetchParticipantCount() (int, error) {
 
 // Tests are done.
 func (c *ChannelParticipant) IsParticipant(accountId int64) (bool, error) {
+
+	if accountId == 0 {
+		return false, nil
+	}
+
 	if c.ChannelId == 0 {
 		return false, ErrChannelIdIsNotSet
 	}

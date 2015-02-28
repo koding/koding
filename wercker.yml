@@ -1,4 +1,4 @@
-box: koding/base@0.0.14
+box: koding/base@0.0.17
 no-response-timeout: 10
 services:
   - wercker/postgresql@0.0.4
@@ -29,10 +29,10 @@ build:
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
     - script:
-        name: kd node modules
+        name: client node modules
         code: |
-          cd client/Framework
-          $WERCKER_ROOT/scripts/wercker/install-node-modules kd
+          cd client/
+          $WERCKER_ROOT/scripts/wercker/install-node-modules client
     - script:
         name: landing node modules
         code: |
@@ -58,12 +58,13 @@ build:
           cat $INSTANCE_DATA
     - script:
         name: configure build
-        code: ./configure --config $CONFIG --projectRoot /opt/koding
+        code: ./configure --config $CONFIG --projectRoot $WERCKER_SOURCE_DIR
     - script:
         name: build client
         code: |
-          ./run
-          scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+          cd client
+          make build
+          ../scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
@@ -97,6 +98,10 @@ build:
           tail -n 100 /var/log/koding/social-pinnedpost.log
           cd go/src/socialapi
           make testapi config=./config/test.toml
+    - script: # todo generalize this part when we have more tests
+        name: test koding mongo models
+        code: |
+          go test ./go/src/koding/db/mongodb/modelhelper/*go
     - script:
         name: testing backend finished
         code: |
@@ -225,9 +230,8 @@ deploy:
           cd $WERCKER_ROOT
 
           ./configure --config $CONFIG --projectRoot /opt/koding
-          ./run
 
-          rm -rf .git .build node_modules
+          rm -rf .git .build node_modules client/node_modules
           rm -rf go/bin go/pkg
           rm -rf website/a/js/*.map
           zip -q --symlinks -r $ARCHIVE .

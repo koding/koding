@@ -77,6 +77,8 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		return nil, err
 	}
 
+	p.Log.Debug("[%s] DesiredSize: %d, Currentsize %d", m.Id, desiredSize, currentSize)
+
 	// Storage is counting all current sizes. So we need ask only for the
 	// difference that we want to add. So say if the current size is 3
 	// and our desired size is 10, we need to ask if we have still
@@ -203,11 +205,6 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
 			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
 		}
-	}
-
-	infoLog("updating user domain tag %s of instance %s", m.Domain.Name, artifact.InstanceId)
-	if err := a.AddTag(artifact.InstanceId, "koding-domain", m.Domain.Name); err != nil {
-		return nil, err
 	}
 
 	a.Push("Checking connectivity", 90, machinestate.Pending)

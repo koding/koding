@@ -150,7 +150,7 @@ module.exports = class Koding extends ProviderInterface
           meta =
             type          : 'amazon'
             region        : region ? SUPPORTED_REGIONS[0]
-            source_ami    : 'ami-2651904e'
+            source_ami    : '' # Kloud is updating this field after a successfull build
             instance_type : 't2.micro'
             storage_size  : storage
             alwaysOn      : no
@@ -250,7 +250,7 @@ module.exports = class Koding extends ProviderInterface
     { r: { group, user } } = client
 
     selector        = { provider: 'koding' }
-    selector.users  = $elemMatch: id: user.getId()
+    selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
     selector.groups = $elemMatch: id: group.getId()
 
     JMachine.some selector, limit: 30, (err, machines)->

@@ -15,7 +15,6 @@ module.exports = (options = {}, callback)->
   currentGroup     = null
   userMachines     = null
   userWorkspaces   = null
-  usePremiumBroker = no
 
   {bongoModels, client, slug} = options
 
@@ -25,38 +24,38 @@ module.exports = (options = {}, callback)->
       {profile   : {nickname}, _id} = delegate
 
     replacer             = (k, v)-> if 'string' is typeof v then encoder.XSSEncode v else v
+    {segment, client}    = KONFIG
+    {siftScience}        = client.runtimeOptions
+    config               = JSON.stringify client.runtimeOptions
     encodedSocialApiData = JSON.stringify socialapidata, replacer
     currentGroup         = JSON.stringify currentGroup
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
 
-    usePremiumBroker = usePremiumBroker or options.client.context.group isnt "koding"
-
-    {rollbar, version, environment, segment, client} = KONFIG
-    {siftScience} = client.runtimeOptions
-
     """
-    <!-- SEGMENT.IO -->
     <script type="text/javascript">
-      window.analytics||(window.analytics=[]),window.analytics.methods=["identify","track","trackLink","trackForm","trackClick","trackSubmit","page","pageview","ab","alias","ready","group","on","once","off"],window.analytics.factory=function(t){return function(){var a=Array.prototype.slice.call(arguments);return a.unshift(t),window.analytics.push(a),window.analytics}};for(var i=0;window.analytics.methods.length>i;i++){var method=window.analytics.methods[i];window.analytics[method]=window.analytics.factory(method)}window.analytics.load=function(t){var a=document.createElement("script");a.type="text/javascript",a.async=!0,a.src=("https:"===document.location.protocol?"https://":"http://")+"d2dq2ahtl5zl1z.cloudfront.net/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(a,n)},window.analytics.SNIPPET_VERSION="2.0.8",
-      window.analytics.load("#{segment}");
-      window.analytics.page();
+      if (location.host === "koding.com") {
+        !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
+          analytics.load("#{segment}");
+          analytics.page()
+        }}();
+     };
     </script>
 
-    <script>KD.config.usePremiumBroker=#{usePremiumBroker}</script>
-    <script>KD.socialApiData=#{encodedSocialApiData}</script>
-    <script>KD.userMachines=#{userMachines}</script>
-    <script>KD.userWorkspaces=#{userWorkspaces}</script>
-    <script>KD.userAccount=#{userAccount}</script>
-    <script>KD.currentGroup=#{currentGroup}</script>
-    <script src='/a/js/kd.libs.js?#{KONFIG.version}'></script>
-    <script src='/a/js/kd.js?#{KONFIG.version}'></script>
-    <script src='/a/js/koding.js?#{KONFIG.version}'></script>
+    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
+    <script src="/a/p/p/common.js?#{KONFIG.version}"></script>
+    <script src="/a/p/p/app.js?#{KONFIG.version}"></script>
+
     <script>
-      KD.utils.defer(function () {
-        KD.currentGroup = KD.remote.revive(KD.currentGroup);
-        KD.userAccount = KD.remote.revive(KD.userAccount);
+      require('app')({
+        config: #{config},
+        userAccount: #{userAccount},
+        userMachines: #{userMachines},
+        userWorkspaces: #{userWorkspaces},
+        currentGroup: #{currentGroup},
+        isLoggedInOnLoad: true,
+        socialApiData: #{encodedSocialApiData}
       });
     </script>
 

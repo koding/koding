@@ -15,6 +15,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/amazon"
+	"koding/kites/kloud/waitstate"
 
 	"github.com/dgrijalva/jwt-go"
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -49,8 +50,14 @@ var (
 
 type BuildData struct {
 	// This is passed directly to goamz to create the final instance
-	EC2Data *ec2.RunInstances
-	KiteId  string
+	EC2Data   *ec2.RunInstances
+	ImageData *ImageData
+	KiteId    string
+}
+
+type ImageData struct {
+	blockDeviceMapping ec2.BlockDeviceMapping
+	imageId            string
 }
 
 type Build struct {
@@ -60,6 +67,15 @@ type Build struct {
 	start, finish int
 	log           logging.Logger
 	retryCount    int
+	plan          Plan
+	checker       *PlanChecker
+
+	// if available, create the instance via the snapshot -> AMI way
+	snapshotId string
+
+	// cleanFuncs are a list of functions that are called once a run() method
+	// is returned (for an error or non error doesn't matter)
+	cleanFuncs []func()
 }
 
 // normalize returns the normalized step according to the initial start and finish
@@ -73,48 +89,84 @@ func (b *Build) normalize(percentage int) int {
 
 }
 
-func (p *Provider) Build(m *protocol.Machine) (*protocol.Artifact, error) {
+func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Artifact, error) {
 	a, err := p.NewClient(m)
 	if err != nil {
 		return nil, err
 	}
 
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher.Fetch(m)
+	if err != nil {
+		return nil, err
+	}
+
+	checker := &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      p.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}
+
 	b := &Build{
-		amazon:   a,
-		machine:  m,
-		provider: p,
-		start:    10,
-		finish:   90,
-		log:      p.Log,
+		amazon:     a,
+		machine:    m,
+		provider:   p,
+		plan:       fetcherResp.Plan,
+		checker:    checker,
+		start:      10,
+		finish:     90,
+		log:        p.Log,
+		snapshotId: snapshotId,
+		cleanFuncs: make([]func(), 0),
 	}
 
 	return b.run()
 }
 
 func (b *Build) run() (*protocol.Artifact, error) {
+	// run the cleanFuncs once we are finished with the build
+	defer func() {
+		if b.cleanFuncs != nil {
+			for _, fn := range b.cleanFuncs {
+				fn()
+			}
+		}
+	}()
+
 	var err error
+	imageId := ""
 	instanceId := b.amazon.Builder.InstanceId
 	queryString := b.machine.QueryString
 
 	// if there is already a machine just check it again
 	if instanceId == "" {
 		b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
-		b.log.Info("[%s] Generating and fetching build data", b.machine.Id)
+		b.log.Debug("[%s] Generating and fetching build data", b.machine.Id)
 		buildData, err := b.buildData()
 		if err != nil {
 			return nil, err
 		}
 
+		imageId = buildData.ImageData.imageId
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
 		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
-		b.log.Info("[%s] Checking user limitation and machine quotas", b.machine.Id)
+		b.log.Debug("[%s] Checking user limitation and machine quotas", b.machine.Id)
 		if err := b.checkLimits(buildData); err != nil {
 			return nil, err
 		}
 
 		b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
-		b.log.Info("[%s] Initiating creating process of instance", b.machine.Id)
+		b.log.Debug("[%s] Initiating creating process of instance", b.machine.Id)
 		instanceId, err = b.create(buildData)
 		if err != nil {
 			return nil, err
@@ -125,17 +177,18 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			Type: "building",
 			Data: map[string]interface{}{
 				"instanceId":  instanceId,
+				"imageId":     imageId,
 				"queryString": queryString,
 				"region":      b.amazon.Builder.Region,
 			},
 		})
 	} else {
-		b.log.Info("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
+		b.log.Debug("[%s] Continue build process with data, instanceId: '%s' and queryString: '%s'",
 			b.machine.Id, instanceId, queryString)
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
-	b.log.Info("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
+	b.log.Debug("[%s] Checking build process of instanceId '%s'", b.machine.Id, instanceId)
 	buildArtifact, err := b.checkBuild(instanceId)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
@@ -180,17 +233,31 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		return nil, err
 	}
 
+	// allocate and associate a new Public IP for paying users, we can do
+	// this after we create the instance
+	if b.plan != Free {
+		b.log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", b.machine.Id)
+
+		elasticIp, err := allocateAndAssociateIP(b.amazon.Client, instanceId)
+		if err != nil {
+			b.log.Warning("[%s] couldn't not create elastic IP: %s", b.machine.Id, err)
+		} else {
+			buildArtifact.IpAddress = elasticIp
+		}
+	}
+
 	buildArtifact.KiteQuery = queryString
+	buildArtifact.ImageId = imageId
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
 	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
-	b.log.Info("[%s] Adding and setting up domain and tags", b.machine.Id)
+	b.log.Debug("[%s] Adding and setting up domain and tags", b.machine.Id)
 	b.addDomainAndTags(buildArtifact)
 
 	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
 		b.normalize(90), machinestate.Building)
-	b.log.Info("[%s] All finished, testing for klient connection IP [%s]",
+	b.log.Debug("[%s] All finished, testing for klient connection IP [%s]",
 		b.machine.Id, buildArtifact.IpAddress)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
@@ -199,26 +266,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	return buildArtifact, nil
 }
 
-// buildData returns all necessary data that is needed to build a machine.
-func (b *Build) buildData() (*BuildData, error) {
-	// get all subnets belonging to Kloud
-	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
-		b.machine.Id)
-	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
-	if err != nil {
-		return nil, err
-	}
-
-	// sort and get the lowest
-	subnet := subnets.WithMostIps()
-
-	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
-		b.machine.Id, subnet.VpcId)
-	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-	if err != nil {
-		return nil, err
-	}
-
+func (b *Build) imageData() (*ImageData, error) {
 	b.log.Debug("[%s] Fetching image which is tagged with '%s'",
 		b.machine.Id, DefaultCustomAMITag)
 	image, err := b.amazon.ImageByTag(DefaultCustomAMITag)
@@ -243,7 +291,105 @@ func (b *Build) buildData() (*BuildData, error) {
 		DeleteOnTermination: true,
 		Encrypted:           false,
 	}
-	b.log.Debug("[%s] Using block device settings %v", b.machine.Id, blockDeviceMapping)
+
+	if b.snapshotId != "" {
+		b.log.Debug("[%s] checking for snapshot permissions", b.machine.Id)
+		// check first if the snapshot belongs to the user, it might belong to someone else!
+		if err := b.provider.CheckSnapshotExistence(b.machine.Username, b.snapshotId); err != nil {
+			return nil, err
+		}
+
+		b.log.Debug("[%s] creating AMI from the snapshot '%s'", b.machine.Id, b.snapshotId)
+
+		blockDeviceMapping.SnapshotId = b.snapshotId
+		amiDesc := fmt.Sprintf("user-%s-%s", b.machine.Username, b.machine.Id)
+
+		registerOpts := &ec2.RegisterImage{
+			Name:           amiDesc,
+			Description:    amiDesc,
+			Architecture:   image.Architecture,
+			RootDeviceName: image.RootDeviceName,
+			VirtType:       image.VirtualizationType,
+			KernelId:       image.KernelId,
+			RamdiskId:      image.RamdiskId,
+			BlockDevices:   []ec2.BlockDeviceMapping{blockDeviceMapping},
+		}
+
+		registerResp, err := b.amazon.Client.RegisterImage(registerOpts)
+		if err != nil {
+			return nil, err
+		}
+
+		// if we build the instance from a snapshot, it'll create a temporary
+		// AMI. Destroy it after we are finished or if something goes wrong.
+		b.cleanFuncs = append(b.cleanFuncs, func() {
+			b.log.Debug("[%s] Deleting temporary AMI '%s'", b.machine.Id, registerResp.ImageId)
+			if _, err := b.amazon.Client.DeregisterImage(registerResp.ImageId); err != nil {
+				b.log.Warning("[%s] Couldn't delete AMI '%s': %s", b.machine.Id, registerResp.ImageId, err)
+			}
+		})
+
+		// wait until the AMI is ready
+		checkAMI := func(currentPercentage int) (machinestate.State, error) {
+			resp, err := b.amazon.Client.Images([]string{registerResp.ImageId}, ec2.NewFilter())
+			if err != nil {
+				return 0, err
+			}
+
+			// shouldn't happen but let's check it anyway
+			if len(resp.Images) == 0 {
+				return machinestate.Pending, nil
+			}
+
+			image := resp.Images[0]
+			if image.State != "available" {
+				return machinestate.Pending, nil
+			}
+
+			return machinestate.NotInitialized, nil
+		}
+
+		ws := waitstate.WaitState{StateFunc: checkAMI, Action: "check-ami"}
+		if err := ws.Wait(); err != nil {
+			return nil, err
+		}
+
+		image.Id = registerResp.ImageId
+	}
+
+	b.log.Debug("[%s] Using image Id: %s and block device settings %v",
+		b.machine.Id, image.Id, blockDeviceMapping)
+
+	return &ImageData{
+		imageId:            image.Id,
+		blockDeviceMapping: blockDeviceMapping,
+	}, nil
+}
+
+// buildData returns all necessary data that is needed to build a machine.
+func (b *Build) buildData() (*BuildData, error) {
+	// get all subnets belonging to Kloud
+	b.log.Debug("[%s] Searching for subnet that are tagged with 'kloud-subnet-*'",
+		b.machine.Id)
+	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
+	if err != nil {
+		return nil, err
+	}
+
+	// sort and get the lowest
+	subnet := subnets.WithMostIps()
+
+	b.log.Debug("[%s] Searching for security group for vpc id '%s'",
+		b.machine.Id, subnet.VpcId)
+	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
+	if err != nil {
+		return nil, err
+	}
+
+	imageData, err := b.imageData()
+	if err != nil {
+		return nil, err
+	}
 
 	b.log.Debug("[%s] Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
 		b.machine.Id, subnet.SubnetId, subnet.AvailabilityZone,
@@ -269,7 +415,7 @@ func (b *Build) buildData() (*BuildData, error) {
 	}
 
 	ec2Data := &ec2.RunInstances{
-		ImageId:                  image.Id,
+		ImageId:                  imageData.imageId,
 		MinCount:                 1,
 		MaxCount:                 1,
 		KeyName:                  b.provider.KeyName,
@@ -278,13 +424,14 @@ func (b *Build) buildData() (*BuildData, error) {
 		SubnetId:                 subnet.SubnetId,
 		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
 		AvailZone:                subnet.AvailabilityZone,
-		BlockDevices:             []ec2.BlockDeviceMapping{blockDeviceMapping},
+		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userData,
 	}
 
 	return &BuildData{
-		EC2Data: ec2Data,
-		KiteId:  kiteId,
+		EC2Data:   ec2Data,
+		ImageData: imageData,
+		KiteId:    kiteId,
 	}, nil
 }
 
@@ -356,17 +503,11 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 
 // checkLimits checks whether the given buildData is valid to be used to create a new instance
 func (b *Build) checkLimits(buildData *BuildData) error {
-	// Check for total machine allowance
-	checker, err := b.provider.PlanChecker(b.machine)
-	if err != nil {
+	if err := b.checker.Total(); err != nil {
 		return err
 	}
 
-	if err := checker.Total(); err != nil {
-		return err
-	}
-
-	if err := checker.AlwaysOn(); err != nil {
+	if err := b.checker.AlwaysOn(); err != nil {
 		return err
 	}
 
@@ -374,14 +515,14 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 		b.machine.Id, buildData.EC2Data.InstanceType)
 
 	// check if the user is egligible to create a vm with this instance type
-	if err := checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
+	if err := b.checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
 		b.log.Critical("[%s] Instance type (%s) is not allowed. Fallback to t2.micro",
 			b.machine.Id, buildData.EC2Data.InstanceType)
 		buildData.EC2Data.InstanceType = T2Micro.String()
 	}
 
 	// check if the user is egligible to create a vm with this size
-	if err := checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
+	if err := b.checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
 		return err
 	}
 

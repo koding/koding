@@ -242,7 +242,7 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 	}
 
 	if c.TypeConstant == models.Channel_TYPE_GROUP {
-		return errors.New("can not add/remove participants for pinned activity channel")
+		return errors.New("can not add/remove participants for group channel")
 	}
 
 	if c.TypeConstant == models.Channel_TYPE_PINNED_ACTIVITY {

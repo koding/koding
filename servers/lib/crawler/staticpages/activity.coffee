@@ -42,7 +42,7 @@ prepareComments = (activityContent)->
         </a>
         <div class="comment-contents clearfix">
           <a href="#{uri.address}/#{nickname}" class="profile" itemprop="name">#{fullName}</a>
-          <div class="comment-body-container">
+          <div class="comment-body-container has-markdown">
             <p itemprop="commentText">#{message.body}</p>
           </div>
           #{createdAt}

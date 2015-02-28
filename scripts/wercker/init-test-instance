@@ -24,7 +24,7 @@ function npm_install ()
 service nginx stop
 
 npm_install koding
-npm_install kd      client/Framework
+npm_install client  client/
 npm_install landing client/landing
 
 cd $REPOSITORY_PATH
@@ -32,6 +32,7 @@ cd $REPOSITORY_PATH
 ./configure --host $HOST:8090
 ./run services
 ./run install
+./run resetdb --yes
 ./run &
 disown $!
 

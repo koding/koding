@@ -113,11 +113,9 @@ module.exports.create = (KONFIG)->
 
   conf += """
   [eventlistener:memmon]
-  command=memmon -g environment=4192MB -m sysops+supervisord@koding.com
+  command=memmon -g environment=3072MB -m sysops+supervisord@koding.com
   events=TICK_60
 
   """
-
-  fs.writeFileSync "./deployment/generated_files/supervisord.conf", conf
 
   return conf
