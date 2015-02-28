@@ -8,18 +8,12 @@ process.on 'uncaughtException', (err)->
   process.exit 1
 
 Bongo = require 'bongo'
-Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
-{mq, email, log, mongoReplSet} = KONFIG
+{email, log, mongoReplSet} = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}?auto_reconnect"  if 'string' is typeof KONFIG.mongo
-
-mqOptions = extend {}, mq
-mqOptions.login = log.login if log.login?
-
-broker = new Broker mqOptions
 
 processMonitor = (require 'processes-monitor').start
   name : "Log Worker #{process.pid}"
@@ -43,7 +37,6 @@ koding = new Bongo {
   mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: log.queueName
-  mq          : broker
   fetchClient :(sessionToken, context, callback)->
     JUser    = require_koding_model "user/index"
     JAccount = require_koding_model "account"

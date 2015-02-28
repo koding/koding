@@ -196,32 +196,7 @@ removeParticipants = (data, callback)->
     return callback err if err?
     return callback { message: 'Channel not found' } unless channel?.channel
 
-    doChannelParticipantOperation data, url, (err, leftUsers)->
-      return callback err if err
-      cycleChannelHelper {leftUsers, channel}, callback
-
-# TODO when we remove broker we will no longer need this
-cycleChannelHelper = ({leftUsers, channel}, callback)->
-  return callback { message: "user could not leave the channel" } unless leftUsers?.length
-
-  isUserRemoved = (leftUsers)->
-    return yes  for user in leftUsers when user.statusConstant is 'left'
-
-    return no
-
-  return callback { message: "user could not leave the channel" } unless isUserRemoved leftUsers
-
-  callback null, leftUsers
-
-  {channel} = channel
-  options =
-    groupSlug     : channel.groupName
-    apiChannelType: channel.typeConstant
-    apiChannelName: channel.name
-  SocialChannel = require './channel'
-  SocialChannel.cycleChannel options, (err)->
-    console.warn err  if err?
-
+    doChannelParticipantOperation data, url, callback
 
 doChannelParticipantOperation = (data, url, callback)->
   return callback { message: "Request is not valid" } unless data.channelId

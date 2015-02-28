@@ -3,22 +3,18 @@ process.title = 'koding-emailsender'
 {argv}        = require 'optimist'
 {CronJob}     = require 'cron'
 Bongo         = require 'bongo'
-Broker        = require 'broker'
 htmlify       = require 'koding-htmlify'
 Emailer       = require '../social/lib/social/emailer'
 template      = require './templates'
 
-{mq, mongo, emailWorker, uri} = \
+{mongo, emailWorker, uri} = \
   require('koding-config-manager').load("main.#{argv.c}")
 
 if 'string' is typeof mongo
   mongo = "mongodb://#{mongo}"
 
-broker = new Broker mq
-
 worker = new Bongo {
   mongo
-  mq     : broker
   root   : __dirname
   models : ['../social/lib/social/models/email.coffee']
 }

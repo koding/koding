@@ -21,9 +21,6 @@ module.exports = class JKite extends jraphical.Module
       createdAt           :
         type              : Date
         default           : -> new Date
-    sharedEvents          :
-      instance            : []
-      static              : []
     sharedMethods         :
       static              :
         create            :

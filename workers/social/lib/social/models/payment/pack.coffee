@@ -9,9 +9,6 @@ module.exports = class JPaymentPack extends JPaymentBase
   @share()
 
   @set
-    sharedEvents    :
-      static        : []
-      instance      : []
     sharedMethods   :
       static        :
         create      :

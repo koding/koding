@@ -11,9 +11,6 @@ module.exports = class JGroupPlan extends JResourcePlan
   @share()
 
   @set
-    sharedEvents  :
-      static      : []
-      instance    : []
     sharedMethods :
       static      :
         subscribe :

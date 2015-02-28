@@ -53,12 +53,6 @@ module.exports = class JStackTemplate extends jraphical.Module
         update        :
           (signature Object, Function)
 
-    sharedEvents      :
-      static          : [ ]
-      instance        : [
-        { name : 'updateInstance' }
-      ]
-
     schema            :
 
       rules           : [ Object ]

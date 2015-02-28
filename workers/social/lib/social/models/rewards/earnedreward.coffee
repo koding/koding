@@ -16,11 +16,6 @@ module.exports = class JEarnedReward extends Module
     #   - originId, type, unit (unique)
     #
 
-    sharedEvents      :
-
-      static          : [ ]
-      instance        : [ ]
-
     schema            :
 
       originId        :

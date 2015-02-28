@@ -21,9 +21,6 @@ module.exports = class JProxyRestriction extends jraphical.Module
       modifiedAt  :
         type      : Date
         default   : -> new Date
-    sharedEvents  :
-      static      : []
-      instance    : []
     sharedMethods :
       static      :
         create    :

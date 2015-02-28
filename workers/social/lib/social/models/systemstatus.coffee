@@ -27,10 +27,6 @@ module.exports = class JSystemStatus extends Model
         cancel:
           (signature Function)
 
-    sharedEvents     :
-      static         : ['forceReload', 'restartScheduled']
-      instance       : ['restartCanceled']
-
     schema           :
       title          : String
       content        : String

@@ -92,25 +92,6 @@ module.exports = class JGroup extends Module
       'create synonym tags'     : ['moderator']
     indexes         :
       slug          : 'unique'
-    sharedEvents    :
-      static        : [
-        { name: 'MemberAdded',      filter: -> null }
-        { name: 'MemberRemoved',    filter: -> null }
-        { name: 'MemberRolesChanged' }
-        { name: 'GroupDestroyed' }
-        { name: 'broadcast' }
-        { name: 'updateInstance' }
-        { name: 'RemovedFromCollection' }
-
-      ]
-      instance      : [
-        { name: 'GroupCreated' }
-        { name: 'MemberAdded',      filter: -> null }
-        { name: 'MemberRemoved',    filter: -> null }
-        { name: 'NewInvitationRequest' }
-        { name: 'updateInstance' }
-        { name: 'RemovedFromCollection' }
-      ]
     sharedMethods   :
       static        :
         one:
@@ -559,47 +540,6 @@ module.exports = class JGroup extends Module
   # make sense to allow this method based on current group's permissions
   @byRelevance$ = secure (client, seed, options, callback)->
     @byRelevance client, seed, options, callback
-
-  @fetchSecretChannelName =(groupSlug, callback)->
-    JName = require '../name'
-    JName.fetchSecretName groupSlug, (err, secretName, oldSecretName)->
-      if err then callback err
-      else callback null, "group.secret.#{secretName}",
-        if oldSecretName then "group.secret.#{oldSecretName}"
-
-  @cycleChannel =do->
-    cycleChannel = (groupSlug, callback=->)->
-      JName = require '../name'
-      JName.cycleSecretName groupSlug, (err, oldSecretName, newSecretName)=>
-        if err then callback err
-        else
-          routingKey = "group.secret.#{oldSecretName}.cycleChannel"
-          @emit 'broadcast', routingKey, null
-          callback null
-    return throttle cycleChannel, 5000
-
-  cycleChannel:(callback)-> @constructor.cycleChannel @slug, callback
-
-  @broadcast =(groupSlug, event, message)->
-    if message?
-      event = ".#{event}"
-    else
-      [message, event] = [event, message]
-      event = ''
-    @fetchSecretChannelName groupSlug, (err, secretChannelName, oldSecretChannelName)=>
-      if err? then console.error err
-      else unless secretChannelName? then console.error 'unknown channel'
-      else
-        @emit 'broadcast', "#{oldSecretChannelName}#{event}", message  if oldSecretChannelName
-        @emit 'broadcast', "#{secretChannelName}#{event}", message
-        @emit 'notification', "#{groupSlug}#{event}", {
-          routingKey  : groupSlug
-          contents    : message
-          event       : 'feed-new'
-        }
-
-  broadcast:(message, event)->
-    @constructor.broadcast @slug, message, event
 
   changeMemberRoles: permit 'grant permissions',
     success:(client, targetId, roles, callback)->
@@ -1228,7 +1168,6 @@ module.exports = class JGroup extends Module
 
       kallback = (err)=>
         @updateCounts()
-        @cycleChannel()
         callback err
 
       queue = roles.map (role)=>=>
@@ -1264,7 +1203,6 @@ module.exports = class JGroup extends Module
             @removeMember account, role, (err)=>
               return callback err  if err
               @updateCounts()
-              @cycleChannel()
               queue.fin()
 
           dash queue, callback
@@ -1292,7 +1230,6 @@ module.exports = class JGroup extends Module
             return callback err if err
 
             kallback = (err)=>
-              @cycleChannel()
               @updateCounts()
               callback err
 

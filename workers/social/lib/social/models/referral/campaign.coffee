@@ -6,9 +6,6 @@ module.exports = class JReferralCampaign extends jraphical.Module
   @share()
 
   @set
-    sharedEvents             :
-      static                 : []
-      instance               : []
     indexes                  :
       name                   : 'unique'
     schema                   :

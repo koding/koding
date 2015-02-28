@@ -7,10 +7,6 @@ module.exports = class JReferrableEmail extends jraphical.Module
   @share()
 
   @set
-    sharedEvents  :
-      instance    : [
-        { name    : "save" }
-      ]
     sharedMethods :
       static      :
         invite    :

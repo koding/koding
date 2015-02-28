@@ -15,9 +15,6 @@ module.exports = class JGroupBundle extends JBundle
   @trait __dirname, '../../traits/protected'
 
   @set
-    sharedEvents      :
-      static          : []
-      instance        : []
     permissions       :
       'manage payment methods'  : []
       'make payments'           : []

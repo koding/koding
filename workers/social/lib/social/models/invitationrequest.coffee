@@ -12,9 +12,6 @@ module.exports = class JInvitationRequest extends Model
   @share()
 
   @set
-    sharedEvents      :
-      static          : []
-      instance        : []
     indexes           :
       email           : 'sparse'
       status          : 'sparse'

@@ -46,9 +46,6 @@ module.exports = class JReferral extends jraphical.Message
           (signature Object, Object, Function)
         fetchEarnedSpace:
           (signature Function)
-    sharedEvents      :
-      static          : []
-      instance        : []
     schema            : schema
 
 

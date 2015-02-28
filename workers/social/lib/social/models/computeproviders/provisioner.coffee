@@ -52,12 +52,6 @@ module.exports = class JProvisioner extends jraphical.Module
         update        :
           (signature Object, Function)
 
-    sharedEvents      :
-      static          : [ ]
-      instance        : [
-        { name : 'updateInstance' }
-      ]
-
     indexes           :
       slug            : 'unique'
 
