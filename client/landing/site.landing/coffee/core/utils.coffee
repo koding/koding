@@ -300,3 +300,7 @@ utils.extend utils,
     return md5
 
 
+  trackEvent: (args...) ->
+    return  unless analytics? and KD.config.environment is "production"
+    analytics.track args...
+

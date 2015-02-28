@@ -19,6 +19,8 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     @startCachingAssets()
 
+    @setupPageAnalyticsEvent()
+
   createSingletons:->
 
     KD.registerSingleton 'mainController',            this
@@ -47,3 +49,18 @@ module.exports = class MainControllerLoggedOut extends KDController
       for src in images
         image     = new Image
         image.src = src
+
+
+  setupPageAnalyticsEvent:->
+
+    return  unless analytics? and KD.config.environment is "production"
+
+    KD.singletons.router.on "RouteInfoHandled", (args) =>
+      return  unless args
+      {params, query, path} = args
+
+      categ = @getCategoryFrompath(path)
+
+      analytics?.page(categ, {title:document.title, path})
+
+  getCategoryFrompath: (path)-> return path.split('/')[1] or '/'
