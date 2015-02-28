@@ -84,7 +84,7 @@ func TestUnsetSocialChannelFromWorkspace(t *testing.T) {
 		t.Errorf("we should be able to unset social channel id")
 	}
 
-	a, err := GetWorkspaceByChannelId(w.ChannelId)
+	_, err = GetWorkspaceByChannelId(w.ChannelId)
 	if err == nil {
 		t.Errorf("we should not be able to find the WS")
 	}
