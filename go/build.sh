@@ -64,5 +64,3 @@ services=(
 `which go` install -v -ldflags "$ldflags" "${services[@]}"
 
 cd $GOPATH
-mkdir -p build/broker
-cp bin/broker build/broker/broker
