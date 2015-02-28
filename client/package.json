@@ -56,14 +56,15 @@
     "gulp-watch": "^4.1.1",
     "gulp.spritesmith": "2.5.1",
     "merge-stream": "^0.1.7",
+    "minimist": "^1.1.0",
     "mkdirp": "^0.5.0",
+    "nib": "^1.1.0",
     "pistachioify": "^0.1.0",
     "pretty-bytes": "^1.0.2",
     "rewritify": "^0.1.0",
     "through2": "^0.6.3",
+    "uglifyify": "^3.0.1",
     "watchify": "git://github.com/tetsuo/watchify#hotfix-dedupe-json",
-    "xtend": "^4.0.0",
-    "minimist": "^1.1.0",
-    "nib": "^1.1.0"
+    "xtend": "^4.0.0"
   }
 }
