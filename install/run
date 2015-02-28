@@ -43,9 +43,7 @@ sleep 5
 NAME=logger             && docker run  -p 8000:8000		-h $SUB -d --name=$NAME  -v=/var/run/docker.sock:/tmp/docker.sock progrium/logspout syslog://logs.papertrailapp.com:49069
 NAME=kontrol            && docker run  -p 4000:4000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kontrol                                          														--link=mongo:mongo 																																		  koding/run  -c $CFG -r $RGN
 NAME=kloud              && docker run  -p 3000:3000   -h $SUB -d --name=$NAME  --entrypoint=$GB/kloud                                            														--link=mongo:mongo 												  --link=redis:redis 												  koding/run  -c $CFG -r $RGN --port 3000 -env prod -public-key $PBKEY -private-key $PVKEY #-kontrol-url "http://$HST:4000/kite"
-NAME=rerouting          && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/rerouting                                        														  																														 --link=rabbitmq:rabbitmq koding/run  -c $CFG
 NAME=cronJobs           && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/cron                                             														--link=mongo:mongo  											  --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
-NAME=broker             && docker run  -p 8008:8008   -h $SUB -d --name=$NAME  --entrypoint=$GB/broker                                           																						     											  --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $CFG
 NAME=proxy              && docker run  -p 4001:4001   -h $SUB -d --name=$NAME  --entrypoint=$GB/reverseproxy                                     																							 												  								    												koding/run  -region $RGN -port 4001 -env production -publicHost $HST -publicPort 4001
 
 
@@ -61,7 +59,6 @@ NAME=topicfeed          && docker run                 -h $SUB -d --name=$NAME  -
 NAME=trollmode          && docker run                 -h $SUB -d --name=$NAME  --entrypoint=$GB/trollmode         -e "SOCIAL_API_HOSTNAME=$HST"  														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  -c $SOCIALCONFIG
 
 NAME=webserver          && docker run  -p 80:80       -h $SUB -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/server/index.js                   -c $CFG -p 80   --disable-newrelic
-NAME=authWorker         && docker run                 -h $SUB -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/auth/index.js             -c $CFG
 NAME=social             && docker run  -p 3030:3030   -h $SUB -d --name=$NAME  --entrypoint=node                                                 --link=socialapi:socialapi  --link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/workers/social/index.js           -c $CFG -p 3030 --disable-newrelic --kite-port=13020
 
 NAME=sourceMapServer    && docker run  -p 3526:3526   -h $SUB -d --name=$NAME  --entrypoint=node                                                 														--link=mongo:mongo --link=postgres:postgres --link=redis:redis --link=rabbitmq:rabbitmq koding/run  $PRJ/server/lib/source-server/index.js -c $CFG -p 3526
