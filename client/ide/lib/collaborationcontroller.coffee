@@ -672,8 +672,9 @@ module.exports =
 
   showShareButton: ->
 
-    @statusBar.share.show()
-    IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
+    @ready =>
+      @statusBar.share.show()
+      IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
   prepareCollaboration: ->
