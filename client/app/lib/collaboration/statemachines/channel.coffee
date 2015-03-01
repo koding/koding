@@ -10,6 +10,16 @@ create = (channelId) ->
   channelMachine = new machina.Fsm
     initialState: 'loading'
 
+    initialize: (options) ->
+      @loaded = no
+      @on 'transition', (data) =>
+        { fromState } = data
+        return  unless fromState
+        eventName = "#{fromState.capitalize()}Finished"
+        @emit eventName
+
+      @on 'LoadingFinished', => @loaded = yes
+
     constraints:
       loading:
         nextState: 'uninitialized'
@@ -32,8 +42,6 @@ create = (channelId) ->
         _onEnter : ->
           @constraints.loading.checkList.ready = yes
           @nextIfReady()
-        _onExit  : ->
-          @emit 'LoadingFinished'
 
       uninitialized:
         _onEnter          : -> @_fetchChannel channelId
@@ -115,6 +123,14 @@ create = (channelId) ->
      * Action to remove a participant to collaboration channel.
     ###
     removeParticipant: (userId) -> @handle 'removeParticipant', userId
+
+    whenLoadingFinished: (callback) ->
+      if @loaded
+        callback()
+      else
+        event = @on 'LoadingFinished', ->
+          callback()
+          event.off()
 
     nextIfReady: ->
       constraint = @constraints[@state]

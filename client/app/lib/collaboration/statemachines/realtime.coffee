@@ -9,6 +9,14 @@ create = (fileIdentifier) ->
 
     initialize: (options) ->
       @manager = new RealtimeManager
+      @loaded = no
+      @on 'transition', (data) =>
+        { fromState } = data
+        return  unless fromState
+        eventName = "#{fromState.capitalize()}Finished"
+        @emit eventName
+
+      @on 'LoadingFinished', => @loaded = yes
 
     constraints:
       loading:
@@ -33,8 +41,6 @@ create = (fileIdentifier) ->
           @manager.ready =>
             @constraints.loading.checkList.ready = yes
             @nextIfReady()
-        _onExit: ->
-          @emit 'LoadingFinished'
 
       uninitialized:
         _onEnter             : -> @_checkSessionActivity()
@@ -64,6 +70,14 @@ create = (fileIdentifier) ->
       constraint = @constraints[@state]
       ready = _.all constraint.checkList, Boolean
       @transition constraint.nextState  if ready
+
+    whenLoadingFinished: (callback) ->
+      if @loaded
+        callback()
+      else
+        event = @on 'LoadingFinished', ->
+          callback()
+          event.off()
 
     _activateManager: (callbacks) ->
       @manager.once 'FileLoaded', (doc) =>

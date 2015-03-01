@@ -43,16 +43,18 @@ create = (workspace = null, initialSnapshot) ->
     states:
       loading:
         _onEnter: ->
-          @channelMachine.on 'LoadingFinished', =>
+          @channelMachine.whenLoadingFinished =>
             @constraints.loading.checkList.channelMachineLoaded = yes
             @nextIfReady()
-          @realtimeMachine.on 'LoadingFinished', =>
+          @realtimeMachine.whenLoadingFinished =>
             @constraints.loading.checkList.realtimeMachineLoaded = yes
             @nextIfReady()
 
       uninitialized:
         _onEnter: ->
           @emit 'CollaborationUninitialized'
+          @channelMachine.on 'UninitializedFinished', => @nextIfReady()
+          @realtimeMachine.on 'UninitializedFinished', => @nextIfReady()
           @nextIfReady()
 
         activate: -> @transition 'activating'
