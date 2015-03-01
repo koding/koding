@@ -664,12 +664,10 @@ module.exports = class IDEAppController extends AppController
 
     for ideView in @ideViews
       for pane in ideView.tabView.panes when pane
-        view = pane.getSubViews().first
+        return  unless view = pane.getSubViews().first
         if paneType
-          if view.getOptions().paneType is paneType
-            callback view
-        else
-          callback view
+        then callback view  if view.getOptions().paneType is paneType
+        else callback view
 
 
   updateSettings: (component, key, value) ->
