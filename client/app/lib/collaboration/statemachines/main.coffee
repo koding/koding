@@ -69,6 +69,8 @@ create = (workspace = null, initialSnapshot) ->
             channel         : @channelMachine.channel
             realtimeManager : @realtimeMachine.manager
 
+          @rtm = @realtimeMachine.manager
+
           @_subscribeToRealtimeManager()
 
         broadcast: (data) -> @_broadcastMessage data
@@ -114,12 +116,12 @@ create = (workspace = null, initialSnapshot) ->
     nextIfReady: ->
       constraint = @constraints[@state]
       ready = _.all constraint.checkList, (checkItem) =>
-        checkItem = checkItem()  if 'function' is typeof checkItem
+        checkItem = checkItem.call this  if 'function' is typeof checkItem
         return checkItem
       @transition constraint.nextState  if ready
 
     _activateCollaboration: ->
-      @channelMachine.on 'ChannelReady', ({channel}) => @handle 'channelReady', channel
+      @channelMachine.on 'ChannelReady', ({channel}) => @handle 'channelMachineReady', channel
       @realtimeMachine.on 'ManagerReady', ({manager}) => @handle 'realtimeMachineReady', manager
       @channelMachine.init()
       @realtimeMachine.activate()
@@ -129,7 +131,7 @@ create = (workspace = null, initialSnapshot) ->
       @realtimeMachine.on 'ManagerTerminated', => @handle 'realtimeMachineTerminated'
 
     _subscribeToRealtimeManager: ->
-      @manager.on 'ValuesAddedToList', (list, event) =>
+      @rtm.on 'ValuesAddedToList', (list, event) =>
         @transition 'communicating'
         [value] = event.values
         action = switch list
@@ -137,12 +139,12 @@ create = (workspace = null, initialSnapshot) ->
           when @references.broadcastMessages then 'broadcastMessageArrived'
         @handle action, value
 
-      @manager.on 'ValuesRemovedFromList', (list, event) =>
+      @rtm.on 'ValuesRemovedFromList', (list, event) =>
         @transition 'communicating'
         [value] = event.values
         @handle 'changeHappened', value  if list is @references.changes
 
-      @manager.on 'MapValueChanged', (map, event) =>
+      @rtm.on 'MapValueChanged', (map, event) =>
         @transition 'communicating'
         {property, newValue} = event
         if map is @references.watchMap
@@ -154,7 +156,7 @@ create = (workspace = null, initialSnapshot) ->
           @handle 'permissionChanged', property, newValue
 
       # for both joined and left check CollaborationController#handleParticipantAction
-      @manager.on 'CollaboratorJoined', (doc, participantData) =>
+      @rtm.on 'CollaboratorJoined', (doc, participantData) =>
         @transition 'communicating'
         {participants} = @references
         {sessionId}    = participantData.collaborator
@@ -165,7 +167,7 @@ create = (workspace = null, initialSnapshot) ->
 
         @handle 'participantJoined', targetUser
 
-      @manager.on 'CollaboratorLeft', (doc, participantData) =>
+      @rtm.on 'CollaboratorLeft', (doc, participantData) =>
         @transition 'communicating'
         {participants}            = @references
         {sessionId}               = participantData.collaborator

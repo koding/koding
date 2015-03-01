@@ -6,6 +6,7 @@ _ = require 'lodash'
 create = (fileIdentifier) ->
   rtmMachine = new machina.Fsm
     initialState: 'loading'
+
     initialize: (options) ->
       @manager = new RealtimeManager
 
@@ -29,7 +30,6 @@ create = (fileIdentifier) ->
     states:
       loading:
         _onEnter: ->
-          console.log 'basda'
           @manager.ready =>
             @constraints.loading.checkList.ready = yes
             @nextIfReady()
@@ -63,7 +63,6 @@ create = (fileIdentifier) ->
     nextIfReady: ->
       constraint = @constraints[@state]
       ready = _.all constraint.checkList, Boolean
-      console.log {ready, constraint, _}
       @transition constraint.nextState  if ready
 
     _activateManager: (callbacks) ->

@@ -1,6 +1,7 @@
 machina = require 'machina'
 kd      = require 'kd'
 getNick = require 'app/util/nick'
+_       = require 'lodash'
 
 remote = require('app/remote').getInstance()
 
@@ -35,11 +36,11 @@ create = (channelId) ->
           @emit 'LoadingFinished'
 
       uninitialized:
-        _onEnter          : -> @_fetchChannel()
+        _onEnter          : -> @_fetchChannel channelId
         channelFound      : ->
           @constraints.uninitialized.checkList.active = yes
           @nextIfReady()
-        fetchChannelError : (err) -> handleError error
+        fetchChannelError : (error) -> handleError error
 
         activate: -> @transition 'activating'
 
@@ -115,6 +116,13 @@ create = (channelId) ->
     ###
     removeParticipant: (userId) -> @handle 'removeParticipant', userId
 
+    nextIfReady: ->
+      constraint = @constraints[@state]
+      ready = _.all constraint.checkList, (checkItem) =>
+        checkItem = checkItem()  if 'function' is typeof checkItem
+        return checkItem
+      @transition constraint.nextState  if ready
+
     ###*
      * Initiate a social channel.
      *
@@ -147,7 +155,7 @@ create = (channelId) ->
     ###
     _fetchChannel: (id) ->
       fetchChannel id, (err, channel) =>
-        return @handle 'fetchChannelError'  if err
+        return @handle 'fetchChannelError', err  if err
         @channel = channel
         @handle 'channelFound', @channel
 
@@ -160,10 +168,10 @@ create = (channelId) ->
     ###
     _addParticipant: (userId) ->
       fetchAccount userId, (err, account) =>
-        return handleError err  if err
+        return @handle 'addParticipantError', err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         addParticipants opts, (err) =>
-          return @handle 'addParticipantError' err  if err
+          return @handle 'addParticipantError', err  if err
           @handle 'participantAdded', account
 
 
@@ -174,10 +182,10 @@ create = (channelId) ->
     ###
     _removeParticipant: (userId) ->
       fetchAccount userId, (err, account) =>
-        return callbacks.error err  if err
+        return @handle 'removeParticipantError', err  if err
         opts = { channelId: @channel.id, accountIds: [account.socialApiId] }
         removeParticipants opts, (err) =>
-          return @handle 'removeParticipantError' err  if err
+          return @handle 'removeParticipantError', err  if err
           @handle 'participantRemoved', account
 
   return channelMachine
