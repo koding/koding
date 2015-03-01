@@ -110,6 +110,7 @@ module.exports = class IDEAppController extends AppController
 
         @bindRouteHandler()
         @initiateAutoSave()
+        @emit 'ready'
 
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
