@@ -53,8 +53,9 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       {submit} = @modalTabs.forms.Main.buttons
       {subject, message} = form
 
-      if @_logUrl?
-        message += "\n\n --- LOGS: #{@_logUrl} --- \n"
+      # if @_logUrl? ~ We are uploading logs but not including it 
+      #                into the support ticket ~ GG #89350576
+      #   message += "\n\n --- LOGS: #{@_logUrl} --- \n"
 
       request = $.ajax "#{global.location.origin}/-/support/new",
         type        : "POST"
