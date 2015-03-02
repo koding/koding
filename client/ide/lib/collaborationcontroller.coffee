@@ -277,8 +277,10 @@ module.exports =
         return warn 'Unknown user in collaboration, we should handle this case...'
 
       if actionType is 'join'
-        @chat.emit 'ParticipantJoined', targetUser
-        @statusBar.emit 'ParticipantJoined', targetUser
+        @ensureMachineShare [targetUser], (err) =>
+          return throwError err  if err
+          @chat.emit 'ParticipantJoined', targetUser
+          @statusBar.emit 'ParticipantJoined', targetUser
       else
         @chat.emit 'ParticipantLeft', targetUser
         @statusBar.emit 'ParticipantLeft', targetUser
@@ -630,6 +632,12 @@ module.exports =
         else
           @handleParticipantKicked data.target
 
+      when 'SetMachineUser'
+
+        return  if data.participants.indexOf(nick()) is -1
+
+        @handleSharedMachine()
+
 
   handlePermissionMapChange: (event) ->
 
@@ -652,6 +660,13 @@ module.exports =
 
     else unless newValue
       @statusBar.emit 'ParticipantUnwatched', property
+
+
+  handleSharedMachine: ->
+
+    @unmountMachine @mountedMachine
+    @mountedMachine.getBaseKite().reconnect()
+    @mountMachine @mountedMachine
 
 
   resurrectSnapshot: ->
@@ -791,6 +806,24 @@ module.exports =
     kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
 
 
+  ensureMachineShare: (usernames, callback) ->
+
+    kite = @mountedMachine.getBaseKite()
+
+    kite.klientShared null
+
+      .then (response) =>
+        participants = response.split ','
+        missing = usernames.filter (username) =>
+          participants.indexOf(username) is -1
+
+        @setMachineUser missing, yes, callback
+
+      .catch (err) =>
+        throwError err
+        callback()
+
+
   setMachineSharingStatus: (status, callback) ->
 
     getUsernames = (accounts) ->
@@ -820,11 +853,20 @@ module.exports =
       kite   = @mountedMachine.getBaseKite()
       method = if share then 'klientShare' else 'klientUnshare'
 
-      queue = usernames.map (username) ->
-        ->
+      queue = usernames.map (username) =>
+        =>
           kite[method] {username}
-            .then -> queue.fin()
+
+            .then =>
+
+              @broadcastMessages.push
+                type: "#{if share then 'Set' else 'Unset'}MachineUser"
+                participants: usernames
+
+              queue.fin()
+
             .error (err) ->
+
               queue.fin()
 
               return  if err.message in [
