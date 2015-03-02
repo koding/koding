@@ -244,5 +244,6 @@ module.exports = class RealTimeManager extends KDObject
 
   dispose: ->
 
+    @realtimeDoc.close()
     @isDisposed = yes
     @destroy()
