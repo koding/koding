@@ -1,10 +1,9 @@
 helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 
-modalSelector = '.activity-modal.vm-settings'
-
-
 openVmSettingsModal = (browser, vmName) ->
+
+  modalSelector = '.activity-modal.vm-settings'
 
   if not vmName
     vmName = 'koding-vm-0'
@@ -87,7 +86,8 @@ module.exports =
 
   openVmDomain: (browser) ->
 
-    linkSelector = modalSelector + ' .assigned-url .custom-link-view'
+    modalSelector = '.activity-modal.vm-settings'
+    linkSelector  = modalSelector + ' .assigned-url .custom-link-view'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -108,7 +108,8 @@ module.exports =
 
   turnOffVm: (browser) ->
 
-    linkSelector = modalSelector + ' .statustoggle .input-wrapper'
+    modalSelector = '.activity-modal.vm-settings'
+    linkSelector  = modalSelector + ' .statustoggle .input-wrapper'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
