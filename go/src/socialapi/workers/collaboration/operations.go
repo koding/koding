@@ -45,13 +45,25 @@ func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 		return err
 	}
 
+	canOpen, err := channel.CanOpen(ping.AccountId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		return nil // if the requester can not open the channel do not process
+	}
+
 	// delete the channel
 	err = channel.Delete()
 	if err != nil {
 		return err
 	}
 
-	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
+	ws, err := modelhelper.GetWorkspaceByChannelId(
+		strconv.FormatInt(ping.ChannelId, 10),
+	)
+
 	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
