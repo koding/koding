@@ -71,6 +71,10 @@ create = (channelId) ->
           @transition 'busy'
           @_removeParticipant userId
 
+        leaveChannel: ->
+          @transition 'busy'
+          @_leaveChannel()
+
       terminating:
         _onEnter            : -> @_destroyChannel()
         channelDestroyed    : ->
@@ -89,6 +93,10 @@ create = (channelId) ->
         participantRemoved : (participant) ->
           @emit 'ParticipantRemoved', { participant }
           @transition 'active'
+
+        participantLeftChannel : (participant) ->
+          @emit 'ParticipantLeftChannel', { participant }
+          @transition 'terminated'
 
     ###*
      * Action to get healthcheck from outside.
@@ -123,6 +131,8 @@ create = (channelId) ->
      * Action to remove a participant to collaboration channel.
     ###
     removeParticipant: (userId) -> @handle 'removeParticipant', userId
+
+    leaveChannel: -> @handle 'leaveChannel'
 
     whenLoadingFinished: (callback) ->
       if @loaded
@@ -204,6 +214,11 @@ create = (channelId) ->
           return @handle 'removeParticipantError', err  if err
           @handle 'participantRemoved', account
 
+    _leaveChannel: ->
+      leaveChannel @channel, (err) =>
+        return @handle 'leaveChannelError', err  if err
+        @handle 'ParticipantLeftChannel'
+
   return channelMachine
 
 ###*
@@ -224,6 +239,10 @@ fetchChannel = (id, callback) ->
 destroyChannel = (channel, callback) ->
   {id} = channel
   kd.singletons.socialapi.channel.delete {channelId: id}, callback
+
+leaveChannel = (channel, callback) ->
+  options = { channelId: channel.id }
+  kd.singletons.socialapi.channel.leave options, callback
 
 initChannel = (callback) ->
   {message} = kd.singletons.socialapi
