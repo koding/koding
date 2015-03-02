@@ -44,7 +44,9 @@ create = (fileIdentifier) ->
 
       uninitialized:
         _onEnter             : -> @_checkSessionActivity()
-        sessionCheckFinished : -> @nextIfReady()
+        sessionCheckFinished : (result) ->
+          @constraints.uninitialized.checkList.active = result.active
+          @nextIfReady()
         activate             : -> @transition 'activating'
 
       activating:
@@ -79,32 +81,40 @@ create = (fileIdentifier) ->
           callback()
           listener.off()
 
-    _activateManager: (callbacks) ->
-      @manager.once 'FileLoaded', (doc) =>
-        @manager.setRealtimeDoc doc
-        @constraints.activating.checkList.active = yes
-        @handle 'managerActive'
-
-      @manager.once 'FileCreated', (file) =>
-        @manager.getFile file.id
-
-      @manager.createFile fileIdentifier
+    _activateManager: ->
+      createCollaborationFile @manager, fileIdentifier, (file) =>
+        loadCollaborationFile @manager, file.id, =>
+          @constraints.activating.checkList.active = yes
+          @handle 'managerActive'
 
     _checkSessionActivity: ->
-      isSessionActive @manager, fileIdentifier, (isActive) =>
-        console.log {isActive}
+      isSessionActive @manager, fileIdentifier, (isActive, file) =>
         if isActive
-          @constraints.uninitialized.checkList.active = yes
-        @handle 'sessionCheckFinished'
+          loadCollaborationFile @manager, file.id, =>
+            @handle 'sessionCheckFinished', { active: yes }
+        else
+          @handle 'sessionCheckFinished', { active: no }
 
     _terminateManager: ->
       @manager.once 'FileDeleted', => @handle 'managerTerminated'
       @manager.deleteFile fileIdentifier
 
+loadCollaborationFile = (manager, id, callback) ->
+  manager.once 'FileLoaded', (doc) ->
+    manager.setRealtimeDoc doc
+    manager.isReady = yes
+    callback()
+  manager.getFile id
+
+createCollaborationFile = (manager, id, callback) ->
+  manager.once 'FileCreated', (file) ->
+    callback file
+  manager.createFile id
+
 isSessionActive = (manager, title, callback) ->
   manager.once 'FileQueryFinished', (file) ->
     if file.result.items.length > 0
-    then callback yes, file
+    then callback yes, file.result.items[0]
     else callback no
   manager.fetchFileByTitle title
 
