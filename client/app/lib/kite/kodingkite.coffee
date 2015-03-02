@@ -19,6 +19,7 @@ module.exports = class KodingKite extends KDObject
     { name } = options
 
     @on 'open', =>
+      @isDisconnected = no # This one is the manual disconnect request ~ GG
       @_state = CONNECTED
       @emit "connected"
 
@@ -58,7 +59,7 @@ module.exports = class KodingKite extends KDObject
 
     { name } = @getOptions()
 
-    @connect()  if not @_connectAttempted or @isDisconnected
+    @connect()
 
     unless @invalid
 
@@ -120,16 +121,11 @@ module.exports = class KodingKite extends KDObject
       @::[method] = @createMethod @prototype, { method, rpcMethod }
 
 
-
-
   connect: ->
 
-    if @transport?
-      @transport?.connect()
-    else
-      @once 'ready', =>
-        @transport?.connect()
-        @_connectAttempted = yes
+    return  if @_state is CONNECTED
+
+    @ready => @transport?.connect()
 
 
   disconnect: ->
@@ -139,7 +135,6 @@ module.exports = class KodingKite extends KDObject
 
     @isDisconnected = yes
     @transport?.disconnect()
-    @transport = null
 
 
   reconnect:  ->
