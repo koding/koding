@@ -2,7 +2,7 @@ isLoggedIn = require './util/isLoggedIn'
 kd = require 'kd'
 
 module.exports = ->
-  # return  unless analytics? and globals.config.logToExternal
+  return  unless analytics? and globals.config.logToExternal
 
   kd.getSingleton('mainController').on 'AccountChanged', (account) ->
     return  unless isLoggedIn() and account
