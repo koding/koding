@@ -74,8 +74,8 @@ type Provider struct {
 
 	Stats *metrics.DogStatsD
 
-	// PaymendEndpoint is used to fetch a machines plan
-	PaymentEndpoint string
+	// Fetcher is used to fetch a machines plan
+	Fetcher Fetcher
 
 	// NetworkUsageEndpoint is used to fetch a machines network usage
 	NetworkUsageEndpoint string
@@ -133,8 +133,12 @@ func (p *Provider) PlanChecker(m *protocol.Machine) (*PlanChecker, error) {
 		return nil, err
 	}
 
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
 	// check current plan
-	fetcherResp, err := p.Fetcher(m)
+	fetcherResp, err := p.Fetcher.Fetch(m)
 	if err != nil {
 		return nil, err
 	}
@@ -274,19 +278,12 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
 		if isAddressNotFoundError(err) {
 			p.Log.Debug("[%s] Paying user detected, Creating an Public Elastic IP", m.Id)
-			allocateResp, err := a.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
+
+			elasticIp, err := allocateAndAssociateIP(a.Client, artifact.InstanceId)
 			if err != nil {
-				return nil, err
-			}
-			artifact.IpAddress = allocateResp.PublicIp
-
-			p.Log.Debug("[%s] Elastic IP allocated %+v", m.Id, allocateResp)
-
-			if _, err := a.Client.AssociateAddress(&ec2.AssociateAddress{
-				InstanceId:   artifact.InstanceId,
-				AllocationId: allocateResp.AllocationId,
-			}); err != nil {
-				return nil, err
+				p.Log.Warning("[%s] couldn't not create elastic IP: %s", m.Id, err)
+			} else {
+				artifact.IpAddress = elasticIp
 			}
 		}
 	}
@@ -405,7 +402,12 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	m.QueryString = ""
 	m.IpAddress = ""
 
-	fetcherResp, err := p.Fetcher(m)
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher.Fetch(m)
 	if err != nil {
 		return nil, err
 	}

@@ -254,7 +254,7 @@ module.exports = class Koding extends ProviderInterface
     { r: { group, user } } = client
 
     selector        = { provider: 'koding' }
-    selector.users  = $elemMatch: id: user.getId()
+    selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
     selector.groups = $elemMatch: id: group.getId()
 
     JMachine.some selector, limit: 30, (err, machines)->

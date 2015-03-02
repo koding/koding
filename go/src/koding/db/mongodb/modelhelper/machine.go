@@ -1,6 +1,7 @@
 package modelhelper
 
 import (
+	"errors"
 	"koding/db/models"
 
 	"labix.org/v2/mgo"
@@ -118,6 +119,56 @@ func findMachineContainers(query bson.M) ([]*MachineContainer, error) {
 	return containers, nil
 }
 
+// GetMachineByUid returns the machine by its uid field
+func GetMachineByUid(uid string) (*models.Machine, error) {
+	machine := &models.Machine{}
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"uid": uid}).One(machine)
+	}
+
+	err := Mongo.Run(MachineColl, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
+
+// UnshareMachineByUid unshares the machine from all other users except the
+// owner
+func UnshareMachineByUid(uid string) error {
+	machine, err := GetMachineByUid(uid)
+	if err != nil {
+		return err
+	}
+
+	owner := make([]models.MachineUser, 1)
+	for _, user := range machine.Users {
+		// this is the correct way to remove all users but the owner from a
+		// machine
+		if user.Sudo && user.Owner {
+			owner[0] = user
+			break
+		}
+	}
+
+	if len(owner) == 0 {
+		return errors.New("owner couldnt found")
+	}
+
+	s := Selector{"_id": machine.ObjectId}
+	o := Selector{"$set": Selector{
+		"users": owner,
+	}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(s, o)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
 func findMachine(query bson.M) ([]*models.Machine, error) {
 	machines := []*models.Machine{}
 
@@ -156,6 +207,19 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 func CreateMachine(m *models.Machine) error {
 	query := func(c *mgo.Collection) error {
 		return c.Insert(m)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
+// DeleteMachine deletes the machine from mongodb, it is here just for cleaning
+// purposes(after tests), machines should not be removed from database  unless
+// you are kloud
+func DeleteMachine(id bson.ObjectId) error {
+	selector := bson.M{"_id": id}
+
+	query := func(c *mgo.Collection) error {
+		return c.Remove(selector)
 	}
 
 	return Mongo.Run(MachineColl, query)

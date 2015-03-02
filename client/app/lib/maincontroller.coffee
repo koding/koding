@@ -43,6 +43,7 @@ SearchController = require './searchcontroller'
 SocialApiController = require './socialapicontroller'
 WelcomeModal = require './welcomemodal'
 WidgetController = require './widgetcontroller'
+PageTitleController = require './pagetitlecontroller'
 
 
 module.exports = class MainController extends KDController
@@ -138,6 +139,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'socialapi',                 new SocialApiController
     kd.registerSingleton 'search',                    new SearchController
     kd.registerSingleton 'realtime',                  new RealtimeController
+    kd.registerSingleton 'pageTitle',                 new PageTitleController
 
     router.listen()
     @mainViewController = mvc
@@ -230,12 +232,12 @@ module.exports = class MainController extends KDController
 
     storage = new LocalStorage 'Koding', '1.0'
 
+    KiteCache.clearAll()
+
     remote.api.JUser.logout (err) =>
 
       mainView._logoutAnimation()
       kd.singletons.localSync.removeLocalContents()
-
-      KiteCache.clearAll()
 
       kookies.expire 'koding082014'
       kookies.expire 'useOldKoding'

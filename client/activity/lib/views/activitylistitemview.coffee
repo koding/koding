@@ -34,6 +34,7 @@ module.exports = class ActivityListItemView extends KDListItemView
     options.attributes.testpath = "ActivityListItemView"
     options.editWidgetClass  or= ActivityEditWidget
     options.pistachioParams    = { formatContent }
+    options.showMore          ?= yes
 
     super options, data
 
@@ -317,6 +318,8 @@ module.exports = class ActivityListItemView extends KDListItemView
 
 
   checkIfItsTooTall: ->
+
+    return unless @getOption 'showMore'
 
     article          = @$('article.has-markdown')[0]
     { scrollHeight } = article

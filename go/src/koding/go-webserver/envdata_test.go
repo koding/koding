@@ -21,7 +21,6 @@ func TestEnvDataOwn(t *testing.T) {
 
 		userInfo := &UserInfo{UserId: user.ObjectId, SocialApiId: "1"}
 		envData := getEnvData(userInfo)
-		So(err, ShouldBeNil)
 
 		own := envData.Own
 		So(len(own), ShouldEqual, 1)
@@ -71,7 +70,6 @@ func TestEnvDataShared(t *testing.T) {
 
 		userInfo := &UserInfo{UserId: user.ObjectId, SocialApiId: "1"}
 		envData := getEnvData(userInfo)
-		So(err, ShouldBeNil)
 
 		shared := envData.Shared
 		So(len(shared), ShouldEqual, 1)
@@ -150,7 +148,6 @@ func TestEnvDataCollab(t *testing.T) {
 
 		userInfo := &UserInfo{UserId: user.ObjectId, SocialApiId: "1"}
 		envData := getEnvData(userInfo)
-		So(err, ShouldBeNil)
 
 		collab := envData.Collaboration
 		So(len(collab), ShouldEqual, 1)
