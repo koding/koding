@@ -302,5 +302,19 @@ utils.extend utils,
 
   trackEvent: (args...) ->
     return  unless analytics? and KD.config.environment is "production"
-    analytics.track args...
 
+    if args.length > 1
+      {action} = args[1]
+      args[1].event = args[0]  unless args[1].event
+
+    event = if action? then action else args[0]
+    analytics.track event, args[1]
+
+  pageEvent: (args) ->
+    return  unless analytics? and KD.config.environment is "production"
+
+    {params, query, path} = args
+    category = @getCategoryFrompath(path)
+    analytics.page(category, {title:document.title, path})
+
+  getCategoryFrompath: (path)-> return path.split('/')[1] or '/'
