@@ -1,5 +1,5 @@
 $ = require 'jquery'
-parseLogs = require '../util/parseLogs'
+uploadLogs = require '../util/uploadLogs'
 kd = require 'kd'
 KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView = kd.NotificationView
@@ -53,7 +53,8 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
       {submit} = @modalTabs.forms.Main.buttons
       {subject, message} = form
 
-      message += "\n\n --- LOGS FROM parseLogs() --- \n #{parseLogs()}"
+      if @_logUrl?
+        message += "\n\n --- LOGS: #{@_logUrl} --- \n"
 
       request = $.ajax "#{global.location.origin}/-/support/new",
         type        : "POST"
@@ -72,6 +73,9 @@ module.exports = class HelpSupportModal extends KDModalViewWithForms
         new KDNotificationView title: "Sorry, could not process your request, please try again."
         submit.hideLoader()
         @ticketRequested = no
+
+    uploadLogs (err, logUrl)=>
+      @_logUrl = logUrl  if not err and logUrl?
 
 
   @getTopics = ->
