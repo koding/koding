@@ -88,15 +88,15 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 
 func validate(ping *models.Ping) error {
 	if ping.FileId == "" {
-		fmt.Errorf("fileId is missing %+v", ping)
+		return fmt.Errorf("fileId is missing %+v", ping)
 	}
 
 	if ping.AccountId == 0 {
-		fmt.Errorf("accountId is missing %+v", ping)
+		return fmt.Errorf("accountId is missing %+v", ping)
 	}
 
 	if ping.ChannelId == 0 {
-		fmt.Errorf("channelId is missing %+v", ping)
+		return fmt.Errorf("channelId is missing %+v", ping)
 	}
 
 	return nil
