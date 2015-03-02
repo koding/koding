@@ -143,6 +143,8 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     # allow to use websockets by emptying the protocols_whitelist
     if kiteName is 'klient'
       options.transportOptions = protocols_whitelist: []
+    else if kiteName is 'kloud'
+      options.autoReconnect = no
 
     kite = KontrolJS::createKite.call this, options
 
