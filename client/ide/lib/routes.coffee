@@ -11,8 +11,7 @@ dataProvider = require 'app/userenvironmentdataprovider'
 
 selectWorkspaceOnSidebar = (data) ->
 
-  mainView = kd.getSingleton 'mainView'
-  mainView.activitySidebar.selectWorkspace data
+  kd.getSingleton('mainView').activitySidebar.selectWorkspace data
 
 
 getLatestWorkspace = ->
@@ -89,7 +88,7 @@ routeToFallback = ->
   if obj.machine
     routeToMachineWorkspace obj.machine
   else
-    router.handleRoute "/IDE/koding-vm-0/my-workspace"
+    router.handleRoute '/IDE/koding-vm-0/my-workspace'
 
 
 routeToMachineWorkspace = (machine) ->
