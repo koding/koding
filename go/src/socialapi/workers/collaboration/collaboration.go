@@ -110,24 +110,13 @@ func (c *Controller) Ping(ping *models.Ping) error {
 		return nil
 	}
 
-	// fetch the channel
-	channel := socialapimodels.NewChannel()
-	if err := channel.ById(ping.ChannelId); err != nil {
-		// if channel is not there, do not do anyting
-		if err == bongo.RecordNotFound {
-			return nil
-		}
-
+	err := CanOpen(ping)
+	if err != nil && err != socialapimodels.ErrCannotOpenChannel {
 		return err
 	}
 
-	canOpen, err := channel.CanOpen(ping.AccountId)
-	if err != nil {
-		return err
-	}
-
-	if !canOpen {
-		return nil // if the requester can not open the channel do not process
+	if err == socialapimodels.ErrCannotOpenChannel {
+		return nil
 	}
 
 	err = c.checkIfKeyIsValid(ping)
@@ -299,6 +288,31 @@ func PrepareFileKey(fileId string) string {
 		KeyPrefix,
 		fileId,
 	)
+}
+
+func CanOpen(ping *models.Ping) error {
+	// fetch the channel
+	channel := socialapimodels.NewChannel()
+	if err := channel.ById(ping.ChannelId); err != nil {
+		// if channel is not there, do not do anyting
+		if err == bongo.RecordNotFound {
+			return nil
+		}
+
+		return err
+	}
+
+	canOpen, err := channel.CanOpen(ping.AccountId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		// if the requester can not open the channel do not process
+		return socialapimodels.ErrCannotOpenChannel
+	}
+
+	return nil
 }
 
 // Error contains error responses.

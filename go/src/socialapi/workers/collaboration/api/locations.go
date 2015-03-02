@@ -17,7 +17,7 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  Ping,
+			Handler:  End,
 			Name:     "collaboration-end",
 			Type:     handler.PostRequest,
 			Endpoint: "/collaboration/end",

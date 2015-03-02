@@ -23,9 +23,8 @@ func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Contex
 	}
 
 	// set the last seen at time
-	redis := helper.MustGetRedisConn()
 	key := collaboration.PrepareFileKey(req.FileId)
-	if err := redis.Setex(
+	if err := helper.MustGetRedisConn().Setex(
 		key,
 		collaboration.ExpireSessionKeyDuration, // expire the key after this period
 		req.CreatedAt.Unix(),                   // value - unix time
@@ -42,27 +41,26 @@ func Ping(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Contex
 	return response.NewOK(req)
 }
 
-// // End handles the terminate signals coming from client side
-// func End(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
+// End handles the terminate signals coming from client side
+func End(u *url.URL, h http.Header, req *models.Ping, context *apimodels.Context) (int, http.Header, interface{}, error) {
+	if err := validateOperation(req, context); err != nil {
+		return response.NewBadRequest(err)
+	}
 
-// 	if err := validateOperation(req, context); err != nil {
-// 		return response.NewBadRequest(err)
-// 	}
+	key := collaboration.PrepareFileKey(req.FileId)
+	// when key is deleted, with the first ping received, collab will be ended
+	if _, err := helper.MustGetRedisConn().Del(key); err != nil {
+		return response.NewBadRequest(err)
+	}
 
-// 	// set the last seen at time
-// 	redis := helper.MustGetRedisConn()
+	// send the ping request to the related worker
+	if err := bongo.B.PublishEvent(collaboration.FireEventName, req); err != nil {
+		return response.NewBadRequest(err)
+	}
 
-// 	// check the redis key if it doesnt exist
-// 	key := collaboration.PrepareFileKey(req.FileId)
-// 	file, err := redis.Get(key)
-// 	if err != nil {
-// 		// it is safe to return error even if the key is not found
-// 		return response.NewBadRequest(err)
-// 	}
-
-// 	// send back the updated ping as response
-// 	return response.NewOK(req)
-// }
+	// send back the updated ping as response
+	return response.NewOK(req)
+}
 
 func validateOperation(req *models.Ping, context *apimodels.Context) error {
 	// realtime doc id
@@ -79,5 +77,5 @@ func validateOperation(req *models.Ping, context *apimodels.Context) error {
 	req.AccountId = context.Client.Account.Id // if client is logged in, those values are all set
 	req.CreatedAt = time.Now().UTC()
 
-	return nil
+	return collaboration.CanOpen(req)
 }
