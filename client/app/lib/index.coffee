@@ -163,6 +163,7 @@ bootup = ->
 identifyUser = (account)->
   {_id, meta, profile} = account
   return  unless profile
+
   remote = require('app/remote').getInstance()
   remote.api.JUser.fetchUser (err, user)->
     return  if err or not user
@@ -198,6 +199,7 @@ identifyUser = (account)->
       analytics?.identify nickname, args
 
 setupAnalytics = ->
+
   return  unless analytics? and globals.config.logToExternal
 
   kd.getSingleton('mainController').on 'AccountChanged', (account) ->
@@ -206,19 +208,18 @@ setupAnalytics = ->
     setupAnalyticsEvents()
     kd.utils.defer -> identifyUser account
 
-setupAnalyticsEvents = ->
-  setupPageAnalyticsEvent()
+setupAnalyticsEvents = -> setupPageAnalyticsEvent()
 
 setupPageAnalyticsEvent = ->
-  kd.singletons.router.on "RouteInfoHandled", (args) ->
-    return  unless args
-    {params, query, path} = args
 
-    categ = getCategoryFrompath(path)
+  kd.singletons.router.on 'RouteInfoHandled', (args) ->
+    {path} = args
+    return  unless path
 
-    analytics.page(categ, {title:document.title, path})
+    title = getFirstPartOfpath(path)
+    analytics.page(title, {title:document.title, path})
 
-getCategoryFrompath = (path) -> return path.split("/")[1] or path
+getFirstPartOfpath = (path) -> return path.split("/")[1] or path
 
 initialize = (defaults, next) ->
   apps_ = globals.config.apps

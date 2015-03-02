@@ -1,25 +1,27 @@
 kd = require 'kd'
 globals = require 'globals'
-whoami = require './whoami'
 isLoggedIn = require './isLoggedIn'
-gaEvent = require './gaEvent'
+
+trackEligible = ->
+
+  return analytics? and globals.config.logToExternal
 
 # Access control wrapper around segmentio object.
 module.exports = exports = (args...) ->
-  return  unless analytics? and globals.config.logToExternal
 
-  if args.length < 2
-    args.push {}
+  return  unless trackEligible()
 
-  me = whoami()
-  return  unless me.profile
+  # send event#action as event for GA
+  if args.length > 1
+    {action} = args[1]
+    args[1].event = args[0]  unless args[1].event
 
-  gaEvent args[0]
+  # if event#action, send that or fallback to event
+  event = if action? then action else args[0]
+  analytics.track event, args[1]
 
-  args[1]["username"] = me.profile.nickname
+exports.alias = (args...) ->
 
-  analytics.track args...
-
-exports.alias = (args...)->
-  return  unless analytics? and globals.config.logToExternal
+  return  unless trackEligible()
   analytics.alias args...
+
