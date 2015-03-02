@@ -82,18 +82,30 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-// Ping handles the pings coming from client side
-func (c *Controller) Ping(ping *models.Ping) error {
-	c.log.Debug("new ping %+v", ping)
-
+func validate(ping *models.Ping) error {
 	if ping.FileId == "" {
-		c.log.Error("fileId is missing %+v", ping)
-		return nil
+		fmt.Errorf("fileId is missing %+v", ping)
 	}
 
 	if ping.AccountId == 0 {
-		c.log.Error("accountId is missing %+v", ping)
+		fmt.Errorf("accountId is missing %+v", ping)
+	}
+
+	if ping.ChannelId == 0 {
+		fmt.Errorf("channelId is missing %+v", ping)
+	}
+
+	return nil
+}
+
+// Ping handles the pings coming from client side
+func (c *Controller) Ping(ping *models.Ping) error {
+	c.log.Debug("new ping %+v", ping)
+	if err := validate(ping); err != nil {
+		c.log.Error("validation error:", err.Error())
 		return nil
+	}
+
 	}
 
 	err := c.checkIfKeyIsValid(ping)
