@@ -159,7 +159,7 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 		// fetch user for its username
 		u, err := modelhelper.GetUserById(user.Id.Hex())
 		if err != nil {
-			c.log.Error(err.Error())
+			c.log.Error("couldnt get user", err.Error())
 
 			// if we cant find the regarding user, do not do anything
 			if err == mgo.ErrNotFound {
@@ -177,7 +177,7 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 
 		_, err = klientRef.Client.Tell("klient.unshare", param)
 		if err != nil {
-			c.log.Error(err.Error())
+			c.log.Error("couldnt unshare %+v", err.Error())
 
 			// those are so error prone, force klient side not to change the API
 			// or make them exported to some other package?
