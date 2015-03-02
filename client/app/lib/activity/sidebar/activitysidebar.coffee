@@ -1066,7 +1066,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   # updateMachineTree: ->
 
 
-  updateMachines: (callback = noop) ->
+  updateMachines: (callback = kd.noop) ->
 
     @fetchMachines (data) =>
       @ownMachinesList.updateList data.own
