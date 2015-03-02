@@ -201,17 +201,21 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 	var wg sync.WaitGroup
 
 	c.goWithRetry(func() error {
-		return c.EndPrivateMessage(ping)
-	}, errChan, &wg)
-
-	c.goWithRetry(func() error {
+		// IMPORTANT
+		// 	- DO NOT CHANGE THE ORDER
+		//
 		// first remove the users from klient
 		if err := c.RemoveUsersFromMachine(ping); err != nil {
 			return err
 		}
 
 		// then remove them from the db
-		return c.UnshareVM(ping)
+		if err := c.UnshareVM(ping); err != nil {
+			return err
+		}
+
+		// then end the private messaging
+		return c.EndPrivateMessage(ping)
 	}, errChan, &wg)
 
 	c.goWithRetry(func() error {
