@@ -108,15 +108,15 @@ module.exports = UserEnvironmentDataProvider =
 
   getMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
-    machine = null
+    machine   = null
     workspace = null
+    data      = @getAllMachines()
 
-    @getCollaborationMachines (data) =>
-      for obj in data
-        for ws in obj.workspaces
-          if ws.channelId is channelId
-            machine   = obj.machine
-            workspace = ws
+    for obj in data
+      for ws in obj.workspaces
+        if ws.channelId is channelId
+          machine   = obj.machine
+          workspace = ws
 
     callback machine, workspace
 
