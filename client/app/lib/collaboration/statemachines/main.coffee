@@ -84,11 +84,16 @@ create = (workspace = null, initialSnapshot) ->
 
         broadcast        : (data) -> @_broadcastMessage data
         terminate        : -> @transition 'terminating'
+        leave            : -> @transition 'leaving'
 
       terminating:
         _onEnter                  : -> @_terminateCollaboration()
         channelMachineTerminated  : -> @nextIfReady()
         realtimeMachineTerminated : -> @nextIfReady()
+
+      leaving:
+        _onEnter           : -> @_leaveCollaboration()
+        participantRemoved : -> @transition 'terminated'
 
       terminated:
         _onEnter : -> @emit 'CollaborationTerminated'
@@ -137,6 +142,8 @@ create = (workspace = null, initialSnapshot) ->
           callback()
           event.off()
 
+    leave: -> @handle 'leave'
+
     getParticipants: ->
       @rtm.getFromModel('participants').asArray()
 
@@ -161,6 +168,16 @@ create = (workspace = null, initialSnapshot) ->
     _terminateCollaboration: ->
       @channelMachine.on 'ChannelTerminated', => @handle 'channelMachineTerminated'
       @realtimeMachine.on 'ManagerTerminated', => @handle 'realtimeMachineTerminated'
+
+    _leaveCollaboration: ->
+      @channelMachine.on 'ChannelTerminated', =>
+        @_removeParticipant getNick()
+
+    _removeParticipant: (nickname) ->
+      removeParticipantFromMaps @realtimeMachine.manager, nickname
+      removeParticipantFromParticipantList @references, nickname
+      removeParticipantFromPermissions @references, nickname
+      @handle 'participantRemoved', nickname
 
     _subscribeToRealtimeManager: ->
       @rtm.on 'ValuesAddedToList', (list, event) =>
@@ -275,5 +292,24 @@ fetchParticipants = (channelId, callback) ->
 
     remote.api.JAccount.some query, {}
       .then (accounts) -> callback null, accounts
+
+removeParticipantFromParticipantList = (references, nickname) ->
+  { participants } = references
+  return warn 'participants is not set'  unless participants
+
+  for participant, index in participants.asArray()
+    if participant.nickname is nickname
+      participants.remove index
+      break
+
+removeParticipantFromMaps = (manager, nickname) ->
+  myWatchMapName = "#{nickname}WatchMap"
+  mySnapshotName = "#{nickname}Snapshot"
+
+  manager.delete 'map', myWatchMapName
+  manager.delete 'map', mySnapshotName
+
+removeParticipantFromPermissions = (references, nickname) ->
+  references.permissions.delete nickname
 
 module.exports = { create }
