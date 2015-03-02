@@ -83,17 +83,10 @@ module.exports = UserEnvironmentDataProvider =
 
   machineGetter_: (field, expectedValue, callback) ->
 
-    m = null
-    w = null
+    for obj in @getAllMachines() when obj.machine[field] is expectedValue
+      return callback obj.machine, obj.workspaces
 
-    for obj in @getAllMachines()
-      if obj.machine[field] is expectedValue
-        m = obj.machine
-        w = obj.workspaces
-
-        break
-
-    callback m, w
+    callback null, null
 
 
   getMachineByLabel: (machineLabel, callback) ->
@@ -108,17 +101,12 @@ module.exports = UserEnvironmentDataProvider =
 
   getMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
-    machine = null
-    workspace = null
-
     @getCollaborationMachines (data) =>
       for obj in data
-        for ws in obj.workspaces
-          if ws.channelId is channelId
-            machine   = obj.machine
-            workspace = ws
+        for ws in obj.workspaces when ws.channelId is channelId
+          return callback obj.machine, ws
 
-    callback machine, workspace
+    callback null, null
 
 
   validateCollaborationWorkspace: (machineLabel, workspaceSlug, channelId) ->
