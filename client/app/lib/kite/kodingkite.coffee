@@ -22,7 +22,8 @@ module.exports = class KodingKite extends KDObject
       @_state = CONNECTED
       @emit "connected"
 
-    @on 'close', =>
+    @on 'close', (reason)=>
+      kd.log "Disconnected with reason:", reason
       @_state = DISCONNECTED
 
     @waitingCalls = []
