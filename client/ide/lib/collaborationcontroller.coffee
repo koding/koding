@@ -335,7 +335,9 @@ module.exports =
 
       @registerCollaborationSessionId()
       @bindRealtimeEvents()
-      @listenPings()
+      # start sending pings to the server if the current user is the host
+      @startHeartbeat()  if @amIHost
+
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()  unless @amIHost
@@ -533,12 +535,8 @@ module.exports =
     return final.length > 0
 
 
-  listenPings: ->
-
+  startHeartbeat: ->
     interval = 1000 * 15
-
-    return if not @amIHost
-
     @sendPing() # send the first ping
     @pingInterval =  kd.utils.repeat interval, @bound 'sendPing'
 
@@ -555,7 +553,7 @@ module.exports =
       async    : yes
       endPoint : '/api/social/collaboration/ping'
     }, (err, response) ->
-      console.log err, response
+      console.error err if err
 
   forceQuitCollaboration: ->
 
