@@ -18,32 +18,23 @@ module.exports = class ActivityController extends KDObject
     @flags           = {}
     groupChannel     = null
 
-    {
-      groupsController
-      appManager
-    } = kd.singletons
+    { groupsController, appManager, router } = kd.singletons
 
     groupsController.ready =>
       groupChannel.close().off()  if groupChannel?
       groupChannel = groupsController.groupChannel
       groupChannel.on 'feed-new', (activities) =>
         revivedActivities = (remote.revive activity for activity in activities)
-        isOnActivityPage = kd.getSingleton("router").getCurrentPath() is "/Activity"
+        isOnActivityPage  = router.getCurrentPath() is "/Activity"
         ++@newItemsCount  unless isOnActivityPage
 
-    @on "ActivityItemBlockUserClicked",         @bound "openBlockUserModal"
-    @on "ActivityItemMarkUserAsTrollClicked",   @bound "markUserAsTroll"
-    @on "ActivityItemUnMarkUserAsTrollClicked", @bound "unmarkUserAsTroll"
+    @on 'ActivityItemBlockUserClicked',         @bound 'openBlockUserModal'
+    @on 'ActivityItemMarkUserAsTrollClicked',   @bound 'markUserAsTroll'
+    @on 'ActivityItemUnMarkUserAsTrollClicked', @bound 'unmarkUserAsTroll'
 
-    @setPageTitleForActivities()
+  blockUser: (accountId, duration, callback) -> whoami().blockUser accountId, duration, callback
 
-    appManager.on "AppIsBeingShown", (appController, appView, appOptions) =>
-      @clearNewItemsCount()  if appOptions.name is "Activity"
-
-  blockUser:(accountId, duration, callback)->
-    whoami().blockUser accountId, duration, callback
-
-  openBlockUserModal:(nicknameOrAccountId)->
+  openBlockUserModal: (nicknameOrAccountId) ->
     @modal = modal = new KDModalViewWithForms
       title                   : "Block User For a Time Period"
       content                 : """
@@ -207,29 +198,5 @@ module.exports = class ActivityController extends KDObject
             else if data.bongo_.constructorName is 'JAccount'
               kallback data
 
-  setPageTitleForActivities: ->
-    @oldTitle = global.document.title
-    kd.getSingleton("windowController").addFocusListener (focused) =>
-      if focused then  global.document.title = @oldTitle
-      else @updateDocTitle()
-
-    kd.getSingleton("mainController").ready =>
-      kd.getSingleton("activityController").on "ActivitiesArrived", =>
-        @updateDocTitle()  unless kd.getSingleton("windowController").isFocused()
-
-  updateDocTitle: ->
-    itemCount      = kd.getSingleton("activityController").getNewItemsCount()
-    @oldTitle      = global.document.title if global.document.title.indexOf("Activity") is -1
-    global.document.title = "(#{itemCount}) Activity" if itemCount > 0
-
-  getNewItemsCount: ->
-    return @newItemsCount
-
-  clearNewItemsCount: ->
-    isOnActivityPage = kd.getSingleton("router").getCurrentPath() is "/Activity"
-    return no if @flags.liveUpdates and not isOnActivityPage
-
-    @newItemsCount = 0
-    @emit "NewItemsCounterCleared"
 
 
