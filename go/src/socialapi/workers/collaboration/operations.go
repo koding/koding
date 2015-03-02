@@ -18,25 +18,25 @@ import (
 
 // DeleteDriveDoc deletes the file from google drive
 func (c *Controller) DeleteDriveDoc(ping *models.Ping) error {
+	// if file id is nil, there is nothing to do
+	if ping.FileId == "" {
+		return nil
+	}
 
 	return c.deleteFile(ping.FileId)
 }
 
-// EndPrivateMessage stops the collaboration session
+// EndPrivateMessage stops the collaboration session and deletes the all
+// messages from db
 func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 	// if channel id is nil, there is nothing to do
-	if ping.ChannelId == "" {
-		return nil
-	}
-
-	id, err := strconv.ParseInt(ping.ChannelId, 10, 64)
-	if err != nil {
+	if ping.ChannelId == 0 {
 		return nil
 	}
 
 	// fetch the channel
 	channel := socialapimodels.NewChannel()
-	if err := channel.ById(id); err != nil {
+	if err := channel.ById(ping.ChannelId); err != nil {
 		// if channel is not there, do not do anyting
 		if err == bongo.RecordNotFound {
 			return nil
@@ -67,11 +67,13 @@ func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 // UnshareVM removes the users from JMachine document
 func (c *Controller) UnshareVM(ping *models.Ping) error {
 	// if channel id is nil, there is nothing to do
-	if ping.ChannelId == "" {
+	if ping.ChannelId == 0 {
 		return nil
 	}
 
-	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
+	ws, err := modelhelper.GetWorkspaceByChannelId(
+		strconv.FormatInt(ping.ChannelId, 10),
+	)
 	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
@@ -87,11 +89,11 @@ func (c *Controller) UnshareVM(ping *models.Ping) error {
 // RemoveUsersFromMachine removes the collaboraters from the host machine
 func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 	// if channel id is nil, there is nothing to do
-	if ping.ChannelId == "" {
+	if ping.ChannelId == 0 {
 		return nil
 	}
 
-	ws, err := modelhelper.GetWorkspaceByChannelId(ping.ChannelId)
+	ws, err := modelhelper.GetWorkspaceByChannelId(strconv.FormatInt(ping.ChannelId, 10))
 	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
