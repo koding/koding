@@ -13,6 +13,14 @@ create = (workspace = null, initialSnapshot) ->
       @channelMachine  = ChannelStateMachine.create channelId
       @realtimeMachine = RealtimeStateMachine.create getFileIdentifier channelId
       @workspace       = workspace
+      @loaded = no
+      @on 'transition', (data) =>
+        { fromState } = data
+        return  unless fromState
+        eventName = "#{fromState.capitalize()}Finished"
+        @emit eventName
+
+      @on 'LoadingFinished', => @loaded = yes
 
     constraints:
       loading:
@@ -67,16 +75,15 @@ create = (workspace = null, initialSnapshot) ->
 
       active:
         _onEnter: ->
+          @rtm        = @realtimeMachine.manager
+          @references = getReferences @rtm, channelId, initialSnapshot
+          @_subscribeToRealtimeManager()
           @emit 'CollaborationActive',
             channel         : @channelMachine.channel
             realtimeManager : @realtimeMachine.manager
 
-          @rtm = @realtimeMachine.manager
-
-          @_subscribeToRealtimeManager()
-
-        broadcast: (data) -> @_broadcastMessage data
-        terminate: -> @transition 'terminating'
+        broadcast        : (data) -> @_broadcastMessage data
+        terminate        : -> @transition 'terminating'
 
       terminating:
         _onEnter                  : -> @_terminateCollaboration()
@@ -122,14 +129,37 @@ create = (workspace = null, initialSnapshot) ->
         return checkItem
       @transition constraint.nextState  if ready
 
+    whenLoadingFinished: (callback) ->
+      if @loaded
+        callback()
+      else
+        event = @on 'LoadingFinished', ->
+          callback()
+          event.off()
+
+    getParticipants: ->
+      @rtm.getFromModel('participants').asArray()
+
+    getParticipantInfo: (nickname) ->
+      watchList         = @rtm.getFromModel("#{nickname}WatchMap").keys()
+      isWatching        = watchList.indexOf(nickname) > -1
+      permissionsMap    = @rtm.getFromModel 'permissions'
+      defaultPermission = permissionsMap.get 'default'
+      permission        = permissionsMap.get(nickname) or defaultPermission
+
+      return { isWatching, permission }
+
+    setParticipantPermission: (nickname, permission) ->
+      @rtm.getFromModel('permissions').set nickname, permission
+
     _activateCollaboration: ->
       @channelMachine.on 'ChannelReady', ({channel}) => @handle 'channelMachineReady', channel
       @realtimeMachine.on 'ManagerReady', ({manager}) => @handle 'realtimeMachineReady', manager
-      @channelMachine.init()
+      @channelMachine.activate()
       @realtimeMachine.activate()
 
     _terminateCollaboration: ->
-      @channelMachine.on 'ChannelDestroyed', => @handle 'channelMachineTerminated'
+      @channelMachine.on 'ChannelTerminated', => @handle 'channelMachineTerminated'
       @realtimeMachine.on 'ManagerTerminated', => @handle 'realtimeMachineTerminated'
 
     _subscribeToRealtimeManager: ->
@@ -214,8 +244,10 @@ getReferences = (manager, channelId, initialSnapshot) ->
 
   manager.bindRealtimeListeners refs.changes, 'list'
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
-  manager.bindRealtimeListeners refs.myWatchMap, 'map'
+  manager.bindRealtimeListeners refs.watchMap, 'map'
   manager.bindRealtimeListeners refs.permissions, 'map'
+
+  registerCollaborationSessionId manager, refs.participants
 
   return refs
 
@@ -224,6 +256,15 @@ getFromManager = (manager, name, defaultType, defaultValue) ->
   item or= manager.create defaultType, name, defaultValue
 
   return item
+
+registerCollaborationSessionId = (manager, participants) ->
+  collaborators = manager.getCollaborators()
+  for collaborator in collaborators when collaborator.isMe
+    for user, index in participants.asArray() when user.nickname is getNick()
+      newData = _.assign {}, user
+      newData.sessionId = collaborator.sessionId
+      participants.remove index
+      participants.insert index, newData
 
 fetchParticipants = (channelId, callback) ->
   {socialapi} = kd.singletons
