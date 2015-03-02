@@ -149,16 +149,15 @@ module.exports = class RealTimeManager extends KDObject
     unless doc.getModel
       return throw new Error 'Invalid doc type for collaboration'
 
-    model  = doc.getModel()
+    model = doc.getModel()
 
     # Returns the value mapped to the given key.
-    val = model.getRoot().get key
+    if val = model.getRoot().get key
+      # remove the listeners first
+      @unbindRealtimeListeners val, type
 
-    # remove the listeners first
-    @unbindRealtimeListeners val, type
-
-    # delete key from root map
-    model.getRoot().delete key
+      # delete key from root map
+      model.getRoot().delete key
 
   textInserted:(string, e) ->
     return  if @isDisposed

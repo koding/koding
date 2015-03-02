@@ -231,13 +231,18 @@ module.exports =
       channelId  : @socialChannel.id
       accountIds : [ account.socialApiId ]
 
-    @setMachineUser [account], no, =>
+    targetUser = account.profile.nickname
+
+    @setMachineUser [targetUser], no, (err) =>
+
+      if err
+        showError "Failed to kick #{targetUser}"
+        return throwError err
 
       kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
 
         return showError err  if err
 
-        targetUser = account.profile.nickname
         message    =
           type     : 'ParticipantKicked'
           origin   : nick()
@@ -438,7 +443,7 @@ module.exports =
 
 
   removeParticipantFromParticipantList: (nickname) ->
-    return throwError "participants is not set"  unless @participants
+    return warn 'participants is not set'  unless @participants
 
     # find the index for participant
     for participant, index in @participants.asArray()
@@ -449,7 +454,7 @@ module.exports =
         break
 
   removeParticipantFromMaps: (nickname) ->
-    return throwError "rtm is not set"   unless @rtm
+    return warn 'rtm is not set'  unless @rtm
 
     myWatchMapName     = "#{nickname}WatchMap"
     mySnapshotName     = "#{nickname}Snapshot"
@@ -460,7 +465,7 @@ module.exports =
 
 
   removeParticipantFromPermissions: (nickname)->
-    return throwError "permissions is not set"   unless @permissions
+    return warn 'permissions is not set'  unless @permissions
     # Removes the entry for the given key (if such an entry exists).
     @permissions.delete(nickname)
 
@@ -546,7 +551,7 @@ module.exports =
     { Collaboration } = remote.api
     Collaboration.stop @rtmFileId, @workspaceData, (err) =>
 
-      return kd.warn err  if err
+      return throwError err  if err
 
       kd.utils.killRepeat @pingInterval
 
@@ -667,8 +672,9 @@ module.exports =
 
   showShareButton: ->
 
-    @statusBar.share.show()
-    IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
+    @ready =>
+      @statusBar.share.show()
+      IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
   prepareCollaboration: ->
@@ -717,7 +723,9 @@ module.exports =
 
     @rtm.createFile @getRealTimeFileName()
 
-    @setMachineSharingStatus on
+    @setMachineSharingStatus on, (err) ->
+
+      throwError err  if err
 
 
   # should clean realtime manager.
@@ -744,7 +752,7 @@ module.exports =
     @rtm.once 'FileDeleted', =>
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
-      @modal.destroy()
+      @modal?.destroy()
 
       if @amIHost
         @setMachineSharingStatus off, (err) =>
@@ -763,7 +771,7 @@ module.exports =
 
 
   cleanupCollaboration: (options = {}) ->
-    return throwError 'RealTimeManager is not set'  unless @rtm
+    return warn 'RealTimeManager is not set'  unless @rtm
 
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
@@ -783,36 +791,23 @@ module.exports =
     kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
 
 
-  unshareMachineAndKlient: (username, fetchUser = no) ->
-
-    if fetchUser
-      return remote.cacheable username, (err, accounts) =>
-
-        return showError err  if err
-
-        @setMachineUser accounts, no
-
-
-    @listChatParticipants (accounts) =>
-
-      for account in accounts when account.profile.nickname is username
-        target = account
-
-      @setMachineUser [target], no  if target
-
-
   setMachineSharingStatus: (status, callback) ->
 
-    @listChatParticipants (accounts) =>
-      @setMachineUser accounts, status, callback
+    getUsernames = (accounts) ->
 
-
-  setMachineUser: (accounts, share = yes, callback = kd.noop) ->
-
-    usernames = accounts.map (account) -> account.profile.nickname
+      accounts
+        .map ({profile: {nickname}}) -> nickname
+        .filter (nickname) -> nickname isnt nick()
 
     if @amIHost
-      usernames = usernames.filter (username) -> username isnt nick()
+      @listChatParticipants (accounts) =>
+        usernames = getUsernames accounts
+        @setMachineUser usernames, status, callback
+    else
+      @setMachineUser [nick()], status, callback
+
+
+  setMachineUser: (usernames, share = yes, callback = kd.noop) ->
 
     return callback()  unless usernames.length
 
@@ -839,8 +834,7 @@ module.exports =
 
               action = if share then 'added' else 'removed'
               message = "#{username} couldn't be #{action} as an user"
-              callback { message }
-              console.error message
+              callback {message}
 
       sinkrow.dash queue, callback
 
@@ -928,17 +922,21 @@ module.exports =
       options = channelId: @socialChannel.getId()
       kd.singletons.socialapi.channel.leave options, (err) =>
         return showError err  if err
-        @setMachineUser [whoami()], no, => @quit()
+        @setMachineUser [nick()], no, kd.noop
         # remove the leaving participant's info from the collaborative doc
         @removeParticipant nick()
 
 
-  throwError: throwError = (format, args...) ->
+  throwError: throwError = (err, args...) ->
+
+    format = \
+      switch typeof err
+        when 'string' then err
+        when 'object' then err.message
+        else args.join ' '
 
     argIndex = 0
-    error = new Error """
-      CollaboratonController:
+    console.error """
+      IDE.CollaborationController:
       #{ format.replace /%s/g, -> args[argIndex++] or '%s' }
     """
-
-    throw error
