@@ -55,7 +55,11 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       if not verified
         @buildVerifyView()
       else if not @machine.isApproved()
-        @buildApproveView()
+        if @machine.isPermanent()
+          @buildApproveView()
+        else
+          @prepareIDE()
+          @destroy()
       else
         kd.singletons.paymentController.subscriptions (err, subscription)=>
           kd.warn err  if err?
