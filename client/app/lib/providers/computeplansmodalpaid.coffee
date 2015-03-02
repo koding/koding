@@ -88,6 +88,7 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
             category : 'userInteraction'
             action   : 'clicks'
             label    : 'upgradeAccountOverlay'
+            origin   : 'paidModal'
     else
       @setHeight 278
 

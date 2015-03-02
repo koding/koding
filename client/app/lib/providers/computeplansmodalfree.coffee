@@ -30,3 +30,4 @@ module.exports = class ComputePlansModalFree extends ComputePlansModal
           category : 'userInteraction'
           action   : 'clicks'
           label    : 'upgradeAccountOverlay'
+          origin   : 'freeModal'
