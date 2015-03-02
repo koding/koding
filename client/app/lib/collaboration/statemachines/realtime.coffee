@@ -75,9 +75,9 @@ create = (fileIdentifier) ->
       if @loaded
         callback()
       else
-        event = @on 'LoadingFinished', ->
+        listener = @on 'LoadingFinished', ->
           callback()
-          event.off()
+          listener.off()
 
     _activateManager: (callbacks) ->
       @manager.once 'FileLoaded', (doc) =>
