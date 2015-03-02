@@ -187,6 +187,11 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 		}
 	}
 
+	res, err := klientRef.Client.Tell("klient.shared", nil)
+	if err == nil {
+		c.log.Info("other users in the machine: %+v", res.MustString())
+	}
+
 	// iterErr will be nil if we dont encounter to any error in iter
 	return iterErr
 
