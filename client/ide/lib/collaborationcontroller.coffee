@@ -236,7 +236,7 @@ module.exports =
     @setMachineUser [targetUser], no, (err) =>
 
       if err
-        showError "Failed to kick #{targetUser}"
+        showError "#{targetUser} could not be kicked"
         return throwError err
 
       kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
@@ -866,14 +866,9 @@ module.exports =
 
               queue.fin()
 
-              return  if err.message in [
-                'user is already in the shared list.'
-                'user is not in the shared list.'
-              ]
+              return  if err.message is 'User not found' and not share
 
-              action = if share then 'added' else 'removed'
-              message = "#{username} couldn't be #{action} as an user"
-              callback {message}
+              callback err
 
       sinkrow.dash queue, callback
 
