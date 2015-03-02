@@ -164,7 +164,8 @@ module.exports = class KodingKite extends KDObject
 
       cid = (@waitingCalls.push args) - 1
 
-      @once 'connected', ->
+      @once 'connected', =>
+
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
 
