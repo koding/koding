@@ -537,9 +537,10 @@ module.exports =
 
     interval = 1000 * 15
 
-    @pingInterval = if @amIHost
-    then kd.utils.repeat interval, @bound 'sendPing'
-    else null
+    return if not @amIHost
+
+    @sendPing() # send the first ping
+    @pingInterval =  kd.utils.repeat interval, @bound 'sendPing'
 
 
   sendPing: ->
