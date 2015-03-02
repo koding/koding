@@ -177,6 +177,10 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 				continue
 			}
 
+			if strings.Contains(err.Error(), "User not found") {
+				continue
+			}
+
 			iterErr = err
 
 			continue // do not stop iterating, unshare from others
