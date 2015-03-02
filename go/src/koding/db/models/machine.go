@@ -16,9 +16,11 @@ type MachineStatus struct {
 }
 
 type MachineUser struct {
-	Id    bson.ObjectId `bson:"id" json:"id"`
-	Sudo  bool          `bson:"sudo" json:"sudo"`
-	Owner bool          `bson:"owner" json:"owner"`
+	Id        bson.ObjectId `bson:"id" json:"id"`
+	Sudo      bool          `bson:"sudo" json:"sudo"`
+	Owner     bool          `bson:"owner" json:"owner"`
+	Permanent bool          `bson:"permanent" json:"permanent"`
+	Approved  bool          `bson:"approved" json:"approved"`
 }
 
 type MachineAssignee struct {

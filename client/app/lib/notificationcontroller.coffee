@@ -71,6 +71,34 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
+    @on 'MachineListUpdated', ->
+      kd.singletons.computeController.reset yes
+
+    @on 'UsernameChanged', ({username, oldUsername}) ->
+      # FIXME: because of this (https://app.asana.com/0/search/6604719544802/6432131515387)
+      deleteUserCookie()
+
+      new KDModalView
+        title         : "Your username was changed"
+        overlay       : yes
+        content       :
+          """
+          <div class="modalformline">
+          Your username has been changed to <strong>#{username}</strong>.
+          Your <em>old</em> username <strong>#{oldUsername}</strong> is
+          now available for registration by another Koding user.  You have
+          been logged out.  If you wish, you may close this box, and save
+          your work locally.
+          </div>
+          """
+        buttons       :
+          "Refresh":
+            style     : "solid red medium"
+            callback  : (event) -> location.replace '/Login'
+          "Close"     :
+            style     : "solid light-gray medium"
+            callback  : (event) -> modal.destroy()
+
     @on 'UserBlocked', ({blockedDate}) ->
       modal = new KDModalView
         title         : "Permission denied. You've been banned."

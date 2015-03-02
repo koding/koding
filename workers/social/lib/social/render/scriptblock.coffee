@@ -15,6 +15,8 @@ module.exports = (options = {}, callback)->
   currentGroup     = null
   userMachines     = null
   userWorkspaces   = null
+  userEnvironmentData = null
+  userId = null
 
   {bongoModels, client, slug} = options
 
@@ -32,6 +34,8 @@ module.exports = (options = {}, callback)->
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
+    userEnvironmentData = JSON.stringify userEnvironmentData
+    userId = JSON.stringify userId
 
     """
     <script type="text/javascript">
@@ -50,12 +54,14 @@ module.exports = (options = {}, callback)->
     <script>
       require('app')({
         config: #{config},
+        userId: #{userId},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
-        socialApiData: #{encodedSocialApiData}
+        socialApiData: #{encodedSocialApiData},
+        userEnvironmentData: #{userEnvironmentData}
       });
     </script>
 
@@ -75,6 +81,7 @@ module.exports = (options = {}, callback)->
     " else '' }
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
+
     """
 
   selector =
@@ -107,6 +114,15 @@ module.exports = (options = {}, callback)->
       bongoModels.JMachine.some$ client, {}, (err, machines) ->
         console.log err  if err
         userMachines = machines or []
+        queue.fin()
+    ->
+      bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
+        userEnvironmentData = data
+        queue.fin()
+    ->
+      client.connection.delegate.fetchUser (err, user) ->
+        console.err err  if err
+        userId = user.getId()
         queue.fin()
   ]
 

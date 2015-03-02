@@ -19,35 +19,33 @@ module.exports = class NavigationMachineItem extends JView
 
   constructor: (options = {}, data) ->
 
-    machine      = data
-    @alias       = machine.slug or machine.label
-    ideRoute     = "/IDE/#{@alias}/my-workspace"
-    machineOwner = machine.getOwner()
-    isMyMachine  = machine.isMine()
-    channelId    = ''
+    { machine, workspaces } = data
 
-    if not isMyMachine and globals.userWorkspaces
-      globals.userWorkspaces.forEach (ws) ->
-        return if channelId
+    @alias           = machine.slug or machine.label
+    machineOwner     = machine.getOwner()
+    isMyMachine      = machine.isMine()
+    machineRoutes    =
+      own            : "/IDE/#{@alias}/my-workspace"
+      collaboration  : "/IDE/#{workspaces.first?.channelId}"
+      permanentShare : "/IDE/#{machine.uid}/my-workspace"
 
-        if ws.machineUId is machine.uid and ws.channelId
-          channelId = ws.channelId
+    machineType = 'own'
 
-      ideRoute = "/IDE/#{channelId}"
+    unless isMyMachine
+      machineType = if machine.isPermanent() then 'permanentShare' else 'collaboration'
 
     options.tagName    = 'a'
     options.cssClass   = "vm #{machine.status.state.toLowerCase()} #{machine.provider}"
     options.attributes =
-      href             : groupifyLink ideRoute
+      href             : groupifyLink machineRoutes[machineType]
       title            : "Open IDE for #{@alias}"
 
-    unless machineOwner is nick()
+    unless isMyMachine
       options.attributes.title += " (shared by @#{htmlencode.htmlDecode machineOwner})"
 
     super options, data
 
-    @machine   = @getData()
-
+    { @machine } = @getData()
     labelPartial = machine.label or @alias
 
     unless isMyMachine
@@ -63,6 +61,13 @@ module.exports = class NavigationMachineItem extends JView
 
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
+
+    if @machine.isMine()
+      @settingsIcon = new KDCustomHTMLView
+        tagName     : 'span'
+        click       : @bound 'handleMachineSettingsClick'
+    else
+      @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
     kd.singletons.computeController
 
@@ -83,6 +88,18 @@ module.exports = class NavigationMachineItem extends JView
       #   @setAttributes
       #     href   : newPath
       #     title  : "Open IDE for #{@alias}"
+
+
+  handleMachineSettingsClick: (event) ->
+
+    { status } = @machine
+    { Building, Running } = Machine.State
+
+    kd.utils.stopDOMEvent event
+
+    if status?.state is Running
+      kd.singletons.mainView.openMachineModal @machine, this
+    else return
 
 
   handleMachineEvent: (event) ->
@@ -118,13 +135,11 @@ module.exports = class NavigationMachineItem extends JView
       kd.utils.wait 1000, @progress.bound 'hide'
 
 
-  pistachio:->
+  pistachio: ->
 
     return """
       <figure></figure>
       {{> @label}}
-      #{if @getData().isMine() then '<span></span>' else ''}
+      {{> @settingsIcon}}
       {{> @progress}}
     """
-
-
