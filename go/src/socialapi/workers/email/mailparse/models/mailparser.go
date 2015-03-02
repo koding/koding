@@ -127,23 +127,9 @@ func (m *Mail) persistPost(accountId int64) error {
 		return err
 	}
 
-	// c, err := socialapimodels.ChannelById(channelId)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// canOpen, err := c.CanOpen(accountId)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if !canOpen {
-	// 	return errCannotOpen //silently sucess here, we dont want retries here
-	// }
-
 	cm := socialapimodels.NewChannelMessage()
 	cm.Body = m.TextBody // set the body
-	// todo set this type according to the the channel id
+
 	cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_POST
 	if c.TypeConstant == socialapimodels.Channel_TYPE_PRIVATE_MESSAGE {
 		cm.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
@@ -183,24 +169,12 @@ func (m *Mail) persistReply(accountId int64) error {
 	if err != nil {
 		return err
 	}
-	// c, err := socialapimodels.ChannelById(cm.InitialChannelId)
-	// if err != nil {
-	// 	return err
-	// }
 
-	// canOpen, err := c.CanOpen(accountId)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if !canOpen {
-	// 	return errCannotOpen //silently sucess here, we dont want retries here
-	// }
 
 	// create reply
 	reply := socialapimodels.NewChannelMessage()
 	reply.Body = m.StrippedTextReply // set the body
-	// todo set this type according to the the channel id
+
 	reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_REPLY
 	if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE {
 		reply.TypeConstant = socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE
@@ -256,7 +230,9 @@ func (m *Mail) Persist() error {
 		if err != nil && err != errCannotOpen {
 			return err
 		}
-
+		if err == errCannotOpen {
+			helper.MustGetLogger().Error("possible abuse mail: %+v", m)
+		}
 		return nil
 	}
 
