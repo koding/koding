@@ -5,6 +5,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
+	"socialapi/workers/helper"
 	"strconv"
 	"strings"
 )
@@ -169,7 +170,6 @@ func (m *Mail) persistReply(accountId int64) error {
 	if err != nil {
 		return err
 	}
-
 
 	// create reply
 	reply := socialapimodels.NewChannelMessage()
