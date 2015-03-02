@@ -6,6 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
+	socialapimodels "socialapi/models"
+
+	"github.com/koding/bongo"
+
 	"socialapi/workers/collaboration/models"
 	"strconv"
 	"sync"
@@ -106,9 +110,27 @@ func (c *Controller) Ping(ping *models.Ping) error {
 		return nil
 	}
 
+	// fetch the channel
+	channel := socialapimodels.NewChannel()
+	if err := channel.ById(ping.ChannelId); err != nil {
+		// if channel is not there, do not do anyting
+		if err == bongo.RecordNotFound {
+			return nil
+		}
+
+		return err
 	}
 
-	err := c.checkIfKeyIsValid(ping)
+	canOpen, err := channel.CanOpen(ping.AccountId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		return nil // if the requester can not open the channel do not process
+	}
+
+	err = c.checkIfKeyIsValid(ping)
 	if err != nil && err != errSessionInvalid {
 		c.log.Error("key is not valid %+v", err.Error())
 		return err
