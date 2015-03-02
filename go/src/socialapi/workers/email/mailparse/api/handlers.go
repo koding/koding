@@ -10,7 +10,7 @@ import (
 
 func Parse(u *url.URL, h http.Header, req *models.Mail) (int, http.Header, interface{}, error) {
 	if err := req.Validate(); err != nil {
-		helper.MustGetLogger().Error(err.Error())
+		helper.MustGetLogger().Error("mail parse validate err : %S", err.Error())
 		// faily silently, we dont want mail parser service to retry on
 		// the failed validation
 		return response.NewDefaultOK()
