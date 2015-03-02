@@ -11,7 +11,17 @@ dataProvider = require 'app/userenvironmentdataprovider'
 
 selectWorkspaceOnSidebar = (data) ->
 
+  { machine, workspace } = data
+
   kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+  storage = kd.singletons.localStorageController.storage 'IDE'
+
+  workspaceData    =
+    machineLabel   : machine.slug or machine.label
+    workspaceSlug  : workspace.slug
+    channelId      : workspace.channelId
+
+  storage.setValue 'LatestWorkspace', workspaceData
 
 
 getLatestWorkspace = ->
