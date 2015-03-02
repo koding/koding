@@ -505,6 +505,13 @@ module.exports = class LoginView extends JView
       xhrFields   : withCredentials : yes
       success     : ->
         document.cookie = 'newRegister=true'
+
+        KD.utils.defer ->
+          KD.utils.trackEvent 'Signup, success',
+            category : 'userInteraction'
+            action   : 'microConversions'
+            label    : 'userSignup'
+
         return location.replace "/#{redirectTo}#{query}"
 
       error       : (xhr) =>

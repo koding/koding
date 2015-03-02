@@ -19,6 +19,8 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     @startCachingAssets()
 
+    @setupPageAnalyticsEvent()
+
   createSingletons:->
 
     KD.registerSingleton 'mainController',            this
@@ -47,3 +49,12 @@ module.exports = class MainControllerLoggedOut extends KDController
       for src in images
         image     = new Image
         image.src = src
+
+
+  setupPageAnalyticsEvent:->
+
+    KD.singletons.router.on "RouteInfoHandled", (args) ->
+
+      return  unless args
+      KD.utils.trackPage args
+
