@@ -56,7 +56,7 @@ func TestCollaborationDriveService(t *testing.T) {
 			req := req
 			req.CreatedAt = time.Now().UTC()
 			Convey("should be able to create the file", func() {
-				f, err := handler.createFile()
+				f, err := createTestFile(handler)
 				So(err, ShouldBeNil)
 				req.FileId = f.Id
 				Convey("should be able to get the created file", func() {
