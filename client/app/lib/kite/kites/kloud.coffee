@@ -24,6 +24,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   constructor: (options) ->
     super options
+
     @requestingInfo = kd.utils.dict()
     @needsRequest   = kd.utils.dict()
 
