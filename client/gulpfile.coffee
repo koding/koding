@@ -10,6 +10,7 @@ rewritify      = require 'rewritify'
 pistachioify   = require 'pistachioify'
 browserify     = require 'browserify'
 watchify       = require 'watchify'
+uglifyify      = require 'uglifyify'
 
 glob           = require 'glob'
 xtend          = require 'xtend'
@@ -174,10 +175,16 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
   b.transform coffeeify, global: yes
    .transform pistachioify, global: yes
    .transform rewritify,
-      global: yes
-      extensions: ['coffee']
-      basedir: __dirname
-      mapping: mapping
+     global: yes
+     extensions: ['coffee']
+     basedir: __dirname
+     mapping: mapping
+
+  unless devMode
+    b.transform uglifyify,
+      global      : yes
+      mangle      : yes
+      'screw-ie8' : yes
 
 
   bant = build b, globals: opts.globals

@@ -122,7 +122,9 @@ module.exports = class ComputeController_UI
       callback          : (data)->
         form.emit "Submit", data
 
-  @askFor: (action, target, force, callback)->
+  @askFor: (action, options, callback)->
+
+    {force, resizeTo, task} = options
 
     return callback()  if force
 
@@ -131,7 +133,7 @@ module.exports = class ComputeController_UI
       resize    :
         title   : "Resize VM?"
         message : "
-          If you choose to proceed, this VM will be resized from 3GB to 10GB.
+          If you choose to proceed, this VM will be resized from 3GB to #{resizeTo}GB.
           During the resize process, you will not be able to use the VM but
           all your files, workspaces and data will be safe.
         "

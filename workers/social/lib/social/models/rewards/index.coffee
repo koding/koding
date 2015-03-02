@@ -205,9 +205,12 @@ module.exports = class JReward extends jraphical.Message
 
   @fetchEarnedAmount$ = secure (client, options, callback)->
 
-    providedBy = client?.connection?.delegate?.getId()
+    originId = client?.connection?.delegate?.getId()
 
-    return callback { message : "account is not set" }  if not providedBy
+    return callback { message : "account is not set" }  unless originId
+
+    options         ?= {}
+    options.originId = originId
 
     @fetchEarnedAmount options, callback
 
@@ -216,7 +219,7 @@ module.exports = class JReward extends jraphical.Message
 
     originId = client?.connection?.delegate?.getId()
 
-    return callback { message : "account is not set" }  if not originId
+    return callback { message : "account is not set" }  unless originId
 
     selector ?= {}
     options  ?= {}
