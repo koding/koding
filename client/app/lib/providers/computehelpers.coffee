@@ -82,6 +82,9 @@ module.exports = class ComputeHelpers
               globals.userMachines.push machine
 
 
+  # This method is not used in any place, I put it here until
+  # we have a valid test suit for client side modular tests. ~ GG
+  #
   @infoTest = (count = 5)->
 
     {log} = kd
