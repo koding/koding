@@ -422,30 +422,6 @@ module.exports = class ComputeController extends KDController
 
 
 
-  followUpcomingEvents: (machine, followOthers = no)->
-
-    StateEventMap =
-
-      Stopping    : "stop"
-      Building    : "build"
-      Starting    : "start"
-      Rebooting   : "restart"
-      Terminating : "destroy"
-      Pending     : "resize"
-
-    stateEvent = StateEventMap[machine.status.state]
-
-    if stateEvent
-
-      @eventListener.addListener stateEvent, machine._id
-
-      if stateEvent in ["build", "destroy"] and followOthers
-        @eventListener.addListener "reinit", machine._id
-
-      return yes
-
-    return no
-
 
   info: (machine)->
 
