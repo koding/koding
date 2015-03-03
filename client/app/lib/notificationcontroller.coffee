@@ -55,10 +55,12 @@ module.exports = class NotificationController extends KDObject
 
         return unless contents
 
+        event = if contents.event then contents.event else event
+
         event = unless context is getGroup().slug then "#{event}-off-context" else event
 
         # event is mainly -> ChannelUpdateHappened // do not delete this line. here for search purposes. - SY
-        @emit contents.event, contents  if contents.event
+        @emit event, contents  if event
 
 
   setListeners:->
