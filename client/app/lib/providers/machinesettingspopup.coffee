@@ -18,7 +18,6 @@ Machine = require './machine'
 ManageDomainsView = require '../domains/managedomainsview'
 Usage = require './usage'
 
-
 module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
   { Running, Starting } = Machine.State
@@ -81,6 +80,11 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           label         : 'Disk Usage'
           itemClass     : KDProgressBarView
           cssClass      : if running then 'disk-usage' else 'hidden'
+          nextElement   :
+            resizeIcon  :
+              itemClass : KDCustomHTMLView
+              cssClass  : 'resize-icon'
+              tooltip   : title: 'Add more space', placement: 'top'
         publicIp        :
           label         : "Public IP"
           cssClass      : if running then 'custom-link-view' else 'hidden'
@@ -173,6 +177,9 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
     currentState = @machine.status.state
     baseKite     = @machine.getBaseKite()
 
+    # To cache it before user request
+    @fetchUsageInfo()
+
     computeController.getKloud()
 
       .info { machineId, currentState }
@@ -217,7 +224,25 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         diskUsage.updateBar 0, '%', 'failed to fetch usage!'
 
 
-    {moreView, nickname, nickEdit} = @modalTabs.forms.Settings.inputs
+    {moreView, nickname,
+     nickEdit, resizeIcon} = @modalTabs.forms.Settings.inputs
+
+    resizeIcon.once 'click', =>
+
+      @fetchUsageInfo (err, info)=>
+
+        if showError err
+          return @destroy()
+
+        { plan, plans, usage, reward } = info
+
+        limits  = plans[plan]
+        options = { plan, limits, usage, reward, @machine }
+
+        new (require './computeresizemodal') options
+
+        @destroy()
+
 
     moreLabel = moreView.getOption 'label'
     moreLabel.on 'click', =>
@@ -323,3 +348,10 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
     @machine.getBaseKite().klientShare { username }
 
 
+  fetchUsageInfo: (callback = kd.noop)->
+
+    return callback null, @fetchedInfo  if @fetchedInfo?
+
+    kd.singletons.computeController.fetchPlanCombo 'koding', (err, info) =>
+      if err then callback err
+      else callback null, @fetchedInfo = info

@@ -3,6 +3,7 @@ KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDHeaderView = kd.HeaderView
 KDView = kd.View
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class SinglePlanView extends KDView
@@ -81,6 +82,7 @@ module.exports = class SinglePlanView extends KDView
       state     : { name, monthPrice, yearPrice }
       callback  : @bound 'select'
 
+
   select: ->
 
     { title, monthPrice, yearPrice
@@ -93,6 +95,14 @@ module.exports = class SinglePlanView extends KDView
     @emit 'PlanSelected', {
       planTitle, monthPrice, yearPrice
       reducedMonth, discount, planInterval
+    }
+
+    trackEvent 'Plan select, click', {
+      category : 'userInteraction'
+      action   : 'clicks'
+      label    : 'PricingSelect'
+      planInterval
+      planTitle
     }
 
 
