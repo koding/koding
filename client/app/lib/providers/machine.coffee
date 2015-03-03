@@ -115,11 +115,10 @@ module.exports = class Machine extends KDObject
   getOwner: ->
 
     switch @provider
-      when 'koding'
+      when 'koding', 'managed'
         return @data.credential
 
 
   isMine: ->
 
     @getOwner() is nick()
-

@@ -49,14 +49,14 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
   # setTransport is used to override the setTransport method in KodingKite
   # prior to connection so we can have a custom URL. This is used so Klient
   # Kite can go over our internal userproxy
-  setTransport: (@transport) ->
-
-    {url} = @transport.options
-    @transport.options.url = proxifyTransportUrl url
-
-    # now call @connect in super, which will connect to our new URL
-    super @transport
-
+  # setTransport: (@transport) ->
+  #
+  #   {url} = @transport.options
+  #   @transport.options.url = proxifyTransportUrl url
+  #
+  #   # now call @connect in super, which will connect to our new URL
+  #   super @transport
+  
 
   disconnect: ->
     super
