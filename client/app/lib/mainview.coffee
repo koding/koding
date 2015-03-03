@@ -2,6 +2,7 @@ kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDCustomScrollView = kd.CustomScrollView
 KDScrollView = kd.ScrollView
+KDButtonView = kd.ButtonView
 KDView = kd.View
 sinkrow = require 'sinkrow'
 globals = require 'globals'
@@ -22,10 +23,15 @@ module.exports = class MainView extends KDView
 
   constructor: (options = {}, data)->
 
-    options.domId    = 'kdmaincontainer'
-    options.cssClass = if globals.isLoggedInOnLoad then 'with-sidebar' else ''
+    mobileDevices       = /Android|iPhone|iPod/i
+
+    options.domId       = 'kdmaincontainer'
+    options.cssClass    = if globals.isLoggedInOnLoad then 'with-sidebar' else ''
+    options.deviceType  = if mobileDevices.test navigator.userAgent then 'mobile' else 'desktop'
 
     super options, data
+
+    @setClass options.deviceType
 
     @notifications = []
 
@@ -34,8 +40,8 @@ module.exports = class MainView extends KDView
 
     @bindPulsingRemove()
     @bindTransitionEnd()
-    @createHeader()
     @createSidebar()
+    @createHeader()
     @createPanelWrapper()
     @createMainTabView()
 
@@ -45,9 +51,47 @@ module.exports = class MainView extends KDView
       @emit 'ready'
 
 
+  createMobileHeader:->
+
+    @addSubView @header = new KDView
+      tagName    : 'header'
+      domId      : 'main-header'
+      attributes :
+        testpath : 'main-header'
+
+    @header.addSubView @hamburgerMenu = new KDButtonView
+      cssClass  : 'hamburger-menu'
+      iconOnly  : yes
+      callback  : =>
+        @toggleClass 'mobile-menu-active'
+
+        @once 'click', =>
+          @toggleClass 'mobile-menu-active'
+
+    {router} = kd.singletons
+    router.on 'RouteInfoHandled', =>
+      @unsetClass 'mobile-menu-active'
+
+    logoWrapper = new KDCustomHTMLView
+      cssClass  : if entryPoint?.type is 'group' then 'logo-wrapper group' else 'logo-wrapper'
+
+    logoWrapper.addSubView new KDCustomHTMLView
+      tagName    : 'a'
+      attributes : href : '/' # so that it shows 'koding.com' on status bar of browser
+      partial    : '<figure></figure>'
+      click      : (event) =>
+        kd.utils.stopDOMEvent event
+        trackEvent 'Koding Logo, click'
+
+    @header.addSubView logoWrapper
+
+
   createHeader:->
 
     entryPoint = globals.config.entryPoint
+
+    if @getOption('deviceType') is 'mobile'
+      return @createMobileHeader()
 
     @addSubView @header = new KDView
       tagName    : 'header'
