@@ -52,6 +52,17 @@ module.exports = class SidebarMachineBox extends KDView
     @collapseList()
 
 
+  getWorkspaceItemByChannelId: (channelId) ->
+
+    items  = @listController.getListItems()
+    wsitem = null
+
+    for item in items when item.data.channelId is channelId
+      wsItem = item
+
+    return wsItem
+
+
   addWorkspace: (wsData, storeData = no) ->
 
     @listController.addItem wsData
