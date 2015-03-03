@@ -89,7 +89,7 @@ module.exports = class ComputeStateChecker extends KDObject
         computeController.eventListener
           .triggerState machine, status: response.State
 
-        computeController.followUpcomingEvents
+        computeController.eventListener.followUpcomingEvents
           _id: machineId, status: state: response.State
 
         unless machine.status.state is response.State
@@ -105,5 +105,3 @@ module.exports = class ComputeStateChecker extends KDObject
           kd.log "csc: info error happened:", err
 
     @tickInProgress = no
-
-

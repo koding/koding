@@ -219,22 +219,13 @@ module.exports = class ComputeController_UI
         duration      : 0
         closeManually : no
 
-  # taken here to avoid circularity
-  @reviveProvisioner = (machine, callback)->
-
-    provisioner = machine.provisioners.first
-
-    return callback null  unless provisioner
-
-    {JProvisioner} = remote.api
-    JProvisioner.one slug: provisioner, callback
-
 
   @showBuildScriptEditorModal = (machine)->
 
     return  unless machine?
 
-    ComputeController_UI.reviveProvisioner machine, (err, provisioner)->
+    ComputeHelpers = require './computehelpers'
+    ComputeHelpers.reviveProvisioner machine, (err, provisioner)->
 
       return  if showError err
 
