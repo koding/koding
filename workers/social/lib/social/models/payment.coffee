@@ -195,9 +195,10 @@ module.exports = class Payment extends Base
         return callback err  if err
 
         plan.storage += space
-
         callback null, plan
 
   fetchReferrerSpace = (client, callback)->
-    JReferral = require "./referral/index"
-    JReferral.fetchEarnedSpace client, callback
+    originId = client.connection.delegate.getId()
+
+    JEarnedReward = require './rewards/earnedreward'
+    JEarnedReward.fetchEarnedAmount {originId}, callback
