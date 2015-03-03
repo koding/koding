@@ -665,13 +665,13 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       @sharedMachinesList.updateList data.shared.concat data.collaboration
 
 
-  invalidateWorkspaces: (machine)->
+  invalidateWorkspaces: (machine) ->
 
-    return  unless machine?
+    return  unless machine
 
-    remote.api.JWorkspace.deleteByUid machine.uid, (err)=>
+    remote.api.JWorkspace.deleteByUid machine.uid, (err) =>
 
-      return kd.warn err  if err?
+      return kd.warn err  if err
 
 
   removeMachineNode: (machine) ->
