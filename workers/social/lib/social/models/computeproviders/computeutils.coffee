@@ -8,6 +8,7 @@ PROVIDERS =
   digitalocean : require './digitalocean'
   engineyard   : require './engineyard'
   google       : require './google'
+  managed      : require './managed'
 
 PLANS          = require './plans'
 
