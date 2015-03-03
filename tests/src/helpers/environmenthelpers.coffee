@@ -82,3 +82,4 @@ module.exports =
       .waitForElementNotVisible '.env-modal.paid-plan', 250000
       .waitForElementVisible    'a[href="/IDE/koding-vm-1/my-workspace"]', 25000
       .end()
+
