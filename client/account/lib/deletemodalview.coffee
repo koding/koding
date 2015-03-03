@@ -56,7 +56,11 @@ module.exports = class DeleteModalView extends KDModalViewWithForms
                     """
                     # <iframe src="https://docs.google.com/forms/d/1fiC6wSThfXxtLpdRlQ7qnNvJrClqdUrmOT_L-_cu1tw/viewform?embedded=true" width="430" height="600" frameborder="0" marginheight="0" marginwidth="0">Loading...</iframe>
                   @_windowDidResize()
-                  trackEvent "Delete account, success"
+
+                  trackEvent 'Delete account, success',
+                    category : 'userInteraction'
+                    action   : 'clicks'
+                    label    : 'deletedAccount'
 
                   logout =->
                     kookies.expire 'clientId'

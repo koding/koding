@@ -18,6 +18,7 @@ PaymentConstants = require './paymentconstants'
 PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -35,6 +36,7 @@ module.exports = class PaymentWorkflow extends KDController
     super options, data
 
     @state = kd.utils.extend @getInitialState(), options.state
+    @startingPlan = @state.currentPlan
 
     kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
@@ -219,6 +221,19 @@ module.exports = class PaymentWorkflow extends KDController
     @emit 'PaymentWorkflowFinishedSuccessfully', state
 
     @modal.destroy()
+
+    if @startingPlan is PaymentConstants.planTitle.FREE
+      trackEvent 'Account upgrade plan, success',
+        category : 'userInteraction'
+        action   : 'microConversions'
+        label    : 'upgradeFreeAccount'
+
+    trackEvent 'Completed Order', products: [{
+      name     : @state.planTitle
+      category : @state.provider
+      interval : @state.planInterval
+      quantity : 1
+    }]
 
 
   finishWithError: (state) ->
