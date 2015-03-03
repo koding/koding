@@ -553,7 +553,13 @@ module.exports =
       async    : yes
       endPoint : '/api/social/collaboration/ping'
     }, (err, response) ->
-      console.error err if err
+      return  if not err
+
+      console.error err
+
+      if err.code == 400
+        kd.utils.killRepeat @pingInterval # graceful stop
+        throwError "bad request, err: %s", err.message
 
   forceQuitCollaboration: ->
 
