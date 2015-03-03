@@ -75,7 +75,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @itemsByName  = {}
     @selectedItem = null
 
-    @workspaceItemChannelMap = {}
+    # @workspaceItemChannelMap = {}
 
     # @appsList = new DockController
 
@@ -170,17 +170,22 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   setWorkspaceUnreadCount: (data, unreadCount) ->
 
-    workspaceItem = @workspaceItemChannelMap[data._id]
+    channelId = data._id
+    provider  = environmentDataProvider
 
-    return  unless workspaceItem
+    provider.getMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
+      if machine and workspace
+        box    = @getMachineBoxByMachineUId machine.uid
+        wsItem = box?.getWorkspaceItemByChannelId channelId
 
-    workspaceItem.child.setUnreadCount unreadCount
+        if wsItem
+          wsItem.setUnreadCount unreadCount
 
-    return  unless unreadCount is 0
+          return  unless unreadCount is 0
 
-    { socialapi } = kd.singletons
+          { socialapi } = kd.singletons
 
-    socialapi.channel.updateLastSeenTime channelId : data._id, kd.noop
+          socialapi.channel.updateLastSeenTime channelId : data._id, kd.noop
 
 
   handleFollowedFeedUpdate: (update) ->
@@ -823,6 +828,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @ownMachinesList.addMachineBoxes data.own
     @sharedMachinesList.addMachineBoxes sharedData
 
+    @isMachinesListed = yes
+    @emit 'MachinesListed'
+
 
   createMachineList: (type, options, data) ->
 
@@ -979,22 +987,14 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     environmentDataProvider.fetch => @sections.messages.reload()
 
 
-  machinesListed = no
-  whenMachinesRendered: ->
-
-    new Promise (resolve) =>
-      return resolve()  if machinesListed
-      @once 'MachinesListed', ->
-        machinesListed = yes
-        resolve()
-
-
   handleWorkspaceUnreadCounts: (chatData) ->
 
-    @whenMachinesRendered().then =>
-      chatData
-        .filter  (data) => @workspaceItemChannelMap[data._id]
-        .forEach (data) => @setWorkspaceUnreadCount data, data.unreadCount
+    cb = =>
+      chatData.forEach (data) =>
+        @setWorkspaceUnreadCount data, data.unreadCount
+
+    if @isMachinesListed then cb()
+    else @once 'MachinesListed', => cb()
 
 
   # addNewWorkspace: (machineData) ->
