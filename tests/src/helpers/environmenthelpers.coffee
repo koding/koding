@@ -43,7 +43,7 @@ module.exports =
 
   seeUpgradeModal: (browser) ->
 
-    clickAddVMButton(browser)
+    @clickAddVMButton(browser)
     browser.waitForElementVisible '.computeplan-modal.free-plan .kdmodal-inner', 20000 # Assertion
 
 
@@ -57,9 +57,9 @@ module.exports =
     createDomainName  = paragraph.split(' ')[0]
     domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
 
-    openVmSettingsModal(browser)
+    @openVmSettingsModal(browser)
 
-    clickMoreButtonInVMSettingsModal(browser)
+    @clickMoreButtonInVMSettingsModal(browser)
 
     browser
       .waitForElementVisible    '.more-form .domains', 20000
