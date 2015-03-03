@@ -474,6 +474,24 @@ func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error 
 	return c.Delete()
 }
 
+// AddReply adds the reply message to db ,
+// according to message id
+func (c *ChannelMessage) AddReply(reply *ChannelMessage) (*MessageReply, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelMessageIdIsNotSet
+	}
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+	mr.ReplyId = reply.Id
+	mr.CreatedAt = reply.CreatedAt
+	if err := mr.Create(); err != nil {
+		return nil, err
+	}
+
+	return mr, nil
+
+}
+
 //  DeleteReplies deletes all the replies of a given ChannelMessage, one level deep
 func (c *ChannelMessage) DeleteReplies() error {
 	mr := NewMessageReply()

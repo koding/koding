@@ -11,6 +11,7 @@ JView = require 'app/jview'
 FooterView = require 'app/commonviews/footerview'
 CustomLinkView = require 'app/customlinkview'
 globals = require 'globals'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class PricingAppView extends KDView
@@ -147,6 +148,13 @@ module.exports = class PricingAppView extends KDView
     @selectIntervalToggle planInterval
 
     @plans.switchTo planInterval
+
+    trackEvent 'Plan interval toggle, click', {
+      category : 'userInteraction'
+      action   : 'clicks'
+      label    : 'PricingTimeFrameSwitch'
+      planInterval
+    }
 
 
   loadPlan: (callback = kd.noop) ->
