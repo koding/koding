@@ -6,7 +6,6 @@ showError = require '../util/showError'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
 KDNotificationView = kd.NotificationView
-remote = require('./remote').getInstance()
 
 
 module.exports = class ComputeHelpers
@@ -129,7 +128,8 @@ module.exports = class ComputeHelpers
 
     provisioner = machine.provisioners?.first
     return callback null  unless provisioner
-
+ 
+    remote = require('app/remote').getInstance()
     remote.api.JProvisioner.one slug: provisioner, callback
 
 
