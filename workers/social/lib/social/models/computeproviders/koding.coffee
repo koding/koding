@@ -1,52 +1,18 @@
+# Koding VMs Provider implementation for ComputeProvider
+# ------------------------------------------------------
 
 ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
 Regions           = require 'koding-regions'
-{clone}           = require 'underscore'
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
+PLANS             = require './plans'
+SUPPORTED_REGIONS = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
+
 module.exports = class Koding extends ProviderInterface
 
-  SUPPORTED_REGIONS    = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
-
-  PLANS                =
-    free               :
-      total            : 1
-      alwaysOn         : 0
-      storage          : 3
-      allowedInstances : ['t2.micro']
-    hobbyist           :
-      total            : 1
-      alwaysOn         : 1
-      storage          : 10
-      allowedInstances : ['t2.micro']
-    developer          :
-      total            : 3
-      alwaysOn         : 1
-      storage          : 25
-      allowedInstances : ['t2.micro']
-    professional       :
-      total            : 5
-      alwaysOn         : 2
-      storage          : 50
-      allowedInstances : ['t2.micro']
-    super              :
-      total            : 10
-      alwaysOn         : 5
-      storage          : 100
-      allowedInstances : ['t2.micro']
-    koding             :
-      total            : 20
-      alwaysOn         : 20
-      storage          : 200
-      allowedInstances : ['t2.micro', 't2.small', 't2.medium']
-    betatester         :
-      total            : 1
-      alwaysOn         : 1
-      storage          : 3
-      allowedInstances : ['t2.micro']
 
   @fetchPlans = (client, options, callback)->
 
@@ -58,45 +24,6 @@ module.exports = class Koding extends ProviderInterface
     callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
 
 
-  @fetchUserPlan = (client, callback)->
-
-    Payment = require '../payment'
-    Payment.subscriptions client, {}, (err, subscription)=>
-
-      if err? or not subscription?
-      then plan = 'free'
-      else plan = subscription.planTitle
-
-      # we need to clone the plan data since we are using global data here,
-      # when we modify it at line 84 everything will be broken after the
-      # first operation until this social restarts ~ GG
-      planData  = clone PLANS[plan]
-
-      JReward   = require '../rewards'
-      JReward.fetchEarnedAmount
-        unit     : 'MB'
-        type     : 'disk'
-        originId : client.r.account.getId()
-
-      , (err, amount)->
-
-        amount = 0  if err
-        planData.storage += Math.floor amount / 1000
-
-        callback err, planData
-
-
-  checkUsage = (usage, plan, storage)->
-
-    err = null
-    if usage.total + 1 > plan.total
-      err = "Total limit of #{plan.total} machines has been reached."
-    else if usage.storage + storage > plan.storage
-      err = "Total limit of #{plan.storage}GB storage limit has been reached."
-
-    if err then return new KodingError err
-
-
   @create = (client, options, callback)->
 
     { instanceType, label, storage, region } = options
@@ -106,11 +33,11 @@ module.exports = class Koding extends ProviderInterface
     userIp   = clientIP or user.registeredFrom?.ip
     provider = 'koding'
 
-    {guessNextLabel} = require './computeutils'
-    
+    { guessNextLabel, fetchUserPlan, checkUsage } = require './computeutils'
+
     guessNextLabel { user, group, label, provider }, (err, label)=>
 
-      @fetchUserPlan client, (err, userPlan)=>
+      fetchUserPlan client, (err, userPlan)=>
 
         @fetchUsage client, options, (err, usage)->
 
@@ -158,7 +85,7 @@ module.exports = class Koding extends ProviderInterface
 
     JMachine = require './machine'
 
-    @fetchUserPlan client, (err, userPlan)=>
+    (require './computeutils').fetchUserPlan client, (err, userPlan)=>
 
       return callback err  if err?
 

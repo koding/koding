@@ -9,6 +9,7 @@ PROVIDERS =
   engineyard   : require './engineyard'
   google       : require './google'
 
+PLANS          = require './plans'
 
 reviveProvisioners = (client, provisioners, callback, revive = no)->
 
@@ -234,7 +235,47 @@ guessNextLabel = (options, callback)->
       callback null, "#{provider}-vm-#{index+1}"
 
 
+fetchUserPlan = (client, callback)->
+
+  {clone} = require 'underscore'
+  Payment = require '../payment'
+  Payment.subscriptions client, {}, (err, subscription)=>
+
+    if err? or not subscription?
+    then plan = 'free'
+    else plan = subscription.planTitle
+
+    # we need to clone the plan data since we are using global data here,
+    # when we modify it at line 84 everything will be broken after the
+    # first operation until this social restarts ~ GG
+    planData  = clone PLANS[plan]
+
+    JReward   = require '../rewards'
+    JReward.fetchEarnedAmount
+      unit     : 'MB'
+      type     : 'disk'
+      originId : client.r.account.getId()
+
+    , (err, amount)->
+
+      amount = 0  if err
+      planData.storage += Math.floor amount / 1000
+
+      callback err, planData
+
+
+checkUsage = (usage, plan, storage)->
+
+  err = null
+  if usage.total + 1 > plan.total
+    err = "Total limit of #{plan.total} machines has been reached."
+  else if usage.storage + storage > plan.storage
+    err = "Total limit of #{plan.storage}GB storage limit has been reached."
+
+  if err then return new KodingError err
+
+
 module.exports = {
-  PROVIDERS, fetchStackTemplate, guessNextLabel
-  revive, reviveClient, reviveCredential
+  PROVIDERS, fetchStackTemplate, guessNextLabel, checkUsage
+  revive, reviveClient, reviveCredential, fetchUserPlan
 }
