@@ -277,13 +277,13 @@ module.exports = class ComputeController extends KDController
 
     return destroy machine  if force or @_force
 
-    ComputeController_UI.askFor 'destroy', machine, force, =>
+    ComputeController_UI.askFor 'destroy', {machine, force}, =>
       destroy machine
 
 
   reinit: (machine)->
 
-    ComputeController_UI.askFor 'reinit', machine, @_force, =>
+    ComputeController_UI.askFor 'reinit', {machine, force: @_force}, =>
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
@@ -311,7 +311,9 @@ module.exports = class ComputeController extends KDController
 
   resize: (machine, resizeTo = 10)->
 
-    ComputeController_UI.askFor 'resize', machine, @_force, =>
+    ComputeController_UI.askFor 'resize', {
+      machine, force: @_force, resizeTo
+    }, =>
 
       options =
         machineId : machine._id

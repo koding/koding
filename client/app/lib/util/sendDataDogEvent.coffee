@@ -1,6 +1,6 @@
 remote = require('../remote').getInstance()
 parseLogs = require './parseLogs'
-s3upload = require './s3upload'
+uploadLogs = require './uploadLogs'
 globals = require 'globals'
 
 module.exports = (eventName, options = {})->
@@ -22,10 +22,7 @@ module.exports = (eventName, options = {})->
   # just send them away, first to s3 then datadog
   if kdlogs.length > 100 and options.sendLogs
 
-    s3upload
-      name    : "logs_#{new Date().toISOString()}.txt"
-      content : kdlogs
-    , (err, publicUrl)->
+    uploadLogs (err, publicUrl)->
 
       logs = if err? and not publicUrl
       then parseLogs()
