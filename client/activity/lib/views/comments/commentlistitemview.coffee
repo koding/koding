@@ -20,6 +20,7 @@ CustomLinkView = require 'app/customlinkview'
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 isMyPost = require 'app/util/isMyPost'
 hasPermission = require 'app/util/hasPermission'
+htmlencode = require 'htmlencode'
 
 module.exports = class CommentListItemView extends KDListItemView
 
@@ -47,10 +48,15 @@ module.exports = class CommentListItemView extends KDListItemView
 
   handleUpdate: ->
 
-    { updatedAt, createdAt } = @getData()
+    { updatedAt, createdAt, link, payload } = @getData()
 
     if updatedAt > createdAt
-    then @setClass 'edited'
+      @setClass 'edited'
+      if link?.link_url isnt payload?.link_url and payload?.link_embed
+        link.link_embed =
+          try JSON.parse htmlencode.htmlDecode payload.link_embed
+          catch e then null
+        @updateEmbedBox()
     else @unsetClass 'edited'
 
     kd.utils.defer => emojify.run @getElement()
