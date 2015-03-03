@@ -150,6 +150,7 @@ module.exports = class MainController extends KDController
       kd.registerSingleton 'onboardingController',    new OnboardingController
 
       @emit 'AppIsReady'
+      @prepareSupportShortcuts()
 
       console.timeEnd 'Koding.com loaded'
 
@@ -357,6 +358,11 @@ module.exports = class MainController extends KDController
     idleDetector = new IdleUserDetector { threshold }
     @forwardEvents idleDetector, ['userIdle', 'userBack']
 
+  prepareSupportShortcuts: ->
+
+    return  unless checkFlag ['super-admin']
+
+    kd.impersonate = require './util/impersonate'
 
   startCachingAssets:->
 
