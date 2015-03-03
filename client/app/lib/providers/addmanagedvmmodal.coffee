@@ -1,67 +1,67 @@
 kd = require 'kd'
-KDView = kd.View
-KDModalView = kd.ModalView
-KDLoaderView = kd.LoaderView
 
-class AddManagedVMModal extends KDModalView
+States = { 'Initial', 'ListKites', 'FailedToConnect' }
 
-  view             =
-    header         : (title) -> new KDView
-      partial      : title
-      cssClass     : 'view-header'
+INSTALL_INSTRUCTIONS = """
+  $ curl https://kd.io/kites/klient/latest | bash - </br>
+  # Enter your koding.com credentials when asked for
+"""
 
-    code           : (code) -> new KDView
-      partial      : code
-      cssClass     : 'view-code'
+view             =
 
-    waiting        : (title) ->
+  header         : (title) -> new kd.View
+    partial      : title
+    cssClass     : 'view-header'
 
-      container    = new KDView
-        cssClass   : 'view-waiting'
+  code           : (code) -> new kd.View
+    partial      : code
+    cssClass     : 'view-code'
 
-      container.addSubView new KDLoaderView
-        showLoader : yes
-        size       :
-          width    : 20
-          height   : 20
+  waiting        : (title) ->
 
-      container.addSubView new KDView
-        partial    : title
-        cssClass   : 'title'
+    container    = new kd.View
+      cssClass   : 'view-waiting'
 
-      return container
+    container.addSubView new kd.LoaderView
+      showLoader : yes
+      size       :
+        width    : 20
+        height   : 20
 
-    list           : (data) ->
+    container.addSubView new kd.View
+      partial    : title
+      cssClass   : 'title'
 
-      new KDView partial: data
+    return container
 
-  addFollowingsTo = (parent, views)->
+  list           : (data) ->
 
-    map = {}
-    for own key, value of views
-      value = [value]  unless Array.isArray value
-      parent.addSubView map[key] = view[key] value...
-
-    return map
+    new kd.View partial: data
 
 
-  States = { 'Initial', 'ListKites', 'FailedToConnect' }
+addFollowingsTo = (parent, views)->
+
+  map = {}
+  for own key, value of views
+    value = [value]  unless Array.isArray value
+    parent.addSubView map[key] = view[key] value...
+
+  return map
 
 
-  INSTALL_INSTRUCTIONS = """
-    $ curl https://kd.io/kites/klient/latest | bash - </br>
-    # Enter your koding.com credentials when asked for
-  """
+module.exports = class AddManagedVMModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    options   =
-      title   : 'Add your own VM'
-      width   : 640
+    options    =
+      title    : 'Add your own VM'
+      width    : 640
+      cssClass : 'managed-vm modal'
 
     super options, data
 
-    @addSubView @container = new KDView
+    @addSubView @container = new kd.View
+
 
   viewAppended: ->
 
