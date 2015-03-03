@@ -162,7 +162,6 @@ revive = do -> ({
     , shouldReviveClient
 
 
-
 fetchStackTemplate = (client, callback)->
 
   reviveClient client, (err, res)->
@@ -206,6 +205,36 @@ fetchStackTemplate = (client, callback)->
         callback null, res
 
 
+guessNextLabel = (options, callback)->
+
+  {user, group, provider, label} = options
+
+  return callback null, label  if label?
+
+  JMachine   = require './machine'
+
+  selector   =
+    provider : provider
+    users    : $elemMatch: id: user.getId(), sudo: yes, owner: yes
+    groups   : $elemMatch: id: group.getId()
+    label    : ///^#{provider}-vm-[0-9]*$///
+
+  options    =
+    limit    : 1
+    sort     : createdAt : -1
+
+  JMachine.one selector, options, (err, machine)->
+
+    return callback err  if err?
+    unless machine?
+      callback null, "#{provider}-vm-0"
+    else
+
+      index = +(machine.label.split "#{provider}-vm-")[1]
+      callback null, "#{provider}-vm-#{index+1}"
+
+
 module.exports = {
-  PROVIDERS, fetchStackTemplate, revive, reviveClient, reviveCredential
+  PROVIDERS, fetchStackTemplate, guessNextLabel
+  revive, reviveClient, reviveCredential
 }

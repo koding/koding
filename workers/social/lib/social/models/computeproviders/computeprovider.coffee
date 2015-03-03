@@ -380,4 +380,3 @@ module.exports = class ComputeProvider extends Base
                              from *.#{oldDomain} to #{newDomain}"""
             else
               console.log "Failed to update machine domain for #{username}", err
-

@@ -97,34 +97,6 @@ module.exports = class Koding extends ProviderInterface
     if err then return new KodingError err
 
 
-  guessNextLabel = (user, group, label, callback)->
-
-    return callback null, label  if label?
-
-    JMachine   = require './machine'
-
-    selector   =
-      provider : 'koding'
-      users    : $elemMatch: id: user.getId()
-      groups   : $elemMatch: id: group.getId()
-      label    : /^koding-vm-[0-9]*$/
-    options    =
-      limit    : 1
-      sort     : createdAt : -1
-
-
-    JMachine.one selector, options, (err, machine)->
-
-      return callback err  if err?
-      unless machine?
-        callback null, 'koding-vm-0'
-      else
-
-        index = +(machine.label.split 'koding-vm-')[1]
-        callback null, "koding-vm-#{index+1}"
-
-
-
   @create = (client, options, callback)->
 
     { instanceType, label, storage, region } = options
@@ -132,8 +104,11 @@ module.exports = class Koding extends ProviderInterface
 
     storage ?= 3
     userIp   = clientIP or user.registeredFrom?.ip
+    provider = 'koding'
 
-    guessNextLabel user, group, label, (err, label)=>
+    {guessNextLabel} = require './computeutils'
+    
+    guessNextLabel { user, group, label, provider }, (err, label)=>
 
       @fetchUserPlan client, (err, userPlan)=>
 
