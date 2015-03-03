@@ -148,8 +148,6 @@ module.exports = class ComputeController extends KDController
       else callback null, (new Machine { machine } for machine in machines)
 
 
-  credentialsFor: (provider, callback)->
-    remote.api.JCredential.some { provider }, callback
 
   fetchAvailable: (options, callback)->
     remote.api.ComputeProvider.fetchAvailable options, callback

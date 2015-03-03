@@ -223,6 +223,8 @@ module.exports = class ComputeHelpers
               container     : modal
               closeManually : no
             }
+
+
   # This method is not used in any place, I put it here until
   # we have a valid test suit for client side modular tests. ~ GG
   #
