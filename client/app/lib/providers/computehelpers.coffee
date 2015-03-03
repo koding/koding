@@ -4,6 +4,7 @@ globals = require 'globals'
 showError = require '../util/showError'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
+remote = require('./remote').getInstance()
 
 
 module.exports = class ComputeHelpers
@@ -81,6 +82,14 @@ module.exports = class ComputeHelpers
             unless showError err
               globals.userMachines.push machine
 
+
+
+  @reviveProvisioner = (machine, callback)->
+
+    provisioner = machine.provisioners?.first
+    return callback null  unless provisioner
+
+    remote.api.JProvisioner.one slug: provisioner, callback
 
   # This method is not used in any place, I put it here until
   # we have a valid test suit for client side modular tests. ~ GG

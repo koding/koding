@@ -587,15 +587,6 @@ module.exports = class ComputeController extends KDController
         callback err, machine
 
 
-  @reviveProvisioner = (machine, callback)->
-
-    provisioner = machine.provisioners.first
-
-    return callback null  unless provisioner
-
-    {JProvisioner} = remote.api
-    JProvisioner.one slug: provisioner, callback
-
 
   @runInitScript = (machine, inTerminal = yes)->
 
