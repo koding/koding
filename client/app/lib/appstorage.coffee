@@ -59,7 +59,7 @@ module.exports = class AppStorage extends KDObject
   setDefaults: (defaults)->
 
     for own key, value of defaults
-     @setValue key, value  unless (@getValue key)?
+      @setValue key, value  unless (@getValue key)?
 
 
   unsetKey: (key, callback, group = 'bucket')->

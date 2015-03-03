@@ -106,13 +106,13 @@ sidebarTextShadow()
 #kdmaincontainer
 
   &.collapsed
-
-    #main-panel-wrapper
-      // kalc            width, 100% \- 63px
-      // margin-left     63px
-      // shadow         -8px 0 16px #323232
-      margin-left 0
-      width       100%
+    &.with-sidebar
+      #main-panel-wrapper
+        // kalc            width, 100% \- 63px
+        // margin-left     63px
+        // shadow         -8px 0 16px #323232
+        margin-left 0
+        width       100%
 
     #sidebar-toggle:after
       left               7px

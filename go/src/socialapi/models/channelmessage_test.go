@@ -578,3 +578,33 @@ func TestChannelMessageFetchParentChannel(t *testing.T) {
 
 	})
 }
+
+func TestChannelMessageAddReply(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while adding reply message", t, func() {
+
+		Convey("channel message should have an id", func() {
+			chm := NewChannelMessage()
+			cm, err := chm.AddReply(chm)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelMessageIdIsNotSet)
+			So(cm, ShouldBeNil)
+		})
+
+		Convey("channel message id should equal to reply message id ", func() {
+			c := createMessageWithTest()
+			So(c.Create(), ShouldBeNil)
+			c2 := createMessageWithTest()
+			So(c2.Create(), ShouldBeNil)
+			cm, err := c.AddReply(c2)
+			So(err, ShouldBeNil)
+			So(cm.MessageId, ShouldEqual, c.Id)
+		})
+
+	})
+}

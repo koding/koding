@@ -42,7 +42,7 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
   init: ->
 
-    @connect()  unless @_connectAttempted
+    @connect()
     Promise.resolve()
 
 
