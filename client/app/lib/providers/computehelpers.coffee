@@ -1,9 +1,11 @@
 kd = require 'kd'
 Promise = require 'bluebird'
 globals = require 'globals'
+Machine = require './machine'
 showError = require '../util/showError'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
+KDNotificationView = kd.NotificationView
 remote = require('./remote').getInstance()
 
 
@@ -82,6 +84,45 @@ module.exports = class ComputeHelpers
             unless showError err
               globals.userMachines.push machine
 
+
+  # Helper method to run a specific app
+  # with a specific machine
+  #
+  @requireMachine = (options = {}, callback = kd.noop) ->
+
+    cc = kd.singletons.computeController
+    cc.ready =>
+
+      {app} = options
+      unless app?.name?
+        kd.warn message = "An app name required with options: {app: {name: 'APPNAME'}}"
+        return callback { message }
+
+      identifier = app.name
+      identifier = "#{app.name}_#{app.version}"  if app.version?
+      identifier = identifier.replace "\.", ""
+
+      cc.storage.fetchValue identifier, (preferredUID)->
+
+        if preferredUID?
+
+          for machine in cc.machines
+            if machine.uid is preferredUID \
+              and machine.status.state is Machine.State.Running
+                kd.info "Machine returned from previous selection."
+                return callback null, machine
+
+          kd.info """There was a preferred machine, but its
+                  not available now. Asking for another one."""
+          cc.storage.unsetKey identifier
+
+        ComputeController_UI = require 'app/providers/computecontroller.ui'
+        ComputeController_UI.askMachineForApp app, (err, machine, remember)->
+
+          if not err and remember
+            cc.storage.setValue identifier, machine.uid
+
+          callback err, machine
 
 
   @reviveProvisioner = (machine, callback)->

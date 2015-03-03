@@ -530,40 +530,6 @@ module.exports = class ComputeController extends KDController
         kd.info "Revive triggered for #{machineId}", machine
 
 
-  requireMachine: (options = {}, callback = kd.noop)-> @ready =>
-
-    {app} = options
-    unless app?.name?
-      kd.warn message = "An app name required with options: {app: {name: 'APPNAME'}}"
-      return callback { message }
-
-    identifier = app.name
-    identifier = "#{app.name}_#{app.version}"  if app.version?
-    identifier = identifier.replace "\.", ""
-
-    @storage.fetchValue identifier, (preferredUID)=>
-
-      if preferredUID?
-
-        for machine in @machines
-          if machine.uid is preferredUID \
-            and machine.status.state is Machine.State.Running
-              kd.info "Machine returned from previous selection."
-              return callback null, machine
-
-        kd.info """There was a preferred machine, but its
-                not available now. Asking for another one."""
-        @storage.unsetKey identifier
-
-      ComputeController_UI.askMachineForApp app, (err, machine, remember)=>
-
-        if not err and remember
-          @storage.setValue identifier, machine.uid
-
-        callback err, machine
-
-
-
   @runInitScript = (machine, inTerminal = yes)->
 
     { status: { state } } = machine
