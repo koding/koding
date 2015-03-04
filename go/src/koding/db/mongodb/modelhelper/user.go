@@ -62,6 +62,16 @@ func GetUserById(id string) (*models.User, error) {
 	return user, nil
 }
 
+func GetAccountByUserId(id bson.ObjectId) (*models.Account, error) {
+	user := new(models.User)
+	err := Mongo.One(UserColl, id.Hex(), user)
+	if err != nil {
+		return nil, err
+	}
+
+	return GetAccount(user.Name)
+}
+
 func GetSomeUsersBySelector(s Selector) ([]models.User, error) {
 	users := make([]models.User, 0)
 	query := func(c *mgo.Collection) error {
