@@ -4,6 +4,7 @@ import (
 	"errors"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentstatus"
 	"socialapi/workers/payment/stripe"
 	"strings"
 
@@ -42,24 +43,24 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 		}
 	}
 
-	status, err := checkStatus(customer, err, plan)
+	status, err := paymentstatus.Check(customer, err, plan)
 	if err != nil {
 		Log.Error("Subscribing to %s failed for user: %s", plan.Title, customer.Username)
 		return err
 	}
 
 	switch status {
-	case AlreadySubscribedToPlan:
-		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
-	case NewSubscription:
+	case paymentstatus.NewSubscription:
 		err = handleNewSubscription(token, accId, plan)
-	case ExistingUserHasNoSubscription:
+	case paymentstatus.ExistingUserHasNoSubscription:
 		err = handleExistingUser(token, accId, plan)
-	case DowngradeToFreePlan:
+	case paymentstatus.AlreadySubscribedToPlan:
+		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
+	case paymentstatus.DowngradeToFreePlan:
 		err = handleCancelation(customer, subscription)
-	case Downgrade:
+	case paymentstatus.DowngradeToNonFreePlan:
 		err = handleDowngrade(customer, plan, subscription)
-	case Upgrade:
+	case paymentstatus.UpgradeFromExistingSub:
 		err = handleUpgrade(token, customer, plan)
 	default:
 		Log.Error("User: %s fell into default case when subscribing: %s", customer.Username, plan.Title)

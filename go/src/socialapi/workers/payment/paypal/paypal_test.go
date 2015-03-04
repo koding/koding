@@ -12,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/koding/logging"
 	"github.com/koding/paypal"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
@@ -24,6 +25,8 @@ var (
 )
 
 func init() {
+	Log.SetLevel(logging.CRITICAL)
+
 	r := runner.New("paypaltest")
 	if err := r.Init(); err != nil {
 		panic(err)
