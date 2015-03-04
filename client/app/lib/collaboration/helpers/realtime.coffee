@@ -13,6 +13,11 @@ createCollaborationFile = (manager, id, callback) ->
     callback file
   manager.createFile id
 
+deleteCollaborationFile = (manager, id, callback) ->
+  manager.once 'FileDeleted', ->
+    callback()
+  manager.deleteFile id
+
 isSessionActive = (manager, title, callback) ->
   manager.once 'FileQueryFinished', (file) ->
     if file.result.items.length > 0
@@ -109,6 +114,7 @@ removeFromManager = (manager, references, nickname) ->
 module.exports = {
   loadCollaborationFile
   createCollaborationFile
+  deleteCollaborationFile
   isSessionActive
   getFileIdentifier
   getReferences
