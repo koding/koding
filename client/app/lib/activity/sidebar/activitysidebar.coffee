@@ -522,8 +522,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineLists = []
     @machineListsByName = {}
 
-    @ownMachinesList    = @createMachineList 'own', {}, []
-    @sharedMachinesList = @createMachineList 'shared', {}, []
+    @ownMachinesList    = @createMachineList 'own'
+    @sharedMachinesList = @createMachineList 'shared'
 
     data = environmentDataProvider.get()
 
@@ -546,7 +546,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @emit 'MachinesListed'
 
 
-  createMachineList: (type, options, data) ->
+  createMachineList: (type, options = {}, data = []) ->
 
     MachineListClasses =
       own              : SidebarOwnMachinesList
@@ -655,7 +655,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @setWorkspaceUnreadCount data, data.unreadCount
 
     if @isMachinesListed then cb()
-    else @once 'MachinesListed', => cb()
+    else @once 'MachinesListed', cb
 
 
   updateMachines: (callback = kd.noop) ->
