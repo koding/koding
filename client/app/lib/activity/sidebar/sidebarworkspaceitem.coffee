@@ -29,13 +29,15 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
       tagName    : 'cite'
       cssClass   : 'count hidden'
 
-    @settingsIcon = new KDCustomHTMLView
+    iconOptions = {}
 
     unless workspace.isDefault
-      @settingsIcon = new KDCustomHTMLView
-        tagName     : 'span'
-        cssClass    : 'ws-settings-icon'
-        click       : @bound 'showSettingsPopup'
+      iconOptions =
+        tagName   : 'span'
+        cssClass  : 'ws-settings-icon'
+        click     : @bound 'showSettingsPopup'
+
+    @settingsIcon = new KDCustomHTMLView iconOptions
 
 
   showSettingsPopup: ->
