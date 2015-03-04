@@ -111,7 +111,19 @@ module.exports = class CommentView extends KDView
 
   replaceFakeItemView: (message) ->
 
+    activity = @getData()
+
+    # TODO this code block is a c/p from messageeventmanager
+    activity.replies.push message
+    activity.replyIds[message.id] = yes
+    activity.repliesCount++
+
+    message.messageId = activity.id
+
     @putMessage message, @removeFakeMessage message.clientRequestId
+
+    activity.emit "AddReply", message
+    activity.emit "update"
 
 
   removeFakeMessage: (identifier) ->

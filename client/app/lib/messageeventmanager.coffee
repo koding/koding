@@ -89,12 +89,12 @@ module.exports = class MessageEventManager extends KDObject
       return  if filterTrollActivity owner
 
       message = @getData()
+      return  unless kd.singletons.socialapi.isFromOtherBrowser plain
+
       message.replies.push reply
       message.repliesCount++
 
       plain.message.messageId = message.id
-
-      return  unless kd.singletons.socialapi.isFromOtherBrowser plain
 
       message.emit "AddReply", reply
       message.emit "update"
