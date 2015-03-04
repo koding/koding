@@ -312,7 +312,9 @@ func newKite(kconf *KlientConfig) *kite.Kite {
 // checkAuth checks whether the given incoming request is authenticated or not.
 // It don't pass any request if the caller is outside of our scope.
 func (k *Klient) checkAuth(r *kite.Request) (interface{}, error) {
-	if r.Auth != nil {
+	// only authenticated methods have correct username. For example
+	// kite.ping has authentication disabled so username can be empty.
+	if r.Auth == nil {
 		return true, nil
 	}
 
