@@ -814,6 +814,17 @@ func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	return cp.IsParticipant(accountId)
 }
 
+func (c *Channel) FetchPublicChannel(groupName string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name":    groupName,
+			"type_constant": Channel_TYPE_GROUP,
+		},
+	}
+
+	return c.One(query)
+}
+
 func isMessageCrossIndexed(messageId int64) (error, bool) {
 	count, err := NewChannelMessageList().CountWithQuery(&bongo.Query{
 		Selector: map[string]interface{}{
