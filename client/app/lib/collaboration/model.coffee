@@ -122,6 +122,20 @@ class CollaborationModel extends KDObject
     @emit modelEvents.collaboration.QUITTED
 
 
+  leave: (callback) ->
+
+    @broadcastMessage origin: getNick(), type: 'ParticipantWantsToLeave'
+    socialHelpers.leaveChannel @channel, (err, channel) =>
+      return @handleError 'leaveChannel', err  if err
+      @removeParticipant getNick()
+      @setState 'quitted'
+
+
+  removeParticipant: (nickname) ->
+
+    realtimeHelpers.removeFromManager @rtm, @references, nickname
+
+
   addChange: (change) -> @references.changes.push change
 
   getSnapshot: -> @references?.snapshot
