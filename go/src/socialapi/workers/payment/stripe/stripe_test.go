@@ -131,6 +131,8 @@ func existingSubscribeFn(fn func(string, string, string)) func() {
 		_, err := CreateCustomer(token, accId, email)
 		So(err, ShouldBeNil)
 
+		token, _, _ = generateFakeUserInfo()
+
 		err = Subscribe(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 

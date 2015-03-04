@@ -3,6 +3,7 @@ package stripe
 import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentstatus"
 )
 
 func Subscribe(token, accId, email, planTitle, planInterval string) error {
@@ -11,65 +12,75 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
+	return subscribe(token, accId, email, plan)
+}
+
+func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
 	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
 
-	if err == paymenterrors.ErrCustomerNotFound {
-		customer, err = CreateCustomer(token, accId, email)
-		if err != nil {
+	var subscription *paymentmodels.Subscription
+	if customer != nil {
+		subscription, err = customer.FindActiveSubscription()
+		if err != nil && err != paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
 			return err
 		}
 	}
 
-	if IsFreePlan(plan) {
-		return handleCancel(customer)
-	}
-
-	err = UpdateCreditCardIfEmpty(accId, token)
+	status, err := paymentstatus.Check(customer, err, plan)
 	if err != nil {
+		Log.Error("Subscribing to %s failed for user: %s", plan.Title, customer.Username)
 		return err
 	}
 
-	subscriptions, err := FindCustomerActiveSubscriptions(customer)
-	if err != nil {
-		return err
+	switch status {
+	case paymentstatus.NewSubscription:
+		err = handleNewSubscription(token, accId, email, plan)
+	case paymentstatus.ExistingUserHasNoSub:
+		err = handleUserNoSub(customer, token, plan)
+	case paymentstatus.AlreadySubscribedToPlan:
+		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan
+	case paymentstatus.DowngradeToFreePlan:
+		err = handleCancel(customer)
+	case paymentstatus.DowngradeToNonFreePlan:
+		err = handleChangeSub(customer, subscription, plan)
+	case paymentstatus.UpgradeFromExistingSub:
+		err = handleChangeSub(customer, subscription, plan)
+	default:
+		Log.Error("User: %s fell into default case when subscribing: %s", customer.Username, plan.Title)
+		// user should never come here
 	}
 
-	if IsNoSubscriptions(subscriptions) {
-		return handleNewSubscription(customer, plan)
-	}
-
-	if IsOverSubscribed(subscriptions) {
-		return paymenterrors.ErrCustomerHasTooManySubscriptions
-	}
-
-	var currentSubscription = subscriptions[0]
-
-	if IsSubscribedToPlan(currentSubscription, plan) {
-		return paymenterrors.ErrCustomerAlreadySubscribedToPlan
-	}
-
-	err = UpdateSubscriptionForCustomer(customer, subscriptions, plan)
-
-	if err != nil {
-		removeCreditCardHelper(customer)
-		return err
-	}
-
-	return nil
+	return err
 }
 
-func handleNewSubscription(customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
-	_, err := CreateSubscription(customer, plan)
+func handleNewSubscription(token, accId, email string, plan *paymentmodels.Plan) error {
+	customer, err := CreateCustomer(token, accId, email)
+	if err != nil {
+		return err
+	}
 
+	_, err = CreateSubscription(customer, plan)
 	if err != nil {
 		deleteCustomer(customer)
 		return err
 	}
 
 	return nil
+}
+
+func handleUserNoSub(customer *paymentmodels.Customer, token string, plan *paymentmodels.Plan) error {
+	if token != "" {
+		err := UpdateCreditCard(customer.OldId, token)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err := CreateSubscription(customer, plan)
+	return err
 }
 
 func handleCancel(customer *paymentmodels.Customer) error {
@@ -86,6 +97,10 @@ func handleCancel(customer *paymentmodels.Customer) error {
 	}
 
 	return nil
+}
+
+func handleChangeSub(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription, plan *paymentmodels.Plan) error {
+	return UpdateSubscriptionForCustomer(customer, subscription, plan)
 }
 
 func deleteCustomer(customer *paymentmodels.Customer) {

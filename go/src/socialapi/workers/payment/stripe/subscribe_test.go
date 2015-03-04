@@ -202,10 +202,16 @@ func TestSubscribe6(t *testing.T) {
 func TestSubscribe7(t *testing.T) {
 	Convey("Given an existent customer, but no subscription", t,
 		subscribeFn(func(token, accId, email string) {
-			Convey("When customer upgrades to plan", func() {
-				err := Subscribe(token, accId, email, FreePlan, FreeInterval)
-				So(err, ShouldBeNil)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+			So(err, ShouldBeNil)
 
+			sub, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+
+			err = CancelSubscriptionAndRemoveCC(customer, sub)
+			So(err, ShouldBeNil)
+
+			Convey("When customer upgrades to plan", func() {
 				tokenParams := &stripe.TokenParams{
 					Card: &stripe.CardParams{
 						Number: "4012888888881881",
