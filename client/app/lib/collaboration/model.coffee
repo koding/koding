@@ -30,6 +30,7 @@ modelEvents =
     LEAVE_REALTIME: 'ParticipantLeftRealtime'
   realtime      :
     CHANGE        : 'ChangeHappened'
+    BROADCAST     : 'BroadcastMessageArrived'
     PERMISSION    : 'PermissionChanged'
     SESSION_CHECK : 'SessionCheckFinished'
   social :
