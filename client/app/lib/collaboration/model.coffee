@@ -1,14 +1,11 @@
-machina  = require 'machina'
-kd       = require 'kd'
-getNick  = require 'app/util/nick'
-KDObject = kd.Object
-_ = require 'lodash'
-
-remote = require('app/remote').getInstance()
-
+_               = require 'lodash'
+machina         = require 'machina'
+kd              = require 'kd'
+getNick         = require 'app/util/nick'
+KDObject        = kd.Object
+remote          = require('app/remote').getInstance()
 RealtimeManager = require 'ide/realtimemanager'
-
-socialHelpers = require './helpers/social'
+socialHelpers   = require './helpers/social'
 realtimeHelpers = require './helpers/realtime'
 
 smEvents =
@@ -59,18 +56,17 @@ class CollaborationModel extends KDObject
 
   initStateMachine: ->
 
-    self = this
     @stateMachine = new machina.Fsm
       initialState: 'uninitialized'
       states:
         uninitialized:
-          _onEnter: -> self.handleUninitialized()
+          _onEnter: @bound 'handleUninitialized'
         prepared:
-          _onEnter: -> self.handlePrepared()
+          _onEnter: @bound 'handlePrepared'
         active:
-          _onEnter: -> self.handleActive()
+          _onEnter: @bound 'handleActive'
         terminated:
-          _onEnter: -> self.handleTerminated()
+          _onEnter: @bound 'handleTerminated'
 
 
   setState: (state) ->
