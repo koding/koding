@@ -52,7 +52,7 @@ func subscribe(token, accId string, plan *paymentmodels.Plan) error {
 	switch status {
 	case paymentstatus.NewSubscription:
 		err = handleNewSubscription(token, accId, plan)
-	case paymentstatus.ExistingUserHasNoSubscription:
+	case paymentstatus.ExistingUserHasNoSub:
 		err = handleExistingUser(token, accId, plan)
 	case paymentstatus.AlreadySubscribedToPlan:
 		err = paymenterrors.ErrCustomerAlreadySubscribedToPlan

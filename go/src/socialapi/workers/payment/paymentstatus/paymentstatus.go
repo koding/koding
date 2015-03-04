@@ -3,20 +3,20 @@ package paymentstatus
 import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
-	"socialapi/workers/payment/stripe"
+	"socialapi/workers/payment/paymentplan"
 )
 
 type Status int
 
 const (
-	Default                       Status = iota
-	Error                         Status = iota
-	NewSubscription               Status = iota
-	ExistingUserHasNoSubscription Status = iota
-	AlreadySubscribedToPlan       Status = iota
-	DowngradeToFreePlan           Status = iota
-	DowngradeToNonFreePlan        Status = iota
-	UpgradeFromExistingSub        Status = iota
+	Default                 Status = iota
+	Error                   Status = iota
+	NewSubscription         Status = iota
+	ExistingUserHasNoSub    Status = iota
+	AlreadySubscribedToPlan Status = iota
+	DowngradeToFreePlan     Status = iota
+	DowngradeToNonFreePlan  Status = iota
+	UpgradeFromExistingSub  Status = iota
 )
 
 func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan) (Status, error) {
@@ -30,7 +30,7 @@ func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan
 	}
 
 	if err == paymenterrors.ErrCustomerNotSubscribedToAnyPlans {
-		return ExistingUserHasNoSubscription, nil
+		return ExistingUserHasNoSub, nil
 	}
 
 	oldPlan := paymentmodels.NewPlan()
@@ -76,11 +76,11 @@ func IsDowngradeToFreePlan(plan *paymentmodels.Plan) bool {
 }
 
 func IsDowngradeToNonFreePlan(oldPlan, plan *paymentmodels.Plan) bool {
-	oldPlanValue := stripe.GetPlanValue(
+	oldPlanValue := paymentplan.GetPlanValue(
 		oldPlan.Title, oldPlan.Interval,
 	)
 
-	newPlanValue := stripe.GetPlanValue(plan.Title, plan.Interval)
+	newPlanValue := paymentplan.GetPlanValue(plan.Title, plan.Interval)
 
 	return newPlanValue < oldPlanValue
 }

@@ -2,6 +2,7 @@ package stripe
 
 import (
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentplan"
 
 	stripe "github.com/stripe/stripe-go"
 )
@@ -52,11 +53,11 @@ func IsCreditCardEmpty(ccResp *CreditCardResponse) bool {
 }
 
 func IsDowngrade(oldPlan, newPlan *paymentmodels.Plan) bool {
-	oldPlanValue := GetPlanValue(
+	oldPlanValue := paymentplan.GetPlanValue(
 		oldPlan.Title, oldPlan.Interval,
 	)
 
-	newPlanValue := GetPlanValue(newPlan.Title, newPlan.Interval)
+	newPlanValue := paymentplan.GetPlanValue(newPlan.Title, newPlan.Interval)
 
 	return newPlanValue < oldPlanValue
 }
