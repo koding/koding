@@ -66,7 +66,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           defaultValue  : running
           itemClass     : KodingSwitch
           cssClass      : "tiny"
-          disabled      : data.isPermanent?()
+          disabled      : data.isPermanent()
           callback      : (state) => @emit 'StateChange', state
           nextElement   :
             statusLoader:
