@@ -9,6 +9,11 @@ addParticipants = (opts, callback) ->
 removeParticipants = (opts, callback) ->
   kd.singletons.socialapi.channel.removeParticipants opts, callback
 
+kickParticipants = (channel, accounts = [], callback) ->
+  accounts = [].concat accounts  unless Array.isArray accounts
+  opts = { channelId: channel.id, accountIds: accounts.map (a) -> a.socialApiId }
+  kd.singletons.socialapi.channel.kickParticipants opts, callback
+
 fetchChannel = (id, callback) ->
   kd.singletons.socialapi.cacheable 'channel', id, callback
 
@@ -42,6 +47,7 @@ fetchAccount = (userId, callback) ->
 module.exports = {
   addParticipants
   removeParticipants
+  kickParticipants
   fetchChannel
   destroyChannel
   leaveChannel
