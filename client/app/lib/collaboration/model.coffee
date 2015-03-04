@@ -153,6 +153,56 @@ class CollaborationModel extends KDObject
     realtimeHelpers.removeFromManager @rtm, @references, nickname
 
 
+  terminate: do ->
+    terminateConstraints =
+      channelTerminated: no
+      realtimeTerminated: no
+      workspaceTerminated: no
+    transitionIfReady = (model) ->
+      ready = _.all terminateConstraints, Boolean
+      model.setState 'terminated'  if ready
+    ->
+      @broadcastMessage { origin: getNick(), type: realtimeEvents.TERMINATED }
+      @references.snapshot.clear()
+      @terminateChannel terminateConstraints, =>
+        @terminateWorkspace terminateConstraints, =>
+          transitionIfReady this
+
+      @terminateRealtimeManager terminateConstraints, =>
+        transitionIfReady this
+
+      transitionIfReady this
+
+
+  terminateChannel: (constraints, callback) ->
+
+    socialHelpers.destroyChannel @channel, (err) =>
+      return @handleError 'terminateChannel', err  if err
+      @channel = null
+      constraints?.channelTerminated = yes
+      callback?()
+
+
+  terminateWorkspace: (constraints, callback) ->
+
+    {JWorkspace} = remote.api
+    options = $unset: channelId: 1
+    JWorkspace.update @workspace._id, options, (err) =>
+      return @handleError 'terminateWorkspace', err  if err
+      @workspace.channelId = null
+      constraints.workspaceTerminated = yes
+      callback()
+
+
+  terminateRealtimeManager: (constraints, callback) ->
+
+    realtimeHelpers.deleteCollaborationFile @rtm, @getFileIdentifier(), =>
+      @rtm.dispose()
+      @rtm = null
+      constraints.realtimeTerminated = yes
+      callback()
+
+
   kick: (account) ->
 
     user = account.profile.nickname
