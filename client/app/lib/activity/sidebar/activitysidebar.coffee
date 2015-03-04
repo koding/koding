@@ -113,7 +113,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if isChannelCollaborative channel
       if channelMessage.payload['system-message'] in ['start', 'stop']
-        @fetchMachines =>
+        @fetchEnvironmentData =>
           @setWorkspaceUnreadCount channel, unreadCount
 
     switch update.channel.typeConstant
@@ -263,7 +263,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       index = 0  if isPrivateMessage
 
       if isChannelCollaborative channel
-        @fetchMachines (data) =>
+        @fetchEnvironmentData (data) =>
           @sharedMachinesList.updateList data.shared.concat data.collaboration
           @setWorkspaceUnreadCount channel, unreadCount
       else
@@ -287,7 +287,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     # acet - refactor required.
     # if @workspaceItemChannelMap[id]
-    #   @fetchMachines => @fetchWorkspaces()
+    #   @fetchEnvironmentData => @fetchWorkspaces()
 
     # TODO update participants in sidebar
 
@@ -510,8 +510,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       machineList.selectMachineAndWorkspace machine.uid, workspace.slug
 
 
-  # TODO: Rename this method to fetchEnvironment - acet!
-  fetchMachines: (callback) ->
+  fetchEnvironmentData: (callback) ->
 
     environmentDataProvider.fetch (data) => callback data
 
@@ -657,7 +656,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = kd.noop) ->
 
-    @fetchMachines (data) =>
+    @fetchEnvironmentData (data) =>
       @ownMachinesList.updateList data.own
       @sharedMachinesList.updateList data.shared.concat data.collaboration
 
