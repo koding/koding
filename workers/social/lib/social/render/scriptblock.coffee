@@ -34,8 +34,8 @@ module.exports = (options = {}, callback)->
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
-    userEnvironmentData = JSON.stringify userEnvironmentData
-    userId = JSON.stringify userId
+    userEnvironmentData  = JSON.stringify userEnvironmentData
+    userId               = JSON.stringify userId
 
     """
     <script type="text/javascript">
