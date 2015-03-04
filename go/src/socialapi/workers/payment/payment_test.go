@@ -14,6 +14,7 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
+	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 	stripeClient "github.com/stripe/stripe-go"
 	stripeToken "github.com/stripe/stripe-go/token"
@@ -31,6 +32,8 @@ func init() {
 	Initialize(config.MustGet())
 
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	Log.SetLevel(logging.CRITICAL)
 }
 
 func TestGetAllCustomers(t *testing.T) {
@@ -87,8 +90,7 @@ func TestExpireSubscription(t *testing.T) {
 			_, err = req.Expire()
 			So(err, ShouldBeNil)
 
-			customer := paymentmodels.NewCustomer()
-			err = customer.ByOldId(req.AccountId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(req.AccountId)
 			So(err, ShouldBeNil)
 
 			Convey("Then it should expire subscription", func() {
@@ -117,7 +119,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		customer, err := stripe.FindCustomerByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		Convey("When subscription is expired", func() {
@@ -147,7 +149,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		customer, err := stripe.FindCustomerByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		Convey("When subscription is canceled", func() {
@@ -177,7 +179,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		customer, err := stripe.FindCustomerByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		req := AccountRequest{AccountId: customer.OldId}
