@@ -101,6 +101,11 @@ removeParticipantFromMaps = (manager, nickname) ->
 removeParticipantFromPermissions = (references, nickname) ->
   references.permissions.delete nickname
 
+removeFromManager = (manager, references, nickname) ->
+  removeParticipantFromParticipantList references, nickname
+  removeParticipantFromMaps manager, nickname
+  removeParticipantFromPermissions references, nickname
+
 module.exports = {
   loadCollaborationFile
   createCollaborationFile
@@ -108,5 +113,6 @@ module.exports = {
   getFileIdentifier
   getReferences
   getTargetUser
+  removeFromManager
 }
 
