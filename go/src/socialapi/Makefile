@@ -52,7 +52,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev mailsenderdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -130,6 +130,10 @@ collaborationdev:
 	@echo "$(OK_COLOR)==> Running Collaboration Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/collaboration -watch socialapi/workers/collaboration -kite-init -c $(CONFIG) $(DBG) $(METRICS)
 
+mailsenderdev:
+	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/email/sender -kite-init -c $(CONFIG) $(DBG) $(METRICS)
+
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
@@ -201,7 +205,17 @@ testcollaboration:
 	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
-testapi: testcollaboration
+testmailsender:
+	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/sender/tests/*.go
+	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./sender.test
+
+	@`which go` test -c workers/email/sender/*.go
+	@./sender.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./sender.test
+
+testapi: testcollaboration testmailsender
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
