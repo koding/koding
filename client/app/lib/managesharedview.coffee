@@ -38,12 +38,13 @@ module.exports = class ManageSharedView extends KDView
 
       user = @autoComplete.getSelectedItemData()?.last
 
-      if user?
-        @addUser user
-        @toggleInput yes
+      return unless user?
+      
+      @addUser user
+      @toggleInput yes
 
-        @autoComplete.selectedItemCounter = 0
-        @autoComplete.selectedItemData    = []
+      @autoComplete.selectedItemCounter = 0
+      @autoComplete.selectedItemData    = []
 
 
     @usersController    = new KDListViewController
@@ -71,7 +72,7 @@ module.exports = class ManageSharedView extends KDView
 
     @addSubView @warning = new KDCustomHTMLView
       cssClass          : 'warning hidden'
-      click             : -> @hide()
+      click             : @bound 'hide'
 
     @listUsers()
 
@@ -87,8 +88,11 @@ module.exports = class ManageSharedView extends KDView
       @updateInMemoryListOfUsers users
 
       @usersController.replaceAllItems users
-      @userListView[if users.length > 0 then 'show' else 'hide']()
-
+      
+      if users.length > 0
+      then @userListView.show()
+      else @userListView.hide()
+      
       @loader.hide()
 
 
