@@ -122,6 +122,13 @@ class CollaborationModel extends KDObject
 
   amIWatchingChangeOwner : (change) -> change.origin in @getWatchMap().keys()
 
+  ###*
+   * @param {String}  - message.origin
+   * @param {String}  - message.type
+   * @param {String=} - message.target
+  ###
+  broadcastMessage: (message) -> @references.broadcastMessages.push message
+
 
   setChannel: (channel) -> @channel = channel
 
