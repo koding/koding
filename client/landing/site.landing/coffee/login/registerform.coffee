@@ -21,7 +21,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         validate          : @getEmailValidator()
         decorateValidation: no
         focus             : => @email.icon.unsetTooltip()
-        keyup             : (event) => @submitForm event  if event.which is ENTER
+        keydown           : (event) => @submitForm event  if event.which is ENTER
         blur              : => @fetchGravatarInfo @email.input.getValue()
         change            : => @emailIsAvailable = no
 
@@ -33,7 +33,7 @@ module.exports = class RegisterInlineForm extends LoginViewInlineForm
         testPath         : "recover-password"
         placeholder      : "Password"
         focus            : => @password.icon.unsetTooltip()
-        keyup            : (event) =>
+        keydown          : (event) =>
           if event.which is ENTER
             @password.input.validate()
             @button.click event
