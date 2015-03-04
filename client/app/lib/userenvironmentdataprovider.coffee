@@ -5,6 +5,7 @@ remote = require('app/remote').getInstance()
 
 module.exports = UserEnvironmentDataProvider =
 
+
   fetch: (callback) ->
 
     remote.api.Sidebar.fetchEnvironment (err, data) =>
@@ -41,13 +42,11 @@ module.exports = UserEnvironmentDataProvider =
     return shared.concat @getCollaborationMachines()
 
 
-  getCollaborationMachines: (callback) ->
+  getCollaborationMachines: ->
 
     data = globals.userEnvironmentData.collaboration
 
-    return data  unless callback
-
-    callback data
+    return data
 
 
   getAllMachines: ->
