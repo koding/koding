@@ -192,8 +192,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @container.destroySubViews()
 
-    @createStateLabel \
-      "Checking state for <strong>#{@machineName or ''}</strong>..."
+    @createStateLabel "Checking state for <strong>#{@machineName or ''}</strong>..."
 
     @createLoading()
     @createFooter()
