@@ -882,6 +882,7 @@ module.exports =
       buttons      :
         ok         :
           title    : 'OK'
+          style    : 'solid green medium'
           callback : => @modal.destroy()
 
     @showModal options
