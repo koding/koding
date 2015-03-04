@@ -1,7 +1,7 @@
 package algoliaconnector
 
 import (
-	"errors"
+	"encoding/json"
 	"fmt"
 	"socialapi/models"
 	"strconv"
@@ -12,9 +12,31 @@ import (
 )
 
 var (
-	ErrAlgoliaObjectIdNotFound = errors.New("{\"message\":\"ObjectID does not exist\"}\n")
-	ErrAlgoliaIndexNotExist    = errors.New("{\"message\":\"Index messages.test does not exist\"}\n")
+	ErrAlgoliaObjectIdNotFoundMsg = "ObjectID does not exist"
+	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
 )
+
+type algoliaErrorRes struct {
+	Message string `json:"message"`
+	Status  int    `json:"status"`
+}
+
+func IsAlgoliaError(err error, message string) bool {
+	if err == nil {
+		return false
+	}
+
+	v := &algoliaErrorRes{}
+	if err := json.Unmarshal([]byte(err.Error()), v); err != nil {
+		return false
+	}
+
+	if v.Message == message {
+		return true
+	}
+
+	return false
+}
 
 type IndexSet map[string]*algoliasearch.Index
 
@@ -78,8 +100,9 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 
 	record, err := f.get("messages", objectId)
-	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound.Error() &&
-		err.Error() != ErrAlgoliaIndexNotExist.Error() {
+	if err != nil &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
 		return err
 	}
 
@@ -106,8 +129,9 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 	objectId := strconv.FormatInt(listing.MessageId, 10)
 
 	record, err := f.get("messages", objectId)
-	if err != nil && err.Error() != ErrAlgoliaObjectIdNotFound.Error() &&
-		err.Error() != ErrAlgoliaIndexNotExist.Error() {
+	if err != nil &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
 		return err
 	}
 
