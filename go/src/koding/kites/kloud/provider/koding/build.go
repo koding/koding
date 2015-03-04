@@ -184,7 +184,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		})
 	} else {
 		b.log.Debug("Continue build process with data, instanceId: '%s' and queryString: '%s'",
-			b.machine.Id, instanceId, queryString)
+			instanceId, queryString)
 	}
 
 	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
@@ -193,7 +193,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		b.log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
-			b.machine.Id, instanceId, err)
+			instanceId, err)
 
 		// we fallback to us-east-1 because a terminated or no instances error
 		// only appears if the given region doesn't have any space left to
@@ -257,8 +257,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
 		b.normalize(90), machinestate.Building)
-	b.log.Debug("All finished, testing for klient connection IP [%s]",
-		b.machine.Id, buildArtifact.IpAddress)
+	b.log.Debug("All finished, testing for klient connection IP [%s]", buildArtifact.IpAddress)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
 	}
@@ -267,8 +266,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 }
 
 func (b *Build) imageData() (*ImageData, error) {
-	b.log.Debug("Fetching image which is tagged with '%s'",
-		b.machine.Id, DefaultCustomAMITag)
+	b.log.Debug("Fetching image which is tagged with '%s'", DefaultCustomAMITag)
 	image, err := b.amazon.ImageByTag(DefaultCustomAMITag)
 	if err != nil {
 		return nil, err
@@ -357,8 +355,7 @@ func (b *Build) imageData() (*ImageData, error) {
 		image.Id = registerResp.ImageId
 	}
 
-	b.log.Debug("Using image Id: %s and block device settings %v",
-		b.machine.Id, image.Id, blockDeviceMapping)
+	b.log.Debug("Using image Id: %s and block device settings %v", image.Id, blockDeviceMapping)
 
 	return &ImageData{
 		imageId:            image.Id,
@@ -369,8 +366,7 @@ func (b *Build) imageData() (*ImageData, error) {
 // buildData returns all necessary data that is needed to build a machine.
 func (b *Build) buildData() (*BuildData, error) {
 	// get all subnets belonging to Kloud
-	b.log.Debug("Searching for subnet that are tagged with 'kloud-subnet-*'",
-		b.machine.Id)
+	b.log.Debug("Searching for subnet that are tagged with 'kloud-subnet-*'")
 	subnets, err := b.amazon.SubnetsWithTag(DefaultKloudSubnetValue)
 	if err != nil {
 		return nil, err
@@ -379,8 +375,7 @@ func (b *Build) buildData() (*BuildData, error) {
 	// sort and get the lowest
 	subnet := subnets.WithMostIps()
 
-	b.log.Debug("Searching for security group for vpc id '%s'",
-		b.machine.Id, subnet.VpcId)
+	b.log.Debug("Searching for security group for vpc id '%s'", subnet.VpcId)
 	group, err := b.amazon.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
 	if err != nil {
 		return nil, err
@@ -392,8 +387,7 @@ func (b *Build) buildData() (*BuildData, error) {
 	}
 
 	b.log.Debug("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-		b.machine.Id, subnet.SubnetId, subnet.AvailabilityZone,
-		group.Id, subnet.AvailableIpAddressCount)
+		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
 
 	if b.amazon.Builder.InstanceType == "" {
 		b.log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro",
@@ -492,8 +486,8 @@ func (b *Build) userData(kiteId string) ([]byte, error) {
 			}
 		}
 
-		b.log.Error("Cloudinit template is not a valid YAML file: %v. YAML file path: %s", cloudErr,
-			f.Name())
+		b.log.Error("Cloudinit template is not a valid YAML file: %v. YAML file path: %s",
+			cloudErr, f.Name())
 		return nil, errors.New("Cloudinit template is not a valid YAML file.")
 	}
 
@@ -511,13 +505,12 @@ func (b *Build) checkLimits(buildData *BuildData) error {
 		return err
 	}
 
-	b.log.Debug("Check if user is allowed to create instance type %s",
-		b.machine.Id, buildData.EC2Data.InstanceType)
+	b.log.Debug("Check if user is allowed to create instance type %s", buildData.EC2Data.InstanceType)
 
 	// check if the user is egligible to create a vm with this instance type
 	if err := b.checker.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
 		b.log.Critical("Instance type (%s) is not allowed. Fallback to t2.micro",
-			b.machine.Id, buildData.EC2Data.InstanceType)
+			buildData.EC2Data.InstanceType)
 		buildData.EC2Data.InstanceType = T2Micro.String()
 	}
 
@@ -585,13 +578,13 @@ func (b *Build) create(buildData *BuildData) (string, error) {
 			buildData.EC2Data.InstanceType = instanceType
 
 			b.log.Warning("Fallback build by using availability zone: %s, subnet %s and instance type: %s",
-				b.machine.Id, zone, subnet.SubnetId, instanceType)
+				zone, subnet.SubnetId, instanceType)
 
 			buildArtifact, err := b.amazon.Build(buildData.EC2Data)
 			if err != nil {
 				// if there is no capacity we are going to use the next one
 				b.log.Warning("Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
-					b.machine.Id, zone)
+					zone)
 				continue
 			}
 
