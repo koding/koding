@@ -355,7 +355,7 @@ func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Accou
 
 	m2ws1 := &mongomodels.Workspace{
 		ObjectId:     bson.NewObjectId(),
-		OriginId:     ownerUser.ObjectId,
+		OriginId:     bson.ObjectIdHex(creator.OldId),
 		Name:         "My Workspace",
 		Slug:         "m2ws1",
 		ChannelId:    strconv.FormatInt(c3.Id, 10),
@@ -370,7 +370,7 @@ func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Accou
 
 	m2ws2 := &mongomodels.Workspace{
 		ObjectId:     bson.NewObjectId(),
-		OriginId:     ownerUser.ObjectId,
+		OriginId:     bson.ObjectIdHex(creator.OldId),
 		Name:         "My Workspace",
 		Slug:         "m2ws2",
 		ChannelId:    strconv.FormatInt(c4.Id, 10),
@@ -453,6 +453,7 @@ func prepareSingleWorkspace(creator, participant1, participant2 *socialapimodels
 	So(modelhelper.CreateMachine(m1), ShouldBeNil)
 
 	m1ws1 := &mongomodels.Workspace{
+
 		ObjectId:     bson.NewObjectId(),
 		OriginId:     ownerUser.ObjectId,
 		Name:         "My Workspace",
