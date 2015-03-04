@@ -16,10 +16,4 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
 
     @on 'ListHeaderPlusIconClicked', -> ComputeHelpers.handleNewMachineRequest()
 
-    @on 'ListHeaderClicked', =>
-
-      machines = []
-
-      machines.push new Machine machine: obj.machine  for obj in data
-
-      new MoreVMsModal {}, machines
+    @on 'ListHeaderClicked', => new MoreVMsModal {}, @getMachines()
