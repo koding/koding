@@ -13,6 +13,7 @@ import (
 func createWorkspace() (*models.Workspace, error) {
 	ws := &models.Workspace{
 		ObjectId:     bson.NewObjectId(),
+		OriginId:     bson.NewObjectId(),
 		Name:         "My Workspace",
 		Slug:         "my-workspace",
 		ChannelId:    strconv.FormatInt(rand.Int63(), 10),
