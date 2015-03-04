@@ -120,6 +120,41 @@ func UnshareMachineByUid(uid string) error {
 	return Mongo.Run(MachineColl, query)
 }
 
+// RemoveUsersFromMachineByIds removes the given users from JMachine document
+func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
+	machine, err := GetMachineByUid(uid)
+	if err != nil {
+		return err
+	}
+
+	users := make([]models.MachineUser, 0)
+
+	for _, user := range machine.Users {
+		toBeAded := true
+		for _, id := range ids {
+			if user.Id.Hex() == id.Hex() {
+				toBeAded = false
+			}
+		}
+
+		if toBeAded {
+			// we couldnt find the account in to be removed list, so add it back
+			users = append(users, user)
+		}
+	}
+
+	s := Selector{"_id": machine.ObjectId}
+	o := Selector{"$set": Selector{
+		"users": users,
+	}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(s, o)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 	user, err := GetUser(username)
 	if err != nil {
