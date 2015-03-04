@@ -26,6 +26,8 @@ modelEvents =
     WATCH         : 'ParticipantWatched'
     UNWATCH       : 'ParticipantUnwatched'
     KICK          : 'ParticipantKicked'
+    JOIN_REALTIME : 'ParticipantJoinedRealtime'
+    LEAVE_REALTIME: 'ParticipantLeftRealtime'
   realtime      :
     CHANGE        : 'ChangeHappened'
     PERMISSION    : 'PermissionChanged'
@@ -43,6 +45,8 @@ realtimeEvents =
 
 socialEvents =
   READY : 'ChannelReady'
+  JOIN  : 'AddedToChannel'
+  LEAVE : 'RemovedFromChannel'
 
 class CollaborationModel extends KDObject
 
@@ -112,6 +116,7 @@ class CollaborationModel extends KDObject
     { initialSnapshot } = @getOptions()
     @references = realtimeHelpers.getReferences @rtm, @channelId, initialSnapshot
     @subscribeToRealtimeManager()
+    @subscribeToSocialChannel()
 
     @emit modelEvents.collaboration.ACTIVE
 
@@ -247,6 +252,21 @@ class CollaborationModel extends KDObject
     @references.participants.push { nickname, hash }
 
 
+  subscribeToSocialChannel: ->
+
+    @channel.on socialEvents.JOIN, (participant) =>
+      return  unless participant.constructorName is 'JAccount'
+      remote.cacheable 'JAccount', participant._id, (err, account) =>
+        return @handleError 'fetchAccount', err  if err
+        @emit modelEvents.participant.JOIN, account.profile.nickname
+
+    @channel.on socialEvents.LEAVE, (participant) =>
+      return  unless participant.constructorName is 'JAccount'
+      remote.cacheable 'JAccount', participant._id, (err, account) =>
+        return @handleError 'fetchAccount', err  if err
+        @emit modelEvents.participant.LEFT, account.profile.nickname
+
+
   subscribeToRealtimeManager: ->
 
     @rtm.on realtimeEvents.VALUE_ADDED, (list, event) =>
@@ -287,7 +307,7 @@ class CollaborationModel extends KDObject
       unless targetUser
         return console.warn 'Unknown user in collaboration, we should handle this case...'
 
-      @emit modelEvents.participant.JOIN, targetUser
+      @emit modelEvents.participant.JOIN_REALTIME, targetUser
 
     @rtm.on realtimeEvents.LEAVE, (doc, participantData) => kd.utils.wait 2000, =>
       {participants}            = @references
@@ -309,7 +329,7 @@ class CollaborationModel extends KDObject
 
       participants.remove targetIndex
 
-      @emit modelEvents.participant.LEAVE, targetUser
+      @emit modelEvents.participant.LEAVE_REALTIME, targetUser
 
 
   getFileIdentifier: -> "#{@options.host}.#{@channelId}"
