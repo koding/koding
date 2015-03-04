@@ -109,8 +109,18 @@ class CollaborationModel extends KDObject
 
     @emit modelEvents.collaboration.ACTIVE
 
+  addChange: (change) -> @references.changes.push change
+
+  getSnapshot: -> @references.snapshot
+
+  getWatchMap: -> @references.watchMap
+
+  amIWatchingChangeOwner : (change) -> change.origin in @getWatchMap().keys()
+
+  handleTerminated: -> # todo
 
   setChannel: (channel) -> @channel = channel
+
 
   activate: ->
 
