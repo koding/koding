@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -103,13 +102,11 @@ func (m *MixpanelClient) makeRequest(action string, obj interface{}) error {
 }
 
 func (m *MixpanelClient) encodePayload(obj interface{}) (string, error) {
-	fmt.Println("X", obj)
-
 	b, err := json.MarshalIndent(obj, "", "  ")
 	if err != nil {
 		return "", err
 	}
-	log.Printf("payload:\n%v\n", string(b))
+
 	return base64.StdEncoding.EncodeToString(b), nil
 }
 

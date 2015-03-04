@@ -82,6 +82,9 @@ type Logger interface {
 	// the Logger. Default value is zero.
 	SetCallDepth(int)
 
+	// New creates a new inerhited context logger with the given prefix.
+	New(prefix string) Logger
+
 	// Fatal is equivalent to l.Critical followed by a call to os.Exit(1).
 	Fatal(format string, args ...interface{})
 
@@ -172,6 +175,15 @@ func NewLogger(name string) Logger {
 		Level:   DefaultLevel,
 		Handler: DefaultHandler,
 	}
+}
+
+// New creates a new inerhited logger with the given prefix
+func (l *logger) New(prefix string) Logger {
+	c := &context{
+		prefix: "[" + prefix + "]",
+	}
+	c.logger = *l
+	return c
 }
 
 func (l *logger) SetLevel(level Level) {

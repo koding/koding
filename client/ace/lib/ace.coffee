@@ -103,10 +103,12 @@ module.exports = class Ace extends KDView
 
   prepareEditor:->
 
-    @setTheme()
+    @setTheme null, no
     @setSyntax()
     @setEditorListeners()
+
     @appStorage.fetchStorage (storage)=>
+      @setTheme()
       @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
       @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
       @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no     ,no

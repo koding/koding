@@ -101,23 +101,51 @@ func UnshareMachineByUid(uid string) error {
 		return err
 	}
 
-	owner := make([]models.MachineUser, 1)
-	for _, user := range machine.Users {
-		// this is the correct way to remove all users but the owner from a
-		// machine
-		if user.Sudo && user.Owner {
-			owner[0] = user
-			break
-		}
-	}
-
-	if len(owner) == 0 {
+	machineOwner := machine.Owner()
+	if machineOwner == nil {
 		return errors.New("owner couldnt found")
 	}
+
+	owner := []models.MachineUser{*machineOwner}
 
 	s := Selector{"_id": machine.ObjectId}
 	o := Selector{"$set": Selector{
 		"users": owner,
+	}}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(s, o)
+	}
+
+	return Mongo.Run(MachineColl, query)
+}
+
+// RemoveUsersFromMachineByIds removes the given users from JMachine document
+func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
+	machine, err := GetMachineByUid(uid)
+	if err != nil {
+		return err
+	}
+
+	users := make([]models.MachineUser, 0)
+
+	for _, user := range machine.Users {
+		toBeAdded := true
+		for _, id := range ids {
+			if user.Id.Hex() == id.Hex() {
+				toBeAdded = false
+			}
+		}
+
+		if toBeAdded {
+			// we couldnt find the account in to be removed list, so add it back
+			users = append(users, user)
+		}
+	}
+
+	s := Selector{"_id": machine.ObjectId}
+	o := Selector{"$set": Selector{
+		"users": users,
 	}}
 
 	query := func(c *mgo.Collection) error {

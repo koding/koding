@@ -176,7 +176,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "resize-#{@machineId}",(event)=>
       @updateStatus event, 'resize'
 
-    computeController.followUpcomingEvents @machine
+    computeController.eventListener.followUpcomingEvents @machine
 
     @eventTimer = null
     @_lastPercentage = 0

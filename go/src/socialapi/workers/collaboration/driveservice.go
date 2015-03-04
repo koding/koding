@@ -12,7 +12,7 @@ import (
 	"code.google.com/p/google-api-go-client/googleapi"
 )
 
-func (c *Controller) createFile() (*drive.File, error) {
+func createTestFile(c *Controller) (*drive.File, error) {
 	svc, err := CreateService(&c.conf.GoogleapiServiceAccount)
 	if err != nil {
 		return nil, err

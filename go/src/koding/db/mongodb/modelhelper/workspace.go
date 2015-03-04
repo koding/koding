@@ -47,3 +47,14 @@ func CreateWorkspace(w *models.Workspace) error {
 	query := insertQuery(w)
 	return Mongo.Run(WorkspaceColl, query)
 }
+
+func UnsetSocialChannelFromWorkspace(machineId bson.ObjectId) error {
+	query := func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{"_id": machineId},
+			bson.M{"$unset": bson.M{"channelId": ""}},
+		)
+	}
+
+	return Mongo.Run(WorkspaceColl, query)
+}
