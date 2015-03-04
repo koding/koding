@@ -112,6 +112,9 @@ module.exports = class SocialApiController extends KDController
     m = new remote.api.SocialMessage plain
     m.account = mapAccounts(accountOldId)[0]
 
+    m.replyIds = {}
+    m.replyIds[reply.id] = yes  for reply in data.replies
+
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
     m.isFollowed   = data.isFollowed

@@ -76,22 +76,22 @@ module.exports = class MessageEventManager extends KDObject
 
   addReply: (plain) ->
 
-    # revive adds the reply to cache. if reply is already there, it means it is shown
-    # on the screen
-    # TODO this code gone mad. Need a better caching mechanism - ctf (probably)
-    return  if kd.singletons.socialapi._cache[plain.message.typeConstant]?[plain.message.id]
+    message = @getData()
+
+    return  if message.replyIds[plain.message.id]
 
     reply = kd.singletons.socialapi.message.revive plain
 
     getMessageOwner reply, (err, owner) =>
 
       return kd.error err  if err
+
       return  if filterTrollActivity owner
 
-      message = @getData()
       return  unless kd.singletons.socialapi.isFromOtherBrowser plain
 
       message.replies.push reply
+      message.replyIds[plain.message.id] = yes
       message.repliesCount++
 
       plain.message.messageId = message.id
