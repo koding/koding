@@ -113,7 +113,8 @@ module.exports = class SocialApiController extends KDController
     m.account = mapAccounts(accountOldId)[0]
 
     m.replyIds = {}
-    m.replyIds[reply.id] = yes  for reply in data.replies
+    if data.replies and data.replies.length
+      m.replyIds[reply.id] = yes  for reply in data.replies
 
     m.replies      = mapActivities data.replies or []
     m.repliesCount = data.repliesCount
@@ -252,7 +253,7 @@ module.exports = class SocialApiController extends KDController
     # tests. ~Umut
     return no  if globals.isTesting
 
-    {message} = message  unless message.typeConstant?
+    {message, channelId} = message  unless message.typeConstant?
 
     {_inScreenMap}  = kd.singletons.socialapi
 
@@ -261,9 +262,18 @@ module.exports = class SocialApiController extends KDController
 
     {clientRequestId} = message
 
-    inside = _inScreenMap[clientRequestId]
+    inside = _inScreenMap[getScreenMapKey(channelId, clientRequestId)]
 
     return not inside
+
+  # if a newly added user message belongs to more than one channel,
+  # we just need to prevent duplicate messages for initial message channel.
+  # channelId is used for this reason
+  getScreenMapKey = (channelId, clientRequestId) ->
+
+    return clientRequestId  unless channelId
+
+    return "channel-#{channelId}:#{clientRequestId}"
 
 
   isFromOtherBrowser : isFromOtherBrowser
@@ -312,13 +322,14 @@ module.exports = class SocialApiController extends KDController
         socialapi.cacheItem socialApiChannel
         socialapi.openedChannels[channelName] = {} # placeholder to avoid duplicate registration
 
-        {name, typeConstant, token} = socialApiChannel
+        {name, typeConstant, token, id} = socialApiChannel
 
         subscriptionData =
           serviceType: 'socialapi'
           group      : group.slug
           channelType: typeConstant
           channelName: name
+          channelId  : id
           isExclusive: yes
           connectDirectly: yes
           brokerChannelName: channelName
@@ -344,10 +355,10 @@ module.exports = class SocialApiController extends KDController
 
   addToScreenMap = (options) ->
     options = options.message  if options.message?
-    {clientRequestId} = options
+    {clientRequestId, channelId} = options
     {_inScreenMap} = kd.singletons.socialapi
 
-    _inScreenMap[clientRequestId] = yes  if clientRequestId
+    _inScreenMap[getScreenMapKey(channelId, clientRequestId)] = yes  if clientRequestId
 
 
   addToScreenMap : addToScreenMap
