@@ -16,11 +16,16 @@ var (
 	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
 )
 
-type algoliaErrorRes struct {
-	Message string `json:"message"`
-	Status  int    `json:"status"`
+type IndexSet map[string]*algoliasearch.Index
+
+type Controller struct {
+	log     logging.Logger
+	client  *algoliasearch.Client
+	indexes *IndexSet
 }
 
+// IsAlgoliaError checks if the given algolia error string and given messages
+// are same according their data structure
 func IsAlgoliaError(err error, message string) bool {
 	if err == nil {
 		return false
@@ -38,12 +43,9 @@ func IsAlgoliaError(err error, message string) bool {
 	return false
 }
 
-type IndexSet map[string]*algoliasearch.Index
-
-type Controller struct {
-	log     logging.Logger
-	client  *algoliasearch.Client
-	indexes *IndexSet
+type algoliaErrorRes struct {
+	Message string `json:"message"`
+	Status  int    `json:"status"`
 }
 
 func (i *IndexSet) Get(name string) (*algoliasearch.Index, error) {
