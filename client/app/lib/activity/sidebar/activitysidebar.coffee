@@ -285,12 +285,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @sharedMachinesList.removeWorkspaceByChannelId id
 
-    # acet - refactor required.
-    # if @workspaceItemChannelMap[id]
-    #   @fetchEnvironmentData => @fetchWorkspaces()
-
     # TODO update participants in sidebar
-
     # TODO I have added these lines for channel data synchronization,
     # but do not think that this is the right place for doing this.
     socialapi.cacheable typeConstant, id, (err, channel) ->
