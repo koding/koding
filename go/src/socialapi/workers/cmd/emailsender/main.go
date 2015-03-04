@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/sender"
+
+	"github.com/sendgrid/sendgrid-go"
 )
 
 var (
@@ -21,7 +23,10 @@ func main() {
 	// 	fmt.Println(err.Error())
 	// }
 
-	r.SetContext(sender.New(r.Log))
+	sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
+
+	constructor := sender.New(r.Log, sg)
+	r.SetContext(constructor)
 	r.Register(sender.Mail{}).On("send").Handle((*sender.Controller).Send)
 	r.Listen()
 	r.Wait()
