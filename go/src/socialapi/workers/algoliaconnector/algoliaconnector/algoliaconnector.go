@@ -32,6 +32,7 @@ func IsAlgoliaError(err error, message string) bool {
 	}
 
 	v := &algoliaErrorRes{}
+
 	if err := json.Unmarshal([]byte(err.Error()), v); err != nil {
 		return false
 	}
