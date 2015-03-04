@@ -198,7 +198,11 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 					ChannelId: channelId,
 				}
 
-				err = handler.UnshareVM(req1)
+				toBeRemovedUsers, err := handler.findToBeRemovedUsers(req1)
+				So(err, ShouldBeNil)
+				So(toBeRemovedUsers, ShouldNotBeNil)
+
+				err = handler.UnshareVM(req1, toBeRemovedUsers)
 				So(err, ShouldBeNil)
 				Convey("remove users should not be in the machine", func() {
 					mm1, err := modelhelper.GetMachineByUid(m1.Uid)
@@ -234,7 +238,11 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 						ChannelId: channelId,
 					}
 
-					err = handler.UnshareVM(req)
+					toBeRemovedUsers, err := handler.findToBeRemovedUsers(req)
+					So(err, ShouldBeNil)
+					So(toBeRemovedUsers, ShouldNotBeNil)
+
+					err = handler.UnshareVM(req, toBeRemovedUsers)
 					So(err, ShouldBeNil)
 					Convey("participant should still be in the second machine", func() {
 						mm2, err := modelhelper.GetMachineByUid(m2.Uid)

@@ -212,16 +212,22 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 	var wg sync.WaitGroup
 
 	c.goWithRetry(func() error {
+
+		toBeRemovedUsers, err := c.findToBeRemovedUsers(ping)
+		if err != nil {
+			return err
+		}
+
 		// IMPORTANT
 		// 	- DO NOT CHANGE THE ORDER
 		//
 		// first remove the users from klient
-		if err := c.RemoveUsersFromMachine(ping); err != nil {
+		if err := c.RemoveUsersFromMachine(ping, toBeRemovedUsers); err != nil {
 			return err
 		}
 
 		// then remove them from the db
-		if err := c.UnshareVM(ping); err != nil {
+		if err := c.UnshareVM(ping, toBeRemovedUsers); err != nil {
 			return err
 		}
 

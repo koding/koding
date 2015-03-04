@@ -80,7 +80,7 @@ func (c *Controller) EndPrivateMessage(ping *models.Ping) error {
 }
 
 // UnshareVM removes the users from JMachine document
-func (c *Controller) UnshareVM(ping *models.Ping) error {
+func (c *Controller) UnshareVM(ping *models.Ping, toBeRemovedUsers []bson.ObjectId) error {
 	// if channel id is nil, there is nothing to do
 	if ping.ChannelId == 0 {
 		return nil
@@ -96,11 +96,6 @@ func (c *Controller) UnshareVM(ping *models.Ping) error {
 	// if the workspace is not there, nothing to do
 	if err == mgo.ErrNotFound {
 		return nil
-	}
-
-	toBeRemovedUsers, err := c.findToBeRemovedUsers(ping)
-	if err != nil {
-		return err
 	}
 
 	if len(toBeRemovedUsers) == 0 {
@@ -210,7 +205,7 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 }
 
 // RemoveUsersFromMachine removes the collaboraters from the host machine
-func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
+func (c *Controller) RemoveUsersFromMachine(ping *models.Ping, toBeRemovedUsers []bson.ObjectId) error {
 	// if channel id is nil, there is nothing to do
 	if ping.ChannelId == 0 {
 		return nil
@@ -261,14 +256,11 @@ func (c *Controller) RemoveUsersFromMachine(ping *models.Ping) error {
 	}
 
 	var iterErr error
-	for _, user := range m.Users {
-		// do not unshare from owner user
-		if user.Sudo && user.Owner {
-			continue
-		}
+
+	for _, toBeDeletedUser := range toBeRemovedUsers {
 
 		// fetch user for its username
-		u, err := modelhelper.GetUserById(user.Id.Hex())
+		u, err := modelhelper.GetUserById(toBeDeletedUser.Hex())
 		if err != nil {
 			c.log.Error("couldnt get user", err.Error())
 
