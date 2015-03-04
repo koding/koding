@@ -16,7 +16,7 @@ showError = require '../util/showError'
 ComputeHelpers = require './computehelpers'
 sendDataDogEvent = require '../util/sendDataDogEvent'
 HelpSupportModal = '../commonviews/helpsupportmodal'
-
+trackEvent = require 'app/util/trackEvent'
 
 module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
@@ -520,6 +520,11 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   turnOnMachine: ->
 
+    trackEvent 'Turn on machine, click',
+      category : 'userInteraction'
+      label    : 'turnedOnVM'
+      action   : 'clicks'
+
     computeController = kd.getSingleton 'computeController'
     computeController.off  "error-#{@machineId}"
 
@@ -578,6 +583,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
       else
         kd.utils.defer @bound 'buildInitial'
+        trackEvent 'Account verfication, success',
+          category : 'userInteraction'
+          action   : 'microConversions'
+          label    : 'completedAccountVerification'
 
 
   downgradePlan: (callback)->

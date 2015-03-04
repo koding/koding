@@ -10,9 +10,9 @@ getFullnameFromAccount = require './util/getFullnameFromAccount'
 socketConnected = require './util/socketConnected'
 enableLogs = require './util/enableLogs'
 whoami = require './util/whoami'
-isLoggedIn = require './util/isLoggedIn'
 ConnectionChecker = require './connectionchecker'
 lazyrouter = require './lazyrouter'
+setupAnalytics = require './setupanalytics'
 
 isStarted = false
 
@@ -156,34 +156,6 @@ bootup = ->
   setupAnalytics()
 
   return true
-
-
-# segment.io
-
-setupAnalytics = ->
-
-  return  unless globals.config.logToExternal
-
-  kd.getSingleton('mainController').on 'AccountChanged', (account) ->
-
-    return  unless isLoggedIn() and account and global.analytics
-
-    {type, meta, profile} = account
-
-    return  unless profile
-
-    {createdAt} = meta
-    {firstName, lastName, nickname} = profile
-
-    analytics.identify nickname, {
-      "$username"     : nickname
-      "$first_name"   : firstName
-      "$last_name"    : lastName
-      "$created"      : createdAt
-      "Status"        : type
-      "Randomizer"    : kd.utils.getRandomNumber 4
-    }
-
 
 initialize = (defaults, next) ->
   apps_ = globals.config.apps

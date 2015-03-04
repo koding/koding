@@ -179,11 +179,12 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
      extensions: ['coffee']
      basedir: __dirname
      mapping: mapping
-  
+
   unless devMode
     b.transform uglifyify,
-      global: yes
-      mangle: yes
+      global      : yes
+      mangle      : yes
+      'screw-ie8' : yes
 
 
   bant = build b, globals: opts.globals
