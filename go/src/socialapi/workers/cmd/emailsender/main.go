@@ -19,10 +19,6 @@ func main() {
 		return
 	}
 
-	// if err := bongo.B.PublishEvent("send", &sender.Mail{Body: "foo"}); err != nil {
-	// 	fmt.Println(err.Error())
-	// }
-
 	sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
 
 	constructor := sender.New(r.Log, sg)
