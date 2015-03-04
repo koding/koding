@@ -25,6 +25,7 @@ modelEvents =
     LEAVE         : 'ParticipantLeft'
     WATCH         : 'ParticipantWatched'
     UNWATCH       : 'ParticipantUnwatched'
+    KICK          : 'ParticipantKicked'
   realtime      :
     CHANGE        : 'ChangeHappened'
     PERMISSION    : 'PermissionChanged'
@@ -53,6 +54,8 @@ class CollaborationModel extends KDObject
     @channelId = @workspace?.channelId or null
     @rtm = new RealtimeManager
     @initStateMachine()
+
+    @on 'ParticipantKicked', (args...) => @emit 'ParticipantLeft', args...
 
 
   initStateMachine: ->
@@ -122,6 +125,11 @@ class CollaborationModel extends KDObject
     @emit modelEvents.collaboration.QUITTED
 
 
+  handleParticipantKicked: (nickname) ->
+
+    @removeParticipant nickname
+
+
   leave: (callback) ->
 
     @broadcastMessage origin: getNick(), type: 'ParticipantWantsToLeave'
@@ -134,6 +142,21 @@ class CollaborationModel extends KDObject
   removeParticipant: (nickname) ->
 
     realtimeHelpers.removeFromManager @rtm, @references, nickname
+
+
+  kick: (account) ->
+
+    user = account.profile.nickname
+
+    socialHelpers.kickParticipants @channel, account, (err, result) =>
+      return @handleError 'kick', err  if err
+      message =
+        type   : modelEvents.participant.KICK
+        origin : getNick()
+        target : user
+
+      @broadcastMessage message
+      @emit modelEvents.participant.KICK, user
 
 
   addChange: (change) -> @references.changes.push change
