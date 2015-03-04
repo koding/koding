@@ -513,8 +513,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   # TODO: Rename this method to fetchEnvironment - acet!
   fetchMachines: (callback) ->
 
-    environmentDataProvider.fetch (data) =>
-      callback data
+    environmentDataProvider.fetch (data) => callback data
 
 
   addMachineList: ->
@@ -525,10 +524,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @ownMachinesList    = @createMachineList 'own'
     @sharedMachinesList = @createMachineList 'shared'
 
-    data = environmentDataProvider.get()
-
-    if environmentDataProvider.isRevived
-      @addMachines_ data
+    if environmentDataProvider.hasData()
+      @addMachines_ environmentDataProvider.get()
     else
       environmentDataProvider.fetch (data) =>
         @addMachines_ data

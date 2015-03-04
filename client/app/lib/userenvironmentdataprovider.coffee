@@ -18,18 +18,28 @@ module.exports = UserEnvironmentDataProvider =
   get: -> return globals.userEnvironmentData
 
 
+  hasData: ->
+
+    data = @get()
+
+    return  no unless data
+
+    hasOwn    = data.own.length > 0
+    hasShared = data.shared.length > 0
+    hasCollab = data.collaboration.length > 0
+
+    return hasOwn or hasShared or hasCollab
+
+
   revive: ->
 
-    empty = own: [], shared: [], collaboration: []
-    data  = globals.userEnvironmentData or empty
+    return no  unless @hasData()
 
-    for section in [ data.own, data.shared, data.collaboration ]
+    for section in globals.userEnvironmentData
       for obj in section
         obj.machine = remote.revive obj.machine
         for ws, i in obj.workspaces
           obj.workspaces[i] = remote.revive ws
-
-      @isRevived = yes
 
 
   getMyMachines: -> return globals.userEnvironmentData.own
