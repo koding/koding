@@ -105,3 +105,12 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
     for data in listData
       unless @machineBoxesByMachineUId[data.machine.uid]
         @addMachineBox data
+
+
+  getMachines: ->
+
+    machines = []
+
+    @forEachMachineBoxes (box) -> machines.push box.machine
+
+    return machines
