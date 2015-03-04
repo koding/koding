@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
+	"socialapi/workers/common/response"
+	"strconv"
 	"strings"
 
+	"github.com/juju/ratelimit"
 	kmetrics "github.com/koding/metrics"
 
 	tigertonic "github.com/rcrowley/go-tigertonic"
@@ -40,11 +44,12 @@ type Request struct {
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
 	// used for external requests
-	Params  map[string]string
-	Cookie  string
-	Cookies []*http.Cookie
-	Body    interface{}
-	Headers map[string]string
+	Params    map[string]string
+	Cookie    string
+	Cookies   []*http.Cookie
+	Body      interface{}
+	Headers   map[string]string
+	Ratelimit func(*http.Request) *ratelimit.Bucket
 }
 
 // todo add prooper logging
@@ -87,6 +92,9 @@ func Wrapper(r Request) http.Handler {
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
+	if r.Ratelimit != nil {
+		hHandler = BuildHandlerWithRateLimit(hHandler, r.Ratelimit)
+	}
 	// create the final handler
 	return cors.Build(hHandler)
 }
@@ -129,6 +137,33 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 
 			*(tigertonic.Context(r).(*models.Context)) = *context
 			return nil, nil
+		},
+		handler,
+	)
+}
+
+func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request) *ratelimit.Bucket) http.Handler {
+	// add context
+	return tigertonic.If(
+		func(r *http.Request) (http.Header, error) {
+			// get the limiter
+			bucket := limiter(r)
+
+			h := http.Header{}
+			h.Add("X-RateLimit-Limit", strconv.FormatInt(int64(bucket.Rate()*60), 10))
+
+			// check if any 		throttling is enabled and then check token's available.
+			// Tokens are filled per frequency of the initial bucket, so every request
+			// is going to take one token from the bucket. If many requests come in (in
+			// span time larger than the bucket's frequency), there will be no token's
+			// available more so it will return a zero.
+			timeToWait := bucket.Take(1)
+			if timeToWait > time.Duration(0) {
+				h.Add("Retry-After", strconv.FormatInt(int64(timeToWait.Seconds()), 10))
+				return h, &response.LimitRateExceededError{}
+			}
+
+			return h, nil
 		},
 		handler,
 	)

@@ -309,6 +309,16 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	return participantIds, nil
 }
 
+func (c *Channel) FetchParticipants(q *request.Query) ([]Account, error) {
+	var accounts []Account
+	ids, err := c.FetchParticipantIds(q)
+	if err != nil {
+		return accounts, err
+	}
+
+	return NewAccount().FetchByIds(ids)
+}
+
 // AddMessage adds given message to the channel, if the message is already in the
 // channel, it doesn't add again, this method is idempotent
 // you can call many times, but message will be in the channel list once

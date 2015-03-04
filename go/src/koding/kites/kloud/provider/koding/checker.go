@@ -83,8 +83,8 @@ type networkUsageResponse struct {
 func (p *PlanChecker) NetworkUsage() error {
 	networkEndpoint, err := url.Parse(p.Provider.NetworkUsageEndpoint)
 	if err != nil {
-		p.Log.Debug("[%s] Failed to parse network-usage endpoint: %v. err: %v",
-			p.Machine.Id, p.Provider.NetworkUsageEndpoint, err)
+		p.Log.Debug("Failed to parse network-usage endpoint: %v. err: %v",
+			p.Provider.NetworkUsageEndpoint, err)
 		return err
 	}
 
@@ -92,8 +92,8 @@ func (p *PlanChecker) NetworkUsage() error {
 	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": p.Username}).One(&account)
 	}); err != nil {
-		p.Log.Warning("[%s] Failed to fetch user information while checking network-usage. err: %v",
-			p.Machine.Id, err)
+		p.Log.Warning("Failed to fetch user information while checking network-usage. err: %v",
+			err)
 		return err
 	}
 
@@ -107,26 +107,26 @@ func (p *PlanChecker) NetworkUsage() error {
 
 	resp, err := http.Get(networkEndpoint.String())
 	if err != nil {
-		p.Log.Warning("[%s] Failed to fetch network-usage because network-usage providing api host seems down. err: %v",
-			p.Machine.Id, err)
+		p.Log.Warning("Failed to fetch network-usage because network-usage providing api host seems down. err: %v",
+			err)
 		return nil
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != 200 {
-		p.Log.Debug("[%s] Network-usage response code is not 200. It's %v",
-			p.Machine.Id, resp.StatusCode)
+		p.Log.Debug("Network-usage response code is not 200. It's %v",
+			resp.StatusCode)
 		return nil
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&usageResponse); err != nil {
-		p.Log.Warning("[%s] Failed to decode network-usage response. err: %v",
-			p.Machine.Id, err)
+		p.Log.Warning("Failed to decode network-usage response. err: %v",
+			err)
 		return nil
 	}
 	if !usageResponse.CanStart {
-		p.Log.Debug("[%s] Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
-			p.Machine.Id, usageResponse.AllowedUsage, usageResponse.CurrentUsage)
+		p.Log.Debug("Network-usage limit is reached. Allowed usage: %v MiB, Current usage: %v MiB",
+			usageResponse.AllowedUsage, usageResponse.CurrentUsage)
 
 		err := fmt.Errorf("%s; allowed: %v, current: %v",
 			usageResponse.Reason, usageResponse.AllowedUsage,
@@ -166,18 +166,18 @@ func (p *PlanChecker) AlwaysOn() error {
 		return err
 	}
 
-	p.Log.Debug("[%s] checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
+	p.Log.Debug("checking alwaysOn limit. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+		alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
 
 	// the user has still not reached the limit
 	if alwaysOnMachines <= alwaysOnLimit {
-		p.Log.Debug("[%s] allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
+		p.Log.Debug("allowing user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+			p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
 		return nil // allow user, it didn't reach the limit
 	}
 
-	p.Log.Info("[%s] denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
+	p.Log.Info("denying user '%s'. current alwaysOn count: %d (plan limit: %d, plan: %s)",
+		p.Username, alwaysOnMachines, alwaysOnLimit, p.Plan.Plan)
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
 }
@@ -216,16 +216,16 @@ func (p *PlanChecker) Timeout() error {
 	// get the timeout from the plan in which the user belongs to
 	planTimeout := p.Plan.Plan.Limits().Timeout
 
-	p.Log.Debug("[%s] machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
-		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, planTimeout, p.Plan)
+	p.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+		p.Machine.IpAddress, usg.InactiveDuration, planTimeout, p.Plan)
 
 	// It still have plenty of time to work, do not stop it
 	if usg.InactiveDuration <= planTimeout {
 		return nil
 	}
 
-	p.Log.Info("[%s] machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
-		p.Machine.Id, p.Machine.IpAddress, usg.InactiveDuration, p.Plan)
+	p.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
+		p.Machine.IpAddress, usg.InactiveDuration, p.Plan)
 
 	// lock so it doesn't interfere with others.
 	p.Provider.Lock(p.Machine.Id)
@@ -263,8 +263,8 @@ func (p *PlanChecker) Total() error {
 
 	// no match, allow to create instance
 	if err == aws.ErrNoInstances {
-		p.Log.Debug("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
+		p.Log.Debug("allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+			p.Username, len(instances), allowedMachines, p.Plan)
 		return nil
 	}
 
@@ -274,14 +274,14 @@ func (p *PlanChecker) Total() error {
 	}
 
 	if len(instances) >= allowedMachines {
-		p.Log.Debug("[%s] denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
+		p.Log.Debug("denying user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+			p.Username, len(instances), allowedMachines, p.Plan)
 		return fmt.Errorf("total machine limit has been reached. Current count: %d Plan limit: %d",
 			len(instances), allowedMachines)
 	}
 
-	p.Log.Debug("[%s] allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, len(instances), allowedMachines, p.Plan)
+	p.Log.Debug("allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
+		p.Username, len(instances), allowedMachines, p.Plan)
 
 	return nil
 }
@@ -291,7 +291,7 @@ func (p *PlanChecker) SnapshotTotal() error {
 
 	// lazy return
 	if allowedSnapshotCount == 0 {
-		p.Log.Debug("[%s] denying user to for snapshots, limit is zero already", p.Machine.Id)
+		p.Log.Debug("denying user to for snapshots, limit is zero already", p.Machine.Id)
 		return fmt.Errorf("total snapshot limit has been reached. Plan limit: %d", allowedSnapshotCount)
 	}
 
@@ -308,18 +308,18 @@ func (p *PlanChecker) SnapshotTotal() error {
 		return err
 	}
 
-	p.Log.Debug("[%s] checking snapshot limit. current count: %d, plan limit: %d (plan: %s)",
-		p.Machine.Id, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
+	p.Log.Debug("checking snapshot limit. current count: %d, plan limit: %d (plan: %s)",
+		currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
 
 	// the user has still not reached the limit
 	if currentSnapshotCount <= allowedSnapshotCount {
-		p.Log.Debug("[%s] allowing user '%s'. current snapshot count: %d (plan limit: %d, plan: %s)",
-			p.Machine.Id, p.Username, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
+		p.Log.Debug("allowing user '%s'. current snapshot count: %d (plan limit: %d, plan: %s)",
+			p.Username, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
 		return nil // allow user, it didn't reach the limit
 	}
 
-	p.Log.Info("[%s] denying user '%s'. current snapshot count: %d (plan limit: %d, plan: %s)",
-		p.Machine.Id, p.Username, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
+	p.Log.Info("denying user '%s'. current snapshot count: %d (plan limit: %d, plan: %s)",
+		p.Username, currentSnapshotCount, allowedSnapshotCount, p.Plan.Plan)
 	return fmt.Errorf("total snapshot limit has been reached. Current count: %d Plan limit: %d",
 		currentSnapshotCount, allowedSnapshotCount)
 
@@ -336,8 +336,8 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": p.Username}).One(&account)
 	}); err != nil {
-		p.Log.Warning("[%s] Failed to fetch user information while checking storage. err: %v",
-			p.Machine.Id, err)
+		p.Log.Warning("Failed to fetch user information while checking storage. err: %v",
+			err)
 		return err
 	}
 
@@ -388,16 +388,16 @@ func (p *PlanChecker) Storage(wantStorage int) error {
 		}
 	}
 
-	p.Log.Debug("[%s] Checking storage. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
-		p.Machine.Id, currentStorage, wantStorage, totalStorage, p.Plan)
+	p.Log.Debug("Checking storage. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+		currentStorage, wantStorage, totalStorage, p.Plan)
 
 	if currentStorage+wantStorage > totalStorage {
 		return fmt.Errorf("total storage limit has been reached. Can have %dGB. User wants %dGB (plan: %s)",
 			totalStorage, currentStorage+wantStorage, p.Plan)
 	}
 
-	p.Log.Debug("[%s] Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
-		p.Machine.Id, p.Username, currentStorage, wantStorage, totalStorage, p.Plan)
+	p.Log.Debug("Allowing user '%s'. Current: %dGB. Want: %dGB (plan limit: %dGB, plan: %s)",
+		p.Username, currentStorage, wantStorage, totalStorage, p.Plan)
 
 	// allow to create storage
 	return nil
