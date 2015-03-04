@@ -35,7 +35,7 @@ module.exports = UserEnvironmentDataProvider =
 
     return no  unless @hasData()
 
-    for section in globals.userEnvironmentData
+    for key, section of globals.userEnvironmentData
       for obj in section
         obj.machine = remote.revive obj.machine
         for ws, i in obj.workspaces
