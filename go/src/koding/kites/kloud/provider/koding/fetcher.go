@@ -69,9 +69,9 @@ func (f *PaymentFetcher) Fetch(m *protocol.Machine) (fetcherResp *FetcherRespons
 	q.Set("account_id", account.Id.Hex())
 	userEndpoint.RawQuery = q.Encode()
 
-	f.Log.Debug("[%s] fetching plan via URL: '%s'", m.Id, userEndpoint.String())
 	resp, err := http.Get(userEndpoint.String())
 	if err != nil {
+		f.Log.Debug("[%s] fetching plan ", m.Id, userEndpoint.String())
 		return nil, err
 	}
 	defer resp.Body.Close()
