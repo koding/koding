@@ -19,6 +19,7 @@ modelEvents =
     PREPARED      : 'CollaborationPrepared'
     ACTIVE        : 'CollaborationActive'
     TERMINATED    : 'CollaborationTerminated'
+    QUITTED       : 'CollaborationQuitted'
   participant   :
     JOIN          : 'ParticipantJoined'
     LEAVE         : 'ParticipantLeft'
@@ -67,6 +68,8 @@ class CollaborationModel extends KDObject
           _onEnter: @bound 'handleActive'
         terminated:
           _onEnter: @bound 'handleTerminated'
+        quitted:
+          _onEnter: @bound 'handleQuitted'
 
 
   setState: (state) ->
@@ -112,6 +115,11 @@ class CollaborationModel extends KDObject
   handleTerminated: ->
 
     @emit modelEvents.collaboration.TERMINATED
+
+
+  handleQuitted: ->
+
+    @emit modelEvents.collaboration.QUITTED
 
 
   addChange: (change) -> @references.changes.push change
