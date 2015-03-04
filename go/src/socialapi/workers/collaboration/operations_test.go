@@ -453,7 +453,6 @@ func prepareSingleWorkspace(creator, participant1, participant2 *socialapimodels
 	So(modelhelper.CreateMachine(m1), ShouldBeNil)
 
 	m1ws1 := &mongomodels.Workspace{
-
 		ObjectId:     bson.NewObjectId(),
 		OriginId:     ownerUser.ObjectId,
 		Name:         "My Workspace",
