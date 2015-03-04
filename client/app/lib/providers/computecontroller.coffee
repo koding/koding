@@ -77,7 +77,7 @@ module.exports = class ComputeController extends KDController
     @plans    = null
     @_trials  = {}
 
-    if render then @fetchMachines =>
+    if render then @fetchStacks =>
       @info machine for machine in @machines
       @emit "RenderMachines", @machines
 
