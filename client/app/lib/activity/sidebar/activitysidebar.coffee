@@ -171,7 +171,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     channelId = data._id
     provider  = environmentDataProvider
 
-    provider.getMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
+    provider.fetchMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
       if machine and workspace
         box    = @getMachineBoxByMachineUId machine.uid
         wsItem = box?.getWorkspaceItemByChannelId channelId

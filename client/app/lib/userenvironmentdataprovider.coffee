@@ -56,7 +56,7 @@ module.exports = UserEnvironmentDataProvider =
     return own.concat shared.concat collaboration
 
 
-  getMachineAndWorkspace: (options, callback) ->
+  fetchMachineAndWorkspace: (options, callback) ->
 
     { machineLabel, workspaceSlug, username } = options
 
@@ -80,7 +80,7 @@ module.exports = UserEnvironmentDataProvider =
     callback machine, workspace
 
 
-  machineGetter_: (field, expectedValue, callback) ->
+  machineFetcher_: (field, expectedValue, callback) ->
 
     m = null
     w = null
@@ -95,17 +95,17 @@ module.exports = UserEnvironmentDataProvider =
     callback m, w
 
 
-  getMachineByLabel: (machineLabel, callback) ->
+  fetchMachineByLabel: (machineLabel, callback) ->
 
-    @machineGetter_ 'label', machineLabel, callback
-
-
-  getMachineByUId: (uid, callback) ->
-
-    @machineGetter_ 'uid', uid, callback
+    @machineFetcher_ 'label', machineLabel, callback
 
 
-  getMachineAndWorkspaceByChannelId: (channelId, callback) ->
+  fetchMachineByUId: (uid, callback) ->
+
+    @machineFetcher_ 'uid', uid, callback
+
+
+  fetchMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
     machine   = null
     workspace = null
