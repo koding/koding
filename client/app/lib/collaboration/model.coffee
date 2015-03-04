@@ -109,15 +109,19 @@ class CollaborationModel extends KDObject
 
     @emit modelEvents.collaboration.ACTIVE
 
+  handleTerminated: ->
+
+    @emit modelEvents.collaboration.TERMINATED
+
+
   addChange: (change) -> @references.changes.push change
 
-  getSnapshot: -> @references.snapshot
+  getSnapshot: -> @references?.snapshot
 
   getWatchMap: -> @references.watchMap
 
   amIWatchingChangeOwner : (change) -> change.origin in @getWatchMap().keys()
 
-  handleTerminated: -> # todo
 
   setChannel: (channel) -> @channel = channel
 
@@ -199,7 +203,7 @@ class CollaborationModel extends KDObject
         when @references.changes
           @emit modelEvents.realtime.CHANGE, { change: value }
 
-        when @references.broadcastMessage
+        when @references.broadcastMessages
           @emit modelEvents.realtime.BROADCAST, { message: value }
 
     @rtm.on realtimeEvents.VALUE_REMOVED, (list, event) =>
