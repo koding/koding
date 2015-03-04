@@ -322,13 +322,7 @@ module.exports =
       #   @changes.clear()
       #   @broadcastMessages.clear()
 
-      isInList = no
-
-      @participants.asArray().forEach (participant) =>
-        isInList = yes  if participant.nickname is nickname
-
-      if not isInList
-        @addParticipant whoami(), no
+      @addParticipant whoami()
 
       @rtm.on 'CollaboratorJoined', (doc, participant) =>
         @handleParticipantAction 'join', participant
@@ -407,7 +401,10 @@ module.exports =
   addParticipant: (account) ->
 
     {hash, nickname} = account.profile
-    @participants.push { nickname, hash }
+
+    val = {nickname, hash}
+    index = @participants.indexOf val, (a, b) -> a.nickname is b.nickname
+    @participants.push val  if index is -1
 
 
   watchParticipant: (nickname) -> @myWatchMap.set nickname, nickname
