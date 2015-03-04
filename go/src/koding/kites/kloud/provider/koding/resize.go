@@ -159,12 +159,12 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		if resErr != nil {
 			infoLog("(an error occurred) detaching newly created volume volume %s ", newVolumeId)
 			if err := a.DetachVolume(newVolumeId); err != nil {
-				a.Log.Error("[%s] couldn't detach:", m.Id, err.Error())
+				a.Log.Error("[%s] couldn't detach: %s", m.Id, err.Error())
 			}
 
 			infoLog("(an error occurred) attaching back old volume %s", oldVolumeId)
 			if err = a.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1"); err != nil {
-				a.Log.Error("[%s] couldn't attach:", m.Id, err.Error())
+				a.Log.Error("[%s] couldn't attach: %s", m.Id, err.Error())
 			}
 		} else {
 			// if not just delete, it's not used anymore
