@@ -182,21 +182,18 @@ module.exports = class Payment extends Base
     }, callback
 
   fetchPlan = (client, planTitle, callback)->
-    ComputeProvider = require "./computeproviders/computeprovider"
-    ComputeProvider.fetchPlans client,
-      provider   : "koding"
-    , (err, plans)->
-      return err  if err
 
-      plan = plans[planTitle]
-      return callback {"message" : "plan not found"}  unless plan
+    plans = require "./computeproviders/plans"
+    plan  = plans[planTitle]
 
-      fetchReferrerSpace client, (err, space)->
-        return callback err  if err
+    return callback {"message" : "plan not found"}  unless plan
 
-        plan.storage += space
+    fetchReferrerSpace client, (err, space)->
+      return callback err  if err
 
-        callback null, plan
+      plan.storage += space
+
+      callback null, plan
 
   fetchReferrerSpace = (client, callback)->
     JReferral = require "./referral/index"
