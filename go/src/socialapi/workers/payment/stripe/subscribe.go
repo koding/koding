@@ -53,7 +53,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		_, err := CreateSubscription(customer, plan)
 
 		if err != nil {
-			removeCreditCardHelper(customer)
+			deleteCustomer(customer)
 			return err
 		}
 
@@ -78,6 +78,15 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 	}
 
 	return nil
+}
+
+func deleteCustomer(customer *paymentmodels.Customer) {
+	removeCreditCardHelper(customer)
+
+	err := customer.Delete()
+	if err != nil {
+		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, err)
+	}
 }
 
 func removeCreditCardHelper(customer *paymentmodels.Customer) {

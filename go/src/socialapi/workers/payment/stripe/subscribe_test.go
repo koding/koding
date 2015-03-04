@@ -252,14 +252,9 @@ func TestSubscribe8(t *testing.T) {
 				So(err, ShouldNotBeNil)
 			})
 
-			Convey("Then credit card should be removed from account", func() {
-				customer, err := FindCustomerByOldId(accId)
-				So(err, ShouldBeNil)
-
-				externalCustomer, err := GetCustomer(customer.ProviderCustomerId)
-				So(err, ShouldBeNil)
-
-				So(externalCustomer.Cards.Count, ShouldEqual, 0)
+			Convey("Then customer should be deleted", func() {
+				_, err := FindCustomerByOldId(accId)
+				So(err, ShouldEqual, paymenterrors.ErrCustomerNotFound)
 			})
 		})
 	})
