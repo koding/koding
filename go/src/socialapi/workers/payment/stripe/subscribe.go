@@ -11,7 +11,7 @@ func Subscribe(token, accId, email, planTitle, planInterval string) error {
 		return err
 	}
 
-	customer, err := FindCustomerByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}

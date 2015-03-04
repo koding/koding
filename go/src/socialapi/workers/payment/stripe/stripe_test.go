@@ -73,16 +73,16 @@ func createToken() string {
 }
 
 func checkCustomerIsSaved(accId string) bool {
-	customerModel, err := FindCustomerByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil {
 		return false
 	}
 
-	if customerModel == nil {
+	if customer == nil {
 		return false
 	}
 
-	if customerModel.OldId != accId {
+	if customer.OldId != accId {
 		return false
 	}
 
@@ -145,8 +145,7 @@ func subscribeWithReturnsFn(fn func(*paymentmodels.Customer, *paymentmodels.Subs
 		err := Subscribe(token, accId, email, StartingPlan, StartingInterval)
 		So(err, ShouldBeNil)
 
-		customer := paymentmodels.NewCustomer()
-		err = customer.ByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		subscription, err := customer.FindActiveSubscription()

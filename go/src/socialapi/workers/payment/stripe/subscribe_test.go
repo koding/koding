@@ -6,6 +6,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 
 	"socialapi/workers/payment/paymenterrors"
+	"socialapi/workers/payment/paymentmodels"
 
 	stripe "github.com/stripe/stripe-go"
 	stripeSub "github.com/stripe/stripe-go/sub"
@@ -26,11 +27,11 @@ func TestSubscribe1(t *testing.T) {
 func TestSubscribe2(t *testing.T) {
 	Convey("Given nonexistent customer, plan", t,
 		subscribeFn(func(token, accId, email string) {
-			customerModel, err := FindCustomerByOldId(accId)
-			id := customerModel.ProviderCustomerId
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+			id := customer.ProviderCustomerId
 
 			So(err, ShouldBeNil)
-			So(customerModel, ShouldNotBeNil)
+			So(customer, ShouldNotBeNil)
 
 			Convey("Then it should save customer", func() {
 				So(checkCustomerIsSaved(accId), ShouldBeTrue)
@@ -58,10 +59,10 @@ func TestSubscribe2(t *testing.T) {
 func TestSubscribe3(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		existingSubscribeFn(func(token, accId, email string) {
-			customerModel, err := FindCustomerByOldId(accId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 			So(err, ShouldBeNil)
 
-			id := customerModel.ProviderCustomerId
+			id := customer.ProviderCustomerId
 
 			Convey("Then it should subscribe user to plan", func() {
 				customer, err := GetCustomer(id)
@@ -76,7 +77,7 @@ func TestSubscribe3(t *testing.T) {
 func TestSubscribe4(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		existingSubscribeFn(func(token, accId, email string) {
-			customer, err := FindCustomerByOldId(accId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 			So(err, ShouldBeNil)
 
 			customerId := customer.ProviderCustomerId
@@ -127,7 +128,7 @@ func TestSubscribe4(t *testing.T) {
 func TestSubscribe5(t *testing.T) {
 	Convey("Given customer already subscribed to a plan", t,
 		subscribeFn(func(token, accId, email string) {
-			customer, err := FindCustomerByOldId(accId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 			So(err, ShouldBeNil)
 
 			customerId := customer.ProviderCustomerId
@@ -178,7 +179,7 @@ func TestSubscribe6(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Then subscription is canceled", func() {
-					customer, err := FindCustomerByOldId(accId)
+					customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 					So(err, ShouldBeNil)
 
 					subs, err := FindCustomerActiveSubscriptions(customer)
@@ -253,7 +254,7 @@ func TestSubscribe8(t *testing.T) {
 			})
 
 			Convey("Then customer should be deleted", func() {
-				_, err := FindCustomerByOldId(accId)
+				_, err := paymentmodels.NewCustomer().ByOldId(accId)
 				So(err, ShouldEqual, paymenterrors.ErrCustomerNotFound)
 			})
 		})

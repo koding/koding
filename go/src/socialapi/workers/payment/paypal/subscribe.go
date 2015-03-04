@@ -30,7 +30,7 @@ func Subscribe(token, accId string) error {
 }
 
 func subscribe(token, accId string, plan *paymentmodels.Plan) error {
-	customer, err := FindCustomerByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil && err != paymenterrors.ErrCustomerNotFound {
 		return err
 	}
@@ -80,7 +80,7 @@ func handleNewSubscription(token, accId string, plan *paymentmodels.Plan) error 
 }
 
 func handleExistingUser(token, accId string, plan *paymentmodels.Plan) error {
-	customer, err := FindCustomerByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil {
 		return err
 	}
