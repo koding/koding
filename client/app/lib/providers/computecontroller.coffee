@@ -259,11 +259,14 @@ module.exports = class ComputeController extends KDController
     if @plans
       kd.utils.defer => callback @plans
     else
-      remote.api.ComputeProvider.fetchPlans
-        provider: "koding"
-      , (err, plans)=>
-          if err? then kd.warn err
-          else @plans = plans
+      remote.api.ComputeProvider.fetchPlans (err, plans)=>
+        # If there is an error at least return a simple plan
+        # which includes only 'free' plan
+        if err? or not plans?
+          kd.warn err
+          callback { free: total: 1, alwaysOn: 0, storage: 3 }
+        else
+          @plans = plans
           callback plans
 
 
@@ -294,6 +297,10 @@ module.exports = class ComputeController extends KDController
     @fetchUserPlan (plan)=> @fetchPlans (plans)=>
       @fetchUsage { provider }, (err, usage)=>
         @fetchRewards { unit: 'GB' }, (err, reward)->
+          # If there is an invalid plan set for user
+          # or plans failed to fetch, then fallback to 'free' plan
+          plan = 'free'  unless plans[plan]?
+
           callback err, { plan, plans, usage, reward }
 
 
