@@ -43,6 +43,7 @@ realtimeEvents =
   MAP_CHANGED   : 'MapValueChanged'
   JOIN          : 'CollaboratorJoined'
   LEAVE         : 'CollaboratorLeft'
+  TERMINATED    : 'SessionEnded'
 
 socialEvents =
   READY : 'ChannelReady'
@@ -90,13 +91,12 @@ class CollaborationModel extends KDObject
 
     @emit modelEvents.collaboration.UNINITIALIZED
 
-    kd.utils.defer => @setState 'prepared'
-
-    return  unless @channelId
+    unless @channelId
+      @rtm.ready => @setState 'prepared'
+      return
 
     socialHelpers.fetchChannel @channelId, (err, channel) =>
-      return @handleError 'fetchSocialChannel'  if err
-
+      return @handleError 'fetchSocialChannel', err  if err
       @setChannel channel
 
       @rtm.ready =>
@@ -105,6 +105,8 @@ class CollaborationModel extends KDObject
           if isActive
             realtimeHelpers.loadCollaborationFile @rtm, file.id, =>
               @setState 'active'
+          else
+            @setState 'prepared'
 
 
   handlePrepared: ->
@@ -120,6 +122,7 @@ class CollaborationModel extends KDObject
     @subscribeToSocialChannel()
 
     @emit modelEvents.collaboration.ACTIVE
+
 
   handleTerminated: ->
 
@@ -189,8 +192,6 @@ class CollaborationModel extends KDObject
     { createCollaborationFile
       loadCollaborationFile
     } = realtimeHelpers
-
-    fileIdentifier = @getFileIdentifier @channelId
 
     socialHelpers.initChannel (err, channel) =>
       return @handleError 'initChannel', err  if err
@@ -337,7 +338,7 @@ class CollaborationModel extends KDObject
 
   handleError: (type, err) ->
 
-    @throwError "#{type}: #{err}"
+    @throwError "#{type}: #{JSON.stringify err}"
 
 
   watch: (nickname) ->
@@ -384,9 +385,14 @@ create = (options) ->
   instances.push tuple = createTuple options
   return tuple.instance
 
+deleteFromCache = (model) ->
+  [tuple] = instances.filter (t) -> t.instance is model
+  instances.splice instances.indexOf(tuple), 1
+
 module.exports = {
   getByWorkspace
   create
+  deleteFromCache
   helpers:
     realtime : realtimeHelpers
     social   : socialHelpers
