@@ -101,19 +101,12 @@ func UnshareMachineByUid(uid string) error {
 		return err
 	}
 
-	owner := make([]models.MachineUser, 1)
-	for _, user := range machine.Users {
-		// this is the correct way to remove all users but the owner from a
-		// machine
-		if user.Sudo && user.Owner {
-			owner[0] = user
-			break
-		}
-	}
-
-	if len(owner) == 0 {
+	machineOwner := machine.Owner()
+	if machineOwner == nil {
 		return errors.New("owner couldnt found")
 	}
+
+	owner := []models.MachineUser{*machineOwner}
 
 	s := Selector{"_id": machine.ObjectId}
 	o := Selector{"$set": Selector{
