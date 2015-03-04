@@ -130,14 +130,14 @@ func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
 	users := make([]models.MachineUser, 0)
 
 	for _, user := range machine.Users {
-		toBeAded := true
+		toBeAdded := true
 		for _, id := range ids {
 			if user.Id.Hex() == id.Hex() {
-				toBeAded = false
+				toBeAdded = false
 			}
 		}
 
-		if toBeAded {
+		if toBeAdded {
 			// we couldnt find the account in to be removed list, so add it back
 			users = append(users, user)
 		}
