@@ -10,10 +10,13 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/klient"
 
+	"socialapi/request"
+
 	"github.com/koding/bongo"
 	"github.com/koding/kite"
 
 	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
 // DeleteDriveDoc deletes the file from google drive
@@ -95,7 +98,115 @@ func (c *Controller) UnshareVM(ping *models.Ping) error {
 		return nil
 	}
 
-	return modelhelper.UnshareMachineByUid(ws.MachineUID)
+	toBeRemovedUsers, err := c.findToBeRemovedUsers(ping)
+	if err != nil {
+		return err
+	}
+
+	if len(toBeRemovedUsers) == 0 {
+		return nil // no one to remove
+	}
+
+	return modelhelper.RemoveUsersFromMachineByIds(ws.MachineUID, toBeRemovedUsers)
+}
+
+func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, error) {
+	ws, err := modelhelper.GetWorkspaceByChannelId(
+		strconv.FormatInt(ping.ChannelId, 10),
+	)
+	if err != nil && err != mgo.ErrNotFound {
+		return nil, err
+	}
+
+	// if the workspace is not there, nothing to do
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+
+	machine, err := modelhelper.GetMachineByUid(ws.MachineUID)
+	if err != nil && err != mgo.ErrNotFound {
+		return nil, err
+	}
+
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+
+	ownerMachineUser := machine.Owner()
+	if ownerMachineUser == nil {
+		c.log.Critical("owner couldnt found %+v", ping)
+		return nil, nil // if we cant find the owner, we cant process the users
+	}
+
+	ownerAccount, err := modelhelper.GetAccountByUserId(ownerMachineUser.Id)
+	if err != nil && err != mgo.ErrNotFound {
+		return nil, err
+	}
+
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+
+	//	get workspaces of the owner
+	ownersWorkspaces, err := modelhelper.GetWorkspaces(ownerMachineUser.Id)
+	if err != nil && err != mgo.ErrNotFound {
+		return nil, err
+	}
+
+	if err == mgo.ErrNotFound {
+		return nil, nil
+	}
+
+	users := make(map[string]int)
+	for _, ownerWS := range ownersWorkspaces {
+		// if the workspace belongs to other vm, skip
+		if ownerWS.MachineUID != ws.MachineUID {
+			continue
+		}
+
+		channelId, err := strconv.ParseInt(ownerWS.ChannelId, 10, 64)
+		if err != nil {
+			continue
+		}
+
+		channel := socialapimodels.NewChannel()
+		channel.Id = channelId
+		participants, err := channel.FetchParticipants(&request.Query{})
+		if err != nil {
+			return nil, err
+		}
+
+		// fetch the channels of the workspaces
+		for _, participant := range participants {
+			// skip the owner
+			if participant.OldId == ownerAccount.Id.Hex() {
+				continue
+			}
+
+			if _, ok := users[participant.OldId]; !ok {
+				users[participant.OldId] = 0
+			}
+			users[participant.OldId] = users[participant.OldId] + 1
+		}
+	}
+
+	toBeRemovedUsers := make([]bson.ObjectId, 0)
+	for accountId, count := range users {
+		// if we count the user more than once, that means user is in another
+		// workspace too
+		if count > 1 {
+			continue
+		}
+
+		u, err := modelhelper.GetUserByAccountId(accountId)
+		if err != nil {
+			return nil, err
+		}
+
+		toBeRemovedUsers = append(toBeRemovedUsers, u.ObjectId)
+	}
+
+	return toBeRemovedUsers, nil
 }
 
 // RemoveUsersFromMachine removes the collaboraters from the host machine
