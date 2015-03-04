@@ -211,11 +211,6 @@ testmailsender:
 	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./sender.test
 
-	@echo "$(OK_COLOR)--> Mailsender integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/sender/tests/*.go
-	@./tests.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./tests.test
-
 testapi: testcollaboration testmailsender
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
