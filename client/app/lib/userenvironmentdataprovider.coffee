@@ -122,17 +122,17 @@ module.exports = UserEnvironmentDataProvider =
 
   validateCollaborationWorkspace: (machineLabel, workspaceSlug, channelId) ->
 
-    @getAllMachines (obj) =>
+    data      = @getAllMachines()
+    workspace = null
 
-      workspace = null
+    for obj in data when obj.machine.label is machineLabel
+      for ws in obj.workspaces
+        hasSameLabel     = ws.machineLabel is machineLabel
+        hasSameSlug      = ws.slug is workspaceSlug
+        hasSameChannelId = ws.channeId is channelId
 
-      if obj.machine.label is machineLabel
-        for ws in obj.workspaces
-          hasSameLabel     = ws.machineLabel is machineLabel
-          hasSameSlug      = ws.slug is workspaceSlug
-          hasSameChannelId = ws.channeId is channelId
+        if hasSameLabel and hasSameSlug and hasSameChannelId
+          workspace = ws
+          break
 
-          if sameLabel and sameSlug and sameChannelId
-            workspace = ws
-
-      return workspace
+    return workspace
