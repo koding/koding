@@ -2,7 +2,6 @@ package stripe
 
 import (
 	"socialapi/workers/payment/paymentmodels"
-	"socialapi/workers/payment/paymentplan"
 
 	stripe "github.com/stripe/stripe-go"
 )
@@ -50,16 +49,6 @@ func IsTooManyCreditCards(cardList *stripe.CardList) bool {
 
 func IsCreditCardEmpty(ccResp *CreditCardResponse) bool {
 	return ccResp.LastFour == ""
-}
-
-func IsDowngrade(oldPlan, newPlan *paymentmodels.Plan) bool {
-	oldPlanValue := paymentplan.GetPlanValue(
-		oldPlan.Title, oldPlan.Interval,
-	)
-
-	newPlanValue := paymentplan.GetPlanValue(newPlan.Title, newPlan.Interval)
-
-	return newPlanValue < oldPlanValue
 }
 
 func IsLineCountAllowed(count int) bool {

@@ -45,9 +45,9 @@ func subscribe(token, accId, email string, plan *paymentmodels.Plan) error {
 	case paymentstatus.DowngradeToFreePlan:
 		err = handleCancel(customer)
 	case paymentstatus.DowngradeToNonFreePlan:
-		err = handleChangeSub(customer, subscription, plan)
+		err = handleDowngrade(subscription, customer, plan)
 	case paymentstatus.UpgradeFromExistingSub:
-		err = handleChangeSub(customer, subscription, plan)
+		err = handleUpgrade(subscription, customer, plan)
 	default:
 		Log.Error("User: %s fell into default case when subscribing: %s", customer.Username, plan.Title)
 		// user should never come here
@@ -90,17 +90,13 @@ func handleCancel(customer *paymentmodels.Customer) error {
 	}
 
 	for _, sub := range subscriptions {
-		err = CancelSubscriptionAndRemoveCC(customer, &sub)
+		err = CancelSubscription(customer, &sub)
 		if err != nil {
 			Log.Error(err.Error())
 		}
 	}
 
-	return nil
-}
-
-func handleChangeSub(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription, plan *paymentmodels.Plan) error {
-	return UpdateSubscriptionForCustomer(customer, subscription, plan)
+	return RemoveCreditCard(customer)
 }
 
 func deleteCustomer(customer *paymentmodels.Customer) {

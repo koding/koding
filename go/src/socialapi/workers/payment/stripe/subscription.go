@@ -113,20 +113,6 @@ func CancelSubscriptionAndRemoveCC(customer *paymentmodels.Customer, currentSubs
 	return err
 }
 
-func UpdateSubscriptionForCustomer(customer *paymentmodels.Customer, subscription *paymentmodels.Subscription, plan *paymentmodels.Plan) error {
-	oldPlan := paymentmodels.NewPlan()
-	err := oldPlan.ById(subscription.PlanId)
-	if err != nil {
-		return err
-	}
-
-	if IsDowngrade(oldPlan, plan) {
-		return handleDowngrade(subscription, customer, plan)
-	}
-
-	return handleUpgrade(subscription, customer, plan)
-}
-
 func handleUpgrade(currentSubscription *paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
 	subParams := &stripe.SubParams{
 		Customer: customer.ProviderCustomerId,
