@@ -8,7 +8,7 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 module.exports = class ComputeProvider extends Base
 
   {
-    PROVIDERS, fetchStackTemplate, revive,
+    PLANS, PROVIDERS, fetchStackTemplate, revive,
     reviveClient, reviveCredential
   } = require './computeutils'
 
@@ -45,7 +45,7 @@ module.exports = class ComputeProvider extends Base
         fetchUsage        :
           (signature Object, Function)
         fetchPlans        :
-          (signature Object, Function)
+          (signature Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -161,18 +161,9 @@ module.exports = class ComputeProvider extends Base
     provider.fetchUsage client, options, callback
 
 
-  @fetchPlans$ = secure (client, options, callback)->
-    ComputeProvider.fetchPlans client, options, callback
-
-  @fetchPlans = revive
-
-    shouldReviveClient   : no
-    shouldPassCredential : no
-
-  , (client, options, callback)->
-
-    {provider} = options
-    provider.fetchPlans client, options, callback
+  @fetchPlans = permit 'create machines',
+    success: (client, callback)->
+      callback null, PLANS
 
 
   @update = secure revive

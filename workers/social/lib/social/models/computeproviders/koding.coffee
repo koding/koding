@@ -8,15 +8,9 @@ Regions           = require 'koding-regions'
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
-PLANS             = require './plans'
 SUPPORTED_REGIONS = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
 
 module.exports = class Koding extends ProviderInterface
-
-
-  @fetchPlans = (client, options, callback)->
-
-    callback null, PLANS
 
 
   @ping = (client, options, callback)->

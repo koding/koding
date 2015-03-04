@@ -20,7 +20,6 @@ module.exports = class ProviderInterface
   @update         = NOT_IMPLEMENTED
 
   @fetchUsage     = NOT_IMPLEMENTED
-  @fetchPlans     = NOT_IMPLEMENTED
   @fetchAvailable = NOT_IMPLEMENTED
 
   @postCreate     = PASS_THROUGH

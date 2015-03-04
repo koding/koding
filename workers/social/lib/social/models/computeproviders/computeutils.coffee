@@ -277,6 +277,6 @@ checkUsage = (usage, plan, storage)->
 
 
 module.exports = {
-  PROVIDERS, fetchStackTemplate, guessNextLabel, checkUsage
+  PLANS, PROVIDERS, fetchStackTemplate, guessNextLabel, checkUsage
   revive, reviveClient, reviveCredential, fetchUserPlan
 }
