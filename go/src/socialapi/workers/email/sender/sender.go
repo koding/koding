@@ -11,18 +11,25 @@ import (
 
 // Controller holds required instances for processing events
 type Controller struct {
-	log      logging.Logger
-	sendgrid *sendgrid.SGClient
+	log    logging.Logger
+	client Emailer
+}
+
+type Emailer interface {
+	Send(*sendgrid.SGMail) error
 }
 
 // New Creates a new controller for mail worker
-func New(log logging.Logger, s *sendgrid.SGClient) *Controller {
+func New(log logging.Logger, c Emailer) *Controller {
 	return &Controller{
-		log:      log,
-		sendgrid: s,
+		log:    log,
+		client: c,
 	}
 }
 
+// Send gets the mail struct that includes the message
+// when we call this function, it sends the given mail to the
+// address that will be sent.
 func Send(m *Mail) error {
 	return bongo.B.PublishEvent("send", m)
 }
@@ -35,6 +42,8 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
+// Send creates and sets the message that will be sent,
+// and sends the message according to the mail adress
 func (c *Controller) Send(m *Mail) error {
 	fmt.Println(m)
 
@@ -55,11 +64,13 @@ func (c *Controller) Send(m *Mail) error {
 	message.SetHTML(m.HTML)
 	message.SetSubject(m.Subject)
 	message.SetFromName(m.FromName)
-	if err := message.SetReplyTo(m.ReplyTo); err != nil {
-		return err
+	if m.ReplyTo != "" {
+		if err := message.SetReplyTo(m.ReplyTo); err != nil {
+			return err
+		}
 	}
 
-	if err := c.sendgrid.Send(message); err != nil {
+	if err := c.client.Send(message); err != nil {
 		return fmt.Errorf("an error occurred while sending email error as %+v ", err.Error())
 	}
 
