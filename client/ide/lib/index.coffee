@@ -359,7 +359,7 @@ module.exports = class IDEAppController extends AppController
   getMountedMachine: (callback = noop) ->
 
     kd.utils.defer =>
-      environmentDataProvider.getMachineByUId @mountedMachineUId, (machine, ws) =>
+      environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine
         @mountedMachine = machine
 
@@ -371,7 +371,7 @@ module.exports = class IDEAppController extends AppController
     computeController = kd.getSingleton 'computeController'
     container         = @getView()
 
-    environmentDataProvider.getMachineByUId machineUId, (machineItem) =>
+    environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
       return showError 'Something went wrong. Try again.'  unless machineItem
 
       unless machineItem instanceof Machine

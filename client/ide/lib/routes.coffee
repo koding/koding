@@ -124,12 +124,12 @@ routeToLatestWorkspace = ->
   { machineLabel, workspaceSlug, channelId } = latestWorkspace
 
   if channelId
-    dataProvider.getMachineAndWorkspaceByChannelId channelId, (machine, ws) =>
+    dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) =>
       if machine and ws then router.handleRoute "/IDE/#{channelId}"
       else routeToFallback()
 
   else if machineLabel and workspaceSlug
-    dataProvider.getMachineByLabel machineLabel, (machine, workspace) =>
+    dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
       if machine and workspace
         router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
       else if machine
@@ -146,7 +146,7 @@ loadCollaborativeIDE = (id) ->
 
     try
 
-      dataProvider.getMachineAndWorkspaceByChannelId id, (machine, workspace) =>
+      dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) =>
         return routeToLatestWorkspace()  unless workspace
 
         query = socialApiId: channel.creatorId
@@ -180,7 +180,7 @@ module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
       if /^[0-9]+$/.test machineLabel
         loadCollaborativeIDE machineLabel
       else
-        dataProvider.getMachineByLabel machineLabel, (machine) ->
+        dataProvider.fetchMachineByLabel machineLabel, (machine) ->
           if machine then routeToMachineWorkspace machine
           else routeToLatestWorkspace()
 
@@ -188,7 +188,7 @@ module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
       { params } = info
       params.username = username = nick()
 
-      dataProvider.getMachineAndWorkspace params, (machine, workspace) ->
+      dataProvider.fetchMachineAndWorkspace params, (machine, workspace) ->
 
         if machine and workspace
           loadIDE { machine, workspace, username }
