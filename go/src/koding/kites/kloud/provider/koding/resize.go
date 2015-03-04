@@ -77,7 +77,7 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		return nil, err
 	}
 
-	p.Log.Debug("[%s] DesiredSize: %d, Currentsize %d", m.Id, desiredSize, currentSize)
+	a.Log.Debug("DesiredSize: %d, Currentsize %d", desiredSize, currentSize)
 
 	// Storage is counting all current sizes. So we need ask only for the
 	// difference that we want to add. So say if the current size is 3
@@ -159,12 +159,12 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		if resErr != nil {
 			infoLog("(an error occurred) detaching newly created volume volume %s ", newVolumeId)
 			if err := a.DetachVolume(newVolumeId); err != nil {
-				a.Log.Error("[%s] couldn't detach: %s", m.Id, err.Error())
+				a.Log.Error("couldn't detach: %s", err.Error())
 			}
 
 			infoLog("(an error occurred) attaching back old volume %s", oldVolumeId)
 			if err = a.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1"); err != nil {
-				a.Log.Error("[%s] couldn't attach: %s", m.Id, err.Error())
+				a.Log.Error("couldn't attach: %s", err.Error())
 			}
 		} else {
 			// if not just delete, it's not used anymore
@@ -196,12 +196,12 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// also get all domain aliases that belongs to this machine and unset
 	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
-		p.Log.Error("[%s] fetching domains for unsetting err: %s", m.Id, err.Error())
+		a.Log.Error("fetching domains for unsetting err: %s", err.Error())
 	}
 
 	for _, domain := range domains {
 		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
-			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
+			a.Log.Error("couldn't update domain: %s", err.Error())
 		}
 	}
 
@@ -210,9 +210,9 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	infoLog("connecting to remote Klient instance")
 	if p.IsKlientReady(m.QueryString) {
-		p.Log.Debug("[%s] klient is ready.", m.Id)
+		a.Log.Debug("klient is ready.")
 	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
+		a.Log.Warning("klient is not ready. I couldn't connect to it.")
 	}
 
 	return artifact, nil
