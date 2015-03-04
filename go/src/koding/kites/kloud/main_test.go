@@ -38,6 +38,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -170,11 +171,29 @@ func TestCreateUsers(t *testing.T) {
 	}
 }
 
+func TestMachines(t *testing.T) {
+	userCount := 10
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < userCount; i++ {
+		wg.Add(1)
+		go func(i int, t *testing.T) {
+			singleMachine(t, i)
+			wg.Done()
+		}(i, t)
+
+	}
+
+	wg.Wait()
+}
+
 // TestSingleMachine creates a test user document and a single machine document
 // that is bound to thar particular test user. It builds, stops, starts,
 // resize, reinit and destroys the machine in order.
-func TestSingleMachine(t *testing.T) {
-	userData, err := createUser("testuser")
+func singleMachine(t *testing.T, index int) {
+	username := "testuser" + strconv.Itoa(index)
+	userData, err := createUser(username)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,7 +375,7 @@ func createUser(username string) (*singleUser, error) {
 	userId := bson.NewObjectId()
 	user := &models.User{
 		ObjectId:      userId,
-		Email:         username + "@testuser.com",
+		Email:         username + "@" + username + ".com",
 		LastLoginDate: time.Now().UTC(),
 		RegisteredAt:  time.Now().UTC(),
 		Name:          username, // bson equivelant is username
