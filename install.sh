@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [[ ! "$(uname)" = "Linux" ]]; then
+    echo "Currenty only Ubuntu Linux is supported"
+    exit 1
+fi
+
 CHANNEL="development"
 
 echo "Using ${CHANNEL} channel"
