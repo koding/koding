@@ -4,19 +4,20 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/koding/kite"
 	"github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
 	"github.com/koding/klient/protocol"
 )
 
 // WithPassword registers with the username to the given kontrolURL via the users password
-func WithPassword(kontrolURL, username string) error {
+func WithPassword(kontrolURL, kiteHome, username string) error {
 	var err error
 
 	// Open up a prompt if the username is not passed via a flag
@@ -40,8 +41,9 @@ func WithPassword(kontrolURL, username string) error {
 	k.Config.Transport = config.XHRPolling
 
 	// Give a warning if an existing kite.key exists
-	if _, err := kitekey.Read(); err == nil {
-		result, err := ask("An existing ~/.kite/kite.key detected. Type 'yes' to override and continue:")
+	kiteKeyPath := kiteHome + "/kite.key"
+	if _, err := readKey(kiteKeyPath); err == nil {
+		result, err := ask(fmt.Sprintf("An existing %s detected. Type 'yes' to override and continue:", kiteKeyPath))
 		if err != nil {
 			return err
 		}
@@ -68,12 +70,33 @@ func WithPassword(kontrolURL, username string) error {
 
 	// If the password is correct a valid and signed `kite.key` is returned
 	// back. We go and create/override the ~/.kite/kite.key with this content.
-	if err := kitekey.Write(result.MustString()); err != nil {
+	if err := writeKey(result.MustString(), kiteKeyPath); err != nil {
 		return err
 	}
 
 	fmt.Println("Registered successfully")
 	return nil
+}
+
+func writeKey(kiteKey, filename string) error {
+	err := os.MkdirAll(filepath.Dir(filename), 0700)
+	if err != nil {
+		return err
+	}
+
+	// Need to remove the previous key first because we can't write over
+	// when previos file's mode is 0400.
+	os.Remove(filename)
+
+	return ioutil.WriteFile(filename, []byte(kiteKey), 0400)
+}
+
+func readKey(filename string) (string, error) {
+	data, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(data)), nil
 }
 
 // ask asks for an input from standard input and returns the result back. It is
