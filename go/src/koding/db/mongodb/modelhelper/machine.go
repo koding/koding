@@ -117,7 +117,7 @@ func UnshareMachineByUid(uid string) error {
 		return c.Update(s, o)
 	}
 
-	return Mongo.Run(MachineColl, query)
+	return Mongo.Run(MachinesColl, query)
 }
 
 // RemoveUsersFromMachineByIds removes the given users from JMachine document
