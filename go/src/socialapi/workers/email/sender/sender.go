@@ -45,9 +45,8 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 // Send creates and sets the message that will be sent,
 // and sends the message according to the mail adress
 func (c *Controller) Send(m *Mail) error {
-	fmt.Println(m)
-
 	message := sendgrid.NewMail()
+
 	if err := message.AddTo(m.To); err != nil {
 		return err
 	}
