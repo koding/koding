@@ -200,37 +200,42 @@ func TestResize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Println("Resizing machine")
-	storageWant := 5
-	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(userData.MachineId),
-			bson.M{
-				"$set": bson.M{
-					"meta.storage_size": storageWant,
+	resize := func(storageWant int) {
+		log.Printf("Resizing machine to %dGB\n", storageWant)
+		err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(userData.MachineId),
+				bson.M{
+					"$set": bson.M{
+						"meta.storage_size": storageWant,
+					},
 				},
-			},
-		)
-	})
-	if err != nil {
-		t.Error(err)
+			)
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := resize(userData.MachineId); err != nil {
+			t.Error(err)
+		}
+
+		storageGot, err := getAmazonStorageSize(userData.MachineId)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if storageGot != storageWant {
+			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+				storageWant,
+				storageGot,
+			)
+		}
 	}
 
-	if err := resize(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	storageGot, err := getAmazonStorageSize(userData.MachineId)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if storageGot != storageWant {
-		t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-			storageWant,
-			storageGot,
-		)
-	}
+	resize(5) // first increase
+	resize(7) // second increase
+	resize(9) // third increase
 
 	log.Println("Destroying machine")
 	if err := destroy(userData.MachineId); err != nil {
