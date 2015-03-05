@@ -150,10 +150,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				testMessage := models.NewChannelMessage()
 				err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
 				So(err, ShouldEqual, bongo.RecordNotFound)
-
 			})
-
 		})
-
 	})
 }
