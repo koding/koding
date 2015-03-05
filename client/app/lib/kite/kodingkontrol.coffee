@@ -93,7 +93,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
 
   getVersion: (name) ->
-    return globals.config.kites[name].version ? '1.0.0'
+    return globals.config.kites[name]?.version
 
 
   injectQueryParams: (args = {}) ->
