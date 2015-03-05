@@ -18,8 +18,6 @@ var (
 		2: "a987a9c0-f116-4e75-bf18-bff3c1c11b37",
 		3: "fedf1228-4624-4c23-8dea-e9391c5d1e98",
 	}
-
-	timeout = time.Second * 2
 )
 
 func SendEmail(user *models.User, levelId int) error {
@@ -51,12 +49,12 @@ func DeleteVMs(user *models.User, _ int) error {
 	for _, machine := range machines {
 		time.Sleep(time.Millisecond * time.Duration(rand.Intn(100)))
 
-		_, err := KiteClient.TellWithTimeout("destroy", timeout, &requestArgs{
+		_, err := KiteClient.Tell("destroy", &requestArgs{
 			MachineId: machine.ObjectId.Hex(),
 		})
 
 		if err != nil && !isVmAlreadyStoppedErr(err) {
-			Log.Error("Error destroy machine:%s for username: %s, %v", user.Name,
+			Log.Error("Error destroying machine:%s for username: %s, %v", user.Name,
 				machine.ObjectId, err)
 		}
 
