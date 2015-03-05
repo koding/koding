@@ -31,6 +31,10 @@ module.exports = class CommentListViewController extends KDListViewController
 
   addItem: (item, index) ->
 
+    {id} = item
+
+    return  if @itemsIndexed[id]
+
     super item, index
 
 

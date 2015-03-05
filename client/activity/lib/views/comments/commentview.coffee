@@ -111,7 +111,14 @@ module.exports = class CommentView extends KDView
 
   replaceFakeItemView: (message) ->
 
+    activity = @getData()
+
     @putMessage message, @removeFakeMessage message.clientRequestId
+
+    @addMessageReply activity, message
+
+
+  addMessageReply: require 'activity/mixins/addmessagereply'
 
 
   removeFakeMessage: (identifier) ->
