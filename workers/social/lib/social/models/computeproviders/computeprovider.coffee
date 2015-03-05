@@ -9,7 +9,7 @@ module.exports = class ComputeProvider extends Base
 
   {
     PLANS, PROVIDERS, fetchStackTemplate, revive,
-    reviveClient, reviveCredential
+    reviveClient, reviveCredential, fetchUsage
   } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
@@ -155,10 +155,7 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient   : yes
     shouldPassCredential : yes
 
-  , (client, options, callback)->
-
-    {provider} = options
-    provider.fetchUsage client, options, callback
+  , fetchUsage
 
 
   @fetchPlans = permit 'create machines',

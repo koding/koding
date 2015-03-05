@@ -27,13 +27,14 @@ module.exports = class Koding extends ProviderInterface
     userIp   = clientIP or user.registeredFrom?.ip
     provider = 'koding'
 
-    { guessNextLabel, fetchUserPlan, checkUsage } = require './computeutils'
+    { guessNextLabel, checkUsage
+      fetchUserPlan, fetchUsage } = require './computeutils'
 
     guessNextLabel { user, group, label, provider }, (err, label)=>
 
       fetchUserPlan client, (err, userPlan)=>
 
-        @fetchUsage client, options, (err, usage)->
+        fetchUsage client, options, (err, usage)->
 
           return callback err  if err?
 
@@ -79,11 +80,13 @@ module.exports = class Koding extends ProviderInterface
 
     JMachine = require './machine'
 
-    (require './computeutils').fetchUserPlan client, (err, userPlan)=>
+    { fetchUserPlan, fetchUsage } = require './computeutils'
+
+    fetchUserPlan client, (err, userPlan)=>
 
       return callback err  if err?
 
-      @fetchUsage client, options, (err, usage)->
+      fetchUsage client, options, (err, usage)->
 
         return callback err  if err?
 
