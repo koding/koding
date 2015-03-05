@@ -42,7 +42,12 @@ func (k *Klient) register() error {
 		errors.New("register url is nil")
 	}
 
-	k.log.Info("Going to register via HTTP to kontrol with URL: %s", registerURL)
+	// replace kontrolURL if's being overidden
+	if k.config.KontrolURL != "" {
+		k.kite.Config.KontrolURL = k.config.KontrolURL
+	}
+
+	k.log.Info("Register to kontrol '%s' via the URL value: '%s'", k.config.KontrolURL, registerURL)
 	k.kite.RegisterHTTPForever(registerURL)
 	return nil
 }

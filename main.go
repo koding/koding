@@ -65,6 +65,7 @@ func realMain() int {
 		Environment:    *flagEnvironment,
 		Region:         *flagRegion,
 		RegisterURL:    *flagRegisterURL,
+		KontrolURL:     *flagKontrolURL,
 		Debug:          *flagDebug,
 		UpdateInterval: *flagUpdateInterval,
 		UpdateURL:      *flagUpdateURL,

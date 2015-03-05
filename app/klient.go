@@ -62,6 +62,7 @@ type KlientConfig struct {
 	Environment string
 	Region      string
 	RegisterURL string
+	KontrolURL  string
 	Debug       bool
 
 	ScreenrcPath string
