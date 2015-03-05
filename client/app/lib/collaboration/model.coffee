@@ -59,6 +59,7 @@ class CollaborationModel extends KDObject
     { @workspace } = options
     @channelId = @workspace?.channelId or null
     @rtm = new RealtimeManager
+
     @initStateMachine()
 
     @on 'ParticipantKicked', (args...) => @emit 'ParticipantLeft', args...
@@ -330,6 +331,9 @@ class CollaborationModel extends KDObject
 
 
   subscribeToRealtimeManager: ->
+
+    @rtm.on 'FileLoaded', =>
+      @emit 'RealtimeManagerReady', @rtm
 
     @rtm.on realtimeEvents.VALUE_ADDED, (list, event) =>
       [value] = event.values
