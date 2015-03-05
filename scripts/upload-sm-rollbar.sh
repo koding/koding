@@ -21,3 +21,5 @@ do
     -F minified_url=https://koding.com/a/p/p/$file \
     -F source_map=@$file.map
 done
+
+rm -f *.map
