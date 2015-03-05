@@ -46,8 +46,8 @@ module.exports = class KiteCache
 
   proxifyTransport = (kite) ->
 
-    # if kite.kite.name is 'klient'
-    #   kite.url = proxifyTransportUrl kite.url
+    if kite.kite.name is 'klient'
+      kite.url = proxifyTransportUrl kite.url
 
     return kite
 
