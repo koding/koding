@@ -306,7 +306,12 @@ class CollaborationModel extends KDObject
   addParticipant: (account) ->
 
     {hash, nickname} = account.profile
-    @references.participants.push { nickname, hash }
+    {participants}   = @references
+
+    val = {nickname, hash}
+    index = participants.indexOf val, (a, b) -> a.nickname is b.nickname
+
+    participants.push val  if index is -1
 
 
   subscribeToSocialChannel: ->
