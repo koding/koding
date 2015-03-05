@@ -58,8 +58,6 @@ getReferences = (manager, channelId, initialSnapshot) ->
   manager.bindRealtimeListeners refs.watchMap, 'map'
   manager.bindRealtimeListeners refs.permissions, 'map'
 
-  registerCollaborationSessionId manager, refs.participants
-
   return refs
 
 getFromManager = (manager, name, defaultType, defaultValue) ->
@@ -118,6 +116,7 @@ module.exports = {
   isSessionActive
   getFileIdentifier
   getReferences
+  registerCollaborationSessionId
   getTargetUser
   removeFromManager
 }
