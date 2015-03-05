@@ -6,7 +6,10 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-var LimitPerRun = 10000
+var (
+	EmailLimitPerRun    = 10000
+	DeleteVMLimitPerRun = 1000
+)
 
 // This is a general notification that user is inactive.
 var FirstEmail = &Warning{
@@ -16,7 +19,7 @@ var FirstEmail = &Warning{
 
 	Interval: 30,
 
-	LimitPerRun: LimitPerRun,
+	LimitPerRun: EmailLimitPerRun,
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(30),
@@ -37,7 +40,7 @@ var SecondEmail = &Warning{
 	Interval:                 45,
 	IntervalSinceLastWarning: time.Hour * 24 * 15, // 15 days since last warning
 
-	LimitPerRun: LimitPerRun,
+	LimitPerRun: EmailLimitPerRun,
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(45),
@@ -58,7 +61,7 @@ var ThirdEmail = &Warning{
 	Interval:                 52,
 	IntervalSinceLastWarning: time.Hour * 24 * 7, // 7 days since last warning
 
-	LimitPerRun: LimitPerRun,
+	LimitPerRun: EmailLimitPerRun,
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(52),
@@ -79,7 +82,7 @@ var FourthDeleteVM = &Warning{
 	Interval:                 60,
 	IntervalSinceLastWarning: time.Hour * 24 * 8, // 8 days since last warning
 
-	LimitPerRun: LimitPerRun,
+	LimitPerRun: DeleteVMLimitPerRun,
 
 	Select: bson.M{
 		"lastLoginDate":    moreThanDaysQuery(60),
