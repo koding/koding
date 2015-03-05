@@ -146,31 +146,6 @@ module.exports = class Koding extends ProviderInterface
           , (err)-> callback err
 
 
-  @fetchUsage = (client, options, callback)->
-
-    JMachine  = require './machine'
-
-    { r: { group, user } } = client
-
-    selector        = { provider: 'koding' }
-    selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
-    selector.groups = $elemMatch: id: group.getId()
-
-    JMachine.some selector, limit: 30, (err, machines)->
-
-      return callback err  if err?
-
-      total    = machines.length
-      alwaysOn = 0
-      storage  = 0
-
-      machines.forEach (machine)->
-        alwaysOn++  if machine.meta.alwaysOn
-        storage += machine.meta.storage_size ? 3
-
-      callback null, { total, alwaysOn, storage }
-
-
   @fetchAvailable = (client, options, callback)->
 
     callback null, [
