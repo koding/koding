@@ -7,6 +7,7 @@ remote          = require('app/remote').getInstance()
 RealtimeManager = require 'ide/realtimemanager'
 socialHelpers   = require './helpers/social'
 realtimeHelpers = require './helpers/realtime'
+whoami          = require 'app/util/whoami'
 
 smEvents =
   PREPARE   : 'prepare'
@@ -58,11 +59,23 @@ class CollaborationModel extends KDObject
 
     { @workspace } = options
     @channelId = @workspace?.channelId or null
-    @rtm = new RealtimeManager
+
+    @createRealtimeManager()
 
     @initStateMachine()
 
     @on 'ParticipantKicked', (args...) => @emit 'ParticipantLeft', args...
+
+
+  createRealtimeManager: ->
+
+    @rtm = new RealtimeManager
+
+    @rtm.once 'FileLoaded', =>
+      @emit 'RealtimeManagerReady', @rtm
+
+    @rtm.once 'RealtimeDocReady', =>
+      @createReferences()
 
 
   initStateMachine: ->
@@ -80,6 +93,18 @@ class CollaborationModel extends KDObject
           _onEnter: @bound 'handleTerminated'
         quitted:
           _onEnter: @bound 'handleQuitted'
+
+
+  createReferences: ->
+
+    { initialSnapshot } = @getOptions()
+    @references = realtimeHelpers.getReferences @rtm, @channelId, initialSnapshot
+
+
+  registerSessionId: ->
+
+    { participants } = @references
+    realtimeHelpers.registerCollaborationSessionId @rtm, participants
 
 
   setState: (state) ->
@@ -117,8 +142,10 @@ class CollaborationModel extends KDObject
 
   handleActive: ->
 
-    { initialSnapshot } = @getOptions()
-    @references = realtimeHelpers.getReferences @rtm, @channelId, initialSnapshot
+    @createReferences()
+    @addParticipant whoami()
+    @registerSessionId()
+
     @subscribeToRealtimeManager()
     @subscribeToSocialChannel()
 
@@ -304,6 +331,7 @@ class CollaborationModel extends KDObject
 
     return { isWatching, permission }
 
+
   addParticipant: (account) ->
 
     {hash, nickname} = account.profile
@@ -331,9 +359,6 @@ class CollaborationModel extends KDObject
 
 
   subscribeToRealtimeManager: ->
-
-    @rtm.once 'FileLoaded', =>
-      @emit 'RealtimeManagerReady', @rtm
 
     @rtm.on realtimeEvents.VALUE_ADDED, (list, event) =>
       [value] = event.values
@@ -376,9 +401,8 @@ class CollaborationModel extends KDObject
       @emit modelEvents.participant.JOIN_REALTIME, targetUser
 
     @rtm.on realtimeEvents.LEAVE, (doc, participantData) => kd.utils.wait 2000, =>
-      {participants}            = @references
-      {sessionId}               = participantData.collaborator
-      {getTargetUser}           = realtimeHelpers
+      {participants} = @references
+      {sessionId}    = participantData.collaborator
       targetUser     = null
       targetIndex    = null
 
