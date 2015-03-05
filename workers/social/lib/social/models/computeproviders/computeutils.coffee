@@ -276,7 +276,34 @@ checkUsage = (usage, plan, storage)->
   if err then return new KodingError err
 
 
+fetchUsage = (client, options, callback)->
+
+  JMachine = require './machine'
+
+  { r: { group, user } } = client
+  { provider }           = options
+
+  selector        = { provider }
+  selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
+  selector.groups = $elemMatch: id: group.getId()
+
+  JMachine.some selector, limit: 30, (err, machines)->
+
+    return callback err  if err?
+
+    total    = machines.length
+    alwaysOn = 0
+    storage  = 0
+
+    machines.forEach (machine)->
+      alwaysOn++  if machine.meta?.alwaysOn
+      storage += machine.meta?.storage_size ? 3
+
+    callback null, { total, alwaysOn, storage }
+
+
 module.exports = {
-  PLANS, PROVIDERS, fetchStackTemplate, guessNextLabel, checkUsage
-  revive, reviveClient, reviveCredential, fetchUserPlan
+  fetchUserPlan, fetchStackTemplate, fetchUsage
+  PLANS, PROVIDERS, guessNextLabel, checkUsage
+  revive, reviveClient, reviveCredential
 }
