@@ -20,9 +20,15 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
     {machine} = options
     workspace = data # to make it more sense in the following lines.
     path      = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-    href      = groupifyLink path
     title     = workspace.name
 
+    unless machine.isMine()
+      if machine.isPermanent()
+        kd.log 'update shared ws url here'
+      else
+        path = "/IDE/#{workspace.channelId}"
+
+    href   = groupifyLink path
     @title = new CustomLinkView { href, title }
 
     @unreadCount = new KDCustomHTMLView
