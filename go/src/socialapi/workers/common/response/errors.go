@@ -24,3 +24,15 @@ type NotFoundError struct {
 func (err NotFoundError) Name() string { return "koding.NotFoundError" }
 
 func (err NotFoundError) StatusCode() int { return http.StatusNotFound }
+
+type LimitRateExceededError struct{ error }
+
+func (err LimitRateExceededError) Name() string {
+	return "koding.LimitRateExceededError"
+}
+
+func (err LimitRateExceededError) StatusCode() int {
+	// to many requests, it is not in standarts yet but browsers already
+	// implemented it, Go has builtin status code but not exported yet.
+	return 429
+}

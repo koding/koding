@@ -127,6 +127,10 @@ module.exports =
 
     [name, section, entrySlug] = slug.split("/")
 
+    # if the section is not redirect them to public feed
+    if name is "Activity" and not section
+      return res.redirect 301, "/#{name}/Public"
+
     handleError = (err, content) ->
       if err
         console.error err

@@ -6,8 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
+	socialapimodels "socialapi/models"
+
+	"github.com/koding/bongo"
+
 	"socialapi/workers/collaboration/models"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/cenkalti/backoff"
@@ -81,43 +86,62 @@ func (t *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-// Ping handles the pings coming from client side
-func (c *Controller) Ping(ping *models.Ping) error {
-	c.log.Debug("new ping %+v", ping)
-
+func validate(ping *models.Ping) error {
 	if ping.FileId == "" {
-		c.log.Error("fileId is missing %+v", ping)
-		return nil
+		return fmt.Errorf("fileId is missing %+v", ping)
 	}
 
 	if ping.AccountId == 0 {
-		c.log.Error("accountId is missing %+v", ping)
+		return fmt.Errorf("accountId is missing %+v", ping)
+	}
+
+	if ping.ChannelId == 0 {
+		return fmt.Errorf("channelId is missing %+v", ping)
+	}
+
+	return nil
+}
+
+// Ping handles the pings coming from client side
+func (c *Controller) Ping(ping *models.Ping) error {
+	c.log.Debug("new ping %+v", ping)
+	if err := validate(ping); err != nil {
+		c.log.Error("validation error:", err.Error())
 		return nil
 	}
 
-	err := c.checkIfKeyIsValid(ping)
+	err := CanOpen(ping)
+	if err != nil && err != socialapimodels.ErrCannotOpenChannel {
+		return err
+	}
+
+	if err == socialapimodels.ErrCannotOpenChannel {
+		return nil
+	}
+
+	err = c.checkIfKeyIsValid(ping)
 	if err != nil && err != errSessionInvalid {
+		c.log.Error("key is not valid %+v", err.Error())
 		return err
 	}
 
 	if err == errSessionInvalid {
-		// key should be there
-		// end the collab session
-		c.log.Info("session is not valid anymore, collab should be terminated")
-		return nil
+		c.log.Info("session is not valid anymore, collab should be terminated %+v", ping)
+		return c.EndSession(ping)
 	}
 
 	err = c.wait(ping) // wait syncronously
 	if err != nil && err != errSessionInvalid {
+		c.log.Error("err while waiting %+v", err)
 		return err
 	}
 
 	if err == errSessionInvalid {
-		// key should be there
-		// end the collab session
-		c.log.Info("session is not valid anymore, collab should be terminated")
-		return nil
+		c.log.Info("session is not valid anymore, collab should be terminated %+v", ping)
+		return c.EndSession(ping)
 	}
+
+	c.log.Debug("session is valid %+v", ping)
 
 	return nil
 }
@@ -135,38 +159,39 @@ func (c *Controller) wait(ping *models.Ping) error {
 	}
 }
 
-func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
-	var err error
+func (c *Controller) checkIfKeyIsValid(ping *models.Ping) (err error) {
 	defer func() {
 		if err != nil {
-			c.log.Debug("ping: %+v is not valid %+v err: %+v", ping, err)
+			c.log.Debug("ping: %+v is not valid err: %+v", ping, err)
 		}
 	}()
 
 	// check the redis key if it doesnt exist
 	key := PrepareFileKey(ping.FileId)
-	file, err := c.redis.Get(key)
+	pingTime, err := c.redis.Get(key)
 	if err != nil && err != redis.ErrNil {
 		return err
 	}
 
 	if err == redis.ErrNil {
+		c.log.Debug("redis key not found %+v", ping)
 		return errSessionInvalid // key is not there
 	}
 
-	unixSec, err := strconv.ParseInt(file, 10, 64)
+	unixSec, err := strconv.ParseInt(pingTime, 10, 64)
 	if err != nil {
+		c.log.Debug("couldn't parse the time", pingTime)
+
 		// discard this case, if the time is invalid, we should not try
 		// to process it again
 		return errSessionInvalid // key is not valid
 	}
 
-	t := time.Unix(unixSec, 0)
+	lastPingTimeOnRedis := time.Unix(unixSec, 0).UTC()
 
-	newPingTime := ping.CreatedAt
-	// if sum of previous ping time and terminate session duration is before the
-	// current ping time, terminate the session
-	if t.Add(terminateSessionDuration).Before(newPingTime) {
+	now := time.Now().UTC()
+
+	if now.Add(-terminateSessionDuration).After(lastPingTimeOnRedis) {
 		return errSessionInvalid
 	}
 
@@ -175,26 +200,51 @@ func (c *Controller) checkIfKeyIsValid(ping *models.Ping) error {
 }
 
 func (c *Controller) EndSession(ping *models.Ping) error {
-	errChan := make(chan error, 3)
-	c.goWithRetry(func() error {
-		return c.EndPrivateMessage(ping)
-	}, errChan)
+	var multiErr Error
+
+	defer func() {
+		if multiErr != nil {
+			c.log.Debug("ping: %+v is not valid %+v err: %+v", ping, multiErr)
+		}
+	}()
+
+	errChan := make(chan error)
+	var wg sync.WaitGroup
 
 	c.goWithRetry(func() error {
-		// first remove the users from klient
-		if err := c.RemoveUsersFromMachine(ping); err != nil {
+		// IMPORTANT
+		// 	- DO NOT CHANGE THE ORDER
+		//
+		toBeRemovedUsers, err := c.findToBeRemovedUsers(ping)
+		if err != nil {
 			return err
 		}
 
 		// then remove them from the db
-		return c.UnshareVM(ping)
-	}, errChan)
+		if err := c.UnshareVM(ping, toBeRemovedUsers); err != nil {
+			return err
+		}
+
+		// first remove the users from klient
+		if err := c.RemoveUsersFromMachine(ping, toBeRemovedUsers); err != nil {
+			return err
+		}
+
+		// then end the private messaging
+		return c.EndPrivateMessage(ping)
+	}, errChan, &wg)
 
 	c.goWithRetry(func() error {
 		return c.DeleteDriveDoc(ping)
-	}, errChan)
+	}, errChan, &wg)
 
-	var multiErr Error
+	go func() {
+		// wait until all of them are finised
+		wg.Wait()
+
+		// we are done with the operations
+		close(errChan)
+	}()
 
 	for err := range errChan {
 		if err != nil {
@@ -202,11 +252,17 @@ func (c *Controller) EndSession(ping *models.Ping) error {
 		}
 	}
 
+	if len(multiErr) == 0 {
+		return nil
+	}
+
 	return multiErr
 }
 
-func (c *Controller) goWithRetry(f func() error, errChan chan error) {
+func (c *Controller) goWithRetry(f func() error, errChan chan error, wg *sync.WaitGroup) {
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		bo := backoff.NewExponentialBackOff()
 		bo.InitialInterval = time.Millisecond * 250
 		bo.MaxInterval = time.Second * 1
@@ -237,6 +293,31 @@ func PrepareFileKey(fileId string) string {
 		KeyPrefix,
 		fileId,
 	)
+}
+
+func CanOpen(ping *models.Ping) error {
+	// fetch the channel
+	channel := socialapimodels.NewChannel()
+	if err := channel.ById(ping.ChannelId); err != nil {
+		// if channel is not there, do not do anyting
+		if err == bongo.RecordNotFound {
+			return nil
+		}
+
+		return err
+	}
+
+	canOpen, err := channel.CanOpen(ping.AccountId)
+	if err != nil {
+		return err
+	}
+
+	if !canOpen {
+		// if the requester can not open the channel do not process
+		return socialapimodels.ErrCannotOpenChannel
+	}
+
+	return nil
 }
 
 // Error contains error responses.

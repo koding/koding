@@ -45,3 +45,16 @@ type Machine struct {
 	Assignee    MachineAssignee `bson:"assignee" json:"assignee"`
 	UserDeleted bool            `bson:"userDeleted" json:"userDeleted"`
 }
+
+// Owner returns the owner of a machine
+func (m *Machine) Owner() *MachineUser {
+	for _, user := range m.Users {
+		// this is the correct way to remove all users but the owner from a
+		// machine
+		if user.Sudo && user.Owner {
+			return &user
+		}
+	}
+
+	return nil
+}

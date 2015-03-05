@@ -1192,3 +1192,30 @@ func TestChannelDelete(t *testing.T) {
 		})
 	})
 }
+
+func TestFetchPublicChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("when fetching a public channel", t, func() {
+		creator := CreateAccountWithTest()
+
+		c := NewChannel()
+		c.TypeConstant = Channel_TYPE_GROUP
+		c.GroupName = "test_group_" + RandomName()
+		c.Name = "public"
+		c.CreatorId = creator.Id
+		err := c.Create()
+		So(err, ShouldBeNil)
+		Convey("it should return a public channel with given group name", func() {
+			pc := NewChannel()
+			err := pc.FetchPublicChannel(c.GroupName)
+			So(err, ShouldBeNil)
+			So(pc.GroupName, ShouldEqual, c.GroupName)
+			So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)
+		})
+	})
+}

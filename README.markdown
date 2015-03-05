@@ -41,7 +41,7 @@ information about the folder structure.
 
 * tests:   folder contains autotests
            Latest updates about autotests status can be found here:
-           https://github.com/koding/koding/blob/master/tests/coverage.csv 
+           https://github.com/koding/koding/blob/master/tests/coverage.csv
 
 * vagrant: PLEASE FILL HERE
 
@@ -216,4 +216,4 @@ For applying changes to external databases (sandbox, prod) you should call the m
 migrate -url "postgres://[hostname]:[port]/[dbname]?user=[user]&password=[password]" -path "[projectRoot]/go/src/socialapi/db/sql/migrations" up
 ```
 
-We did not automize this process, because it would cause some problems if we apply them automatically. For instance if we apply changes to latest it would broke some other stuff on production. 
+We did not automize this process, because it would cause some problems if we apply them automatically. For instance if we apply changes to latest it would broke some other stuff on production.
