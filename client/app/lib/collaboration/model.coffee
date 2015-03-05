@@ -288,6 +288,11 @@ class CollaborationModel extends KDObject
   getParticipants: -> @rtm.getFromModel('participants').asArray()
 
 
+  getParticipantPermission: (nickname) ->
+
+    @rtm.getFromModel('permissions').get nickname
+
+
   getParticipantInfo: (nickname) ->
 
     watchList         = @rtm.getFromModel("#{nickname}WatchMap").keys()
