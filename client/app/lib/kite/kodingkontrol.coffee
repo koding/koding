@@ -99,9 +99,9 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
   injectQueryParams: (args = {}) ->
 
     args.query             ?= {}
-    args.query.version     ?= @getVersion args.query.name
+    if version = @getVersion args.query.name
+      args.query.version   ?= version
     args.query.username    ?= globals.config.kites.kontrol.username
-    args.query.environment ?= globals.config.environment
 
     return args
 
