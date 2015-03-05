@@ -20,7 +20,7 @@ type MachineContainer struct {
 }
 
 var (
-	MachineColl            = "jMachines"
+	MachinesColl           = "jMachines"
 	MachineConstructorName = "JMachine"
 )
 
@@ -31,7 +31,7 @@ func GetMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 		return c.Find(bson.M{"users.id": userId}).All(&machines)
 	}
 
-	err := Mongo.Run(MachineColl, query)
+	err := Mongo.Run(MachinesColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -66,10 +66,10 @@ func GetRunningVms() ([]models.Machine, error) {
 			machines = append(machines, machine)
 		}
 
-		return nil
+		return iter.Close()
 	}
 
-	err := Mongo.Run(MachineColl, query)
+	err := Mongo.Run(MachinesColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func GetMachineByUid(uid string) (*models.Machine, error) {
 		return c.Find(bson.M{"uid": uid}).One(machine)
 	}
 
-	err := Mongo.Run(MachineColl, query)
+	err := Mongo.Run(MachinesColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func UnshareMachineByUid(uid string) error {
 		return c.Update(s, o)
 	}
 
-	return Mongo.Run(MachineColl, query)
+	return Mongo.Run(MachinesColl, query)
 }
 
 // RemoveUsersFromMachineByIds removes the given users from JMachine document
@@ -152,7 +152,7 @@ func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
 		return c.Update(s, o)
 	}
 
-	return Mongo.Run(MachineColl, query)
+	return Mongo.Run(MachinesColl, query)
 }
 
 func GetMachinesByUsername(username string) ([]*models.Machine, error) {
@@ -169,7 +169,7 @@ func GetMachinesByUsername(username string) ([]*models.Machine, error) {
 		).All(&machines)
 	}
 
-	err = Mongo.Run(MachineColl, query)
+	err = Mongo.Run(MachinesColl, query)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func CreateMachine(m *models.Machine) error {
 		return c.Insert(m)
 	}
 
-	return Mongo.Run(MachineColl, query)
+	return Mongo.Run(MachinesColl, query)
 }
 
 // DeleteMachine deletes the machine from mongodb, it is here just for cleaning
@@ -195,7 +195,7 @@ func DeleteMachine(id bson.ObjectId) error {
 		return c.Remove(selector)
 	}
 
-	return Mongo.Run(MachineColl, query)
+	return Mongo.Run(MachinesColl, query)
 }
 
 func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
@@ -206,5 +206,24 @@ func UpdateMachineAlwaysOn(machineId bson.ObjectId, alwaysOn bool) error {
 		)
 	}
 
-	return Mongo.Run(MachineColl, query)
+	return Mongo.Run(MachinesColl, query)
+}
+
+func CreateMachineForUser(m *models.Machine, u *models.User) error {
+	m.Users = []models.MachineUser{
+		models.MachineUser{Id: u.ObjectId, Sudo: true, Owner: true},
+	}
+
+	return CreateMachine(m)
+}
+
+func RemoveAllMachinesForUser(userId bson.ObjectId) error {
+	selector := bson.M{"users": bson.M{"id": userId}}
+
+	query := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(selector)
+		return err
+	}
+
+	return Mongo.Run(MachinesColl, query)
 }

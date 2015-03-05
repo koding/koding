@@ -42,7 +42,7 @@ func GetServices() []models.Service {
 		for iter.Next(&service) {
 			services = append(services, service)
 		}
-		return nil
+		return iter.Close()
 	}
 
 	Mongo.Run("jProxyServices", query)

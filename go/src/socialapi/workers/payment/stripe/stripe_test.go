@@ -32,6 +32,8 @@ func init() {
 	CreateDefaultPlans()
 
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	Log.SetLevel(0)
 }
 
 var (

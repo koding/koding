@@ -1,6 +1,8 @@
 package kodingemail
 
 import (
+	"fmt"
+
 	"github.com/sendgrid/sendgrid-go"
 	"github.com/sendgrid/smtpapi-go"
 )
@@ -12,6 +14,7 @@ var (
 
 // The default interface to send emails.
 type Client interface {
+	SetClient(SenderClient)
 	SendTemplateEmail(string, string, Options) error
 }
 
@@ -28,12 +31,14 @@ type SenderClient interface {
 type SG struct {
 	FromAddress, FromName string
 	SenderClient          SenderClient
+	ForceRecipient        string
 }
 
-func NewSG(username, password string) *SG {
+func NewSG(username, password, forceRecipient string) *SG {
 	return &SG{
 		FromAddress: DefaultFromAddress, FromName: DefaultFromName,
-		SenderClient: sendgrid.NewSendGridClient(username, password),
+		ForceRecipient: forceRecipient,
+		SenderClient:   sendgrid.NewSendGridClient(username, password),
 	}
 }
 
@@ -58,7 +63,17 @@ func (s *SG) SendTemplateEmail(to, tId string, sub Options) error {
 	message.SetFrom(s.FromAddress)
 	message.SetFromName(s.FromName)
 
-	message.AddTo(to)
+	recipient := to
+	if s.ForceRecipient != "" {
+		fmt.Println("kodingemail: Forcing recipient to", s.ForceRecipient)
+		recipient = s.ForceRecipient
+	}
+
+	message.AddTo(recipient)
 
 	return s.SenderClient.Send(message)
+}
+
+func (s *SG) SetClient(client SenderClient) {
+	s.SenderClient = client
 }

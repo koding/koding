@@ -43,11 +43,7 @@ func GetUserVMs(username string) ([]models.VM, error) {
 			vms = append(vms, *vm)
 		}
 
-		if err := iter.Close(); err != nil {
-			return err
-		}
-
-		return nil
+		return iter.Close()
 	}
 
 	err := Mongo.Run("jVMs", query)

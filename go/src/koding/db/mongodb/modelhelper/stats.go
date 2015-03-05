@@ -118,7 +118,7 @@ func GetDomainStats() []models.DomainStat {
 			domainstats = append(domainstats, domainstat)
 		}
 
-		return nil
+		return iter.Close()
 	}
 
 	Mongo.Run("jDomainStats", query)
@@ -195,7 +195,7 @@ func GetProxyStats() []models.ProxyStat {
 		for iter.Next(&proxystat) {
 			proxystats = append(proxystats, proxystat)
 		}
-		return nil
+		return iter.Close()
 	}
 
 	Mongo.Run("jProxyStats", query)

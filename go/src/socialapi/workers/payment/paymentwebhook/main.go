@@ -113,7 +113,7 @@ func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client
 }
 
 func initializeEmail(conf config.Email) kodingemail.Client {
-	return kodingemail.NewSG(conf.Username, conf.Password)
+	return kodingemail.NewSG(conf.Username, conf.Password, "")
 }
 
 func initializeMux(st *stripeMux, pp *paypalMux) *http.ServeMux {
