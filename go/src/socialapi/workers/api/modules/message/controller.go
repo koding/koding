@@ -14,6 +14,8 @@ import (
 	"github.com/koding/bongo"
 )
 
+var publicChannel *models.Channel
+
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 
 	channelId, err := fetchInitialChannelId(u, c)
@@ -73,12 +75,26 @@ func fetchInitialChannelId(u *url.URL, context *models.Context) (int64, error) {
 		return channelId, nil
 	}
 
-	publicChannel := models.NewChannel()
-	if err := publicChannel.FetchPublicChannel(context.GroupName); err != nil {
+	return fetchPublicChannelId(context.GroupName)
+}
+
+// TODO when we implement Team product, we will need a better caching mechanism
+func fetchPublicChannelId(groupName string) (int64, error) {
+
+	if groupName == "koding" && publicChannel != nil {
+		return publicChannel.Id, nil
+	}
+
+	channel := models.NewChannel()
+	if groupName == "koding" {
+		publicChannel = channel
+	}
+
+	if err := channel.FetchPublicChannel(groupName); err != nil {
 		return 0, err
 	}
 
-	return publicChannel.Id, nil
+	return channel.Id, nil
 }
 
 func checkThrottle(channelId, requesterId int64) error {
