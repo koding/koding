@@ -8,6 +8,7 @@ import (
 
 	"github.com/koding/klient/app"
 	"github.com/koding/klient/protocol"
+	"github.com/koding/klient/registration"
 )
 
 var (
@@ -19,6 +20,12 @@ var (
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
+
+	// Registration flags
+	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
+	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
+	flagKontrolURL = flag.String("kontrol-url", "https://koding.com/kontrol/kite",
+		"Change kontrol URL to be used for registration")
 
 	// update parameters
 	flagUpdateInterval = flag.Duration("update-interval", time.Minute*5,
@@ -39,6 +46,14 @@ func realMain() int {
 	flag.Parse()
 	if *flagVersion {
 		fmt.Println(protocol.Version)
+		return 0
+	}
+
+	if *flagRegister {
+		if err := registration.WithPassword(*flagKontrolURL, *flagUsername); err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			return 1
+		}
 		return 0
 	}
 
