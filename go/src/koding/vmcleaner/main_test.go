@@ -14,7 +14,7 @@ import (
 )
 
 func init() {
-	modelhelper.Initialize("localhost:27017/koding")
+	modelhelper.Initialize("localhost:27017/koding_test")
 	Email = initializeEmail("", "", "")
 
 	Log.SetLevel(0)
