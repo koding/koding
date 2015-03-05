@@ -150,7 +150,7 @@ module.exports = class Sidebar extends bongo.Base
   isMachineOwner = (user, machine) ->
 
     for u in machine.users
-      if u.owner and u.id.equals user.getId()
+      if u.owner and u.sudo and u.id.equals user.getId()
         return yes
 
     return no
