@@ -536,30 +536,33 @@ module.exports =
 
 
   startHeartbeat: ->
+
     interval = 1000 * 15
     @sendPing() # send the first ping
     @pingInterval =  kd.utils.repeat interval, @bound 'sendPing'
 
 
   sendPing: ->
+
     {channelId} = @workspaceData
-    doXhrRequest {
-      # generate data
-      data     : {
-        fileId    : @rtmFileId
-        channelId : channelId
-      }
+
+    doXhrRequest
+      endPoint : '/api/social/collaboration/ping'
       type     : 'POST'
       async    : yes
-      endPoint : '/api/social/collaboration/ping'
-    }, (err, response) ->
+      data:
+        fileId    : @rtmFileId
+        channelId : channelId
+    , (err, response) ->
+
       return  if not err
 
-      console.error err
-
-      if err.code == 400
+      if err.code is 400
         kd.utils.killRepeat @pingInterval # graceful stop
         throwError "bad request, err: %s", err.message
+      else
+        throwError "#{err}: %s", JSON.stringify response
+
 
   forceQuitCollaboration: ->
 
