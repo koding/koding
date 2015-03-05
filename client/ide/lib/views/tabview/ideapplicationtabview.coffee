@@ -3,6 +3,7 @@ $ = require 'jquery'
 KDModalView = kd.ModalView
 KDTabView = kd.TabView
 ApplicationTabView = require 'app/commonviews/applicationview/applicationtabview'
+FileNotificationHelper = require '../../util/filenotificationhelper.coffee'
 
 
 module.exports = class IDEApplicationTabView extends ApplicationTabView
@@ -48,7 +49,9 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
           title     : "Save and Close"
           callback  : =>
             if file.path.indexOf("localfile:") is 0
-              file.once "fs.saveAs.finished", => @removePane_ pane
+              file.once "fs.saveAs.finished", (err) =>
+                @removePane_ pane  unless err
+                FileNotificationHelper.showNotificationForError err, yes  if err
               @willClose = yes
               ace.requestSaveAs()
               modal.destroy()
