@@ -25,7 +25,7 @@ var (
 	flagKiteHome   = flag.String("kite-home", "~/.kite/", "Change kite home path")
 	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
 	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
-	flagKontrolURL = flag.String("kontrol-url", "https://koding.com/kontrol/kite",
+	flagKontrolURL = flag.String("kontrol-url", "",
 		"Change kontrol URL to be used for registration")
 
 	// update parameters
