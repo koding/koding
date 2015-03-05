@@ -1,0 +1,16 @@
+{
+  "editor": [
+    {
+      "name": "save",
+      "description": "Save",
+      "binding": [
+        [
+          "ctrl+s"
+        ],
+        [
+          "command+s"
+        ]
+      ]
+    }
+  ]
+}
