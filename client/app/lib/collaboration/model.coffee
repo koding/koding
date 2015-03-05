@@ -332,7 +332,7 @@ class CollaborationModel extends KDObject
 
   subscribeToRealtimeManager: ->
 
-    @rtm.on 'FileLoaded', =>
+    @rtm.once 'FileLoaded', =>
       @emit 'RealtimeManagerReady', @rtm
 
     @rtm.on realtimeEvents.VALUE_ADDED, (list, event) =>
