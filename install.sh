@@ -12,4 +12,18 @@ curl -s $LATESTURL -o klient.deb
 sudo dpkg -i klient.deb > /dev/null
 
 echo "Authenticate to Koding.com"
-/opt/kite/klient/klient -register
+sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite"
+
+if [ ! -f /etc/kite/kite.key ]; then
+    echo "Kite.key not found. Aborting installation"
+    exit -1
+fi
+
+# Production kontrol might return a different kontrol URL. Let us control this aspect.
+KONTROLURL="https://koding.com/kontrol/kite"
+escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
+sudo sed -i "s/\.\/klient -kontrol-url $escaped_var \.\/klient/g/" "/etc/init/klient.conf"
+
+# We need to restart it so it pick up the new environment variable
+sudo service klient restart
+
