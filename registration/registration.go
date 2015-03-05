@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/koding/kite"
-	"github.com/koding/kite/config"
-	"github.com/koding/kite/kitekey"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/kitekey"
 	"github.com/koding/klient/protocol"
 )
 
