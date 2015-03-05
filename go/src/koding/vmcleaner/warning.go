@@ -13,9 +13,10 @@ import (
 )
 
 type Warning struct {
-	Name     string
-	Level    int
-	Interval int
+	Name        string
+	Level       int
+	Interval    int
+	LimitPerRun int
 
 	// Defines how long between emails from above level & this.
 	IntervalSinceLastWarning time.Duration
@@ -30,10 +31,17 @@ type Warning struct {
 	Exempt []Exempt
 }
 
+var defaultLimitPerRun = 100
+
 func (w *Warning) Run() *Result {
 	result := &Result{Warning: w.Name}
+	limit := w.GetLimit()
 
 	for {
+		if limit -= 1; limit == 0 {
+			break
+		}
+
 		err := w.RunSingle()
 		if err != nil && !isErrNotFound(err) {
 			result.Failure += 1
@@ -48,6 +56,18 @@ func (w *Warning) Run() *Result {
 	}
 
 	return result
+}
+
+func (w *Warning) GetLimit() int {
+	limit := w.LimitPerRun
+	if limit == 0 {
+		Log.Info("No limit set per run for warning: defaulting to %v",
+			w.Name, defaultLimitPerRun)
+
+		limit = defaultLimitPerRun
+	}
+
+	return limit
 }
 
 func (w *Warning) RunSingle() error {
