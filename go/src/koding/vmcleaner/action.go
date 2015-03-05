@@ -56,7 +56,7 @@ func DeleteVMs(user *models.User, _ int) error {
 		})
 
 		if err != nil && !isVmAlreadyStoppedErr(err) {
-			Log.Error("Error stopping machine:%s for username: %s, %v", user.Name,
+			Log.Error("Error destroy machine:%s for username: %s, %v", user.Name,
 				machine.ObjectId, err)
 		}
 
