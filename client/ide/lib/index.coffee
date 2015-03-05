@@ -1147,6 +1147,8 @@ module.exports = class IDEAppController extends AppController
 
     @cleanupCollaboration()
 
+    @mountedMachine.getBaseKite().disconnect()
+
     kd.singletons.router.handleRoute '/IDE'
     kd.singletons.appManager.quit this
 
