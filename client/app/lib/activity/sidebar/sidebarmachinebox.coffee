@@ -38,7 +38,7 @@ module.exports = class SidebarMachineBox extends KDView
 
     @listController = new KDListViewController
       itemClass     : SidebarWorkspaceItem
-      itemOptions   : { machine }
+      itemOptions   : { @machine }
 
     @listWrapper = @listController.getView()
 
