@@ -113,17 +113,12 @@ module.exports = class CommentView extends KDView
 
     activity = @getData()
 
-    # TODO this code block is a c/p from messageeventmanager
-    activity.replies.push message
-    activity.replyIds[message.id] = yes
-    activity.repliesCount++
-
-    message.messageId = activity.id
-
     @putMessage message, @removeFakeMessage message.clientRequestId
 
-    activity.emit "AddReply", message
-    activity.emit "update"
+    @addMessageReply activity, message
+
+
+  addMessageReply: require 'activity/mixins/addmessagereply'
 
 
   removeFakeMessage: (identifier) ->

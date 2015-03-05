@@ -90,14 +90,10 @@ module.exports = class MessageEventManager extends KDObject
 
       return  unless kd.singletons.socialapi.isFromOtherBrowser plain
 
-      message.replies.push reply
-      message.replyIds[plain.message.id] = yes
-      message.repliesCount++
+      @addMessageReply message, reply
 
-      plain.message.messageId = message.id
 
-      message.emit "AddReply", reply
-      message.emit "update"
+  addMessageReply: require 'activity/mixins/addmessagereply'
 
 
   removeReply: (options) ->
