@@ -172,6 +172,7 @@ func TestCreateUsers(t *testing.T) {
 }
 
 func TestMachines(t *testing.T) {
+	t.Skip()
 	userCount := 10
 
 	var wg sync.WaitGroup
@@ -186,6 +187,55 @@ func TestMachines(t *testing.T) {
 	}
 
 	wg.Wait()
+}
+
+func TestResize(t *testing.T) {
+	username := "testuser"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Resizing machine")
+	storageWant := 5
+	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			bson.ObjectIdHex(userData.MachineId),
+			bson.M{
+				"$set": bson.M{
+					"meta.storage_size": storageWant,
+				},
+			},
+		)
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := resize(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+
+	storageGot, err := getAmazonStorageSize(userData.MachineId)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if storageGot != storageWant {
+		t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+			storageWant,
+			storageGot,
+		)
+	}
+
+	log.Println("Destroying machine")
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
 }
 
 // TestSingleMachine creates a test user document and a single machine document
