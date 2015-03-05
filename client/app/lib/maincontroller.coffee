@@ -58,8 +58,6 @@ module.exports = class MainController extends KDController
 
   ###
 
-  Promise.longStackTraces()
-
   connectedState = connected : no
 
   constructor:(options = {}, data)->
