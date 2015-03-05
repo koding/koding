@@ -876,7 +876,8 @@ module.exports = class IDEAppController extends AppController
     unless @fakeViewsDestroyed
       for ideView in @ideViews
         {tabView} = ideView
-        tabView.removePane tabView.getActivePane()
+        if pane = tabView.getActivePane()
+          tabView.removePane pane
 
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
