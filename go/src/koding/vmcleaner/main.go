@@ -33,6 +33,9 @@ var (
 
 	KiteClient *kite.Client
 	Email      kodingemail.Client
+
+	// cron runs at utc, 4pm UTC is 8am PST
+	DailyAtEightAM = "0 0 4 * * *"
 )
 
 type Vmcleaner struct {
@@ -65,7 +68,7 @@ func main() {
 
 	c := cron.New()
 
-	c.AddFunc("@daily", func() {
+	c.AddFunc(DailyAtEightAM, func() {
 		for _, warning := range Warnings {
 			result := warning.Run()
 			Log.Info(result.String())
