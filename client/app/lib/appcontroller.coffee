@@ -1,8 +1,8 @@
-kd = require 'kd'
-KDViewController = kd.ViewController
+kd                 = require 'kd'
+KDViewController   = kd.ViewController
 KDKeyboardListener = kd.KeyboardListener
-KDKeyboardMap = kd.KeyboardMap
-getAppOptions = require './util/getAppOptions'
+KDKeyboardMap      = kd.KeyboardMap
+getAppOptions      = require './util/getAppOptions'
 
 
 module.exports = class AppController extends KDViewController
@@ -23,14 +23,13 @@ module.exports = class AppController extends KDViewController
 
     @bindKeyCombos()
 
+
   bindKeyCombos: ->
-    { globalKeyCombos } = kd.singletons
 
     @appKeyListener = new KDKeyboardListener
     @appKeyMap      = new KDKeyboardMap { priority: 10 }
 
     @appKeyListener
-      .addComboMap globalKeyCombos
       .addComboMap @appKeyMap
 
     @registerDeclaredBindings()
@@ -38,16 +37,20 @@ module.exports = class AppController extends KDViewController
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
       @appKeyListener?.listen()  if app is this
 
+
   registerAppKeys: (bindings = {}) ->
     @appKeyMap.addCombo binding, fn  for own binding, fn of bindings
     @appKeyListener.addComboMap @appKeyMap
     @appKeyMap
 
+
   createContentDisplay:(models, callback)->
     kd.warn "You need to override #createContentDisplay - #{@constructor.name}"
 
+
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
+
 
   handleCommand: (command, appName, event) ->
     { commands } = getAppOptions @getOptions().name
@@ -60,6 +63,7 @@ module.exports = class AppController extends KDViewController
       @[cmd]?.call this, event
     else
       throw new Error "Unknown command: #{command}"
+
 
   registerDeclaredBindings: ->
     appName = @getOptions().name
