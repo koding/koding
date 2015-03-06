@@ -353,8 +353,8 @@ module.exports =
     workspaceName = paragraph.split(' ')[0]
 
     browser
-      .waitForElementVisible   '.kdscrollview li a.more-link', 20000
-      .click                   '.kdscrollview li a.more-link'
+      .waitForElementVisible   '.activity-sidebar .workspaces-link', 20000
+      .click                   '.activity-sidebar .workspaces-link'
       .waitForElementVisible   '.kdmodal-inner', 20000
       .click                   '.kdmodal-inner button'
       .pause                   3000 # required
