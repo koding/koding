@@ -196,6 +196,5 @@ module.exports = class SidebarMachineBox extends KDView
       @machine.status.state = state # FIXME: why it is not setting the state itself?
 
       switch state
-        when Stopping    then @deselect()
-        when Terminating then @deselect()
-        when Terminated  then @destroy()
+        when Stopping, Terminating then @deselect()
+        when Terminated then @destroy()
