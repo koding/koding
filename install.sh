@@ -24,7 +24,7 @@ fi
 
 # Production kontrol might return a different kontrol URL. Let us control this aspect.
 escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
-sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var /g" "/etc/init/klient.conf"
+sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var -env managed /g" "/etc/init/klient.conf"
 
 # We need to restart it so it pick up the new environment variable
 sudo service klient restart
