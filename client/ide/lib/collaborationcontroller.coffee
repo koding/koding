@@ -685,8 +685,9 @@ module.exports =
   showShareButton: ->
 
     @ready =>
+      @statusBar.handleCollaborationLoading()
       @statusBar.share.show()
-      IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
+      # IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
   prepareCollaboration: ->
@@ -694,22 +695,22 @@ module.exports =
     @rtm        = new RealTimeManager
     {channelId} = @workspaceData
 
+    @showShareButton()
+
     @rtm.ready =>
       unless @workspaceData.channelId
-        @showShareButton()
+        @statusBar.emit 'CollaborationEnded'
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
           throwError err  if err
-          return @showShareButton()
+          @statusBar.emit 'CollaborationEnded'
 
         @isRealtimeSessionActive channelId, (isActive) =>
           if isActive or @isInSession
             @startChatSession => @chat.showChatPane()
             @chat.hide()
-            @statusBar.share.updatePartial 'Chat'
-
-          @showShareButton()
+            @statusBar.emit 'CollaborationStarted'
 
 
   startCollaborationSession: (callback) ->
