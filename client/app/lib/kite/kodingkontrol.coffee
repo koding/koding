@@ -81,10 +81,20 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   fetchKites: Promise.promisify (args, callback) ->
 
-    @reauthenticate()  unless @kite?
-
     {query} = args
-    args    = @injectQueryParams args
+
+    @queryKites args
+      .then (result)=>
+        if query? and result.kites.length > 0
+          KiteCache.cache query, result.kites.first
+
+        callback null, @createKites result.kites
+
+
+  queryKites: Promise.promisify (args, callback) ->
+
+    @reauthenticate()  unless @kite?
+    args = @injectQueryParams args
 
     @kite.tell 'getKites', [args], (err, result) =>
       return callback err  if err?
@@ -93,10 +103,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         callback @createKiteNotFoundError args.query
         return
 
-      if query? and result.kites.length > 0
-        KiteCache.cache query, result.kites.first
-
-      callback null, @createKites result.kites
+      callback null, result
 
 
   getVersion: (name) ->
