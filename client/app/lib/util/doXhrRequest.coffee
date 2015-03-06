@@ -10,20 +10,37 @@ module.exports = (options = {}, callback) ->
   xhr.open type, endPoint, async
   xhr.setRequestHeader "Content-Type", "application/json;"
   xhr.onload = (result) =>
+    return if xhr.readyState isnt 4
+
+    # 0 - connection failed
+    if xhr.status is 0 or xhr.status >= 500
+      return callback {
+        message : "internal server error"
+        code    : xhr.status
+      }
+
     try
       response = JSON.parse xhr.responseText
     catch e
-      return callback { message : "invalid json: could not parse response", code: xhr.status }
+      return callback {
+        message : "invalid json: could not parse response"
+        code    : xhr.status
+      }
 
-    # 0     - connection failed
+
     # >=400 - http errors
-    if xhr.status is 0 or xhr.status >= 400
-      return callback { message: response.description}
+    if xhr.status >= 400
+      return callback {
+        message : response.description
+        code    : xhr.status
+      }
 
-    return if xhr.readyState isnt 4
 
     if xhr.status not in [200, 304]
-      return callback { message: response.description}
+      return callback {
+        message : response.description
+        code    : xhr.status
+      }
 
     return callback null, response
 

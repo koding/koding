@@ -29,7 +29,7 @@ module.exports = class DomainItem extends KDListItemView
     unless domain is topDomain
       @addSubView new KDCustomHTMLView
         tagName  : 'span'
-        cssClass : 'remove-domain'
+        cssClass : 'remove'
         click    : =>
           @getDelegate().emit 'DeleteDomainRequested', this
 
@@ -38,5 +38,3 @@ module.exports = class DomainItem extends KDListItemView
       defaultValue : machineId is currentMachineId
       callback     : (state) =>
         @getDelegate().emit 'DomainStateChanged', this, state
-
-

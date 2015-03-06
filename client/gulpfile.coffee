@@ -11,6 +11,7 @@ pistachioify   = require 'pistachioify'
 browserify     = require 'browserify'
 watchify       = require 'watchify'
 uglifyify      = require 'uglifyify'
+exorcist       = require 'exorcist'
 
 glob           = require 'glob'
 xtend          = require 'xtend'
@@ -30,6 +31,8 @@ watch          = require 'gulp-watch'
 styleHelper    = require './gulptasks/style'
 concat         = require 'gulp-concat'
 
+Readable       = require('stream').Readable
+
 devMode        = argv.devMode?
 watchMode      = argv.watchMode?
 version        = argv.ver? or 1
@@ -46,7 +49,6 @@ opts =
   rev: null
   browserify:
     extensions: ['.coffee', '.js', '.json']
-    # debug: true
   globals:
     config: {}
     appClasses: {}
@@ -167,6 +169,8 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
   mapping = {}
   modules.forEach (name) -> mapping[name] = "../#{name}/lib"
 
+  if devMode then opts.browserify.debug = true
+
   if watchMode
     b = watchify(browserify(xtend(opts.browserify, watchify.args)))
   else
@@ -186,13 +190,21 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       mangle      : yes
       'screw-ie8' : yes
 
+  asReadable = (src) ->
+    rs = new Readable
+    rs._read = ->
+      rs.push src
+      rs.push null
+    return rs
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->
-      outfile = path.join opts.outdir, "#{bundle.name}.js"
-      fs.writeFile outfile, bundle.source, (err, res) ->
-        debug "could not write #{outfile}"  if err
-        debug "#{pretty bundle.source.length} written to #{path.basename outfile}"
+      basename = "#{bundle.name}.js"
+      outfile = path.join opts.outdir, basename
+      s = fs.createWriteStream outfile
+      asReadable(bundle.source).pipe(exorcist("#{outfile}.map")).pipe(s)
+      s.once 'finish', ->
+        debug "#{pretty bundle.source.length} written to #{basename}"
 
   b.require(require.resolve('kd.js'), { expose: 'kd' })  unless watchMode
 

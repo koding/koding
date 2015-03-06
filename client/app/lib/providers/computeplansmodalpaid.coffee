@@ -50,9 +50,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       name          : "region"
       selectOptions : [
         { title: "United States (North Virginia)", value: "us-east-1" }
-        { title: "United States (Oregon)", value: "us-west-2" }
-        { title: "Singapore",     value: "ap-southeast-1" }
-        { title: "Ireland",     value: "eu-west-1" }
+        { title: "United States (Oregon)",         value: "us-west-2" }
+        { title: "Singapore",                      value: "ap-southeast-1" }
+        { title: "Ireland",                        value: "eu-west-1" }
       ]
 
     regionContainer.addSubView @regionTextView = new KDView
@@ -138,5 +138,3 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       @createVMButton.hideLoader()
       @destroy()
-
-

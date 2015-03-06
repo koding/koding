@@ -35,12 +35,12 @@ func (p *Provider) DeleteSnapshot(snapshotId string, m *protocol.Machine) error 
 		return err
 	}
 
-	p.Log.Info("[%s] deleting snapshot from AWS %s", m.Id, snapshotId)
+	a.Log.Info("deleting snapshot from AWS %s", snapshotId)
 	if _, err := a.Client.DeleteSnapshots([]string{snapshotId}); err != nil {
 		return err
 	}
 
-	p.Log.Debug("[%s] deleting snapshot data from MongoDB %s", m.Id, snapshotId)
+	a.Log.Debug("deleting snapshot data from MongoDB %s", snapshotId)
 	return p.DeleteSnapshotData(snapshotId)
 }
 
@@ -72,13 +72,13 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 	volumeId := instance.BlockDevices[0].VolumeId
 	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id)
 
-	a.Log.Debug("[%s] Creating snapshot '%s'", m.Id, snapshotDesc)
+	a.Log.Debug("Creating snapshot '%s'", snapshotDesc)
 	a.Push("Creating snapshot", 50, machinestate.Snapshotting)
 	snapshot, err := a.CreateSnapshot(volumeId, snapshotDesc)
 	if err != nil {
 		return nil, err
 	}
-	a.Log.Debug("[%s] Snapshot created successfully: %+v", m.Id, snapshot)
+	a.Log.Debug("Snapshot created successfully: %+v", snapshot)
 
 	snapshotData := &SnapshotDocument{
 		username:   m.Username,
@@ -99,7 +99,7 @@ func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, erro
 
 	if _, err := a.Client.CreateTags([]string{snapshot.Id}, tags); err != nil {
 		// don't return for a snapshot tag problem
-		p.Log.Warning("[%s] Failed to tag the new snapshot: %v", m.Id, err)
+		a.Log.Warning("Failed to tag the new snapshot: %v", err)
 	}
 
 	a.Push("Snapshot creation finished successfully", 80, machinestate.Snapshotting)
@@ -132,7 +132,7 @@ func (p *Provider) AddSnapshotData(doc *SnapshotDocument) error {
 	})
 
 	if err != nil {
-		p.Log.Error("[%s] Could not add snapshot %v: err: %v", doc.MachineId.Hex(), doc, err)
+		p.Log.Error("Could not add snapshot %v: err: %v", doc.MachineId.Hex(), doc, err)
 		return errors.New("could not add snapshot to DB")
 	}
 
