@@ -152,12 +152,14 @@ func UpdateChannel(cm *models.Channel) (*models.Channel, error) {
 func GetChannel(id int64) (*models.Channel, error) {
 
 	url := fmt.Sprintf("/channel/%d", id)
-	cm := models.NewChannel()
-	cmI, err := sendModel("GET", url, cm)
+	cc := models.NewChannelContainer()
+	cmI, err := sendModel("GET", url, cc)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.Channel), nil
+	cc = cmI.(*models.ChannelContainer)
+
+	return cc.Channel, nil
 }
 
 func CreateGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {

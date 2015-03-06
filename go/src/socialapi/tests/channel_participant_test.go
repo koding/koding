@@ -121,7 +121,6 @@ func TestChannelParticipantOperations(t *testing.T) {
 					_, err = rest.DeleteChannelParticipant(channelContainer.Channel.Id, secondAccount.Id, thirdAccount.Id)
 					So(err, ShouldNotBeNil)
 				})
-
 			})
 
 			// TODO Until we find a better way for handling async stuff, this test is skipped. Instead of sleep, we should use some
@@ -150,10 +149,7 @@ func TestChannelParticipantOperations(t *testing.T) {
 				testMessage := models.NewChannelMessage()
 				err = bongo.B.Unscoped().Where("initial_channel_id = ?", channelContainer.Channel.Id).Find(testMessage).Error
 				So(err, ShouldEqual, bongo.RecordNotFound)
-
 			})
-
 		})
-
 	})
 }

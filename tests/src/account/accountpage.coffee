@@ -1,6 +1,5 @@
 utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 
 postSelector  = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 linkSelector  = postSelector + ' .meta a.profile'
