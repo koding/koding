@@ -1,8 +1,10 @@
 kd = require 'kd'
 KDView = kd.View
-CustomLinkView = require 'app/customlinkview'
+ComputeErrorModal = require './computeerrormodal'
+CustomLinkView = require '../customlinkview'
 
-module.exports = class ComputeErrorModalUsage extends ComputeErrorModal
+
+module.exports = class ComputeErrorUsageModal extends ComputeErrorModal
 
   viewAppended:->
 

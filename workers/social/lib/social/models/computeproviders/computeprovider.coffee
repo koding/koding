@@ -174,7 +174,12 @@ module.exports = class ComputeProvider extends Base
     provider.update client, options, callback
 
 
-  @remove = secure revive no, (client, options, callback)->
+  @remove = secure revive
+
+    shouldReviveClient   : yes
+    shouldPassCredential : yes
+
+  , (client, options, callback)->
 
     {provider} = options
     provider.remove client, options, callback

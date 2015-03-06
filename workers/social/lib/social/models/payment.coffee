@@ -195,5 +195,5 @@ module.exports = class Payment extends Base
   fetchReferrerSpace = (client, callback)->
     originId = client.connection.delegate.getId()
 
-    JEarnedReward = require './rewards/earnedreward'
-    JEarnedReward.fetchEarnedAmount {originId}, callback
+    JReward = require './rewards'
+    JReward.fetchEarnedAmount {originId}, callback
