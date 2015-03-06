@@ -170,6 +170,14 @@ initialize = (defaults, next) ->
     globals.config.mainUri = global.location.origin
     globals.config.apiUri  = global.location.origin
 
+  # todo: we should not expose globals.modules indeed
+  # sanitize this into a beautiful config object and preferably
+  # merge with globals.config.apps -tetsuo
+  globals.modulesIndex = globals.modules.reduce (acc, x) -> 
+    acc[x.name] = x
+    return acc
+  , {}
+
   logsEnabled = (kookies.get 'enableLogs') or !globals.config?.suppressLogs
   enableLogs logsEnabled
 
