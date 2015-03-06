@@ -43,7 +43,8 @@ SocialApiController      = require './socialapicontroller'
 WelcomeModal             = require './welcomemodal'
 WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
-ShortcutsController      = require './shortcutscontroller'
+Shortcuts                = require 'shortcuts'
+defaultShortcuts         = require './shortcuts/defaults'
 
 
 module.exports = class MainController extends KDController
@@ -137,7 +138,7 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'search',                    new SearchController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
-    kd.registerSingleton 'shortcuts',                 new ShortcutsController
+    kd.registerSingleton 'shortcuts',                 new Shortcuts defaultShortcuts
 
     router.listen()
     @mainViewController = mvc
