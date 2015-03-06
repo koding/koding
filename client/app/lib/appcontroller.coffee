@@ -17,12 +17,17 @@ class AppController extends KDViewController
     { mainController } = kd.singletons
     { name, version } = @getOptions()
 
+
     mainController.ready =>
       # defer should be removed
       # this should be listening to a different event - SY
       kd.utils.defer  =>
         { appStorageController } = kd.singletons
         @appStorage = appStorageController.storage name, version or "1.0.1"
+
+
+  getConfig: ->
+    return globals.modulesIndex[@getOption('name').toLowerCase()]
 
 
   handleQuery:(query)->
