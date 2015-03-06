@@ -893,11 +893,14 @@ module.exports = class IDEAppController extends AppController
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
 
-    if snapshot then @resurrectLocalSnapshot snapshot
-    else
-      @ideViews.first.createEditor()
-      @ideViews.last.createTerminal { machine }
-      @setActiveTabView @ideViews.first.tabView
+    # TODO: temp fix for snapshot resurrection, ide should wait for IdeIsReallyReady event -SY
+    kd.utils.defer =>
+
+      if snapshot then @resurrectLocalSnapshot snapshot
+      else
+        @ideViews.first.createEditor()
+        @ideViews.last.createTerminal { machine }
+        @setActiveTabView @ideViews.first.tabView
 
     data = { machine, workspace: @workspaceData }
     kd.singletons.mainView.activitySidebar.selectWorkspace data
