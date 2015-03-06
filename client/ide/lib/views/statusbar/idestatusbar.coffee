@@ -20,6 +20,7 @@ module.exports = class IDEStatusBar extends KDView
     @on 'ShowAvatars',          @bound 'showAvatars'
     @on 'ParticipantLeft',      @bound 'dimParticipantAvatar'
     @on 'ParticipantJoined',    @bound 'addParticipantAvatar'
+    @on 'CollaborationLoading', @bound 'handleCollaborationLoading'
     @on 'CollaborationEnded',   @bound 'handleCollaborationEnded'
     @on 'CollaborationStarted', @bound 'handleCollaborationStarted'
     @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
@@ -42,10 +43,11 @@ module.exports = class IDEStatusBar extends KDView
 
     @addSubView @share = new CustomLinkView
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
-      title    : 'Share'
+      title    : 'Loading'
       cssClass : 'share fr hidden'
       click    : (event) ->
         kd.utils.stopDOMEvent event
+        return  if @hasClass 'loading'
         appManager.tell 'IDE', 'showChat'  unless collabDisabled
 
     @addSubView @avatars = new KDCustomHTMLView cssClass : 'avatars fr'
@@ -120,12 +122,22 @@ module.exports = class IDEStatusBar extends KDView
     @avatars.show()
 
 
+  handleCollaborationLoading: ->
+
+    @share.setClass 'loading'
+    @share.updatePartial 'Loading'
+
+
   handleCollaborationEnded: ->
 
+    @share.unsetClass 'loading'
     @share.updatePartial 'Share'
     @avatars.destroySubViews()
 
 
   handleCollaborationStarted: ->
 
+    @share.unsetClass 'loading'
     @share.updatePartial 'Chat'
+
+
