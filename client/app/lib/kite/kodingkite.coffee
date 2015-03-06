@@ -142,10 +142,12 @@ module.exports = class KodingKite extends KDObject
     {kontrol} = kd.singletons
     kontrol.setTryingToReconnect()
 
-    @transport?.disconnect()
+    # With a very corrupted connection
+    # it's possible to have an empty @transport object ~GG
+    @transport?.disconnect?()
 
     kd.utils.wait 1000, =>
-      @transport?.connect()
+      @transport?.connect?()
 
 
   waitForConnection: (args)->
