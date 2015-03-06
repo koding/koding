@@ -347,8 +347,7 @@ module.exports = class IDEAppController extends AppController
         else
           snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
-          if snapshot then @resurrectLocalSnapshot snapshot
-          else
+          unless snapshot
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
             @setActiveTabView @ideViews.first.tabView
