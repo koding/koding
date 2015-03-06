@@ -1,19 +1,21 @@
-$ = require 'jquery'
-globals = require 'globals'
-getAppOptions = require './util/getAppOptions'
-getAppClass = require './util/getAppClass'
-kd = require 'kd'
+$                    = require 'jquery'
+_                    = require 'underscore'
+globals              = require 'globals'
+getAppOptions        = require './util/getAppOptions'
+getAppClass          = require './util/getAppClass'
+kd                   = require 'kd'
 KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView = kd.NotificationView
-KDObject = kd.Object
-KDOnOffSwitch = kd.OnOffSwitch
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-FSHelper = require './util/fs/fshelper'
+KDNotificationView   = kd.NotificationView
+KDObject             = kd.Object
+KDOnOffSwitch        = kd.OnOffSwitch
+KDSelectBox          = kd.SelectBox
+KDView               = kd.View
+FSHelper             = require './util/fs/fshelper'
 KodingAppsController = require './kodingappscontroller'
 
+module.exports =
 
-module.exports = class ApplicationManager extends KDObject
+class ApplicationManager extends KDObject
 
   ###
 
@@ -43,6 +45,7 @@ module.exports = class ApplicationManager extends KDObject
         safeToUnload = no
         break
       return safeToUnload ? yes
+
 
   isAppInternal: (name = '') -> globals.config.apps[name]?
 
@@ -269,7 +272,9 @@ module.exports = class ApplicationManager extends KDObject
     {name} = appInstance.getOptions()
     router.setPageTitle name  if name
     @setLastActiveIndex appInstance
+    prevAppInstance = @frontApp
     @frontApp = appInstance
+    @emit 'FrontAppChange', appInstance, prevAppInstance
 
   getFrontAppManifest: ->
     {name}  = @getFrontApp().getOptions()
