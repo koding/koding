@@ -150,4 +150,27 @@ module.exports = class ComputeEventListener extends KDObject
       kd.warn "Eventer error:", err
       @stop()
 
+  
+  followUpcomingEvents: (machine, followOthers = no)->
 
+    StateEventMap =
+
+      Stopping    : "stop"
+      Building    : "build"
+      Starting    : "start"
+      Rebooting   : "restart"
+      Terminating : "destroy"
+      Pending     : "resize"
+
+    stateEvent = StateEventMap[machine.status.state]
+
+    if stateEvent
+
+      @addListener stateEvent, machine._id
+
+      if stateEvent in ["build", "destroy"] and followOthers
+        @addListener "reinit", machine._id
+
+      return yes
+
+    return no

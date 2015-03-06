@@ -132,6 +132,7 @@ func initializeKlient(c *VmController) {
 		Type: "kloudctl",
 		Key:  KloudSecretKey,
 	}
+	kiteClient.Reconnect = true
 
 	operation := func() error {
 		return kiteClient.DialTimeout(time.Second * 10)

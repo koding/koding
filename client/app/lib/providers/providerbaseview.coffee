@@ -201,8 +201,8 @@ module.exports = class ProviderBaseView extends KDTabPaneView
 
     provider = @getOption 'provider'
 
-    {computeController} = kd.singletons
-    computeController.credentialsFor provider, (err, credentials = [])=>
+    remote = require('app/remote').getInstance()
+    remote.api.JCredential.some { provider }, (err, credentials = [])=>
 
       @loader.hide()
 

@@ -8,11 +8,14 @@ import (
 	"socialapi/rest"
 	"socialapi/workers/collaboration/models"
 	"socialapi/workers/common/runner"
+	"strconv"
 	"testing"
 	"time"
 
 	"socialapi/workers/collaboration"
 	"socialapi/workers/helper"
+
+	"github.com/koding/redis"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
@@ -22,7 +25,7 @@ var (
 	AccountOldId = bson.NewObjectId()
 )
 
-func TestCollaborationPing(t *testing.T) {
+func TestCollaboration(t *testing.T) {
 	r := runner.New("collaboration-tests")
 	err := r.Init()
 	if err != nil {
@@ -191,40 +194,65 @@ func TestCollaborationPing(t *testing.T) {
 				err := redis.Setex(
 					PrepareFileKey(req.FileId),
 					collaboration.ExpireSessionKeyDuration, // expire the key after this period
-					req.CreatedAt.Add(-terminateSessionDuration),
+					req.CreatedAt.Add(-terminateSessionDuration).Unix(),
 				)
 
 				err = handler.checkIfKeyIsValid(req)
 				So(err, ShouldEqual, errSessionInvalid)
 			})
-		})
 
-		Convey("while testing drive operations", func() {
-			req := req
-			req.CreatedAt = time.Now().UTC()
-			Convey("should be able to create the file", func() {
-				f, err := handler.createFile()
-				So(err, ShouldBeNil)
-				req.FileId = f.Id
-				Convey("should be able to get the created file", func() {
-					f2, err := handler.getFile(f.Id)
-					So(err, ShouldBeNil)
-					So(f2, ShouldNotBeNil)
-					Convey("should be able to delete the created file", func() {
-						err = handler.deleteFile(req.FileId)
-						So(err, ShouldBeNil)
-						Convey("should not be able to get the deleted file", func() {
-							f2, err = handler.getFile(f.Id)
-							So(err, ShouldNotBeNil)
-							So(f2, ShouldBeNil)
-						})
-						Convey("deleting the deleted file should not give error", func() {
-							err = handler.deleteFile(req.FileId)
-							So(err, ShouldBeNil)
-						})
-					})
-				})
+			Convey("previous ping time is in safe area", func() {
+				req := req
+				testPingTimes(req, -1, redis, handler, nil)
+			})
+
+			Convey("0 ping time is in safe area", func() {
+				req := req
+				testPingTimes(req, 0, redis, handler, nil)
+			})
+
+			Convey("2 ping time is in safe area", func() {
+				req := req
+				testPingTimes(req, 2, redis, handler, nil)
+			})
+
+			Convey("3 ping time is in safe area", func() {
+				req := req
+				testPingTimes(req, 3, redis, handler, nil)
+			})
+
+			Convey("4 ping time is not in safe area - because we already reverted the time ", func() {
+				req := req
+				testPingTimes(req, 4, redis, handler, errSessionInvalid)
+			})
+
+			Convey("5 ping time is not in safe area ", func() {
+				req := req
+				testPingTimes(req, 5, redis, handler, errSessionInvalid)
 			})
 		})
 	})
+}
+
+func testPingTimes(
+	req *models.Ping,
+	pingCount int,
+	redis *redis.RedisSession,
+	handler *Controller,
+	expectedErr error,
+) {
+	req.FileId = req.FileId + strconv.Itoa(pingCount)
+	req.CreatedAt = time.
+		Now().
+		UTC().
+		Add(-pingDuration * time.Duration(pingCount))
+
+	err := redis.Setex(
+		PrepareFileKey(req.FileId),
+		collaboration.ExpireSessionKeyDuration, // expire the key after this period
+		req.CreatedAt.Unix(),
+	)
+
+	err = handler.checkIfKeyIsValid(req)
+	So(err, ShouldEqual, expectedErr)
 }

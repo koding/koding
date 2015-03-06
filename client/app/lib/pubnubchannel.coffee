@@ -6,5 +6,6 @@ module.exports = class PubnubChannel extends KDObject
 
     super options
 
-    @name = options.name
+    @name      = options.name
+    @channelId = options.channelId
 

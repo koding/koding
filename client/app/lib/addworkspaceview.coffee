@@ -1,11 +1,14 @@
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 KDInputView = kd.InputView
+IDEHelpers = require 'ide/idehelpers'
+
+
 module.exports = class AddWorkspaceView extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
-    options.cssClass = 'add-workspace-view'
+    options.cssClass = 'add-workspace-view kdlistitemview-main-nav workspace'
 
     super options, data
 
@@ -18,6 +21,9 @@ module.exports = class AddWorkspaceView extends KDCustomHTMLView
     @addSubView @cancel = new KDCustomHTMLView
       cssClass : 'cancel'
       click    : @bound 'destroy'
+
+    @once 'WorkspaceCreated',      @bound 'clearFlag'
+    @once 'WorkspaceCreateFailed', @bound 'clearFlag'
 
 
   click: -> return no
@@ -36,18 +42,10 @@ module.exports = class AddWorkspaceView extends KDCustomHTMLView
         name         : @input.getValue()
         machineUId   : data.machineUId
         machineLabel : data.machineLabel
+        eventObj     : this # dirty vibe!
 
-      {activitySidebar}  = kd.getSingleton 'mainView'
+      IDEHelpers.createWorkspace options
       @hasPendingRequest = yes
 
-      activitySidebar.createNewWorkspace options
 
-      activitySidebar.once 'WorkspaceCreated', @bound 'clearFlag'
-
-      activitySidebar.once 'WorkspaceCreateFailed', @bound 'clearFlag'
-
-
-  clearFlag: ->
-    kd.utils.defer => @hasPendingRequest = no
-
-
+  clearFlag: -> kd.utils.defer => @hasPendingRequest = no
