@@ -32,6 +32,8 @@ splashMarkups = require './util/splash-markups'
 IDEApplicationTabView = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
+
 require('./routes')()
 
 
@@ -320,6 +322,8 @@ module.exports = class IDEAppController extends AppController
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
 
+        machine = new Machine { machine }  unless machine instanceof Machine
+
         return unless machine
 
         for ideView in @ideViews
@@ -354,13 +358,10 @@ module.exports = class IDEAppController extends AppController
 
   getMountedMachine: (callback = noop) ->
 
-    kd.getSingleton('computeController').fetchMachines (err, machines) =>
-      if err
-        showError "Couldn't fetch your VMs"
-        return callback err, null
-
-      kd.utils.defer =>
-        @mountedMachine = m for m in machines when m.uid is @mountedMachineUId
+    kd.utils.defer =>
+      environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
+        machine = new Machine { machine }  unless machine instanceof Machine
+        @mountedMachine = machine
 
         callback null, @mountedMachine
 
@@ -370,20 +371,26 @@ module.exports = class IDEAppController extends AppController
     computeController = kd.getSingleton 'computeController'
     container         = @getView()
 
-    computeController.fetchMachines (err, machines) =>
-      return showError 'Something went wrong. Try again.'  if err
+    environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
+      return showError 'Something went wrong. Try again.'  unless machineItem
+
+      unless machineItem instanceof Machine
+        machineItem = new Machine machine: machineItem
+
+      @mountedMachine = machineItem
 
       callback = =>
-        for machine in machines when machine.uid is machineUId
-          machineItem = machine
 
         if machineItem
-          {state} = machineItem.status
-          machineId = machineItem._id
+          {state}         = machineItem.status
+          machineId       = machineItem._id
+          baseMachineKite = machineItem.getBaseKite()
+          isKiteConnected = baseMachineKite._state is 1
 
-          if state is Running and (kite = machine.getBaseKite())._state is 1 # CONNECTED
+
+          if state is Running and isKiteConnected
             @mountMachine machineItem
-            kite.fetchTerminalSessions()
+            baseMachineKite.fetchTerminalSessions()
 
           else
             unless @machineStateModal
@@ -503,7 +510,7 @@ module.exports = class IDEAppController extends AppController
 
   createNewTerminal: (options) ->
 
-    { machine, path } = options
+    { machine, path, resurrectSessions } = options
 
     unless machine instanceof Machine
       machine = @mountedMachine
@@ -614,6 +621,9 @@ module.exports = class IDEAppController extends AppController
       ideViewLength  = 0
       ideViewLength += ideView.tabView.panes.length  for ideView in @ideViews
       delete @generatedPanes[pane.view.hash]
+
+      if session = pane.view.remote?.session
+        @mountedMachine.getBaseKite().removeFromActiveSessions session
 
       @statusBar.showInformation()  if ideViewLength is 0
       @writeSnapshot()
@@ -875,9 +885,10 @@ module.exports = class IDEAppController extends AppController
 
     unless @fakeViewsDestroyed
       for ideView in @ideViews
-        {tabView} = ideView
-        if pane = tabView.getActivePane()
-          tabView.removePane pane
+        {tabView}  = ideView
+        activePane = tabView.getActivePane()
+
+        tabView.removePane activePane  if activePane
 
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
@@ -887,6 +898,9 @@ module.exports = class IDEAppController extends AppController
       @ideViews.first.createEditor()
       @ideViews.last.createTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
+
+    data = { machine, workspace: @workspaceData }
+    kd.singletons.mainView.activitySidebar.selectWorkspace data
 
 
   resurrectLocalSnapshot: (snapshot) ->

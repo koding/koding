@@ -6,117 +6,54 @@ globals = require 'globals'
 remote = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
 lazyrouter = require 'app/lazyrouter'
-
-loadWorkspace = (workspace, options) ->
-
-  {machine, machineLabel, username} = options
-
-  username or= nick()
-  machine  or= getMachine machineLabel, username
-
-  loadIDE { machine, workspace, username }
-
-findWorkspace = (options, callback) ->
-
-  {machineLabel, workspaceSlug, username} = options
-
-  kallback = (workspaces) ->
-
-    username ?= nick()
-
-    for machine in globals.userMachines
-      unless machine instanceof Machine
-        machine = new Machine machine: remote.revive machine
-
-      sameLabel = (machine.slug or machine.label) is machineLabel
-      sameOwner = machine.getOwner() is username
-
-      if sameLabel and sameOwner
-        machineUId = machine.uid
-        break
-
-    for workspace in workspaces
-      continue  unless workspace.machineUId is machineUId
-      continue  unless workspace.slug is workspaceSlug
-
-      return callback workspace
-
-    return callback null
-
-  if username
-  then filterWorkspacesByUsername username, kallback
-  else filterOwnWorkspaces kallback
-
-
-filterWorkspacesByUsername = (username, callback) ->
-
-  remote.cacheable username, (err, [account]) ->
-    if err
-      console.error err
-      callback []
-
-    originId = account.getId()
-
-    callback globals.userWorkspaces.filter (workspace) ->
-      originId is workspace.originId
-
-
-filterOwnWorkspaces = (callback) ->
-
-  callback globals.userWorkspaces.filter (workspace) ->
-    workspace.originId is whoami()._id
+dataProvider = require 'app/userenvironmentdataprovider'
 
 
 selectWorkspaceOnSidebar = (data) ->
-  mainView = kd.getSingleton 'mainView'
-  mainView.activitySidebar.selectWorkspace data
 
+  { machine, workspace } = data
 
-getMachine = (label, username = nick()) ->
+  kd.getSingleton('mainView').activitySidebar.selectWorkspace data
+  storage = kd.singletons.localStorageController.storage 'IDE'
 
-  for m in globals.userMachines
+  workspaceData    =
+    machineLabel   : machine.slug or machine.label
+    workspaceSlug  : workspace.slug
+    channelId      : workspace.channelId
 
-    unless m instanceof Machine
-      m = new Machine machine: remote.revive m
-
-    sameUser  = m.getOwner() is username
-    sameLabel = (m.slug or m.label) is label
-
-    return m  if sameLabel and sameUser
+  storage.setValue 'LatestWorkspace', workspaceData
 
 
 getLatestWorkspace = ->
 
-  storage = kd.getSingleton('localStorageController').storage 'IDE'
+  storage   = kd.getSingleton('localStorageController').storage 'IDE'
   workspace = storage.getValue 'LatestWorkspace'
 
   return  unless workspace
 
-  {machineLabel, workspaceSlug, channelId} = workspace  if workspace
+  { machineLabel, workspaceSlug, channelId } = workspace
 
-  return if checkWorkspace machineLabel, workspaceSlug, channelId
-  then workspace
-  else null
+  ws = null
+
+  if checkWorkspace machineLabel, workspaceSlug, channelId
+    ws = workspace
+
+  return ws
 
 
 checkWorkspace = (machineLabel, workspaceSlug, channelId) ->
 
-  for workspace in globals.userWorkspaces
-    sameLabel = workspace.machineLabel is machineLabel
-    sameSlug = workspace.slug is workspaceSlug
-    sameChannelId = not channelId or workspace.channelId is channelId
-
-    if sameLabel and sameSlug and sameChannelId
-      return workspace
+  return dataProvider.validateCollaborationWorkspace machineLabel, workspaceSlug, channelId
 
 
 loadIDE = (data) ->
 
   { machine, workspace, username, channelId } = data
+  selectWorkspaceOnSidebar data
 
   appManager = kd.getSingleton 'appManager'
   ideApps    = appManager.appControllers.IDE
-  machineUId = machine?.uid
+  machineUId = machine.uid
   callback   = ->
     appManager.open 'IDE', { forceNew: yes }, (app) ->
       app.mountedMachineUId   = machineUId
@@ -131,7 +68,6 @@ loadIDE = (data) ->
         app.amIHost           = yes
 
       appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
-      selectWorkspaceOnSidebar data
 
   return callback()  unless ideApps?.instances
 
@@ -141,65 +77,65 @@ loadIDE = (data) ->
 
     if isSameMachine
       if isSameWorkspace then ideInstance = instance
+      # should not be the case anymore since 'my-workspace' deprecated.
       else if workspace.slug is 'my-workspace'
         if instance.workspaceData?.isDefault
           ideInstance = instance
 
   if ideInstance
     appManager.showInstance ideInstance
-    selectWorkspaceOnSidebar data
+    selectWorkspaceOnSidebar data # should not be required
   else
     callback()
 
 
 routeToFallback = ->
 
-  router = kd.getSingleton 'router'
+  machines = dataProvider.getMyMachines()
+  router   = kd.getSingleton 'router'
+  [ obj ]  = machines
 
-  for machine in globals.userMachines when machine.isMine()
-    return routeToMachineWorkspace machine
-
-  kd.singletons.computeController.fetchMachines (err, machines) ->
-
-    if err or not machines.length
-    then router.handleRoute "/IDE/koding-vm-0/my-workspace"
-    else routeToMachineWorkspace machines.first
+  if obj.machine
+    routeToMachineWorkspace obj.machine
+  else
+    router.handleRoute '/IDE/koding-vm-0/my-workspace'
 
 
 routeToMachineWorkspace = (machine) ->
 
-  if latestWorkspace = getLatestWorkspace()
-    {machineLabel} = latestWorkspace
+  latestWorkspace = getLatestWorkspace()
+  workspaceSlug   = 'my-workspace'
+
+  if latestWorkspace
+    { machineLabel } = latestWorkspace
     if machineLabel is machine.label
       workspaceSlug = latestWorkspace.workspaceSlug
-
-  workspaceSlug ?= 'my-workspace'
 
   kd.getSingleton('router').handleRoute "/IDE/#{machine.slug}/#{workspaceSlug}"
 
 
 routeToLatestWorkspace = ->
 
-  router = kd.getSingleton 'router'
+  router          = kd.getSingleton 'router'
+  latestWorkspace = getLatestWorkspace()
 
-  if latestWorkspace = getLatestWorkspace()
-    {machineLabel, workspaceSlug, channelId} = latestWorkspace
-  else
-    return routeToFallback()
+  return routeToFallback()  unless latestWorkspace
+
+  { machineLabel, workspaceSlug, channelId } = latestWorkspace
 
   if channelId
-    for workspace in globals.userWorkspaces when workspace.channelId is channelId
-      return router.handleRoute "/IDE/#{channelId}"
-    routeToFallback()
+    dataProvider.fetchMachineAndWorkspaceByChannelId channelId, (machine, ws) =>
+      if machine and ws then router.handleRoute "/IDE/#{channelId}"
+      else routeToFallback()
 
   else if machineLabel and workspaceSlug
-    return routeToFallback()  unless machine = getMachine machineLabel
-
-    findWorkspace {workspaceSlug, machineLabel}, (workspace) ->
-
-      if workspace
-      then router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
-      else routeToMachineWorkspace machine
+    dataProvider.fetchMachineByLabel machineLabel, (machine, workspace) =>
+      if machine and workspace
+        router.handleRoute "/IDE/#{machineLabel}/#{workspaceSlug}"
+      else if machine
+        routeToMachineWorkspace machine
+      else
+        routeToFallback()
 
 
 loadCollaborativeIDE = (id) ->
@@ -210,68 +146,53 @@ loadCollaborativeIDE = (id) ->
 
     try
 
-      [workspace] = globals.userWorkspaces.filter (w) -> w.channelId is channel.id
+      dataProvider.fetchMachineAndWorkspaceByChannelId id, (machine, workspace) =>
+        return routeToLatestWorkspace()  unless workspace
 
-      return routeToLatestWorkspace()  unless workspace
+        query = socialApiId: channel.creatorId
 
-      [machine] = globals.userMachines.filter (m) -> m.uid is workspace.machineUId
+        remote.api.JAccount.some query, {}, (err, account) =>
+          if err
+            routeToLatestWorkspace()
+            return throw new Error err
 
-      query = socialApiId: channel.creatorId
-      remote.api.JAccount.some query, {}, (err, account) =>
+          username  = account.first.profile.nickname
+          channelId = channel.id
 
-        return throw new Error err  if err
-
-        username  = account.first.profile.nickname
-        channelId = channel.id
-
-        return loadIDE { machine, workspace, username, channelId }
+          return loadIDE { machine, workspace, username, channelId }
 
     catch e
 
-      console.error e
-      return routeToLatestWorkspace()
+      routeToLatestWorkspace()
+      return console.error e
 
-
-refreshWorkspaces = (callback) ->
-
-  {mainView, computeController} = kd.singletons
-
-  computeController.ready ->
-    mainView.activitySidebar.fetchWorkspaces callback
 
 module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
 
   switch type
-    when 'home'
-      refreshWorkspaces -> routeToLatestWorkspace()
+
+    when 'home' then routeToLatestWorkspace()
 
     when 'machine'
-      {machineLabel} = info.params
+      { machineLabel } = info.params
+
       # we assume that if machineLabel is all numbers it is the channelId - SY
       if /^[0-9]+$/.test machineLabel
-        refreshWorkspaces -> loadCollaborativeIDE machineLabel
-      else if machine = getMachine machineLabel
-        routeToMachineWorkspace machine
+        loadCollaborativeIDE machineLabel
       else
-        routeToLatestWorkspace()
+        dataProvider.fetchMachineByLabel machineLabel, (machine) ->
+          if machine then routeToMachineWorkspace machine
+          else routeToLatestWorkspace()
 
     when 'workspace'
-      {params} = info
-      {machineLabel} = params
-      params.username = nick()
+      { params } = info
+      params.username = username = nick()
 
-      refreshWorkspaces ->
+      dataProvider.fetchMachineAndWorkspace params, (machine, workspace) ->
 
-        findWorkspace params, (workspace) ->
-
-          if workspace
-            return loadWorkspace workspace, params
-          else
-            for machine in globals.userMachines when machine.slug is machineLabel
-              break
-
-            if machine
-            then routeToMachineWorkspace machine
-            else loadWorkspace null, params
-
+        if machine and workspace
+          loadIDE { machine, workspace, username }
+        else if machine
+          routeToMachineWorkspace machine
+        else
           routeToLatestWorkspace()
