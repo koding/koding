@@ -7,6 +7,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDProgressBarView = kd.ProgressBarView
 JView = require '../jview'
 Machine = require '../providers/machine'
+MachineSettingsPopup = require '../providers/machinesettingspopup'
 
 
 module.exports = class NavigationMachineItem extends JView
@@ -97,9 +98,19 @@ module.exports = class NavigationMachineItem extends JView
 
     kd.utils.stopDOMEvent event
 
-    if status?.state is Running
-      kd.singletons.mainView.openMachineModal @machine, this
-    else return
+    return  unless status?.state is Running
+
+    @openMachineSettingsPopup()
+
+
+  openMachineSettingsPopup: ->
+
+    bounds   = @getBounds()
+    position =
+      top    : Math.max   bounds.y - 38, 0
+      left   : bounds.x + bounds.w + 16
+
+    new MachineSettingsPopup { position }, @machine
 
 
   handleMachineEvent: (event) ->
