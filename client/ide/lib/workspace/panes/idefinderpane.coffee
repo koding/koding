@@ -5,7 +5,7 @@ IDEFinderContextMenuController = require '../../finder/idefindercontextmenucontr
 IDEFinderItem = require '../../finder/idefinderitem'
 IDEFinderTreeController = require '../../finder/idefindertreecontroller'
 IDEPane = require './idepane'
-FileNotificationHelper = require '../../util/filenotificationhelper.coffee'
+IDEHelpers = require '../../idehelpers'
 
 module.exports = class IDEFinderPane extends IDEPane
 
@@ -39,7 +39,7 @@ module.exports = class IDEFinderPane extends IDEPane
       file.fetchContents (err, contents) ->
         if err
           console.error err
-          return (FileNotificationHelper.showNotificationForError err) or
+          return (IDEHelpers.showPermissionErrorOnOpeningFile err) or
             showError 'File could not be opened'
 
         mgr.tell 'IDE', 'openFile', file, contents

@@ -15,7 +15,7 @@ IDEShortcutsView = require '../shortcutsview/ideshortcutsview'
 IDETerminalPane = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
-FileNotificationHelper = require '../../util/filenotificationhelper.coffee'
+IDEHelpers = require '../../idehelpers'
 
 
 module.exports = class IDEView extends IDEWorkspaceTabView
@@ -121,7 +121,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       { readable, writable } = result
       if not readable
-        FileNotificationHelper.showAccessDeniedModal()
+        IDEHelpers.showFileAccessDeniedError()
         return callback()
 
       @createEditorAfterFileCheck file, content, callback, emitChange, not writable
@@ -155,7 +155,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
       if isReadOnly
         editorPane.makeReadOnly()
-        FileNotificationHelper.showReadOnlyModal()
+        IDEHelpers.showFileReadOnlyNotification()
 
       callback editorPane
 

@@ -3,7 +3,7 @@ KDCustomHTMLView = kd.CustomHTMLView
 KDScrollView = kd.ScrollView
 FSHelper = require 'app/util/fs/fshelper'
 Encoder = require 'htmlencode'
-FileNotificationHelper = require '../../util/filenotificationhelper.coffee'
+IDEHelpers = require '../../idehelpers'
 
 module.exports = class IDEContentSearchResultView extends KDScrollView
 
@@ -55,7 +55,7 @@ module.exports = class IDEContentSearchResultView extends KDScrollView
     file.fetchContents (err, contents) ->
       if err
         console.error err
-        return (FileNotificationHelper.showNotificationForError err) or showError err
+        return (IDEHelpers.showPermissionErrorOnOpeningFile err) or showError err
 
       kd.getSingleton('appManager').tell 'IDE', 'openFile', file, contents, (editorPane) ->
         editorPane?.goToLine lineNumber
