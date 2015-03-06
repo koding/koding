@@ -196,10 +196,3 @@ module.exports = class SidebarMachineBox extends KDView
       @machine.status.state = state # FIXME: why it is not setting the state itself?
 
       switch state
-        when Stopping then @deselect()
-        # it was selecting koding-vm-0 my workspace if koding-vm-1 is
-        # turned off and navigated to /IDE/koding-vm-1/my-workspace
-        # when Running
-        #   { frontApp } = kd.singletons.appManager
-        #   if frontApp instanceof IDEAppController
-        #     @selectWorkspace frontApp.workspaceData.slug
