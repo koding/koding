@@ -35,6 +35,7 @@ Readable       = require('stream').Readable
 
 devMode        = argv.devMode?
 watchMode      = argv.watchMode?
+exorcistMode   = argv.exorcistMode?
 version        = argv.ver? or 1
 
 log            = (color, message) -> gutil.log gutil.colors[color] message
@@ -202,7 +203,9 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       basename = "#{bundle.name}.js"
       outfile = path.join opts.outdir, basename
       s = fs.createWriteStream outfile
-      asReadable(bundle.source).pipe(exorcist("#{outfile}.map")).pipe(s)
+      src = asReadable(bundle.source)
+      src = src.pipe(exorcist("#{outfile}.map"))  if exorcistMode
+      src.pipe(s)
       s.once 'finish', ->
         debug "#{pretty bundle.source.length} written to #{basename}"
 
