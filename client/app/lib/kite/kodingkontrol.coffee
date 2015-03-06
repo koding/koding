@@ -23,6 +23,13 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     @regions = {}
 
 
+  authenticate: ->
+    super
+
+    @kite.on 'close', (reason)->
+      kd.log "Kontrol disconnected with reason:", reason
+
+
   getAuthOptions: ->
 
     @_lastUsedKey = kookies.get 'clientId'
