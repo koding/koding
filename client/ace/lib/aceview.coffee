@@ -183,7 +183,8 @@ module.exports = class AceView extends JView
       file.once 'fs.saveAs.finished',   @ace.bound 'saveAsFinished'
       @ace.emit 'AceDidSaveAs', name, parent.path
 
-      file.on 'fs.saveAs.finished', (newFile) =>
+      file.on 'fs.saveAs.finished', (err, newFile) =>
+        return  if err
 
         {tabView} = @getDelegate()
         return  if tabView.willClose

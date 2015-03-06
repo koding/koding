@@ -81,21 +81,16 @@ module.exports = class FSFile extends FSItem
 
         ok = file.save contents
 
-        if callback?
+    .then (response) =>
+      callback null, file, this  if callback
+      @emit "fs.saveAs.finished", null, file, this
 
-          ok = ok
-          .catch (err) ->
-            callback err
+      return file
 
-          .then (response) =>
-            callback null, file, this
+    .catch (err) =>
+      callback err  if callback
+      @emit "fs.saveAs.finished", err, file, this
 
-        ok
-
-      .then (response) =>
-        @emit "fs.saveAs.finished", file, this
-
-        return file
 
   append: (contents, callback)->
     @emit "fs.append.started"
@@ -215,23 +210,18 @@ module.exports = class FSFile extends FSItem
         content
       }
 
-    if callback?
-
-      ok
+    ok
       .then (response) =>
-        callback null, response
-        @emit "fs.save.finished", null, response
-
-      .catch (err) =>
-        callback err
-        @emit "fs.save.finished", err
-
-    else
-      ok
-      .then (response) =>
+        callback null, response  if callback
         @emit "fs.save.finished", null, response
 
         return response
+
+      .catch (err) =>
+        callback err  if callback
+        @emit "fs.save.finished", err
+
+        throw err
 
 
   fetchPermissions: (callback) ->

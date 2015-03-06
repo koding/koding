@@ -126,17 +126,18 @@ module.exports = class Ace extends KDView
     @lastContentsSentForSave = @getContents()
 
   saveFinished:(err, res)->
-    unless err
-      @lastSavedContents = @lastContentsSentForSave
-      @emit 'FileContentRestored'
-      # unless @askedForSave
-        # log "this file has changed, put a modal and block editing @fatihacet!"
-        # fatihacet - this case works buggy.
-      @askedForSave = no
-    else if err?.message?.indexOf? 'permission denied' > -1
-      @notify "You don't have enough permission to save!", 'error'
+    return  if err
 
-  saveAsFinished:->
+    @lastSavedContents = @lastContentsSentForSave
+    @emit 'FileContentRestored'
+    # unless @askedForSave
+      # log "this file has changed, put a modal and block editing @fatihacet!"
+      # fatihacet - this case works buggy.
+    @askedForSave = no
+
+  saveAsFinished:(err)->
+    return  if err
+
     @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 
