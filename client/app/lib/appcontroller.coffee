@@ -2,6 +2,7 @@ kd                 = require 'kd'
 KDViewController   = kd.ViewController
 getAppOptions      = require './util/getAppOptions'
 globals            = require 'globals'
+_                  = require 'underscore'
 
 module.exports =
 
@@ -10,6 +11,8 @@ class AppController extends KDViewController
   constructor:->
 
     super
+
+    @canonicalName = _.uniqueId name.toLowerCase() + '$' + version.toLowerCase()
 
     { mainController } = kd.singletons
     { name, version } = @getOptions()
