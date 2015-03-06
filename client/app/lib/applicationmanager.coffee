@@ -12,6 +12,10 @@ KDSelectBox          = kd.SelectBox
 KDView               = kd.View
 FSHelper             = require './util/fs/fshelper'
 KodingAppsController = require './kodingappscontroller'
+Shortcuts            = require 'shortcuts'
+defaultShortcuts     = require './shortcuts/defaults'
+
+shortcuts = new Shortcuts defaultShortcuts
 
 module.exports =
 
@@ -37,6 +41,20 @@ class ApplicationManager extends KDObject
       sound : "Viewer"
 
     @on 'AppIsBeingShown', @bound "setFrontApp"
+
+    @on 'FrontAppChange', (current, prev) =>
+      currentId = current.canonicalName
+      prevId = prev?.canonicalName
+
+      return  if currentId is prevId
+
+      if prev and _.isArray(sets = prev.getConfig().shortcuts)
+        for key in sets
+          shortcuts.removeListener "key:#{key}", prev.handleShortcut
+
+      if _.isArray(sets = current.getConfig().shortcuts)
+        for key in sets
+          shortcuts.on "key:#{key}", current.handleShortcut
 
     # set unload listener
     wc = kd.singleton 'windowController'
