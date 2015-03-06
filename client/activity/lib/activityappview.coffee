@@ -124,9 +124,8 @@ module.exports = class ActivityAppView extends KDView
         else
           # put after #koding #changelog
           unless isChannelCollaborative data
-            @sidebar.whenMachinesRendered().then =>
-              @sidebar.addItem data, 2
-              kallback data
+            @sidebar.addItem data, 2
+            kallback data
     else
       kallback item.getData()
 
