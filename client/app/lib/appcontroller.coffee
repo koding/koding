@@ -1,16 +1,24 @@
 kd                 = require 'kd'
 KDViewController   = kd.ViewController
 getAppOptions      = require './util/getAppOptions'
+globals            = require 'globals'
+isarray            = require 'isarray'
 
+bants = globals.modules.reduce (acc, x) -> # todo: donot expose globals.modules
+  acc[x.name] = x
+  return acc
+, {}
 
-module.exports = class AppController extends KDViewController
+module.exports =
+
+class AppController extends KDViewController
 
   constructor:->
 
     super
 
     { name, version } = @getOptions()
-    { mainController } = kd.singletons
+    { mainController, appManager, shortcuts } = kd.singletons
 
     mainController.ready =>
       # defer should be removed
@@ -19,23 +27,30 @@ module.exports = class AppController extends KDViewController
         { appStorageController } = kd.singletons
         @appStorage = appStorageController.storage name, version or "1.0.1"
 
+    @_active = false
 
-  createContentDisplay:(models, callback)->
-    kd.warn "You need to override #createContentDisplay - #{@constructor.name}"
+    appManager.on 'AppIsBeingShown', (app) =>
+      name = app.getOption('name').toLowerCase()
+      keys = bants[name].shortcuts
+      return  unless isarray keys
+
+      if app is this and not @_active
+        @_active = true
+        for key in bants[name].shortcuts
+          shortcuts.on "key:#{key}", @handleShortcut
+      else if app isnt this and @_active
+        @_active = false
+        for key in bants[name].shortcuts
+          shortcuts.removeListener "key:#{key}", @handleShortcut
+
+
+  handleShortcut: (e) ->
+    console.warn 'not implemented'
+
+
+  createContentDisplay: (models, callback)->
+    console.warn 'not implemented'
 
 
   handleQuery:(query)->
     @ready => @feedController?.handleQuery? query
-
-
-  handleCommand: (command, appName, event) ->
-    { commands } = getAppOptions @getOptions().name
-
-    cmd = commands[command]
-
-    if 'function' is typeof cmd
-      cmd.call this, event
-    else if 'string' is typeof cmd
-      @[cmd]?.call this, event
-    else
-      throw new Error "Unknown command: #{command}"
