@@ -5,6 +5,7 @@ FSFile = require 'app/util/fs/fsfile'
 IDEPane = require './idepane'
 Ace = require 'ace/ace'
 AceView = require 'ace/aceview'
+FileNotificationHelper = require '../../util/filenotificationhelper.coffee'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -30,6 +31,12 @@ module.exports = class IDEEditorPane extends IDEPane
 
     file.once 'fs.delete.finished', =>
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
+
+    file.on 'fs.save.finished', (err) ->
+      FileNotificationHelper.showNotificationForError err, yes  if err
+
+    file.on 'fs.saveAs.finished', (err) ->
+      FileNotificationHelper.showNotificationForError err, yes  if err
 
     @once 'RealTimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealTimeManagerSet', @bound 'listenCollaborativeStringChanges'
