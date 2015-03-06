@@ -386,7 +386,7 @@ module.exports =
       browser
         .waitForElementVisible     workspaceSelector, 20000
         .click                     workspaceSelector
-        .click                     workspaceSelector + ' .ws-settings-icon'
+        .click                     workspaceSelector + ' + .ws-settings-icon'
         .waitForElementVisible     modalSelector, 20000
         .click                     modalSelector + ' button.red'
         .waitForElementNotVisible  workspaceSelector, 20000
