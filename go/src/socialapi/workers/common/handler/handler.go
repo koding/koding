@@ -82,6 +82,9 @@ func getAccount(r *http.Request) *models.Account {
 	return acc
 }
 
+const timedOutMsg = `{"description":"request timed out","error":"koding.RequestTimedoutError"}`
+const timeoutDuration = time.Second * 30
+
 func Wrapper(r Request) http.Handler {
 	handler := r.Handler
 
@@ -92,6 +95,11 @@ func Wrapper(r Request) http.Handler {
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
+	// every request should return under 30 secs, if not return 503 service
+	// unavailable
+	hHandler = http.TimeoutHandler(hHandler, timeoutDuration, timedOutMsg)
+
+	// set rate limiting if the handler has one
 	if r.Ratelimit != nil {
 		hHandler = BuildHandlerWithRateLimit(hHandler, r.Ratelimit)
 	}
