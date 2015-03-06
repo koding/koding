@@ -899,6 +899,9 @@ module.exports = class IDEAppController extends AppController
       @ideViews.last.createTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
 
+    data = { machine, workspace: @workspaceData }
+    kd.singletons.mainView.activitySidebar.selectWorkspace data
+
 
   resurrectLocalSnapshot: (snapshot) ->
 
