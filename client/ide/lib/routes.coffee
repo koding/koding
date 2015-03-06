@@ -95,7 +95,7 @@ routeToFallback = ->
   router   = kd.getSingleton 'router'
   [ obj ]  = machines
 
-  if obj.machine
+  if obj?.machine # `?` intentionally. there might be no machine.
     routeToMachineWorkspace obj.machine
   else
     router.handleRoute '/IDE/koding-vm-0/my-workspace'
