@@ -616,10 +616,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       @machine = m
       @setData m
 
-      # TODO: temp fix for snapshot resurrection, ide should wait for IdeIsReallyReady event -SY
-      kd.utils.defer =>
-        kd.warn 'needs IdeIsReallyReady event!, @acet'
-        @emit 'IDEBecameReady', m
+      @emit 'IDEBecameReady', m
 
 
   verifyAccount: ->
