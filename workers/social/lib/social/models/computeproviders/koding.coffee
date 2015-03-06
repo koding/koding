@@ -169,7 +169,11 @@ module.exports = class Koding extends ProviderInterface
     { machine } = options
 
     JDomainAlias = require '../domainalias'
-    JDomainAlias.ensureTopDomainExistence account, machine._id, callback
+    JDomainAlias.ensureTopDomainExistence account, machine._id, (err) ->
+      return callback err  if err
+
+      JWorkspace = require '../workspace'
+      JWorkspace.createDefault client, machine, callback
 
 
   @update = (client, options, callback)->

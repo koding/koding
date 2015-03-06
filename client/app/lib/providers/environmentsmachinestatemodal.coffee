@@ -17,6 +17,7 @@ ComputeHelpers = require './computehelpers'
 sendDataDogEvent = require '../util/sendDataDogEvent'
 HelpSupportModal = '../commonviews/helpsupportmodal'
 trackEvent = require 'app/util/trackEvent'
+showError  = require 'app/util/showError'
 
 module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
@@ -52,7 +53,13 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       kd.warn err  if err?
 
       if not verified
-      then @buildVerifyView()
+        @buildVerifyView()
+      else if not @machine.isApproved()
+        if @machine.isPermanent()
+          @buildApproveView()
+        else
+          @prepareIDE()
+          @destroy()
       else
         kd.singletons.paymentController.subscriptions (err, subscription)=>
           kd.warn err  if err?
@@ -92,12 +99,13 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       if error?.length > 0
 
         if /NetworkOut overlimit/i.test event.message
-          @customErrorMessage = """
-            <p>You've reached your outbound network usage limit for this week.</p>
-            <span>Please upgrade your <a href="/Pricing">plan</a> or <span
-            class="contact-support">contact support</span> for further
+          @customErrorMessage = "
+            <p>You've reached your outbound network usage
+            limit for this week.</p><span>
+            Please upgrade your <a href='/Pricing'>plan</a> or
+            <span class='contact-support'>contact support</span> for further
             assistance.</span>
-          """
+          "
 
         unless error.code is ComputeController.Error.NotVerified
           @hasError = yes
@@ -185,6 +193,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @container.destroySubViews()
 
     @createStateLabel "Checking state for <strong>#{@machineName or ''}</strong>..."
+
     @createLoading()
     @createFooter()
 
@@ -235,11 +244,13 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @container.addSubView new KDCustomHTMLView
       cssClass : 'verify-message'
-      partial  : """
+      partial  : "
         <p>Before you can access your VM, we need to verify your account.
         A verification email should already be in your inbox.
-        If you did not receive it yet, you can request a <cite>new code</cite>.</p>
-      """
+        If you did not receive it yet, you can request a
+        <cite>new code</cite>.</p>
+      "
+
       click    : (event)=>
 
         return  unless $(event.target).is 'cite'
@@ -258,6 +269,49 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @container.addSubView @codeEntryView
     @container.addSubView @button
+
+
+  buildApproveView: ->
+
+    @container.destroySubViews()
+
+    @approveButton = new KDButtonView
+      title    : 'Approve'
+      cssClass : 'solid medium green plan-change-button'
+      callback : =>
+        @showBusy "Working..."
+        @machine.jMachine.approve (err)=>
+          unless showError err
+            @_busy = no
+            @buildInitial()
+
+    @denyButton = new KDButtonView
+      title    : 'Deny'
+      cssClass : 'solid medium green plan-change-button downgrade'
+      callback : =>
+
+        @showBusy "Working..."
+
+        @machine.jMachine.deny (err)->
+          {computeController, router} = kd.singletons
+
+          @_busy = no
+
+          unless showError err
+            computeController.once 'RenderMachines', ->
+              router.handleRoute '/IDE'
+            computeController.reset yes
+
+    @container.addSubView new KDCustomHTMLView
+      cssClass : 'expired-message'
+      partial  : """
+        <h1>A Shared VM</h1>
+        <p>This machine is shared with you by <b>#{@machine.getOwner()}</b>.
+        You need to approve this action before start using this machine.</p>
+      """
+
+    @container.addSubView @approveButton
+    @container.addSubView @denyButton
 
 
   buildExpiredView: (subscription, nextState)->
