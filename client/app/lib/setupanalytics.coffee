@@ -1,5 +1,6 @@
 isLoggedIn = require './util/isLoggedIn'
 kd = require 'kd'
+globals = require 'globals'
 
 module.exports = ->
   return  unless analytics? and globals.config.logToExternal
