@@ -703,8 +703,9 @@ module.exports =
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
-          throwError err  if err
           @statusBar.emit 'CollaborationEnded'
+          throwError err  if err
+          return
 
         @isRealtimeSessionActive channelId, (isActive) =>
           if isActive or @isInSession
