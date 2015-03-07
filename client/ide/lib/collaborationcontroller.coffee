@@ -277,10 +277,12 @@ module.exports =
         return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
       if actionType is 'join'
-        @ensureMachineShare [targetUser], (err) =>
-          return throwError err  if err
-          @chat.emit 'ParticipantJoined', targetUser
-          @statusBar.emit 'ParticipantJoined', targetUser
+        @chat.emit 'ParticipantJoined', targetUser
+        @statusBar.emit 'ParticipantJoined', targetUser
+
+        if @amIHost
+          @ensureMachineShare [targetUser], (err) =>
+            return throwError err  if err
       else
         @chat.emit 'ParticipantLeft', targetUser
         @statusBar.emit 'ParticipantLeft', targetUser
