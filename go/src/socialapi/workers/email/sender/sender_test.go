@@ -43,17 +43,20 @@ func TestNew(t *testing.T) {
 			}
 
 			sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
-			c := New(r.Log, sg)
+			sgm := &SendGridMail{
+				Sendgrid: sg,
+			}
+			c := New(r.Log, sgm)
 			So(c, ShouldNotBeNil)
 		})
 	})
 }
 
 type fakeClient struct {
-	mail *sendgrid.SGMail
+	mail *Mail
 }
 
-func (f *fakeClient) Send(mail *sendgrid.SGMail) error {
+func (f *fakeClient) Send(mail *Mail) error {
 	f.mail = mail
 	return nil
 }
@@ -77,9 +80,9 @@ func TestSend(t *testing.T) {
 				From:     "mail@koding.com",
 				FromName: "koding",
 			}
-			err := c.Send(m)
+			err := c.Process(m)
 			So(err, ShouldBeNil)
-			So("mehmet@koding.com", ShouldBeIn, fc.mail.To)
+			So("mehmet@koding.com", ShouldEqual, fc.mail.To)
 			So(fc.mail.FromName, ShouldEqual, "koding")
 		})
 	})
