@@ -13,7 +13,8 @@ class AppController extends KDViewController
     super
 
     { name, version } = @getOptions()
-    @canonicalName = _.uniqueId name.toLowerCase() + '$' + version.toLowerCase()
+
+    @canonicalName = name.toLowerCase() + '$' + version.toLowerCase() + '$' + _.uniqueId()
 
     kd.singleton('mainController').ready =>
       # defer should be removed, this should be listening to a different event - SY
@@ -31,8 +32,8 @@ class AppController extends KDViewController
 
 
   createContentDisplay: (models, callback)->
-    console.warn 'not implemented'
+    console.warn @canonicalName + '#createContentDisplay not implemented'
 
 
   handleShortcut: (e) ->
-    console.warn 'not implemented'
+    console.warn @canonicalName + '#handleShortcut not implemented'
