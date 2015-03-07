@@ -57,15 +57,17 @@ generateFakeClientFromReq = (req, res, callback)->
   {clientId} = req.cookies
   {name: groupName, section} = req.params
 
-  groupName = 'koding'  if isInAppRoute groupName
+  # TODO change this with Team product
+  groupName = 'koding'
 
   # if client id is not set, check for pendingCookies
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
 
-  generateFakeClient { clientId, groupName, section }, (err, fakeClient) ->
+  generateFakeClient (err, fakeClient) ->
     return callback err  if err?
     {delegate} = fakeClient.connection
+
     # check if user stored in the session really exists
     return callback null, fakeClient  if delegate?
 
@@ -73,6 +75,7 @@ generateFakeClientFromReq = (req, res, callback)->
     # somehow invalid, create a new session
     bongo.models.JSession.fetchSession {}, (err, {session, account})->
       return callback err  if err?
+
       return callback {message: "account cannot be created"}  unless account? and session?
       updateCookie req, res, session
 
@@ -80,7 +83,7 @@ generateFakeClientFromReq = (req, res, callback)->
 
       callback null, fakeClient
 
-generateFakeClient = ({ clientId, groupName, section }, callback) ->
+generateFakeClient = (callback) ->
 
   fakeClient    =
     context       :
@@ -92,26 +95,8 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
     impersonating : false
 
 
-  return callback null, fakeClient unless clientId?
+  return callback null, fakeClient
 
-  bongo.models.JSession.fetchSession clientId, (err, { session })->
-    return handleError err, callback if err
-    return handleError new Error "Session is not set", callback unless session?
-
-    fetchGroupName { groupName, section }, (err, groupName)->
-      return handleError err, callback if err
-
-      {username} = session
-      username   = 'guestuser'  if /^guest-/.test username
-
-      fetchAccount username, (err, account)->
-
-        return handleError err, callback if err
-        return callback null, fakeClient unless account?
-
-        prepareFakeClient fakeClient, {groupName, session, account}
-
-        return callback null, fakeClient
 
 prepareFakeClient = (fakeClient, options) ->
   {groupName, session, account} = options

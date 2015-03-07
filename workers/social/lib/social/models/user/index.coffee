@@ -199,9 +199,6 @@ module.exports = class JUser extends jraphical.Module
     if delegate.type is 'unregistered'
       return callback createKodingError "You are not registered!"
 
-    if toBeDeletedUsername is "guestuser"
-      return callback createKodingError "It's not allowed to delete this user!"
-
     # only owner and the dummy admins can delete a user
     unless toBeDeletedUsername is nickname or
            delegate.can 'administer accounts'
@@ -345,8 +342,15 @@ module.exports = class JUser extends jraphical.Module
           return
 
         # If we are dealing with a guest session we know that we need to
-        # use guestuser's JUser, we are overriding it here
-        username = 'guestuser'  if /^guest-/.test username
+        # use fake guest user
+
+        if /^guest-/.test username
+          JUser.fetchGuestUser (err, {account}) ->
+            return logout "error fetching guest account"  if err
+
+            return callback null, {account, session}
+
+          return
 
         JUser.one {username}, (err, user)=>
 
@@ -357,7 +361,7 @@ module.exports = class JUser extends jraphical.Module
           else unless user?
 
             logError "no user found with username", { username }
-            logout   "no user found with username", clientId, callback
+            logout   "no user found with sessionId", clientId, callback
 
           else
 
@@ -669,26 +673,15 @@ module.exports = class JUser extends jraphical.Module
 
   @fetchGuestUser = (callback)->
 
-    JUser.one username: 'guestuser', (err, user) =>
+    user = new JUser()
 
-      return callback err  if err?
+    username      = @createGuestUsername()
 
-      unless user?
-        console.log "guestuser not found! FIXME @gokmen"
-        return callback new KodingError 'No Guest available!'
+    account = new JAccount()
+    account.profile = {nickname: username}
+    account.type = 'unregistered'
 
-      username      = @createGuestUsername()
-
-      user.username = username
-      user.password = createId()
-      user.email    = "#{username}@koding.com"
-
-      user.fetchOwnAccount (err, account) =>
-        return callback err  if err?
-
-        account.profile.nickname = username
-
-        callback null, { account, replacementToken: createId() }
+    callback null, { account, replacementToken: createId() }
 
 
   @createUser = (userInfo, callback)->
@@ -865,7 +858,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err?
             callback null, newToken
         else
-          callback createKodingError "Session not found!"
+          callback null
 
   @removeFromGuestsGroup = (account, callback) ->
     JGroup.one { slug: 'guests' }, (err, guestsGroup) ->
@@ -891,9 +884,6 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
-    if username is "guestuser"
-      return callback createKodingError "Reserved username."
-
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
@@ -906,7 +896,8 @@ module.exports = class JUser extends jraphical.Module
     quotaExceedErr = null
     error          = null
 
-    aNewRegister   = oldUsername is 'guestuser'
+    # TODO this can cause problems
+    aNewRegister   = yes
 
     queue = [
       =>

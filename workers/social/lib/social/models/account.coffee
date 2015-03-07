@@ -364,10 +364,7 @@ module.exports = class JAccount extends jraphical.Module
 
   createSocialApiId:(callback)->
     if @type is 'unregistered'
-      return @constructor.one "profile.nickname":"guestuser", (err, account) ->
-        return callback {message: "Could not fetch guest api id"} if err
-        return callback null, account.socialApiId if account?.socialApiId
-        return callback {message: "Could not fetch guest api id"}
+      return callback null, -1
 
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
@@ -401,9 +398,6 @@ module.exports = class JAccount extends jraphical.Module
   changeUsername: (options, callback = (->)) ->
     { username, isRegistration } = options
     oldUsername = @profile.nickname
-
-    if "guestuser" in [oldUsername, username]
-      return callback new KodingError "guestuser can not be updated"
 
     if username is oldUsername
 
@@ -1065,6 +1059,11 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchUser:(callback)->
     JUser = require './user'
+    if /^guest-/.test @profile.nickname
+      user = new JUser()
+      username = @profile.nickname
+      callback null, user
+
     selector = { targetId: @getId(), as: 'owner', sourceName: 'JUser' }
     Relationship.one selector, (err, rel) ->
       return callback err   if err

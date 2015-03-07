@@ -19,7 +19,7 @@ createProfileFeed = (models, account, options, callback)->
     skip = 0
     if page > 0
       skip = (page - 1) * itemsPerPage
-      
+
     fetchOptions = { targetId, limit: itemsPerPage, skip, replyLimit: 25 }
 
     SocialChannel.fetchProfileFeed client, fetchOptions, (err, result) ->
@@ -28,7 +28,9 @@ createProfileFeed = (models, account, options, callback)->
         return callback null, ''
 
       buildContent models, result, options, (err, content) ->
-        return callback err  if err or not content
+        return callback err  if err
+
+        return callback {message: "content not found"}  if not content
 
         paginationOptions = {
           currentPage   : page
@@ -36,7 +38,7 @@ createProfileFeed = (models, account, options, callback)->
           itemsPerPage
           route         : "#{account.profile.nickname}"
         }
-        
+
         pagination = getPagination paginationOptions
         if pagination
           content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
