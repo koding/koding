@@ -112,6 +112,7 @@ module.exports = class ActivityAppController extends AppController
     {socialapi} = kd.singletons
     socialapi.channel.fetchPopularPosts options, callback
 
+
   bindModalDestroy: (modal, lastRoute) ->
 
      {router} = kd.singletons
@@ -125,14 +126,10 @@ module.exports = class ActivityAppController extends AppController
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()
 
 
-  goToNextTab: (event) ->
+  handleShortcut: (e) ->
 
-    kd.utils.stopDOMEvent event
-    @getView().openNext()
+    kd.utils.stopDOMEvent e
 
-
-  goToPreviousTab: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @getView().openPrev()
-
+    switch e.model.name
+      when 'prevwindow' then @getView().openPrev()
+      when 'nextwindow' then @getView().openNext()
