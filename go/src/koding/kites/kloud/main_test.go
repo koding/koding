@@ -15,6 +15,10 @@ Postgres and mongodb url is same is in the koding dev config. below is an exampl
 	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
 	KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
 
+To execute the tests in Parallel append the flag (where the number is the number of CPU Cores):
+
+	-parallel 8
+
 To get profile files first compile a binary and call that particular binary with additional flags:
 
 	go test -c
@@ -25,6 +29,7 @@ To get profile files first compile a binary and call that particular binary with
 	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
 	KONTROL_POSTGRES_HOST=192.168.59.103 ./kloud.test -test.v -test.timeout 20m
 	-test.cpuprofile=kloud_cpu.prof -test.memprofile=kloud_mem.prof
+
 
 Create a nice graph from the cpu profile
 	go tool pprof --pdf kloud.test  kloud_cpu.prof > kloud_cpu.pdf
@@ -150,27 +155,6 @@ func init() {
 	}
 }
 
-func TestPing(t *testing.T) {
-	_, err := remote.Tell("kite.ping")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestCreateUsers(t *testing.T) {
-	t.Skip("Enable manually")
-	machineCount := 20
-
-	for i := 0; i < machineCount; i++ {
-		userData, err := createUser("testuser" + strconv.Itoa(i))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		fmt.Printf("%+v\n", userData.MachineId)
-	}
-}
-
 func TestMachines(t *testing.T) {
 	t.Skip()
 	userCount := 10
@@ -189,7 +173,32 @@ func TestMachines(t *testing.T) {
 	wg.Wait()
 }
 
+func TestBuild(t *testing.T) {
+	t.Parallel()
+	username := "testuser1"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	// now try to ssh into the machine with temporary private key we created in
+	// the beginning
+	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
+		t.Error(err)
+	}
+
+	// invalid calls after build
+	if err := build(userData.MachineId); err == nil {
+		t.Error("`build` method can not be called on `running` machines.")
+	}
+}
+
 func TestResize(t *testing.T) {
+	t.Parallel()
 	username := "testuser"
 	userData, err := createUser(username)
 	if err != nil {
@@ -825,7 +834,7 @@ func newKodingProvider() *koding.Provider {
 		KeyName:       keys.DeployKeyName,
 		PublicKey:     keys.DeployPublicKey,
 		PrivateKey:    keys.DeployPrivateKey,
-		Fetcher:       NewTestFetcher(koding.Hobbyist), // test with hobbyist, so we can test resize and co
+		Fetcher:       NewTestFetcher(koding.Koding),
 	}
 }
 
