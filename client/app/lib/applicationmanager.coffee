@@ -50,11 +50,11 @@ class ApplicationManager extends KDObject
 
       if prev and _.isArray(sets = prev.getConfig().shortcuts)
         for key in sets
-          shortcuts.removeListener "key:#{key}", prev.handleShortcut
+          shortcuts.removeListener "key:#{key}", prev.bound 'handleShortcut'
 
       if _.isArray(sets = current.getConfig().shortcuts)
         for key in sets
-          shortcuts.on "key:#{key}", current.handleShortcut
+          shortcuts.on "key:#{key}", current.bound 'handleShortcut'
 
     # set unload listener
     wc = kd.singleton 'windowController'
@@ -199,6 +199,7 @@ class ApplicationManager extends KDObject
     AppClass              = getAppClass name
     appOptions            = $.extend {}, true, getAppOptions name
     appOptions.params     = params
+
     @register appInstance = new AppClass appOptions  if AppClass
 
     if @shouldLoadApp name
