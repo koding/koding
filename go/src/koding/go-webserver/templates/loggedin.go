@@ -20,10 +20,12 @@ var LoggedInHome = `
     <script>
       require('app')({
         config: {{.Runtime}},
+        userId: {{.User.GetWithDefault "UserId" "null" }},
         userAccount: {{.User.GetWithDefault "Account" "null" }},
         userMachines: {{.User.GetWithDefault "Machines" "null"}},
         userWorkspaces: {{.User.GetWithDefault "Workspaces" "null"}},
         currentGroup: {{.User.GetWithDefault "Group" "null"}},
+        userEnvironmentData: {{.User.GetWithDefault "EnvData" "{}"}},
         isLoggedInOnLoad: true,
         socialApiData: {{.User.GetWithDefault "SocialApiData" "null"}}
       });

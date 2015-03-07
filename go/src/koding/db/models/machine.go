@@ -16,9 +16,11 @@ type MachineStatus struct {
 }
 
 type MachineUser struct {
-	Id    bson.ObjectId `bson:"id" json:"id"`
-	Sudo  bool          `bson:"sudo" json:"sudo"`
-	Owner bool          `bson:"owner" json:"owner"`
+	Id        bson.ObjectId `bson:"id" json:"id"`
+	Sudo      bool          `bson:"sudo" json:"sudo"`
+	Owner     bool          `bson:"owner" json:"owner"`
+	Permanent bool          `bson:"permanent" json:"permanent"`
+	Approved  bool          `bson:"approved" json:"approved"`
 }
 
 type MachineAssignee struct {
@@ -44,4 +46,17 @@ type Machine struct {
 	Meta        interface{}     `bson:"meta" json:"meta"`
 	Assignee    MachineAssignee `bson:"assignee" json:"assignee"`
 	UserDeleted bool            `bson:"userDeleted" json:"userDeleted"`
+}
+
+// Owner returns the owner of a machine
+func (m *Machine) Owner() *MachineUser {
+	for _, user := range m.Users {
+		// this is the correct way to remove all users but the owner from a
+		// machine
+		if user.Sudo && user.Owner {
+			return &user
+		}
+	}
+
+	return nil
 }

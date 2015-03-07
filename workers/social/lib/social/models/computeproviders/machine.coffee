@@ -37,8 +37,12 @@ module.exports = class JMachine extends Module
         some            :
           (signature Object, Function)
       instance          :
-        reviveUsers     :
+        deny            :
           (signature Function)
+        approve         :
+          (signature Function)
+        reviveUsers     :
+          (signature Object, Function)
         shareWith       :
           (signature Object, Function)
         setProvisioner  :
@@ -49,10 +53,13 @@ module.exports = class JMachine extends Module
           (signature Object, Function)
         unshare         :
           (signature Object, Function)
-        setAsOwner      :
-          (signature Object, Function)
-        unsetAsOwner    :
-          (signature Object, Function)
+
+        # Disabled for now ~ GG
+        # setAsOwner      :
+        #   (signature Object, Function)
+        # unsetAsOwner    :
+        #   (signature Object, Function)
+
 
     permissions         :
       'list machines'   : ['member']
@@ -159,28 +166,56 @@ module.exports = class JMachine extends Module
     userId = user.getId()
 
     owner  = no
-    owner |= u.owner and u.id.equals userId  for u, i in machine.users
+    owner |= u.sudo and u.owner and u.id.equals userId  for u in machine.users
 
     return owner
 
 
-  excludeUser = (users, user)->
+  excludeUser = (options)->
+
+    { users, user, permanent } = options
 
     userId   = user.getId()
     newUsers = []
 
     for u in users
-      newUsers.push u  unless userId.equals u.id
+      unless userId.equals u.id
+        newUsers.push u
+      else if not permanent? and u.permanent
+        newUsers.push u
 
     return newUsers
 
 
-  addUser = (users, user, asOwner)->
+  addUser = (users, options)->
 
-    newUsers = excludeUser users, user
-    newUsers.push { id: user.getId(), owner: asOwner }
+    # asOwner option is disabled for now ~ GG
+    # passing False for owner
+    {user, asOwner, permanent} = options
+
+    newUsers = excludeUser { users, user, permanent }
+
+    userId = user.getId()
+    for u in newUsers
+      break  if inList = userId.equals u.id
+
+    unless inList
+      newUsers.push {
+        id       : user.getId()
+        owner    : no
+        approved : no
+        permanent
+      }
 
     return newUsers
+
+
+  informAccounts = (users, machineUid)->
+
+    users.forEach (user)->
+      user.fetchOwnAccount (err, account)->
+        return if err or not account
+        account.sendNotification 'MachineListUpdated', machineUid
 
 
   # Private Methods
@@ -247,35 +282,45 @@ module.exports = class JMachine extends Module
 
   # Instance Methods
 
-  addUsers: (usersToAdd, asOwner, callback)->
+  addUsers: (options, callback)->
+
+    {targets, asOwner, permanent} = options
 
     users = @users.splice 0
 
-    for user in usersToAdd
-      users = addUser users, user, asOwner
+    for user in targets
+      users = addUser users, {user, asOwner, permanent}
 
     if users.length > 10
       callback new KodingError \
         "Machine sharing is limited up to 10 users."
     else
-      @update $set: { users }, callback
+      @update $set: { users }, (err) =>
+        informAccounts targets, @getAt 'uid'
+        callback err
 
 
-  removeUsers: (usersToRemove, callback)->
+  removeUsers: (options, callback)->
+
+    {targets, permanent, inform} = options
 
     users = @users.splice 0
 
-    for user in usersToRemove
-      users = excludeUser users, user
+    for user in targets
+      users = excludeUser { users, user, permanent }
 
-    @update $set: { users }, callback
+    @update $set: { users }, (err) =>
+      informAccounts targets, @getAt 'uid'  if inform
+      callback err
 
 
   shareWith: (options, callback)->
 
-    { target, asUser, asOwner } = options
+    { target, asUser, asOwner, permanent, inform } = options
+
     asUser  ?= yes
     asOwner ?= no
+    inform  ?= yes
 
     unless target?
       return callback new KodingError "Target required."
@@ -295,8 +340,8 @@ module.exports = class JMachine extends Module
       if target instanceof JUser
 
         if asUser
-        then @addUsers targets, asOwner, callback
-        else @removeUsers targets, callback
+        then @addUsers {targets, asOwner, permanent}, callback
+        else @removeUsers {targets, permanent, inform}, callback
 
       else
         callback new KodingError "Target does not support machines."
@@ -397,9 +442,10 @@ module.exports = class JMachine extends Module
       shouldReviveClient   : yes
       shouldReviveProvider : no
 
-    , (client, callback)->
+    , (client, options, callback)->
 
       { r: { user } } = client
+      {permanentOnly} = options
 
       unless isOwner user, this
         return callback new KodingError 'Access denied'
@@ -410,6 +456,9 @@ module.exports = class JMachine extends Module
       queue    = []
 
       (@users ? []).forEach (_user)->
+
+        return  if permanentOnly and not _user.permanent
+
         queue.push -> JUser.one _id: _user.id, (err, user)->
           if not err? and user
             user.fetchOwnAccount (err, account)->
@@ -460,9 +509,12 @@ module.exports = class JMachine extends Module
   # .shareWith can be used like this:
   #
   # JMachineInstance.shareWith {
-  #   asUser: yes, asOwner: no, target: ["gokmen", "dicle"]}, cb
+  #   asUser: yes, asOwner: no, target: ["gokmen", "dicle"], permanent: no}, cb
   # }
   #                        user slugs ->  ^^^^^^ ,  ^^^^^
+  #
+  # ps. permanent option requires a valid paid subscription
+  #
 
   shareWith$: permit 'populate users',
 
@@ -470,16 +522,23 @@ module.exports = class JMachine extends Module
 
       shouldReviveClient   : yes
       shouldReviveProvider : no
+      shouldLockProcess    : yes
 
     , (client, options, callback)->
 
       { r: { user } } = client
 
+      # Only an owner of this machine can modify it
       unless isOwner user, this
         return callback new KodingError "Access denied"
 
-      { target } = options
+      { target, permanent, asUser } = options
 
+      # At least one target is required
+      if not target or target.length is 0
+        return callback new KodingError "A target required."
+
+      # Max 9 target can be passed
       if target.length > 9
         return callback new KodingError \
           "It is not allowed to change more than 9 state at once."
@@ -490,17 +549,42 @@ module.exports = class JMachine extends Module
         return callback \
           new KodingError "You are not allowed to change your own state!"
 
+      # For Koding provider credential field is username
+      # and we don't allow them to be removed from users
       if @provider is 'koding' and @credential in target
         return callback \
           new KodingError "It is not allowed to change owner state!"
 
-      JMachine::shareWith.call this, options, callback
+      # If it's a call for unshare then no need to check
+      # any other state for it
+      if asUser is no
+        JMachine::shareWith.call this, options, callback
 
+        return
+
+      # Permanent option is only valid for paid accounts
+      # if its passed then we need to check payment
+      #
+      if permanent # and @provider is 'koding'
+                   # TODO: we can limit this for koding provider only ~ GG
+
+        Payment = require '../payment'
+        Payment.subscriptions client, {}, (err, subscription)=>
+
+          if err? or not subscription? or subscription.planTitle is 'free'
+            return callback \
+              new KodingError "You don't have a paid subscription!"
+
+          JMachine::shareWith.call this, options, callback
+
+      else
+
+        JMachine::shareWith.call this, options, callback
 
 
   share: secure (client, users, callback) ->
 
-    options = target : users, asUser : yes
+    options = target: users, asUser: yes
     @shareWith$ client, options, callback
 
 
@@ -516,13 +600,59 @@ module.exports = class JMachine extends Module
     else @shareWith$ client, options, callback
 
 
-  setAsOwner: secure (client, users, callback) ->
+  # setting owner disabled for now ~ GG
 
-    options = target : users, asUser : yes, asOwner : yes
-    @shareWith$ client, options, callback
+  # setAsOwner: secure (client, users, callback) ->
+  #   options = target: users, asUser: yes, asOwner: yes
+  #   @shareWith$ client, options, callback
+
+  # unsetAsOwner: secure (client, users, callback) ->
+  #   options = target: users, asUser: yes, asOwner: no
+  #   @shareWith$ client, options, callback
 
 
-  unsetAsOwner: secure (client, users, callback) ->
+  approve: secure revive
 
-    options = target : users, asUser : yes, asOwner : no
-    @shareWith$ client, options, callback
+    shouldReviveClient   : yes
+    shouldLockProcess    : yes
+    shouldReviveProvider : no
+    hasOptions           : no
+
+  , (client, callback)->
+
+    { r: { user } } = client
+
+    # An owner cannot approve their own machine
+    if isOwner user, this
+      return callback null
+
+    JMachine.update
+      "_id"      : @getId()
+      "users.id" : user._id
+    , $set       : "users.$.approved" : yes
+    , (err)-> callback err
+
+
+  deny: secure revive
+
+    shouldReviveClient   : yes
+    shouldLockProcess    : yes
+    shouldReviveProvider : no
+    hasOptions           : no
+
+  , (client, callback)->
+
+    { r: { user } } = client
+
+    # An owner cannot deny their own machine
+    if isOwner user, this
+      return callback null
+
+    options =
+      target    : [user.username]
+      asUser    : no
+      inform    : no
+      permanent : yes
+
+    @shareWith options, (err)->
+      callback err

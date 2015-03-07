@@ -122,7 +122,9 @@ module.exports = class ComputeController_UI
       callback          : (data)->
         form.emit "Submit", data
 
-  @askFor: (action, target, force, callback)->
+  @askFor: (action, options, callback)->
+
+    {force, resizeTo, task} = options
 
     return callback()  if force
 
@@ -131,7 +133,7 @@ module.exports = class ComputeController_UI
       resize    :
         title   : "Resize VM?"
         message : "
-          If you choose to proceed, this VM will be resized from 3GB to 10GB.
+          If you choose to proceed, this VM will be resized from 3GB to #{resizeTo}GB.
           During the resize process, you will not be able to use the VM but
           all your files, workspaces and data will be safe.
         "
@@ -217,22 +219,13 @@ module.exports = class ComputeController_UI
         duration      : 0
         closeManually : no
 
-  # taken here to avoid circularity
-  @reviveProvisioner = (machine, callback)->
-
-    provisioner = machine.provisioners.first
-
-    return callback null  unless provisioner
-
-    {JProvisioner} = remote.api
-    JProvisioner.one slug: provisioner, callback
-
 
   @showBuildScriptEditorModal = (machine)->
 
     return  unless machine?
 
-    ComputeController_UI.reviveProvisioner machine, (err, provisioner)->
+    ComputeHelpers = require './computehelpers'
+    ComputeHelpers.reviveProvisioner machine, (err, provisioner)->
 
       return  if showError err
 

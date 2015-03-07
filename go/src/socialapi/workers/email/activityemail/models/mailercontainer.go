@@ -61,6 +61,8 @@ func (mc *MailerContainer) PrepareContainer() error {
 	mc.prepareGroup(target)
 	mc.prepareSlug(target)
 	mc.prepareObjectType(target)
+	mc.CreatedAt = target.CreatedAt
+
 	contentType.SetActorId(target.AccountId)
 	contentType.SetListerId(mc.AccountId)
 

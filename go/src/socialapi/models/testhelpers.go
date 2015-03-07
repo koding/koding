@@ -197,5 +197,13 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 		return nil, err
 	}
 
+	s := modelhelper.Selector{"_id": accId}
+	o := modelhelper.Selector{"$set": modelhelper.Selector{
+		"socialApiId": strconv.FormatInt(a.Id, 10),
+	}}
+	if err := modelhelper.UpdateAccount(s, o); err != nil {
+		return nil, err
+	}
+
 	return a, nil
 }

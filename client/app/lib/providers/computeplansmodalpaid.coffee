@@ -7,6 +7,7 @@ KDView = kd.View
 ComputePlansModal = require './computeplansmodal'
 CustomLinkView = require '../customlinkview'
 CustomPlanStorageSlider = require './customplanstorageslider'
+trackEvent = require 'app/util/trackEvent'
 
 
 module.exports = class ComputePlansModalPaid extends ComputePlansModal
@@ -49,9 +50,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
       name          : "region"
       selectOptions : [
         { title: "United States (North Virginia)", value: "us-east-1" }
-        { title: "United States (Oregon)", value: "us-west-2" }
-        { title: "Singapore",     value: "ap-southeast-1" }
-        { title: "Ireland",     value: "eu-west-1" }
+        { title: "United States (Oregon)",         value: "us-west-2" }
+        { title: "Singapore",                      value: "ap-southeast-1" }
+        { title: "Ireland",                        value: "eu-west-1" }
       ]
 
     regionContainer.addSubView @regionTextView = new KDView
@@ -80,8 +81,14 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     unless plan in ['professional', 'super']
       content.addSubView new CustomLinkView
-        title    : 'Upgrade your account for more VMs RAM and Storage'
-        href     : '/Pricing'
+        title : 'Upgrade your account for more VMs RAM and Storage'
+        href  : '/Pricing'
+        click : ->
+          trackEvent 'Upgrade your account, click',
+            category : 'userInteraction'
+            action   : 'clicks'
+            label    : 'upgradeAccountOverlay'
+            origin   : 'paidModal'
     else
       @setHeight 278
 
@@ -131,5 +138,3 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       @createVMButton.hideLoader()
       @destroy()
-
-

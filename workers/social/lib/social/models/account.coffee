@@ -46,16 +46,16 @@ module.exports = class JAccount extends jraphical.Module
       type               : 'ascending'
     sharedEvents    :
       static        : [
-        { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
-        { name : "RemovedFromCollection" }
+        { name : 'AccountAuthenticated' } # TODO: we need to handle this event differently.
+        { name : 'RemovedFromCollection' }
       ]
       instance      : [
         # this is commented-out intentionally
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name: 'notification' }
-        { name : "RemovedFromCollection" }
+        { name : 'notification' }
+        { name : 'RemovedFromCollection' }
         { name : 'NewWorkspaceCreated'}
       ]
     sharedMethods :
@@ -1196,16 +1196,28 @@ module.exports = class JAccount extends jraphical.Module
 
       kallback = (err, roles)=>
         return callback err  if err
-        {flatten} = require 'underscore'
-        if "admin" in roles
-          perms = Protected.permissionsByModule
-          callback null, { permissions: (flatten perms), roles }
-        else
-          group.fetchPermissionSetOrDefault (err, permissionSet)->
-            return callback err if err
-            perms = (perm.permissions.slice() for perm in permissionSet.permissions \
-              when perm.role in roles or 'admin' in roles)
-            callback null, { permissions: (flatten perms), roles }
+
+        @fetchUser (err, user)=>
+          return callback err  if err
+
+          userId = user._id
+
+          {flatten} = require 'underscore'
+
+          if "admin" in roles
+
+            perms = Protected.permissionsByModule
+            callback null, { permissions: (flatten perms), roles, userId }
+
+          else
+
+            group.fetchPermissionSetOrDefault (err, permissionSet)->
+              return callback err if err
+
+              perms = (perm.permissions.slice() for perm in permissionSet.permissions \
+                when perm.role in roles or 'admin' in roles)
+
+              callback null, { permissions: (flatten perms), roles, userId }
 
       group.fetchMyRoles client, kallback
 

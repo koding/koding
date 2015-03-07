@@ -50,6 +50,7 @@ PACKAGES = \
 	socialapi/workers/sitemap/sitemapinitializer \
 	socialapi/workers/algoliaconnector
 
+
 all: testapi
 
 develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev mailsenderdev
@@ -211,7 +212,7 @@ testmailsender:
 	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./sender.test
 
-testapi: testcollaboration testmailsender
+testapi: testcollaboration testmailsender testmail
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
@@ -345,3 +346,14 @@ dep:
 	done;
 
 	@echo "$(OK_COLOR)==> Files are located at files $(NO_COLOR)";
+
+testmail:
+	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/mailparse/models/*.go
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./models.test
+
+	@echo "$(OK_COLOR)--> mail integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/mailparse/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test

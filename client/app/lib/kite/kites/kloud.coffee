@@ -24,6 +24,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   constructor: (options) ->
     super options
+
     @requestingInfo = kd.utils.dict()
     @needsRequest   = kd.utils.dict()
 
@@ -39,15 +40,14 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
       @needsRequest[machineId] = no
 
-      @askInfoFromKlient machineId, (klientInfo)=>
-
-        if klientInfo?
-
-          @resolveRequestingInfos machineId, klientInfo
-
-        else
-
-          @askInfoFromKloud machineId, currentState
+      # This is for tests, it bypasses klient info state
+      if @_disableKlientInfo
+        @askInfoFromKloud machineId, currentState
+      else
+        @askInfoFromKlient machineId, (klientInfo)=>
+          if klientInfo?
+          then @resolveRequestingInfos machineId, klientInfo
+          else @askInfoFromKloud machineId, currentState
 
     new Promise (resolve, reject) =>
       @requestingInfo[machineId] ?= []

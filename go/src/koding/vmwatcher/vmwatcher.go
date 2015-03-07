@@ -78,7 +78,7 @@ func dealWithMachinesOverLimit() error {
 	return nil
 }
 
-func getRunningVms() ([]models.Machine, error) {
+func getRunningVms() ([]*models.Machine, error) {
 	return modelhelper.GetRunningVms()
 }
 

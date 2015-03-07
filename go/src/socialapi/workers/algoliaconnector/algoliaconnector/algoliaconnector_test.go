@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"errors"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
@@ -15,8 +16,6 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-const algoliaSlownessSeconds = 2 * time.Second
 
 func TestTopicSaved(t *testing.T) {
 	r := runner.New("AlogoliaConnector-Test")
@@ -72,19 +71,15 @@ func TestMessageListSaved(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	SkipConvey("messages can be saved", t, func() {
+	Convey("messages can be saved", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
 		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
-
-		time.Sleep(algoliaSlownessSeconds)
-
-		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
-		So(err, ShouldBeNil)
-		So(record, ShouldNotBeNil)
+		So(doBasicTestForMessage(handler, mockListing.MessageId), ShouldBeNil)
 	})
-	SkipConvey("messages can be cross-indexed", t, func() {
+
+	Convey("messages can be cross-indexed", t, func() {
 		mockMessage, owner := createAndSaveMessage()
 
 		// init channel
@@ -99,37 +94,85 @@ func TestMessageListSaved(t *testing.T) {
 		So(len(listings), ShouldEqual, 2)
 
 		So(handler.MessageListSaved(&listings[0]), ShouldBeNil)
-		time.Sleep(algoliaSlownessSeconds)
-		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
-		time.Sleep(algoliaSlownessSeconds)
+		So(doBasicTestForMessage(handler, listings[0].MessageId), ShouldBeNil)
 
-		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
+		err = makeSureMessage(handler, listings[1].MessageId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
+
+			if len((record["_tags"]).([]interface{})) != 2 {
+				return false
+			}
+
+			return true
+		})
 		So(err, ShouldBeNil)
-		So(len((record["_tags"]).([]interface{})), ShouldEqual, 2)
 	})
 }
 
+func doBasicTestForMessage(handler *Controller, id int64) error {
+	return makeSureMessage(handler, id, func(record map[string]interface{}, err error) bool {
+		if err != nil {
+			return false
+		}
+
+		if record == nil {
+			return false
+		}
+
+		return true
+	})
+}
+
+var errDeadline = errors.New("dead line")
+
+// makeSureErr checks if the given id's get request returns the desired err, it
+// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
+// index the records right away, so try to go to a desired state
+func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
+	deadLine := time.After(time.Second * 15)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			record, err := handler.get("messages", strconv.FormatInt(id, 10))
+			if f(record, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
+}
 func TestMessageListDeleted(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	SkipConvey("messages can be deleted", t, func() {
+	Convey("messages can be deleted", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
 		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
-
-		time.Sleep(algoliaSlownessSeconds)
+		So(doBasicTestForMessage(handler, mockListing.MessageId), ShouldBeNil)
 
 		So(handler.MessageListDeleted(&mockListing), ShouldBeNil)
+		err := makeSureMessage(handler, mockListing.MessageId, func(record map[string]interface{}, err error) bool {
+			if err == nil {
+				return false
+			}
 
-		time.Sleep(algoliaSlownessSeconds)
+			if record != nil {
+				return false
+			}
 
-		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
-		So(err.Error(), ShouldEqual, ErrAlgoliaObjectIdNotFound.Error())
-		So(record, ShouldBeNil)
+			return true
+		})
+		So(err, ShouldBeNil)
 	})
-	SkipConvey("cross-indexed messages will not be deleted", t, func() {
+
+	Convey("cross-indexed messages will not be deleted", t, func() {
 		mockMessage, owner := createAndSaveMessage()
 
 		// init channel
@@ -144,20 +187,49 @@ func TestMessageListDeleted(t *testing.T) {
 		So(len(listings), ShouldEqual, 2)
 
 		So(handler.MessageListSaved(&listings[0]), ShouldBeNil)
-		time.Sleep(algoliaSlownessSeconds)
-		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
-		time.Sleep(algoliaSlownessSeconds)
+		err = makeSureMessage(handler, listings[0].MessageId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
 
-		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+			if len((record["_tags"]).([]interface{})) != 1 {
+				return false
+			}
+
+			return true
+		})
 		So(err, ShouldBeNil)
-		So(len((record["_tags"]).([]interface{})), ShouldEqual, 2)
+
+		So(handler.MessageListSaved(&listings[1]), ShouldBeNil)
+
+		err = makeSureMessage(handler, listings[1].MessageId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
+
+			if len((record["_tags"]).([]interface{})) != 2 {
+				return false
+			}
+
+			return true
+		})
+		So(err, ShouldBeNil)
 
 		So(handler.MessageListDeleted(&listings[1]), ShouldBeNil)
-		time.Sleep(algoliaSlownessSeconds)
 
-		record, err = handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+		err = makeSureMessage(handler, listings[1].MessageId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
+
+			if len((record["_tags"]).([]interface{})) != 1 {
+				return false
+			}
+
+			return true
+		})
+
 		So(err, ShouldBeNil)
-		So(len((record["_tags"]).([]interface{})), ShouldEqual, 1)
 	})
 }
 
@@ -165,24 +237,36 @@ func TestMessageUpdated(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
 
-	SkipConvey("messages can be updated", t, func() {
+	Convey("messages can be updated", t, func() {
 		mockMessage, _ := createAndSaveMessage()
 		mockListing := getListings(mockMessage)[0]
 
 		So(handler.MessageListSaved(&mockListing), ShouldBeNil)
+		err := makeSureMessage(handler, mockListing.MessageId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
 
-		time.Sleep(algoliaSlownessSeconds)
+			return true
+		})
+		So(err, ShouldBeNil)
 
 		mockMessage.Body = "updated body"
 
 		So(mockMessage.Update(), ShouldBeNil)
 		So(handler.MessageUpdated(mockMessage), ShouldBeNil)
+		err = makeSureMessage(handler, mockListing.MessageId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
 
-		time.Sleep(algoliaSlownessSeconds)
+			if record["body"].(string) != "updated body" {
+				return false
+			}
 
-		record, err := handler.get("messages", strconv.FormatInt(mockMessage.Id, 10))
+			return true
+		})
 		So(err, ShouldBeNil)
-		So(record["body"].(string), ShouldEqual, "updated body")
 	})
 }
 

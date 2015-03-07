@@ -8,11 +8,11 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-const AccountsCollection = "jAccounts"
+const AccountsColl = "jAccounts"
 
 func GetAccountById(id string) (*models.Account, error) {
 	account := new(models.Account)
-	return account, Mongo.One(AccountsCollection, id, account)
+	return account, Mongo.One(AccountsColl, id, account)
 }
 
 func GetAccount(username string) (*models.Account, error) {
@@ -20,7 +20,7 @@ func GetAccount(username string) (*models.Account, error) {
 	query := func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}
-	return account, Mongo.Run(AccountsCollection, query)
+	return account, Mongo.Run(AccountsColl, query)
 }
 
 func GetAccountBySocialApiId(socialApiId int64) (*models.Account, error) {
@@ -30,28 +30,28 @@ func GetAccountBySocialApiId(socialApiId int64) (*models.Account, error) {
 			"socialApiId": strconv.FormatInt(socialApiId, 10),
 		}).One(&account)
 	}
-	return account, Mongo.Run(AccountsCollection, query)
+	return account, Mongo.Run(AccountsColl, query)
 }
 
 func CheckAccountExistence(id string) (bool, error) {
 	var exists bool
 	query := checkExistence(id, &exists)
-	return exists, Mongo.Run("jAccounts", query)
+	return exists, Mongo.Run(AccountsColl, query)
 }
 
 func UpdateAccount(selector, options Selector) error {
 	query := func(c *mgo.Collection) error {
 		return c.Update(selector, options)
 	}
-	return Mongo.Run("jAccounts", query)
+	return Mongo.Run(AccountsColl, query)
 }
 
 // RemoveAccount removes given account
 func RemoveAccount(id bson.ObjectId) error {
-	return RemoveDocument("jAccounts", id)
+	return RemoveDocument(AccountsColl, id)
 }
 
 func CreateAccount(a *models.Account) error {
 	query := insertQuery(a)
-	return Mongo.Run("jAccounts", query)
+	return Mongo.Run(AccountsColl, query)
 }

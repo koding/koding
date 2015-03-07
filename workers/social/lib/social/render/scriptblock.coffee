@@ -15,6 +15,8 @@ module.exports = (options = {}, callback)->
   currentGroup     = null
   userMachines     = null
   userWorkspaces   = null
+  userEnvironmentData = null
+  userId = null
 
   {bongoModels, client, slug} = options
 
@@ -32,13 +34,14 @@ module.exports = (options = {}, callback)->
     userAccount          = JSON.stringify delegate
     userMachines         = JSON.stringify userMachines
     userWorkspaces       = JSON.stringify userWorkspaces
+    userEnvironmentData  = JSON.stringify userEnvironmentData
+    userId               = JSON.stringify userId
 
     """
     <script type="text/javascript">
       if (location.host === "koding.com") {
         !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","group","track","ready","alias","page","once","off","on"];analytics.factory=function(t){return function(){var e=Array.prototype.slice.call(arguments);e.unshift(t);analytics.push(e);return analytics}};for(var t=0;t<analytics.methods.length;t++){var e=analytics.methods[t];analytics[e]=analytics.factory(e)}analytics.load=function(t){var e=document.createElement("script");e.type="text/javascript";e.async=!0;e.src=("https:"===document.location.protocol?"https://":"http://")+"cdn.segment.com/analytics.js/v1/"+t+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(e,n)};analytics.SNIPPET_VERSION="3.0.1";
           analytics.load("#{segment}");
-          analytics.page()
         }}();
      };
     </script>
@@ -50,12 +53,14 @@ module.exports = (options = {}, callback)->
     <script>
       require('app')({
         config: #{config},
+        userId: #{userId},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
         userWorkspaces: #{userWorkspaces},
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
-        socialApiData: #{encodedSocialApiData}
+        socialApiData: #{encodedSocialApiData},
+        userEnvironmentData: #{userEnvironmentData}
       });
     </script>
 
@@ -75,6 +80,7 @@ module.exports = (options = {}, callback)->
     " else '' }
 
     #{if argv.t then "<script src=\"/a/js/tests.js\"></script>" else ''}
+
     """
 
   selector =
@@ -107,6 +113,15 @@ module.exports = (options = {}, callback)->
       bongoModels.JMachine.some$ client, {}, (err, machines) ->
         console.log err  if err
         userMachines = machines or []
+        queue.fin()
+    ->
+      bongoModels.Sidebar.fetchEnvironment client, (err, data) ->
+        userEnvironmentData = data
+        queue.fin()
+    ->
+      client.connection.delegate.fetchUser (err, user) ->
+        console.err err  if err
+        userId = user.getId()
         queue.fin()
   ]
 
