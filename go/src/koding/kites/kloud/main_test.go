@@ -195,6 +195,10 @@ func TestBuild(t *testing.T) {
 	if err := build(userData.MachineId); err == nil {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
 }
 
 func TestResize(t *testing.T) {
