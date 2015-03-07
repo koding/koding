@@ -20,10 +20,13 @@ func main() {
 	}
 
 	sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
+	sgm := &sender.SendGridMail{
+		Sendgrid: sg,
+	}
 
-	constructor := sender.New(r.Log, sg)
+	constructor := sender.New(r.Log, sgm)
 	r.SetContext(constructor)
-	r.Register(sender.Mail{}).On("send").Handle((*sender.Controller).Send)
+	r.Register(sender.Mail{}).On("send").Handle((*sender.Controller).Process)
 	r.Listen()
 	r.Wait()
 }
