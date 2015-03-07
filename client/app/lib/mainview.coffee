@@ -14,7 +14,6 @@ ActivitySidebar = require './activity/sidebar/activitysidebar'
 AvatarArea = require './avatararea/avatararea'
 CustomLinkView = require './customlinkview'
 GlobalNotificationView = require './globalnotificationview'
-MachineSettingsPopup = require './providers/machinesettingspopup'
 MainTabView = require './maintabview'
 TopNavigation = require './topnavigation'
 
@@ -312,16 +311,6 @@ module.exports = class MainView extends KDView
       kd.getSingleton('router').handleRoute "/Activity"
 
     @panelWrapper.addSubView @mainTabView
-
-
-  openMachineModal: (machine, item) ->
-
-    bounds   = item.getBounds()
-    position =
-      top    : Math.max bounds.y - 38, 0
-      left   : bounds.x + bounds.w + 16
-
-    new MachineSettingsPopup {position}, machine
 
 
   setStickyNotification:->
