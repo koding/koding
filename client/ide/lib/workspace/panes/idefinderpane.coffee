@@ -60,9 +60,6 @@ module.exports = class IDEFinderPane extends IDEPane
     @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
       @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
 
-    @on 'DeleteWorkspaceFiles', (machineUId, rootPath) =>
-      @finderController.treeController.deleteWorkspaceRootFolder machineUId, rootPath
-
 
   makeReadOnly: -> @finderController.setReadOnly yes
 
