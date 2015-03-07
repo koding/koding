@@ -1,3 +1,4 @@
+// Package sender provides an API for mail sending operations
 package sender
 
 // Mail struct hold the required parameters for sending an email
