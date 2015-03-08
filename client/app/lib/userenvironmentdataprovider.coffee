@@ -35,33 +35,31 @@ module.exports = UserEnvironmentDataProvider =
 
     return no  unless @hasData()
 
-    for key, section of globals.userEnvironmentData
+    for key, section of @get()
       for obj in section
         obj.machine = remote.revive obj.machine
         for ws, i in obj.workspaces
           obj.workspaces[i] = remote.revive ws
 
 
-  getMyMachines: -> return globals.userEnvironmentData.own
+  getMyMachines: -> return @get().own
 
 
   getSharedMachines: ->
 
-    { shared } = globals.userEnvironmentData
+    { shared } = @get()
 
     return shared.concat @getCollaborationMachines()
 
 
   getCollaborationMachines: ->
 
-    data = globals.userEnvironmentData.collaboration
-
-    return data
+    return @get().collaboration
 
 
   getAllMachines: ->
 
-    { own, shared, collaboration } = globals.userEnvironmentData
+    { own, shared, collaboration } = @get()
 
     return own.concat shared.concat collaboration
 
