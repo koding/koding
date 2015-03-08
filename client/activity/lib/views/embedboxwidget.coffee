@@ -7,7 +7,6 @@ EmbedBoxImageView = require './embedbox/embedboximageview'
 EmbedBoxLinkView = require './embedbox/embedboxlinkview'
 EmbedBoxLinksView = require './embedbox/embedboxlinksview'
 EmbedBoxObjectView = require './embedbox/embedboxobjectview'
-JView = require 'app/jview'
 getEmbedType = require 'app/util/getEmbedType'
 regexps = require 'app/util/regexps'
 
@@ -16,8 +15,6 @@ module.exports = class EmbedBoxWidget extends KDView
 
   { log, noop } = kd
   { addClass, getDescendantsByClassName } = kd.dom
-
-  JView.mixin @prototype
 
   constructor: (options={}, data={}) ->
     options.cssClass = kd.utils.curry 'link-embed-box clearfix', options.cssClass
@@ -37,7 +34,7 @@ module.exports = class EmbedBoxWidget extends KDView
 
     @watchInput()
 
-    @settingsButton = new KDButtonView
+    @addSubView @settingsButton = new KDButtonView
       cssClass    : 'hide-embed'
       icon        : yes
       iconOnly    : yes
@@ -279,10 +276,3 @@ module.exports = class EmbedBoxWidget extends KDView
     # fetch embed.ly data from the server api
     fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
       callback oembed[0], embedlyOptions
-
-  pistachio:->
-    """
-    {{> @settingsButton}}
-    """
-
-

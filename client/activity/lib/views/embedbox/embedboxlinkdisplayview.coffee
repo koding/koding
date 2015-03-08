@@ -22,7 +22,7 @@ module.exports = class EmbedBoxLinkDisplayView extends KDView
     , data
 
   viewAppended : ->
-    @addSubView @embedImage if @embedImage
     @addSubView @embedContent
+    @addSubView @embedImage if @embedImage
 
 
