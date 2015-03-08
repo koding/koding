@@ -638,11 +638,17 @@ activity.listitem.styl
     width                   auto
     height                  100px
     padding                 0
+    &.with-image
 
   .embed-image-view
     margin                  0
     border                  none
     padding                 10px
+      .preview-text
+        kalc                width (100% \- 100px)
+        padding             0 20px 0 10px
+
+
 
     img
       width                 auto
