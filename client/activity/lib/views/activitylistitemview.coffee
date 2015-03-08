@@ -86,9 +86,10 @@ module.exports = class ActivityListItemView extends KDListItemView
     remote.cacheable constructorName, _id, (err, account)=>
       @setClass "exempt" if account?.isExempt
 
-    embedOptions  =
+    @embedOptions  =
       hasDropdown : no
       delegate    : this
+      type        : 'activity'
 
     @embedBoxWrapper = new KDCustomHTMLView
     @updateEmbedBox()

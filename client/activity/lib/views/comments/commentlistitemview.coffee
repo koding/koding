@@ -258,6 +258,8 @@ module.exports = class CommentListItemView extends KDListItemView
     @embedOptions  =
       hasDropdown : no
       delegate    : this
+      type        : 'comment'
+
     @embedBoxWrapper = new KDCustomHTMLView
     @updateEmbedBox()
 
