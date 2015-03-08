@@ -9,6 +9,7 @@ SidebarWorkspaceItem = require './sidebarworkspaceitem'
 MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
 AddWorkspaceView = require 'app/addworkspaceview'
 IDEAppController = require 'ide'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class SidebarMachineBox extends KDView
@@ -19,7 +20,11 @@ module.exports = class SidebarMachineBox extends KDView
 
     super options, data
 
-    @machine = new Machine machine: remote.revive data.machine
+    @machine = data.machine
+
+    unless @machine instanceof Machine
+      @machine = new Machine machine: remote.revive data.machine
+
     @workspaceListItemsById = {}
 
     { workspaces } = @getData()
@@ -30,6 +35,8 @@ module.exports = class SidebarMachineBox extends KDView
     @createWorkspacesLabel()
     @createWorkspacesList()
     @watchMachineState()
+
+    @machine.on 'MachineLabelUpdated', @bound 'handleMachineLabelUpdated'
 
 
   createWorkspacesList: ->
@@ -181,6 +188,22 @@ module.exports = class SidebarMachineBox extends KDView
 
     for ws, index in workspaces when ws.getId() is wsId
       return workspaces.splice index, 1
+
+
+  handleMachineLabelUpdated: (label, slug) ->
+
+    environmentDataProvider.fetch =>
+      { router, appManager, mainView } = kd.singletons
+
+      mainView.activitySidebar.redrawMachineList()
+
+      frontApp      = appManager.getFrontApp()
+      isIDE         = frontApp.options.name is 'IDE'
+      wsData        = frontApp.workspaceData
+      isSameMachine = wsData.machineUId is @machine.uid
+
+      if isIDE and wsData and isSameMachine
+        router.handleRoute "/IDE/#{slug}/#{wsData.slug}"
 
 
   watchMachineState: ->

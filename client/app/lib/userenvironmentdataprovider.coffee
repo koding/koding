@@ -11,11 +11,22 @@ module.exports = UserEnvironmentDataProvider =
     remote.api.Sidebar.fetchEnvironment (err, data) =>
       return new KDNotificationView title : 'Couldn\'t fetch your VMs'  if err
 
+      data = @setDefaults_ data
       globals.userEnvironmentData = data
       callback data
 
 
-  get: -> return globals.userEnvironmentData
+  get: ->
+    return @setDefaults_ globals.userEnvironmentData
+
+
+  setDefaults_: (data = {}) ->
+
+    data.own           or= []
+    data.shared        or= []
+    data.collaboration or= []
+
+    return data
 
 
   hasData: ->
@@ -35,33 +46,31 @@ module.exports = UserEnvironmentDataProvider =
 
     return no  unless @hasData()
 
-    for key, section of globals.userEnvironmentData
+    for key, section of @get()
       for obj in section
         obj.machine = remote.revive obj.machine
         for ws, i in obj.workspaces
           obj.workspaces[i] = remote.revive ws
 
 
-  getMyMachines: -> return globals.userEnvironmentData.own
+  getMyMachines: -> return @get().own
 
 
   getSharedMachines: ->
 
-    { shared } = globals.userEnvironmentData
+    { shared } = @get()
 
     return shared.concat @getCollaborationMachines()
 
 
   getCollaborationMachines: ->
 
-    data = globals.userEnvironmentData.collaboration
-
-    return data
+    return @get().collaboration
 
 
   getAllMachines: ->
 
-    { own, shared, collaboration } = globals.userEnvironmentData
+    { own, shared, collaboration } = @get()
 
     return own.concat shared.concat collaboration
 
@@ -105,9 +114,14 @@ module.exports = UserEnvironmentDataProvider =
     callback m, w
 
 
-  fetchMachineByLabel: (machineLabel, callback) ->
+  fetchMachineBySlug: (slug, callback) ->
 
-    @machineFetcher_ 'label', machineLabel, callback
+    @machineFetcher_ 'slug', slug, callback
+
+
+  fetchMachineByLabel: (label, callback) ->
+
+    @machineFetcher_ 'label', label, callback
 
 
   fetchMachineByUId: (uid, callback) ->
