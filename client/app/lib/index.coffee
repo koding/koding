@@ -158,11 +158,13 @@ bootup = ->
   return true
 
 initialize = (defaults, next) ->
-  apps_ = globals.config.apps
 
   kd.utils.extend globals, defaults
 
-  globals.config.apps = apps_
+  globals.config.apps = globals.modules.reduce (acc, x) ->
+    acc[x.name] = x
+    return acc
+  , {}
 
   lazyrouter.register globals.modules
 
