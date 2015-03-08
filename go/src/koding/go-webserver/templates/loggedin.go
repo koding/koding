@@ -13,12 +13,8 @@ var LoggedInHome = `
   <body class='logged-in dark ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/common.js?{{.Version}}"></script>
-    <script src="/a/p/p/app.js?{{.Version}}"></script>
-
     <script>
-      require('app')({
+      var globals = {
         config: {{.Runtime}},
         userAccount: {{.User.GetWithDefault "Account" "null" }},
         userMachines: {{.User.GetWithDefault "Machines" "null"}},
@@ -26,8 +22,12 @@ var LoggedInHome = `
         currentGroup: {{.User.GetWithDefault "Group" "null"}},
         isLoggedInOnLoad: true,
         socialApiData: {{.User.GetWithDefault "SocialApiData" "null"}}
-      });
+      };
     </script>
+
+    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
+    <script src="/a/p/p/app.js?{{.Version}}"></script>
+    <script>require('app')();</script>
 
     <script>
       (function(d) {
