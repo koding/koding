@@ -1,5 +1,4 @@
 g =
-  config                    : {}
   appClasses                : {}
   appScripts                : {}
   appLabels                 : {}
@@ -8,7 +7,6 @@ g =
   __logs                    : []
   useWebSockets             : true
   logsEnabled               : false
-  isLoggedInOnLoad          : false
   isTesting                 : false
   REMOTE_API                : {}
   COMPUTECONTROLLER_TIMEOUT : 30000
