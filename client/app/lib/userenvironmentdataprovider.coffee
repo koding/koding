@@ -11,11 +11,22 @@ module.exports = UserEnvironmentDataProvider =
     remote.api.Sidebar.fetchEnvironment (err, data) =>
       return new KDNotificationView title : 'Couldn\'t fetch your VMs'  if err
 
+      data = @setDefaults_ data
       globals.userEnvironmentData = data
       callback data
 
 
-  get: -> return globals.userEnvironmentData
+  get: ->
+    return @setDefaults_ globals.userEnvironmentData
+
+
+  setDefaults_: (data = {}) ->
+
+    data.own           or= []
+    data.shared        or= []
+    data.collaboration or= []
+
+    return data
 
 
   hasData: ->
