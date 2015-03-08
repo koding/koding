@@ -269,10 +269,8 @@ activity.listitem.styl
       padding-bottom        5px
 
     .link-embed-box
-      border                1px solid #d6d6d6
       rounded               3px
       margin                16px 0 0
-
 
     > .listview-wrapper
       overflow              visible
@@ -553,6 +551,31 @@ activity.listitem.styl
         .button-title
           color             #999
 
+    .link-embed-box
+      border                none
+      bg                    color transparent
+
+      .embed-link-view
+        padding             20px 0 15px 0px
+        &.with-image .preview-text
+          padding           0 20px 0 10px
+
+      .preview-text
+        padding             0 20px 0 10px
+        border-left         5px solid #f0f0f0
+
+      .provider-info
+        left                10px
+
+      .preview-link-pager
+        right               60px
+        bottom              19px
+
+      .hide-embed
+        right               -8px
+        shadow              0 0 0 2px white
+        bg                  color white
+
 
 .kdlistitemview-activity.preview
   margin-top                9px
@@ -628,9 +651,7 @@ activity.listitem.styl
 .link-embed-box
   width                     auto
   position                  relative
-  background                #fff
-  margin-bottom             14px
-  border                    1px solid #efefef
+  margin                    14px 0
 
   .embed-link-view
     margin                  0
@@ -640,47 +661,55 @@ activity.listitem.styl
     padding                 0
     &.with-image
 
-  .embed-image-view
-    margin                  0
-    border                  none
-    padding                 10px
       .preview-text
         kalc                width (100% \- 100px)
         padding             0 20px 0 10px
 
 
+  a.embed-image-view
+    display                 inline-block
+    border                  1px solid lightGray
+    overflow                hidden
+    rounded                 3px
 
     img
-      width                 auto
-      height                auto
+      size                  auto auto
       max-width             100%
-      max-height            200px
+      max-height            450px
+      vertical-align        text-bottom
 
   .preview-image
-    size                    100px, 100px
+    size                    100px 100px
     border                  none
+    overflow                hidden
+    rounded                 3px
     fl()
 
   .preview-text
-    kalc                    width (100% \- 124px)
+    width                   100%
     height                  100px
-    padding                 10px
+    padding                 0 10px
     overflow                hidden
+    border-left             5px solid lightGray
     borderBox()
     fl()
 
     a
       text-decoration       none
+      width                 auto
+      display               inline
 
     h4
-      display               inline-block
+      width                 100%
+      display               block
       font-size             12px
+      line-height           20px
       font-weight           600
       margin-bottom         8px
-      margin-right          60px
       color                 #636363
       white-space           nowrap
       text-overflow         ellipsis
+      overflow              hidden
 
     .description
       display               block
@@ -691,10 +720,14 @@ activity.listitem.styl
       line-height           16px
 
     .provider-info
-      height                14px
+      size                  auto auto
       color                 #acacac
       font-size             12px
-      abs                   0 0 12px 10px
+      line-height           16px
+      abs                   0 0 0px 10px
+      display               inline-block
+      overflow              visible
+
 
   // .activity-content-wrapper > .link-embed-box
   //   padding                 0 0 15px
