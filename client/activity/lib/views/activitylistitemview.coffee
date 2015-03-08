@@ -9,7 +9,6 @@ ActivityEditWidget = require './activityeditwidget'
 ActivityLikeSummaryView = require './activitylikesummaryview'
 ActivitySettingsView = require './activitysettingsview'
 CommentView = require './comments/commentview'
-EmbedBox = require './embedbox'
 remote = require('app/remote').getInstance()
 showError = require 'app/util/showError'
 formatContent = require 'app/util/formatContent'
@@ -19,6 +18,7 @@ AvatarView = require 'app/commonviews/avatarviews/avatarview'
 Promise = require 'bluebird'
 emojify = require 'emojify.js'
 htmlencode = require 'htmlencode'
+updateEmbedBox = require 'activity/mixins/updateembedbox'
 
 
 module.exports = class ActivityListItemView extends KDListItemView
@@ -192,18 +192,7 @@ module.exports = class ActivityListItemView extends KDListItemView
     @embedBoxWrapper.show()
 
 
-
-  updateEmbedBox: ->
-
-    data    = @getData()
-    embedBox = if data.link?
-      @setClass 'two-columns'  if @twoColumns
-      new EmbedBox @embedOptions, data.link
-    else
-      new KDCustomHTMLView
-
-    @embedBoxWrapper.destroySubViews()
-    @embedBoxWrapper.addSubView embedBox
+  updateEmbedBox: updateEmbedBox
 
 
   resetEditing: ->
