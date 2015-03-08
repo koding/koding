@@ -301,7 +301,7 @@ module.exports = class ActivityListItemView extends KDListItemView
     @setClass 'edited'  if updatedAt > createdAt
 
     kd.utils.defer =>
-      if @getData().link?.link_url? isnt ''
+      if @getData().link?.link_url isnt ''
       then @embedBoxWrapper.show()
       else @embedBoxWrapper.hide()
 
