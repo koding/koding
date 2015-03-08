@@ -115,8 +115,10 @@ module.exports = UserEnvironmentDataProvider =
 
 
   fetchMachineByLabel: (machineLabel, callback) ->
+  fetchMachineBySlug: (slug, callback) ->
 
     @machineFetcher_ 'label', machineLabel, callback
+    @machineFetcher_ 'slug', slug, callback
 
 
   fetchMachineByUId: (uid, callback) ->
