@@ -515,6 +515,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineLists = []
     @machineListsByName = {}
 
+    unless @machinesWrapper
+      @addSubView @machinesWrapper = new KDCustomHTMLView
+        cssClass: 'machines-wrapper'
+
     @ownMachinesList    = @createMachineList 'own'
     @sharedMachinesList = @createMachineList 'shared'
 
@@ -544,10 +548,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       shared           : SidebarSharedMachinesList
 
     list = new MachineListClasses[type] options, data
+
     @machineLists.push list
     @machineListsByName[type] = list
 
-    @addSubView list
+    @machinesWrapper.addSubView list
 
     return list
 
