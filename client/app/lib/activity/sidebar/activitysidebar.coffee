@@ -529,6 +529,20 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @addMachines_ data
 
 
+  redrawMachineList: ->
+
+    @machinesWrapper.destroySubViews()
+    @addMachineList()
+
+    frontApp = kd.singletons.appManager.getFrontApp()
+
+    if frontApp.options.name is 'IDE'
+      machine   = frontApp.mountedMachine
+      workspace = frontApp.workspaceData
+
+      @selectWorkspace { machine, workspace }
+
+
   addMachines_: (data) ->
 
     { shared, collaboration } = data
