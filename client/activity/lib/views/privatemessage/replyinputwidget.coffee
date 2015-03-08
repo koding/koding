@@ -51,8 +51,8 @@ module.exports = class ReplyInputWidget extends ActivityInputWidget
 
   # until we have a different type for collab messages - SY
   getPayload: ->
-      return collaboration : yes  if @getOptions().collaboration
-      super
+    return collaboration : yes  if @getOptions().collaboration
+    super
 
 
   reset: (unlock = yes) ->
