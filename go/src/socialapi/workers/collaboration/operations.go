@@ -143,7 +143,7 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	}
 
 	//	get workspaces of the owner
-	ownersWorkspaces, err := modelhelper.GetWorkspaces(ownerMachineUser.Id)
+	ownersWorkspaces, err := modelhelper.GetWorkspaces(ownerAccount.Id)
 	if err != nil && err != mgo.ErrNotFound {
 		return nil, err
 	}
