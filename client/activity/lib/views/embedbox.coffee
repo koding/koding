@@ -11,9 +11,12 @@ module.exports = class EmbedBox extends KDView
     super options, data
 
   viewAppended: ->
+
     return  unless data = @getData()
 
     embedType = (getEmbedType data.link_embed?.type) or 'link'
+
+    return  if embedType is 'link' and not data.link_embed?.description
 
     containerClass = switch embedType
       when 'image'  then EmbedBoxImageView
