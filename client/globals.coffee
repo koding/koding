@@ -1,22 +1,17 @@
-defaults =
-  config: {}
-  appClasses: {}
-  appScripts: {}
-  appLabels: {}
-  navItems: []
-  navItemIndex: []
-  __logs: []
-  useWebSockets: true
-  logsEnabled: false
-  isLoggedInOnLoad: false
-  currentGroup: null
-  userAccount: null
-  userWorkspaces: null
-  userMachines: null
-  socialApiData: null
-  isTesting: false
-  REMOTE_API: {}
-  COMPUTECONTROLLER_TIMEOUT: 30000
+g =
+  config                    : {}
+  appClasses                : {}
+  appScripts                : {}
+  appLabels                 : {}
+  navItems                  : []
+  navItemIndex              : []
+  __logs                    : []
+  useWebSockets             : true
+  logsEnabled               : false
+  isLoggedInOnLoad          : false
+  isTesting                 : false
+  REMOTE_API                : {}
+  COMPUTECONTROLLER_TIMEOUT : 30000
   WORKSPACE_WELCOME_TXT: """
       # Welcome to your new Koding workspace
 
@@ -37,4 +32,4 @@ defaults =
       Enjoy and Happy Koding!
     """
 
-module.exports = defaults
+module.exports = g
