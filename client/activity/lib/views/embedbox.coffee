@@ -24,8 +24,9 @@ module.exports = class EmbedBox extends KDView
       else               EmbedBoxLinkDisplayView
 
     embedOptions =
-      cssClass: 'link-embed clearfix'
-      delegate: this
+      cssClass   : 'link-embed clearfix'
+      delegate   : this
+      type       : @getOptions().type
 
     @addSubView new containerClass embedOptions, data
 
