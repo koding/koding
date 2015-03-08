@@ -111,36 +111,50 @@ activity.inputwidget.styl
       font-weight     400
 
   .link-embed-box
-    padding           14px
-    margin-bottom     0
-    border            none
-    border-left       1px solid #d6d6d6
-    border-right      1px solid #d6d6d6
+    margin                  0
+    border-left             1px solid #d6d6d6
+    border-right            1px solid #d6d6d6
+    bg                      color #f4f4f4
+
+    .embed-link-view
+      padding               20px 10px 2px 20px
+      &.with-image .preview-text
+        padding             0 20px 0 0
+
+    .preview-text
+      border-left           none
+      padding               0
+
+      .provider-info
+        left                0px
 
   .preview-link-pager
-    width             auto
-    height            16px
-    bottom            5px
-    left              5px
-    abs()
+    width                   auto
+    height                  16px
+    bottom                  6px
+    right                   70px
     borderBox()
+    abs()
 
     .thumb-count
       hidden()
 
     .preview-link-switch
 
-      cursor           pointer
-      display          inline-block
-      font-size        10px
-      height           16px
-      width            16px
-      border           1px solid #727272
-      bg               color, #fff
+      cursor                pointer
+      display               inline-block
+      font-size             10px
+      height                16px
+      width                 16px
+      border                1px solid #727272
+      bg                    color, #fff
+      rounded               3px 0 0 3px
+      -webkit-user-select   none
+      -moz-user-select      none
+      user-select           none
       borderBox()
-      -webkit-user-select none
-      -moz-user-select    none
-      user-select         none
+      &.next
+        rounded             0 3px 3px 0
 
 
       &.disabled
