@@ -347,7 +347,9 @@ module.exports = class IDEAppController extends AppController
         else
           snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
-          unless snapshot
+          if snapshot
+            @resurrectLocalSnapshot snapshot
+          else
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
             @setActiveTabView @ideViews.first.tabView
@@ -887,13 +889,13 @@ module.exports = class IDEAppController extends AppController
         {tabView}  = ideView
         activePane = tabView.getActivePane()
 
-        tabView.removePane activePane  if activePane
+        if activePane and activePane.isInitial
+          tabView.removePane activePane
 
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
 
-    if snapshot then @resurrectLocalSnapshot snapshot
-    else
+    unless snapshot
       @ideViews.first.createEditor()
       @ideViews.last.createTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
