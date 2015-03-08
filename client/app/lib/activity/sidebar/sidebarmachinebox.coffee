@@ -19,7 +19,11 @@ module.exports = class SidebarMachineBox extends KDView
 
     super options, data
 
-    @machine = new Machine machine: remote.revive data.machine
+    @machine = data.machine
+
+    unless @machine instanceof Machine
+      @machine = new Machine machine: remote.revive data.machine
+
     @workspaceListItemsById = {}
 
     { workspaces } = @getData()
