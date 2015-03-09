@@ -18,25 +18,6 @@ build:
           go test -v
           go test -v ./fs
 
-    - script:
-        name: install debuild and s3cmd commands
-        code: |
-          sudo apt-get update
-          sudo apt-get install -y ubuntu-dev-tools s3cmd
-
-    - script:
-        name: configure s3cmd
-        code: |
-          echo '[default]' > ~/.s3cfg
-          echo "access_key=$S3_ACCESS_KEY" >> ~/.s3cfg
-          echo "secret_key=$S3_SECRET_KEY" >> ~/.s3cfg
-
-    - script:
-        name: upload/update install.sh
-        code: |
-          #  Update install.sh file
-          s3cmd del s3://koding-klient/install.sh
-          s3cmd -P put install.sh s3://koding-klient/install.sh
 
 deploy:
   steps:
@@ -102,6 +83,13 @@ deploy:
           s3cmd del $S3DIR/latest-version.txt
           echo $NEWBUILDNO > latest-version.txt
           s3cmd -P put latest-version.txt $S3DIR/latest-version.txt
+
+    - script:
+        name: upload/update install.sh
+        code: |
+          #  Update install.sh file
+          s3cmd del s3://koding-klient/install.sh
+          s3cmd -P put install.sh s3://koding-klient/install.sh
 
   after-steps:
     - sherzberg/slack-notify@0.0.11:
