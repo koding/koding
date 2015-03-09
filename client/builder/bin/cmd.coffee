@@ -22,8 +22,8 @@ yargs = require 'yargs'
   .describe 'basedir', 'specify the base dir for relative path resolution'
   .string 'basedir'
 
-  .describe 'baseurl', 'specify the public folder that is relative to application\'s root'
-  .string 'baseurl'
+  .describe 'outdir', 'specify the outdir'
+  .string 'outdir'
 
   .describe 'thirdparty-dir', 'specify the thirdparty libs dir'
   .string 'thirdparty-dir'
@@ -31,23 +31,14 @@ yargs = require 'yargs'
   .describe 'assets-dir', 'specify the assets dir'
   .string 'assets-dir'
 
+  .describe 'baseurl', 'specify the public folder that is relative to application\'s root'
+  .string 'baseurl'
+
   .describe 'globals-file', 'specify the globals file that will be exposed as \'globals\''
   .string 'globals-file'
 
   .describe 'config-file', 'specify the client config file that was generated with \'./configure\''
   .string 'config-file'
-
-  .describe 'js-outfile', 'write js bundle to this file'
-  .string 'js-outfile'
-
-  .describe 'css-outdir', 'write css bundles to this dir'
-  .string 'css-outdir'
-
-  .describe 'assets-outdir', 'write assets to this dir'
-  .string 'assets-outdir'
-
-  .describe 'thirdparty-outdir', 'write thirdparty libs to this dir'
-  .string 'thirdparty-outdir'
 
   .describe 'watch-js', 'enable watch mode for scripts'
   .boolean 'watch-js'
@@ -73,6 +64,22 @@ yargs = require 'yargs'
   .boolean 'minify-css'
   .default 'minify-css', false
 
+  .describe 'extract-js-sourcemaps', 'extract source maps in debug mode'
+  .boolean 'extract-js-sourcemaps'
+  .default 'extract-js-sourcemaps', false
+
+  .describe 'rev-id', 'write outfiles into $outdir/$git-revision-id'
+  .boolean 'rev-id'
+  .default 'rev-id', true
+
+  .describe 'notify', 'enable system notifications in watch mode'
+  .boolean 'notify'
+  .default 'notify', true
+
+  .describe 'notify-sound', 'play audio with system notifications'
+  .boolean 'notify-sound'
+  .default 'notify-sound', false
+
   .describe 'scripts', 'build scripts'
   .boolean 'scripts'
   .default 'scripts', true
@@ -92,22 +99,6 @@ yargs = require 'yargs'
   .describe 'thirdparty', 'copy thirdparty'
   .boolean 'thirdparty'
   .default 'thirdparty', true
-
-  .describe 'extract-js-sourcemaps', 'extract source maps in debug mode'
-  .boolean 'extract-js-sourcemaps'
-  .default 'extract-js-sourcemaps', false
-
-  .describe 'rev-id', 'prefix output filenames with revision id'
-  .boolean 'rev-id'
-  .default 'rev-id', true
-
-  .describe 'notify', 'enable system notifications in watch mode'
-  .boolean 'notify'
-  .default 'notify', true
-
-  .describe 'notify-sound', 'play audio with system notifications'
-  .boolean 'notify-sound'
-  .default 'notify-sound', false
 
   .describe 'verbose', 'make the operation more talkative'
   .boolean 'verbose'

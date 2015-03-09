@@ -6,11 +6,7 @@ BASEURL?=--baseurl "/a/p/p"
 USE?=--use "$(MKFILE_DIR)*/bant.json"
 GLOBALS?=--globals-file "$(MKFILE_DIR)globals.coffee"
 CONFIG?=--config-file "$(MKFILE_DIR).client-config.json"
-OUTDIR=$(MKFILE_DIR)../website/a/p/p/
-JS_OUTFILE?=--js-outfile "$(OUTDIR)bundle.js"
-CSS_OUTDIR?=--css-outdir "$(OUTDIR)"
-ASSETS_OUTDIR?=--assets-outdir "$(OUTDIR)assets"
-THIRDPARTY_OUTDIR?=--thirdparty-outdir "$(OUTDIR)thirdparty"
+OUTDIR?=--outdir "$(MKFILE_DIR)../website/a/p/p/"
 THIRDPARTY_DIR?=--thirdparty-dir "$(MKFILE_DIR)thirdparty"
 ASSETS_DIR?=--assets-dir "$(MKFILE_DIR)assets"
 EXTRAS?=
@@ -20,12 +16,9 @@ BUILDER_ARGS=\
 	$(USE) \
 	$(GLOBALS) \
 	$(CONFIG) \
-	$(JS_OUTFILE) \
-	$(CSS_OUTDIR) \
 	$(ASSETS_DIR) \
-	$(ASSETS_OUTDIR) \
 	$(THIRDPARTY_DIR) \
-	$(THIRDPARTY_OUTDIR) \
+	$(OUTDIR) \
 	$(EXTRAS)
 BUILDER_DEBUG_FLAGS?=--debug-js --debug-css
 BUILDER_WATCH_FLAGS?=--watch-js --watch-css

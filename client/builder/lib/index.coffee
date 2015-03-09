@@ -17,6 +17,10 @@ asStream     = require 'as-stream'
 notifier     = require 'node-notifier'
 mkdirp       = require 'mkdirp'
 
+JS_OUTFILE        = 'bundle.js'
+THIRDPARTY_OUTDIR = 'thirdparty'
+ASSETS_OUTDIR     = 'assets'
+
 module.exports =
 
 class Haydar
@@ -25,12 +29,14 @@ class Haydar
 
     opts = @_options = xtend opts,
       basedir   : defined opts.basedir, process.cwd()
-      baseurl   : defined opts.baseurl, '/a/p/p'
+      outdir    : defined opts.outdir, process.cwd()
+      baseurl   : defined opts.baseurl, '/'
       defaults  : defined opts.globalsFile, {}
       cfg       : defined opts.configFile, {}
       manifests : defined opts.use, []
 
     opts.basedir = path.resolve __dirname, opts.basedir
+    opts.outdir = path.resolve __dirname, opts.outdir
 
     if 'string' is typeof opts.cfg
       opts.cfg = require @_resolve(opts.cfg)
@@ -39,35 +45,24 @@ class Haydar
     opts.schema = defined opts.cfg.schema, {}
     opts.rev    = defined opts.config.version, '2.0'
 
+    if opts.revId
+      opts.outdir = path.join opts.outdir, opts.rev
+
     if 'string' is typeof opts.defaults
       opts.defaults = require @_resolve(opts.defaults)
 
     if 'string' is typeof opts.manifests
       opts.manifests = [ opts.manifests ]
 
-    if 'string' is typeof opts.jsOutfile
-      opts.jsOutfile = @_addrev @_resolve opts.jsOutfile
-
-      if opts.extractJsSourcemaps
-        basename = path.basename opts.jsOutfile
-        basename = basename + '.map'
-        opts.jsSourcemapsOutfile = path.join path.dirname(opts.jsOutfile), basename
+    opts.jsOutfile = path.join opts.outdir, JS_OUTFILE
+    if opts.extractJsSourcemaps
+      opts.jsSourcemapsOutfile = path.join opts.outdir, JS_OUTFILE + '.map'
 
 
   build: () ->
     opts = @_options
-
-    dirs = []
-    if opts.jsOutfile
-      dirs.push path.dirname opts.jsOutfile
-
-    if opts.jsSourcemapsOutfile
-      dirs.push path.dirname opts.jsSourcemapsOutfile
-
-    @_time 'create directories'
-
+    dirs = [ opts.outdir ]
     createDirs dirs, =>
-      @_timeEnd 'create directories'
       @_build()
 
 
@@ -119,49 +114,45 @@ class Haydar
           if not opts.watchJs
             throw err
           else
-            if outfile
-              src = 'console.error(' + JSON.stringify(String(err)) + ')'
-              fs.writeFile outfile, src, (err) ->
-                if err
-                  console.error err # wtf
-                else
-                  console.log 'written error to ' + outfile
+            src = 'console.error(' + JSON.stringify(String(err)) + ')'
+            fs.writeFile outfile, src, (err) ->
+              if err
+                console.error err # wtf
+              else
+                console.log 'written error to ' + outfile
         else
-          if outfile
-            if opts.extractJsSourcemaps
-              s = fs.createWriteStream outfile
-              asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
-              s.once 'finish', ->
-                secs = ((Date.now() - start)/1000).toFixed 2
-                msg = 'written ' + outfile + ' (' + secs + ')'
-                console.log msg
-                console.log 'extracted source maps to ' + opts.jsSourcemapsOutfile
-                if not opts.watchJs
-                  done()
-                else
-                  notify 'scripts', msg
-              s.on 'error', (err) ->
+          if opts.extractJsSourcemaps
+            s = fs.createWriteStream outfile
+            asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
+            s.once 'finish', ->
+              secs = ((Date.now() - start)/1000).toFixed 2
+              msg = 'written ' + outfile + ' (' + secs + ')'
+              console.log msg
+              console.log 'extracted source maps to ' + opts.jsSourcemapsOutfile
+              if not opts.watchJs
+                done()
+              else
+                notify 'scripts', msg
+            s.on 'error', (err) ->
+              if not opts.watchJs
+                throw err
+              else
+                console.error err
+          else
+            fs.writeFile outfile, src, (err, res) ->
+              if err
                 if not opts.watchJs
                   throw err
                 else
                   console.error err
-            else
-              fs.writeFile outfile, src, (err, res) ->
-                if err
-                  if not opts.watchJs
-                    throw err
-                  else
-                    console.error err
+              else
+                secs = ((Date.now() - start)/1000).toFixed 2
+                msg = pretty(src.length) + ' written to ' + outfile + ' (' + secs + ')'
+                console.log msg
+                if not opts.watchJs
+                  done()
                 else
-                  secs = ((Date.now() - start)/1000).toFixed 2
-                  msg = pretty(src.length) + ' written to ' + outfile + ' (' + secs + ')'
-                  console.log msg
-                  if not opts.watchJs
-                    done()
-                  else
-                    notify 'scripts', msg
-          else
-            done()
+                  notify 'scripts', msg
 
     init = =>
 
@@ -293,15 +284,6 @@ class Haydar
 
   _resolve: (file) ->
     return  path.resolve @_options.basedir, file
-
-
-  _addrev: (x) ->
-    return x  unless @_options.revId
-    frags = x.split '/'
-    basename = frags.pop()
-    frags.push @_options.rev
-    frags.push basename
-    return frags.join '/'
 
 
   _notify: (title, msg) ->
