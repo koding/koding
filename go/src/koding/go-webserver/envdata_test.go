@@ -54,15 +54,18 @@ func TestEnvDataOwn(t *testing.T) {
 func TestEnvDataShared(t *testing.T) {
 	Convey("When user has shared machines", t, func() {
 		username1 := "originaluser"
-		_, err := modeltesthelper.CreateUserWithMachine(username1)
+		user1, err := modeltesthelper.CreateUserWithMachine(username1)
+		So(err, ShouldBeNil)
+
+		_, err = modeltesthelper.CreateMachineForUser(user1.ObjectId)
 		So(err, ShouldBeNil)
 
 		username2 := "shareduser"
-		user, err := modeltesthelper.CreateUser(username2)
+		user, err := modeltesthelper.CreateUserWithMachine(username2)
 		So(err, ShouldBeNil)
 
 		machines, err := modelhelper.GetMachinesByUsername(username1)
-		So(len(machines), ShouldEqual, 1)
+		So(len(machines), ShouldEqual, 2)
 		So(err, ShouldBeNil)
 
 		modeltesthelper.ShareMachineWithUser(machines[0].ObjectId,
@@ -88,8 +91,8 @@ func TestEnvDataShared(t *testing.T) {
 			So(workspaces[0].MachineUID, ShouldEqual, machine.Uid)
 		})
 
-		Convey("Then it should have no own machines", func() {
-			So(len(envData.Own), ShouldEqual, 0)
+		Convey("Then it should have one own machines", func() {
+			So(len(envData.Own), ShouldEqual, 1)
 		})
 
 		Convey("Then it should have no collab machines", func() {
@@ -97,8 +100,8 @@ func TestEnvDataShared(t *testing.T) {
 		})
 
 		Reset(func() {
-			modeltesthelper.DeleteUsersByUsername(username1)
-			modeltesthelper.DeleteUsersByUsername(username2)
+			modeltesthelper.DeleteUsersAndMachines(username1)
+			modeltesthelper.DeleteUsersAndMachines(username2)
 
 			modeltesthelper.DeleteMachine(machine.ObjectId)
 			modeltesthelper.DeleteWorkspaceForMachine(machine.Uid)
@@ -127,7 +130,7 @@ func TestEnvDataCollab(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		username2 := "shareduser"
-		user, err := modeltesthelper.CreateUser(username2)
+		user, _, err := modeltesthelper.CreateUser(username2)
 		So(err, ShouldBeNil)
 
 		machines, err := modelhelper.GetMachinesByUsername(username1)
@@ -172,6 +175,14 @@ func TestEnvDataCollab(t *testing.T) {
 
 		Convey("Then it should have no shared machines", func() {
 			So(len(envData.Shared), ShouldEqual, 0)
+		})
+
+		Reset(func() {
+			modeltesthelper.DeleteUsersAndMachines(username1)
+			modeltesthelper.DeleteUsersAndMachines(username2)
+
+			modeltesthelper.DeleteMachine(machine.ObjectId)
+			modeltesthelper.DeleteWorkspaceForMachine(machine.Uid)
 		})
 	})
 }
