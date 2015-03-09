@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# TESTINGEN!!!! REMOVE IF updating works!!
+# TESTINGEN!!!! REMOVE IF updating works!! NOw put this!!!
 
 if [[ ! "$(uname)" = "Linux" ]]; then
     echo "Currenty only Ubuntu Linux is supported"
