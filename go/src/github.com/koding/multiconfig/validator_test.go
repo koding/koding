@@ -43,7 +43,7 @@ func TestValidatorsCustomTag(t *testing.T) {
 		t.Fatal("Port should be required")
 	}
 
-	errStr := "field Postgres.Port is required"
+	errStr := "multiconfig: field 'Postgres.Port' is required"
 	if err.Error() != errStr {
 		t.Fatalf("Err string is wrong: expected %s, got: %s", errStr, err.Error())
 	}
