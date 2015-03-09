@@ -3,7 +3,6 @@ package multiconfig
 import (
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -72,25 +71,10 @@ func New() *DefaultLoader {
 	return d
 }
 
-// MustLoadWithPath loads with the DefaultLoader settings and from the given
-// Path. It exits if the config cannot be parsed.
-func MustLoadWithPath(path string, conf interface{}) {
-	d := NewWithPath(path)
-	d.MustLoad(conf)
-}
-
-// MustLoad loads with the DefaultLoader settings. It exits if the config
-// cannot be parsed.
-func MustLoad(conf interface{}) {
-	d := New()
-	d.MustLoad(conf)
-}
-
 // MustLoad is like Load but panics if the config cannot be parsed.
 func (d *DefaultLoader) MustLoad(conf interface{}) {
 	if err := d.Load(conf); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		panic(err)
 	}
 
 	// we at koding, believe having sane defaults in our system, this is the
@@ -101,12 +85,10 @@ func (d *DefaultLoader) MustLoad(conf interface{}) {
 	}
 }
 
-// MustValidate validates the struct. It exits with status 1 if it can't
-// validate.
+// MustValidate validates the struct or panics
 func (d *DefaultLoader) MustValidate(conf interface{}) {
 	if err := d.Validate(conf); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+		panic(err)
 	}
 }
 
