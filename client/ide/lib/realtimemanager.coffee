@@ -46,15 +46,13 @@ module.exports = class RealtimeManager extends KDObject
 
   deleteFile: (title) ->
 
-    @once 'FileQueryFinished', (response) =>
+    @fetchFileByTitle title, (err, response) =>
       [file] = response.result.items
 
       return unless file
 
       gapi.client.drive.files.delete({ fileId: file.id }).execute (file) =>
         @emit 'FileDeleted'
-
-    @fetchFileByTitle title
 
 
   getFile: (fileId) ->
@@ -67,9 +65,10 @@ module.exports = class RealtimeManager extends KDObject
       @loadFile file.id
 
 
-  fetchFileByTitle: (title) ->
+  fetchFileByTitle: (title, callback) ->
 
     gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
+      callback null, file
       @emit 'FileQueryFinished', file
 
 

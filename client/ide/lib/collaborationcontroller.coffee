@@ -493,14 +493,14 @@ module.exports =
   isRealtimeSessionActive: (id, callback) ->
 
     kallback = =>
-      @rtm.once 'FileQueryFinished', (file) =>
+      fileName = @getRealtimeFileName id
+      @rtm.fetchFileByTitle fileName, (err, file) =>
+        return callback no  if err
 
         if file.result.items.length > 0
-          callback yes, file
-        else
-          callback no
+        then callback yes, file
+        else callback no
 
-      @rtm.fetchFileByTitle @getRealtimeFileName id
 
     if @rtm then kallback()
     else
