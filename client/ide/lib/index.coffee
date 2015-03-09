@@ -332,13 +332,13 @@ module.exports = class IDEAppController extends AppController
         unless @isMachineRunning()
           nickname     = nick()
           machineLabel = machine.slug or machine.label
-          splashs      = splashMarkups
+          splashes     = splashMarkups
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
-          fakeTerminalView  = new KDCustomHTMLView partial: splashs.getTerminal nickname
+          fakeTerminalView  = new KDCustomHTMLView partial: splashes.getTerminal nickname
           @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
-          @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
+          @fakeFinderView   = new KDCustomHTMLView partial: splashes.getFileTree nickname, machineLabel
 
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
           @fakeEditor.once 'EditorIsReady', => kd.utils.defer => @fakeEditor.setFocus no
