@@ -1,3 +1,4 @@
+machina                       = require 'machina'
 remote                        = require('app/remote').getInstance()
 dateFormat                    = require 'dateformat'
 sinkrow                       = require 'sinkrow'
@@ -683,6 +684,38 @@ module.exports =
   collectButtonShownMetric: ->
 
     IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
+
+
+  initCollaborationStateMachine: ->
+
+    @stateMachine = new machina.Fsm
+      initialState: 'uninitialized'
+      states:
+        uninitialized:
+          _onEnter: @bound 'onCollaborationUninitialized'
+        loading:
+          _onEnter: @bound 'onCollaborationLoading'
+        active:
+          _onEnter: @bound 'onCollaborationActive'
+        terminated:
+          _onEnter: @bound 'onCollaborationTerminated'
+        notAuthorized:
+          _onEnter: @bound 'onCollaborationNotAuthorized'
+
+
+  onCollaborationUninitialized: ->
+
+
+  onCollaborationLoading: ->
+
+
+  onCollaborationActive: ->
+
+
+  onCollaborationTerminated: ->
+
+
+  onCollaborationNotAuthorized: ->
 
 
   prepareCollaboration: ->
