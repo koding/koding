@@ -18,6 +18,13 @@ build:
           go test -v
           go test -v ./fs
 
+    - script:
+        name: upload/update install.sh
+        code: |
+          #  Update install.sh file
+          s3cmd del s3://koding-klient/install.sh
+          s3cmd -P put install.sh s3://koding-klient/install.sh
+
 deploy:
   steps:
     - setup-go-workspace

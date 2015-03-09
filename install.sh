@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# TESTINGEN!!!! REMOVE IF updating works!!
+
 if [[ ! "$(uname)" = "Linux" ]]; then
     echo "Currenty only Ubuntu Linux is supported"
     exit 1
@@ -12,7 +14,7 @@ KONTROLURL="https://koding.com/kontrol/kite"
 
 echo "Downloading and installing klient 0.1.${LATESTVERSION}"
 curl -s $LATESTURL -o klient.deb
-sudo dpkg -i --force-all klient.deb > /dev/null
+sudo dpkg -i --force-confnew klient.deb > /dev/null
 
 echo "Authenticating to ${KONTROLURL}"
 sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL"
