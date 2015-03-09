@@ -52,7 +52,7 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    domainSelector    = '.domains .domains-a-hrefhttplearnkodingcomfaqvm-hostname-target-blank-span-classhelpspan-a-span-classtogglespan .toggle'
+    domainSelector    = '.domains .add-domain'
     paragraph         = helpers.getFakeText()
     createDomainName  = paragraph.split(' ')[0]
     domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
