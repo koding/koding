@@ -761,7 +761,10 @@ module.exports =
     if @amIHost
       @broadcastMessages.push origin: nickname, type: 'SessionEnded'
 
-    @rtm.once 'FileDeleted', =>
+    fileName = @getRealtimeFileName()
+    @rtm.deleteFile fileName, (err) =>
+      return throwError err  if err
+
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
       @modal?.destroy()
@@ -776,7 +779,6 @@ module.exports =
         callback null
 
     @mySnapshot.clear()
-    @rtm.deleteFile @getRealtimeFileName()
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost

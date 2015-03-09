@@ -44,14 +44,17 @@ module.exports = class RealtimeManager extends KDObject
       @emit 'FileCreated', file
 
 
-  deleteFile: (title) ->
+  deleteFile: (title, callback) ->
 
     @fetchFileByTitle title, (err, response) =>
       [file] = response.result.items
 
-      return unless file
+      unless file
+        err = { message: "couldn't delete realtime file." }
+        return callback err
 
       gapi.client.drive.files.delete({ fileId: file.id }).execute (file) =>
+        callback null
         @emit 'FileDeleted'
 
 
