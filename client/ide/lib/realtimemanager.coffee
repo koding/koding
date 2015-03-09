@@ -4,16 +4,16 @@ KDObject = kd.Object
 IDEMetrics = require './idemetrics'
 GoogleApiClient = require './googleapiclient'
 
-module.exports = class RealTimeManager extends KDObject
+module.exports = class RealtimeManager extends KDObject
 
   constructor: (options = {}, data) ->
 
     super options, data
 
-    IDEMetrics.collect 'RealTimeManager.google_api_client', 'request'
+    IDEMetrics.collect 'RealtimeManager.google_api_client', 'request'
     GoogleApiClient.on 'ready', =>
       GoogleApiClient.loadDriveApi =>
-        IDEMetrics.collect 'RealTimeManager.google_api_client', 'ready'
+        IDEMetrics.collect 'RealtimeManager.google_api_client', 'ready'
         @emit 'ready'
 
 
@@ -25,7 +25,7 @@ module.exports = class RealTimeManager extends KDObject
   getRealtimeDoc: ->
 
     unless @realtimeDoc
-      throw new Error 'RealtimeDoc is not set yet for RealTimeManager'
+      throw new Error 'RealtimeDoc is not set yet for RealtimeManager'
 
     return @realtimeDoc
 

@@ -31,8 +31,8 @@ module.exports = class IDEEditorPane extends IDEPane
     file.once 'fs.delete.finished', =>
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
-    @once 'RealTimeManagerSet', @bound 'setContentFromCollaborativeString'
-    @once 'RealTimeManagerSet', @bound 'listenCollaborativeStringChanges'
+    @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
+    @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
 
     @getAce().on 'ace.requests.save', =>
@@ -67,9 +67,9 @@ module.exports = class IDEEditorPane extends IDEPane
       @bindChangeListeners()
       @emit 'EditorIsReady'
 
-      kd.singletons.appManager.tell 'IDE', 'setRealTimeManager', this
+      kd.singletons.appManager.tell 'IDE', 'setRealtimeManager', this
 
-      @once 'RealTimeManagerSet', =>
+      @once 'RealtimeManagerSet', =>
         myPermission = @rtm.getFromModel('permissions').get nick()
         @makeReadOnly()  if myPermission is 'read'
 
