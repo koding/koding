@@ -28,7 +28,7 @@ IDEStatusBarMenu = require './views/statusbar/idestatusbarmenu'
 IDETerminalPane = require './workspace/panes/ideterminalpane'
 IDEView = require './views/tabview/ideview'
 IDEWorkspace = require './workspace/ideworkspace'
-splashMarkups = require './util/splash-markups'
+splashMarkups = require './util/splashmarkups'
 IDEApplicationTabView = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
@@ -332,16 +332,15 @@ module.exports = class IDEAppController extends AppController
         unless @isMachineRunning()
           nickname     = nick()
           machineLabel = machine.slug or machine.label
-          splashs      = splashMarkups
+          splashes     = splashMarkups
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
-          @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
-          @fakeTerminalPane = @fakeTabView.parent.createPane_ @fakeTerminalView, { name: 'Terminal' }
+          fakeTerminalView  = new KDCustomHTMLView partial: splashes.getTerminal nickname
+          @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
+          @fakeFinderView   = new KDCustomHTMLView partial: splashes.getFileTree nickname, machineLabel
 
-          @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
           @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
-
           @fakeEditor.once 'EditorIsReady', => kd.utils.defer => @fakeEditor.setFocus no
 
         else
@@ -885,17 +884,16 @@ module.exports = class IDEAppController extends AppController
     machine.getBaseKite().fetchTerminalSessions()
 
     unless @fakeViewsDestroyed
-      for ideView in @ideViews
-        {tabView}  = ideView
-        activePane = tabView.getActivePane()
+      fakeEditorPane = @fakeEditor?.parent
+      fakeEditorPane?.parent.removePane fakeEditorPane
 
-        if activePane and activePane.isInitial
-          tabView.removePane activePane
-
+      @fakeTerminalPane?.parent.removePane @fakeTerminalPane
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
 
-    unless snapshot
+    if snapshot
+      @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
+    else
       @ideViews.first.createEditor()
       @ideViews.last.createTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
@@ -906,8 +904,12 @@ module.exports = class IDEAppController extends AppController
 
   resurrectLocalSnapshot: (snapshot) ->
 
+    snapshot or= @localStorageController.getValue @getWorkspaceSnapshotName()
+
     for key, value of snapshot when value
       @createPaneFromChange value, yes
+
+    @isLocalSnapshotRestored = yes
 
 
   toggleFullscreenIDEView: ->
