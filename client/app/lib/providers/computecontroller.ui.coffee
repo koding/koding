@@ -124,7 +124,10 @@ module.exports = class ComputeController_UI
 
   @askFor: (action, options, callback)->
 
-    {force, resizeTo, task} = options
+    {force, machine, resizeTo, task} = options
+
+    if resizeTo?
+      resizeFrom = machine.jMachine.meta?.storage_size or 3
 
     return callback()  if force
 
@@ -133,9 +136,9 @@ module.exports = class ComputeController_UI
       resize    :
         title   : "Resize VM?"
         message : "
-          If you choose to proceed, this VM will be resized from 3GB to #{resizeTo}GB.
-          During the resize process, you will not be able to use the VM but
-          all your files, workspaces and data will be safe.
+          If you choose to proceed, this VM will be resized from #{resizeFrom}GB
+          to #{resizeTo}GB. During the resize process, you will not be able to
+          use the VM but all your files, workspaces and data will be safe.
         "
         button  : "Proceed"
       reinit    :
