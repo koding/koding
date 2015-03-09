@@ -711,14 +711,46 @@ module.exports =
 
   onCollaborationUninitialized: ->
 
+    @rtm = new RealtimeManager
+    @showShareButton()
+    kd.utils.defer => @setCollaborationState 'loading'
+
 
   onCollaborationLoading: ->
+
+    @statusBar.emit 'CollaborationLoading'
+
+    { channelId } = @workspaceData
+
+    @rtm.ready =>
+      unless channelId
+        @setCollaborationState 'terminated'
+        return
+
+      @fetchSocialChannel (err, channel) =>
+        if err or not channel
+          @setCollaborationState 'terminated'
+          throwError err  if err
+          return
+
+        @isRealtimeSessionActive channelId, (isActive) =>
+          if isActive or @isInSession
+          then @setCollaborationState 'active'
+          else @setCollaborationState 'terminated'
 
 
   onCollaborationActive: ->
 
+    @startChatSession => @chat.showChatPane()
+    @chat.hide()
+    @statusBar.emit 'CollaborationStarted'
+    @collectButtonShownMetric()
+
 
   onCollaborationTerminated: ->
+
+    @statusBar.emit 'CollaborationEnded'
+    @collectButtonShownMetric()
 
 
   onCollaborationNotAuthorized: ->
@@ -726,29 +758,7 @@ module.exports =
 
   prepareCollaboration: ->
 
-    @rtm        = new RealtimeManager
-    {channelId} = @workspaceData
-
-    @showShareButton()
-
-    @rtm.ready =>
-      unless @workspaceData.channelId
-        @statusBar.emit 'CollaborationEnded'
-        @collectButtonShownMetric()
-
-      @fetchSocialChannel (err, channel) =>
-        if err or not channel
-          @statusBar.emit 'CollaborationEnded'
-          @collectButtonShownMetric()
-          throwError err  if err
-          return
-
-        @isRealtimeSessionActive channelId, (isActive) =>
-          if isActive or @isInSession
-            @startChatSession => @chat.showChatPane()
-            @chat.hide()
-            @statusBar.emit 'CollaborationStarted'
-            @collectButtonShownMetric()
+    @initCollaborationStateMachine()
 
 
   startCollaborationSession: (callback) ->
