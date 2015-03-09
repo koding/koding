@@ -729,10 +729,11 @@ module.exports =
     @collaborationJustInitialized = yes
 
     @rtm = new RealtimeManager  unless @rtm
-    @rtm.once 'FileCreated', (file) =>
-      @loadCollaborationFile file.id
 
-    @rtm.createFile @getRealtimeFileName()
+    fileName = @getRealtimeFileName()
+    @rtm.createFile fileName, (err, file) =>
+      return throwError err  if err
+      @loadCollaborationFile file.id
 
     @setMachineSharingStatus on, (err) ->
 

@@ -30,7 +30,7 @@ module.exports = class RealtimeManager extends KDObject
     return @realtimeDoc
 
 
-  createFile: (title) ->
+  createFile: (title, callback) ->
 
     return throw new Error 'title is required'  unless title
 
@@ -40,6 +40,7 @@ module.exports = class RealtimeManager extends KDObject
         title    : title
 
     gapi.client.drive.files.insert(options).execute (file) =>
+      callback null, file
       @emit 'FileCreated', file
 
 
