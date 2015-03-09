@@ -43,7 +43,7 @@ module.exports =
 
     browser
       .moveToElement             domainItem, 10, 10
-      .click                     domainItem + ' span.remove-domain'
+      .click                     domainItem + ' span.remove'
       .waitForElementVisible     loader, 10000
       .waitForElementNotVisible  loader, 20000
       .getText                   domainItem, (result) =>
