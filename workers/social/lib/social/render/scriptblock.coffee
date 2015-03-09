@@ -42,12 +42,8 @@ module.exports = (options = {}, callback)->
      };
     </script>
 
-    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/common.js?#{KONFIG.version}"></script>
-    <script src="/a/p/p/app.js?#{KONFIG.version}"></script>
-
     <script>
-      require('app')({
+      var globals = {
         config: #{config},
         userAccount: #{userAccount},
         userMachines: #{userMachines},
@@ -55,8 +51,12 @@ module.exports = (options = {}, callback)->
         currentGroup: #{currentGroup},
         isLoggedInOnLoad: true,
         socialApiData: #{encodedSocialApiData}
-      });
+      };
     </script>
+
+    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
+    <script src="/a/p/p/#{KONFIG.version}.bundle.js"></script>
+    <script>require('app')();</script>
 
     <script>
       (function(d) {
