@@ -20,6 +20,7 @@ module.exports = class RealtimeManager extends KDObject
   setRealtimeDoc: (realtimeDoc) ->
 
     @realtimeDoc = realtimeDoc
+    @emit 'RealtimeDocReady', realtimeDoc
 
 
   getRealtimeDoc: ->
