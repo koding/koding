@@ -43,7 +43,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -84,6 +83,13 @@ var (
 type args struct {
 	MachineId  string
 	SnapshotId string
+}
+
+type singleUser struct {
+	MachineId  string
+	PrivateKey string
+	PublicKey  string
+	AccountId  bson.ObjectId
 }
 
 func init() {
@@ -153,24 +159,6 @@ func init() {
 	if err := remote.Dial(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func TestMachines(t *testing.T) {
-	t.Skip()
-	userCount := 10
-
-	var wg sync.WaitGroup
-
-	for i := 0; i < userCount; i++ {
-		wg.Add(1)
-		go func(i int, t *testing.T) {
-			singleMachine(t, i)
-			wg.Done()
-		}(i, t)
-
-	}
-
-	wg.Wait()
 }
 
 func TestBuild(t *testing.T) {
@@ -362,160 +350,6 @@ func TestResize(t *testing.T) {
 	if err := destroy(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-}
-
-// TestSingleMachine creates a test user document and a single machine document
-// that is bound to thar particular test user. It builds, stops, starts,
-// resize, reinit and destroys the machine in order.
-func singleMachine(t *testing.T, index int) {
-	username := "testuser" + strconv.Itoa(index)
-	userData, err := createUser(username)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// build
-	if err := build(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	// now try to ssh into the machine with temporary private key we created in
-	// the beginning
-	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
-		t.Error(err)
-	}
-
-	// invalid calls after build
-	if err := build(userData.MachineId); err == nil {
-		t.Error("`build` method can not be called on `running` machines.")
-	}
-
-	// snapshot
-	log.Println("Creating snapshot")
-	if err := createSnapshot(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	log.Println("Retrieving snapshot id")
-	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	log.Println("Deleting snapshot")
-	if err := deleteSnapshot(userData.MachineId, snapshotId); err != nil {
-		t.Error(err)
-	}
-
-	// once deleted there shouldn't be any snapshot data in MongoDB
-	log.Println("Checking snapshot data in MongoDB")
-	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
-		t.Error(err)
-	}
-
-	// also check AWS, be sure it's been deleted
-	log.Println("Checking snapshot data in AWS")
-	err = checkSnapshotAWS(userData.MachineId, snapshotId)
-	if err != nil && !isSnapshotNotFoundError(err) {
-		t.Error(err)
-	}
-
-	// stop
-	log.Println("Stopping machine")
-	if err := stop(userData.MachineId); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := build(userData.MachineId); err == nil {
-		t.Error("`build` method can not be called on `stopped` machines.")
-	}
-
-	if err := stop(userData.MachineId); err == nil {
-		t.Error("`stop` method can not be called on `stopped` machines.")
-	}
-
-	// start
-	log.Println("Starting machine")
-	if err := start(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	// resize
-	log.Println("Resizing machine")
-	storageWant := 5
-	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(userData.MachineId),
-			bson.M{
-				"$set": bson.M{
-					"meta.storage_size": storageWant,
-				},
-			},
-		)
-	})
-	if err != nil {
-		t.Error(err)
-	}
-
-	if err := resize(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	storageGot, err := getAmazonStorageSize(userData.MachineId)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if storageGot != storageWant {
-		t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-			storageWant,
-			storageGot,
-		)
-	}
-
-	// reinit
-	log.Println("Reinitializing machine")
-	if err := reinit(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	log.Println("Restarting machine")
-	if err := restart(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	// destroy
-	log.Println("Destroying machine")
-	if err := destroy(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	if err := stop(userData.MachineId); err == nil {
-		t.Error("`stop` method can not be called on `terminated` machines.")
-	}
-
-	if err := start(userData.MachineId); err == nil {
-		t.Error("`start` method can not be called on `terminated` machines.")
-	}
-
-	if err := destroy(userData.MachineId); err == nil {
-		t.Error("`destroy` method can not be called on `terminated` machines.")
-	}
-
-	if err := resize(userData.MachineId); err == nil {
-		t.Error("`resize` method can not be called on `terminated` machines.")
-	}
-
-	if err := reinit(userData.MachineId); err == nil {
-		t.Error("`reinit` method can not be called on `terminated` machines.")
-	}
-}
-
-type singleUser struct {
-	MachineId  string
-	PrivateKey string
-	PublicKey  string
-	AccountId  bson.ObjectId
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
