@@ -34,7 +34,9 @@ func MustRead(path string) *Config {
 		),
 	}
 
-	d.MustLoad(conf)
+	if err := d.Load(conf); err != nil {
+		panic(err)
+	}
 
 	return conf
 }
