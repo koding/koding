@@ -686,6 +686,12 @@ module.exports =
     IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
+  setCollaborationState: (state) ->
+
+    @stateMachine.transition state
+    @emit 'change', { state }
+
+
   initCollaborationStateMachine: ->
 
     @stateMachine = new machina.Fsm
