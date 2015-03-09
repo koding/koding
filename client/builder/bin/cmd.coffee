@@ -1,6 +1,6 @@
 #!/usr/bin/env coffee
 
-path = require 'path'
+Haydar = require '../index'
 
 yargs = require 'yargs'
 
@@ -28,10 +28,13 @@ yargs = require 'yargs'
   .describe 'thirdparty-dir', 'specify the thirdparty libs dir'
   .string 'thirdparty-dir'
 
+  .describe 'assets-dir', 'specify the assets dir'
+  .string 'assets-dir'
+
   .describe 'globals-file', 'specify the globals file that will be exposed as \'globals\''
   .string 'globals-file'
 
-  .describe 'config-file', 'specify the client config file that was generated with ./configure'
+  .describe 'config-file', 'specify the client config file that was generated with \'./configure\''
   .string 'config-file'
 
   .describe 'js-outfile', 'write js bundle to this file'
@@ -45,9 +48,6 @@ yargs = require 'yargs'
 
   .describe 'thirdparty-outdir', 'write thirdparty libs to this dir'
   .string 'thirdparty-outdir'
-
-  .describe 'sourcemaps-outfile', 'write source maps to this file. if unspecified builder inlines source maps.'
-  .string 'sourcemaps-outfile'
 
   .describe 'watch-js', 'enable watch mode for scripts'
   .boolean 'watch-js'
@@ -73,7 +73,35 @@ yargs = require 'yargs'
   .boolean 'minify-css'
   .default 'minify-css', false
 
-  .describe 'notify', 'enable system notifications'
+  .describe 'scripts', 'build scripts'
+  .boolean 'scripts'
+  .default 'scripts', true
+
+  .describe 'styles', 'build styles'
+  .boolean 'styles'
+  .default 'styles', true
+
+  .describe 'sprites', 'build sprites'
+  .boolean 'sprites'
+  .default 'sprites', true
+
+  .describe 'assets', 'copy assets'
+  .boolean 'assets'
+  .default 'assets', true
+
+  .describe 'thirdparty', 'copy thirdparty'
+  .boolean 'thirdparty'
+  .default 'thirdparty', true
+
+  .describe 'extract-js-sourcemaps', 'extract source maps in debug mode'
+  .boolean 'extract-js-sourcemaps'
+  .default 'extract-js-sourcemaps', false
+
+  .describe 'rev-id', 'add revision id to output filenames'
+  .boolean 'rev-id'
+  .default 'rev-id', true
+
+  .describe 'notify', 'disable system notifications in watch mode'
   .boolean 'notify'
   .default 'notify', false
 
@@ -81,4 +109,6 @@ yargs = require 'yargs'
   .boolean 'verbose'
   .default 'verbose', false
 
-require('../index')(yargs.argv)
+
+haydar = new Haydar yargs.argv
+haydar.build()

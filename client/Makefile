@@ -11,7 +11,6 @@ JS_OUTFILE?=--js-outfile "$(OUTDIR)bundle.js"
 CSS_OUTDIR?=--css-outdir "$(OUTDIR)"
 ASSETS_OUTDIR?=--assets-outdir "$(OUTDIR)assets"
 THIRDPARTY_OUTDIR?=--thirdparty-outdir "$(OUTDIR)thirdparty"
-SOURCEMAPS_OUTFILE?=--sourcemaps-outfile "$(OUTDIR)/bundle.js.map"
 THIRDPARTY_DIR?=--thirdparty-dir "$(MKFILE_DIR)thirdparty"
 ASSETS_DIR?=--assets-dir "$(MKFILE_DIR)assets"
 EXTRAS?=
@@ -31,18 +30,26 @@ BUILDER_ARGS=\
 BUILDER_DEBUG_FLAGS?=--debug-js --debug-css
 BUILDER_WATCH_FLAGS?=--watch-js --watch-css
 BUILDER_MINIFY_FLAGS?=--minify-css --minify-js
-BUILDER_EXT_SOURCEMAPS_FLAGS?=$(SOURCEMAPS_OUTFILE) --debug-js
+BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 
-all: landing
-	@$(BUILDER) $(BUILDER_ARGS) \
-		$(BUILDER_MINIFY_FLAGS) \
-		$(BUILDER_EXT_SOURCEMAPS_FLAGS)
+all: client landing
+
+client:
+	@$(BUILDER) $(BUILDER_ARGS) $(BUILDER_MINIFY_FLAGS)
 
 dev:
 	$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_DEBUG_FLAGS)
 
 watch:
-	$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS)
+	@$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS)
+
+watch-no-debug:
+	@$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_WATCH_FLAGS)
+
+extract-sourcemaps:
+	@$(BUILDER) $(BUILDER_ARGS) \
+		$(BUILDER_MINIFY_FLAGS) \
+		$(BUILDER_EXT_SOURCEMAPS_FLAGS)
 
 landing:
 	@cd landing && npm install --unsafe-perm --silent
