@@ -19,6 +19,19 @@ build:
           go test -v ./fs
 
     - script:
+        name: install debuild and s3cmd commands
+        code: |
+          sudo apt-get update
+          sudo apt-get install -y ubuntu-dev-tools s3cmd
+
+    - script:
+        name: configure s3cmd
+        code: |
+          echo '[default]' > ~/.s3cfg
+          echo "access_key=$S3_ACCESS_KEY" >> ~/.s3cfg
+          echo "secret_key=$S3_SECRET_KEY" >> ~/.s3cfg
+
+    - script:
         name: upload/update install.sh
         code: |
           #  Update install.sh file
