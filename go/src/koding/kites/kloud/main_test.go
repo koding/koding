@@ -201,6 +201,68 @@ func TestBuild(t *testing.T) {
 	}
 }
 
+func TestStop(t *testing.T) {
+	t.Parallel()
+	username := "testuser2"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	// the following calls should give an error, if not there is a problem
+	if err := build(userData.MachineId); err == nil {
+		t.Error("`build` method can not be called on `stopped` machines.")
+	}
+
+	if err := stop(userData.MachineId); err == nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestStart(t *testing.T) {
+	t.Parallel()
+	username := "testuser3"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Starting machine")
+	if err := start(userData.MachineId); err != nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
+	}
+
+	if err := start(userData.MachineId); err == nil {
+		t.Error("`start` method can not be called on `started` machines.")
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestResize(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
