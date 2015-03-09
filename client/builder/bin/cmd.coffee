@@ -97,13 +97,17 @@ yargs = require 'yargs'
   .boolean 'extract-js-sourcemaps'
   .default 'extract-js-sourcemaps', false
 
-  .describe 'rev-id', 'add revision id to output filenames'
+  .describe 'rev-id', 'prefix output filenames with revision id'
   .boolean 'rev-id'
   .default 'rev-id', true
 
-  .describe 'notify', 'disable system notifications in watch mode'
+  .describe 'notify', 'enable system notifications in watch mode'
   .boolean 'notify'
-  .default 'notify', false
+  .default 'notify', true
+
+  .describe 'notify-sound', 'play audio with system notifications'
+  .boolean 'notify-sound'
+  .default 'notify-sound', false
 
   .describe 'verbose', 'make the operation more talkative'
   .boolean 'verbose'

@@ -14,6 +14,7 @@ inspect      = require('util').inspect
 pretty       = require 'pretty-bytes'
 exorcist     = require 'exorcist'
 asStream     = require 'as-stream'
+notifier     = require 'node-notifier'
 
 module.exports =
 
@@ -50,7 +51,6 @@ class Haydar
         basename = path.basename opts.jsOutfile
         basename = basename + '.map'
         opts.jsSourcemapsOutfile = path.join path.dirname(opts.jsOutfile), basename
-
 
   build: () ->
 
@@ -92,6 +92,7 @@ class Haydar
     bundle = =>
 
       start = Date.now()
+      notify = @_notify.bind this
       
       b.bundle (err, src) =>
         if err
@@ -113,9 +114,15 @@ class Haydar
               asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
               s.once 'finish', ->
                 secs = ((Date.now() - start)/1000).toFixed 2
-                console.log 'written ' + outfile + ' (' + secs + ')'
-                console.log 'extracted source maps to ' + opts.jsSourcemapsOutfile
-                if not opts.watchJs then done()
+                msg1 = 'written ' + outfile + ' (' + secs + ')'
+                msg2 = 'extracted source maps to ' + opts.jsSourcemapsOutfile
+                console.log msg1
+                console.log msg2
+                if not opts.watchJs
+                  done()
+                else
+                  notify 'scripts', msg1
+                  notify 'scripts', msg2
               s.on 'error', (err) ->
                 if not opts.watchJs
                   throw err
@@ -130,8 +137,12 @@ class Haydar
                     console.error err
                 else
                   secs = ((Date.now() - start)/1000).toFixed 2
-                  console.log pretty(src.length) + ' written to ' + outfile + ' (' + secs + ')'
-                  if not opts.watchJs then done()
+                  msg = pretty(src.length) + ' written to ' + outfile + ' (' + secs + ')'
+                  console.log msg
+                  if not opts.watchJs
+                    done()
+                  else
+                    notify 'scripts', msg
           else
             done()
 
@@ -157,8 +168,8 @@ class Haydar
           style      : opts.baseurl + x.name + '-' + opts.rev + '.css'
         }
 
-      #transforms = [ coffeeify, pistachioify ]
-      transforms = [ coffeeify ]
+      transforms = [ coffeeify, pistachioify ]
+
       if opts.minifyJs
         transforms.push [ uglifyify, {
           global      : yes
@@ -271,11 +282,25 @@ class Haydar
     return x  unless @_options.revId
     frags = x.split '/'
     basename = frags.slice -1
-    filename = basename[0].split '.'
-    filename = [ filename[0], @_options.rev, filename[1] ].join '.'
+    filename = @_options.rev + '.' + basename[0]
     frags = frags.slice 0, -1
     frags.push filename
     return frags.join '/'
+
+
+  _notify: (title, msg) ->
+    return  unless @_options.notify
+
+    sound = @_options.notifySound
+    icon = path.resolve __dirname, '../icon.png'
+
+    opts =
+      title: 'builder/' + title
+      message: msg
+      sound: sound
+      icon: icon
+
+    notifier.notify opts
 
 
 getFiles = (files, cwd, cb) ->
