@@ -564,22 +564,12 @@ module.exports =
         throwError "#{err}: %s", JSON.stringify response
 
 
-  forceQuitCollaboration: ->
 
-    { Collaboration } = remote.api
-    Collaboration.stop @rtmFileId, @workspaceData, (err) =>
 
-      return throwError err  if err
 
-      kd.utils.killRepeat @pingInterval
 
-      @quit()
 
-      new KDNotificationView
-        title    : "@#{@collaborationHost} has left the session."
-        duration : 3000
 
-      @setMachineSharingStatus off
 
   handleBroadcastMessage: (data) ->
 
