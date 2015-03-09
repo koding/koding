@@ -8,7 +8,7 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func CreateUser(username string) (*models.User, error) {
+func CreateUser(username string) (*models.User, *models.Account, error) {
 	user := &models.User{
 		ObjectId: bson.NewObjectId(), Name: username,
 	}
@@ -19,7 +19,7 @@ func CreateUser(username string) (*models.User, error) {
 
 	err := modelhelper.Mongo.Run(modelhelper.UserColl, userQuery)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	account := &models.Account{
@@ -33,10 +33,10 @@ func CreateUser(username string) (*models.User, error) {
 
 	err = modelhelper.Mongo.Run(modelhelper.AccountsColl, accQuery)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	return user, nil
+	return user, account, nil
 }
 
 func DeleteUser(userId bson.ObjectId) error {
@@ -81,15 +81,20 @@ func DeleteUsersByUsername(username string) error {
 }
 
 func DeleteUsersAndMachines(username string) error {
-	err := DeleteUsersByUsername(username)
+	user, err := modelhelper.GetUser(username)
 	if err != nil {
 		return err
 	}
 
-	query := func(c *mgo.Collection) error {
-		_, err := c.RemoveAll(bson.M{"username": username})
+	err = DeleteUsersByUsername(username)
+	if err != nil {
 		return err
 	}
 
-	return modelhelper.Mongo.Run(modelhelper.UserColl, query)
+	deleteQuery := func(c *mgo.Collection) error {
+		_, err := c.RemoveAll(bson.M{"users.id": user.ObjectId})
+		return err
+	}
+
+	return modelhelper.Mongo.Run(modelhelper.MachineColl, deleteQuery)
 }
