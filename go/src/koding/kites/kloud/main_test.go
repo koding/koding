@@ -263,6 +263,52 @@ func TestStart(t *testing.T) {
 	}
 }
 
+func TestSnapshot(t *testing.T) {
+	t.Parallel()
+	username := "testuser4"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Creating snapshot")
+	if err := createSnapshot(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+
+	log.Println("Retrieving snapshot id")
+	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Deleting snapshot")
+	if err := deleteSnapshot(userData.MachineId, snapshotId); err != nil {
+		t.Error(err)
+	}
+
+	// once deleted there shouldn't be any snapshot data in MongoDB
+	log.Println("Checking snapshot data in MongoDB")
+	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+		t.Error(err)
+	}
+
+	// also check AWS, be sure it's been deleted
+	log.Println("Checking snapshot data in AWS")
+	err = checkSnapshotAWS(userData.MachineId, snapshotId)
+	if err != nil && !isSnapshotNotFoundError(err) {
+		t.Error(err)
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestResize(t *testing.T) {
 	t.Parallel()
 	username := "testuser"
