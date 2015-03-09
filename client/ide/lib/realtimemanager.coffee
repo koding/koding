@@ -10,10 +10,10 @@ module.exports = class RealtimeManager extends KDObject
 
     super options, data
 
-    IDEMetrics.collect 'RealtimeManager.google_api_client', 'request'
+    IDEMetrics.collect 'RealTimeManager.google_api_client', 'request'
     GoogleApiClient.on 'ready', =>
       GoogleApiClient.loadDriveApi =>
-        IDEMetrics.collect 'RealtimeManager.google_api_client', 'ready'
+        IDEMetrics.collect 'RealTimeManager.google_api_client', 'ready'
         @emit 'ready'
 
 
