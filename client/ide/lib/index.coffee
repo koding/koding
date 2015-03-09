@@ -336,12 +336,11 @@ module.exports = class IDEAppController extends AppController
 
           @fakeEditor       = @ideViews.first.createEditor()
           @fakeTabView      = @activeTabView
-          @fakeTerminalView = new KDCustomHTMLView partial: splashs.getTerminal nickname
-          @fakeTerminalPane = @fakeTabView.parent.createPane_ @fakeTerminalView, { name: 'Terminal' }
-
+          fakeTerminalView  = new KDCustomHTMLView partial: splashs.getTerminal nickname
+          @fakeTerminalPane = @fakeTabView.parent.createPane_ fakeTerminalView, { name: 'Terminal' }
           @fakeFinderView   = new KDCustomHTMLView partial: splashs.getFileTree nickname, machineLabel
-          @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
 
+          @finderPane.addSubView @fakeFinderView, '.nfinder .jtreeview-wrapper'
           @fakeEditor.once 'EditorIsReady', => kd.utils.defer => @fakeEditor.setFocus no
 
         else
