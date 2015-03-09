@@ -129,6 +129,12 @@ module.exports = class ComputeController_UI
     if resizeTo?
       resizeFrom = machine.jMachine.meta?.storage_size or 3
 
+      # If same value requested for resize we will ask this operation
+      # to kloud, if somehow resize fails this help us to recover last state ~GG
+      resizeDetails = if resizeTo is resizeFrom then "to #{resizeTo}GB" \
+                      else "from #{resizeFrom}GB to #{resizeTo}GB"
+
+
     return callback()  if force
 
     tasks =
@@ -136,9 +142,9 @@ module.exports = class ComputeController_UI
       resize    :
         title   : "Resize VM?"
         message : "
-          If you choose to proceed, this VM will be resized from #{resizeFrom}GB
-          to #{resizeTo}GB. During the resize process, you will not be able to
-          use the VM but all your files, workspaces and data will be safe.
+          If you choose to proceed, this VM will be resized #{resizeDetails}.
+          During the resize process, you will not be able to use the VM but
+          all your files, workspaces and data will be safe.
         "
         button  : "Proceed"
       reinit    :
