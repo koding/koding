@@ -87,7 +87,7 @@ module.exports = UserEnvironmentDataProvider =
     for obj in data
       m = obj.machine
 
-      if m.label is machineLabel
+      if m.slug is machineLabel
         machine = m
 
         for ws in obj.workspaces when ws.slug is workspaceSlug
