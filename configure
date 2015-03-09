@@ -4,9 +4,11 @@
 argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
 fs         = require 'fs'
+path       = require 'path'
 os         = require 'os'
 request    = require 'request'
 git        = require 'git-rev'
+JSONStream = require 'JSONStream'
 
 log "-------------------------"
 log ""
@@ -45,7 +47,6 @@ rest = ->
 
   KONFIG = require("./config/main.#{o.config}.coffee")(options)
 
-
   createRunFile = (KONFIG)->
 
     fs.writeFileSync "run",KONFIG.runFile
@@ -72,13 +73,21 @@ rest = ->
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
+  createClientConfig = (obj) ->
+    s = JSONStream.stringifyObject()
+    s.pipe fs.createWriteStream('./client/.client-config.json')
+    s.write ['config', obj.client]
+    s.end()
+
   createRunFile KONFIG
+  createClientConfig KONFIG
+
 
 git.long (str) ->
   if str != ""
     version = str.substring 0, 8
   else
-    version = try (fs.readFileSync (require 'path').join(__dirname, './VERSION'), 'utf-8').trim()
+    version = try (fs.readFileSync path.join(__dirname, './VERSION'), 'utf-8').trim()
 
   if argv.hostname
     options.hostname       = argv.hostname
