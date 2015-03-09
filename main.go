@@ -22,9 +22,10 @@ var (
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
 
 	// Registration flags
+	flagKiteHome   = flag.String("kite-home", "~/.kite/", "Change kite home path")
 	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
 	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
-	flagKontrolURL = flag.String("kontrol-url", "https://koding.com/kontrol/kite",
+	flagKontrolURL = flag.String("kontrol-url", "",
 		"Change kontrol URL to be used for registration")
 
 	// update parameters
@@ -50,7 +51,7 @@ func realMain() int {
 	}
 
 	if *flagRegister {
-		if err := registration.WithPassword(*flagKontrolURL, *flagUsername); err != nil {
+		if err := registration.WithPassword(*flagKontrolURL, *flagKiteHome, *flagUsername); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return 1
 		}
@@ -65,6 +66,7 @@ func realMain() int {
 		Environment:    *flagEnvironment,
 		Region:         *flagRegion,
 		RegisterURL:    *flagRegisterURL,
+		KontrolURL:     *flagKontrolURL,
 		Debug:          *flagDebug,
 		UpdateInterval: *flagUpdateInterval,
 		UpdateURL:      *flagUpdateURL,
