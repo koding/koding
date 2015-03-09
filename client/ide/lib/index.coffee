@@ -891,7 +891,9 @@ module.exports = class IDEAppController extends AppController
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
 
-    unless snapshot
+    if snapshot
+      @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
+    else
       @ideViews.first.createEditor()
       @ideViews.last.createTerminal { machine }
       @setActiveTabView @ideViews.first.tabView
@@ -902,8 +904,12 @@ module.exports = class IDEAppController extends AppController
 
   resurrectLocalSnapshot: (snapshot) ->
 
+    snapshot or= @localStorageController.getValue @getWorkspaceSnapshotName()
+
     for key, value of snapshot when value
       @createPaneFromChange value, yes
+
+    @isLocalSnapshotRestored = yes
 
 
   toggleFullscreenIDEView: ->
