@@ -335,8 +335,11 @@ module.exports =
 
       @registerCollaborationSessionId()
       @bindRealtimeEvents()
-      # start sending pings to the server if the current user is the host
-      @startHeartbeat()  if @amIHost
+
+      if @amIHost
+        @startHeartbeat()
+      else
+        @startRealtimePolling()
 
       @rtm.isReady = yes
       @emit 'RTMIsReady'
@@ -564,11 +567,22 @@ module.exports =
         throwError "#{err}: %s", JSON.stringify response
 
 
+  startRealtimePolling: ->
+
+    interval = 15 * 1000
+    @pollInterval = kd.utils.repeat interval, @bound 'pollRealtimeDocument'
 
 
+  pollRealtimeDocument: ->
 
+    @rtm.once 'FileQueryFinished', ({items}) =>
 
+      return  if items.length
 
+      kd.utils.killRepeat @pollInterval
+      @showSessionEndedModal()
+
+    @rtm.fetchFileByTitle @getRealTimeFileName()
 
 
   handleBroadcastMessage: (data) ->
