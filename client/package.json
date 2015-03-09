@@ -36,33 +36,5 @@
     "algoliasearch": "kd-shim-algoliasearch",
     "underscore": "lodash/dist/lodash.underscore.js",
     "sockjs-client": "kd-shim-sockjs-client"
-  },
-  "devDependencies": {
-    "coffee-script": "1.8.0",
-    "coffeeify": "^1.0.0",
-    "debug": "^2.1.1",
-    "del": "^1.1.1",
-    "exorcist": "^0.1.6",
-    "git-rev": "^0.2.1",
-    "glob": "^4.3.5",
-    "gulp": "^3.8.11",
-    "gulp-concat": "^2.4.3",
-    "gulp-debug": "^2.0.0",
-    "gulp-if": "^1.2.5",
-    "gulp-notify": "^2.2.0",
-    "gulp-rename": "^1.2.0",
-    "gulp-stylus": "^2.0.0",
-    "gulp-util": "^3.0.3",
-    "gulp-watch": "^4.1.1",
-    "gulp.spritesmith": "2.5.1",
-    "merge-stream": "^0.1.7",
-    "minimist": "^1.1.0",
-    "mkdirp": "^0.5.0",
-    "nib": "^1.1.0",
-    "pistachioify": "^0.1.0",
-    "pretty-bytes": "^1.0.2",
-    "through2": "^0.6.3",
-    "uglifyify": "^3.0.1",
-    "xtend": "^4.0.0"
   }
 }
