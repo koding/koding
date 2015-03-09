@@ -8,7 +8,7 @@ nick                          = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 showError                     = require 'app/util/showError'
 whoami                        = require 'app/util/whoami'
-RealTimeManager               = require './realtimemanager'
+RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 
@@ -205,7 +205,7 @@ module.exports =
 
 
   createChatPaneView: (channel) ->
-    return throwError 'RealTimeManager is not set'  unless @rtm
+    return throwError 'RealtimeManager is not set'  unless @rtm
 
     options = { @rtm, @isInSession }
     @getView().addSubView @chat = new IDEChatView options, channel
@@ -475,11 +475,11 @@ module.exports =
     @removeParticipantFromPermissions nickname
 
 
-  setRealTimeManager: (object) ->
+  setRealtimeManager: (object) ->
 
     callback = =>
       object.rtm = @rtm
-      object.emit 'RealTimeManagerSet'
+      object.emit 'RealtimeManagerSet'
 
     if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
 
@@ -498,7 +498,7 @@ module.exports =
 
     if @rtm then kallback()
     else
-      @rtm = new RealTimeManager
+      @rtm = new RealtimeManager
       @rtm.ready => kallback()
 
 
@@ -692,7 +692,7 @@ module.exports =
 
   prepareCollaboration: ->
 
-    @rtm        = new RealTimeManager
+    @rtm        = new RealtimeManager
     {channelId} = @workspaceData
 
     @showShareButton()
@@ -731,7 +731,7 @@ module.exports =
 
     @collaborationJustInitialized = yes
 
-    @rtm = new RealTimeManager  unless @rtm
+    @rtm = new RealtimeManager  unless @rtm
     @rtm.once 'FileCreated', (file) =>
       @loadCollaborationFile file.id
 
@@ -785,7 +785,7 @@ module.exports =
 
 
   cleanupCollaboration: (options = {}) ->
-    return warn 'RealTimeManager is not set'  unless @rtm
+    return warn 'RealtimeManager is not set'  unless @rtm
 
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
