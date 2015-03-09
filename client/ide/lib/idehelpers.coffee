@@ -64,7 +64,7 @@ module.exports = helpers =
 
     new FilePermissionsModal
       title      : 'Read-only file'
-      contentText: 'You can proceed with opening the file but it is opened in read-only mode.'
+      contentText: 'You can proceed with opening the file but it will open in read-only mode.'
 
 
   showFileAccessDeniedError: ->
