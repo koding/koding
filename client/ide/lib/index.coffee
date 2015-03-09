@@ -884,13 +884,10 @@ module.exports = class IDEAppController extends AppController
     machine.getBaseKite().fetchTerminalSessions()
 
     unless @fakeViewsDestroyed
-      for ideView in @ideViews
-        {tabView}  = ideView
-        activePane = tabView.getActivePane()
+      fakeEditorPane = @fakeEditor?.parent
+      fakeEditorPane?.parent.removePane fakeEditorPane
 
-        if activePane and activePane.isInitial
-          tabView.removePane activePane
-
+      @fakeTerminalPane?.parent.removePane @fakeTerminalPane
       @fakeFinderView?.destroy()
       @fakeViewsDestroyed = yes
 
