@@ -170,7 +170,7 @@ module.exports =
       @initPrivateMessage callback
 
 
-  getRealTimeFileName: (id) ->
+  getRealtimeFileName: (id) ->
 
     unless id
       if @channelId          then id = @channelId
@@ -500,7 +500,7 @@ module.exports =
         else
           callback no
 
-      @rtm.fetchFileByTitle @getRealTimeFileName id
+      @rtm.fetchFileByTitle @getRealtimeFileName id
 
     if @rtm then kallback()
     else
@@ -732,7 +732,7 @@ module.exports =
     @rtm.once 'FileCreated', (file) =>
       @loadCollaborationFile file.id
 
-    @rtm.createFile @getRealTimeFileName()
+    @rtm.createFile @getRealtimeFileName()
 
     @setMachineSharingStatus on, (err) ->
 
@@ -775,7 +775,7 @@ module.exports =
         callback null
 
     @mySnapshot.clear()
-    @rtm.deleteFile @getRealTimeFileName()
+    @rtm.deleteFile @getRealtimeFileName()
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
