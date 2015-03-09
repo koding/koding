@@ -6,8 +6,8 @@ var LoggedInHome = `
   <head>
     {{template "header" . }}
 
-    <link rel="stylesheet" href="/a/p/p/{{.Version}}.kd.css" />
-    <link rel="stylesheet" href="/a/p/p/{{.Version}}.common.css" />
+    <link rel="stylesheet" href="/a/p/p/{{.Version}}/kd.css" />
+    <link rel="stylesheet" href="/a/p/p/{{.Version}}/common.css" />
   </head>
 
   <body class='logged-in dark ide'>
@@ -25,8 +25,8 @@ var LoggedInHome = `
       };
     </script>
 
-    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/{{.Version}}.bundle.js"></script>
+    <script src="/a/p/p/{{.Version}}/thirdparty/pubnub.min.js"></script>
+    <script src="/a/p/p/{{.Version}}/bundle.js"></script>
     <script>require('app')();</script>
 
     <script>

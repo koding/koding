@@ -15,6 +15,7 @@ pretty       = require 'pretty-bytes'
 exorcist     = require 'exorcist'
 asStream     = require 'as-stream'
 notifier     = require 'node-notifier'
+mkdirp       = require 'mkdirp'
 
 module.exports =
 
@@ -52,7 +53,25 @@ class Haydar
         basename = basename + '.map'
         opts.jsSourcemapsOutfile = path.join path.dirname(opts.jsOutfile), basename
 
+
   build: () ->
+    opts = @_options
+
+    dirs = []
+    if opts.jsOutfile
+      dirs.push path.dirname opts.jsOutfile
+
+    if opts.jsSourcemapsOutfile
+      dirs.push path.dirname opts.jsSourcemapsOutfile
+
+    @_time 'create directories'
+
+    createDirs dirs, =>
+      @_timeEnd 'create directories'
+      @_build()
+
+
+  _build: () ->
 
     tasks = []
     push = (name, method) =>
@@ -114,15 +133,13 @@ class Haydar
               asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
               s.once 'finish', ->
                 secs = ((Date.now() - start)/1000).toFixed 2
-                msg1 = 'written ' + outfile + ' (' + secs + ')'
-                msg2 = 'extracted source maps to ' + opts.jsSourcemapsOutfile
-                console.log msg1
-                console.log msg2
+                msg = 'written ' + outfile + ' (' + secs + ')'
+                console.log msg
+                console.log 'extracted source maps to ' + opts.jsSourcemapsOutfile
                 if not opts.watchJs
                   done()
                 else
-                  notify 'scripts', msg1
-                  notify 'scripts', msg2
+                  notify 'scripts', msg
               s.on 'error', (err) ->
                 if not opts.watchJs
                   throw err
@@ -165,7 +182,7 @@ class Haydar
           name       : name
           routes     : x.routes
           shortcuts  : x.shortcuts
-          style      : opts.baseurl + x.name + '-' + opts.rev + '.css'
+          style      : opts.baseurl + '/' + opts.rev + '/' + x.name + '.css'
         }
 
       transforms = [ coffeeify, pistachioify ]
@@ -281,10 +298,9 @@ class Haydar
   _addrev: (x) ->
     return x  unless @_options.revId
     frags = x.split '/'
-    basename = frags.slice -1
-    filename = @_options.rev + '.' + basename[0]
-    frags = frags.slice 0, -1
-    frags.push filename
+    basename = frags.pop()
+    frags.push @_options.rev
+    frags.push basename
     return frags.join '/'
 
 
@@ -306,4 +322,13 @@ class Haydar
 getFiles = (files, cwd, cb) ->
   gloh files,
     cwd: cwd
+    nodir: yes
   , cb
+
+
+createDirs = (dirs, cb) ->
+  fns = dirs.map (x) ->
+    return mkdirp.bind mkdirp, x
+  async.parallel fns, (err) ->
+    if err then throw err
+    cb null
