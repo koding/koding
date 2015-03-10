@@ -20,6 +20,7 @@ mkdirp       = require 'mkdirp'
 nub          = require 'nub'
 spritesmith  = require 'gulp.spritesmith'
 chalk        = require 'chalk'
+chokidar     = require 'chokidar'
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -374,14 +375,17 @@ class Haydar
 
     pending = 0
 
-    start = Date.now()
+    start = 0
 
     smith = (manifest, basedir) ->
+      pending += 4 # cssStream1x, imgStream1x, cssStream2x, imgStream2x
+      # ... and in the darkness you bind them
+
       entities = [1, 2].map (ratio) ->
 
         rname = ratio + 'x'
 
-        dir = path.join basedir, rname, '**/*.png'
+        dir = path.join basedir, rname, '**', '*.' + SPRITESMITH_IMG_EXTENSION
 
         imgName = manifest.name + '@' + rname + '.' + SPRITESMITH_IMG_EXTENSION
         cssName = SPRITESMITH_CSS_NAME_PREFIX + rname + '.' + SPRITESMITH_CSS_EXTENSION
@@ -395,8 +399,8 @@ class Haydar
           imgPath   : [ opts.baseurl, imgName].join '/'
           cssVarMap: (sprite) ->
             if /\./.test sprite.name
-              console.error 'sprites: stylus hates it when you have dots in image filenames, throwing cowardly: ' + sprite.name
-              throw 'lol'
+              console.error chalk.red('sprites') + ': stylus hates it when you have dots in image filenames, fix this: ' + sprite.name
+              throw 'throwing cowardly'
 
         s = vfs.src(dir).pipe spritesmith opts_
         return {
@@ -409,7 +413,7 @@ class Haydar
         s = entity.stream
         tmpCssOutdir = path.join opts.spriteTmpCssOutdir, manifest.name
         time 'sprites: write ' + entity.name + '@' + entity.rname + ' spritesheets to ' + tmpCssOutdir
-        time 'sprites: write ' + entity.name + '@' + entity.rname + ' image files to ' + opts.spriteImgOutdir
+        time 'sprites: write ' + entity.name + '@' + entity.rname + ' images to ' + opts.spriteImgOutdir
         cssStream = s.css.pipe vfs.dest tmpCssOutdir
         imgStream = s.img.pipe vfs.dest opts.spriteImgOutdir
         end_ = ->
@@ -425,22 +429,30 @@ class Haydar
           timeEnd 'sprites: write ' + entity.name + '@' + entity.rname + ' spritesheets to ' + tmpCssOutdir
           end_()
         imgStream.on 'finish', ->
-          time 'sprites: write ' + entity.name + '@' + entity.rname + ' image files to ' + opts.spriteImgOutdir
+          timeEnd 'sprites: write ' + entity.name + '@' + entity.rname + ' images to ' + opts.spriteImgOutdir
           end_()
 
+
+    bundle = (x) ->
+      start = Date.now()
+
+      x.sprites.forEach (basename) ->
+        dir = path.join x.basedir, basename
+        smith x, dir
+
+        if opts.watchSprites
+          w = chokidar.watch dir, persistent: yes
+          w.on 'ready', ->
+            w.on 'raw', (e, file) ->
+              if e is 'modified' or e is 'deleted'
+                console.log e + ' ' + file
+                smith x, dir
 
 
     manifests.forEach (x) ->
       return  unless Array.isArray x.sprites
-      
-      x.sprites.forEach (basename) ->
-        pending += 4 # cssStream1x, imgStream1x, cssStream2x, imgStream2x
-        # ... and in the darkness you bind them
-        dir = path.join x.basedir, basename
-        streams = smith x, dir
 
-
-
+      bundle x
 
 
   _time: (msg) ->
