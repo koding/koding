@@ -82,7 +82,9 @@ module.exports = UserEnvironmentDataProvider =
       return  callback new Machine { machine }  if machine
 
       @fetchMachineByUId labelOrUId, (machine) =>
-        callback new Machine { machine }
+        machine = if machine then new Machine { machine } else null
+
+        callback machine
 
 
   fetchWorkspaceByMachineUId: (options, callback) ->
