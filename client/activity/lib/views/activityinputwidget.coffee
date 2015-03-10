@@ -66,9 +66,15 @@ module.exports = class ActivityInputWidget extends KDView
 
     @input.on 'Escape', @bound 'reset'
     @input.on 'Enter',  @bound 'submit'
+    @input.on 'tab',      @bound 'focusSubmit'
     @input.on 'keypress', @bound 'updatePreview'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
+
+
+  focusSubmit: ->
+
+    @submitButton.focus()
 
 
   submit: (value) ->

@@ -35,13 +35,21 @@ module.exports = class ActivityInputView extends KDHitEnterInputView
 
 
   empty: ->
+
     @setValue ''
     @resize()
 
+
   keyDown: (event) ->
+
+    if event.which is TAB
+      kd.utils.stopDOMEvent event
+      @emit 'tab'
+      return no
+
     super event
 
-    if event.which is 13 and event.metaKey
-      @emit 'EnterPerformed'
+    @emit 'EnterPerformed'  if event.which is ENTER and event.metaKey
+
 
 
