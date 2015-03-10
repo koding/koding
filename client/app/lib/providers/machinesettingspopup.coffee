@@ -309,7 +309,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
     domainLabel = domains.getOption 'label'
 
     domainLabel.on 'click', (event)->
-      return  unless $(event.target).hasClass 'toggle'
+      return  unless event.target.classList.contains 'toggle'
       domainLabel.toggleClass 'expanded'
       domains.toggleInput()
 
@@ -319,7 +319,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
     shareVMLabel = sharedWith.getOption 'label'
 
     shareVMLabel.on 'click', (event)=>
-      return  unless $(event.target).hasClass 'toggle'
+      return  unless event.target.classList.contains 'toggle'
 
       unless @isPaidAccount
         kd.utils.defer =>
