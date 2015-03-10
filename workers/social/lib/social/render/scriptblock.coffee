@@ -120,9 +120,9 @@ module.exports = (options = {}, callback)->
         queue.fin()
     ->
       client.connection.delegate.fetchUser (err, user) ->
-        console.err err  if err
+        console.error err  if err
         unless user
-          console.err {message: "user not found"}
+          console.error {message: "[scriptblock] user not found"}
         else
           userId = user.getId()
         queue.fin()
