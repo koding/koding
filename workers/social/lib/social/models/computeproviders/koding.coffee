@@ -240,7 +240,7 @@ module.exports = class Koding extends ProviderInterface
             else if resize == machine.getAt 'meta.storage_size'
               return callback new KodingError \
               """Requested new size is same with current
-                 storage size (#{resize}GB).""", "WrongParameter"
+                 storage size (#{resize}GB).""", "SameValueForResize"
 
             fieldsToUpdate['meta.storage_size'] = resize
 

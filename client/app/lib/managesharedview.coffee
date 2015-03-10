@@ -182,7 +182,9 @@ module.exports = class ManageSharedView extends KDView
       .filter (it) => it.profile.nickname not in @_users
       .then callback
       .timeout 1e4
-      .catch Promise.TimeoutError, callback.bind this, []
+      .catch (err)->
+        console.warn "Error while autoComplete: ", err
+        callback []
 
 
   showError: (err)->

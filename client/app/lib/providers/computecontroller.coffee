@@ -421,7 +421,8 @@ module.exports = class ComputeController extends KDController
 
       remote.api.ComputeProvider.update options, (err)=>
 
-        return  if showError err
+        if err and err.name isnt 'SameValueForResize'
+          return  showError err
 
         @eventListener.triggerState machine,
           status      : Machine.State.Pending
