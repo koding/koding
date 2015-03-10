@@ -21,6 +21,10 @@ nub          = require 'nub'
 spritesmith  = require 'gulp.spritesmith'
 chalk        = require 'chalk'
 chokidar     = require 'chokidar'
+events       = require 'events'
+nib          = require 'nib'
+stylus       = require 'gulp-stylus'
+concat       = require 'gulp-concat'
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -33,12 +37,17 @@ SPRITESMITH_ALGORITHM       = 'binary-tree'
 SPRITESMITH_PADDING         = 5
 SPRITESMITH_CSS_NAME_PREFIX = 'sprite@'
 SPRITE_TMPDIR               = '.sprites'
+STYLES_KDJS_MODULE_NAME     = 'kd.js'
+STYLES_KDJS_CSS_FILE        = 'dist/kd.css'
+STYLES_APPFN_FILE           = 'app/lib/styl/appfn.styl'
 
 module.exports =
 
-class Haydar
+class Haydar extends events.EventEmitter
 
   constructor: (opts) ->
+
+    super()
 
     opts = @_options = xtend opts,
       basedir   : defined opts.basedir, process.cwd()
@@ -64,6 +73,8 @@ class Haydar
 
     opts.spriteTmpCssOutdir = @_resolve SPRITE_TMPDIR
     opts.spriteImgOutdir = defined opts.spriteImgOutdir, opts.outdir
+
+    opts.stylesOutdir = defined opts.stylesOutdir, opts.outdir
 
     if 'string' is typeof opts.defaults
       opts.defaults = require @_resolve(opts.defaults)
@@ -305,7 +316,80 @@ class Haydar
 
 
   _styles: (done) ->
-    done()
+    opts = @_options
+
+    time    = @_time.bind this
+    timeEnd = @_timeEnd.bind this
+    notify  = @_notify.bind this
+
+    manifests = opts.manifests
+
+    watchingKd = false
+
+    copyKd = (cb) ->
+      kdPath = path.dirname require.resolve STYLES_KDJS_MODULE_NAME
+      kdPath = kdPath.match(new RegExp('(.+)/'+STYLES_KDJS_MODULE_NAME))[1]
+      kdCssFile = path.join kdPath, STYLES_KDJS_MODULE_NAME, STYLES_KDJS_CSS_FILE
+
+      rs = fs.createReadStream kdCssFile
+
+      kdCssBasename = STYLES_KDJS_CSS_FILE.split('/').slice(-1)[0]
+      outfile = path.join opts.outdir, kdCssBasename
+
+      time 'styles: kd: copy ' + outfile
+
+      ws = fs.createWriteStream outfile
+      rs.pipe ws
+
+      ws.on 'finish', ->
+        timeEnd 'styles: kd: copy ' + outfile
+        msg = 'written kd.css to ' + outfile
+        if opts.watchJs
+          notify 'styles', msg
+        if cb
+          cb()
+
+      if opts.watchJs and not watchingKd
+        watchingKd = true
+        w = chokidar.watch kdCssFile, persistent: yes
+        w.on 'change', ->
+          copyKd()
+
+    xbundle = ->
+      opts_ =
+        use: nib()
+        compress: yes  unless opts.debugCss
+        import: includes
+        sourcemap: inline: yes  if opts.debugCss
+
+    styl = (x, dir) ->
+
+    bundle = (x)->
+      start = Date.now()
+
+      x.styles.forEach (basename) ->
+        dir = path.join x.basedir, basename
+        styl x, dir
+
+        if opts.watchStyles
+          w = chokidar.watch dir, persistent: yes
+          w.on 'ready', ->
+            w.on 'raw', (e, file) ->
+              if e is 'modified' or e is 'deleted'
+                console.log e + ' ' + file
+                styl x, dir
+
+    init = ->
+      copyKd ->
+        manifests.forEach (x) ->
+          return  unless Array.isArray x.styles
+          #bundle x
+
+    if opts.sprites
+      @on '_updated-sprites', ->
+        init()
+    else
+      init()
 
 
   _thirdparty: (done) ->
@@ -367,15 +451,15 @@ class Haydar
   _sprites: (done) ->
     opts = @_options
 
+    time    = @_time.bind this
+    timeEnd = @_timeEnd.bind this
+    notify  = @_notify.bind this
+    emit    = @emit.bind this
+
     manifests = opts.manifests
 
-    time = @_time.bind this
-    timeEnd = @_timeEnd.bind this
-    notify = @_notify.bind this
-
     pending = 0
-
-    start = 0
+    start   = 0
 
     smith = (manifest, basedir) ->
       pending += 4 # cssStream1x, imgStream1x, cssStream2x, imgStream2x
@@ -425,6 +509,7 @@ class Haydar
               done()
             else
               notify 'sprites', msg
+            emit '_updated-sprites'
         cssStream.on 'finish', ->
           timeEnd 'sprites: write ' + entity.name + '@' + entity.rname + ' spritesheets to ' + tmpCssOutdir
           end_()
@@ -451,7 +536,6 @@ class Haydar
 
     manifests.forEach (x) ->
       return  unless Array.isArray x.sprites
-
       bundle x
 
 
@@ -472,16 +556,32 @@ class Haydar
   _notify: (title, msg) ->
     return  unless @_options.notify
 
-    sound = @_options.notifySound
-    icon = path.resolve __dirname, '../icon.png'
+    @_notifyQueue = defined @_notifyQueue, []
 
-    opts =
-      title: 'builder/' + title
-      message: msg
-      sound: sound
-      icon: icon
+    fn = (title, msg) =>
+      @_notifyShowing = true
+      sound = @_options.notifySound
+      icon = path.resolve __dirname, '../icons/' + title + '.png'
 
-    notifier.notify opts
+      opts =
+        title: 'builder/' + title
+        message: msg
+        sound: sound
+        icon: icon
+        wait: false
+
+      notifier.notify opts
+      notifier.once 'timeout', =>
+        @_notifyShowing = false
+        if @_notifyQueue.length
+          arr = @_notifyQueue.shift()
+          fn.apply this, arr
+
+    if not @_notifyShowing
+      fn title, msg
+    else
+      @_notifyQueue.push [title, msg]
+
 
 
 getFiles = (files, cwd, cb) ->
