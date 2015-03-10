@@ -11,6 +11,7 @@ whoami                        = require 'app/util/whoami'
 RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
+doXhrRequest                  = require 'app/util/doXhrRequest'
 
 {warn} = kd
 
@@ -334,7 +335,12 @@ module.exports =
 
       @registerCollaborationSessionId()
       @bindRealtimeEvents()
-      @listenPings()
+
+      if @amIHost
+        @startHeartbeat()
+      else
+        @startRealtimePolling()
+
       @rtm.isReady = yes
       @emit 'RTMIsReady'
       @resurrectSnapshot()  unless @amIHost
@@ -368,7 +374,6 @@ module.exports =
     @changes           = @rtm.getFromModel 'changes'
     @permissions       = @rtm.getFromModel 'permissions'
     @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
-    @pingTime          = @rtm.getFromModel 'pingTime'
     @myWatchMap        = @rtm.getFromModel myWatchMapName
     @mySnapshot        = @rtm.getFromModel mySnapshotName
 
@@ -376,7 +381,6 @@ module.exports =
     @changes           or= @rtm.create 'list',   'changes', []
     @permissions       or= @rtm.create 'map',    'permissions', defaultPermission
     @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
-    @pingTime          or= @rtm.create 'string', 'pingTime'
     @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
 
     initialSnapshot      = if @amIHost then @getWorkspaceSnapshot() else {}
@@ -534,67 +538,51 @@ module.exports =
     return final.length > 0
 
 
-  listenPings: ->
+  startHeartbeat: ->
 
-    pingInterval = 1000 * 5
-    pongInterval = 1000 * 15
-
-    @pingInterval = if @amIHost
-    then kd.utils.repeat pingInterval, @bound 'sendPing'
-    else kd.utils.repeat pongInterval, @bound 'checkPing'
+    interval = 1000 * 15
+    @sendPing() # send the first ping
+    @pingInterval = kd.utils.repeat interval, @bound 'sendPing'
 
 
-  sendPing: -> @pingTime.setText Date.now().toString()
+  sendPing: ->
+
+    {channelId} = @workspaceData
+
+    doXhrRequest
+      endPoint : '/api/social/collaboration/ping'
+      type     : 'POST'
+      async    : yes
+      data:
+        fileId    : @rtmFileId
+        channelId : channelId
+    , (err, response) ->
+
+      return  if not err
+
+      if err.code is 400
+        kd.utils.killRepeat @pingInterval # graceful stop
+        throwError "bad request, err: %s", err.message
+      else
+        throwError "#{err}: %s", JSON.stringify response
 
 
-  forceQuitCollaboration: ->
+  startRealtimePolling: ->
 
-    { Collaboration } = remote.api
-    Collaboration.stop @rtmFileId, @workspaceData, (err) =>
-
-      return throwError err  if err
-
-      kd.utils.killRepeat @pingInterval
-
-      @stopCollaborationSession =>
-        @quit()
-
-        new KDNotificationView
-          title    : "@#{@collaborationHost} has left the session."
-          duration : 3000
+    interval = 15 * 1000
+    @pollInterval = kd.utils.repeat interval, @bound 'pollRealtimeDocument'
 
 
-  checkPing: do ->
+  pollRealtimeDocument: ->
 
-    lastCheckedAt = null
-    lastPing      = null
-    errorTryCount = 3
+    @rtm.once 'FileQueryFinished', ({items}) =>
 
-    return ->
+      return  if items.length
 
-      diffInterval  = globals.config.collaboration.timeout
+      kd.utils.killRepeat @pollInterval
+      @showSessionEndedModal()
 
-      ping = @pingTime.getText()
-
-      # kill session if `errorTryCount`
-      # limit is passed.
-      if errorTryCount <= 0
-        @forceQuitCollaboration()
-      # update the lastChecked at if the last ping
-      # is still the same, decrease the error try count.
-      else if ping is lastPing and errorTryCount > 0
-        errorTryCount -= 1
-        lastCheckedAt = Date.now()
-        return
-      # this is the happy path.
-      else if lastPing - ping < diffInterval
-        lastCheckedAt = Date.now()
-        lastPing      = ping
-        errorTryCount = 3
-        return
-
-
-  # collab related
+    @rtm.fetchFileByTitle @getRealTimeFileName()
 
 
   handleBroadcastMessage: (data) ->
