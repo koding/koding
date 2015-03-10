@@ -114,7 +114,7 @@ prepareFakeClient = (fakeClient, options) ->
 
   {JAccount} = bongo.models
   account = new JAccount
-  account.profile.nickname = username
+  account.profile = nickname: username
   account.type = 'unregistered'
 
   fakeClient.sessionToken = session.clientId
