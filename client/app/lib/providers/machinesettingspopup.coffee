@@ -367,6 +367,8 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
     computeController.fetchUserPlan (plan)=>
 
+      @isPaidAccount = plan isnt 'free'
+
       if plan in ['free', 'hobbyist']
         @terminateButton.hide()
 
