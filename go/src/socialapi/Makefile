@@ -48,7 +48,7 @@ PACKAGES = \
 	socialapi/workers/sitemap/sitemapfeeder \
 	socialapi/workers/sitemap/sitemapgenerator \
 	socialapi/workers/sitemap/sitemapinitializer \
-	socialapi/workers/algoliaconnector 
+	socialapi/workers/algoliaconnector
 
 
 all: testapi
@@ -202,12 +202,14 @@ testcollaboration:
 	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
-testapi: testcollaboration testmail
-	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
+testmodels:
 	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
 	@`which go` test -c models/*.go
 	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./models.test
+
+testapi: testcollaboration testmail testmodels
+	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
 
