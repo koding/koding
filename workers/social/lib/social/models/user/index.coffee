@@ -345,8 +345,11 @@ module.exports = class JUser extends jraphical.Module
         # use fake guest user
 
         if /^guest-/.test username
-          JUser.fetchGuestUser (err, {account}) ->
+          JUser.fetchGuestUser (err, response) ->
             return logout "error fetching guest account"  if err
+
+            {account} = response
+            return logout "guest account not found"  if not response?.account
 
             return callback null, {account, session}
 
@@ -360,8 +363,7 @@ module.exports = class JUser extends jraphical.Module
 
           else unless user?
 
-            logError "no user found with username", { username }
-            logout   "no user found with sessionId", clientId, callback
+            logout "no user found with #{username} and sessionId", clientId, callback
 
           else
 
@@ -858,7 +860,7 @@ module.exports = class JUser extends jraphical.Module
             return callback err  if err?
             callback null, newToken
         else
-          callback null
+          callback createKodingError "Session not found!"
 
   @removeFromGuestsGroup = (account, callback) ->
     JGroup.one { slug: 'guests' }, (err, guestsGroup) ->
