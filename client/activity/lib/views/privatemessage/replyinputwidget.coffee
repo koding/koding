@@ -9,6 +9,7 @@ showError = require 'app/util/showError'
 module.exports = class ReplyInputWidget extends ActivityInputWidget
 
   {noop, log} = kd
+  UPARROW     = 38
 
   constructor: (options = {}, data) ->
 
@@ -26,10 +27,11 @@ module.exports = class ReplyInputWidget extends ActivityInputWidget
     @input.on 'Enter',  @bound 'submit'
     @input.on 'keyup', (event) =>
       @showPreview() if @preview #Updates preview if it exists
-      if event.keyCode is 38 and not event.altKey and @input.getValue().trim() is ''
+      if event.keyCode is UPARROW and not event.altKey and @input.getValue().trim() is ''
         @emit 'EditModeRequested'
 
     @on 'SubmitStarted', => kd.utils.defer @bound 'focus'
+
 
   createSubViews: ->
 
