@@ -971,6 +971,7 @@ module.exports =
         @setMachineUser [nick()], no, kd.noop
         # remove the leaving participant's info from the collaborative doc
         @removeParticipant nick()
+        @quit()
 
 
   throwError: throwError = (err, args...) ->
