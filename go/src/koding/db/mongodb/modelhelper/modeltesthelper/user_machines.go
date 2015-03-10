@@ -10,7 +10,7 @@ import (
 )
 
 func CreateUserWithMachine(username string) (*models.User, error) {
-	user, err := CreateUser(username)
+	user, account, err := CreateUser(username)
 	if err != nil {
 		return nil, err
 	}
@@ -20,7 +20,7 @@ func CreateUserWithMachine(username string) (*models.User, error) {
 		return nil, err
 	}
 
-	if _, err := CreateWorkspaceForMachine(machine.Uid); err != nil {
+	if _, err := CreateWorkspaceForMachine(account, machine.Uid); err != nil {
 		return nil, err
 	}
 
