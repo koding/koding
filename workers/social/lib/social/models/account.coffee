@@ -1061,8 +1061,8 @@ module.exports = class JAccount extends jraphical.Module
     JUser = require './user'
     if /^guest-/.test @profile.nickname
       user = new JUser()
-      username = @profile.nickname
-      callback null, user
+      user.username = @profile.nickname
+      return callback null, user
 
     selector = { targetId: @getId(), as: 'owner', sourceName: 'JUser' }
     Relationship.one selector, (err, rel) ->
