@@ -310,7 +310,8 @@ module.exports =
 
     @rtmFileId = fileId
 
-    @rtm.getFile fileId, (err, doc) =>
+    options = { id: fileId }
+    @rtm.getFile options, (err, doc) =>
       return throwError err  if err
 
       nickname = nick()
@@ -493,8 +494,8 @@ module.exports =
   isRealtimeSessionActive: (id, callback) ->
 
     kallback = =>
-      fileName = @getRealtimeFileName id
-      @rtm.fetchFileByTitle fileName, (err, file) =>
+      options = { title: @getRealtimeFileName id }
+      @rtm.fetchFileByTitle options, (err, file) =>
         return callback no  if err
 
         if file.result.items.length > 0
@@ -730,8 +731,8 @@ module.exports =
 
     @rtm = new RealtimeManager  unless @rtm
 
-    fileName = @getRealtimeFileName()
-    @rtm.createFile fileName, (err, file) =>
+    options = { title: @getRealtimeFileName() }
+    @rtm.createFile options, (err, file) =>
       return throwError err  if err
       @loadCollaborationFile file.id
 
@@ -761,8 +762,8 @@ module.exports =
     if @amIHost
       @broadcastMessages.push origin: nickname, type: 'SessionEnded'
 
-    fileName = @getRealtimeFileName()
-    @rtm.deleteFile fileName, (err) =>
+    options = { title: @getRealtimeFileName() }
+    @rtm.deleteFile options, (err) =>
       return throwError err  if err
 
       @statusBar.emit 'CollaborationEnded'

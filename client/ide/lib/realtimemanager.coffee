@@ -30,7 +30,15 @@ module.exports = class RealtimeManager extends KDObject
     return @realtimeDoc
 
 
-  createFile: (title, callback) ->
+  ###*
+   * Create file to google drive.
+   *
+   * @param {{title: string}} options
+   * @param {function} callback
+  ###
+  createFile: (options, callback) ->
+
+    { title } = options
 
     return throw new Error 'title is required'  unless title
 
@@ -44,9 +52,15 @@ module.exports = class RealtimeManager extends KDObject
       @emit 'FileCreated', file
 
 
-  deleteFile: (title, callback) ->
+  ###*
+   * Delete file from google drive.
+   *
+   * @param {{title: string}} options
+   * @param {function} callback
+  ###
+  deleteFile: (options, callback) ->
 
-    @fetchFileByTitle title, (err, response) =>
+    @fetchFileByTitle { title: options.title }, (err, response) =>
       [file] = response.result.items
 
       unless file
@@ -58,24 +72,48 @@ module.exports = class RealtimeManager extends KDObject
         @emit 'FileDeleted'
 
 
-  getFile: (fileId, callback) ->
+  ###*
+   * Fetch file from google drive.
+   *
+   * @param {{id: string}} options
+   * @param {function} callback
+  ###
+  getFile: (options, callback) ->
+
+    fileId = options.id
 
     return throw new Error 'fileId is required'  unless fileId
 
     gapi.client.drive.files.get({ fileId }).execute (file) =>
       @emit 'FileFetched', file
 
-      @loadFile file.id, callback
+      @loadFile { id: file.id }, callback
 
 
-  fetchFileByTitle: (title, callback) ->
+  ###*
+   * Query google drive to get file(s) with given title.
+   *
+   * @param {{title: string}} options
+   * @param {function} callback
+  ###
+  fetchFileByTitle: (options, callback) ->
+
+    { title } = options
 
     gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
       callback null, file
       @emit 'FileQueryFinished', file
 
 
-  loadFile: (fileId, callback) ->
+  ###*
+   * Loads and binds events of the file with given `fileId`.
+   *
+   * @param {{id: string}} options
+   * @param {function} callback
+  ###
+  loadFile: (options, callback) ->
+
+    fileId = options.id
 
     return throw new Error 'fileId is required'  unless fileId
 
