@@ -1,16 +1,14 @@
 // Package sender provides an API for mail sending operations
 package sender
 
-import (
-	"fmt"
-
-	"github.com/sendgrid/sendgrid-go"
-)
+import "github.com/sendgrid/sendgrid-go"
 
 // SendGridMail includes the required Sendgrid struct
 type SendGridMail struct {
 	Sendgrid *sendgrid.SGClient
 }
+
+const fromDefault = "mail@koding.com"
 
 // Send implements Emailer interface
 func (sg *SendGridMail) Send(m *Mail) error {
@@ -20,7 +18,12 @@ func (sg *SendGridMail) Send(m *Mail) error {
 		return err
 	}
 
-	if err := message.SetFrom("mail@koding.com"); err != nil {
+	from := m.From
+	if from == "" {
+		from = fromDefault
+	}
+
+	if err := message.SetFrom(from); err != nil {
 		return err
 	}
 
@@ -39,7 +42,7 @@ func (sg *SendGridMail) Send(m *Mail) error {
 	}
 
 	if err := sg.Sendgrid.Send(message); err != nil {
-		return fmt.Errorf("an error occurred while sending email error as %+v ", err.Error())
+		return err
 	}
 
 	return nil
