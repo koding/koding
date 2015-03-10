@@ -675,8 +675,6 @@ module.exports = class JUser extends jraphical.Module
 
   @fetchGuestUser = (callback)->
 
-    user = new JUser()
-
     username      = @createGuestUsername()
 
     account = new JAccount()
