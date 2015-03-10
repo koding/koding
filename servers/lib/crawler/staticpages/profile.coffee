@@ -2,7 +2,7 @@
 { getAvatarImageUrl }      = require './activity'
 { getSidebar }             = require './feed'
 
-module.exports = (account, statusUpdates)=>
+module.exports = (account, statusUpdates, index) ->
   getGraphMeta = require './graphmeta'
   analytics    = require './analytics'
 
@@ -14,7 +14,7 @@ module.exports = (account, statusUpdates)=>
   <head>
     <title>#{nickname} - Koding</title>
     <style>body, html {height: 100%}</style>
-    #{getGraphMeta()}
+    #{getGraphMeta({index})}
   </head>
   <body itemscope itemtype="http://schema.org/WebPage" class="super profile">
     <div id="kdmaincontainer" class="kdview with-sidebar">
@@ -35,7 +35,7 @@ module.exports = (account, statusUpdates)=>
   </html>
   """
 
-putContent = (account, statusUpdates)=>
+putContent = (account, statusUpdates) ->
   profile      = getProfile account
 
   if statusUpdates is ""
@@ -52,8 +52,8 @@ putContent = (account, statusUpdates)=>
               <img class="" width="143" height="143" src="#{imgURL}" style="opacity: 1;">
             </a>
             <h3 class="full-name">
-              <span class="kdview kdcontenteditableview firstName">#{profile.firstName}</span>
-              <span class="kdview kdcontenteditableview lastName">#{profile.lastName}</span>
+              <span class="kdview kdcontenteditableview firstName" itemprop="givenName">#{profile.firstName}</span>
+              <span class="kdview kdcontenteditableview lastName" itemprop="familyName">#{profile.lastName}</span>
             </h3>
           </main>
         </aside>
