@@ -16,10 +16,12 @@ exorcist     = require 'exorcist'
 asStream     = require 'as-stream'
 notifier     = require 'node-notifier'
 mkdirp       = require 'mkdirp'
+nub          = require 'nub'
 
 JS_OUTFILE        = 'bundle.js'
 THIRDPARTY_OUTDIR = 'thirdparty'
 ASSETS_OUTDIR     = 'assets'
+CSS_OUTDIR        = 'css'
 
 module.exports =
 
@@ -47,6 +49,7 @@ class Haydar
 
     if opts.revId
       opts.outdir = path.join opts.outdir, opts.rev
+      opts.baseurl = [ opts.baseurl, opts.rev ].join '/'
 
     if 'string' is typeof opts.defaults
       opts.defaults = require @_resolve(opts.defaults)
@@ -58,10 +61,25 @@ class Haydar
     if opts.extractJsSourcemaps
       opts.jsSourcemapsOutfile = path.join opts.outdir, JS_OUTFILE + '.map'
 
+    if opts.thirdparty
+      if 'string' is typeof opts.thirdpartyDir
+        opts.thirdpartyDir = @_resolve opts.thirdpartyDir
+        opts.thirdpartyOutdir = path.join opts.outdir, THIRDPARTY_OUTDIR
+      else
+        opts.thirdparty = false
+
+    if opts.assets
+      if 'string' is typeof opts.assetsDir
+        opts.assetsDir = @_resolve opts.assetsDir
+        opts.assetsOutdir = path.join opts.outdir, ASSETS_OUTDIR
+      else
+        opts.assets = false
+
 
   build: () ->
     opts = @_options
     dirs = [ opts.outdir ]
+
     createDirs dirs, =>
       @_build()
 
@@ -103,12 +121,16 @@ class Haydar
     outfile    = opts.jsOutfile
     sourcemaps = opts.sourcemapsOutfile
 
+    time = @_time.bind this
+    timeEnd = @_timeEnd.bind this
+
     bundle = =>
 
       start = Date.now()
       notify = @_notify.bind this
       
       b.bundle (err, src) =>
+
         if err
           console.error inspect(err, { colors: true })
           if not opts.watchJs
@@ -173,7 +195,7 @@ class Haydar
           name       : name
           routes     : x.routes
           shortcuts  : x.shortcuts
-          style      : opts.baseurl + '/' + opts.rev + '/' + x.name + '.css'
+          style      : opts.baseurl + '/' + CSS_OUTDIR + '/' + x.name + '.css'
         }
 
       transforms = [ coffeeify, pistachioify ]
@@ -195,6 +217,8 @@ class Haydar
           }
         } ]
 
+      aceBasePath = [ opts.baseurl, THIRDPARTY_OUTDIR, 'ace' ].join '/'
+
       opts_ =
         basedir    : opts.basedir
         debug      : opts.debugJs
@@ -205,6 +229,13 @@ class Haydar
         globals    : xtend opts.defaults, {
           modules    : modules
           REMOTE_API : opts.schema
+          acePath: [ aceBasePath, '_ace.js' ].join '/'
+          aceConfig: {
+            basePath: aceBasePath
+            themePath: aceBasePath
+            modePath: aceBasePath
+            workerPath: aceBasePath
+          }
         }
 
       if opts.watchJs
@@ -231,10 +262,10 @@ class Haydar
 
         pending = files.length
 
-        @_time 'load manifests'
+        @_time 'scripts: load manifests'
 
         files.forEach (x) =>
-          @_time 'parse ' + x
+          @_time 'scripts: parse ' + x
 
           parse = JSONStream.parse()
 
@@ -242,14 +273,14 @@ class Haydar
           streams.push s
 
           tr = through.obj (row, enc, cb) =>
-            @_timeEnd 'parse ' + x
+            @_timeEnd 'scripts: parse ' + x
             appNames.push row.name
             row.basedir = defined row.basedir, path.dirname @_resolve(x)
             manifests.push row
             cb null
           , (cb) =>
             if --pending is 0
-              @_timeEnd 'load manifests'
+              @_timeEnd 'scripts: load manifests'
               init()
             cb null
 
@@ -260,12 +291,60 @@ class Haydar
     done()
 
 
-  _assets: (done) ->
-    done()
-
-
   _thirdparty: (done) ->
-    done()
+    opts = @_options
+    @_copy {
+      label: 'thirdparty'
+      dir: opts.thirdpartyDir
+      outdir: opts.thirdpartyOutdir
+    }, ->
+      done()
+
+
+  _assets: (done) ->
+    opts = @_options
+    @_copy {
+      label: 'assets'
+      dir: opts.assetsDir
+      outdir: opts.assetsOutdir
+    }, ->
+      done()
+
+
+  _copy: (opts, done) ->
+    time = @_time.bind this
+    timeEnd = @_timeEnd.bind this
+
+    getFiles [ '**/*' ], opts.dir, (err, files) ->
+      files = files.filter (x) ->
+        return true  unless x is 'Readme.md'
+
+      pending = files.length
+
+      entities = files.map (basename) ->
+        file = path.join opts.dir, basename
+        outfile = path.join opts.outdir, basename
+        outdir = path.dirname outfile
+        return {
+          file: file
+          outfile: outfile
+          outdir: outdir
+        }
+
+      dirs = entities.map (x) ->
+        return x.outdir
+      
+      dirs = nub dirs
+
+      createDirs dirs, ->
+        entities.forEach (x) ->
+          time opts.label + ': copy ' + x.outfile
+          s = fs.createReadStream x.file
+          ws = fs.createWriteStream x.outfile
+          s.pipe ws
+          ws.once 'finish', ->
+            timeEnd opts.label + ': copy ' + x.outfile
+            if --pending is 0 then done()
 
 
   _sprites: (done) ->
