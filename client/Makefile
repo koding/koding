@@ -21,7 +21,7 @@ BUILDER_ARGS=\
 	$(OUTDIR) \
 	$(EXTRAS)
 BUILDER_DEBUG_FLAGS?=--debug-js --debug-css
-BUILDER_WATCH_FLAGS?=--watch-js --watch-css
+BUILDER_WATCH_FLAGS?=--watch-js --watch-css --watch-sprites
 BUILDER_MINIFY_FLAGS?=--minify-css --minify-js
 BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 

@@ -48,6 +48,10 @@ yargs = require 'yargs'
   .boolean 'watch-css'
   .default 'watch-css', false
 
+  .describe 'watch-sprites', 'enable watch mode for sprites'
+  .boolean 'watch-sprites'
+  .default 'watch-sprites', false
+
   .describe 'debug-js', 'enable source maps for scripts'
   .boolean 'debug-js'
   .default 'debug-js', false
