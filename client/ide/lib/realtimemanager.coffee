@@ -33,12 +33,12 @@ module.exports = class RealtimeManager extends KDObject
   ###*
    * Create file to google drive.
    *
-   * @param {{title: string}} options
+   * @param {{title: string, preventEvent: boolean}} options
    * @param {function} callback
   ###
   createFile: (options, callback) ->
 
-    { title } = options
+    { title, preventEvent } = options
 
     return throw new Error 'title is required'  unless title
 
@@ -49,18 +49,20 @@ module.exports = class RealtimeManager extends KDObject
 
     gapi.client.drive.files.insert(options).execute (file) =>
       callback null, file
-      @emit 'FileCreated', file
+      @emit 'FileCreated', file  unless preventEvent
 
 
   ###*
    * Delete file from google drive.
    *
-   * @param {{title: string}} options
+   * @param {{title: string, preventEvent: boolean}} options
    * @param {function} callback
   ###
   deleteFile: (options, callback) ->
 
-    @fetchFileByTitle { title: options.title }, (err, response) =>
+    { title, preventEvent } = options
+
+    @fetchFileByTitle { title }, (err, response) =>
       [file] = response.result.items
 
       unless file
@@ -69,13 +71,13 @@ module.exports = class RealtimeManager extends KDObject
 
       gapi.client.drive.files.delete({ fileId: file.id }).execute (file) =>
         callback null
-        @emit 'FileDeleted'
+        @emit 'FileDeleted'  unless preventEvent
 
 
   ###*
    * Fetch file from google drive.
    *
-   * @param {{id: string}} options
+   * @param {{id: string, preventEvent: boolean}} options
    * @param {function} callback
   ###
   getFile: (options, callback) ->
@@ -86,29 +88,28 @@ module.exports = class RealtimeManager extends KDObject
 
     gapi.client.drive.files.get({ fileId }).execute (file) =>
       @emit 'FileFetched', file
-
       @loadFile { id: file.id }, callback
 
 
   ###*
    * Query google drive to get file(s) with given title.
    *
-   * @param {{title: string}} options
+   * @param {{title: string, preventEvent: boolean}} options
    * @param {function} callback
   ###
   fetchFileByTitle: (options, callback) ->
 
-    { title } = options
+    { title, preventEvent } = options
 
     gapi.client.drive.files.list({ q: "title='#{title}'" }).execute (file) =>
       callback null, file
-      @emit 'FileQueryFinished', file
+      @emit 'FileQueryFinished', file  unless preventEvent
 
 
   ###*
    * Loads and binds events of the file with given `fileId`.
    *
-   * @param {{id: string}} options
+   * @param {{id: string, preventEvent: boolean}} options
    * @param {function} callback
   ###
   loadFile: (options, callback) ->
@@ -116,6 +117,8 @@ module.exports = class RealtimeManager extends KDObject
     fileId = options.id
 
     return throw new Error 'fileId is required'  unless fileId
+
+    { preventEvent } = options
 
     onLoadedCallback = (doc) =>
       doc.addEventListener gapi.drive.realtime.EventType.COLLABORATOR_JOINED, (c) =>
@@ -128,14 +131,14 @@ module.exports = class RealtimeManager extends KDObject
         @emit 'DocumentSaveStateChanged', doc, c  unless @isDisposed
 
       callback null, doc
-      @emit 'FileLoaded', doc
+      @emit 'FileLoaded', doc  unless preventEvent
 
     initializerFn = (model) =>
       @emit 'FileInitialized', model
 
     errorCallback = (error) =>
       callback error
-      @emit 'FileLoadFailed', error
+      @emit 'FileLoadFailed', error  unless preventEvent
 
     gapi.drive.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
 
