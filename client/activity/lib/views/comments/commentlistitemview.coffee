@@ -45,16 +45,7 @@ module.exports = class CommentListItemView extends KDListItemView
     data.on 'update', @bound 'handleUpdate'
 
 
-  handleUpdate: ->
-
-    { updatedAt, createdAt } = @getData()
-
-    if updatedAt > createdAt
-    then @setClass 'edited'
-    else @unsetClass 'edited'
-
-    kd.utils.defer => emojify.run @getElement()
-
+  handleUpdate: require 'activity/mixins/handleUpdate'
 
   handleInternalLink: (event) ->
 
