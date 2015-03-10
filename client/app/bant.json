@@ -1,9 +1,6 @@
 {
   "name": "app",
   "main": "./lib/index.coffee",
-  "globals": {
-    "COMPUTECONTROLLER_TIMEOUT": 30000
-  },
   "routes": {
     "": "home",
     "/": "home",
@@ -14,5 +11,11 @@
     "/member/:username": "member",
     "/:name?/Unsubscribe/:token/:email/:opt?": "unsubscribe",
     "/:name": "name"
-  }
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
 }
