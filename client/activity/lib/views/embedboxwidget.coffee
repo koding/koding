@@ -1,14 +1,15 @@
-_ = require 'underscore'
-Encoder = require 'htmlencode'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDView = kd.View
-EmbedBoxImageView = require './embedbox/embedboximageview'
-EmbedBoxLinkView = require './embedbox/embedboxlinkview'
-EmbedBoxLinksView = require './embedbox/embedboxlinksview'
+_                  = require 'underscore'
+Encoder            = require 'htmlencode'
+kd                 = require 'kd'
+KDButtonView       = kd.ButtonView
+KDView             = kd.View
+EmbedBoxImageView  = require './embedbox/embedboximageview'
+EmbedBoxLinkView   = require './embedbox/embedboxlinkview'
+EmbedBoxLinksView  = require './embedbox/embedboxlinksview'
 EmbedBoxObjectView = require './embedbox/embedboxobjectview'
-getEmbedType = require 'app/util/getEmbedType'
-regexps = require 'app/util/regexps'
+getEmbedType       = require 'app/util/getEmbedType'
+regexps            = require 'app/util/regexps'
+urlGrabber         = require 'app/util/urlGrabber'
 
 
 module.exports = class EmbedBoxWidget extends KDView

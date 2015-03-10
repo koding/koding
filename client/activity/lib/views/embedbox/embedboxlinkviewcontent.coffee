@@ -1,8 +1,8 @@
-kd = require 'kd'
-KDView = kd.View
+kd                          = require 'kd'
+KDView                      = kd.View
 EmbedBoxLinkViewDescription = require './embedboxlinkviewdescription'
-EmbedBoxLinkViewProvider = require './embedboxlinkviewprovider'
-EmbedBoxLinkViewTitle = require './embedboxlinkviewtitle'
+EmbedBoxLinkViewProvider    = require './embedboxlinkviewprovider'
+EmbedBoxLinkViewTitle       = require './embedboxlinkviewtitle'
 
 
 module.exports = class EmbedBoxLinkViewContent extends KDView

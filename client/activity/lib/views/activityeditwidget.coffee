@@ -1,6 +1,6 @@
-kd = require 'kd'
+kd                  = require 'kd'
 ActivityInputWidget = require './activityinputwidget'
-Encoder = require 'htmlencode'
+Encoder             = require 'htmlencode'
 
 
 module.exports = class ActivityEditWidget extends ActivityInputWidget
