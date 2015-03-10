@@ -718,6 +718,10 @@ body.ide.dark
     r-sprite            'ide', 'search'
 
 // save as dialog
+body.ide
+  .kdcontextmenu.finder
+    z-index            10002
+
 body.ide .kddialogview.save-as-dialog
   right                 auto
   left                  50%
@@ -750,10 +754,6 @@ body.ide .kddialogview.save-as-dialog
     background          #2B2B2B
     border              none
     rounded             3px
-
-    .vm-header
-      .buttons
-        display         none
 
     .jtreeview-wrapper
       height            100%
