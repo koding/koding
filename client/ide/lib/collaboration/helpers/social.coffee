@@ -3,28 +3,84 @@ remote = require('app/remote').getInstance()
 getNick = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 
+###
+ * Wrapper function around `SocialApiController#addParticipants`
+ *
+ * @param {object} opts
+ * @param {function(err: object)}
+###
 addParticipants = (opts, callback) ->
+
   kd.singletons.socialapi.channel.addParticipants opts, callback
 
+
+###
+ * Wrapper function around `SocialApiController#removeParticipants`
+ *
+ * @param {object} opts
+ * @param {function(err: object)}
+###
 removeParticipants = (opts, callback) ->
+
   kd.singletons.socialapi.channel.removeParticipants opts, callback
 
-kickParticipants = (channel, accounts = [], callback) ->
+
+###
+ * Wrapper function around `SocialApiController#kickParticipants`
+ *
+ * @param {object} opts
+ * @param {function(err: object)}
+###
+kickParticipants = (channel, accounts, callback) ->
+
+  return callback 'accounts are missing'  unless accounts
+
   accounts = [].concat accounts  unless Array.isArray accounts
+
   opts = { channelId: channel.id, accountIds: accounts.map (a) -> a.socialApiId }
   kd.singletons.socialapi.channel.kickParticipants opts, callback
 
+
+###
+ * Wrapper function around `SocialApiController#fetchChannel`
+ *
+ * @param {object} opts
+ * @param {function(err: object)}
+###
 fetchChannel = (id, callback) ->
+
   kd.singletons.socialapi.cacheable 'channel', id, callback
 
+
+###
+ * Wrapper function around `SocialApiController#destroyChannel`
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err: object)}
+###
 destroyChannel = (channel, callback) ->
   {id} = channel
   kd.singletons.socialapi.channel.delete {channelId: id}, callback
 
+
+###
+ * Wrapper function around `SocialApiController#leaveChannel`
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err: object)}
+###
 leaveChannel = (channel, callback) ->
   options = { channelId: channel.id }
   kd.singletons.socialapi.channel.leave options, callback
 
+
+###
+ * Wrapper function around `SocialApiController#initChannel`
+ *
+ * Difference is it sets `collaboration` defaults.
+ *
+ * @param {function(err: object)}
+###
 initChannel = (callback) ->
   {message} = kd.singletons.socialapi
   nickname  = getNick()
@@ -41,8 +97,17 @@ initChannel = (callback) ->
     return callback {message: 'error'}  unless channels?.length
     return callback null, channels[0]
 
+
+###
+ * Wrapper function around `JAccount#cacheable`
+ *
+ * @param {string} userId
+ * @param {function(err: object)}
+###
 fetchAccount = (userId, callback) ->
+
   remote.cacheable 'JAccount', userId, callback
+
 
 module.exports = {
   addParticipants
