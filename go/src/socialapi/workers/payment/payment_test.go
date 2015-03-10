@@ -197,6 +197,52 @@ func TestSubscriptionsRequest(t *testing.T) {
 	})
 }
 
+func TestExpireOutofDateSubscriptions(t *testing.T) {
+	Convey("Given subscriptions", t, func() {
+		Convey("Then it should expire out of date subscriptions", func() {
+			token, accId, email := generateFakeUserInfo()
+			err := stripe.Subscribe(
+				token, accId, email, StartingPlan, StartingInterval,
+			)
+			So(err, ShouldBeNil)
+
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+			So(err, ShouldBeNil)
+
+			subscription, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+			So(subscription.State, ShouldEqual, paymentmodels.SubscriptionStateActive)
+
+			err = subscription.UpdateToExpireTime(time.Now().Add(-1000 * time.Second))
+			So(err, ShouldBeNil)
+
+			err = ExpireOutofDateSubscriptions()
+			So(err, ShouldBeNil)
+
+			_, err = customer.FindActiveSubscription()
+			So(err, ShouldEqual, paymenterrors.ErrCustomerNotSubscribedToAnyPlans)
+		})
+
+		Convey("Then it shouldn't expire active subscriptions", func() {
+			token, accId, email := generateFakeUserInfo()
+			err := stripe.Subscribe(
+				token, accId, email, StartingPlan, StartingInterval,
+			)
+			So(err, ShouldBeNil)
+
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+			So(err, ShouldBeNil)
+
+			err = ExpireOutofDateSubscriptions()
+			So(err, ShouldBeNil)
+
+			subscription, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+			So(subscription.State, ShouldEqual, paymentmodels.SubscriptionStateActive)
+		})
+	})
+}
+
 //----------------------------------------------------------
 // Helpers
 // TODO: move this to common place that stripe can use as well
