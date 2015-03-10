@@ -164,11 +164,11 @@ module.exports = class RealtimeManager extends KDObject
       # delete key from root map
       model.getRoot().delete key
 
-  textInserted:(string, e) ->
+  textInserted: (string, e) ->
     return  if @isDisposed
     @emit 'TextInsertedIntoString', string, e
 
-  textDeleted:(string, e) ->
+  textDeleted: (string, e) ->
     return  if @isDisposed
     @emit 'TextDeletedFromString', string, e
 
