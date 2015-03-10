@@ -689,7 +689,11 @@ module.exports =
     @ready =>
       @statusBar.handleCollaborationLoading()
       @statusBar.share.show()
-      # IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
+
+
+  collectButtonShownMetric: ->
+
+    IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
   prepareCollaboration: ->
@@ -702,10 +706,12 @@ module.exports =
     @rtm.ready =>
       unless @workspaceData.channelId
         @statusBar.emit 'CollaborationEnded'
+        @collectButtonShownMetric()
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
           @statusBar.emit 'CollaborationEnded'
+          @collectButtonShownMetric()
           throwError err  if err
           return
 
@@ -714,6 +720,7 @@ module.exports =
             @startChatSession => @chat.showChatPane()
             @chat.hide()
             @statusBar.emit 'CollaborationStarted'
+            @collectButtonShownMetric()
 
 
   startCollaborationSession: (callback) ->
