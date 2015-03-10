@@ -1,6 +1,3 @@
-[submodule "client/ide"]
-	path = client/ide
-	url = git@github.com:koding/IDE.git
 [submodule "client/finder"]
 	path = client/finder
 	url = git@github.com:koding/finder.git

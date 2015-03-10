@@ -25,6 +25,7 @@
     "kite.js": "git://github.com/tetsuo/kite.js#0.4.0",
     "kookies": "^0.1.1",
     "lodash": "^2.4.1",
+    "machina": "1.0.0-1",
     "marked": "^0.3.2",
     "ndpane": "^0.1.2",
     "node-uuid": "^1.4.2",

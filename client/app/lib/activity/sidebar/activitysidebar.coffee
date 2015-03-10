@@ -515,6 +515,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @machineLists = []
     @machineListsByName = {}
 
+    unless @machinesWrapper
+      @addSubView @machinesWrapper = new KDCustomHTMLView
+        cssClass: 'machines-wrapper'
+
     @ownMachinesList    = @createMachineList 'own'
     @sharedMachinesList = @createMachineList 'shared'
 
@@ -523,6 +527,20 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     else
       environmentDataProvider.fetch (data) =>
         @addMachines_ data
+
+
+  redrawMachineList: ->
+
+    @machinesWrapper.destroySubViews()
+    @addMachineList()
+
+    frontApp = kd.singletons.appManager.getFrontApp()
+
+    if frontApp.options.name is 'IDE'
+      machine   = frontApp.mountedMachine
+      workspace = frontApp.workspaceData
+
+      @selectWorkspace { machine, workspace }
 
 
   addMachines_: (data) ->
@@ -544,10 +562,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       shared           : SidebarSharedMachinesList
 
     list = new MachineListClasses[type] options, data
+
     @machineLists.push list
     @machineListsByName[type] = list
 
-    @addSubView list
+    @machinesWrapper.addSubView list
 
     return list
 

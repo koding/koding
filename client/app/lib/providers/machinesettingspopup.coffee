@@ -148,7 +148,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
       if (kd.utils.slugify label) is ""
         return showError "Nickname cannot be empty."
 
-      @machine.setLabel label, (err, newSlug)=>
+      @machine.setLabel label, (err, newSlug) =>
 
         return if showError err
 
@@ -157,18 +157,8 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         nickEdit.hide()
         nickname.show()
 
-        frontApp = appManager.getFrontApp()
-
-        if frontApp.options.name is "IDE" and frontApp.workspaceData?
-
-          return  unless @machine.slug is frontApp.workspaceData.machineLabel
-
-          newRoute = "/IDE/#{newSlug}/#{frontApp.workspaceData.slug}"
-          frontApp.workspaceData.machineLabel = newSlug
-
-          kd.utils.defer ->
-            computeController.once 'MachineDataUpdated', ->
-              router.clear newRoute
+        @machine.emit 'MachineLabelUpdated', label, newSlug
+        @destroy()
 
 
   viewAppended:->
@@ -301,7 +291,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
               <span class='help'></span>
             </a>
-            <span class='toggle'></span>
+            <span class='toggle add-domain'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine

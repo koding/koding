@@ -41,6 +41,8 @@ bootup = ->
     globals.currentGroup = remote.revive globals.currentGroup
     globals.userAccount  = remote.revive globals.userAccount
 
+    setupAnalytics()
+
   MainController = require './maincontroller'
   Status = require './status'
 
@@ -152,8 +154,6 @@ bootup = ->
       , "https://s3.amazonaws.com/koding-ping/ping.json"
 
       item.ping -> destroyCurrentNotif()  if currentNotif
-
-  setupAnalytics()
 
   return true
 
