@@ -1,4 +1,5 @@
 fs           = require 'fs'
+vfs          = require 'vinyl-fs'
 path         = require 'path'
 gloh         = require 'gloh'
 defined      = require 'defined'
@@ -17,11 +18,20 @@ asStream     = require 'as-stream'
 notifier     = require 'node-notifier'
 mkdirp       = require 'mkdirp'
 nub          = require 'nub'
+spritesmith  = require 'gulp.spritesmith'
+chalk        = require 'chalk'
 
-JS_OUTFILE        = 'bundle.js'
-THIRDPARTY_OUTDIR = 'thirdparty'
-ASSETS_OUTDIR     = 'assets'
-CSS_OUTDIR        = 'css'
+JS_OUTFILE                  = 'bundle.js'
+THIRDPARTY_OUTDIR           = 'thirdparty'
+ASSETS_OUTDIR               = 'assets'
+CSS_OUTDIR                  = 'css'
+SPRITESMITH_CSS_FORMAT      = 'stylus'
+SPRITESMITH_IMG_EXTENSION   = 'png'
+SPRITESMITH_CSS_EXTENSION   = 'styl'
+SPRITESMITH_ALGORITHM       = 'binary-tree'
+SPRITESMITH_PADDING         = 5
+SPRITESMITH_CSS_NAME_PREFIX = 'sprite@'
+SPRITE_TMPDIR               = '.sprites'
 
 module.exports =
 
@@ -51,6 +61,9 @@ class Haydar
       opts.outdir = path.join opts.outdir, opts.rev
       opts.baseurl = [ opts.baseurl, opts.rev ].join '/'
 
+    opts.spriteTmpCssOutdir = @_resolve SPRITE_TMPDIR
+    opts.spriteImgOutdir = defined opts.spriteImgOutdir, opts.outdir
+
     if 'string' is typeof opts.defaults
       opts.defaults = require @_resolve(opts.defaults)
 
@@ -78,20 +91,58 @@ class Haydar
 
   build: () ->
     opts = @_options
+
+    manifests   = []
+    rsManifests = []
+
+    pending = 0
+
     dirs = [ opts.outdir ]
 
-    createDirs dirs, =>
-      @_build()
+    getFiles opts.manifests, opts.basedir,
+      (err, files) =>
+        throw err if err
+
+        if not files.length
+          return console.log 'could not find ' + opts.manifests
+
+        pending = files.length
+
+        @_time chalk.blue 'manifests'
+
+        files.forEach (x) =>
+          @_time 'manifests: parse ' + x
+
+          parse = JSONStream.parse()
+
+          s = fs.createReadStream x
+          rsManifests.push s
+
+          tr = through.obj (row, enc, cb) =>
+            @_timeEnd 'manifests: parse ' + x
+            row.basedir = defined row.basedir, path.dirname @_resolve(x)
+            manifests.push row
+            cb null
+          , (cb) =>
+            if --pending is 0
+              @_timeEnd chalk.blue 'manifests'
+              createDirs dirs, =>
+                opts.manifests = manifests
+                opts.rsManifests = rsManifests
+                @_build()
+            cb()
+
+          s.pipe(parse).pipe(tr)
 
 
   _build: () ->
 
     tasks = []
     push = (name, method) =>
-      @_time name
+      @_time chalk.green name
       fn = (cb) =>
         method.bind(this) =>
-          @_timeEnd name
+          @_timeEnd chalk.green name
           cb null
       tasks.push fn
 
@@ -101,28 +152,101 @@ class Haydar
     push 'thirdparty' , @_thirdparty  if @_options.thirdparty
     push 'sprites'    , @_sprites     if @_options.sprites
 
-    @_time 'all'
+    @_time chalk.green 'all'
     async.parallel tasks, (err, res) =>
       if err then throw err
-      @_timeEnd 'all'
+      @_timeEnd chalk.green 'all'
 
 
   _scripts: (done) ->
 
     opts = @_options
 
+    time = @_time.bind this
+    timeEnd = @_timeEnd.bind this
+
     b          = null
-    manifests  = []
-    appNames   = []
-    streams    = []
-    pending    = 0
-    rewriteMap = null
-    modules    = null
+
+    manifests  = opts.manifests
+    appNames   = manifests.map (x) -> return x.name
+    streams    = opts.rsManifests
     outfile    = opts.jsOutfile
     sourcemaps = opts.sourcemapsOutfile
 
-    time = @_time.bind this
-    timeEnd = @_timeEnd.bind this
+    rewriteMap = appNames.reduce (acc, x) ->
+      acc[x] = './' + x + '/lib/'
+      return acc
+    , {}
+
+    modules = manifests.map (x) =>
+      name = x.name
+      if name is 'ide'
+        name = 'IDE'
+      else
+        name = name.charAt(0).toUpperCase() + name.slice(1)
+
+      return {
+        identifier : x.name
+        name       : name
+        routes     : x.routes
+        shortcuts  : x.shortcuts
+        style      : opts.baseurl + '/' + x.name + '.css'
+      }
+
+    transforms = [ coffeeify, pistachioify ]
+
+    if opts.minifyJs
+      transforms.push [ uglifyify, {
+        global      : yes
+        mangle      : yes
+        'screw-ie8' : yes
+        #compress: { # todo: investigate these -og
+          #sequences    : yes
+          #dead_code    : yes
+          #conditionals : yes
+          #booleans     : yes
+          #unused       : yes
+          #if_return    : yes
+          #join_vars    : yes
+          #drop_console : no
+        #}
+      } ]
+
+    aceBasePath = [ opts.baseurl, THIRDPARTY_OUTDIR, 'ace' ].join '/'
+
+    opts_ =
+      basedir    : opts.basedir
+      debug      : opts.debugJs
+      factor     : false
+      extensions : [ '.coffee' ]
+      transform  : transforms
+      rewriteMap : rewriteMap
+      globals    : xtend opts.defaults, {
+        modules    : modules
+        REMOTE_API : opts.schema
+        acePath: [ aceBasePath, '_ace.js' ].join '/'
+        aceConfig: {
+          basePath: aceBasePath
+          themePath: aceBasePath
+          modePath: aceBasePath
+          workerPath: aceBasePath
+        }
+      }
+
+    if opts.watchJs
+      b = bant.watch opts_
+      b.on 'update', (ids) ->
+        ids.forEach (x) ->
+          console.log 'updated ' + x
+        bundle()
+    else
+      b = bant opts_
+
+    b.use manifests
+
+    # force browser-pack to expose require
+    b._bpack.hasExports = true
+
 
     bundle = =>
 
@@ -176,115 +300,7 @@ class Haydar
                 else
                   notify 'scripts', msg
 
-    init = =>
-
-      rewriteMap = appNames.reduce (acc, x) ->
-        acc[x] = './' + x + '/lib/'
-        return acc
-      , {}
-
-      modules = manifests.map (x) =>
-        name = x.name
-        if name is 'ide'
-          name = 'IDE'
-        else
-          name = name.charAt(0).toUpperCase() + name.slice(1)
-
-        return {
-          identifier : x.name
-          name       : name
-          routes     : x.routes
-          shortcuts  : x.shortcuts
-          style      : opts.baseurl + '/' + CSS_OUTDIR + '/' + x.name + '.css'
-        }
-
-      transforms = [ coffeeify, pistachioify ]
-
-      if opts.minifyJs
-        transforms.push [ uglifyify, {
-          global      : yes
-          mangle      : yes
-          'screw-ie8' : yes
-          compress: {
-            sequences    : yes
-            dead_code    : yes
-            conditionals : yes
-            booleans     : yes
-            unused       : yes
-            if_return    : yes
-            join_vars    : yes
-            drop_console : no
-          }
-        } ]
-
-      aceBasePath = [ opts.baseurl, THIRDPARTY_OUTDIR, 'ace' ].join '/'
-
-      opts_ =
-        basedir    : opts.basedir
-        debug      : opts.debugJs
-        factor     : false
-        extensions : [ '.coffee' ]
-        transform  : transforms
-        rewriteMap : rewriteMap
-        globals    : xtend opts.defaults, {
-          modules    : modules
-          REMOTE_API : opts.schema
-          acePath: [ aceBasePath, '_ace.js' ].join '/'
-          aceConfig: {
-            basePath: aceBasePath
-            themePath: aceBasePath
-            modePath: aceBasePath
-            workerPath: aceBasePath
-          }
-        }
-
-      if opts.watchJs
-        b = bant.watch opts_
-        b.on 'update', (ids) ->
-          ids.forEach (x) ->
-            console.log 'updated ' + x
-          bundle()
-      else
-        b = bant opts_
-
-      b.use manifests
-
-      # force browser-pack to expose require
-      b._bpack.hasExports = true
-
-      bundle()
-
-    getFiles opts.manifests, opts.basedir,
-      (err, files) =>
-        throw err if err
-
-        if not files.length then return done()
-
-        pending = files.length
-
-        @_time 'scripts: load manifests'
-
-        files.forEach (x) =>
-          @_time 'scripts: parse ' + x
-
-          parse = JSONStream.parse()
-
-          s = fs.createReadStream x
-          streams.push s
-
-          tr = through.obj (row, enc, cb) =>
-            @_timeEnd 'scripts: parse ' + x
-            appNames.push row.name
-            row.basedir = defined row.basedir, path.dirname @_resolve(x)
-            manifests.push row
-            cb null
-          , (cb) =>
-            if --pending is 0
-              @_timeEnd 'scripts: load manifests'
-              init()
-            cb null
-
-          s.pipe(parse).pipe(tr)
+    bundle()
 
 
   _styles: (done) ->
@@ -348,7 +364,83 @@ class Haydar
 
 
   _sprites: (done) ->
-    done()
+    opts = @_options
+
+    manifests = opts.manifests
+
+    time = @_time.bind this
+    timeEnd = @_timeEnd.bind this
+    notify = @_notify.bind this
+
+    pending = 0
+
+    start = Date.now()
+
+    smith = (manifest, basedir) ->
+      entities = [1, 2].map (ratio) ->
+
+        rname = ratio + 'x'
+
+        dir = path.join basedir, rname, '**/*.png'
+
+        imgName = manifest.name + '@' + rname + '.' + SPRITESMITH_IMG_EXTENSION
+        cssName = SPRITESMITH_CSS_NAME_PREFIX + rname + '.' + SPRITESMITH_CSS_EXTENSION
+
+        opts_ =
+          algorithm : SPRITESMITH_ALGORITHM
+          padding   : SPRITESMITH_PADDING
+          cssFormat : SPRITESMITH_CSS_FORMAT
+          cssName   : cssName
+          imgName   : imgName
+          imgPath   : [ opts.baseurl, imgName].join '/'
+          cssVarMap: (sprite) ->
+            if /\./.test sprite.name
+              console.error 'sprites: stylus hates it when you have dots in image filenames, throwing cowardly: ' + sprite.name
+              throw 'lol'
+
+        s = vfs.src(dir).pipe spritesmith opts_
+        return {
+          name: manifest.name
+          rname: rname
+          stream: s
+        }
+
+      entities.forEach (entity) ->
+        s = entity.stream
+        tmpCssOutdir = path.join opts.spriteTmpCssOutdir, manifest.name
+        time 'sprites: write ' + entity.name + '@' + entity.rname + ' spritesheets to ' + tmpCssOutdir
+        time 'sprites: write ' + entity.name + '@' + entity.rname + ' image files to ' + opts.spriteImgOutdir
+        cssStream = s.css.pipe vfs.dest tmpCssOutdir
+        imgStream = s.img.pipe vfs.dest opts.spriteImgOutdir
+        end_ = ->
+          if --pending is 0
+            secs = ((Date.now() - start)/1000).toFixed 2
+            msg = 'written sprites to ' + opts.spriteImgOutdir + ' (' + secs + ')'
+            console.log msg
+            if not opts.watchSprites
+              done()
+            else
+              notify 'sprites', msg
+        cssStream.on 'finish', ->
+          timeEnd 'sprites: write ' + entity.name + '@' + entity.rname + ' spritesheets to ' + tmpCssOutdir
+          end_()
+        imgStream.on 'finish', ->
+          time 'sprites: write ' + entity.name + '@' + entity.rname + ' image files to ' + opts.spriteImgOutdir
+          end_()
+
+
+
+    manifests.forEach (x) ->
+      return  unless Array.isArray x.sprites
+      
+      x.sprites.forEach (basename) ->
+        pending += 4 # cssStream1x, imgStream1x, cssStream2x, imgStream2x
+        # ... and in the darkness you bind them
+        dir = path.join x.basedir, basename
+        streams = smith x, dir
+
+
+
 
 
   _time: (msg) ->
