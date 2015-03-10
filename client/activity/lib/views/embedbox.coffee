@@ -17,6 +17,7 @@ module.exports = class EmbedBox extends KDView
     embedType = (getEmbedType data.link_embed?.type) or 'link'
 
     return  if embedType is 'link' and not data.link_embed?.description
+    return  if embedType is 'error'
 
     containerClass = switch embedType
       when 'image'  then EmbedBoxImageView
