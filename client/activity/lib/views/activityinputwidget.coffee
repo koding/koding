@@ -170,20 +170,16 @@ module.exports = class ActivityInputWidget extends KDView
 
   reset: (unlock = yes) ->
 
+    @input.emit 'reset'
+
     @input.empty()
     @input.setBlur()
-    @embedBox.resetEmbedAndHide()
 
     if unlock then @unlockSubmit()
     else kd.utils.wait 8000, @bound 'unlockSubmit'
 
 
-  getPayload: ->
-
-    link_url   = @embedBox.url
-    link_embed = @embedBox.getDataForSubmit()
-
-    return {link_url, link_embed}  if link_url and link_embed
+  getPayload: -> return @embedBox.getData()
 
 
   showError: (err, options = {}) ->
