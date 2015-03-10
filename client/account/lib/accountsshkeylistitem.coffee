@@ -17,28 +17,30 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
 
     super
     @form = form = new KDFormViewWithFields
-      cssClass          : 'add-key-form'
+      cssClass          : 'AppModal-form'
       fields            :
         title           :
+          cssClass      : 'Formline--half'
           placeholder   : 'Your SSH key title'
           name          : 'sshtitle'
-          cssClass      : 'medium'
+          label         : 'Title'
         key             :
           placeholder   : 'Your SSH key'
           type          : 'textarea'
           name          : 'sshkey'
+          label         : 'Key'
       buttons           :
         save            :
-          style         : 'solid medium green'
+          style         : 'solid small green'
           loader        : yes
           title         : 'Save'
           callback      : => @emit 'FormSaved'
         cancel          :
-          style         : 'solid medium light-gray'
+          style         : 'thin small gray'
           title         : 'Cancel'
           callback      : => @emit 'FormCancelled'
         remove          :
-          style         : 'solid medium red'
+          style         : 'thin small red'
           title         : 'Delete'
           callback      : => @emit 'FormDeleted'
 
@@ -53,7 +55,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
       partial  : """
       <div class='ssh-key-info'>
         <h4><span class="title">#{@getData().title}</span></h4>
-        <p><span class="key">#{@getData().key.substr(0,45)} . . . #{@getData().key.substr(-25)}</span></p>
+        <p><span class="key">#{@getData().key}</span></p>
       </div>
       """
 

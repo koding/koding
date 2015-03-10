@@ -3,6 +3,7 @@ kd = require 'kd'
 KDButtonView = kd.ButtonView
 AccountListViewController = require '../controllers/accountlistviewcontroller'
 remote = require('app/remote').getInstance()
+KDHeaderView = kd.HeaderView
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
@@ -34,11 +35,14 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       @instantiateListItems keys
       @hideLazyLoader()
 
-      @addButton?.destroy()
+      @header?.destroy()
 
-      @addButton = new KDButtonView
-        cssClass  : 'add-big-btn'
-        title     : 'Add new SSH key'
+      @header = new KDHeaderView
+        title : 'SSH Keys'
+
+      @header.addSubView new KDButtonView
+        title     : 'ADD NEW KEY'
+        style     : 'solid green small'
         icon      : yes
         callback  : =>
           unless @newItem
@@ -46,5 +50,5 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
             @addItem {key: '', title: ''}, 0
             @getListView().items.first.swapSwappable hideDelete: yes
 
-      @getListView().addSubView @addButton, '', yes
+      @getListView().addSubView @header, '', yes
 

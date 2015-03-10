@@ -57,7 +57,10 @@ module.exports = class AccountAppController extends AppController
 
   constructor:(options={}, data)->
 
-    options.view = new KDView cssClass : "content-page"
+    options.view = new KDModalView
+      title    : 'Account Settings'
+      cssClass : 'AppModal AppModal--account'
+      width    : 805
 
     super options, data
 
@@ -92,16 +95,18 @@ module.exports = class AccountAppController extends AppController
 
     mainView.addSubView aside = new KDView
       tagName   : 'aside'
-      cssClass  : 'app-sidebar'
+      cssClass  : 'AppModal-nav'
 
     aside.addSubView navView = @navController.getView()
 
-    mainView.addSubView @tabView = new KDTabView
+    mainView.addSubView appContent = new KDCustomHTMLView
+      cssClass            : 'AppModal-content'
+
+    appContent.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
 
     for own sectionKey, section of items
       @navController.instantiateListItems section.items
-      navView.addSubView new KDCustomHTMLView cssClass : "divider"
 
   showReferrerModal:(options={})->
     return  if @referrerModal and not @referrerModal.isDestroyed
