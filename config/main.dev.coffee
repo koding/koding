@@ -711,6 +711,9 @@ Configuration = (options={}) ->
         # a temporary migration line (do we still need this?)
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
 
+        # Create default workspaces
+        node scripts/create-default-workspace
+
         # Run all the worker daemons in KONFIG.workers
         #{("worker_daemon_"+key+"\n" for key,val of KONFIG.workers).join(" ")}
 

@@ -9,6 +9,7 @@ SidebarWorkspaceItem = require './sidebarworkspaceitem'
 MoreWorkspacesModal = require 'app/activity/sidebar/moreworkspacesmodal'
 AddWorkspaceView = require 'app/addworkspaceview'
 IDEAppController = require 'ide'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class SidebarMachineBox extends KDView
@@ -19,7 +20,11 @@ module.exports = class SidebarMachineBox extends KDView
 
     super options, data
 
-    @machine = new Machine machine: remote.revive data.machine
+    @machine = data.machine
+
+    unless @machine instanceof Machine
+      @machine = new Machine machine: remote.revive data.machine
+
     @workspaceListItemsById = {}
 
     { workspaces } = @getData()
@@ -30,6 +35,8 @@ module.exports = class SidebarMachineBox extends KDView
     @createWorkspacesLabel()
     @createWorkspacesList()
     @watchMachineState()
+
+    @machine.on 'MachineLabelUpdated', @bound 'handleMachineLabelUpdated'
 
 
   createWorkspacesList: ->
@@ -183,9 +190,25 @@ module.exports = class SidebarMachineBox extends KDView
       return workspaces.splice index, 1
 
 
+  handleMachineLabelUpdated: (label, slug) ->
+
+    environmentDataProvider.fetch =>
+      { router, appManager, mainView } = kd.singletons
+
+      mainView.activitySidebar.redrawMachineList()
+
+      frontApp      = appManager.getFrontApp()
+      isIDE         = frontApp.options.name is 'IDE'
+      wsData        = frontApp.workspaceData
+      isSameMachine = wsData.machineUId is @machine.uid
+
+      if isIDE and wsData and isSameMachine
+        router.handleRoute "/IDE/#{slug}/#{wsData.slug}"
+
+
   watchMachineState: ->
 
-    { Stopping, Running } = Machine.State
+    { Stopping, Terminating, Terminated } = Machine.State
 
     kd.singletons.computeController.on "public-#{@machine._id}", (event) =>
       state = event.status
@@ -196,10 +219,5 @@ module.exports = class SidebarMachineBox extends KDView
       @machine.status.state = state # FIXME: why it is not setting the state itself?
 
       switch state
-        when Stopping then @deselect()
-        # it was selecting koding-vm-0 my workspace if koding-vm-1 is
-        # turned off and navigated to /IDE/koding-vm-1/my-workspace
-        # when Running
-        #   { frontApp } = kd.singletons.appManager
-        #   if frontApp instanceof IDEAppController
-        #     @selectWorkspace frontApp.workspaceData.slug
+        when Stopping, Terminating then @deselect()
+        when Terminated then @destroy()
