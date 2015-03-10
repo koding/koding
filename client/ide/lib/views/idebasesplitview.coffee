@@ -12,7 +12,7 @@ module.exports = class IDEBaseSplitView extends KDSplitView
 
     @on 'PanelDidResize', kd.utils.debounce 10, =>
 
-      fileTree = @panels.first
+      return  unless fileTree = @panels.first
       @lastKnownFileTreeSize = fileTree.size
 
 
