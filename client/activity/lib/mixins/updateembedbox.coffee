@@ -1,7 +1,7 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-EmbedBox = require 'activity/views/embedbox'
-getEmbedType = require 'app/util/getEmbedType'
+EmbedBox         = require 'activity/views/embedbox'
+getEmbedType     = require 'app/util/getEmbedType'
 
 module.exports =  ->
 
@@ -20,4 +20,5 @@ module.exports =  ->
 
   @embedBoxWrapper.destroySubViews()
   @embedBoxWrapper.addSubView embedBox
+  @emit 'EmbedBoxUpdated'
 

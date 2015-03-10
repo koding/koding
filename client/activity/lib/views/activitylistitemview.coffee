@@ -47,6 +47,7 @@ module.exports = class ActivityListItemView extends KDListItemView
 
     @bindTransitionEnd()
 
+  updateEmbedBox: require 'activity/mixins/updateembedbox'
   handleUpdate:   require 'activity/mixins/handleUpdate'
 
   createSubViews: ->
@@ -175,9 +176,6 @@ module.exports = class ActivityListItemView extends KDListItemView
     @editWidget.destroy()
     @editWidget = null
     @embedBoxWrapper.show()
-
-
-  updateEmbedBox: updateEmbedBox
 
 
   resetEditing: ->
