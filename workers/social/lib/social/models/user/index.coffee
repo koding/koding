@@ -886,6 +886,9 @@ module.exports = class JUser extends jraphical.Module
     if /^guest-/.test username
       return callback createKodingError "Reserved username!"
 
+    if username is "guestuser"
+      return callback createKodingError "Reserved username: 'guestuser'!"
+
     if password isnt passwordConfirm
       return callback createKodingError "Passwords must match!"
 
