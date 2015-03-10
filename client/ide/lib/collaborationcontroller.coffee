@@ -310,9 +310,9 @@ module.exports =
 
     @rtmFileId = fileId
 
-    @rtm.getFile fileId
+    @rtm.getFile fileId, (err, doc) =>
+      return throwError err  if err
 
-    @rtm.once 'FileLoaded', (doc) =>
       nickname = nick()
       hostName = @collaborationHost
 

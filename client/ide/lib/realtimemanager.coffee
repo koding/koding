@@ -58,14 +58,14 @@ module.exports = class RealtimeManager extends KDObject
         @emit 'FileDeleted'
 
 
-  getFile: (fileId) ->
+  getFile: (fileId, callback) ->
 
     return throw new Error 'fileId is required'  unless fileId
 
     gapi.client.drive.files.get({ fileId }).execute (file) =>
       @emit 'FileFetched', file
 
-      @loadFile file.id
+      @loadFile file.id, callback
 
 
   fetchFileByTitle: (title, callback) ->
@@ -75,7 +75,7 @@ module.exports = class RealtimeManager extends KDObject
       @emit 'FileQueryFinished', file
 
 
-  loadFile: (fileId) ->
+  loadFile: (fileId, callback) ->
 
     return throw new Error 'fileId is required'  unless fileId
 
@@ -89,12 +89,14 @@ module.exports = class RealtimeManager extends KDObject
       doc.addEventListener gapi.drive.realtime.EventType.DOCUMENT_SAVE_STATE_CHANGED, (c) =>
         @emit 'DocumentSaveStateChanged', doc, c  unless @isDisposed
 
+      callback null, doc
       @emit 'FileLoaded', doc
 
     initializerFn = (model) =>
       @emit 'FileInitialized', model
 
     errorCallback = (error) =>
+      callback error
       @emit 'FileLoadFailed', error
 
     gapi.drive.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
