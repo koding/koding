@@ -595,9 +595,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         remote.api.SocialChannel.fetchFollowedChannelCount {}, callback
 
-    if kd.singletons.mainController.isFeatureDisabled 'channels'
-      @sections.channels.hide()
-
 
   addConversations: ->
 
