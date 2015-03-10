@@ -232,14 +232,14 @@ func TestStart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Println("Stopping machine")
+	log.Println("Stopping machine to start machine again")
 	if err := stop(userData.MachineId); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Starting machine")
 	if err := start(userData.MachineId); err != nil {
-		t.Error("`stop` method can not be called on `stopped` machines.")
+		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
 	}
 
 	if err := start(userData.MachineId); err == nil {
