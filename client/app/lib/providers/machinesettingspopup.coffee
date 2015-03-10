@@ -284,6 +284,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
             <span class='toggle'></span>
           "
           itemClass    : ManageSharedView
+          cssClass     : 'hidden'
           machine      : @machine
         domains        :
           label        : "
