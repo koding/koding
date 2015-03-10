@@ -18,8 +18,8 @@ module.exports = class ReplyInputEditWidget extends ReplyInputWidget
 
     {body, link} = @getData()
 
-    @input.setValue Encoder.htmlDecode body
-    @embedBox.loadEmbed link.link_url  if link
-
     @addSubView @embedBox
+
+    @input.setValue Encoder.htmlDecode body
+    @input.emit 'BeingEdited', link?.link_url
 

@@ -73,6 +73,10 @@ module.exports = class EmbedBoxWidget extends KDView
     input = @getDelegate()
 
     fn = @bound 'checkInputForUrls'
+    input.on 'BeingEdited', (url) =>
+      if url
+      then @fetchEmbed url, {}, @bound 'populateEmbed'
+      else @checkInputForUrls()
 
     delay = 1000
     timer = null

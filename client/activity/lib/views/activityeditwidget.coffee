@@ -17,8 +17,8 @@ module.exports = class ActivityEditWidget extends ActivityInputWidget
     data         = @getData()
     {body, link} = data
 
-    @input.setValue Encoder.htmlDecode body
-    @embedBox.loadEmbed link.link_url  if link
-
     @addSubView @input
     @addSubView @embedBox
+
+    @input.setValue Encoder.htmlDecode body
+    @input.emit 'BeingEdited', link?.link_url
