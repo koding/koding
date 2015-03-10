@@ -141,5 +141,3 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
     @form.showSuccess operation
 
-    @once 'KDModalViewDestroyed', =>
-      @emit 'PaymentWorkflowFinished', @state

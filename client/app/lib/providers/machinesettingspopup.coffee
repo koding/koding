@@ -291,7 +291,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
               <span class='help'></span>
             </a>
-            <span class='toggle'></span>
+            <span class='toggle add-domain'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine
