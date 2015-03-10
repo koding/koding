@@ -51,7 +51,7 @@ func Check(customer *paymentmodels.Customer, err error, plan *paymentmodels.Plan
 		return DowngradeToNonFreePlan, nil
 	}
 
-	if IsUpgradeFromExitingSub(oldPlan, plan) {
+	if IsUpgradeFromExistingSub(oldPlan, plan) {
 		return UpgradeFromExistingSub, nil
 	}
 
@@ -85,6 +85,6 @@ func IsDowngradeToNonFreePlan(oldPlan, plan *paymentmodels.Plan) bool {
 	return newPlanValue < oldPlanValue
 }
 
-func IsUpgradeFromExitingSub(oldPlan, plan *paymentmodels.Plan) bool {
+func IsUpgradeFromExistingSub(oldPlan, plan *paymentmodels.Plan) bool {
 	return !IsDowngradeToNonFreePlan(oldPlan, plan)
 }
