@@ -144,10 +144,11 @@ module.exports = class ActivityListItemView extends KDListItemView
 
     if updatedAt > createdAt
       @setClass 'edited'
-      if link?.link_url isnt payload?.link_url and payload?.link_embed
+      if link?.link_url isnt payload?.link_url and link and payload?.link_embed
         link.link_embed =
           try JSON.parse htmlencode.htmlDecode payload.link_embed
           catch e then null
+        link.link_url = payload.link_url
         @updateEmbedBox()
     else @unsetClass 'edited'
 
