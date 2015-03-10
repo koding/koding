@@ -94,7 +94,10 @@ module.exports = class ComputeResizeModal extends ComputePlansModal
       @resizeVMButton.enable()  unless usage.storage >= maxStorage
 
     if newUsage is @machineCurrentStorage
-      @resizeVMButton.disable()
+      # If not resized before disable to resize for minimum storage
+      # but for higher values allow user to call resize for the same
+      # storage size since we need that if somehow resize fails once ~GG
+      @resizeVMButton.disable()  if @machineCurrentStorage is 3
       @usageTextView.updatePartial "
         Currently <strong>#{@machine.label}</strong>
         has <strong>#{@machineCurrentStorage}GB</strong> storage

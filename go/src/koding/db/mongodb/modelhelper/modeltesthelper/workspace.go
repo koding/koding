@@ -8,9 +8,9 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func CreateWorkspaceForMachine(machineUId string) (*models.Workspace, error) {
+func CreateWorkspaceForMachine(account *models.Account, machineUId string) (*models.Workspace, error) {
 	workspace := &models.Workspace{
-		ObjectId: bson.NewObjectId(), MachineUID: machineUId,
+		ObjectId: bson.NewObjectId(), OriginId: account.Id, MachineUID: machineUId,
 	}
 
 	insertQuery := func(c *mgo.Collection) error {

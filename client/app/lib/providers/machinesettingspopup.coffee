@@ -291,7 +291,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
             <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
               <span class='help'></span>
             </a>
-            <span class='toggle'></span>
+            <span class='toggle add-domain'></span>
           "
           itemClass    : ManageDomainsView
           machine      : @machine
@@ -366,6 +366,8 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
       position : top : 40
 
     computeController.fetchUserPlan (plan)=>
+
+      @isPaidAccount = plan isnt 'free'
 
       if plan in ['free', 'hobbyist']
         @terminateButton.hide()
