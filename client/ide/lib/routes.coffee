@@ -177,22 +177,24 @@ module.exports = -> lazyrouter.bind 'ide', (type, info, state, path, ctx) ->
       { machineLabel } = info.params
 
       # we assume that if machineLabel is all numbers it is the channelId - SY
-      if /^[0-9]+$/.test machineLabel
-        loadCollaborativeIDE machineLabel
+      if /^[0-9]+$/.test machineLabel then loadCollaborativeIDE machineLabel
       else
-        dataProvider.fetchMachineByLabel machineLabel, (machine) ->
+        dataProvider.fetchMachine machineLabel, (machine) ->
           if machine then routeToMachineWorkspace machine
           else routeToLatestWorkspace()
 
     when 'workspace'
       { params } = info
-      params.username = username = nick()
 
-      dataProvider.fetchMachineAndWorkspace params, (machine, workspace) ->
+      dataProvider.fetchMachine params.machineLabel, (machine) =>
 
-        if machine and workspace
-          loadIDE { machine, workspace, username }
-        else if machine
-          routeToMachineWorkspace machine
+        if machine
+          username = machine.getOwner()
+          data = machineUId: machine.uid, workspaceSlug: params.workspaceSlug
+
+          dataProvider.fetchWorkspaceByMachineUId data, (workspace) =>
+            if workspace then loadIDE { machine, workspace, username }
+            else routeToMachineWorkspace machine
+
         else
           routeToLatestWorkspace()
