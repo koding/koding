@@ -7,7 +7,7 @@ var LoggedInHome = `
     {{template "header" . }}
 
     <link rel="stylesheet" href="/a/p/p/{{.Version}}/kd.css" />
-    <link rel="stylesheet" href="/a/p/p/{{.Version}}/common.css" />
+    <link rel="stylesheet" href="/a/p/p/{{.Version}}/app.css" />
   </head>
 
   <body class='logged-in dark ide'>
