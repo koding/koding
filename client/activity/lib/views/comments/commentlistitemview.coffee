@@ -45,7 +45,7 @@ module.exports = class CommentListItemView extends KDListItemView
     data.on 'update', @bound 'handleUpdate'
 
 
-  handleUpdate: require 'activity/mixins/handleUpdate'
+  handleUpdate: require '../../mixins/handleUpdate'
 
   handleInternalLink: (event) ->
 

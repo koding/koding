@@ -46,8 +46,8 @@ module.exports = class ActivityListItemView extends KDListItemView
 
     @bindTransitionEnd()
 
-  updateEmbedBox: require 'activity/mixins/updateembedbox'
-  handleUpdate:   require 'activity/mixins/handleUpdate'
+  updateEmbedBox: require '../mixins/updateembedbox'
+  handleUpdate:   require '../mixins/handleUpdate'
 
   createSubViews: ->
 
