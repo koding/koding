@@ -64,6 +64,28 @@ destroyChannel = (channel, callback) ->
 
 
 ###
+ * Wrapper function around `SocialApiController#fetchParticipants`
+ *
+ * One difference is instead of returning simple objects,
+ * it transforms them into `JAccount` objects.
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err: object, accounts: Array)}
+###
+fetchParticipants = (id, callback) ->
+
+  {socialapi} = kd.singletons
+
+  socialapi.channel.listParticipants {channelId: id}, (err, participants) ->
+    return callback err  if err
+
+    idList = participants.map ({accountId}) -> accountId
+    query  = { socialApiId: { $in: idList } }
+
+    remote.api.JAccount.some query, {}, callback
+
+
+###
  * Wrapper function around `SocialApiController#leaveChannel`
  *
  * @param {SocialChannel} channel
