@@ -29,7 +29,7 @@ module.exports =
     # added 'hello world' bc it first thinks that you type http://placehold.it/
     # and renders it as a link, but if we continue typing it understands that
     # it is an image
-    image = 'http://placehold.it/200x100 hello world!'
+    image    = 'http://placehold.it/200x100 hello world!'
     selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
 
     browser
@@ -48,7 +48,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    link = 'http://wikipedia.org/'
+    link         = 'http://wikipedia.org/'
     linkSelector = activitySelector + ' .activity-content-wrapper article a'
 
     helpers.doPostActivity(browser, link, yes, yes)
@@ -57,7 +57,7 @@ module.exports =
       href = result.value
       assert.equal(link, href)
 
-    browser.end()
+      browser.end()
 
 
   postCommentWithCode: (browser) ->
@@ -94,13 +94,15 @@ module.exports =
       href = result.value
       assert.equal(image, href)
 
+      browser.end()
+
 
   postCommentWithLink: (browser) ->
 
     helpers.beginTest(browser)
 
-    post     = helpers.getFakeText()
-    link = 'http://wikipedia.org/'
+    post         = helpers.getFakeText()
+    link         = 'http://wikipedia.org/'
     linkSelector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
 
     helpers.doPostActivity(browser, post)
@@ -110,4 +112,4 @@ module.exports =
       href = result.value
       assert.equal(link, href)
 
-    browser.end()
+      browser.end()
