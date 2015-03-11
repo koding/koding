@@ -38,8 +38,9 @@ module.exports =
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', image
-      .pause                  5000
+      .pause                  5000 # wait for image loading
       .click                  '[testpath=post-activity-button]'
+      .pause                  5000 # wait for image loading
       .waitForElementVisible   selector, 20000 # Assertion
       .end()
 
