@@ -13,6 +13,8 @@ RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
+realtimeHelpers               = require './collaboration/helpers/realtime'
+socialHelpers                 = require './collaboration/helpers/social'
 
 {warn} = kd
 
