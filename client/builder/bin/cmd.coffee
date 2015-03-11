@@ -60,11 +60,11 @@ yargs = require 'yargs'
   .boolean 'debug-css'
   .default 'debug-css', false
 
-  .describe 'minify-js', 'minify scripts with uglifyjs'
+  .describe 'minify-js', 'minify scripts'
   .boolean 'minify-js'
   .default 'minify-js', false
 
-  .describe 'minify-css', 'minify styles with clean-css'
+  .describe 'minify-css', 'minify styles'
   .boolean 'minify-css'
   .default 'minify-css', false
 

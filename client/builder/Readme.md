@@ -23,8 +23,8 @@ Options:
   --watch-sprites          enable watch mode for sprites
   --debug-js               enable source maps for scripts
   --debug-css              enable source maps for styles
-  --minify-js              minify scripts with uglifyjs
-  --minify-css             minify styles with clean-css
+  --minify-js              minify scripts
+  --minify-css             minify styles
   --extract-js-sourcemaps  extract source maps in debug mode
   --rev-id                 write outfiles into $outdir/$git-revision-id
   --notify                 enable system notifications in watch mode
