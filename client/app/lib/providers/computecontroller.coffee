@@ -88,6 +88,12 @@ module.exports = class ComputeController extends KDController
     @_trials[machine.uid] = {}
 
 
+  methodNotSupportedBy = (machine)->
+    if machine?.provider is 'managed'
+      return
+        name    : 'NotSupported'
+        message : 'Operation is not supported for this VM'
+
   errorHandler: (call, task, machine)->
 
     { timeout, Error } = ComputeController
@@ -367,6 +373,8 @@ module.exports = class ComputeController extends KDController
 
   destroy: (machine, force)->
 
+    return if methodNotSupportedBy machine
+
     destroy = (machine)=>
 
       @eventListener.triggerState machine,
@@ -400,6 +408,8 @@ module.exports = class ComputeController extends KDController
 
   reinit: (machine)->
 
+    return if methodNotSupportedBy machine
+
     ComputeController_UI.askFor 'reinit', {machine, force: @_force}, =>
 
       @eventListener.triggerState machine,
@@ -427,6 +437,8 @@ module.exports = class ComputeController extends KDController
 
 
   resize: (machine, resizeTo = 10)->
+
+    return if methodNotSupportedBy machine
 
     ComputeController_UI.askFor 'resize', {
       machine, force: @_force, resizeTo
@@ -467,6 +479,8 @@ module.exports = class ComputeController extends KDController
 
   build: (machine)->
 
+    return if methodNotSupportedBy machine
+
     @eventListener.triggerState machine,
       status      : Machine.State.Building
       percentage  : 0
@@ -489,6 +503,8 @@ module.exports = class ComputeController extends KDController
 
 
   start: (machine)->
+
+    return if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
       status      : Machine.State.Starting
@@ -513,6 +529,8 @@ module.exports = class ComputeController extends KDController
 
   stop: (machine)->
 
+    return if methodNotSupportedBy machine
+
     @eventListener.triggerState machine,
       status      : Machine.State.Stopping
       percentage  : 0
@@ -536,6 +554,9 @@ module.exports = class ComputeController extends KDController
 
 
   setAlwaysOn: (machine, state, callback = kd.noop)->
+
+    if err = methodNotSupportedBy machine
+      return callback err
 
     options =
       machineId : machine._id
