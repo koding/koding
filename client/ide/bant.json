@@ -5,5 +5,11 @@
      "/:name?/IDE": "home",
      "/:name?/IDE/:machineLabel": "machine",
      "/:name?/IDE/:machineLabel/:workspaceSlug": "workspace"
-   }
+   },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
 }
