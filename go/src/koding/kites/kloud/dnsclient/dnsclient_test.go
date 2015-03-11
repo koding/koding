@@ -15,10 +15,11 @@ import (
 )
 
 var (
-	dns        *DNS
-	testDomain = "kloud-test.dev.koding.io"
-	testIP     = "192.168.1.1"
-	testIP2    = "192.168.1.2"
+	dns         *DNS
+	testDomain  = "kloud-test.dev.koding.io"
+	testDomain2 = "kloud-test2.dev.koding.io"
+	testIP      = "192.168.1.1"
+	testIP2     = "192.168.1.2"
 )
 
 func init() {
@@ -83,13 +84,30 @@ func TestUpdate(t *testing.T) {
 
 }
 
-func TestDelete(t *testing.T) {
-	err := dns.Delete(testDomain)
+func TestRename(t *testing.T) {
+	err := dns.Rename(testDomain, testDomain2)
 	if err != nil {
 		t.Error(err)
 	}
 
-	_, err = dns.Get(testDomain)
+	record, err := dns.Get(testDomain2)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	equals(t, testDomain2, strings.TrimSuffix(record.Name, "."))
+	equals(t, testIP2, record.IP)
+	equals(t, 30, record.TTL)
+
+}
+
+func TestDelete(t *testing.T) {
+	err := dns.Delete(testDomain2)
+	if err != nil {
+		t.Error(err)
+	}
+
+	_, err = dns.Get(testDomain2)
 	if err != ErrNoRecord {
 		t.Errorf("Domain '%s' is deleted, but got a different error: %s", testDomain, err)
 	}

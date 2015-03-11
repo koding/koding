@@ -115,7 +115,12 @@ func (d *DNS) Get(domain string) (*protocol.Record, error) {
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction
-func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
+func (d *DNS) Rename(oldDomain, newDomain string) error {
+	record, err := d.Get(oldDomain)
+	if err != nil {
+		return err
+	}
+
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Renaming domain",
 		Changes: []route53.Change{
@@ -124,24 +129,24 @@ func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 				Record: route53.ResourceRecordSet{
 					Type:    "A",
 					Name:    oldDomain,
-					TTL:     300,
-					Records: []string{currentIP},
+					TTL:     record.TTL,
+					Records: []string{record.IP},
 				},
 			},
 			route53.Change{
-				Action: "CREATE",
+				Action: "UPSERT",
 				Record: route53.ResourceRecordSet{
 					Type:    "A",
 					Name:    newDomain,
-					TTL:     300,
-					Records: []string{currentIP},
+					TTL:     record.TTL,
+					Records: []string{record.IP},
 				},
 			},
 		},
 	}
 
-	d.Log.Debug("updating name of IP %s from %v to %v", currentIP, oldDomain, newDomain)
-	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	d.Log.Debug("updating domain name of IP %s from %v to %v", record.IP, oldDomain, newDomain)
+	_, err = d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
 		return errors.New("could not rename domain")
