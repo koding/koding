@@ -202,21 +202,15 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 	}
 
 	filteredUsers := make([]bson.ObjectId, 0)
-	for _, toBeRemovedUser := range toBeRemovedUsers {
-		found := false
-
-		for _, user := range machine.Users {
-			if !user.Permanent {
-				continue
-			}
-
-			if toBeRemovedUser.Hex() == user.Id.Hex() {
-				found = true
-			}
+	permanentUsers := make(map[string]struct{})
+	for _, user := range machine.Users {
+		if user.Permanent {
+			permanentUsers[user.Id.Hex()] = struct{}{}
 		}
+	}
 
-		// if the user is not permanent, add it to the deletion slice
-		if !found {
+	for _, toBeRemovedUser := range toBeRemovedUsers {
+		if _, ok := permanentUsers[toBeRemovedUser.Hex()]; !ok {
 			filteredUsers = append(filteredUsers, toBeRemovedUser)
 		}
 	}
