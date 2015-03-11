@@ -90,9 +90,10 @@ module.exports = class ComputeController extends KDController
 
   methodNotSupportedBy = (machine)->
     if machine?.provider is 'managed'
-      return
+      return {
         name    : 'NotSupported'
         message : 'Operation is not supported for this VM'
+      }
 
   errorHandler: (call, task, machine)->
 
