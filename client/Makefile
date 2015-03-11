@@ -25,24 +25,24 @@ BUILDER_WATCH_FLAGS?=--watch-js --watch-css --watch-sprites
 BUILDER_MINIFY_FLAGS?=--minify-css --minify-js
 BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 
-all: landing client
+all: landing development
 
-client:
-	@$(BUILDER) $(BUILDER_ARGS) $(BUILDER_MINIFY_FLAGS)
-
-dev:
+debug:
 	$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_DEBUG_FLAGS)
 
 watch:
-	@$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS)
-
-watch-no-debug:
 	@$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_WATCH_FLAGS)
 
-extract-sourcemaps:
+development:
+	@$(BUILDER) -v $(BUILDER_ARGS) $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS)
+
+minify-with-external-sourcemaps:
 	@$(BUILDER) $(BUILDER_ARGS) \
 		$(BUILDER_MINIFY_FLAGS) \
 		$(BUILDER_EXT_SOURCEMAPS_FLAGS)
+
+minify:
+	@$(BUILDER) $(BUILDER_ARGS) $(BUILDER_MINIFY_FLAGS)
 
 landing:
 	@$(MAKE) -C landing
