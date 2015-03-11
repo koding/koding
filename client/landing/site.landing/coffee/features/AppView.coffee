@@ -184,6 +184,7 @@ module.exports = class FeaturesView extends KDView
 
 
   selectTab : (tabName) ->
+
     if not tabName
       for name, content of TABS
         if content.isDefault

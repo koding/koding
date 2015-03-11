@@ -52,6 +52,7 @@ module.exports = class LegalView extends JView
 
 
   selectTab : (token) ->
+
     if not token
       for sectionToken, sectionSettings of SECTIONS
         if sectionSettings.isDefault
