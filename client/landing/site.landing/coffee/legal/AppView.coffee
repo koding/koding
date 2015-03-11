@@ -35,27 +35,32 @@ module.exports = class LegalView extends JView
 
     @handles = {}
     @prepareTabHandles()
-    @selectTab()
 
     @addSubView @footer = new FooterView
 
 
   prepareTabHandles : ->
 
-    for token, settings of SECTIONS
-      { isDefault, tabTitle } = settings
-      tabPath = if isDefault then '' else "/#{token}"
-      @handles[token] = handle = new CustomLinkView
+    for sectionToken, sectionSettings of SECTIONS
+      { isDefault, tabTitle } = sectionSettings
+      tabPath = if isDefault then '' else "/#{sectionToken}"
+      @handles[sectionToken] = handle = new CustomLinkView
         title           : tabTitle
         href            : "/Legal#{tabPath}"
 
       @addSubView handle, 'nav'
 
 
-  selectTab : (token = 'Policy') ->
+  selectTab : (token) ->
+    if not token
+      for sectionToken, sectionSettings of SECTIONS
+        if sectionSettings.isDefault
+          token = sectionToken
+          break
+
     {bigTitle, view} = SECTIONS[token]
 
-    for tkn, handle of @handles
+    for sectionToken, handle of @handles
       handle.unsetClass 'active'
 
     @handles[token]?.setClass 'active'
