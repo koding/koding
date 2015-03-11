@@ -25,7 +25,7 @@ BUILDER_WATCH_FLAGS?=--watch-js --watch-css --watch-sprites
 BUILDER_MINIFY_FLAGS?=--minify-css --minify-js
 BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 
-all: client landing
+all: landing client
 
 client:
 	@$(BUILDER) $(BUILDER_ARGS) $(BUILDER_MINIFY_FLAGS)
