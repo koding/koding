@@ -145,9 +145,18 @@ module.exports = class AddManagedVMModal extends kd.ModalView
 
       when States.ListKites
 
-        addTo @container,
+        {list, button} = addTo @container,
           instructions : INSTALL_INSTRUCTIONS
-          list         : data
+          list         : { data, itemClass: KiteItem }
+          button       :
+            title      : 'Add Selected Node'
+            disabled   : yes
+            callback   : =>
+              @createMachine list.controller.selectedItems.first.getData()
+
+        list.controller.on 'ItemSelectionPerformed', button.bound 'enable'
+
+
   createMachine: (kite)->
 
     { computeController, router } = kd.singletons
