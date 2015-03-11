@@ -45,9 +45,6 @@ extract-sourcemaps:
 		$(BUILDER_EXT_SOURCEMAPS_FLAGS)
 
 landing:
-	@cd landing && npm install --unsafe-perm --silent
-	@cd landing && rm -rf node_modules/gulp.spritesmith/node_modules/spritesmith/node_modules/canvassmith
-	@cd landing && $(BIN)/gulp build-all-sites --koding-version=$(git rev-parse HEAD)
-	@cd landing && rsync -av static/a/ ../../website/a/
+	@$(MAKE) -C landing
 
 .PHONY: landing
