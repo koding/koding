@@ -38,7 +38,7 @@ func init() {
 }
 
 func TestCreate(t *testing.T) {
-	err := dns.Create(testDomain, testIP)
+	err := dns.Upsert(testDomain, testIP)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,23 +48,9 @@ func TestCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(testIP, record.IP) {
-		_, file, line, _ := runtime.Caller(0)
-		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, testIP, record.IP)
-		t.FailNow()
-	}
-
-	if !reflect.DeepEqual(30, record.TTL) {
-		_, file, line, _ := runtime.Caller(0)
-		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, 30, record.TTL)
-		t.FailNow()
-	}
-
-	if !reflect.DeepEqual(testDomain, strings.TrimSuffix(record.Name, ".")) {
-		_, file, line, _ := runtime.Caller(0)
-		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, testDomain, record.Name)
-		t.FailNow()
-	}
+	equals(t, testDomain, strings.TrimSuffix(record.Name, "."))
+	equals(t, testIP, record.IP)
+	equals(t, 30, record.TTL)
 
 	// resp, err := http.Get("http://" + testDomain)
 	// if err != nil {
@@ -81,7 +67,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	err := dns.Update(testDomain, testIP, testIP2)
+	err := dns.Upsert(testDomain, testIP2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -91,23 +77,9 @@ func TestUpdate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !reflect.DeepEqual(testDomain, strings.TrimSuffix(record.Name, ".")) {
-		_, file, line, _ := runtime.Caller(0)
-		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, testDomain, strings.TrimSuffix(record.Name, "."))
-		t.FailNow()
-	}
-
-	if !reflect.DeepEqual(testIP2, record.IP) {
-		_, file, line, _ := runtime.Caller(0)
-		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, testIP2, record.IP)
-		t.FailNow()
-	}
-
-	if !reflect.DeepEqual(30, record.TTL) {
-		_, file, line, _ := runtime.Caller(0)
-		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, 30, record.TTL)
-		t.FailNow()
-	}
+	equals(t, testDomain, strings.TrimSuffix(record.Name, "."))
+	equals(t, testIP2, record.IP)
+	equals(t, 30, record.TTL)
 
 }
 
@@ -120,5 +92,14 @@ func TestDelete(t *testing.T) {
 	_, err = dns.Get(testDomain)
 	if err != ErrNoRecord {
 		t.Errorf("Domain '%s' is deleted, but got a different error: %s", testDomain, err)
+	}
+}
+
+// equals fails the test if exp is not equal to act.
+func equals(tb testing.TB, exp, act interface{}) {
+	if !reflect.DeepEqual(exp, act) {
+		_, file, line, _ := runtime.Caller(1)
+		fmt.Printf("\033[31m%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\033[39m\n\n", filepath.Base(file), line, exp, act)
+		tb.FailNow()
 	}
 }

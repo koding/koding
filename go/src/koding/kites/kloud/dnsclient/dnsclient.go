@@ -53,12 +53,11 @@ func New(hostedZone string, auth aws.Auth) *DNS {
 	}
 }
 
-// CreateDomain creates a new domain record for the given domain with the given
-// ip address. If the record already exists, the record is updated with the new
-// IP (upsert operation).
-func (d *DNS) Create(domain string, newIp string) error {
+// Upsert creates or updates a the domain record with the given ip address. If
+// the record already exists, the record is updated with the new IP.
+func (d *DNS) Upsert(domain string, newIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Creating domain",
+		Comment: "Upserting domain",
 		Changes: []route53.Change{
 			route53.Change{
 				Action: "UPSERT",
@@ -66,13 +65,13 @@ func (d *DNS) Create(domain string, newIp string) error {
 					Type:    "A",
 					Name:    domain,
 					TTL:     30,
-					Records: []string{newIp},
+					Records: []string{newIP},
 				},
 			},
 		},
 	}
 
-	d.Log.Debug("creating domain name: %s to be associated with following ip: %v", domain, newIp)
+	d.Log.Debug("upserting domain name: %s to be associated with following ip: %v", domain, newIP)
 	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
@@ -146,42 +145,6 @@ func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 	if err != nil {
 		d.Log.Error(err.Error())
 		return errors.New("could not rename domain")
-	}
-
-	return nil
-}
-
-// Update changes the domains ip from oldIP to newIP in a single transaction
-func (d *DNS) Update(domain, oldIP, newIP string) error {
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Updating a domain",
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "DELETE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    domain,
-					TTL:     300,
-					Records: []string{oldIP}, // needs old ip
-				},
-			},
-			route53.Change{
-				Action: "CREATE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    domain,
-					TTL:     300,
-					Records: []string{newIP},
-				},
-			},
-		},
-	}
-
-	d.Log.Debug("updating domain %s IP from %v to %v", domain, oldIP, newIP)
-	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
-	if err != nil {
-		d.Log.Error(err.Error())
-		return errors.New("could not update domain")
 	}
 
 	return nil
