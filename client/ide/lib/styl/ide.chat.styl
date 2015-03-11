@@ -207,7 +207,11 @@ pmLinkColor   = #B6B6B6
 
     .kdlistitemview-activity.privatemessage
       background            transparent
-      margin                0 0 0 22px
+      margin                0
+      padding-left          22px
+
+      .link-embed-box
+        hidden()
 
       .avatarview
         bg                  size, 30px 30px !important
@@ -217,6 +221,9 @@ pmLinkColor   = #B6B6B6
         img
           width             30px !important
           height            30px !important
+
+      .settings-menu-wrapper
+        right               15px
 
       .activity-content-wrapper
         margin              0 0 0 40px
