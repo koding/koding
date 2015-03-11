@@ -170,7 +170,7 @@ module.exports =
       @initPrivateMessage callback
 
 
-  getRealTimeFileName: (id) ->
+  getRealtimeFileName: (id) ->
 
     unless id
       if @channelId          then id = @channelId
@@ -310,9 +310,10 @@ module.exports =
 
     @rtmFileId = fileId
 
-    @rtm.getFile fileId
+    options = { id: fileId }
+    @rtm.getFile options, (err, doc) =>
+      return throwError err  if err
 
-    @rtm.once 'FileLoaded', (doc) =>
       nickname = nick()
       hostName = @collaborationHost
 
@@ -493,14 +494,14 @@ module.exports =
   isRealtimeSessionActive: (id, callback) ->
 
     kallback = =>
-      @rtm.once 'FileQueryFinished', (file) =>
+      options = { title: @getRealtimeFileName id }
+      @rtm.fetchFileByTitle options, (err, file) =>
+        return callback no  if err
 
         if file.result.items.length > 0
-          callback yes, file
-        else
-          callback no
+        then callback yes, file
+        else callback no
 
-      @rtm.fetchFileByTitle @getRealTimeFileName id
 
     if @rtm then kallback()
     else
@@ -729,10 +730,11 @@ module.exports =
     @collaborationJustInitialized = yes
 
     @rtm = new RealtimeManager  unless @rtm
-    @rtm.once 'FileCreated', (file) =>
-      @loadCollaborationFile file.id
 
-    @rtm.createFile @getRealTimeFileName()
+    options = { title: @getRealtimeFileName() }
+    @rtm.createFile options, (err, file) =>
+      return throwError err  if err
+      @loadCollaborationFile file.id
 
     @setMachineSharingStatus on, (err) ->
 
@@ -760,7 +762,10 @@ module.exports =
     if @amIHost
       @broadcastMessages.push origin: nickname, type: 'SessionEnded'
 
-    @rtm.once 'FileDeleted', =>
+    options = { title: @getRealtimeFileName() }
+    @rtm.deleteFile options, (err) =>
+      return throwError err  if err
+
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
       @modal?.destroy()
@@ -775,7 +780,6 @@ module.exports =
         callback null
 
     @mySnapshot.clear()
-    @rtm.deleteFile @getRealTimeFileName()
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
