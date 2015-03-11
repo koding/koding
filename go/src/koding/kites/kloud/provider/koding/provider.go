@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb"
 
 	amazonClient "koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -48,7 +49,7 @@ type Provider struct {
 
 	// AWS related references and settings
 	EC2Clients *multiec2.Clients
-	DNS        *DNS
+	DNS        *dnsclient.DNS
 	Bucket     *Bucket
 
 	KontrolURL        string

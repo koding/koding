@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/protocol"
 	"time"
 
@@ -169,7 +170,7 @@ func (p *Provider) UpdateDomain(ip, domain, username string) error {
 
 	// Check if the record exist, if yes update the ip instead of creating a new one.
 	record, err := p.DNS.Get(domain)
-	if err == ErrNoRecord {
+	if err == dnsclient.ErrNoRecord {
 		if err := p.DNS.Create(domain, ip); err != nil {
 			return err
 		}

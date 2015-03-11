@@ -1,4 +1,4 @@
-package koding
+package dnsclient
 
 import (
 	"errors"
@@ -21,8 +21,8 @@ type DNS struct {
 	Log        logging.Logger
 }
 
-// NewDNSClient initializes a new DNS instance with default Koding credentials
-func NewDNSClient(hostedZone string, auth aws.Auth) *DNS {
+// New initializes a new DNS instance with default Koding credentials
+func New(hostedZone string, auth aws.Auth) *DNS {
 	// our route53 is based on this region, so we use it
 	dns := route53.New(auth, aws.USEast)
 
