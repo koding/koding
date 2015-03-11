@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
-	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/protocol"
 	"time"
 
@@ -168,26 +167,7 @@ func (p *Provider) UpdateDomain(ip, domain, username string) error {
 		return err
 	}
 
-	// Check if the record exist, if yes update the ip instead of creating a new one.
-	record, err := p.DNS.Get(domain)
-	if err == dnsclient.ErrNoRecord {
-		if err := p.DNS.Create(domain, ip); err != nil {
-			return err
-		}
-	} else if err != nil {
-		// If it's something else just return it
-		return err
-	}
-
-	// Means the record exist, update it
-	if err == nil {
-		p.Log.Warning("Domain '%s' already exists (that shouldn't happen). Going to update to new IP", domain)
-		if err := p.DNS.Update(domain, record.IP, ip); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return p.DNS.Upsert(domain, ip)
 }
 
 func allocateAndAssociateIP(client *ec2.EC2, instanceId string) (string, error) {
