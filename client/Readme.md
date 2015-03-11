@@ -28,6 +28,12 @@ Following will start the koding application and client builder in watch mode:
 λ dev/koding make run
 ```
 
+Or, if you haven't run configure yet:
+
+```sh
+λ dev/koding HOST=xyz.koding.io PORT=8090 make all
+```
+
 You can also `./run backend` only which is the prefered way to develop frontend:
 
 ```sh
