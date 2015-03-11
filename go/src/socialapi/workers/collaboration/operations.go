@@ -206,7 +206,6 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 		found := false
 
 		for _, user := range machine.Users {
-			// if user is permanent and found in `toBeRemovedUsers` dont remove it
 			if !user.Permanent {
 				continue
 			}
