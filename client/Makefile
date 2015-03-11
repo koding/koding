@@ -8,6 +8,9 @@ all: landing
 scripts:
 	@DEBUG=client:*,bant:* $(BIN)/gulp scripts --devMode --watchMode
 
+production: landing
+	@DEBUG=client:*,bant:* $(BIN)/gulp scripts --devMode --exorcistMode
+
 build: landing
 	@DEBUG=client:* $(BIN)/gulp
 
