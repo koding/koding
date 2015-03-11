@@ -2,9 +2,6 @@ package dnsclient
 
 import (
 	"fmt"
-	"io"
-	"log"
-	"net/http"
 	"path/filepath"
 	"reflect"
 	"runtime"
@@ -18,8 +15,8 @@ var (
 	dns         *DNS
 	testDomain  = "kloud-test.dev.koding.io"
 	testDomain2 = "kloud-test2.dev.koding.io"
-	testIP      = "192.168.1.1"
-	testIP2     = "192.168.1.2"
+	testIP      = "127.0.0.1"
+	testIP2     = "127.0.0.2"
 )
 
 func init() {
@@ -29,13 +26,6 @@ func init() {
 	}
 
 	dns = New("dev.koding.io", auth)
-
-	go func() {
-		err := http.ListenAndServe(":8888", http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			io.WriteString(w, "hello, world!\n")
-		}))
-		log.Println(err)
-	}()
 }
 
 func TestCreate(t *testing.T) {
@@ -52,19 +42,6 @@ func TestCreate(t *testing.T) {
 	equals(t, testDomain, strings.TrimSuffix(record.Name, "."))
 	equals(t, testIP, record.IP)
 	equals(t, 30, record.TTL)
-
-	// resp, err := http.Get("http://" + testDomain)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	// defer resp.Body.Close()
-	//
-	// data, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-	//
-	// fmt.Printf("string(data) = %+v\n", string(data))
 }
 
 func TestUpdate(t *testing.T) {
