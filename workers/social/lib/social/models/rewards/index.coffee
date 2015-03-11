@@ -24,9 +24,7 @@ module.exports = class JReward extends jraphical.Message
           (signature Object, Function)
         fetchEarnedAmount:
           (signature Object, Function)
-        fetchReferrals:
-          (signature Object, Object, Function)
-        fetchReferredAccounts:
+        some:
           (signature Object, Object, Function)
 
     sharedEvents      :
@@ -39,7 +37,7 @@ module.exports = class JReward extends jraphical.Message
       # since bongo is not supporting them
       # we need to manually define following:
       #
-      #   - providedBy, originId, sourceCampaign (unique)
+      #   - { providedBy:1, originId:1, sourceCampaign:1 } (unique)
       #
 
       type            : 'sparse'
@@ -161,7 +159,9 @@ module.exports = class JReward extends jraphical.Message
     unless username
       return callback new KodingError "Please set username"
 
-    providedBy = client.connection.delegate.getId()
+    providedBy = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  if not providedBy
 
     JAccount.one 'profile.nickname': username, (err, account)->
 
@@ -190,10 +190,9 @@ module.exports = class JReward extends jraphical.Message
           callback null, reward
 
 
-  @fetchEarnedAmount = secure (client, options, callback)->
+  @fetchEarnedAmount = (options, callback)->
 
     options = useDefault options
-    options.originId = client.connection.delegate.getId()
 
     fetchEarnedReward options, (err, earnedReward)->
       return callback err  if err?
@@ -204,14 +203,30 @@ module.exports = class JReward extends jraphical.Message
       # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
-  @fetchReferrals = secure (client, query, options, callback)->
-    query.originId = client.connection.delegate.getId()
-    JReward.some query, options, callback
+  @fetchEarnedAmount$ = secure (client, options, callback)->
+
+    originId = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  unless originId
+
+    options         ?= {}
+    options.originId = originId
+
+    @fetchEarnedAmount options, callback
 
 
-  @fetchReferredAccounts = secure (client, query, options, callback)->
-    username = client.connection.delegate.profile.nickname
-    JAccount.some { referrerUsername : username }, options, callback
+  @some$ = secure (client, selector, options, callback)->
+
+    originId = client?.connection?.delegate?.getId()
+
+    return callback { message : "account is not set" }  unless originId
+
+    selector ?= {}
+    options  ?= {}
+
+    selector.originId = originId
+
+    @some selector, options, callback
 
 
 
@@ -219,21 +234,6 @@ module.exports = class JReward extends jraphical.Message
   # --------------------
 
   do ->
-
-    JAccount.on 'AccountRegistered', (me, referrerUsername)->
-
-      return console.error "Account is not defined in event"  unless me
-      return  unless referrerUsername
-
-      {nickname} = me.profile
-      if nickname is referrerUsername
-        return console.error "User (#{nickname}) tried to refer themself."
-
-      me.update $set: { referrerUsername }, (err)->
-
-        unless err
-          console.log "reward saved for #{nickname} from #{referrerUsername}"
-
 
     persistRewards = (campaign, source, target, callback)->
 

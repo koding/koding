@@ -5,38 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
-
-	"labix.org/v2/mgo/bson"
 )
 
 func sendAccount(account *models.Account, outputter *Outputter) {
 	outputter.OnItem <- &Item{Name: "Account", Data: account}
-}
-
-func fetchMachines(userId bson.ObjectId, outputter *Outputter) {
-	machines, err := modelhelper.GetMachines(userId)
-	if err != nil {
-		Log.Error("Couldn't fetch machines: %s", err)
-		machines = []*modelhelper.MachineContainer{}
-	}
-
-	outputter.OnItem <- &Item{Name: "Machines", Data: machines}
-}
-
-func fetchWorkspaces(accountId bson.ObjectId, outputter *Outputter) {
-	workspaces, err := modelhelper.GetWorkspaces(accountId)
-	if err != nil {
-		Log.Error("Couldn't fetch workspaces: %s", err)
-		workspaces = []*models.Workspace{}
-	}
-
-	outputter.OnItem <- &Item{Name: "Workspaces", Data: workspaces}
 }
 
 func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
@@ -127,7 +104,7 @@ func socialUrls(id string, extras ...string) map[string]string {
 		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id, extras...),
 		"privateMessages":  buildUrl("%s/privatechannel/list?accountId=%s", id, extras...),
 		"popularPosts":     buildUrl("%s/popular/posts/public?accountId=%s", id, extras...),
-		"pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id, extras...),
+		// "pinnedMessages":   buildUrl("%s/activity/pin/list?accountId=%s", id, extras...),
 	}
 
 	return urls

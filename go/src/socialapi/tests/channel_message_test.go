@@ -57,6 +57,21 @@ func TestChannelMessage(t *testing.T) {
 
 		})
 
+		Convey("topic messages initialChannelId must be set as owner group channel id", func() {
+			topicChannel, err := rest.CreateChannelByGroupNameAndType(account.Id, "koding", models.Channel_TYPE_TOPIC)
+			So(err, ShouldBeNil)
+			So(topicChannel, ShouldNotBeNil)
+
+			post, err := rest.CreatePost(topicChannel.Id, account.Id)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+			So(post.InitialChannelId, ShouldNotEqual, topicChannel.Id)
+
+			publicChannel, err := rest.GetChannel(post.InitialChannelId)
+			So(err, ShouldBeNil)
+			So(publicChannel.TypeConstant, ShouldEqual, models.Channel_TYPE_GROUP)
+		})
+
 		Convey("message can be deleted by owner", func() {
 			post, err := rest.CreatePost(groupChannel.Id, account.Id)
 			So(err, ShouldBeNil)

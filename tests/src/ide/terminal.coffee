@@ -1,7 +1,6 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
+
 paneSelector = '.pane-wrapper .kdsplitview-panel.panel-1 .application-tab-handle-holder'
 
 
@@ -105,10 +104,10 @@ module.exports =
 
     getSessionData = =>
 
-      selector = '.kdcontextmenu:visible ul + li:not(.disabled)'
+      selector = '.kdcontextmenu ul + li:not(.disabled)'
       matcher  = /session-(\w+)\S+/
 
-      return $(selector).eq(0).attr('class').match(matcher)
+      return document.querySelector(selector).getAttribute('class').match(matcher)
 
     browser.execute getSessionData, [], (result) =>
 

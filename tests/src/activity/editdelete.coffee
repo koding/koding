@@ -1,6 +1,4 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
@@ -37,7 +35,7 @@ module.exports =
       .waitForElementVisible        activitySelector + ' .settings-menu-wrapper', 25000
       .click                        activitySelector + ' .settings-menu-wrapper'
       .click                        '.kdcontextmenu .delete-post'
-      .click                        '.kdmodal-inner .modal-clean-red'
+      .click                        '.kdmodal-inner .solid.red.medium'
       .pause                        20000, ->
         text = browser.getText activitySelector
         assert.notEqual text, post # Assertion
@@ -76,7 +74,7 @@ module.exports =
       .click                    commentSelector
       .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
       .click                    '.kdcontextmenu .delete-comment'
-      .click                    '.kdmodal-inner .modal-clean-red'
+      .click                    '.kdmodal-inner .solid.red.medium'
       .pause                    20000, ->
         text = browser.getText activitySelector + ' .comment-container'
         assert.notEqual text, post # Assertion
@@ -93,7 +91,23 @@ module.exports =
       .click                    commentSelector
       .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
       .click                    '.kdcontextmenu .delete-comment'
-      .click                    '.kdmodal-inner .modal-cancel'
+      .click                    '.kdmodal-inner .solid.light-gray.medium'
+      .waitForElementNotPresent '.kdoverlay', 25000
+      .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
+      .end()
+
+
+  cancelEditDeletion: (browser) ->
+
+    comment         = helpers.postComment(browser)
+    commentSelector = activitySelector + ' .comment-container button.comment-menu'
+
+    browser
+      .waitForElementPresent    commentSelector, 25000
+      .click                    commentSelector
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
+      .click                    '.kdcontextmenu .delete-comment'
+      .click                    '.kdmodal-inner .solid.light-gray.medium'
       .waitForElementNotPresent '.kdoverlay', 25000
       .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
       .end()

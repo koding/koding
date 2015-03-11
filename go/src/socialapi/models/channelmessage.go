@@ -193,21 +193,22 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	}
 
 	var err error
-	cmc.Message, err = cmc.Message.PopulateAddedBy()
+	cmc.Message, err = cmc.Message.PopulatePayload()
 	if err != nil {
 		return nil, err
 	}
 
-	cmc.Message, err = cmc.Message.PopulateInitialParticipants()
-	if err != nil {
-		return nil, err
-	}
-
-	return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
+	// return cmc, cmc.AddIsFollowed(query).AddIsInteracted(query).Err
+	return cmc, cmc.AddIsInteracted(query).Err
 }
 
 func (c *ChannelMessage) CheckIsMessageFollowed(query *request.Query) (bool, error) {
+	if query.AccountId == 0 {
+		return false, nil
+	}
+
 	channel := NewChannel()
+
 	if err := channel.FetchPinnedActivityChannel(query.AccountId, query.GroupName); err != nil {
 		if err == bongo.RecordNotFound {
 			return false, nil
@@ -473,6 +474,24 @@ func (c *ChannelMessage) DeleteMessageAndDependencies(deleteReplies bool) error 
 	return c.Delete()
 }
 
+// AddReply adds the reply message to db ,
+// according to message id
+func (c *ChannelMessage) AddReply(reply *ChannelMessage) (*MessageReply, error) {
+	if c.Id == 0 {
+		return nil, ErrChannelMessageIdIsNotSet
+	}
+	mr := NewMessageReply()
+	mr.MessageId = c.Id
+	mr.ReplyId = reply.Id
+	mr.CreatedAt = reply.CreatedAt
+	if err := mr.Create(); err != nil {
+		return nil, err
+	}
+
+	return mr, nil
+
+}
+
 //  DeleteReplies deletes all the replies of a given ChannelMessage, one level deep
 func (c *ChannelMessage) DeleteReplies() error {
 	mr := NewMessageReply()
@@ -609,4 +628,30 @@ func (c *ChannelMessage) PopulateInitialParticipants() (*ChannelMessage, error) 
 	newCm.Payload["initialParticipants"] = &pns
 
 	return newCm, nil
+}
+
+// FetchParentChannel fetches the parent channel of the message. When
+// initial channel is topic, it fetches the group channel, otherwise
+// it just fetches the initial channel as parent.
+func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
+	c, err := ChannelById(cm.InitialChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if c.TypeConstant != Channel_TYPE_TOPIC {
+		return c, nil
+	}
+
+	ch := NewChannel()
+	selector := map[string]interface{}{
+		"group_name":    c.GroupName,
+		"type_constant": Channel_TYPE_GROUP,
+	}
+
+	if err := ch.One(bongo.NewQS(selector)); err != nil {
+		return nil, err
+	}
+
+	return ch, nil
 }

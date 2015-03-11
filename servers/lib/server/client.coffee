@@ -9,6 +9,7 @@ handleError = (err, callback) ->
 
 
 isInAppRoute = (name)->
+  return no  unless name
   [firstLetter] = name
   if /^\d/.test firstLetter then no
   else if firstLetter.toUpperCase() is firstLetter then yes
@@ -54,32 +55,29 @@ updateCookie = (req, res, session)->
 generateFakeClientFromReq = (req, res, callback)->
 
   {clientId} = req.cookies
-  {name: groupName, section} = req.params
+  {section} = req.params
 
-  groupName = 'koding'  if isInAppRoute groupName
+  # TODO change this with Team product
+  groupName = 'koding'
 
   # if client id is not set, check for pendingCookies
   if not clientId and req.pendingCookies?.clientId
     clientId = req.pendingCookies.clientId
 
-  generateFakeClient { clientId, groupName, section }, (err, fakeClient) ->
-    return callback err  if err?
+  generateFakeClient {clientId, groupName, section}, (err, fakeClient, session) ->
+
+    return callback err  if err
+
     {delegate} = fakeClient.connection
-    # check if user stored in the session really exists
-    return callback null, fakeClient  if delegate?
 
-    # when related guest user is somehow deleted and client stored in session is
-    # somehow invalid, create a new session
-    bongo.models.JSession.fetchSession {}, (err, {session, account})->
-      return callback err  if err?
-      return callback {message: "account cannot be created"}  unless account? and session?
-      updateCookie req, res, session
+    updateCookie req, res, session
 
-      prepareFakeClient fakeClient, {account, groupName, session}
+    return callback null, fakeClient
 
-      callback null, fakeClient
 
-generateFakeClient = ({ clientId, groupName, section }, callback) ->
+generateFakeClient = (options, callback) ->
+
+  {clientId, groupName, section} = options
 
   fakeClient    =
     context       :
@@ -91,29 +89,34 @@ generateFakeClient = ({ clientId, groupName, section }, callback) ->
     impersonating : false
 
 
-  return callback null, fakeClient unless clientId?
+  return callback null, fakeClient  unless clientId
 
-  bongo.models.JSession.fetchSession clientId, (err, { session })->
-    return handleError err, callback if err
-    return handleError new Error "Session is not set", callback unless session?
+  bongo.models.JSession.fetchSession clientId, (err, response)->
+
+    return handleError err, callback  if err
+
+    {session} = response
+
+    return handleError new Error "Session is not set", callback  unless session
 
     fetchGroupName { groupName, section }, (err, groupName)->
-      return handleError err, callback if err
+      return handleError err, callback  if err
 
       {username} = session
-      username   = 'guestuser'  if /^guest-/.test username
 
-      fetchAccount username, (err, account)->
+      prepareFakeClient fakeClient, {groupName, session, username}
 
-        return handleError err, callback if err
-        return callback null, fakeClient unless account?
+      return callback null, fakeClient, session
 
-        prepareFakeClient fakeClient, {groupName, session, account}
-
-        return callback null, fakeClient
 
 prepareFakeClient = (fakeClient, options) ->
-  {groupName, session, account} = options
+  {groupName, session, username} = options
+
+  {JAccount} = bongo.models
+  account = new JAccount
+  account.profile = nickname: username
+  account.type = 'unregistered'
+
   fakeClient.sessionToken = session.clientId
 
   # set username into context

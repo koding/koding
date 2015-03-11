@@ -4,16 +4,35 @@ set -e
 
 HOST=$(ec2metadata | grep public-hostname | FS=':' awk '{print $2}')
 
-export REPOSITORY_PATH='/opt/koding'
+export HOME=/root/
 export DISPLAY=:99
+export REPOSITORY_PATH='/opt/koding'
+
+function npm_install ()
+{
+  PROJECT_NAME=$1
+  DIRECTORY=$2
+
+  if [ -n "$DIRECTORY" ]; then
+    cd $REPOSITORY_PATH/$DIRECTORY
+  fi
+
+  rm -rf node_modules
+  git clone git@github.com:koding/$PROJECT_NAME-node_modules-wercker.git node_modules
+}
 
 service nginx stop
 
+npm_install koding
+npm_install client  client/
+npm_install landing client/landing
+
 cd $REPOSITORY_PATH
-HOME=/root/ npm install --unsafe-perm
+
 ./configure --host $HOST:8090
 ./run services
 ./run install
+./run resetdb --yes
 ./run &
 disown $!
 

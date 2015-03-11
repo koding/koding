@@ -67,7 +67,7 @@ func (c *Cmd) Action(args []string, k *kite.Client) error {
 		}(id)
 	}
 
-	DefaultUi.Info(fmt.Sprintf("build called for '%d' machines:\n", len(machines)))
+	DefaultUi.Info(fmt.Sprintf("%s called for '%d' machines:\n", c.command, len(machines)))
 
 	wg.Wait()
 

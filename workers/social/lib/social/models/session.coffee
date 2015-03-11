@@ -12,8 +12,6 @@ module.exports = class JSession extends Model
 
   { v4: createId } = require 'node-uuid'
 
-  # JUser    = require './guest'
-
   @set
     indexes         :
       clientId      : 'unique'
@@ -54,58 +52,40 @@ module.exports = class JSession extends Model
           console.error err  if err?
 
 
-  @createSession =(callback) ->
+  # TODO not sure why we are creating session only for guest user
+  @createSession = (callback) ->
 
     JUser = require './user'
     clientId = createId()
 
     JUser.fetchGuestUser (err, resp) =>
 
-      if not resp
+      return @emit 'error', err  if err
+
+      unless resp
         console.error message = "Failed to create guest user :/ ~ This is critical!"
         return @emit 'error', {message}
 
       {account} = resp
+      username  = JUser.createGuestUsername()
+      session   = new JSession { clientId, username }
 
-      if err then @emit 'error', err
-      else
-        {nickname: username} = account.profile
-        session = new JSession { clientId, username }
-        session.save (err)->
-          if err
-            callback err
-          else
-            callback null, { session, account }
+      session.save (err)->
+        if err then callback err
+        else callback null, { session, account }
 
 
   @fetchSession = (clientId, callback)->
-    # if clientId is undefined or null
+
     return @createSession callback  unless clientId
 
-    selector = {clientId}
-    @one selector, (err, session)=>
+    @one {clientId}, (err, session)=>
       if err
         callback err
       else if session?
         callback null, { session }
       else
         @createSession callback
-
-  @fetchGuestUserSession = (callback) ->
-
-    JUser = require './user'
-    JUser.createGuestUsername (err, username)=>
-
-      @one {username}, (err, session) ->
-        return callback err  if err?
-        return callback null, session  if session?
-
-        clientId = createId()
-
-        session = new JSession { clientId, username }
-        session.save (err)->
-          return callback err  if err?
-          callback null, session
 
   @updateClientIP = (clientId, ipAddress, callback)->
 

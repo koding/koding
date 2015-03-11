@@ -9,7 +9,12 @@ package main
 
 import (
 	"koding/artifact"
+	"koding/db/mongodb/modelhelper"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/robfig/cron"
@@ -37,8 +42,17 @@ var (
 	}
 )
 
+const (
+	every4MinsFrom0 = "0 0-59/4 * * * *"
+	every4MinsFrom1 = "0 1-59/4 * * * *"
+	every3MinsFrom1 = "0 1-59/3 * * * *"
+)
+
 func main() {
 	initialize()
+
+	// on disconnect, try to reconnect
+	controller.Klient.OnDisconnect(func() { initializeKlient(controller) })
 
 	startTime := time.Now()
 	defer func() {
@@ -51,7 +65,7 @@ func main() {
 	// the usernames so multiple workers don't queue the same usernames.
 	// this needs to be done at top of hour, so running multiple workers
 	// won't cause a problem.
-	c.AddFunc("0 0-59/4 * * * *", func() {
+	c.AddFunc(every4MinsFrom0, func() {
 		err := queueUsernamesForMetricGet()
 		if err != nil {
 			Log.Fatal(err.Error())
@@ -61,7 +75,7 @@ func main() {
 	// get and save metrics every 4 mins, starting at 1st minute
 	// queue overlimit users for either stop or block depending
 	// on their usage
-	c.AddFunc("0 1-59/4 * * * *", func() {
+	c.AddFunc(every4MinsFrom1, func() {
 		err := getAndSaveQueueMachineMetrics()
 		if err != nil {
 			Log.Fatal(err.Error())
@@ -78,17 +92,48 @@ func main() {
 		}
 	})
 
+	c.AddFunc(every3MinsFrom1, func() {
+		err := dealWithMachinesOverLimit()
+		if err != nil {
+			Log.Fatal(err.Error())
+		}
+	})
+
 	c.Start()
 
-	// expose api for workers like kloud to check if users is over limit
-	http.HandleFunc("/", checkerHTTP)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/version", artifact.VersionHandler())
-	http.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
+	// expose api for workers like kloud to check if users is over limit
+	mux.HandleFunc("/", checkerHTTP)
+
+	mux.HandleFunc("/version", artifact.VersionHandler())
+	mux.HandleFunc("/healthCheck", artifact.HealthCheckHandler(WorkerName))
 
 	Log.Info("Listening on port: %s", port)
 
-	err := http.ListenAndServe(":"+port, nil)
+	listener, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		Log.Fatal(err.Error())
+	}
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals)
+		for {
+			signal := <-signals
+			switch signal {
+			case syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGSTOP, syscall.SIGKILL:
+				listener.Close()
+				controller.Klient.Close()
+				modelhelper.Close()
+				controller.Redis.Client.Close()
+
+				os.Exit(0)
+			}
+		}
+	}()
+
+	err = http.Serve(listener, mux)
 	if err != nil {
 		Log.Fatal(err.Error())
 	}

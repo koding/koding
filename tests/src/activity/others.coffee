@@ -1,6 +1,4 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
@@ -8,19 +6,19 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 module.exports =
 
 
-  # searchActivity: (browser) ->
+  searchActivity: (browser) ->
 
-  #   post     = helpers.postActivity(browser)
-  #   selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
-  #   word     = post.split(' ')[0]
+    post     = helpers.postActivity(browser)
+    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+    word     = post.split(' ')[0]
 
-  #   browser
-  #     .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
-  #     .waitForElementVisible    '.kdtabpaneview.search', 25000
-  #     .waitForElementVisible    selector, 25000
-  #     .pause                    25000
-  #     .assert.containsText      selector, word # Assertion
-  #     .end()
+    browser
+      .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
+      .waitForElementVisible    '.kdtabpaneview.search', 25000
+      .waitForElementVisible    selector, 25000
+      .pause                    25000
+      .assert.containsText      selector, word # Assertion
+      .end()
 
 
   showMoreCommentLink: (browser) ->
@@ -42,24 +40,24 @@ module.exports =
     browser.end()
 
 
-  # followTopic: (browser) ->
+  followTopic: (browser) ->
 
-  #   helpers.doFollowTopic(browser)
-  #   browser.end()
+    helpers.doFollowTopic(browser)
+    browser.end()
 
 
-  # unfollowTopic: (browser) ->
+  unfollowTopic: (browser) ->
 
-  #   hashtag    = helpers.doFollowTopic(browser)
-  #   selector   = '.activity-sidebar .followed.topics'
-  #   publicLink = '[testpath="public-feed-link/Activity/Topic/public"]'
+    hashtag    = helpers.doFollowTopic(browser)
+    selector   = '.activity-sidebar .followed.topics'
+    publicLink = '[testpath="public-feed-link/Activity/Topic/public"]'
 
-  #   browser
-  #     .click                   '[testpath=channel-title]' + ' .following'
-  #     .waitForElementVisible   publicLink, 25000
-  #     .click                   publicLink
-  #     .refresh()
-  #     .getText selector, (result) =>
-  #       index = result.value.indexOf(hashtag.replace('#', ''))
-  #       assert.equal(index, -1)
-  #       browser.end()
+    browser
+      .click                   '[testpath=channel-title]' + ' .following'
+      .waitForElementVisible   publicLink, 25000
+      .click                   publicLink
+      .refresh()
+      .getText selector, (result) =>
+        index = result.value.indexOf(hashtag.replace('#', ''))
+        assert.equal(index, -1)
+        browser.end()

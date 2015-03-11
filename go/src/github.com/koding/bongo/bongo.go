@@ -29,6 +29,7 @@ func (b *Bongo) Connect() error {
 
 	bo := backoff.NewExponentialBackOff()
 	ticker := backoff.NewTicker(bo)
+	defer ticker.Stop()
 
 	var err error
 	for _ = range ticker.C {

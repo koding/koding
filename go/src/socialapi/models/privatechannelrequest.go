@@ -153,6 +153,7 @@ func (p *PrivateChannelRequest) Send() (*ChannelContainer, error) {
 	}
 
 	c.UpdatedAt = time.Now()
+	// expensive
 	if err = c.Update(); err != nil {
 		return nil, err
 	}

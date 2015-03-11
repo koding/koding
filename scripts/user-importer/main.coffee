@@ -55,31 +55,21 @@ createUsers = (users)->
               return next()
 
             console.log "  User #{user.username} created."
-            console.log "\n   - Creating free subscription ..."
+            console.log "\n   - Verifying email ..."
 
-            JPaymentSubscription.createFreeSubscription account, (err) ->
+            user.confirmEmail (err)->
 
-              if err?
-              then console.log "     Failed to create subscription for #{u.username}:", err
-              else console.log "     Subscription created."
+              if err then console.log "     Failed to verify: ", err
+              else        console.log "     Email verified."
 
-              console.log "\n   - Verifying email ..."
+              console.log "\n   - Adding to group #{u.group} ..."
 
-              user.confirmEmail (err)->
+              JUser.addToGroup account, u.group, u.email, null, (err)->
 
-                if err then console.log "     Failed to verify: ", err
-                else        console.log "     Email verified."
+                if err then console.log "     Failed to add: ", err
+                else        console.log "     Joined to group #{u.group}."
 
-                JUser.configureNewAcccount account, user, createId(), (err)->
-
-                  console.log "\n   - Adding to group #{u.group} ..."
-
-                  JUser.addToGroup account, u.group, u.email, null, (err)->
-
-                    if err then console.log "     Failed to add: ", err
-                    else        console.log "     Joined to group #{u.group}."
-
-                    next()
+                next()
 
 
     # An array like this

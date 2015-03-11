@@ -53,16 +53,25 @@ func CountHistory(channelId int64) (*models.CountResponse, error) {
 }
 
 func FetchChannels(accountId int64) ([]*models.Channel, error) {
-	url := fmt.Sprintf("/account/%d/channels", accountId)
+	return FetchChannelsByGroupName(accountId, "koding")
+}
+
+func FetchChannelsByGroupName(accountId int64, groupName string) ([]*models.Channel, error) {
+	url := fmt.Sprintf("/account/%d/channels?groupName=%s", accountId, groupName)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	var channels []*models.Channel
-	err = json.Unmarshal(res, &channels)
+	var ccs []*models.ChannelContainer
+	err = json.Unmarshal(res, &ccs)
 	if err != nil {
 		return nil, err
+	}
+
+	channels := make([]*models.Channel, len(ccs))
+	for i, cc := range ccs {
+		channels[i] = cc.Channel
 	}
 
 	return channels, nil
@@ -143,12 +152,14 @@ func UpdateChannel(cm *models.Channel) (*models.Channel, error) {
 func GetChannel(id int64) (*models.Channel, error) {
 
 	url := fmt.Sprintf("/channel/%d", id)
-	cm := models.NewChannel()
-	cmI, err := sendModel("GET", url, cm)
+	cc := models.NewChannelContainer()
+	cmI, err := sendModel("GET", url, cc)
 	if err != nil {
 		return nil, err
 	}
-	return cmI.(*models.Channel), nil
+	cc = cmI.(*models.ChannelContainer)
+
+	return cc.Channel, nil
 }
 
 func CreateGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {

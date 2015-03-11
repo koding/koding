@@ -63,8 +63,11 @@ module.exports = class SiftScience
   @send = (client, event, data, callback)->
     siftScience = require('yield-siftscience') KONFIG.siftScience
 
-    @fetchUserInfo client, (err, {username, email, sessionToken})->
+    @fetchUserInfo client, (err, userInfo)->
       return callback err   if err
+      return callback {message: "no user found"}  unless userInfo?
+
+      {username, email, sessionToken} = userInfo
 
       data["$user_id"]    = username
       data["$user_email"] = email
@@ -77,11 +80,14 @@ module.exports = class SiftScience
 
   @fetchUserInfo = (client, callback)->
     {sessionToken, connection : {delegate}} = client
+
+    if delegate.type isnt "registered"
+      return callback {message:"guests are not allowed"}
+
     delegate.fetchUser (err, user)->
       return callback err  if err
 
       {username, email} = user
-
       callback null, {username, email, sessionToken}
 
 

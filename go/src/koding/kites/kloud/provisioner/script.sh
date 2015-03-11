@@ -7,12 +7,18 @@ sudo apt-get install -y ruby-dev ri rake python mercurial subversion cvs bzr def
 sudo apt-get install --only-upgrade bash
 
 
+# add this for backwards compability with our cloud-init script. Cloud
+# init tries to add the user to the docker group, but if it doesn't
+# exists it fails. Remove this once we enable docker again (by
+# uncommenting the text below)
+sudo groupadd docker
+
 # docker
-sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
-sudo mkdir -p /etc/apt/sources.list.d
-sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
-sudo apt-get update
-sudo apt-get install -y lxc-docker
+#sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+#sudo mkdir -p /etc/apt/sources.list.d
+#sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+#sudo apt-get update
+#sudo apt-get install -y lxc-docker
 
 # remove installed packages to free up space
 sudo apt-get clean
@@ -27,6 +33,7 @@ sudo a2enmod proxy_fcgi
 
 mkdir -p /tmp/userdata/Web
 mkdir -p /tmp/userdata/bash
+mkdir -p /tmp/userdata/screen
 mkdir -p /tmp/userdata/kodingart
 
 sudo mkdir -p /opt/koding/userdata/
@@ -34,4 +41,5 @@ sudo mkdir -p /opt/koding/userdata/Web
 sudo mkdir -p /opt/koding/userdata/Applications
 sudo mkdir -p /opt/koding/userdata/Backup
 sudo mkdir -p /opt/koding/userdata/Documents
+sudo mkdir -p /opt/koding/etc/
 sudo mkdir -p /etc/koding

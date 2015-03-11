@@ -4,6 +4,7 @@ import "labix.org/v2/mgo/bson"
 
 type Workspace struct {
 	ObjectId     bson.ObjectId `bson:"_id" json:"_id"`
+	OriginId     bson.ObjectId `bson:"originId" json:"originId"`
 	Name         string        `bson:"name" json:"name"`
 	Slug         string        `bson:"slug" json:"slug"`
 	ChannelId    string        `bson:"channelId" json:"channelId"`

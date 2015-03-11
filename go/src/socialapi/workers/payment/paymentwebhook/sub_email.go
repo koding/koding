@@ -14,5 +14,7 @@ func subscriptionEmail(customerId, planName string, action paymentemail.Action, 
 
 	opts := map[string]string{"planName": planName}
 
+	Log.Info("Sent subscription email to: %s with plan: %s", emailAddress, planName)
+
 	return paymentemail.Send(email, action, emailAddress, opts)
 }

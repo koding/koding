@@ -15,6 +15,10 @@ Postgres and mongodb url is same is in the koding dev config. below is an exampl
 	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
 	KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
 
+To execute the tests in Parallel append the flag (where the number is the number of CPU Cores):
+
+	-parallel 8
+
 To get profile files first compile a binary and call that particular binary with additional flags:
 
 	go test -c
@@ -26,11 +30,13 @@ To get profile files first compile a binary and call that particular binary with
 	KONTROL_POSTGRES_HOST=192.168.59.103 ./kloud.test -test.v -test.timeout 20m
 	-test.cpuprofile=kloud_cpu.prof -test.memprofile=kloud_mem.prof
 
+
 Create a nice graph from the cpu profile
 	go tool pprof --pdf kloud.test  kloud_cpu.prof > kloud_cpu.pdf
 */
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/url"
@@ -52,12 +58,13 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
 	kloudprotocol "koding/kites/kloud/protocol"
+	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 
 	"github.com/mitchellh/goamz/aws"
@@ -70,10 +77,20 @@ var (
 	remote    *kite.Client
 	conf      *config.Config
 	provider  *koding.Provider
+
+	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 )
 
 type args struct {
-	MachineId string
+	MachineId  string
+	SnapshotId string
+}
+
+type singleUser struct {
+	MachineId  string
+	PrivateKey string
+	PublicKey  string
+	AccountId  bson.ObjectId
 }
 
 func init() {
@@ -97,7 +114,7 @@ func init() {
 	go kntrl.Run()
 	<-kntrl.Kite.ServerReadyNotify()
 
-	/ Power up kloud kite
+	// Power up kloud kite
 	kloudKite = kite.New("kloud", "0.0.1")
 	kloudKite.Config = conf.Copy()
 	kloudKite.Config.Port = 4002
@@ -116,8 +133,11 @@ func init() {
 	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("stop", kld.Stop)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
+	kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
@@ -142,39 +162,16 @@ func init() {
 	}
 }
 
-func TestPing(t *testing.T) {
-	_, err := remote.Tell("kite.ping")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestCreateUsers(t *testing.T) {
-	t.Skip("Enable manually")
-	machineCount := 20
-
-	for i := 0; i < machineCount; i++ {
-		userData, err := createUser("testuser" + strconv.Itoa(i))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		fmt.Printf("%+v\n", userData.MachineId)
-	}
-}
-
-// TestSingleMachine creates a test user document and a single machine document
-// that is bound to thar particular test user. It builds, stops, starts,
-// resize, reinit and destroys the machine in order.
-func TestSingleMachine(t *testing.T) {
-	userData, err := createUser("testuser")
+func TestBuild(t *testing.T) {
+	t.Parallel()
+	username := "testuser1"
+	userData, err := createUser(username)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// build
 	if err := build(userData.MachineId); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	// now try to ssh into the machine with temporary private key we created in
@@ -188,12 +185,29 @@ func TestSingleMachine(t *testing.T) {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
 
-	// stop
-	log.Println("Stopping machine")
-	if err := stop(userData.MachineId); err != nil {
+	if err := destroy(userData.MachineId); err != nil {
 		t.Error(err)
 	}
+}
 
+func TestStop(t *testing.T) {
+	t.Parallel()
+	username := "testuser2"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	// the following calls should give an error, if not there is a problem
 	if err := build(userData.MachineId); err == nil {
 		t.Error("`build` method can not be called on `stopped` machines.")
 	}
@@ -202,82 +216,141 @@ func TestSingleMachine(t *testing.T) {
 		t.Error("`stop` method can not be called on `stopped` machines.")
 	}
 
-	// start
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestStart(t *testing.T) {
+	t.Parallel()
+	username := "testuser3"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine to start machine again")
+	if err := stop(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
 	log.Println("Starting machine")
 	if err := start(userData.MachineId); err != nil {
+		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
+	}
+
+	if err := start(userData.MachineId); err == nil {
+		t.Error("`start` method can not be called on `started` machines.")
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSnapshot(t *testing.T) {
+	t.Parallel()
+	username := "testuser4"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Creating snapshot")
+	if err := createSnapshot(userData.MachineId); err != nil {
 		t.Error(err)
 	}
 
-	// resize
-	log.Println("Resizing machine")
-	storageWant := 5
-	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(userData.MachineId),
-			bson.M{
-				"$set": bson.M{
-					"meta.storage_size": storageWant,
+	log.Println("Retrieving snapshot id")
+	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Deleting snapshot")
+	if err := deleteSnapshot(userData.MachineId, snapshotId); err != nil {
+		t.Error(err)
+	}
+
+	// once deleted there shouldn't be any snapshot data in MongoDB
+	log.Println("Checking snapshot data in MongoDB")
+	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+		t.Error(err)
+	}
+
+	// also check AWS, be sure it's been deleted
+	log.Println("Checking snapshot data in AWS")
+	err = checkSnapshotAWS(userData.MachineId, snapshotId)
+	if err != nil && !isSnapshotNotFoundError(err) {
+		t.Error(err)
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestResize(t *testing.T) {
+	t.Parallel()
+	username := "testuser"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	resize := func(storageWant int) {
+		log.Printf("Resizing machine to %dGB\n", storageWant)
+		err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(userData.MachineId),
+				bson.M{
+					"$set": bson.M{
+						"meta.storage_size": storageWant,
+					},
 				},
-			},
-		)
-	})
-	if err != nil {
-		t.Error(err)
+			)
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := resize(userData.MachineId); err != nil {
+			t.Error(err)
+		}
+
+		storageGot, err := getAmazonStorageSize(userData.MachineId)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if storageGot != storageWant {
+			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+				storageWant,
+				storageGot,
+			)
+		}
 	}
 
-	if err := resize(userData.MachineId); err != nil {
-		t.Error(err)
-	}
+	resize(5) // first increase
+	resize(7) // second increase
+	resize(9) // third increase
 
-	storageGot, err := getAmazonStorageSize(userData.MachineId)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if storageGot != storageWant {
-		t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-			storageWant,
-			storageGot,
-		)
-	}
-
-	// reinit
-	log.Println("Reinitializing machine")
-	if err := reinit(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	// destroy
 	log.Println("Destroying machine")
 	if err := destroy(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-
-	if err := stop(userData.MachineId); err == nil {
-		t.Error("`stop` method can not be called on `terminated` machines.")
-	}
-
-	if err := start(userData.MachineId); err == nil {
-		t.Error("`start` method can not be called on `terminated` machines.")
-	}
-
-	if err := destroy(userData.MachineId); err == nil {
-		t.Error("`destroy` method can not be called on `terminated` machines.")
-	}
-
-	if err := resize(userData.MachineId); err == nil {
-		t.Error("`resize` method can not be called on `terminated` machines.")
-	}
-
-	if err := reinit(userData.MachineId); err == nil {
-		t.Error("`reinit` method can not be called on `terminated` machines.")
-	}
-}
-
-type singleUser struct {
-	MachineId  string
-	PrivateKey string
-	PublicKey  string
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
@@ -292,10 +365,28 @@ func createUser(username string) (*singleUser, error) {
 		return c.Remove(bson.M{"username": username})
 	})
 
+	provider.Session.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Remove(bson.M{"profile.nickname": username})
+	})
+
+	accountId := bson.NewObjectId()
+	account := &models.Account{
+		Id: accountId,
+		Profile: models.AccountProfile{
+			Nickname: username,
+		},
+	}
+
+	if err := provider.Session.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Insert(&account)
+	}); err != nil {
+		return nil, err
+	}
+
 	userId := bson.NewObjectId()
 	user := &models.User{
 		ObjectId:      userId,
-		Email:         username + "@testuser.com",
+		Email:         username + "@" + username + ".com",
 		LastLoginDate: time.Now().UTC(),
 		RegisteredAt:  time.Now().UTC(),
 		Name:          username, // bson equivelant is username
@@ -352,6 +443,7 @@ func createUser(username string) (*singleUser, error) {
 		MachineId:  machineId.Hex(),
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
+		AccountId:  accountId,
 	}, nil
 }
 
@@ -517,6 +609,32 @@ func reinit(id string) error {
 	return listenEvent(eArgs, machinestate.Running)
 }
 
+func restart(id string) error {
+	restartArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("restart", restartArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: restartArgs.MachineId,
+			Type:    "restart",
+		},
+	})
+
+	return listenEvent(eArgs, machinestate.Running)
+}
+
 func resize(id string) error {
 	resizeArgs := &args{
 		MachineId: id,
@@ -541,6 +659,55 @@ func resize(id string) error {
 	})
 
 	return listenEvent(eArgs, machinestate.Running)
+}
+
+func createSnapshot(id string) error {
+	createSnapshotArgs := &args{
+		MachineId: id,
+	}
+
+	resp, err := remote.Tell("createSnapshot", createSnapshotArgs)
+	if err != nil {
+		return err
+	}
+
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
+	if err != nil {
+		return err
+	}
+
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: createSnapshotArgs.MachineId,
+			Type:    "createSnapshot",
+		},
+	})
+
+	return listenEvent(eArgs, machinestate.Running)
+}
+
+func deleteSnapshot(id, snapshotId string) error {
+	deleteSnapshotArgs := &args{
+		MachineId:  id,
+		SnapshotId: snapshotId,
+	}
+
+	resp, err := remote.Tell("deleteSnapshot", deleteSnapshotArgs)
+	if err != nil {
+		return err
+	}
+
+	result, err := resp.Bool()
+	if err != nil {
+		return err
+	}
+
+	if !result {
+		return errors.New("Successfull snapshot deletion should return true, got false")
+	}
+
+	return nil
 }
 
 // listenEvent calls the event method of kloud with the given arguments until
@@ -594,8 +761,6 @@ func newKodingProvider() *koding.Provider {
 	db := modelhelper.Mongo
 	domainStorage := koding.NewDomainStorage(db)
 
-	testChecker := &TestChecker{}
-
 	return &koding.Provider{
 		Session:           db,
 		Kite:              kloudKite,
@@ -610,15 +775,13 @@ func newKodingProvider() *koding.Provider {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:           koding.NewDNSClient("dev.koding.io", auth),
+		DNS:           dnsclient.New("dev.koding.io", auth),
 		DomainStorage: domainStorage,
 		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
 		KeyName:       keys.DeployKeyName,
 		PublicKey:     keys.DeployPublicKey,
 		PrivateKey:    keys.DeployPrivateKey,
-		PlanChecker: func(_ *kloudprotocol.Machine) (koding.Checker, error) {
-			return testChecker, nil
-		},
+		Fetcher:       NewTestFetcher(koding.Koding),
 	}
 }
 
@@ -671,25 +834,80 @@ func getAmazonStorageSize(machineId string) (int, error) {
 	return currentSize, nil
 }
 
-// TestChecker satisfies Checker interface
-type TestChecker struct{}
+func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
+	var snapshot *koding.SnapshotDocument
+	if err := provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
+	}); err != nil {
+		return "", err
+	}
 
-func (c *TestChecker) Total() error {
-	return nil
+	return snapshot.SnapshotId, nil
 }
 
-func (c *TestChecker) AlwaysOn() error {
-	return nil
+func checkSnapshotAWS(machineId, snapshotId string) error {
+	m, err := provider.Get(machineId)
+	if err != nil {
+		return err
+	}
+
+	a, err := provider.NewClient(m)
+	if err != nil {
+		return err
+	}
+
+	_, err = a.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
+	return err // nil means it exists
 }
 
-func (c *TestChecker) Timeout() error {
+func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
+	var err error
+	var count int
+
+	err = provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{
+			"originId":   accountId,
+			"snapshotId": snapshotId,
+		}).Count()
+		return err
+	})
+
+	if err != nil {
+		log.Printf("Could not fetch %v: err: %v", snapshotId, err)
+		return errors.New("could not check Snapshot existency")
+	}
+
+	if count == 0 {
+		return errNoSnapshotFound
+	}
+
 	return nil
+
 }
 
-func (c *TestChecker) Storage(wantStorage int) error {
-	return nil
+func isSnapshotNotFoundError(err error) bool {
+	ec2Error, ok := err.(*ec2.Error)
+	if !ok {
+		return false
+	}
+
+	return ec2Error.Code == "InvalidSnapshot.NotFound"
 }
 
-func (c *TestChecker) AllowedInstances(wantInstance koding.InstanceType) error {
-	return nil
+// TestFetcher satisfies the fetcher interface
+type TestFetcher struct {
+	Plan koding.Plan
+}
+
+func NewTestFetcher(plan koding.Plan) *TestFetcher {
+	return &TestFetcher{
+		Plan: plan,
+	}
+}
+
+func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*koding.FetcherResponse, error) {
+	return &koding.FetcherResponse{
+		Plan:  t.Plan,
+		State: "active",
+	}, nil
 }

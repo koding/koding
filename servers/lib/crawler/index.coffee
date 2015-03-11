@@ -16,11 +16,12 @@ fetchProfileContent = (models, options, callback) ->
   {client, name} = options
   {JAccount, SocialChannel} = models
   JAccount.one "profile.nickname": name, (err, account) ->
-    return callback err  if err or not account
-    
-    feed.createProfileFeed models, account, options, (err, content) -> 
+    return callback err  if err
+
+    return callback {message: "account not found"}  if not account
+    feed.createProfileFeed models, account, options, (err, content) ->
       return callback err  if err
-      
+
       return callback null, profile account, content
 
 
@@ -28,22 +29,22 @@ fetchPostContent = (models, options, callback) ->
   {SocialMessage} = models
   {client, entrySlug} = options
 
-  fetchGuestUserSession models, (err, sessionToken) ->
-    return callback err if err?
-    options = {slug: entrySlug, replyLimit: 25, sessionToken}
-    SocialMessage.bySlug client, options, (err, activity) ->
-      return callback err  if err or not activity
+  options = {slug: entrySlug, replyLimit: 25}
+  SocialMessage.bySlug client, options, (err, activity) ->
+    return callback err  if err or not activity
 
-      createActivityContent models, activity, (err, content, activityContent)->
-        return callback err  if err or not content
+    createActivityContent models, activity, (err, content, activityContent)->
+      return callback err  if err
 
-        summary = activityContent.body.slice(0, 80)
-        graphMeta =
-          title    : "#{summary} | Koding Community"
-          body     : "#{activityContent.body}"
-          shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
-        fullPage = feed.putContentIntoFullPage content, "", graphMeta
-        callback null, fullPage
+      return callback {message: "content not found"}  if not content
+
+      summary = activityContent.body.slice(0, 80)
+      graphMeta =
+        title    : "#{summary} | Koding Community"
+        body     : "#{activityContent.body}"
+        shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
+      fullPage = feed.putContentIntoFullPage content, "", graphMeta
+      callback null, fullPage
 
 
 fetchTopicContent = (models, options, callback) ->
@@ -52,17 +53,14 @@ fetchTopicContent = (models, options, callback) ->
   options.channelName = entrySlug
 
   {SocialChannel} = models
-  fetchGuestUserSession models, (err, sessionToken) ->
-    return callback err if err?
 
-    SocialChannel.byName client, {name: entrySlug, sessionToken}, (err, channel) ->
-      return callback err  if err or not channel
+  SocialChannel.byName client, {name: entrySlug}, (err, channel) ->
+    return callback err  if err or not channel
 
-      options.channelId = channel.channel.id
-      options.route = "Topic/#{entrySlug}"
-      options.contentType = "topic"
-      options.sessionToken = sessionToken
-      feed.createFeed models, options, callback
+    options.channelId = channel.channel.id
+    options.route = "Topic/#{entrySlug}"
+    options.contentType = "topic"
+    feed.createFeed models, options, callback
 
 
 fetchGroupContent = (models, options, callback) ->
@@ -72,27 +70,17 @@ fetchGroupContent = (models, options, callback) ->
 
   options.channelName = "public"
 
-  fetchGuestUserSession models, (err, sessionToken) ->
-    return callback err if err?
+  # TODO change this slug after groups are implemented
+  JGroup.one slug: "koding", (err, group) ->
+    return callback err  if err
+    return callback notFoundError "group"  unless group
 
-    # TODO change this slug after groups are implemented
-    JGroup.one slug: "koding", (err, group) ->
-      return callback err  if err
-      return callback notFoundError "group"  unless group
+    options.channelId = group.socialApiChannelId
+    # TODO change this with group implementation
+    options.route = "Public"
+    options.contentType = "post"
+    feed.createFeed models, options, callback
 
-      options.channelId = group.socialApiChannelId
-      # TODO change this with group implementation
-      options.route = "Public"
-      options.contentType = "post"
-      options.sessionToken = sessionToken
-      feed.createFeed models, options, callback
-
-fetchGuestUserSession = (models, callback) ->
-  {JSession} = models
-  JSession.fetchGuestUserSession (err, session) ->
-    return callback err if err?
-    return callback notFoundError "session" unless session?.clientId?
-    callback null, session.clientId
 
 fetchAnnouncementContent = (models, options, callback) ->
 
@@ -100,18 +88,14 @@ fetchAnnouncementContent = (models, options, callback) ->
 
   options.channelName = "changelog"
 
-  fetchGuestUserSession models, (err, sessionToken) ->
-    return callback err if err?
+  JGroup.one slug: "koding", (err, group) ->
+    return callback err  if err
+    return callback notFoundError "group"  unless group
 
-    JGroup.one slug: "koding", (err, group) ->
-      return callback err  if err
-      return callback notFoundError "group"  unless group
-
-      options.channelId = group.socialApiAnnouncementChannelId
-      options.route        = "Announcement"
-      options.contentType  = "post"
-      options.sessionToken = sessionToken
-      feed.createFeed models, options, callback
+    options.channelId = group.socialApiAnnouncementChannelId
+    options.route        = "Announcement"
+    options.contentType  = "post"
+    feed.createFeed models, options, callback
 
 
 fetchContent = (models, options, callback) ->
@@ -146,6 +130,10 @@ module.exports =
 
     [name, section, entrySlug] = slug.split("/")
 
+    # if the section is not redirect them to public feed
+    if name is "Activity" and not section
+      return res.redirect 301, "/#{name}/Public"
+
     handleError = (err, content) ->
       if err
         console.error err
@@ -164,5 +152,5 @@ module.exports =
       page = getPage query
       options = {section, entrySlug, client, page, isProfile, name}
       fetchContent models, options, (err, content) ->
-        return handleError err  if err or not content
+        return handleError err, content  if err or not content
         return res.status(200).send content

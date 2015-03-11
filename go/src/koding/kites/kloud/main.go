@@ -14,6 +14,7 @@ import (
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/provider/koding"
@@ -172,12 +173,12 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
+	dnsInstance := dnsclient.New(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
 	kodingProvider := &koding.Provider{
 		Kite:          k,
-		Log:           newLogger("koding", conf.DebugMode),
+		Log:           newLogger("kloud", conf.DebugMode),
 		Session:       db,
 		DomainStorage: domainStorage,
 		EC2Clients: multiec2.New(auth, []string{
@@ -198,40 +199,21 @@ func newKite(conf *Config) *kite.Kite {
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
 		Stats:             stats,
+		Fetcher: &koding.PaymentFetcher{
+			DB:              db,
+			Log:             newLogger("kloud", conf.DebugMode),
+			PaymentEndpoint: conf.PlanEndpoint,
+		},
+		NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 	}
 
 	// be sure it satisfies the provider interface
 	var _ kloudprotocol.Provider = kodingProvider
 
-	kodingProvider.PlanChecker = func(m *kloudprotocol.Machine) (koding.Checker, error) {
-		a, err := kodingProvider.NewClient(m)
-		if err != nil {
-			return nil, err
-		}
-
-		// check current plan
-		fetcherResp, err := kodingProvider.Fetcher(conf.PlanEndpoint, m)
-		if err != nil {
-			return nil, err
-		}
-
-		return &koding.PlanChecker{
-			Api:                  a,
-			Provider:             kodingProvider,
-			DB:                   kodingProvider.Session,
-			Kite:                 kodingProvider.Kite,
-			Log:                  kodingProvider.Log,
-			Username:             m.Username,
-			Machine:              m,
-			Plan:                 fetcherResp,
-			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
-		}, nil
-	}
-
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaners(time.Minute * 2)
 
-	kld := kloud.NewWithDefaults()
+	kld := kloud.New()
 	kld.Storage = kodingProvider
 	kld.DomainStorage = domainStorage
 	kld.Domainer = dnsInstance
@@ -253,6 +235,10 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("resize", kld.Resize)
 	k.HandleFunc("reinit", kld.Reinit)
+
+	// Snapshot functionality
+	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	// Domain records handling methods
 	k.HandleFunc("domain.set", kld.DomainSet)

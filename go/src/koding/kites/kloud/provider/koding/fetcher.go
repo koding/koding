@@ -4,14 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"koding/db/models"
+	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
 	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/koding/logging"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+type Fetcher interface {
+	Fetch(m *protocol.Machine) (*FetcherResponse, error)
+}
 
 type SubscriptionsResponse struct {
 	AccountId          string    `json:"accountId"`
@@ -24,16 +31,21 @@ type SubscriptionsResponse struct {
 	Error              string    `json:"error"`
 }
 
+type PaymentFetcher struct {
+	DB              *mongodb.MongoDB
+	Log             logging.Logger
+	PaymentEndpoint string
+}
+
 type FetcherResponse struct {
 	Plan  Plan
 	State string
 }
 
-func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *FetcherResponse, planErr error) {
-
+func (f *PaymentFetcher) Fetch(m *protocol.Machine) (fetcherResp *FetcherResponse, planErr error) {
 	defer func() {
 		if planErr != nil {
-			p.Log.Warning("[%s] username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
+			f.Log.Warning("[%s] username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
 				m.Id, m.Username, planErr)
 
 			fetcherResp = &FetcherResponse{Plan: Free}
@@ -41,13 +53,13 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *F
 		}
 	}()
 
-	userEndpoint, err := url.Parse(endpoint)
+	userEndpoint, err := url.Parse(f.PaymentEndpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	var account *models.Account
-	if err := p.Session.Run("jAccounts", func(c *mgo.Collection) error {
+	if err := f.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": m.Username}).One(&account)
 	}); err != nil {
 		return nil, err
@@ -57,9 +69,9 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *F
 	q.Set("account_id", account.Id.Hex())
 	userEndpoint.RawQuery = q.Encode()
 
-	p.Log.Debug("[%s] fetching plan via URL: '%s'", m.Id, userEndpoint.String())
 	resp, err := http.Get(userEndpoint.String())
 	if err != nil {
+		f.Log.Debug("[%s] fetching plan ", m.Id, userEndpoint.String())
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -87,7 +99,6 @@ func (p *Provider) Fetcher(endpoint string, m *protocol.Machine) (fetcherResp *F
 			m.Id, subscription.PlanTitle)
 	}
 
-	p.Log.Debug("[%s] user has plan: %s", m.Id, plan)
 	return &FetcherResponse{
 		Plan:  plan,
 		State: subscription.State,

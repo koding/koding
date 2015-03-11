@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/request"
 	"socialapi/workers/common/runner"
 	"testing"
 
@@ -306,14 +307,24 @@ func TestChannelCanOpen(t *testing.T) {
 			So(canOpen, ShouldBeFalse)
 		})
 
-		Convey("uninitialized account can not open channel", func() {
+		Convey("uninitialized account can open group channel", func() {
 			c := NewChannel()
 			c.Id = 123
 			c.CreatorId = 312
+			c.TypeConstant = Channel_TYPE_GROUP
 			canOpen, err := c.CanOpen(0)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrAccountIdIsNotSet)
-			So(canOpen, ShouldBeFalse)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeTrue)
+		})
+
+		Convey("uninitialized account can open announcement channel", func() {
+			c := NewChannel()
+			c.Id = 123
+			c.CreatorId = 312
+			c.TypeConstant = Channel_TYPE_ANNOUNCEMENT
+			canOpen, err := c.CanOpen(0)
+			So(err, ShouldBeNil)
+			So(canOpen, ShouldBeTrue)
 		})
 
 		Convey("participants can open group channel", func() {
@@ -1149,6 +1160,18 @@ func TestChannelDelete(t *testing.T) {
 			err = NewChannelMessageList().ById(cml1.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
+
+		Convey("it should delete any participants", func() {
+			c, _, _, _, _ := setupDeleteTest()
+
+			// delete the channel
+			So(c.Delete(), ShouldBeNil)
+
+			participants, err := c.FetchParticipants(&request.Query{})
+			So(err, ShouldBeNil)
+			So(len(participants), ShouldEqual, 0)
+		})
+
 		Convey("it should delete the channel itself", func() {
 			c, _, _, _, _ := setupDeleteTest()
 
@@ -1179,6 +1202,33 @@ func TestChannelDelete(t *testing.T) {
 			// verify that the second message is not deleted:
 			err = NewChannelMessage().ById(cm1.Id)
 			So(err, ShouldBeNil)
+		})
+	})
+}
+
+func TestFetchPublicChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("when fetching a public channel", t, func() {
+		creator := CreateAccountWithTest()
+
+		c := NewChannel()
+		c.TypeConstant = Channel_TYPE_GROUP
+		c.GroupName = "test_group_" + RandomName()
+		c.Name = "public"
+		c.CreatorId = creator.Id
+		err := c.Create()
+		So(err, ShouldBeNil)
+		Convey("it should return a public channel with given group name", func() {
+			pc := NewChannel()
+			err := pc.FetchPublicChannel(c.GroupName)
+			So(err, ShouldBeNil)
+			So(pc.GroupName, ShouldEqual, c.GroupName)
+			So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)
 		})
 	})
 }

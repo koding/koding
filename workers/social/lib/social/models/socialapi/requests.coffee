@@ -54,6 +54,9 @@ fetchGroupChannels = (data, callback)->
   if not data.groupName or not data.accountId
     return callback { message: "Request is not valid for fetching channel"}
 
+  # topic fetch is crashing so we forced for a limit here
+  data.limit = 15
+
   url = "/channel"
   get url, data, callback
 
@@ -384,9 +387,9 @@ checkOwnership = (data, callback) ->
   url = "/account/#{data.accountId}/owns"
   get url, data, callback
 
-getCustomers = (data, callback) ->
-  url = "/payments/customers"
-  get url, data, callback
+expireSubscription = (accountId, callback) ->
+  url = "/payments/customers/#{accountId}/expire"
+  post url, {}, callback
 
 post = (url, data, callback)->
   getNextApiURL (err, apiurl)->
@@ -506,7 +509,7 @@ module.exports = {
   getSiteMap
   deleteChannel
   checkOwnership
-  getCustomers
+  expireSubscription
   post
   get
   deleteReq

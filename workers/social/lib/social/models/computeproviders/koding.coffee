@@ -3,7 +3,7 @@ ProviderInterface = require './providerinterface'
 KodingError       = require '../../error'
 
 Regions           = require 'koding-regions'
-
+{clone}           = require 'underscore'
 {argv}            = require 'optimist'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
@@ -67,7 +67,23 @@ module.exports = class Koding extends ProviderInterface
       then plan = 'free'
       else plan = subscription.planTitle
 
-      callback err, PLANS[plan]
+      # we need to clone the plan data since we are using global data here,
+      # when we modify it at line 84 everything will be broken after the
+      # first operation until this social restarts ~ GG
+      planData  = clone PLANS[plan]
+
+      JReward   = require '../rewards'
+      JReward.fetchEarnedAmount
+        unit     : 'MB'
+        type     : 'disk'
+        originId : client.r.account.getId()
+
+      , (err, amount)->
+
+        amount = 0  if err
+        planData.storage += Math.floor amount / 1000
+
+        callback err, planData
 
 
   checkUsage = (usage, plan, storage)->
@@ -134,7 +150,7 @@ module.exports = class Koding extends ProviderInterface
           meta =
             type          : 'amazon'
             region        : region ? SUPPORTED_REGIONS[0]
-            source_ami    : 'ami-2651904e'
+            source_ami    : '' # Kloud is updating this field after a successfull build
             instance_type : 't2.micro'
             storage_size  : storage
             alwaysOn      : no
@@ -153,7 +169,11 @@ module.exports = class Koding extends ProviderInterface
     { machine } = options
 
     JDomainAlias = require '../domainalias'
-    JDomainAlias.ensureTopDomainExistence account, machine._id, callback
+    JDomainAlias.ensureTopDomainExistence account, machine._id, (err) ->
+      return callback err  if err
+
+      JWorkspace = require '../workspace'
+      JWorkspace.createDefault client, machine, callback
 
 
   @update = (client, options, callback)->
@@ -217,6 +237,10 @@ module.exports = class Koding extends ProviderInterface
               return callback new KodingError \
               """Requested new size exceeds allowed
                  limit of #{userPlan.storage}GB.""", "UsageLimitReached"
+            else if resize == machine.getAt 'meta.storage_size'
+              return callback new KodingError \
+              """Requested new size is same with current
+                 storage size (#{resize}GB).""", "SameValueForResize"
 
             fieldsToUpdate['meta.storage_size'] = resize
 
@@ -234,7 +258,7 @@ module.exports = class Koding extends ProviderInterface
     { r: { group, user } } = client
 
     selector        = { provider: 'koding' }
-    selector.users  = $elemMatch: id: user.getId()
+    selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
     selector.groups = $elemMatch: id: group.getId()
 
     JMachine.some selector, limit: 30, (err, machines)->

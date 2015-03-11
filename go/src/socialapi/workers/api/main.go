@@ -9,8 +9,10 @@ import (
 
 	"socialapi/config"
 	"socialapi/workers/api/handlers"
+	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
+	mailapi "socialapi/workers/email/mailparse/api"
 	"socialapi/workers/helper"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
@@ -42,16 +44,17 @@ func main() {
 	m.Metrics = r.Metrics
 	handlers.AddHandlers(m)
 	m.Listen()
-
 	// shutdown server
 	defer m.Close()
 
+	collaboration.AddHandlers(m)
 	paymentapi.AddHandlers(m)
 	notificationapi.AddHandlers(m)
 	trollmodeapi.AddHandlers(m)
 	sitemapapi.AddHandlers(m)
 	permissionapi.AddHandlers(m)
 	topicmoderationapi.AddHandlers(m)
+	mailapi.AddHandlers(m)
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)
@@ -59,6 +62,7 @@ func main() {
 
 	// init mongo connection
 	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
 
 	// set default values for dev env
 	if r.Conf.Environment == "dev" {

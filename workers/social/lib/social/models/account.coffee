@@ -2,6 +2,9 @@ jraphical   = require 'jraphical'
 KodingError = require '../error'
 ApiError    = require './socialapi/error'
 
+{argv}      = require 'optimist'
+KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
+
 module.exports = class JAccount extends jraphical.Module
 
   @trait __dirname, '../traits/followable'
@@ -43,16 +46,17 @@ module.exports = class JAccount extends jraphical.Module
       type               : 'ascending'
     sharedEvents    :
       static        : [
-        { name: 'AccountAuthenticated' } # TODO: we need to handle this event differently.
-        { name : "RemovedFromCollection" }
+        { name : 'AccountAuthenticated' } # TODO: we need to handle this event differently.
+        { name : 'RemovedFromCollection' }
       ]
       instance      : [
         # this is commented-out intentionally
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name: 'notification' }
-        { name : "RemovedFromCollection" }
+        { name : 'notification' }
+        { name : 'RemovedFromCollection' }
+        { name : 'NewWorkspaceCreated'}
       ]
     sharedMethods :
       static:
@@ -215,8 +219,8 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
         setLastLoginTimezoneOffset:
           (signature Object, Function)
-        fetchCustomers:
-          (signature Object, Function)
+        expireSubscription:
+          (signature Function)
 
     schema                  :
       socialApiId           : String
@@ -360,10 +364,7 @@ module.exports = class JAccount extends jraphical.Module
 
   createSocialApiId:(callback)->
     if @type is 'unregistered'
-      return @constructor.one "profile.nickname":"guestuser", (err, account) ->
-        return callback {message: "Could not fetch guest api id"} if err
-        return callback null, account.socialApiId if account?.socialApiId
-        return callback {message: "Could not fetch guest api id"}
+      return callback null, -1
 
     return callback null, @socialApiId  if @socialApiId
     {createAccount} = require './socialapi/requests'
@@ -397,9 +398,6 @@ module.exports = class JAccount extends jraphical.Module
   changeUsername: (options, callback = (->)) ->
     { username, isRegistration } = options
     oldUsername = @profile.nickname
-
-    if "guestuser" in [oldUsername, username]
-      return callback new KodingError "guestuser can not be updated"
 
     if username is oldUsername
 
@@ -1061,6 +1059,11 @@ module.exports = class JAccount extends jraphical.Module
 
   fetchUser:(callback)->
     JUser = require './user'
+    if /^guest-/.test @profile.nickname
+      user = new JUser()
+      user.username = @profile.nickname
+      return callback null, user
+
     selector = { targetId: @getId(), as: 'owner', sourceName: 'JUser' }
     Relationship.one selector, (err, rel) ->
       return callback err   if err
@@ -1192,16 +1195,28 @@ module.exports = class JAccount extends jraphical.Module
 
       kallback = (err, roles)=>
         return callback err  if err
-        {flatten} = require 'underscore'
-        if "admin" in roles
-          perms = Protected.permissionsByModule
-          callback null, { permissions: (flatten perms), roles }
-        else
-          group.fetchPermissionSetOrDefault (err, permissionSet)->
-            return callback err if err
-            perms = (perm.permissions.slice() for perm in permissionSet.permissions \
-              when perm.role in roles or 'admin' in roles)
-            callback null, { permissions: (flatten perms), roles }
+
+        @fetchUser (err, user)=>
+          return callback err  if err
+
+          userId = user._id
+
+          {flatten} = require 'underscore'
+
+          if "admin" in roles
+
+            perms = Protected.permissionsByModule
+            callback null, { permissions: (flatten perms), roles, userId }
+
+          else
+
+            group.fetchPermissionSetOrDefault (err, permissionSet)->
+              return callback err if err
+
+              perms = (perm.permissions.slice() for perm in permissionSet.permissions \
+                when perm.role in roles or 'admin' in roles)
+
+              callback null, { permissions: (flatten perms), roles, userId }
 
       group.fetchMyRoles client, kallback
 
@@ -1385,9 +1400,9 @@ module.exports = class JAccount extends jraphical.Module
       return callback new KodingError "Could not update last login timezone offset" if err
       callback null
 
-  fetchCustomers: secure ({connection}, options, callback) ->
-    if not isDummyAdmin connection.delegate.profile.nickname
+  expireSubscription: secure ({connection}, callback) ->
+    if KONFIG.environment is "production"
       return callback new KodingError "permission denied"
 
-    {getCustomers} = require './socialapi/requests'
-    getCustomers options, callback
+    {expireSubscription} = require "./socialapi/requests"
+    expireSubscription connection.delegate.getId(), callback

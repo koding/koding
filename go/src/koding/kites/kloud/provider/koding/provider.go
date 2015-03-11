@@ -9,6 +9,7 @@ import (
 	"koding/db/mongodb"
 
 	amazonClient "koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -48,7 +49,7 @@ type Provider struct {
 
 	// AWS related references and settings
 	EC2Clients *multiec2.Clients
-	DNS        *DNS
+	DNS        *dnsclient.DNS
 	Bucket     *Bucket
 
 	KontrolURL        string
@@ -72,16 +73,21 @@ type Provider struct {
 	InactiveMachines   map[string]*time.Timer
 	InactiveMachinesMu sync.Mutex
 
-	PlanChecker func(*protocol.Machine) (Checker, error)
-
 	Stats *metrics.DogStatsD
+
+	// Fetcher is used to fetch a machines plan
+	Fetcher Fetcher
+
+	// NetworkUsageEndpoint is used to fetch a machines network usage
+	NetworkUsageEndpoint string
 }
 
 func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
+	userLog := p.Log.New(m.Id)
 	a := &amazon.AmazonClient{
-		Log: p.Log,
+		Log: userLog,
 		Push: func(msg string, percentage int, state machinestate.State) {
-			p.Log.Debug("[%s] %s (username: %s)", m.Id, msg, m.Username)
+			userLog.Debug("%s (username: %s)", msg, m.Username)
 
 			m.Eventer.Push(&eventer.Event{
 				Message:    msg,
@@ -104,7 +110,7 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 
 	if a.Builder.Region == "" {
 		a.Builder.Region = "us-east-1"
-		a.Log.Critical("[%s] region is not set in. Fallback to us-east-1.", m.Id)
+		a.Log.Critical("region is not set in. Fallback to us-east-1.")
 	}
 
 	client, err := p.EC2Clients.Region(a.Builder.Region)
@@ -121,6 +127,34 @@ func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) 
 	a.Builder.PublicKey = p.PublicKey
 	a.Builder.PrivateKey = p.PrivateKey
 	return a, nil
+}
+
+func (p *Provider) PlanChecker(m *protocol.Machine) (*PlanChecker, error) {
+	a, err := p.NewClient(m)
+	if err != nil {
+		return nil, err
+	}
+
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher.Fetch(m)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      a.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}, nil
 }
 
 func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
@@ -167,14 +201,14 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 	// were created because there were no capacity for their specific instance
 	// type.
 	if infoResp.InstanceType != a.Builder.InstanceType {
-		a.Log.Warning("[%s] instance is using '%s'. Changing back to '%s'",
-			m.Id, infoResp.InstanceType, a.Builder.InstanceType)
+		a.Log.Warning("instance is using '%s'. Changing back to '%s'",
+			infoResp.InstanceType, a.Builder.InstanceType)
 
 		opts := &ec2.ModifyInstance{InstanceType: instances[a.Builder.InstanceType].String()}
 
 		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
-			p.Log.Warning("[%s] couldn't change instance to '%s' again. err: %s",
-				m.Id, a.Builder.InstanceType, err)
+			a.Log.Warning("couldn't change instance to '%s' again. err: %s",
+				a.Builder.InstanceType, err)
 		}
 
 		// Because of AWS's eventually consistency state, we wait to get the
@@ -202,11 +236,11 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 				return err
 			}
 
-			p.Log.Error("[%s] IMPORTANT: %s", m.Id, err)
+			a.Log.Error("IMPORTANT: %s", err)
 
 			for _, instanceType := range InstancesList {
-				p.Log.Warning("[%s] Fallback: starting again with using instance: %s instead of %s",
-					m.Id, instanceType, a.Builder.InstanceType)
+				a.Log.Warning("Fallback: starting again with using instance: %s instead of %s",
+					instanceType, a.Builder.InstanceType)
 
 				// now change the instance type before we start so we can
 				// avoid the instance capacity problem
@@ -225,8 +259,8 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 					return nil
 				}
 
-				p.Log.Warning("[%s] Fallback: couldn't start instance with type: '%s'. err: %s ",
-					m.Id, instanceType, err)
+				a.Log.Warning("Fallback: couldn't start instance with type: '%s'. err: %s ",
+					instanceType, err)
 			}
 
 			return errors.New("no other instances are available")
@@ -235,6 +269,24 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 		// go go go!
 		if err := startFunc(); err != nil {
 			return nil, err
+		}
+	}
+
+	// Assign a Elastic IP for a paying customer if it doesn't have any
+	// assigned yet (Elastic IP's are assigned only during the Build). We
+	// lookup the IP from the Elastic IPs, if it's not available (returns an
+	// error) we proceed and create it.
+	if checker.Plan.Plan != Free { // check this first to avoid an additional AWS call
+		_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
+		if isAddressNotFoundError(err) {
+			a.Log.Debug("Paying user detected, Creating an Public Elastic IP")
+
+			elasticIp, err := allocateAndAssociateIP(a.Client, artifact.InstanceId)
+			if err != nil {
+				a.Log.Warning("couldn't not create elastic IP: %s", err)
+			} else {
+				artifact.IpAddress = elasticIp
+			}
 		}
 	}
 
@@ -248,19 +300,19 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Initializing domain instance", 65, machinestate.Starting)
 	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-		p.Log.Error("[%s] updating domains for starting err: %s", m.Id, err.Error())
+		a.Log.Error("updating domains for starting err: %s", err.Error())
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
 	a.Push("Updating domain aliases", 80, machinestate.Starting)
 	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
-		p.Log.Error("[%s] fetching domains for starting err: %s", m.Id, err.Error())
+		a.Log.Error("fetching domains for starting err: %s", err.Error())
 	}
 
 	for _, domain := range domains {
 		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
-			p.Log.Error("[%s] couldn't update domain: %s", m.Id, err.Error())
+			a.Log.Error("couldn't update domain: %s", err.Error())
 		}
 	}
 
@@ -268,9 +320,9 @@ func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
 
 	a.Push("Checking remote machine", 90, machinestate.Starting)
 	if p.IsKlientReady(m.QueryString) {
-		p.Log.Debug("[%s] klient is ready.", m.Id)
+		a.Log.Debug("klient is ready.")
 	} else {
-		p.Log.Warning("[%s] klient is not ready. I couldn't connect to it.", m.Id)
+		a.Log.Warning("klient is not ready. I couldn't connect to it.")
 	}
 
 	return artifact, nil
@@ -297,19 +349,19 @@ func (p *Provider) Stop(m *protocol.Machine) error {
 	}
 
 	a.Push("Deleting domain", 85, machinestate.Stopping)
-	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
-		p.Log.Warning("[%s] couldn't delete domain %s", m.Id, err)
+	if err := p.DNS.Delete(m.Domain.Name); err != nil {
+		a.Log.Warning("couldn't delete domain %s", err)
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
 	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
-		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+		a.Log.Error("fetching domains for unseting err: %s", err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.Name, m.IpAddress); err != nil {
-			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		if err := p.DNS.Delete(domain.Name); err != nil {
+			a.Log.Error("couldn't delete domain: %s", err.Error())
 		}
 	}
 
@@ -352,13 +404,37 @@ func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
 	m.QueryString = ""
 	m.IpAddress = ""
 
+	if p.Fetcher == nil {
+		return nil, errors.New("Fetcher is not initialized")
+	}
+
+	// check current plan
+	fetcherResp, err := p.Fetcher.Fetch(m)
+	if err != nil {
+		return nil, err
+	}
+
+	checker := &PlanChecker{
+		Api:      a,
+		Provider: p,
+		DB:       p.Session,
+		Kite:     p.Kite,
+		Log:      a.Log,
+		Username: m.Username,
+		Machine:  m,
+		Plan:     fetcherResp,
+	}
+
 	b := &Build{
-		amazon:   a,
-		machine:  m,
-		provider: p,
-		start:    40,
-		finish:   90,
-		log:      p.Log,
+		amazon:     a,
+		machine:    m,
+		provider:   p,
+		plan:       fetcherResp.Plan,
+		checker:    checker,
+		start:      40,
+		finish:     90,
+		log:        a.Log,
+		cleanFuncs: make([]func(), 0),
 	}
 
 	// this updates/creates domain
@@ -381,27 +457,39 @@ func (p *Provider) Destroy(m *protocol.Machine) error {
 
 	domains, err := p.DomainStorage.GetByMachine(m.Id)
 	if err != nil {
-		p.Log.Error("[%s] fetching domains for unseting err: %s", m.Id, err.Error())
+		a.Log.Error("fetching domains for unseting err: %s", err.Error())
 	}
 
 	a.Push("Deleting base domain", 85, machinestate.Terminating)
-	if err := p.DNS.Delete(m.Domain.Name, m.IpAddress); err != nil {
+	if err := p.DNS.Delete(m.Domain.Name); err != nil {
 		// if it's already deleted, for example because of a STOP, than we just
 		// log it here instead of returning the error
-		p.Log.Error("[%s] deleting domain during destroying err: %s", m.Id, err.Error())
+		a.Log.Error("deleting domain during destroying err: %s", err.Error())
 	}
 
 	a.Push("Deleting custom domain", 90, machinestate.Terminating)
 	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.Name, m.IpAddress); err != nil {
-			p.Log.Error("[%s] couldn't delete domain: %s", m.Id, err.Error())
+		if err := p.DNS.Delete(domain.Name); err != nil {
+			a.Log.Error("couldn't delete domain: %s", err.Error())
 		}
 
 		if err := p.DomainStorage.UpdateMachine(domain.Name, ""); err != nil {
-			p.Log.Error("[%s] couldn't unset machine domain: %s", m.Id, err.Error())
+			a.Log.Error("couldn't unset machine domain: %s", err.Error())
 		}
 	}
 
+	// try to release/delete a public elastic IP, if there is an error we don't
+	// care (the instance might not have an elastic IP, aka a free user.
+	if resp, err := a.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter()); err == nil {
+		if len(resp.Addresses) == 0 {
+			return nil // nothing to do
+		}
+
+		address := resp.Addresses[0]
+		a.Log.Debug("Got an elastic IP %+v. Going to relaease it", address)
+
+		a.Client.ReleaseAddress(address.AllocationId)
+	}
 	return nil
 }
 
@@ -422,7 +510,7 @@ func (p *Provider) stopTimer(m *protocol.Machine) {
 	// doesn't get called later again.
 	p.InactiveMachinesMu.Lock()
 	if timer, ok := p.InactiveMachines[m.QueryString]; ok {
-		p.Log.Info("[%s] stopping inactive machine timer %s", m.Id, m.QueryString)
+		p.Log.Info("stopping inactive machine timer %s", m.QueryString)
 		timer.Stop()
 		p.InactiveMachines[m.QueryString] = nil // garbage collect
 		delete(p.InactiveMachines, m.QueryString)
@@ -471,8 +559,7 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 			return err
 		}
 
-		p.Log.Info("[%s] 30 minutes passed. Rechecking again before I stop the machine (username: %s)",
-			m.Id, m.Username)
+		a.Log.Info("30 minutes passed. Rechecking again before I stop the machine (username: %s)", m.Username)
 
 		infoResp, err := a.Info()
 		if err != nil {
@@ -484,16 +571,14 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		}
 
 		if infoResp.State == machinestate.Stopped {
-			p.Log.Info("[%s] stop timer aborting. Machine is already stopped (username: %s)",
-				m.Id, m.Username)
+			a.Log.Info("stop timer aborting. Machine is already stopped (username: %s)", m.Username)
 			return errors.New("machine is already stopped")
 		}
 
 		if infoResp.State == machinestate.Running {
 			err := klient.Exists(p.Kite, m.QueryString)
 			if err == nil {
-				p.Log.Info("[%s] stop timer aborting. Klient is already running (username: %s)",
-					m.Id, m.Username)
+				a.Log.Info("stop timer aborting. Klient is already running (username: %s)", m.Username)
 				return errors.New("we have a klient connection")
 			}
 		}
@@ -505,12 +590,12 @@ func (p *Provider) startTimer(curMachine *protocol.Machine) {
 		stoppingReason := "Stopping process started due not active klient after 30 minutes waiting."
 		p.UpdateState(m.Id, stoppingReason, machinestate.Stopping)
 
-		p.Log.Info("[%s] Stopping machine (username: %s) after 30 minutes klient disconnection.",
+		a.Log.Info("Stopping machine (username: %s) after 30 minutes klient disconnection.",
 			m.Id, m.Username)
 
 		// Hasta la vista, baby!
 		if err := p.Stop(m); err != nil {
-			p.Log.Warning("[%s] could not stop ghost machine %s", m.Id, err)
+			a.Log.Warning("could not stop ghost machine %s", err)
 		}
 
 		// update to final state too

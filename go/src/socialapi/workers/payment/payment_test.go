@@ -1,10 +1,12 @@
 package payment
 
 import (
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
+	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"testing"
@@ -31,29 +33,71 @@ func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
-// func TestGetAllCustomers(t *testing.T) {
-//   Convey("Given two actively subscribed users", t, func() {
-//     token, accId, email := generateFakeUserInfo()
-//     err := stripe.Subscribe(
-//       token, accId, email, StartingPlan, StartingInterval,
-//     )
-//     So(err, ShouldBeNil)
+func TestGetAllCustomers(t *testing.T) {
+	Convey("Given two actively subscribed users", t, func() {
+		account := &models.Account{
+			Id:      bson.NewObjectId(),
+			Profile: models.AccountProfile{Nickname: "indianajones"},
+		}
+		err := modelhelper.CreateAccount(account)
+		So(err, ShouldBeNil)
 
-//     token, accId, email = generateFakeUserInfo()
-//     err = stripe.Subscribe(
-//       token, accId, email, StartingPlan, StartingInterval,
-//     )
-//     So(err, ShouldBeNil)
+		accId := account.Id.Hex()
 
-//     Convey("Then it should return their usernames", func() {
-//       req := AccountRequest{}
-//       usernames, err := req.ActiveUsernames()
-//       So(err, ShouldBeNil)
+		token, _, email := generateFakeUserInfo()
+		err = stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
+		So(err, ShouldBeNil)
 
-//       So(len(usernames), ShouldBeGreaterThan, 1)
-//     })
-//   })
-// }
+		Convey("Then it should return their usernames", func() {
+			req := AccountRequest{}
+			usernames, err := req.ActiveUsernames()
+			So(err, ShouldBeNil)
+
+			So(len(usernames), ShouldEqual, 1)
+			So(usernames[0], ShouldEqual, "indianajones")
+		})
+
+		Reset(func() {
+			modelhelper.RemoveAccount(account.Id)
+
+			customer := paymentmodels.NewCustomer()
+			customer.ByOldId(account.Id.Hex())
+
+			subscription, _ := customer.FindActiveSubscription()
+			subscription.Cancel()
+
+			customer.DeleteSubscriptionsAndItself()
+		})
+
+	})
+}
+
+func TestExpireSubscription(t *testing.T) {
+	Convey("Given user with active subscription", t, func() {
+		token, accId, email := generateFakeUserInfo()
+		err := stripe.Subscribe(
+			token, accId, email, StartingPlan, StartingInterval,
+		)
+		So(err, ShouldBeNil)
+
+		Convey("When request to expire subscription", func() {
+			req := AccountRequest{AccountId: accId}
+			_, err = req.Expire()
+			So(err, ShouldBeNil)
+
+			customer := paymentmodels.NewCustomer()
+			err = customer.ByOldId(req.AccountId)
+			So(err, ShouldBeNil)
+
+			Convey("Then it should expire subscription", func() {
+				_, err = customer.FindActiveSubscription()
+				So(err, ShouldEqual, paymenterrors.ErrCustomerNotSubscribedToAnyPlans)
+			})
+		})
+	})
+}
 
 func TestSubscriptionsRequest(t *testing.T) {
 	Convey("Given nonexistent user", t, func() {

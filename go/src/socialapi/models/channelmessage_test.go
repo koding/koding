@@ -1,8 +1,10 @@
 package models
 
 import (
+	"math/rand"
 	"socialapi/request"
 	"socialapi/workers/common/runner"
+	"strconv"
 	"testing"
 	"time"
 
@@ -525,5 +527,84 @@ func TestChannelMessageFetchMessageCount(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(count, ShouldEqual, 3)
 		})
+	})
+}
+
+func TestChannelMessageFetchParentChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("we should be able to fetch message's parent channel", t, func() {
+		var accountId int64
+		accountId = 3
+
+		channel := NewChannel()
+		channel.CreatorId = accountId
+
+		Convey("When channel type is not topic, fetch the initial channel of the message as parent", func() {
+			channel.TypeConstant = Channel_TYPE_PRIVATE_MESSAGE
+			err := channel.Create()
+			So(err, ShouldBeNil)
+			cm := CreateMessage(channel.Id, accountId, Channel_TYPE_PRIVATE_MESSAGE)
+			parentChannel, err := cm.FetchParentChannel()
+			So(err, ShouldBeNil)
+			So(parentChannel.Id, ShouldEqual, channel.Id)
+		})
+
+		Convey("When channel type is topic, group channel must be fetched", func() {
+			rand.Seed(time.Now().UnixNano())
+			groupName := "groupie-" + strconv.Itoa(rand.Intn(10e9))
+
+			channel.TypeConstant = Channel_TYPE_TOPIC
+			channel.GroupName = groupName
+			err := channel.Create()
+			So(err, ShouldBeNil)
+
+			groupChannel := NewChannel()
+			groupChannel.GroupName = groupName
+			groupChannel.TypeConstant = Channel_TYPE_GROUP
+			groupChannel.CreatorId = 4
+			err = groupChannel.Create()
+			So(err, ShouldBeNil)
+
+			cm := CreateMessage(channel.Id, accountId, ChannelMessage_TYPE_POST)
+			parentChannel, err := cm.FetchParentChannel()
+			So(err, ShouldBeNil)
+			So(parentChannel.Id, ShouldEqual, groupChannel.Id)
+		})
+
+	})
+}
+
+func TestChannelMessageAddReply(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while adding reply message", t, func() {
+
+		Convey("channel message should have an id", func() {
+			chm := NewChannelMessage()
+			cm, err := chm.AddReply(chm)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrChannelMessageIdIsNotSet)
+			So(cm, ShouldBeNil)
+		})
+
+		Convey("channel message id should equal to reply message id ", func() {
+			c := createMessageWithTest()
+			So(c.Create(), ShouldBeNil)
+			c2 := createMessageWithTest()
+			So(c2.Create(), ShouldBeNil)
+			cm, err := c.AddReply(c2)
+			So(err, ShouldBeNil)
+			So(cm.MessageId, ShouldEqual, c.Id)
+		})
+
 	})
 }

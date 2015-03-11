@@ -11,6 +11,9 @@ import (
 )
 
 func GetPinnedActivityChannel(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	// activity pining is disabled
+	return response.NewOK(nil)
+
 	query := request.GetQuery(u)
 
 	if query.AccountId == 0 {
@@ -55,12 +58,17 @@ func PinMessage(u *url.URL, h http.Header, req *models.PinRequest) (int, http.He
 		return response.NewBadRequest(err)
 	}
 
+	cm := models.NewChannelMessage()
+	cm.Id = req.MessageId
 	return response.HandleResultAndError(
-		c.EnsureMessage(req.MessageId, true),
+		c.EnsureMessage(cm, true),
 	)
 }
 
 func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
+	// activity pining is disabled
+	return response.NewOK(nil)
+
 	query := request.GetQuery(u)
 
 	if query.AccountId == 0 {

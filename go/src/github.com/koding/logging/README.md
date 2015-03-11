@@ -23,6 +23,7 @@ Features
 * Customizable logging handlers
 * Customizable formatters
 * Log to multiple backends concurrently
+* Context based (inherited) loggers
 
 
 Example Usage

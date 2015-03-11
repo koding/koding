@@ -72,6 +72,8 @@ type SubscriptionsResponse struct {
 	PlanInterval       string    `json:"planInterval"`
 	State              string    `json:"state"`
 	Provider           string    `json:"provider"`
+	ExpiredAt          time.Time `json:"expiredAt"`
+	CanceledAt         time.Time `json:"canceledAt"`
 	CurrentPeriodStart time.Time `json:"currentPeriodStart"`
 	CurrentPeriodEnd   time.Time `json:"currentPeriodEnd"`
 }
@@ -128,27 +130,19 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		CurrentPeriodEnd:   currentSubscription.CurrentPeriodEnd,
 		State:              currentSubscription.State,
 		Provider:           currentSubscription.Provider,
+		ExpiredAt:          currentSubscription.ExpiredAt,
+		CanceledAt:         currentSubscription.CanceledAt,
 	}
 
 	return resp, nil
 }
 
 func (a *AccountRequest) Invoices() ([]*stripe.StripeInvoiceResponse, error) {
-	invoices, err := stripe.FindInvoicesForCustomer(a.AccountId)
-	if err != nil && err != paymenterrors.ErrCustomerNotFound {
-		Log.Error("Fetching invoices for account: %s failed. %s", a.AccountId, err)
-	}
-
-	return invoices, err
+	return stripe.FindInvoicesForCustomer(a.AccountId)
 }
 
 func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
-	resp, err := stripe.GetCreditCard(a.AccountId)
-	if err != nil && err != paymenterrors.ErrCustomerNotFound {
-		Log.Error("Fetching cc for account: %s failed. %s", a.AccountId, err)
-	}
-
-	return resp, err
+	return stripe.GetCreditCard(a.AccountId)
 }
 
 func (a *AccountRequest) Delete() (interface{}, error) {
@@ -175,6 +169,21 @@ func (a *AccountRequest) ActiveUsernames() ([]string, error) {
 	}
 
 	return usernames, nil
+}
+
+func (a *AccountRequest) Expire() (interface{}, error) {
+	customer := paymentmodels.NewCustomer()
+	err := customer.ByOldId(a.AccountId)
+	if err != nil {
+		return nil, err
+	}
+
+	subscription, err := customer.FindActiveSubscription()
+	if err != nil {
+		return nil, err
+	}
+
+	return nil, subscription.Expire()
 }
 
 //----------------------------------------------------------

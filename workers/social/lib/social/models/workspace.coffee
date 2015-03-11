@@ -70,6 +70,8 @@ module.exports = class JWorkspace extends Module
 
       workspace.save (err) ->
         return callback err  if err
+
+        delegate.emit 'NewWorkspaceCreated', workspace
         return callback null, workspace
 
 
@@ -161,3 +163,17 @@ module.exports = class JWorkspace extends Module
       return callback new KodingError 'Workspace not found.'  unless ws
 
       ws.update options, callback
+
+
+  @createDefault: (client, machine, callback) ->
+
+    {nickname} = client.connection.delegate.profile
+
+    data =
+      name         : 'My Workspace'
+      isDefault    : yes
+      machineLabel : machine.label
+      machineUId   : machine.uid
+      rootPath     : "/home/#{nickname}"
+
+    @create client, data, callback

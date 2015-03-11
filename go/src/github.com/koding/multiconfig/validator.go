@@ -65,7 +65,7 @@ func (e *RequiredValidator) processField(fieldName string, field *structs.Field)
 		}
 
 		if field.IsZero() {
-			return fmt.Errorf("field %s is required", fieldName)
+			return fmt.Errorf("multiconfig: field '%s' is required", fieldName)
 		}
 	}
 

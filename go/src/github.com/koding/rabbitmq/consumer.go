@@ -6,6 +6,9 @@ type Consumer struct {
 	// Base struct for Producer
 	*RabbitMQ
 
+	// The communication channel over connection
+	channel *amqp.Channel
+
 	// All deliveries from server will send to this channel
 	deliveries <-chan amqp.Delivery
 
@@ -27,13 +30,20 @@ func (c *Consumer) Deliveries() <-chan amqp.Delivery {
 // NewConsumer is a constructor for consumer creation
 // Accepts Exchange, Queue, BindingOptions and ConsumerOptions
 func (r *RabbitMQ) NewConsumer(e Exchange, q Queue, bo BindingOptions, co ConsumerOptions) (*Consumer, error) {
-	rmq, err := r.Connect(co.Tag)
+	rmq, err := r.Connect()
+	if err != nil {
+		return nil, err
+	}
+
+	// getting a channel
+	channel, err := r.conn.Channel()
 	if err != nil {
 		return nil, err
 	}
 
 	c := &Consumer{
 		RabbitMQ: rmq,
+		channel:  channel,
 		done:     make(chan error),
 		session: Session{
 			Exchange:        e,
@@ -52,7 +62,6 @@ func (r *RabbitMQ) NewConsumer(e Exchange, q Queue, bo BindingOptions, co Consum
 }
 
 // connect internally declares the exchanges and queues
-// and starts to stream from given queue
 func (c *Consumer) connect() error {
 	e := c.session.Exchange
 	q := c.session.Queue
@@ -138,8 +147,15 @@ func (c *Consumer) Consume(handler func(delivery amqp.Delivery)) error {
 	return nil
 }
 
+// QOS controls how many messages the server will try to keep on the network for
+// consumers before receiving delivery acks.  The intent of Qos is to make sure
+// the network buffers stay full between the server and client.
+func (c *Consumer) QOS(messageCount int) error {
+	return c.channel.Qos(messageCount, 0, false)
+}
+
 // ConsumeMessage accepts a handler function and only consumes one message
-// stream from RabbitMq and then closes connection
+// stream from RabbitMq
 func (c *Consumer) Get(handler func(delivery amqp.Delivery)) error {
 	co := c.session.ConsumerOptions
 	q := c.session.Queue
@@ -157,16 +173,15 @@ func (c *Consumer) Get(handler func(delivery amqp.Delivery)) error {
 		c.RabbitMQ.log.Debug("No message received")
 	}
 
-	return shutdown(c.conn, c.channel, c.tag)
+	// TODO maybe we should return ok too?
+	return nil
 }
 
 // Shutdown gracefully closes all connections and waits
 // for handler to finish its messages
 func (c *Consumer) Shutdown() error {
-	// to-do
-	// first stop streaming then close connections
-	err := shutdown(c.conn, c.channel, c.tag)
-	if err != nil {
+	co := c.session.ConsumerOptions
+	if err := shutdownChannel(c.channel, co.Tag); err != nil {
 		return err
 	}
 
@@ -183,10 +198,4 @@ func (c *Consumer) Shutdown() error {
 	// sure to wait for all consumers goroutines to finish before exiting our
 	// process.
 	return <-c.done
-}
-
-// RegisterSignalHandler watchs for interrupt signals
-// and gracefully closes consumer
-func (c *Consumer) RegisterSignalHandler() {
-	registerSignalHandler(c)
 }

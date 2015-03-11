@@ -59,6 +59,8 @@ services=(
   socialapi/workers/email/privatemessageemail/privatemessageemailsender
   socialapi/workers/moderation/cmd/topicmoderation
   socialapi/workers/payment/paymentwebhook
+  socialapi/workers/cmd/collaboration
+  socialapi/workers/cmd/emailsender
 )
 
 

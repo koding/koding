@@ -6,12 +6,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
+	"socialapi/workers/common/response"
+	"strconv"
 	"strings"
 
+	"github.com/juju/ratelimit"
 	kmetrics "github.com/koding/metrics"
 
 	tigertonic "github.com/rcrowley/go-tigertonic"
@@ -44,46 +48,46 @@ type Request struct {
 	Securer interface{}
 
 	// used for external requests
-	Params  map[string]string
-	Cookie  string
-	Cookies []*http.Cookie
-	Body    interface{}
-	Headers map[string]string
+	Params    map[string]string
+	Cookie    string
+	Cookies   []*http.Cookie
+	Body      interface{}
+	Headers   map[string]string
+	Ratelimit func(*http.Request) *ratelimit.Bucket
 }
 
 // todo add prooper logging
 func getAccount(r *http.Request) *models.Account {
 	cookie, err := r.Cookie("clientId")
 	if err != nil {
-		return nil
+		return models.NewAccount()
 	}
 
-	// if cookie doenst exists return nil
+	// if cookie doenst exists return empty account
 	if cookie.Value == "" {
-		return nil
+		return models.NewAccount()
 	}
 
 	session, err := models.Cache.Session.ById(cookie.Value)
 	if err != nil {
-		return nil
+		return models.NewAccount()
 	}
 
-	if strings.Contains(session.Username, "guest-") {
-		session.Username = "guestuser"
-	}
-
-	// if session doesnt have username, return nil
+	// if session doesnt have username, return empty account
 	if session.Username == "" {
-		return nil
+		return models.NewAccount()
 	}
 
 	acc, err := models.Cache.Account.ByNick(session.Username)
 	if err != nil {
-		return nil
+		return models.NewAccount()
 	}
 
 	return acc
 }
+
+const timedOutMsg = `{"description":"request timed out","error":"koding.RequestTimedoutError"}`
+const timeoutDuration = time.Second * 30
 
 func Wrapper(r Request) http.Handler {
 	handler := r.Handler
@@ -100,6 +104,14 @@ func Wrapper(r Request) http.Handler {
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
+	// every request should return under 30 secs, if not return 503 service
+	// unavailable
+	hHandler = http.TimeoutHandler(hHandler, timeoutDuration, timedOutMsg)
+
+	// set rate limiting if the handler has one
+	if r.Ratelimit != nil {
+		hHandler = BuildHandlerWithRateLimit(hHandler, r.Ratelimit)
+	}
 	// create the final handler
 	return cors.Build(hHandler)
 }
@@ -140,6 +152,33 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 
 			*(tigertonic.Context(r).(*models.Context)) = *context
 			return nil, nil
+		},
+		handler,
+	)
+}
+
+func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request) *ratelimit.Bucket) http.Handler {
+	// add context
+	return tigertonic.If(
+		func(r *http.Request) (http.Header, error) {
+			// get the limiter
+			bucket := limiter(r)
+
+			h := http.Header{}
+			h.Add("X-RateLimit-Limit", strconv.FormatInt(int64(bucket.Rate()*60), 10))
+
+			// check if any 		throttling is enabled and then check token's available.
+			// Tokens are filled per frequency of the initial bucket, so every request
+			// is going to take one token from the bucket. If many requests come in (in
+			// span time larger than the bucket's frequency), there will be no token's
+			// available more so it will return a zero.
+			timeToWait := bucket.Take(1)
+			if timeToWait > time.Duration(0) {
+				h.Add("Retry-After", strconv.FormatInt(int64(timeToWait.Seconds()), 10))
+				return h, &response.LimitRateExceededError{}
+			}
+
+			return h, nil
 		},
 		handler,
 	)

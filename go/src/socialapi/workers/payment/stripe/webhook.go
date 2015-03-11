@@ -47,7 +47,6 @@ type InvoiceCreatedWebhookRequest struct {
 
 func InvoiceCreatedWebhook(req *webhookmodels.StripeInvoice) error {
 	if !IsLineCountAllowed(req.Lines.Count) {
-		Log.Error("'invoice.created': Line count: %d not allowed", req.Lines.Count)
 		return nil
 	}
 

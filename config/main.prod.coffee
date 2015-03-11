@@ -48,35 +48,38 @@ Configuration = (options={}) ->
   kloudPort           = 5500
   kloud               = { port : kloudPort, privateKeyFile : kontrol.privateKeyFile , publicKeyFile: kontrol.publicKeyFile, kontrolUrl: kontrol.url, registerUrl : "#{customDomain.public}/kloud/kite", secretKey :  "J7suqUXhqXeiLchTrBDvovoJZEBVPxncdHyHCYqnGfY4HirKCe", address : "http://localhost:#{kloudPort}/kite"}
 
+  googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
   socialapi =
-    proxyUrl          : "#{customDomain.local}/api/social"
-    port              : "7000"
-    configFilePath    : "#{projectRoot}/go/src/socialapi/config/prod.toml"
-    postgres          : postgres
-    mq                : mq
-    redis             : url: redis.url
-    mongo             : mongo
-    environment       : environment
-    region            : region
-    hostname          : hostname
-    protocol          : protocol
-    email             : email
-    sitemap           : { redisDB: 0, updateInterval : "30m" }
-    algolia           : algoliaSecret
-    mixpanel          : mixpanel
-    limits            : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
-    eventExchangeName : "BrokerMessageBus"
-    disableCaching    : no
-    debug             : no
-    stripe            : { secretToken : "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh" }
-    paypal            : { username: 'kodingpaypal_api1.koding.com', password: 'P6FCAXAVSLZGMLG2', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AWdUhFbklVEIzx29fcKDqYO0tbzM', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: no }
-    gatekeeper        : gatekeeper
-    customDomain      : customDomain
-    kloud             : { secretKey: kloud.secretKey, address: kloud.address }
-    paymentwebhook    : paymentwebhook
+    proxyUrl                : "#{customDomain.local}/api/social"
+    port                    : "7000"
+    configFilePath          : "#{projectRoot}/go/src/socialapi/config/prod.toml"
+    postgres                : postgres
+    mq                      : mq
+    redis                   : url: redis.url
+    mongo                   : mongo
+    environment             : environment
+    region                  : region
+    hostname                : hostname
+    protocol                : protocol
+    email                   : email
+    sitemap                 : { redisDB: 0, updateInterval : "30m" }
+    algolia                 : algoliaSecret
+    mixpanel                : mixpanel
+    limits                  : { messageBodyMinLen: 1, postThrottleDuration: "15s", postThrottleCount: 3 }
+    eventExchangeName       : "BrokerMessageBus"
+    disableCaching          : no
+    debug                   : no
+    stripe                  : { secretToken : "sk_live_GlE3sUKT9TrDbSEAMCQXjeLh" }
+    paypal                  : { username: 'kodingpaypal_api1.koding.com', password: 'P6FCAXAVSLZGMLG2', signature: 'AFcWxV21C7fd0v3bYYYRCpSSRl31AWdUhFbklVEIzx29fcKDqYO0tbzM', returnUrl: "#{customDomain.public}/-/payments/paypal/return", cancelUrl: "#{customDomain.public}/-/payments/paypal/cancel", isSandbox: no }
+    gatekeeper              : gatekeeper
+    customDomain            : customDomain
+    kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
+    paymentwebhook          : paymentwebhook
+    googleapiServiceAccount : googleapiServiceAccount
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -157,7 +160,7 @@ Configuration = (options={}) ->
     mixpanel                       : mixpanel.token
     recaptcha                      : '6LfFAPcSAAAAAPmec0-3i_hTWE8JhmCu_JWh5h6e'
     segment                        : '4c570qjqo0'
-    googleapiServiceAccount        : {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
+    googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'e6c3413236e08107'
 
     collaboration :
@@ -346,7 +349,8 @@ Configuration = (options={}) ->
       ports             :
         incoming        : paymentwebhook.port
       supervisord       :
-        command         : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/paymentwebhook -c #{socialapi.configFilePath} -kite-init=true"
+        stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{paymentwebhook.port}/healthCheck"
       versionURL        : "http://localhost:#{paymentwebhook.port}/version"
       nginx             :
@@ -361,15 +365,9 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.vmwatcher.port}"
       supervisord       :
         command         : "#{GOBIN}/vmwatcher"
+        stopwaitsecs    : 20
       healthCheckURL    : "http://localhost:#{KONFIG.vmwatcher.port}/healthCheck"
       versionURL        : "http://localhost:#{KONFIG.vmwatcher.port}/version"
-
-    # clientWatcher       :
-    #   group             : "webserver"
-    #   supervisord       :
-    #     command         : "ulimit -n 1024 && coffee #{projectRoot}/build-client.coffee  --watch --sourceMapsUri /sourcemaps --verbose true"
-
-
 
     # Social API workers
     socialapi           :
@@ -393,6 +391,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/channel/(.*)/history"
             proxyPass   : "http://socialapi/channel/$1/history$is_args$args"
+          }
+          {
+            location    : "~ /api/social/collaboration/ping"
+            proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
@@ -496,7 +498,6 @@ Configuration = (options={}) ->
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
-    # clientWatcher       : command : "coffee #{projectRoot}/build-client.coffee    --watch --sourceMapsUri #{hostname}"
     # reverseProxy        : command : "#{GOBIN}/rerun koding/kites/reverseproxy -port 1234 -env production -region #{publicHostname}PublicEnvironment -publicHost proxy-#{publicHostname}.ngrok.com -publicPort 80"
     # kloud               : command : "#{GOBIN}/rerun koding/kites/kloud     -c #{configName} -r #{region} -port #{KONFIG.kloud.port} -public-key #{KONFIG.kloud.publicKeyFile} -private-key #{KONFIG.kloud.privateKeyFile} -kontrol-url \"http://#{KONFIG.kloud.kontrolUrl}\" -debug"
     # kontrol             : command : "#{GOBIN}/rerun koding/kites/kontrol   -c #{configName} -r #{region}"
@@ -541,9 +542,12 @@ Configuration = (options={}) ->
   generateRunFile = (KONFIG) ->
     return """
       #!/bin/bash
-      export HOME=/root
+      export HOME=/home/user-ec2
       export KONFIG_JSON='#{KONFIG.JSON}'
-      coffee ./build-client.coffee --watch false
+
+      cd #{projectRoot}/client
+      npm install --unsafe-perm
+      make build
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

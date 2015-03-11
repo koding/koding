@@ -311,6 +311,16 @@ func (c *Channel) FetchParticipantIds(q *request.Query) ([]int64, error) {
 	return participantIds, nil
 }
 
+func (c *Channel) FetchParticipants(q *request.Query) ([]Account, error) {
+	var accounts []Account
+	ids, err := c.FetchParticipantIds(q)
+	if err != nil {
+		return accounts, err
+	}
+
+	return NewAccount().FetchByIds(ids)
+}
+
 // AddMessage adds given message to the channel, if the message is already in the
 // channel, it doesn't add again, this method is idempotent
 // you can call many times, but message will be in the channel list once
@@ -346,11 +356,9 @@ func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 	return cml, nil
 }
 
-func (c *Channel) EnsureMessage(messageId int64, force bool) (*ChannelMessageList, error) {
+func (c *Channel) EnsureMessage(cm *ChannelMessage, force bool) (*ChannelMessageList, error) {
 	cml := NewChannelMessageList()
-	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, messageId).First(cml).Error
-	cm := NewChannelMessage()
-	cm.Id = messageId
+	err := bongo.B.DB.Model(cml).Unscoped().Where("channel_id = ? and message_id = ?", c.Id, cm.Id).First(cml).Error
 
 	if err == bongo.RecordNotFound {
 		return c.AddMessage(cm)
@@ -680,10 +688,6 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return false, ErrCreatorIdIsNotSet
 	}
 
-	if accountId == 0 {
-		return false, ErrAccountIdIsNotSet
-	}
-
 	// see only your pinned posts
 	if c.TypeConstant == Channel_TYPE_PINNED_ACTIVITY {
 		if c.CreatorId == accountId {
@@ -820,6 +824,17 @@ func (c *Channel) IsParticipant(accountId int64) (bool, error) {
 	cp := NewChannelParticipant()
 	cp.ChannelId = c.Id
 	return cp.IsParticipant(accountId)
+}
+
+func (c *Channel) FetchPublicChannel(groupName string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"group_name":    groupName,
+			"type_constant": Channel_TYPE_GROUP,
+		},
+	}
+
+	return c.One(query)
 }
 
 func isMessageCrossIndexed(messageId int64) (error, bool) {

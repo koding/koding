@@ -1,0 +1,4 @@
+{
+  "name": "viewer",
+  "main": "./lib/index.coffee"
+}

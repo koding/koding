@@ -46,12 +46,13 @@ module.exports =
       .click                  '[testpath=login-button]'
       .pause                  5000
 
+
   waitForVMRunning: (browser, machineName) ->
-    vmSelector = '.vm.running.koding'
 
-    if machineName
-      vmSelector   = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
+    unless machineName
+      machineName = 'koding-vm-0'
 
+    vmSelector     = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
     modalSelector  = '.env-modal.env-machine-state'
     loaderSelector = modalSelector + ' .kdloader'
     buildingLabel  = modalSelector + ' .state-label.building'
@@ -68,31 +69,30 @@ module.exports =
             if result.status is 0
               console.log 'vm is building, waiting to finish'
               browser
-                .waitForElementNotVisible  modalSelector, 300000
-                .waitForElementVisible     vmSelector, 30000
+                .waitForElementNotVisible  modalSelector, 500000
+                .waitForElementVisible     vmSelector, 500000
             else
               console.log 'turn on button is clicked, waiting for VM turn on'
 
               browser
-                .waitForElementVisible     turnOnButtonSelector, 50000
+                .waitForElementVisible     turnOnButtonSelector, 500000
                 .click                     turnOnButtonSelector
-                .waitForElementNotVisible  modalSelector, 300000
-                .waitForElementVisible     vmSelector, 30000
+                .waitForElementNotVisible  modalSelector, 500000
+                .waitForElementVisible     vmSelector, 500000
 
 
   doLogin: (browser, user) ->
     @attemptLogin(browser, user)
 
-    browser
-      .element                'css selector', '[testpath=main-sidebar]', (result) =>
-        if result.status is 0
-          console.log 'log in success'
+    browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
+      if result.status is 0
+        console.log 'log in success'
 
-          browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
-        else
-          console.log 'user is not registered yet. registering the user.'
+        browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
+      else
+        console.log 'user is not registered yet. registering the user.'
 
-          @doRegister browser, user
+        @doRegister browser, user
 
 
   doLogout: (browser) ->
@@ -116,6 +116,19 @@ module.exports =
       .waitForElementVisible     '.delete-container', 20000
       .click                     '.delete-container button.clean-red'
       .waitForElementNotPresent  fileSelector, 2000
+
+
+  deleteFolder: (browser, selector) ->
+
+    browser
+      .waitForElementPresent     selector, 20000
+      .click                     selector
+      .click                     selector + ' + .chevron'
+      .waitForElementVisible     'li.delete', 20000
+      .click                     'li.delete'
+      .waitForElementVisible     '.delete-container', 20000
+      .click                     '.delete-container button.clean-red'
+      .waitForElementNotPresent  selector, 2000
 
 
   attemptEnterEmailAndPasswordOnRegister: (browser, user) ->
@@ -185,14 +198,21 @@ module.exports =
     return comment
 
 
-  doPostComment: (browser, comment, shouldAssert = yes) ->
+  doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
     browser
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
       .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
       .click                    activitySelector + ' .has-markdown' # blur
       .pause                    3000 # content preview
+
+    if hasEmbeddable
+      browser
+        .waitForElementVisible  '.comment-input-widget .link-embed-box', 20000
+
+    browser
       .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
+
 
     if shouldAssert
       browser
@@ -200,18 +220,24 @@ module.exports =
         .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
 
-  doPostActivity: (browser, post, shouldAssert = yes) ->
+  doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
     browser
-      .pause                  5000 # wait for IDE open
-      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
-      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
-      .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
-      .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]', post
-      .click                  '.channel-title'
-      .click                  '[testpath=post-activity-button]'
-      .pause                  6000 # required
+      .pause                    5000 # wait for IDE open
+      .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible    '[testpath=ActivityInputView]', 10000
+      .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
+      .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
+      .click                    '[testpath=ActivityInputView]'
+      .setValue                 '[testpath=ActivityInputView]', post
+      .click                    '.channel-title'
+
+    if hasEmbeddable
+      browser
+        .waitForElementVisible  '.activity-input-widget .link-embed-box', 20000
+
+    browser
+      .click                    '[testpath=post-activity-button]'
+      .pause                    6000 # required
 
     if shouldAssert
       browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion
@@ -340,8 +366,8 @@ module.exports =
     workspaceName = paragraph.split(' ')[0]
 
     browser
-      .waitForElementVisible   '.kdscrollview li a.more-link', 20000
-      .click                   '.kdscrollview li a.more-link'
+      .waitForElementVisible   '.activity-sidebar .workspaces-link', 20000
+      .click                   '.activity-sidebar .workspaces-link'
       .waitForElementVisible   '.kdmodal-inner', 20000
       .click                   '.kdmodal-inner button'
       .pause                   3000 # required
@@ -373,7 +399,7 @@ module.exports =
       browser
         .waitForElementVisible     workspaceSelector, 20000
         .click                     workspaceSelector
-        .click                     workspaceSelector + ' .ws-settings-icon'
+        .click                     workspaceSelector + ' + .ws-settings-icon'
         .waitForElementVisible     modalSelector, 20000
         .click                     modalSelector + ' button.red'
         .waitForElementNotVisible  workspaceSelector, 20000
@@ -427,6 +453,7 @@ module.exports =
       .setValue                inputSelector, newName + '\n'
       .waitForElementVisible   saveButtonSelector, 20000
       .click                   saveButtonSelector
+      .waitForElementVisible   '.kdnotification.main', 20000
       .refresh()
       .waitForElementVisible   inputSelector, 20000
       .getValue                inputSelector, (result) ->
@@ -436,6 +463,43 @@ module.exports =
           browser
             .waitForElementVisible   avatarSelector, 20000
             .assert.containsText     avatarSelector, newName
+
+
+  fillPaymentForm: (browser) ->
+
+    paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
+    cardNumber    = '4111 1111 1111 1111'
+    cvc           = '123'
+    month         = '12'
+    year          = '2017'
+
+    browser
+      .waitForElementVisible   '.payment-modal', 20000
+      .waitForElementVisible   paymentModal, 20000
+      .waitForElementVisible   paymentModal + ' .cardnumber', 20000
+      .click                   'input[name=cardNumber]'
+      .setValue                'input[name=cardNumber]', cardNumber
+      .waitForElementVisible   paymentModal + ' .cardcvc', 20000
+      .click                   'input[name=cardCVC]'
+      .setValue                'input[name=cardCVC]', cvc
+      .waitForElementVisible   paymentModal + ' .cardmonth', 20000
+      .click                   'input[name=cardMonth]'
+      .setValue                'input[name=cardMonth]', month
+      .waitForElementVisible   paymentModal + ' .cardyear', 20000
+      .click                   'input[name=cardYear]'
+      .setValue                'input[name=cardYear]', year
+      .waitForElementVisible   paymentModal + ' .cardname', 20000
+      .click                   'input[name=cardName]'
+      .click                   '.year-price-msg'
+      .waitForElementVisible   'button.submit-btn', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '.kdmodal-content .success-msg', 20000
+      .click                   'button.submit-btn'
+      .waitForElementVisible   '[testpath=main-sidebar]', 20000
+      .url                     @getUrl() + '/Pricing'
+      .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.single-plan.developer.current', 20000
+
 
 
   getUrl: ->

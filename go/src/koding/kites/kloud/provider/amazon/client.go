@@ -25,7 +25,6 @@ type AmazonClient struct {
 	Push func(string, int, machinestate.State)
 
 	// Used for customization
-	InfoLog func(string, ...interface{})
 	Metrics *metrics.DogStatsD
 }
 

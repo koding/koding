@@ -1,6 +1,4 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
 
 
@@ -44,12 +42,13 @@ module.exports =
       .url (data) =>
         url    = data.value
 
-        vmName = url.split('/IDE/')[1].split('/')[0]
+        vmName   = url.split('/IDE/')[1].split('/')[0]
+        selector = '.activity-sidebar .kdlistitemview-main-nav.workspace'
+        path     = ' a[href="/IDE/' + vmName + '/' + folderData.name + '"]'
 
         browser
-          .waitForElementVisible  '.activity-sidebar .jtreeview-wrapper li' + ' a[href="/IDE/' + vmName + '/' + folderData.name + '"]', 20000 #Assertion
+          .waitForElementVisible  selector + path, 20000 #Assertion
           .pause                  3000
           .waitForElementVisible  '.vm-info', 20000
           .assert.containsText    '.vm-info', name # Assertion
           .end()
-

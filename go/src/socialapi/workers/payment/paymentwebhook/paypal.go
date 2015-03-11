@@ -11,9 +11,8 @@ type paypalActionType func(*webhookmodels.PaypalGenericWebhook, *Controller) err
 var paypalActions = map[string]paypalActionType{
 	"recurring_payment_profile_created": paypalSubscriptionCreated,
 	"recurring_payment_profile_cancel":  paypalSubscriptionDeleted,
-	"recurring_payment_failed":          paypalPaymentFailed,
 	"recurring_payment":                 paypalPaymentSucceeded,
-	"recurring_payment_skipped":         paypalPaymentFailed,
+	"recurring_payment_suspended":       paypalPaymentFailed,
 }
 
 type paypalMux struct {
@@ -46,4 +45,6 @@ func (p *paypalMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
+	Log.Info("Paypal: succesfully processed webhook: %s for user: %s", req.TransactionType, req.PayerId)
 }

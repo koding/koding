@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"strings"
+	"time"
 )
+
+var KloudTimeout = time.Second * 2
 
 // request arguments
 type requestArgs struct {
@@ -17,37 +21,40 @@ func stopVm(machineId, username, reason string) error {
 		return nil
 	}
 
-	_, err := controller.Klient.Tell("stop", &requestArgs{
+	_, err := controller.Klient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
 		MachineId: machineId, Reason: reason,
 	})
 
-	// kloud ouptuts log for vms already stopped, we don't care
-	if strings.Contains(err.Error(), "not allowed for current state") {
-		return nil
+	if err != nil {
+		// kloud ouptuts log for vms already stopped, we don't care
+		if strings.Contains(err.Error(), "not allowed for current state") {
+			return nil
+		}
 	}
 
 	return err
 }
 
 func blockUserAndDestroyVm(machineId, username, reason string) error {
+	err := modelhelper.BlockUser(username, reason, BlockDuration)
+	if err != nil {
+		return err
+	}
+
 	machines, err := modelhelper.GetMachinesByUsername(username)
 	if err != nil {
 		return err
 	}
 
-	if controller.Klient != nil {
-		for _, machine := range machines {
-			_, err := controller.Klient.Tell("stop", &requestArgs{
-				MachineId: machine.ObjectId.Hex()},
-			)
-
-			if err != nil {
-				Log.Error(err.Error())
-			}
+	for _, machine := range machines {
+		err := stopVm(machine.ObjectId.Hex(), username, reason)
+		if err != nil {
+			Log.Error(fmt.Sprintf(
+				"Error stopping machine: %s of user: %s: %s", machine.ObjectId,
+				username, err.Error(),
+			))
 		}
-	} else {
-		Log.Debug("Klient not initialized. Not stopping: %s...but blocking user", machineId)
 	}
 
-	return modelhelper.BlockUser(username, reason, BlockDuration)
+	return nil
 }

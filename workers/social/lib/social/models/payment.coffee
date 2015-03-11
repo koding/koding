@@ -121,9 +121,14 @@ module.exports = class Payment extends Base
     SiftScience.createOrder client, raw, callback
 
   @canUserPurchase = secure (client, callback)->
-    client.connection.delegate.fetchUser (err, user)->
+    {connection : {delegate}} = client
+
+    if delegate.type isnt "registered"
+      return callback {message:"guests are not allowed"}
+
+    delegate.fetchUser (err, user)->
       return callback err  if err
-      callback null, user.status is 'confirmed'
+      callback null, user.status is "confirmed"
 
   validateParams = (requiredParams, data, callback)->
     for param in requiredParams
@@ -187,9 +192,10 @@ module.exports = class Payment extends Base
         return callback err  if err
 
         plan.storage += space
-
         callback null, plan
 
   fetchReferrerSpace = (client, callback)->
-    JReferral = require "./referral/index"
-    JReferral.fetchEarnedSpace client, callback
+    originId = client.connection.delegate.getId()
+
+    JReward = require './rewards'
+    JReward.fetchEarnedAmount {originId}, callback

@@ -65,9 +65,27 @@ func (a *Account) Create() error {
 		return errors.New("old id is not set")
 	}
 
+	if a.Nick == "guestuser" {
+		return ErrGuestsAreNotAllowed
+	}
+
 	return bongo.B.Create(a)
 }
 
 func (a *Account) Some(data interface{}, q *bongo.Query) error {
 	return bongo.B.Some(a, data, q)
+}
+
+func (a *Account) FetchByIds(ids []int64) ([]Account, error) {
+	var accounts []Account
+
+	if len(ids) == 0 {
+		return accounts, nil
+	}
+
+	if err := bongo.B.FetchByIds(a, &accounts, ids); err != nil {
+		return nil, err
+	}
+
+	return accounts, nil
 }
