@@ -148,6 +148,25 @@ module.exports = class AddManagedVMModal extends kd.ModalView
         addTo @container,
           instructions : INSTALL_INSTRUCTIONS
           list         : data
+  createMachine: (kite)->
+
+    { computeController, router } = kd.singletons
+
+    stack = computeController.stacks.first._id
+
+    computeController.create {
+      provider    : 'managed'
+      queryString : generateQueryString kite.kite
+      ipAddress   : getIp kite.url
+      stack
+    }, (err, machine) =>
+
+      unless showError err
+
+        kd.utils.defer ->
+          router.handleRoute "/IDE/#{machine.slug}"
+
+        @destroy()
 
 
   queryKites: ->
