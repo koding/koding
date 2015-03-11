@@ -718,27 +718,46 @@ module.exports =
     kd.utils.defer => @rtm.ready => @setCollaborationState 'loading'
 
 
-  onCollaborationLoading: ->
+  onCollaborationLoading: do ->
+    constraints =
+      channelReady  : null
+      sessionActive : null
 
-    @statusBar.emit 'CollaborationLoading'
+    conditions = [
+      when : -> (constraints.channelReady is no) or (constraints.sessionActive is no)
+      to   : 'terminated'
+    ,
+      when : -> (constraints.channelReady is yes) and (constraints.sessionActive is yes)
+      to   : 'active'
+    ]
+    nextIfReady = (context) ->
+      for condition in conditions when condition.when()
+        context.setCollaborationState condition.to
+        break
+    setConstraint = (context, key, value) ->
+      constraints[key] = value
+      nextIfReady context
+    ->
 
-    { channelId } = @workspaceData
+      @statusBar.emit 'CollaborationLoading'
 
-    @rtm.ready =>
+      { channelId } = @workspaceData
+
       unless channelId
-        @setCollaborationState 'terminated'
+        setConstraint this, 'channelReady', no
         return
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
-          @setCollaborationState 'terminated'
+          setConstraint this, 'channelReady', no
           throwError err  if err
           return
 
+        setConstraint this, 'channelReady', yes
+
         @isRealtimeSessionActive channelId, (isActive) =>
-          if isActive or @isInSession
-          then @setCollaborationState 'active'
-          else @setCollaborationState 'terminated'
+          result = isActive or @isInSession
+          setConstraint this, 'sessionActive', result
 
 
   onCollaborationActive: ->
