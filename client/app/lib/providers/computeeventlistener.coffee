@@ -58,6 +58,8 @@ module.exports = class ComputeEventListener extends KDObject
   triggerState:(machine, event)->
 
     return  unless machine?
+    return  if machine.provider is 'managed' and \
+               event.status not in [Running, Stopped]
 
     {computeController, kontrol} = kd.singletons
 
@@ -150,7 +152,7 @@ module.exports = class ComputeEventListener extends KDObject
       kd.warn "Eventer error:", err
       @stop()
 
-  
+
   followUpcomingEvents: (machine, followOthers = no)->
 
     StateEventMap =
