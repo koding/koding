@@ -5,6 +5,8 @@ IDEFinderContextMenuController = require '../../finder/idefindercontextmenucontr
 IDEFinderItem = require '../../finder/idefinderitem'
 IDEFinderTreeController = require '../../finder/idefindertreecontroller'
 IDEPane = require './idepane'
+IDEHelpers = require '../../idehelpers'
+
 module.exports = class IDEFinderPane extends IDEPane
 
   constructor: (options = {}, data) ->
@@ -37,7 +39,8 @@ module.exports = class IDEFinderPane extends IDEPane
       file.fetchContents (err, contents) ->
         if err
           console.error err
-          return showError 'File could not be opened'
+          return (IDEHelpers.showPermissionErrorOnOpeningFile err) or
+            showError 'File could not be opened'
 
         mgr.tell 'IDE', 'openFile', file, contents
         kd.getSingleton('windowController').setKeyView null

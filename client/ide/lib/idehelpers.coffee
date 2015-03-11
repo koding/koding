@@ -3,6 +3,7 @@ showError = require 'app/util/showError'
 kd = require 'kd'
 globals = require 'globals'
 FSHelper = require 'app/util/fs/fshelper'
+FilePermissionsModal = require './views/modals/filepermissionsmodal'
 
 
 module.exports = helpers =
@@ -57,3 +58,24 @@ module.exports = helpers =
     eventObj.emit 'WorkspaceCreateFailed', error
     showError "Couldn't create your new workspace."
     kd.warn error
+
+
+  showFileReadOnlyNotification: ->
+
+    new FilePermissionsModal
+      title      : 'Read-only file'
+      contentText: 'You can proceed with opening the file but it will open in read-only mode.'
+
+
+  showFileAccessDeniedError: ->
+
+    new FilePermissionsModal
+      title      : 'Access Denied'
+      contentText: 'The file can\'t be opened because you don\'t have permission to see its contents.'
+
+
+  showPermissionErrorOnOpeningFile: (err) ->
+
+    if (err?.message?.indexOf 'permission denied') > -1
+      helpers.showFileAccessDeniedError()
+      return yes
