@@ -9,16 +9,21 @@ CopyrightView  = require './copyright'
 module.exports = class LegalView extends JView
 
   SECTIONS     =
-    'User Policy'       :
+    'Policy'            :
+      isDefault         : yes
+      tabTitle          : 'User Policy'
       bigTitle          : 'Acceptable Use Policy'
       view              : new UserPolicyView
     'Privacy'           :
+      tabTitle          : 'Privacy'
       bigTitle          : 'Privacy Policy'
       view              : new PrivacyView
-    'Terms of Service'  :
+    'Terms'             :
+      tabTitle          : 'Terms of Service'
       bigTitle          : 'Koding Terms and Conditions (\'Agreement\')'
       view              : new TosView
     'Copyright'         :
+      tabTitle          : 'Copyright'
       bigTitle          : 'Copyright/DMCA Guidelines'
       view              : new CopyrightView
 
@@ -28,32 +33,32 @@ module.exports = class LegalView extends JView
 
     @setPartial @partial()
 
-    @handles = []
+    @handles = {}
     @prepareTabHandles()
-    @selectTab 'User Policy'
+    @selectTab()
 
     @addSubView @footer = new FooterView
 
 
   prepareTabHandles : ->
 
-    for title, content of SECTIONS
-      do (title, content) =>
-        @handles.push handle = new CustomLinkView
-          title           : title
-          click           : =>
-            @selectTab title
+    for token, settings of SECTIONS
+      { isDefault, tabTitle } = settings
+      tabPath = if isDefault then '' else "/#{token}"
+      @handles[token] = handle = new CustomLinkView
+        title           : tabTitle
+        href            : "/Legal#{tabPath}"
 
-            for item in @handles
-              item.unsetClass 'active'
-              handle.setClass 'active'
+      @addSubView handle, 'nav'
 
-        @addSubView handle, 'nav'
 
-    @handles[0].setClass 'active'
+  selectTab : (token = 'Policy') ->
+    {bigTitle, view} = SECTIONS[token]
 
-  selectTab : (name) ->
-    {bigTitle, view} = SECTIONS[name]
+    for tkn, handle of @handles
+      handle.unsetClass 'active'
+
+    @handles[token]?.setClass 'active'
 
     if @currentTab
       @currentTab.destroy()

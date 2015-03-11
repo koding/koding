@@ -27,6 +27,7 @@ do ->
     require './core/routes.coffee'
     require './login/routes.coffee'
     require './pricing/routes.coffee'
+    require './legal/routes.coffee'
 
 
 
