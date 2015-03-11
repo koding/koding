@@ -123,17 +123,17 @@ class Haydar extends events.EventEmitter
 
         @_time chalk.blue 'manifests'
 
-        files.forEach (x) =>
-          @_time 'manifests: parse ' + x
+        files.forEach (file) =>
+          @_time 'manifests: parse ' + file
 
           parse = JSONStream.parse()
 
-          s = fs.createReadStream x
+          s = fs.createReadStream file
           rsManifests.push s
 
           tr = through.obj (row, enc, cb) =>
-            @_timeEnd 'manifests: parse ' + x
-            row.basedir = defined row.basedir, path.dirname @_resolve(x)
+            @_timeEnd 'manifests: parse ' + file
+            row.basedir = defined row.basedir, path.dirname @_resolve(file)
             manifests.push row
             cb null
           , (cb) =>
@@ -186,24 +186,24 @@ class Haydar extends events.EventEmitter
     outfile    = opts.jsOutfile
     sourcemaps = opts.sourcemapsOutfile
 
-    rewriteMap = appNames.reduce (acc, x) ->
-      acc[x] = './' + x + '/lib/'
+    rewriteMap = appNames.reduce (acc, appName) ->
+      acc[appName] = "./#{appName}/lib/"
       return acc
     , {}
 
-    modules = manifests.map (x) =>
-      name = x.name
+    modules = manifests.map (manifest) =>
+      name = manifest.name
       if name is 'ide'
-        name = 'IDE'
+        name = manifest.name.toUpperCase()
       else
         name = name.charAt(0).toUpperCase() + name.slice(1)
 
       return {
-        identifier : x.name
+        identifier : manifest.name
         name       : name
-        routes     : x.routes
-        shortcuts  : x.shortcuts
-        style      : opts.baseurl + '/' + x.name + '.css'
+        routes     : manifest.routes
+        shortcuts  : manifest.shortcuts
+        style      : opts.baseurl + '/' + manifest.name + '.css'
       }
 
     transforms = [ coffeeify, pistachioify ]
@@ -249,8 +249,8 @@ class Haydar extends events.EventEmitter
     if opts.watchJs
       b = bant.watch opts_
       b.on 'update', (ids) ->
-        ids.forEach (x) ->
-          console.log 'updated ' + x
+        ids.forEach (id) ->
+          console.log 'updated ' + id
         bundle()
     else
       b = bant opts_
@@ -333,7 +333,7 @@ class Haydar extends events.EventEmitter
     start   = 0
 
 
-    copyKd = (cb) ->
+    copyKd = (callback) ->
       kdPath = path.dirname require.resolve STYLES_KDJS_MODULE_NAME
       kdPath = kdPath.match(new RegExp('(.+)/'+STYLES_KDJS_MODULE_NAME))[1]
       kdCssFile = path.join kdPath, STYLES_KDJS_MODULE_NAME, STYLES_KDJS_CSS_FILE
@@ -354,17 +354,16 @@ class Haydar extends events.EventEmitter
         console.log msg
         if opts.watchJs
           notify 'styles', msg
-        if cb
-          cb()
+
+        callback?()
 
       if opts.watchJs and not watchingKd
         watchingKd = true
         w = chokidar.watch kdCssFile, persistent: yes
-        w.on 'change', ->
-          copyKd()
+        w.on 'change', copyKd
 
 
-    styl = (x, globs) ->
+    styl = (manifest, globs) ->
       pending += 1
 
       opts_ =
@@ -374,7 +373,7 @@ class Haydar extends events.EventEmitter
         sourcemap :
           inline: if opts.debugCss then yes else no
 
-      basename = x.name + '.css'
+      basename = manifest.name + '.css'
       outfile = path.join opts.stylesOutdir, basename
 
       time 'styles: write ' + outfile
@@ -398,15 +397,15 @@ class Haydar extends events.EventEmitter
             notify 'styles', msg
 
 
-    bundle = (x)->
+    bundle = (manifest)->
       start = Date.now()
 
-      x.styles.forEach (basename) ->
-        dir = path.join x.basedir, basename
+      manifest.styles.forEach (basename) ->
+        dir = path.join manifest.basedir, basename
         globs = [ path.join dir, '**', '*.' + STYLES_EXTENSION ]
         globs.push "!#{commons}"
 
-        styl x, globs
+        styl manifest, globs
 
         if opts.watchCss
           w = chokidar.watch dir, persistent: yes
@@ -415,14 +414,14 @@ class Haydar extends events.EventEmitter
               if e is 'modified' or e is 'deleted'
                 console.log e + ' ' + file
                 start = Date.now()
-                styl x, globs
+                styl manifest, globs
 
 
     init = =>
       fn = ->
-        manifests.forEach (x) ->
-          return  unless Array.isArray x.styles
-          bundle x
+        manifests.forEach (manifest) ->
+          return  unless Array.isArray manifest.styles
+          bundle manifest
       @on '_updated-sprites', -> fn()
       copyKd -> fn()
 
@@ -462,12 +461,12 @@ class Haydar extends events.EventEmitter
     timeEnd = @_timeEnd.bind this
 
     getFiles [ '**/*' ], opts.dir, (err, files) ->
-      files = files.filter (x) ->
-        return true  unless x is 'Readme.md'
+      files = files.filter (basename) ->
+        return true  unless basename is 'Readme.md'
 
       pending = files.length
 
-      entities = files.map (basename) ->
+      rows = files.map (basename) ->
         file = path.join opts.dir, basename
         outfile = path.join opts.outdir, basename
         outdir = path.dirname outfile
@@ -477,19 +476,19 @@ class Haydar extends events.EventEmitter
           outdir: outdir
         }
 
-      dirs = entities.map (x) ->
-        return x.outdir
+      dirs = rows.map (row) ->
+        return row.outdir
       
       dirs = nub dirs
 
       createDirs dirs, ->
-        entities.forEach (x) ->
-          time opts.label + ': copy ' + x.outfile
-          s = fs.createReadStream x.file
-          ws = fs.createWriteStream x.outfile
+        rows.forEach (row) ->
+          time opts.label + ': copy ' + row.outfile
+          s = fs.createReadStream row.file
+          ws = fs.createWriteStream row.outfile
           s.pipe ws
           ws.once 'finish', ->
-            timeEnd opts.label + ': copy ' + x.outfile
+            timeEnd opts.label + ': copy ' + row.outfile
             if --pending is 0 then done()
 
 
@@ -533,9 +532,9 @@ class Haydar extends events.EventEmitter
 
         s = vfs.src(dir).pipe spritesmith opts_
         return {
-          name: manifest.name
-          rname: rname
-          stream: s
+          name   : manifest.name
+          rname  : rname
+          stream : s
         }
 
       entities.forEach (entity) ->
@@ -563,12 +562,12 @@ class Haydar extends events.EventEmitter
           end_()
 
 
-    bundle = (x) ->
+    bundle = (manifest) ->
       start = Date.now()
 
-      x.sprites.forEach (basename) ->
-        dir = path.join x.basedir, basename
-        smith x, dir
+      manifest.sprites.forEach (basename) ->
+        dir = path.join manifest.basedir, basename
+        smith manifest, dir
 
         if opts.watchSprites
           w = chokidar.watch dir, persistent: yes
@@ -577,12 +576,12 @@ class Haydar extends events.EventEmitter
               if e is 'modified' or e is 'deleted'
                 console.log e + ' ' + file
                 start = Date.now()
-                smith x, dir
+                smith manifest, dir
 
 
-    manifests.forEach (x) ->
-      return  unless Array.isArray x.sprites
-      bundle x
+    manifests.forEach (manifest) ->
+      return  unless Array.isArray manifest.sprites
+      bundle manifest
 
 
   _time: (msg) ->
@@ -638,8 +637,8 @@ getFiles = (files, cwd, cb) ->
 
 
 createDirs = (dirs, cb) ->
-  fns = dirs.map (x) ->
-    return mkdirp.bind mkdirp, x
+  fns = dirs.map (dir) ->
+    return mkdirp.bind mkdirp, dir
   async.parallel fns, (err) ->
-    if err then throw err
+    throw err  if err
     cb null
