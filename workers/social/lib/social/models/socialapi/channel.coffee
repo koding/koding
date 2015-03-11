@@ -222,6 +222,8 @@ module.exports = class SocialChannel extends Base
     options.channelId = options.id
     # just to create social channels
     ensureGroupChannel client, (err, socialApiChannelId)->
+      return callback err  if err
+
       doRequest 'fetchChannelActivities', client, options, callback
 
   @fetchActivityCount = (options, callback) ->
