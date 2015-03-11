@@ -84,12 +84,13 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    post     = helpers.getFakeText()
     image    = 'http://placehold.it/200x100'
+    comment  = image + ' hello world!'
+    post     = helpers.getFakeText()
     selector = activitySelector + ' .comment-contents .link-embed-box a.embed-image-view'
 
     helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, image) # images do not show a preview so we don't pass embeddable flag
+    helpers.doPostComment(browser, comment) # images do not show a preview so we don't pass embeddable flag
 
     browser.getAttribute selector, 'href', (result) ->
       href = result.value
