@@ -595,8 +595,6 @@ module.exports =
 
     if origin is nick()
       switch type
-        when 'ParticipantWantsToLeave'
-          return @quit()
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
         else return
@@ -1011,10 +1009,10 @@ module.exports =
       options = channelId: @socialChannel.getId()
       kd.singletons.socialapi.channel.leave options, (err) =>
         return showError err  if err
-        @setMachineUser [nick()], no, kd.noop
-        # remove the leaving participant's info from the collaborative doc
-        @removeParticipant nick()
-        @quit()
+        @setMachineUser [nick()], no, =>
+          # remove the leaving participant's info from the collaborative doc
+          @removeParticipant nick()
+          @quit()
 
 
   throwError: throwError = (err, args...) ->
