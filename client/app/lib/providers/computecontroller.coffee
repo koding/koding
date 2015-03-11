@@ -72,10 +72,11 @@ module.exports = class ComputeController extends KDController
 
   reset: (render = no)->
 
-    @stacks   = []
-    @machines = []
-    @plans    = null
-    @_trials  = {}
+    @stacks       = []
+    @machines     = []
+    @machinesById = {}
+    @plans        = null
+    @_trials      = {}
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
@@ -166,9 +167,12 @@ module.exports = class ComputeController extends KDController
             queue = []
             return
 
+          @machinesById = {}
+
           machines = []
           for machine in _machines
-            machines.push new Machine { machine }
+            machines.push machine = new Machine { machine }
+            @machinesById[machine._id] = machine
 
           @stacks   = stacks
           @machines = machines
