@@ -6,7 +6,7 @@ emitter = new Emitter
 
 
 dispatch = (m, type, info, state, path) ->
-  emitter.emit m.name, type, info, state, path, this
+  emitter.emit m.name.toLowerCase(), type, info, state, path, this
 
 
 exports.bind = (name, fn) ->

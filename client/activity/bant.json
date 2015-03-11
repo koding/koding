@@ -17,5 +17,11 @@
     "/:name?/Activity/Post/All" : 130,
     "/:name?/Activity/Chat/All" : 140,
     "/:name?/Activity" : 150
-  }
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
 }

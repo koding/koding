@@ -1049,7 +1049,7 @@ Configuration = (options={}) ->
 
         cd #{projectRoot}/client
         npm install --unsafe-perm
-        make
+        make landing development
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies

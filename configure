@@ -1,12 +1,18 @@
 #!/usr/bin/env coffee
 
-
 argv       = require('minimist')(process.argv.slice(2))
 log        = console.log
+time       = console.time
+timeEnd    = console.timeEnd
 fs         = require 'fs'
+path       = require 'path'
 os         = require 'os'
 request    = require 'request'
 git        = require 'git-rev'
+JSONStream = require 'JSONStream'
+Bongo      = require 'bongo'
+
+time 'configure'
 
 log "-------------------------"
 log ""
@@ -43,8 +49,9 @@ rest = ->
   log "-------------------------"
   log ""
 
+  time 'run config'
   KONFIG = require("./config/main.#{o.config}.coffee")(options)
-
+  timeEnd 'run config'
 
   createRunFile = (KONFIG)->
 
@@ -59,7 +66,38 @@ rest = ->
     if o.supervisor
       fs.writeFileSync "/etc/supervisor/conf.d/koding.conf",KONFIG.supervisorConf
 
-    log "Configuration done"
+    time 'write social config'
+    (require "./deployment/socialapiconfig.coffee").create KONFIG
+    timeEnd 'write social config'
+
+  createClientConfig = (cfg, cb) ->
+    s = JSONStream.stringifyObject()
+    s.pipe fs.createWriteStream('./client/.client-config.json')
+    s.write ['config', cfg.client]
+
+    process.env.KONFIG_JSON = cfg.JSON
+
+    time 'get social schema'
+
+    bongo = new Bongo
+      root: __dirname
+      models: './workers/social/lib/social/models'
+    bongo.on 'apiReady', ->
+      this.describeApi (schema) ->
+        timeEnd 'get social schema'
+        s.write ['schema', schema]
+        s.end()
+        cb()
+
+  time 'write client-config'
+  createClientConfig KONFIG, ->
+    timeEnd 'write client-config'
+    time 'write run'
+    createRunFile KONFIG
+    timeEnd 'write run'
+    timeEnd 'configure'
+
+    log "\nConfiguration done"
     log "------------------"
     log "MAC INSTALL INSTRUCTIONS"
     log "------------------"
@@ -70,15 +108,12 @@ rest = ->
     log "5) do './run buildservices' to create backend service containers after installing docker."
     log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
 
-    (require "./deployment/socialapiconfig.coffee").create KONFIG
-
-  createRunFile KONFIG
 
 git.long (str) ->
   if str != ""
     version = str.substring 0, 8
   else
-    version = try (fs.readFileSync (require 'path').join(__dirname, './VERSION'), 'utf-8').trim()
+    version = try (fs.readFileSync path.join(__dirname, './VERSION'), 'utf-8').trim()
 
   if argv.hostname
     options.hostname       = argv.hostname

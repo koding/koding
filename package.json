@@ -11,7 +11,7 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "preinstall": "./scripts/reset-node-modules.sh",
+    "preinstall": "./scripts/reset-node-modules.sh && npm --unsafe-perm --silent --prefix client install",
     "install": "./scripts/patch-node-modules.sh"
   },
   "dependencies": {
@@ -102,7 +102,8 @@
     "ws": "0.4.25",
     "xml2js": "0.2.6",
     "yield-siftscience": "0.0.8",
-    "curlrequest": "^0.5.1"
+    "curlrequest": "^0.5.1",
+    "JSONStream": "^0.10.0"
   },
   "devDependencies": {
     "crypto": "0.0.3",
