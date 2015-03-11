@@ -185,6 +185,13 @@ module.exports =
     @chat = null
 
 
+  whenRealtimeReady: (callback) ->
+
+    if @rtm?.isReady
+    then callback()
+    else @once 'RTMIsReady', callback
+
+
   showChat: ->
 
     return @createChatPane()  unless @chat
