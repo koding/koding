@@ -368,7 +368,7 @@ class Haydar extends events.EventEmitter
 
       opts_ =
         use       : nib()
-        compress  : yes  unless opts.debugCss
+        compress  : if opts.minifyCss then yes else no
         import    : includes
         sourcemap :
           inline: if opts.debugCss then yes else no
