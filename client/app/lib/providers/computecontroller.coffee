@@ -21,7 +21,8 @@ module.exports = class ComputeController extends KDController
   @providers = globals.config.providers
   @timeout   = globals.config.COMPUTECONTROLLER_TIMEOUT
   @Error     = {
-    'TimeoutError', 'KiteError', Pending: '107', NotVerified: '500'
+    'TimeoutError', 'KiteError', 'NotSupported'
+    Pending: '107', NotVerified: '500'
   }
 
   constructor: ->
@@ -127,6 +128,12 @@ module.exports = class ComputeController extends KDController
             safeToSuspend = yes
           else
             kd.warn "[CC] error:", err
+
+        when Error.NotSupported
+
+          kd.info "Cancelling... #{task} ..."
+          call.cancel()
+
 
       unless safeToSuspend
         @emit "error", { task, err, machine }

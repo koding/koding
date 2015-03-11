@@ -178,10 +178,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
 
-    computeController.on "reinit-#{@machineId}",(event)=>
+    computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
 
-    computeController.on "resize-#{@machineId}",(event)=>
+    computeController.on "resize-#{@machineId}", (event) =>
       @updateStatus event, 'resize'
 
     computeController.eventListener.followUpcomingEvents @machine
