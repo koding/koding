@@ -85,14 +85,14 @@ module.exports =
 
     post     = helpers.getFakeText()
     image    = 'http://placehold.it/200x100'
-    selector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
+    selector = activitySelector + ' .comment-contents .link-embed-box a.embed-image-view'
 
     helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, image, yes, yes)
+    helpers.doPostComment(browser, image) # images do not show a preview so we don't pass embeddable flag
 
-    browser
-      .assert.containsText selector, image # Assertion
-      .end()
+    browser.getAttribute selector, 'href', (result) ->
+      href = result.value
+      assert.equal(image, href)
 
 
   postCommentWithLink: (browser) ->
