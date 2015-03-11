@@ -819,7 +819,7 @@ module.exports =
   # IF USER IS NOT HOST
   #   should only call the callback without an error.
   #   given callback should do the rest. (e.g cleaning-up, quitting..)
-  stopCollaborationSession: (callback) ->
+  stopCollaborationSession: (callback) -> @whenRealtimeReady =>
 
     @chat.settingsPane.endSession.disable()
 
@@ -1021,7 +1021,7 @@ module.exports =
       title   : 'Are you sure?'
       content : "If you leave this session you won't be able to return back."
 
-    @showModal options, =>
+    @showModal options, => @whenRealtimeReady =>
       @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
       @stopChatSession()
       @modal.destroy()
