@@ -53,6 +53,68 @@ func New(hostedZone string, auth aws.Auth) *DNS {
 	}
 }
 
+// CreateDomain creates a new domain record for the given domain with the given
+// ip address. If the record already exists, the record is updated with the new
+// IP (upsert operation).
+func (d *DNS) Create(domain string, newIp string) error {
+	change := &route53.ChangeResourceRecordSetsRequest{
+		Comment: "Creating domain",
+		Changes: []route53.Change{
+			route53.Change{
+				Action: "UPSERT",
+				Record: route53.ResourceRecordSet{
+					Type:    "A",
+					Name:    domain,
+					TTL:     30,
+					Records: []string{newIp},
+				},
+			},
+		},
+	}
+
+	d.Log.Debug("creating domain name: %s to be associated with following ip: %v", domain, newIp)
+	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	if err != nil {
+		d.Log.Error(err.Error())
+		return errors.New("could not create domain")
+	}
+
+	return nil
+}
+
+// Domain retrieves the record set for the given domain name
+func (d *DNS) Get(domain string) (*protocol.Record, error) {
+	lopts := &route53.ListOpts{
+		Name: domain,
+	}
+
+	d.Log.Debug("fetching domain record for name: %s", domain)
+
+	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
+	if err != nil {
+		d.Log.Error(err.Error())
+		return nil, errors.New("could not fetch domain")
+	}
+
+	if len(resp.Records) == 0 {
+		return nil, ErrNoRecord
+	}
+
+	for _, r := range resp.Records {
+		// the "." point is here because records are listed as
+		// "arslan.koding.io." , "test.arslan.dev.koding.io." and so on
+		if strings.TrimSuffix(r.Name, ".") == domain {
+			return &protocol.Record{
+				Name: r.Name,
+				IP:   r.Records[0],
+				TTL:  r.TTL,
+			}, nil
+		}
+	}
+
+	return nil, ErrNoRecord
+}
+
 // Rename changes the domain from oldDomain to newDomain in a single transaction
 func (d *DNS) Rename(oldDomain, newDomain, currentIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
@@ -151,67 +213,6 @@ func (d *DNS) Delete(domain string, oldIp string) error {
 	}
 
 	return nil
-}
-
-// CreateDomain creates a new domain record for the given domain with the given
-// ip address.
-func (d *DNS) Create(domain string, newIp string) error {
-	change := &route53.ChangeResourceRecordSetsRequest{
-		Comment: "Creating domain",
-		Changes: []route53.Change{
-			route53.Change{
-				Action: "CREATE",
-				Record: route53.ResourceRecordSet{
-					Type:    "A",
-					Name:    domain,
-					TTL:     300,
-					Records: []string{newIp},
-				},
-			},
-		},
-	}
-
-	d.Log.Debug("creating domain name: %s to be associated with following ip: %v", domain, newIp)
-	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
-	if err != nil {
-		d.Log.Error(err.Error())
-		return errors.New("could not create domain")
-	}
-
-	return nil
-}
-
-// Domain retrieves the record set for the given domain name
-func (d *DNS) Get(domain string) (*protocol.Record, error) {
-	lopts := &route53.ListOpts{
-		Name: domain,
-	}
-
-	d.Log.Debug("fetching domain record for name: %s", domain)
-
-	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
-	if err != nil {
-		d.Log.Error(err.Error())
-		return nil, errors.New("could not fetch domain")
-	}
-
-	if len(resp.Records) == 0 {
-		return nil, ErrNoRecord
-	}
-
-	for _, r := range resp.Records {
-		// the "." point is here because records are listed as
-		// "arslan.koding.io." , "test.arslan.dev.koding.io." and so on
-		if strings.TrimSuffix(r.Name, ".") == domain {
-			return &protocol.Record{
-				Name: r.Name,
-				IP:   r.Records[0],
-				TTL:  r.TTL,
-			}, nil
-		}
-	}
-
-	return nil, ErrNoRecord
 }
 
 func (d *DNS) HostedZone() string {
