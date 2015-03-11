@@ -44,7 +44,7 @@ module.exports = class ActivityInputView extends KDHitEnterInputView
 
     if event.which is TAB
       kd.utils.stopDOMEvent event
-      @emit 'tab'
+      @emit 'Tab'
       return no
 
     super event
