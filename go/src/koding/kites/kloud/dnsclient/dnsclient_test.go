@@ -80,8 +80,13 @@ func TestCreate(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	err := dns.Delete(testDomain, testIP)
+	err := dns.Delete(testDomain)
 	if err != nil {
 		t.Error(err)
+	}
+
+	_, err = dns.Get(testDomain)
+	if err != ErrNoRecord {
+		t.Errorf("Domain '%s' is deleted, but got a different error: %s", testDomain, err)
 	}
 }

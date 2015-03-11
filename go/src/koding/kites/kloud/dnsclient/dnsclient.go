@@ -187,9 +187,15 @@ func (d *DNS) Update(domain, oldIP, newIP string) error {
 	return nil
 }
 
-// DeleteDomain deletes a domain record for the given domain with the given ip
-// address.
-func (d *DNS) Delete(domain string, oldIp string) error {
+// DeleteDomain deletes a domain record for the given domain
+func (d *DNS) Delete(domain string) error {
+	// fetch correct TTL value, instead of relying on a hardcoded value for TTL
+	// and IP
+	record, err := d.Get(domain)
+	if err != nil {
+		return err
+	}
+
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Deleting domain",
 		Changes: []route53.Change{
@@ -198,15 +204,15 @@ func (d *DNS) Delete(domain string, oldIp string) error {
 				Record: route53.ResourceRecordSet{
 					Type:    "A",
 					Name:    domain,
-					TTL:     300,
-					Records: []string{oldIp}, // needs old ip
+					TTL:     record.TTL,
+					Records: []string{record.IP},
 				},
 			},
 		},
 	}
 
-	d.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, oldIp)
-	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	d.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, record.IP)
+	_, err = d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
 	if err != nil {
 		d.Log.Error(err.Error())
 		return errors.New("could not delete domain")
