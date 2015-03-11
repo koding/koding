@@ -45,7 +45,7 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    link = 'http://google.com/' # last '/' is the trick!
+    link = 'http://wikipedia.org/'
     linkSelector = activitySelector + ' .activity-content-wrapper article a'
 
     helpers.doPostActivity(browser, link, yes, yes)
@@ -97,7 +97,7 @@ module.exports =
     helpers.beginTest(browser)
 
     post     = helpers.getFakeText()
-    link = 'http://google.com/' # last '/' is the trick!
+    link = 'http://wikipedia.org/'
     linkSelector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
 
     helpers.doPostActivity(browser, post)
