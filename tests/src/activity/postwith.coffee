@@ -35,8 +35,7 @@ module.exports =
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', image
-      .click                  '.channel-title'
-      .waitForElementVisible  '.activity-input-widget .embed-image-view', 20000
+      .pause                  5000
       .click                  '[testpath=post-activity-button]'
       .waitForElementVisible   selector, 20000 # Assertion
       .end()
@@ -46,10 +45,10 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    link = 'http://google.com/' # last '/' is the trick!
     linkSelector = activitySelector + ' .activity-content-wrapper article a'
 
-    helpers.doPostActivity(browser, link)
+    helpers.doPostActivity(browser, link, yes, yes)
 
     browser.getAttribute linkSelector, 'href', (result) ->
       href = result.value
@@ -86,7 +85,7 @@ module.exports =
     selector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
 
     helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, image)
+    helpers.doPostComment(browser, image, yes, yes)
 
     browser
       .assert.containsText selector, image # Assertion
@@ -98,11 +97,11 @@ module.exports =
     helpers.beginTest(browser)
 
     post     = helpers.getFakeText()
-    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    link = 'http://google.com/' # last '/' is the trick!
     linkSelector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
 
     helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, link)
+    helpers.doPostComment(browser, link, yes, yes)
 
     browser.getAttribute linkSelector, 'href', (result) ->
       href = result.value
