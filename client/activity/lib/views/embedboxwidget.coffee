@@ -1,15 +1,15 @@
-_ = require 'underscore'
-Encoder = require 'htmlencode'
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDView = kd.View
-EmbedBoxImageView = require './embedbox/embedboximageview'
-EmbedBoxLinkView = require './embedbox/embedboxlinkview'
-EmbedBoxLinksView = require './embedbox/embedboxlinksview'
+_                  = require 'underscore'
+Encoder            = require 'htmlencode'
+kd                 = require 'kd'
+KDButtonView       = kd.ButtonView
+KDView             = kd.View
+EmbedBoxImageView  = require './embedbox/embedboximageview'
+EmbedBoxLinkView   = require './embedbox/embedboxlinkview'
+EmbedBoxLinksView  = require './embedbox/embedboxlinksview'
 EmbedBoxObjectView = require './embedbox/embedboxobjectview'
-JView = require 'app/jview'
-getEmbedType = require 'app/util/getEmbedType'
-regexps = require 'app/util/regexps'
+getEmbedType       = require 'app/util/getEmbedType'
+regexps            = require 'app/util/regexps'
+urlGrabber         = require 'app/util/urlGrabber'
 
 
 module.exports = class EmbedBoxWidget extends KDView
@@ -17,178 +17,69 @@ module.exports = class EmbedBoxWidget extends KDView
   { log, noop } = kd
   { addClass, getDescendantsByClassName } = kd.dom
 
-  JView.mixin @prototype
-
   constructor: (options={}, data={}) ->
-    options.cssClass = kd.utils.curry 'link-embed-box clearfix', options.cssClass
+
+    options.cssClass = kd.utils.curry 'link-embed-box hidden clearfix', options.cssClass
 
     super options, data
 
-    @oembed     = data.link_embed or {}
-    @url        = data.link_url ? ''
+    @cache           = {}
+    @oembed          = data.link_embed or {}
+    @url             = data.link_url ? ''
+    @imageIndex      = 0
 
-    @urls       = []
-
-    @locks = {}
-    @embedCache = {}
-
-    @imageIndex = 0
-    @hasValidContent = no
-
+    @addViews()
     @watchInput()
 
-    @settingsButton = new KDButtonView
-      cssClass    : 'hide-embed'
-      icon        : yes
-      iconOnly    : yes
-      iconClass   : 'hide'
-      title       : 'hide'
-      callback    : @bound 'resetEmbedAndHide'
 
-    @embedType  = data.link_embed?.object?.type or data.link_embed?.type or 'link'
+  addViews: ->
+    @addSubView new KDButtonView
+      cssClass  : 'hide-embed'
+      icon      : yes
+      iconOnly  : yes
+      iconClass : 'hide'
+      callback  : @bound 'close'
 
-    @embedLinks = new EmbedBoxLinksView { delegate: this }
-
-    @embedLinks.on 'LinkAdded', (url) =>
-      @show()
-      # if the embed index isn't set, set it to 0
-      @setEmbedIndex 0  unless @getEmbedIndex()?
-
-    @embedLinks.on 'LinkRemoved', ({ url, index }) =>
-      @hide()  if @embedLinks.getLinkCount() is 0
-
-      if index is @getEmbedIndex()
-        console.log 'we need to set a new embed index'
-
-    @embedLinks.on 'LinkSelected', ({ url }) =>
-      @addEmbed url
-
-    @embedLinks.on 'LinksCleared', => @urls = []
-
-    @embedLinks.hide()
-
-    @embedContainer = new KDView options, data
-
-    @hide()
 
   watchInput: ->
+
     input = @getDelegate()
+    input.on ['paste', 'change', 'keyup'], @bound 'checkInputForUrls'
+    input.on 'reset', @bound 'close'
+    input.on 'BeingEdited', (url) =>
+      if url
+      then @fetchEmbed url, {}, @bound 'populateEmbed'
+      else @checkInputForUrls()
 
-    fn = @bound 'checkInputForUrls'
-
-    delay = 1000
-    timer = null
-    input.on 'keydown', (event) ->
-      kd.utils.killWait timer
-      timer = kd.utils.wait delay, fn
-    input.on 'paste', fn
-    input.on 'change', fn
 
   checkInputForUrls: ->
-    kd.utils.defer =>
-      input = @getDelegate()
-      text = input.getValue()
 
-      urls = _.uniq (text.match regexps.botchedUrlRegExp) || []
+    input = @getDelegate()
+    value = input.getValue()
+    urls  = urlGrabber value
 
-      staleUrls = _.difference @urls, urls
-      newUrls   = _.difference urls, @urls
+    return if not urls.first or @isFetching
+
+    @fetchEmbed urls.first, {}, _.debounce @bound('populateEmbed'), 1000, leading : yes, maxWait : 5000
 
 
-      @embedLinks.addLink     newUrl    for newUrl    in newUrls
-      @embedLinks.removeLink  staleUrl  for staleUrl  in staleUrls
+  close: ->
 
-      @urls = urls
-
-  isLocked: (url) -> url of @locks
-
-  addLock: (url)->
-    @locks[url] = yes
-    this
-
-  removeLock: (url) ->
-    delete @locks[url]
-    this
-
-  addEmbed: (url) ->
-    @loadEmbed url
-    this
-
-  removeEmbed: (url) ->
-    console.log 'need to remove this url'
-
-  loadEmbed: (url) ->
-    return this  if @isLocked url
-    @addLock url
-
-    cached = @embedCache[url]
-
-    if cached? then kd.utils.defer =>
-      @removeLock url
-      @handleEmbedlyResponse url, cached.data, cached.options
-
-    else
-      @fetchEmbed url, {}, (data, options) =>
-        @removeLock url
-        @handleEmbedlyResponse url, data, options
-        @addToCache url, data, options
-
-    this
-
-  handleEmbedlyResponse: (url, data, options) ->
-    if data.type is 'error'
-      @hide()
-      return
-
-    @populateEmbed data, options
-    @show()
-
-  addToCache: (url, data, options) ->
-    @embedCache[url] = { data, options }
-
-  setImageIndex:(@imageIndex)->
-
-  setEmbedIndex: (@embedIndex) ->
-    @embedLinks.setActiveLinkIndex @embedIndex
-
-  getEmbedIndex: -> @embedIndex
-
-  refreshEmbed:-> @populateEmbed @oembed, @url, {}
-
-  resetEmbedAndHide: ->
-
-    @resetEmbed()
-    @embedLinks.clearLinks()
-    @hasValidContent = no
-    @hide()
-    @emit "EmbedIsHidden"
-
-  # these resets only concern the currently displayed embed
-  resetEmbed:->
     @oembed     = {}
     @url        = ''
-    @embedContainer?.destroy()
-    @embedIndex = null
     @imageIndex = 0
+    @hide()
 
-  getDataForSubmit:->
+
+  setImageIndex: (index) -> @imageIndex = index
+
+  getData: ->
+
     return {}  if _.isEmpty @oembed
 
     data = @oembed
 
-    { embedContent } = @embedContainer
-
-    wantedData = {}
-
-    if embedContent?
-      wantedData.title       = embedContent.embedTitle?.titleInput?.getValue?() or ''
-      wantedData.description = embedContent.embedDescription?.descriptionInput?.getValue?() or ''
-
-      unless data.original_title?
-        wantedData.original_title = embedContent.embedTitle?.getOriginalValue() or ''
-
-      unless data.original_description?
-        wantedData.original_description = embedContent.embedDescription?.getOriginalValue() or ''
+    filteredData = {}
 
     data.images = data.images.filter (image, i) =>
       return no  if i isnt @imageIndex
@@ -199,20 +90,22 @@ module.exports = class EmbedBoxWidget extends KDView
     @imageIndex = 0
 
     desiredFields = [
+      'title', 'description'
       'url', 'safe', 'type', 'provider_name', 'error_type',
       'error_message', 'safe_type', 'safe_message', 'images'
     ]
 
     for key in desiredFields
-      wantedData[key] = data[key]
+      if 'string' is typeof value = data[key]
+      then filteredData[key] = Encoder.htmlDecode value
+      else filteredData[key] = value
 
-    for key, value of wantedData when "string" is typeof value
-      wantedData[key] = Encoder.htmlDecode value
+    return { link_url : @url, link_embed : filteredData }
 
-    return wantedData
 
   displayEmbedType: (embedType, data) ->
-    @hasValidContent = yes
+
+    @embedContainer?.destroy()
 
     containerClass = switch embedType
       when 'image'  then EmbedBoxImageView
@@ -223,18 +116,16 @@ module.exports = class EmbedBoxWidget extends KDView
       cssClass : 'link-embed clearfix'
       delegate : this
 
-    @embedContainer?.destroy()
-    @embedContainer = new containerClass embedOptions, data
-    # @embedContainer.show()
-    @addSubView @embedContainer
-    @emit "EmbedIsShown"
+    @addSubView @embedContainer = new containerClass embedOptions, data
+
     @show()
+    @emit 'EmbedIsShown'
 
-  populateEmbed: (data={}, options={}) ->
-    return  unless data?
 
-    @oembed = data
-    @url    = data.url
+  populateEmbed: (data, options = {}) ->
+
+    return  unless data
+    return  if data.url is @url
 
     # embedly uses the https://developers.google.com/safe-browsing/ API
     # to stop phishing/malware sites from being embedded
@@ -242,19 +133,21 @@ module.exports = class EmbedBoxWidget extends KDView
       # In the case of unsafe data (most likely phishing), this should be used
       # to log the user, the url and other data to our admins.
       log 'There was unsafe content.', data, data.safe_type, data.safe_message
-      @hide()
-      return
+      return @close()
 
     # to log the user, the url and other data to our admins.
     if data.error_message
       log 'EmbedBoxWidget encountered an error!', data.error_type, data.error_message
-      @hide()
-      return
+      return @close()
 
-    # types should be covered, but if the embed call fails partly, default to link
-    type = data.type or 'link'
+    @oembed = data
+    @url    = data.url
+    type    = getEmbedType data.type or 'link'
 
-    @displayEmbedType (getEmbedType type),
+    return @hide()  if type is 'link' and not data.description
+    return @hide()  if type in ['video', 'image']
+
+    @displayEmbedType type,
       link_embed   : data
       link_url     : data.url
       link_options : options
@@ -262,10 +155,11 @@ module.exports = class EmbedBoxWidget extends KDView
     [embedDiv] = getDescendantsByClassName @getElement(), 'embed'
     addClass embedDiv, "custom-#{type}"  if embedDiv?
 
-  fetchEmbed:(url='', options={}, callback=noop)->
+
+  fetchEmbed: (url = '', options = {}, callback = noop) ->
 
     # if there is no protocol, supply one! embedly doesn't support //
-    unless regexps.webProtocolRegExp.test url then url = 'http://'+url
+    url = "http://#{url}"  unless regexps.hasProtocol.test url
 
     # prepare embed.ly options
     embedlyOptions = kd.utils.extend {
@@ -276,13 +170,17 @@ module.exports = class EmbedBoxWidget extends KDView
 
     { fetchDataFromEmbedly } = kd.singletons.socialapi.message
 
+    # serve from cache if it's fetched already
+    if @cache[url]
+      kd.utils.defer =>
+        @emit 'EmbedFetched', @cache[url]
+        callback @cache[url], embedlyOptions
+      return
+
     # fetch embed.ly data from the server api
-    fetchDataFromEmbedly url, embedlyOptions, (err, oembed)=>
+    @isFetching = yes
+    fetchDataFromEmbedly url, embedlyOptions, (err, oembed) =>
+      @isFetching = no
+      @cache[url] = oembed[0]
+      @emit 'EmbedFetched', @cache[url]
       callback oembed[0], embedlyOptions
-
-  pistachio:->
-    """
-    {{> @settingsButton}}
-    """
-
-

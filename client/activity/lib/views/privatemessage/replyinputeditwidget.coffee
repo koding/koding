@@ -13,10 +13,13 @@ module.exports = class ReplyInputEditWidget extends ReplyInputWidget
 
     @unsetClass 'reply-input-widget'
 
-    { body } = @getData()
+
+  viewAppended: ->
+
+    {body, link} = @getData()
+
+    @addSubView @embedBox
 
     @input.setValue Encoder.htmlDecode body
-
-
-
+    @input.emit 'BeingEdited', link?.link_url
 

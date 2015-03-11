@@ -39,7 +39,7 @@ module.exports = class ManageSharedView extends KDView
       user = @autoComplete.getSelectedItemData()?.last
 
       return unless user?
-      
+
       @addUser user
       @toggleInput yes
 
@@ -88,11 +88,11 @@ module.exports = class ManageSharedView extends KDView
       @updateInMemoryListOfUsers users
 
       @usersController.replaceAllItems users
-      
+
       if users.length > 0
       then @userListView.show()
       else @userListView.hide()
-      
+
       @loader.hide()
 
 
@@ -170,7 +170,7 @@ module.exports = class ManageSharedView extends KDView
     @emit "UserInputCancelled"  if informOthers
     @inputView.off  "ReceivedClickElsewhere"
     @inputView.once "ReceivedClickElsewhere", (event)=>
-      return  if $(event.target).hasClass 'toggle'
+      return  if event.target.classList.contains 'toggle'
       @emit "UserInputCancelled"
       @inputView.hide()
       @warning.hide()
