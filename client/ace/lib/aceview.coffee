@@ -159,9 +159,8 @@ module.exports = class AceView extends JView
 
   openSaveDialog: ->
 
-    file = @getData()
-    container = @getOptions().delegate or this
-
+    file      = @getData()
+    container = kd.singletons.mainView
 
     showSaveDialog container, (input, finderController, dialog) =>
 
