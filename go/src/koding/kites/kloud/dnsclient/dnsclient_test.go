@@ -23,9 +23,9 @@ var (
 )
 
 func init() {
-	auth := aws.Auth{
-		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey: "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",
+	auth, err := aws.EnvAuth()
+	if err != nil {
+		panic(err)
 	}
 
 	dns = New("dev.koding.io", auth)
