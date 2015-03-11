@@ -713,7 +713,7 @@ module.exports =
 
     @rtm = new RealtimeManager
     @showShareButton()
-    kd.utils.defer => @setCollaborationState 'loading'
+    kd.utils.defer => @rtm.ready => @setCollaborationState 'loading'
 
 
   onCollaborationLoading: ->
