@@ -82,13 +82,13 @@ You can also pass additional [builder](./builder) arguments using `EXTRAS` varia
 Start in debug mode omitting scripts:
 
 ```
-λ dev/koding/client EXTRAS="--no-scripts" make debug
+λ dev/koding/client EXTRAS=--no-scripts make debug
 ```
 
-Start in watch mode, but do no watch sprites:
+Start in watch mode, but do no watch sprites and play sound with notifications:
 
 ```
-λ dev/koding/client EXTRAS="--no-watch-sprites" make watch
+λ dev/koding/client EXTRAS="--no-watch-sprites --notify-sound" make watch
 ```
 
 # code organization
