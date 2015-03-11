@@ -80,7 +80,7 @@ class KodingAppsController extends KDController
     if app.style
       cb = if app.script then kd.noop else callback
       @appendHeadElement 'style',  \
-        { app: app, url:app.style, identifier:app.identifier, force: yes }, callback
+        { app: app, url:app.style, identifier:app.identifier, force: yes }, cb
 
     if app.script
       @appendHeadElement 'script', \
