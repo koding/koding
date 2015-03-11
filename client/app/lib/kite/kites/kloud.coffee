@@ -7,6 +7,24 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
+  SUPPORTED_PROVIDERS = ['koding']
+
+  supported = (machineId)->
+    cc = kd.singletons.computeController
+    provider = cc.machinesById?[machineId]?.provider ? 'koding'
+    return provider in SUPPORTED_PROVIDERS
+
+  @createMethod = (ctx, { method, rpcMethod }) ->
+    ctx[method] = (payload) ->
+
+      if payload?.machineId? and not supported payload.machineId
+        # machine provider is not supported by kloud #{payload.machineId}
+        return Promise.reject
+          name    : 'NotSupported'
+          message : 'Operation is not supported for this VM'
+
+      @tell rpcMethod, payload
+
   @createApiMapping
     stop         : 'stop'
     start        : 'start'
