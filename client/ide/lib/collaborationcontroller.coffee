@@ -134,13 +134,12 @@ module.exports =
 
   continuePrivateMessage: (callback) ->
 
-    @on 'RTMIsReady', =>
-      @chat.emit 'CollaborationStarted'
+    @chat.emit 'CollaborationStarted'
 
-      @listChatParticipants (accounts) =>
-        @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
+    @listChatParticipants (accounts) =>
+      @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
 
-      callback null
+    callback null
 
 
   startChatSession: (callback) ->
@@ -156,8 +155,8 @@ module.exports =
         @createChatPaneView channel
         @isRealtimeSessionActive channelId, (isActive, file) =>
           if isActive
-            @loadCollaborationFile file.result.items[0].id
-            return @continuePrivateMessage callback
+            @whenRealtimeReady => @continuePrivateMessage callback
+            return @loadCollaborationFile file.result.items[0].id
 
           @statusBar.share.show()
           @chat.emit 'CollaborationNotInitialized'
