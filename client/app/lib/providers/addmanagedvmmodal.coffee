@@ -1,5 +1,7 @@
 kd = require 'kd'
 nick = require 'app/util/nick'
+showError = require 'app/util/showError'
+{generateQueryString} = require '../kite/kitecache'
 
 States = {
   'Retry'
@@ -13,11 +15,9 @@ INSTALL_INSTRUCTIONS = """bash
   # Enter your koding.com credentials when asked for
 """
 
-customViews      =
-
-  kiteItem       : class KiteItem extends kd.ListItemView
-    partial      : ({kite})->
-      "#{kite.name} on #{kite.hostname} with #{kite.id} ID"
+class KiteItem extends kd.ListItemView
+  partial: ( { kite } )->
+    "#{kite.name} on #{kite.hostname} with #{kite.id} ID"
 
 
 view             =
@@ -91,6 +91,12 @@ addTo = (parent, views)->
   return map
 
 
+getIp = (url)->
+  _ = global.document.createElement 'a'
+  _.href = url
+  _.hostname
+
+
 module.exports = class AddManagedVMModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
@@ -123,9 +129,10 @@ module.exports = class AddManagedVMModal extends kd.ModalView
         @queryKites()
           .then (result) =>
             if result?.kites?.length
-            then @switchTo States.ListKites, result
+            then @switchTo States.ListKites, result.kites
             else @switchTo States.Retry, 'No kite instance found'
           .catch (err) =>
+            console.warn "Error:", err
             @switchTo States.Retry, 'Failed to query kites'
 
       when States.Retry
