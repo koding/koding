@@ -52,15 +52,7 @@ module.exports = class JSession extends Model
           console.error err  if err?
 
 
-  safeGuestSessionName = (username)->
-
-    if username is "guestuser"
-      username = JUser.createGuestUsername()
-      console.log "FIXME @gokmen --- overwritten with #{username}."
-
-    return username
-
-
+  # TODO not sure why we are creating session only for guest user
   @createSession = (callback) ->
 
     JUser = require './user'
@@ -75,7 +67,7 @@ module.exports = class JSession extends Model
         return @emit 'error', {message}
 
       {account} = resp
-      username  = safeGuestSessionName account.profile.nickname
+      username  = JUser.createGuestUsername()
       session   = new JSession { clientId, username }
 
       session.save (err)->

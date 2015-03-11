@@ -28,6 +28,11 @@ module.exports = class PrivateMessageListItemView extends ActivityListItemView
 
     @commentBox.listPreviousLink.on 'ReachedToTheBeginning', @bound 'showParentPost'
 
+    @embedOptions  =
+      hasDropdown : no
+      delegate    : this
+      type        : 'privatemessage'
+
 
   prepareDefaultBody: (type) -> "has #{type} the chat"
 
