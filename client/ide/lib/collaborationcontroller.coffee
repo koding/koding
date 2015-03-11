@@ -1,3 +1,4 @@
+machina                       = require 'machina'
 remote                        = require('app/remote').getInstance()
 dateFormat                    = require 'dateformat'
 sinkrow                       = require 'sinkrow'
@@ -685,31 +686,79 @@ module.exports =
     IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
-  prepareCollaboration: ->
+  setCollaborationState: (state) ->
 
-    @rtm        = new RealtimeManager
-    {channelId} = @workspaceData
+    @stateMachine.transition state
+    @emit 'change', { state }
 
+
+  initCollaborationStateMachine: ->
+
+    @stateMachine = new machina.Fsm
+      initialState: 'uninitialized'
+      states:
+        uninitialized:
+          _onEnter: @bound 'onCollaborationUninitialized'
+        loading:
+          _onEnter: @bound 'onCollaborationLoading'
+        active:
+          _onEnter: @bound 'onCollaborationActive'
+        terminated:
+          _onEnter: @bound 'onCollaborationTerminated'
+        notAuthorized:
+          _onEnter: @bound 'onCollaborationNotAuthorized'
+
+
+  onCollaborationUninitialized: ->
+
+    @rtm = new RealtimeManager
     @showShareButton()
+    kd.utils.defer => @setCollaborationState 'loading'
+
+
+  onCollaborationLoading: ->
+
+    @statusBar.emit 'CollaborationLoading'
+
+    { channelId } = @workspaceData
 
     @rtm.ready =>
-      unless @workspaceData.channelId
-        @statusBar.emit 'CollaborationEnded'
-        @collectButtonShownMetric()
+      unless channelId
+        @setCollaborationState 'terminated'
+        return
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
-          @statusBar.emit 'CollaborationEnded'
-          @collectButtonShownMetric()
+          @setCollaborationState 'terminated'
           throwError err  if err
           return
 
         @isRealtimeSessionActive channelId, (isActive) =>
           if isActive or @isInSession
-            @startChatSession => @chat.showChatPane()
-            @chat.hide()
-            @statusBar.emit 'CollaborationStarted'
-            @collectButtonShownMetric()
+          then @setCollaborationState 'active'
+          else @setCollaborationState 'terminated'
+
+
+  onCollaborationActive: ->
+
+    @startChatSession => @chat.showChatPane()
+    @chat.hide()
+    @statusBar.emit 'CollaborationStarted'
+    @collectButtonShownMetric()
+
+
+  onCollaborationTerminated: ->
+
+    @statusBar.emit 'CollaborationEnded'
+    @collectButtonShownMetric()
+
+
+  onCollaborationNotAuthorized: ->
+
+
+  prepareCollaboration: ->
+
+    @initCollaborationStateMachine()
 
 
   startCollaborationSession: (callback) ->
