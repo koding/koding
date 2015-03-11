@@ -145,13 +145,6 @@ module.exports =
 
   startChatSession: (callback) ->
 
-    return if @workspaceData.isDummy
-      @createWorkspace()
-        .then (workspace) =>
-          @workspaceData = workspace
-          @initPrivateMessage callback
-        .error callback
-
     channelId = @channelId or @workspaceData.channelId
 
     if channelId
