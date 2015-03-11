@@ -24,7 +24,7 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
 
     unless machine.isMine()
       if machine.isPermanent()
-        kd.log 'update shared ws url here'
+        path = "/IDE/#{machine.uid}/#{workspace.slug}"
       else
         path = "/IDE/#{workspace.channelId}"
 

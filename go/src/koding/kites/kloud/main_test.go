@@ -58,6 +58,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -232,14 +233,14 @@ func TestStart(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	log.Println("Stopping machine")
+	log.Println("Stopping machine to start machine again")
 	if err := stop(userData.MachineId); err != nil {
 		t.Fatal(err)
 	}
 
 	log.Println("Starting machine")
 	if err := start(userData.MachineId); err != nil {
-		t.Error("`stop` method can not be called on `stopped` machines.")
+		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
 	}
 
 	if err := start(userData.MachineId); err == nil {
@@ -774,7 +775,7 @@ func newKodingProvider() *koding.Provider {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:           koding.NewDNSClient("dev.koding.io", auth),
+		DNS:           dnsclient.New("dev.koding.io", auth),
 		DomainStorage: domainStorage,
 		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
 		KeyName:       keys.DeployKeyName,

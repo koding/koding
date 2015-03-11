@@ -1,10 +1,13 @@
-kd = require 'kd'
-Encoder = require 'htmlencode'
+kd                  = require 'kd'
+Encoder             = require 'htmlencode'
 KDHitEnterInputView = kd.HitEnterInputView
-whoami = require 'app/util/whoami'
+whoami              = require 'app/util/whoami'
 
 
 module.exports = class ActivityInputView extends KDHitEnterInputView
+
+  ENTER = 13
+  TAB   = 9
 
   constructor: (options = {}, data) ->
 
@@ -32,13 +35,21 @@ module.exports = class ActivityInputView extends KDHitEnterInputView
 
 
   empty: ->
+
     @setValue ''
     @resize()
 
+
   keyDown: (event) ->
+
+    if event.which is TAB
+      kd.utils.stopDOMEvent event
+      @emit 'Tab'
+      return no
+
     super event
 
-    if event.which is 13 and event.metaKey
-      @emit 'EnterPerformed'
+    @emit 'EnterPerformed'  if event.which is ENTER and event.metaKey
+
 
 

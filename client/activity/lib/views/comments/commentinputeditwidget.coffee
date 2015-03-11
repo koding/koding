@@ -68,14 +68,6 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
     trackEvent "Comment edit, success", { length: activity?.body?.length }
 
 
-  getPayload: ->
-
-    link_url   = @embedBox.url
-    link_embed = @embedBox.getDataForSubmit()
-
-    return {link_url, link_embed}  if link_url and link_embed
-
-
   viewAppended: ->
 
     super
@@ -83,8 +75,8 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
     data         = @getData()
     {body, link} = data
 
-    @input.setValue body, data
-    @embedBox.loadEmbed link.link_url  if link
+    @input.setValue Encoder.htmlDecode body
+    @input.emit 'BeingEdited', link?.link_url
 
     @addSubView new KDCustomHTMLView
       cssClass  : 'cancel-description'

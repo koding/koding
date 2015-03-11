@@ -1,33 +1,31 @@
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-JView = require 'app/jview'
 proxifyUrl = require 'app/util/proxifyUrl'
 
 
-module.exports = class EmbedBoxImageView extends JView
+module.exports = class EmbedBoxImageView extends KDCustomHTMLView
 
-  constructor:(options={}, data)->
-    super data.link_options, data
+  constructor: (options = {}, data) ->
+
+    o            = data.link_options or {}
+    o.tagName or = 'a'
+    o.attributes =
+      href       : data.link_url or '#'
+      target     : '_blank'
+    o.cssClass   = 'embed-image-view'
+
+    super o, data
 
     oembed = @getData().link_embed
+    width  = switch options.type
+      when 'activity'       then 550
+      when 'comment'        then 498
+      when 'privatemessage' then 475
+      else                       200
 
-    srcUrl = proxifyUrl oembed.images?[0]?.url, width: 728, height: 368, grow: yes, crop: yes
-
-    @image  = new KDCustomHTMLView
+    @addSubView @image  = new KDCustomHTMLView
       tagName     : 'img'
       attributes  :
-        src       : srcUrl
+        src       : proxifyUrl oembed.images?[0]?.url, {width}
         title     : oembed.title or ''
         width     : "100%"
-
-    @setClass "embed-image-view"
-
-  pistachio:->
-    { link_url } = @getData()
-    """
-    <a href="#{link_url or '#'}" target="_blank">
-      {{> @image}}
-    </a>
-    """
-
-
