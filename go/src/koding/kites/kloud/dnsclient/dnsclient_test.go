@@ -17,7 +17,8 @@ import (
 var (
 	dns        *DNS
 	testDomain = "kloud-test.dev.koding.io"
-	testIP     = "192.168.1.2"
+	testIP     = "192.168.1.1"
+	testIP2    = "192.168.1.2"
 )
 
 func init() {
@@ -77,6 +78,37 @@ func TestCreate(t *testing.T) {
 	// }
 	//
 	// fmt.Printf("string(data) = %+v\n", string(data))
+}
+
+func TestUpdate(t *testing.T) {
+	err := dns.Update(testDomain, testIP, testIP2)
+	if err != nil {
+		t.Error(err)
+	}
+
+	record, err := dns.Get(testDomain)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(testDomain, strings.TrimSuffix(record.Name, ".")) {
+		_, file, line, _ := runtime.Caller(0)
+		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, testDomain, strings.TrimSuffix(record.Name, "."))
+		t.FailNow()
+	}
+
+	if !reflect.DeepEqual(testIP2, record.IP) {
+		_, file, line, _ := runtime.Caller(0)
+		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, testIP2, record.IP)
+		t.FailNow()
+	}
+
+	if !reflect.DeepEqual(30, record.TTL) {
+		_, file, line, _ := runtime.Caller(0)
+		fmt.Printf("%s:%d:\n\n\texp: %#v\n\n\tgot: %#v\n\n", filepath.Base(file), line, 30, record.TTL)
+		t.FailNow()
+	}
+
 }
 
 func TestDelete(t *testing.T) {
