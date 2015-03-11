@@ -56,15 +56,12 @@ view             =
       message    : text
     return container
 
-  list           : (data) ->
-    listView = new kd.ListView
-      itemClass : customViews.kiteItem
+  list           : ({data, itemClass}) ->
 
-    for kite in data.kites
-      listView.addItem kite
+    controller   = new kd.ListViewController { selection: yes, itemClass }
+    controller.replaceAllItems data
 
-    return listView
-
+    return { __view: controller.getView(), controller }
 
   button         : (options)->
     new kd.ButtonView options
@@ -88,7 +85,8 @@ addTo = (parent, views)->
   map = {}
   for own key, value of views
     value = [value]  unless Array.isArray value
-    parent.addSubView map[key] = view[key] value...
+    map[key] = view[key] value...
+    parent.addSubView map[key].__view or map[key]
 
   return map
 
