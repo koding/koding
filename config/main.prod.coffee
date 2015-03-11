@@ -547,7 +547,7 @@ Configuration = (options={}) ->
 
       cd #{projectRoot}/client
       npm install --unsafe-perm
-      make build
+      make landing minify-with-external-sourcemaps
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG
