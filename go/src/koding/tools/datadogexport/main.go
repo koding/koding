@@ -36,11 +36,11 @@ type Series struct {
 }
 
 var queries = []string{
-	//-- done-- "max:koding.monitoring.number_of_users_who_logged_in_today.gauge{*}.rollup(max,86400).as_count()",
+	"max:koding.monitoring.number_of_users_who_logged_in_today.gauge{*}.rollup(max,86400).as_count()",
 	"max:koding.monitoring.all_daily_unique_visitor.gauge{*}.rollup(max,86400).as_count()/4",
-	// "max:koding.monitoring.all_monthly_unique_visitor.gauge{*}/2",
+	"max:koding.monitoring.all_monthly_unique_visitor.gauge{*}.rollup(max,86400).as_count()/2",
 	"max:koding.monitoring.number_of_users_who_joined_today.gauge{*}.rollup(max,86400).as_count()",
-	// "max:koding.monitoring.registered_monthly_unique_visitor.gauge{*}*12",
+	"max:koding.monitoring.registered_monthly_unique_visitor.gauge{*}.rollup(max,86400).as_count()*12",
 	"max:koding.monitoring.number_of_messages_today.gauge{*}.rollup(max,86400).as_count()",
 	"max:koding.monitoring.number_of_spun_up_vms_today.gauge{*}.as_count().rollup(max,86400)",
 	"max:koding.monitoring.number_of_privatemessage_channels_today.gauge{*}.rollup(max,86400).as_count()",
