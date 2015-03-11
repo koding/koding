@@ -165,8 +165,9 @@ module.exports = class JWorkspace extends Module
       ws.update options, callback
 
 
-  @createDefault: (client, machine, callback) ->
+  @createDefault: (client, options, callback) ->
 
+    {machine, rootPath} = options
     {nickname} = client.connection.delegate.profile
 
     data =
@@ -174,6 +175,6 @@ module.exports = class JWorkspace extends Module
       isDefault    : yes
       machineLabel : machine.label
       machineUId   : machine.uid
-      rootPath     : "/home/#{nickname}"
+      rootPath     : rootPath ? "/home/#{nickname}"
 
     @create client, data, callback
