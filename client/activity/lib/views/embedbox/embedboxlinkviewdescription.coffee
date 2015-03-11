@@ -1,73 +1,26 @@
-kd = require 'kd'
-KDInputView = kd.InputView
-KDView = kd.View
-JView = require 'app/jview'
+kd      = require 'kd'
+KDView  = kd.View
 Encoder = require 'htmlencode'
 
 
 module.exports = class EmbedBoxLinkViewDescription extends KDView
 
-  JView.mixin @prototype
+  constructor: (options = {}, data = {}) ->
 
-  { getDescendantsByClassName, setText } = kd.dom
+    options.cssClass   = kd.utils.curry 'description', options.cssClass
+    options.tagName    = 'a'
+    options.attributes =
+      href             : data.link_url
+      target           : '_blank'
 
-  constructor:(options={},data={})->
-    options.cssClass = kd.utils.curry "description", options.cssClass
     super options, data
 
-    oembed = data.link_embed
+    @updatePartial @getDescription()
 
-    @hide()  unless oembed?.description?.trim()
 
-    @originalDescription = oembed?.description or ""
+  getDescription: ->
 
-    @descriptionInput = new KDInputView
-      type         : 'textarea'
-      cssClass     : 'description-input hidden'
-      name         : 'description_input'
-      defaultValue : @originalDescription
-      autogrow     : yes
-      blur         : =>
-        @descriptionInput.hide()
-        descriptionEl = @getDescriptionEl()
-        setText descriptionEl, Encoder.XSSEncode @getValue()
-        kd.utils.elementShow descriptionEl
-
-  getDescriptionEl:->
-    (getDescendantsByClassName @getElement(), 'description')[0]
-
-  getValue: -> @descriptionInput.getValue()
-
-  getOriginalValue:-> @originalDescription
-
-  viewAppended:->
-    JView::viewAppended.call this
-    # TODO as a future work editIndicator must be added
-    # if @getData().link_embed?.descriptionEdited
-    #   @editIndicator.show()
-
-  click:(event)->
-
-    # we need to do this stuff only if the item is ours.
-    # commenting out for now [BC]
-    # event.preventDefault()
-    # event.stopPropagation()
-
-    # @descriptionInput.show()
-    # @descriptionInput.setFocus()
-    # @utils.elementHide @getDescriptionEl()
-    # no
-
-  getDescription:->
     value = @getData().link_embed?.description or @getData().description
-    if value?
-      value = Encoder.XSSEncode value
-      value = "#{value.substring 0, 128}..."
 
-    return value
-
-  pistachio:->
-    """
-    {{> @descriptionInput}}
-    #{@getDescription() or ""}
-    """
+    return '' unless value?
+    return "#{Encoder.XSSEncode(value).substring 0, 128}..."

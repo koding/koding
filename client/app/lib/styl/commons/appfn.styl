@@ -174,16 +174,6 @@ cf()
 
 // KDFN ENDS
 
-comment-bg           = #f6f6f6
-comment-border-color = rgba(40,40,40,.06)
-avatar-border-color  = rgb(238,238,238)
-light-green          = #87a03b
-orange               = #f08501
-
-linkColor1           = #ff9200
-finderSelectedColor1 = #31575F
-finderSelectedColor2 = #DC911D
-
 neueFamily           = 'Helvetica Neue', Helvetica, Arial, sans-serif
 proximaFamily        = 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
 openSansFamily       = 'Open Sans', 'Proxima Nova', 'Helvetica Neue', Helvetica, Arial
@@ -193,17 +183,6 @@ logoFamily           = 'Ubuntu','Proxima Nova', 'Helvetica Neue', Helvetica, Ari
 asapFamily           = 'Asap', 'Helvetica Neue', Helvetica, sans-serif
 tagLineFont          = 'Museo Sans', 'Open Sans', 'Helvetica Neue', Helvetica, sans-serif
 sloganFont           = tagLineFont
-logoBg               = #1aaf5d
-headerBg             = #2e3537
-homeHeaderBg         = #e3e3e3
-headerLinkColor      = #3e4446
-bgColor              = #202527
-teamworkColor        = #f2c500
-socialColor          = #2d97de
-footerLinkColor      = #a8a8a8
-footerBg             = #222627
-emphasized           = #242a2c
-paleRed              = #ffe7e7
 
 sidebarWidth         = 258px
 
@@ -234,6 +213,14 @@ r-sprite(folder, name)
       bg position, (sprite2x[2]/2 sprite2x[3]/2)
       bg size, (sprite2x[6]/2 sprite2x[7]/2)
 
+
+getSmallGoldenFraction(value)
+
+  return (value * (1 - 0.618034))px
+
+getBigGoldenFraction(value)
+
+  return (value * 0.618034)px
 
 dividerWithText()
   color             #a8a8a8
@@ -331,4 +318,3 @@ styleScrollBars()
     .kdscrollthumb
       bg                color clr
       rounded           6px
-

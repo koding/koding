@@ -58,10 +58,6 @@ module.exports = class EmbedBoxLinkViewImageSwitch extends JView
       @setImageIndex imageIndex
       @enableButton 'next'
 
-    # update the thumb "page number":
-    [pageNumber] = getDescendantsByClassName @getElement(), 'thumb-nr'
-    setText pageNumber, imageIndex + 1
-
     # Refresh the image with the new src data
     if imageIndex < oembed.images.length - 1
       imgSrc = oembed.images[imageIndex]?.url
@@ -77,14 +73,6 @@ module.exports = class EmbedBoxLinkViewImageSwitch extends JView
       # TODO: this sucks:
       @getDelegate().getDelegate().setImageIndex imageIndex
 
-    # else
-    #   # imageindex out of bounds - displaying default image
-    #   # (first in the images array) the pistachio will also take care
-    #   # of this
-
-    #   defaultImgSrc = oembed.images[0]?.url
-    #   @getDelegate().embedImage.setSrc defaultImgSrc
-
     # When we're at 0/x or x/x, disable the next/prev buttons
     if imageIndex is 0
       @disableButton 'previous'
@@ -97,10 +85,6 @@ module.exports = class EmbedBoxLinkViewImageSwitch extends JView
     {link_embed} = @getData()
     {images}     = link_embed
     """
-    <a class="preview-link-switch previous #{if imageIndex is 0 then "disabled" else ""}"></a>
-    <a class="preview-link-switch next #{if imageIndex is images.length then "disabled" else ""}"></a>
-    <div class="thumb-count">
-      <span class="thumb-nr">#{imageIndex+1 or "1"}</span> of <span class="thumb-all">#{images.length}</span>
-      <span class="thumb-text">Choose a thumbnail</span>
-    </div>
+    <a class=\"preview-link-switch previous #{if imageIndex is 0 then 'disabled' else ''}\"></a>
+    <a class=\"preview-link-switch next #{if imageIndex is images.length then 'disabled' else ''}\"></a>
     """

@@ -6,7 +6,6 @@ KDTimeAgoView = kd.TimeAgoView
 KDView = kd.View
 emojify = require 'emojify.js'
 CommentDeleteModal = require './commentdeletemodal'
-EmbedBox = require '../embedbox'
 CommentInputEditWidget = require './commentinputeditwidget'
 CommentLikeView = require './commentlikeview'
 CommentSettingsButton = require './commentsettingsbutton'
@@ -20,6 +19,7 @@ CustomLinkView = require 'app/customlinkview'
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 isMyPost = require 'app/util/isMyPost'
 hasPermission = require 'app/util/hasPermission'
+updateEmbedBox = require 'activity/mixins/updateembedbox'
 
 module.exports = class CommentListItemView extends KDListItemView
 
@@ -45,16 +45,7 @@ module.exports = class CommentListItemView extends KDListItemView
     data.on 'update', @bound 'handleUpdate'
 
 
-  handleUpdate: ->
-
-    { updatedAt, createdAt } = @getData()
-
-    if updatedAt > createdAt
-    then @setClass 'edited'
-    else @unsetClass 'edited'
-
-    kd.utils.defer => emojify.run @getElement()
-
+  handleUpdate: require 'activity/mixins/handleupdate'
 
   handleInternalLink: (event) ->
 
@@ -170,18 +161,7 @@ module.exports = class CommentListItemView extends KDListItemView
 
 
   updateEmbedBox: ->
-
-
-    data     = @getData()
-
-    embedBox = if data.link?
-      @setClass 'two-columns'  if @twoColumns
-      new EmbedBox @embedOptions, data.link
-    else
-      new KDCustomHTMLView
-
-    @embedBoxWrapper.destroySubViews()
-    @embedBoxWrapper.addSubView embedBox
+    updateEmbedBox.call this
     @embedBoxWrapper.show()
 
 
@@ -258,6 +238,8 @@ module.exports = class CommentListItemView extends KDListItemView
     @embedOptions  =
       hasDropdown : no
       delegate    : this
+      type        : 'comment'
+
     @embedBoxWrapper = new KDCustomHTMLView
     @updateEmbedBox()
 
