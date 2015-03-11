@@ -756,7 +756,7 @@ module.exports =
         setConstraint this, 'channelReady', yes
 
         @isRealtimeSessionActive channelId, (isActive) =>
-          result = isActive or @isInSession
+          result = isActive or @isInSession?
           setConstraint this, 'sessionActive', result
 
 
