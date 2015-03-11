@@ -269,8 +269,19 @@ activity.listitem.styl
       padding-bottom        5px
 
     .link-embed-box
-      rounded               3px
-      margin                16px 0 0
+      border                none
+      bg                    color, transparent
+
+      .preview-text
+        padding             0 10px
+        border-left         5px solid lightGray
+
+      .provider-info
+        left                10px
+
+      .hide-embed
+        shadow              0 0 0 2px #fafafa
+        bg                  color #fafafa
 
     > .listview-wrapper
       overflow              visible
@@ -288,6 +299,13 @@ activity.listitem.styl
       margin-top            0
       margin-bottom         0
       height                auto
+
+      .embed-link-view
+        padding             20px 10px 2px 0px
+
+      .embed-link-view.with-image
+        .preview-text
+          padding           0 10px
 
       .avatarview
         abs                 0 0 0 0px
