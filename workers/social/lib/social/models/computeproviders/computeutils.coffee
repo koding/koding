@@ -147,7 +147,7 @@ revive = do -> ({
       # since the user session is enough for koding provider for now.
 
       if shouldPassCredential and not credential?
-        unless provider is 'koding'
+        unless provider in ['koding', 'managed']
           return callback new KodingError \
             "Credential is required.", "MissingCredential"
 
@@ -156,7 +156,7 @@ revive = do -> ({
         if err then return callback err
 
         if shouldPassCredential and not cred?
-          unless provider is 'koding'
+          unless provider in ['koding', 'managed']
             return callback \
               new KodingError "Credential failed.", "AccessDenied"
         else
