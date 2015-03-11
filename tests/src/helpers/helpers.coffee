@@ -205,11 +205,14 @@ module.exports =
       .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
       .click                    activitySelector + ' .has-markdown' # blur
       .pause                    3000 # content preview
-      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
 
     if hasEmbeddable
       browser
         .waitForElementVisible  '.comment-input-widget .link-embed-box', 20000
+
+    browser
+      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
+
 
     if shouldAssert
       browser
