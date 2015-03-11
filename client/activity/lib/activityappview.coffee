@@ -5,7 +5,6 @@ KDTabPaneView          = kd.TabPaneView
 KDView                 = kd.View
 ActivityPane           = require './views/activitypane'
 AnnouncementPane       = require './views/announcementpane'
-ConversationsModal     = require './sidebar/conversationsmodal'
 MoreChannelsModal      = require './sidebar/morechannelsmodal'
 PrivateMessagePane     = require './views/privatemessage/privatemessagepane'
 PrivateMessageForm     = require './views/privatemessage/privatemessageform'
@@ -205,13 +204,6 @@ module.exports = class ActivityAppView extends KDView
     {moreLink} = @sidebar.sections.channels
 
     kd.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
-
-
-  showAllConversationsModal: ->
-
-    @open 'topic', 'public'  unless @tabs.getActivePane()
-
-    return new ConversationsModal delegate : this
 
 
   showAllChatsModal: ->
