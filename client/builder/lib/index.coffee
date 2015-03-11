@@ -36,10 +36,11 @@ SPRITESMITH_CSS_EXTENSION   = 'styl'
 SPRITESMITH_ALGORITHM       = 'binary-tree'
 SPRITESMITH_PADDING         = 5
 SPRITESMITH_CSS_NAME_PREFIX = 'sprite@'
-SPRITE_TMPDIR               = '.sprites'
+SPRITES_TMPDIR              = '.sprites'
 STYLES_KDJS_MODULE_NAME     = 'kd.js'
 STYLES_KDJS_CSS_FILE        = 'dist/kd.css'
-STYLES_APPFN_FILE           = 'app/lib/styl/appfn.styl'
+STYLES_COMMONS_GLOB         = 'app/lib/styl/commons/*.styl'
+STYLES_EXTENSION            = 'styl'
 
 module.exports =
 
@@ -71,7 +72,7 @@ class Haydar extends events.EventEmitter
       opts.outdir = path.join opts.outdir, opts.rev
       opts.baseurl = [ opts.baseurl, opts.rev ].join '/'
 
-    opts.spriteTmpCssOutdir = @_resolve SPRITE_TMPDIR
+    opts.spriteTmpCssOutdir = @_resolve SPRITES_TMPDIR
     opts.spriteImgOutdir = defined opts.spriteImgOutdir, opts.outdir
 
     opts.stylesOutdir = defined opts.stylesOutdir, opts.outdir
@@ -322,9 +323,15 @@ class Haydar extends events.EventEmitter
     timeEnd = @_timeEnd.bind this
     notify  = @_notify.bind this
 
-    manifests = opts.manifests
-
+    manifests  = opts.manifests
     watchingKd = false
+
+    commons  = path.join opts.basedir, STYLES_COMMONS_GLOB
+    includes = [ commons ]
+
+    pending = 0
+    start   = 0
+
 
     copyKd = (cb) ->
       kdPath = path.dirname require.resolve STYLES_KDJS_MODULE_NAME
@@ -343,7 +350,8 @@ class Haydar extends events.EventEmitter
 
       ws.on 'finish', ->
         timeEnd 'styles: kd: copy ' + outfile
-        msg = 'written kd.css to ' + outfile
+        msg = 'copied kd.css to ' + outfile
+        console.log msg
         if opts.watchJs
           notify 'styles', msg
         if cb
@@ -355,38 +363,75 @@ class Haydar extends events.EventEmitter
         w.on 'change', ->
           copyKd()
 
-    xbundle = ->
-      opts_ =
-        use: nib()
-        compress: yes  unless opts.debugCss
-        import: includes
-        sourcemap: inline: yes  if opts.debugCss
 
-    styl = (x, dir) ->
+    styl = (x, globs) ->
+      pending += 1
+
+      opts_ =
+        use       : nib()
+        compress  : yes  unless opts.debugCss
+        import    : includes
+        sourcemap :
+          inline: if opts.debugCss then yes else no
+
+      basename = x.name + '.css'
+      outfile = path.join opts.stylesOutdir, basename
+
+      time 'styles: write ' + outfile
+
+      rs = vfs.src globs
+      rs = rs.pipe stylus opts_
+      rs = rs.pipe concat basename
+      ws = vfs.dest opts.stylesOutdir
+
+      rs.pipe ws
+
+      ws.on 'finish', ->
+        timeEnd 'styles: write ' + outfile
+        if --pending is 0
+          secs = ((Date.now() - start)/1000).toFixed 2
+          msg = 'written styles to ' + opts.stylesOutdir + ' (' + secs + ')'
+          console.log msg
+          if not opts.watchCss
+            done()
+          else
+            notify 'styles', msg
+
 
     bundle = (x)->
       start = Date.now()
 
       x.styles.forEach (basename) ->
         dir = path.join x.basedir, basename
-        styl x, dir
+        globs = [ path.join dir, '**', '*.' + STYLES_EXTENSION ]
+        globs.push "!#{commons}"
 
-        if opts.watchStyles
+        styl x, globs
+
+        if opts.watchCss
           w = chokidar.watch dir, persistent: yes
           w.on 'ready', ->
             w.on 'raw', (e, file) ->
               if e is 'modified' or e is 'deleted'
                 console.log e + ' ' + file
-                styl x, dir
+                start = Date.now()
+                styl x, globs
 
-    init = ->
-      copyKd ->
+
+    init = =>
+      fn = ->
         manifests.forEach (x) ->
           return  unless Array.isArray x.styles
-          #bundle x
+          bundle x
+      @on '_updated-sprites', -> fn()
+      copyKd -> fn()
+
 
     if opts.sprites
-      @on '_updated-sprites', ->
+      spriteSheets = path.join opts.spriteTmpCssOutdir, '*', \
+        SPRITESMITH_CSS_NAME_PREFIX + '*x.' + SPRITESMITH_CSS_EXTENSION
+      includes.push spriteSheets
+      @once '_updated-sprites', ->
         init()
     else
       init()
@@ -531,6 +576,7 @@ class Haydar extends events.EventEmitter
             w.on 'raw', (e, file) ->
               if e is 'modified' or e is 'deleted'
                 console.log e + ' ' + file
+                start = Date.now()
                 smith x, dir
 
 
