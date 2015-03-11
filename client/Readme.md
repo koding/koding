@@ -75,6 +75,12 @@ Minify scripts and styles, but write source maps of scripts to an external `.map
 λ dev/koding/client make minify-with-external-sourcemaps
 ```
 
+Vanilla:
+
+```
+make vanilla
+```
+
 Build [landing](./landing):
 
 ```

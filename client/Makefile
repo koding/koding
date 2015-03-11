@@ -27,6 +27,9 @@ BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 
 all: landing development
 
+vanilla:
+	@$(BUILDER) $(BUILDER_ARGS)
+
 debug:
 	$(BUILDER) -v $(BUILDER_DEBUG_FLAGS) $(BUILDER_ARGS)
 
