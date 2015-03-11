@@ -41,3 +41,24 @@ module.exports = class Managed extends ProviderInterface
             postCreateOptions: { queryString, ipAddress }
           }
 
+
+  @postCreate = (client, options, callback)->
+
+    { r: { account } } = client
+    { machine, postCreateOptions:{ queryString, ipAddress } } = options
+
+    domain = ipAddress
+
+    machine.update {
+      $set: {
+        queryString, domain, ipAddress
+        status: {state: 'Running'}
+      }
+    }, (err)->
+
+      return callback err  if err
+
+      rootPath = '/' # We are not sure if the /home/nick directory exists
+
+      JWorkspace = require '../workspace'
+      JWorkspace.createDefault client, {machine, rootPath}, callback
