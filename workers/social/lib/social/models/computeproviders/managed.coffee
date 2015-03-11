@@ -14,3 +14,30 @@ module.exports = class Managed extends ProviderInterface
   @ping = (client, options, callback)->
 
     callback null, "Managed VMs rulez #{ client.r.account.profile.nickname }!"
+
+
+  @create = (client, options, callback)->
+
+    { label, queryString, ipAddress } = options
+    { r: { group, user, account } } = client
+
+    provider = 'managed'
+
+    { guessNextLabel, fetchUserPlan, fetchUsage } = require './computeutils'
+
+    guessNextLabel { user, group, label, provider }, (err, label)->
+      fetchUserPlan client, (err, userPlan)->
+        fetchUsage client, options, (err, usage)->
+
+          return callback err  if err?
+
+          meta =
+            type          : 'managed'
+            storage_size  : 0 # sky is the limit.
+            alwaysOn      : no
+
+          callback null, {
+            meta, label, credential: client.r.user.username
+            postCreateOptions: { queryString, ipAddress }
+          }
+
