@@ -577,14 +577,16 @@ module.exports =
 
   pollRealtimeDocument: ->
 
-    @rtm.once 'FileQueryFinished', ({items}) =>
+    unless @rtm
+      kd.utils.killRepeat @pollInterval
+      return
 
-      return  if items.length
+    @isRealtimeSessionActive @channelId, (isActive) =>
+
+      return  if isActive
 
       kd.utils.killRepeat @pollInterval
       @showSessionEndedModal()
-
-    @rtm.fetchFileByTitle @getRealTimeFileName()
 
 
   handleBroadcastMessage: (data) ->
