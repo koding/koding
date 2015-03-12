@@ -1,36 +1,39 @@
-kd = require 'kd'
-_ = require 'underscore'
-ShortcutsList = require './list'
+kd            = require 'kd'
+_             = require 'underscore'
+ShortcutsPane = require './pane'
 
-module.exports = class ShortcutsModal extends kd.ModalView
+module.exports =
 
-  constructor: (options={}, data) ->
+class ShortcutsModal extends kd.ModalView
 
-    options.title or= 'Shortcuts'
+  constructor: (options={}, keyconfig) ->
+
+    options.title   or= 'Shortcuts'
     options.content or= """
       <div class='modalformline'>
         <p>To change a shortcut, select it, click the key combination, and then type the new keys.</p>
       </div>
     """
-    options.overlay or= true
-    options.width or= 620
-    options.height or= 'auto'
+    options.overlay or= yes
+    options.width   or= 522
+    options.height  or= 'auto'
 
-    super options, data
+    super options, keyconfig
+
 
   viewAppended: ->
-    
-    tabs = new kd.TabView
-      hideHandleCloseIcons: true
-      enableMoveTabHandle: false
-      paneData: _.map @data, (value) ->
-        title: value.title
-        view: new ShortcutsList {}, value.shortcuts
 
-    @addSubView tabs
+    @addSubView new kd.TabView
+      hideHandleCloseIcons : true
+      enableMoveTabHandle  : false
+      paneData             : @data.map (set) ->
+        title : set.name
+        view  : new ShortcutsPane {}, set
 
-    restoreDefaults = new kd.ButtonView
-      title: 'Restore Defaults'
-      callback: kd.noop
-    
-    @addSubView restoreDefaults
+    @addSubView new kd.ButtonView
+      title    : 'Restore Defaults'
+      callback : kd.noop
+
+    @addSubView new kd.ButtonView
+      title    : 'Save'
+      callback : kd.noop
