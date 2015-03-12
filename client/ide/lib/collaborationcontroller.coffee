@@ -598,6 +598,9 @@ module.exports =
 
     if origin is nick()
       switch type
+        when 'ParticipantWantsToLeave'
+          @removeMachineNode()
+          return kd.utils.defer @bound 'quit'
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
         else return
