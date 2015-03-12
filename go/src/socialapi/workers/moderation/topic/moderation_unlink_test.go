@@ -4,7 +4,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math"
 	"socialapi/models"
-
 	"socialapi/workers/common/runner"
 	"testing"
 
