@@ -229,7 +229,7 @@ deploy:
 
           ./configure --config $CONFIG --projectRoot /opt/koding
 
-          rm -rf .git .build node_modules client/node_modules
+          rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
 
