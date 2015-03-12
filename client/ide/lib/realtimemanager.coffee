@@ -293,3 +293,5 @@ module.exports = class RealtimeManager extends KDObject
     @realtimeDoc.close()
     @isDisposed = yes
     @destroy()
+    @readyState = 0
+    @isReady = no
