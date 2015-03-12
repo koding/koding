@@ -386,7 +386,10 @@ module.exports = class ComputeController extends KDController
 
         remote.api.ComputeProvider.remove options, (err)=>
           return  if err
-          
+
+          # this need to be done automatically? ~ GG
+          kd.singletons.mainView.activitySidebar.removeMachineNode machine
+
           @_clearTrialCounts machine
           @reset yes
 
