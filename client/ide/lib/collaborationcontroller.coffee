@@ -266,6 +266,8 @@ module.exports =
 
   handleParticipantAction: (actionType, changeData) ->
 
+    return  unless @rtm
+
     kd.utils.wait 2000, => @whenRealtimeReady =>
       participants  = @participants.asArray()
       {sessionId}   = changeData.collaborator
