@@ -166,7 +166,11 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 			// if the user is already participant of root channel, delete the
 			// leaf node participation
 
-			if err := bongo.B.Unscoped().Table(m.BongoName()).Delete(channelParticipant).Error; err != nil {
+			if err := bongo.B.
+				Unscoped().
+				Table(m.BongoName()).
+				Delete(channelParticipant).
+				Error; err != nil {
 				//
 				// TODO do we need to send an event here?
 				//
@@ -210,14 +214,16 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		return nil
 	}
 
+	m := models.ChannelMessageList{}
 	for {
 		var messageLists []models.ChannelMessageList
 
 		// fetch all records, even deleted ones, because we are not gonna need
 		// them anymore
 		err := bongo.B.DB.
-			Model(models.ChannelMessageList{}).
 			Unscoped().
+			Model(m).
+			TableName(m.TableName()).
 			Limit(processCount).
 			Where("channel_id = ?", cl.LeafId).
 			Find(&messageLists).Error
@@ -273,7 +279,12 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 
 				// we are deleting the leaf with an unscoped because we dont need the
 				// data in our db anymore
-				if err := bongo.B.Unscoped().Delete(messageList).Error; err != nil {
+				if err := bongo.B.
+					Unscoped().
+					Model(m).
+					TableName(m.TableName()).
+					Delete(messageList).
+					Error; err != nil {
 					c.log.Error("Err while deleting the channel message list %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				}
@@ -283,7 +294,12 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 
 			} else {
 				// update the message itself, without callbacks
-				if err := bongo.B.Unscoped().Model(&messageList).UpdateColumn("channel_id", cl.RootId).Error; err != nil {
+				if err := bongo.B.
+					Unscoped().
+					TableName(m.TableName()).
+					Model(&messageList).
+					UpdateColumn("channel_id", cl.RootId).
+					Error; err != nil {
 					c.log.Error("Err while updating the mesage %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 					continue
