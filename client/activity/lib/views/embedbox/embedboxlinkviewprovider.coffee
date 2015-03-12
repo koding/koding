@@ -1,27 +1,23 @@
-JView = require 'app/jview'
+kd               = require 'kd'
+KDCustomHTMLView = kd.CustomHTMLView
 
+module.exports = class EmbedBoxLinkViewProvider extends KDCustomHTMLView
 
-module.exports = class EmbedBoxLinkViewProvider extends JView
+  constructor: (options = {}, data = {}) ->
 
-  constructor:(options,data)->
-    super options,data
+    options.cssClass   = kd.utils.curry 'provider-info', options.cssClass
+    options.tagName    = 'a'
+    options.attributes =
+      href             : data.link_url
+      target           : '_blank'
 
-    @hide()  unless data.link_embed?.provider_name?
+    super options, data
 
-  pistachio:->
-    data = @getData()
+    @hide()  unless @getData().link_embed?.provider_name?
 
-    {link_embed, provider_name, provider_url, provider_display} = data
+    { link_embed, provider_name } = @getData()
 
     link_embed       or= {}
     provider_name    or= link_embed.provider_name    or ''
-    provider_url     or= link_embed.provider_url
-    provider_display or= link_embed.provider_display or ''
 
-    if provider_url
-    then provider_link = "at <a href='#{provider_url}' target='_blank'>#{provider_display}</a>"
-    else provider_link = ''
-
-    "<strong>#{provider_name}</strong>"
-
-
+    @updatePartial "<strong>#{provider_name}</strong>"

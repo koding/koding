@@ -1,24 +1,23 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
-KDTimeAgoView = kd.TimeAgoView
-KDView = kd.View
-ActivityActionsView = require './activityactionsview'
-ActivityEditWidget = require './activityeditwidget'
+kd                      = require 'kd'
+KDButtonView            = kd.ButtonView
+KDCustomHTMLView        = kd.CustomHTMLView
+KDListItemView          = kd.ListItemView
+KDTimeAgoView           = kd.TimeAgoView
+KDView                  = kd.View
+ActivityActionsView     = require './activityactionsview'
+ActivityEditWidget      = require './activityeditwidget'
 ActivityLikeSummaryView = require './activitylikesummaryview'
-ActivitySettingsView = require './activitysettingsview'
-CommentView = require './comments/commentview'
-EmbedBox = require './embedbox'
-remote = require('app/remote').getInstance()
-showError = require 'app/util/showError'
-formatContent = require 'app/util/formatContent'
-ProfileLinkView = require 'app/commonviews/linkviews/profilelinkview'
-JView = require 'app/jview'
-AvatarView = require 'app/commonviews/avatarviews/avatarview'
-Promise = require 'bluebird'
-emojify = require 'emojify.js'
-htmlencode = require 'htmlencode'
+ActivitySettingsView    = require './activitysettingsview'
+CommentView             = require './comments/commentview'
+remote                  = require('app/remote').getInstance()
+showError               = require 'app/util/showError'
+formatContent           = require 'app/util/formatContent'
+ProfileLinkView         = require 'app/commonviews/linkviews/profilelinkview'
+JView                   = require 'app/jview'
+AvatarView              = require 'app/commonviews/avatarviews/avatarview'
+Promise                 = require 'bluebird'
+emojify                 = require 'emojify.js'
+htmlencode              = require 'htmlencode'
 
 
 module.exports = class ActivityListItemView extends KDListItemView
@@ -47,6 +46,8 @@ module.exports = class ActivityListItemView extends KDListItemView
 
     @bindTransitionEnd()
 
+  updateEmbedBox: require 'activity/mixins/updateembedbox'
+  handleUpdate:   require 'activity/mixins/handleupdate'
 
   createSubViews: ->
 
@@ -86,9 +87,10 @@ module.exports = class ActivityListItemView extends KDListItemView
     remote.cacheable constructorName, _id, (err, account)=>
       @setClass "exempt" if account?.isExempt
 
-    embedOptions  =
+    @embedOptions  =
       hasDropdown : no
       delegate    : this
+      type        : 'activity'
 
     @embedBoxWrapper = new KDCustomHTMLView
     @updateEmbedBox()
@@ -137,21 +139,6 @@ module.exports = class ActivityListItemView extends KDListItemView
     data.watch 'repliesCount', (count) =>
       @commentBox.decorateCommentedState() if count >= 0
 
-
-  handleUpdate: (fields) ->
-
-    { createdAt, updatedAt, link, payload } = @getData()
-
-    if updatedAt > createdAt
-      @setClass 'edited'
-      if link?.link_url isnt payload?.link_url and payload?.link_embed
-        link.link_embed =
-          try JSON.parse htmlencode.htmlDecode payload.link_embed
-          catch e then null
-        @updateEmbedBox()
-    else @unsetClass 'edited'
-
-
   showEditWidget: ->
 
     unless @editWidget
@@ -188,20 +175,6 @@ module.exports = class ActivityListItemView extends KDListItemView
     @editWidget.destroy()
     @editWidget = null
     @embedBoxWrapper.show()
-
-
-
-  updateEmbedBox: ->
-
-    data    = @getData()
-    embedBox = if data.link?
-      @setClass 'two-columns'  if @twoColumns
-      new EmbedBox @embedOptions, data.link
-    else
-      new KDCustomHTMLView
-
-    @embedBoxWrapper.destroySubViews()
-    @embedBoxWrapper.addSubView embedBox
 
 
   resetEditing: ->
@@ -310,7 +283,7 @@ module.exports = class ActivityListItemView extends KDListItemView
     @setClass 'edited'  if updatedAt > createdAt
 
     kd.utils.defer =>
-      if @getData().link?.link_url? isnt ''
+      if @getData().link?.link_url isnt ''
       then @embedBoxWrapper.show()
       else @embedBoxWrapper.hide()
 

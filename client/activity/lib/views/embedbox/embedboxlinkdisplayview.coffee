@@ -11,6 +11,7 @@ module.exports = class EmbedBoxLinkDisplayView extends KDView
     super options, data
 
     if data?.link_embed?.images?[0]?
+      @setClass 'with-image'
       @embedImage = new EmbedBoxLinkViewImage
         cssClass : 'preview-image'
         delegate : this
@@ -22,7 +23,7 @@ module.exports = class EmbedBoxLinkDisplayView extends KDView
     , data
 
   viewAppended : ->
-    @addSubView @embedImage if @embedImage
     @addSubView @embedContent
+    @addSubView @embedImage if @embedImage
 
 

@@ -26,7 +26,10 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    image = 'http://placehold.it/200x100'
+    # added 'hello world' bc it first thinks that you type http://placehold.it/
+    # and renders it as a link, but if we continue typing it understands that
+    # it is an image
+    image    = 'http://placehold.it/200x100 hello world!'
     selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
 
     browser
@@ -35,9 +38,9 @@ module.exports =
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
       .click                  '[testpath=ActivityInputView]'
       .setValue               '[testpath=ActivityInputView]', image
-      .click                  '.channel-title'
-      .waitForElementVisible  '.activity-input-widget .embed-image-view', 20000
+      .pause                  5000 # wait for image loading
       .click                  '[testpath=post-activity-button]'
+      .pause                  5000 # wait for image loading
       .waitForElementVisible   selector, 20000 # Assertion
       .end()
 
@@ -46,16 +49,16 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    link         = 'http://wikipedia.org/'
     linkSelector = activitySelector + ' .activity-content-wrapper article a'
 
-    helpers.doPostActivity(browser, link)
+    helpers.doPostActivity(browser, link, yes, yes)
 
     browser.getAttribute linkSelector, 'href', (result) ->
       href = result.value
       assert.equal(link, href)
 
-    browser.end()
+      browser.end()
 
 
   postCommentWithCode: (browser) ->
@@ -81,31 +84,34 @@ module.exports =
 
     helpers.beginTest(browser)
 
-    post     = helpers.getFakeText()
     image    = 'http://placehold.it/200x100'
-    selector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
+    comment  = image + ' hello world!'
+    post     = helpers.getFakeText()
+    selector = activitySelector + ' .comment-contents .link-embed-box a.embed-image-view'
 
     helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, image)
+    helpers.doPostComment(browser, comment) # images do not show a preview so we don't pass embeddable flag
 
-    browser
-      .assert.containsText selector, image # Assertion
-      .end()
+    browser.getAttribute selector, 'href', (result) ->
+      href = result.value
+      assert.equal(image, href)
+
+      browser.end()
 
 
   postCommentWithLink: (browser) ->
 
     helpers.beginTest(browser)
 
-    post     = helpers.getFakeText()
-    link = 'http://nightwatchjs.org/' # last '/' is the trick!
+    post         = helpers.getFakeText()
+    link         = 'http://wikipedia.org/'
     linkSelector = activitySelector + ' .comment-contents .comment-body-container .has-markdown a'
 
     helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, link)
+    helpers.doPostComment(browser, link, yes, yes)
 
     browser.getAttribute linkSelector, 'href', (result) ->
       href = result.value
       assert.equal(link, href)
 
-    browser.end()
+      browser.end()

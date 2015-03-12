@@ -50,6 +50,7 @@ module.exports = class CommentInputWidget extends ActivityInputWidget
   initEvents: ->
     @input.on 'Escape', @bound 'reset'
     @input.on 'Enter',  @bound 'submit'
+    @input.on 'Tab',    @bound 'focusSubmit'
 
     @input.on 'focus', @bound 'inputFocused'
     @input.on 'blur',  @bound 'inputBlured'
