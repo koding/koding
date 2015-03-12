@@ -69,7 +69,6 @@ func TestModeration(t *testing.T) {
 			Convey("We should not be able to list with non set root id", func() {
 				links, err := rest.GetLinks(0, request.NewQuery(), ses.ClientId)
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, models.ErrChannelIsNotSet.Error())
 				So(links, ShouldBeNil)
 			})
 
@@ -92,13 +91,11 @@ func TestModeration(t *testing.T) {
 			Convey("We should not be able to unlink with non-set root id", func() {
 				err = rest.UnLink(0, rand.Int63(), ses.ClientId)
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, models.ErrChannelIsNotSet.Error())
 			})
 
 			Convey("We should not be able to unlink with non-set leaf id", func() {
 				err = rest.UnLink(rand.Int63(), 0, ses.ClientId)
 				So(err, ShouldNotBeNil)
-				So(err.Error(), ShouldContainSubstring, models.ErrLeafIsNotSet.Error())
 			})
 
 			Convey("We should not be able to unlink non existing leaf", func() {
@@ -123,7 +120,6 @@ func TestModeration(t *testing.T) {
 
 			err = rest.BlackList(root.Id, ses.ClientId)
 			So(err, ShouldNotBeNil)
-			So(err.Error(), ShouldContainSubstring, models.ErrChannelHasLeaves.Error())
 		})
 	})
 }
