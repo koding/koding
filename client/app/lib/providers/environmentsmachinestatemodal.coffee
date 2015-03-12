@@ -46,6 +46,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @machineName = jMachine.label
     @machineId   = jMachine._id
     {@state}     = @machine.status
+    @isManaged   = @machine.provider is 'managed'
+
 
     @showBusy()
     @show()
@@ -185,6 +187,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     computeController.on "resize-#{@machineId}", (event) =>
       @updateStatus event, 'resize'
+
+    if @isManaged
+      computeController.on "public-#{@machineId}", @bound 'updateStatus'
 
     computeController.eventListener.followUpcomingEvents @machine
 
@@ -427,7 +432,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   getStateLabel:->
 
     stateTexts       =
-      Stopped        : 'is turned off.'
+      Stopped        : if @isManaged then 'is not reachable.' else 'is turned off.'
       Starting       : 'is starting now.'
       Stopping       : 'is stopping now.'
       Pending        : 'is resizing now.'
@@ -460,10 +465,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   createStateButton: ->
 
     @button      = new KDButtonView
-      title      : 'Turn it on'
+      title      : if @isManaged then 'Search for Nodes' else 'Turn it on'
       cssClass   : 'turn-on state-button solid green medium'
-      icon       : yes
-      callback   : @bound 'turnOnMachine'
+      icon       : !@isManaged
+      callback   : @bound if @isManaged then 'findNodes' else 'turnOnMachine'
 
     @container.addSubView @button
 
@@ -572,6 +577,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @buildViews()
     @createFooter()
     return @show()
+
+
+  findNodes: ->
+    new kd.NotificationView title: 'COMING SOON.'
 
 
   turnOnMachine: ->
