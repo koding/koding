@@ -121,13 +121,10 @@ module.exports = class ActivityAppView extends KDView
       socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
-          { typeConstant } = data
-          index = if typeConstant is 'topic' then 2 else 0 # 2 because we put topics after #koding #changelog
-          return  if isChannelCollaborative data
-          # we don't put posts in the sidebar anymore - sy
-          @sidebar.addItem data, index  if typeConstant isnt 'post'
-          kallback data
-
+          # put after #koding #changelog
+          unless isChannelCollaborative data
+            @sidebar.addItem data, 2
+            kallback data
     else
       kallback item.getData()
 
