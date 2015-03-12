@@ -77,6 +77,8 @@ module.exports = class ActivityPane extends MessagePane
 
     options = @getActiveContentOptions()
 
+    return  unless options
+
     @refreshContentPane options
 
 
