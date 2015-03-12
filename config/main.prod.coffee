@@ -480,7 +480,7 @@ Configuration = (options={}) ->
     collaboration :
       group             : "socialapi"
       supervisord       :
-        command         : "#{GOBIN}/collaboration -c #{socialapi.configFilePath}"
+        command         : "#{GOBIN}/collaboration -kite-init -c #{socialapi.configFilePath}"
 
     gatekeeper          :
       group             : "socialapi"
