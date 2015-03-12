@@ -64,6 +64,7 @@ class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
+  getShortcuts: -> shortcuts
 
   isAppInternal: (name = '') -> globals.config.apps[name]?
 
