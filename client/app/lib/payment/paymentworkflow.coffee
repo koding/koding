@@ -196,6 +196,31 @@ module.exports = class PaymentWorkflow extends KDController
           @state.failedAttemptCount++
         else
           @modal.emit 'PaymentSucceeded'
+          @trackPaymentSucceeded()
+
+  trackPaymentSucceeded: ->
+
+    if @startingPlan is PaymentConstants.planTitle.FREE
+      trackEvent 'Account upgrade plan, success',
+        category : 'userInteraction'
+        action   : 'microConversions'
+        label    : 'upgradeFreeAccount'
+
+    me = whoami().getId()
+    {planTitle, provider, planInterval} = @state
+
+    planId  = "#{planTitle}-#{planInterval}"
+    orderId = "#{me}-#{planId}"
+
+    trackEvent 'Completed Order',
+      orderId  : orderId
+      products : [{
+        id       : planId
+        title    : planTitle
+        interval : planInterval
+        category : provider
+        quantity : 1
+    }]
 
 
   failedAttemptLimitReached: (blockUser = yes)->
@@ -221,19 +246,6 @@ module.exports = class PaymentWorkflow extends KDController
     @emit 'PaymentWorkflowFinishedSuccessfully', state
 
     @modal.destroy()
-
-    if @startingPlan is PaymentConstants.planTitle.FREE
-      trackEvent 'Account upgrade plan, success',
-        category : 'userInteraction'
-        action   : 'microConversions'
-        label    : 'upgradeFreeAccount'
-
-    trackEvent 'Completed Order', products: [{
-      name     : @state.planTitle
-      category : @state.provider
-      interval : @state.planInterval
-      quantity : 1
-    }]
 
 
   finishWithError: (state) ->

@@ -14,8 +14,11 @@ import (
 	"github.com/koding/bongo"
 )
 
-func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
-	channelId, err := request.GetURIInt64(u, "id")
+var publicChannel *models.Channel
+
+func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
+
+	channelId, err := fetchInitialChannelId(u, c)
 	if err != nil {
 		return response.NewBadRequest(err)
 	}
@@ -25,7 +28,6 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// should be marked as POST
 	req.TypeConstant = models.ChannelMessage_TYPE_POST
 
-	// set initial channel id
 	req.InitialChannelId = channelId
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
@@ -54,6 +56,45 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 	// client uses it for latency compansation
 	cmc.Message.ClientRequestId = req.ClientRequestId
 	return response.HandleResultAndError(cmc, err)
+}
+
+func fetchInitialChannelId(u *url.URL, context *models.Context) (int64, error) {
+	channelId, err := request.GetURIInt64(u, "id")
+	if err != nil {
+		return 0, err
+	}
+
+	c, err := models.ChannelById(channelId)
+	if err != nil {
+		return 0, err
+	}
+
+	// when somebody posts on a topic channel, for creating it both in public and topic channels
+	// initialChannelId must be set as current group's public channel id
+	if c.TypeConstant != models.Channel_TYPE_TOPIC {
+		return channelId, nil
+	}
+
+	return fetchPublicChannelId(context.GroupName)
+}
+
+// TODO when we implement Team product, we will need a better caching mechanism
+func fetchPublicChannelId(groupName string) (int64, error) {
+
+	if groupName == "koding" && publicChannel != nil {
+		return publicChannel.Id, nil
+	}
+
+	channel := models.NewChannel()
+	if groupName == "koding" {
+		publicChannel = channel
+	}
+
+	if err := channel.FetchPublicChannel(groupName); err != nil {
+		return 0, err
+	}
+
+	return channel.Id, nil
 }
 
 func checkThrottle(channelId, requesterId int64) error {

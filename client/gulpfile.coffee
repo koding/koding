@@ -11,6 +11,7 @@ pistachioify   = require 'pistachioify'
 browserify     = require 'browserify'
 watchify       = require 'watchify'
 uglifyify      = require 'uglifyify'
+exorcist       = require 'exorcist'
 
 glob           = require 'glob'
 xtend          = require 'xtend'
@@ -30,6 +31,8 @@ watch          = require 'gulp-watch'
 styleHelper    = require './gulptasks/style'
 concat         = require 'gulp-concat'
 
+Readable       = require('stream').Readable
+
 devMode        = argv.devMode?
 watchMode      = argv.watchMode?
 version        = argv.ver? or 1
@@ -46,7 +49,6 @@ opts =
   rev: null
   browserify:
     extensions: ['.coffee', '.js', '.json']
-    # debug: true
   globals:
     config: {}
     appClasses: {}
@@ -167,6 +169,8 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
   mapping = {}
   modules.forEach (name) -> mapping[name] = "../#{name}/lib"
 
+  if devMode then opts.browserify.debug = true
+
   if watchMode
     b = watchify(browserify(xtend(opts.browserify, watchify.args)))
   else
@@ -186,13 +190,21 @@ gulp.task 'scripts', ['set-remote-api', 'set-config-apps', 'copy-thirdparty', 'c
       mangle      : yes
       'screw-ie8' : yes
 
+  asReadable = (src) ->
+    rs = new Readable
+    rs._read = ->
+      rs.push src
+      rs.push null
+    return rs
 
   bant = build b, globals: opts.globals
     .on 'bundle', (bundle) ->
-      outfile = path.join opts.outdir, "#{bundle.name}.js"
-      fs.writeFile outfile, bundle.source, (err, res) ->
-        debug "could not write #{outfile}"  if err
-        debug "#{pretty bundle.source.length} written to #{path.basename outfile}"
+      basename = "#{bundle.name}.js"
+      outfile = path.join opts.outdir, basename
+      s = fs.createWriteStream outfile
+      asReadable(bundle.source).pipe(exorcist("#{outfile}.map")).pipe(s)
+      s.once 'finish', ->
+        debug "#{pretty bundle.source.length} written to #{basename}"
 
   b.require(require.resolve('kd.js'), { expose: 'kd' })  unless watchMode
 
@@ -224,30 +236,27 @@ unf = "AN-UNFORTUNATE-5-SECS-FOR-SPRITE-FILES-TO-BE-WRITTEN"
 
 gulp.task 'styles', ['clean', 'styles-kd', 'sprites', unf], ->
 
+  compile = (folder, src, includes ) ->
+    stream = styleHelper {
+      fileName : "#{folder}.css"
+      includes
+      folder
+      src
+    }
+
+    stream.pipe gulp.dest "#{BUILD_PATH}"
+
+    return stream
+
   return merge folders.map (folder) ->
 
-    appfnPath = "#{__dirname}/app/lib/styl/appfn.styl"
+    commons   = "#{__dirname}/app/lib/styl/commons/*.styl"
+    src       = [ "./#{folder}/lib/**/*.styl", "!#{commons}" ]
+    includes  = [ commons, "#{__dirname}/.sprites/*/sprite@*x.styl" ]
 
-    compile = ->
-      src = [ "./#{folder}/lib/**/*.styl", "!#{appfnPath}" ]
-      includes = [ appfnPath, "#{__dirname}/.sprites/*/sprite@*x.styl" ]
+    watch src, read : no, compile.bind(null, folder, src, includes)  if devMode
 
-      stream = styleHelper {
-        fileName : "#{folder}.css"
-        includes
-        folder
-        src
-      }
-
-      stream.pipe gulp.dest "#{BUILD_PATH}"
-      return stream
-
-    if devMode
-      watch [ "#{__dirname}/#{folder}/**/*.styl", "!#{appfnPath}" ]
-      , read : no
-      , compile
-
-    return compile()
+    return compile folder, src, includes
 
 
 gulp.task unf, ['sprites'], (cb) -> setTimeout cb, 5000

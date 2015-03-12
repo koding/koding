@@ -15,6 +15,10 @@ Postgres and mongodb url is same is in the koding dev config. below is an exampl
 	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
 	KONTROL_POSTGRES_HOST=192.168.59.103 go test -v -timeout 20m
 
+To execute the tests in Parallel append the flag (where the number is the number of CPU Cores):
+
+	-parallel 8
+
 To get profile files first compile a binary and call that particular binary with additional flags:
 
 	go test -c
@@ -25,6 +29,7 @@ To get profile files first compile a binary and call that particular binary with
 	KONTROL_POSTGRES_USERNAME=kontrolapplication KONTROL_POSTGRES_DBNAME=social
 	KONTROL_POSTGRES_HOST=192.168.59.103 ./kloud.test -test.v -test.timeout 20m
 	-test.cpuprofile=kloud_cpu.prof -test.memprofile=kloud_mem.prof
+
 
 Create a nice graph from the cpu profile
 	go tool pprof --pdf kloud.test  kloud_cpu.prof > kloud_cpu.pdf
@@ -53,6 +58,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -78,6 +84,13 @@ var (
 type args struct {
 	MachineId  string
 	SnapshotId string
+}
+
+type singleUser struct {
+	MachineId  string
+	PrivateKey string
+	PublicKey  string
+	AccountId  bson.ObjectId
 }
 
 func init() {
@@ -149,37 +162,14 @@ func init() {
 	}
 }
 
-func TestPing(t *testing.T) {
-	_, err := remote.Tell("kite.ping")
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestCreateUsers(t *testing.T) {
-	t.Skip("Enable manually")
-	machineCount := 20
-
-	for i := 0; i < machineCount; i++ {
-		userData, err := createUser("testuser" + strconv.Itoa(i))
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		fmt.Printf("%+v\n", userData.MachineId)
-	}
-}
-
-// TestSingleMachine creates a test user document and a single machine document
-// that is bound to thar particular test user. It builds, stops, starts,
-// resize, reinit and destroys the machine in order.
-func TestSingleMachine(t *testing.T) {
-	userData, err := createUser("testuser")
+func TestBuild(t *testing.T) {
+	t.Parallel()
+	username := "testuser1"
+	userData, err := createUser(username)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// build
 	if err := build(userData.MachineId); err != nil {
 		t.Fatal(err)
 	}
@@ -195,7 +185,85 @@ func TestSingleMachine(t *testing.T) {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
 
-	// snapshot
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestStop(t *testing.T) {
+	t.Parallel()
+	username := "testuser2"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	// the following calls should give an error, if not there is a problem
+	if err := build(userData.MachineId); err == nil {
+		t.Error("`build` method can not be called on `stopped` machines.")
+	}
+
+	if err := stop(userData.MachineId); err == nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestStart(t *testing.T) {
+	t.Parallel()
+	username := "testuser3"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine to start machine again")
+	if err := stop(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Starting machine")
+	if err := start(userData.MachineId); err != nil {
+		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
+	}
+
+	if err := start(userData.MachineId); err == nil {
+		t.Error("`start` method can not be called on `started` machines.")
+	}
+
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestSnapshot(t *testing.T) {
+	t.Parallel()
+	username := "testuser4"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
+	}
+
 	log.Println("Creating snapshot")
 	if err := createSnapshot(userData.MachineId); err != nil {
 		t.Error(err)
@@ -225,102 +293,64 @@ func TestSingleMachine(t *testing.T) {
 		t.Error(err)
 	}
 
-	// stop
-	log.Println("Stopping machine")
-	if err := stop(userData.MachineId); err != nil {
+	if err := destroy(userData.MachineId); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestResize(t *testing.T) {
+	t.Parallel()
+	username := "testuser"
+	userData, err := createUser(username)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId); err == nil {
-		t.Error("`build` method can not be called on `stopped` machines.")
+	if err := build(userData.MachineId); err != nil {
+		t.Fatal(err)
 	}
 
-	if err := stop(userData.MachineId); err == nil {
-		t.Error("`stop` method can not be called on `stopped` machines.")
-	}
-
-	// start
-	log.Println("Starting machine")
-	if err := start(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	// resize
-	log.Println("Resizing machine")
-	storageWant := 5
-	err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-		return c.UpdateId(
-			bson.ObjectIdHex(userData.MachineId),
-			bson.M{
-				"$set": bson.M{
-					"meta.storage_size": storageWant,
+	resize := func(storageWant int) {
+		log.Printf("Resizing machine to %dGB\n", storageWant)
+		err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(userData.MachineId),
+				bson.M{
+					"$set": bson.M{
+						"meta.storage_size": storageWant,
+					},
 				},
-			},
-		)
-	})
-	if err != nil {
-		t.Error(err)
+			)
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := resize(userData.MachineId); err != nil {
+			t.Error(err)
+		}
+
+		storageGot, err := getAmazonStorageSize(userData.MachineId)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if storageGot != storageWant {
+			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+				storageWant,
+				storageGot,
+			)
+		}
 	}
 
-	if err := resize(userData.MachineId); err != nil {
-		t.Error(err)
-	}
+	resize(5) // first increase
+	resize(7) // second increase
+	resize(9) // third increase
 
-	storageGot, err := getAmazonStorageSize(userData.MachineId)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if storageGot != storageWant {
-		t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-			storageWant,
-			storageGot,
-		)
-	}
-
-	// reinit
-	log.Println("Reinitializing machine")
-	if err := reinit(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	log.Println("Restarting machine")
-	if err := restart(userData.MachineId); err != nil {
-		t.Error(err)
-	}
-
-	// destroy
 	log.Println("Destroying machine")
 	if err := destroy(userData.MachineId); err != nil {
 		t.Error(err)
 	}
-
-	if err := stop(userData.MachineId); err == nil {
-		t.Error("`stop` method can not be called on `terminated` machines.")
-	}
-
-	if err := start(userData.MachineId); err == nil {
-		t.Error("`start` method can not be called on `terminated` machines.")
-	}
-
-	if err := destroy(userData.MachineId); err == nil {
-		t.Error("`destroy` method can not be called on `terminated` machines.")
-	}
-
-	if err := resize(userData.MachineId); err == nil {
-		t.Error("`resize` method can not be called on `terminated` machines.")
-	}
-
-	if err := reinit(userData.MachineId); err == nil {
-		t.Error("`reinit` method can not be called on `terminated` machines.")
-	}
-}
-
-type singleUser struct {
-	MachineId  string
-	PrivateKey string
-	PublicKey  string
-	AccountId  bson.ObjectId
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
@@ -356,7 +386,7 @@ func createUser(username string) (*singleUser, error) {
 	userId := bson.NewObjectId()
 	user := &models.User{
 		ObjectId:      userId,
-		Email:         username + "@testuser.com",
+		Email:         username + "@" + username + ".com",
 		LastLoginDate: time.Now().UTC(),
 		RegisteredAt:  time.Now().UTC(),
 		Name:          username, // bson equivelant is username
@@ -745,13 +775,13 @@ func newKodingProvider() *koding.Provider {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:           koding.NewDNSClient("dev.koding.io", auth),
+		DNS:           dnsclient.New("dev.koding.io", auth),
 		DomainStorage: domainStorage,
 		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
 		KeyName:       keys.DeployKeyName,
 		PublicKey:     keys.DeployPublicKey,
 		PrivateKey:    keys.DeployPrivateKey,
-		Fetcher:       NewTestFetcher(koding.Hobbyist), // test with hobbyist, so we can test resize and co
+		Fetcher:       NewTestFetcher(koding.Koding),
 	}
 }
 

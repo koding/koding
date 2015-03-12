@@ -9,7 +9,7 @@ type Ping struct {
 	FileId string `json:"fileId"`
 
 	// ChannelId holds channel id that is used in the collaboration
-	ChannelId string `json:"channelId"`
+	ChannelId int64 `json:"channelId,string"`
 
 	// AccountId holds the host's id the only one that can send this request
 	AccountId int64 `json:"accountId,string"`

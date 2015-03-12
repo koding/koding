@@ -20,12 +20,12 @@ var LoggedInHome = `
     <script>
       require('app')({
         config: {{.Runtime}},
-        userAccount: {{.User.GetWithDefault "Account" "null" }},
-        userMachines: {{.User.GetWithDefault "Machines" "null"}},
-        userWorkspaces: {{.User.GetWithDefault "Workspaces" "null"}},
-        currentGroup: {{.User.GetWithDefault "Group" "null"}},
         isLoggedInOnLoad: true,
-        socialApiData: {{.User.GetWithDefault "SocialApiData" "null"}}
+        userId: {{.User.GetWithDefaultStr "UserId" }},
+        userAccount: {{.User.GetWithDefaultHash "Account"  }},
+        currentGroup: {{.User.GetWithDefaultHash "Group" }},
+        userEnvironmentData: {{.User.GetWithDefaultHash "EnvData" }},
+        socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }}
       });
     </script>
 
@@ -44,7 +44,7 @@ var LoggedInHome = `
     {{if not .Impersonating }}
       <script type="text/javascript">
         (function () {
-        var _user_id = '{{.User.GetWithDefault "Username" ""}}'; var _session_id = '{{.User.GetWithDefault "SessionId" ""}}'; var _sift = _sift || []; _sift.push(['_setAccount', 'f270274999']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();
+        var _user_id = '{{.User.GetWithDefaultStr "Username" }}'; var _session_id = '{{.User.GetWithDefaultStr "SessionId" }}'; var _sift = _sift || []; _sift.push(['_setAccount', 'f270274999']); _sift.push(['_setUserId', _user_id]); _sift.push(['_setSessionId', _session_id]); _sift.push(['_trackPageview']); (function() { function ls() { var e = document.createElement('script'); e.type = 'text/javascript'; e.async = true; e.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'cdn.siftscience.com/s.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(e, s); } if (window.attachEvent) { window.attachEvent('onload', ls); } else { window.addEventListener('load', ls, false); } })();
         })();
       </script>
     {{end}}

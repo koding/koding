@@ -169,7 +169,11 @@ module.exports = class Koding extends ProviderInterface
     { machine } = options
 
     JDomainAlias = require '../domainalias'
-    JDomainAlias.ensureTopDomainExistence account, machine._id, callback
+    JDomainAlias.ensureTopDomainExistence account, machine._id, (err) ->
+      return callback err  if err
+
+      JWorkspace = require '../workspace'
+      JWorkspace.createDefault client, machine, callback
 
 
   @update = (client, options, callback)->
@@ -236,7 +240,7 @@ module.exports = class Koding extends ProviderInterface
             else if resize == machine.getAt 'meta.storage_size'
               return callback new KodingError \
               """Requested new size is same with current
-                 storage size (#{resize}GB).""", "WrongParameter"
+                 storage size (#{resize}GB).""", "SameValueForResize"
 
             fieldsToUpdate['meta.storage_size'] = resize
 

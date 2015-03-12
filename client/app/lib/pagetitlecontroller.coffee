@@ -24,8 +24,10 @@ module.exports = class PageTitleController extends KDObject
 
     return  if @focused
 
-    { socialapi } = kd.singletons
-    { id }        = notification.channelMessage
+    { socialapi }        = kd.singletons
+    { id, typeConstant } = notification.channelMessage
+
+    return  if typeConstant isnt 'privatemessage'
 
     socialapi.message.byId {id}, (err, message) =>
       id              = message.account._id

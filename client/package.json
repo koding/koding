@@ -21,15 +21,17 @@
     "kd-shim-jspath": "^0.1.4",
     "kd-shim-sockjs-client": "^0.3.4",
     "kd-shim-jquery-sketchpad": "^0.1.1",
-    "kd.js": "^1.0.7",
+    "kd.js": "^1.0.11",
     "kite.js": "git://github.com/tetsuo/kite.js#0.4.0",
     "kookies": "^0.1.1",
     "lodash": "^2.4.1",
+    "machina": "1.0.0-1",
     "marked": "^0.3.2",
     "ndpane": "^0.1.2",
     "node-uuid": "^1.4.2",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow",
-    "timeago": "^0.2.0"
+    "timeago": "^0.2.0",
+    "validator": "^3.33.0"
   },
   "browser": {
     "kd": "kd.js",
@@ -45,6 +47,7 @@
     "coffeeify": "^1.0.0",
     "debug": "^2.1.1",
     "del": "^1.1.1",
+    "exorcist": "^0.1.6",
     "git-rev": "^0.2.1",
     "glob": "^4.3.5",
     "gulp": "^3.8.11",

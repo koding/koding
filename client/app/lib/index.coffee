@@ -32,7 +32,7 @@ bootup = ->
   remote = require('./remote').getInstance()
   # it is very important that you invoke this method before anything else does, so f important.
 
-  if globals.config.environment is 'dev'
+  if globals.config.environment in ['dev', 'sandbox']
     global._kd      = kd
     global._remote  = remote
     global._globals = globals
@@ -40,6 +40,8 @@ bootup = ->
   remote.once 'ready', ->
     globals.currentGroup = remote.revive globals.currentGroup
     globals.userAccount  = remote.revive globals.userAccount
+
+    setupAnalytics()
 
   MainController = require './maincontroller'
   Status = require './status'
@@ -153,8 +155,6 @@ bootup = ->
 
       item.ping -> destroyCurrentNotif()  if currentNotif
 
-  setupAnalytics()
-
   return true
 
 initialize = (defaults, next) ->
@@ -187,4 +187,3 @@ initialize = (defaults, next) ->
         #throw err  if err
         #resolve()
   #.then next
-

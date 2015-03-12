@@ -16,8 +16,9 @@ fetchProfileContent = (models, options, callback) ->
   {client, name} = options
   {JAccount, SocialChannel} = models
   JAccount.one "profile.nickname": name, (err, account) ->
-    return callback err  if err or not account
+    return callback err  if err
 
+    return callback {message: "account not found"}  if not account
     feed.createProfileFeed models, account, options, (err, content) ->
       return callback err  if err
 
@@ -33,7 +34,9 @@ fetchPostContent = (models, options, callback) ->
     return callback err  if err or not activity
 
     createActivityContent models, activity, (err, content, activityContent)->
-      return callback err  if err or not content
+      return callback err  if err
+
+      return callback {message: "content not found"}  if not content
 
       summary = activityContent.body.slice(0, 80)
       graphMeta =
@@ -127,6 +130,10 @@ module.exports =
 
     [name, section, entrySlug] = slug.split("/")
 
+    # if the section is not redirect them to public feed
+    if name is "Activity" and not section
+      return res.redirect 301, "/#{name}/Public"
+
     handleError = (err, content) ->
       if err
         console.error err
@@ -145,5 +152,5 @@ module.exports =
       page = getPage query
       options = {section, entrySlug, client, page, isProfile, name}
       fetchContent models, options, (err, content) ->
-        return handleError err  if err or not content
+        return handleError err, content  if err or not content
         return res.status(200).send content

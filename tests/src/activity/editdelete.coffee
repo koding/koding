@@ -1,6 +1,4 @@
-utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
-faker   = require 'faker'
 assert  = require 'assert'
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
@@ -84,6 +82,22 @@ module.exports =
 
 
   cancelCommentDeletion: (browser) ->
+
+    comment         = helpers.postComment(browser)
+    commentSelector = activitySelector + ' .comment-container button.comment-menu'
+
+    browser
+      .waitForElementPresent    commentSelector, 25000
+      .click                    commentSelector
+      .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
+      .click                    '.kdcontextmenu .delete-comment'
+      .click                    '.kdmodal-inner .solid.light-gray.medium'
+      .waitForElementNotPresent '.kdoverlay', 25000
+      .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
+      .end()
+
+
+  cancelEditDeletion: (browser) ->
 
     comment         = helpers.postComment(browser)
     commentSelector = activitySelector + ' .comment-container button.comment-menu'

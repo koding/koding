@@ -141,7 +141,7 @@ module.exports = class RealtimeController extends KDController
   subscribeChannel: (subscriptionData, callback) ->
 
     # validate first
-    { channelName, channelType: typeConstant, group, token } = subscriptionData
+    { channelName, channelType: typeConstant, group, token, channelId } = subscriptionData
 
     return callback { message: 'channel name is not defined' }  unless channelName
 
@@ -149,10 +149,10 @@ module.exports = class RealtimeController extends KDController
 
     pubnubChannelName = "channel-#{token}"
 
-    options = { channelName: pubnubChannelName }
+    options = { channelName: pubnubChannelName, channelId }
 
-    # authentication needed for private message channels (pinnedactivity is for future use )
-    if typeConstant in ['privatemessage', 'pinnedactivity']
+    # authentication needed for private message channels
+    if typeConstant is 'privatemessage'
       options.authenticate =
         endPoint : "/api/gatekeeper/subscribe/channel"
         data     : { name: channelName, typeConstant, groupName: group }
@@ -243,7 +243,7 @@ module.exports = class RealtimeController extends KDController
 
 
   subscribeHelper: (options = {}, callback) ->
-    pubnubChannelName = options.channelName
+    {channelName: pubnubChannelName, channelId} = options
 
     # return channel if it already exists
     return callback null, @channels[pubnubChannelName]  if @channels[pubnubChannelName]
@@ -252,7 +252,7 @@ module.exports = class RealtimeController extends KDController
 
       return callback err  if err
 
-      channelInstance = new PubnubChannel name: pubnubChannelName
+      channelInstance = new PubnubChannel name: pubnubChannelName, channelId: channelId
 
       callbackCalled = no
 
@@ -373,7 +373,9 @@ module.exports = class RealtimeController extends KDController
     # instance events are received via public channel. For this reason
     # if an event name includes "instance-", update the related message channel
     # An instance event format is like "instance-5dc4ce55-b159-11e4-8329-c485b673ee34.ReplyAdded" - ctf
+
     if eventName.indexOf("instance-") < 0
+      body.channelId = @channels[channel].channelId
       return @channels[channel].emit eventName, body
 
     events = eventName.split "."

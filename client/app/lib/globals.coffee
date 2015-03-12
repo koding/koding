@@ -15,6 +15,8 @@ defaults =
   userMachines: null
   socialApiData: null
   isTesting: false
+  userId: null
+  userEnvironmentData: {}
   REMOTE_API: {}
   COMPUTECONTROLLER_TIMEOUT: 30000
   WORKSPACE_WELCOME_TXT: """

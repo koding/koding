@@ -103,10 +103,12 @@ module.exports = class Ace extends KDView
 
   prepareEditor:->
 
-    @setTheme()
+    @setTheme null, no
     @setSyntax()
     @setEditorListeners()
+
     @appStorage.fetchStorage (storage)=>
+      @setTheme()
       @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
       @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
       @setUseWordWrap         @appStorage.getValue('useWordWrap')         ? no     ,no
@@ -443,6 +445,13 @@ module.exports = class Ace extends KDView
 
   removeModifiedFromTab: ->
     aceView      = @parent
+
+    unless aceView
+      # happens when collab is active and when you have tabs open
+      # and when you reload the page - SY
+      kd.warn 'possible race condition, shadowing the error! @acet'
+      return
+
     {name}       = aceView.ace.data
     {handles}    = aceView.delegate.tabView
     targetHandle = null

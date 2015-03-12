@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"koding/db/mongodb/modelhelper"
 	"log"
 	"socialapi/workers/collaboration"
 	"socialapi/workers/collaboration/models"
@@ -29,6 +30,10 @@ func main() {
 
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
+
+	// init mongo connection
+	modelhelper.Initialize(r.Conf.Mongo)
+	defer modelhelper.Close()
 
 	handler := collaboration.New(r.Log, redisConn, r.Conf, r.Kite)
 	r.SetContext(handler)

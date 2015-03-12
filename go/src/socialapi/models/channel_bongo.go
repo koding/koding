@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"socialapi/request"
 	"time"
 
 	"github.com/koding/bongo"
@@ -69,6 +70,22 @@ func (c *Channel) Delete() error {
 	// and delete messages
 	if err := c.deleteChannelMessages(messageMap); err != nil {
 		return err
+	}
+
+	participants, err := c.FetchParticipantIds(&request.Query{})
+	if err != nil {
+		return err
+	}
+
+	var errRemove error
+	for _, participantId := range participants {
+		if err := c.RemoveParticipant(participantId); err != nil {
+			errRemove = err
+		}
+	}
+
+	if errRemove != nil {
+		return errRemove
 	}
 
 	return bongo.B.Delete(c)

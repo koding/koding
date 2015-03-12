@@ -41,9 +41,12 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
     super options, data
 
+    {planTitle, planInterval} = @state
+
     trackEvent 'Viewed Product',
-      interval : @state.planInterval
-      name     : @state.planTitle
+      id       : "#{planTitle}-#{planInterval}"
+      title    : planTitle
+      interval : planInterval
 
 
   initViews: ->
@@ -141,5 +144,3 @@ module.exports = class PaymentModal extends PaymentBaseModal
 
     @form.showSuccess operation
 
-    @once 'KDModalViewDestroyed', =>
-      @emit 'PaymentWorkflowFinished', @state

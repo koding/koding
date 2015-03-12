@@ -5,7 +5,6 @@ KDTabPaneView          = kd.TabPaneView
 KDView                 = kd.View
 ActivityPane           = require './views/activitypane'
 AnnouncementPane       = require './views/announcementpane'
-ConversationsModal     = require './sidebar/conversationsmodal'
 MoreChannelsModal      = require './sidebar/morechannelsmodal'
 PrivateMessagePane     = require './views/privatemessage/privatemessagepane'
 PrivateMessageForm     = require './views/privatemessage/privatemessageform'
@@ -122,11 +121,13 @@ module.exports = class ActivityAppView extends KDView
       socialapi.cacheable type_, slug, (err, data) =>
         if err then router.handleNotFound router.getCurrentPath()
         else
-          # put after #koding #changelog
-          unless isChannelCollaborative data
-            @sidebar.whenMachinesRendered().then =>
-              @sidebar.addItem data, 2
-              kallback data
+          { typeConstant } = data
+          index = if typeConstant is 'topic' then 2 else 0 # 2 because we put topics after #koding #changelog
+          return  if isChannelCollaborative data
+          # we don't put posts in the sidebar anymore - sy
+          @sidebar.addItem data, index  if typeConstant isnt 'post'
+          kallback data
+
     else
       kallback item.getData()
 
@@ -206,13 +207,6 @@ module.exports = class ActivityAppView extends KDView
     {moreLink} = @sidebar.sections.channels
 
     kd.utils.defer @lazyBound 'showMoreModal', {modalClass, moreLink}
-
-
-  showAllConversationsModal: ->
-
-    @open 'topic', 'public'  unless @tabs.getActivePane()
-
-    return new ConversationsModal delegate : this
 
 
   showAllChatsModal: ->

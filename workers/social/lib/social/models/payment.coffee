@@ -123,9 +123,6 @@ module.exports = class Payment extends Base
   @canUserPurchase = secure (client, callback)->
     {connection : {delegate}} = client
 
-    if delegate.profile.nickname is "guestuser"
-      return callback {message:"guests are not allowed"}
-
     if delegate.type isnt "registered"
       return callback {message:"guests are not allowed"}
 
@@ -195,9 +192,10 @@ module.exports = class Payment extends Base
         return callback err  if err
 
         plan.storage += space
-
         callback null, plan
 
   fetchReferrerSpace = (client, callback)->
-    JReferral = require "./referral/index"
-    JReferral.fetchEarnedSpace client, callback
+    originId = client.connection.delegate.getId()
+
+    JReward = require './rewards'
+    JReward.fetchEarnedAmount {originId}, callback

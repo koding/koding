@@ -4,6 +4,7 @@ KDObject = kd.Object
 doesQueryStringValid = require '../util/doesQueryStringValid'
 nick = require '../util/nick'
 #FSItem = require '../util/fs/fsitem'
+globals = require 'globals'
 
 
 module.exports = class Machine extends KDObject
@@ -119,7 +120,17 @@ module.exports = class Machine extends KDObject
         return @data.credential
 
 
-  isMine: ->
+  _ruleChecker: (rules) ->
 
-    @getOwner() is nick()
+    for user in @jMachine.users
+      if user.id is globals.userId
+        for rule in rules
+          return no  unless user[rule]
+        return yes
 
+    return no
+
+
+  isMine      : -> @_ruleChecker ['owner', 'sudo']
+  isApproved  : -> @isMine() or @_ruleChecker ['approved']
+  isPermanent : -> @_ruleChecker ['permanent']

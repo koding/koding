@@ -14,7 +14,6 @@
     "/:name?/Activity/Message/New" : 100,
     "/:name?/Activity/Topic/All" : 110,
     "/:name?/Activity/Topic/Following" : 120,
-    "/:name?/Activity/Post/All" : 130,
     "/:name?/Activity/Chat/All" : 140,
     "/:name?/Activity" : 150
   }
