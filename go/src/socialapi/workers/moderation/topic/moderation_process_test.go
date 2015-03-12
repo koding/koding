@@ -4,8 +4,8 @@ import (
 	"fmt"
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
-
 	"math"
+
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -15,7 +15,6 @@ import (
 	"labix.org/v2/mgo/bson"
 
 	"github.com/koding/bongo"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -217,13 +216,13 @@ func TestProcess(t *testing.T) {
 			cm2 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 			cm3 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
-			_, err = otherChannel.EnsureMessage(cm1.Id, true)
+			_, err = otherChannel.EnsureMessage(cm1, true)
 			So(err, ShouldBeNil)
 
-			_, err = otherChannel.EnsureMessage(cm2.Id, true)
+			_, err = otherChannel.EnsureMessage(cm2, true)
 			So(err, ShouldBeNil)
 
-			_, err = otherChannel.EnsureMessage(cm3.Id, true)
+			_, err = otherChannel.EnsureMessage(cm3, true)
 			So(err, ShouldBeNil)
 
 			// make sure we added messages to the otherChannel
@@ -275,13 +274,13 @@ func TestProcess(t *testing.T) {
 			cm2 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 			cm3 := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 
-			_, err = otherChannel.EnsureMessage(cm1.Id, true)
+			_, err = otherChannel.EnsureMessage(cm1, true)
 			So(err, ShouldBeNil)
 
-			_, err = otherChannel.EnsureMessage(cm2.Id, true)
+			_, err = otherChannel.EnsureMessage(cm2, true)
 			So(err, ShouldBeNil)
 
-			_, err = otherChannel.EnsureMessage(cm3.Id, true)
+			_, err = otherChannel.EnsureMessage(cm3, true)
 			So(err, ShouldBeNil)
 
 			// just to be sure that messages will not belong to leaf node anymore
@@ -315,13 +314,15 @@ func TestProcess(t *testing.T) {
 			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
 			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
 			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			leafChannel, err := models.ChannelById(cl.LeafId)
+			So(err, ShouldBeNil)
 
 			otherChannel := models.CreateChannelWithTest(acc1.Id)
 			// add participants with tests
 			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
 			// add same messages to the otherChannel
 
-			body := "hey yo!"
+			body := "hey yo! #" + leafChannel.Name
 			// add 3 message for each channel one by one
 			cm1Leaf := models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
 			cm1Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
