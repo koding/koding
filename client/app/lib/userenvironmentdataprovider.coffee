@@ -1,3 +1,4 @@
+kd = require 'kd'
 nick = require 'app/util/nick'
 globals = require 'globals'
 remote = require('app/remote').getInstance()
@@ -168,3 +169,16 @@ module.exports = UserEnvironmentDataProvider =
           break
 
     return workspace
+
+
+  getIDEFromUId: (uid) ->
+
+    { IDE } = kd.singletons.appManager.appControllers
+
+    return null  unless IDE
+
+    for i in IDE.instances when i.mountedMachineUId
+      instance = i
+      break
+
+    return instance
