@@ -79,13 +79,16 @@ module.exports = UserEnvironmentDataProvider =
 
   fetchMachine: (identifier, callback) ->
 
-    @fetchMachineByLabel identifier, (machine) =>
-      return  callback new Machine { machine }  if machine
+    @fetchMachineBySlug identifier, (machine) =>
+      return callback new Machine { machine }  if machine
 
-      @fetchMachineByUId identifier, (machine) =>
-        machine = if machine then new Machine { machine } else null
+      @fetchMachineByLabel identifier, (machine) =>
+        return  callback new Machine { machine }  if machine
 
-        callback machine
+        @fetchMachineByUId identifier, (machine) =>
+          machine = if machine then new Machine { machine } else null
+
+          callback machine
 
 
   fetchWorkspaceByMachineUId: (options, callback) ->
