@@ -2,23 +2,23 @@ package sender
 
 type Event struct {
 	Name       string
-	User       user
-	Body       body
+	User       *User
+	Body       *Body
 	Properties map[string]interface{}
 }
 
-type bodyType int
+type BodyType int
 
-type body struct {
-	Type    bodyType
+type Body struct {
+	Type    BodyType
 	Content string
 }
 
-type user struct {
+type User struct {
 	Email, Username string
 }
 
 const (
-	Html bodyType = iota
+	Html BodyType = iota
 	Text
 )
