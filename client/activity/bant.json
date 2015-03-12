@@ -23,5 +23,6 @@
   ],
   "styles": [
     "./lib/styl"
-  ]
+  ],
+  "shortcuts": [ "activity" ]
 }
