@@ -113,6 +113,8 @@ serveHome = (req, res, next) ->
         res.status(500).send error_500()
         return console.error err
 
+      client.connection.delegate = account
+
       {params}              = req
       {loggedIn, loggedOut} = JGroup.render
       fn                    = if state then loggedIn else loggedOut
