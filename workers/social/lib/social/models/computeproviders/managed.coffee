@@ -62,3 +62,13 @@ module.exports = class Managed extends ProviderInterface
 
       JWorkspace = require '../workspace'
       JWorkspace.createDefault client, {machine, rootPath}, callback
+
+
+  @remove = (client, options, callback)->
+
+    {machineId} = options
+    provider    = 'managed'
+
+    JMachine = require './machine'
+    JMachine.one {_id: machineId, provider}, (err, machine)->
+      machine.destroy client, callback
