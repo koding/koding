@@ -48,35 +48,6 @@ func TestTopicSaved(t *testing.T) {
 	})
 }
 
-// makeSureErr checks if the given id's get request returns the desired err, it
-// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
-// index the records right away, so try to go to a desired state
-func makeSureErr(handler *Controller, id int64, e error) error {
-	deadLine := time.After(time.Second * 15)
-	tick := time.Tick(time.Millisecond * 100)
-	for {
-		select {
-		case <-tick:
-			// make sure it is set
-			_, err := handler.get("topics", strconv.FormatInt(id, 10))
-
-			if e != nil && err != nil {
-				if err.Error() == e.Error() {
-					return nil
-				}
-			} else {
-				if err == e {
-					return nil
-				}
-			}
-		case <-deadLine:
-			return errDeadline
-		}
-	}
-}
-
-var errDeadline = errors.New("dead line")
-
 func TestTopicUpdated(t *testing.T) {
 	r := runner.New("AlogoliaConnector-Test")
 	err := r.Init()
@@ -99,7 +70,15 @@ func TestTopicUpdated(t *testing.T) {
 		Convey("it should save the document to algolia", func() {
 			err := handler.TopicSaved(mockTopic)
 			So(err, ShouldBeNil)
-			So(makeSureErr(handler, mockTopic.Id, nil), ShouldBeNil)
+			err = makeSureTopic(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
+				if err != nil {
+					return false
+				}
+
+				return true
+			})
+
+			So(err, ShouldBeNil)
 
 			Convey("given some existing topic channel", func() {
 				mockTopic.TypeConstant = models.Channel_TYPE_LINKED_TOPIC
@@ -107,7 +86,15 @@ func TestTopicUpdated(t *testing.T) {
 					err := handler.TopicUpdated(mockTopic)
 					So(err, ShouldBeNil)
 
-					So(makeSureErr(handler, mockTopic.Id, ErrAlgoliaObjectIdNotFound), ShouldBeNil)
+					err = makeSureTopic(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
+						if IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) {
+							return true
+						}
+
+						return false
+					})
+
+					So(err, ShouldBeNil)
 
 					Convey("removing a deleted channel should return success", func() {
 						err := handler.TopicUpdated(mockTopic)
@@ -203,7 +190,7 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 
 var errDeadline = errors.New("dead line")
 
-// makeSureErr checks if the given id's get request returns the desired err, it
+// makeSureMessage checks if the given id's get request returns the desired err, it
 // will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
 func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
@@ -221,6 +208,26 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 		}
 	}
 }
+
+// makeSureTopic checks if the given id's get request returns the desired err, it
+// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
+// index the records right away, so try to go to a desired state
+func makeSureTopic(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
+	deadLine := time.After(time.Second * 15)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			record, err := handler.get("topics", strconv.FormatInt(id, 10))
+			if f(record, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
+}
+
 func TestMessageListDeleted(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
