@@ -211,7 +211,7 @@ func newKite(conf *Config) *kite.Kite {
 	var _ kloudprotocol.Provider = kodingProvider
 
 	go kodingProvider.RunChecker(checkInterval)
-	go kodingProvider.RunCleaners(time.Minute * 2)
+	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	kld := kloud.New()
 	kld.Storage = kodingProvider
