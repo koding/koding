@@ -24,7 +24,7 @@ class AppController extends KDViewController
 
 
   getConfig: ->
-    return globals.modulesIndex[@getOption('name').toLowerCase()]
+    return globals.config.apps[@getOption('name')]
 
 
   handleQuery:(query)->

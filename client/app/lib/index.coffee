@@ -161,8 +161,8 @@ initialize = (defaults, next) ->
 
   kd.utils.extend globals, defaults
 
-  globals.config.apps = globals.modules.reduce (acc, x) ->
-    acc[x.name] = x
+  globals.config.apps = globals.modules.reduce (acc, app) ->
+    acc[app.name] = app
     return acc
   , {}
 
@@ -171,14 +171,6 @@ initialize = (defaults, next) ->
   unless globals.config.mainUri?
     globals.config.mainUri = global.location.origin
     globals.config.apiUri  = global.location.origin
-
-  # todo: we should not expose globals.modules indeed
-  # sanitize this into a beautiful config object and preferably
-  # merge with globals.config.apps -tetsuo
-  globals.modulesIndex = globals.modules.reduce (acc, x) -> 
-    acc[x.name] = x
-    return acc
-  , {}
 
   logsEnabled = (kookies.get 'enableLogs') or !globals.config?.suppressLogs
   enableLogs logsEnabled
