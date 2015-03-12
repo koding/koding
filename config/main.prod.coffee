@@ -477,6 +477,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
+    collaboration :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/collaboration -c #{socialapi.configFilePath}"
+
     gatekeeper          :
       group             : "socialapi"
       ports             :
