@@ -165,7 +165,8 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 			// if we get here it means the user is a member of the new root node
 			// if the user is already participant of root channel, delete the
 			// leaf node participation
-			if err := bongo.B.Unscoped().Delete(channelParticipant).Error; err != nil {
+
+			if err := bongo.B.Unscoped().Table(m.BongoName()).Delete(channelParticipant).Error; err != nil {
 				//
 				// TODO do we need to send an event here?
 				//
