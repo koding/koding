@@ -372,15 +372,29 @@ module.exports = class ComputeController extends KDController
 
   destroy: (machine, force)->
 
-    return if methodNotSupportedBy machine
-
     destroy = (machine)=>
+
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      if machine?.provider is 'managed'
+
+        options =
+          machineId : machine._id
+          provider  : machine.provider
+
+        @emit "MachineBeingDestroyed", machine
+
+        remote.api.ComputeProvider.remove options, (err)=>
+          return  if err
+          
+          @_clearTrialCounts machine
+          @reset yes
+
+        return
 
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
-
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
 
       call = @getKloud().destroy { machineId: machine._id }
 
