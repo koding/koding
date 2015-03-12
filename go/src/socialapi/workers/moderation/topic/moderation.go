@@ -113,10 +113,12 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 
 		var channelParticipants []models.ChannelParticipant
 
+		m := models.ChannelParticipant{}
 		// fetch all records, even deleted ones, because we are not gonna need
 		// them anymore
 		err := bongo.B.DB.
-			Model(models.ChannelParticipant{}).
+			Model(m).
+			Table(m.BongoName()).
 			Unscoped().
 			Limit(processCount).
 			Where("channel_id = ?", cl.LeafId).
