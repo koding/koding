@@ -611,8 +611,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
       m = machine for machine in machines when machine._id is @machine._id
 
-      # TODO: fix appManager.tell and pass the IDE instance here
-      kd.getSingleton('appManager').tell 'IDE', 'mountMachine', m
       @machine = m
       @setData m
 
