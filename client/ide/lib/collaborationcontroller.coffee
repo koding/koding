@@ -930,9 +930,10 @@ module.exports =
 
             .then =>
 
-              @broadcastMessages.push
-                type: "#{if share then 'Set' else 'Unset'}MachineUser"
-                participants: usernames
+              @whenRealtimeReady =>
+                @broadcastMessages.push
+                  type: "#{if share then 'Set' else 'Unset'}MachineUser"
+                  participants: usernames
 
               queue.fin()
 
@@ -1023,8 +1024,7 @@ module.exports =
       title   : 'Are you sure?'
       content : "If you leave this session you won't be able to return back."
 
-    @showModal options, => @whenRealtimeReady =>
-      @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
+    @showModal options, =>
       @stopChatSession()
       @modal.destroy()
 
@@ -1033,8 +1033,9 @@ module.exports =
         return showError err  if err
         @setMachineUser [nick()], no, =>
           # remove the leaving participant's info from the collaborative doc
-          @removeParticipant nick()
-          @quit()
+          @whenRealtimeReady =>
+            @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
+            @removeParticipant nick()
 
 
   throwError: throwError = (err, args...) ->
