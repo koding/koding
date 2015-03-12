@@ -43,15 +43,16 @@ module.exports = class IDEChatView extends KDTabView
   start: ->
 
     @visible = yes
-
     @show()
 
 
   end: ->
 
     @visible = no
-
     @hide()
+
+
+  focus: -> @chatPane.focus()
 
 
   show: ->
