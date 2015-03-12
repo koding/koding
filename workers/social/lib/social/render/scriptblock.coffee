@@ -122,11 +122,11 @@ module.exports = (options = {}, callback)->
       {nickname} = client.connection.delegate.profile
       bongoModels.JUser.one username: nickname, (err, user) ->
         if err
-          console.error message: "[scriptblock] user not found"
+          console.error '[scriptblock] user not found', err
           return queue.fin()
 
         if user then userId = user.getId()
-        else console.error message: "[scriptblock] user not found"
+        else console.error '[scriptblock] user not found', err
         queue.fin()
   ]
 
