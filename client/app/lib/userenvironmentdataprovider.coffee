@@ -77,12 +77,12 @@ module.exports = UserEnvironmentDataProvider =
     return own.concat shared.concat collaboration
 
 
-  fetchMachine: (labelOrUId, callback) ->
+  fetchMachine: (identifier, callback) ->
 
-    @fetchMachineByLabel labelOrUId, (machine) =>
+    @fetchMachineByLabel identifier, (machine) =>
       return  callback new Machine { machine }  if machine
 
-      @fetchMachineByUId labelOrUId, (machine) =>
+      @fetchMachineByUId identifier, (machine) =>
         machine = if machine then new Machine { machine } else null
 
         callback machine
