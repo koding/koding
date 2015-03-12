@@ -31,6 +31,18 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
+// CreateLink moves the participants and the messages of a leaf channel to the
+// root channel
+func (c *Controller) CreateLink(cl *models.ChannelLink) error {
+	return c.process(cl)
+}
+
+// Blacklist moves the participants and the messages of a leaf channel to the
+// root channel
+func (c *Controller) Blacklist(cl *models.ChannelLink) error {
+	return c.process(cl)
+}
+
 func (c *Controller) process(cl *models.ChannelLink) error {
 	if err := c.validateRequest(cl); err != nil {
 		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
@@ -53,18 +65,6 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 	}
 
 	return nil
-}
-
-// CreateLink moves the participants and the messages of a leaf channel to the
-// root channel
-func (c *Controller) CreateLink(cl *models.ChannelLink) error {
-	return c.process(cl)
-}
-
-// Blacklist moves the participants and the messages of a leaf channel to the
-// root channel
-func (c *Controller) Blacklist(cl *models.ChannelLink) error {
-	return c.process(cl)
 }
 
 // Unlink is not implemented yet
@@ -130,7 +130,7 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 		}
 
 		// we processed all channel participants, no need to continue anymore
-		if len(channelParticipants) <= 0 {
+		if len(channelParticipants) == 0 {
 			c.log.Info("doesnt have any participants to process")
 			break
 		}
@@ -227,7 +227,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		}
 
 		// we processed all channel messages. or no message exits
-		if len(messageLists) <= 0 {
+		if len(messageLists) == 0 {
 			break
 		}
 
@@ -341,7 +341,7 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 		}
 
 		// we processed all channel messages. or no message exits
-		if len(messages) <= 0 {
+		if len(messages) == 0 {
 			break
 		}
 
