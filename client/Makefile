@@ -27,6 +27,8 @@ BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 
 all: landing development
 
+dist: landing minify-with-external-sourcemaps
+
 vanilla:
 	@$(BUILDER) $(BUILDER_ARGS)
 

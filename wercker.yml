@@ -53,7 +53,7 @@ build:
         name: build client
         code: |
           cd client
-          make build
+          make dist
           ../scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
