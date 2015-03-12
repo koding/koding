@@ -30,5 +30,8 @@ func TestSend(t *testing.T) {
 	m.AddTo("Test! <test@email.com>")
 	m.SetSubject("Test")
 	m.SetText("Text")
-	client.Send(m)
+
+	if e := client.Send(m); e != nil {
+		t.Errorf("Send failed to send email. Returned error: %v", e)
+	}
 }
