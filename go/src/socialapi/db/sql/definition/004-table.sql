@@ -149,7 +149,7 @@ CREATE TABLE "api"."channel_participant" (
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."channel_participant" OWNER TO "social";
-GRANT SELECT, INSERT, UPDATE ON "api"."channel_participant" TO "social";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_participant" TO "social";
 
 -- ----------------------------
 --  Table structure for interaction

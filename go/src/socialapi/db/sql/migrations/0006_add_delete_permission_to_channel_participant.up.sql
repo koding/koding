@@ -3,4 +3,4 @@
 -- node
 --
 -- delete requires select
-GRANT SELECT, DELETE ON "api"."channel_participant" TO "social";
+GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_participant" TO "social";
