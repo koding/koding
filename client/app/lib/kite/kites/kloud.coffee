@@ -63,7 +63,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       @needsRequest[machineId] = no
 
       # This is for tests, it bypasses klient info state
-      if @_disableKlientInfo
+      if @_disableKlientInfo and not isManaged machineId
         @askInfoFromKloud machineId, currentState
       else
         @askInfoFromKlient machineId, (klientInfo)=>
@@ -94,6 +94,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     if not machine or not machineId
       return callback null
 
+    managed    = machine.provider is 'managed'
     klientKite = klient?[machine.uid]
 
     unless klientKite?
@@ -106,25 +107,29 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
           correlationName : machine.uid
 
       else
-        return callback null
+        return callback if managed
+        then State: Machine.State.Stopped, via: 'klient'
+        else null
 
     klientKite.ping()
 
       .then (res)->
 
         if res is 'pong'
-        then callback State: Machine.State.Running, via: 'klient'
+          callback State: Machine.State.Running, via: 'klient'
         else
           computeController.invalidateCache machineId
           callback null
 
       .timeout 5000
 
-      .catch ->
+      .catch (err)->
 
-        KiteLogger.failed 'klient', 'kite.ping'
-
-        callback null
+        if err?.name is 'TimeoutError' and managed
+          callback State: Machine.State.Stopped, via: 'klient'
+        else
+          KiteLogger.failed 'klient', 'kite.ping'
+          callback null
 
 
   askInfoFromKloud: (machineId, currentState) ->
