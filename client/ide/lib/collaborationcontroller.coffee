@@ -13,6 +13,8 @@ RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
+realtimeHelpers               = require './collaboration/helpers/realtime'
+socialHelpers                 = require './collaboration/helpers/social'
 
 {warn} = kd
 
@@ -32,7 +34,7 @@ module.exports =
 
     @socialChannel.on 'AddedToChannel', (originOrAccount) =>
 
-      kallback = (account) =>
+      kallback = (account) => @whenRealtimeReady =>
 
         return  unless account
 
@@ -132,23 +134,15 @@ module.exports =
 
   continuePrivateMessage: (callback) ->
 
-    @on 'RTMIsReady', =>
-      @chat.emit 'CollaborationStarted'
+    @chat.emit 'CollaborationStarted'
 
-      @listChatParticipants (accounts) =>
-        @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
+    @listChatParticipants (accounts) =>
+      @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
 
-      callback null
+    callback null
 
 
   startChatSession: (callback) ->
-
-    return if @workspaceData.isDummy
-      @createWorkspace()
-        .then (workspace) =>
-          @workspaceData = workspace
-          @initPrivateMessage callback
-        .error callback
 
     channelId = @channelId or @workspaceData.channelId
 
@@ -161,8 +155,8 @@ module.exports =
         @createChatPaneView channel
         @isRealtimeSessionActive channelId, (isActive, file) =>
           if isActive
-            @loadCollaborationFile file.result.items[0].id
-            return @continuePrivateMessage callback
+            @whenRealtimeReady => @continuePrivateMessage callback
+            return @loadCollaborationFile file.result.items[0].id
 
           @statusBar.share.show()
           @chat.emit 'CollaborationNotInitialized'
@@ -188,6 +182,13 @@ module.exports =
 
     @chat.emit 'CollaborationEnded'
     @chat = null
+
+
+  whenRealtimeReady: (callback) ->
+
+    if @rtm?.isReady
+    then callback()
+    else @once 'RTMIsReady', callback
 
 
   showChat: ->
@@ -265,7 +266,9 @@ module.exports =
 
   handleParticipantAction: (actionType, changeData) ->
 
-    kd.utils.wait 2000, =>
+    return  unless @rtm
+
+    kd.utils.wait 2000, => @whenRealtimeReady =>
       participants  = @participants.asArray()
       {sessionId}   = changeData.collaborator
       targetUser    = null
@@ -577,14 +580,16 @@ module.exports =
 
   pollRealtimeDocument: ->
 
-    @rtm.once 'FileQueryFinished', ({items}) =>
+    unless @rtm
+      kd.utils.killRepeat @pollInterval
+      return
 
-      return  if items.length
+    @isRealtimeSessionActive @channelId, (isActive) =>
+
+      return  if isActive
 
       kd.utils.killRepeat @pollInterval
       @showSessionEndedModal()
-
-    @rtm.fetchFileByTitle @getRealTimeFileName()
 
 
   handleBroadcastMessage: (data) ->
@@ -594,7 +599,8 @@ module.exports =
     if origin is nick()
       switch type
         when 'ParticipantWantsToLeave'
-          return @quit()
+          @removeMachineNode()
+          return kd.utils.defer @bound 'quit'
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
         else return
@@ -713,30 +719,49 @@ module.exports =
 
     @rtm = new RealtimeManager
     @showShareButton()
-    kd.utils.defer => @setCollaborationState 'loading'
+    kd.utils.defer => @rtm.ready => @setCollaborationState 'loading'
 
 
-  onCollaborationLoading: ->
+  onCollaborationLoading: do ->
+    constraints =
+      channelReady  : null
+      sessionActive : null
 
-    @statusBar.emit 'CollaborationLoading'
+    conditions = [
+      when : -> (constraints.channelReady is no) or (constraints.sessionActive is no)
+      to   : 'terminated'
+    ,
+      when : -> (constraints.channelReady is yes) and (constraints.sessionActive is yes)
+      to   : 'active'
+    ]
+    nextIfReady = (context) ->
+      for condition in conditions when condition.when()
+        context.setCollaborationState condition.to
+        break
+    setConstraint = (context, key, value) ->
+      constraints[key] = Boolean value
+      nextIfReady context
+    ->
 
-    { channelId } = @workspaceData
+      @statusBar.emit 'CollaborationLoading'
 
-    @rtm.ready =>
+      { channelId } = @workspaceData
+
       unless channelId
-        @setCollaborationState 'terminated'
+        setConstraint this, 'channelReady', no
         return
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
-          @setCollaborationState 'terminated'
+          setConstraint this, 'channelReady', no
           throwError err  if err
           return
 
+        setConstraint this, 'channelReady', yes
+
         @isRealtimeSessionActive channelId, (isActive) =>
-          if isActive or @isInSession
-          then @setCollaborationState 'active'
-          else @setCollaborationState 'terminated'
+          result = isActive or @isInSession
+          setConstraint this, 'sessionActive', result
 
 
   onCollaborationActive: ->
@@ -774,7 +799,7 @@ module.exports =
       payload    :
         'system-message' : 'start'
         collaboration    : yes
-    , callback
+    , (err, channel) => @whenRealtimeReady => callback err, channel
 
     @collaborationJustInitialized = yes
 
@@ -799,7 +824,7 @@ module.exports =
   # IF USER IS NOT HOST
   #   should only call the callback without an error.
   #   given callback should do the rest. (e.g cleaning-up, quitting..)
-  stopCollaborationSession: (callback) ->
+  stopCollaborationSession: (callback) -> @whenRealtimeReady =>
 
     @chat.settingsPane.endSession.disable()
 
@@ -908,9 +933,10 @@ module.exports =
 
             .then =>
 
-              @broadcastMessages.push
-                type: "#{if share then 'Set' else 'Unset'}MachineUser"
-                participants: usernames
+              @whenRealtimeReady =>
+                @broadcastMessages.push
+                  type: "#{if share then 'Set' else 'Unset'}MachineUser"
+                  participants: usernames
 
               queue.fin()
 
@@ -1002,17 +1028,17 @@ module.exports =
       content : "If you leave this session you won't be able to return back."
 
     @showModal options, =>
-      @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
       @stopChatSession()
       @modal.destroy()
 
       options = channelId: @socialChannel.getId()
       kd.singletons.socialapi.channel.leave options, (err) =>
         return showError err  if err
-        @setMachineUser [nick()], no, kd.noop
-        # remove the leaving participant's info from the collaborative doc
-        @removeParticipant nick()
-        @quit()
+        @setMachineUser [nick()], no, =>
+          # remove the leaving participant's info from the collaborative doc
+          @whenRealtimeReady =>
+            @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
+            @removeParticipant nick()
 
 
   throwError: throwError = (err, args...) ->
