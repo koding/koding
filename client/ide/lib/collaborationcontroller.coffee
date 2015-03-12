@@ -799,7 +799,7 @@ module.exports =
       payload    :
         'system-message' : 'start'
         collaboration    : yes
-    , callback
+    , (err, channel) => @whenRealtimeReady => callback err, channel
 
     @collaborationJustInitialized = yes
 
