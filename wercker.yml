@@ -29,16 +29,6 @@ build:
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
     - script:
-        name: client node modules
-        code: |
-          cd client/
-          $WERCKER_ROOT/scripts/wercker/install-node-modules client
-    - script:
-        name: landing node modules
-        code: |
-          cd client/landing
-          $WERCKER_ROOT/scripts/wercker/install-node-modules landing
-    - script:
         name: notify cebeci
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
