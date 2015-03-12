@@ -282,6 +282,16 @@ module.exports = class JMachine extends Module
 
   # Instance Methods
 
+  destroy: (client, callback)->
+
+    { r: { user } } = client
+
+    unless isOwner user, this
+      return callback new KodingError 'Access denied'
+
+    @remove callback
+
+
   addUsers: (options, callback)->
 
     {targets, asOwner, permanent} = options
