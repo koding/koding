@@ -239,9 +239,7 @@ module.exports = class ComputeController extends KDController
 
 
   findMachineFromMachineId: (machineId)->
-
-    for machine in @machines
-      return machine  if machine._id is machineId
+    return @machinesById[machineId]
 
 
   findMachineFromQueryString: (queryString)->

@@ -9,10 +9,14 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
   SUPPORTED_PROVIDERS = ['koding']
 
+  getProvider = (machineId)->
+    kd.singletons.computeController.machinesById[machineId]?.provider
+
   supported = (machineId)->
-    cc = kd.singletons.computeController
-    provider = cc.machinesById?[machineId]?.provider ? 'koding'
-    return provider in SUPPORTED_PROVIDERS
+    (getProvider machineId) in SUPPORTED_PROVIDERS
+
+  isManaged = (machineId)->
+    (getProvider machineId) is 'managed'
 
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) ->
