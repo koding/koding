@@ -34,7 +34,7 @@ module.exports =
 
     @socialChannel.on 'AddedToChannel', (originOrAccount) =>
 
-      kallback = (account) =>
+      kallback = (account) => @whenRealtimeReady =>
 
         return  unless account
 
