@@ -18,6 +18,8 @@ sendDataDogEvent = require '../util/sendDataDogEvent'
 HelpSupportModal = '../commonviews/helpsupportmodal'
 trackEvent = require 'app/util/trackEvent'
 showError  = require 'app/util/showError'
+environmentDataProvider = require 'app/userenvironmentdataprovider'
+
 
 module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalView
 
@@ -606,17 +608,19 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   prepareIDE: ->
 
-    kd.getSingleton('computeController').fetchMachines (err, machines) =>
+    # FIXME: We shouldn't use computeController.fetchMachine in this case.
+    kd.getSingleton('computeController').fetchMachines (err) =>
+
       return showError "Couldn't fetch your VMs"  if err
 
-      m = machine for machine in machines when machine._id is @machine._id
+      environmentDataProvider.fetchMachine @machine.uid, (machine) =>
 
-      # TODO: fix appManager.tell and pass the IDE instance here
-      kd.getSingleton('appManager').tell 'IDE', 'mountMachine', m
-      @machine = m
-      @setData m
+        return showError "Couldn't fetch your VMs"  unless machine
 
-      @emit 'IDEBecameReady', m
+        @machine = machine
+        @setData machine
+
+        @emit 'IDEBecameReady', machine
 
 
   verifyAccount: ->
