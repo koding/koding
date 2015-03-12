@@ -236,30 +236,27 @@ unf = "AN-UNFORTUNATE-5-SECS-FOR-SPRITE-FILES-TO-BE-WRITTEN"
 
 gulp.task 'styles', ['clean', 'styles-kd', 'sprites', unf], ->
 
+  compile = (folder, src, includes ) ->
+    stream = styleHelper {
+      fileName : "#{folder}.css"
+      includes
+      folder
+      src
+    }
+
+    stream.pipe gulp.dest "#{BUILD_PATH}"
+
+    return stream
+
   return merge folders.map (folder) ->
 
-    appfnPath = "#{__dirname}/app/lib/styl/appfn.styl"
+    commons   = "#{__dirname}/app/lib/styl/commons/*.styl"
+    src       = [ "./#{folder}/lib/**/*.styl", "!#{commons}" ]
+    includes  = [ commons, "#{__dirname}/.sprites/*/sprite@*x.styl" ]
 
-    compile = ->
-      src = [ "./#{folder}/lib/**/*.styl", "!#{appfnPath}" ]
-      includes = [ appfnPath, "#{__dirname}/.sprites/*/sprite@*x.styl" ]
+    watch src, read : no, compile.bind(null, folder, src, includes)  if devMode
 
-      stream = styleHelper {
-        fileName : "#{folder}.css"
-        includes
-        folder
-        src
-      }
-
-      stream.pipe gulp.dest "#{BUILD_PATH}"
-      return stream
-
-    if devMode
-      watch [ "#{__dirname}/#{folder}/**/*.styl", "!#{appfnPath}" ]
-      , read : no
-      , compile
-
-    return compile()
+    return compile folder, src, includes
 
 
 gulp.task unf, ['sprites'], (cb) -> setTimeout cb, 5000

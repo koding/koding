@@ -198,14 +198,21 @@ module.exports =
     return comment
 
 
-  doPostComment: (browser, comment, shouldAssert = yes) ->
+  doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
     browser
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
       .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
       .click                    activitySelector + ' .has-markdown' # blur
       .pause                    3000 # content preview
+
+    if hasEmbeddable
+      browser
+        .waitForElementVisible  '.comment-input-widget .link-embed-box', 20000
+
+    browser
       .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
+
 
     if shouldAssert
       browser
@@ -213,18 +220,24 @@ module.exports =
         .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
 
-  doPostActivity: (browser, post, shouldAssert = yes) ->
+  doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
     browser
-      .pause                  5000 # wait for IDE open
-      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
-      .waitForElementVisible  '[testpath=ActivityInputView]', 10000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
-      .waitForElementVisible  '.most-recent [testpath=activity-list]', 30000
-      .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]', post
-      .click                  '.channel-title'
-      .click                  '[testpath=post-activity-button]'
-      .pause                  6000 # required
+      .pause                    5000 # wait for IDE open
+      .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
+      .waitForElementVisible    '[testpath=ActivityInputView]', 10000
+      .click                    '[testpath="ActivityTabHandle-/Activity/Public/Recent"] a'
+      .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
+      .click                    '[testpath=ActivityInputView]'
+      .setValue                 '[testpath=ActivityInputView]', post
+      .click                    '.channel-title'
+
+    if hasEmbeddable
+      browser
+        .waitForElementVisible  '.activity-input-widget .link-embed-box', 20000
+
+    browser
+      .click                    '[testpath=post-activity-button]'
+      .pause                    6000 # required
 
     if shouldAssert
       browser.assert.containsText '[testpath=ActivityListItemView]:first-child', post # Assertion

@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/request"
 	"socialapi/workers/common/runner"
 	"testing"
 
@@ -1159,6 +1160,18 @@ func TestChannelDelete(t *testing.T) {
 			err = NewChannelMessageList().ById(cml1.Id)
 			So(err, ShouldEqual, bongo.RecordNotFound)
 		})
+
+		Convey("it should delete any participants", func() {
+			c, _, _, _, _ := setupDeleteTest()
+
+			// delete the channel
+			So(c.Delete(), ShouldBeNil)
+
+			participants, err := c.FetchParticipants(&request.Query{})
+			So(err, ShouldBeNil)
+			So(len(participants), ShouldEqual, 0)
+		})
+
 		Convey("it should delete the channel itself", func() {
 			c, _, _, _, _ := setupDeleteTest()
 
