@@ -57,8 +57,8 @@ services=(
   socialapi/workers/algoliaconnector
   socialapi/workers/email/privatemessageemail/privatemessageemailfeeder
   socialapi/workers/email/privatemessageemail/privatemessageemailsender
-  socialapi/workers/moderation/cmd/topicmoderation
   socialapi/workers/payment/paymentwebhook
+  socialapi/workers/cmd/topicmoderation
   socialapi/workers/cmd/collaboration
   socialapi/workers/cmd/emailsender
 )
