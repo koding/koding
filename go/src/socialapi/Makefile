@@ -268,9 +268,6 @@ testapi: testpermission testmoderation testalgolia testtopicfeeed testcollaborat
 	@`which go` test config/*.go $(DBG)
 
 	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
-	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
-	@./algoliaconnector.test -c $(CONFIG)
-	@rm ./algoliaconnector.test
 
 	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/metrics/*.go
@@ -318,12 +315,6 @@ testapi: testpermission testmoderation testalgolia testtopicfeeed testcollaborat
 	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
-
-	@echo "$(OK_COLOR)--> moderation integration tests... $(NO_COLOR)"
-	@`which go` test -c workers/moderation/topic/tests/*.go
-	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./tests.test
-
 
 	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
 	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/feeder/*.go
