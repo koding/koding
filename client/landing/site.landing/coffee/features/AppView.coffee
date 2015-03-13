@@ -6,6 +6,7 @@ module.exports = class FeaturesView extends KDView
   IMAGEPATH     = '/a/site.landing/images/features'
   TABS          =
     'VMs'       :
+      isDefault : yes
       image     : 'vms-ss.png'
       text      : "
         <h4>Hosted on Amazon</h4>
@@ -164,40 +165,42 @@ module.exports = class FeaturesView extends KDView
 
     @setPartial @partial()
 
-    @handles = []
+    @handles = {}
     @prepareTabHandles()
-    @selectTab('VMs')
-
-    @createBottomFeatures()
 
     @addSubView @footer = new FooterView
 
 
   prepareTabHandles: ->
 
-    for title, content of TABS
-      do (title, content) =>
-        @handles.push handle = new CustomLinkView
-          title           : title
-          click           : =>
-            @selectTab title
+    for tabName, content of TABS
+      { isDefault } = content
+      tabPath = if isDefault then '' else "/#{tabName}"
+      @handles[tabName] = handle = new CustomLinkView
+        title           : tabName
+        href            : "/Features#{tabPath}"
 
-            for item in @handles
-              item.unsetClass 'active'
-              handle.setClass 'active'
+      @addSubView handle, '.tab-handles'
 
 
-        @addSubView handle, '.tab-handles'
+  selectTab : (tabName) ->
 
-    @handles[0].setClass 'active'
+    if not tabName
+      for name, content of TABS
+        if content.isDefault
+          tabName = name
+          break
 
+    for name, handle of @handles
+      handle.unsetClass 'active'
 
-  selectTab : (name) ->
-    {text, image}   = TABS[name]
+    @handles[tabName]?.setClass 'active'
+
+    {text, image}   = TABS[tabName]
 
     tabView         = new KDCustomHTMLView
       tagName       : 'article'
-      cssClass      : "tab-#{name.toLowerCase()} tab-enter clearfix"
+      cssClass      : "tab-#{tabName.toLowerCase()} tab-enter clearfix"
 
     tabView.addSubView new KDCustomHTMLView
       cssClass      : 'tab-text'
@@ -211,7 +214,7 @@ module.exports = class FeaturesView extends KDView
 
     tabView.addSubView new KDCustomHTMLView cssClass: 'clearfix'
 
-    tabView.addSubView @createBottomFeatures name
+    tabView.addSubView @createBottomFeatures tabName
 
     if @currentTab
       leaveFn = =>
