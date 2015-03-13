@@ -21,6 +21,11 @@ type ChannelLink struct {
 
 	// CreatedAt holds the creation time of the channel_link
 	CreatedAt time.Time `json:"createdAt"    sql:"NOT NULL"`
+
+	// options for operations
+
+	// DeleteMessages remove the messages of a channel
+	DeleteMessages bool `json:"deleteMessages,omitempty" sql:"-"`
 }
 
 func (c *ChannelLink) validate() error {
