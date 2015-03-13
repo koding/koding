@@ -36,6 +36,7 @@ module.exports = class JWorkspace extends Module
         deleteByUid: signature String, Function
         update     : signature String, Object, Function
         fetchByMachines: signature Function
+        createDefault  : signature String, Function
       instance     :
         delete     : signature Function
     sharedEvents   :
