@@ -27,6 +27,8 @@ createProfileFeed = (models, account, options, callback)->
       unless result.length
         return callback null, ''
 
+      index = yes  if result.length >= 3
+
       buildContent models, result, options, (err, content) ->
         return callback err  if err
 
@@ -43,7 +45,7 @@ createProfileFeed = (models, account, options, callback)->
         if pagination
           content += "<nav class='crawler-pagination clearfix'>#{pagination}</nav>"
 
-        callback null, content
+        callback null, {content, index}
 
 
 createFeed = (models, options, callback)->
@@ -96,7 +98,7 @@ createFeed = (models, options, callback)->
         }
 
         pagination = getPagination paginationOptions
-        fullPage = putContentIntoFullPage content, pagination
+        fullPage = putContentIntoFullPage content, pagination, {index: yes}
 
         callback null, fullPage
 
