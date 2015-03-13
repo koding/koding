@@ -146,7 +146,6 @@ module.exports = class JWorkspace extends Module
     selector     =
       originId   : client.connection.delegate._id
       machineUId : uid
-      slug       : $ne: 'my-workspace'
 
     JWorkspace.remove selector, (err)->
       callback err
