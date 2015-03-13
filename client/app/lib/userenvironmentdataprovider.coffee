@@ -221,3 +221,10 @@ module.exports = UserEnvironmentDataProvider =
             queue.fin()
 
     sinkrow.dash queue, callback
+
+
+  clearWorkspaces: (machine) ->
+
+    for item in @getAllMachines() when item.machine.uid is machine.uid
+      item.workspaces.splice 0
+      return
