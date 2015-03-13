@@ -116,9 +116,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         @fetchEnvironmentData =>
           @setWorkspaceUnreadCount channel, unreadCount
 
-    switch update.channel.typeConstant
-      when 'pinnedactivity' then @replyAdded update
-      else  @handleFollowedFeedUpdate update
+    @handleFollowedFeedUpdate update
 
 
   messageRemovedFromChannel: (update) ->
@@ -329,7 +327,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     items = []
     items = items.concat @sections.channels.listController.getListItems()
-    items = items.concat @sections.conversations.listController.getListItems()
     items = items.concat @sections.messages.listController.getListItems()
 
     return items
@@ -339,7 +336,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     section = switch type
       when 'topic'                  then @sections.channels
-      when 'pinnedactivity', 'post' then @sections.conversations
       when 'privatemessage'         then @sections.messages
       else {}
 
@@ -478,9 +474,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @addMachineList()
     @addFollowedTopics()
-    @addConversations()
-
-    kd.getSingleton('computeController').ready @lazyBound 'addMessages'
+    @addMessages()
 
 
   initiateFakeCounter: ->
@@ -595,32 +589,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       countSource: (callback) ->
         remote.api.SocialChannel.fetchFollowedChannelCount {}, callback
 
-    if kd.singletons.mainController.isFeatureDisabled 'channels'
-      @sections.channels.hide()
-
-
-  addConversations: ->
-
-    @addSubView @sections.conversations = new ActivitySideView
-      title      : 'Threads'
-      cssClass   : 'conversations hidden'
-      itemClass  : SidebarPinnedItem
-      dataPath   : 'pinnedMessages'
-      delegate   : this
-      noItemText : 'You didn\'t participate in any conversations yet.'
-      headerLink : groupifyLink '/Activity/Post/All'
-      dataSource : (callback) ->
-        # we disabled pinned messages a long time ago but we are still sending
-        # the requests to the backed, those are useless operations ~ CS
-        return callback null, null
-
-        # kd.singletons.socialapi.channel.fetchPinnedMessages
-        #   limit : 5
-        # , callback
-
-    if kd.singletons.mainController.isFeatureDisabled 'threads'
-      @sections.conversations.hide()
-
 
   addMessages: ->
 
@@ -648,9 +616,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
         remote.api.SocialMessage.fetchPrivateMessageCount {}, callback
 
     @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
-
-    if kd.singletons.mainController.isFeatureDisabled 'private-messages'
-      @sections.messages.hide()
 
 
   handleReloadMessages: ->

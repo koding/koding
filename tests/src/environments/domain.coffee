@@ -23,6 +23,7 @@ module.exports =
 
   #       browser
   #         .url domain
+  #         .pause  5000
   #         .waitForElementVisible  '#container', 20000
   #         .waitForElementVisible  '#container .hellobox', 20000
   #         .end()

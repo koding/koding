@@ -2,6 +2,7 @@ package emailmodels
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
@@ -18,6 +19,8 @@ const (
 	MessageLimit     = 3
 	ParticipantLimit = 3
 )
+
+var ErrMessageNotFound = errors.New("message not found")
 
 // ChannelSummary used for storing channel purpose and messages
 type ChannelSummary struct {
@@ -65,6 +68,10 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 		return nil, err
 	}
 
+	if len(cms) == 0 {
+		return nil, ErrMessageNotFound
+	}
+
 	// fix the ordering problem of the messages
 	orderedCms := make([]models.ChannelMessage, len(cms))
 	// swap the order
@@ -79,7 +86,7 @@ func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Tim
 	}
 
 	if count == 0 {
-		return &ChannelSummary{}, nil
+		return nil, ErrMessageNotFound
 	}
 
 	participants, err := fetchParticipants(a, ch)

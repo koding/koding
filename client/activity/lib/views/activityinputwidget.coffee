@@ -6,7 +6,7 @@ ActivityInputHelperView = require './activityinputhelperview'
 ActivityInputView       = require './activityinputview'
 EmbedBoxWidget          = require './embedboxwidget'
 globals                 = require 'globals'
-trackEvent                = require 'app/util/trackEvent'
+trackEvent              = require 'app/util/trackEvent'
 showError               = require 'app/util/showError'
 generateDummyMessage    = require 'app/util/generateDummyMessage'
 generateFakeIdentifier  = require 'app/util/generateFakeIdentifier'
@@ -56,19 +56,22 @@ module.exports = class ActivityInputWidget extends KDView
       cssClass   : "preview-icon"
       tooltip    :
         title    : "Markdown preview"
-      click      : =>
-        if not @preview
-        then @showPreview()
-        else @hidePreview()
+      click      : => if not @preview then @showPreview() else @hidePreview()
 
 
   initEvents: ->
 
-    @input.on 'Escape', @bound 'reset'
-    @input.on 'Enter',  @bound 'submit'
+    @input.on 'Escape',   @bound 'reset'
+    @input.on 'Enter',    @bound 'submit'
+    @input.on 'Tab',      @bound 'focusSubmit'
     @input.on 'keypress', @bound 'updatePreview'
 
     @on 'SubmitStarted', => @hidePreview()  if @preview
+
+
+  focusSubmit: ->
+
+    @submitButton.focus()
 
 
   submit: (value) ->
@@ -125,7 +128,7 @@ module.exports = class ActivityInputWidget extends KDView
 
       showError err,
         AccessDenied :
-          title      : "You are not allowed to post activities"
+          title      : 'You are not allowed to post activities'
           content    : 'This activity will only be visible to you'
           duration   : 5000
         KodingError  : 'Something went wrong while creating activity'
@@ -140,44 +143,33 @@ module.exports = class ActivityInputWidget extends KDView
 
     return  @reset()  unless activity
 
-    appManager.tell 'Activity', 'edit', {
-      id: activity.id
-      body
-      payload
-    }, (err, message) =>
+    appManager.tell 'Activity', 'edit', { id: activity.id, body, payload }, (err, message) =>
 
       if err
-        options =
-          userMessage: "You are not allowed to edit this post."
-        return @showError err, options
+        return @showError err, userMessage : 'You are not allowed to edit this post.'
 
       activity.body = body
-
       activity.link = payload
 
       activity.emit 'update'
 
       callback err, activity
 
-      trackEvent "Status update edit, success"
+      trackEvent 'Status update edit, success'
 
 
   reset: (unlock = yes) ->
 
+    @input.emit 'reset'
+
     @input.empty()
     @input.setBlur()
-    @embedBox.resetEmbedAndHide()
 
     if unlock then @unlockSubmit()
     else kd.utils.wait 8000, @bound 'unlockSubmit'
 
 
-  getPayload: ->
-
-    link_url   = @embedBox.url
-    link_embed = @embedBox.getDataForSubmit()
-
-    return {link_url, link_embed}  if link_url and link_embed
+  getPayload: -> return @embedBox.getData()
 
 
   showError: (err, options = {}) ->
@@ -245,7 +237,6 @@ module.exports = class ActivityInputWidget extends KDView
   viewAppended: ->
 
     @addSubView @icon
-    # @addSubView @avatar
     @addSubView @input
     @addSubView @embedBox
     @addSubView @buttonBar

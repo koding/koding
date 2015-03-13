@@ -14,6 +14,7 @@ import (
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/provider/koding"
@@ -172,7 +173,7 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	dnsInstance := koding.NewDNSClient(conf.HostedZone, auth)
+	dnsInstance := dnsclient.New(conf.HostedZone, auth)
 	domainStorage := koding.NewDomainStorage(db)
 
 	kodingProvider := &koding.Provider{
@@ -210,7 +211,7 @@ func newKite(conf *Config) *kite.Kite {
 	var _ kloudprotocol.Provider = kodingProvider
 
 	go kodingProvider.RunChecker(checkInterval)
-	go kodingProvider.RunCleaners(time.Minute * 2)
+	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	kld := kloud.New()
 	kld.Storage = kodingProvider

@@ -13,11 +13,21 @@ func (l *LoggedInUser) Get(name string) (interface{}, bool) {
 	return value, ok
 }
 
-// Get returns value if exists, if not it returns the default value.
-func (l *LoggedInUser) GetWithDefault(name, def string) interface{} {
+// Get returns value if exists, if not it returns empty string
+func (l *LoggedInUser) GetWithDefaultStr(name string) interface{} {
 	value, ok := l.Data[name]
 	if !ok {
-		return def
+		return ""
+	}
+
+	return value
+}
+
+// Get returns value if exists, if not it returns empty hash
+func (l *LoggedInUser) GetWithDefaultHash(name string) interface{} {
+	value, ok := l.Data[name]
+	if !ok {
+		return map[string]interface{}{}
 	}
 
 	return value

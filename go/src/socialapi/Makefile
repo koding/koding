@@ -206,18 +206,20 @@ testcollaboration:
 	@./collaboration.test -kite-init $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./collaboration.test
 
+testmodels:
+	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
+	@`which go` test -c models/*.go
+	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./models.test
+
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
 	@`which go` test -c workers/email/sender/*.go
 	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./sender.test
 
-testapi: testcollaboration testmailsender testmail
+testapi: testcollaboration testmailsender testmail testmodels
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
-	@echo "$(OK_COLOR)--> model tests... $(NO_COLOR)"
-	@`which go` test -c models/*.go
-	@./models.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./models.test
 
 	@`which go` test config/*.go $(DBG)
 

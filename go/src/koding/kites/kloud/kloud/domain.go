@@ -53,7 +53,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		// now assign the machine ip to the given domain name
-		if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+		if err := k.Domainer.Upsert(args.DomainName, m.IpAddress); err != nil {
 			return nil, err
 		}
 
@@ -76,7 +76,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
 		// do not return on error because it might be already delete via unset
-		k.Domainer.Delete(args.DomainName, m.IpAddress)
+		k.Domainer.Delete(args.DomainName)
 
 		if err := k.DomainStorage.Delete(args.DomainName); err != nil {
 			return nil, err
@@ -95,7 +95,7 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, fmt.Errorf("domain does not exists in DB")
 		}
 
-		if err := k.Domainer.Delete(args.DomainName, m.IpAddress); err != nil {
+		if err := k.Domainer.Delete(args.DomainName); err != nil {
 			return nil, err
 		}
 
@@ -121,7 +121,7 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 		record, err := k.Domainer.Get(args.DomainName)
 		if err != nil && strings.Contains(err.Error(), "no records available") {
 			k.Log.Debug("[%s] setting domain '%s' to IP '%s'", m.Id, args.DomainName, m.IpAddress)
-			if err := k.Domainer.Create(args.DomainName, m.IpAddress); err != nil {
+			if err := k.Domainer.Upsert(args.DomainName, m.IpAddress); err != nil {
 				return nil, err
 			}
 		} else if err != nil {
@@ -133,7 +133,7 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 		if err == nil && record.IP != m.IpAddress {
 			k.Log.Debug("[%s] setting domain '%s' from old IP '%s' to new Ip '%s'",
 				m.Id, args.DomainName, record.IP, m.IpAddress)
-			if err := k.Domainer.Update(args.DomainName, record.IP, m.IpAddress); err != nil {
+			if err := k.Domainer.Upsert(args.DomainName, m.IpAddress); err != nil {
 				fmt.Printf("err = %+v\n", err)
 				return nil, err
 			}

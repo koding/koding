@@ -24,7 +24,7 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
 
     unless machine.isMine()
       if machine.isPermanent()
-        kd.log 'update shared ws url here'
+        path = "/IDE/#{machine.uid}/#{workspace.slug}"
       else
         path = "/IDE/#{workspace.channelId}"
 
@@ -44,6 +44,15 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
         click     : @bound 'showSettingsPopup'
 
     @settingsIcon = new KDCustomHTMLView iconOptions
+
+
+  mouseDown: (event) ->
+
+    if @count
+      ide = kd.singletons.appManager.get 'IDE'
+      return  unless ide.chat
+      ide.showChat()
+      kd.utils.defer -> ide.chat.focus()
 
 
   showSettingsPopup: ->

@@ -51,7 +51,7 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     nodeIdPath        : 'path'
     nodeParentIdPath  : 'parentPath'
     foldersOnly       : yes
-    contextMenu       : no
+    contextMenu       : yes
     loadFilesOnInit   : yes
     machineToMount    : options.machine
 

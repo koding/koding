@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	TimeoutTime = 1500 * time.Millisecond
+	TimeoutTime = 3000 * time.Millisecond
 )
 
 // HomeHandler renders both loggedin and loggedout page for user.

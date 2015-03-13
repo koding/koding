@@ -189,7 +189,10 @@ module.exports = class MessagePane extends KDTabPaneView
     scrollHeight = wrapper.getScrollHeight()
     scrollTop    = wrapper.getScrollTop()
 
-    return scrollTop + height >= scrollHeight
+    # we can tolerate one line of message here. Therefore
+    # even a user scrolls up for a single line, it is considered
+    # as bottom of the page.
+    return scrollTop + height + 50 >= scrollHeight
 
 
   scrollDown: ->
