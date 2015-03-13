@@ -201,7 +201,21 @@ func (c *Controller) findToBeRemovedUsers(ping *models.Ping) ([]bson.ObjectId, e
 		toBeRemovedUsers = append(toBeRemovedUsers, u.ObjectId)
 	}
 
-	return toBeRemovedUsers, nil
+	filteredUsers := make([]bson.ObjectId, 0)
+	permanentUsers := make(map[string]struct{})
+	for _, user := range machine.Users {
+		if user.Permanent {
+			permanentUsers[user.Id.Hex()] = struct{}{}
+		}
+	}
+
+	for _, toBeRemovedUser := range toBeRemovedUsers {
+		if _, ok := permanentUsers[toBeRemovedUser.Hex()]; !ok {
+			filteredUsers = append(filteredUsers, toBeRemovedUser)
+		}
+	}
+
+	return filteredUsers, nil
 }
 
 // RemoveUsersFromMachine removes the collaboraters from the host machine

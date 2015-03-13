@@ -57,8 +57,6 @@ module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) -
       handleChannel null, null, (app) -> app.getView().showAllTopicsModal()
     when 120
       handleChannel null, null, (app) -> app.getView().showFollowingTopicsModal()
-    when 130
-      handleChannel null, null, (app) -> app.getView().showAllConversationsModal()
     when 140
       handleChannel null, null, (app) -> app.getView().showAllChatsModal()
     when 150

@@ -23,19 +23,16 @@ type Domain struct {
 
 // Domainer is responsible of managing DNS records
 type Domainer interface {
-	// Create creates a new domain record with the given name to the new IP
-	Create(name, newIP string) error
+	// Upsert updates or creates a new domain record with the given name to the
+	// new IP
+	Upsert(name, newIP string) error
 
-	// Delete deletes the given domain name which was associated to the old IP
-	Delete(name, oldIP string) error
+	// Delete deletes the given domain name.
+	Delete(name string) error
 
-	// Update updates the given domain name which was associated to the old IP
-	// with the new IP
-	Update(name, oldIP, newIP string) error
-
-	// Rename renames the given old domain name with the new domain name for
-	// the given IP
-	Rename(oldName, newName, currentIp string) error
+	// Rename renames the given old domain name with the new domain name. To
+	// change the IP, use the Upsert command.
+	Rename(oldName, newName string) error
 
 	// Get returns a domain record for the given domain name
 	Get(name string) (*Record, error)

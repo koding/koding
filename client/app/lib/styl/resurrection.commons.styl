@@ -243,7 +243,6 @@ a.custom-link-view.border-only-green
     margin              0 0 0 16px
 
   .kdlistitemview-contextitem.default
-    color               #50595f
     font-size           12px
     line-height         24px
     cursor              pointer
@@ -257,12 +256,6 @@ a.custom-link-view.border-only-green
         r-sprite        app "edit-icon"
       &.delete
         r-sprite        app "delete-icon"
-
-    &:hover
-    &.selected
-      bg                color, #F8f8f8
-      text-shadow       none
-      color             #50595f
 
   .chevron-ghost-wrapper
     opacity           0
@@ -763,6 +756,24 @@ button.app-settings-menu
         margin-top    0
         bg            position,-60px -300px
         bg            color,#f5f5f5
+
+  .kdlistview-contextmenu.default
+    bg                color, white
+
+.kdcontextmenu
+  .kdlistview-contextmenu.default
+    padding           8px
+    bg                color, #ececec
+
+  .kdlistitemview-contextitem.default
+    color             #747474
+    rounded           2px
+
+    &.selected
+      bg              color, #494949
+
+    &.selected:hover
+      bg              color, #494949
 
 .kdcontextmenu .kdtreeitemview.disabledForBeta
   opacity         .5

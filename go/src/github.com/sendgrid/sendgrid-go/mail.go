@@ -2,17 +2,19 @@ package sendgrid
 
 import (
 	"encoding/json"
-	"github.com/sendgrid/smtpapi-go"
 	"io"
 	"io/ioutil"
 	"net/mail"
 	"time"
+
+	"github.com/sendgrid/smtpapi-go"
 )
 
 // SGMail is representation of a valid SendGrid Mail
 type SGMail struct {
 	To       []string
 	ToName   []string
+	Cc       []string
 	Subject  string
 	Text     string
 	HTML     string
@@ -54,7 +56,6 @@ func (m *SGMail) AddTos(emails []string) error {
 
 // AddRecipient will add mail.Address emails to recipients.
 func (m *SGMail) AddRecipient(recipient *mail.Address) {
-	m.SMTPAPIHeader.AddTo(recipient.String())
 	m.To = append(m.To, recipient.Address)
 	if recipient.Name != "" {
 		m.ToName = append(m.ToName, recipient.Name)
@@ -76,6 +77,38 @@ func (m *SGMail) AddToName(name string) {
 // AddToNames sets the "pretty" name for multiple recipients
 func (m *SGMail) AddToNames(names []string) {
 	m.ToName = append(m.ToName, names...)
+}
+
+// AddCc ...
+func (m *SGMail) AddCc(cc string) error {
+	address, err := mail.ParseAddress(cc)
+	if err != nil {
+		return err
+	}
+	m.AddCcRecipient(address)
+	return nil
+}
+
+// AddCcs ...
+func (m *SGMail) AddCcs(ccs []string) error {
+	for i := 0; i < len(ccs); i++ {
+		if err := m.AddCc(ccs[i]); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// AddCcRecipient ...
+func (m *SGMail) AddCcRecipient(recipient *mail.Address) {
+	m.Cc = append(m.Cc, recipient.Address)
+}
+
+// AddCcRecipients ...
+func (m *SGMail) AddCcRecipients(recipients []*mail.Address) {
+	for i := 0; i < len(recipients); i++ {
+		m.AddCcRecipient(recipients[i])
+	}
 }
 
 // SetSubject sets the email's subject

@@ -180,7 +180,8 @@ func RemoveUsersFromMachineByIds(uid string, ids []bson.ObjectId) error {
 		}
 
 		if toBeAdded {
-			// we couldnt find the account in to be removed list, so add it back
+			// we couldnt find the account in -to be removed list-, so add it
+			// back
 			users = append(users, user)
 		}
 	}

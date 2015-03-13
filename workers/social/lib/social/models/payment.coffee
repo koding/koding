@@ -123,9 +123,6 @@ module.exports = class Payment extends Base
   @canUserPurchase = secure (client, callback)->
     {connection : {delegate}} = client
 
-    if delegate.profile.nickname is "guestuser"
-      return callback {message:"guests are not allowed"}
-
     if delegate.type isnt "registered"
       return callback {message:"guests are not allowed"}
 

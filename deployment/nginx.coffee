@@ -10,7 +10,7 @@ createUpstreams = (workers={}) ->
       servers += "\n" if servers isnt ""
       port = parseInt(port, 10)
 
-      servers += "\tserver 127.0.0.1:#{port + index};"
+      servers += "\tserver 127.0.0.1:#{port + index} max_fails=3 fail_timeout=10s;"
 
     upstreams += """
       upstream #{name} {

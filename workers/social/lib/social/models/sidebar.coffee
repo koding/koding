@@ -29,6 +29,8 @@ module.exports = class Sidebar extends bongo.Base
 
       return callback new KodingError err  if err
 
+      return callback new KodingError {message: "[Sidebar::fetchEnvironment] user not found"}  unless user
+
       query = 'users.id': user.getId()
 
       JMachine.some query, {}, (err, machines) ->
