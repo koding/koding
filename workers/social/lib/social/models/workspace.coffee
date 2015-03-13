@@ -166,15 +166,27 @@ module.exports = class JWorkspace extends Module
       ws.update options, callback
 
 
-  @createDefault: (client, machine, callback) ->
+  @createDefault: (client, machineUId, callback) ->
 
-    {nickname} = client.connection.delegate.profile
+    JMachine.one$ client, machineUId, (err, machine) =>
 
-    data =
-      name         : 'My Workspace'
-      isDefault    : yes
-      machineLabel : machine.label
-      machineUId   : machine.uid
-      rootPath     : "/home/#{nickname}"
+      return callback err  if err
+      return callback 'Machine not found'  unless machine
 
-    @create client, data, callback
+      {nickname} = client.connection.delegate.profile
+
+      selector = {machineUId, slug: 'my-workspace'}
+
+      @one selector, (err, workspace) =>
+
+        return callback err  if err
+        return callback null, workspace  if workspace
+
+        data =
+          name         : 'My Workspace'
+          isDefault    : yes
+          machineLabel : machine.label
+          machineUId   : machine.uid
+          rootPath     : "/home/#{nickname}"
+
+        @create client, data, callback
