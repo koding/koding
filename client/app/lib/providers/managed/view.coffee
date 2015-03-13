@@ -10,10 +10,17 @@ addTo = (parent, views)->
 
   return map
 
+contents  =
+  install : """bash
+    $ curl -sO https://s3.amazonaws.com/koding-klient/install.sh
+    $ bash ./install.sh
+    # Enter your koding.com credentials when asked for
+  """
+
 module.exports   = view =
-  message        : (message) -> new kd.View
+  message        : (message, type = '') -> new kd.View
     partial      : message
-    cssClass     : 'title'
+    cssClass     : "message #{type}"
 
   header         : (title) -> new kd.View
     partial      : title
@@ -31,6 +38,7 @@ module.exports   = view =
     tagName      : 'article'
 
   instructions   : (content) ->
+    content      = contents[content] ? content
     container    = new kd.View
     addTo container,
       header     : 'Instructions'
@@ -38,6 +46,7 @@ module.exports   = view =
     return container
 
   waiting        : (text) ->
+
     container    = new kd.View
       cssClass   : 'view-waiting'
     addTo container,
@@ -57,6 +66,7 @@ module.exports   = view =
     new kd.ButtonView options
 
   retry          : ({text, callback})->
+
     container    = new kd.View
       cssClass   : 'view-waiting'
 

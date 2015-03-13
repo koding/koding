@@ -1,12 +1,5 @@
 kd   = require 'kd'
 view = require './view'
-
-INSTALL_INSTRUCTIONS = """bash
-  $ curl -sO https://s3.amazonaws.com/koding-klient/install.sh
-  $ bash ./install.sh
-  # Enter your koding.com credentials when asked for
-"""
-
 ManagedVMBaseModal = require './basemodal'
 
 module.exports = class AddManagedVMModal extends ManagedVMBaseModal
@@ -19,7 +12,7 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
       initial: (data) =>
 
         view.addTo @container,
-          instructions : INSTALL_INSTRUCTIONS
+          instructions : 'install'
           waiting      : 'Checking for kite instances...'
 
         {queryKites} = require './helpers'
@@ -37,7 +30,7 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
       retry: (data) =>
 
         view.addTo @container,
-          instructions : INSTALL_INSTRUCTIONS
+          instructions : 'install'
           retry        :
             text       : data
             callback   : @lazyBound 'switchTo', 'initial'
@@ -46,7 +39,7 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
       listKites: (data) =>
 
         {list, button} = view.addTo @container,
-          instructions : INSTALL_INSTRUCTIONS
+          instructions : 'install'
           list         : { data }
           button       :
             title      : 'Add Selected Node'
@@ -55,7 +48,6 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
               @createMachine list.controller.selectedItems.first.getData()
 
         list.controller.on 'ItemSelectionPerformed', button.bound 'enable'
-
 
 
   createMachine: (kite)->
