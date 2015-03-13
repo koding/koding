@@ -127,7 +127,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		}
 
 		// Fetch channel summary data
-		channels, err := c.FetchChannelSummaries(account, strconv.Itoa(currentPeriod), mailer.UserContact.LastLoginTimezoneOffset)
+		channels, err := c.FetchChannelSummaries(account, mailer.UserContact.LastLoginTimezoneOffset)
 		if err != nil {
 			c.log.Error("Could not fetch messages for rendering: %s", err)
 			continue
@@ -192,9 +192,9 @@ func (c *Controller) NextAccount(period string) (*models.Account, error) {
 	return a, nil
 }
 
-func (c *Controller) FetchChannelSummaries(a *models.Account, period string, timezone int) ([]*emailmodels.ChannelSummary, error) {
+func (c *Controller) FetchChannelSummaries(a *models.Account, timezone int) ([]*emailmodels.ChannelSummary, error) {
 	// fetch value from redis
-	key := common.AccountChannelHashSetKey(a.Id, period)
+	key := common.AccountChannelHashSetKey(a.Id)
 	defer func() {
 		if _, err := c.redisConn.Del(key); err != nil {
 			c.log.Error("Could not delete pending channels for account", err)
@@ -220,8 +220,13 @@ func (c *Controller) FetchChannelSummaries(a *models.Account, period string, tim
 		}
 
 		cs, err := c.buildChannelSummary(a, ch, awayTime, timezone)
+		if err == emailmodels.ErrMessageNotFound {
+			continue
+		}
+
 		if err != nil {
-			return channels, err
+			c.log.Error("Could not render email channel content: %s", err)
+			continue
 		}
 
 		channels = append(channels, cs)
@@ -233,7 +238,6 @@ func (c *Controller) FetchChannelSummaries(a *models.Account, period string, tim
 func (c *Controller) buildChannelSummary(a *models.Account, ch *models.Channel, awayTime time.Time, timezoneOffset int) (*emailmodels.ChannelSummary, error) {
 	cs, err := emailmodels.NewChannelSummary(a, ch, awayTime, timezoneOffset)
 	if err != nil {
-		c.log.Error("Could not decorate channel summary: %s", err)
 		return nil, err
 	}
 
