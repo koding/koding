@@ -25,6 +25,7 @@ events       = require 'events'
 nib          = require 'nib'
 stylus       = require 'gulp-stylus'
 concat       = require 'gulp-concat'
+throttle     = require 'throttleit'
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -41,6 +42,7 @@ STYLES_KDJS_MODULE_NAME     = 'kd.js'
 STYLES_KDJS_CSS_FILE        = 'dist/kd.css'
 STYLES_COMMONS_GLOB         = 'app/lib/styl/commons/*.styl'
 STYLES_EXTENSION            = 'styl'
+THROTTLE_WAIT               = 500
 
 module.exports =
 
@@ -332,7 +334,8 @@ class Haydar extends events.EventEmitter
     notify  = @_notify.bind this
 
     manifests  = opts.manifests
-    watchingKd = false
+    watchingKd = no
+    watchingDirs = []
 
     commons  = path.join opts.basedir, STYLES_COMMONS_GLOB
     includes = [ commons ]
@@ -366,7 +369,7 @@ class Haydar extends events.EventEmitter
         callback?()
 
       if opts.watchJs and not watchingKd
-        watchingKd = true
+        watchingKd = yes
         w = chokidar.watch kdCssFile, persistent: yes
         w.on 'change', copyKd
 
@@ -418,14 +421,20 @@ class Haydar extends events.EventEmitter
 
         styl manifest, globs
 
-        if opts.watchCss
+        onRaw = (e, file) ->
+          return  unless file
+          if e is 'modified' or e is 'deleted'
+            console.log "updated #{dir}"
+            start = Date.now()
+            styl manifest, globs
+
+        onRaw = throttle onRaw, THROTTLE_WAIT
+
+        if opts.watchCss and ~watchingDirs.indexOf(dir) is 0
+          watchingDirs.push dir
           w = chokidar.watch dir, persistent: yes
           w.on 'ready', ->
-            w.on 'raw', (e, file) ->
-              if e is 'modified' or e is 'deleted'
-                console.log "#{e} file"
-                start = Date.now()
-                styl manifest, globs
+            w.on 'raw', onRaw
 
 
     init = =>
