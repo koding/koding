@@ -362,5 +362,109 @@ func TestProcess(t *testing.T) {
 			So(history.MessageList[2].Message.Id, ShouldEqual, cm2Root.Id)
 			So(history.MessageList[0].Message.Id, ShouldEqual, cm3Root.Id)
 		})
+
+		Convey("make sure messages got deleted if delete option is passed", func() {
+			cl := models.CreateChannelLinkWithTest(acc1.Id, acc2.Id)
+			cl.DeleteMessages = true
+
+			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
+			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			leafChannel, err := models.ChannelById(cl.LeafId)
+			So(err, ShouldBeNil)
+
+			otherChannel := models.CreateChannelWithTest(acc1.Id)
+			// add participants with tests
+			models.AddParticipants(otherChannel.Id, acc1.Id, acc2.Id)
+			// add same messages to the otherChannel
+
+			body := "hey yo! #" + leafChannel.Name
+			// add 3 message for each channel one by one
+			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm1Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm2Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			cm3Root := models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			// do the switch
+			So(controller.process(cl), ShouldBeNil)
+
+			//
+			// fetch the history
+			//
+			ses, err := models.FetchOrCreateSession(acc1.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cl.RootId,
+				&request.Query{
+					AccountId: acc1.Id,
+				},
+				ses.ClientId,
+			)
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 3)
+
+			// History returns messages in reversed order
+			// That is why we are checking with the following indexes
+			So(history.MessageList[2].Message.Id, ShouldEqual, cm1Root.Id)
+			So(history.MessageList[1].Message.Id, ShouldEqual, cm2Root.Id)
+			So(history.MessageList[0].Message.Id, ShouldEqual, cm3Root.Id)
+		})
+
+		Convey("make sure messages dont have hashtag in them when we merge to group channel", func() {
+			rootChannel := models.CreateTypedChannelWithTest(acc1.Id, models.Channel_TYPE_GROUP)
+			leafChannel := models.CreateTypedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC)
+
+			cl := &models.ChannelLink{
+				RootId: rootChannel.Id,
+				LeafId: leafChannel.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
+			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
+			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			leafChannel, err := models.ChannelById(cl.LeafId)
+			So(err, ShouldBeNil)
+
+			body := "hey yo! #" + leafChannel.Name
+			// add 3 message for each channel one by one
+			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.LeafId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+			models.CreateMessageWithBody(cl.RootId, acc1.Id, models.ChannelMessage_TYPE_POST, body)
+
+			// do the switch
+			So(controller.process(cl), ShouldBeNil)
+
+			//
+			// fetch the history
+			//
+			ses, err := models.FetchOrCreateSession(acc1.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			history, err := rest.GetHistory(
+				cl.RootId,
+				&request.Query{
+					AccountId: acc1.Id,
+				},
+				ses.ClientId,
+			)
+			So(err, ShouldBeNil)
+			So(history, ShouldNotBeNil)
+			So(len(history.MessageList), ShouldEqual, 6)
+
+			// History returns messages in reversed order
+			// That is why we are checking with the following indexes
+			So(history.MessageList[5].Message.Body, ShouldNotContainSubstring, "#"+leafChannel.Name)
+			So(history.MessageList[3].Message.Body, ShouldNotContainSubstring, "#"+leafChannel.Name)
+			So(history.MessageList[1].Message.Body, ShouldNotContainSubstring, "#"+leafChannel.Name)
+		})
 	})
 }
