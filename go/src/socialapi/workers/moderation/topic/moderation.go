@@ -223,7 +223,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		err := bongo.B.DB.
 			Unscoped().
 			Model(m).
-			TableName(m.TableName()).
+			Table(m.TableName()).
 			Limit(processCount).
 			Where("channel_id = ?", cl.LeafId).
 			Find(&messageLists).Error
@@ -282,7 +282,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				if err := bongo.B.
 					Unscoped().
 					Model(m).
-					TableName(m.TableName()).
+					Table(m.TableName()).
 					Delete(messageList).
 					Error; err != nil {
 					c.log.Error("Err while deleting the channel message list %s", err.Error())
@@ -296,7 +296,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				// update the message itself, without callbacks
 				if err := bongo.B.
 					Unscoped().
-					TableName(m.TableName()).
+					Table(m.TableName()).
 					Model(&messageList).
 					UpdateColumn("channel_id", cl.RootId).
 					Error; err != nil {
