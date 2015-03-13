@@ -214,6 +214,16 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 		return nil
 	}
 
+	// change what
+	toBeReplacedSourceString := "#" + leafChannel.Name
+	// with what
+	toBeReplacedTargetString := "#" + rootChannel.Name
+
+	// if the new root channel is our group channel, than do not replace the topics with group name :)
+	if cl.DeleteMessages || rootChannel.TypeConstant == models.Channel_TYPE_GROUP {
+		toBeReplacedTargetString = leafChannel.Name
+	}
+
 	m := models.ChannelMessageList{}
 	for {
 		var messageLists []models.ChannelMessageList
@@ -254,23 +264,13 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				continue
 			}
 
-			// update message here
-
-			// just a little shortcut here, update the initial channel id
-			if cm.InitialChannelId == leafChannel.Id {
-				cm.InitialChannelId = rootChannel.Id
-			}
-
-			// replace all occurences of the leaf node hashbangs with the root
-			// nodes. We can't determine if the multiple occurences of the same
-			// `Name` constitues a meaningful sentence - yes we can but it is
-			// not feasible for now...
-			cm.Body = strings.Replace(cm.Body, "#"+leafChannel.Name, "#"+rootChannel.Name, -1)
-
-			// update the message itself
-			if err := bongo.B.Update(cm); err != nil {
-				c.log.Error("Err while updating the mesage %s", err.Error())
-				erroredMessageLists = append(erroredMessageLists, messageLists[i])
+			// if deletemessage option is passed delete the messages
+			if cl.DeleteMessages {
+				err := cm.DeleteMessageAndDependencies(true)
+				if err != nil {
+					c.log.Error("Err while deleting the mesage %s", err.Error())
+					erroredMessageLists = append(erroredMessageLists, messageLists[i])
+				}
 				continue
 			}
 
@@ -309,6 +309,25 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				go bongo.B.AfterCreate(messageList)
 			}
 
+			// update message here
+
+			// just a little shortcut here, update the initial channel id
+			if cm.InitialChannelId == leafChannel.Id {
+				cm.InitialChannelId = rootChannel.Id
+			}
+
+			// replace all occurences of the leaf node hashbangs with the root
+			// nodes. We can't determine if the multiple occurences of the same
+			// `Name` constitues a meaningful sentence - yes we can but it is
+			// not feasible for now...
+			cm.Body = strings.Replace(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString, -1)
+
+			// update the message itself
+			if err := bongo.B.Update(cm); err != nil {
+				c.log.Error("Err while updating the mesage %s", err.Error())
+				erroredMessageLists = append(erroredMessageLists, messageLists[i])
+				continue
+			}
 		}
 	}
 
@@ -327,18 +346,6 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 	var processCount = 100
 
 	var erroredMessages []models.ChannelMessage
-
-	rootChannel, err := models.ChannelById(cl.RootId)
-	if err != nil {
-		c.log.Critical("requested root channel doesnt exist. ChannelId: %d", cl.RootId)
-		return nil
-	}
-
-	leafChannel, err := models.ChannelById(cl.LeafId)
-	if err != nil {
-		c.log.Critical("requested leaf channel doesnt exist. ChannelId: %d", cl.LeafId)
-		return nil
-	}
 
 	for {
 		var messages []models.ChannelMessage
@@ -378,9 +385,6 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 			}
 
 			cm.InitialChannelId = cl.RootId
-			// this may be a useless operation but, in any case while updating
-			// the message, update the body too
-			cm.Body = strings.Replace(cm.Body, "#"+leafChannel.Name, "#"+rootChannel.Name, -1)
 
 			// update the message itself. Used bongo.Update because
 			// ChannelMessage's Update method is overwritten
