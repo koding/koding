@@ -1,4 +1,4 @@
-box: koding/base@0.0.17
+box: koding/base@0.0.18
 no-response-timeout: 10
 services:
   - wercker/postgresql@0.0.4
@@ -24,10 +24,6 @@ build:
         name: build started
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
-    - script:
-        name: bump up npm to version 2.7.1
-        code: |
-          npm i npm@2.7.1 -g
     - script:
         name: koding node modules
         code: |
