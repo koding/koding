@@ -76,7 +76,11 @@ module.exports = class ComputeStateChecker extends KDObject
       else
         {klient}   = kontrol.kites
         machineUid = (computeController.findMachineFromMachineId machineId)?.uid
-        return  if not (machineUid? and klient? and klient[machineUid])
+        if not (machineUid? and klient? and klient[machineUid])
+          # Managed VMs needs to be checked even there is no klient kite
+          # instance available for them. Kontrol instance will create a new
+          # one if it's not exists. ~ GG
+          return  unless machine.provider is 'managed'
 
       kd.info "Checking all machine states..."  if checkAll
 
