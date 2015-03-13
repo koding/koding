@@ -48,7 +48,7 @@ module.exports = class StateMachine extends machina.Fsm
   ###*
    * Adds extra guards to machina's original transition method.
    *
-   * It checks `transitions` object to see if it's ok to transition to next method.
+   * It checks `transitions` object to see if it's ok to transition to next state.
    * If not throws an error.
    * Check happens as following:
    *
