@@ -421,8 +421,6 @@ class Haydar extends events.EventEmitter
         globs = [ path.join dir, '**', '*.' + STYLES_EXTENSION ]
         globs.push "!#{commons}"
 
-        styl manifest, globs
-
         onRaw = (e, file) ->
           return  unless file
           if e is 'modified' or e is 'deleted'
@@ -431,6 +429,8 @@ class Haydar extends events.EventEmitter
             styl manifest, globs
 
         onRaw = throttle onRaw, THROTTLE_WAIT
+
+        styl manifest, globs
 
         if opts.watchCss and ~watchingDirs.indexOf(dir) is 0
           watchingDirs.push dir
@@ -592,16 +592,22 @@ class Haydar extends events.EventEmitter
 
       manifest.sprites.forEach (basename) ->
         dir = path.join manifest.basedir, basename
+
+        onRaw = (e, file) ->
+          return  unless file
+          if e is 'modified' or e is 'deleted'
+            console.log "updated #{file}"
+            start = Date.now()
+            smith manifest, dir
+
+        onRaw = throttle onRaw, THROTTLE_WAIT
+
         smith manifest, dir
 
         if opts.watchSprites
           w = chokidar.watch dir, persistent: yes
           w.on 'ready', ->
-            w.on 'raw', (e, file) ->
-              if e is 'modified' or e is 'deleted'
-                console.log e + ' ' + file
-                start = Date.now()
-                smith manifest, dir
+            w.on 'raw', onRaw
 
 
     manifests.forEach (manifest) ->
