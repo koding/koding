@@ -30,27 +30,27 @@ all: landing development
 dist: landing minify-with-external-sourcemaps
 
 vanilla:
-	@$(BUILDER) $(BUILDER_ARGS)
+	$(BUILDER) $(BUILDER_ARGS)
 
 debug:
 	$(BUILDER) -v $(BUILDER_DEBUG_FLAGS) $(BUILDER_ARGS)
 
 watch:
-	@$(BUILDER) -v $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
+	$(BUILDER) -v $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
 
 development:
-	@$(BUILDER) -v $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
+	$(BUILDER) -v $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
 
 minify-with-external-sourcemaps:
-	@$(BUILDER)  \
+	$(BUILDER) -v \
 		$(BUILDER_MINIFY_FLAGS) \
 		$(BUILDER_EXT_SOURCEMAPS_FLAGS) \
 		$(BUILDER_ARGS)
 
 minify:
-	@$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS)
+	$(BUILDER) $(BUILDER_MINIFY_FLAGS) $(BUILDER_ARGS)
 
 landing:
-	@$(MAKE) -C landing
+	$(MAKE) -C landing
 
 .PHONY: landing

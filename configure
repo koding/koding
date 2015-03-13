@@ -76,9 +76,14 @@ rest = ->
   # write version to client/.config.json
   writeVersion = (obj) ->
     s = JSONStream.stringifyObject()
-    s.pipe fs.createWriteStream('./client/.config.json')
+    outfile = __dirname + '/client/.config.json'
+    ws = fs.createWriteStream outfile
+    s.pipe ws
     s.write ['rev', obj.client.version]
     s.end()
+    ws.on 'finish', ->
+      console.log "written #{outfile}"
+
 
   createRunFile KONFIG
   writeVersion KONFIG
