@@ -73,14 +73,15 @@ rest = ->
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
-  createClientConfig = (obj) ->
+  # write version to client/.config.json
+  writeVersion = (obj) ->
     s = JSONStream.stringifyObject()
-    s.pipe fs.createWriteStream('./client/.client-config.json')
-    s.write ['config', obj.client]
+    s.pipe fs.createWriteStream('./client/.config.json')
+    s.write ['rev', obj.client.version]
     s.end()
 
   createRunFile KONFIG
-  createClientConfig KONFIG
+  writeVersion KONFIG
 
 
 git.long (str) ->
