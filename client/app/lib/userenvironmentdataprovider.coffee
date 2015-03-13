@@ -3,6 +3,7 @@ nick = require 'app/util/nick'
 globals = require 'globals'
 remote = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
+sinkrow = require 'sinkrow'
 
 
 module.exports = UserEnvironmentDataProvider =
@@ -197,3 +198,26 @@ module.exports = UserEnvironmentDataProvider =
         console.error "User Environment  Data Provider: #{err}"
 
       callback err, workspace
+
+
+  ensureDefaultWorkspace: (callback) ->
+
+    data = @get()
+
+    queue = @getMyMachines().concat @getSharedMachines()
+
+      .map ({machine, workspaces}) =>
+
+        =>
+
+          for workspace in workspaces when workspace.isDefault
+            return queue.fin()
+
+          @createDefaultWorkspace machine, (err, workspace) ->
+
+            return queue.fin()  if err
+
+            workspaces.push workspace  if workspace
+            queue.fin()
+
+    sinkrow.dash queue, callback
