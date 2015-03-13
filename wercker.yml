@@ -25,6 +25,10 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
     - script:
+        name: bump up npm to version 2.7.1
+        code: |
+          npm i npm@2.7.1 -g
+    - script:
         name: koding node modules
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
