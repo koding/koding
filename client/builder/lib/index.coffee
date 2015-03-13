@@ -120,15 +120,12 @@ class Haydar extends events.EventEmitter
         child_process.exec "node #{__dirname}/get-bongo-schema.js", (err, res) =>
           throw err if err
           opts.schema = JSON.parse res
-          ws = fs.createWriteStream opts.configFile
-          s = JSONStream.stringifyObject()
-          s.pipe ws
-          s.write [ 'rev', opts.rev ]
-          s.write [ 'schema', opts.schema ]
-          s.end()
-          ws.on 'finish', =>
-            @_timeEnd "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
-            @_build()
+          configData =
+            rev    : opts.rev
+            schema : opts.schema
+          fs.writeFileSync opts.configFile, JSON.stringify(configData)
+          @_timeEnd "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
+          @_build()
       else
         @_build()
 
