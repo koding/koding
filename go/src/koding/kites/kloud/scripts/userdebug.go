@@ -22,8 +22,8 @@ import (
 type Config struct {
 	Username   string
 	InstanceId string
-	MongoURL   string `required:"true"`
 
+	MongoURL  string `required:"true"`
 	AccessKey string `required:"true"`
 	SecretKey string `required:"true"`
 }
@@ -70,7 +70,7 @@ func main() {
 
 func realMain() error {
 	conf := new(Config)
-	multiconfig.MustLoad(conf)
+	multiconfig.MustLoadWithPath("config.toml", conf)
 
 	db := mongodb.NewMongoDB(conf.MongoURL)
 	auth := aws.Auth{
@@ -161,6 +161,7 @@ type machine struct {
 
 func (m *machine) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= MongoDB ==========\n")
+	fmt.Fprintf(w, "Username:\t%s\n", m.m.Credential)
 	fmt.Fprintf(w, "MachineId:\t%s\n", m.m.Id.Hex())
 	fmt.Fprintf(w, "Instance Id:\t%s\n", m.m.Meta.InstanceId)
 	fmt.Fprintf(w, "Instance Type:\t%s\n", m.m.Meta.InstanceType)
