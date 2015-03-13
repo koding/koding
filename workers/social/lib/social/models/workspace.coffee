@@ -174,7 +174,7 @@ module.exports = class JWorkspace extends Module
       ws.update options, callback
 
 
-  @createDefault: (client, machineUId, callback) ->
+  @createDefault: secure (client, machineUId, callback) ->
 
     JMachine.one$ client, machineUId, (err, machine) =>
 
