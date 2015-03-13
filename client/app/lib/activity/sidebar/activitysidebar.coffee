@@ -649,6 +649,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       return kd.warn err  if err
 
+      environmentDataProvider.clearWorkspaces machine
+
 
   removeMachineNode: (machine) ->
 
