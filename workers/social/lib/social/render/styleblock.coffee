@@ -12,6 +12,6 @@ module.exports = (options={})->
   <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1" />
   <link rel="shortcut icon" href="#{options.logo}" />
   <link rel="fluid-icon" href="/a/images/logos/fluid512.png" title="Koding" />
-  <link rel="stylesheet" href="/a/p/p/kd.css?#{KONFIG.version}" />
-  <link rel="stylesheet" href="/a/p/p/app.css?#{KONFIG.version}" />
+  <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/kd.css" />
+  <link rel="stylesheet" href="/a/p/p/#{KONFIG.version}/app.css" />
   """

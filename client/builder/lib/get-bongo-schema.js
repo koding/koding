@@ -3,9 +3,9 @@
 var path = require('path');
 require('coffee-script/register');
 
-var root = path.resolve(__dirname, '../');
-var config = path.resolve(__dirname, '../config/main.dev.coffee');
-var models = path.resolve(__dirname, '../workers/social/lib/social/models');
+var root = path.resolve(__dirname, '../../../');
+var config = path.resolve(__dirname, '../../../config/main.dev.coffee');
+var models = path.resolve(__dirname, '../../../workers/social/lib/social/models');
 
 process.chdir(root);
 config = require(config)().JSON;
