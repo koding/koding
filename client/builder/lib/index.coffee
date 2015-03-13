@@ -530,6 +530,9 @@ class Haydar extends events.EventEmitter
               console.error chalk.red('sprites') + ': stylus hates it when you have dots in image filenames, fix this: ' + sprite.name
               throw 'throwing cowardly'
 
+            sprite.name = "#{rname}_#{manifest.name}_#{sprite.name}"
+            return sprite
+
         s = vfs.src(dir).pipe spritesmith opts_
         return {
           name   : manifest.name
