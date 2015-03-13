@@ -54,7 +54,8 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
               modal.destroy()
             else
               ace.requestSave()
-              @closePaneAndModal pane, modal
+              file.once "fs.save.finished", (err) => @removePane_ pane  unless err
+              modal.destroy()
         "DontSave"  :
           cssClass  : "solid red medium"
           title     : "Don't Save"

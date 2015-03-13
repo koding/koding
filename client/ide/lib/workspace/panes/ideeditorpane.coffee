@@ -32,7 +32,9 @@ module.exports = class IDEEditorPane extends IDEPane
     file.once 'fs.delete.finished', =>
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
-    file.on [ 'fs.save.finished', 'fs.saveAs.finished' ], IDEHelpers.showPermissionErrorOnSavingFile
+    @errorOnSave = no
+    @saveCallback = @bound 'handleSaveFinished'
+    file.on [ 'fs.save.finished', 'fs.saveAs.finished' ], @saveCallback
 
     @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
@@ -80,6 +82,7 @@ module.exports = class IDEEditorPane extends IDEPane
   handleAutoSave: ->
 
     return   if @getFile().path.indexOf('localfile:/') > -1
+    return   if @errorOnSave
     @save()  if @getAce().isContentChanged()
 
 
@@ -398,6 +401,12 @@ module.exports = class IDEEditorPane extends IDEPane
     @getEditor()?.setReadOnly no
 
 
+  handleSaveFinished: (err) ->
+
+    @errorOnSave = err?
+    IDEHelpers.showPermissionErrorOnSavingFile err  if err
+
+
   destroy: ->
 
-    @file.off [ 'fs.save.finished', 'fs.saveAs.finished' ], IDEHelpers.showPermissionErrorOnSavingFile
+    @file.off [ 'fs.save.finished', 'fs.saveAs.finished' ], @saveCallback
