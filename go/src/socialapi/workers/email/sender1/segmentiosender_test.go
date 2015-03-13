@@ -47,9 +47,7 @@ func TestSegmentIOSender(t *testing.T) {
 		user := &User{Username: "indianajones"}
 		event := &Event{Name: "test", Properties: props, User: user}
 
-		sender := NewSegementIOSender(url.String(), "")
-		sender.Client.Size = 1
-
+		sender := NewSegementIOSender(url.String(), "", 1)
 		err := sender.Send(event)
 		So(err, ShouldBeNil)
 

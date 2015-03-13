@@ -11,11 +11,13 @@ type SegementIOSender struct {
 	Client *analytics.Client
 }
 
-func NewSegementIOSender(endpoint, key string) *SegementIOSender {
+func NewSegementIOSender(endpoint, key string, size int) *SegementIOSender {
 	client := analytics.New(key)
 	if endpoint != "" {
 		client.Endpoint = endpoint
 	}
+
+	client.Size = size
 
 	return &SegementIOSender{Client: client}
 }
