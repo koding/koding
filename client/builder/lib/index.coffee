@@ -1,31 +1,32 @@
-fs           = require 'fs'
-vfs          = require 'vinyl-fs'
-path         = require 'path'
-gloh         = require 'gloh'
-defined      = require 'defined'
-bant         = require 'bant'
-JSONStream   = require 'JSONStream'
-through      = require 'through2'
-coffeeify    = require 'coffeeify'
-pistachioify = require 'pistachioify'
-uglifyify    = require 'uglifyify'
-xtend        = require 'xtend'
-async        = require 'async'
-inspect      = require('util').inspect
-pretty       = require 'pretty-bytes'
-exorcist     = require 'exorcist'
-asStream     = require 'as-stream'
-notifier     = require 'node-notifier'
-mkdirp       = require 'mkdirp'
-nub          = require 'nub'
-spritesmith  = require 'gulp.spritesmith'
-chalk        = require 'chalk'
-chokidar     = require 'chokidar'
-events       = require 'events'
-nib          = require 'nib'
-stylus       = require 'gulp-stylus'
-concat       = require 'gulp-concat'
-throttle     = require 'throttleit'
+fs            = require 'fs'
+vfs           = require 'vinyl-fs'
+path          = require 'path'
+gloh          = require 'gloh'
+defined       = require 'defined'
+bant          = require 'bant'
+JSONStream    = require 'JSONStream'
+through       = require 'through2'
+coffeeify     = require 'coffeeify'
+pistachioify  = require 'pistachioify'
+uglifyify     = require 'uglifyify'
+xtend         = require 'xtend'
+async         = require 'async'
+inspect       = require('util').inspect
+pretty        = require 'pretty-bytes'
+exorcist      = require 'exorcist'
+asStream      = require 'as-stream'
+notifier      = require 'node-notifier'
+mkdirp        = require 'mkdirp'
+nub           = require 'nub'
+spritesmith   = require 'gulp.spritesmith'
+chalk         = require 'chalk'
+chokidar      = require 'chokidar'
+events        = require 'events'
+nib           = require 'nib'
+stylus        = require 'gulp-stylus'
+concat        = require 'gulp-concat'
+throttle      = require 'throttleit'
+child_process = require 'child_process'
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -57,21 +58,20 @@ class Haydar extends events.EventEmitter
       outdir    : defined opts.outdir, process.cwd()
       baseurl   : defined opts.baseurl, '/'
       defaults  : defined opts.globalsFile, {}
-      cfg       : defined opts.configFile, {}
+      config    : defined opts.configFile, {}
       manifests : defined opts.use, []
 
     opts.basedir = path.resolve __dirname, opts.basedir
     opts.outdir = path.resolve __dirname, opts.outdir
 
-    if 'string' is typeof opts.cfg
-      opts.cfg = require @_resolve(opts.cfg)
+    if 'string' is typeof opts.config
+      opts.config = require @_resolve(opts.config)
 
-    opts.config = defined opts.cfg.config, {}
-    opts.schema = defined opts.cfg.schema, {}
-    opts.rev    = defined opts.config.version, '2.0'
+    opts.rev    = defined opts.config.rev, '2.0'
+    opts.schema = defined opts.config.schema, null
 
     if opts.revId
-      opts.outdir = path.join opts.outdir, opts.rev
+      opts.outdir  = path.join opts.outdir, opts.rev
       opts.baseurl = "#{opts.baseurl}/#{opts.rev}"
 
     opts.spriteTmpCssOutdir = @_resolve SPRITES_TMPDIR
@@ -114,6 +114,24 @@ class Haydar extends events.EventEmitter
 
     dirs = [ opts.outdir ]
 
+    getModels = =>
+      if opts.schema is null and 'object' is typeof opts.config
+        @_time "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
+        child_process.exec "node #{__dirname}/get-bongo-schema.js", (err, res) =>
+          throw err if err
+          opts.schema = JSON.parse res
+          ws = fs.createWriteStream opts.configFile
+          s = JSONStream.stringifyObject()
+          s.pipe ws
+          s.write [ 'rev', opts.rev ]
+          s.write [ 'schema', opts.schema ]
+          s.end()
+          ws.on 'finish', =>
+            @_timeEnd "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
+            @_build()
+      else
+        @_build()
+
     getFiles opts.manifests, opts.basedir,
       (err, files) =>
         throw err if err
@@ -144,7 +162,7 @@ class Haydar extends events.EventEmitter
               createDirs dirs, =>
                 opts.manifests = manifests
                 opts.rsManifests = rsManifests
-                @_build()
+                getModels()
             cb()
 
           s.pipe(parse).pipe(tr)
