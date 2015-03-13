@@ -381,6 +381,8 @@ class Haydar extends events.EventEmitter
         use       : nib()
         compress  : if opts.minifyCss then yes else no
         import    : includes
+        define    :
+          assetsPath: "#{opts.baseurl}/#{ASSETS_OUTDIR}"
         sourcemap :
           inline: if opts.debugCss then yes else no
 
