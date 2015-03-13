@@ -70,7 +70,7 @@ class Haydar extends events.EventEmitter
 
     if opts.revId
       opts.outdir = path.join opts.outdir, opts.rev
-      opts.baseurl = [ opts.baseurl, opts.rev ].join '/'
+      opts.baseurl = "#{opts.baseurl}/#{opts.rev}"
 
     opts.spriteTmpCssOutdir = @_resolve SPRITES_TMPDIR
     opts.spriteImgOutdir = defined opts.spriteImgOutdir, opts.outdir
@@ -203,7 +203,7 @@ class Haydar extends events.EventEmitter
         name       : name
         routes     : manifest.routes
         shortcuts  : manifest.shortcuts
-        style      : opts.baseurl + '/' + manifest.name + '.css'
+        style      : "#{opts.baseurl}/#{manifest.name}.css"
       }
 
     transforms = [ coffeeify, pistachioify ]
@@ -225,7 +225,7 @@ class Haydar extends events.EventEmitter
         #}
       } ]
 
-    aceBasePath = [ opts.baseurl, THIRDPARTY_OUTDIR, 'ace' ].join '/'
+    aceBasePath = "#{opts.baseurl}/#{THIRDPARTY_OUTDIR}/ace"
 
     opts_ =
       basedir    : opts.basedir
@@ -273,41 +273,49 @@ class Haydar extends events.EventEmitter
           if not opts.watchJs
             throw err
           else
-            src = 'console.error(' + JSON.stringify(String(err)) + ')'
+            errString = JSON.stringify String err
+            src = "console.error('#{errString}')"
             fs.writeFile outfile, src, (err) ->
               if err
                 console.error err # wtf
               else
-                console.log 'written error to ' + outfile
+                console.log "written error to #{outfile}"
         else
+
           if opts.extractJsSourcemaps
             s = fs.createWriteStream outfile
             asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
+
             s.once 'finish', ->
               secs = ((Date.now() - start)/1000).toFixed 2
-              msg = 'written ' + outfile + ' (' + secs + ')'
+              msg = "written #{outfile} (#{secs})"
               console.log msg
-              console.log 'extracted source maps to ' + opts.jsSourcemapsOutfile
+              console.log "extracted source maps to #{opts.jsSourcemapsOutfile}"
               if not opts.watchJs
                 done()
               else
                 notify 'scripts', msg
+
             s.on 'error', (err) ->
               if not opts.watchJs
                 throw err
               else
                 console.error err
+
           else
+
             fs.writeFile outfile, src, (err, res) ->
               if err
                 if not opts.watchJs
                   throw err
                 else
                   console.error err
+
               else
                 secs = ((Date.now() - start)/1000).toFixed 2
-                msg = pretty(src.length) + ' written to ' + outfile + ' (' + secs + ')'
+                msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
                 console.log msg
+
                 if not opts.watchJs
                   done()
                 else
@@ -387,10 +395,12 @@ class Haydar extends events.EventEmitter
 
       ws.on 'finish', ->
         timeEnd 'styles: write ' + outfile
+
         if --pending is 0
           secs = ((Date.now() - start)/1000).toFixed 2
-          msg = 'written styles to ' + opts.stylesOutdir + ' (' + secs + ')'
+          msg = "written styles to #{opts.stylesOutdir} (#{secs})"
           console.log msg
+
           if not opts.watchCss
             done()
           else
@@ -402,6 +412,7 @@ class Haydar extends events.EventEmitter
 
       manifest.styles.forEach (basename) ->
         dir = path.join manifest.basedir, basename
+
         globs = [ path.join dir, '**', '*.' + STYLES_EXTENSION ]
         globs.push "!#{commons}"
 
@@ -412,7 +423,7 @@ class Haydar extends events.EventEmitter
           w.on 'ready', ->
             w.on 'raw', (e, file) ->
               if e is 'modified' or e is 'deleted'
-                console.log e + ' ' + file
+                console.log "#{e} file"
                 start = Date.now()
                 styl manifest, globs
 
@@ -511,12 +522,12 @@ class Haydar extends events.EventEmitter
 
       entities = [1, 2].map (ratio) ->
 
-        rname = ratio + 'x'
+        rname = "#{ratio}x"
 
-        dir = path.join basedir, rname, '**', '*.' + SPRITESMITH_IMG_EXTENSION
+        files = path.join basedir, rname, '**', "*.#{SPRITESMITH_IMG_EXTENSION}"
 
-        imgName = manifest.name + '@' + rname + '.' + SPRITESMITH_IMG_EXTENSION
-        cssName = SPRITESMITH_CSS_NAME_PREFIX + rname + '.' + SPRITESMITH_CSS_EXTENSION
+        imgName = "#{manifest.name}@#{rname}.#{SPRITESMITH_IMG_EXTENSION}"
+        cssName = "#{SPRITESMITH_CSS_NAME_PREFIX}#{rname}.#{SPRITESMITH_CSS_EXTENSION}"
 
         opts_ =
           algorithm : SPRITESMITH_ALGORITHM
@@ -533,7 +544,7 @@ class Haydar extends events.EventEmitter
             sprite.name = "#{rname}_#{manifest.name}_#{sprite.name}"
             return sprite
 
-        s = vfs.src(dir).pipe spritesmith opts_
+        s = vfs.src(files).pipe spritesmith opts_
         return {
           name   : manifest.name
           rname  : rname
