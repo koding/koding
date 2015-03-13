@@ -84,16 +84,16 @@ func TestNewMessageCreation(t *testing.T) {
 			So(length, ShouldEqual, 2)
 
 			// since first account is message owner he is not notified
-			length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[0].Id, period))
+			length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[0].Id))
 			So(err, ShouldBeNil)
 			So(length, ShouldEqual, 0)
 
 			// second and third users must be notified
-			length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[1].Id, period))
+			length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[1].Id))
 			So(err, ShouldBeNil)
 			So(length, ShouldEqual, 1)
 
-			length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[2].Id, period))
+			length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[2].Id))
 			So(err, ShouldBeNil)
 			So(length, ShouldEqual, 1)
 
@@ -110,7 +110,7 @@ func TestNewMessageCreation(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				// account does not have any more pending notification channel
-				length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[1].Id, period))
+				length, err = redisConn.GetHashLength(common.AccountChannelHashSetKey(accounts[1].Id))
 				So(err, ShouldBeNil)
 				So(length, ShouldEqual, 0)
 

@@ -31,12 +31,11 @@ func PeriodAccountSetKey(period string) string {
 	)
 }
 
-func AccountChannelHashSetKey(accountId int64, period string) string {
-	return fmt.Sprintf("%s:%s:%s:%s:%d",
+func AccountChannelHashSetKey(accountId int64) string {
+	return fmt.Sprintf("%s:%s:%s:%d",
 		config.MustGet().Environment,
 		CachePrefix,
 		"account-channelhashset",
-		period,
 		accountId,
 	)
 }
