@@ -190,11 +190,16 @@ module.exports = class JWorkspace extends Module
         return callback err  if err
         return callback null, workspace  if workspace
 
-        data =
-          name         : 'My Workspace'
-          isDefault    : yes
-          machineLabel : machine.label
-          machineUId   : machine.uid
-          rootPath     : "/home/#{nickname}"
+        machine.fetchOwner (err, account) =>
 
-        @create client, data, callback
+          return callback err  if err
+
+          data =
+            name         : 'My Workspace'
+            isDefault    : yes
+            machineLabel : machine.label
+            machineUId   : machine.uid
+            rootPath     : "/home/#{nickname}"
+            originId     : account.getId()
+
+          @create client, data, callback
