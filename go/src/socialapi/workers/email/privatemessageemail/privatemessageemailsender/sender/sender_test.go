@@ -39,7 +39,7 @@ func TestChatEmailSender(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		err = redisConn.HashMultipleSet(
-			common.AccountChannelHashSetKey(12, testPeriod),
+			common.AccountChannelHashSetKey(12),
 			map[string]interface{}{channelId: awaySince},
 		)
 		So(err, ShouldBeNil)
