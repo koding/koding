@@ -1,10 +1,10 @@
 { expect } = require 'chai'
 
-KDStateMachine = require '../lib/statemachine'
+StateMachine = require '../lib/statemachine'
 
 describe 'StateMachine', ->
 
-  class FooMachine extends KDStateMachine
+  class FooMachine extends StateMachine
     states: [
       'Loading'
       'Activating'

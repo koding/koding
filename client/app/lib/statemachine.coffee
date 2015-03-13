@@ -1,7 +1,7 @@
 machina = require 'machina'
 _ = require 'lodash'
 
-module.exports = class KDStateMachine extends machina.Fsm
+module.exports = class StateMachine extends machina.Fsm
 
   ###*
    * Abstract StateMachine class.
