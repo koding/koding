@@ -187,3 +187,13 @@ module.exports = UserEnvironmentDataProvider =
       break
 
     return instance
+
+
+  createDefaultWorkspace: (machine, callback) ->
+
+    remote.api.JWorkspace.createDefault machine.uid, (err, workspace) ->
+
+      if err
+        console.error "User Environment  Data Provider: #{err}"
+
+      callback err, workspace
