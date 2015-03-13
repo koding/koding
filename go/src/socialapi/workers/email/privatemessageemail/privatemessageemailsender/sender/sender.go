@@ -220,8 +220,13 @@ func (c *Controller) FetchChannelSummaries(a *models.Account, timezone int) ([]*
 		}
 
 		cs, err := c.buildChannelSummary(a, ch, awayTime, timezone)
+		if err == emailmodels.ErrMessageNotFound {
+			continue
+		}
+
 		if err != nil {
-			return channels, err
+			c.log.Error("Could not render email channel content: %s", err)
+			continue
 		}
 
 		channels = append(channels, cs)
@@ -233,7 +238,6 @@ func (c *Controller) FetchChannelSummaries(a *models.Account, timezone int) ([]*
 func (c *Controller) buildChannelSummary(a *models.Account, ch *models.Channel, awayTime time.Time, timezoneOffset int) (*emailmodels.ChannelSummary, error) {
 	cs, err := emailmodels.NewChannelSummary(a, ch, awayTime, timezoneOffset)
 	if err != nil {
-		c.log.Error("Could not decorate channel summary: %s", err)
 		return nil, err
 	}
 
