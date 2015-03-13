@@ -190,18 +190,18 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
-        name: cat socialapi
-        code: |
-          tail -n 100 /var/log/koding/social-api.log
-          tail -n 100 /var/log/koding/social-populartopic.log
-          tail -n 100 /var/log/koding/social-pinnedpost.log
-    - script:
         name: cat npm-debug
         code: |
           tail -n 100 npm-debug.log
           tail -n 100 client/npm-debug.log
           tail -n 100 client/landing/npm-debug.log
           tail -n 100 client/builder/npm-debug.log
+    - script:
+        name: cat socialapi
+        code: |
+          tail -n 100 /var/log/koding/social-api.log
+          tail -n 100 /var/log/koding/social-populartopic.log
+          tail -n 100 /var/log/koding/social-pinnedpost.log
     - script:
         name: terminate test instance
         code: |
