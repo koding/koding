@@ -43,13 +43,21 @@ module.exports = class JWorkspace extends Module
       instance     : []
 
 
-  @create = secure (client, data, callback) ->
+  @create$ = secure (client, data, callback) ->
 
     {delegate}    = client.connection
     data.originId = delegate._id
 
-    nickname      = delegate.profile.nickname
-    data.slug     = slugify data.name?.toLowerCase()
+    @create client, data, callback
+
+
+  @create = secure (client, data, callback) ->
+
+    {delegate}     = client.connection
+    data.originId ?= delegate._id
+
+    nickname  = delegate.profile.nickname
+    data.slug = slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, originId, machineLabel} = data
 
