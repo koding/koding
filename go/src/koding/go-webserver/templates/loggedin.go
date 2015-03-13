@@ -14,7 +14,7 @@ var LoggedInHome = `
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
     <script>
-      var globals = {
+      var _globals = {
         config: {{.Runtime}},
         isLoggedInOnLoad: true,
         userId: {{.User.GetWithDefaultStr "UserId" }},

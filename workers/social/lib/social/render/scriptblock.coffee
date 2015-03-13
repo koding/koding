@@ -47,7 +47,7 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script>
-      var globals = {
+      var _globals = {
         config: #{config},
         userId: #{userId},
         userAccount: #{userAccount},
