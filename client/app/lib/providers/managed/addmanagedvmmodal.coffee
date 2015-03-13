@@ -7,37 +7,7 @@ INSTALL_INSTRUCTIONS = """bash
   # Enter your koding.com credentials when asked for
 """
 
-class ManagedVMBaseModal extends kd.ModalView
-
-  constructor: (options = {}, data) ->
-
-    defaults   =
-      width    : 640
-      cssClass : 'managed-vm modal'
-
-    options    = defaults extends options
-
-    super options, data
-
-    @addSubView @container = new kd.View
-
-    @states  =
-      initial: (data) =>
-        view.addTo @container, message: 'Override this state first.'
-
-
-  switchTo: (state, data)->
-
-    @container.destroySubViews()
-
-    state = 'initial'  unless @states[state]?
-    stateFn = @states[state]
-    stateFn data
-
-
-  viewAppended: ->
-    @switchTo 'initial'
-
+ManagedVMBaseModal = require './basemodal'
 
 module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
