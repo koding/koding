@@ -141,7 +141,7 @@ func realMain() error {
 func machinesFromUsername(db *mongodb.MongoDB, username string) (*machines, error) {
 	machines := newMachines()
 	err := db.Run("jMachines", func(c *mgo.Collection) error {
-		var m *MachineDocument
+		var m MachineDocument
 		iter := c.Find(bson.M{"credential": username}).Iter()
 
 		for iter.Next(&m) {
@@ -168,16 +168,16 @@ func machinesFromInstanceId(db *mongodb.MongoDB, instanceId string) (*machines, 
 
 func newMachines() *machines {
 	return &machines{
-		docs: make([]*MachineDocument, 0),
+		docs: make([]MachineDocument, 0),
 	}
 }
 
 type machines struct {
-	docs []*MachineDocument
+	docs []MachineDocument
 }
 
 func (m *machines) Print(w io.Writer) {
-	fmt.Fprintf(w, "============= MongoDB ('%d' machines) ==========\n", len(m.docs))
+	fmt.Fprintf(w, "============= MongoDB ('%d' docs) ==========\n", len(m.docs))
 
 	for _, machine := range m.docs {
 		fmt.Fprintf(w, "Username:\t%s\n", machine.Credential)
