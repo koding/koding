@@ -580,7 +580,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
 
   findNodes: ->
-    new kd.NotificationView title: 'COMING SOON.'
+    FindManagedNodesModal = require './managed/findnodesmodal'
+    new FindManagedNodesModal { @machine }
 
 
   turnOnMachine: ->
