@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/multiec2"
@@ -19,8 +20,9 @@ import (
 )
 
 type Config struct {
-	Username string `required:"true"`
-	MongoURL string `required:"true"`
+	Username   string
+	InstanceId string
+	MongoURL   string `required:"true"`
 
 	AccessKey string `required:"true"`
 	SecretKey string `required:"true"`
@@ -83,73 +85,137 @@ func realMain() error {
 		"eu-west-1",
 	})
 
-	var m *MachineDocument
-	if err := db.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"credential": conf.Username}).One(&m)
-	}); err != nil {
-		return err
-	}
-
 	w := new(tabwriter.Writer)
-	defer w.Flush()
 	w.Init(os.Stdout, 10, 8, 0, '\t', 0)
+	defer w.Flush()
+
+	if conf.Username != "" {
+		m, err := machineFromUsername(db, conf.Username)
+		if err == nil {
+			m.Print(w)
+
+			// if the mongodb document has a region and instanceId, display it too
+			if m.m.Meta.Region != "" && m.m.Meta.InstanceId != "" {
+				client, err := ec2clients.Region(m.m.Meta.Region)
+				if err != nil {
+					return err
+				}
+
+				i, err := awsData(client, m.m.Meta.InstanceId)
+				if err != nil {
+					return err
+				}
+
+				i.Print(w)
+			}
+		} else {
+			fmt.Fprintf(os.Stderr, err.Error())
+		}
+	}
+
+	if conf.InstanceId != "" {
+		for _, client := range ec2clients.Regions() {
+			i, err := awsData(client, conf.InstanceId)
+			if err != nil {
+				continue // if not found continue with next region
+			}
+
+			// if we find a mongoDB document display it
+			m, err := machineFromInstanceId(db, conf.InstanceId)
+			if err == nil {
+				m.Print(w)
+			}
+
+			i.Print(w)
+			break
+		}
+	}
+
+	return nil
+}
+
+func machineFromUsername(db *mongodb.MongoDB, username string) (*machine, error) {
+	var m *MachineDocument
+	err := db.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"credential": username}).One(&m)
+	})
+
+	return &machine{
+		m: m,
+	}, err
+}
+
+func machineFromInstanceId(db *mongodb.MongoDB, instanceId string) (*machine, error) {
+	var m *MachineDocument
+	err := db.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"meta.instanceId": instanceId}).One(&m)
+	})
+	return &machine{
+		m: m,
+	}, err
+}
+
+type machine struct {
+	m *MachineDocument
+}
+
+func (m *machine) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= MongoDB ==========\n")
-
-	fmt.Fprintf(w, "MachineId:\t%s\n", m.Id.Hex())
-	fmt.Fprintf(w, "Instance Id:\t%s\n", m.Meta.InstanceId)
-	fmt.Fprintf(w, "Instance Type:\t%s\n", m.Meta.InstanceType)
-	fmt.Fprintf(w, "Region:\t%s\n", m.Meta.Region)
-	fmt.Fprintf(w, "IP Address:\t%s\n", m.IpAddress)
-	fmt.Fprintf(w, "Storage Size:\t%d\n", m.Meta.StorageSize)
-	fmt.Fprintf(w, "Status:\t%s (%s)\n", m.Status.State, m.Status.Reason)
+	fmt.Fprintf(w, "MachineId:\t%s\n", m.m.Id.Hex())
+	fmt.Fprintf(w, "Instance Id:\t%s\n", m.m.Meta.InstanceId)
+	fmt.Fprintf(w, "Instance Type:\t%s\n", m.m.Meta.InstanceType)
+	fmt.Fprintf(w, "Region:\t%s\n", m.m.Meta.Region)
+	fmt.Fprintf(w, "IP Address:\t%s\n", m.m.IpAddress)
+	fmt.Fprintf(w, "Storage Size:\t%d\n", m.m.Meta.StorageSize)
+	fmt.Fprintf(w, "Status:\t%s (%s)\n", m.m.Status.State, m.m.Status.Reason)
 	fmt.Fprintln(w)
+}
 
-	if m.Meta.Region == "" {
-		return nil
-	}
+type instance struct {
+	ec2    ec2.Instance
+	volume ec2.Volume
+}
 
-	client, err := ec2clients.Region(m.Meta.Region)
+func (i *instance) Print(w io.Writer) {
+	fmt.Fprintf(w, "============= AWS ==========\n")
+	fmt.Fprintf(w, "IP Address:\t%s\n", i.ec2.PublicIpAddress)
+	fmt.Fprintf(w, "State:\t%s\n", i.ec2.State.Name)
+	fmt.Fprintf(w, "Image Id:\t%s\n", i.ec2.ImageId)
+	fmt.Fprintf(w, "Availibility Zone:\t%s\n", i.ec2.AvailZone)
+	fmt.Fprintf(w, "Launch Time:\t%s\n", i.ec2.LaunchTime)
+	fmt.Fprintf(w, "Storage Size:\t%s\n", i.volume.Size)
+}
+
+func awsData(client *ec2.EC2, instanceId string) (*instance, error) {
+	resp, err := client.Instances([]string{instanceId}, ec2.NewFilter())
 	if err != nil {
-		return err
-	}
-
-	resp, err := client.Instances([]string{m.Meta.InstanceId}, ec2.NewFilter())
-	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(resp.Reservations) == 0 {
-		return errors.New("resp.Reservation shouldn't be null")
+		return nil, errors.New("resp.Reservation shouldn't be null")
 	}
 
 	instances := resp.Reservations[0]
 	if len(instances.Instances) == 0 {
-		return errors.New("instances.Instances shouldn't be null")
+		return nil, errors.New("instances.Instances shouldn't be null")
 	}
+
 	i := instances.Instances[0]
-
-	fmt.Fprintf(w, "============= AWS ==========\n")
-	fmt.Fprintf(w, "IP Address:\t%s\n", i.PublicIpAddress)
-	fmt.Fprintf(w, "State:\t%s\n", i.State.Name)
-	fmt.Fprintf(w, "Image Id:\t%s\n", i.ImageId)
-	fmt.Fprintf(w, "Availibility Zone:\t%s\n", i.AvailZone)
-	fmt.Fprintf(w, "Launch Time:\t%s\n", i.LaunchTime)
-
-	if len(i.BlockDevices) == 0 {
-		return errors.New("VM doesn't have any block devices!")
-	}
 
 	volResp, err := client.Volumes([]string{i.BlockDevices[0].VolumeId}, ec2.NewFilter())
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(volResp.Volumes) == 0 {
-		return errors.New("volResp.Volumes shouldn't be null")
+		return nil, errors.New("volResp.Volumes shouldn't be null")
 	}
 
 	volume := volResp.Volumes[0]
-	fmt.Fprintf(w, "Storage Size:\t%s\n", volume.Size)
 
-	return nil
+	return &instance{
+		ec2:    i,
+		volume: volume,
+	}, nil
 }
