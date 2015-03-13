@@ -19,6 +19,6 @@ type User struct {
 }
 
 const (
-	Html BodyType = iota
-	Text
+	TextBodyType BodyType = iota
+	HtmlBodyType
 )
