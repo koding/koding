@@ -89,30 +89,34 @@ func realMain() error {
 	w.Init(os.Stdout, 10, 8, 0, '\t', 0)
 	defer w.Flush()
 
+	// search via username, mongodb -> aws
 	if conf.Username != "" {
-		m, err := machineFromUsername(db, conf.Username)
+		ms, err := machinesFromUsername(db, conf.Username)
 		if err == nil {
-			m.Print(w)
+			ms.Print(w)
 
-			// if the mongodb document has a region and instanceId, display it too
-			if m.m.Meta.Region != "" && m.m.Meta.InstanceId != "" {
-				client, err := ec2clients.Region(m.m.Meta.Region)
-				if err != nil {
-					return err
+			for _, m := range ms.docs {
+				// if the mongodb document has a region and instanceId, display it too
+				if m.Meta.Region != "" && m.Meta.InstanceId != "" {
+					client, err := ec2clients.Region(m.Meta.Region)
+					if err != nil {
+						return err
+					}
+
+					i, err := awsData(client, m.Meta.InstanceId)
+					if err != nil {
+						return err
+					}
+
+					i.Print(w)
 				}
-
-				i, err := awsData(client, m.m.Meta.InstanceId)
-				if err != nil {
-					return err
-				}
-
-				i.Print(w)
 			}
 		} else {
 			fmt.Fprintf(os.Stderr, err.Error())
 		}
 	}
 
+	// search via instanceId, aws -> mongodb
 	if conf.InstanceId != "" {
 		for _, client := range ec2clients.Regions() {
 			i, err := awsData(client, conf.InstanceId)
@@ -121,9 +125,9 @@ func realMain() error {
 			}
 
 			// if we find a mongoDB document display it
-			m, err := machineFromInstanceId(db, conf.InstanceId)
+			ms, err := machinesFromInstanceId(db, conf.InstanceId)
 			if err == nil {
-				m.Print(w)
+				ms.Print(w)
 			}
 
 			i.Print(w)
@@ -134,42 +138,58 @@ func realMain() error {
 	return nil
 }
 
-func machineFromUsername(db *mongodb.MongoDB, username string) (*machine, error) {
-	var m *MachineDocument
+func machinesFromUsername(db *mongodb.MongoDB, username string) (*machines, error) {
+	machines := newMachines()
 	err := db.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"credential": username}).One(&m)
+		var m *MachineDocument
+		iter := c.Find(bson.M{"credential": username}).Iter()
+
+		for iter.Next(&m) {
+			machines.docs = append(machines.docs, m)
+		}
+
+		return iter.Close()
 	})
 
-	return &machine{
-		m: m,
-	}, err
+	return machines, err
 }
 
-func machineFromInstanceId(db *mongodb.MongoDB, instanceId string) (*machine, error) {
+func machinesFromInstanceId(db *mongodb.MongoDB, instanceId string) (*machines, error) {
 	var m *MachineDocument
 	err := db.Run("jMachines", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"meta.instanceId": instanceId}).One(&m)
 	})
-	return &machine{
-		m: m,
-	}, err
+	if err != nil {
+		return nil, err
+	}
+
+	return machinesFromUsername(db, m.Credential)
 }
 
-type machine struct {
-	m *MachineDocument
+func newMachines() *machines {
+	return &machines{
+		docs: make([]*MachineDocument, 0),
+	}
 }
 
-func (m *machine) Print(w io.Writer) {
-	fmt.Fprintf(w, "============= MongoDB ==========\n")
-	fmt.Fprintf(w, "Username:\t%s\n", m.m.Credential)
-	fmt.Fprintf(w, "MachineId:\t%s\n", m.m.Id.Hex())
-	fmt.Fprintf(w, "Instance Id:\t%s\n", m.m.Meta.InstanceId)
-	fmt.Fprintf(w, "Instance Type:\t%s\n", m.m.Meta.InstanceType)
-	fmt.Fprintf(w, "Region:\t%s\n", m.m.Meta.Region)
-	fmt.Fprintf(w, "IP Address:\t%s\n", m.m.IpAddress)
-	fmt.Fprintf(w, "Storage Size:\t%d\n", m.m.Meta.StorageSize)
-	fmt.Fprintf(w, "Status:\t%s (%s)\n", m.m.Status.State, m.m.Status.Reason)
-	fmt.Fprintln(w)
+type machines struct {
+	docs []*MachineDocument
+}
+
+func (m *machines) Print(w io.Writer) {
+	fmt.Fprintf(w, "============= MongoDB ('%d' machines) ==========\n", len(m.docs))
+
+	for _, machine := range m.docs {
+		fmt.Fprintf(w, "Username:\t%s\n", machine.Credential)
+		fmt.Fprintf(w, "MachineId:\t%s\n", machine.Id.Hex())
+		fmt.Fprintf(w, "Instance Id:\t%s\n", machine.Meta.InstanceId)
+		fmt.Fprintf(w, "Instance Type:\t%s\n", machine.Meta.InstanceType)
+		fmt.Fprintf(w, "Region:\t%s\n", machine.Meta.Region)
+		fmt.Fprintf(w, "IP Address:\t%s\n", machine.IpAddress)
+		fmt.Fprintf(w, "Storage Size:\t%d\n", machine.Meta.StorageSize)
+		fmt.Fprintf(w, "Status:\t%s (%s)\n", machine.Status.State, machine.Status.Reason)
+		fmt.Fprintln(w)
+	}
 }
 
 type instance struct {
