@@ -111,14 +111,6 @@ module.exports = class JAccount extends jraphical.Module
         unfollow: [
           (signature Function)
         ]
-        fetchFollowersWithRelationship:
-          (signature Object, Object, Function)
-        countFollowersWithRelationship:
-          (signature Object, Function)
-        countFollowingWithRelationship:
-          (signature Object, Function)
-        fetchFollowingWithRelationship:
-          (signature Object, Object, Function)
         fetchTopics:
           (signature Object, Object, Function)
         fetchAppStorage:
