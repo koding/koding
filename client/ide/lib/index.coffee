@@ -33,11 +33,14 @@ IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
+ShortcutsModal                = require 'app/shortcuts/modal'
 
 require('./routes')()
 
 
-module.exports = class IDEAppController extends AppController
+module.exports =
+
+class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
 
@@ -716,15 +719,10 @@ module.exports = class IDEAppController extends AppController
 
   showShortcutsView: ->
 
-    paneView = null
-
-    @forEachSubViewInIDEViews_ (view) ->
-      paneView = view.parent  if view instanceof IDEShortcutsView
-
-    return paneView.parent.showPane paneView if paneView
-
-
-    @activeTabView.emit 'ShortcutsViewRequested'
+    modal = new ShortcutsModal {},
+      kd.getSingleton('appManager')
+        .getShortcuts()
+        .config
 
 
   getActivePaneView: ->
@@ -1197,6 +1195,7 @@ module.exports = class IDEAppController extends AppController
     @forEachSubViewInIDEViews_ (pane) -> pane.makeEditable()
     @finderPane.makeEditable()
     @getView().unsetClass 'read-only'
+
 
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
 
