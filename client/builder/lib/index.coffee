@@ -363,12 +363,12 @@ class Haydar extends events.EventEmitter
         timeEnd 'styles: kd: copy ' + outfile
         msg = 'copied kd.css to ' + outfile
         console.log msg
-        if opts.watchJs
+        if opts.watchCss
           notify 'styles', msg
 
         callback?()
 
-      if opts.watchJs and not watchingKd
+      if opts.watchCss and not watchingKd
         watchingKd = yes
         w = chokidar.watch kdCssFile, persistent: yes
         w.on 'change', copyKd
