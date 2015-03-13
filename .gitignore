@@ -72,4 +72,6 @@ website/a/out
 supervisor.html
 client/.sprites
 client/node_modules
+client/.client-config.json
+client/builder/node_modules
 website/a/p

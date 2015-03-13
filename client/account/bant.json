@@ -5,5 +5,11 @@
     "/:name?/Account": "profile",
     "/:name?/Account/:section": "section",
     "/:name?/Account/Referrer": "referrer"
-  }
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
 }

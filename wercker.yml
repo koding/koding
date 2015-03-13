@@ -29,16 +29,6 @@ build:
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
     - script:
-        name: client node modules
-        code: |
-          cd client/
-          $WERCKER_ROOT/scripts/wercker/install-node-modules client
-    - script:
-        name: landing node modules
-        code: |
-          cd client/landing
-          $WERCKER_ROOT/scripts/wercker/install-node-modules landing
-    - script:
         name: notify cebeci
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build preparation finished" "building" 30
@@ -63,7 +53,7 @@ build:
         name: build client
         code: |
           cd client
-          make build
+          make dist
           ../scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
@@ -200,6 +190,13 @@ build:
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - test client finished" "building" 85
   after-steps:
     - script:
+        name: cat npm-debug
+        code: |
+          tail -n 100 npm-debug.log
+          tail -n 100 client/npm-debug.log
+          tail -n 100 client/landing/npm-debug.log
+          tail -n 100 client/builder/npm-debug.log
+    - script:
         name: cat socialapi
         code: |
           tail -n 100 /var/log/koding/social-api.log
@@ -239,7 +236,7 @@ deploy:
 
           ./configure --config $CONFIG --projectRoot /opt/koding
 
-          rm -rf .git .build node_modules client/node_modules
+          rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
           zip -q --symlinks -r $ARCHIVE .
 
