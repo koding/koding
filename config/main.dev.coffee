@@ -172,7 +172,7 @@ Configuration = (options={}) ->
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
-    prerenderToken                 : 'fQxNvE01gsAvIfxu4dkN'
+    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
 
     collaboration :
       timeout     : 1 * 60 * 1000
