@@ -25,6 +25,11 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
     - script:
+        name: setup nvm
+        code: |
+          source $HOME/.nvm/nvm.sh
+          nvm use 0.10.33
+    - script:
         name: koding node modules
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
