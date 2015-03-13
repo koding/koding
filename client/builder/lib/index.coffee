@@ -250,10 +250,14 @@ class Haydar extends events.EventEmitter
 
     if opts.watchJs
       b = bant.watch opts_
-      b.on 'update', (ids) ->
-        ids.forEach (id) ->
-          console.log 'updated ' + id
+
+      onUpdate = (files) ->
+        files.forEach (file) ->
+          console.log "updated #{file}"
         bundle()
+
+      onUpdate = throttle onUpdate, THROTTLE_WAIT
+      b.on 'update', onUpdate
     else
       b = bant opts_
 
