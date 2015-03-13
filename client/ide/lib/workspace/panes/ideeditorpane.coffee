@@ -5,6 +5,7 @@ FSFile = require 'app/util/fs/fsfile'
 IDEPane = require './idepane'
 Ace = require 'ace/ace'
 AceView = require 'ace/aceview'
+IDEHelpers = require '../../idehelpers'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -30,6 +31,8 @@ module.exports = class IDEEditorPane extends IDEPane
 
     file.once 'fs.delete.finished', =>
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
+
+    file.on [ 'fs.save.finished', 'fs.saveAs.finished' ], IDEHelpers.showPermissionErrorOnSavingFile
 
     @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
@@ -393,3 +396,8 @@ module.exports = class IDEEditorPane extends IDEPane
   makeEditable: ->
 
     @getEditor()?.setReadOnly no
+
+
+  destroy: ->
+
+    @file.off [ 'fs.save.finished', 'fs.saveAs.finished' ], IDEHelpers.showPermissionErrorOnSavingFile
