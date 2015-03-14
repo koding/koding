@@ -15,7 +15,10 @@ KodingAppsController = require './kodingappscontroller'
 Shortcuts            = require 'shortcuts'
 defaultShortcuts     = require './shortcuts/defaults'
 
-shortcuts = new Shortcuts defaultShortcuts
+shortcuts = new Shortcuts Object.keys(defaultShortcuts).reduce (acc, key) ->
+    acc[key] = defaultShortcuts[key].data
+    return acc
+  , {}
 
 module.exports =
 
