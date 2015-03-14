@@ -11,8 +11,28 @@
     font-size: 16px !important
 
 
-  
-  
+.shortcuts-list
+
+  display table
+  width 100%
+  background-color #eee
+
+  .row
+    display table-row
+    width 100%
+    clear both
+
+    div
+      display table-column
+      background-color #ddddd2
+      width: 40%
+      float left
+
+      span
+        display inline-table
+
+    div:nth-child(3)
+      width 20% !important
 
 
 .shortcuts-tab
@@ -22,18 +42,27 @@
     border-top 1px solid #ccc
 
     .list-head
-      padding 8px 16px
-      background-color #ddddda
-      border-bottom 1px solid #ccc
 
-      p
-        margin 7px 0px
-        font-size 12px
-        line-height 18px
+      .shortcuts-list
+        .row div
+          font-size 12px
+          font-weight bold
 
-      p b
-        font-weight bold
-        
+          span
+            padding 4px 16px
+
+      .description
+        padding 8px 16px
+        background-color #ddddda
+        border-bottom 1px solid #ccc
+
+        p
+          margin 7px 0px
+          font-size 12px
+          line-height 18px
+
+        p b
+          font-weight bold
 
   .kdtabhandlecontainer
     background transparent !important
@@ -54,4 +83,3 @@
       b
         display inline !important
         font-size 14px
-
