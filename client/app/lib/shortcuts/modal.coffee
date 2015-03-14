@@ -25,7 +25,7 @@ class ShortcutsModal extends kd.ModalView
 
   viewAppended: ->
 
-    @addSubView new kd.TabView
+    @addSubView tabView = new kd.TabView
       hideHandleCloseIcons : true
       enableMoveTabHandle  : false
       cssClass: 'shortcuts-tab'
@@ -39,6 +39,8 @@ class ShortcutsModal extends kd.ModalView
             collection: collection
           closable : no
         }
+
+    tabView.showPaneByIndex 0
 
     @addSubView new kd.ButtonView
       title    : 'Restore Defaults'
