@@ -1,6 +1,7 @@
 kd            = require 'kd'
 _             = require 'underscore'
 ShortcutsPane = require './pane'
+defaults      = require './defaults'
 
 module.exports =
 
@@ -10,13 +11,14 @@ class ShortcutsModal extends kd.ModalView
 
     options.title   or= 'Shortcuts'
     options.content or= """
-      <div class='modalformline'>
+      <div class='shortcuts-head'>
         <p>To change a shortcut, select it, click the key combination, and then type the new keys.</p>
       </div>
     """
     options.overlay or= yes
-    options.width   or= 522
-    options.height  or= 'auto'
+    options.width   or= 540
+    options.height  or= 520
+    options.cssClass or= 'shortcuts-modal'
 
     super options, keyconfig
 
@@ -26,9 +28,17 @@ class ShortcutsModal extends kd.ModalView
     @addSubView new kd.TabView
       hideHandleCloseIcons : true
       enableMoveTabHandle  : false
-      paneData             : @data.map (set) ->
-        title : set.name
-        view  : new ShortcutsPane {}, set
+      cssClass: 'shortcuts-tab'
+      paneData: @data.map (collection) ->
+        displayData = defaults[collection.name]
+        return {
+          title : displayData.title
+          view  : new ShortcutsPane {},
+            title: displayData.title
+            description: displayData.description
+            collection: collection
+          closable : no
+        }
 
     @addSubView new kd.ButtonView
       title    : 'Restore Defaults'
