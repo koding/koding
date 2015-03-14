@@ -58,6 +58,7 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -774,7 +775,7 @@ func newKodingProvider() *koding.Provider {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:           koding.NewDNSClient("dev.koding.io", auth),
+		DNS:           dnsclient.New("dev.koding.io", auth),
 		DomainStorage: domainStorage,
 		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
 		KeyName:       keys.DeployKeyName,

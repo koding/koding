@@ -477,6 +477,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
+    collaboration :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/collaboration -kite-init -c #{socialapi.configFilePath}"
+
     gatekeeper          :
       group             : "socialapi"
       ports             :
@@ -547,7 +552,7 @@ Configuration = (options={}) ->
 
       cd #{projectRoot}/client
       npm install --unsafe-perm
-      make landing minify-with-external-sourcemaps
+      make dist
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

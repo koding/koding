@@ -12,13 +12,13 @@ This will also install dependencies of [builder](./builder) and [landing](./land
 
 # configuration
 
-A `./configure` step is required to pre-populate the social models schema and write git revision id into `.client-config.json` file that `builder` depends on.
-
-(If you are using [remotepot](https://github.com/koding/tools/tree/master/remotepot) in development, make sure you have run `./configure` in same commit both on your localhost and on your vm.)
+A `./configure` step is required to write git revision id into `.config.json` file that `builder` depends on.
 
 ```sh
 λ dev/koding HOST=xyz.koding.io PORT=8090 make configure
 ```
+
+(If you are using [remotepot](https://github.com/koding/tools/tree/master/remotepot) in development, make sure you have run `./configure` in same commit both on your localhost and on your vm.)
 
 # quick start
 
@@ -87,7 +87,7 @@ Build [landing](./landing):
 λ dev/koding/client make landing
 ```
 
-And finally there is `make all` which is simply an alias for `make landing development`.
+And finally there are `make all` and `make dist` which are simply aliases for `make landing development` and `make landing minify-with-external-sourcemaps` respectively.
 
 You can also pass additional [builder](./builder) arguments using `EXTRAS` variable.
 
@@ -140,6 +140,14 @@ globals = require 'globals'
 ```
 
 You can also extend this object from a `bant.json` file by adding a `globals` field in it, which is the prefered method if you know only this module going to need that particular data.
+
+# .config.json
+
+This file is generated with `./configure` with an initial value of a git revision id. It is crucial that both `builder` and web servers have the same value of it.
+
+If this file does not exist, builder will re-create it, but with an hardcoded revision id and things will mess up. That's why `.config.json` _must_ be generated with `./configure`.
+
+This file is also being used to cache models schema, so subsequent `make`s won't call bongo api again if there is already a `schema` field exists in this file.
 
 # thirdparty
 

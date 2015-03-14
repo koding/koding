@@ -204,6 +204,10 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 
 				err = handler.UnshareVM(req1, toBeRemovedUsers)
 				So(err, ShouldBeNil)
+
+				err = handler.EndPrivateMessage(req1)
+				So(err, ShouldBeNil)
+
 				Convey("remove users should not be in the machine", func() {
 					mm1, err := modelhelper.GetMachineByUid(m1.Uid)
 					So(err, ShouldBeNil)
@@ -226,7 +230,10 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 				participant2, err := socialapimodels.CreateAccountInBothDbs()
 				So(err, ShouldBeNil)
 
-				_, _, m2, m2ws1, _ := prepareWorkspace(creator, participant1, participant2)
+				participant3, err := socialapimodels.CreateAccountInBothDbs()
+				So(err, ShouldBeNil)
+
+				_, _, m2, m2ws1, m2ws2 := prepareWorkspace(creator, participant1, participant2, participant3)
 
 				Convey("remove from first workspace", func() {
 					channelId, err := strconv.ParseInt(m2ws1.ChannelId, 10, 64)
@@ -244,23 +251,65 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 
 					err = handler.UnshareVM(req, toBeRemovedUsers)
 					So(err, ShouldBeNil)
-					Convey("participant should still be in the second machine", func() {
+
+					err = handler.EndPrivateMessage(req)
+					So(err, ShouldBeNil)
+
+					Convey("participants should still be in the second machine", func() {
 						mm2, err := modelhelper.GetMachineByUid(m2.Uid)
 						So(err, ShouldBeNil)
 						So(mm2, ShouldNotBeNil)
 						So(len(mm2.Users), ShouldEqual, 3)
 
+						// participant1 is not in the second WS, so it should be removed from the machine
 						ownerUser, err := modelhelper.GetUserByAccountId(creator.OldId)
 						So(err, ShouldBeNil)
 						So(mm2.Users[0].Id.Hex(), ShouldEqual, ownerUser.ObjectId.Hex())
 
-						participant1User, err := modelhelper.GetUserByAccountId(participant1.OldId)
-						So(err, ShouldBeNil)
-						So(mm2.Users[1].Id.Hex(), ShouldEqual, participant1User.ObjectId.Hex())
-
 						participant2User, err := modelhelper.GetUserByAccountId(participant2.OldId)
 						So(err, ShouldBeNil)
-						So(mm2.Users[2].Id.Hex(), ShouldEqual, participant2User.ObjectId.Hex())
+						So(mm2.Users[1].Id.Hex(), ShouldEqual, participant2User.ObjectId.Hex())
+
+						participant3User, err := modelhelper.GetUserByAccountId(participant3.OldId)
+						So(err, ShouldBeNil)
+						So(mm2.Users[2].Id.Hex(), ShouldEqual, participant3User.ObjectId.Hex())
+
+						Convey("after removing from second WS", func() {
+							// remove from second WS too
+							channelId, err := strconv.ParseInt(m2ws2.ChannelId, 10, 64)
+							So(err, ShouldBeNil)
+
+							req := &models.Ping{
+								AccountId: creator.Id,
+								FileId:    fmt.Sprintf("%d", rand.Int63()),
+								ChannelId: channelId,
+							}
+
+							toBeRemovedUsers, err := handler.findToBeRemovedUsers(req)
+							So(err, ShouldBeNil)
+							So(toBeRemovedUsers, ShouldNotBeNil)
+
+							err = handler.UnshareVM(req, toBeRemovedUsers)
+							So(err, ShouldBeNil)
+
+							err = handler.EndPrivateMessage(req)
+							So(err, ShouldBeNil)
+
+							Convey("owner and permanent should still stay", func() {
+								mm2, err := modelhelper.GetMachineByUid(m2.Uid)
+								So(err, ShouldBeNil)
+								So(mm2, ShouldNotBeNil)
+								So(len(mm2.Users), ShouldEqual, 2)
+
+								ownerUser, err := modelhelper.GetUserByAccountId(creator.OldId)
+								So(err, ShouldBeNil)
+								So(mm2.Users[0].Id.Hex(), ShouldEqual, ownerUser.ObjectId.Hex())
+
+								participant1User, err := modelhelper.GetUserByAccountId(participant3.OldId)
+								So(err, ShouldBeNil)
+								So(mm2.Users[1].Id.Hex(), ShouldEqual, participant1User.ObjectId.Hex())
+							})
+						})
 					})
 				})
 			})
@@ -268,7 +317,17 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 	})
 }
 
-func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Account) (
+// create 2 machines
+// 	first one will have 1 WS
+//  	1 owner + 2 participant + 1 permanent
+// 	second one will have 2 WS
+// 		first ws will have 4 participants
+//   		1 owner + 2 participant + 1 permanent
+//     	second one
+//      	1 owner + 2 participant
+//  no matter what we do with user removal, owner and the permanent should stay
+//  in the machine
+func prepareWorkspace(creator, participant1, participant2, participant3 *socialapimodels.Account) (
 	*mongomodels.Machine, // m1
 	*mongomodels.Workspace, // m1 ws1
 	*mongomodels.Machine, // m2
@@ -285,6 +344,9 @@ func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Accou
 	So(err, ShouldBeNil)
 
 	participant2User, err := modelhelper.GetUserByAccountId(participant2.OldId)
+	So(err, ShouldBeNil)
+
+	participant3User, err := modelhelper.GetUserByAccountId(participant3.OldId)
 	So(err, ShouldBeNil)
 
 	// sample  machine struct
@@ -306,6 +368,12 @@ func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Accou
 				Id:    participant2User.ObjectId,
 				Sudo:  false,
 				Owner: true,
+			},
+			mongomodels.MachineUser{ // random
+				Id:        participant3User.ObjectId,
+				Sudo:      false,
+				Owner:     true,
+				Permanent: true,
 			},
 		},
 		CreatedAt: time.Now().UTC(),
@@ -336,6 +404,10 @@ func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Accou
 	So(err, ShouldBeNil)
 	So(c3p3, ShouldNotBeNil)
 
+	c3p4, err := c3.AddParticipant(participant3.Id)
+	So(err, ShouldBeNil)
+	So(c3p4, ShouldNotBeNil)
+
 	c4 := socialapimodels.NewChannel() // init channel
 	c4.CreatorId = creator.Id          // set Creator id
 	c4.TypeConstant = socialapimodels.Channel_TYPE_COLLABORATION
@@ -345,13 +417,18 @@ func prepareWorkspace(creator, participant1, participant2 *socialapimodels.Accou
 	So(err, ShouldBeNil)
 	So(c4p1, ShouldNotBeNil)
 
-	c4p2, err := c4.AddParticipant(participant1.Id)
-	So(err, ShouldBeNil)
-	So(c4p2, ShouldNotBeNil)
+	// do not add the 1st user to the second WS
+	// c4p2, err := c4.AddParticipant(participant1.Id)
+	// So(err, ShouldBeNil)
+	// So(c4p2, ShouldNotBeNil)
 
 	c4p3, err := c4.AddParticipant(participant2.Id)
 	So(err, ShouldBeNil)
 	So(c4p3, ShouldNotBeNil)
+
+	c4p4, err := c4.AddParticipant(participant3.Id)
+	So(err, ShouldBeNil)
+	So(c4p4, ShouldNotBeNil)
 
 	m2ws1 := &mongomodels.Workspace{
 		ObjectId:     bson.NewObjectId(),
@@ -400,6 +477,40 @@ func prepareSingleWorkspace(creator, participant1, participant2 *socialapimodels
 	participant2User, err := modelhelper.GetUserByAccountId(participant2.OldId)
 	So(err, ShouldBeNil)
 
+	// sample  machine struct
+	m1 := &mongomodels.Machine{
+		ObjectId: bson.NewObjectId(),
+		Uid:      bson.NewObjectId().Hex(),
+		Users: []mongomodels.MachineUser{
+			mongomodels.MachineUser{ // real owner
+				Id:    ownerUser.ObjectId,
+				Sudo:  true,
+				Owner: true,
+			},
+			mongomodels.MachineUser{ // secondary owner
+				Id:        participant1User.ObjectId,
+				Sudo:      false,
+				Owner:     true,
+				Permanent: false,
+			},
+			mongomodels.MachineUser{ // random
+				Id:        participant2User.ObjectId,
+				Sudo:      false,
+				Owner:     true,
+				Permanent: false,
+			},
+		},
+		CreatedAt: time.Now().UTC(),
+		Status: mongomodels.MachineStatus{
+			State:      "running",
+			ModifiedAt: time.Now().UTC(),
+		},
+		Assignee:    mongomodels.MachineAssignee{},
+		UserDeleted: false,
+	}
+
+	So(modelhelper.CreateMachine(m1), ShouldBeNil)
+
 	//
 	// create the first channel
 	//
@@ -419,38 +530,6 @@ func prepareSingleWorkspace(creator, participant1, participant2 *socialapimodels
 	c1p3, err := c1.AddParticipant(participant2.Id)
 	So(err, ShouldBeNil)
 	So(c1p3, ShouldNotBeNil)
-
-	// sample  machine struct
-	m1 := &mongomodels.Machine{
-		ObjectId: bson.NewObjectId(),
-		Uid:      bson.NewObjectId().Hex(),
-		Users: []mongomodels.MachineUser{
-			mongomodels.MachineUser{ // real owner
-				Id:    ownerUser.ObjectId,
-				Sudo:  true,
-				Owner: true,
-			},
-			mongomodels.MachineUser{ // secondary owner
-				Id:    participant1User.ObjectId,
-				Sudo:  false,
-				Owner: true,
-			},
-			mongomodels.MachineUser{ // random
-				Id:    participant2User.ObjectId,
-				Sudo:  false,
-				Owner: true,
-			},
-		},
-		CreatedAt: time.Now().UTC(),
-		Status: mongomodels.MachineStatus{
-			State:      "running",
-			ModifiedAt: time.Now().UTC(),
-		},
-		Assignee:    mongomodels.MachineAssignee{},
-		UserDeleted: false,
-	}
-
-	So(modelhelper.CreateMachine(m1), ShouldBeNil)
 
 	m1ws1 := &mongomodels.Workspace{
 		ObjectId:     bson.NewObjectId(),

@@ -47,7 +47,7 @@ module.exports = (options = {}, callback)->
     </script>
 
     <script>
-      var globals = {
+      var _globals = {
         config: #{config},
         userId: #{userId},
         userAccount: #{userAccount},
@@ -119,9 +119,14 @@ module.exports = (options = {}, callback)->
         userEnvironmentData = data
         queue.fin()
     ->
-      client.connection.delegate.fetchUser (err, user) ->
-        console.err err  if err
-        userId = user.getId()
+      {nickname} = client.connection.delegate.profile
+      bongoModels.JUser.one username: nickname, (err, user) ->
+        if err
+          console.error '[scriptblock] user not found', err
+          return queue.fin()
+
+        if user then userId = user.getId()
+        else console.error '[scriptblock] user not found', err
         queue.fin()
   ]
 

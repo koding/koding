@@ -1,3 +1,4 @@
+kd = require 'kd'
 nick = require 'app/util/nick'
 globals = require 'globals'
 remote = require('app/remote').getInstance()
@@ -76,15 +77,18 @@ module.exports = UserEnvironmentDataProvider =
     return own.concat shared.concat collaboration
 
 
-  fetchMachine: (labelOrUId, callback) ->
+  fetchMachine: (identifier, callback) ->
 
-    @fetchMachineByLabel labelOrUId, (machine) =>
-      return  callback new Machine { machine }  if machine
+    @fetchMachineBySlug identifier, (machine) =>
+      return callback new Machine { machine }  if machine
 
-      @fetchMachineByUId labelOrUId, (machine) =>
-        machine = if machine then new Machine { machine } else null
+      @fetchMachineByLabel identifier, (machine) =>
+        return  callback new Machine { machine }  if machine
 
-        callback machine
+        @fetchMachineByUId identifier, (machine) =>
+          machine = if machine then new Machine { machine } else null
+
+          callback machine
 
 
   fetchWorkspaceByMachineUId: (options, callback) ->
@@ -168,3 +172,16 @@ module.exports = UserEnvironmentDataProvider =
           break
 
     return workspace
+
+
+  getIDEFromUId: (uid) ->
+
+    { IDE } = kd.singletons.appManager.appControllers
+
+    return null  unless IDE
+
+    for i in IDE.instances when i.mountedMachineUId
+      instance = i
+      break
+
+    return instance

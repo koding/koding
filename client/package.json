@@ -33,7 +33,7 @@
     "validator": "^3.33.0"
   },
   "scripts": {
-    "preinstall": "npm --unsafe-perm --silent --prefix builder install && npm --unsafe-perm --silent --prefix landing install"
+    "preinstall": "npm --prefix builder install && npm --prefix landing install"
   },
   "browser": {
     "kd": "kd.js",

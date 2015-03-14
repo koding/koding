@@ -206,11 +206,20 @@ module.exports = class PaymentWorkflow extends KDController
         action   : 'microConversions'
         label    : 'upgradeFreeAccount'
 
-    trackEvent 'Completed Order', products: [{
-      name     : @state.planTitle
-      category : @state.provider
-      interval : @state.planInterval
-      quantity : 1
+    me = whoami().getId()
+    {planTitle, provider, planInterval} = @state
+
+    planId  = "#{planTitle}-#{planInterval}"
+    orderId = "#{me}-#{planId}"
+
+    trackEvent 'Completed Order',
+      orderId  : orderId
+      products : [{
+        id       : planId
+        title    : planTitle
+        interval : planInterval
+        category : provider
+        quantity : 1
     }]
 
 

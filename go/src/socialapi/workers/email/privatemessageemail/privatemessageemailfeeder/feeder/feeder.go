@@ -106,17 +106,8 @@ func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
 
 	ch := models.NewChannel()
 	ch.Id = cp.ChannelId
-	nextPeriod, err := c.getMailingPeriod(a)
-	// no awaiting notifications
-	if err == ErrPeriodNotFound {
-		return nil
-	}
 
-	if err != nil {
-		return err
-	}
-
-	hasPendingNotification, err := c.deletePendingNotifications(a, ch, nextPeriod)
+	hasPendingNotification, err := c.deletePendingNotifications(a, ch)
 	if err != nil {
 		return err
 	}
@@ -126,7 +117,7 @@ func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
 		return nil
 	}
 
-	hasUnglancedChannels, err := c.hasUnglancedChannels(a, nextPeriod)
+	hasUnglancedChannels, err := c.hasUnglancedChannels(a)
 	if err != nil {
 		return err
 	}
@@ -142,8 +133,8 @@ func (c *Controller) GlanceChannel(cp *models.ChannelParticipant) error {
 
 // deletePendingNotification deletes notification information for given account, and channel. It returns
 // true when there are pending notifications, false otherwise
-func (c *Controller) deletePendingNotifications(a *models.Account, ch *models.Channel, nextPeriod string) (bool, error) {
-	count, err := c.redis.DeleteHashSetField(common.AccountChannelHashSetKey(a.Id, nextPeriod), strconv.FormatInt(ch.Id, 10))
+func (c *Controller) deletePendingNotifications(a *models.Account, ch *models.Channel) (bool, error) {
+	count, err := c.redis.DeleteHashSetField(common.AccountChannelHashSetKey(a.Id), strconv.FormatInt(ch.Id, 10))
 	if err != nil {
 		return false, err
 	}
@@ -151,13 +142,13 @@ func (c *Controller) deletePendingNotifications(a *models.Account, ch *models.Ch
 	return count == 1, nil
 }
 
-func (c *Controller) hasUnglancedChannels(a *models.Account, nextPeriod string) (bool, error) {
-	count, err := c.redis.GetHashLength(common.AccountChannelHashSetKey(a.Id, nextPeriod))
+func (c *Controller) hasUnglancedChannels(a *models.Account) (bool, error) {
+	count, err := c.redis.GetHashLength(common.AccountChannelHashSetKey(a.Id))
 	if err != nil {
 		return false, err
 	}
 
-	return count == 1, nil
+	return count > 0, nil
 }
 
 func (c *Controller) fetchParticipantIds(cm *models.ChannelMessage) ([]int64, error) {
@@ -193,7 +184,7 @@ func (c *Controller) notifyAccount(accountId int64, cm *models.ChannelMessage) e
 		return err
 	}
 
-	return c.addMessageToAccountChannelNotifications(nextPeriod, accountId, cm)
+	return c.addMessageToAccountChannelNotifications(accountId, cm)
 }
 
 // getOrCreateMailingPeriod updates the Account-Segment hash set and returns
@@ -246,7 +237,7 @@ func (c *Controller) addAccountToNotifieeQueue(period string, accountId int64) e
 	return nil
 }
 
-func (c *Controller) addMessageToAccountChannelNotifications(period string, accountId int64, cm *models.ChannelMessage) error {
+func (c *Controller) addMessageToAccountChannelNotifications(accountId int64, cm *models.ChannelMessage) error {
 	// TODO instead of using cm.InitialChannelId i have tried fetching related channel
 	// from channel message list, but this relationships is created after the reception
 	// of ChannelMessageCreated event.
@@ -261,7 +252,7 @@ func (c *Controller) addMessageToAccountChannelNotifications(period string, acco
 	// 	return models.ErrChannelNotFound
 	// }
 
-	key := common.AccountChannelHashSetKey(accountId, period)
+	key := common.AccountChannelHashSetKey(accountId)
 	// TODO in the future when we notify accounts for public channels, instead of ids[0] parameter,
 	// we will need some logic
 	channelId := strconv.FormatInt(cm.InitialChannelId, 10)

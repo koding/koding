@@ -1,30 +1,32 @@
-fs           = require 'fs'
-vfs          = require 'vinyl-fs'
-path         = require 'path'
-gloh         = require 'gloh'
-defined      = require 'defined'
-bant         = require 'bant'
-JSONStream   = require 'JSONStream'
-through      = require 'through2'
-coffeeify    = require 'coffeeify'
-pistachioify = require 'pistachioify'
-uglifyify    = require 'uglifyify'
-xtend        = require 'xtend'
-async        = require 'async'
-inspect      = require('util').inspect
-pretty       = require 'pretty-bytes'
-exorcist     = require 'exorcist'
-asStream     = require 'as-stream'
-notifier     = require 'node-notifier'
-mkdirp       = require 'mkdirp'
-nub          = require 'nub'
-spritesmith  = require 'gulp.spritesmith'
-chalk        = require 'chalk'
-chokidar     = require 'chokidar'
-events       = require 'events'
-nib          = require 'nib'
-stylus       = require 'gulp-stylus'
-concat       = require 'gulp-concat'
+fs            = require 'fs'
+vfs           = require 'vinyl-fs'
+path          = require 'path'
+gloh          = require 'gloh'
+defined       = require 'defined'
+bant          = require 'bant'
+JSONStream    = require 'JSONStream'
+through       = require 'through2'
+coffeeify     = require 'coffeeify'
+pistachioify  = require 'pistachioify'
+uglifyify     = require 'uglifyify'
+xtend         = require 'xtend'
+async         = require 'async'
+inspect       = require('util').inspect
+pretty        = require 'pretty-bytes'
+exorcist      = require 'exorcist'
+asStream      = require 'as-stream'
+notifier      = require 'node-notifier'
+mkdirp        = require 'mkdirp'
+nub           = require 'nub'
+spritesmith   = require 'gulp.spritesmith'
+chalk         = require 'chalk'
+chokidar      = require 'chokidar'
+events        = require 'events'
+nib           = require 'nib'
+stylus        = require 'gulp-stylus'
+concat        = require 'gulp-concat'
+throttle      = require 'throttleit'
+child_process = require 'child_process'
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -41,6 +43,7 @@ STYLES_KDJS_MODULE_NAME     = 'kd.js'
 STYLES_KDJS_CSS_FILE        = 'dist/kd.css'
 STYLES_COMMONS_GLOB         = 'app/lib/styl/commons/*.styl'
 STYLES_EXTENSION            = 'styl'
+THROTTLE_WAIT               = 500
 
 module.exports =
 
@@ -55,22 +58,21 @@ class Haydar extends events.EventEmitter
       outdir    : defined opts.outdir, process.cwd()
       baseurl   : defined opts.baseurl, '/'
       defaults  : defined opts.globalsFile, {}
-      cfg       : defined opts.configFile, {}
+      config    : defined opts.configFile, {}
       manifests : defined opts.use, []
 
     opts.basedir = path.resolve __dirname, opts.basedir
     opts.outdir = path.resolve __dirname, opts.outdir
 
-    if 'string' is typeof opts.cfg
-      opts.cfg = require @_resolve(opts.cfg)
+    if 'string' is typeof opts.config
+      opts.config = require @_resolve(opts.config)
 
-    opts.config = defined opts.cfg.config, {}
-    opts.schema = defined opts.cfg.schema, {}
-    opts.rev    = defined opts.config.version, '2.0'
+    opts.rev    = defined opts.config.rev, '2.0'
+    opts.schema = defined opts.config.schema, null
 
     if opts.revId
-      opts.outdir = path.join opts.outdir, opts.rev
-      opts.baseurl = [ opts.baseurl, opts.rev ].join '/'
+      opts.outdir  = path.join opts.outdir, opts.rev
+      opts.baseurl = "#{opts.baseurl}/#{opts.rev}"
 
     opts.spriteTmpCssOutdir = @_resolve SPRITES_TMPDIR
     opts.spriteImgOutdir = defined opts.spriteImgOutdir, opts.outdir
@@ -112,6 +114,21 @@ class Haydar extends events.EventEmitter
 
     dirs = [ opts.outdir ]
 
+    getModels = =>
+      if opts.schema is null and 'object' is typeof opts.config
+        @_time "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
+        child_process.exec "node #{__dirname}/get-bongo-schema.js", (err, res) =>
+          throw err if err
+          opts.schema = JSON.parse res
+          configData =
+            rev    : opts.rev
+            schema : opts.schema
+          fs.writeFileSync opts.configFile, JSON.stringify(configData)
+          @_timeEnd "#{chalk.blue('config')}: write bongo schema to #{opts.configFile}"
+          @_build()
+      else
+        @_build()
+
     getFiles opts.manifests, opts.basedir,
       (err, files) =>
         throw err if err
@@ -142,7 +159,7 @@ class Haydar extends events.EventEmitter
               createDirs dirs, =>
                 opts.manifests = manifests
                 opts.rsManifests = rsManifests
-                @_build()
+                getModels()
             cb()
 
           s.pipe(parse).pipe(tr)
@@ -203,7 +220,7 @@ class Haydar extends events.EventEmitter
         name       : name
         routes     : manifest.routes
         shortcuts  : manifest.shortcuts
-        style      : opts.baseurl + '/' + manifest.name + '.css'
+        style      : "#{opts.baseurl}/#{manifest.name}.css"
       }
 
     transforms = [ coffeeify, pistachioify ]
@@ -225,7 +242,7 @@ class Haydar extends events.EventEmitter
         #}
       } ]
 
-    aceBasePath = [ opts.baseurl, THIRDPARTY_OUTDIR, 'ace' ].join '/'
+    aceBasePath = "#{opts.baseurl}/#{THIRDPARTY_OUTDIR}/ace"
 
     opts_ =
       basedir    : opts.basedir
@@ -248,13 +265,18 @@ class Haydar extends events.EventEmitter
 
     if opts.watchJs
       b = bant.watch opts_
-      b.on 'update', (ids) ->
-        ids.forEach (id) ->
-          console.log 'updated ' + id
+
+      onUpdate = (files) ->
+        files.forEach (file) ->
+          console.log "updated #{file}"
         bundle()
+
+      onUpdate = throttle onUpdate, THROTTLE_WAIT
+      b.on 'update', onUpdate
     else
       b = bant opts_
 
+    b.require require.resolve('kd.js'), expose: 'kd'
     b.use manifests
 
     # force browser-pack to expose require
@@ -273,41 +295,49 @@ class Haydar extends events.EventEmitter
           if not opts.watchJs
             throw err
           else
-            src = 'console.error(' + JSON.stringify(String(err)) + ')'
+            errString = JSON.stringify String err
+            src = "console.error('#{errString}')"
             fs.writeFile outfile, src, (err) ->
               if err
                 console.error err # wtf
               else
-                console.log 'written error to ' + outfile
+                console.log "written error to #{outfile}"
         else
+
           if opts.extractJsSourcemaps
             s = fs.createWriteStream outfile
             asStream(src).pipe(exorcist(opts.jsSourcemapsOutfile)).pipe(s)
+
             s.once 'finish', ->
               secs = ((Date.now() - start)/1000).toFixed 2
-              msg = 'written ' + outfile + ' (' + secs + ')'
+              msg = "written #{outfile} (#{secs})"
               console.log msg
-              console.log 'extracted source maps to ' + opts.jsSourcemapsOutfile
+              console.log "extracted source maps to #{opts.jsSourcemapsOutfile}"
               if not opts.watchJs
                 done()
               else
                 notify 'scripts', msg
+
             s.on 'error', (err) ->
               if not opts.watchJs
                 throw err
               else
                 console.error err
+
           else
+
             fs.writeFile outfile, src, (err, res) ->
               if err
                 if not opts.watchJs
                   throw err
                 else
                   console.error err
+
               else
                 secs = ((Date.now() - start)/1000).toFixed 2
-                msg = pretty(src.length) + ' written to ' + outfile + ' (' + secs + ')'
+                msg = "#{pretty(src.length)} written to #{outfile} (#{secs})"
                 console.log msg
+
                 if not opts.watchJs
                   done()
                 else
@@ -324,7 +354,8 @@ class Haydar extends events.EventEmitter
     notify  = @_notify.bind this
 
     manifests  = opts.manifests
-    watchingKd = false
+    watchingKd = no
+    watchingDirs = []
 
     commons  = path.join opts.basedir, STYLES_COMMONS_GLOB
     includes = [ commons ]
@@ -352,13 +383,13 @@ class Haydar extends events.EventEmitter
         timeEnd 'styles: kd: copy ' + outfile
         msg = 'copied kd.css to ' + outfile
         console.log msg
-        if opts.watchJs
+        if opts.watchCss
           notify 'styles', msg
 
         callback?()
 
-      if opts.watchJs and not watchingKd
-        watchingKd = true
+      if opts.watchCss and not watchingKd
+        watchingKd = yes
         w = chokidar.watch kdCssFile, persistent: yes
         w.on 'change', copyKd
 
@@ -370,6 +401,8 @@ class Haydar extends events.EventEmitter
         use       : nib()
         compress  : if opts.minifyCss then yes else no
         import    : includes
+        define    :
+          assetsPath: "#{opts.baseurl}/#{ASSETS_OUTDIR}"
         sourcemap :
           inline: if opts.debugCss then yes else no
 
@@ -387,10 +420,12 @@ class Haydar extends events.EventEmitter
 
       ws.on 'finish', ->
         timeEnd 'styles: write ' + outfile
+
         if --pending is 0
           secs = ((Date.now() - start)/1000).toFixed 2
-          msg = 'written styles to ' + opts.stylesOutdir + ' (' + secs + ')'
+          msg = "written styles to #{opts.stylesOutdir} (#{secs})"
           console.log msg
+
           if not opts.watchCss
             done()
           else
@@ -402,19 +437,26 @@ class Haydar extends events.EventEmitter
 
       manifest.styles.forEach (basename) ->
         dir = path.join manifest.basedir, basename
+
         globs = [ path.join dir, '**', '*.' + STYLES_EXTENSION ]
         globs.push "!#{commons}"
 
+        onRaw = (e, file) ->
+          return  unless file
+          if e is 'modified' or e is 'deleted'
+            console.log "updated #{dir}"
+            start = Date.now()
+            styl manifest, globs
+
+        onRaw = throttle onRaw, THROTTLE_WAIT
+
         styl manifest, globs
 
-        if opts.watchCss
+        if opts.watchCss and ~watchingDirs.indexOf(dir) is 0
+          watchingDirs.push dir
           w = chokidar.watch dir, persistent: yes
           w.on 'ready', ->
-            w.on 'raw', (e, file) ->
-              if e is 'modified' or e is 'deleted'
-                console.log e + ' ' + file
-                start = Date.now()
-                styl manifest, globs
+            w.on 'raw', onRaw
 
 
     init = =>
@@ -511,12 +553,12 @@ class Haydar extends events.EventEmitter
 
       entities = [1, 2].map (ratio) ->
 
-        rname = ratio + 'x'
+        rname = "#{ratio}x"
 
-        dir = path.join basedir, rname, '**', '*.' + SPRITESMITH_IMG_EXTENSION
+        files = path.join basedir, rname, '**', "*.#{SPRITESMITH_IMG_EXTENSION}"
 
-        imgName = manifest.name + '@' + rname + '.' + SPRITESMITH_IMG_EXTENSION
-        cssName = SPRITESMITH_CSS_NAME_PREFIX + rname + '.' + SPRITESMITH_CSS_EXTENSION
+        imgName = "#{manifest.name}@#{rname}.#{SPRITESMITH_IMG_EXTENSION}"
+        cssName = "#{SPRITESMITH_CSS_NAME_PREFIX}#{rname}.#{SPRITESMITH_CSS_EXTENSION}"
 
         opts_ =
           algorithm : SPRITESMITH_ALGORITHM
@@ -530,7 +572,10 @@ class Haydar extends events.EventEmitter
               console.error chalk.red('sprites') + ': stylus hates it when you have dots in image filenames, fix this: ' + sprite.name
               throw 'throwing cowardly'
 
-        s = vfs.src(dir).pipe spritesmith opts_
+            sprite.name = "#{rname}_#{manifest.name}_#{sprite.name}"
+            return sprite
+
+        s = vfs.src(files).pipe spritesmith opts_
         return {
           name   : manifest.name
           rname  : rname
@@ -567,16 +612,22 @@ class Haydar extends events.EventEmitter
 
       manifest.sprites.forEach (basename) ->
         dir = path.join manifest.basedir, basename
+
+        onRaw = (e, file) ->
+          return  unless file
+          if e is 'modified' or e is 'deleted'
+            console.log "updated #{file}"
+            start = Date.now()
+            smith manifest, dir
+
+        onRaw = throttle onRaw, THROTTLE_WAIT
+
         smith manifest, dir
 
         if opts.watchSprites
           w = chokidar.watch dir, persistent: yes
           w.on 'ready', ->
-            w.on 'raw', (e, file) ->
-              if e is 'modified' or e is 'deleted'
-                console.log e + ' ' + file
-                start = Date.now()
-                smith manifest, dir
+            w.on 'raw', onRaw
 
 
     manifests.forEach (manifest) ->
