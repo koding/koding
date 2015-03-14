@@ -12,4 +12,13 @@ class ShortcutsListHead extends kd.View
 
   viewAppended: ->
 
-    @setPartial "<div>#{@getOptions().description}</div>"
+    @setPartial """
+      <div class=description>#{@getOptions().description}</div>
+      <div class=shortcuts-list>
+        <div class=row>
+          <div><span>Description</span></div>
+          <div><span>Binding</span></div>
+          <div><span>Enabled</span></div>
+        </div>
+      </div>
+    """
