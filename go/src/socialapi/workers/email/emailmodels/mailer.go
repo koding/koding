@@ -8,13 +8,12 @@ import (
 )
 
 type Mailer struct {
-	UserContact   *UserContact
-	Mail          *sender.Mail
-	EmailSettings *EmailSettings
-	Information   string
+	UserContact *UserContact
+	Mail        *sender.Mail
+	Information string
 }
 
-func NewMailer(a *models.Account, es *EmailSettings) (*Mailer, error) {
+func NewMailer(a *models.Account) (*Mailer, error) {
 	// Fetch user contact
 	uc, err := FetchUserContactWithToken(a.Id)
 	if err != nil {
@@ -22,8 +21,7 @@ func NewMailer(a *models.Account, es *EmailSettings) (*Mailer, error) {
 	}
 
 	return &Mailer{
-		UserContact:   uc,
-		EmailSettings: es,
+		UserContact: uc,
 	}, nil
 }
 
@@ -46,7 +44,7 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 
 	fullname := fmt.Sprintf("%s %s", m.UserContact.FirstName, m.UserContact.LastName)
 	m.Mail.Text = content
-	m.Mail.To = m.getRecipient()
+	m.Mail.To = m.UserContact.Email
 	m.Mail.ToName = fullname
 
 	if err := sender.Send(m.Mail); err != nil {
@@ -64,14 +62,6 @@ func (m *Mailer) prepareContentWithLayout(contentType string) (string, error) {
 	return lc.Render()
 }
 
-func (m *Mailer) getRecipient() string {
-	if m.EmailSettings.ForcedRecipient != "" {
-		return m.EmailSettings.ForcedRecipient
-	}
-
-	return m.UserContact.Email
-}
-
 func (m *Mailer) validateMailer() error {
 	if m.Mail.Text == "" {
 		return errors.New("Mailer body is not set")
@@ -79,10 +69,6 @@ func (m *Mailer) validateMailer() error {
 
 	if m.Mail.Subject == "" {
 		return errors.New("Mailer subject is not set")
-	}
-
-	if m.EmailSettings == nil {
-		return errors.New("Mailer email settings is not set")
 	}
 
 	if m.UserContact == nil {
