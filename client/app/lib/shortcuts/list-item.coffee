@@ -1,8 +1,11 @@
-kd = require 'kd'
+kd    = require 'kd'
+JView = require 'app/jview'
 
 module.exports =
 
 class ShortcutsListItem extends kd.ListItemView
+
+  JView.mixin @prototype
 
   constructor: (options={}, model) ->
     
