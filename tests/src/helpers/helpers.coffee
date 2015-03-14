@@ -465,7 +465,7 @@ module.exports =
             .assert.containsText     avatarSelector, newName
 
 
-  fillPaymentForm: (browser) ->
+  fillPaymentForm: (browser, planType = 'developer') ->
 
     paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
     cardNumber    = '4111 1111 1111 1111'
@@ -498,7 +498,7 @@ module.exports =
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
       .url                     @getUrl() + '/Pricing'
       .waitForElementVisible   '.content-page.pricing', 20000
-      .waitForElementVisible   '.single-plan.developer.current', 20000
+      .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
 
 
   selectPlan: (browser, planType = 'developer') ->
