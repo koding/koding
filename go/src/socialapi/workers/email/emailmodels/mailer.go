@@ -44,13 +44,13 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 		return err
 	}
 
+	fullname := fmt.Sprintf("%s %s", m.UserContact.FirstName, m.UserContact.LastName)
 	m.Mail.Text = content
 	m.Mail.To = m.getRecipient()
-	m.Mail.From = m.EmailSettings.DefaultFromMail
-	m.Mail.FromName = m.EmailSettings.DefaultFromName
+	m.Mail.ToName = fullname
 
 	if err := sender.Send(m.Mail); err != nil {
-		return fmt.Errorf("an error occurred while sending notification email to %s: %s", m.UserContact.Username, err)
+		return err
 	}
 
 	return nil
