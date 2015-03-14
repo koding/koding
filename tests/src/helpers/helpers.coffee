@@ -501,6 +501,16 @@ module.exports =
       .waitForElementVisible   '.single-plan.developer.current', 20000
 
 
+  selectPlan: (browser, planType = 'developer') ->
+
+    pricingPage = '.content-page.pricing'
+
+    browser
+      .waitForElementVisible   pricingPage, 25000
+      .waitForElementVisible   pricingPage + ' .plans .' + planType, 25000
+      .pause                   5000
+      .click                   pricingPage + ' .plans .' +  + planType + ' .plan-buy-button'
+
 
   getUrl: ->
     return 'http://lvh.me:8090'
