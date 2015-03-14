@@ -1069,11 +1069,9 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
-  sendNotification:(event, contents)->
-    @emit 'notification', {
-      routingKey: @profile.nickname
-      event, contents
-    }
+  sendNotification: (event, contents) ->
+    @emit 'notification',
+      eventName: event, body: contents, account: {id: @socialApiId, nick: @profile.nickname}
 
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
