@@ -293,7 +293,7 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker
 	@rm ./realtime.test
 
 	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
-	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
+	@`which go` test -c workers/sitemap/sitemapgenerator/*.go
 	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./generator.test
 
