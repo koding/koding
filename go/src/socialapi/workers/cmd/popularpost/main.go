@@ -5,7 +5,7 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/popularpost/popularpost"
+	"socialapi/workers/popularpost"
 	"time"
 
 	"github.com/jinzhu/now"
