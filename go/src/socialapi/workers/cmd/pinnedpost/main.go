@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/pinnedpost/pinnedpost"
+	"socialapi/workers/pinnedpost"
 )
 
 var (
