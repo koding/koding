@@ -5,7 +5,7 @@ import (
 	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/populartopic/populartopic"
+	"socialapi/workers/populartopic"
 )
 
 var (
