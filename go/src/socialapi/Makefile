@@ -219,10 +219,10 @@ testmailsender:
 	@rm  ./sender.test
 
 testemailworker:
-	@echo "$(OK_COLOR)--> email worker tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/activityemail/*.go
-	@./activityemail.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./activityemail.test
+	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
+	# @`which go` test -c workers/email/activityemail/*.go
+	# @./activityemail.test $(DBG) $(METRICS) -c $(CONFIG)
+	# @rm ./activityemail.test
 
 	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
 	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/*.go
