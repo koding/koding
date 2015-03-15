@@ -5,7 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/notification/notification"
+	"socialapi/workers/notification"
 )
 
 var (
