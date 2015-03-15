@@ -39,20 +39,20 @@ services=(
   koding/vmwatcher
 
   socialapi/workers/api
-  socialapi/workers/notification
-  socialapi/workers/pinnedpost
-  socialapi/workers/popularpost
-  socialapi/workers/trollmode
-  socialapi/workers/populartopic
-  socialapi/workers/realtime
-  socialapi/workers/realtime/gatekeeper
-  socialapi/workers/realtime/dispatcher
-  socialapi/workers/topicfeed
-  socialapi/workers/migrator
-  socialapi/workers/sitemap/sitemapfeeder
-  socialapi/workers/sitemap/sitemapgenerator
-  socialapi/workers/sitemap/sitemapinitializer
-  socialapi/workers/algoliaconnector
+  socialapi/workers/cmd/notification
+  socialapi/workers/cmd/pinnedpost
+  socialapi/workers/cmd/popularpost
+  socialapi/workers/cmd/trollmode
+  socialapi/workers/cmd/populartopic
+  socialapi/workers/cmd/realtime
+  socialapi/workers/cmd/realtime/gatekeeper
+  socialapi/workers/cmd/realtime/dispatcher
+  socialapi/workers/cmd/topicfeed
+  socialapi/workers/cmd/migrator
+  socialapi/workers/cmd/sitemap/sitemapfeeder
+  socialapi/workers/cmd/sitemap/sitemapgenerator
+  socialapi/workers/cmd/sitemap/sitemapinitializer
+  socialapi/workers/cmd/algoliaconnector
   socialapi/workers/payment/paymentwebhook
   socialapi/workers/cmd/collaboration
   socialapi/workers/cmd/email/activityemail
