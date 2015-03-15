@@ -218,7 +218,26 @@ testmailsender:
 	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./sender.test
 
-testapi: testcollaboration testmailsender testmail testmodels
+testemailworker:
+	@echo "$(OK_COLOR)--> email worker tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/activityemail/*.go
+	@./activityemail.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./activityemail.test
+
+	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/*.go
+	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./feeder.test
+
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/*.go
+	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./sender.test
+
+	@`which go` test -c workers/email/emailmodels/*.go
+	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./emailmodels.test
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
@@ -267,19 +286,6 @@ testapi: testcollaboration testmailsender testmail testmodels
 	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
-
-	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/feeder/*.go
-	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./feeder.test
-
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/sender/*.go
-	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./sender.test
-
-	@`which go` test -c workers/email/emailmodels/*.go
-	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./emailmodels.test
 
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/realtime/*.go
