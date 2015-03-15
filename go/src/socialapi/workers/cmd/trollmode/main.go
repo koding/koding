@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/trollmode/trollmode"
+	"socialapi/workers/trollmode"
 )
 
 var (
