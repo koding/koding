@@ -69,7 +69,7 @@ rest = ->
     log "3) brew install mongodb nginx"
     log "4) do './run install' "
     log "5) do './run buildservices' to create backend service containers after installing docker."
-    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
+    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{process.env.USER}.ngrok.com"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
