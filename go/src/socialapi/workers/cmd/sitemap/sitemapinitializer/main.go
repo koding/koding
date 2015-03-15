@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/sitemap/sitemapfeeder/feeder"
+	"socialapi/workers/sitemap/sitemapfeeder"
 )
 
 var (
