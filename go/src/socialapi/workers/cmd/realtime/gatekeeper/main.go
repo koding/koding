@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
-	api "socialapi/workers/realtime/gatekeeper/gatekeeper"
+	api "socialapi/workers/realtime/gatekeeper"
 	"socialapi/workers/realtime/models"
 )
 

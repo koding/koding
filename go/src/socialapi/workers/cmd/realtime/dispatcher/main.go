@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
-	"socialapi/workers/realtime/dispatcher/dispatcher"
+	"socialapi/workers/realtime/dispatcher"
 	"socialapi/workers/realtime/models"
 )
 
