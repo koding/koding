@@ -30,7 +30,7 @@ module.exports =
 
     browser
       .refresh()
-      .waitForElementVisible  activitySelector + ' .comment-container [testpath=list-previous-link]', 25000
+      .waitForElementVisible  activitySelector + ' [testpath=list-previous-link]', 25000
       .end()
 
 
