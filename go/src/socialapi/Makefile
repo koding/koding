@@ -95,21 +95,21 @@ emaildev: activityemaildev dailyemaildev privatemessageemaildev
 
 activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
 
 dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
 
 privatemessageemailfeederdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemailsenderdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemail/privatemessageemailsender -c $(CONFIG) $(DBG) $(METRICS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
@@ -133,7 +133,7 @@ collaborationdev:
 
 mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/email/sender -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/sender -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
