@@ -5,7 +5,7 @@ import (
 	"socialapi/workers/common/runner"
 	"socialapi/workers/helper"
 
-	"socialapi/workers/sitemap/sitemapgenerator/generator"
+	"socialapi/workers/sitemap/sitemapgenerator"
 )
 
 var (
