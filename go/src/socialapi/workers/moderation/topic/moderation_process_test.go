@@ -369,6 +369,8 @@ func TestProcess(t *testing.T) {
 
 			models.AddParticipants(cl.RootId, acc1.Id, acc2.Id)
 			models.AddParticipants(cl.LeafId, acc1.Id, acc2.Id)
+			rootChannel, err := models.ChannelById(cl.RootId)
+			So(err, ShouldBeNil)
 			leafChannel, err := models.ChannelById(cl.LeafId)
 			So(err, ShouldBeNil)
 
@@ -412,6 +414,16 @@ func TestProcess(t *testing.T) {
 			So(history.MessageList[2].Message.Id, ShouldEqual, cm1Root.Id)
 			So(history.MessageList[1].Message.Id, ShouldEqual, cm2Root.Id)
 			So(history.MessageList[0].Message.Id, ShouldEqual, cm3Root.Id)
+
+			Convey("make sure to remove participants", func() {
+				ids, err := leafChannel.FetchParticipantIds(&request.Query{})
+				So(err, ShouldBeNil)
+				So(len(ids), ShouldEqual, 0)
+
+				ids, err = rootChannel.FetchParticipantIds(&request.Query{})
+				So(err, ShouldBeNil)
+				So(len(ids), ShouldEqual, 2)
+			})
 		})
 
 		Convey("make sure messages dont have hashtag in them when we merge to group channel", func() {
@@ -466,5 +478,6 @@ func TestProcess(t *testing.T) {
 			So(history.MessageList[3].Message.Body, ShouldNotContainSubstring, "#"+leafChannel.Name)
 			So(history.MessageList[1].Message.Body, ShouldNotContainSubstring, "#"+leafChannel.Name)
 		})
+
 	})
 }

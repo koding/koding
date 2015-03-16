@@ -158,25 +158,24 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 					erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
 				}
 
-				// do not go further, we are done for this iteration
-				continue
+			} else {
+				// if we get here it means the user is a member of the new root node
+				// if the user is already participant of root channel, delete the
+				// leaf node participation
+
+				if err := bongo.B.
+					Unscoped().
+					Table(m.BongoName()).
+					Delete(channelParticipant).
+					Error; err != nil {
+					c.log.Error("Err while deleting the channel participation %s", err.Error())
+					erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
+					continue
+				}
 			}
 
-			// if we get here it means the user is a member of the new root node
-			// if the user is already participant of root channel, delete the
-			// leaf node participation
-
-			if err := bongo.B.
-				Unscoped().
-				Table(m.BongoName()).
-				Delete(channelParticipant).
-				Error; err != nil {
-				//
-				// TODO do we need to send an event here?
-				//
-				c.log.Error("Err while deleting the channel participation %s", err.Error())
-				erroredChannelParticipants = append(erroredChannelParticipants, channelParticipants[i])
-			}
+			// send deleted event
+			bongo.B.AfterDelete(channelParticipants[i])
 		}
 	}
 
