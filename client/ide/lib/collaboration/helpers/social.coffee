@@ -122,13 +122,21 @@ initChannel = (callback) ->
 
 ###
  * Wrapper function around `JAccount#cacheable`
+ * It adds a little bit of intelligence around first
+ * argument so that, it will fetch the account depending
+ * on some other situations.
  *
- * @param {string} userId
+ * @param {object|string} socialAccount - either bongo constructor or a user id.
  * @param {function(err: object)}
 ###
-fetchAccount = (userId, callback) ->
+fetchAccount = (socialAccount, callback) ->
 
-  remote.cacheable 'JAccount', userId, callback
+  if socialAccount.constructorName
+    remote.cacheable socialAccount.constructorName, socialAccount.id, callback
+  else if 'string' is typeof socialAccount
+    remote.cacheable socialAccount, callback
+  else
+    callback socialAccount
 
 
 module.exports = {
@@ -139,4 +147,5 @@ module.exports = {
   destroyChannel
   leaveChannel
   initChannel
+  fetchAccount
 }
