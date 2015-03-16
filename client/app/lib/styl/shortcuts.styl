@@ -11,10 +11,21 @@
 
 .shortcuts-pane
   max-height: 400px
+  /*min-height 382px*/
   /*overflow-y hidden !important*/
   .listview-wrapper
     max-height 300px
+    min-height 300px
     overflow-y auto !important
+    
+    .shortcuts-list
+      .row
+        cursor: pointer
+      .row:hover
+        background-color #ffd
+      .row.selected
+        background-color #ddfdd3
+
 
 
 .shortcuts-head
@@ -28,25 +39,43 @@
 .shortcuts-list
 
   display table
-  width 100%
-  background-color #eee
+  width 100% !important
 
-  .row
+  div.row:nth-child(even)
+    background-color: #f1f1f1
+
+  div.row
     display table-row
-    width 100%
+    width 100% !important
     clear both
+    background-color: #fafafa
 
-    div
+    div.col
       display table-column
-      background-color #ddddd2
       width: 40%
       float left
+      font-size 14px
 
       span
-        display inline-table
+        display table-cell
+        padding 4px 16px
+        height 40px
+        vertical-align middle
+
+        keys
+          i
+            padding 2px 4px
+            border-radius 3px
+            border 1px solid #ccc
+            text-transform uppercase
+            font-size 12px
+            margin-right 4px
+            background-color #fff
+
 
     div:nth-child(3)
       width 20% !important
+      text-align center
 
 
 .shortcuts-tab
@@ -58,12 +87,20 @@
     .list-head
 
       .shortcuts-list
-        .row div
-          font-size 12px
-          font-weight bold
+        border-bottom 1px solid #ccc
 
+        div.row
+          div.col
+            background-color #f0f0f0
+            height auto !important
+            font-weight bold
+            font-size 12px
           span
-            padding 4px 16px
+            display inline-table
+            height auto !important
+        div:nth-child(3)
+          width 20% !important
+          text-align left
 
       .description
         padding 8px 16px
