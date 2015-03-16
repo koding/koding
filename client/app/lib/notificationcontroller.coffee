@@ -58,6 +58,11 @@ module.exports = class NotificationController extends KDObject
         # event is mainly -> ChannelUpdateHappened // do not delete this line. here for search purposes. - SY
         @emit event, contents  if event
 
+      @notificationChannel.on 'social', (notification) =>
+        { contents, context, event } = notification
+
+        @emit event, contents  if event
+
 
   setListeners:->
 
