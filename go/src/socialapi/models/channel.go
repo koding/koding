@@ -531,6 +531,10 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 		return channel, ErrGroupNameIsNotSet
 	}
 
+	if q.Type == "" {
+		q.Type = Channel_TYPE_TOPIC
+	}
+
 	query := &bongo.Query{
 		Selector: map[string]interface{}{
 			"group_name":    q.GroupName,
