@@ -14,7 +14,6 @@ exports.activity =
   title: 'Activity'
   description:
     """
-      <p>Following list provides key-bindings that are available in your <b>Activity Feeds</b></p>
-      <p>These include key combinations for easily <b>navigating</b> between channels and messages.</p>
+      <p>Following list provides key-bindings that are available in your <b>Activity Feeds.</b></p>
     """
   data: require './activity'
