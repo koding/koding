@@ -1,22 +1,22 @@
-kd = require 'kd'
-KDBlockingModalView = kd.BlockingModalView
-KDCustomHTMLView = kd.CustomHTMLView
-KDListView = kd.ListView
-KDListViewController = kd.ListViewController
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDTabPaneView = kd.TabPaneView
-KDTabView = kd.TabView
-KDView = kd.View
-AccountListWrapper = require './accountlistwrapper'
+kd                    = require 'kd'
+KDBlockingModalView   = kd.BlockingModalView
+KDCustomHTMLView      = kd.CustomHTMLView
+KDListView            = kd.ListView
+KDListViewController  = kd.ListViewController
+KDModalView           = kd.ModalView
+KDNotificationView    = kd.NotificationView
+KDTabPaneView         = kd.TabPaneView
+KDTabView             = kd.TabView
+KDView                = kd.View
+remote                = require('app/remote').getInstance()
+AccountListWrapper    = require './accountlistwrapper'
 AccountNavigationItem = require './accountnavigationitem'
-ReferrerModal = require './views/referrermodal'
-remote = require('app/remote').getInstance()
-whoami = require 'app/util/whoami'
-showError = require 'app/util/showError'
-oauthEnabled = require 'app/util/oauthEnabled'
-AppController = require 'app/appcontroller'
-Encoder = require 'htmlencode'
+ReferrerModal         = require './views/referrermodal'
+whoami                = require 'app/util/whoami'
+showError             = require 'app/util/showError'
+oauthEnabled          = require 'app/util/oauthEnabled'
+AppController         = require 'app/appcontroller'
+Encoder               = require 'htmlencode'
 require('./routehandler')()
 
 
@@ -65,7 +65,8 @@ module.exports = class AccountAppController extends AppController
     super options, data
 
 
-  createTab:(itemData)->
+  createTab: (itemData) ->
+
     {title, listType} = itemData
 
     new KDTabPaneView
@@ -74,7 +75,7 @@ module.exports = class AccountAppController extends AppController
       , itemData
 
 
-  openSection:(section)->
+  openSection: (section) ->
 
     for item in @navController.getListItems() when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
@@ -82,7 +83,7 @@ module.exports = class AccountAppController extends AppController
       break
 
 
-  loadView:(mainView)->
+  loadView: (modal) ->
 
     # SET UP VIEWS
     @navController = new KDListViewController
@@ -107,8 +108,8 @@ module.exports = class AccountAppController extends AppController
 
     for own sectionKey, section of items
       @navController.instantiateListItems section.items
+  showReferrerModal: (options = {}) ->
 
-  showReferrerModal:(options={})->
     return  if @referrerModal and not @referrerModal.isDestroyed
 
     options.top         ?= 50
@@ -117,7 +118,9 @@ module.exports = class AccountAppController extends AppController
 
     @referrerModal = new ReferrerModal options
 
-  displayConfirmEmailModal:(name, username, callback=kd.noop)->
+
+  displayConfirmEmailModal: (name, username, callback=kd.noop) ->
+
     name or= whoami().profile.firstName
     message =
       """
@@ -144,7 +147,8 @@ module.exports = class AccountAppController extends AppController
 
     callback modal
 
-  resendHandler : (modal, username)->
+
+  resendHandler : (modal, username) ->
 
     remote.api.JPasswordRecovery.resendVerification username, (err)=>
       modal.buttons["Resend Confirmation Email"].hideLoader()
@@ -155,10 +159,12 @@ module.exports = class AccountAppController extends AppController
         duration  : 4500
 
 
-  showRegistrationNeededModal:->
+  showRegistrationNeededModal: ->
+
     return if @modal
 
-    handler = (modal, route)->
+    handler = (modal, route) ->
+
       modal.destroy()
       kd.utils.wait 1000, -> kd.getSingleton("router").handleRoute route
 
