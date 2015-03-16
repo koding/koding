@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -21,7 +22,8 @@ func TestCollaborationChannels(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	CreatePrivateChannelUser("devrim")

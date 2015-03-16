@@ -2,6 +2,7 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"testing"
 )
@@ -14,7 +15,8 @@ func TestFrontpageListingOperations(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	testFrontpageOperations()

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/sender"
 
@@ -19,7 +20,8 @@ func main() {
 		return
 	}
 
-	sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
+	appConfig := config.MustRead(r.Conf.Path)
+	sg := sendgrid.NewSendGridClient(appConfig.Email.Username, appConfig.Email.Password)
 	sgm := &sender.SendGridMail{
 		Sendgrid: sg,
 	}

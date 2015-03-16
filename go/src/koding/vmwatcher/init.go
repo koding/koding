@@ -2,7 +2,7 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/runner"
 	"time"
 
 	"github.com/jinzhu/now"
@@ -54,7 +54,7 @@ var (
 	controller *VmController
 	storage    Storage
 
-	Log = helper.CreateLogger(WorkerName, conf.Debug)
+	Log = runner.CreateLogger(WorkerName, conf.Debug)
 )
 
 func initialize() {

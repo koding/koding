@@ -3,7 +3,7 @@ package helpers
 import (
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/runner"
 
 	"github.com/koding/bongo"
 )
@@ -65,7 +65,7 @@ func ConvertMessagesToMessageContainers(messages []models.ChannelMessage, accoun
 }
 
 func decorateContainers(containers []*models.ChannelMessageContainer, messages []models.ChannelMessage, accountId int64) {
-	log := helper.MustGetLogger()
+	log := runner.MustGetLogger()
 	var err error
 	for i, message := range messages {
 		d := models.NewChannelMessage()

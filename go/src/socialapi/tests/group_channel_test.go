@@ -3,6 +3,7 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/runner"
@@ -21,7 +22,8 @@ func TestGroupChannel(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("while  testing pinned activity channel", t, func() {
