@@ -15,11 +15,11 @@ import (
 type Config struct {
 	Name  string
 	Host  string
-	Port  int
+	Port  string
 	Debug bool
 }
 
-func NewConfig(name, host string, port int) *Config {
+func NewConfig(name, host string, port string) *Config {
 	return &Config{
 		Name: name,
 		Host: host,
@@ -115,7 +115,7 @@ func (m *Mux) Listen() {
 		handler = h
 	}
 
-	addr := fmt.Sprintf("%s:%d", m.config.Host, m.config.Port)
+	addr := fmt.Sprintf("%s:%s", m.config.Host, m.config.Port)
 
 	m.server = tigertonic.NewServer(addr, handler)
 	go m.listener()

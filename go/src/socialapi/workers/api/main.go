@@ -13,13 +13,11 @@ import (
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	mailapi "socialapi/workers/email/mailparse/api"
-	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
-	"strconv"
 )
 
 var (
@@ -33,9 +31,9 @@ func main() {
 		return
 	}
 
-	port, _ := strconv.Atoi(r.Conf.Port)
+	config.MustRead(r.Conf.Path)
 
-	mc := mux.NewConfig(Name, r.Conf.Host, port)
+	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log)
 
@@ -53,11 +51,12 @@ func main() {
 	mailapi.AddHandlers(m)
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	// set default values for dev env
