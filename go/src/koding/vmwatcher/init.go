@@ -2,17 +2,16 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
-	"socialapi/workers/common/runner"
 	"time"
-
-	"github.com/jinzhu/now"
-	kiteConfig "github.com/koding/kite/config"
-	"github.com/koding/multiconfig"
 
 	"github.com/cenkalti/backoff"
 	"github.com/crowdmob/goamz/aws"
+	"github.com/jinzhu/now"
 	"github.com/koding/kite"
+	kiteConfig "github.com/koding/kite/config"
+	"github.com/koding/multiconfig"
 	"github.com/koding/redis"
+	"github.com/koding/runner"
 )
 
 type Vmwatcher struct {
