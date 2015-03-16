@@ -9,7 +9,7 @@ import (
 
 const (
 	testConfigPath = "./test.toml"
-	env            = "MehmetAli"
+	protocol       = "MehmetAli"
 )
 
 func TestConfigMustRead(t *testing.T) {
@@ -21,13 +21,13 @@ func TestConfigMustRead(t *testing.T) {
 		Convey("invalid testConfigPath should panic", func() {
 			So(func() { MustRead("testConfigPath") }, ShouldPanic)
 		})
-		Convey("setting socialapi env should override config", func() {
-			err := os.Setenv("KONFIG_SOCIALAPI_PROTOCOL", env)
+		Convey("setting socialapi protocol should override config", func() {
+			err := os.Setenv("KONFIG_SOCIALAPI_PROTOCOL", protocol)
 			So(err, ShouldBeNil)
 			// just to be sure about the function will not panic
 			So(func() { MustRead(testConfigPath) }, ShouldNotPanic)
 			a := MustRead(testConfigPath)
-			So(a.Protocol, ShouldEqual, env)
+			So(a.Protocol, ShouldEqual, protocol)
 		})
 	})
 }
