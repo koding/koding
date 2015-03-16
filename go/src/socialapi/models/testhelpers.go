@@ -52,6 +52,23 @@ func CreateTypedChannelWithTest(accountId int64, typeConstant string) *Channel {
 	return channel
 }
 
+func CreateTypedPublicChannelWithTest(accountId int64, typeConstant string) *Channel {
+	// create and account instance
+	channel := NewChannel()
+	channel.Name = RandomName()
+	// there is a check for group channels for unsuring that there will be only
+	// one group channel at a time, override that
+	channel.GroupName = RandomName()
+	channel.TypeConstant = typeConstant
+	channel.CreatorId = accountId
+	channel.PrivacyConstant = Channel_PRIVACY_PUBLIC
+
+	err := channel.Create()
+	So(err, ShouldBeNil)
+
+	return channel
+}
+
 func CreateMessage(channelId, accountId int64, typeConstant string) *ChannelMessage {
 	return CreateMessageWithBody(channelId, accountId, typeConstant, "testing message")
 }
