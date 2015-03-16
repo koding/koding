@@ -32,22 +32,15 @@ module.exports =
 
     @socialChannel = channel
 
-    @socialChannel.on 'AddedToChannel', (originOrAccount) =>
+    @socialChannel.on 'AddedToChannel', (socialAccount) =>
 
-      kallback = (account) => @whenRealtimeReady =>
+      socialHelpers.fetchAccount socialAccount, (account) =>
 
         return  unless account
 
         {nickname} = account.profile
         @statusBar.createParticipantAvatar nickname, no
         @watchParticipant nickname
-
-      if originOrAccount.constructorName
-        remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
-      else if 'string' is typeof originOrAccount
-        remote.cacheable originOrAccount, kallback
-      else
-        kallback originOrAccount
 
 
   initPrivateMessage: (callback) ->
