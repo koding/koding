@@ -73,6 +73,11 @@ module.exports =
       callback null, @socialChannel
 
 
+  getSocialChannelId: ->
+
+    return @socialChannel?.id or @channelId or @workspaceData.channelId
+
+
   deletePrivateMessage: (callback = kd.noop) ->
 
     {channel}    = kd.getSingleton 'socialapi'
