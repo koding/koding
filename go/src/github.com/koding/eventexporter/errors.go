@@ -2,4 +2,7 @@ package eventexporter
 
 import "errors"
 
-var ErrorUsernameEmpty = errors.New("username is empty")
+var (
+	ErrorSegmentIOUsernameEmpty = errors.New("username is empty")
+	ErrorSegmentIOEventEmpty    = errors.New("event is empty")
+)

@@ -17,7 +17,11 @@ func (s *SegementIOExporter) Send(event *Event) error {
 	event = addBody(event)
 
 	if event.User.Username == "" {
-		return ErrorUsernameEmpty
+		return ErrorSegmentIOUsernameEmpty
+	}
+
+	if event.Name == "" {
+		return ErrorSegmentIOEventEmpty
 	}
 
 	err := s.Client.Track(&analytics.Track{
@@ -36,6 +40,10 @@ func addBody(event *Event) *Event {
 	}
 
 	if event.Body != nil {
+		if event.Properties == nil {
+			event.Properties = map[string]interface{}{}
+		}
+
 		event.Properties["body"] = event.Body.Content
 		event.Properties["bodyType"] = event.Body.Type
 	}
