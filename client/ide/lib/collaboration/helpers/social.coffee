@@ -101,9 +101,10 @@ leaveChannel = (channel, callback) ->
  *
  * Difference is it sets `collaboration` defaults.
  *
- * @param {function(err: object)}
+ * @param {function(err: object, result: object)}
 ###
 initChannel = (callback) ->
+
   {message} = kd.singletons.socialapi
   nickname  = getNick()
 
