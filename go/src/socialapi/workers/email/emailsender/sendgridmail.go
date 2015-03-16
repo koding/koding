@@ -1,5 +1,5 @@
 // Package sender provides an API for mail sending operations
-package sender
+package emailsender
 
 import "github.com/sendgrid/sendgrid-go"
 

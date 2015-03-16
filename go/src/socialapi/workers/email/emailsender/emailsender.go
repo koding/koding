@@ -1,30 +1,23 @@
 // Package sender provides an API for mail sending operations
-package sender
+package emailsender
 
 import (
 	"github.com/koding/bongo"
+	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
 
-// Emailer includes Send method to be implemented
-type Emailer interface {
-	Send(*Mail) error
-}
-
 // Controller holds required instances for processing events
 type Controller struct {
 	log             logging.Logger
-	emailer         Emailer
+	emailer         eventexporter.Exporter
 	ForcedRecipient string
 }
 
 // New Creates a new controller for mail worker
-func New(log logging.Logger, em Emailer) *Controller {
-	return &Controller{
-		log:     log,
-		emailer: em,
-	}
+func New(exporter eventexporter.Exporter, log logging.Logger) *Controller {
+	return &Controller{emailer: exporter, log: log}
 }
 
 // Send gets the mail struct that includes the message
@@ -42,7 +35,13 @@ func (c *Controller) Process(m *Mail) error {
 		m.To = c.ForcedRecipient
 	}
 
-	return c.emailer.Send(m)
+	event := &eventexporter.Event{
+		Name: m.Subject,
+		User: &eventexporter.User{Email: m.To, Username: m.Username},
+		Body: &eventexporter.Body{Content: m.HTML},
+	}
+
+	return c.emailer.Send(event)
 }
 
 // DefaultErrHandler controls the errors, return false if an error occurred
