@@ -1,6 +1,7 @@
 package models
 
 import (
+	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/runner"
 	"testing"
@@ -47,6 +48,68 @@ func TestChannelNewChannel(t *testing.T) {
 
 		Convey("it should have PrivacyConstant as set", func() {
 			So(c.PrivacyConstant, ShouldEqual, Channel_PRIVACY_PRIVATE)
+		})
+	})
+}
+
+func TestChannelSearch(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	c := NewChannel()
+
+	Convey("moderation needed channels", t, func() {
+		account := CreateAccountWithTest()
+		groupChannel := CreateTypedPublicChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+		)
+
+		c.CreatorId = account.Id
+		c.GroupName = groupChannel.Name
+		c.TypeConstant = Channel_TYPE_TOPIC
+		c.PrivacyConstant = Channel_PRIVACY_PUBLIC
+		c.MetaBits.Mark(NeedsModeration)
+
+		So(c.Create(), ShouldBeNil)
+		Convey("should not be in search results", func() {
+			channels, err := NewChannel().Search(&request.Query{
+				Name:      c.Name,
+				GroupName: groupChannel.GroupName,
+				AccountId: account.Id,
+			})
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 0)
+		})
+
+		Convey("after removing needs moderation flag", func() {
+			// byname doesnt filter
+			channel, err := NewChannel().ByName(&request.Query{
+				Name:      c.Name,
+				GroupName: groupChannel.GroupName,
+				AccountId: account.Id,
+			})
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			channel.MetaBits.UnMark(NeedsModeration)
+
+			So(channel.Update(), ShouldBeNil)
+
+			Convey("we should be able to search them", func() {
+				channels, err := NewChannel().Search(&request.Query{
+					Name:      c.Name,
+					GroupName: groupChannel.GroupName,
+					AccountId: account.Id,
+					Privacy:   channel.PrivacyConstant,
+				})
+				So(err, ShouldBeNil)
+				So(len(channels), ShouldEqual, 1)
+				So(channels[0].Id, ShouldEqual, channel.Id)
+			})
 		})
 	})
 }
