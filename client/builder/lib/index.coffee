@@ -263,18 +263,17 @@ class Haydar extends events.EventEmitter
         }
       }
 
-    if opts.watchJs
-      b = bant.watch opts_
+    b = if opts.watchJs
+      bant.watch opts_
 
       onUpdate = (files) ->
-        files.forEach (file) ->
-          console.log "updated #{file}"
+        files.forEach (file) -> console.log "updated #{file}"
         bundle()
 
       onUpdate = throttle onUpdate, THROTTLE_WAIT
       b.on 'update', onUpdate
     else
-      b = bant opts_
+      bant opts_
 
     b.require require.resolve('kd.js'), expose: 'kd'
     b.use manifests
@@ -287,7 +286,7 @@ class Haydar extends events.EventEmitter
 
       start = Date.now()
       notify = @_notify.bind this
-      
+
       b.bundle (err, src) =>
 
         if err
@@ -520,7 +519,7 @@ class Haydar extends events.EventEmitter
 
       dirs = rows.map (row) ->
         return row.outdir
-      
+
       dirs = nub dirs
 
       createDirs dirs, ->
