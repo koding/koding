@@ -25,7 +25,7 @@ func stripePaymentSucceeded(raw []byte, c *Controller) error {
 }
 
 func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller) error {
-	emailAddress, err := getEmailForCustomer(req.CustomerId)
+	user, err := getUserForCustomer(req.CustomerId)
 	if err != nil {
 		return err
 	}
@@ -48,9 +48,7 @@ func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller
 		"price":    formatStripeAmount(req.Currency, req.AmountDue),
 	}
 
-	Log.Info("Stripe: Sent invoice email to: %s with plan: %s", emailAddress, planName)
+	Log.Info("Stripe: Sent invoice email to: %s with plan: %s", user.Email, planName)
 
-	return paymentemail.Send(
-		c.Email, paymentemail.PaymentCreated, emailAddress, opts,
-	)
+	return paymentemail.Send(user, paymentemail.PaymentCreated, opts)
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"koding/artifact"
+	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"net"
 	"net/http"
@@ -130,6 +131,6 @@ func initializeMux(st *stripeMux, pp *paypalMux) *http.ServeMux {
 	return mux
 }
 
-func getEmailForCustomer(customerId string) (string, error) {
-	return paymentmodels.NewCustomer().GetEmail(customerId)
+func getUserForCustomer(customerId string) (*models.User, error) {
+	return paymentmodels.NewCustomer().GetUser(customerId)
 }
