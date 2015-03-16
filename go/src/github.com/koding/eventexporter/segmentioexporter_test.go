@@ -47,7 +47,9 @@ func TestSegmentIOExporter(t *testing.T) {
 		user := &User{Username: "indianajones"}
 		event := &Event{Name: "test", Properties: props, User: user}
 
-		sender := NewSegementIOExporter(url.String(), "", 1)
+		sender := NewSegementIOExporter("", 1)
+		sender.Client.Endpoint = url.String()
+
 		err := sender.Send(event)
 		So(err, ShouldBeNil)
 

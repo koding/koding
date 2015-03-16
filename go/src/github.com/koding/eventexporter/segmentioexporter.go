@@ -6,12 +6,8 @@ type SegementIOExporter struct {
 	Client *analytics.Client
 }
 
-func NewSegementIOExporter(endpoint, key string, size int) *SegementIOExporter {
+func NewSegementIOExporter(key string, size int) *SegementIOExporter {
 	client := analytics.New(key)
-	if endpoint != "" {
-		client.Endpoint = endpoint
-	}
-
 	client.Size = size
 
 	return &SegementIOExporter{Client: client}
