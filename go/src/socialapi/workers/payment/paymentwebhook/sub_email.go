@@ -1,12 +1,6 @@
 package main
 
-import (
-	"socialapi/workers/payment/paymentemail"
-
-	"github.com/koding/kodingemail"
-)
-
-func subscriptionEmail(customerId, planName string, action paymentemail.Action, email kodingemail.Client) error {
+func subscriptionEmail(customerId, planName string, action Action) error {
 	user, err := getUserForCustomer(customerId)
 	if err != nil {
 		return err
@@ -17,5 +11,5 @@ func subscriptionEmail(customerId, planName string, action paymentemail.Action, 
 	Log.Info("Sent subscription email to: %s with plan: %s", user.Email,
 		planName)
 
-	return paymentemail.Send(user, action, opts)
+	return Email(user, action, opts)
 }

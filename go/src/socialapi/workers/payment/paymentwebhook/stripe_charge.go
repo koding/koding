@@ -2,19 +2,18 @@ package main
 
 import (
 	"encoding/json"
-	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
 func stripePaymentRefunded(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, paymentemail.PaymentRefunded)
+	return stripeChargeHelper(raw, c, PaymentRefunded)
 }
 
 func stripePaymentFailed(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, paymentemail.PaymentFailed)
+	return stripeChargeHelper(raw, c, PaymentFailed)
 }
 
-func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) error {
+func stripeChargeHelper(raw []byte, c *Controller, action Action) error {
 	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)
@@ -33,5 +32,5 @@ func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) e
 
 	Log.Info("Stripe: Sent invoice email to: %s", user.Email)
 
-	return paymentemail.Send(user, action, opts)
+	return Email(user, action, opts)
 }

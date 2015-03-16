@@ -13,8 +13,6 @@ import (
 	"socialapi/workers/payment/paymentmodels"
 	"time"
 
-	"github.com/koding/kodingemail"
-
 	"github.com/koding/kite"
 )
 
@@ -24,8 +22,7 @@ var (
 )
 
 type Controller struct {
-	Kite  *kite.Client
-	Email kodingemail.Client
+	Kite *kite.Client
 }
 
 func main() {
@@ -47,11 +44,8 @@ func main() {
 	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
 	defer kiteClient.Close()
 
-	// initialize client to send email
-	email := initializeEmail(conf.Email)
-
 	// initialize controller to inject dependencies
-	cont := &Controller{Kite: kiteClient, Email: email}
+	cont := &Controller{Kite: kiteClient}
 
 	// initialize mux for two implement vendor webhooks
 	st := &stripeMux{Controller: cont}
@@ -114,10 +108,6 @@ func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client
 	Log.Debug("Connected to klient: %s", kloudAddr)
 
 	return kiteClient
-}
-
-func initializeEmail(conf config.Email) kodingemail.Client {
-	return kodingemail.NewSG(conf.Username, conf.Password)
 }
 
 func initializeMux(st *stripeMux, pp *paypalMux) *http.ServeMux {

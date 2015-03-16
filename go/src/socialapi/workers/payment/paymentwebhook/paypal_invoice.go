@@ -1,7 +1,6 @@
 package main
 
 import (
-	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/paypal"
 )
@@ -12,7 +11,7 @@ func paypalPaymentSucceeded(req *webhookmodels.PaypalGenericWebhook, c *Controll
 		return err
 	}
 
-	return paypalPaymentHelper(req, paymentemail.PaymentCreated, c)
+	return paypalPaymentHelper(req, PaymentCreated, c)
 }
 
 func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
@@ -21,10 +20,10 @@ func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller)
 		return err
 	}
 
-	return paypalPaymentHelper(req, paymentemail.PaymentFailed, c)
+	return paypalPaymentHelper(req, PaymentFailed, c)
 }
 
-func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action paymentemail.Action, c *Controller) error {
+func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action Action, c *Controller) error {
 	opts := map[string]string{
 		"planName": req.Plan,
 		"price":    formatPaypalAmount(req.Currency, req.Amount),
@@ -38,5 +37,5 @@ func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action payment
 	Log.Info("Paypal: Sent paypal email to: %s with plan: %s", user.Email,
 		req.Plan)
 
-	return paymentemail.Send(user, action, opts)
+	return Email(user, action, opts)
 }

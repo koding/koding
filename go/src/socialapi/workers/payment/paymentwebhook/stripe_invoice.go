@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
@@ -50,5 +49,5 @@ func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller
 
 	Log.Info("Stripe: Sent invoice email to: %s with plan: %s", user.Email, planName)
 
-	return paymentemail.Send(user, paymentemail.PaymentCreated, opts)
+	return Email(user, PaymentCreated, opts)
 }
