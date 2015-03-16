@@ -37,11 +37,11 @@ func TestNew(t *testing.T) {
 	Convey("Given an exporter client", t, func() {
 		Convey("Then it should call it", func() {
 			mail := &Mail{
-				To:       "mehmet@koding.com",
-				Subject:  "Test message",
-				Text:     "Example",
-				From:     "team@koding.com",
-				FromName: "koding",
+				To:         "mehmet@koding.com",
+				Subject:    "Test message",
+				Text:       "Example",
+				From:       "team@koding.com",
+				Properties: &Properties{Username: "mehmet"},
 			}
 
 			exporter := eventexporter.NewLogExporter()

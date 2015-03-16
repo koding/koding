@@ -8,12 +8,25 @@ type Mail struct {
 	Subject string
 	Text    string
 	// TODO maybe we can remove this HTML field
-	HTML     string
-	From     string
-	Bcc      string
-	FromName string
-	ReplyTo  string
+	HTML       string
+	From       string
+	Bcc        string
+	FromName   string
+	ReplyTo    string
+	Properties *Properties
+}
+
+type Properties struct {
 	Username string
+}
+
+func NewMail(to, from, subject, username string) *Mail {
+	properties := &Properties{Username: username}
+
+	return &Mail{
+		To: to, From: from, Subject: subject,
+		Properties: properties,
+	}
 }
 
 func (m Mail) GetId() int64 {

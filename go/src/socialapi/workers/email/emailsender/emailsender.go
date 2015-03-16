@@ -37,10 +37,13 @@ func (c *Controller) Process(m *Mail) error {
 		m.To = c.ForcedRecipient
 	}
 
+	user := &eventexporter.User{Email: m.To}
+	if m.Properties != nil {
+		user.Username = m.Properties.Username
+	}
+
 	event := &eventexporter.Event{
-		Name: m.Subject,
-		User: &eventexporter.User{Email: m.To, Username: m.Username},
-		Body: &eventexporter.Body{Content: m.HTML},
+		Name: m.Subject, User: user, Body: &eventexporter.Body{Content: m.HTML},
 	}
 
 	return c.emailer.Send(event)
