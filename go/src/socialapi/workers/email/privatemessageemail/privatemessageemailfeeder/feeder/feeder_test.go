@@ -43,7 +43,7 @@ func TestNewMessageCreation(t *testing.T) {
 
 			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
 			cm.TypeConstant = models.ChannelMessage_TYPE_JOIN
-			err := controller.AddMessageToQueue(cm)
+			err = controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
 
 			length, err := redisConn.GetHashLength(common.AccountNextPeriodHashSetKey())
