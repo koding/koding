@@ -137,9 +137,7 @@ module.exports = class AceAppView extends JView
 
   setFileListeners: (file) ->
     view = @aceViews[file.path]
-    file.on "fs.saveAs.finished", (err, newFile, oldFile)=>
-      return  if err
-
+    file.on "fs.saveAs.finished", (newFile, oldFile)=>
       if @aceViews[oldFile.path]
         view = @aceViews[oldFile.path]
         @clearFileRecords view

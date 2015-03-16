@@ -79,10 +79,12 @@ module.exports = class FSFile extends FSItem
           @machine
         }
 
-        ok = file.save contents
-        file.once 'fs.save.finished', (err, response) =>
+        ok = file.save contents, (err, response) =>
           callback err, file, this  if callback
-          @emit "fs.saveAs.finished", err, file, this
+          if err
+            @emit "fs.saveAs.failed", err
+          else
+            @emit "fs.saveAs.finished", file, this
 
         return ok
 
@@ -208,13 +210,13 @@ module.exports = class FSFile extends FSItem
     ok
       .then (response) =>
         callback null, response  if callback
-        @emit "fs.save.finished", null, response
+        @emit "fs.save.finished", response
 
         return response
 
       .catch (err) =>
         callback err  if callback
-        @emit "fs.save.finished", err
+        @emit "fs.save.failed", err
 
 
   fetchPermissions: (callback) ->

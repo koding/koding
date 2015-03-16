@@ -125,8 +125,8 @@ module.exports = class Ace extends KDView
   saveStarted:->
     @lastContentsSentForSave = @getContents()
 
-  saveFinished:(err, res)->
-    return  if err
+
+  saveFinished:(res)->
 
     @lastSavedContents = @lastContentsSentForSave
     @emit 'FileContentRestored'
@@ -135,11 +135,12 @@ module.exports = class Ace extends KDView
       # fatihacet - this case works buggy.
     @askedForSave = no
 
-  saveAsFinished:(err)->
-    return  if err
+
+  saveAsFinished:(newFile, oldFile)->
 
     @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
+
 
   setEditorListeners:->
 
