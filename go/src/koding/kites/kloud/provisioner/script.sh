@@ -23,6 +23,13 @@ sudo groupadd docker
 # remove installed packages to free up space
 sudo apt-get clean
 
+# install kpm
+
+cd /tmp
+sudo wget https://github.com/koding/kpm-scripts/releases/download/v0.2.2/kpm
+sudo cp kpm /usr/local/bin/
+sudo chmod +x /usr/local/bin/kpm
+
 # website template
 sudo a2enmod cgi
 sudo a2enmod rewrite
