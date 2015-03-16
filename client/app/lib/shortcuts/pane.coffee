@@ -19,10 +19,13 @@ class ShortcutsModalPane extends kd.View
 
   viewAppended: ->
 
-    @addSubView new ListHead
+    @addSubView @listHead = new ListHead
       cssClass: 'list-head'
       description: @description
 
-    @listViewController = new ShortcutsListController {}, @collection
+    @listController = new ShortcutsListController
+    
+    @collection.each (model) =>
+      @listController.addItem model
 
-    @addSubView @listViewController.getView()
+    @addSubView @listController.getView()
