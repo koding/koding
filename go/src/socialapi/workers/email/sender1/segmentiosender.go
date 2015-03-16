@@ -23,13 +23,7 @@ func NewSegementIOSender(endpoint, key string, size int) *SegementIOSender {
 }
 
 func (s *SegementIOSender) Send(event *Event) error {
-	_, ok := event.Properties["body"]
-	if !ok {
-		if event.Body != nil {
-			event.Properties["body"] = event.Body.Content
-			event.Properties["bodyType"] = event.Body.Type
-		}
-	}
+	event = addBody(event)
 
 	err := s.Client.Track(&analytics.Track{
 		Event:      event.Name,
@@ -38,4 +32,18 @@ func (s *SegementIOSender) Send(event *Event) error {
 	})
 
 	return err
+}
+
+func addBody(event *Event) *Event {
+	_, ok := event.Properties["body"]
+	if ok {
+		return event
+	}
+
+	if event.Body != nil {
+		event.Properties["body"] = event.Body.Content
+		event.Properties["bodyType"] = event.Body.Type
+	}
+
+	return event
 }
