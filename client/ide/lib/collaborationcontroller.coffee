@@ -45,25 +45,10 @@ module.exports =
 
   initPrivateMessage: (callback) ->
 
-    {message} = kd.singletons.socialapi
-    nickname  = nick()
+    socialHelpers.initChannel (err, channel) =>
+      return callback err  if err
 
-    options =
-      type       : 'collaboration'
-      body       : "@#{nickname} initiated the IDE session."
-      purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
-      recipients : [ nickname ]
-      payload    :
-        'system-message' : 'initiate'
-        collaboration    : yes
-
-    message.initPrivateMessage options, (err, channels) =>
-
-      return callback err  if err or (not Array.isArray(channels) and not channels[0])
-
-      [channel] = channels
       @setSocialChannel channel
-
       @updateWorkspace { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
