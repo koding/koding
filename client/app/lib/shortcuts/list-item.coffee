@@ -1,5 +1,7 @@
-kd    = require 'kd'
-JView = require 'app/jview'
+kd               = require 'kd'
+JView            = require 'app/jview'
+KodingSwitch     = require 'app/commonviews/kodingswitch'
+BindingView      = require './list-item-binding'
 
 module.exports =
 
@@ -9,16 +11,17 @@ class ShortcutsListItem extends kd.ListItemView
 
   constructor: (options={}, model) ->
     
-    options.type or= 'sidebar-item'
-    options.tagName or= 'a'
-    options.cssClass ='clearfix'
+    options.tagName or= 'div'
+    options.cssClass or= 'row'
+
+    @enabledView = new KodingSwitch
+    @bindingView = new BindingView {}, model
 
     super options, model
 
   pistachio: ->
-
     """
-    {span.ttag{#(name)}}
+    <div class=col>{span{#(description)}}</div>
+    <div class=col>{span{> @bindingView }}</div>
+    <div class=col>{span{> @enabledView }}</div>
     """
-
-    
