@@ -142,6 +142,11 @@ module.exports = UserEnvironmentDataProvider =
     @machineFetcher_ 'uid', uid, callback
 
 
+  fetchMachineById: (id, callback) ->
+
+    @machineFetcher_ '_id', id, callback
+
+
   fetchMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
     machine   = null
