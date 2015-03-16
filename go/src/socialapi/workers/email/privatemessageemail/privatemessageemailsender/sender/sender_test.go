@@ -2,10 +2,11 @@ package sender
 
 import (
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/privatemessageemail/common"
 	"socialapi/workers/email/privatemessageemail/testhelper"
 	"testing"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/runner"
 
