@@ -2,11 +2,6 @@ package sender
 
 import analytics "github.com/segmentio/analytics-go"
 
-var (
-	// TODO: remove this; this should be sent by worker calling this
-	DefaultSegmentIOKey = "kb2hfdgf20"
-)
-
 type SegementIOSender struct {
 	Client *analytics.Client
 }
