@@ -42,7 +42,7 @@ class ShortcutsModal extends kd.ModalView
             collection  : collection
         }
 
-    #tabView.showPaneByIndex 0
+    tabView.showPaneByIndex 0
 
     buttonBar = new kd.View
       cssClass: 'buttons'
