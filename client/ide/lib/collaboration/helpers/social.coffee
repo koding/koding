@@ -65,7 +65,7 @@ destroyChannel = (channel, callback) ->
 
 
 ###*
- * Wrapper function around `SocialApiController#fetchParticipants`
+ * Wrapper function around `SocialApiController#channel.listParticipants`
  *
  * One difference is instead of returning simple objects,
  * it transforms them into `JAccount` objects.
@@ -143,6 +143,7 @@ fetchAccount = (socialAccount, callback) ->
 
 
 module.exports = {
+  fetchParticipants
   addParticipants
   removeParticipants
   kickParticipants
