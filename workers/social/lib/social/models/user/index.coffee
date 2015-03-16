@@ -4,6 +4,8 @@ Regions   = require 'koding-regions'
 KONFIG    = require('koding-config-manager').load("main.#{argv.c}")
 Flaggable = require '../../traits/flaggable'
 
+KodingError = require '../../error'
+
 module.exports = class JUser extends jraphical.Module
   {secure, signature, daisy, dash} = require 'bongo'
 
