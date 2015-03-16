@@ -1,9 +1,10 @@
 package emailmodels
 
 import (
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

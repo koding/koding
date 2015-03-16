@@ -8,10 +8,10 @@ import (
 	"socialapi/workers/collaboration"
 	"socialapi/workers/collaboration/models"
 	"socialapi/workers/common/response"
-	"socialapi/workers/common/runner"
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 // Ping handles the pings coming from client side

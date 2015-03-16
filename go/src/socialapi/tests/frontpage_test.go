@@ -3,8 +3,9 @@ package main
 import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"testing"
+
+	"github.com/koding/runner"
 )
 
 func TestFrontpageListingOperations(t *testing.T) {

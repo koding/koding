@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var (

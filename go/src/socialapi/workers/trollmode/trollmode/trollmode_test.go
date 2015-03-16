@@ -10,11 +10,12 @@ import (
 	"socialapi/request"
 	"socialapi/rest"
 	"socialapi/workers/common/response"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/common/tests"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"

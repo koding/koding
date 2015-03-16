@@ -3,8 +3,9 @@ package models
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

@@ -6,9 +6,10 @@ import (
 	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/mailparse/models"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

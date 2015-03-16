@@ -3,12 +3,13 @@ package models
 import (
 	"math/rand"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 

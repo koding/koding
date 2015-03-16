@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/realtime/dispatcher/dispatcher"
 	"socialapi/workers/realtime/models"
+
+	"github.com/koding/runner"
 )
 
 const Name = "Dispatcher"

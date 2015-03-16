@@ -6,9 +6,10 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

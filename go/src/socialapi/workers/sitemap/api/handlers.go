@@ -7,10 +7,11 @@ import (
 	"socialapi/config"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/sitemap/models"
 	"strings"
 	"time"
+
+	"github.com/koding/runner"
 )
 
 var ErrFetch = errors.New("could not fetch files")

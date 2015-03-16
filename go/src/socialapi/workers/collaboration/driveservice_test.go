@@ -8,9 +8,10 @@ import (
 	apimodels "socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

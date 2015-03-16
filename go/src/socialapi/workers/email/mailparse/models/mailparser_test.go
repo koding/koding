@@ -5,10 +5,10 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/common/runner"
 	"testing"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/migrator/controller"
 	"socialapi/workers/realtime/models"
+
+	"github.com/koding/runner"
 )
 
 var (

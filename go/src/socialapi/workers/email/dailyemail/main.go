@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/dailyemail/dailyemail"
 	"socialapi/workers/email/emailmodels"
+
+	"github.com/koding/runner"
 )
 
 var Name = "DailyEmail"

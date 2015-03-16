@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/common/runner"
 	api "socialapi/workers/realtime/gatekeeper/gatekeeper"
 	"socialapi/workers/realtime/models"
+
+	"github.com/koding/runner"
 )
 
 const Name = "Gatekeeper"

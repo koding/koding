@@ -6,10 +6,11 @@ import (
 	"net"
 	"net/http"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/kodingemail"
 

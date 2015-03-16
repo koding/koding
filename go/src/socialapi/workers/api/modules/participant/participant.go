@@ -8,9 +8,9 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"socialapi/workers/common/runner"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var ErrSkipActivity = errors.New("skip activity")

@@ -5,15 +5,14 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
+	"testing"
+	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
-
-	"testing"
-	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

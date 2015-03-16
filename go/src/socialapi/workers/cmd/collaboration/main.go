@@ -7,9 +7,9 @@ import (
 	"socialapi/config"
 	"socialapi/workers/collaboration"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 
 	"github.com/koding/broker"
+	"github.com/koding/runner"
 )
 
 var (

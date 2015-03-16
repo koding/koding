@@ -5,12 +5,13 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	"labix.org/v2/mgo/bson"
 

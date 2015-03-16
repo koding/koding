@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/privatemessageemailsender/sender"
+
+	"github.com/koding/runner"
 )
 
 const Name = "PrivateMessageEmailSender"

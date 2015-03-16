@@ -8,9 +8,10 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )

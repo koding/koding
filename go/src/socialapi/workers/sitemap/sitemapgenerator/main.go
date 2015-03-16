@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
+
+	"github.com/koding/runner"
 
 	"socialapi/workers/sitemap/sitemapgenerator/generator"
 )

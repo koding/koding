@@ -8,7 +8,8 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
-	"socialapi/workers/common/runner"
+
+	"github.com/koding/runner"
 )
 
 var (

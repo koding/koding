@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/sitemap/sitemapfeeder/feeder"
+
+	"github.com/koding/runner"
 )
 
 var (

@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 	"testing"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/redis"
 	. "github.com/smartystreets/goconvey/convey"

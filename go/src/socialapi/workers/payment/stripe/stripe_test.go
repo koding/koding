@@ -4,9 +4,10 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
+
+	"github.com/koding/runner"
 
 	"labix.org/v2/mgo/bson"
 

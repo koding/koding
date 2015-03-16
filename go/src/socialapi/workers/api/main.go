@@ -11,13 +11,14 @@ import (
 	"socialapi/workers/api/handlers"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/common/runner"
 	mailapi "socialapi/workers/email/mailparse/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
+
+	"github.com/koding/runner"
 )
 
 var (

@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/sitemap/sitemapfeeder/feeder"
+
+	"github.com/koding/runner"
 )
 
 var (

@@ -8,16 +8,15 @@ import (
 	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 	"strconv"
-
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
-
 	"testing"
 	"time"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 

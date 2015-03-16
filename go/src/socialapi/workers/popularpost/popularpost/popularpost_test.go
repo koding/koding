@@ -9,7 +9,8 @@ import (
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
+
+	"github.com/koding/runner"
 
 	"github.com/jinzhu/now"
 	"github.com/koding/bongo"

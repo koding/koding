@@ -6,11 +6,12 @@ import (
 	apimodels "socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 var (

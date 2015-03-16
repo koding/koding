@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/populartopic/populartopic"
+
+	"github.com/koding/runner"
 )
 
 var (
@@ -17,6 +19,8 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	config.MustRead(r.Conf.Path)
 
 	redis := runner.MustInitRedisConn(r.Conf)
 	// create message handler

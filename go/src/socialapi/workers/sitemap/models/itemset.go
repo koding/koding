@@ -2,8 +2,9 @@ package models
 
 import (
 	"encoding/xml"
-	"socialapi/workers/common/runner"
 	"time"
+
+	"github.com/koding/runner"
 )
 
 // ItemSet corresponds to sitemap parent urlset element.

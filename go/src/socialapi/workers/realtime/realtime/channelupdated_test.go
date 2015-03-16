@@ -4,10 +4,11 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	"labix.org/v2/mgo/bson"
 

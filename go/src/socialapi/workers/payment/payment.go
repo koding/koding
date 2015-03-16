@@ -3,12 +3,13 @@ package payment
 import (
 	"errors"
 	"fmt"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
 	"socialapi/workers/payment/stripe"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/kite"
 )

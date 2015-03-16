@@ -7,11 +7,12 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/popularpost/popularpost"
 	"socialapi/workers/populartopic/populartopic"
 	"strconv"
 	"time"
+
+	"github.com/koding/runner"
 )
 
 func getDateNumberAndYear(statisticName string) (int, int, error) {

@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/popularpost/popularpost"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/jinzhu/now"
 )
@@ -24,6 +26,8 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+
+	config.MustRead(r.Conf.Path)
 
 	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()

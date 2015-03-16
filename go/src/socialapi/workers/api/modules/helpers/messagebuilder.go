@@ -3,9 +3,9 @@ package helpers
 import (
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 func FetchMessageIdsByChannelId(channelId int64, q *request.Query) ([]int64, error) {

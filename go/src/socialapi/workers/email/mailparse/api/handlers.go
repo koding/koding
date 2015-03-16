@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"net/url"
 	"socialapi/workers/common/response"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/mailparse/models"
+
+	"github.com/koding/runner"
 )
 
 func Parse(u *url.URL, h http.Header, req *models.Mail) (int, http.Header, interface{}, error) {

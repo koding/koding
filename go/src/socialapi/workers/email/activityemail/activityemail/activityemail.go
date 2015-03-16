@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"socialapi/config"
 	socialmodels "socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/activityemail/models"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/templates"
@@ -15,6 +14,7 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
+	"github.com/koding/runner"
 	"github.com/streadway/amqp"
 )
 

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/activityemail/models"
 	"socialapi/workers/email/emailmodels"
 	notificationmodels "socialapi/workers/notification/models"
@@ -14,6 +13,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/koding/runner"
 	"github.com/robfig/cron"
 )
 

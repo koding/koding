@@ -3,9 +3,9 @@ package main
 import (
 	"fmt"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/sender"
 
+	"github.com/koding/runner"
 	"github.com/sendgrid/sendgrid-go"
 )
 

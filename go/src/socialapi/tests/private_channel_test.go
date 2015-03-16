@@ -9,12 +9,13 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 
-	. "github.com/smartystreets/goconvey/convey"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
+
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func CreatePrivateChannelUser(nickname string) {

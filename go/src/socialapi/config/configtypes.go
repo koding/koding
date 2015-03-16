@@ -1,6 +1,6 @@
 package config
 
-import "socialapi/workers/common/runner"
+import "github.com/koding/runner"
 
 type (
 	// Config holds all the configuration variables of socialapi

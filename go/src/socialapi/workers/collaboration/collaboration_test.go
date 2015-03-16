@@ -7,15 +7,14 @@ import (
 	"socialapi/config"
 	apimodels "socialapi/models"
 	"socialapi/rest"
+	"socialapi/workers/collaboration"
 	"socialapi/workers/collaboration/models"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
 
-	"socialapi/workers/collaboration"
-
 	"github.com/koding/redis"
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"

@@ -2,8 +2,9 @@ package sender
 
 import (
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"testing"
+
+	"github.com/koding/runner"
 
 	"github.com/sendgrid/sendgrid-go"
 	. "github.com/smartystreets/goconvey/convey"

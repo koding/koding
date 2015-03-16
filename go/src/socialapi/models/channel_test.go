@@ -3,10 +3,11 @@ package models
 import (
 	"socialapi/config"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 	"testing"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 

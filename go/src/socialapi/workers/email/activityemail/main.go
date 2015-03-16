@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/email/activityemail/activityemail"
 	"socialapi/workers/email/emailmodels"
 	notificationmodels "socialapi/workers/notification/models"
+
+	"github.com/koding/runner"
 )
 
 var (

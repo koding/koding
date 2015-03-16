@@ -5,10 +5,10 @@ import (
 
 	"socialapi/models"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
-	"socialapi/workers/common/runner"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var Name = "AlgoliaContentMigrator"

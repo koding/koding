@@ -5,9 +5,10 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"strings"
+
+	"github.com/koding/runner"
 )
 
 // Mail holds the structure for parsed email

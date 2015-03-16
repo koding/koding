@@ -2,9 +2,10 @@ package dispatcher
 
 import (
 	"fmt"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/realtime/models"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"

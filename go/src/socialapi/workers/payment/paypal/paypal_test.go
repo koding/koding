@@ -7,10 +7,11 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/stripe"
 	"strconv"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/paypal"
 	. "github.com/smartystreets/goconvey/convey"
