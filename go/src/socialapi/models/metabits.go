@@ -2,6 +2,8 @@ package models
 
 const (
 	Troll MetaBits = 1 << iota
+	NeedsModeration
+
 	// all other bits will up be here
 
 	// safe should be the last one assigned as 0

@@ -350,6 +350,10 @@ func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 	cml.ClientRequestId = cm.ClientRequestId
 
 	if err := cml.Create(); err != nil {
+		if IsUniqueConstraintError(err) {
+			return nil, ErrMessageAlreadyInTheChannel
+		}
+
 		return nil, err
 	}
 
@@ -482,6 +486,10 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		return nil, ErrGroupNameIsNotSet
 	}
 
+	if q.Type == "" {
+		q.Type = Channel_TYPE_TOPIC
+	}
+
 	var channels []Channel
 
 	bongoQuery := &bongo.Query{
@@ -492,6 +500,9 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
+
+	// this will hide moderation needed channels
+	bongoQuery.AddScope(RemoveModerationNeededContent(c, false))
 
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
