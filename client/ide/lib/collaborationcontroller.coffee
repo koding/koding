@@ -88,20 +88,11 @@ module.exports =
     {channel}    = kd.getSingleton 'socialapi'
     {JWorkspace} = remote.api
 
-    options = channelId: @socialChannel.getId()
-    channel.delete options, (err) =>
-
+    socialHelpers.destroyChannel @socialChannel, (err) =>
       return callback err  if err
 
-      @channelId = @socialChannel = null
-
-      options = $unset: channelId: 1
-      JWorkspace.update @workspaceData._id, options, (err) =>
-
-        return callback err  if err
-
-        @workspaceData.channelId = null
-        callback null
+      @unsetSocialChannel()
+      workspaceHelpers.detachSocialChannel @workspaceData, callback
 
 
   # FIXME: This method is called more than once. It should cache the result and
