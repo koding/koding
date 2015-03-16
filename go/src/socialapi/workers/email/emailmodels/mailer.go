@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/models"
-	"socialapi/workers/email/sender"
+	"socialapi/workers/email/emailsender"
 )
 
 type Mailer struct {
 	UserContact *UserContact
-	Mail        *sender.Mail
+	Mail        *emailsender.Mail
 	Information string
 }
 
@@ -52,7 +52,7 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 	m.Mail.To = m.UserContact.Email
 	m.Mail.ToName = fullname
 
-	if err := sender.Send(m.Mail); err != nil {
+	if err := emailsender.Send(m.Mail); err != nil {
 		return err
 	}
 
