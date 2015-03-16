@@ -65,12 +65,10 @@ module.exports =
     unless id = @getSocialChannelId()
       return callback()
 
-
-    kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
+    socialHelpers.fetchChannel id, (err, channel) =>
       return callback err  if err
 
       @setSocialChannel channel
-
       callback null, @socialChannel
 
 
