@@ -62,6 +62,7 @@ module.exports = class AccountAppController extends AppController
       title    : 'Account Settings'
       cssClass : 'AppModal AppModal--account'
       width    : 805
+      overlay  : yes
 
     super options, data
 
@@ -109,6 +110,14 @@ module.exports = class AccountAppController extends AppController
 
     for own sectionKey, section of items
       @navController.instantiateListItems section.items
+    modal.once 'KDObjectWillBeDestroyed', ->
+      { router } = kd.singletons
+      previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Account.*/.test(route)
+      if previousRoutes.length > 0
+      then router.handleRoute previousRoutes.last
+      else router.handleRoute router.getDefaultRoute()
+
+
   showReferrerModal: (options = {}) ->
 
     return  if @referrerModal and not @referrerModal.isDestroyed
