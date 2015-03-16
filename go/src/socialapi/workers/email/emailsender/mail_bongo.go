@@ -17,11 +17,13 @@ type Mail struct {
 }
 
 type Properties struct {
-	Username string
+	Username     string
+	Substituions map[string]string
 }
 
 func NewMail(to, from, subject, username string) *Mail {
-	properties := &Properties{Username: username}
+	substituions := map[string]string{}
+	properties := &Properties{Username: username, Substituions: substituions}
 
 	return &Mail{
 		To: to, From: from, Subject: subject,
