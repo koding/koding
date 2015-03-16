@@ -1,7 +1,6 @@
 package topicfeed
 
 import (
-	"fmt"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/request"
@@ -70,13 +69,12 @@ func TestMessageSaved(t *testing.T) {
 
 	Convey("while testing MessageSaved", t, func() {
 
-		Convey("newly created channels should be marked with needs moderation", func() {
+		Convey("newly created channels", func() {
 			account := models.CreateAccountWithTest()
 			groupChannel := models.CreateTypedPublicChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
 
 			// just a random topic name
 			topicName := models.RandomName()
-			fmt.Println("topicName-->", topicName)
 			c := models.NewChannelMessage()
 			c.InitialChannelId = groupChannel.Id
 			c.AccountId = account.Id
@@ -89,17 +87,7 @@ func TestMessageSaved(t *testing.T) {
 
 			So(controller.MessageSaved(c), ShouldBeNil)
 
-			Convey("we should not be able to find them", func() {
-				channels, err := models.NewChannel().Search(&request.Query{
-					Name:      topicName,
-					GroupName: groupChannel.GroupName,
-					AccountId: account.Id,
-				})
-				So(err, ShouldBeNil)
-				So(len(channels), ShouldEqual, 0)
-			})
-
-			Convey("after removing needs moderation flag", func() {
+			Convey("should have moderation flag", func() {
 				// byname doesnt filter
 				channel, err := models.NewChannel().ByName(&request.Query{
 					Name:      topicName,
@@ -108,22 +96,7 @@ func TestMessageSaved(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-
-				channel.MetaBits.UnMark(models.NeedsModeration)
-
-				So(channel.Update(), ShouldBeNil)
-
-				Convey("we should be able to search them", func() {
-					channels, err := models.NewChannel().Search(&request.Query{
-						Name:      topicName,
-						GroupName: groupChannel.GroupName,
-						AccountId: account.Id,
-						Privacy:   channel.PrivacyConstant,
-					})
-					So(err, ShouldBeNil)
-					So(len(channels), ShouldEqual, 1)
-					So(channels[0].Id, ShouldEqual, channel.Id)
-				})
+				So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeTrue)
 			})
 		})
 	})
