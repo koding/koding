@@ -23,7 +23,8 @@ require('./routehandler')()
 module.exports = class AccountAppController extends AppController
 
   @options =
-    name  : 'Account'
+    name       : 'Account'
+    background : yes
 
   items =
     personal :
