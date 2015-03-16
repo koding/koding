@@ -48,13 +48,13 @@ module.exports = class IDEApplicationTabView extends ApplicationTabView
           title     : "Save and Close"
           callback  : =>
             if file.path.indexOf("localfile:") is 0
-              file.once "fs.saveAs.finished", (err) => @removePane_ pane  unless err
+              file.once "fs.saveAs.finished", => @removePane_ pane
               @willClose = yes
               ace.requestSaveAs()
               modal.destroy()
             else
               ace.requestSave()
-              file.once "fs.save.finished", (err) => @removePane_ pane  unless err
+              file.once "fs.save.finished", => @removePane_ pane
               modal.destroy()
         "DontSave"  :
           cssClass  : "solid red medium"
