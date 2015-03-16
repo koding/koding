@@ -5,7 +5,8 @@ module.exports = class AccountNavigationItem extends KDListItemView
   constructor:(options = {}, data)->
 
     options.tagName    = 'a'
-    options.attributes = href : "/Account/#{data.slug}"
+    options.route      = "/Account/#{data.slug}"
+    options.attributes = href : options.route
     options.cssClass   = "AppModal-navItem #{data.slug.toLowerCase()}"
 
     super options, data
@@ -15,3 +16,9 @@ module.exports = class AccountNavigationItem extends KDListItemView
   partial:(data)-> data.title
 
 
+  click: (event) ->
+
+    kd.utils.stopDOMEvent event
+    kd.singletons.router.handleRoute @getOption 'route'
+
+    super event
