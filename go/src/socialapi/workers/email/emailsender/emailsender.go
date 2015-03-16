@@ -8,6 +8,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+var SendEmailEventName = "sendemail"
+
 // Controller holds required instances for processing events
 type Controller struct {
 	log             logging.Logger
@@ -24,7 +26,7 @@ func New(exporter eventexporter.Exporter, log logging.Logger) *Controller {
 // when we call this function, it sends the given mail to the
 // address that will be sent.
 func Send(m *Mail) error {
-	return bongo.B.PublishEvent("send", m)
+	return bongo.B.PublishEvent(SendEmailEventName, m)
 }
 
 // Process creates and sets the message that will be sent,
