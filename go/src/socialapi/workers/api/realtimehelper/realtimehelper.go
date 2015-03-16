@@ -9,7 +9,10 @@ import (
 	"github.com/koding/bongo"
 )
 
+const NotificationTypeMessage = "message"
+
 func PushMessage(c *models.Channel, eventName string, body interface{}) error {
+
 	request := map[string]interface{}{
 		"eventName": eventName,
 		"body":      body,
@@ -47,7 +50,8 @@ func UpdateInstance(m *models.ChannelMessage, eventName string, body interface{}
 
 func NotifyUser(a *models.Account, eventName string, body interface{}, groupName string) error {
 	request := map[string]interface{}{
-		"account": a,
+		"account":   a,
+		"eventName": NotificationTypeMessage,
 		"body": map[string]interface{}{
 			"event":    eventName,
 			"contents": body,
