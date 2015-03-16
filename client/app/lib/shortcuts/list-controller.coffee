@@ -1,18 +1,17 @@
-kd = require 'kd'
+kd                = require 'kd'
 ShortcutsListItem = require './list-item'
+xtend             = require 'xtend'
 
 module.exports =
 
 class ShortcutsListController extends kd.ListViewController
 
-  constructor: (options={}, collection) ->
+  constructor: (options={}, data) ->
 
-    options.useCustomScrollView = no
-    options.viewOptions =
-      itemClass: ShortcutsListItem
+    options = xtend options,
+      selection: true
+      view: new kd.ListView
+        cssClass: 'shortcuts-list'
+        itemClass: ShortcutsListItem
 
-    super options, collection
-
-    collection.each (model) =>
-      @addItem
-        name: model.description
+    super options, data
