@@ -8,6 +8,7 @@ class ShortcutsModalPane extends kd.View
 
   constructor: (options={}, data) ->
 
+    options.cssClass = 'shortcuts-pane'
     @collection = data.collection
     @title = data.title
     @description = data.description
@@ -27,7 +28,7 @@ class ShortcutsModalPane extends kd.View
       #cssClass : 'search-icon'
 
     #@searchField.setFocus()
-    
+
     @addSubView new ListHead
       cssClass: 'list-head'
       description: @description

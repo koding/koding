@@ -15,9 +15,9 @@ class ShortcutsModal extends kd.ModalView
         <p>To change a shortcut, select it, click the key combination, and then type the new keys.</p>
       </div>
     """
-    options.overlay or= yes
-    options.width   or= 540
-    options.height  or= 520
+    options.overlay  or= yes
+    options.width    or= 540
+    options.height   or= 600
     options.cssClass or= 'shortcuts-modal'
 
     super options, keyconfig
@@ -26,26 +26,35 @@ class ShortcutsModal extends kd.ModalView
   viewAppended: ->
 
     @addSubView tabView = new kd.TabView
+
       hideHandleCloseIcons : true
       enableMoveTabHandle  : false
-      cssClass: 'shortcuts-tab'
+      cssClass             : 'shortcuts-tab'
+
       paneData: @data.map (collection) ->
         displayData = defaults[collection.name]
         return {
-          title : displayData.title
-          view  : new ShortcutsPane {},
-            title: displayData.title
-            description: displayData.description
-            collection: collection
+          title    : displayData.title
           closable : no
+          view     : new ShortcutsPane {},
+            title       : displayData.title
+            description : displayData.description
+            collection  : collection
         }
 
-    tabView.showPaneByIndex 0
+    #tabView.showPaneByIndex 0
 
-    @addSubView new kd.ButtonView
+    buttonBar = new kd.View
+      cssClass: 'buttons'
+
+    buttonBar.addSubView new kd.ButtonView
       title    : 'Restore Defaults'
+      cssClass : 'solid light-gray medium'
       callback : kd.noop
 
-    @addSubView new kd.ButtonView
+    buttonBar.addSubView new kd.ButtonView
       title    : 'Save'
+      cssClass : 'solid green medium'
       callback : kd.noop
+
+    @addSubView buttonBar
