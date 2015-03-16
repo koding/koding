@@ -16,9 +16,9 @@ class ShortcutsListHead extends kd.View
       <div class=description>#{@getOptions().description}</div>
       <div class=shortcuts-list>
         <div class=row>
-          <div><span>Description</span></div>
-          <div><span>Binding</span></div>
-          <div><span>Enabled</span></div>
+          <div class=col><span>Description</span></div>
+          <div class=col><span>Binding</span></div>
+          <div class=col><span>Enabled</span></div>
         </div>
       </div>
     """
