@@ -69,7 +69,7 @@ func TestChannelSearch(t *testing.T) {
 		)
 
 		c.CreatorId = account.Id
-		c.GroupName = groupChannel.Name
+		c.GroupName = groupChannel.GroupName
 		c.TypeConstant = Channel_TYPE_TOPIC
 		c.PrivacyConstant = Channel_PRIVACY_PUBLIC
 		c.MetaBits.Mark(NeedsModeration)
