@@ -20,6 +20,10 @@ func NewSegementIOExporter(endpoint, key string, size int) *SegementIOExporter {
 func (s *SegementIOExporter) Send(event *Event) error {
 	event = addBody(event)
 
+	if event.User.Username == "" {
+		return ErrorUsernameEmpty
+	}
+
 	err := s.Client.Track(&analytics.Track{
 		Event:      event.Name,
 		UserId:     event.User.Username,
