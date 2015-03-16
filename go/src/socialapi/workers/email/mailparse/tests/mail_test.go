@@ -3,6 +3,7 @@ package tests
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/runner"
@@ -21,7 +22,8 @@ func TestMailParse(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("while sending mail", t, func() {

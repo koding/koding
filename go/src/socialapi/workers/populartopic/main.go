@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/populartopic/populartopic"
 )
 
@@ -19,7 +18,7 @@ func main() {
 		return
 	}
 
-	redis := helper.MustInitRedisConn(r.Conf)
+	redis := runner.MustInitRedisConn(r.Conf)
 	// create message handler
 	handler := populartopic.New(r.Log, redis)
 	r.SetContext(handler)

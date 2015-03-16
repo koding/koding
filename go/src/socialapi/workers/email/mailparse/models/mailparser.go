@@ -5,7 +5,7 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/runner"
 	"strconv"
 	"strings"
 )
@@ -231,7 +231,7 @@ func (m *Mail) Persist() error {
 			return err
 		}
 		if err == errCannotOpen {
-			helper.MustGetLogger().Error("possible abuse mail: %+v", m)
+			runner.MustGetLogger().Error("possible abuse mail: %+v", m)
 		}
 		return nil
 	}

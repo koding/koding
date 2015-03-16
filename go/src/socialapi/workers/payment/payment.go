@@ -3,7 +3,7 @@ package payment
 import (
 	"errors"
 	"fmt"
-	"socialapi/workers/helper"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paypal"
@@ -20,7 +20,7 @@ var (
 	WorkerName    = "socialapi-payment"
 	WorkerVersion = "1.0.0"
 
-	Log = helper.CreateLogger(WorkerName, false)
+	Log = runner.CreateLogger(WorkerName, false)
 
 	KiteClient *kite.Client
 )

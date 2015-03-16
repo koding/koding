@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
@@ -19,7 +18,7 @@ import (
 
 var (
 	WorkerName = "paymentwebhook"
-	Log        = helper.CreateLogger(WorkerName, false)
+	Log        = runner.CreateLogger(WorkerName, false)
 )
 
 type Controller struct {
@@ -37,7 +36,8 @@ func main() {
 		modelhelper.Close()
 	}()
 
-	conf := r.Conf
+	conf := config.MustRead(r.Conf.Path)
+
 	kloud := conf.Kloud
 
 	// initialize client to talk to kloud
@@ -85,7 +85,8 @@ func initializeRunner() *runner.Runner {
 		Log.Fatal(err.Error())
 	}
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	payment.Initialize(config.MustGet())
 
 	return r

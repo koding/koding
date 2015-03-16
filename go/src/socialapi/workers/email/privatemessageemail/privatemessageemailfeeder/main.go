@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/privatemessageemail/privatemessageemailfeeder/feeder"
-	"socialapi/workers/helper"
 )
 
 var Name = "PrivateMessageEmailFeeder"
@@ -19,9 +19,10 @@ func main() {
 	}
 
 	// mongo connection is used for getting account emails and email settings
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	handler := feeder.New(r.Log, redisConn)

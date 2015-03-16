@@ -26,7 +26,8 @@ func init() {
 	}
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
 	Initialize(config.MustGet())
 

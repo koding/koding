@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/migrator/controller"
 	"socialapi/workers/realtime/models"
@@ -23,9 +24,10 @@ func main() {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
-	pubnub := models.NewPubNub(r.Conf.GateKeeper.Pubnub, r.Log)
+	pubnub := models.NewPubNub(appConfig.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
 
 	handler, err := controller.New(r.Log, pubnub)

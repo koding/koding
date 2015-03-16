@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/dailyemail/dailyemail"
 	"socialapi/workers/email/emailmodels"
-	"socialapi/workers/helper"
 )
 
 var Name = "DailyEmail"
@@ -19,13 +19,14 @@ func main() {
 	}
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
 	// init redis connection
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	es := emailmodels.NewEmailSettings(r.Conf)
+	es := emailmodels.NewEmailSettings(appConfig)
 
 	handler, err := dailyemail.New(r.Log, es)
 	if err != nil {

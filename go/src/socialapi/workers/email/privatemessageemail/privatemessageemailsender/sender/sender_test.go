@@ -1,11 +1,11 @@
 package sender
 
 import (
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/common"
 	"socialapi/workers/email/privatemessageemail/testhelper"
-	"socialapi/workers/helper"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,8 +18,10 @@ func TestChatEmailSender(t *testing.T) {
 	}
 	defer r.Close()
 
+	config.MustRead(r.Conf.Path)
+
 	redisConf := r.Conf
-	redisConn := helper.MustInitRedisConn(redisConf)
+	redisConn := runner.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
 	controller, _ := New(redisConn, r.Log, &emailmodels.EmailSettings{}, r.Metrics)

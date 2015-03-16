@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/common"
 	"socialapi/workers/sitemap/models"
 	"testing"
@@ -39,8 +38,11 @@ func TestSitemapGeneration(t *testing.T) {
 		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
 	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+
 	redisConf := r.Conf
-	redisConn = helper.MustInitRedisConn(redisConf)
+	redisConn = runner.MustInitRedisConn(redisConf)
 
 	prepareItems()
 
@@ -67,8 +69,8 @@ func TestSitemapGeneration(t *testing.T) {
 								So(len(container.Delete), ShouldEqual, 0)
 								So(len(container.Update), ShouldEqual, 0)
 
-								hostname := config.MustGet().Hostname
-								protocol := config.MustGet().Protocol
+								hostname := appConfig.Hostname
+								protocol := appConfig.Protocol
 								location := fmt.Sprintf("%s//%s/Activity/%s", protocol, hostname, firstItem.Slug)
 								So(container.Add[0].Location, ShouldEqual, location)
 								Convey("item should be able to added to sitemap", func() {

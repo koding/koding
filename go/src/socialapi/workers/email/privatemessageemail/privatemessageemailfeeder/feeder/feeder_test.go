@@ -1,11 +1,11 @@
 package feeder
 
 import (
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/privatemessageemail/common"
 	"socialapi/workers/email/privatemessageemail/testhelper"
-	"socialapi/workers/helper"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -18,8 +18,10 @@ func TestNewMessageCreation(t *testing.T) {
 	}
 	defer r.Close()
 
+	config.MustRead(r.Conf.Path)
+
 	redisConf := r.Conf
-	redisConn := helper.MustInitRedisConn(redisConf)
+	redisConn := runner.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
 	controller := New(r.Log, redisConn)
@@ -32,6 +34,8 @@ func TestNewMessageCreation(t *testing.T) {
 		}
 
 		Convey("do not add any future notifier if message type is not private message", func() {
+			channel, accounts := models.CreateChannelWithParticipants()
+
 			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_JOIN)
 			cm.TypeConstant = models.ChannelMessage_TYPE_JOIN
 			err := controller.AddMessageToQueue(cm)

@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -46,7 +47,8 @@ func TestMarkedAsTroll(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 	CreatePrivateMessageUser()
 	// disable logs

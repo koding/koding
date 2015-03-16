@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/sitemap/sitemapfeeder/feeder"
 )
 
@@ -19,9 +19,11 @@ func main() {
 		return
 	}
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	conf := *r.Conf
-	conf.Redis.DB = conf.Sitemap.RedisDB
-	redisConn := helper.MustInitRedisConn(&conf)
+	conf.Redis.DB = appConfig.Sitemap.RedisDB
+	redisConn := runner.MustInitRedisConn(&conf)
 	defer redisConn.Close()
 
 	r.SetContext(feeder.New(r.Log, redisConn))

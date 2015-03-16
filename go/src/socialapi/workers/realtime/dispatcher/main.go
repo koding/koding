@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/realtime/dispatcher/dispatcher"
 	"socialapi/workers/realtime/models"
 )
@@ -17,14 +17,16 @@ func main() {
 		return
 	}
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	// create a realtime service provider instance.
-	pubnub := models.NewPubNub(r.Conf.GateKeeper.Pubnub, r.Log)
+	pubnub := models.NewPubNub(appConfig.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
 
 	// When we use the same RMQ connection for both, we received
 	// 'Exception (504) Reason: "CHANNEL_ERROR - unexpected method in connection state running"'
 	// error at some point. It needs debugging.
-	rmqBroker, err := helper.NewRabbitMQ(r.Conf, r.Log).Connect()
+	rmqBroker, err := runner.NewRabbitMQ(r.Conf, r.Log).Connect()
 	if err != nil {
 		fmt.Println(err)
 		return

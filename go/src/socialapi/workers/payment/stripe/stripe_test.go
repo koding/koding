@@ -23,11 +23,12 @@ func init() {
 		panic(err)
 	}
 
-	// init stripe client
-	InitializeClientKey(config.MustGet().Stripe.SecretToken)
+	appConfig := config.MustRead(r.Conf.Path)
 
-	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	// init stripe client
+	InitializeClientKey(appConfig.Stripe.SecretToken)
+
+	modelhelper.Initialize(appConfig.Mongo)
 
 	CreateDefaultPlans()
 

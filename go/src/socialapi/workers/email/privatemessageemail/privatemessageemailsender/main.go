@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/privatemessageemailsender/sender"
-	"socialapi/workers/helper"
 )
 
 const Name = "PrivateMessageEmailSender"
@@ -18,12 +18,13 @@ func main() {
 		return
 	}
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	es := emailmodels.NewEmailSettings(r.Conf)
+	es := emailmodels.NewEmailSettings(appConfig)
 
 	handler, err := sender.New(
 		redisConn, r.Log, es, r.Metrics,

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/popularpost/popularpost"
 	"time"
 
@@ -26,7 +25,7 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 	// create context
 	context := popularpost.New(r.Log, redisConn)

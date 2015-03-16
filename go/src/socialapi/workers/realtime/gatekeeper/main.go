@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/common/runner"
 	api "socialapi/workers/realtime/gatekeeper/gatekeeper"
@@ -17,12 +18,13 @@ func main() {
 		return
 	}
 
-	config := r.Conf.GateKeeper
+	appConfig := config.MustRead(r.Conf.Path)
+
 	// create a realtime service provider instance.
-	pubnub := models.NewPubNub(r.Conf.GateKeeper.Pubnub, r.Log)
+	pubnub := models.NewPubNub(appConfig.GateKeeper.Pubnub, r.Log)
 	defer pubnub.Close()
 
-	mc := mux.NewConfig(Name, config.Host, config.Port)
+	mc := mux.NewConfig(Name, appConfig.Host, appConfig.Port)
 	m := mux.New(mc, r.Log)
 	m.Metrics = r.Metrics
 

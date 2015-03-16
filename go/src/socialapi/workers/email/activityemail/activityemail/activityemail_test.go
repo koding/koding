@@ -3,10 +3,10 @@ package activityemail
 import (
 	// "github.com/kr/pretty"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"testing"
 	"time"
 
@@ -21,10 +21,11 @@ func TestSaveDailyDigestNotification(t *testing.T) {
 	defer r.Close()
 
 	// initialize mongo
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
 	// initialize redis
-	redisConn := helper.MustGetRedisConn()
+	redisConn := runner.MustGetRedisConn()
 
 	Convey("User replies to another user who has daily digests", t, func() {
 		acc1, err := rest.CreateAccountWithDailyDigest()

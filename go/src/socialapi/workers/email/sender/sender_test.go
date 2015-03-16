@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"socialapi/config"
 	"socialapi/workers/common/runner"
 	"testing"
 
@@ -32,6 +33,8 @@ func TestNew(t *testing.T) {
 	}
 	defer r.Close()
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	Convey("while creating new controller for Mail worker", t, func() {
 		Convey("error should not be nil", func() {
 			_ = &Mail{
@@ -42,7 +45,7 @@ func TestNew(t *testing.T) {
 				FromName: "koding",
 			}
 
-			sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
+			sg := sendgrid.NewSendGridClient(appConfig.Email.Username, appConfig.Email.Password)
 			sgm := &SendGridMail{
 				Sendgrid: sg,
 			}

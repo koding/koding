@@ -5,10 +5,10 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
+	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"socialapi/workers/collaboration/models"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"strconv"
 
 	"labix.org/v2/mgo"
@@ -30,13 +30,14 @@ func TestCollaborationOperationsDeleteDriveDoc(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler := New(r.Log, redisConn, r.Conf, r.Kite)
+	handler := New(r.Log, redisConn, appConfig, r.Kite)
 
 	Convey("while testing DeleteDriveDoc", t, func() {
 		req := &models.Ping{
@@ -72,13 +73,14 @@ func TestCollaborationOperationsEndPrivateMessage(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler := New(r.Log, redisConn, r.Conf, r.Kite)
+	handler := New(r.Log, redisConn, appConfig, r.Kite)
 
 	Convey("while testing EndPrivateMessage", t, func() {
 		req := &models.Ping{
@@ -164,13 +166,14 @@ func TestCollaborationOperationsUnshareVM(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler := New(r.Log, redisConn, r.Conf, r.Kite)
+	handler := New(r.Log, redisConn, appConfig, r.Kite)
 
 	Convey("while testing UnshareVM", t, func() {
 
