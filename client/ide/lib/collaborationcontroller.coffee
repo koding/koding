@@ -15,6 +15,7 @@ IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
 socialHelpers                 = require './collaboration/helpers/social'
+workspaceHelpers              = require './collaboration/helpers/workspace'
 
 {warn} = kd
 
