@@ -2,7 +2,7 @@ package sender
 
 import (
 	"socialapi/config"
-	"socialapi/workers/email/emailmodels"
+	"socialapi/workers/common/runner"
 	"socialapi/workers/email/privatemessageemail/common"
 	"socialapi/workers/email/privatemessageemail/testhelper"
 	"testing"
@@ -25,7 +25,7 @@ func TestChatEmailSender(t *testing.T) {
 	redisConn := runner.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
-	controller, _ := New(redisConn, r.Log, &emailmodels.EmailSettings{}, r.Metrics)
+	controller, _ := New(redisConn, r.Log, r.Metrics)
 
 	Convey("while fetching a message from pending notification queue", t, func() {
 		testPeriod := "1"

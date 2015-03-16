@@ -4,6 +4,7 @@ package sender
 // Mail struct hold the required parameters for sending an email
 type Mail struct {
 	To       string
+	ToName   string
 	Subject  string
 	Text     string
 	HTML     string

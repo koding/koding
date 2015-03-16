@@ -34,9 +34,8 @@ const (
 )
 
 type Controller struct {
-	log      logging.Logger
-	rmqConn  *amqp.Connection
-	settings *emailmodels.EmailSettings
+	log     logging.Logger
+	rmqConn *amqp.Connection
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -46,11 +45,10 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, es *emailmodels.EmailSettings) *Controller {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Controller {
 	return &Controller{
-		log:      log,
-		rmqConn:  rmq.Conn(),
-		settings: es,
+		log:     log,
+		rmqConn: rmq.Conn(),
 	}
 }
 
@@ -106,9 +104,8 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 	}
 
 	mailer := &emailmodels.Mailer{
-		UserContact:   uc,
-		EmailSettings: n.settings,
-		Information:   prepareInformation(mc),
+		UserContact: uc,
+		Information: prepareInformation(mc),
 	}
 
 	return mailer.SendMail(nc.TypeConstant, body, prepareSubject(mc))

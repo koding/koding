@@ -18,6 +18,8 @@ func (sg *SendGridMail) Send(m *Mail) error {
 		return err
 	}
 
+	message.AddToName(m.ToName)
+
 	from := m.From
 	if from == "" {
 		from = fromDefault

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
 	"socialapi/config"
-	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/privatemessageemailsender/sender"
 
 	"github.com/koding/runner"
@@ -25,10 +24,8 @@ func main() {
 	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	es := emailmodels.NewEmailSettings(appConfig)
-
 	handler, err := sender.New(
-		redisConn, r.Log, es, r.Metrics,
+		redisConn, r.Log, r.Metrics,
 	)
 	if err != nil {
 		r.Log.Error("Could not create chat email sender: %s", err)

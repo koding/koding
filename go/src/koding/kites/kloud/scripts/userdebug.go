@@ -155,15 +155,19 @@ func machinesFromUsername(db *mongodb.MongoDB, username string) (*machines, erro
 }
 
 func machinesFromInstanceId(db *mongodb.MongoDB, instanceId string) (*machines, error) {
-	var m *MachineDocument
+	machines := newMachines()
 	err := db.Run("jMachines", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"meta.instanceId": instanceId}).One(&m)
-	})
-	if err != nil {
-		return nil, err
-	}
+		var m MachineDocument
+		iter := c.Find(bson.M{"meta.instanceId": instanceId}).Iter()
 
-	return machinesFromUsername(db, m.Credential)
+		for iter.Next(&m) {
+			machines.docs = append(machines.docs, m)
+		}
+
+		return iter.Close()
+	})
+
+	return machines, err
 }
 
 func newMachines() *machines {
@@ -199,6 +203,7 @@ type instance struct {
 
 func (i *instance) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= AWS ==========\n")
+	fmt.Fprintf(w, "InstanceId:\t%s\n", i.ec2.InstanceId)
 	fmt.Fprintf(w, "IP Address:\t%s\n", i.ec2.PublicIpAddress)
 	fmt.Fprintf(w, "State:\t%s\n", i.ec2.State.Name)
 	fmt.Fprintf(w, "Image Id:\t%s\n", i.ec2.ImageId)
@@ -224,16 +229,19 @@ func awsData(client *ec2.EC2, instanceId string) (*instance, error) {
 
 	i := instances.Instances[0]
 
-	volResp, err := client.Volumes([]string{i.BlockDevices[0].VolumeId}, ec2.NewFilter())
-	if err != nil {
-		return nil, err
-	}
+	var volume ec2.Volume
+	if len(i.BlockDevices) != 0 {
+		volResp, err := client.Volumes([]string{i.BlockDevices[0].VolumeId}, ec2.NewFilter())
+		if err != nil {
+			return nil, err
+		}
 
-	if len(volResp.Volumes) == 0 {
-		return nil, errors.New("volResp.Volumes shouldn't be null")
-	}
+		if len(volResp.Volumes) == 0 {
+			return nil, errors.New("volResp.Volumes shouldn't be null")
+		}
 
-	volume := volResp.Volumes[0]
+		volume = volResp.Volumes[0]
+	}
 
 	return &instance{
 		ec2:    i,

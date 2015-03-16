@@ -27,6 +27,8 @@ func main() {
 	}
 
 	constructor := sender.New(r.Log, sgm)
+	constructor.ForcedRecipient = appConfig.Email.ForcedRecipient
+
 	r.SetContext(constructor)
 	r.Register(sender.Mail{}).On("send").Handle((*sender.Controller).Process)
 	r.Listen()

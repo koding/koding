@@ -30,8 +30,7 @@ const (
 )
 
 type Controller struct {
-	log      logging.Logger
-	settings *emailmodels.EmailSettings
+	log logging.Logger
 }
 
 var ObsoleteActivity = errors.New("obsolete activity")
@@ -40,11 +39,10 @@ var (
 	cronJob *cron.Cron
 )
 
-func New(log logging.Logger, es *emailmodels.EmailSettings) (*Controller, error) {
+func New(log logging.Logger) (*Controller, error) {
 
 	c := &Controller{
-		log:      log,
-		settings: es,
+		log: log,
 	}
 
 	return c, c.initDailyEmailCron()
@@ -137,9 +135,8 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	}
 
 	mailer := emailmodels.Mailer{
-		EmailSettings: n.settings,
-		UserContact:   uc,
-		Information:   Information,
+		UserContact: uc,
+		Information: Information,
 	}
 
 	loc := time.FixedZone("", uc.LastLoginTimezoneOffset*-60)
