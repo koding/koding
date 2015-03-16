@@ -3,7 +3,7 @@ remote = require('app/remote').getInstance()
 getNick = require 'app/util/nick'
 getCollaborativeChannelPrefix = require 'app/util/getCollaborativeChannelPrefix'
 
-###
+###*
  * Wrapper function around `SocialApiController#addParticipants`
  *
  * @param {object} opts
@@ -14,7 +14,7 @@ addParticipants = (opts, callback) ->
   kd.singletons.socialapi.channel.addParticipants opts, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#removeParticipants`
  *
  * @param {object} opts
@@ -25,7 +25,7 @@ removeParticipants = (opts, callback) ->
   kd.singletons.socialapi.channel.removeParticipants opts, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#kickParticipants`
  *
  * @param {object} opts
@@ -41,7 +41,7 @@ kickParticipants = (channel, accounts, callback) ->
   kd.singletons.socialapi.channel.kickParticipants opts, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#fetchChannel`
  *
  * @param {object} opts
@@ -52,18 +52,19 @@ fetchChannel = (id, callback) ->
   kd.singletons.socialapi.cacheable 'channel', id, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#destroyChannel`
  *
  * @param {SocialChannel} channel
  * @param {function(err: object)}
 ###
 destroyChannel = (channel, callback) ->
+
   {id} = channel
   kd.singletons.socialapi.channel.delete {channelId: id}, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#fetchParticipants`
  *
  * One difference is instead of returning simple objects,
@@ -85,18 +86,19 @@ fetchParticipants = (id, callback) ->
     remote.api.JAccount.some query, {}, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#leaveChannel`
  *
  * @param {SocialChannel} channel
  * @param {function(err: object)}
 ###
 leaveChannel = (channel, callback) ->
+
   options = { channelId: channel.id }
   kd.singletons.socialapi.channel.leave options, callback
 
 
-###
+###*
  * Wrapper function around `SocialApiController#initChannel`
  *
  * Difference is it sets `collaboration` defaults.
@@ -121,7 +123,7 @@ initChannel = (callback) ->
     return callback null, channels[0]
 
 
-###
+###*
  * Wrapper function around `JAccount#cacheable`
  * It adds a little bit of intelligence around first
  * argument so that, it will fetch the account depending
