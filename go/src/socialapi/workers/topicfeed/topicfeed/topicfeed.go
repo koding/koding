@@ -305,9 +305,31 @@ func createTopicChannel(creatorId int64, groupName, channelName, privacy string)
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
 	c.TypeConstant = models.Channel_TYPE_TOPIC
 	c.PrivacyConstant = privacy
-	if err := c.Create(); err != nil {
-		return nil, err
+	// newly created channels need moderation
+	c.MetaBits.Mark(models.NeedsModeration)
+	err := c.Create()
+	if err == nil {
+		return c, nil
 	}
 
-	return c, nil
+	// same topic can be created in parallel
+	if models.IsUniqueConstraintError(err) {
+		// just fetch the topic from db
+		c2 := models.NewChannel()
+		err = c2.One(&bongo.Query{
+			Selector: map[string]interface{}{
+				"name":             channelName,
+				"group_name":       groupName,
+				"type_constant":    models.Channel_TYPE_TOPIC,
+				"privacy_constant": privacy,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return c2, nil
+	}
+
+	return nil, err
 }
