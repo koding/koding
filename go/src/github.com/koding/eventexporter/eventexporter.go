@@ -1,6 +1,6 @@
-package sender
+package eventexporter
 
-type Sender interface {
+type Exporter interface {
 	Send(*Event) error
 }
 

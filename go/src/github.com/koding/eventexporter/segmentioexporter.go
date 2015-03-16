@@ -1,12 +1,12 @@
-package sender
+package eventexporter
 
 import analytics "github.com/segmentio/analytics-go"
 
-type SegementIOSender struct {
+type SegementIOExporter struct {
 	Client *analytics.Client
 }
 
-func NewSegementIOSender(endpoint, key string, size int) *SegementIOSender {
+func NewSegementIOExporter(endpoint, key string, size int) *SegementIOExporter {
 	client := analytics.New(key)
 	if endpoint != "" {
 		client.Endpoint = endpoint
@@ -14,10 +14,10 @@ func NewSegementIOSender(endpoint, key string, size int) *SegementIOSender {
 
 	client.Size = size
 
-	return &SegementIOSender{Client: client}
+	return &SegementIOExporter{Client: client}
 }
 
-func (s *SegementIOSender) Send(event *Event) error {
+func (s *SegementIOExporter) Send(event *Event) error {
 	event = addBody(event)
 
 	err := s.Client.Track(&analytics.Track{

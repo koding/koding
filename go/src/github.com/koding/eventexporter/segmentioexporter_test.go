@@ -1,4 +1,4 @@
-package sender
+package eventexporter
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ type segmentRequest struct {
 	} `json:"batch"`
 }
 
-func TestSegmentIOSender(t *testing.T) {
+func TestSegmentIOExporter(t *testing.T) {
 	messageArrived := make(chan *segmentRequest)
 
 	mux := http.NewServeMux()
@@ -47,7 +47,7 @@ func TestSegmentIOSender(t *testing.T) {
 		user := &User{Username: "indianajones"}
 		event := &Event{Name: "test", Properties: props, User: user}
 
-		sender := NewSegementIOSender(url.String(), "", 1)
+		sender := NewSegementIOExporter(url.String(), "", 1)
 		err := sender.Send(event)
 		So(err, ShouldBeNil)
 

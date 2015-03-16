@@ -1,4 +1,4 @@
-package sender
+package eventexporter
 
 import "github.com/sendgrid/sendgrid-go"
 
@@ -7,15 +7,15 @@ const (
 	DefaultFromAddress = "hello@koding.com"
 )
 
-type SendgridSender struct {
+type SendgridExporter struct {
 	Client *sendgrid.SGClient
 }
 
-func NewSendgridSender(username, password string) *SendgridSender {
-	return &SendgridSender{Client: sendgrid.NewSendGridClient(username, password)}
+func NewSendgridExporter(username, password string) *SendgridExporter {
+	return &SendgridExporter{Client: sendgrid.NewSendGridClient(username, password)}
 }
 
-func (s *SendgridSender) Send(event *Event) error {
+func (s *SendgridExporter) Send(event *Event) error {
 	var err error
 
 	mail := sendgrid.NewMail()
