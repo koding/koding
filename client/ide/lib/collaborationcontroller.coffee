@@ -59,11 +59,12 @@ module.exports =
 
   fetchSocialChannel: (callback) ->
 
-    return callback null, @socialChannel  if @socialChannel
+    if @socialChannel
+      return callback null, @socialChannel
 
-    id = @channelId or @workspaceData.channelId
+    unless id = @getSocialChannelId()
+      return callback()
 
-    return callback()  unless id
 
     kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
       return callback err  if err
