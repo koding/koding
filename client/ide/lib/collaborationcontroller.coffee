@@ -99,16 +99,12 @@ module.exports =
   # return if result set exists.
   listChatParticipants: (callback) ->
 
-    channelId = @socialChannel.getId()
+    id = @getSocialChannelId()
 
-    {socialapi} = kd.singletons
-    socialapi.channel.listParticipants {channelId}, (err, participants) ->
+    socialHelpers.fetchParticipants id, (err, accounts) =>
+      return throwError err  if err
 
-      idList = participants.map ({accountId}) -> accountId
-      query  = socialApiId: $in: idList
-
-      remote.api.JAccount.some query, {}
-        .then callback
+      callback accounts
 
 
   continuePrivateMessage: (callback) ->
