@@ -55,8 +55,8 @@ var (
 	MachineStateRunning = "Running"
 )
 
-func GetRunningVms() ([]*models.Machine, error) {
-	query := bson.M{"status.state": MachineStateRunning}
+func GetRunningVms(provider string) ([]*models.Machine, error) {
+	query := bson.M{"status.state": MachineStateRunning, "provider": provider}
 	return findMachine(query)
 }
 
