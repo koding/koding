@@ -26,7 +26,7 @@ module.exports = class AccountAppController extends AppController
     name       : 'Account'
     background : yes
 
-  items =
+  NAV_ITEMS =
     personal :
       title  : "Personal"
       items  : [
@@ -54,9 +54,9 @@ module.exports = class AccountAppController extends AppController
 
 
   if oauthEnabled() is yes
-    items.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
+    NAV_ITEMS.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
     options.view = new KDModalView
       title    : 'Account Settings'
@@ -87,7 +87,7 @@ module.exports = class AccountAppController extends AppController
 
   loadView: (modal) ->
 
-    # SET UP VIEWS
+    @navController?.destroy()
     @navController = new KDListViewController
       view        : new KDListView
         tagName   : 'nav'
@@ -96,20 +96,24 @@ module.exports = class AccountAppController extends AppController
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView aside = new KDView
+    modal.addSubView aside = new KDView
       tagName   : 'aside'
       cssClass  : 'AppModal-nav'
 
     aside.addSubView navView = @navController.getView()
 
-    mainView.addSubView appContent = new KDCustomHTMLView
+    modal.addSubView appContent = new KDCustomHTMLView
       cssClass            : 'AppModal-content'
 
     appContent.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
 
-    for own sectionKey, section of items
-      @navController.instantiateListItems section.items
+    items = []
+    for own sectionKey, section of NAV_ITEMS
+      items = items.concat section.items
+
+    @navController.instantiateListItems items
+
     modal.once 'KDObjectWillBeDestroyed', ->
       { router } = kd.singletons
       previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Account.*/.test(route)
