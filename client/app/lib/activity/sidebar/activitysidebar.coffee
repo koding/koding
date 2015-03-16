@@ -96,6 +96,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineDataModified',       @bound 'updateMachines'
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
+      .on 'MachineBuilt',              @bound 'machineBuilt'
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
@@ -668,3 +669,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
           box = machineBox
 
     return box
+
+
+  machineBuilt: ->
+
+    environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
