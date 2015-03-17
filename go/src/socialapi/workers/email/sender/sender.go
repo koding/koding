@@ -14,8 +14,9 @@ type Emailer interface {
 
 // Controller holds required instances for processing events
 type Controller struct {
-	log     logging.Logger
-	emailer Emailer
+	log             logging.Logger
+	emailer         Emailer
+	ForcedRecipient string
 }
 
 // New Creates a new controller for mail worker
@@ -37,6 +38,10 @@ func Send(m *Mail) error {
 // and sends the message according to the mail adress
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
+	if c.ForcedRecipient != "" {
+		m.To = c.ForcedRecipient
+	}
+
 	return c.emailer.Send(m)
 }
 

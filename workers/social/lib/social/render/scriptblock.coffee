@@ -119,8 +119,7 @@ module.exports = (options = {}, callback)->
         userEnvironmentData = data
         queue.fin()
     ->
-      {nickname} = client.connection.delegate.profile
-      bongoModels.JUser.one username: nickname, (err, user) ->
+      client.connection.delegate.fetchUser (err, user) ->
         if err
           console.error '[scriptblock] user not found', err
           return queue.fin()

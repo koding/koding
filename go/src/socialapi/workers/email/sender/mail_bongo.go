@@ -3,9 +3,11 @@ package sender
 
 // Mail struct hold the required parameters for sending an email
 type Mail struct {
-	To       string
-	Subject  string
-	Text     string
+	To      string
+	ToName  string
+	Subject string
+	Text    string
+	// TODO maybe we can remove this HTML field
 	HTML     string
 	From     string
 	Bcc      string

@@ -13,6 +13,8 @@ var paypalActions = map[string]paypalActionType{
 	"recurring_payment_profile_cancel":  paypalSubscriptionDeleted,
 	"recurring_payment":                 paypalPaymentSucceeded,
 	"recurring_payment_suspended":       paypalPaymentFailed,
+
+	"recurring_payment_suspended_due_to_max_failed_payment": paypalPaymentFailed,
 }
 
 type paypalMux struct {
