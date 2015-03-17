@@ -173,8 +173,8 @@ getFromManager = (manager, name, defaultType, defaultValue) ->
 
 
 ###*
- * Updates logged in user's participant representation
- * from collaborators collection from RealtimeManager instance.
+ * Updates logged in user's participant's sessionId
+ * from collaborators collection of RealtimeManager instance.
  *
  * @param {RealtimeManager} manager
  * @param {object} participants
