@@ -71,6 +71,7 @@ module.exports =
               browser
                 .waitForElementNotVisible  modalSelector, 500000
                 .waitForElementVisible     vmSelector, 500000
+                .pause 10000
             else
               console.log 'turn on button is clicked, waiting for VM turn on'
 
@@ -79,6 +80,7 @@ module.exports =
                 .click                     turnOnButtonSelector
                 .waitForElementNotVisible  modalSelector, 500000
                 .waitForElementVisible     vmSelector, 500000
+                .pause 10000
 
 
   doLogin: (browser, user) ->
