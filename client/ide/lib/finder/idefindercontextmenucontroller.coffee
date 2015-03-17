@@ -1,6 +1,19 @@
+kd = require 'kd'
+
 NFinderContextMenuController = require 'finder/filetree/controllers/nfindercontextmenucontroller'
 NSetPermissionsView = require 'finder/filetree/itemsubviews/nsetpermissionsview'
+
+
 module.exports = class IDEFinderContextMenuController extends NFinderContextMenuController
+
+
+  getContextMenu: (fileViews, event) ->
+
+    super fileViews, event
+
+    @contextMenu.on 'KDObjectWillBeDestroyed', ->
+      kd.singletons.windowController.setKeyView null
+
 
   getFolderMenu: (fileView) ->
 
