@@ -435,27 +435,6 @@ module.exports =
     callback collaborationData
 
 
-  isHostOnline: ->
-
-    host = @getCollaborationHost()
-
-    filtered = @participants
-      .asArray()
-      .filter (its) -> its.nickname is host
-
-    return no  unless filtered.length
-
-    { sessionId } = filtered.first
-
-    return no  unless sessionId
-
-    final = @rtm
-      .getCollaborators()
-      .filter (its) -> its.sessionId is sessionId
-
-    return final.length > 0
-
-
   startHeartbeat: ->
 
     interval = 1000 * 15
