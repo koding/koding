@@ -113,27 +113,7 @@ func CancelSubscriptionAndRemoveCC(customer *paymentmodels.Customer, currentSubs
 	return err
 }
 
-func UpdateSubscriptionForCustomer(customer *paymentmodels.Customer, subscriptions []paymentmodels.Subscription, plan *paymentmodels.Plan) error {
-	if IsNoSubscriptions(subscriptions) {
-		return paymenterrors.ErrCustomerNotSubscribedToAnyPlans
-	}
-
-	currentSubscription := subscriptions[0]
-
-	oldPlan := paymentmodels.NewPlan()
-	err := oldPlan.ById(currentSubscription.PlanId)
-	if err != nil {
-		return err
-	}
-
-	if IsDowngrade(oldPlan, plan) {
-		return handleDowngrade(currentSubscription, customer, plan)
-	}
-
-	return handleUpgrade(currentSubscription, customer, plan)
-}
-
-func handleUpgrade(currentSubscription paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+func handleUpgrade(currentSubscription *paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
 	subParams := &stripe.SubParams{
 		Customer: customer.ProviderCustomerId,
 		Plan:     plan.ProviderPlanId,
@@ -164,7 +144,7 @@ func handleUpgrade(currentSubscription paymentmodels.Subscription, customer *pay
 }
 
 // On downgrade, unlike upgrade, wait till end of the billing cycle to move to the new plan.
-func handleDowngrade(currentSubscription paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
+func handleDowngrade(currentSubscription *paymentmodels.Subscription, customer *paymentmodels.Customer, plan *paymentmodels.Plan) error {
 	subParams := &stripe.SubParams{
 		Customer: customer.ProviderCustomerId,
 		Plan:     plan.ProviderPlanId,
