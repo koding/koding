@@ -251,6 +251,28 @@ removeFromManager = (manager, references, nickname) ->
   removeParticipantFromPermissions references.permissions, nickname
 
 
+###*
+ * Ensures that given user with name and index is removed
+ * from given participants list.
+ *
+ * @param {Object} participants
+ * @param {string} nickname
+ * @param {number} index
+###
+ensureParticipantLeft = (participants, nickname, index) ->
+
+  # check the user is still at same index, so we won't remove someone else.
+  user = participants.get index
+
+  if user.nickname is nickname
+    participants.remove index
+  else
+    # TODO: this part doesn't solve the problem.
+    # Needs improvement. ~Umut
+    for p, index in participants.asArray() when p.nickname is nickname
+      participants.remove index
+
+
 module.exports = {
   loadCollaborationFile
   createCollaborationFile
@@ -261,4 +283,5 @@ module.exports = {
   registerCollaborationSessionId
   getTargetUser
   removeFromManager
+  ensureParticipantLeft
 }
