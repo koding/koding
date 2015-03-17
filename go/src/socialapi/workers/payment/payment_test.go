@@ -15,6 +15,7 @@ import (
 
 	"labix.org/v2/mgo/bson"
 
+	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 	stripeClient "github.com/stripe/stripe-go"
 	stripeToken "github.com/stripe/stripe-go/token"
@@ -33,6 +34,8 @@ func init() {
 	Initialize(config.MustGet())
 
 	rand.Seed(time.Now().UTC().UnixNano())
+
+	Log.SetLevel(logging.CRITICAL)
 }
 
 func TestGetAllCustomers(t *testing.T) {
@@ -89,8 +92,7 @@ func TestExpireSubscription(t *testing.T) {
 			_, err = req.Expire()
 			So(err, ShouldBeNil)
 
-			customer := paymentmodels.NewCustomer()
-			err = customer.ByOldId(req.AccountId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(req.AccountId)
 			So(err, ShouldBeNil)
 
 			Convey("Then it should expire subscription", func() {
@@ -119,7 +121,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		customer, err := stripe.FindCustomerByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		Convey("When subscription is expired", func() {
@@ -149,7 +151,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		customer, err := stripe.FindCustomerByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		Convey("When subscription is canceled", func() {
@@ -179,7 +181,7 @@ func TestSubscriptionsRequest(t *testing.T) {
 		)
 		So(err, ShouldBeNil)
 
-		customer, err := stripe.FindCustomerByOldId(accId)
+		customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 		So(err, ShouldBeNil)
 
 		req := AccountRequest{AccountId: customer.OldId}
@@ -193,6 +195,52 @@ func TestSubscriptionsRequest(t *testing.T) {
 
 			So(resp.PlanTitle, ShouldEqual, StartingPlan)
 			So(resp.PlanInterval, ShouldEqual, StartingInterval)
+		})
+	})
+}
+
+func TestExpireOutofDateSubscriptions(t *testing.T) {
+	Convey("Given subscriptions", t, func() {
+		Convey("Then it should expire out of date subscriptions", func() {
+			token, accId, email := generateFakeUserInfo()
+			err := stripe.Subscribe(
+				token, accId, email, StartingPlan, StartingInterval,
+			)
+			So(err, ShouldBeNil)
+
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+			So(err, ShouldBeNil)
+
+			subscription, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+			So(subscription.State, ShouldEqual, paymentmodels.SubscriptionStateActive)
+
+			err = subscription.UpdateToExpireTime(time.Now().Add(-1000 * time.Second))
+			So(err, ShouldBeNil)
+
+			err = ExpireOutofDateSubscriptions()
+			So(err, ShouldBeNil)
+
+			_, err = customer.FindActiveSubscription()
+			So(err, ShouldEqual, paymenterrors.ErrCustomerNotSubscribedToAnyPlans)
+		})
+
+		Convey("Then it shouldn't expire active subscriptions", func() {
+			token, accId, email := generateFakeUserInfo()
+			err := stripe.Subscribe(
+				token, accId, email, StartingPlan, StartingInterval,
+			)
+			So(err, ShouldBeNil)
+
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
+			So(err, ShouldBeNil)
+
+			err = ExpireOutofDateSubscriptions()
+			So(err, ShouldBeNil)
+
+			subscription, err := customer.FindActiveSubscription()
+			So(err, ShouldBeNil)
+			So(subscription.State, ShouldEqual, paymentmodels.SubscriptionStateActive)
 		})
 	})
 }

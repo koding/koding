@@ -3,6 +3,7 @@ package stripe
 import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
+	"socialapi/workers/payment/paymentplan"
 
 	stripe "github.com/stripe/stripe-go"
 	stripePlan "github.com/stripe/stripe-go/plan"
@@ -12,8 +13,8 @@ import (
 // to be run when the worker starts to be sure the plans weren't
 // deleted, not called during app runtime.
 func CreateDefaultPlans() error {
-	for id, pl := range DefaultPlans {
-		plan, err := FindPlanByTitleAndInterval(pl.Title, string(pl.Interval))
+	for id, pl := range paymentplan.DefaultPlans {
+		plan, err := FindPlanByTitleAndInterval(pl.Title, pl.Interval.ToString())
 		if err != nil && err != paymenterrors.ErrPlanNotFound {
 			return err
 		}
@@ -31,15 +32,26 @@ func CreateDefaultPlans() error {
 	return nil
 }
 
+func getStripePlanInterval(i paymentplan.PlanInterval) stripe.PlanInternval {
+	switch i.ToString() {
+	case "month":
+		return stripe.Month
+	case "year":
+		return stripe.Year
+	}
+
+	return stripe.Month
+}
+
 // CreatePlan creates plan in Stripe and saves it locally. It deals with
 // cases where plan exists in stripe, but not locally.
-func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, amount uint64) (*paymentmodels.Plan, error) {
+func CreatePlan(id, title, nameForStripe string, interval paymentplan.PlanInterval, amount uint64) (*paymentmodels.Plan, error) {
 	planParams := &stripe.PlanParams{
 		Id:       id,
 		Name:     nameForStripe,
 		Amount:   amount,
 		Currency: stripe.USD,
-		Interval: interval,
+		Interval: getStripePlanInterval(interval),
 	}
 
 	_, err := stripePlan.New(planParams)
@@ -54,7 +66,7 @@ func CreatePlan(id, title, nameForStripe string, interval stripe.PlanInternval, 
 		Title:          title,
 		ProviderPlanId: id,
 		Provider:       ProviderName,
-		Interval:       string(interval),
+		Interval:       interval.ToString(),
 		AmountInCents:  amount,
 	}
 

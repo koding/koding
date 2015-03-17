@@ -27,7 +27,7 @@ func TestCustomer1(t *testing.T) {
 func TestCustomer2(t *testing.T) {
 	Convey("Given an existing customer", t,
 		subscribeFn(func(token, accId, email string) {
-			customer, err := FindCustomerByOldId(accId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 			So(err, ShouldBeNil)
 
 			err = DeleteCustomer(accId)

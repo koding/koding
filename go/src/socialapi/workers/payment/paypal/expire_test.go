@@ -13,7 +13,7 @@ func TestExpire1(t *testing.T) {
 
 	Convey("Given active subscription", t,
 		subscribeFn(func(token, accId, email string) {
-			customer, err := FindCustomerByOldId(accId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 
 			So(err, ShouldBeNil)
 			So(customer, ShouldNotBeNil)
