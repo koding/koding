@@ -12,7 +12,7 @@ loadCollaborationFile = (manager, id, callback) ->
 
   options = { id, preventEvent: yes }
 
-  manager.getFile id, (err, doc) ->
+  manager.getFile options, (err, doc) ->
     return callback err  if err
 
     manager.setRealtimeDoc doc
