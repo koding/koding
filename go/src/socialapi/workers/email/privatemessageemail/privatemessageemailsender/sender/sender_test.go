@@ -8,8 +8,6 @@ import (
 
 	"github.com/koding/runner"
 
-	"github.com/koding/runner"
-
 	. "github.com/smartystreets/goconvey/convey"
 )
 
