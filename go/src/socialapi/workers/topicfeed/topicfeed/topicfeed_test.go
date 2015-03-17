@@ -68,7 +68,6 @@ func TestMessageSaved(t *testing.T) {
 	controller := topicfeed.New(r.Log)
 
 	Convey("while testing MessageSaved", t, func() {
-
 		Convey("newly created channels", func() {
 			account := models.CreateAccountWithTest()
 			groupChannel := models.CreateTypedPublicChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
@@ -97,6 +96,62 @@ func TestMessageSaved(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
 				So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeTrue)
+			})
+		})
+	})
+}
+
+func TestFetchTopicChannel(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while testing fetchTopicChannel", t, func() {
+		account := models.CreateAccountWithTest()
+		groupChannel := models.CreateTypedPublicChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+		)
+
+		normalChannel := models.NewChannel()
+		normalChannel.CreatorId = account.Id
+		normalChannel.GroupName = groupChannel.GroupName
+		normalChannel.TypeConstant = models.Channel_TYPE_TOPIC
+		normalChannel.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+		So(normalChannel.Create(), ShouldBeNil)
+
+		Convey("unlinked channels should be fetched normally", func() {
+			c1, err := fetchTopicChannel(normalChannel.GroupName, normalChannel.Name)
+			So(err, ShouldBeNil)
+			So(c1, ShouldNotBeNil)
+			So(c1.Id, ShouldEqual, normalChannel.Id)
+		})
+
+		Convey("when we link to another channel", func() {
+
+			rootChannel := models.NewChannel()
+			rootChannel.CreatorId = account.Id
+			rootChannel.GroupName = groupChannel.GroupName
+			rootChannel.TypeConstant = models.Channel_TYPE_TOPIC
+			rootChannel.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+			So(rootChannel.Create(), ShouldBeNil)
+			cl := &models.ChannelLink{
+				RootId: rootChannel.Id,
+				LeafId: normalChannel.Id,
+			}
+			So(cl.Create(), ShouldBeNil)
+
+			// make it linked
+			normalChannel.TypeConstant = models.Channel_TYPE_LINKED_TOPIC
+			So(normalChannel.Update(), ShouldBeNil)
+
+			Convey("it should fetch the root channel", func() {
+				c2, err := fetchTopicChannel(normalChannel.GroupName, normalChannel.Name)
+				So(err, ShouldBeNil)
+				So(c2, ShouldNotBeNil)
+				So(c2.Id, ShouldEqual, rootChannel.Id)
 			})
 		})
 	})
