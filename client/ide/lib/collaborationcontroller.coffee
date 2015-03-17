@@ -1,4 +1,3 @@
-machina                       = require 'machina'
 _                             = require 'lodash'
 remote                        = require('app/remote').getInstance()
 dateFormat                    = require 'dateformat'
@@ -605,85 +604,6 @@ module.exports =
 
   initCollaborationStateMachine: ->
 
-    @stateMachine = new machina.Fsm
-      initialState: 'uninitialized'
-      states:
-        uninitialized:
-          _onEnter: @bound 'onCollaborationUninitialized'
-        loading:
-          _onEnter: @bound 'onCollaborationLoading'
-        active:
-          _onEnter: @bound 'onCollaborationActive'
-        terminated:
-          _onEnter: @bound 'onCollaborationTerminated'
-        notAuthorized:
-          _onEnter: @bound 'onCollaborationNotAuthorized'
-
-
-  onCollaborationUninitialized: ->
-
-    @rtm = new RealtimeManager
-    @showShareButton()
-    kd.utils.defer => @rtm.ready => @setCollaborationState 'loading'
-
-
-  onCollaborationLoading: do ->
-    constraints =
-      channelReady  : null
-      sessionActive : null
-
-    conditions = [
-      when : -> (constraints.channelReady is no) or (constraints.sessionActive is no)
-      to   : 'terminated'
-    ,
-      when : -> (constraints.channelReady is yes) and (constraints.sessionActive is yes)
-      to   : 'active'
-    ]
-    nextIfReady = (context) ->
-      for condition in conditions when condition.when()
-        context.setCollaborationState condition.to
-        break
-    setConstraint = (context, key, value) ->
-      constraints[key] = Boolean value
-      nextIfReady context
-    ->
-
-      @statusBar.emit 'CollaborationLoading'
-
-      { channelId } = @workspaceData
-
-      unless channelId
-        setConstraint this, 'channelReady', no
-        return
-
-      @fetchSocialChannel (err, channel) =>
-        if err or not channel
-          setConstraint this, 'channelReady', no
-          throwError err  if err
-          return
-
-        setConstraint this, 'channelReady', yes
-
-        @isRealtimeSessionActive channelId, (isActive) =>
-          result = isActive or @isInSession
-          setConstraint this, 'sessionActive', result
-
-
-  onCollaborationActive: ->
-
-    @startChatSession => @chat.showChatPane()
-    @chat.hide()
-    @statusBar.emit 'CollaborationStarted'
-    @collectButtonShownMetric()
-
-
-  onCollaborationTerminated: ->
-
-    @statusBar.emit 'CollaborationEnded'
-    @collectButtonShownMetric()
-
-
-  onCollaborationNotAuthorized: ->
 
 
   prepareCollaboration: ->
