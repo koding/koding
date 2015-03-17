@@ -67,7 +67,14 @@ module.exports = class Managed extends ProviderInterface
   @remove = (client, options, callback)->
 
     {machineId} = options
-    provider    = 'managed'
+    JMachine    = require './machine'
+    selector    = JMachine.getSelectorFor client, { machineId, owner: yes }
+
+    JMachine.one selector, (err, machine)->
+      if err or not machine
+      then callback new KodingError "Machine not found."
+      else machine.destroy client, callback
+
 
     JMachine = require './machine'
     JMachine.one {_id: machineId, provider}, (err, machine)->
