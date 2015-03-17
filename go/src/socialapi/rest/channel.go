@@ -180,7 +180,7 @@ func SearchChannels(q *request.Query) ([]*models.Channel, error) {
 		return nil, err
 	}
 
-	return &channels, nil
+	return channels, nil
 }
 
 func CreateGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {
