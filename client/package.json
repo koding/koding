@@ -32,7 +32,8 @@
     "validator": "^3.33.0"
   },
   "scripts": {
-    "preinstall": "npm --prefix builder install && npm --prefix landing install"
+    "preinstall": "npm --prefix builder install && npm --prefix landing install",
+    "test": "make test"
   },
   "browser": {
     "kd": "kd.js",
