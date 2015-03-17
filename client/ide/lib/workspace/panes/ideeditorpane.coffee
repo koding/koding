@@ -5,6 +5,7 @@ FSFile = require 'app/util/fs/fsfile'
 IDEPane = require './idepane'
 Ace = require 'ace/ace'
 AceView = require 'ace/aceview'
+IDEHelpers = require '../../idehelpers'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -30,6 +31,9 @@ module.exports = class IDEEditorPane extends IDEPane
 
     file.once 'fs.delete.finished', =>
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
+
+    @errorOnSave = no
+    file.on [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
 
     @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
@@ -77,6 +81,7 @@ module.exports = class IDEEditorPane extends IDEPane
   handleAutoSave: ->
 
     return   if @getFile().path.indexOf('localfile:/') > -1
+    return   if @errorOnSave
     @save()  if @getAce().isContentChanged()
 
 
@@ -393,3 +398,14 @@ module.exports = class IDEEditorPane extends IDEPane
   makeEditable: ->
 
     @getEditor()?.setReadOnly no
+
+
+  handleSaveFailed: (err) ->
+
+    @errorOnSave = err?
+    IDEHelpers.showPermissionErrorOnSavingFile err  if err
+
+
+  destroy: ->
+
+    @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
