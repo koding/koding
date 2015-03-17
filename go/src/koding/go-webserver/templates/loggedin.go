@@ -6,19 +6,15 @@ var LoggedInHome = `
   <head>
     {{template "header" . }}
 
-    <link rel="stylesheet" href="/a/p/p/kd.css?{{.Version}}" />
-    <link rel="stylesheet" href="/a/p/p/app.css?{{.Version}}" />
+    <link rel="stylesheet" href="/a/p/p/{{.Version}}/kd.css" />
+    <link rel="stylesheet" href="/a/p/p/{{.Version}}/app.css" />
   </head>
 
   <body class='logged-in dark ide'>
     <!--[if IE]><script>(function(){window.location.href='/unsupported.html'})();</script><![endif]-->
 
-    <script src="/a/p/p/thirdparty/pubnub.min.js"></script>
-    <script src="/a/p/p/common.js?{{.Version}}"></script>
-    <script src="/a/p/p/app.js?{{.Version}}"></script>
-
     <script>
-      require('app')({
+      var _globals = {
         config: {{.Runtime}},
         isLoggedInOnLoad: true,
         userId: {{.User.GetWithDefaultStr "UserId" }},
@@ -26,8 +22,12 @@ var LoggedInHome = `
         currentGroup: {{.User.GetWithDefaultHash "Group" }},
         userEnvironmentData: {{.User.GetWithDefaultHash "EnvData" }},
         socialApiData: {{.User.GetWithDefaultHash "SocialApiData" }}
-      });
+      };
     </script>
+
+    <script src="/a/p/p/{{.Version}}/thirdparty/pubnub.min.js"></script>
+    <script src="/a/p/p/{{.Version}}/bundle.js"></script>
+    <script>require('app')();</script>
 
     <script>
       (function(d) {

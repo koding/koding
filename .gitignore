@@ -63,13 +63,16 @@ website/index.html
 website/a/site.*
 website/a/sprites/*.sprite.png
 website/a/out
+website/a/p
 
-
-/tests/users.json
-/tests/output/
-/tests/*/reports
-
-supervisor.html
 client/.sprites
 client/node_modules
-website/a/p
+client/.config.json
+client/.nightwatch.json
+client/builder/node_modules
+client/test/users.json
+client/test/build
+client/test/output
+client/test/logs
+
+supervisor.html
