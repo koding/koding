@@ -27,7 +27,7 @@ module.exports = class Koding extends ProviderInterface
 
     storage ?= 3
 
-    if isNaN storage
+    if isNaN +storage
       return callback new KodingError \
       'Requested storage size is not valid.', 'WrongParameter'
 
@@ -109,7 +109,7 @@ module.exports = class Koding extends ProviderInterface
                always on vm limit has been reached.""", "UsageLimitReached"
 
         if resize?
-          if isNaN resize
+          if isNaN +resize
             return callback new KodingError \
             'Requested new size is not valid.', 'WrongParameter'
           else if resize > userPlan.storage

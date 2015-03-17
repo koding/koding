@@ -9,6 +9,23 @@ Regions           = require 'koding-regions'
 KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 
+isValid = ({ipAddress, queryString, storage}, callback)->
+
+  if ipAddress? and (ipAddress.split '.').length isnt 4
+    return callback new KodingError \
+      "Provided IP is not valid", "WrongParameter"
+
+  if queryString? and (queryString.split '/').length isnt 8
+    return callback new KodingError \
+      "Provided queryString is not valid", "WrongParameter"
+
+  if storage? and isNaN +storage
+    return callback new KodingError \
+      "Provided storage is not valid", "WrongParameter"
+
+  return yes
+
+
 module.exports = class Managed extends ProviderInterface
 
   @providerSlug = 'managed'
@@ -23,6 +40,8 @@ module.exports = class Managed extends ProviderInterface
 
     { label, queryString, ipAddress } = options
     { r: { group, user, account } } = client
+
+    return  unless isValid {queryString, ipAddress}, callback
 
     provider = @providerSlug
 
@@ -90,11 +109,20 @@ module.exports = class Managed extends ProviderInterface
     { machineId, queryString, ipAddress } = options
     { r: { group, user, account } } = client
 
-    unless machineId? or queryString? or ipAddress?
+    unless machineId? or (queryString? or ipAddress? or storage?)
       return callback new KodingError \
-        "A valid machineId and an update option required.", "WrongParameter"
+        "A valid machineId and an update option is required.", "WrongParameter"
 
-    # TODO add queryString and ipAddress validations here ~ GG
+    return  unless isValid {ipAddress, queryString, storage}, callback
+
+    fieldsToUpdate = {}
+
+    if ipAddress?
+      domain = ipAddress
+      fieldsToUpdate = {domain, ipAddress}
+
+    fieldsToUpdate.queryString = queryString  if queryString?
+    fieldsToUpdate['meta.storage'] = storage  if storage?
 
     JMachine = require './machine'
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
@@ -104,7 +132,5 @@ module.exports = class Managed extends ProviderInterface
       if err? or not machine?
         return callback err or new KodingError "Machine object not found."
 
-      domain = ipAddress
-
-      machine.update $set: {queryString, domain, ipAddress}, (err)->
+      machine.update $set: fieldsToUpdate, (err)->
         callback err
