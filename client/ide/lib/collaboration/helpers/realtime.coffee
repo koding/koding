@@ -29,9 +29,6 @@ loadCollaborationFile = (manager, id, callback) ->
 
   manager.getFile options, (err, doc) ->
     return callback err  if err
-
-    manager.setRealtimeDoc doc
-    manager.isReady = yes
     callback null, doc
 
 
