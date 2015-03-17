@@ -684,16 +684,8 @@ module.exports =
 
     return callback msg : 'no social channel'  unless @socialChannel
 
-    {message} = kd.singletons.socialapi
-    nickname  = nick()
-
-    message.sendPrivateMessage
-      body       : "@#{nickname} activated collaboration."
-      channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'start'
-        collaboration    : yes
-    , (err, channel) => @whenRealtimeReady => callback err, channel
+    kallback = (err, channel) => @whenRealtimeReady => callback err, channel
+    socialHelpers.sendActivationMessage @socialChannel, kallback
 
     @collaborationJustInitialized = yes
 
