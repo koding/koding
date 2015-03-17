@@ -4,7 +4,7 @@ KDStateMachine = require '../../../app/lib/statemachine'
 module.exports = class CollaborationStateMachine extends KDStateMachine
 
   states: [
-    'Loading', 'ErrorLoading', 'Resuming', 'NotStarted'
+    'Loading', 'ErrorLoading', 'Resuming', 'NotStarted', 'PreCreated'
     'Creating', 'ErrorCreating', 'Active', 'Ending'
     # 'ErrorResuming_'
   ]
@@ -13,7 +13,8 @@ module.exports = class CollaborationStateMachine extends KDStateMachine
     Loading       : ['NotStarted', 'Resuming', 'ErrorLoading']
     ErrorLoading  : ['Loading']
     Resuming      : ['Active']
-    NotStarted    : ['Creating']
+    NotStarted    : ['PreCreated']
+    PreCreated    : ['Creating']
     Creating      : ['ErrorCreating']
     ErrorCreating : ['Creating', 'NotStarted']
     Active        : ['Ending']
