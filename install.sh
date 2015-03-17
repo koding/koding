@@ -5,10 +5,16 @@ if [[ ! "$(uname)" = "Linux" ]]; then
     exit 1
 fi
 
-CHANNEL="development"
+if [ -z "$KONTROLURL" ]; then
+    KONTROLURL="https://koding.com/kontrol/kite"
+fi 
+
+if [ -z "$CHANNEL" ]; then
+    CHANNEL="development"
+fi 
+
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
-KONTROLURL="https://koding.com/kontrol/kite"
 
 echo "Downloading and installing klient 0.1.${LATESTVERSION}"
 curl -s $LATESTURL -o klient.deb
