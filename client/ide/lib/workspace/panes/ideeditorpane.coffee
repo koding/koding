@@ -212,8 +212,10 @@ module.exports = class IDEEditorPane extends IDEPane
 
   setLineWidgets: (row, col, username) ->
 
+    return  unless editor = @getEditor()
+
     oldWidget      = @lineWidgets[username]
-    {renderer}     = @getEditor()
+    {renderer}     = editor
     widgetManager  = @getAce().lineWidgetManager
     lineHeight     = renderer.lineHeight
     charWidth      = renderer.characterWidth
