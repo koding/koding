@@ -300,4 +300,5 @@ module.exports = {
   removeFromManager
   ensureParticipantLeft
   isUserOnline
+  getFromManager
 }
