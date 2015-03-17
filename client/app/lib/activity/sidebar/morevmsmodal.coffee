@@ -20,7 +20,7 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
   viewAppended: ->
 
     @addButton = new KDButtonView
-      title    : "Add VMs"
+      title    : "Create a Koding VM"
       style    : 'add-big-btn'
       icon     : yes
       loader   : yes
@@ -28,7 +28,17 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
         @addButton.showLoader()
         handleNewMachineRequest provider: 'koding', @bound 'destroy'
 
+    @addManagedButton = new KDButtonView
+      title    : "Add Your own VM"
+      style    : 'add-big-btn'
+      icon     : yes
+      loader   : yes
+      callback : =>
+        @addManagedButton.showLoader()
+        handleNewMachineRequest provider: 'managed', @bound 'destroy'
+
     @addSubView @addButton, '.kdmodal-content'
+    @addSubView @addManagedButton, '.kdmodal-content'
 
     super
 
