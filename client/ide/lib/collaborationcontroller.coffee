@@ -361,19 +361,7 @@ module.exports =
 
   registerCollaborationSessionId: ->
 
-    collaborators = @rtm.getCollaborators()
-
-    for collaborator in collaborators when collaborator.isMe
-      participants = @participants.asArray()
-
-      for user, index in participants when user.nickname is nick()
-        newData = kd.utils.dict()
-
-        newData[key] = value  for key, value of user
-
-        newData.sessionId = collaborator.sessionId
-        @participants.remove index
-        @participants.insert index, newData
+    realtimeHelpers.registerCollaborationSessionId @rtm, @participants
 
 
   addParticipant: (account) ->
