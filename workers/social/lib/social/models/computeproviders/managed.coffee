@@ -34,6 +34,12 @@ module.exports = class Managed extends ProviderInterface
 
           return callback err  if err?
 
+          if usage.total >= userPlan.managed
+            return callback new KodingError """
+              Total limit of #{userPlan.managed}
+              managed vm limit has been reached.
+            """, "UsageLimitReached"
+
           meta =
             type          : @providerSlug
             storage_size  : 0 # sky is the limit.
