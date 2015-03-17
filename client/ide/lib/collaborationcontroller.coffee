@@ -347,12 +347,12 @@ module.exports =
 
     # for backwards compatibility.
     # TODO: keep this until CollaborationModel abstraction. ~Umut
-    @define 'participants',      -> refs.participants
-    @define 'changes',           -> refs.changes
-    @define 'permissions',       -> refs.permissions
-    @define 'broadcastMessages', -> refs.broadcastMessages
-    @define 'myWatchMap',        -> refs.watchMap
-    @define 'mySnapshot',        -> refs.snapshot
+    @participants      = refs.participants
+    @changes           = refs.changes
+    @permissions       = refs.permissions
+    @broadcastMessages = refs.broadcastMessages
+    @myWatchMap        = refs.watchMap
+    @mySnapshot        = refs.snapshot
 
 
   registerCollaborationSessionId: ->
