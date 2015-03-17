@@ -370,7 +370,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
       @isPaidAccount = plan isnt 'free'
 
-      if plan in ['free', 'hobbyist']
+      if plan in ['free', 'hobbyist'] and not @machine.isManaged()
         @terminateButton.hide()
 
         if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
