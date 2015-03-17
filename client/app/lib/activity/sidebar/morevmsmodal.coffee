@@ -1,9 +1,8 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 SidebarSearchModal = require './sidebarsearchmodal'
-SidebarVMItem = require './sidebarvmitem'
 ComputeHelpers = require '../../providers/computehelpers'
-
+MachineItem = require './machineitem'
 
 module.exports = class MoreVMsModal extends SidebarSearchModal
 
@@ -13,7 +12,7 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
     options.width            = 462
     options.title          or= 'VMs'
     options.disableSearch    = yes
-    options.itemClass      or= SidebarVMItem
+    options.itemClass      or= MachineItem
     options.bindModalDestroy = no
 
     super options, data
