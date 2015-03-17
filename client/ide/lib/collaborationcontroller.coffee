@@ -1,4 +1,5 @@
 machina                       = require 'machina'
+_                             = require 'lodash'
 remote                        = require('app/remote').getInstance()
 dateFormat                    = require 'dateformat'
 sinkrow                       = require 'sinkrow'
