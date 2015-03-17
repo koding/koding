@@ -827,24 +827,6 @@ module.exports =
       sinkrow.dash queue, callback
 
 
-  getWorkspaceName: (callback) -> callback @workspaceData.name
-
-
-  createWorkspace: (options = {}) ->
-
-    name         = options.name or 'My Workspace'
-    rootPath     = "/home/#{nick()}"
-    {label, uid} = @mountedMachine
-
-    return remote.api.JWorkspace.create
-      name         : name
-      label        : options.label        or label
-      machineUId   : options.machineUId   or uid
-      machineLabel : options.machineLabel or label
-      rootPath     : options.rootPath     or rootPath
-      isDefault    : name is 'My Workspace'
-
-
   updateWorkspace: (options = {}) ->
 
     return remote.api.JWorkspace.update @workspaceData._id, { $set : options }
