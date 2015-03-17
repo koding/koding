@@ -343,6 +343,14 @@ module.exports =
       unless @amIHost
         @makeReadOnly()  if @permissions.get(nickname) is 'read'
 
+  reviveHostSnapshot: ->
+
+    hostName     = @getCollaborationHost()
+    hostSnapshot = realtimeHelpers.getFromManager @rtm, "#{hostName}Snapshot"
+
+    for key, change of hostSnapshot.values()
+      @createPaneFromChange change
+
 
   setCollaborativeReferences: ->
 
