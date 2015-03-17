@@ -21,6 +21,9 @@ module.exports =
           browser.end()
 
 
+  upgradeAccount: (browser) ->
+
+    planType = 'professional'
     selectedPlanSelector = '.single-plan.' + planType + '.current'
 
     helpers.beginTest(browser)
@@ -32,5 +35,14 @@ module.exports =
           browser.end()
         else
           helpers.selectPlan(browser, planType)
-          helpers.fillPaymentForm(browser)
-          browser.end()
+
+          browser
+            .waitForElementVisible   '.payment-modal', 20000
+            .click                   '.payment-modal button'
+            .waitForElementVisible   '.payment-modal', 20000
+            .click                   '.payment-modal button'
+            .waitForElementVisible   '[testpath=main-sidebar]', 10000
+            .end()
+
+
+
