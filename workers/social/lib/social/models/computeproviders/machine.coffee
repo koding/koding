@@ -280,6 +280,24 @@ module.exports = class JMachine extends Module
           callback null, machine
 
 
+  @getSelectorFor = (client, {machineId, owner})->
+
+    { r: { group, user } } = client
+
+    userObj    = if owner then {sudo: yes, owner: yes} else {}
+    userObj.id = user.getId()
+
+    selector  =
+      $or     : [
+        { _id : ObjectId machineId }
+        { uid : machineId }
+      ]
+      users   : $elemMatch: userObj
+      groups  : $elemMatch: id: group.getId()
+
+    return selector
+
+
   # Instance Methods
 
   destroy: (client, callback)->
@@ -372,15 +390,7 @@ module.exports = class JMachine extends Module
 
     , (client, machineId, callback)->
 
-      { r: { group, user } } = client
-
-      selector  =
-        $or     : [
-          { _id : ObjectId machineId }
-          { uid : machineId }
-        ]
-        users   : $elemMatch: id: user.getId()
-        groups  : $elemMatch: id: group.getId()
+      selector = @getSelectorFor client, {machineId}
 
       JMachine.one selector, (err, machine)->
         callback err, machine
