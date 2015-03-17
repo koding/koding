@@ -40,7 +40,7 @@ func (c *Controller) Process(m *Mail) error {
 	event := &eventexporter.Event{
 		Name: m.Subject, User: user, Body: &eventexporter.Body{Content: m.HTML},
 		Properties: map[string]interface{}{
-			"substituions": m.Properties.Substituions,
+			"options": m.Properties.Options,
 		},
 	}
 
