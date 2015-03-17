@@ -345,26 +345,18 @@ module.exports =
 
   setCollaborativeReferences: ->
 
-    nickname           = nick()
-    myWatchMapName     = "#{nickname}WatchMap"
-    mySnapshotName     = "#{nickname}Snapshot"
-    defaultPermission  = default: 'edit'
+    initialSnapshot = if @amIHost then @getWorkspaceSnapshot() else {}
 
-    @participants      = @rtm.getFromModel 'participants'
-    @changes           = @rtm.getFromModel 'changes'
-    @permissions       = @rtm.getFromModel 'permissions'
-    @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
-    @myWatchMap        = @rtm.getFromModel myWatchMapName
-    @mySnapshot        = @rtm.getFromModel mySnapshotName
+    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
 
-    @participants      or= @rtm.create 'list',   'participants', []
-    @changes           or= @rtm.create 'list',   'changes', []
-    @permissions       or= @rtm.create 'map',    'permissions', defaultPermission
-    @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
-    @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-
-    initialSnapshot      = if @amIHost then @getWorkspaceSnapshot() else {}
-    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, initialSnapshot
+    # for backwards compatibility.
+    # TODO: keep this until CollaborationModel abstraction. ~Umut
+    @define 'participants',      -> refs.participants
+    @define 'changes',           -> refs.changes
+    @define 'permissions',       -> refs.permissions
+    @define 'broadcastMessages', -> refs.broadcastMessages
+    @define 'myWatchMap',        -> refs.watchMap
+    @define 'mySnapshot',        -> refs.snapshot
 
 
   registerCollaborationSessionId: ->
@@ -400,11 +392,6 @@ module.exports =
 
 
   bindRealtimeEvents: ->
-
-    @rtm.bindRealtimeListeners @changes, 'list'
-    @rtm.bindRealtimeListeners @broadcastMessages, 'list'
-    @rtm.bindRealtimeListeners @myWatchMap, 'map'
-    @rtm.bindRealtimeListeners @permissions, 'map'
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
 
