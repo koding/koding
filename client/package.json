@@ -43,6 +43,7 @@
   },
   "devDependencies": {
     "coffee-script": "^1.8.0",
-    "nightwatch": "^0.5.36"
+    "nightwatch": "^0.5.36",
+    "yargs": "^3.5.4"
   }
 }
