@@ -118,6 +118,30 @@ build:
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test register'
     - script:
+        name: run login test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test login'
+    - script:
+        name: run logout test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test logout'
+    - script:
+        name: run activity post test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity post'
+    - script:
+        name: run activity post with test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity postwith'
+    - script:
+        name: run activity edit delete test suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity editdelete'
+    - script:
+        name: run activity like unlike suite
+        code: |
+          ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity likeunlike'
+    - script:
         name: run activity other test suite
         code: |
           ssh -o 'StrictHostKeyChecking no' -i $KODING_DEPLOYMENT_KEY -l ubuntu $(cat $INSTANCE_IP) 'sudo /opt/koding/tests/test activity others'
