@@ -33,5 +33,5 @@ escaped_var=$(printf '%s\n' "$KONTROLURL" | sed 's:[/&\]:\\&:g;s/$/\\/')
 sudo sed -i "s/\.\/klient/\.\/klient -kontrol-url $escaped_var -env managed /g" "/etc/init/klient.conf"
 
 # We need to restart it so it pick up the new environment variable
-sudo service klient restart
+sudo service klient restart > /dev/null
 
