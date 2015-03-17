@@ -1031,7 +1031,9 @@ module.exports = class IDEAppController extends AppController
 
     amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
 
-    if amIWatchingChangeOwner or type is 'CursorActivity'
+    mustSyncChanges = [ 'CursorActivity', 'FileSaved' ]
+
+    if amIWatchingChangeOwner or type in mustSyncChanges
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
