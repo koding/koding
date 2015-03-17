@@ -124,6 +124,27 @@ initChannel = (callback) ->
 
 
 ###*
+ * Sends an activation message to given channel.
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err:object, result: object)} callback
+###
+sendActivationMessage = (channel, callback) ->
+
+  {message} = kd.singletons.socialapi
+  nickname  = getNick()
+
+  options =
+    body       : "@#{nickname} activated collaboration."
+    channelId  : channel.id
+    payload    :
+      'system-message' : 'start'
+      collaboration    : yes
+
+  message.sendPrivateMessage options, callback
+
+
+###*
  * Wrapper function around `JAccount#cacheable`
  * It adds a little bit of intelligence around first
  * argument so that, it will fetch the account depending
@@ -151,5 +172,6 @@ module.exports = {
   destroyChannel
   leaveChannel
   initChannel
+  sendActivationMessage
   fetchAccount
 }
