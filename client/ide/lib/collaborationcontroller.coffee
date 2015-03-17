@@ -279,6 +279,12 @@ module.exports =
   # realtime related stuff
 
 
+  broadcastMessage: (options = {}) ->
+
+    message = _.assign {}, options, { origin: nick() }
+    @broadcastMessages.push message
+
+
   loadCollaborationFile: (fileId) ->
 
     return unless fileId
