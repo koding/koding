@@ -142,7 +142,7 @@ module.exports = class JMachine extends Module
 
   generateSlugFromLabel = ({user, group, label, index}, callback)->
 
-    slug = if index? then "#{label}-#{index}" else label
+    slug = _label = if index? then "#{label}-#{index}" else label
     slug = slugify slug
 
     JMachine.count {
@@ -154,7 +154,7 @@ module.exports = class JMachine extends Module
       return callback err  if err?
 
       if count is 0
-        callback null, slug
+        callback null, {slug, label: _label}
       else
         index ?= 0
         index += 1
@@ -264,11 +264,12 @@ module.exports = class JMachine extends Module
 
     {label} = data
 
-    generateSlugFromLabel {user, group, label}, (err, slug)->
+    generateSlugFromLabel {user, group, label}, (err, {slug, label})->
 
       return callback err  if err?
 
-      data.slug = slug
+      data.label = label
+      data.slug  = slug
 
       machine = new JMachine data
       machine.save (err)->
@@ -519,7 +520,7 @@ module.exports = class JMachine extends Module
         return callback new KodingError "Nickname cannot be empty"
 
       if slug isnt @slug
-        generateSlugFromLabel { user, group, label }, (err, slug)=>
+        generateSlugFromLabel { user, group, label }, (err, {slug, label})=>
           return callback err  if err?
           @update $set: { slug, label }, (err)-> kallback err, slug
       else

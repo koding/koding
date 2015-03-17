@@ -45,6 +45,7 @@ module.exports =
       provider    : 'managed'
       queryString : kite.queryString
       ipAddress   : kite.ipAddress
+      label       : kite.kite.hostname
       stack
     }, callback
 
