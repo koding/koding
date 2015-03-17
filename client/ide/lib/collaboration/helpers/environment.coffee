@@ -21,12 +21,12 @@ detachSocialChannel = (workspaceData, callback) ->
 ###*
  * Updates workspace with given id, with the options passed.
  *
- * @param {string} id
+ * @param {object} workspaceData
  * @param {object=} options
 ###
-updateWorkspace = (id, options = {}) ->
+updateWorkspace = (workspaceData, options = {}) ->
 
-  remote.api.JWorkspace.update id, { $set : options }
+  remote.api.JWorkspace.update workspaceData._id, { $set : options }
 
 
 module.exports = {
