@@ -4,7 +4,9 @@ TARGETS=$(patsubst %.coffee,build/%.js,$(SRC))
 TEST_NW_EXTRAS?=
 TEST_EXTRAS?=
 
-all: clean $(TARGETS) configure run
+all: build run
+
+build: clean $(TARGETS) configure
 
 configure:
 	@bin/cmd.coffee browser $(TEST_EXTRAS)
