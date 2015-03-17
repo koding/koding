@@ -199,7 +199,6 @@ module.exports =
     @setCollaborativeReferences()
     @addParticipant whoami()
     @registerCollaborationSessionId()
-    @bindRealtimeEvents()
 
     if @amIHost
     then @activateRealtimeManagerForHost()
@@ -501,39 +500,186 @@ module.exports =
     IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
-  setCollaborationState: (state) ->
-
-    @stateMachine.transition state
-    @emit 'change', { state }
-
-
   initCollaborationStateMachine: ->
 
+    @stateMachine = new CollaborationStateMachine
+      stateHandlers:
+        Loading      : => kd.utils.defer => @onCollaborationLoading()
+        Resuming     : @bound 'onCollaborationResuming'
+        NotStarted   : @bound 'onCollaborationNotStarted'
+        PreCreated   : @bound 'onCollaborationPreCreated'
+        Creating     : @bound 'onCollaborationCreating'
+        Active       : @bound 'onCollaborationActive'
+
+
+
+  onCollaborationLoading: ->
+
+    @statusBar.emit 'CollaborationLoading'
+
+    @checkSessionActivity
+      active     : => @stateMachine.transition 'Resuming'
+      notStarted : => @stateMachine.transition 'NotStarted'
+      error      : => @stateMachine.transition 'ErrorLoading'
+
+
+  checkSessionActivity: (callbacks) ->
+
+    {channelId} = @workspaceData
+
+    callMethod = (name, args...) -> callbacks[name] args...
+
+    unless @workspaceData.channelId
+      return callMethod 'notStarted'
+
+    @fetchSocialChannel (err, channel) =>
+      return callMethod 'error'  if err
+      @isRealtimeSessionActive channel.id, (isActive, file) =>
+        if isActive
+        then callMethod 'active', channel, file
+        else callMethod 'notStarted'
+
+
+  onCollaborationNotStarted: ->
+
+    @statusBar.emit 'CollaborationEnded'
+    @collectButtonShownMetric()
+
+
+  prepareChatSession: ->
+
+    socialHelpers.initChannel (err, channel) =>
+
+      return @stateMachine.transition 'ErrorCreating'  if err
+
+      @setSocialChannel channel
+      @createChatPaneView channel
+
+      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
+        .then =>
+          @workspaceData.channelId = channel.id
+          @chat.ready =>
+            @stateMachine.transition 'PreCreated'
+        .error (err) =>
+          # @stateMachine.transition 'ErrorCreating'
+
+
+  onCollaborationPreCreated: ->
+
+    @chat.emit 'CollaborationNotInitialized'
+
+
+  startCollaborationSession: ->
+
+    switch @stateMachine.state
+      when 'PreCreated' then @stateMachine.transition 'Creating'
+
+
+  onCollaborationCreating: ->
+
+    @createCollaborationSession
+      success : (doc) =>
+        @whenRealtimeReady => @stateMachine.transition 'Active'
+        @activateRealtimeManager doc
+      error: =>
+        @stateMachine.transition 'ErrorCreating'
+
+
+  createCollaborationSession: (callbacks) ->
+
+    fileName = @getRealtimeFileName()
+    socialHelpers.sendActivationMessage @socialChannel, kd.noop
+
+    realtimeHelpers.createCollaborationFile @rtm, fileName, (err, file) =>
+      return callbacks.error err  if err
+
+      realtimeHelpers.loadCollaborationFile @rtm, file.id, (err, doc) =>
+        return callbacks.error err  if err
+
+        @rtmFileId = file.id
+        @setMachineSharingStatus on, (err) =>
+          return callbacks.error err  if err
+          callbacks.success doc
+
+
+  onCollaborationResuming: ->
+
+    successCb = (channel, doc) =>
+      @whenRealtimeReady =>
+        @setSocialChannel channel
+        @createChatPaneView channel
+
+        @chat.ready =>
+          @stateMachine.transition 'Active'
+
+      @activateRealtimeManager doc
+
+    errorCb = => # @stateMachine.transition 'ErrorResuming'
+
+    @resumeCollaborationSession
+      success : successCb
+      error   : errorCb
+
+
+  resumeCollaborationSession: (callbacks) ->
+
+    title = @getRealtimeFileName()
+    realtimeHelpers.fetchCollaborationFile @rtm, title, (err, file) =>
+      # return callbacks.error err  if err
+      realtimeHelpers.loadCollaborationFile @rtm, file.id, (err, doc) =>
+        # return callbacks.error err  if err
+        @rtmFileId = file.id
+        callbacks.success @socialChannel, doc
+
+
+  onCollaborationActive: ->
+
+    @showChatPane()
+
+    @transitionViewsToActive()
+    @collectButtonShownMetric()
+    @bindRealtimeEvents()
+    @bindSocialChannelEvents()
+
+
+  transitionViewsToActive: ->
+
+    @listChatParticipants (accounts) =>
+      @chat.settingsPane.createParticipantsList accounts
+
+    {settingsPane} = @chat
+    settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
+    settingsPane.updateDefaultPermissions()
+
+    @chat.emit 'CollaborationStarted'
+    @statusBar.emit 'CollaborationStarted'
+
+
+  showChat: ->
+
+    switch @stateMachine.state
+      when 'Active'     then @showChatPane()
+      when 'NotStarted' then @prepareChatSession()
+
+
+  showChatPane: ->
+
+    @chat.showChatPane()
+    @chat.start()
+
+
+  createChatPaneView: (channel) ->
+    return throwError 'RealtimeManager is not set'  unless @rtm
+
+    @chat = new IDEChatView { @rtm, @isInSession }, channel
+    @getView().addSubView @chat
 
 
   prepareCollaboration: ->
 
-    @initCollaborationStateMachine()
-
-
-  startCollaborationSession: (callback) ->
-
-    return callback msg : 'no social channel'  unless @socialChannel
-
-    kallback = (err, channel) => @whenRealtimeReady => callback err, channel
-    socialHelpers.sendActivationMessage @socialChannel, kallback
-
-    @collaborationJustInitialized = yes
-
-    @rtm or= new RealtimeManager
-    title  = @getRealtimeFileName()
-
-    realtimeHelpers.createCollaborationFile @rtm, title, (err, file) =>
-      return throwError err  if err
-      @loadCollaborationFile file.id
-
-    @setMachineSharingStatus on, (err) ->
-      throwError err  if err
+    @rtm = new RealtimeManager
+    @showShareButton()
+    @rtm.ready => @initCollaborationStateMachine()
 
 
   # should clean realtime manager.
