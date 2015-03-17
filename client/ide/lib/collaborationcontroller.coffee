@@ -285,6 +285,46 @@ module.exports =
     @broadcastMessages.push message
 
 
+  activateRealtimeManager: (doc) ->
+
+    @rtm.setRealtimeDoc doc
+    @setCollaborativeReferences()
+    @addParticipant whoami()
+    @registerCollaborationSessionId()
+    @bindRealtimeEvents()
+
+    if @amIHost
+    then @activateRealtimeManagerForHost()
+    else @activateRealtimeManagerForParticipant()
+
+    @rtm.isReady = yes
+    @emit 'RTMIsReady'
+
+    unless @myWatchMap.values().length
+      @listChatParticipants (accounts) =>
+        accounts.forEach (account) =>
+          {nickname} = account.profile
+          @myWatchMap.set nickname, nickname
+
+
+  activateRealtimeManagerForHost: ->
+
+    @getView().setClass 'host'
+    @startHeartbeat()
+
+
+  activateRealtimeManagerForParticipant: ->
+
+    @startRealtimePolling()
+    @resurrectSnapshot()
+
+    if @collaborationHost in @myWatchMap.values()
+      @reviveHostSnapshot()
+
+    if @permissions.get(nick()) is 'read'
+      @makeReadOnly()
+
+
   loadCollaborationFile: (fileId) ->
 
     return  unless fileId
