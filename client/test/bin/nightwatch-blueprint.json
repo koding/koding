@@ -7,14 +7,14 @@
     "server_path" : "../vendor/selenium-server-standalone-2.45.0.jar",
     "log_path" : "../logs",
     "host" : "127.0.0.1",
-    "port" : 6044,
+    "port" : 4444,
     "cli_args": {}
   },
 
   "test_settings" : {
     "default" : {
       "launch_url" : "http://localhost",
-      "selenium_port"  : 6044,
+      "selenium_port"  : 4444,
       "selenium_host"  : "localhost",
       "silent": true,
       "screenshots" : {
