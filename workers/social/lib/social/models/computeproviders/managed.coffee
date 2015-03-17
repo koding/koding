@@ -76,6 +76,26 @@ module.exports = class Managed extends ProviderInterface
       else machine.destroy client, callback
 
 
+  @update = (client, options, callback)->
+
+    { machineId, queryString, ipAddress } = options
+    { r: { group, user, account } } = client
+
+    unless machineId? or queryString? or ipAddress?
+      return callback new KodingError \
+        "A valid machineId and an update option required.", "WrongParameter"
+
+    # TODO add queryString and ipAddress validations here ~ GG
+
     JMachine = require './machine'
-    JMachine.one {_id: machineId, provider}, (err, machine)->
-      machine.destroy client, callback
+    selector = JMachine.getSelectorFor client, { machineId, owner: yes }
+
+    JMachine.one selector, (err, machine)->
+
+      if err? or not machine?
+        return callback err or new KodingError "Machine object not found."
+
+      domain = ipAddress
+
+      machine.update $set: {queryString, domain, ipAddress}, (err)->
+        callback err
