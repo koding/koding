@@ -47,3 +47,15 @@ module.exports =
       ipAddress   : kite.ipAddress
       stack
     }, callback
+
+
+  updateMachineData: ({machine, kite}, callback)->
+
+    options       =
+      machineId   : machine._id
+      provider    : 'managed'
+      queryString : kite.queryString
+      ipAddress   : kite.ipAddress
+
+    remote = require('app/remote').getInstance()
+    remote.api.ComputeProvider.update options, callback
