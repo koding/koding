@@ -56,7 +56,7 @@ module.exports = class ComputeHelpers
         callback()
         return
 
-      cc.fetchMachines (err, machines)=>
+      cc.queryMachines provider: 'koding', (err, machines)=>
 
         kd.warn err  if err?
 
@@ -128,7 +128,7 @@ module.exports = class ComputeHelpers
 
     provisioner = machine.provisioners?.first
     return callback null  unless provisioner
- 
+
     remote = require('app/remote').getInstance()
     remote.api.JProvisioner.one slug: provisioner, callback
 
