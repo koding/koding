@@ -1,7 +1,6 @@
 BIN=../node_modules/.bin
 SRC=$(shell find lib -name "*.coffee")
 TARGETS=$(patsubst %.coffee,build/%.js,$(SRC))
-TEST_NW_EXTRAS?=
 TEST_EXTRAS?=
 
 all: build run
@@ -12,10 +11,25 @@ configure:
 	@bin/cmd.coffee browser $(TEST_EXTRAS)
 
 run:
-	@$(BIN)/nightwatch \
-		--config ../.nightwatch.json \
-		--group build \
-		$(TEST_NW_EXTRAS)
+	@./run.sh register
+	@./run.sh login
+	@./run.sh logout
+	@./run.sh activity post
+	@./run.sh activity postwith
+	@./run.sh activity editdelete
+	@./run.sh activity likeunlike
+	@./run.sh activity others
+	@./run.sh account accountpage
+	@./run.sh account accountsettings
+	@./run.sh ide file
+	@./run.sh ide terminal
+	@./run.sh ide layout
+	@./run.sh ide workspace
+	@./run.sh ide general
+	@./run.sh staticpages loggedout
+	@./run.sh environments vm
+	@./run.sh environments domain
+	@./run.sh environments paidaccount
 
 build/%.js: %.coffee
 	@mkdir -p $(@D)
