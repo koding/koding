@@ -239,39 +239,10 @@ module.exports =
     return  unless @rtm
 
     kd.utils.wait 2000, => @whenRealtimeReady =>
-      participants  = @participants.asArray()
-      {sessionId}   = changeData.collaborator
-      targetUser    = null
-      targetIndex   = null
 
-      for participant, index in participants when participant.sessionId is sessionId
-        targetUser  = participant.nickname
-        targetIndex = index
-
-      unless targetUser
-        return kd.warn 'Unknown user in collaboration, we should handle this case...'
-
-      if actionType is 'join'
-        @chat.emit 'ParticipantJoined', targetUser
-        @statusBar.emit 'ParticipantJoined', targetUser
-
-        if @amIHost
-          @ensureMachineShare [targetUser], (err) =>
-            return throwError err  if err
-      else
-        @chat.emit 'ParticipantLeft', targetUser
-        @statusBar.emit 'ParticipantLeft', targetUser
-        @removeParticipantCursorWidget targetUser
-
-        # check the user is still at same index, so we won't remove someone else.
-        user = @participants.get targetIndex
-
-        if user.nickname is targetUser
-          @participants.remove targetIndex
-        else
-          participants = @participants.asArray()
-          for participant, index in participants when participant.nickname is targetUser
-            @participants.remove index
+      switch actionType
+        when 'join' then @onRealtimeParticipantJoined changeData
+        when 'left' then @onRealtimeParticipantLeft changeData
 
 
   onRealtimeParticipantJoined: (data) ->
