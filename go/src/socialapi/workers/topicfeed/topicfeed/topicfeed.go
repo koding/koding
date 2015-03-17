@@ -3,6 +3,7 @@ package topicfeed
 import (
 	"fmt"
 	"socialapi/models"
+	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
@@ -283,18 +284,59 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	c := models.NewChannel()
 
-	selector := map[string]interface{}{
-		"group_name":    groupName,
-		"name":          channelName,
-		"type_constant": models.Channel_TYPE_TOPIC,
-	}
+	topics := make([]models.Channel, 0)
+	err := bongo.B.DB.Table(c.BongoName()).
+		Where("group_name = ?", groupName).
+		Where("name = ?", channelName).
+		Where("type_constant IN (?)", []string{models.Channel_TYPE_TOPIC, models.Channel_TYPE_LINKED_TOPIC}).
+		Order("id asc").
+		Find(&topics).Error
 
-	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return nil, err
 	}
+	var channel *models.Channel
 
-	return c, nil
+	switch len(topics) {
+	case 0:
+		return nil, bongo.RecordNotFound
+	case 1:
+		channel = &(topics[0])
+	case 2:
+		for _, ch := range topics {
+			if ch.TypeConstant == models.Channel_TYPE_LINKED_TOPIC {
+				channel = &ch
+				helper.MustGetLogger().Critical(
+					"duplicate channel content %s, %s",
+					groupName,
+					channelName,
+				)
+				break
+			}
+		}
+	default:
+		return nil, fmt.Errorf(
+			"should not happen while fetching channel, groupName: %s, channelName: %s",
+			groupName,
+			channelName,
+		)
+	}
+
+	if channel == nil {
+		helper.MustGetLogger().Critical(
+			"should not happen while fetching channel %s, %s",
+			groupName,
+			channelName,
+		)
+		return nil, bongo.RecordNotFound
+	}
+
+	// if it a normal channel just return it
+	if channel.TypeConstant != models.Channel_TYPE_LINKED_TOPIC {
+		return channel, nil
+	}
+
+	return channel.FetchRoot()
 }
 
 func createTopicChannel(creatorId int64, groupName, channelName, privacy string) (*models.Channel, error) {
