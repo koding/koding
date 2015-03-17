@@ -156,22 +156,24 @@ module.exports = UserEnvironmentDataProvider =
     callback machine, workspace
 
 
-  validateCollaborationWorkspace: (machineLabel, workspaceSlug, channelId) ->
+  findWorkspace: (machineLabel, workspaceSlug, channelId) ->
 
-    data      = @getAllMachines()
-    workspace = null
+    for item in @getAllMachines()
 
-    for obj in data when obj.machine.label is machineLabel
-      for ws in obj.workspaces
-        hasSameLabel     = ws.machineLabel is machineLabel
-        hasSameSlug      = ws.slug is workspaceSlug
-        hasSameChannelId = ws.channeId is channelId
+      {machine, workspaces} = item
+
+      slugMatches  = machineLabel is machine.slug
+      labelMatches = machineLabel is machine.label
+
+      continue  unless slugMatches or labelMatches
+
+      for workspace in workspaces
+        hasSameLabel     = workspace.machineLabel is machine.label
+        hasSameSlug      = workspace.slug is workspaceSlug
+        hasSameChannelId = if channelId then workspace.channelId is channelId else yes
 
         if hasSameLabel and hasSameSlug and hasSameChannelId
-          workspace = ws
-          break
-
-    return workspace
+          return workspace
 
 
   getIDEFromUId: (uid) ->
