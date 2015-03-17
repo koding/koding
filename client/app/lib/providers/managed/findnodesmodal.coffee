@@ -24,18 +24,10 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
       initial: (data) =>
 
         view.addTo @container,
-          waiting    : 'Checking for kite instances...'
+          instructions : 'install'
+          waiting      : 'Checking for kite instances...'
 
-        {queryKites} = require './helpers'
-
-        queryKites()
-          .then (result) =>
-            if result?.kites?.length
-            then @switchTo 'listKites', result.kites
-            else @switchTo 'retry', 'No kite instance found'
-          .catch (err) =>
-            console.warn "Error:", err
-            @switchTo 'retry', 'Failed to query kites'
+        @fetchKites()
 
 
       retry: (data) =>
