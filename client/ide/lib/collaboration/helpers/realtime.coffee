@@ -2,6 +2,21 @@ getNick = require 'app/util/nick'
 _ = require 'lodash'
 
 ###*
+ * Fetches collaboration file with given fileName and calls the callback with it.
+ *
+ * @param {RealtimeManager} manager
+ * @param {string} fileName
+ * @param {function(err: object, result: object)}
+###
+fetchCollaborationFile = (manager, fileName, callback) ->
+
+  isSessionActive manager, fileName, (isActive, file) =>
+    if isActive
+    then callback null, file
+    else callback 'trying to fetch file from inactive session'
+
+
+###*
  * Load file with given id into RealtimeManager instance.
  *
  * @param {RealtimeManager} manager
@@ -289,6 +304,7 @@ isUserOnline = (manager, participants, username) ->
 
 
 module.exports = {
+  fetchCollaborationFile
   loadCollaborationFile
   createCollaborationFile
   deleteCollaborationFile
