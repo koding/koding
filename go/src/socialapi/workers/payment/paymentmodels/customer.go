@@ -30,15 +30,15 @@ type Customer struct {
 	UpdatedAt time.Time `json:"updatedAt" `
 }
 
-func (c *Customer) ByOldId(oldId string) error {
+func (c *Customer) ByOldId(oldId string) (*Customer, error) {
 	selector := map[string]interface{}{"old_id": oldId}
 
 	err := c.One(bongo.NewQS(selector))
 	if err == gorm.RecordNotFound {
-		return paymenterrors.ErrCustomerNotFound
+		return nil, paymenterrors.ErrCustomerNotFound
 	}
 
-	return err
+	return c, err
 }
 
 func (c *Customer) FindActiveSubscription() (*Subscription, error) {
