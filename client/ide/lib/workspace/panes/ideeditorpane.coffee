@@ -291,7 +291,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
       when 'FileSaved'
 
-        @parent.tabHandle.unsetClass 'modified'
+        @getAce().removeModifiedFromTab()
         @getAce().contentChanged = no
 
 
