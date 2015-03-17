@@ -198,7 +198,7 @@ registerCollaborationSessionId = (manager, participants) ->
  * @param {string} nickname
  * @api private
 ###
-removeParticipantFromParticipantList = (participants, nickname) ->
+removeParticipantFromList = (participants, nickname) ->
 
   return console.warn 'participants is not set'  unless participants
 
@@ -246,7 +246,7 @@ removeParticipantFromPermissions = (permissions, nickname) ->
 ###
 removeFromManager = (manager, references, nickname) ->
 
-  removeParticipantFromParticipantList references.participants, nickname
+  removeParticipantFromList references.participants, nickname
   removeParticipantFromMaps manager, nickname
   removeParticipantFromPermissions references.permissions, nickname
 
