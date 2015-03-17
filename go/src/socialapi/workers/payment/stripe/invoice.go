@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/paymentmodels"
 	"time"
 
 	"github.com/stripe/stripe-go"
@@ -15,7 +16,7 @@ type StripeInvoiceResponse struct {
 }
 
 func FindInvoicesForCustomer(oldId string) ([]*StripeInvoiceResponse, error) {
-	customer, err := FindCustomerByOldId(oldId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(oldId)
 	if err != nil {
 		return nil, err
 	}

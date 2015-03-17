@@ -8,8 +8,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/koding/logging"
 	. "github.com/smartystreets/goconvey/convey"
 )
+
+func init() {
+	Log.SetLevel(logging.CRITICAL)
+}
 
 func rawSubscriptionDeletedData(id string) []byte {
 	raw := `{"id": "%s"}`
@@ -31,11 +36,17 @@ func TestSubscriptionDeletedWebhook(t *testing.T) {
 					So(err, ShouldBeNil)
 				})
 
-				Convey("Then customer's active subscription is empty", func() {
+				Convey("Then customer has no active subscription", func() {
 					_, err := customer.FindActiveSubscription()
 
 					shouldGetErr := paymenterrors.ErrCustomerNotSubscribedToAnyPlans
 					So(err, ShouldEqual, shouldGetErr)
+				})
+
+				Convey("Then customer's has no credit card", func() {
+					card, err := GetCreditCard(customer.OldId)
+					So(err, ShouldBeNil)
+					So(card.LastFour, ShouldBeEmpty)
 				})
 			})
 		}),

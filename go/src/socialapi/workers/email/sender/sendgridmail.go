@@ -8,7 +8,10 @@ type SendGridMail struct {
 	Sendgrid *sendgrid.SGClient
 }
 
-const fromDefault = "mail@koding.com"
+const (
+	fromDefault     = "mail@koding.com"
+	fromNameDefault = "Koding"
+)
 
 // Send implements Emailer interface
 func (sg *SendGridMail) Send(m *Mail) error {
@@ -17,6 +20,8 @@ func (sg *SendGridMail) Send(m *Mail) error {
 	if err := message.AddTo(m.To); err != nil {
 		return err
 	}
+
+	message.AddToName(m.ToName)
 
 	from := m.From
 	if from == "" {
@@ -31,10 +36,14 @@ func (sg *SendGridMail) Send(m *Mail) error {
 		message.SetFrom(m.From)
 	}
 
-	message.SetText(m.Text)
-	message.SetHTML(m.HTML)
+	if m.FromName == "" {
+		m.FromName = fromNameDefault
+	}
+
+	message.SetHTML(m.Text)
 	message.SetSubject(m.Subject)
 	message.SetFromName(m.FromName)
+
 	if m.ReplyTo != "" {
 		if err := message.SetReplyTo(m.ReplyTo); err != nil {
 			return err

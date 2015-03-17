@@ -148,8 +148,23 @@ func (s *Subscription) ByCanceledAtGte(t time.Time) ([]Subscription, error) {
 	return subscriptions, err
 }
 
+func (s *Subscription) ByExpiredAtAndNotExpired(t time.Time) ([]Subscription, error) {
+	subscriptions := []Subscription{}
+
+	err := bongo.B.DB.
+		Table(s.BongoName()).
+		Where(
+		"expired_at < ? AND expired_at != ? AND state != ?",
+		t, time.Time{}, SubscriptionStateExpired,
+	).Find(&subscriptions).Error
+
+	return subscriptions, err
+}
+
 func (s *Subscription) UpdateToExpireTime(t time.Time) error {
+	s.ExpiredAt = t
 	s.CanceledAt = t
+
 	err := bongo.B.Update(s)
 
 	return err
