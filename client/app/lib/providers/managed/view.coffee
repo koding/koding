@@ -13,10 +13,14 @@ addTo = (parent, views)->
 
   return map
 
+globals = require 'globals'
+kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
+             then "KONTROLURL=#{globals.config.newkontrol.url} " else ''
+
 contents  =
   install : """bash
     $ curl -sO https://s3.amazonaws.com/koding-klient/install.sh
-    $ bash ./install.sh
+    $ #{kontrolUrl}bash ./install.sh
     # Enter your koding.com credentials when asked for
   """
 
