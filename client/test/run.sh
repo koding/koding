@@ -3,22 +3,24 @@
 cd $(dirname $0)
 
 MAX_TRY_COUNT=3
+NIGHTWATCH_BIN="../node_modules/.bin/nightwatch --config ../.nightwatch.json"
+BUILD_DIR=build/lib
 
-REVISION=$(cat ../REVISION)
+REVISION=$(node -e "process.stdout.write(require('../.config.json').rev)")
 export REVISION=${REVISION:0:7}
 
-runTests() {
+run() {
   SUITE=$1
   SUBSUITE=$2
 
   if [ -z "$SUITE" ]; then
-    for i in ./output/*;do
+    for i in ./$BUILD_DIR/*;do
       if [ -d "$i" ];then
-          if [ "$i" == "./output/helpers" ] || [ "$i" == "./output/utils" ]; then
+          if [ "$i" == "./$BUILD_DIR/helpers" ] || [ "$i" == "./$BUILD_DIR/utils" ]; then
             echo "skipping $i"
           else
             echo "running $i test suite"
-            command="nightwatch --group $i"
+            command="$NIGHTWATCH_BIN --group $i"
 
             counter=0
             until $command
@@ -36,9 +38,9 @@ runTests() {
     echo "running single test suite: $SUITE $SUBSUITE"
 
     if [ -z "$SUBSUITE" ]; then
-      command="nightwatch --group ./output/$SUITE"
+      command="$NIGHTWATCH_BIN --group ./$BUILD_DIR/$SUITE"
     else
-      command="nightwatch --group ./output/$SUITE/$SUBSUITE.js"
+      command="$NIGHTWATCH_BIN --group ./$BUILD_DIR/$SUITE/$SUBSUITE.js"
     fi
 
     counter=0
@@ -53,12 +55,4 @@ runTests() {
   fi
 }
 
-echo 'deleting output folder'
-rm -rf ./output
-
-echo 'compiling coffee files'
-gulp
-
-echo 'running tests'
-
-runTests $1 $2
+run $1 $2
