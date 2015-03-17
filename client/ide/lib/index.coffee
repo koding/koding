@@ -510,28 +510,21 @@ module.exports = class IDEAppController extends AppController
 
   createNewTerminal: (options) ->
 
+    # options can be an Event instance if the initiator is
+    # a shortcut so make the options an empty object.
+    options = {}  if options.keyCode
+
     { machine, path, resurrectSessions } = options
 
-    unless machine instanceof Machine
-      machine = @mountedMachine
+    machine = @mountedMachine  unless machine instanceof Machine
 
-    if @workspaceData
-
-      {rootPath, isDefault} = @workspaceData
-
-      if rootPath and not isDefault
-        path = rootPath
-
-    # options can be an Event instance if the initiator is
-    # a shortcut, and that can have a `path` property
-    # which is an Array. This check is to make sure that the
-    # `path` is always the one we send explicitly here - SY
-    path = null  unless typeof path is 'string'
+    if @workspaceData and not path
+      { rootPath, isDefault } = @workspaceData
+      options.path = rootPath  if rootPath and not isDefault
 
     @activeTabView.emit 'TerminalPaneRequested', options
 
 
-  #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)
   createNewBrowser: (url) ->
 
     url = ''  unless typeof url is 'string'
