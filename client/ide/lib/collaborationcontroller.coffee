@@ -758,20 +758,12 @@ module.exports =
 
   ensureMachineShare: (usernames, callback) ->
 
-    kite = @mountedMachine.getBaseKite()
+    {fetchMissingParticipants} = envHelpers
 
-    kite.klientShared null
+    fetchMissingParticipants @mountedMachine, usernames, (err, missing) =>
+      return callback err  if err
 
-      .then (response) =>
-        participants = response.split ','
-        missing = usernames.filter (username) =>
-          participants.indexOf(username) is -1
-
-        @setMachineUser missing, yes, callback
-
-      .catch (err) =>
-        throwError err
-        callback()
+      @setMachineUser missing, yes, callback
 
 
   setMachineSharingStatus: (status, callback) ->
