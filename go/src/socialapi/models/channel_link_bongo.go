@@ -8,12 +8,46 @@ import (
 
 const ChannelLinkBongoName = "api.channel_link"
 
+func (c *ChannelLink) validateBeforeOps() error {
+	if c.RootId == 0 {
+		return ErrRootIsNotSet
+	}
+
+	if c.LeafId == 0 {
+		return ErrLeafIsNotSet
+	}
+
+	r := NewChannel()
+	if err := r.ById(c.RootId); err != nil {
+		return err
+	}
+
+	l := NewChannel()
+	if err := l.ById(c.LeafId); err != nil {
+		return err
+	}
+
+	if r.GroupName != l.GroupName {
+		return ErrGroupsAreNotSame
+	}
+
+	return nil
+
+}
 func (c *ChannelLink) BeforeCreate() error {
+	if err := c.validateBeforeOps(); err != nil {
+		return err
+	}
+
 	c.CreatedAt = time.Now().UTC()
 	return nil
 }
 
 func (c *ChannelLink) BeforeUpdate() error {
+	if err := c.validateBeforeOps(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
