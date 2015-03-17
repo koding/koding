@@ -52,4 +52,5 @@ var (
 	ErrLeafIsNotSet     = errors.New("leaf channel is not set")
 	ErrRootIsNotSet     = errors.New("root channel is not set")
 	ErrChannelHasLeaves = errors.New("channel has leaves")
+	ErrGroupsAreNotSame = errors.New("groups are not same")
 )
