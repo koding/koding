@@ -144,13 +144,10 @@ module.exports =
 
   getRealtimeFileName: (id) ->
 
-    unless id
-      if @channelId          then id = @channelId
-      else if @socialChannel then id = @socialChannel.id
-      else
-        return showError 'social channel id is not provided'
+    unless id = @getSocialChannelId()
+      return showError 'social channel id is not provided'
 
-    hostName = if @amIHost then nick() else @collaborationHost
+    hostName = @getCollaborationHost()
 
     return "#{hostName}.#{id}"
 
