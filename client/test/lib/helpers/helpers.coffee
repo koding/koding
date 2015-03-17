@@ -204,6 +204,11 @@ module.exports =
       .click                    activitySelector + ' [testpath=CommentInputView]'
       .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
       .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
+
+    if hasEmbeddable
+      browser.pause 3000
+
+    browser
       .click                    activitySelector + ' .has-markdown' # blur
       .pause                    3000 # content preview
 
@@ -230,11 +235,15 @@ module.exports =
       .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
       .click                    '[testpath=ActivityInputView]'
       .setValue                 '[testpath=ActivityInputView]', post
-      .click                    '.channel-title'
 
     if hasEmbeddable
       browser
+        .pause 3000
+        .click '.channel-title'
         .waitForElementVisible  '.activity-input-widget .link-embed-box', 20000
+    else
+      browser
+        .click '.channel-title'
 
     browser
       .click                    '[testpath=post-activity-button]'
