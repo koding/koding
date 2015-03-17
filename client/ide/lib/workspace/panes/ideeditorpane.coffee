@@ -33,8 +33,7 @@ module.exports = class IDEEditorPane extends IDEPane
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
 
     @errorOnSave = no
-    @saveErrorCallback = @bound 'handleSaveFailed'
-    file.on [ 'fs.save.failed', 'fs.saveAs.failed' ], @saveErrorCallback
+    file.on [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
 
     @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
@@ -409,4 +408,4 @@ module.exports = class IDEEditorPane extends IDEPane
 
   destroy: ->
 
-    @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @saveErrorCallback
+    @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
