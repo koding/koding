@@ -637,9 +637,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = kd.noop) ->
 
-    @fetchEnvironmentData (data) =>
-      @ownMachinesList.updateList data.own
-      @sharedMachinesList.updateList data.shared.concat data.collaboration
+    @fetchEnvironmentData @bound 'redrawMachineList'
 
 
   invalidateWorkspaces: (machine) ->
@@ -651,6 +649,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       return kd.warn err  if err
 
       environmentDataProvider.clearWorkspaces machine
+      @redrawMachineList()
 
 
   removeMachineNode: (machine) ->
