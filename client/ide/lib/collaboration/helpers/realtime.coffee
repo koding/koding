@@ -31,9 +31,8 @@ createCollaborationFile = (manager, title, callback) ->
 
   options = { title, preventEvent: yes }
 
-  manager.createFile title, (err, file) ->
+  manager.createFile options, (err, file) ->
     return callback err  if err
-
     callback null, file
 
 
