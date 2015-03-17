@@ -71,7 +71,7 @@ module.exports = class ComputeController extends KDController
       username     : globals.config.kites.kontrol.username
 
 
-  reset: (render = no)->
+  reset: (render = no, callback = ->)->
 
     @stacks       = []
     @machines     = []
@@ -82,6 +82,7 @@ module.exports = class ComputeController extends KDController
     if render then @fetchStacks =>
       @info machine for machine in @machines
       @emit "RenderMachines", @machines
+      callback null
 
 
   _clearTrialCounts: (machine)->
