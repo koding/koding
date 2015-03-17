@@ -792,39 +792,23 @@ module.exports =
 
   setMachineUser: (usernames, share = yes, callback = kd.noop) ->
 
-    return callback()  unless usernames.length
+    # TODO: needs an investigation here.
+    # if this usernames length check would be done
+    # via helper method, the broadcastMessage
+    # lines would be executed as well. attn to @szkl.
+    return callback null  unless usernames.length
 
-    jMachine = @mountedMachine.getData()
-    method   = if share then 'share' else 'unshare'
-    jMachine[method] usernames, (err) =>
+    {setMachineUser} = envHelpers
 
-      return callback err  if err
+    setMachineUser @mountedMachine, usernames, share, (err) =>
+      if err
+        return  if err.message is 'User not found' and not share
+        return callback err  if err
 
-      kite   = @mountedMachine.getBaseKite()
-      method = if share then 'klientShare' else 'klientUnshare'
-
-      queue = usernames.map (username) =>
-        =>
-          kite[method] {username}
-
-            .then =>
-
-              @whenRealtimeReady =>
-                @broadcastMessages.push
-                  type: "#{if share then 'Set' else 'Unset'}MachineUser"
-                  participants: usernames
-
-              queue.fin()
-
-            .error (err) ->
-
-              queue.fin()
-
-              return  if err.message is 'User not found' and not share
-
-              callback err
-
-      sinkrow.dash queue, callback
+      @whenRealtimeReady =>
+        @broadcastMessages.push
+          type: "#{if share then 'Set' else 'Unset'}MachineUser"
+          participants: usernames
 
 
   # collab related modals (should be its own mixin)
