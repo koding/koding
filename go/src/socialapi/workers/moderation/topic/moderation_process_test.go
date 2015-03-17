@@ -427,8 +427,18 @@ func TestProcess(t *testing.T) {
 		})
 
 		Convey("make sure messages dont have hashtag in them when we merge to group channel", func() {
-			rootChannel := models.CreateTypedChannelWithTest(acc1.Id, models.Channel_TYPE_GROUP)
-			leafChannel := models.CreateTypedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC)
+			groupName := models.RandomName()
+
+			rootChannel := models.CreateTypedGroupedChannelWithTest(
+				acc1.Id,
+				models.Channel_TYPE_GROUP,
+				groupName,
+			)
+			leafChannel := models.CreateTypedGroupedChannelWithTest(
+				acc2.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
 
 			cl := &models.ChannelLink{
 				RootId: rootChannel.Id,
