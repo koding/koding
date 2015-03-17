@@ -12,10 +12,12 @@ SUPPORTED_REGIONS = ['us-east-1', 'eu-west-1', 'ap-southeast-1', 'us-west-2']
 
 module.exports = class Koding extends ProviderInterface
 
+  @providerSlug = 'koding'
 
   @ping = (client, options, callback)->
 
-    callback null, "Koding is the best #{ client.r.account.profile.nickname }!"
+    {nickname} = client.r.account.profile
+    callback null, "#{@providerSlug} is the best #{ nickname }!"
 
 
   @create = (client, options, callback)->
@@ -30,7 +32,7 @@ module.exports = class Koding extends ProviderInterface
       'Requested storage size is not valid.', 'WrongParameter'
 
     userIp   = clientIP or user.registeredFrom?.ip
-    provider = 'koding'
+    provider = @providerSlug
 
     { guessNextLabel, checkUsage
       fetchUserPlan, fetchUsage } = require './computeutils'
@@ -39,7 +41,7 @@ module.exports = class Koding extends ProviderInterface
 
       fetchUserPlan client, (err, userPlan)=>
 
-        fetchUsage client, options, (err, usage)->
+        fetchUsage client, {provider}, (err, usage)->
 
           return callback err  if err?
 
@@ -87,6 +89,8 @@ module.exports = class Koding extends ProviderInterface
       return callback new KodingError \
         "A valid machineId and an update option required.", "WrongParameter"
 
+    provider = @providerSlug
+
     JMachine = require './machine'
 
     { fetchUserPlan, fetchUsage } = require './computeutils'
@@ -95,7 +99,7 @@ module.exports = class Koding extends ProviderInterface
 
       return callback err  if err?
 
-      fetchUsage client, options, (err, usage)->
+      fetchUsage client, {provider}, (err, usage)->
 
         return callback err  if err?
 

@@ -11,9 +11,12 @@ KONFIG            = require('koding-config-manager').load("main.#{argv.c}")
 
 module.exports = class Managed extends ProviderInterface
 
+  @providerSlug = 'managed'
+
   @ping = (client, options, callback)->
 
-    callback null, "Managed VMs rulez #{ client.r.account.profile.nickname }!"
+    {nickname} = client.r.account.profile
+    callback null, "#{ @providerSlug } VMs rulez #{ nickname }!"
 
 
   @create = (client, options, callback)->
@@ -21,18 +24,18 @@ module.exports = class Managed extends ProviderInterface
     { label, queryString, ipAddress } = options
     { r: { group, user, account } } = client
 
-    provider = 'managed'
+    provider = @providerSlug
 
     { guessNextLabel, fetchUserPlan, fetchUsage } = require './computeutils'
 
     guessNextLabel { user, group, label, provider }, (err, label)->
       fetchUserPlan client, (err, userPlan)->
-        fetchUsage client, options, (err, usage)->
+        fetchUsage client, {provider}, (err, usage)->
 
           return callback err  if err?
 
           meta =
-            type          : 'managed'
+            type          : @providerSlug
             storage_size  : 0 # sky is the limit.
             alwaysOn      : no
 

@@ -13,6 +13,8 @@ PASS_THROUGH = (..., callback)-> callback null
 
 module.exports = class ProviderInterface
 
+  @providerSlug   = 'baseprovider'
+
   @ping           = NOT_IMPLEMENTED
 
   @create         = NOT_IMPLEMENTED
