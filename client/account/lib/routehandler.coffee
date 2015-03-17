@@ -1,20 +1,18 @@
 kd = require 'kd'
 KDNotificationView = kd.NotificationView
-isLoggedIn = require 'app/util/isLoggedIn'
 lazyrouter = require 'app/lazyrouter'
 
 
-handleSection = (callback) -> kd.singletons.mainController.ready ->
+handleSection = (path, callback) ->
 
-  if isLoggedIn()
-    appManager = kd.singleton('appManager')
-    if appManager.getFrontApp()?.getOption('name') is 'Account'
-      callback appManager.getFrontApp()
-    else appManager.open 'Account', callback
-  else
-    kd.singletons.router.handleRoute '/'
+  { appManager, router } = kd.singletons
+  unless appManager.getFrontApp()
+    appManager.once 'AppIsBeingShown', -> router.handleRoute path
+    router.handleRoute '/IDE'
+  else appManager.open 'Account', callback
 
-handle = ({params:{section}}) -> handleSection (app) -> app.openSection section
+handle = ({params:{section}}, path) ->
+  handleSection path, (app) -> app.openSection section
 
 module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
 
@@ -28,5 +26,5 @@ module.exports = -> lazyrouter.bind 'account', (type, info, state, path, ctx) ->
       new KDNotificationView title: "Verification failed!"
       ctx.clear()
     when 'referrer' then kd.singletons.router.handleRoute '/'
-    when 'section' then handle info
+    when 'section' then handle info, path
 
