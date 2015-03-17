@@ -127,6 +127,10 @@ describe 'CollaborationStateMachine', ->
     machine.transition 'ErrorCreating'
     expect(machine.state).to.equal 'ErrorCreating'
 
+    machine = creatingMachine()
+    machine.transition 'Active'
+    expect(machine.state).to.equal 'Active'
+
     # illegal states
     machine = creatingMachine()
     expect(-> machine.transition 'Loading').to.throw /illegal state transition/
@@ -136,7 +140,6 @@ describe 'CollaborationStateMachine', ->
     expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'Creating').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
 
 
   it 'tests ErrorCreating state transitions', ->
