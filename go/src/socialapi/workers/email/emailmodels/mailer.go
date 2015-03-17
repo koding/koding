@@ -22,10 +22,15 @@ func NewMailer(a *models.Account) (*Mailer, error) {
 
 	return &Mailer{
 		UserContact: uc,
+		Mail:        new(sender.Mail),
 	}, nil
 }
 
 func (m *Mailer) SendMail(contentType, body, subject string) error {
+	if m.Mail == nil {
+		m.Mail = new(sender.Mail)
+	}
+
 	m.Mail.Text = body
 	m.Mail.Subject = subject
 

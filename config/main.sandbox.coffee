@@ -508,6 +508,12 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/dispatcher -c #{socialapi.configFilePath}"
+
+    mailsender          :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
   #---- DO NOT CHANGE ANYTHING BELOW. IT'S GENERATED FROM WHAT'S ABOVE  ----#
