@@ -94,7 +94,7 @@ func (a *AccountRequest) Subscriptions() (*SubscriptionsResponse, error) {
 		Provider:     "koding",
 	}
 
-	customer, err := stripe.FindCustomerByOldId(a.AccountId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(a.AccountId)
 	if err != nil {
 		return defaultResp, nil
 	}
@@ -172,8 +172,7 @@ func (a *AccountRequest) ActiveUsernames() ([]string, error) {
 }
 
 func (a *AccountRequest) Expire() (interface{}, error) {
-	customer := paymentmodels.NewCustomer()
-	err := customer.ByOldId(a.AccountId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(a.AccountId)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package paypal
 
 import (
+	"socialapi/workers/payment/paymentmodels"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -12,7 +13,7 @@ func TestSubscribe1(t *testing.T) {
 
 	Convey("Given nonexistent customer, plan", t,
 		subscribeFn(func(token, accId, email string) {
-			customer, err := FindCustomerByOldId(accId)
+			customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 
 			So(err, ShouldBeNil)
 			So(customer, ShouldNotBeNil)

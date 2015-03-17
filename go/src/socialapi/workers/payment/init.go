@@ -23,16 +23,30 @@ func Initialize(conf *config.Config) {
 		}
 	}()
 
-	go InitCheckers()
+	go func() {
+		InitCheckers()
+
+		ticker := time.NewTicker(time.Hour * 1)
+		for _ = range ticker.C {
+			InitCheckers()
+		}
+	}()
 }
 
 func InitCheckers() error {
 	err := CheckForLeakedSubscriptions()
 	if err != nil {
-		Log.Error("Error checking for leaked subscriptions %v", err)
+		Log.Error(fmt.Sprintf("Error checking for leaked subscriptions: %v", err))
+		return err
 	}
 
-	return err
+	err = ExpireOutofDateSubscriptions()
+	if err != nil {
+		Log.Error(fmt.Sprintf("Error expiring out of date subscriptions: %v", err))
+		return err
+	}
+
+	return nil
 }
 
 func CheckForLeakedSubscriptions() error {
@@ -41,11 +55,7 @@ func CheckForLeakedSubscriptions() error {
 	subscription := paymentmodels.NewSubscription()
 	subscriptions, err := subscription.ByCanceledAtGte(thirtyDaysAgo)
 	if err != nil {
-		if err == bongo.RecordNotFound {
-			return nil
-		}
-
-		return err
+		return handleBongoError(err)
 	}
 
 	subscriptionIds := []int64{}
@@ -62,4 +72,31 @@ func CheckForLeakedSubscriptions() error {
 	}
 
 	return nil
+}
+
+func ExpireOutofDateSubscriptions() error {
+	subscription := paymentmodels.NewSubscription()
+	subscriptions, err := subscription.ByExpiredAtAndNotExpired(time.Now().UTC())
+	if err != nil {
+		return handleBongoError(err)
+	}
+
+	for _, subscription := range subscriptions {
+		err = subscription.Expire()
+		if err != nil {
+			Log.Error(fmt.Sprintf("Error expiring out of date subscription: %v %v",
+				subscription.Id, err.Error()),
+			)
+		}
+	}
+
+	return nil
+}
+
+func handleBongoError(err error) error {
+	if err != nil && err == bongo.RecordNotFound {
+		return nil
+	}
+
+	return err
 }

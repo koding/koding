@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/activityemail/activityemail"
-	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
 )
@@ -29,12 +28,9 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	es := emailmodels.NewEmailSettings(r.Conf)
-
 	handler := activityemail.New(
 		r.Bongo.Broker.MQ,
 		r.Log,
-		es,
 	)
 
 	r.SetContext(handler)

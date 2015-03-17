@@ -5,6 +5,7 @@ var LoggedOutHome = `
   <html lang="en">
   <head>
     {{template "header" . }}
+    <meta name="fragment" content="!">
 
     <link rel="stylesheet" href="/a/site.landing/css/kd.css?{{.Version}}" />
     <link rel="stylesheet" href="/a/site.landing/css/main.css?{{.Version}}" />

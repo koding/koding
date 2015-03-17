@@ -28,13 +28,3 @@ func CreateCustomer(accId string) (*paymentmodels.Customer, error) {
 
 	return customerModel, err
 }
-
-func FindCustomerByOldId(oldId string) (*paymentmodels.Customer, error) {
-	customerModel := paymentmodels.NewCustomer()
-	err := customerModel.ByOldId(oldId)
-	if err != nil {
-		return nil, err
-	}
-
-	return customerModel, err
-}

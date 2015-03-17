@@ -291,6 +291,9 @@ testapi: testcollaboration testmailsender testmail testmodels
 	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./generator.test
 
+	@echo "$(OK_COLOR)--> sitemap model tests... $(NO_COLOR)"
+	@`which go` test workers/sitemap/models/*.go
+
 	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
 	@`which go` test -c workers/payment/paymentwebhook/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
