@@ -50,7 +50,7 @@ module.exports =
       return callback err  if err
 
       @setSocialChannel channel
-      @updateWorkspace { channelId : channel.id }
+      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
           callback null, channel
@@ -825,11 +825,6 @@ module.exports =
               callback err
 
       sinkrow.dash queue, callback
-
-
-  updateWorkspace: (options = {}) ->
-
-    return remote.api.JWorkspace.update @workspaceData._id, { $set : options }
 
 
   # collab related modals (should be its own mixin)
