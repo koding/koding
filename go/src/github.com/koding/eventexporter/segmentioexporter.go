@@ -20,9 +20,15 @@ func (s *SegementIOExporter) Send(event *Event) error {
 		return ErrorSegmentIOUsernameEmpty
 	}
 
+	if event.User.Email == "" {
+		return ErrorSegmentIOEmailEmpty
+	}
+
 	if event.Name == "" {
 		return ErrorSegmentIOEventEmpty
 	}
+
+	event.Properties["email"] = event.User.Email
 
 	err := s.Client.Track(&analytics.Track{
 		Event:      event.Name,
