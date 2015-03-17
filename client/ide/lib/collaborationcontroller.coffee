@@ -105,9 +105,7 @@ module.exports =
 
   startChatSession: (callback) ->
 
-    channelId = @channelId or @workspaceData.channelId
-
-    if channelId
+    if @getSocialChannelId()
     then @reactivateChatSession callback
     else @initPrivateMessage callback
 
@@ -130,7 +128,9 @@ module.exports =
 
   getRealtimeFileName: (id) ->
 
-    unless id = @getSocialChannelId()
+    id or= @getSocialChannelId()
+
+    unless id
       return showError 'social channel id is not provided'
 
     hostName = @getCollaborationHost()
