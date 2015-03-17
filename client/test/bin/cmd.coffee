@@ -50,6 +50,12 @@ nwConfig.selenium.cli_args['webdriver.chrome.driver'] = path.resolve __dirname, 
 nwConfig.selenium.start_process = argv.startSelenium
 nwConfig.selenium.server_path = path.resolve __dirname, nwConfig.selenium.server_path
 
+nwConfig.selenium.log_path = path.resolve __dirname, nwConfig.selenium.log_path
+nwConfig.test_settings.default.screenshots.path =
+  path.resolve __dirname, nwConfig.test_settings.default.screenshots.path
+
+nwConfig.output_folder = path.resolve __dirname, nwConfig.output_folder
+
 nwConfigFile = path.resolve __dirname, '../../.nightwatch.json'
 fs.writeFileSync nwConfigFile, JSON.stringify(nwConfig, null, 2)
 console.log "written #{nwConfigFile}"

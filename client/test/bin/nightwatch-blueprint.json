@@ -1,11 +1,11 @@
 {
   "src_folders" : [],
-  "output_folder" : "test/output",
+  "output_folder" : "../output",
 
   "selenium" : {
     "start_process" : false,
     "server_path" : "../vendor/selenium-server-standalone-2.45.0.jar",
-    "log_path" : "test/logs",
+    "log_path" : "../logs",
     "host" : "127.0.0.1",
     "port" : 6044,
     "cli_args": {}
@@ -19,7 +19,7 @@
       "silent": true,
       "screenshots" : {
         "enabled" : false,
-        "path" : "test/logs"
+        "path" : "../logs"
       },
       "desiredCapabilities": {
         "browserName": "chrome",

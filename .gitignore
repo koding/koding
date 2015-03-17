@@ -73,5 +73,6 @@ client/builder/node_modules
 client/test/users.json
 client/test/build
 client/test/output
+client/test/log
 
 supervisor.html
