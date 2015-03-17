@@ -336,7 +336,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
           kd.utils.wait 10000, =>
             @buildExpiredView subscription, "downgrade"
         else
-          ComputeHelpers.handleNewMachineRequest (err)=>
+          ComputeHelpers.handleNewMachineRequest provider: 'koding', (err)->
             global.location.reload yes
 
       return

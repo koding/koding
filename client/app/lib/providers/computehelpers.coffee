@@ -30,13 +30,16 @@ module.exports = class ComputeHelpers
         .then ->
           callback null
 
-
-  @handleNewMachineRequest = (callback = kd.noop)->
+  @handleNewMachineRequest = (options = {}, callback = kd.noop)->
 
     cc = kd.singletons.computeController
 
     return  if cc._inprogress
     cc._inprogress = yes
+
+    if options.provider is 'managed'
+      AddManagedVMModal = require './managed/addmanagedvmmodal'
+      return callback new AddManagedVMModal
 
     cc.fetchPlanCombo "koding", (err, info) ->
 

@@ -1,8 +1,8 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 SidebarSearchModal = require './sidebarsearchmodal'
-ComputeHelpers = require '../../providers/computehelpers'
 MachineItem = require './machineitem'
+{handleNewMachineRequest} = require '../../providers/computehelpers'
 
 module.exports = class MoreVMsModal extends SidebarSearchModal
 
@@ -26,7 +26,7 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
       loader   : yes
       callback : =>
         @addButton.showLoader()
-        ComputeHelpers.handleNewMachineRequest @bound 'destroy'
+        handleNewMachineRequest provider: 'koding', @bound 'destroy'
 
     @addSubView @addButton, '.kdmodal-content'
 
