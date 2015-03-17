@@ -61,8 +61,34 @@ setMachineUser = (machine, usernames, share, callback) ->
     sinkrow.dash queue, callback
 
 
+###*
+ * Checks machine and finds missing participants depending on the
+ * given usernames array. It then calls the callback with those missing
+ * users.
+ *
+ * @param {object} machine
+ * @param {array.<string>} usernames
+ * @param {function(err: object, missingUsers: array.<string>)}
+###
+fetchMissingParticipants = (machine, usernames, callback) ->
+
+  kite = machine.getBaseKite()
+
+  kite.klientShared null
+
+    .then (response) =>
+      participants = response.split ','
+      missing = usernames.filter (username) =>
+        participants.indexOf(username) is -1
+
+      return callback null, missing
+
+    .catch callback
+
+
 module.exports = {
   detachSocialChannel
   updateWorkspace
   setMachineUser
+  fetchMissingParticipants
 }
