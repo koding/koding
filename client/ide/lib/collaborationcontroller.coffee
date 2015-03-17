@@ -334,48 +334,9 @@ module.exports =
     realtimeHelpers.loadCollaborationFile @rtm, fileId, (err, doc) =>
       return throwError err  if err
 
-      nickname = nick()
-      hostName = @collaborationHost
-
-      @rtm.setRealtimeDoc doc
-
-      @setCollaborativeReferences()
-
-      if @amIHost
-        @getView().setClass 'host'
-      #   @changes.clear()
-      #   @broadcastMessages.clear()
-
-      @addParticipant whoami()
-
-      @registerCollaborationSessionId()
-      @bindRealtimeEvents()
-
-      if @amIHost
-        @startHeartbeat()
-      else
-        @startRealtimePolling()
-
-      @rtm.isReady = yes
-      @emit 'RTMIsReady'
-      @resurrectSnapshot()  unless @amIHost
-
-      unless @myWatchMap.values().length
-        @listChatParticipants (accounts) =>
-          accounts.forEach (account) =>
-            {nickname} = account.profile
-            @myWatchMap.set nickname, nickname
-
-      if not @amIHost and @myWatchMap.values().indexOf(hostName) > -1
-        hostSnapshot = @rtm.getFromModel "#{hostName}Snapshot"
-
-        for key, change of hostSnapshot.values()
-          @createPaneFromChange change
-
+      @activateRealtimeManager doc
       @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
-      unless @amIHost
-        @makeReadOnly()  if @permissions.get(nickname) is 'read'
 
   reviveHostSnapshot: ->
 
