@@ -122,22 +122,8 @@ module.exports =
     channelId = @channelId or @workspaceData.channelId
 
     if channelId
-
-      @fetchSocialChannel (err, channel) =>
-        if err or not channel
-          return @initPrivateMessage callback
-
-        @createChatPaneView channel
-        @isRealtimeSessionActive channelId, (isActive, file) =>
-          if isActive
-            @whenRealtimeReady => @continuePrivateMessage callback
-            return @loadCollaborationFile file.result.items[0].id
-
-          @statusBar.share.show()
-          @chat.emit 'CollaborationNotInitialized'
-
-    else
-      @initPrivateMessage callback
+    then @reactivateChatSession callback
+    else @initPrivateMessage callback
 
 
   reactivateChatSession: (callback) ->
