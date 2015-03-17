@@ -3,6 +3,7 @@ package models
 import (
 	"socialapi/models"
 	"socialapi/request"
+	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"testing"
 
@@ -1292,6 +1293,71 @@ func TestFetchPublicChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(pc.GroupName, ShouldEqual, c.GroupName)
 			So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)
+		})
+	})
+}
+
+func TestChannelFetchRoot(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching the root", t, func() {
+		acc, err := models.CreateAccountInBothDbs()
+		So(err, ShouldBeNil)
+		So(admin, ShouldNotBeNil)
+
+		Convey("if channel id is not set", func() {
+			c := NewChannel()
+			_, err := c.FetchRoot()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrIdIsNotSet)
+		})
+
+		Convey("when root doesnt exist", func() {
+			leaf, err := rest.CreateChannelByGroupNameAndType(
+				acc.Id,
+				RandomName(),
+				models.Channel_TYPE_TOPIC,
+			)
+
+			So(err, ShouldBeNil)
+			So(root, ShouldNotBeNil)
+
+			Convey("should return bongo error", func() {
+				_, err := leaf.FetchRoot()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, bongo.RecordNotFound)
+			})
+		})
+
+		Convey("when root does exist", func() {
+			groupName := RandomName()
+			root, err := rest.CreateChannelByGroupNameAndType(
+				acc.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+			) // create root channel with second acc
+
+			leaf, err := rest.CreateChannelByGroupNameAndType(
+				acc.Id,
+				groupName,
+				models.Channel_TYPE_TOPIC,
+			)
+			cl := &ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
+			So(cl.Create(), ShouldBeNil)
+
+			Convey("should return root", func() {
+				r, err := leaf.FetchRoot()
+				So(err, ShouldBeNil)
+				So(r, ShouldNotBeNil)
+				So(r.Id, ShouldEqual, root.Id)
+			})
 		})
 	})
 }
