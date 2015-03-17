@@ -461,12 +461,7 @@ module.exports = class ComputeController extends KDController
       machine, force: @_force, resizeTo
     }, =>
 
-      options =
-        machineId : machine._id
-        provider  : machine.provider
-        resize    : resizeTo
-
-      remote.api.ComputeProvider.update options, (err)=>
+      @update machine, resize: resizeTo, (err) =>
 
         if err and err.name isnt 'SameValueForResize'
           return  showError err
@@ -575,10 +570,13 @@ module.exports = class ComputeController extends KDController
     if err = methodNotSupportedBy machine
       return callback err
 
-    options =
-      machineId : machine._id
-      provider  : machine.provider
-      alwaysOn  : state
+    @update machine, alwaysOn: state, callback
+
+
+  update: (machine, options, callback = kd.noop)->
+
+    options.machineId = machine._id
+    options.provider  = machine.provider
 
     remote.api.ComputeProvider.update options, (err)=>
       @triggerReviveFor machine._id  unless err?

@@ -51,11 +51,6 @@ module.exports =
 
   updateMachineData: ({machine, kite}, callback)->
 
-    options       =
-      machineId   : machine._id
-      provider    : 'managed'
-      queryString : kite.queryString
-      ipAddress   : kite.ipAddress
-
-    remote = require('app/remote').getInstance()
-    remote.api.ComputeProvider.update options, callback
+    { queryString, ipAddress } = kite
+    { computeController } = kd.singletons
+    computeController.update machine, {queryString, ipAddress}, callback
