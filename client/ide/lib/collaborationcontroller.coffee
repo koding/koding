@@ -34,16 +34,6 @@ module.exports =
 
     @socialChannel = channel
 
-    @socialChannel.on 'AddedToChannel', (socialAccount) =>
-
-      socialHelpers.fetchAccount socialAccount, (account) =>
-
-        return  unless account
-
-        {nickname} = account.profile
-        @statusBar.createParticipantAvatar nickname, no
-        @watchParticipant nickname
-
 
   initPrivateMessage: (callback) ->
 
@@ -335,6 +325,7 @@ module.exports =
       return throwError err  if err
 
       @activateRealtimeManager doc
+      @bindSocialChannelEvents()
       @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
 
@@ -381,6 +372,19 @@ module.exports =
 
 
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
+
+
+  bindSocialChannelEvents: ->
+
+    @socialChannel.on 'AddedToChannel', (socialAccount) =>
+
+      socialHelpers.fetchAccount socialAccount, (account) =>
+
+        return  unless account
+
+        {nickname} = account.profile
+        @statusBar.createParticipantAvatar nickname, no
+        @watchParticipant nickname
 
 
   bindRealtimeEvents: ->
