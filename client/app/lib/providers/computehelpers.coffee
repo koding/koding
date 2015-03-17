@@ -6,6 +6,7 @@ showError = require '../util/showError'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
 KDNotificationView = kd.NotificationView
+AddManagedVMModal = require './managed/addmanagedvmmodal'
 
 
 module.exports = class ComputeHelpers
@@ -35,11 +36,11 @@ module.exports = class ComputeHelpers
     cc = kd.singletons.computeController
 
     return  if cc._inprogress
-    cc._inprogress = yes
 
     if options.provider is 'managed'
-      AddManagedVMModal = require './managed/addmanagedvmmodal'
       return callback new AddManagedVMModal
+
+    cc._inprogress = yes
 
     cc.fetchPlanCombo "koding", (err, info) ->
 
