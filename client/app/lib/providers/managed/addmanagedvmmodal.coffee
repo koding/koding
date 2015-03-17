@@ -29,16 +29,39 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
       listKites: (data) =>
 
-        {list, button} = view.addTo @container,
-          instructions : 'install'
-          list         : { data }
-          button       :
-            title      : 'Add Selected Node'
-            disabled   : yes
-            callback   : =>
-              @createMachine list.controller.selectedItems.first.getData()
+        {list, button_add,
+         button_reload, message, loader} = view.addTo @container,
+          instructions  : 'install'
+          list          : { data }
+          button_add    :
+            title       : 'Add Selected Node'
+            cssClass    : 'green'
+            callback    : =>
+              kite = list.controller.selectedItems.first.getData()
+              if kite.machine
+                message.show()
+              else
+                message.hide()
+                @createMachine kite
+          button_reload :
+            iconOnly    : yes
+            cssClass    : 'retry'
+            callback    : =>
+              button_reload.hide()
+              message.hide()
+              loader.show()
+              @fetchKites()
+          loader        :
+            cssClass    : 'inline'
+          message       :
+            text        : 'This kite is in use.'
+            cssClass    : 'inline hidden'
 
-        list.controller.on 'ItemSelectionPerformed', button.bound 'enable'
+        list.controller
+          .on 'ItemDeselectionPerformed', ->
+            button_add.disable()
+            message.hide()
+          .on 'ItemSelectionPerformed', button_add.bound 'enable'
 
 
   createMachine: (kite)->
