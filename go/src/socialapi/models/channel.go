@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"socialapi/models"
 	"socialapi/request"
 
 	"github.com/jinzhu/gorm"
@@ -928,4 +929,38 @@ func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
 			return messageMap, nil
 		}
 	}
+}
+
+// FetchRoot fetches the root of a channel if linked
+func (c *Channel) FetchRoot() (*Channel, error) {
+	if c.Id == 0 {
+		return ErrIdIsNotSet
+	}
+
+	cl := models.NewChannelLink()
+
+	var rootIds []int64
+
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"leaf_id": c.Id,
+		},
+		Pluck: "root_id",
+	}
+
+	if err := cl.Some(&rootIds, bq); err != nil {
+		return nil, err
+	}
+
+	if len(rootIds) == 0 {
+		return nil, bongo.RecordNotFound
+	}
+
+	channel := models.NewChannel()
+	if err := channel.ById(rootIds[0]); err != nil {
+		return nil, err
+	}
+
+	return channel, nil
+
 }
