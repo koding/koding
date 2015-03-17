@@ -52,6 +52,22 @@ func CreateTypedChannelWithTest(accountId int64, typeConstant string) *Channel {
 	return channel
 }
 
+func CreateTypedGroupedChannelWithTest(accountId int64, typeConstant, groupName string) *Channel {
+	// create and account instance
+	channel := NewChannel()
+	channel.Name = RandomName()
+	// there is a check for group channels for unsuring that there will be only
+	// one group channel at a time, override that
+	channel.GroupName = groupName
+	channel.TypeConstant = typeConstant
+	channel.CreatorId = accountId
+
+	err := channel.Create()
+	So(err, ShouldBeNil)
+
+	return channel
+}
+
 func CreateTypedPublicChannelWithTest(accountId int64, typeConstant string) *Channel {
 	// create and account instance
 	channel := NewChannel()
@@ -253,8 +269,16 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 }
 
 func CreateChannelLinkWithTest(acc1, acc2 int64) *ChannelLink {
-	root := CreateChannelWithTest(acc1)
-	leaf := CreateChannelWithTest(acc2)
+	// root
+	root := NewChannel()
+	root.CreatorId = acc1
+	So(root.Create(), ShouldBeNil)
+
+	// leaf
+	leaf := NewChannel()
+	leaf.GroupName = root.GroupName // group names should be same
+	leaf.CreatorId = acc2
+	So(leaf.Create(), ShouldBeNil)
 
 	cl := &ChannelLink{
 		RootId: root.Id,
@@ -262,6 +286,5 @@ func CreateChannelLinkWithTest(acc1, acc2 int64) *ChannelLink {
 	}
 
 	So(cl.Create(), ShouldBeNil)
-
 	return cl
 }
