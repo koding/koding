@@ -1,5 +1,6 @@
 kd   = require 'kd'
 view = require './view'
+showError = require 'app/util/showError'
 ManagedVMBaseModal = require './basemodal'
 
 module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
@@ -41,23 +42,53 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
       listKites: (data) =>
 
-        {list, button} = view.addTo @container,
-          text         : "
-            We are unable to reach your managed vm, but we found following
-            klients registered with your account.
-          ", 'warning'
-          list         : { data }
-          button       :
-            title      : 'Delete Managed VM'
-            callback   : =>
-              console.log 'Will be implemented'
-          button       :
-            title      : 'Assign Selected Node'
-            disabled   : yes
-            callback   : =>
-              @assignKite list.controller.selectedItems.first.getData()
+        {loader, message, list,
+         button_assign, button_reload} = view.addTo @container,
+          message_warn  :
+            text        : "We are unable to reach your managed vm
+                          (#{@machine.ipAddress}), but we've found following
+                          klient kites registered with your account."
+            cssClass    : 'warning'
+          list          : { data }
+          button_assign :
+            title       : 'Use Selected Kite'
+            cssClass    : 'green'
+            callback    : =>
+              kite = list.controller.selectedItems.first.getData()
+              if kite.machine
+                message.show()
+              else
+                message.hide()
+                @assignKite kite
+          button_delete :
+            title       : 'Delete VM'
+            cssClass    : 'red'
+            callback    : @bound 'removeMachine'
+          button_reload :
+            iconOnly    : yes
+            cssClass    : 'retry'
+            callback    : =>
+              button_reload.hide()
+              message.hide()
+              loader.show()
+              @fetchKites()
+          loader        :
+            cssClass    : 'inline'
+          message       :
+            text        : 'This kite is in use.'
+            cssClass    : 'inline hidden'
 
-        list.controller.on 'ItemSelectionPerformed', button.bound 'enable'
+        list.controller
+
+          .on 'ItemDeselectionPerformed', ->
+            button_assign.disable()
+            message.hide()
+
+          .on 'ItemSelectionPerformed', button_assign.bound 'enable'
+
+
+    if container = @getOption 'container'
+      kd.utils.defer => container.addSubView this
 
 
   assignKite: (kite)->
@@ -70,3 +101,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
       kd.singletons.computeController.reset yes, =>
         @emit 'RestartIDE', @machine
         @destroy()
+
+  removeMachine: ->
+
+    kd.singletons.computeController.destroy @machine
