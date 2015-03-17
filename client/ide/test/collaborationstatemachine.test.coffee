@@ -14,6 +14,7 @@ describe 'CollaborationStateMachine', ->
     expect(states['ErrorLoading']).to.be.ok
     expect(states['Resuming']).to.be.ok
     expect(states['NotStarted']).to.be.ok
+    expect(states['PreCreated']).to.be.ok
     expect(states['Creating']).to.be.ok
     expect(states['ErrorCreating']).to.be.ok
     expect(states['Active']).to.be.ok
@@ -28,6 +29,7 @@ describe 'CollaborationStateMachine', ->
 
     # illegal states
     expect(-> machine.transition 'Active').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'Creating').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
@@ -59,6 +61,7 @@ describe 'CollaborationStateMachine', ->
     expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
     expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
     expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'Creating').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
@@ -73,6 +76,7 @@ describe 'CollaborationStateMachine', ->
     # illegal states
     machine = errorLoadingMachine()
     expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
     expect(-> machine.transition 'Creating').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
@@ -84,14 +88,33 @@ describe 'CollaborationStateMachine', ->
   it 'tests NotStarted state transitions', ->
 
     machine = notStartedMachine()
-    machine.transition 'Creating'
-    expect(machine.state).to.equal 'Creating'
+    machine.transition 'PreCreated'
+    expect(machine.state).to.equal 'PreCreated'
 
     # illegal states
     machine = notStartedMachine()
     expect(-> machine.transition 'Loading').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
     expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
+    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
+    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
+    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
+    expect(-> machine.transition 'Active').to.throw /illegal state transition/
+    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
+
+
+  it 'tests PreCreated state transitions', ->
+
+    machine = preCreatedMachine()
+    machine.transition 'Creating'
+    expect(machine.state).to.equal 'Creating'
+
+    # illegal states
+    machine = preCreatedMachine()
+    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
+    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
+    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
     expect(-> machine.transition 'Active').to.throw /illegal state transition/
@@ -110,6 +133,7 @@ describe 'CollaborationStateMachine', ->
     expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
     expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'Creating').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
     expect(-> machine.transition 'Active').to.throw /illegal state transition/
@@ -131,6 +155,7 @@ describe 'CollaborationStateMachine', ->
     expect(-> machine.transition 'Loading').to.throw /illegal state transition/
     expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
     expect(-> machine.transition 'Active').to.throw /illegal state transition/
 
@@ -162,6 +187,7 @@ describe 'CollaborationStateMachine', ->
     expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
     expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
     expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
+    expect(-> machine.transition 'PreCreated').to.throw /illegal state transition/
     expect(-> machine.transition 'Active').to.throw /illegal state transition/
     expect(-> machine.transition 'Ending').to.throw /illegal state transition/
 
@@ -185,8 +211,13 @@ notStartedMachine = ->
   machine.transition 'NotStarted'
   return machine
 
-creatingMachine = ->
+preCreatedMachine = ->
   machine = notStartedMachine()
+  machine.transition 'PreCreated'
+  return machine
+
+creatingMachine = ->
+  machine = preCreatedMachine()
   machine.transition 'Creating'
   return machine
 
