@@ -1,0 +1,210 @@
+Total # of tests,188,,
+# of Tests Implemented,57,,
+Tests Implemented (%),30.32%,,
+# of Tests Enabled,56,,
+Tests Coverage (%),29.79%,,
+# of Tests Disabled,1,,
+Tests Disabled (%),0.53%,,
+# of Tests In Progress,16,,
+Tests In Progress (%),8.51%,,
+,,,
+TEST NAME,COMPONENT,STATE,RESULT
+Login with Username,Homepage,Implemented,Passed
+Login with Email,Homepage,Implemented,Passed
+Login with Invalid Username,Homepage,Implemented,Passed
+Login with Invalid Password,Homepage,Implemented,Passed
+Logout,Homepage,Implemented,Passed
+Register with valid credentials,Homepage,Implemented,Passed
+Register with Invalid Username,Homepage,Implemented,Passed
+Register with Invalid Email,Homepage,Implemented,Passed
+Register with Invalid Password,Homepage,Implemented,Passed
+Check if verification email is sent after registration,Homepage,,
+Forgot Password with valid Email Confirmation,Homepage,,
+Forgot Password with invalid Email Confirmation,Homepage,,
+Login with Github,Homepage,,
+Register with Github,Homepage,,
+,,,
+Homepage,Static pages,Implemented,Passed
+Pricing,Static pages,Implemented,Passed
+About,Static pages,Implemented,Passed
+Legal,Static pages,Implemented,Passed
+Features,Static pages,Implemented,Passed
+,,,
+Change filter,Activity,,
+Search message,Activity,,
+Preview a Post,Activity,,
+Post Short Message,Activity,Implemented,Passed
+Post Long Message,Activity,Implemented,Passed
+Post Message with Code,Activity,Implemented,Passed
+Post Message with Image,Activity,Implemented,Passed
+Post Message with Link,Activity,Implemented,Passed
+Post Message with Combination of those,Activity,,
+Post message and see if it’s posted only once,Activity,Implemented,Passed
+Edit Post,Activity,Implemented,Passed
+Delete Post,Activity,Implemented,Passed
+Like a Post,Activity,Implemented,Passed
+Unlike a Post,Activity,Implemented,Passed
+Make a Short Comment,Activity,Implemented,Passed
+Make a Long Comment,Activity,Implemented,Passed
+Make a Comment with Code,Activity,Implemented,Passed
+Make a Comment with Link,Activity,Implemented,Passed
+Make a Comment with Image,Activity,Implemented,Passed
+Delete a Comment,Activity,Implemented,Passed
+Cancel Deleting a Comment,Activity,Implemented,Passed
+See more comment link,Activity,Implemented,Passed
+Send a Post with Hashtag,Activity,Implemented,Passed
+Edit Comment,Activity,Implemented,Passed
+Like a Comment,Activity,Implemented,Passed
+Unlike a Comment,Activity,Implemented,Passed
+Follow a Topic and see if it’s added to your sidebar,Activity,Implemented,Passed
+Unfollow a Topic and see if it’s removed from your sidebar,Activity,Implemented,Passed
+Search for a topic in channel list,Activity,,
+Switch between channels,Activity,,
+Activity page for logged out users,Activity,,
+,,,
+Check that user's posts are displayed on the Profile page,Account,Implemented,Passed
+Edit first name,Account,,
+Edit last name,Account,,
+Edit location,Account,,
+Zoom a photo,Account,,
+,,,
+Check if notification count goes up when my post receives a comment,Notifications,,
+Check if notification count goes up when my post receives a like,Notifications,,
+Check if notification count goes up when a post or comment has @mention of my username,Notifications,,
+,,,
+Add a new message,Private Message,,
+Check if auto-complete works fine while adding a new username,Private Message,,
+Invite a user to a conversation,Private Message,,
+Send a message and see if it’s received by the other user,Private Message,,
+Send a Short Message,Private Message,,
+Send a Long Message,Private Message,,
+Send a Message with Code,Private Message,,
+Send a Message with Link,Private Message,,
+Send a Message with Image,Private Message,,
+Send a post and see if the count works fine,Private Message,,
+"When you edit a post, check if it’s changed in the conversation (other user’s view)",Private Message,,
+"When you delete a post, check if it’s deleted from the conv. (other user’s view)",Private Message,,
+Leave a conversation and see if it’s deleted from your list,Private Message,,
+"When you delete a conversation, check if it's deleted from both user's list",Private Message,,
+Search among your conversation list and see if the search works fine,Private Message,,
+Check if the scroll works fine when a new post is received,Private Message,,
+Check if the scroll works fine when a new post is sent,Private Message,,
+Check if the focus remains on the message box after you’ve sent a post,Private Message,,
+,,,
+Run Command on Terminal,IDE,Implemented,Passed
+Create a Workspace from VM List,IDE,Implemented,Passed
+Create a Workspace from Filetree,IDE,Implemented,Not Run
+Delete a Workspace,IDE,Implemented,Passed
+Open a File,IDE,Implemented,Passed
+Upload File by Drag&Drop,IDE,,
+Expand/Collapse file tree,IDE,Implemented,Passed
+Open a Drawing board,IDE,,
+Rename File,IDE,Implemented,Passed
+Duplicate File,IDE,Implemented,Passed
+Save File,IDE,Implemented,Passed
+Save File As,IDE,,
+Delete File,IDE,Implemented,Passed
+Create a New File from context menu,IDE,Implemented,Passed
+Create a new file from machine header,IDE,In Progress,
+Create a New Folder,IDE,In Progress,
+Create a new Terminal session,IDE,,
+Open an old Terminal session,IDE,,
+Terminate an old Terminal session,IDE,,
+Change top folder,IDE,Implemented,Passed
+Split tab panes vertically,IDE,Implemented,Passed
+Split tab panes horizontally,IDE,Implemented,Passed
+Merge tab panes,IDE,Implemented,Passed
+"Check ""Undo split"" menu item not shown when splits merged",IDE,Implemented,Passed
+Switch to settings tab,IDE,Implemented,Passed
+Enter/Exit fullscreen,IDE,Implemented,Passed
+Check autocomplete in Editor,IDE,,
+Toggle 'Use soft tabs' option in Editor Settings,IDE Settings,,
+Toggle 'Line numbers' option in Editor Settings,IDE Settings,,
+Toggle 'Use word wrapping' option in Editor Settings,IDE Settings,,
+Toggle 'Show print margin' option in Editor Settings,IDE Settings,,
+Toggle 'Highlight active line' option in Editor Settings,IDE Settings,,
+Toggle 'Show invisibles' option in Editor Settings,IDE Settings,,
+Toggle 'Use scroll past end' option in Editor Settings,IDE Settings,,
+Change 'Key binding' option in Editor Settings,IDE Settings,,
+Change 'Font' option in Editor Settings,IDE Settings,,
+Change 'Theme' option in Editor Settings,IDE Settings,,
+Change 'Tab size' option in Editor Settings,IDE Settings,,
+Change 'Font' option in Terminal Settings,IDE Settings,,
+Change 'Font size' option in Terminal Settings,IDE Settings,,
+Change 'Theme' option in Terminal Settings,IDE Settings,,
+Change 'Scrollback' option in Terminal Settings,IDE Settings,,
+Toggle 'Use visual bell' option in Terminal Setings,IDE Settings,,
+Toggle 'Blinking cursor' option in Terminal Setings,IDE Settings,,
+,,,
+Turn VM on,Environments,In Progress,
+Turn VM off,Environments,In Progress,
+Add domain,Environments,In Progress,
+Create a new VM,Environments,In Progress,
+Assign domain,Environments,In Progress,
+Delete domain,Environments,In Progress,
+Reinit an existing VM,Environments,In Progress,
+Terminate an existing VM,Environments,In Progress,
+Update VM nickname,Environments,In Progress,
+Toggle Always On/Off VM,Environments,In Progress,
+Check if domains work,Environments,In Progress,
+Check if Terminal and Filetree are working when you try to re-connect after internet disconnection,Environments,In Progress,
+Check if Terminal and Filetree are working when after login for VMs with 'Keep VM always on' option enabled,Environments,,
+,,,
+Edit Name,Account Settings,,
+Edit Last Name,Account Settings,,
+Edit Email with invalid password,Account Settings,,
+Edit Email with valid password,Account Settings,,
+Cancel editing email,Account Settings,,
+Change Password with non-matching passwords,Account Settings,,
+Change Password with invalid current password,Account Settings,,
+Change Password with valid current password,Account Settings,,
+Update Payment Method,Account Settings,,
+Add ssh key,Account Settings,,
+Edit ssh key,Account Settings,,
+Delete ssh key,Account Settings,,
+Upload a photo,Account Settings,,
+Use Gravatar,Account Settings,,
+Delete account with invalid argument,Account Settings,,
+Delete account with valid argument,Account Settings,,
+,,,
+Check that user receive email notif. if 'Send me email notif.' is enabled,Email Notifications,,
+Check that user do not receive any email notif. if 'Send me email notif.' is disabled,Email Notifications,,
+Check that user receive daily digest if 'Send me a daily digest of activity on my posts' is enabled,Email notif.,,
+Check that user do not receive daily digest if 'Send me a daily digest of activity on my posts' is disabled,Email Notifications,,
+Check that user receive email notif. about chat messages if 'When someone sends me a private message' is enabled,Email Notifications,,
+Check that user do not receive email notif. about chat messages if 'When someone sends me a private message' is disabled,Email Notifications,,
+Check that delay setting applies correctly,Email Notifications,,
+Check that user receive email notif. about new comments if 'When my post gets a new comment' is enabled,Email Notifications,,
+Check that user do not receive email notif. about new comments if 'When my post gets a new comment' is disabled,Email Notifications,,
+Check that user receive email notif. about new likes if 'When someone likes my content' is enabled,Email Notifications,,
+Check that user do not receive email notif. about new likes if 'When someone likes my content' is disabled,Email Notifications,,
+Check that user receive email notif. about new mentions if 'When someone mentions me' is enabled,Email Notifications,,
+Check that user do not receive email notif. about new mentions if 'When someone mentions me' is disabled,Email Notifications,,
+Check that user receive email notif. about Koding updates if 'When Koding has member updates' is enabled,Email Notifications,,
+Check that user do not receive email notif. about Koding updates if 'When Koding has member updates' is disabled,Email Notifications,,
+,,,
+Start a session,Collaboration,,
+Invite a user to the session,Collaboration,,
+Check if the invited user can see the other user's VM,Collaboration,,
+Check if the invited user can run command on Terminal,Collaboration,,
+Check if the invited user can view files on other user's VM,Collaboration,,
+Check if the invited user can edit files on other user's VM,Collaboration,,
+Check if the invited user can see the existing open IDE tabs ,Collaboration,,
+Check if the invited user can see the existing open Terminal tabs ,Collaboration,,
+Check that invited user can upload files by Drag&Drop on other users's VM's,Collaboration,,
+Check Save As from the file header,Collaboration,,
+Check Save from the file header,Collaboration,,
+Check that all workspaces are opening correctly,Collaboration,,
+Check if both users can see the new IDE tabs that are opened during the sharing session,Collaboration,,
+Check if both users can see the new Terminal tabs that are opened during the sharing session,Collaboration,,
+Check if the other user can see the real-time updates made on a file in Watch mode,Collaboration,,
+Check if the other user can see the commands run on Terminal (real-time) in Watch mode,Collaboration,,
+Check if there's a marker showing the other user viewing/editing the same file ,Collaboration,,
+Switch to Unwatch Mode,Collaboration,,
+Kick a user from the session,Collaboration,,
+End session,Collaboration,,
+,,,
+Page load times for logged out user,Site metrics,In Progress,
+Load times for logged in user,Site metrics,In Progress,
+Login time,Site metrics,,
+Registration time,Site metrics,,

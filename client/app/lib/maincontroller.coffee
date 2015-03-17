@@ -363,6 +363,8 @@ module.exports = class MainController extends KDController
     return  unless checkFlag ['super-admin']
 
     kd.impersonate = require './util/impersonate'
+    kd.remote      = remote
+    kd.whoami      = whoami
 
   startCachingAssets:->
 

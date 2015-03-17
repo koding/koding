@@ -30,7 +30,6 @@ const (
 type Controller struct {
 	log       logging.Logger
 	redisConn *redis.RedisSession
-	settings  *emailmodels.EmailSettings
 	metrics   *metrics.Metrics
 
 	ready chan struct{}
@@ -43,11 +42,10 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(redisConn *redis.RedisSession, log logging.Logger, es *emailmodels.EmailSettings, metrics *metrics.Metrics) (*Controller, error) {
+func New(redisConn *redis.RedisSession, log logging.Logger, metrics *metrics.Metrics) (*Controller, error) {
 	c := &Controller{
 		log:       log,
 		redisConn: redisConn,
-		settings:  es,
 		ready:     make(chan struct{}, 1),
 		metrics:   metrics,
 	}
@@ -120,7 +118,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 			return
 		}
 
-		mailer, err := emailmodels.NewMailer(account, c.settings)
+		mailer, err := emailmodels.NewMailer(account)
 		if err != nil {
 			c.log.Error("Could not create mailer for account %d: %s", account.Id, err)
 			continue

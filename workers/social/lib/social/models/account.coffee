@@ -1064,11 +1064,7 @@ module.exports = class JAccount extends jraphical.Module
       user.username = @profile.nickname
       return callback null, user
 
-    selector = { targetId: @getId(), as: 'owner', sourceName: 'JUser' }
-    Relationship.one selector, (err, rel) ->
-      return callback err   if err
-      return callback null  unless rel
-      JUser.one {_id: rel.sourceId}, callback
+    JUser.one {username: @profile.nickname}, callback
 
   @taintedAccounts = {}
   @taint =(id)->

@@ -120,7 +120,8 @@ class Haydar extends events.EventEmitter
         child_process.exec "node #{__dirname}/get-bongo-schema.js", (err, res) =>
           throw err if err
           opts.schema = JSON.parse res
-          configData =
+          configData = if fs.existsSync opts.configFile then require opts.configFile else {}
+          configData = xtend configData,
             rev    : opts.rev
             schema : opts.schema
           fs.writeFileSync opts.configFile, JSON.stringify(configData)

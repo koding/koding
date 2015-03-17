@@ -1,6 +1,7 @@
 package stripe
 
 import (
+	"socialapi/workers/payment/paymentplan"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -14,15 +15,15 @@ func TestCreateAndFindPlan(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("Then it should create the plans in Stripe", func() {
-			for id, _ := range DefaultPlans {
+			for id, _ := range paymentplan.DefaultPlans {
 				_, err := stripePlan.Get(id, nil)
 				So(err, ShouldBeNil)
 			}
 		})
 
 		Convey("Then it should save the plans", func() {
-			for _, pl := range DefaultPlans {
-				plan, err := FindPlanByTitleAndInterval(pl.Title, string(pl.Interval))
+			for _, pl := range paymentplan.DefaultPlans {
+				plan, err := FindPlanByTitleAndInterval(pl.Title, pl.Interval.ToString())
 
 				So(err, ShouldBeNil)
 				So(plan, ShouldNotBeNil)

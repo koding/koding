@@ -10,4 +10,6 @@ module.exports = (req, res) ->
 
   reqOptions.body = req.body
 
-  request reqOptions, -> res.status(200).send 'ok'
+  request reqOptions, (err, resp, body)->
+    return res.status(500).send err  if err
+    res.status(200).end()

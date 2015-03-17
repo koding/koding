@@ -5,7 +5,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/dailyemail/dailyemail"
-	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/helper"
 )
 
@@ -25,9 +24,7 @@ func main() {
 	redisConn := helper.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	es := emailmodels.NewEmailSettings(r.Conf)
-
-	handler, err := dailyemail.New(r.Log, es)
+	handler, err := dailyemail.New(r.Log)
 	if err != nil {
 		r.Log.Error("an error occurred", err)
 		return

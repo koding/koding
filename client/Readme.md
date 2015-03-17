@@ -121,6 +121,40 @@ A module's directory tree looks like this:
     ├── x.coffee
 ```
 
+# testing
+
+To run browser tests, type:
+
+```
+λ dev/koding/client npm test
+```
+
+or
+
+```
+λ dev/koding/client make test
+```
+
+If you have a [Selenium](http://www.seleniumhq.org) server started already on your machine, type:
+
+```
+λ dev/koding/client TEST_EXTRAS=--no-start-selenium make test
+```
+
+You can pass [Nightwatch.js](http://nightwatchjs.org) arguments with `TEST_NW_EXTRAS` environment variable:
+
+```
+λ dev/koding/client TEST_NW_EXTRAS=--verbose make test
+```
+
+If your web server is not running on localhost, you can specify its url like this:
+
+```
+λ dev/koding/client TEST_EXTRAS="--url http://xyz.koding.io:8090" make test
+```
+
+Read more about browser tests and test configuration cli [here.](test)
+
 # bant.json
 
 A module folder _must_ contain this file in order to get built. You can read more about the `bant` spec here in this nice project site of [bantjs](https://github.com/bantjs).
