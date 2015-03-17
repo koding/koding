@@ -711,28 +711,23 @@ module.exports =
 
     return callback msg : 'no social channel'  unless @socialChannel
 
-    {message} = kd.singletons.socialapi
-    nickname  = nick()
-
     if @amIHost
-      @broadcastMessages.push origin: nickname, type: 'SessionEnded'
+      @broadcastMessages.push origin: nick(), type: 'SessionEnded'
 
-    options = { title: @getRealtimeFileName() }
-    @rtm.deleteFile options, (err) =>
+    title = @getRealtimeFileName()
+    realtimeHelpers.deleteCollaborationFile @rtm, title, (err) =>
       return throwError err  if err
+      @setMachineSharingStatus off, (err) =>
+        return callback err  if err
+        @deletePrivateMessage (err) =>
+          return callback err  if err
+          @cleanupCollaboration { reinit: yes }
+          callback()
 
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
       @modal?.destroy()
 
-      if @amIHost
-        @setMachineSharingStatus off, (err) =>
-          return callback err  if err
-          @deletePrivateMessage (err) =>
-            return callback err  if err
-            @cleanupCollaboration { reinit: yes }
-      else
-        callback null
 
     @mySnapshot.clear()
 
