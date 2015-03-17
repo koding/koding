@@ -4,8 +4,11 @@ kd    = require 'kd'
 addTo = (parent, views)->
   map = {}
   for own key, value of views
+    _key  = (key.split '_').first
     value = [value]  unless Array.isArray value
-    map[key] = view[key] value...
+    unless view[_key]?
+      throw message: "No such view with key of #{_key}!"
+    map[key] = view[_key] value...
     parent.addSubView map[key].__view or map[key]
 
   return map
@@ -18,16 +21,17 @@ contents  =
   """
 
 module.exports   = view =
-  message        : (message, type = '') -> new kd.View
-    partial      : message
-    cssClass     : "message #{type}"
+  message        : ({text, cssClass}) -> new kd.View
+    partial      : text
+    cssClass     : "message #{cssClass ? ''}"
 
   header         : (title) -> new kd.View
     partial      : title
     cssClass     : 'view-header'
 
-  loader         : -> new kd.LoaderView
-    showLoader   : yes
+  loader         : ({show, cssClass})-> new kd.LoaderView
+    showLoader   : show
+    cssClass     : cssClass ? ''
     size         :
       width      : 20
       height     : 20
@@ -50,8 +54,8 @@ module.exports   = view =
     container    = new kd.View
       cssClass   : 'view-waiting'
     addTo container,
-      loader     : null
-      message    : text
+      loader     : show: yes
+      message    : {text}
     return container
 
   list           : ({data, itemClass}) ->
@@ -60,9 +64,21 @@ module.exports   = view =
     controller   = new kd.ListViewController { selection: yes, itemClass }
     controller.replaceAllItems data
 
-    return { __view: controller.getView(), controller }
+    if data.length > 0
+      controller.selectSingleItem controller.getListItems().first
 
-  button         : (options)->
+    __view = controller.getListView()
+
+    __view.addItemView (new itemClass
+      selectable : no
+      isHeader   : yes
+    ), 0
+
+    return { __view, controller }
+
+  button         : (options = {})->
+    unless options.iconOnly
+      options.cssClass = kd.utils.curry 'solid medium', options.cssClass
     new kd.ButtonView options
 
   retry          : ({text, callback})->
@@ -71,10 +87,10 @@ module.exports   = view =
       cssClass   : 'view-waiting'
 
     addTo container,
-      message     : text
+      message     : {text}
       button      :
         iconOnly  : yes
-        cssClass  : 'retry'
+        cssClass  : 'retry inline'
         callback  : callback
 
     return container

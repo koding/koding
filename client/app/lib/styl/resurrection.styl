@@ -1556,18 +1556,43 @@ paymentGrayLighter  = #f8f8f8
       rounded           4px
 
 .managed-vm
+  &.find-nodes
+    left            50% !important
+    margin-left     -190px
+    .kdmodal-title
+      cursor        default
+
   &.modal
 
     .kdbutton.icon-only
+
       background    none
       border        none
-      margin        3px 10px
+      padding       9px // Added for sprites and retina screens issue ~GG
+      margin        10px 0
+      float         left
+
       &.retry
         r-sprite    'ide', 'refresh'
+
+      &.inline
+        display     inline-block
+        float       none     !important
+        margin      3px 10px !important
+
+
+    .kdbutton
+      float         right
+      margin-left   10px
+
+      &[disabled=disabled]
+        opacity     .6
 
     .kdloader
       width         auto
       margin        3px 10px
+      &.inline
+        margin      10px 0 !important
 
     .title
       width         auto
@@ -1580,3 +1605,23 @@ paymentGrayLighter  = #f8f8f8
       padding       20px
       box-sizing    border-box
       min-height    70px
+
+      .message
+        display     inline
+
+    .kdview.message
+
+      &.inline
+        font-size     14px
+        float         left
+        width         auto
+        margin        8px
+
+      &.warning
+        font-size     13px
+        background    #FEFFEF
+        border        1px solid #ccc
+        box-sizing    border-box
+        padding       10px
+        border-radius 4px
+        line-height   15px
