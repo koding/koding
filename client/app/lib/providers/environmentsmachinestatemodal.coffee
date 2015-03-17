@@ -580,9 +580,10 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
 
   findNodes: ->
-    FindManagedNodesModal = require './managed/findnodesmodal'
-    new FindManagedNodesModal { @machine }
+    {container} = @getOptions()
 
+    FindManagedNodesModal = require './managed/findnodesmodal'
+    findNodes = new FindManagedNodesModal { container }, @machine
 
   turnOnMachine: ->
 

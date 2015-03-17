@@ -4,13 +4,22 @@ ManagedVMBaseModal = require './basemodal'
 
 module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
-  constructor: (options, data)->
+  constructor: (options = {}, data)->
 
-    super title: 'Search for available nodes'
+    hasContainer      = options.container?
 
-    {@machine} = options
+    defaults          =
+      title           : 'Search for available nodes'
+      cssClass        : 'find-nodes'
+      appendToDomBody : !hasContainer
+      draggable       : !hasContainer
 
-    @states    =
+    options           = defaults extends options
+
+    super options, data
+
+    @machine = @getData()
+    @states  =
 
       initial: (data) =>
 
