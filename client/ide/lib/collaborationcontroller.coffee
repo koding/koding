@@ -689,15 +689,14 @@ module.exports =
 
     @collaborationJustInitialized = yes
 
-    @rtm = new RealtimeManager  unless @rtm
+    @rtm or= new RealtimeManager
+    title  = @getRealtimeFileName()
 
-    options = { title: @getRealtimeFileName() }
-    @rtm.createFile options, (err, file) =>
+    realtimeHelpers.createCollaborationFile @rtm, title, (err, file) =>
       return throwError err  if err
       @loadCollaborationFile file.id
 
     @setMachineSharingStatus on, (err) ->
-
       throwError err  if err
 
 
