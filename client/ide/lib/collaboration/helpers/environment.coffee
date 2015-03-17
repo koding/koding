@@ -1,5 +1,6 @@
-kd     = require 'kd'
-remote = require('app/remote').getInstance()
+kd      = require 'kd'
+remote  = require('app/remote').getInstance()
+sinkrow = require 'sinkrow'
 
 ###*
  * Detaches social channel of given workspace.
