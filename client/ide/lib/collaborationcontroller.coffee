@@ -274,6 +274,40 @@ module.exports =
             @participants.remove index
 
 
+  onRealtimeParticipantJoined: (data) ->
+
+    {sessionId} = data.collaborator
+
+    {targetUser} =
+      realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
+
+    unless targetUser
+      return kd.warn 'Unknown user in collaboration, we should handle this case...'
+
+    @chat.emit 'ParticipantJoined', targetUser
+    @statusBar.emit 'ParticipantJoined', targetUser
+
+    if @amIHost
+      @ensureMachineShare [targetUser], (err) =>
+        return throwError err  if err
+
+
+  onRealtimeParticipantLeft: (data) ->
+
+    {sessionId} = data.collaborator
+
+    {targetUser, targetIndex} =
+      realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
+
+    unless targetUser
+      return kd.warn 'Unknown user in collaboration, we should handle this case...'
+
+    @chat.emit 'ParticipantLeft', targetUser
+    @statusBar.emit 'ParticipantLeft', targetUser
+    @removeParticipantCursorWidget targetUser
+
+    realtimeHelpers.ensureParticipantLeft @participants, targetUser, targetIndex
+
 
   # realtime related stuff
 
