@@ -136,7 +136,7 @@ module.exports =
       @isRealtimeSessionActive channel.id, (isActive, file) =>
         if isActive
           @whenRealtimeReady => @continuePrivateMessage callback
-          return @loadCollaborationFile file.result.items[0].id
+          return @loadCollaborationFile file.id
 
         @statusBar.share.show()
         @chat.emit 'CollaborationNotInitialized'
@@ -420,20 +420,10 @@ module.exports =
 
   isRealtimeSessionActive: (id, callback) ->
 
-    kallback = =>
-      options = { title: @getRealtimeFileName id }
-      @rtm.fetchFileByTitle options, (err, file) =>
-        return callback no  if err
+    title = @getRealtimeFileName id
 
-        if file.result.items.length > 0
-        then callback yes, file
-        else callback no
-
-
-    if @rtm then kallback()
-    else
-      @rtm = new RealtimeManager
-      @rtm.ready => kallback()
+    @rtm or= new RealtimeManager
+    @rtm.ready => realtimeHelpers.isSessionActive @rtm, title, callback
 
 
   getCollaborationData: (callback = kd.noop) ->
@@ -507,7 +497,9 @@ module.exports =
       kd.utils.killRepeat @pollInterval
       return
 
-    @isRealtimeSessionActive @channelId, (isActive) =>
+    id = @getSocialChannelId()
+
+    @isRealtimeSessionActive id, (isActive) =>
 
       return  if isActive
 
