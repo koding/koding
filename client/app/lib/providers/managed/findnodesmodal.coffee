@@ -62,4 +62,11 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
   assignKite: (kite)->
 
-    console.log 'assign will be implemented', kite
+    {updateMachineData} = require './helpers'
+
+    updateMachineData {@machine, kite}, (err)=>
+      return if showError err
+
+      kd.singletons.computeController.reset yes, =>
+        @emit 'RestartIDE', @machine
+        @destroy()
