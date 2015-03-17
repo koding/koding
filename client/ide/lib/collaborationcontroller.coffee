@@ -269,7 +269,7 @@ module.exports =
     unless targetUser
       return kd.warn 'Unknown user in collaboration, we should handle this case...'
 
-    @chat.emit 'ParticipantLeft', targetUser
+    @chat?.emit 'ParticipantLeft', targetUser
     @statusBar.emit 'ParticipantLeft', targetUser
     @removeParticipantCursorWidget targetUser
 
