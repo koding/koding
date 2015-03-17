@@ -6,6 +6,8 @@ TEST_EXTRAS?=
 all: build run
 
 build: clean $(TARGETS) configure
+	@mkdir -p logs
+	@mkdir -p output
 
 configure:
 	@bin/cmd.coffee browser $(TEST_EXTRAS)
