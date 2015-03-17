@@ -204,21 +204,17 @@ module.exports =
 
     return  unless @amIHost
 
-    options      =
-      channelId  : @socialChannel.id
-      accountIds : [ account.socialApiId ]
-
     targetUser = account.profile.nickname
 
+    displayError = (err) ->
+      showError err
+      throwError err
+
     @setMachineUser [targetUser], no, (err) =>
+      return displayError err  if err
 
-      if err
-        showError "#{targetUser} could not be kicked"
-        return throwError err
-
-      kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
-
-        return showError err  if err
+      socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
+        return displayError err  if err
 
         message    =
           type     : 'ParticipantKicked'
