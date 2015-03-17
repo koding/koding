@@ -78,21 +78,17 @@ module.exports =
     return @socialChannel?.id or @channelId or @workspaceData.channelId
 
 
-  unsetSocialChannel: ->
-
-    @channelId = @socialChannel = null
+  unsetSocialChannel: -> @channelId = @socialChannel = null
 
 
   deletePrivateMessage: (callback = kd.noop) ->
 
-    {channel}    = kd.getSingleton 'socialapi'
-    {JWorkspace} = remote.api
-
     socialHelpers.destroyChannel @socialChannel, (err) =>
       return callback err  if err
 
-      @unsetSocialChannel()
-      workspaceHelpers.detachSocialChannel @workspaceData, callback
+      workspaceHelpers.detachSocialChannel @workspaceData, (err) =>
+        return callback err  if err
+        @unsetSocialChannel()
 
 
   # FIXME: This method is called more than once. It should cache the result and
