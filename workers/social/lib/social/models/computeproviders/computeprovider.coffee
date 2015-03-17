@@ -155,7 +155,10 @@ module.exports = class ComputeProvider extends Base
     shouldReviveClient   : yes
     shouldPassCredential : yes
 
-  , fetchUsage
+  , (client, options, callback)->
+
+    {slug} = options.provider
+    fetchUsage client, provider: slug, callback
 
 
   @fetchPlans = permit 'create machines',
