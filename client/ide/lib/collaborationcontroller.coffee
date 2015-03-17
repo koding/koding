@@ -806,6 +806,8 @@ module.exports =
           type: "#{if share then 'Set' else 'Unset'}MachineUser"
           participants: usernames
 
+      callback null
+
 
   # collab related modals (should be its own mixin)
 
