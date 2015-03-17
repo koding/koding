@@ -33,17 +33,8 @@ getLatestWorkspace = ->
 
   { machineLabel, workspaceSlug, channelId } = workspace
 
-  ws = null
-
-  if checkWorkspace machineLabel, workspaceSlug, channelId
-    ws = workspace
-
-  return ws
-
-
-checkWorkspace = (machineLabel, workspaceSlug, channelId) ->
-
-  return dataProvider.validateCollaborationWorkspace machineLabel, workspaceSlug, channelId
+  if dataProvider.findWorkspace machineLabel, workspaceSlug, channelId
+    return workspace
 
 
 loadIDE = (data) ->
