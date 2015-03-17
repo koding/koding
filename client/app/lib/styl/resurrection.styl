@@ -1556,6 +1556,41 @@ paymentGrayLighter  = #f8f8f8
       rounded           4px
 
 .managed-vm
+
+  a
+    noTextDeco()
+    color             #333
+
+  .kdlistview
+    font-size         14px
+    font-weight       bold
+    margin-bottom     20px
+
+    .kite-item
+      display         flex
+      border-bottom   1px solid #ccc
+      cursor          default
+
+      &.header
+        font-size     13px
+        opacity       .6
+        &:hover
+          background  inherit !important
+
+      &:hover
+        background    #eee
+
+      &.selected
+        background    #ddd
+
+      > div
+        margin        auto
+        width         100px
+        padding       8px
+        white-space   nowrap
+        text-overflow ellipsis
+        overflow      hidden
+
   &.find-nodes
     left            50% !important
     margin-left     -190px
