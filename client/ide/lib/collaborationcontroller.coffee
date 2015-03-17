@@ -402,38 +402,11 @@ module.exports =
         @handlePermissionMapChange event
 
 
-  removeParticipantFromParticipantList: (nickname) ->
-    return warn 'participants is not set'  unless @participants
-
-    # find the index for participant
-    for participant, index in @participants.asArray()
-      if participant.nickname is nickname
-
-        # remove from participants list if the user exits
-        @participants.remove index
-        break
-
-  removeParticipantFromMaps: (nickname) ->
-    return warn 'rtm is not set'  unless @rtm
-
-    myWatchMapName     = "#{nickname}WatchMap"
-    mySnapshotName     = "#{nickname}Snapshot"
-
-    # delete the keys
-    @rtm.delete 'map', myWatchMapName
-    @rtm.delete 'map', mySnapshotName
-
-
-  removeParticipantFromPermissions: (nickname)->
-    return warn 'permissions is not set'  unless @permissions
-    # Removes the entry for the given key (if such an entry exists).
-    @permissions.delete(nickname)
-
-
   removeParticipant: (nickname) ->
-    @removeParticipantFromMaps nickname
-    @removeParticipantFromParticipantList nickname
-    @removeParticipantFromPermissions nickname
+
+    refs = { @participants, @permissions }
+
+    realtimeHelpers.removeFromManager @rtm, refs, nickname
 
 
   setRealtimeManager: (object) ->
