@@ -335,9 +335,7 @@ func TestChannelCreate(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 			So(firstChannel, ShouldEqual, c.Id)
 		})
-
 	})
-
 }
 
 func TestChannelBongoName(t *testing.T) {
