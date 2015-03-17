@@ -214,10 +214,9 @@ module.exports =
 
         message    =
           type     : 'ParticipantKicked'
-          origin   : nick()
           target   : targetUser
 
-        @broadcastMessages.push message
+        @broadcastMessage message
         @handleParticipantKicked targetUser
 
 
@@ -718,7 +717,7 @@ module.exports =
     return callback msg : 'no social channel'  unless @socialChannel
 
     if @amIHost
-      @broadcastMessages.push origin: nick(), type: 'SessionEnded'
+      @broadcastMessage { type: 'SessionEnded' }
 
     title = @getRealtimeFileName()
     realtimeHelpers.deleteCollaborationFile @rtm, title, (err) =>
@@ -804,7 +803,7 @@ module.exports =
         return callback err  if err
 
       @whenRealtimeReady =>
-        @broadcastMessages.push
+        @broadcastMessage
           type: "#{if share then 'Set' else 'Unset'}MachineUser"
           participants: usernames
 
@@ -872,7 +871,7 @@ module.exports =
         @setMachineUser [nick()], no, =>
           # remove the leaving participant's info from the collaborative doc
           @whenRealtimeReady =>
-            @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
+            @broadcastMessage { type: 'ParticipantWantsToLeave' }
             @removeParticipant nick()
 
 
