@@ -348,12 +348,6 @@ module.exports =
 
       @addParticipant whoami()
 
-      @rtm.on 'CollaboratorJoined', (doc, participant) =>
-        @handleParticipantAction 'join', participant
-
-      @rtm.on 'CollaboratorLeft', (doc, participant) =>
-        @handleParticipantAction 'left', participant
-
       @registerCollaborationSessionId()
       @bindRealtimeEvents()
 
@@ -430,8 +424,13 @@ module.exports =
 
   bindRealtimeEvents: ->
 
-    @rtm.on 'ValuesAddedToList', (list, event) =>
+    @rtm.on 'CollaboratorJoined', (doc, participant) =>
+      @handleParticipantAction 'join', participant
 
+    @rtm.on 'CollaboratorLeft', (doc, participant) =>
+      @handleParticipantAction 'left', participant
+
+    @rtm.on 'ValuesAddedToList', (list, event) =>
       [value] = event.values
 
       switch list
@@ -439,11 +438,9 @@ module.exports =
         when @broadcastMessages then @handleBroadcastMessage value
 
     @rtm.on 'ValuesRemovedFromList', (list, event) =>
-
       @handleChange event.values[0]  if list is @changes
 
     @rtm.on 'MapValueChanged', (map, event) =>
-
       if map is @myWatchMap
         @handleWatchMapChange event
 
