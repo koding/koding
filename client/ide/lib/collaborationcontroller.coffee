@@ -16,6 +16,7 @@ doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
 socialHelpers                 = require './collaboration/helpers/social'
 envHelpers                    = require './collaboration/helpers/environment'
+CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 
 {warn} = kd
 
