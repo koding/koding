@@ -15,7 +15,7 @@ IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
 socialHelpers                 = require './collaboration/helpers/social'
-workspaceHelpers              = require './collaboration/helpers/workspace'
+envHelpers                    = require './collaboration/helpers/environment'
 
 {warn} = kd
 
@@ -86,7 +86,7 @@ module.exports =
     socialHelpers.destroyChannel @socialChannel, (err) =>
       return callback err  if err
 
-      workspaceHelpers.detachSocialChannel @workspaceData, (err) =>
+      envHelpers.detachSocialChannel @workspaceData, (err) =>
         return callback err  if err
         @unsetSocialChannel()
 
