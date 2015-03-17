@@ -25,7 +25,7 @@ service nginx stop
 
 cd $REPOSITORY_PATH
 
-npm install
+npm --unsafe-perm install
 ./configure --host $HOST:8090
 TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
 make -C client dist
