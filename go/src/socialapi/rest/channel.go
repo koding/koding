@@ -174,7 +174,7 @@ func SearchChannels(q *request.Query) ([]*models.Channel, error) {
 		return nil, err
 	}
 
-	channels := make([]*models.Channel{}, 0)
+	channels := make([]*models.Channel, 0)
 	err = json.Unmarshal(res, &channels)
 	if err != nil {
 		return nil, err
