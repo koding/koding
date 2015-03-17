@@ -24,6 +24,11 @@ module.exports = class Koding extends ProviderInterface
     { r: { group, user, account }, clientIP } = client
 
     storage ?= 3
+
+    if isNaN storage
+      return callback new KodingError \
+      'Requested storage size is not valid.', 'WrongParameter'
+
     userIp   = clientIP or user.registeredFrom?.ip
     provider = 'koding'
 
@@ -100,7 +105,10 @@ module.exports = class Koding extends ProviderInterface
                always on vm limit has been reached.""", "UsageLimitReached"
 
         if resize?
-          if resize > userPlan.storage
+          if isNaN resize
+            return callback new KodingError \
+            'Requested new size is not valid.', 'WrongParameter'
+          else if resize > userPlan.storage
             return callback new KodingError \
             """Requested new size exceeds allowed
                limit of #{userPlan.storage}GB.""", "UsageLimitReached"
@@ -115,7 +123,7 @@ module.exports = class Koding extends ProviderInterface
             { _id : ObjectId machineId }
             { uid : machineId }
           ]
-          users   : $elemMatch: id: user.getId()
+          users   : $elemMatch: id: user.getId(), sudo: yes, owner: yes
           groups  : $elemMatch: id: group.getId()
 
         JMachine.one selector, (err, machine)->
@@ -128,6 +136,7 @@ module.exports = class Koding extends ProviderInterface
 
           if alwaysOn?
             fieldsToUpdate['meta.alwaysOn'] = alwaysOn
+
           if resize?
 
             storageSize = machine.meta?.storage_size ? 3
