@@ -518,7 +518,7 @@ module.exports = class IDEAppController extends AppController
 
     machine = @mountedMachine  unless machine instanceof Machine
 
-    if @workspaceData
+    if @workspaceData and not path
       { rootPath, isDefault } = @workspaceData
       options.path = rootPath  if rootPath and not isDefault
 
