@@ -8,7 +8,6 @@ path       = require 'path'
 os         = require 'os'
 request    = require 'request'
 git        = require 'git-rev'
-JSONStream = require 'JSONStream'
 
 log "-------------------------"
 log ""
@@ -73,17 +72,13 @@ rest = ->
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
-  # write version to client/.config.json
+  # write revision to client/.config.json
   writeVersion = (obj) ->
-    s = JSONStream.stringifyObject()
-    outfile = __dirname + '/client/.config.json'
-    ws = fs.createWriteStream outfile
-    s.pipe ws
-    s.write ['rev', obj.client.version]
-    s.end()
-    ws.on 'finish', ->
-      console.log "written #{outfile}"
-
+    file = __dirname + '/client/.config.json'
+    config = if fs.existsSync file then require file else {}
+    config.rev = obj.client.version
+    fs.writeFileSync file, JSON.stringify config
+    console.log "written #{file}"
 
   createRunFile KONFIG
   writeVersion KONFIG
