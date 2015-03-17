@@ -35,20 +35,6 @@ module.exports =
     @socialChannel = channel
 
 
-  initPrivateMessage: (callback) ->
-
-    socialHelpers.initChannel (err, channel) =>
-      return callback err  if err
-
-      @setSocialChannel channel
-      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
-        .then =>
-          @workspaceData.channelId = channel.id
-          callback null, channel
-          @chat.ready => @chat.emit 'CollaborationNotInitialized'
-        .error callback
-
-
   fetchSocialChannel: (callback) ->
 
     if @socialChannel
@@ -94,39 +80,6 @@ module.exports =
       callback accounts
 
 
-  continuePrivateMessage: (callback) ->
-
-    @chat.emit 'CollaborationStarted'
-
-    @listChatParticipants (accounts) =>
-      @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
-
-    callback null
-
-
-  startChatSession: (callback) ->
-
-    if @getSocialChannelId()
-    then @reactivateChatSession callback
-    else @initPrivateMessage callback
-
-
-  reactivateChatSession: (callback) ->
-
-    @fetchSocialChannel (err, channel) =>
-      if err or not channel
-        return @initPrivateMessage callback
-
-      @createChatPaneView channel
-      @isRealtimeSessionActive channel.id, (isActive, file) =>
-        if isActive
-          @whenRealtimeReady => @continuePrivateMessage callback
-          return @loadCollaborationFile file.id
-
-        @statusBar.share.show()
-        @chat.emit 'CollaborationNotInitialized'
-
-
   getRealtimeFileName: (id) ->
 
     id or= @getSocialChannelId()
@@ -150,41 +103,6 @@ module.exports =
     if @rtm?.isReady
     then callback()
     else @once 'RTMIsReady', callback
-
-
-  showChat: ->
-
-    return @createChatPane()  unless @chat
-
-    @chat.start()
-
-
-  createChatPane: ->
-
-    @startChatSession (err, channel) =>
-
-      return showError err  if err
-
-      @createChatPaneView channel
-
-
-  createChatPaneView: (channel) ->
-    return throwError 'RealtimeManager is not set'  unless @rtm
-
-    options = { @rtm, @isInSession }
-    @getView().addSubView @chat = new IDEChatView options, channel
-    @chat.show()
-
-    @on 'RTMIsReady', =>
-      @listChatParticipants (accounts) =>
-        @chat.settingsPane.createParticipantsList accounts
-
-      @statusBar.emit 'CollaborationStarted'
-
-      {settingsPane} = @chat
-
-      settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-      settingsPane.updateDefaultPermissions()
 
 
   kickParticipant: (account) ->
@@ -313,20 +231,6 @@ module.exports =
 
     if @permissions.get(nick()) is 'read'
       @makeReadOnly()
-
-
-  loadCollaborationFile: (fileId) ->
-
-    return  unless fileId
-
-    @rtmFileId = fileId
-
-    realtimeHelpers.loadCollaborationFile @rtm, fileId, (err, doc) =>
-      return throwError err  if err
-
-      @activateRealtimeManager doc
-      @bindSocialChannelEvents()
-      @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
 
   reviveHostSnapshot: ->
