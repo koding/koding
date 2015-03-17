@@ -286,12 +286,11 @@ module.exports =
 
   loadCollaborationFile: (fileId) ->
 
-    return unless fileId
+    return  unless fileId
 
     @rtmFileId = fileId
 
-    options = { id: fileId }
-    @rtm.getFile options, (err, doc) =>
+    realtimeHelpers.loadCollaborationFile @rtm, fileId, (err, doc) =>
       return throwError err  if err
 
       nickname = nick()
