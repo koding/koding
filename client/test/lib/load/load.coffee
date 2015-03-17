@@ -1,11 +1,11 @@
 utils   = require '../utils/utils.js'
 faker   = require 'faker'
-url     = 'http://lvh.me:8090'
+testUrl = require('../../../../.config.json').test.url
 
 
 
 start = (browser) ->
-  browser.url(url)
+  browser.url(testUrl)
 
 getText = ->
   return faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')

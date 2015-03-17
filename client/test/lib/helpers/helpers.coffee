@@ -2,6 +2,7 @@ utils    = require '../utils/utils.js'
 register = require '../register/register.js'
 faker    = require 'faker'
 assert   = require 'assert'
+testUrl  = require('../../../../.config.json').test.url
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -503,5 +504,5 @@ module.exports =
 
 
   getUrl: ->
-    return 'http://lvh.me:8090'
+    return testUrl
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'
