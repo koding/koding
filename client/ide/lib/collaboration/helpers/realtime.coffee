@@ -273,6 +273,22 @@ ensureParticipantLeft = (participants, nickname, index) ->
       participants.remove index
 
 
+###*
+ * Checks if user with given username is online in session.
+ *
+ * @param {RealtimeManager} manager
+ * @param {Object} participants
+ * @param {string} username
+###
+isUserOnline = (manager, participants, username) ->
+
+  [user] = participants.asArray().filter (p) -> p.nickname is username
+  return no  unless user?.sessionId
+
+  [user] = manager.getCollaborators().filter (c) -> c.sessionId is host.sessionId
+  return user?
+
+
 module.exports = {
   loadCollaborationFile
   createCollaborationFile
@@ -284,4 +300,5 @@ module.exports = {
   getTargetUser
   removeFromManager
   ensureParticipantLeft
+  isUserOnline
 }
