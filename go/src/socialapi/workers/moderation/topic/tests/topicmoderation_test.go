@@ -35,18 +35,20 @@ func TestModeration(t *testing.T) {
 		So(err, ShouldBeNil)
 		So(acc2, ShouldNotBeNil)
 
+		groupName := models.RandomName()
+
 		// create root channel with second acc
-		root, err := rest.CreateChannelWithType(acc2.Id, models.Channel_TYPE_TOPIC)
+		root, err := rest.CreateChannelByGroupNameAndType(acc2.Id, groupName, models.Channel_TYPE_TOPIC)
 		So(err, ShouldBeNil)
 		So(root, ShouldNotBeNil)
 
 		// create leaf channel with second acc
-		leaf, err := rest.CreateChannelWithType(acc2.Id, models.Channel_TYPE_TOPIC)
+		leaf, err := rest.CreateChannelByGroupNameAndType(acc2.Id, groupName, models.Channel_TYPE_TOPIC)
 		So(err, ShouldBeNil)
 		So(leaf, ShouldNotBeNil)
 
 		// create leaf2 channel with second acc
-		leaf2, err := rest.CreateChannelWithType(acc2.Id, models.Channel_TYPE_TOPIC)
+		leaf2, err := rest.CreateChannelByGroupNameAndType(acc2.Id, groupName, models.Channel_TYPE_TOPIC)
 		So(err, ShouldBeNil)
 		So(leaf2, ShouldNotBeNil)
 
