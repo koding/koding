@@ -101,6 +101,7 @@ module.exports = class IDETerminalPane extends IDEPane
 
     super state
     @webtermView.setFocus state
+    kd.singletons.mainView.setKeyView null  if state
 
 
   serialize: ->
