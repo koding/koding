@@ -295,16 +295,38 @@ module.exports.create = (KONFIG, environment)->
       }
 
       location = / {
-        if ($args ~ "_escaped_fragment_=/(.*)") {
-          set $fragment $1;
-          rewrite ^/(.*)$ /$fragment? permanent;
-        }
-
-        proxy_pass            http://gowebserver;
         proxy_set_header      X-Real-IP       $remote_addr;
         proxy_set_header      X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_next_upstream   error timeout   invalid_header http_500;
         proxy_connect_timeout 1;
+
+        proxy_set_header      X-Prerender-Token #{KONFIG.prerenderToken};
+
+        set $prerender 0;
+        if ($http_user_agent ~* "baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator") {
+          set $prerender 1;
+        }
+        if ($args ~ "_escaped_fragment_") {
+          set $prerender 1;
+        }
+        if ($http_user_agent ~ "Prerender") {
+          set $prerender 0;
+        }
+
+        #resolve using Google's DNS server to force DNS resolution and prevent caching of IPs
+        resolver 8.8.8.8;
+
+        if ($prerender = 1) {
+
+          #setting prerender as a variable forces DNS resolution since nginx caches IPs and doesnt play well with load balancing
+          set $prerender "service.prerender.io";
+          rewrite .* /#{if environment is "dev" then "http" else "https"}://$host#{if KONFIG.publicPort is "80" then "" else ":"+KONFIG.publicPort}?$args? break;
+          proxy_pass http://$prerender;
+        }
+
+        if ($prerender = 0) {
+          proxy_pass http://gowebserver;
+        }
 
         #{if environment is "sandbox" then basicAuth else ""}
       }

@@ -18,10 +18,16 @@ func SubscriptionDeletedWebhook(req *webhookmodels.StripeSubscription) error {
 	}
 
 	if subscription.State == paymentmodels.SubscriptionStateActive {
-		return subscription.Expire()
+		subscription.Expire()
 	}
 
-	return nil
+	customer := paymentmodels.NewCustomer()
+	err = customer.ById(subscription.CustomerId)
+	if err != nil {
+		return err
+	}
+
+	return RemoveCreditCard(customer)
 }
 
 //----------------------------------------------------------

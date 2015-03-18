@@ -49,6 +49,9 @@ func (fc *SitemapFetcher) FetchRoot() ([]byte, error) {
 		return nil, err
 	}
 
+	staticFiles := fc.CreateStaticPages()
+	files = append(files, staticFiles...)
+
 	set := NewSitemapSet(files, fc.hostname)
 
 	res, err := xml.Marshal(set)
@@ -59,6 +62,16 @@ func (fc *SitemapFetcher) FetchRoot() ([]byte, error) {
 	fc.cache.Set(rootSitemapKey, res)
 
 	return res, nil
+}
+
+func (fc *SitemapFetcher) CreateStaticPages() []SitemapFile {
+	pages := make([]SitemapFile, len(staticPages))
+	for i, page := range staticPages {
+		pages[i].Name = page
+		pages[i].isStatic = true
+	}
+
+	return pages
 }
 
 func (fc *SitemapFetcher) FetchByName(fileName string) ([]byte, error) {
