@@ -225,13 +225,14 @@ module.exports = class IDEEditorPane extends IDEPane
     lineHeight     = renderer.lineHeight
     charWidth      = renderer.characterWidth
     color          = getColorFromString username
-    widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;"
+    widgetStyle    = "border-bottom:2px solid #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;line-height:#{lineHeight+2}px"
     userWidgetCss  = "ace-line-widget-#{username}"
     lineCssClass   = "ace-line-widget #{userWidgetCss}"
     cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
+    usernameStyle  = "background-color:#{color}"
     lineWidgetHTML = """
       <div class='#{lineCssClass}' style='#{widgetStyle}'>
-        <span class="username">#{username}</span>
+        <span class="username" style='#{usernameStyle}'>#{username}</span>
         <span class="ace-participant-cursor" style="#{cursorStyle}"></span>
       </div>
     """
