@@ -30,6 +30,11 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 
 	req.InitialChannelId = channelId
 
+	// gets the IP of the Client
+	// and adds it to the payload of the ChannelMessage
+	cip := string(c.Client.IP)
+	req.Payload["ip"] = &cip
+
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
 		return response.NewBadRequest(err)
 	}
