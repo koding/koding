@@ -7,6 +7,11 @@ module.exports = (options={})->
   options.shareUrl ?= "https://koding.com"
   options.image    ?= "#{uri.address}/a/images/logos/share_logo.png"
   options.body     ?= "Koding is a cloud-based development environment complete with free VMs, IDE & sudo enabled terminal where you can learn Ruby, Go,  Java, NodeJS, PHP, C, C++, Perl, Python, etc."
+  options.index    ?= no
+
+  robotsContent = "noodp,noydir"
+
+  robotsContent = "#{robotsContent},noindex,nofollow"  unless options.index
 
   """
   <title>#{options.title}</title>
@@ -17,7 +22,7 @@ module.exports = (options={})->
 
   <meta name="description" content="#{encoder.XSSEncode options.body}">
   <meta name="author" content="Koding">
-  <meta name="robots" content="noodp,noydir" />
+  <meta name="robots" content="#{robotsContent}" />
   <meta name="fragment" content="!">
 
   <meta itemprop="name" content="Koding">

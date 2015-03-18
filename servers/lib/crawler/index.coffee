@@ -19,10 +19,12 @@ fetchProfileContent = (models, options, callback) ->
     return callback err  if err
 
     return callback {message: "account not found"}  if not account
-    feed.createProfileFeed models, account, options, (err, content) ->
+    feed.createProfileFeed models, account, options, (err, response) ->
       return callback err  if err
 
-      return callback null, profile account, content
+      {content, index} = response
+
+      return callback null, profile account, content, index
 
 
 fetchPostContent = (models, options, callback) ->
@@ -43,6 +45,7 @@ fetchPostContent = (models, options, callback) ->
         title    : "#{summary} | Koding Community"
         body     : "#{activityContent.body}"
         shareUrl : "#{uri.address}/Activity/Post/#{activityContent.slug}"
+        index    : activityContent.body.length > 500 or activity.repliesCount >= 3
       fullPage = feed.putContentIntoFullPage content, "", graphMeta
       callback null, fullPage
 

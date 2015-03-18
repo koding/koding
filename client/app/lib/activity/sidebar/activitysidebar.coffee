@@ -617,9 +617,6 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     @sections.messages.on 'DataReady', @bound 'handleWorkspaceUnreadCounts'
 
-    if kd.singletons.mainController.isFeatureDisabled 'private-messages'
-      @sections.messages.hide()
-
 
   handleReloadMessages: ->
 

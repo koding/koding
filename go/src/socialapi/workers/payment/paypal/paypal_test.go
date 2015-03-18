@@ -8,10 +8,12 @@ import (
 	"net/url"
 	"socialapi/config"
 	"socialapi/workers/common/runner"
+	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"strconv"
 	"time"
 
+	"github.com/koding/logging"
 	"github.com/koding/paypal"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
@@ -24,6 +26,8 @@ var (
 )
 
 func init() {
+	Log.SetLevel(logging.CRITICAL)
+
 	r := runner.New("paypaltest")
 	if err := r.Init(); err != nil {
 		panic(err)
@@ -63,16 +67,16 @@ func subscribeFn(fn func(string, string, string)) func() {
 }
 
 func checkCustomerIsSaved(accId string) bool {
-	customerModel, err := FindCustomerByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil {
 		return false
 	}
 
-	if customerModel == nil {
+	if customer == nil {
 		return false
 	}
 
-	if customerModel.OldId != accId {
+	if customer.OldId != accId {
 		return false
 	}
 

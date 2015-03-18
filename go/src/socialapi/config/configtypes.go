@@ -170,7 +170,8 @@ type (
 	}
 
 	PaymentWebhook struct {
-		Port string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
+		Port  string `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_PORT"`
+		Debug bool   `env:"key=KONFIG_SOCIALAPI_PAYMENTWEBHOOK_DEBUG"`
 	}
 
 	GoogleapiServiceAccount struct {
