@@ -1,0 +1,6 @@
+#!/bin/bash
+for i in {1..10}
+do
+   printf "\n\n Running $1 $2 test: Pass $i  \n\n\n"
+   ./test $1 $2
+done

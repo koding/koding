@@ -53,4 +53,7 @@ minify:
 landing:
 	$(MAKE) -C landing
 
-.PHONY: landing
+test:
+	$(MAKE) -C test
+
+.PHONY: landing test
