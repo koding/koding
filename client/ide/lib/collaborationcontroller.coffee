@@ -731,15 +731,19 @@ module.exports =
 
   cleanupCollaboration: (options = {}) ->
 
-    kd.utils.killRepeat @pingInterval
-    @rtm?.dispose()
-    @rtm = null
-    kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
-    @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
+    return  unless @stateMachine.state is 'Ending'
 
-    { reinit } = options
+    @rtm.once 'RealtimeManagerWillDespose', =>
+      kd.utils.killRepeat @pingInterval
+      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
-    @prepareCollaboration()  if reinit
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      @rtm = null
+      delete @stateMachine
+      @prepareCollaboration()
+
+    @rtm.dispose()
+
 
   # environment related
 
