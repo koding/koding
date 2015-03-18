@@ -617,9 +617,7 @@ module.exports =
       @whenRealtimeReady =>
         @setSocialChannel channel
         @createChatPaneView channel
-
-        @chat.ready =>
-          @stateMachine.transition 'Active'
+        @chat.ready => @stateMachine.transition 'Active'
 
       @activateRealtimeManager doc
 
