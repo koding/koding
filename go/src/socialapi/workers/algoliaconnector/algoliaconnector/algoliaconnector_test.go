@@ -2,6 +2,7 @@ package algoliaconnector
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
@@ -349,6 +350,65 @@ func TestMessageUpdated(t *testing.T) {
 			return true
 		})
 		So(err, ShouldBeNil)
+	})
+}
+
+func TestIndexSettings(t *testing.T) {
+	r := runner.New("AlogoliaConnector-Test")
+	err := r.Init()
+	if err != nil {
+		panic(err)
+	}
+
+	defer r.Close()
+
+	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+	// create message handler
+	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+
+	Convey("given some fake non-topic channel", t, func() {
+		messages, err := handler.indexes.Get("messages")
+		So(err, ShouldBeNil)
+
+		Convey("it should save the document to algolia", func() {
+			settingsinter, err := messages.GetSettings()
+			So(err, ShouldBeNil)
+
+			fmt.Println("before - messages.GetSettings()-->", settingsinter, err)
+
+			settings, ok := settingsinter.(map[string]interface{})
+			if !ok {
+				settings = make(map[string]interface{})
+			}
+
+			// define the initial synonymns
+			synonyms := make([][]string, 0)
+
+			if sint, ok := settings["synonyms"]; ok {
+				fmt.Println("ok, 1-->", ok, 1)
+				if sslice, ok := sint.([][]string); ok {
+					fmt.Println("ok, 2-->", ok, 2)
+					synonyms = sslice
+				}
+			}
+
+			newSynonym := make([]string, 0)
+			newSynonym = append(newSynonym, "js")
+			newSynonym = append(newSynonym, "javascript")
+			newSynonym = append(newSynonym, "nodejs")
+
+			synonyms = append(synonyms, newSynonym)
+
+			settings["synonyms"] = synonyms
+
+			resp, err := messages.SetSettings(settings)
+			So(err, ShouldBeNil)
+			_, err = messages.WaitTask(resp)
+			So(err, ShouldBeNil)
+
+			a, b := messages.GetSettings()
+			fmt.Println("after - messages.GetSettings()-->", a, b)
+		})
 	})
 }
 
