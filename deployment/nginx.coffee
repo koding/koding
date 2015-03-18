@@ -320,7 +320,7 @@ module.exports.create = (KONFIG, environment)->
 
           #setting prerender as a variable forces DNS resolution since nginx caches IPs and doesnt play well with load balancing
           set $prerender "service.prerender.io";
-          rewrite .* /$scheme://$host#{if KONFIG.publicPort is "80" then "" else ":"+KONFIG.publicPort}$request_uri? break;
+          rewrite .* /#{if environment is "dev" then "http" else "https"}://$host#{if KONFIG.publicPort is "80" then "" else ":"+KONFIG.publicPort}?$args? break;
           proxy_pass http://$prerender;
         }
 
