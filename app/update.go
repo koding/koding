@@ -3,7 +3,6 @@ package app
 import (
 	"bytes"
 	"compress/gzip"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -58,6 +57,10 @@ func updatingState(state bool) {
 }
 
 func (u *Updater) checkAndUpdate() error {
+	if err := hasFreeSpace(100); err != nil {
+		return err
+	}
+
 	l, err := u.latestVersion()
 	if err != nil {
 		return err
@@ -193,8 +196,9 @@ func (u *Updater) Run() {
 	}
 }
 
-// haveFreeSpace checks whether the disk has free space to provide the update
-func haveFreeSpace() error {
+// hasFreeSpace checks whether the disk has free space to provide the update.
+// If free space is lower than then the given mustHas it returns an error.
+func hasFreeSpace(mustHas uint64) error {
 	stat := new(syscall.Statfs_t)
 
 	if err := syscall.Statfs("/", stat); err != nil {
@@ -206,8 +210,9 @@ func haveFreeSpace() error {
 	free := (uint64(stat.Bfree) * uint64(bsize)) >> 1
 	freeInMB := free / 1024
 
-	if freeInMB < 100 {
-		return errors.New("No enough space to upgrade klient")
+	if freeInMB < mustHas {
+		return fmt.Errorf("No enough space to upgrade klient. Need '%d'. Have: '%d'",
+			mustHas, freeInMB)
 	}
 
 	return nil
