@@ -692,6 +692,16 @@ module.exports =
             callbacks.success()
 
 
+  endCollaborationForParticipant: (callbacks) ->
+
+    @broadcastMessage { type: 'ParticipantWantsToLeave' }
+
+    socialHelpers.leaveChannel @socialChannel, (err) =>
+      return callbacks.error err  if err
+      @setMachineUser [nick()], no, =>
+        callbacks.success()
+
+
   showChat: ->
 
     switch @stateMachine.state
