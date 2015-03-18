@@ -503,7 +503,7 @@ module.exports =
         Loading      : => kd.utils.defer => @onCollaborationLoading()
         Resuming     : @bound 'onCollaborationResuming'
         NotStarted   : @bound 'onCollaborationNotStarted'
-        PreCreated   : @bound 'onCollaborationPreCreated'
+        Prepared     : @bound 'onCollaborationPrepared'
         Creating     : @bound 'onCollaborationCreating'
         Active       : @bound 'onCollaborationActive'
         Ending       : @bound 'onCollaborationEnding'
@@ -556,12 +556,12 @@ module.exports =
         .then =>
           @workspaceData.channelId = channel.id
           @chat.ready =>
-            @stateMachine.transition 'PreCreated'
+            @stateMachine.transition 'Prepared'
         .error (err) =>
           # @stateMachine.transition 'ErrorCreating'
 
 
-  onCollaborationPreCreated: ->
+  onCollaborationPrepared: ->
 
     @chat.emit 'CollaborationNotInitialized'
 
@@ -569,7 +569,7 @@ module.exports =
   startCollaborationSession: ->
 
     switch @stateMachine.state
-      when 'PreCreated' then @stateMachine.transition 'Creating'
+      when 'Prepared' then @stateMachine.transition 'Creating'
 
 
   onCollaborationCreating: ->
