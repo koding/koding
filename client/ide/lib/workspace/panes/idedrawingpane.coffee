@@ -213,7 +213,7 @@ module.exports = class IDEDrawingPane extends IDEPane
     data       =
       data     : @getCanvasData()
       hash     : @hash
-      paneType : @getOptions().type
+      paneType : @getOptions().paneType
 
     return data
 
