@@ -188,6 +188,8 @@ module.exports =
   activateRealtimeManager: (doc) ->
 
     @rtm.setRealtimeDoc doc
+    @bindRealtimeErrorEvents()
+
     @setCollaborativeReferences()
     @addParticipant whoami()
     @registerCollaborationSessionId()
@@ -313,6 +315,16 @@ module.exports =
 
       else if map is @permissions
         @handlePermissionMapChange event
+
+
+  bindRealtimeErrorEvents: ->
+
+    @on 'ErrorRealtimeFileMissing',   throwError
+    @on 'ErrorRealtimeServer',        throwError
+    @on 'ErrorRealtimeUserForbidden', throwError
+    @on 'ErrorRealtimeTokenExpired',  throwError
+    @on 'ErrorGoogleDriveApiClient',  throwError
+    @on 'ErrorHappened',              throwError
 
 
   removeParticipant: (nickname) ->
