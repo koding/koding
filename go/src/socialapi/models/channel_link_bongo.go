@@ -6,7 +6,9 @@ import (
 	"github.com/koding/bongo"
 )
 
-const ChannelLinkBongoName = "api.channel_link"
+const (
+	ChannelLinkBongoName = "api.channel_link"
+)
 
 func (c *ChannelLink) validateBeforeOps() error {
 	if c.RootId == 0 {
@@ -99,10 +101,6 @@ func (c *ChannelLink) Update() error {
 	return bongo.B.Update(c)
 }
 
-func (c *ChannelLink) Create() error {
-	return bongo.B.Create(c)
-}
-
 func (c *ChannelLink) ById(id int64) error {
 	return bongo.B.ById(c, id)
 }
@@ -125,8 +123,4 @@ func (c *ChannelLink) UpdateMulti(rest ...map[string]interface{}) error {
 
 func (c *ChannelLink) CountWithQuery(q *bongo.Query) (int, error) {
 	return bongo.B.CountWithQuery(c, q)
-}
-
-func (c *ChannelLink) Delete() error {
-	return bongo.B.DB.Unscoped().Delete(c).Error
 }
