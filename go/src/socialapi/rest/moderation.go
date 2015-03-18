@@ -51,8 +51,8 @@ func UnLink(rootId, leafId int64, token string) error {
 }
 
 // BlackList deletes the channel and blocks it from re-creation as a channel
-func BlackList(rootId int64, token string) error {
-	url := fmt.Sprintf("/moderation/channel/%d", rootId)
+func BlackList(rootId, leafId int64, token string) error {
+	url := fmt.Sprintf("/moderation/channel/%d?rootId=%d", leafId, rootId)
 	_, err := sendRequestWithAuth("DELETE", url, nil, token)
 	return err
 }
