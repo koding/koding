@@ -256,6 +256,13 @@ module.exports =
     @myWatchMap        = refs.watchMap
     @mySnapshot        = refs.snapshot
 
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      @participants      = null
+      @changes           = null
+      @permissions       = null
+      @broadcastMessages = null
+      @myWatchMap        = null
+      @mySnapshot        = null
 
   registerCollaborationSessionId: ->
 
