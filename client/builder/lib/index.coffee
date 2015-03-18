@@ -276,7 +276,10 @@ class Haydar extends events.EventEmitter
     else
       b = bant opts_
 
-    b.require require.resolve('kd.js'), expose: 'kd'
+    if not opts.watchJs
+      # xxx: breaks watchify in watch mode, dedupe fuckup
+      b.require require.resolve('kd.js'), expose: 'kd'
+
     b.use manifests
 
     # force browser-pack to expose require
