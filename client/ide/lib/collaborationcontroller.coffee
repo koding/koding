@@ -853,12 +853,12 @@ module.exports =
         quit       :
           style    : 'solid light-gray medium'
           title    : 'LEAVE'
-          callback : =>
-            @modal.destroy()
-            @quit()
-            @removeMachineNode()
+          callback : => @modal.destroy()
 
     @showModal options
+    @removeMachineNode()
+    @removeParticipant nick()
+    @quit()
 
 
   handleParticipantLeaveAction: ->
