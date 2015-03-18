@@ -112,7 +112,7 @@ func TestModeration(t *testing.T) {
 		})
 
 		Convey("We should be able to blacklist channel without any leaves", func() {
-			So(rest.BlackList(root.Id, ses.ClientId), ShouldBeNil)
+			So(rest.BlackList(root.Id, leaf.Id, ses.ClientId), ShouldBeNil)
 		})
 
 		Convey("We should not be able to blacklist channel with leaves", func() {
@@ -120,7 +120,7 @@ func TestModeration(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(res, ShouldNotBeNil)
 
-			err = rest.BlackList(root.Id, ses.ClientId)
+			err = rest.BlackList(root.Id, leaf.Id, ses.ClientId)
 			So(err, ShouldNotBeNil)
 		})
 	})
