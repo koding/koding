@@ -14,48 +14,52 @@ resurrection.finder.styl
 
 body.ide
 
+  .ide-files-tab
+    .kdscrolltrack.vertical
+      right                 2px
+
   .nfinder
     styleScrollBars rgba(255,255,255,.25)
     > .kdscrollview > *
-      min-width         70px
+      min-width             70px
 
     ul ul li.selected
-      bg                color, #131313
+      bg                    color, #131313
 
     .finder-notification
-      display           none
+      display               none
 
   // .jtreeview-wrapper
   //   kalc                height, 100% \- 78px
 
   .kdlistitemview-finderitem
-    height              auto
-    min-height          24px
-    font-size           13px
-    color               #D4CFC9
-    background-color    transparent
-    margin-bottom       4px
+    height                  auto
+    min-height              24px
+    font-size               13px
+    color                   #D4CFC9
+    background-color        transparent
+    margin-bottom           4px
     noTextSelection()
 
     .chevron
       abs()
-      top               5px
-      right             25px
-      z-index           2
-      float             none
-      display           none
-      margin            0
-      r-sprite          'finder', 'expanded'
+      top                   5px
+      right                 25px
+      z-index               2
+      float                 none
+      display               none
+      margin                0
+      r-sprite              'finder', 'expanded'
 
     &.selected
       // I'll find a better place for it ~ GG
       .vm
         span.path-select
-          display       block
-          bg            position, -220px -520px
+          display           block
+          bg                position, -220px -520px
       .title
-        color           #ddd
-        text-shadow     none
+        color               #ddd
+        text-shadow         none
       &+.selected
         selectedNeighbor()
       &+.jtreevie
@@ -66,18 +70,18 @@ body.ide
 
     &.unsaved
       span.icon
-        color           black!important
-        font-size       14px
-        text-indent     -2px
-        line-height     10px
-        vertical-align  top
+        color               black!important
+        font-size           14px
+        text-indent         -2px
+        line-height         10px
+        vertical-align      top
         &:before
-          content       "*"
+          content           "*"
 
     &.expanded
       > div
         span.icon
-          r-sprite      finder '16-folder-expanded'
+          r-sprite          finder '16-folder-expanded'
 
 
     &.being-inline-edited
@@ -85,62 +89,62 @@ body.ide
         hidden()
 
     &.being-deleted
-      background        linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
-      height            22px
+      background            linear-gradient(top, rgb(199,81,29) 100%,rgb(168,70,25) 44%)
+      height                22px
       .kdview.delete-container
-        padding         0 10px
+        padding             0 10px
       label
-        color           white
+        color               white
       button.kdbutton
-        margin          3px 15px 0 0
-        padding         2px 4px 2px 4px
-        width           auto
-        font-weight     normal
+        margin              3px 15px 0 0
+        padding             2px 4px 2px 4px
+        width               auto
+        font-weight         normal
         fr()
 
     &.items-hovering
-      background        rgba(136, 183, 214, 0.25)
-      text-shadow       none
+      background            rgba(136, 183, 214, 0.25)
+      text-shadow           none
 
     &.drop-target
-      background        rgb(136, 183, 214)
-      color             white
-      text-shadow       none
+      background            rgb(136, 183, 214)
+      color                 white
+      text-shadow           none
 
     a.cancel
       abs()
-      size            15px, 15px
-      bg              position, -82px -222px
-      right           7px
-      top             3px
+      size                  15px, 15px
+      bg                    position, -82px -222px
+      right                 7px
+      top                   3px
       kdfsprite()
       &:focus
       &:active
-        bg            position, -62px -242px
+        bg                  position, -62px -242px
 
     > div
-      line-height       24px
-      height            100%
-      width             auto
+      line-height           24px
+      height                100%
+      width                 auto
       .title
-        cursor          default
-        font-weight     normal
-        margin-right    40px
-        display         block
-        overflow        hidden
-        text-overflow   ellipsis
-        white-space     nowrap
+        cursor              default
+        font-weight         normal
+        margin-right        40px
+        display             block
+        overflow            hidden
+        text-overflow       ellipsis
+        white-space         nowrap
 
       form
-        height          22px
+        height              22px
 
       input.kdinput.text
-        margin          2px 5px 0 0
-        height          24px
-        line-height     1em
-        border          none
-        shadow          none
-        rounded         2px
+        margin              2px 5px 0 0
+        height              24px
+        line-height         1em
+        border              none
+        shadow              none
+        rounded             2px
         fl()
 
       // button.kdbutton
