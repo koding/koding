@@ -31,9 +31,25 @@ func (c *ChannelLink) validateBeforeOps() error {
 		return ErrGroupsAreNotSame
 	}
 
-	return nil
+	// leaf channel should not be a root channel of another channel
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"root_id": c.LeafId,
+		},
+	}
 
+	count, err := NewChannelLink().CountWithQuery(query)
+	if err != nil && err != bongo.RecordNotFound {
+		return err
+	}
+
+	if count > 0 {
+		return ErrLeafIsRootToo
+	}
+
+	return nil
 }
+
 func (c *ChannelLink) BeforeCreate() error {
 	if err := c.validateBeforeOps(); err != nil {
 		return err
