@@ -16,6 +16,10 @@ func (p Permission) BongoName() string {
 	return PermissionBongoName
 }
 
+func (p Permission) TableName() string {
+	return p.BongoName()
+}
+
 func (p *Permission) AfterCreate() {
 	bongo.B.AfterCreate(p)
 }
