@@ -405,9 +405,6 @@ module.exports =
 
     if origin is nick()
       switch type
-        when 'ParticipantWantsToLeave'
-          @removeMachineNode()
-          return kd.utils.defer @bound 'quit'
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
         else return
@@ -675,6 +672,15 @@ module.exports =
           sharedSuccessFn()
           @cleanupCollaboration()
 
+    else
+      @endCollaborationForParticipant
+        success: =>
+          # TODO: move this into its own method.
+          @removeParticipant nick()
+          @removeMachineNode()
+          sharedSuccessFn()
+          kd.utils.defer @bound 'quit'
+
 
   endCollaborationForHost: (callbacks) ->
 
@@ -861,18 +867,7 @@ module.exports =
       title   : 'Are you sure?'
       content : "If you leave this session you won't be able to return back."
 
-    @showModal options, =>
-      @stopChatSession()
-      @modal.destroy()
-
-      options = channelId: @socialChannel.getId()
-      kd.singletons.socialapi.channel.leave options, (err) =>
-        return showError err  if err
-        @setMachineUser [nick()], no, =>
-          # remove the leaving participant's info from the collaborative doc
-          @whenRealtimeReady =>
-            @broadcastMessage { type: 'ParticipantWantsToLeave' }
-            @removeParticipant nick()
+    @showModal options, => @stateMachine.transition 'Ending'
 
 
   throwError: throwError = (err, args...) ->
