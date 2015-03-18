@@ -5,9 +5,6 @@ module.exports = class JLocation extends Model
   @share()
 
   @set
-    sharedEvents  :
-      static      : []
-      instance    : []
     sharedMethods :
       static      :
         importAll:

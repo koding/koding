@@ -77,10 +77,6 @@ module.exports = class JUser extends jraphical.Module
       'foreignAuth.linkedin.foreignId' : 'ascending'
       'foreignAuth.twitter.foreignId'  : 'ascending'
 
-    sharedEvents    :
-      # do not share any events
-      static        : []
-      instance      : []
     sharedMethods   :
       # do not share any instance methods
       # instances     :

@@ -33,12 +33,6 @@ module.exports = class JNewApp extends jraphical.Module
       slug              : 'unique'
       name              : 'sparse'
 
-    sharedEvents        :
-      instance          : [
-        { name: 'updateInstance' }
-      ]
-      static            : []
-
     sharedMethods       :
       instance          :
         delete          :

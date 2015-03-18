@@ -11,9 +11,6 @@ module.exports = class JPaymentToken extends Module
   @share()
 
   @set
-    sharedEvents  :
-      static      : []
-      instance    : []
     sharedMethods :
       static      :
         checkToken:

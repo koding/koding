@@ -27,10 +27,6 @@ module.exports = class JReward extends jraphical.Message
         some:
           (signature Object, Object, Function)
 
-    sharedEvents      :
-      static          : []
-      instance        : []
-
     indexes           :
 
       # we need a compound index here

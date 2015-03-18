@@ -16,19 +16,12 @@ process.on 'uncaughtException', (err)->
   process.exit 1
 
 Bongo = require 'bongo'
-Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
-{mq, email, social, mongoReplSet} = KONFIG
+{email, social, mongoReplSet} = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
-
-mqOptions = extend {}, mq
-mqOptions.login = social.login if social?.login?
-
-broker = new Broker mqOptions
-
 
 
 koding = new Bongo {
@@ -37,7 +30,6 @@ koding = new Bongo {
   mongo       : mongoReplSet or mongo
   models      : './models'
   resourceName: social.queueName
-  mq          : broker
 
   kite          :
     name        : 'social'

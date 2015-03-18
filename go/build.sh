@@ -15,8 +15,6 @@ version=$(git rev-parse HEAD || cat ./VERSION || cat ../VERSION || cat ../../../
 ldflags="-X koding/artifact.VERSION ${version:0:8}"
 
 services=(
-  koding/broker
-  koding/rerouting
   koding/kites/os
   koding/kites/terminal
   github.com/koding/kite/kitectl
@@ -66,5 +64,3 @@ services=(
 `which go` install -v -ldflags "$ldflags" "${services[@]}"
 
 cd $GOPATH
-mkdir -p build/broker
-cp bin/broker build/broker/broker

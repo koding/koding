@@ -21,9 +21,6 @@ module.exports = class JMailNotification extends Model
       static         :
         unsubscribeWithId:
           (signature String, String, String, Function)
-    sharedEvents     :
-      static         : []
-      instance       : []
     schema           :
       dateIssued     :
         type         : Date

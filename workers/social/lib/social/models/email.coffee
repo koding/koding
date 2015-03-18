@@ -15,9 +15,6 @@ module.exports = class JMail extends Model
       static          :
         unsubscribeWithId:
           (signature String, String, String, Function)
-    sharedEvents      :
-      instance        : []
-      static          : []
     schema            :
       dateIssued      :
         type          : Date

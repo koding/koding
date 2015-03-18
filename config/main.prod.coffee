@@ -32,7 +32,6 @@ Configuration = (options={}) ->
   sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
   email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
-  broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
   algolia             = { appId:    'DYVV81J2S1'                                     , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     '.prod'              }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             algolia.apiKey                        , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
@@ -99,7 +98,6 @@ Configuration = (options={}) ->
     publicPort                     : publicPort
     publicHostname                 : publicHostname
     version                        : version
-    broker                         : broker
     uri                            : address: customDomain.public
     userSitesDomain                : userSitesDomain
     autoConfirmAccounts            : autoConfirmAccounts
@@ -116,7 +114,6 @@ Configuration = (options={}) ->
     vmwatcher                      : {port          : "6400"                      , awsKey    : "AKIAI6KPPX7WUT3XAYIQ"      , awsSecret         : "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"                                                      , kloudSecretKey : kloud.secretKey                                , kloudAddr : kloud.address, connectToKlient: true, debug: false, mongo: mongo, redis: redis.url }
     gowebserver                    : {port          : 6500}
     webserver                      : {port          : 8080                        , useCacheHeader: no                      , kitePort          : 8860 }
-    authWorker                     : {login         : "#{rabbitmq.login}"         , queueName : socialQueueName+'auth'      , authExchange      : "auth"                                  , authAllExchange : "authAll"                           , port  : 9530 }
     mq                             : mq
     emailWorker                    : {cronInstant   : '*/10 * * * * *'            , cronDaily : '0 10 0 * * *'              , run               : yes                                     , forcedRecipient : email.forcedRecipient               , maxAge: 3    , port  : 9540 }
     elasticSearch                  : {host          : "localhost"                 , port      : 9200                        , enabled           : no                                      , queue           : "elasticSearchFeederQueue"}
@@ -127,7 +124,6 @@ Configuration = (options={}) ->
     boxproxy                       : {port          : 80 }
     sourcemaps                     : {port          : 3526 }
     appsproxy                      : {port          : 3500 }
-    rerouting                      : {port          : 9500 }
 
     kloud                          : kloud
 
@@ -152,7 +148,7 @@ Configuration = (options={}) ->
     statsd                         : {use           : false                                          , ip            : "#{customDomain.public}"                       , port: 8125}
     graphite                       : {use           : false                                          , host          : "#{customDomain.public}"                       , port: 2003}
     sessionCookie                  : {maxAge        : 1000 * 60 * 60 * 24 * 14                       , secure        : no}
-    logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , rerouting: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" , broker: "notice"}
+    logLevel                       : {neo4jfeeder   : "notice"                                       , oskite: "info"                                               , terminal: "info"                                                                      , kontrolproxy  : "notice"                                           , kontroldaemon : "notice"                                           , userpresence  : "notice"                                          , vmproxy: "notice"      , graphitefeeder: "notice"                                                           , sync: "notice" , topicModifier : "notice" , postModifier  : "notice" , router: "notice" , overview: "notice" , amqputil: "notice" , rabbitMQ: "notice" , ldapserver: "notice" }
     aws                            : {key           : 'AKIAJSUVKX6PD254UGAA'                         , secret        : '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'}
     embedly                        : {apiKey        : '94991069fb354d4e8fdb825e52d4134a'}
     troubleshoot                   : {recipientEmail: "can@koding.com"}
@@ -180,7 +176,6 @@ Configuration = (options={}) ->
     logToExternal        : yes                                # rollbar , mixpanel etc.
     suppressLogs         : yes
     logToInternal        : no                                 # log worker
-    authExchange         : "auth"
     environment          : environment                        # this is where browser knows what kite environment to query for
     version              : version
     resourceName         : socialQueueName
@@ -190,7 +185,6 @@ Configuration = (options={}) ->
     apiUri               : "#{customDomain.public}/"
     mainUri              : "#{customDomain.public}/"
     sourceMapsUri        : "/sourcemaps"
-    broker               : {uri          : "/subscribe" }
     appsUri              : "/appsproxy"
     uploadsUri           : 'https://koding-uploads.s3.amazonaws.com'
     uploadsUriForGroup   : 'https://koding-groups.s3.amazonaws.com'
@@ -268,36 +262,6 @@ Configuration = (options={}) ->
     #   group             : "environment"
     #   supervisord       :
     #     command         : "coffee #{projectRoot}/ngrokProxy --user #{publicHostname}"
-
-    broker              :
-      group             : "webserver"
-      ports             :
-        incoming        : "#{KONFIG.broker.port}"
-      supervisord       :
-        command         : "#{GOBIN}/broker -c #{configName}"
-      nginx             :
-        websocket       : yes
-        locations       : [
-          { location    : "/websocket" }
-          { location    : "~^/subscribe/.*" }
-        ]
-      healthCheckURL    : "http://localhost:#{KONFIG.broker.port}/info"
-      versionURL        : "http://localhost:#{KONFIG.broker.port}/version"
-
-    rerouting           :
-      group             : "webserver"
-      supervisord       :
-        command         : "#{GOBIN}/rerouting -c #{configName}"
-      healthCheckURL    : "http://localhost:#{KONFIG.rerouting.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.rerouting.port}/version"
-
-    authworker          :
-      group             : "webserver"
-      instances         : 2
-      supervisord       :
-        command         : "node #{projectRoot}/workers/auth/index.js -c #{configName} -p #{KONFIG.authWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.authWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.authWorker.port}/version"
 
     sourcemaps          :
       group             : "webserver"

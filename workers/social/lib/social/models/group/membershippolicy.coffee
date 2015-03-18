@@ -12,9 +12,6 @@ module.exports = class JMembershipPolicy extends Module
     sharedMethods         :
       static              :
         byGroupSlug       : (signature String, Function)
-    sharedEvents          :
-      static              : []
-      instance            : ['updateInstance']
     schema                :
       approvalEnabled     :
         type              : Boolean

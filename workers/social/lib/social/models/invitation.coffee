@@ -61,9 +61,6 @@ module.exports = class JInvitation extends jraphical.Module
 #        byCodeForBeta:
 #          (signature String, Function)
 
-    sharedEvents    :
-      static        : []
-      instance      : []
     schema          :
       code          :
         type        : String

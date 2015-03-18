@@ -7,9 +7,6 @@ module.exports = class JResourcePlan extends Base
   @share()
 
   @set
-    sharedEvents  :
-      static      : []
-      instance    : []
     sharedMethods :
       static      :
         subscribe :

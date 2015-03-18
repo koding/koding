@@ -5,9 +5,7 @@ module.exports = class JPaymentFulfillmentNonce extends Module
   { ObjectId, signature } = require 'bongo'
 
   @set
-    sharedEvents :
-      static     : []
-      instance   : []
+
     schema       :
       nonce      :
         type     : String

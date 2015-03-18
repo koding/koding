@@ -9,9 +9,6 @@ module.exports = class JStorage extends jraphical.Module
   @set
     indexes       :
       username    : 'name'
-    sharedEvents  :
-      static      : []
-      instance    : ['updateInstance']
     schema        :
       name        : String
       content     :
