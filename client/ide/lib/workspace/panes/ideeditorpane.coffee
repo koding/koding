@@ -322,6 +322,9 @@ module.exports = class IDEEditorPane extends IDEPane
     @rtm
       .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
       .on 'TextDeletedFromString',  @bound 'handleCollaborativeStringEvent'
+      .on 'RealtimeManagerWillDispose', =>
+        @rtm.unbindRealtimeListeners string, 'string'
+        @removeAllCursorWidgets()
 
 
   handleCollaborativeStringEvent: (changedString, change) ->
