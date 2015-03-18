@@ -263,8 +263,8 @@ class Haydar extends events.EventEmitter
         }
       }
 
-    b = if opts.watchJs
-      bant.watch opts_
+    if opts.watchJs
+      b = bant.watch opts_
 
       onUpdate = (files) ->
         files.forEach (file) -> console.log "updated #{file}"
@@ -273,7 +273,7 @@ class Haydar extends events.EventEmitter
       onUpdate = throttle onUpdate, THROTTLE_WAIT
       b.on 'update', onUpdate
     else
-      bant opts_
+      b = bant opts_
 
     b.require require.resolve('kd.js'), expose: 'kd'
     b.use manifests
