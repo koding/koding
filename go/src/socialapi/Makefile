@@ -218,6 +218,13 @@ testmailsender:
 	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./sender.test
 
+testintegration:
+	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@`which go` test -c tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+
 testemailworker:
 	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
 	# @`which go` test -c workers/email/activityemail/*.go
@@ -281,11 +288,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker
 	@`which go` test -c workers/common/handler/*.go
 	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./handler.test
-
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
-	@`which go` test -c tests/*.go
-	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./main.test
 
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/realtime/*.go
