@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
-	"koding/go-webserver/utils"
+	"koding/tools/utils"
 	"net/http"
 
 	"labix.org/v2/mgo/bson"
