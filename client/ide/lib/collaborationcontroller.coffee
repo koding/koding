@@ -698,6 +698,12 @@ module.exports =
       when 'NotStarted' then @prepareChatSession()
 
 
+  stopCollaborationSession: ->
+
+    switch @stateMachine.state
+      when 'Active' then @stateMachine.transition 'Ending'
+
+
   showChatPane: ->
 
     @chat.showChatPane()
@@ -716,42 +722,6 @@ module.exports =
     @rtm = new RealtimeManager
     @showShareButton()
     @rtm.ready => @initCollaborationStateMachine()
-
-
-  # should clean realtime manager.
-  # should delete workspace channel id.
-  # should broadcast the session ended message.
-  # IF USER IS HOST
-  #   should delete private message.
-  #   should set machine sharing status to off.
-  # IF USER IS NOT HOST
-  #   should only call the callback without an error.
-  #   given callback should do the rest. (e.g cleaning-up, quitting..)
-  stopCollaborationSession: (callback) -> @whenRealtimeReady =>
-
-    @chat.settingsPane.endSession.disable()
-
-    return callback msg : 'no social channel'  unless @socialChannel
-
-    if @amIHost
-      @broadcastMessage { type: 'SessionEnded' }
-
-    title = @getRealtimeFileName()
-    realtimeHelpers.deleteCollaborationFile @rtm, title, (err) =>
-      return throwError err  if err
-      @setMachineSharingStatus off, (err) =>
-        return callback err  if err
-        @deletePrivateMessage (err) =>
-          return callback err  if err
-          @cleanupCollaboration { reinit: yes }
-          callback()
-
-      @statusBar.emit 'CollaborationEnded'
-      @stopChatSession()
-      @modal?.destroy()
-
-
-    @mySnapshot.clear()
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
