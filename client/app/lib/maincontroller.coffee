@@ -157,8 +157,6 @@ class MainController extends KDController
 
       @prepareSupportShortcuts()
 
-      console.timeEnd 'Koding.com loaded'
-
     @forwardEvents remote, ['disconnected', 'reconnected']
 
 
