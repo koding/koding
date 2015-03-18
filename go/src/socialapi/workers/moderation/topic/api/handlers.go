@@ -27,7 +27,7 @@ func AddHandlers(m *mux.Mux) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  UnLink,
+			Handler:  DeleteLink,
 			Name:     models.ModerationChannelDeleteLink,
 			Type:     handler.DeleteRequest,
 			Endpoint: "/moderation/channel/{rootId}/link/{leafId}",
@@ -39,7 +39,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  Blacklist,
 			Name:     models.ModerationChannelBlacklist,
 			Type:     handler.DeleteRequest,
-			Endpoint: "/moderation/channel/{rootId}",
+			Endpoint: "/moderation/channel/{leafId}",
 		},
 	)
 }
