@@ -671,11 +671,9 @@ module.exports =
       @endCollaborationForHost
         success: =>
           # TODO: move this into its own method.
-          # @broadcastMessage { type: 'SessionEnded' }
           @statusBar.emit 'CollaborationEnded'
           sharedSuccessFn()
           @cleanupCollaboration()
-          # kd.utils.defer @bound 'cleanupCollaboration'
 
 
   endCollaborationForHost: (callbacks) ->
