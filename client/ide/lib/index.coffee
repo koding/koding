@@ -404,23 +404,7 @@ module.exports = class IDEAppController extends AppController
                   kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
           @prepareCollaboration()
-
-          actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
-          computeController.on "public-#{machineId}", (event) =>
-
-            if event.status in actionRequiredStates
-
-              KodingKontrol.dcNotification?.destroy()
-              KodingKontrol.dcNotification = null
-
-              machineItem.getBaseKite( no ).disconnect()
-
-              unless @machineStateModal
-                @createMachineStateModal { state, container, machineItem }
-
-              else
-                if event.status in actionRequiredStates
-                  @machineStateModal.updateStatus event
+          @bindMachineEvents machineItem
 
         else
           @createMachineStateModal { state: 'NotFound', container }
@@ -432,6 +416,38 @@ module.exports = class IDEAppController extends AppController
         isOnboardingModalShown = @appStorage.getValue 'isOnboardingModalShown'
 
         callback()
+
+
+  bindMachineEvents: (machineItem) ->
+
+    actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
+
+    kd.getSingleton 'computeController'
+
+      .on "public-#{machineItem._id}", (event) =>
+
+        if event.status in actionRequiredStates
+          @showStateMachineModal machineItem, event
+
+      .on 'MachineBeingDestroyed', (machine) =>
+
+        if machine._id is @mountedMachine._id
+          @quit()
+
+
+  showStateMachineModal: (machineItem, event) ->
+
+    KodingKontrol.dcNotification?.destroy()
+    KodingKontrol.dcNotification = null
+
+    machineItem.getBaseKite( no ).disconnect()
+
+    if @machineStateModal
+      @machineStateModal.updateStatus event
+    else
+      {state}   = machineItem.status
+      container = @getView()
+      @createMachineStateModal { state, container, machineItem }
 
 
   createMachineStateModal: (options = {}) ->
