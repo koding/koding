@@ -750,8 +750,8 @@ module.exports = class IDEAppController extends AppController
     return unless file
 
     if FSHelper.isPublicPath file.path
-      # FIXME: Take care of https.
-      prefix      = "[#{@mountedMachineUId}]/home/#{nick()}/Web/"
+      nickname    = @collaborationHost or nick()
+      prefix      = "[#{@mountedMachineUId}]/home/#{nickname}/Web/"
       [temp, src] = file.path.split prefix
       @createNewBrowser "#{@mountedMachine.domain}/#{src}"
     else
