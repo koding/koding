@@ -40,6 +40,7 @@ func (c *ChannelLink) validate() error {
 	return nil
 }
 
+// List gets the all leaves of a given channel
 func (c *ChannelLink) List(q *request.Query) ([]Channel, error) {
 	if c.RootId == 0 {
 		return nil, ErrRootIsNotSet
@@ -62,14 +63,21 @@ func (c *ChannelLink) List(q *request.Query) ([]Channel, error) {
 	return NewChannel().FetchByIds(leafIds)
 }
 
-func (c *ChannelLink) UnLink() error {
+// Create creates a link between two channels
+func (c *ChannelLink) Create() error {
+	return bongo.B.Create(c)
+}
+
+// Delete removes the link between two channels, most probably it wont touch to
+// the messages
+func (c *ChannelLink) Delete() error {
 	if err := c.validate(); err != nil {
 		return err
 	}
 
 	// first update the leaf node with it's previous channel type constant
-	ch := NewChannel()
-	if err := ch.ById(c.LeafId); err != nil {
+	leaf := NewChannel()
+	if err := leaf.ById(c.LeafId); err != nil {
 		if err == bongo.RecordNotFound {
 			return ErrChannelNotFound
 		}
@@ -77,15 +85,16 @@ func (c *ChannelLink) UnLink() error {
 		return err
 	}
 
-	ch.TypeConstant = strings.TrimPrefix(
-		ch.TypeConstant,
+	leaf.TypeConstant = strings.TrimPrefix(
+		string(leaf.TypeConstant),
 		ChannelLinkedPrefix,
 	)
 
-	if err := ch.Update(); err != nil {
+	if err := leaf.Update(); err != nil {
 		return err
 	}
 
+	toBeDeletedCL := NewChannelLink()
 	// then delete the link between two channels
 	bq := &bongo.Query{
 		Selector: map[string]interface{}{
@@ -94,32 +103,28 @@ func (c *ChannelLink) UnLink() error {
 		},
 	}
 
-	if err := c.One(bq); err != nil {
+	if err := toBeDeletedCL.One(bq); err != nil {
 		return err
 	}
 
-	return ch.Delete()
+	return bongo.B.Delete(toBeDeletedCL)
 }
 
 func (c *ChannelLink) Blacklist() error {
-	if c.RootId == 0 {
-		return ErrRootIsNotSet
+	c.DeleteMessages = true
+	c.Create()
+
+	return nil
+}
+
+func (c *ChannelLink) createUnscoped() error {
+	if err := c.validate(); err != nil {
+		return err
 	}
 
-	bq := &bongo.Query{
-		Selector: map[string]interface{}{
-			"root_id": c.RootId,
-		},
-	}
-
-	// if channel has some leaves, do not continue
-	if c.One(bq) != bongo.RecordNotFound {
-		return ErrChannelHasLeaves
-	}
-
-	// first update the leaf node with it's previous channel type constant
-	ch := NewChannel()
-	if err := ch.ById(c.RootId); err != nil {
+	// first update the leaf
+	leaf := NewChannel()
+	if err := leaf.ById(c.LeafId); err != nil {
 		if err == bongo.RecordNotFound {
 			return ErrChannelNotFound
 		}
@@ -128,11 +133,11 @@ func (c *ChannelLink) Blacklist() error {
 	}
 
 	// mark channel as linked
-	ch.TypeConstant = ChannelLinkedPrefix + ch.TypeConstant
+	leaf.TypeConstant = ChannelLinkedPrefix + leaf.TypeConstant
 
-	if err := ch.Update(); err != nil {
+	if err := leaf.Update(); err != nil {
 		return err
 	}
 
-	return nil
+	return bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
 }
