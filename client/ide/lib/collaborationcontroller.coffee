@@ -509,6 +509,7 @@ module.exports =
         PreCreated   : @bound 'onCollaborationPreCreated'
         Creating     : @bound 'onCollaborationCreating'
         Active       : @bound 'onCollaborationActive'
+        Ending       : @bound 'onCollaborationEnding'
 
 
 
