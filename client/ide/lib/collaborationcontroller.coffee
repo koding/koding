@@ -678,6 +678,8 @@ module.exports =
 
   endCollaborationForHost: (callbacks) ->
 
+    @broadcastMessage { type: 'SessionEnded' }
+
     fileName = @getRealtimeFileName()
     realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
       return callbacks.error err  if err
