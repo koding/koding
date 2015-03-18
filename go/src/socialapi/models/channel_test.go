@@ -1305,7 +1305,7 @@ func TestChannelFetchRoot(t *testing.T) {
 	Convey("while fetching the root", t, func() {
 		acc, err := models.CreateAccountInBothDbs()
 		So(err, ShouldBeNil)
-		So(admin, ShouldNotBeNil)
+		So(acc, ShouldNotBeNil)
 
 		Convey("if channel id is not set", func() {
 			c := NewChannel()
@@ -1322,7 +1322,7 @@ func TestChannelFetchRoot(t *testing.T) {
 			)
 
 			So(err, ShouldBeNil)
-			So(root, ShouldNotBeNil)
+			So(leaf, ShouldNotBeNil)
 
 			Convey("should return bongo error", func() {
 				_, err := leaf.FetchRoot()
