@@ -11,7 +11,7 @@ import (
 
 const NotificationTypeMessage = "message"
 
-func PushMessage(c *models.Channel, eventName string, body interface{}, secretNames []string) error {
+func PushMessage(c *models.Channel, eventName string, body interface{}) error {
 	request := map[string]interface{}{
 		"eventName": eventName,
 		"body":      body,

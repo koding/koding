@@ -23,8 +23,6 @@ Object.defineProperty global, 'KONFIG', value: KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
-broker = new Broker mqOptions
-
 mqConfig = {host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost}
 mqConfig.exchangeName = socialapi.eventExchangeName
 
