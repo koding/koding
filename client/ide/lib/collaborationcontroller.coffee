@@ -737,7 +737,7 @@ module.exports =
     @rtm.once 'RealtimeManagerDidDispose', =>
       @rtm = null
       delete @stateMachine
-      @prepareCollaboration()
+      @prepareCollaboration  if @amIHost
 
     @rtm.dispose()
 
