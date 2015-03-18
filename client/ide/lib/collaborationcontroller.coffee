@@ -663,6 +663,20 @@ module.exports =
     @statusBar.emit 'CollaborationStarted'
 
 
+  endCollaborationForHost: (callbacks) ->
+
+    fileName = @getRealtimeFileName()
+    realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
+      return callbacks.error err  if err
+      @setMachineSharingStatus off, (err) =>
+        return callbacks.error err  if err
+        socialHelpers.destroyChannel @socialChannel, (err) =>
+          return callbacks.error err  if err
+          envHelpers.detachSocialChannel @workspaceData, (err) =>
+            return callbacks.error err  if err
+            callbacks.success()
+
+
   showChat: ->
 
     switch @stateMachine.state
