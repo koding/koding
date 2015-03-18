@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -190,4 +191,24 @@ func (u *Updater) Run() {
 
 		updatingState(false)
 	}
+}
+
+// haveFreeSpace checks whether the disk has free space to provide the update
+func haveFreeSpace() error {
+	stat := new(syscall.Statfs_t)
+
+	if err := syscall.Statfs("/", stat); err != nil {
+		return err
+	}
+
+	bsize := stat.Bsize / 512
+
+	free := (uint64(stat.Bfree) * uint64(bsize)) >> 1
+	freeInMB := free / 1024
+
+	if freeInMB < 100 {
+		return errors.New("No enough space to upgrade klient")
+	}
+
+	return nil
 }
