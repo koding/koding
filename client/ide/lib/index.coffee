@@ -502,7 +502,7 @@ module.exports = class IDEAppController extends AppController
 
     return ->
       path     = "localfile:/Untitled-#{newFileSeed++}.txt@#{Date.now()}"
-      file     = FSHelper.createFileInstance { path }
+      file     = FSHelper.createFileInstance { path, machine: @mountedMachine }
       contents = ''
 
       @openFile file, contents
