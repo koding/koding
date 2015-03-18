@@ -2,6 +2,7 @@ package algoliaconnector
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"socialapi/models"
 	"strconv"
@@ -170,4 +171,70 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 		"objectID": strconv.FormatInt(message.Id, 10),
 		"body":     message.Body,
 	})
+}
+
+func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
+	if err := f.validateSynonymRequest(cl); err != nil {
+		f.log.Error("CreateSynonym validateSynonymRequest err:", err.Error())
+		return nil
+	}
+
+	return nil
+}
+
+func (f *Controller) DeleteSynonym(cl *models.ChannelLink) error {
+	if err := f.validateSynonymRequest(cl); err != nil {
+		f.log.Error("DeleteSynonym validateSynonymRequest err:", err.Error())
+		return nil
+	}
+
+	return nil
+}
+
+func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
+	// check required variables
+	if cl == nil {
+		return errors.New("channel link is not set (nil)")
+	}
+
+	if cl.Id == 0 {
+		return errors.New("id is not set")
+	}
+
+	if cl.RootId == 0 {
+		return errors.New("root id is not set")
+	}
+
+	if cl.LeafId == 0 {
+		return errors.New("leaf id is not set")
+	}
+
+	// check channel types
+	rootChannel, err := models.ChannelById(cl.RootId)
+	if err != nil {
+		return err
+	}
+
+	if !isValidChannelType(rootChannel) {
+		return errors.New("root is not valid type for synonym")
+	}
+
+	leafChannel, err := models.ChannelById(cl.LeafId)
+	if err != nil {
+		return err
+	}
+
+	if !isValidChannelType(leafChannel) {
+		return errors.New("leaf is not valid type for synonym")
+	}
+
+	return nil
+}
+
+func isValidChannelType(c *models.Channel) bool {
+	return models.IsIn(
+		c.TypeConstant,
+		models.Channel_TYPE_TOPIC,
+		models.Channel_TYPE_LINKED_TOPIC,
+	)
 }
