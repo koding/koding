@@ -153,6 +153,13 @@ getReferences = (manager, channelId, initialSnapshot) ->
   manager.bindRealtimeListeners refs.watchMap, 'map'
   manager.bindRealtimeListeners refs.permissions, 'map'
 
+  manager.once 'RealtimeManagerWillDispose', =>
+    refs.snapshot.clear()
+    manager.unbindRealtimeListeners refs.changes, 'list'
+    manager.unbindRealtimeListeners refs.broadcastMessages, 'list'
+    manager.unbindRealtimeListeners refs.watchMap, 'map'
+    manager.unbindRealtimeListeners refs.permissions, 'map'
+
   return refs
 
 
