@@ -19,9 +19,9 @@ func main() {
 	}
 
 	r.SetContext(topic.NewController(r.Log))
-	r.Register(models.Account{}).On(models.ModerationChannelCreateLink).Handle((*topic.Controller).CreateLink)
-	r.Register(models.Account{}).On(models.ModerationChannelDeleteLink).Handle((*topic.Controller).UnLink)
-	r.Register(models.Account{}).On(models.ModerationChannelBlacklist).Handle((*topic.Controller).Blacklist)
+	r.Register(models.ChannelLink{}).OnCreate().Handle((*topic.Controller).Create)
+	r.Register(models.ChannelLink{}).OnDelete().Handle((*topic.Controller).Delete)
+	r.Register(models.ChannelLink{}).On(models.ModerationChannelBlacklist).Handle((*topic.Controller).Blacklist)
 	r.Listen()
 	r.Wait()
 }
