@@ -648,6 +648,9 @@ module.exports =
     @bindRealtimeEvents()
     @bindSocialChannelEvents()
 
+    # attach RTM instance to already in-screen panes.
+    @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
+
 
   transitionViewsToActive: ->
 
