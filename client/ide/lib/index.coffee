@@ -1178,8 +1178,8 @@ module.exports = class IDEAppController extends AppController
 
     @mountedMachine.getBaseKite().disconnect()
 
-    kd.singletons.router.handleRoute '/IDE'
     kd.singletons.appManager.quit this
+    kd.singletons.router.handleRoute '/IDE'
 
 
   removeParticipantCursorWidget: (targetUser) ->
