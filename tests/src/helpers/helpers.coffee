@@ -511,7 +511,8 @@ module.exports =
       .waitForElementVisible   pricingPage, 25000
       .waitForElementVisible   pricingPage + ' .plans .' + planType, 25000
       .pause                   5000
-      .click                   pricingPage + ' .plans .' +  + planType + ' .plan-buy-button'
+      .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
+      .pause                   5000
 
 
   getUrl: ->
