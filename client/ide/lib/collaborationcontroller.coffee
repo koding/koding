@@ -140,9 +140,7 @@ module.exports =
 
   handleParticipantAction: (actionType, changeData) ->
 
-    return  unless @rtm
-
-    kd.utils.wait 2000, => @whenRealtimeReady =>
+    kd.utils.wait 2000, =>
 
       switch actionType
         when 'join' then @onRealtimeParticipantJoined changeData
@@ -732,7 +730,6 @@ module.exports =
 
 
   cleanupCollaboration: (options = {}) ->
-    return warn 'RealtimeManager is not set'  unless @rtm
 
     kd.utils.killRepeat @pingInterval
     @rtm?.dispose()
@@ -789,14 +786,11 @@ module.exports =
     {setMachineUser} = envHelpers
 
     setMachineUser @mountedMachine, usernames, share, (err) =>
-      if err
-        return  if err.message is 'User not found' and not share
-        return callback err  if err
+      return callback err  if err
 
-      @whenRealtimeReady =>
-        @broadcastMessage
-          type: "#{if share then 'Set' else 'Unset'}MachineUser"
-          participants: usernames
+      @broadcastMessage
+        type: "#{if share then 'Set' else 'Unset'}MachineUser"
+        participants: usernames
 
       callback null
 
