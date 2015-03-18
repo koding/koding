@@ -137,8 +137,17 @@ module.exports = class RealtimeManager extends KDObject
       @emit 'FileInitialized', model
 
     errorCallback = (error) =>
-      callback error
-      @emit 'FileLoadFailed', error  unless preventEvent
+      {ErrorType} = gapi.drive.realtime
+      eventName = \
+        switch error.type
+          when ErrorType.NOT_FOUND              then 'ErrorRealtimeFileMissing'
+          when ErrorType.SERVER_ERROR           then 'ErrorRealtimeServer'
+          when ErrorType.FORBIDDEN              then 'ErrorRealtimeUserForbidden'
+          when ErrorType.CLIENT_ERROR           then 'ErrorGoogleDriveApiClient'
+          when ErrorType.TOKEN_REFRESH_REQUIRED then 'ErrorRealtimeTokenExpired'
+          else 'ErrorHappened'
+
+      @emit eventName, error
 
     gapi.drive.realtime.load fileId, onLoadedCallback, initializerFn, errorCallback
 
