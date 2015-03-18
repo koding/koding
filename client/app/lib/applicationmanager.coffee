@@ -12,13 +12,6 @@ KDSelectBox          = kd.SelectBox
 KDView               = kd.View
 FSHelper             = require './util/fs/fshelper'
 KodingAppsController = require './kodingappscontroller'
-Shortcuts            = require 'shortcuts'
-defaultShortcuts     = require './shortcuts/defaults'
-
-shortcuts = new Shortcuts Object.keys(defaultShortcuts).reduce (acc, key) ->
-    acc[key] = defaultShortcuts[key].data
-    return acc
-  , {}
 
 module.exports =
 
@@ -33,7 +26,7 @@ class ApplicationManager extends KDObject
 
   constructor: ->
 
-    super
+    super()
 
     @appControllers = {}
     @frontApp       = null
@@ -45,20 +38,6 @@ class ApplicationManager extends KDObject
 
     @on 'AppIsBeingShown', @bound "setFrontApp"
 
-    @on 'FrontAppChange', (current, prev) =>
-      currentId = current.canonicalName
-      prevId = prev?.canonicalName
-
-      return  if currentId is prevId
-
-      if prev and _.isArray(sets = prev.getConfig().shortcuts)
-        for key in sets
-          shortcuts.removeListener "key:#{key}", prev.bound 'handleShortcut'
-
-      if _.isArray(sets = current.getConfig().shortcuts)
-        for key in sets
-          shortcuts.on "key:#{key}", current.bound 'handleShortcut'
-
     # set unload listener
     wc = kd.singleton 'windowController'
     wc.addUnloadListener 'window', =>
@@ -67,13 +46,15 @@ class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
-  getShortcuts: -> shortcuts
 
   isAppInternal: (name = '') -> globals.config.apps[name]?
 
+
   isAppLoaded: (name = '') -> (name in Object.keys globals.appClasses)
 
+
   shouldLoadApp: (name = '') -> (@isAppInternal name) and not (@isAppLoaded name)
+
 
   open: do ->
 
@@ -145,14 +126,17 @@ class ApplicationManager extends KDObject
 
       else do defaultCallback
 
+
   openFileWithApplication: (appName, file) ->
     @open appName, => kd.utils.defer => @getFrontApp().openFile file
+
 
   promptOpenFileWith:(file)->
     finderController = kd.getSingleton "finderController"
     {treeController} = finderController
     view = new KDView {}, file
     treeController.showOpenWithModal view
+
 
   openFile:(file)->
 
@@ -188,6 +172,7 @@ class ApplicationManager extends KDObject
     if app then kd.utils.defer -> cb app
     else @create name, cb
 
+
   require: (name, params, callback) ->
     kd.log "AppManager: requiring an app", name
     [callback, params] = [params, callback]  unless callback
@@ -195,6 +180,7 @@ class ApplicationManager extends KDObject
     if app = @get name
     then callback app
     else @create name, params, callback
+
 
   create:(name, params, callback)->
 
@@ -211,7 +197,6 @@ class ApplicationManager extends KDObject
         return kd.warn err  if err
         kd.utils.defer => @create name, params, callback
 
-
     kd.utils.defer =>
       return @emit "AppCouldntBeCreated"  unless appInstance
       @emit "AppCreated", appInstance
@@ -220,6 +205,7 @@ class ApplicationManager extends KDObject
         return kd.getSingleton("kodingAppsController").putAppResources appInstance, callback
 
       callback? appInstance
+
 
   show:(name, appParams, callback)->
 
@@ -235,6 +221,7 @@ class ApplicationManager extends KDObject
     @setLastActiveIndex appInstance
     kd.utils.defer -> callback? appInstance
 
+
   showInstance:(appInstance, callback)->
 
     appView    = appInstance.getView?() or null
@@ -247,16 +234,19 @@ class ApplicationManager extends KDObject
     @setLastActiveIndex appInstance
     kd.utils.defer -> callback? appInstance
 
+
   quit:(appInstance, callback = kd.noop)->
     view = appInstance.getView?()
     destroyer = if view? then view else appInstance
     destroyer.destroy()
     callback()
 
+
   quitAll:->
 
     for own name, apps of @appControllers
       @quit app  for app in apps.instances
+
 
   quitByName: (name, closeAllInstances = yes) ->
     appController = @appControllers[name]
@@ -268,12 +258,14 @@ class ApplicationManager extends KDObject
     else
       @quit appController.instances[appController.lastActiveIndex]
 
+
   get:(name)->
 
     if apps = @appControllers[name]
       apps.instances[apps.lastActiveIndex] or apps.instances.first
     else
       null
+
 
   getByView: (view)->
 
@@ -287,21 +279,29 @@ class ApplicationManager extends KDObject
 
     return appInstance
 
+
   getFrontApp:-> @frontApp
+
 
   setFrontApp: (appInstance) ->
 
     {router}  = kd.singletons
     {name} = appInstance.getOptions()
+
     router.setPageTitle name  if name
+
     @setLastActiveIndex appInstance
+
     prevAppInstance = @frontApp
     @frontApp = appInstance
+
     @emit 'FrontAppChange', appInstance, prevAppInstance
+
 
   getFrontAppManifest: ->
     {name}  = @getFrontApp().getOptions()
     return getAppOptions name
+
 
   register:(appInstance)->
 
@@ -315,6 +315,7 @@ class ApplicationManager extends KDObject
 
     @emit "AppRegistered", name, appInstance.options
 
+
   unregister:(appInstance)->
 
     name  = appInstance.getOption "name"
@@ -327,6 +328,7 @@ class ApplicationManager extends KDObject
 
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
+
 
   createPromptModal:(appOptions, callback)->
     # show modal and wait for response
@@ -369,6 +371,7 @@ class ApplicationManager extends KDObject
                   modal.cancel()
                   callback null
 
+
   setListeners:(appInstance)->
 
     destroyer = if view = appInstance.getView?() then view else appInstance
@@ -376,6 +379,7 @@ class ApplicationManager extends KDObject
       @unregister appInstance
       appInstance.emit "AppDidQuit"
       kd.getSingleton('appManager').emit  "AppDidQuit", appInstance
+
 
   setLastActiveIndex:(appInstance)->
 
@@ -389,8 +393,10 @@ class ApplicationManager extends KDObject
 
   # setGroup:-> console.log 'setGroup', arguments
 
+
   # temp
   notification = null
+
 
   notify:(msg)->
 
@@ -401,12 +407,14 @@ class ApplicationManager extends KDObject
       type      : "mini"
       duration  : 2500
 
+
   handleAppNotFound: ->
     new KDNotificationView
       title    : "You don't have this app installed!"
       type     : "mini"
       cssClass : "error"
       duration : 5000
+
 
   # deprecate these
 

@@ -43,9 +43,12 @@ SocialApiController      = require './socialapicontroller'
 WelcomeModal             = require './welcomemodal'
 WidgetController         = require './widgetcontroller'
 PageTitleController      = require './pagetitlecontroller'
+Keyboard                 = require './shortcuts/keyboard'
 
+module.exports =
 
-module.exports = class MainController extends KDController
+class MainController extends KDController
+
   ###
 
   * EMITTED EVENTS
@@ -137,15 +140,21 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
 
+    kb = new Keyboard
+    kb.start()
+
     router.listen()
+
     @mainViewController = mvc
+
     mv.appendToDomBody()
 
     @ready =>
-      kd.registerSingleton 'widgetController',        new WidgetController
-      kd.registerSingleton 'onboardingController',    new OnboardingController
+      kd.registerSingleton 'widgetController',     new WidgetController
+      kd.registerSingleton 'onboardingController', new OnboardingController
 
       @emit 'AppIsReady'
+
       @prepareSupportShortcuts()
 
       console.timeEnd 'Koding.com loaded'
