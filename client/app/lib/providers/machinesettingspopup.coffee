@@ -110,6 +110,15 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
           itemClass     : KDCustomHTMLView
           cssClass      : if data.isPermanent() then 'hidden'
 
+    if data.isManaged()
+
+      {fields} = options.tabs.forms.Settings
+      for field in ['statusToggle', 'specs', 'guides', 'moreView']
+        fields[field].cssClass = 'hidden'
+
+      fields.diskUsage.nextElement.resizeIcon.cssClass = 'hidden'
+      fields.accessUri.label = 'Access URL'
+
     super options, data
 
     { computeController } = kd.singletons
@@ -337,25 +346,38 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
       shareVMLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
-      cssClass : 'button-container hidden'
+      cssClass : "button-container #{'hidden' unless @machine.isManaged()}"
 
-    @buttonContainer.addSubView @reinitButton = new KDButtonView
-      style    : 'solid compact red reinit'
-      title    : 'Reinitialize VM'
-      callback : =>
-        computeController.reinit @machine
-        @destroy()
+    unless @machine.isManaged()
+      @buttonContainer.addSubView @reinitButton = new KDButtonView
+        style    : 'solid compact red reinit'
+        title    : 'Reinitialize VM'
+        callback : =>
+          computeController.reinit @machine
+          @destroy()
 
-    @buttonContainer.addSubView @resizeButton = new KDButtonView
-      style    : 'solid compact green resize hidden'
-      title    : 'Resize VM'
-      callback : =>
-        computeController.resize @machine, 10
-        @destroy()
+      @buttonContainer.addSubView @resizeButton = new KDButtonView
+        style    : 'solid compact green resize hidden'
+        title    : 'Resize VM'
+        callback : =>
+          computeController.resize @machine, 10
+          @destroy()
+    else
+
+      terminateTitle = 'Delete VM'
+
+      @buttonContainer.addSubView @reassignButton = new KDButtonView
+        style    : 'solid compact green'
+        title    : 'Reassign VM'
+        callback : =>
+
+          FindManagedNodesModal = require './managed/findnodesmodal'
+          findNodes = new FindManagedNodesModal {}, @machine
+          @destroy()
 
     @buttonContainer.addSubView @terminateButton = new KDButtonView
       style    : 'solid compact red'
-      title    : 'Terminate VM'
+      title    : terminateTitle ? 'Terminate VM'
       callback : =>
         computeController.destroy @machine
         @destroy()
@@ -374,7 +396,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         @terminateButton.hide()
 
         if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
-          @resizeButton.show()
+          @resizeButton?.show()
 
 
   shareMachineWithUser: (username) ->

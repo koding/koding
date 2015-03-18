@@ -106,7 +106,7 @@ module.exports = class Managed extends ProviderInterface
 
   @update = (client, options, callback)->
 
-    { machineId, queryString, ipAddress } = options
+    { machineId, queryString, ipAddress, storage } = options
     { r: { group, user, account } } = client
 
     unless machineId? or (queryString? or ipAddress? or storage?)
