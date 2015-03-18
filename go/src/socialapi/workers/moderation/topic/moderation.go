@@ -31,14 +31,19 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-// CreateLink moves the participants and the messages of a leaf channel to the
-// root channel
-func (c *Controller) CreateLink(cl *models.ChannelLink) error {
+// Create moves the participants and the messages of a leaf channel to the root
+// channel, it may remove the messages if the option is passed
+func (c *Controller) Create(cl *models.ChannelLink) error {
 	return c.process(cl)
 }
 
+// Delete just here for referance
+func (c *Controller) Delete(cl *models.ChannelLink) error {
+	return nil
+}
+
 // Blacklist moves the participants and the messages of a leaf channel to the
-// root channel
+// root channel, it may remove the messages if the option is passed
 func (c *Controller) Blacklist(cl *models.ChannelLink) error {
 	return c.process(cl)
 }
