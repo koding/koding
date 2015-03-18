@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
+	"koding/tools/utils"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
@@ -136,10 +138,12 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 			// this is an example
 			// set group name to context
 			//
+
 			context := &models.Context{
 				GroupName: "koding",
 				Client: &models.Client{
 					Account: getAccount(r),
+					IP:      net.ParseIP(utils.GetIpAddress(r)),
 				},
 			}
 
