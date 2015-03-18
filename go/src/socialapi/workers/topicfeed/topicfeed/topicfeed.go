@@ -288,7 +288,10 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	err := bongo.B.DB.Table(c.BongoName()).
 		Where("group_name = ?", groupName).
 		Where("name = ?", channelName).
-		Where("type_constant IN (?)", []string{models.Channel_TYPE_TOPIC, models.Channel_TYPE_LINKED_TOPIC}).
+		Where("type_constant IN (?)", []string{
+		models.Channel_TYPE_TOPIC,
+		models.Channel_TYPE_LINKED_TOPIC,
+	}).
 		Order("id asc").
 		Find(&topics).Error
 
