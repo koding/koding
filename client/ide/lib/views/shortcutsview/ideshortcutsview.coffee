@@ -55,15 +55,15 @@ module.exports = class IDEShortcutsView extends KDCustomScrollView
       'Close tab'              : 'Ctrl-Alt-W'
       'Go to left tab'         : 'Ctrl-Alt-['
       'Go to right tab'        : 'Ctrl-Alt-]'
-      'Go to tab number 1'     : { Others: 'Ctrl-1', Apple: 'Meta-1' }
-      'Go to tab number 2'     : { Others: 'Ctrl-2', Apple: 'Meta-2' }
-      'Go to tab number 3'     : { Others: 'Ctrl-3', Apple: 'Meta-3' }
-      'Go to tab number 4'     : { Others: 'Ctrl-4', Apple: 'Meta-4' }
-      'Go to tab number 5'     : { Others: 'Ctrl-5', Apple: 'Meta-5' }
-      'Go to tab number 6'     : { Others: 'Ctrl-6', Apple: 'Meta-6' }
-      'Go to tab number 7'     : { Others: 'Ctrl-7', Apple: 'Meta-7' }
-      'Go to tab number 8'     : { Others: 'Ctrl-8', Apple: 'Meta-8' }
-      'Go to tab number 9'     : { Others: 'Ctrl-9', Apple: 'Meta-9' }
+      'Go to tab number 1'     : 'Ctrl-Shift-1'
+      'Go to tab number 2'     : 'Ctrl-Shift-2'
+      'Go to tab number 3'     : 'Ctrl-Shift-3'
+      'Go to tab number 4'     : 'Ctrl-Shift-4'
+      'Go to tab number 5'     : 'Ctrl-Shift-5'
+      'Go to tab number 6'     : 'Ctrl-Shift-6'
+      'Go to tab number 7'     : 'Ctrl-Shift-7'
+      'Go to tab number 8'     : 'Ctrl-Shift-8'
+      'Go to tab number 9'     : 'Ctrl-Shift-9'
 
     'Editor Shortcuts':
       'Save'                   : 'Meta-S'

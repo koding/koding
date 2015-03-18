@@ -52,15 +52,15 @@ module.exports =
     { command: 'close tab',           binding: 'ctrl+alt+w',           global: yes }
     { command: 'go to left tab',      binding: 'ctrl+alt+[',           global: yes }
     { command: 'go to right tab',     binding: 'ctrl+alt+]',           global: yes }
-    { command: 'go to tab number',    binding: 'mod+1',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+2',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+3',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+4',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+5',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+6',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+7',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+8',                global: yes }
-    { command: 'go to tab number',    binding: 'mod+9',                global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+1',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+2',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+3',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+4',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+5',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+6',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+7',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+8',         global: yes }
+    { command: 'go to tab number',    binding: 'ctrl+shift+9',         global: yes }
     { command: 'fullscren ideview',   binding: 'mod+shift+enter',      global: yes }
     { command: 'move tab up',         binding: 'mod+alt+shift+up',     global: yes }
     { command: 'move tab down',       binding: 'mod+alt+shift+down',   global: yes }
