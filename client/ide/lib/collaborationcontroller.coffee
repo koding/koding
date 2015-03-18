@@ -92,12 +92,6 @@ module.exports =
     return "#{hostName}.#{id}"
 
 
-  stopChatSession: ->
-
-    @chat.emit 'CollaborationEnded'
-    @chat = null
-
-
   whenRealtimeReady: (callback) ->
 
     if @rtm?.isReady
@@ -661,6 +655,26 @@ module.exports =
 
     @chat.emit 'CollaborationStarted'
     @statusBar.emit 'CollaborationStarted'
+
+
+  onCollaborationEnding: ->
+
+    @chat.settingsPane.endSession.disable()
+
+    sharedSuccessFn = =>
+      @chat.emit 'CollaborationEnded'
+      @chat = null
+      @modal?.destroy()
+
+    if @amIHost
+      @endCollaborationForHost
+        success: =>
+          # TODO: move this into its own method.
+          # @broadcastMessage { type: 'SessionEnded' }
+          @statusBar.emit 'CollaborationEnded'
+          sharedSuccessFn()
+          @cleanupCollaboration()
+          # kd.utils.defer @bound 'cleanupCollaboration'
 
 
   endCollaborationForHost: (callbacks) ->
