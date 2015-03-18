@@ -12,6 +12,7 @@ module.exports =
     browser
       .url                     helpers.getUrl() + '/Pricing'
       .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.current', 20000
       .element 'css selector', freePlanSelector, (result) ->
         if result.status is 0
           helpers.selectPlan(browser, 'developer')
@@ -30,6 +31,7 @@ module.exports =
     browser
       .url                     helpers.getUrl() + '/Pricing'
       .waitForElementVisible   '.content-page.pricing', 20000
+      .waitForElementVisible   '.current', 20000
       .element 'css selector', selectedPlanSelector, (result) ->
         if result.status is 0
           browser.end()
@@ -40,8 +42,12 @@ module.exports =
             .waitForElementVisible   '.payment-modal', 20000
             .click                   '.payment-modal button'
             .waitForElementVisible   '.payment-modal', 20000
+            .pause                   5000
             .click                   '.payment-modal button'
-            .waitForElementVisible   '[testpath=main-sidebar]', 10000
+            .waitForElementVisible   '[testpath=main-sidebar]', 20000
+            .url                     helpers.getUrl() + '/Pricing'
+            .waitForElementVisible   '.content-page.pricing', 20000
+            .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
             .end()
 
 
