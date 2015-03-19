@@ -1,10 +1,7 @@
-helpers = require '../helpers/helpers.js'
-assert  = require 'assert'
-
+helpers          = require '../helpers/helpers.js'
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
 module.exports =
-
 
   searchActivity: (browser) ->
 
@@ -24,13 +21,12 @@ module.exports =
   showMoreCommentLink: (browser) ->
 
     helpers.postComment(browser)
-
-    for i in [1..5]
-      helpers.postComment(browser, no, no)
+    helpers.postComment(browser, no, no)  for i in [1..4]
 
     browser
+      .pause 2000
       .refresh()
-      .waitForElementVisible  activitySelector + ' [testpath=list-previous-link]', 25000
+      .waitForElementVisible  "#{activitySelector} [testpath=list-previous-link]", 25000
       .end()
 
 
@@ -48,16 +44,18 @@ module.exports =
 
   unfollowTopic: (browser) ->
 
-    hashtag    = helpers.doFollowTopic(browser)
-    selector   = '.activity-sidebar .followed.topics'
-    publicLink = '[testpath="public-feed-link/Activity/Topic/public"]'
+    hashtag        = helpers.doFollowTopic(browser)
+    publicSelector = '#main-sidebar [testpath="public-feed-link/Activity/Topic/public"]'
+    topicSelector  = "#main-sidebar [testpath=\"public-feed-link/Activity/Topic/#{hashtag.replace '#', ''}\"]"
+    recentSelector = "[testpath=\"ActivityTabHandle-/Activity/Public/Recent\"]"
 
     browser
-      .click                   '[testpath=channel-title]' + ' .following'
-      .waitForElementVisible   publicLink, 25000
-      .click                   publicLink
+      .click                     '[testpath=channel-title] .following'
+      .waitForElementNotVisible  topicSelector, 25000
+      .waitForElementVisible     publicSelector, 25000
+      .click                     publicSelector
+      .waitForElementVisible     recentSelector, 25000
       .refresh()
-      .getText selector, (result) =>
-        index = result.value.indexOf(hashtag.replace('#', ''))
-        assert.equal(index, -1)
-        browser.end()
+      .waitForElementVisible     publicSelector, 25000
+      .assert.elementNotPresent  topicSelector
+      .end()
