@@ -104,24 +104,24 @@ module.exports =
 
     return  unless @amIHost
 
-    targetUser = account.profile.nickname
+    target = account.profile.nickname
 
-    displayError = (err) ->
-      showError err
-      throwError err
+    # this object is used to follow the same pattern as other
+    # methods. IMO, it makes it easier to read. ~Umut
+    callbacks =
+      success: =>
+        @broadcastMessage { target, type: 'ParticipantKicked' }
+        @handleParticipantKicked target
+      error: (err) ->
+        # TODO: better error handling.
+        showError err
+        throwError err
 
-    @setMachineUser [targetUser], no, (err) =>
-      return displayError err  if err
-
+    @setMachineUser [target], no, (err) =>
+      return callbacks.error err  if err
       socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
-        return displayError err  if err
-
-        message    =
-          type     : 'ParticipantKicked'
-          target   : targetUser
-
-        @broadcastMessage message
-        @handleParticipantKicked targetUser
+        return callbacks.error err  if err
+        callbacks.success()
 
 
   handleParticipantKicked: (username) ->
