@@ -6,7 +6,9 @@ ModalMachineItem = require './modalmachineitem'
 
 module.exports = class MoreVMsModal extends SidebarSearchModal
 
-  constructor: (options = {}, data) ->
+  constructor: (options = {}, data = []) ->
+
+    hasContainer             = options.container?
 
     options.cssClass         = kd.utils.curry 'more-modal more-vms', options.cssClass
     options.width            = 462
@@ -14,8 +16,14 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
     options.disableSearch    = yes
     options.itemClass      or= ModalMachineItem
     options.bindModalDestroy = no
+    options.appendToDomBody  = !hasContainer
+    options.draggable        = no
+    options.overlay          = !hasContainer
 
     super options, data
+
+    if container = @getOption 'container'
+      kd.utils.defer => container.addSubView this
 
   viewAppended: ->
 

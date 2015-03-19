@@ -34,8 +34,9 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
           instructions  : 'install'
           list          : { data }
           button_add    :
-            title       : 'Add Selected Node'
+            title       : 'Use Selected Node'
             cssClass    : 'green'
+            loader      : yes
             callback    : =>
               kite = list.controller.selectedItems.first.getData()
               if kite.machine

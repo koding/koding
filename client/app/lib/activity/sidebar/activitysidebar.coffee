@@ -533,10 +533,11 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     frontApp = kd.singletons.appManager.getFrontApp()
 
     if frontApp?.options.name is 'IDE'
+      
       machine   = frontApp.mountedMachine
       workspace = frontApp.workspaceData
 
-      @selectWorkspace { machine, workspace }
+      @selectWorkspace { machine, workspace }  if machine and workspace
 
 
   addMachines_: (data) ->

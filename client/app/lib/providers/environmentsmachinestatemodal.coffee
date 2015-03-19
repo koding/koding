@@ -17,7 +17,6 @@ ComputeHelpers = require './computehelpers'
 sendDataDogEvent = require '../util/sendDataDogEvent'
 HelpSupportModal = '../commonviews/helpsupportmodal'
 trackEvent = require 'app/util/trackEvent'
-showError  = require 'app/util/showError'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -405,7 +404,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @createStateLabel()
 
-    if @state in [ Stopped, NotInitialized, Unknown ]
+    if @state in [ Stopped, NotInitialized, Unknown, 'NotFound' ]
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping,
                         Terminating, Updating, Rebooting ]
@@ -420,7 +419,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         successfully deleted.Please select a new VM to operate on from
         the VMs list or create a new one.
       "
-
     else if @state is Running
       @prepareIDE()
       @destroy()
@@ -464,11 +462,21 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   createStateButton: ->
 
-    @button      = new KDButtonView
-      title      : if @isManaged then 'Search for Nodes' else 'Turn it on'
-      cssClass   : 'turn-on state-button solid green medium'
-      icon       : !@isManaged
-      callback   : @bound if @isManaged then 'findNodes' else 'turnOnMachine'
+    if @state is 'NotFound'
+      title    = 'Create New Machine'
+      callback = 'requestNewMachine'
+    else if @isManaged
+      title    = 'Search for Nodes'
+      callback = 'findNodes'
+    else
+      title    = 'Turn it on'
+      callback = 'turnOnMachine'
+
+    @button    = new KDButtonView
+      title    : title
+      cssClass : 'turn-on state-button solid green medium'
+      icon     : !@isManaged
+      callback : @bound callback
 
     @container.addSubView @button
 
@@ -585,7 +593,15 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     FindManagedNodesModal = require './managed/findnodesmodal'
     findNodes = new FindManagedNodesModal { container }, @machine
 
-    
+
+  requestNewMachine: ->
+
+    {container} = @getOptions()
+
+    MoreVMsModal = require 'app/activity/sidebar/morevmsmodal'
+    new MoreVMsModal { container }
+
+
   turnOnMachine: ->
 
     trackEvent 'Turn on machine, click',
