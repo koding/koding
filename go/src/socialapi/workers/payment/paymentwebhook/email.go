@@ -26,7 +26,7 @@ var EmailSubjects = map[Action]string{
 	PaymentFailed:       "PaymentFailed",
 }
 
-func Email(user *models.User, action Action, opts map[string]interface{}) error {
+func SendEmail(user *models.User, action Action, opts map[string]interface{}) error {
 	subject, ok := EmailSubjects[action]
 	if !ok {
 		return errors.New("")

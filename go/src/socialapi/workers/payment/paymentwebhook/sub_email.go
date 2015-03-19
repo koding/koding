@@ -11,5 +11,5 @@ func subscriptionEmail(customerId, planName string, action Action) error {
 	Log.Info("Sent subscription email to: %s with plan: %s", user.Email,
 		planName)
 
-	return Email(user, action, opts)
+	return SendEmail(user, action, opts)
 }

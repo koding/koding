@@ -40,5 +40,5 @@ func stripeChargeHelper(raw []byte, c *Controller, act Action, aFn amountGetterF
 
 	Log.Info("Stripe: Sent invoice email to: %s", user.Email)
 
-	return Email(user, act, opts)
+	return SendEmail(user, act, opts)
 }
