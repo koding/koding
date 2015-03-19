@@ -124,6 +124,9 @@ func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 		return err
 	}
 
+	// um.Body is just message data itself in a map. Since we are going
+	// to apply the changes via MongoOp in client side, we are sending
+	// the changes with '$set' key.
 	if um.EventName == "updateInstance" {
 		um.Body = map[string]interface{}{"$set": um.Body}
 	}
