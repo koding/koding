@@ -322,9 +322,9 @@ module.exports = class IDEAppController extends AppController
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
 
-        machine = new Machine { machine }  unless machine instanceof Machine
-
         return unless machine
+
+        machine = new Machine { machine }  unless machine instanceof Machine
 
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
@@ -358,6 +358,8 @@ module.exports = class IDEAppController extends AppController
 
   getMountedMachine: (callback = noop) ->
 
+    return callback()  unless @mountedMachineUId
+
     kd.utils.defer =>
       environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine
@@ -372,7 +374,9 @@ module.exports = class IDEAppController extends AppController
     container         = @getView()
 
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
-      return showError 'Something went wrong. Try again.'  unless machineItem
+
+      unless machineItem
+        return @createMachineStateModal { state: 'NotFound', container }
 
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
@@ -429,11 +433,6 @@ module.exports = class IDEAppController extends AppController
         if event.status in actionRequiredStates
           @showStateMachineModal machineItem, event
 
-      .on 'MachineBeingDestroyed', (machine) =>
-
-        if machine._id is @mountedMachine._id
-          @quit()
-
 
   showStateMachineModal: (machineItem, event) ->
 
@@ -456,6 +455,8 @@ module.exports = class IDEAppController extends AppController
     mainView.toggleSidebar()  if mainView.isSidebarCollapsed
 
     { state, container, machineItem, initial } = options
+
+    container   ?= @getView()
     modalOptions = { state, container, initial }
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 

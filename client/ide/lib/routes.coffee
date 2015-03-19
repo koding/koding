@@ -13,6 +13,8 @@ selectWorkspaceOnSidebar = (data) ->
 
   { machine, workspace } = data
 
+  return  unless machine or workspace
+
   kd.getSingleton('mainView').activitySidebar.selectWorkspace data
   storage = kd.singletons.localStorageController.storage 'IDE'
 
@@ -35,6 +37,14 @@ getLatestWorkspace = ->
 
   if dataProvider.findWorkspace machineLabel, workspaceSlug, channelId
     return workspace
+
+
+loadIDENotFound = ->
+
+  {appManager} = kd.singletons
+  appManager.open 'IDE', { forceNew: yes }, (app) ->
+    app.amIHost = yes
+    appManager.tell 'IDE', 'createMachineStateModal', state: 'NotFound'
 
 
 loadIDE = (data) ->
@@ -89,7 +99,7 @@ routeToFallback = ->
   if obj?.machine # `?` intentionally. there might be no machine.
     routeToMachineWorkspace obj.machine
   else
-    router.handleRoute '/IDE/koding-vm-0/my-workspace'
+    loadIDENotFound()
 
 
 routeToMachineWorkspace = (machine) ->
