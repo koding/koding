@@ -27,7 +27,7 @@ module.exports = class KiteItem extends kd.ListItemView
       id = (id.split '-').first
       ip = "<a href='#{url}' target=_blank>#{ipAddress}</a>"
       inUse = if machine?
-      then "<a href='/IDE/#{machine.slug}'>#{machine.label}</a>"
+      then "#{machine.label}"
       else '--'
 
     "

@@ -13,7 +13,11 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
       title           : 'Search for available nodes'
       cssClass        : 'find-nodes'
       appendToDomBody : !hasContainer
-      draggable       : !hasContainer
+      draggable       : no
+      overlay         : !hasContainer
+
+    if options.reassign
+      defaults.title  = "Use different kite for machine #{data.label}"
 
     options           = defaults extends options
 
@@ -48,7 +52,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
             text        : "We are unable to reach your managed vm
                           (#{@machine.ipAddress}), but we've found following
                           klient kites registered with your account."
-            cssClass    : 'warning'
+            cssClass    : "warning #{if @getOption 'reassign' then 'hidden'}"
           list          : { data }
           button_assign :
             title       : 'Use Selected Kite'
@@ -62,7 +66,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
                 @assignKite kite
           button_delete :
             title       : 'Delete VM'
-            cssClass    : 'red'
+            cssClass    : "red #{if @getOption 'reassign' then 'hidden'}"
             callback    : @bound 'removeMachine'
           button_reload :
             iconOnly    : yes

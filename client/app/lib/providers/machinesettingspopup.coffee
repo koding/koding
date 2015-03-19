@@ -372,7 +372,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         callback : =>
 
           FindManagedNodesModal = require './managed/findnodesmodal'
-          findNodes = new FindManagedNodesModal {}, @machine
+          findNodes = new FindManagedNodesModal reassign: yes, @machine
           @destroy()
 
     @buttonContainer.addSubView @terminateButton = new KDButtonView

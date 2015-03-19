@@ -10,7 +10,7 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
 
     options.cssClass         = kd.utils.curry 'more-modal more-vms', options.cssClass
     options.width            = 462
-    options.title          or= 'VMs'
+    options.title          or= 'Your VMs'
     options.disableSearch    = yes
     options.itemClass      or= ModalMachineItem
     options.bindModalDestroy = no

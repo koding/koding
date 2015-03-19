@@ -10,7 +10,7 @@ module.exports = class MoreWorkspacesModal extends SidebarSearchModal
 
     options.cssClass            = kd.utils.curry 'more-modal more-workspaces', options.cssClass
     options.width               = 462
-    options.title             or= 'Workspaces'
+    options.title             or= "Workspaces on #{data.first.machineLabel}"
     options.disableSearch       = yes
     options.itemClass         or= ModalWorkspaceItem
     options.bindModalDestroy    = no
