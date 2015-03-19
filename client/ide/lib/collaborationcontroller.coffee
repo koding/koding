@@ -758,7 +758,7 @@ module.exports =
 
     return  unless @stateMachine.state is 'Ending'
 
-    @rtm.once 'RealtimeManagerWillDespose', =>
+    @rtm.once 'RealtimeManagerWillDispose', =>
       kd.utils.killRepeat @pingInterval
       kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
