@@ -326,8 +326,8 @@ module.exports = class ComputeController extends KDController
 
   create: (options, callback)->
     remote.api.ComputeProvider.create options, (err, machine)=>
-      @reset yes  unless err?
-      callback err, machine
+      return callback err  if err?
+      @reset yes, -> callback null, machine
 
 
   createDefaultStack: ->
