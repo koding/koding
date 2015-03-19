@@ -50,7 +50,7 @@ func (s *stripeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	err = action(req.Data.Object, s.Controller)
 	if err != nil {
-		Log.Error("Stripe: webhook: %s action failed: %s", req.Name, err)
+		Log.Debug("Stripe: webhook: %s action failed: %s", req.Name, err)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		return

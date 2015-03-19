@@ -95,19 +95,3 @@ module.exports =
       .waitForElementNotPresent '.kdoverlay', 25000
       .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
       .end()
-
-
-  cancelEditDeletion: (browser) ->
-
-    comment         = helpers.postComment(browser)
-    commentSelector = activitySelector + ' .comment-container button.comment-menu'
-
-    browser
-      .waitForElementPresent    commentSelector, 25000
-      .click                    commentSelector
-      .waitForElementVisible    '.kdcontextmenu .delete-comment', 25000
-      .click                    '.kdcontextmenu .delete-comment'
-      .click                    '.kdmodal-inner .solid.light-gray.medium'
-      .waitForElementNotPresent '.kdoverlay', 25000
-      .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
-      .end()

@@ -24,6 +24,8 @@ type SitemapFile struct {
 
 	// last modification date of the file
 	UpdatedAt time.Time
+
+	isStatic bool
 }
 
 func (f *SitemapFile) ByName(name string) error {
