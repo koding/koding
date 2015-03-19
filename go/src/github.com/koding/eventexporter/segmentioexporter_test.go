@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -44,7 +45,7 @@ func TestSegmentIOExporter(t *testing.T) {
 
 	Convey("", t, func() {
 		props := map[string]interface{}{"key": "a"}
-		user := &User{Username: "indianajones"}
+		user := &User{Username: "indianajones", Email: "senthil@koding.com"}
 		event := &Event{Name: "test", Properties: props, User: user}
 
 		sender := NewSegementIOExporter("", 1)
@@ -53,8 +54,15 @@ func TestSegmentIOExporter(t *testing.T) {
 		err := sender.Send(event)
 		So(err, ShouldBeNil)
 
-		req := <-messageArrived
-		So(len(req.Batch), ShouldEqual, 1)
+		var req *segmentRequest
+		var timeout = time.NewTimer(time.Second * 2).C
+
+		select {
+		case req = <-messageArrived:
+			So(len(req.Batch), ShouldEqual, 1)
+		case <-timeout:
+			t.Fatal("no response from request to segmentio")
+		}
 
 		p := req.Batch[0]
 		So(p.UserID, ShouldEqual, "indianajones")
