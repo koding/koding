@@ -47,4 +47,6 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
 
     machines = @getData()
 
-    @listController.addItem machine.data for machine in machines
+    for machine in machines
+      item = @listController.addItem machine.data
+      item.once 'MachineSelected', @bound 'destroy'

@@ -10,7 +10,7 @@ module.exports = class ModalWorkspaceItem extends KDListItemView
 
   constructor: (options = {}, data) ->
 
-    options.type     = 'sidebar-item'
+    options.cssClass = 'sidebar-item workspace'
     options.partial  = ''
 
     super

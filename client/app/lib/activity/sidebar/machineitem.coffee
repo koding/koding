@@ -1,10 +1,27 @@
+JView = require '../../jview'
 kd = require 'kd'
 KDListItemView = kd.ListItemView
+KDCustomHTMLView = kd.CustomHTMLView
 
-module.exports = class MachineItem extends KDListItemView
+
+module.exports = class ModalMachineItem extends KDListItemView
+
+  JView.mixin @prototype
 
   constructor: (options, data)->
-    options.cssClass = 'machine-item'
+
+    options.cssClass = 'sidebar-item machine'
+    options.partial  = ''
+
     super options, data
 
-  partial: (data)-> data.slug
+    href = "/IDE/#{data.slug}"
+
+    @addSubView new KDCustomHTMLView
+      tagName   : 'a'
+      attributes: { href }
+      partial   : data.label
+      click     : (e) =>
+        kd.utils.stopDOMEvent e
+        @emit 'MachineSelected'
+        kd.singletons.router.handleRoute href
