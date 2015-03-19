@@ -18,11 +18,11 @@ type Mail struct {
 
 type Properties struct {
 	Username string
-	Options  map[string]string
+	Options  map[string]interface{}
 }
 
 func NewMail(to, from, subject, username string) *Mail {
-	options := map[string]string{}
+	options := map[string]interface{}{}
 	properties := &Properties{Username: username, Options: options}
 
 	return &Mail{

@@ -24,7 +24,7 @@ func paypalPaymentFailed(req *webhookmodels.PaypalGenericWebhook, c *Controller)
 }
 
 func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action Action, c *Controller) error {
-	opts := map[string]string{
+	opts := map[string]interface{}{
 		"planName": req.Plan,
 		"price":    formatPaypalAmount(req.Currency, req.Amount),
 	}

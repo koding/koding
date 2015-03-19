@@ -6,7 +6,7 @@ func subscriptionEmail(customerId, planName string, action Action) error {
 		return err
 	}
 
-	opts := map[string]string{"planName": planName}
+	opts := map[string]interface{}{"planName": planName}
 
 	Log.Info("Sent subscription email to: %s with plan: %s", user.Email,
 		planName)

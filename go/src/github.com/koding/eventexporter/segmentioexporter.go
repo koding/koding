@@ -1,6 +1,8 @@
 package eventexporter
 
-import analytics "github.com/segmentio/analytics-go"
+import (
+	analytics "github.com/segmentio/analytics-go"
+)
 
 type SegementIOExporter struct {
 	Client *analytics.Client

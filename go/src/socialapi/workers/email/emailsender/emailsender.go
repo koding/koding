@@ -39,9 +39,7 @@ func (c *Controller) Process(m *Mail) error {
 
 	event := &eventexporter.Event{
 		Name: m.Subject, User: user, Body: &eventexporter.Body{Content: m.HTML},
-		Properties: map[string]interface{}{
-			"options": m.Properties.Options,
-		},
+		Properties: m.Properties.Options,
 	}
 
 	return c.emailer.Send(event)
