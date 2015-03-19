@@ -263,6 +263,7 @@ module.exports =
       @myWatchMap        = null
       @mySnapshot        = null
 
+
   registerCollaborationSessionId: ->
 
     realtimeHelpers.registerCollaborationSessionId @rtm, @participants
@@ -695,26 +696,6 @@ module.exports =
           @handleCollaborationEndedForParticipant()
 
 
-  handleCollaborationEndedForParticipant: ->
-
-    # TODO: fix explicit state checks.
-    return  unless @stateMachine.state in ['Active', 'Ending']
-
-    # TODO: fix implicit emit.
-    @rtm.once 'RealtimeManagerWillDispose', =>
-      @chat.emit 'CollaborationEnded'
-      @chat.destroy()
-      @chat = null
-      @statusBar.emit 'CollaborationEnded'
-      @removeParticipant nick()
-      @removeMachineNode()
-
-    @rtm.once 'RealtimeManagerDidDispose', =>
-      kd.utils.defer @bound 'quit'
-
-    @cleanupCollaboration()
-
-
   endCollaborationForHost: (callbacks) ->
 
     @broadcastMessage { type: 'SessionEnded' }
@@ -739,6 +720,26 @@ module.exports =
       return callbacks.error err  if err
       @setMachineUser [nick()], no, =>
         callbacks.success()
+
+
+  handleCollaborationEndedForParticipant: ->
+
+    # TODO: fix explicit state checks.
+    return  unless @stateMachine.state in ['Active', 'Ending']
+
+    # TODO: fix implicit emit.
+    @rtm.once 'RealtimeManagerWillDispose', =>
+      @chat.emit 'CollaborationEnded'
+      @chat.destroy()
+      @chat = null
+      @statusBar.emit 'CollaborationEnded'
+      @removeParticipant nick()
+      @removeMachineNode()
+
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      kd.utils.defer @bound 'quit'
+
+    @cleanupCollaboration()
 
 
   showChat: ->
