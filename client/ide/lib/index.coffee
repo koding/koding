@@ -1203,6 +1203,7 @@ module.exports = class IDEAppController extends AppController
 
   quit: ->
 
+    @emit 'IDEWillQuit'
 
     @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
@@ -1210,6 +1211,8 @@ module.exports = class IDEAppController extends AppController
 
     kd.utils.defer ->
       kd.singletons.router.handleRoute '/IDE'
+
+    @emit 'IDEDidQuit'
 
 
   removeParticipantCursorWidget: (targetUser) ->
