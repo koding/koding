@@ -904,12 +904,12 @@ module.exports =
         quit       :
           style    : 'solid light-gray medium'
           title    : 'LEAVE'
-          callback : => @modal.destroy()
+          callback : =>
+            @modal.destroy()
 
+    @chat.end()
     @showModal options
-    @removeMachineNode()
-    @removeParticipant nick()
-    @quit()
+    @handleCollaborationEndedForParticipant()
 
 
   handleParticipantLeaveAction: ->
