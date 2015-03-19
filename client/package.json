@@ -35,7 +35,8 @@
     "xtend": "^4.0.0"
   },
   "scripts": {
-    "preinstall": "npm --prefix builder install && npm --prefix landing install"
+    "preinstall": "npm --prefix builder install && npm --prefix landing install",
+    "test": "make test"
   },
   "browser": {
     "kd": "kd.js",
@@ -44,5 +45,10 @@
     "underscore": "lodash/dist/lodash.underscore.js",
     "sockjs-client": "kd-shim-sockjs-client",
     "os": "component-os"
+  },
+  "devDependencies": {
+    "coffee-script": "1.8.0",
+    "nightwatch": "^0.5.36",
+    "yargs": "^3.5.4"
   }
 }

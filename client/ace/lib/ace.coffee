@@ -56,9 +56,10 @@ class Ace extends KDView
 
     @fetchContents (err, contents)=>
       notification?.destroy()
-      id = "editor#{@getId()}"
-      return  unless @getElement().querySelector "##{id}"
-      @editor = ace.edit id
+      element = @getElement().querySelector "#editor#{@getId()}"
+      return  unless element
+      @editor = ace.edit element
+      element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
       @prepareEditor()
       if contents
         @setContents contents
@@ -126,19 +127,18 @@ class Ace extends KDView
     @lastContentsSentForSave = @getContents()
 
 
-  saveFinished:(err, res)->
-    unless err
-      @lastSavedContents = @lastContentsSentForSave
-      @emit 'FileContentRestored'
-      # unless @askedForSave
-        # log "this file has changed, put a modal and block editing @fatihacet!"
-        # fatihacet - this case works buggy.
-      @askedForSave = no
-    else if err?.message?.indexOf? 'permission denied' > -1
-      @notify "You don't have enough permission to save!", 'error'
+  saveFinished:(res)->
+
+    @lastSavedContents = @lastContentsSentForSave
+    @emit 'FileContentRestored'
+    # unless @askedForSave
+      # log "this file has changed, put a modal and block editing @fatihacet!"
+      # fatihacet - this case works buggy.
+    @askedForSave = no
 
 
-  saveAsFinished:->
+  saveAsFinished:(newFile, oldFile)->
+
     @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 

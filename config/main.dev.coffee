@@ -57,7 +57,7 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
   gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
-  paymentwebhook      = { port : "6600" }
+  paymentwebhook      = { port : "6600", debug : true }
 
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
@@ -172,6 +172,7 @@ Configuration = (options={}) ->
     segment                        : '4c570qjqo0'
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
+    prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
 
     collaboration :
       timeout     : 1 * 60 * 1000
@@ -965,7 +966,7 @@ Configuration = (options={}) ->
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
-        go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
+        go run ./go/src/socialapi/workers/cmd/migrator/main.go -c #{socialapi.configFilePath}
 
         # Required step for guestuser
         mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'

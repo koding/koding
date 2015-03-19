@@ -17,7 +17,7 @@ type CreditCardResponse struct {
 }
 
 func GetCreditCard(oldId string) (*CreditCardResponse, error) {
-	customer, err := FindCustomerByOldId(oldId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(oldId)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func UpdateCreditCard(oldId, token string) error {
 		return paymenterrors.ErrTokenIsEmpty
 	}
 
-	customer, err := FindCustomerByOldId(oldId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(oldId)
 	if err != nil {
 		return err
 	}

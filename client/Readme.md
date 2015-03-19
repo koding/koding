@@ -45,46 +45,48 @@ You can also `./run backend` only which is the prefered way to develop frontend:
 
 Frontend application is being built by [builder](./builder) and it has a bunch of options that you won't probably need to alter since the most general purpose combinations are pre-configured in `Makefile`.
 
-Watch scripts, styles & sprites and recompile/transpile upon changes with inlined source maps:
+Watch scripts, styles & sprites and recompile/transpile upon changes:
 
-```
-λ dev/koding/client make development
+```sh
+λ koding/client make watch
 ```
 
-Creating source maps for scripts is kinda expensive. If you want faster builds in watch mode and don't need source maps:
+Creating source maps is kinda expensive, so they are disabled by default.
 
-```
-λ dev/koding/client make watch
+If you don't mind slower builds in watch mode and need source maps, try this:
+
+```sh
+λ koding/client EXTRAS="--debug-js --debug-css" make watch
 ```
 
 If you want to have your source maps inlined, but no watch mode:
 
-```
-λ dev/koding/client make debug
+```sh
+λ koding/client make debug
 ```
 
 Minify scripts and styles:
 
-```
-λ dev/koding/client make minify
+```sh
+λ koding/client make minify
 ```
 
 Minify scripts and styles, but write source maps of scripts to an external `.map` file:
 
-```
-λ dev/koding/client make minify-with-external-sourcemaps
+```sh
+λ koding/client make minify-with-external-sourcemaps
 ```
 
 Vanilla:
 
-```
-make vanilla
+```sh
+λ koding/client make vanilla
 ```
 
 Build [landing](./landing):
 
 ```
-λ dev/koding/client make landing
+λ koding/client make landing
 ```
 
 And finally there are `make all` and `make dist` which are simply aliases for `make landing development` and `make landing minify-with-external-sourcemaps` respectively.
@@ -120,6 +122,34 @@ A module's directory tree looks like this:
     │   │   ├── x.png
     ├── x.coffee
 ```
+
+# testing
+
+To run browser tests, type:
+
+```sh
+λ koding/client npm test
+```
+
+or
+
+```sh
+λ koding/client make test
+```
+
+If you have a [Selenium](http://www.seleniumhq.org) server started already on your machine, type:
+
+```sh
+λ koding/client TEST_EXTRAS=--no-start-selenium make test
+```
+
+If your web server is not running on localhost, you can specify its url like this:
+
+```sh
+λ koding/client TEST_EXTRAS="--url http://xyz.koding.io:8090" make test
+```
+
+Read more about browser tests and test configuration cli [here.](./test)
 
 # bant.json
 

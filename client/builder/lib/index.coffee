@@ -120,7 +120,8 @@ class Haydar extends events.EventEmitter
         child_process.exec "node #{__dirname}/get-bongo-schema.js", (err, res) =>
           throw err if err
           opts.schema = JSON.parse res
-          configData =
+          configData = if fs.existsSync opts.configFile then require opts.configFile else {}
+          configData = xtend configData,
             rev    : opts.rev
             schema : opts.schema
           fs.writeFileSync opts.configFile, JSON.stringify(configData)
@@ -267,8 +268,7 @@ class Haydar extends events.EventEmitter
       b = bant.watch opts_
 
       onUpdate = (files) ->
-        files.forEach (file) ->
-          console.log "updated #{file}"
+        files.forEach (file) -> console.log "updated #{file}"
         bundle()
 
       onUpdate = throttle onUpdate, THROTTLE_WAIT
@@ -290,7 +290,7 @@ class Haydar extends events.EventEmitter
 
       start = Date.now()
       notify = @_notify.bind this
-      
+
       b.bundle (err, src) =>
 
         if err
@@ -523,7 +523,7 @@ class Haydar extends events.EventEmitter
 
       dirs = rows.map (row) ->
         return row.outdir
-      
+
       dirs = nub dirs
 
       createDirs dirs, ->

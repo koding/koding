@@ -8,7 +8,6 @@ path       = require 'path'
 os         = require 'os'
 request    = require 'request'
 git        = require 'git-rev'
-JSONStream = require 'JSONStream'
 
 log "-------------------------"
 log ""
@@ -69,21 +68,17 @@ rest = ->
     log "3) brew install mongodb nginx"
     log "4) do './run install' "
     log "5) do './run buildservices' to create backend service containers after installing docker."
-    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{options.publicHostname}.ngrok.com"
+    log "6) you can then type './run' to run Koding and see it on #{o.hostname} and on koding-#{process.env.USER}.ngrok.com"
 
     (require "./deployment/socialapiconfig.coffee").create KONFIG
 
-  # write version to client/.config.json
+  # write revision to client/.config.json
   writeVersion = (obj) ->
-    s = JSONStream.stringifyObject()
-    outfile = __dirname + '/client/.config.json'
-    ws = fs.createWriteStream outfile
-    s.pipe ws
-    s.write ['rev', obj.client.version]
-    s.end()
-    ws.on 'finish', ->
-      console.log "written #{outfile}"
-
+    file = __dirname + '/client/.config.json'
+    config = if fs.existsSync file then require file else {}
+    config.rev = obj.client.version
+    fs.writeFileSync file, JSON.stringify config
+    console.log "written #{file}"
 
   createRunFile KONFIG
   writeVersion KONFIG

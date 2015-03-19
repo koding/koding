@@ -38,8 +38,7 @@ debug:
 watch:
 	$(BUILDER) -v $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
 
-development:
-	$(BUILDER) -v $(BUILDER_DEBUG_FLAGS) $(BUILDER_WATCH_FLAGS) $(BUILDER_ARGS)
+development: watch
 
 minify-with-external-sourcemaps:
 	$(BUILDER) -v \
@@ -53,4 +52,7 @@ minify:
 landing:
 	$(MAKE) -C landing
 
-.PHONY: landing
+test:
+	$(MAKE) -C test
+
+.PHONY: landing test
