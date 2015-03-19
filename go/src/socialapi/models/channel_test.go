@@ -1338,12 +1338,15 @@ func TestChannelFetchRoot(t *testing.T) {
 				groupName,
 				models.Channel_TYPE_TOPIC,
 			) // create root channel with second acc
+			So(err, ShouldBeNil)
 
 			leaf, err := rest.CreateChannelByGroupNameAndType(
 				acc.Id,
 				groupName,
 				models.Channel_TYPE_TOPIC,
 			)
+			So(err, ShouldBeNil)
+
 			cl := &ChannelLink{
 				RootId: root.Id,
 				LeafId: leaf.Id,
