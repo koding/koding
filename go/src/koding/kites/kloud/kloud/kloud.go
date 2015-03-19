@@ -21,6 +21,9 @@ type Kloud struct {
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
 	providers map[string]interface{}
 
+	// rename to providers once finished
+	builders map[string]Provider
+
 	// Domainer is responsible of managing dns records
 	Domainer protocol.Domainer
 

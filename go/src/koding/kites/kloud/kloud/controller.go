@@ -10,6 +10,7 @@ import (
 	"koding/kites/kloud/protocol"
 
 	"github.com/koding/kite"
+	"golang.org/x/net/context"
 )
 
 type ControlResult struct {
@@ -445,4 +446,70 @@ func methodIn(method string, methods ...string) bool {
 		}
 	}
 	return false
+}
+
+func (k *Kloud) Base(r *kite.Request) (resp interface{}, reqErr error) {
+	// calls with zero arguments causes args to be nil. Check it that we
+	// don't get a beloved panic
+	if r.Args == nil {
+		return nil, NewError(ErrNoArguments)
+	}
+
+	var args struct {
+		MachineId string
+		Provider  string
+	}
+
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	if args.MachineId == "" {
+		return nil, NewError(ErrMachineIdMissing)
+	}
+
+	// Lock the machine id so no one else can access it. It means this
+	// kloud instance is now responsible for this machine id. Its basically
+	// a distributed lock. It's unlocked when there is an error or if the
+	// method call is finished (unlocking is done inside the responsible
+	// method calls).
+	if r.Method != "info" {
+		if err := k.Locker.Lock(args.MachineId); err != nil {
+			return nil, err
+		}
+
+		// if something goes wrong after step reset the document which is was
+		// set in the by previous step by Locker.Lock(). If there is no error,
+		// the lock will be unlocked in the respective method  function.
+		defer func() {
+			if reqErr != nil {
+				// otherwise that means Locker.Lock or something else in
+				// ControlFunc failed. Reset the lock again so it can be acquired by
+				// others.
+				k.Locker.Unlock(args.MachineId)
+			}
+		}()
+	}
+
+	provider, ok := k.builders[args.Provider]
+	if !ok {
+		return nil, NewError(ErrProviderAvailable)
+	}
+
+	machine, err := provider.Get(args.MachineId)
+	if err != nil {
+		return nil, err
+	}
+
+	builder, ok := machine.(Builder)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	err = builder.Builder(k.NewContext(context.Background()))
+	if err != nil {
+		return nil, err
+	}
+
+	return true, nil
 }
