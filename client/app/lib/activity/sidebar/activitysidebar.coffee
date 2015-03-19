@@ -101,9 +101,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     environmentDataProvider.revive()
-    environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
 
     mainController.ready =>
+      environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
       whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
