@@ -194,6 +194,8 @@ module.exports = class JWorkspace extends Module
 
           return callback err  if err
 
+          {nickname}     = account.profile
+          
           data           =
             name         : 'My Workspace'
             isDefault    : yes
