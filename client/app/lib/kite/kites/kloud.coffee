@@ -12,20 +12,23 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
   getProvider = (machineId)->
     kd.singletons.computeController.machinesById[machineId]?.provider
 
-  supported = (machineId)->
-    (getProvider machineId) in SUPPORTED_PROVIDERS
-
   isManaged = (machineId)->
     (getProvider machineId) is 'managed'
 
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) ->
 
-      if payload?.machineId? and not supported payload.machineId
-        # machine provider is not supported by kloud #{payload.machineId}
-        return Promise.reject
-          name    : 'NotSupported'
-          message : 'Operation is not supported for this VM'
+      if payload?.machineId?
+
+        provider = getProvider payload.machineId
+
+        if provider not in SUPPORTED_PROVIDERS
+          # machine provider is not supported by kloud #{payload.machineId}
+          return Promise.reject
+            name    : 'NotSupported'
+            message : 'Operation is not supported for this VM'
+
+        payload.provider = provider
 
       @tell rpcMethod, payload
 
@@ -135,7 +138,9 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
     {kontrol, computeController} = kd.singletons
 
-    @tell 'info', { machineId }
+    provider = getProvider machineId
+
+    @tell 'info', { machineId, provider }
 
       .then (info) =>
 
