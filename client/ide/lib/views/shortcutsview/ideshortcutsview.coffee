@@ -70,7 +70,7 @@ module.exports = class IDEShortcutsView extends KDCustomScrollView
       'Save as'                : 'Meta-Shift-S'
       'Save all'               : 'Ctrl-Alt-S'
       'Find'                   : 'Meta-F'
-      'Find next'              : { Others: 'Ctrl-K',         Apple: 'Meta-G'       }
+      'Find next'              : 'Ctrl-K'
       'Find previous'          : { Others: 'Ctrl-Shift-K',   Apple: 'Meta-Shift-G' }
       'Find and replace'       : 'Meta-Shift-F'
       'Preview file'           : 'Ctrl-Alt-P'
