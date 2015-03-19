@@ -689,11 +689,28 @@ module.exports =
     else
       @endCollaborationForParticipant
         success: =>
-          # TODO: move this into its own method.
-          @removeParticipant nick()
-          @removeMachineNode()
-          sharedSuccessFn()
-          kd.utils.defer @bound 'quit'
+          @modal?.destroy()
+          @handleCollaborationEndedForParticipant()
+
+
+  handleCollaborationEndedForParticipant: ->
+
+    # TODO: fix explicit state checks.
+    return  unless @stateMachine.state in ['Active', 'Ending']
+
+    # TODO: fix implicit emit.
+    @rtm.once 'RealtimeManagerWillDispose', =>
+      @chat.emit 'CollaborationEnded'
+      @chat.destroy()
+      @chat = null
+      @statusBar.emit 'CollaborationEnded'
+      @removeParticipant nick()
+      @removeMachineNode()
+
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      kd.utils.defer @bound 'quit'
+
+    @cleanupCollaboration()
 
 
   endCollaborationForHost: (callbacks) ->
