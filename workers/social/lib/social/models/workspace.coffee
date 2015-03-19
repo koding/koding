@@ -12,36 +12,36 @@ module.exports = class JWorkspace extends Module
 
   @set
 
-    indexes        :
-      originId     : 'sparse'
-      slug         : 'sparse'
+    indexes             :
+      originId          : 'sparse'
+      slug              : 'sparse'
 
-    schema         :
-      name         : String
-      slug         : String
-      isDefault    :
-        type       : Boolean
-        default    : no
-      channelId    : String
-      machineUId   : String
-      machineLabel : String
-      rootPath     : String
-      originId     : ObjectId
-      layout       : Object
+    schema              :
+      name              : String
+      slug              : String
+      isDefault         :
+        type            : Boolean
+        default         : no
+      channelId         : String
+      machineUId        : String
+      machineLabel      : String
+      rootPath          : String
+      originId          : ObjectId
+      layout            : Object
 
-    sharedMethods  :
-      static       :
-        create     : signature Object, Function
-        deleteById : signature String, Function
-        deleteByUid: signature String, Function
-        update     : signature String, Object, Function
-        fetchByMachines: signature Function
-        createDefault  : signature String, Function
-      instance     :
-        delete     : signature Function
-    sharedEvents   :
-      static       : []
-      instance     : []
+    sharedMethods       :
+      static            :
+        create          : signature Object, Function
+        deleteById      : signature String, Function
+        deleteByUid     : signature String, Function
+        update          : signature String, Object, Function
+        fetchByMachines : signature Function
+        createDefault   : signature String, Function
+      instance          :
+        delete          : signature Function
+    sharedEvents        :
+      static            : []
+      instance          : []
 
 
   @create$ = secure (client, data, callback) ->
