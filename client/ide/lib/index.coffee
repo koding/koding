@@ -374,7 +374,9 @@ module.exports = class IDEAppController extends AppController
     container         = @getView()
 
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
-      return showError 'Something went wrong. Try again.'  unless machineItem
+
+      unless machineItem
+        return @createMachineStateModal { state: 'NotFound', container }
 
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
@@ -453,6 +455,8 @@ module.exports = class IDEAppController extends AppController
     mainView.toggleSidebar()  if mainView.isSidebarCollapsed
 
     { state, container, machineItem, initial } = options
+
+    container   ?= @getView()
     modalOptions = { state, container, initial }
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 

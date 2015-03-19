@@ -39,6 +39,14 @@ getLatestWorkspace = ->
     return workspace
 
 
+loadIDENotFound = ->
+
+  {appManager} = kd.singletons
+  appManager.open 'IDE', { forceNew: yes }, (app) ->
+    app.amIHost = yes
+    appManager.tell 'IDE', 'createMachineStateModal', state: 'NotFound'
+
+
 loadIDE = (data) ->
 
   { machine, workspace, username, channelId } = data
@@ -91,7 +99,7 @@ routeToFallback = ->
   if obj?.machine # `?` intentionally. there might be no machine.
     routeToMachineWorkspace obj.machine
   else
-    router.handleRoute '/IDE/koding-vm-0/my-workspace'
+    loadIDENotFound()
 
 
 routeToMachineWorkspace = (machine) ->
