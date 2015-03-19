@@ -21,14 +21,16 @@ type Properties struct {
 	Options  map[string]interface{}
 }
 
-func NewMail(to, from, subject, username string) *Mail {
+func NewProperties() *Properties {
 	options := map[string]interface{}{}
-	properties := &Properties{Username: username, Options: options}
+	return &Properties{Username: "", Options: options}
+}
 
-	return &Mail{
-		To: to, From: from, Subject: subject,
-		Properties: properties,
-	}
+func NewMail(to, from, subject, username string) *Mail {
+	properties := NewProperties()
+	properties.Username = username
+
+	return &Mail{To: to, From: from, Subject: subject, Properties: properties}
 }
 
 func (m Mail) GetId() int64 {

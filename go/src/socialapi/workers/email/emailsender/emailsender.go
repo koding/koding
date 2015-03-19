@@ -33,9 +33,11 @@ func Send(m *Mail) error {
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
 	user := &eventexporter.User{Email: m.To}
-	if m.Properties != nil {
-		user.Username = m.Properties.Username
+	if m.Properties == nil {
+		m.Properties = NewProperties()
 	}
+
+	user.Username = m.Properties.Username
 
 	event := &eventexporter.Event{
 		Name: m.Subject, User: user, Body: &eventexporter.Body{Content: m.HTML},
