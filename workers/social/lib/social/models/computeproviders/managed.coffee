@@ -86,10 +86,8 @@ module.exports = class Managed extends ProviderInterface
 
       return callback err  if err
 
-      rootPath = '/' # We are not sure if the /home/nick directory exists
-
       JWorkspace = require '../workspace'
-      JWorkspace.createDefault client, {machine, rootPath}, callback
+      JWorkspace.createDefault client, machine.uid, callback
 
 
   @remove = (client, options, callback)->
