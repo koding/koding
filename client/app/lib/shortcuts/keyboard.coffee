@@ -3,8 +3,17 @@ defaults  = require './defaults'
 events    = require 'events'
 _         = require 'underscore'
 kd        = require 'kd'
+os        = require 'os'
 
-STORAGE_VERSION = '1'
+STORAGE_VERSION      = '1'
+STORAGE_BINDINGS_KEY = "bindings-#{os}"
+THROTTLE_WAIT        = 300
+
+KEYCFG_PLATFORM_METHOD_NAME = do ->
+  if os is 'linux'
+    platform = 'win'
+  platform or= os
+  return "get#{platform.charAt(0).toUpperCase()}#{platform.slice 1, 3}Keys"
 
 module.exports =
 
@@ -13,6 +22,9 @@ class Keyboard extends events.EventEmitter
   constructor: (opts={}) ->
 
     super()
+
+    @_store        = null
+    @_isStoreReady = no
 
     if opts.shortcuts instanceof Shortcuts
       @shortcuts = opts.shortcuts
@@ -23,19 +35,47 @@ class Keyboard extends events.EventEmitter
       , {}
       @shortcuts = new Shortcuts raw
 
-    { appStorageController } = kd.singletons
-    @_store = appStorageController.storage 'Keyboard', STORAGE_VERSION
-
-
-  start: ->
-    @addEventListeners()
-
+    window.z = @shortcuts
 
   addEventListeners: ->
 
-    { appManager } = kd.singletons
+    { appManager, appStorageController } = kd.singletons
+
+    @_store = appStorageController.storage 'Keyboard', STORAGE_VERSION
+    @_store.ready _.bind @handleStoreReady, this
+
     appManager.on 'FrontAppChange', 
       _.bind @handleFrontAppChange, this
+
+    @shortcuts.on 'change', (collection) =>
+      @_save collection
+
+
+  _save: _.throttle (collection) ->
+    throw 'not ready'  unless @_isStoreReady
+
+    data = collection.reduce (acc, model) ->
+      acc[model.name] = model[KEYCFG_PLATFORM_METHOD_NAME]()
+    , {}
+
+    @_store.setValue STORAGE_BINDINGS_KEY, data
+
+  , THROTTLE_WAIT,
+    leading  : no
+    trailing : yes
+
+
+  _restore: ->
+    throw 'not ready'  unless @_isStoreReady
+
+    bindings = @_store.getValue(STORAGE_BINDINGS_KEY) or {}
+
+
+  handleStoreReady: ->
+
+    @_isStoreReady = yes
+
+    @_restore()
 
 
   handleFrontAppChange: (app, prevApp) ->

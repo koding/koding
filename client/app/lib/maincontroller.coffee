@@ -141,7 +141,7 @@ class MainController extends KDController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
 
     kb = new Keyboard
-    kb.start()
+    kb.addEventListeners()
 
     router.listen()
 
