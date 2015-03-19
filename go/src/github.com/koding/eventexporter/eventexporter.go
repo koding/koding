@@ -1,5 +1,10 @@
 package eventexporter
 
+const (
+	TextBodyType BodyType = iota
+	HtmlBodyType
+)
+
 type Exporter interface {
 	Send(*Event) error
 }
@@ -19,10 +24,6 @@ type Body struct {
 }
 
 type User struct {
-	Email, Username string
+	Email    string
+	Username string
 }
-
-const (
-	TextBodyType BodyType = iota
-	HtmlBodyType
-)

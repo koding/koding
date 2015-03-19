@@ -16,8 +16,6 @@ func NewSegementIOExporter(key string, size int) *SegementIOExporter {
 }
 
 func (s *SegementIOExporter) Send(event *Event) error {
-	event = addBody(event)
-
 	if event.User.Username == "" {
 		return ErrorSegmentIOUsernameEmpty
 	}
@@ -30,15 +28,14 @@ func (s *SegementIOExporter) Send(event *Event) error {
 		return ErrorSegmentIOEventEmpty
 	}
 
+	event = addBody(event)
 	event.Properties["email"] = event.User.Email
 
-	err := s.Client.Track(&analytics.Track{
+	return s.Client.Track(&analytics.Track{
 		Event:      event.Name,
 		UserId:     event.User.Username,
 		Properties: event.Properties,
 	})
-
-	return err
 }
 
 func addBody(event *Event) *Event {
