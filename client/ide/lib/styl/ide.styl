@@ -18,7 +18,10 @@ text-color-green      = #4EA04C
 
 // theming
 body.ide.dark
-  bg                    color, #262626
+
+  #main-panel-wrapper
+    bg                  color, #262626
+
   .application-page
     border-left         2px solid dark-tab-header-bg
     &.blurred
@@ -73,7 +76,7 @@ body.ide.dark
     display             inline-block
     top                 3px
 
-  .ace-koding, .ace-tm
+  .ace-koding
     bg                  color, dark-panel-bg
     .ace_gutter
       bg                color, dark-panel-bg
@@ -84,9 +87,6 @@ body.ide.dark
       bg                color, #3F3F3F
 
   .editor-bottom-bar
-    bg                  color, dark-tab-header-bg
-
-  .kdsplitview-resizer
     bg                  color, dark-tab-header-bg
 
   .terminal .green-on-black.console
@@ -144,10 +144,6 @@ body.ide.dark
 .ide
   .kdsplitview-resizer
     z-index             10 // ace occupies
-    &.vertical
-      width             2px
-    &.horizontal
-      height            2px
 
   .ace_editor
     height              100%
@@ -902,6 +898,8 @@ body.ide .kddialogview.save-as-dialog
   .username
     abs()
     right               0
+    rounded             2px 2px 0 0
+    padding             0 10px
 
 .ace-participant-cursor
   width                 2px !important
@@ -964,6 +962,12 @@ body.ide .kddialogview.save-as-dialog
       display               block
 
 
+.ide
+  .kdsplitview-vertical .panel-0
+    borderBox()
+    border-right            2px solid dark-tab-header-bg
+
+
 .ide .application-page.read-only
   .kdtabhandle.plus
   .nfinder .chevron
@@ -993,3 +997,10 @@ body.ide .kddialogview.save-as-dialog
       .help
         text-decoration     underline
         color               #01b05a
+
+
+.ide .more-modal.more-vms
+  left            50% !important
+  margin-left     -102px
+  .kdmodal-title
+    cursor        default

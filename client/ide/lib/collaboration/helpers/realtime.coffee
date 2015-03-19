@@ -12,7 +12,7 @@ loadCollaborationFile = (manager, id, callback) ->
 
   options = { id, preventEvent: yes }
 
-  manager.getFile id, (err, doc) ->
+  manager.getFile options, (err, doc) ->
     return callback err  if err
 
     manager.setRealtimeDoc doc
@@ -31,9 +31,8 @@ createCollaborationFile = (manager, title, callback) ->
 
   options = { title, preventEvent: yes }
 
-  manager.createFile title, (err, file) ->
+  manager.createFile options, (err, file) ->
     return callback err  if err
-
     callback null, file
 
 
@@ -173,8 +172,8 @@ getFromManager = (manager, name, defaultType, defaultValue) ->
 
 
 ###*
- * Updates logged in user's participant representation
- * from collaborators collection from RealtimeManager instance.
+ * Updates logged in user's participant's sessionId
+ * from collaborators collection of RealtimeManager instance.
  *
  * @param {RealtimeManager} manager
  * @param {object} participants
@@ -198,7 +197,7 @@ registerCollaborationSessionId = (manager, participants) ->
  * @param {string} nickname
  * @api private
 ###
-removeParticipantFromParticipantList = (participants, nickname) ->
+removeParticipantFromList = (participants, nickname) ->
 
   return console.warn 'participants is not set'  unless participants
 
@@ -246,9 +245,47 @@ removeParticipantFromPermissions = (permissions, nickname) ->
 ###
 removeFromManager = (manager, references, nickname) ->
 
-  removeParticipantFromParticipantList references.participants, nickname
+  removeParticipantFromList references.participants, nickname
   removeParticipantFromMaps manager, nickname
   removeParticipantFromPermissions references.permissions, nickname
+
+
+###*
+ * Ensures that given user with name and index is removed
+ * from given participants list.
+ *
+ * @param {Object} participants
+ * @param {string} nickname
+ * @param {number} index
+###
+ensureParticipantLeft = (participants, nickname, index) ->
+
+  # check the user is still at same index, so we won't remove someone else.
+  user = participants.get index
+
+  if user.nickname is nickname
+    participants.remove index
+  else
+    # TODO: this part doesn't solve the problem.
+    # Needs improvement. ~Umut
+    for p, index in participants.asArray() when p.nickname is nickname
+      participants.remove index
+
+
+###*
+ * Checks if user with given username is online in session.
+ *
+ * @param {RealtimeManager} manager
+ * @param {Object} participants
+ * @param {string} username
+###
+isUserOnline = (manager, participants, username) ->
+
+  [user] = participants.asArray().filter (p) -> p.nickname is username
+  return no  unless user?.sessionId
+
+  [user] = manager.getCollaborators().filter (c) -> c.sessionId is host.sessionId
+  return user?
 
 
 module.exports = {
@@ -261,4 +298,7 @@ module.exports = {
   registerCollaborationSessionId
   getTargetUser
   removeFromManager
+  ensureParticipantLeft
+  isUserOnline
+  getFromManager
 }

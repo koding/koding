@@ -325,9 +325,9 @@ class IDEAppController extends AppController
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
 
-        machine = new Machine { machine }  unless machine instanceof Machine
-
         return unless machine
+
+        machine = new Machine { machine }  unless machine instanceof Machine
 
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
@@ -361,6 +361,8 @@ class IDEAppController extends AppController
 
   getMountedMachine: (callback = noop) ->
 
+    return callback()  unless @mountedMachineUId
+
     kd.utils.defer =>
       environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine
@@ -375,7 +377,9 @@ class IDEAppController extends AppController
     container         = @getView()
 
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
-      return showError 'Something went wrong. Try again.'  unless machineItem
+
+      unless machineItem
+        return @createMachineStateModal { state: 'NotFound', container }
 
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
@@ -407,23 +411,7 @@ class IDEAppController extends AppController
                   kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
           @prepareCollaboration()
-
-          actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
-          computeController.on "public-#{machineId}", (event) =>
-
-            if event.status in actionRequiredStates
-
-              KodingKontrol.dcNotification?.destroy()
-              KodingKontrol.dcNotification = null
-
-              machineItem.getBaseKite( no ).disconnect()
-
-              unless @machineStateModal
-                @createMachineStateModal { state, container, machineItem }
-
-              else
-                if event.status in actionRequiredStates
-                  @machineStateModal.updateStatus event
+          @bindMachineEvents machineItem
 
         else
           @createMachineStateModal { state: 'NotFound', container }
@@ -437,12 +425,52 @@ class IDEAppController extends AppController
         callback()
 
 
+  bindMachineEvents: (machineItem) ->
+
+    actionRequiredStates = [Pending, Stopping, Stopped, Terminating, Terminated]
+
+    kd.getSingleton 'computeController'
+
+      .on "public-#{machineItem._id}", (event) =>
+
+        if event.status in actionRequiredStates
+          @showStateMachineModal machineItem, event
+
+      .on "reinit-#{machineItem._id}", @bound 'handleMachineReinit'
+
+
+  handleMachineReinit: ({status}) ->
+
+    switch status
+      when 'Building'
+        environmentDataProvider.ensureDefaultWorkspace kd.noop
+      when 'Running'
+        @quit()
+
+
+  showStateMachineModal: (machineItem, event) ->
+
+    KodingKontrol.dcNotification?.destroy()
+    KodingKontrol.dcNotification = null
+
+    machineItem.getBaseKite( no ).disconnect()
+
+    if @machineStateModal
+      @machineStateModal.updateStatus event
+    else
+      {state}   = machineItem.status
+      container = @getView()
+      @createMachineStateModal { state, container, machineItem }
+
+
   createMachineStateModal: (options = {}) ->
 
     { mainView } = kd.singletons
     mainView.toggleSidebar()  if mainView.isSidebarCollapsed
 
     { state, container, machineItem, initial } = options
+
+    container   ?= @getView()
     modalOptions = { state, container, initial }
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
@@ -505,7 +533,7 @@ class IDEAppController extends AppController
 
     return ->
       path     = "localfile:/Untitled-#{newFileSeed++}.txt@#{Date.now()}"
-      file     = FSHelper.createFileInstance { path }
+      file     = FSHelper.createFileInstance { path, machine: @mountedMachine }
       contents = ''
 
       @openFile file, contents
@@ -513,28 +541,21 @@ class IDEAppController extends AppController
 
   createNewTerminal: (options) ->
 
+    # options can be an Event instance if the initiator is
+    # a shortcut so make the options an empty object.
+    options = {}  if options.keyCode
+
     { machine, path, resurrectSessions } = options
 
-    unless machine instanceof Machine
-      machine = @mountedMachine
+    machine = @mountedMachine  unless machine instanceof Machine
 
-    if @workspaceData
-
-      {rootPath, isDefault} = @workspaceData
-
-      if rootPath and not isDefault
-        path = rootPath
-
-    # options can be an Event instance if the initiator is
-    # a shortcut, and that can have a `path` property
-    # which is an Array. This check is to make sure that the
-    # `path` is always the one we send explicitly here - SY
-    path = null  unless typeof path is 'string'
+    if @workspaceData and not path
+      { rootPath, isDefault } = @workspaceData
+      options.path = rootPath  if rootPath and not isDefault
 
     @activeTabView.emit 'TerminalPaneRequested', options
 
 
-  #absolete: 'ctrl - alt - b' shortcut was removed (bug #82710798)
   createNewBrowser: (url) ->
 
     url = ''  unless typeof url is 'string'
@@ -755,8 +776,8 @@ class IDEAppController extends AppController
     return unless file
 
     if FSHelper.isPublicPath file.path
-      # FIXME: Take care of https.
-      prefix      = "[#{@mountedMachineUId}]/home/#{nick()}/Web/"
+      nickname    = @collaborationHost or nick()
+      prefix      = "[#{@mountedMachineUId}]/home/#{nickname}/Web/"
       [temp, src] = file.path.split prefix
       @createNewBrowser "#{@mountedMachine.domain}/#{src}"
     else
@@ -1036,7 +1057,9 @@ class IDEAppController extends AppController
 
     amIWatchingChangeOwner = @myWatchMap.keys().indexOf(origin) > -1
 
-    if amIWatchingChangeOwner or type is 'CursorActivity'
+    mustSyncChanges = [ 'CursorActivity', 'FileSaved' ]
+
+    if amIWatchingChangeOwner or type in mustSyncChanges
       targetPane = @getPaneByChange change
 
       if type is 'NewPaneCreated'
@@ -1165,8 +1188,10 @@ class IDEAppController extends AppController
 
     @mountedMachine.getBaseKite().disconnect()
 
-    kd.singletons.router.handleRoute '/IDE'
     kd.singletons.appManager.quit this
+
+    kd.utils.defer ->
+      kd.singletons.router.handleRoute '/IDE'
 
 
   removeParticipantCursorWidget: (targetUser) ->

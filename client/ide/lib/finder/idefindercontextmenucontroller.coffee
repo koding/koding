@@ -1,6 +1,11 @@
+kd = require 'kd'
+
 NFinderContextMenuController = require 'finder/filetree/controllers/nfindercontextmenucontroller'
 NSetPermissionsView = require 'finder/filetree/itemsubviews/nsetpermissionsview'
+
+
 module.exports = class IDEFinderContextMenuController extends NFinderContextMenuController
+
 
   getFolderMenu: (fileView) ->
 

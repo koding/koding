@@ -1,4 +1,5 @@
 machina                       = require 'machina'
+_                             = require 'lodash'
 remote                        = require('app/remote').getInstance()
 dateFormat                    = require 'dateformat'
 sinkrow                       = require 'sinkrow'
@@ -13,6 +14,9 @@ RealtimeManager               = require './realtimemanager'
 IDEChatView                   = require './views/chat/idechatview'
 IDEMetrics                    = require './idemetrics'
 doXhrRequest                  = require 'app/util/doXhrRequest'
+realtimeHelpers               = require './collaboration/helpers/realtime'
+socialHelpers                 = require './collaboration/helpers/social'
+envHelpers                    = require './collaboration/helpers/environment'
 
 {warn} = kd
 
@@ -30,46 +34,14 @@ module.exports =
 
     @socialChannel = channel
 
-    @socialChannel.on 'AddedToChannel', (originOrAccount) =>
-
-      kallback = (account) =>
-
-        return  unless account
-
-        {nickname} = account.profile
-        @statusBar.createParticipantAvatar nickname, no
-        @watchParticipant nickname
-
-      if originOrAccount.constructorName
-        remote.cacheable originOrAccount.constructorName, originOrAccount.id, kallback
-      else if 'string' is typeof originOrAccount
-        remote.cacheable originOrAccount, kallback
-      else
-        kallback originOrAccount
-
 
   initPrivateMessage: (callback) ->
 
-    {message} = kd.singletons.socialapi
-    nickname  = nick()
+    socialHelpers.initChannel (err, channel) =>
+      return callback err  if err
 
-    options =
-      type       : 'collaboration'
-      body       : "@#{nickname} initiated the IDE session."
-      purpose    : "#{getCollaborativeChannelPrefix()}#{dateFormat 'HH:MM'}"
-      recipients : [ nickname ]
-      payload    :
-        'system-message' : 'initiate'
-        collaboration    : yes
-
-    message.initPrivateMessage options, (err, channels) =>
-
-      return callback err  if err or (not Array.isArray(channels) and not channels[0])
-
-      [channel] = channels
       @setSocialChannel channel
-
-      @updateWorkspace { channelId : channel.id }
+      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
           callback null, channel
@@ -79,107 +51,90 @@ module.exports =
 
   fetchSocialChannel: (callback) ->
 
-    return callback null, @socialChannel  if @socialChannel
+    if @socialChannel
+      return callback null, @socialChannel
 
-    id = @channelId or @workspaceData.channelId
+    unless id = @getSocialChannelId()
+      return callback()
 
-    return callback()  unless id
-
-    kd.singletons.socialapi.cacheable 'channel', id, (err, channel) =>
+    socialHelpers.fetchChannel id, (err, channel) =>
       return callback err  if err
 
       @setSocialChannel channel
-
       callback null, @socialChannel
+
+
+  getSocialChannelId: ->
+
+    return @socialChannel?.id or @channelId or @workspaceData.channelId
+
+
+  unsetSocialChannel: -> @channelId = @socialChannel = null
 
 
   deletePrivateMessage: (callback = kd.noop) ->
 
-    {channel}    = kd.getSingleton 'socialapi'
-    {JWorkspace} = remote.api
-
-    options = channelId: @socialChannel.getId()
-    channel.delete options, (err) =>
-
+    socialHelpers.destroyChannel @socialChannel, (err) =>
       return callback err  if err
 
-      @channelId = @socialChannel = null
-
-      options = $unset: channelId: 1
-      JWorkspace.update @workspaceData._id, options, (err) =>
-
+      envHelpers.detachSocialChannel @workspaceData, (err) =>
         return callback err  if err
-
-        @workspaceData.channelId = null
-        callback null
+        @unsetSocialChannel()
 
 
   # FIXME: This method is called more than once. It should cache the result and
   # return if result set exists.
   listChatParticipants: (callback) ->
 
-    channelId = @socialChannel.getId()
+    id = @getSocialChannelId()
 
-    {socialapi} = kd.singletons
-    socialapi.channel.listParticipants {channelId}, (err, participants) ->
+    socialHelpers.fetchParticipants id, (err, accounts) =>
+      return throwError err  if err
 
-      idList = participants.map ({accountId}) -> accountId
-      query  = socialApiId: $in: idList
-
-      remote.api.JAccount.some query, {}
-        .then callback
+      callback accounts
 
 
   continuePrivateMessage: (callback) ->
 
-    @on 'RTMIsReady', =>
-      @chat.emit 'CollaborationStarted'
+    @chat.emit 'CollaborationStarted'
 
-      @listChatParticipants (accounts) =>
-        @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
+    @listChatParticipants (accounts) =>
+      @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
 
-      callback null
+    callback null
 
 
   startChatSession: (callback) ->
 
-    return if @workspaceData.isDummy
-      @createWorkspace()
-        .then (workspace) =>
-          @workspaceData = workspace
-          @initPrivateMessage callback
-        .error callback
-
     channelId = @channelId or @workspaceData.channelId
 
     if channelId
+    then @reactivateChatSession callback
+    else @initPrivateMessage callback
 
-      @fetchSocialChannel (err, channel) =>
-        if err or not channel
-          return @initPrivateMessage callback
 
-        @createChatPaneView channel
-        @isRealtimeSessionActive channelId, (isActive, file) =>
-          if isActive
-            @loadCollaborationFile file.result.items[0].id
-            return @continuePrivateMessage callback
+  reactivateChatSession: (callback) ->
 
-          @statusBar.share.show()
-          @chat.emit 'CollaborationNotInitialized'
+    @fetchSocialChannel (err, channel) =>
+      if err or not channel
+        return @initPrivateMessage callback
 
-    else
-      @initPrivateMessage callback
+      @createChatPaneView channel
+      @isRealtimeSessionActive channel.id, (isActive, file) =>
+        if isActive
+          @whenRealtimeReady => @continuePrivateMessage callback
+          return @loadCollaborationFile file.id
+
+        @statusBar.share.show()
+        @chat.emit 'CollaborationNotInitialized'
 
 
   getRealtimeFileName: (id) ->
 
-    unless id
-      if @channelId          then id = @channelId
-      else if @socialChannel then id = @socialChannel.id
-      else
-        return showError 'social channel id is not provided'
+    unless id = @getSocialChannelId()
+      return showError 'social channel id is not provided'
 
-    hostName = if @amIHost then nick() else @collaborationHost
+    hostName = @getCollaborationHost()
 
     return "#{hostName}.#{id}"
 
@@ -188,6 +143,13 @@ module.exports =
 
     @chat.emit 'CollaborationEnded'
     @chat = null
+
+
+  whenRealtimeReady: (callback) ->
+
+    if @rtm?.isReady
+    then callback()
+    else @once 'RTMIsReady', callback
 
 
   showChat: ->
@@ -229,28 +191,23 @@ module.exports =
 
     return  unless @amIHost
 
-    options      =
-      channelId  : @socialChannel.id
-      accountIds : [ account.socialApiId ]
-
     targetUser = account.profile.nickname
 
+    displayError = (err) ->
+      showError err
+      throwError err
+
     @setMachineUser [targetUser], no, (err) =>
+      return displayError err  if err
 
-      if err
-        showError "#{targetUser} could not be kicked"
-        return throwError err
-
-      kd.singletons.socialapi.channel.kickParticipants options, (err, result) =>
-
-        return showError err  if err
+      socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
+        return displayError err  if err
 
         message    =
           type     : 'ParticipantKicked'
-          origin   : nick()
           target   : targetUser
 
-        @broadcastMessages.push message
+        @broadcastMessage message
         @handleParticipantKicked targetUser
 
 
@@ -265,145 +222,141 @@ module.exports =
 
   handleParticipantAction: (actionType, changeData) ->
 
-    kd.utils.wait 2000, =>
-      participants  = @participants.asArray()
-      {sessionId}   = changeData.collaborator
-      targetUser    = null
-      targetIndex   = null
+    return  unless @rtm
 
-      for participant, index in participants when participant.sessionId is sessionId
-        targetUser  = participant.nickname
-        targetIndex = index
+    kd.utils.wait 2000, => @whenRealtimeReady =>
 
-      unless targetUser
-        return kd.warn 'Unknown user in collaboration, we should handle this case...'
+      switch actionType
+        when 'join' then @onRealtimeParticipantJoined changeData
+        when 'left' then @onRealtimeParticipantLeft changeData
 
-      if actionType is 'join'
-        @chat.emit 'ParticipantJoined', targetUser
-        @statusBar.emit 'ParticipantJoined', targetUser
 
-        if @amIHost
-          @ensureMachineShare [targetUser], (err) =>
-            return throwError err  if err
-      else
-        @chat.emit 'ParticipantLeft', targetUser
-        @statusBar.emit 'ParticipantLeft', targetUser
-        @removeParticipantCursorWidget targetUser
+  onRealtimeParticipantJoined: (data) ->
 
-        # check the user is still at same index, so we won't remove someone else.
-        user = @participants.get targetIndex
+    {sessionId} = data.collaborator
 
-        if user.nickname is targetUser
-          @participants.remove targetIndex
-        else
-          participants = @participants.asArray()
-          for participant, index in participants when participant.nickname is targetUser
-            @participants.remove index
+    {targetUser} =
+      realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
 
+    unless targetUser
+      return kd.warn 'Unknown user in collaboration, we should handle this case...'
+
+    @chat.emit 'ParticipantJoined', targetUser
+    @statusBar.emit 'ParticipantJoined', targetUser
+
+    if @amIHost
+      @ensureMachineShare [targetUser], (err) =>
+        return throwError err  if err
+
+
+  onRealtimeParticipantLeft: (data) ->
+
+    {sessionId} = data.collaborator
+
+    {targetUser, targetIndex} =
+      realtimeHelpers.getTargetUser @participants, 'sessionId', sessionId
+
+    unless targetUser
+      return kd.warn 'Unknown user in collaboration, we should handle this case...'
+
+    @chat?.emit 'ParticipantLeft', targetUser
+    @statusBar.emit 'ParticipantLeft', targetUser
+    @removeParticipantCursorWidget targetUser
+
+    realtimeHelpers.ensureParticipantLeft @participants, targetUser, targetIndex
 
 
   # realtime related stuff
 
 
+  broadcastMessage: (options = {}) ->
+
+    message = _.assign {}, options, { origin: nick() }
+    @broadcastMessages.push message
+
+
+  activateRealtimeManager: (doc) ->
+
+    @rtm.setRealtimeDoc doc
+    @setCollaborativeReferences()
+    @addParticipant whoami()
+    @registerCollaborationSessionId()
+    @bindRealtimeEvents()
+
+    if @amIHost
+    then @activateRealtimeManagerForHost()
+    else @activateRealtimeManagerForParticipant()
+
+    @rtm.isReady = yes
+    @emit 'RTMIsReady'
+
+    unless @myWatchMap.values().length
+      @listChatParticipants (accounts) =>
+        accounts.forEach (account) =>
+          {nickname} = account.profile
+          @myWatchMap.set nickname, nickname
+
+
+  activateRealtimeManagerForHost: ->
+
+    @getView().setClass 'host'
+    @startHeartbeat()
+
+
+  activateRealtimeManagerForParticipant: ->
+
+    @startRealtimePolling()
+    @resurrectSnapshot()
+
+    if @collaborationHost in @myWatchMap.values()
+      @reviveHostSnapshot()
+
+    if @permissions.get(nick()) is 'read'
+      @makeReadOnly()
+
+
   loadCollaborationFile: (fileId) ->
 
-    return unless fileId
+    return  unless fileId
 
     @rtmFileId = fileId
 
-    options = { id: fileId }
-    @rtm.getFile options, (err, doc) =>
+    realtimeHelpers.loadCollaborationFile @rtm, fileId, (err, doc) =>
       return throwError err  if err
 
-      nickname = nick()
-      hostName = @collaborationHost
-
-      @rtm.setRealtimeDoc doc
-
-      @setCollaborativeReferences()
-
-      if @amIHost
-        @getView().setClass 'host'
-      #   @changes.clear()
-      #   @broadcastMessages.clear()
-
-      @addParticipant whoami()
-
-      @rtm.on 'CollaboratorJoined', (doc, participant) =>
-        @handleParticipantAction 'join', participant
-
-      @rtm.on 'CollaboratorLeft', (doc, participant) =>
-        @handleParticipantAction 'left', participant
-
-      @registerCollaborationSessionId()
-      @bindRealtimeEvents()
-
-      if @amIHost
-        @startHeartbeat()
-      else
-        @startRealtimePolling()
-
-      @rtm.isReady = yes
-      @emit 'RTMIsReady'
-      @resurrectSnapshot()  unless @amIHost
-
-      unless @myWatchMap.values().length
-        @listChatParticipants (accounts) =>
-          accounts.forEach (account) =>
-            {nickname} = account.profile
-            @myWatchMap.set nickname, nickname
-
-      if not @amIHost and @myWatchMap.values().indexOf(hostName) > -1
-        hostSnapshot = @rtm.getFromModel "#{hostName}Snapshot"
-
-        for key, change of hostSnapshot.values()
-          @createPaneFromChange change
-
+      @activateRealtimeManager doc
+      @bindSocialChannelEvents()
       @finderPane.on 'ChangeHappened', @bound 'syncChange'
 
-      unless @amIHost
-        @makeReadOnly()  if @permissions.get(nickname) is 'read'
+
+  reviveHostSnapshot: ->
+
+    hostName     = @getCollaborationHost()
+    hostSnapshot = realtimeHelpers.getFromManager @rtm, "#{hostName}Snapshot"
+
+    for key, change of hostSnapshot.values()
+      @createPaneFromChange change
 
 
   setCollaborativeReferences: ->
 
-    nickname           = nick()
-    myWatchMapName     = "#{nickname}WatchMap"
-    mySnapshotName     = "#{nickname}Snapshot"
-    defaultPermission  = default: 'edit'
+    initialSnapshot = if @amIHost then @getWorkspaceSnapshot() else {}
 
-    @participants      = @rtm.getFromModel 'participants'
-    @changes           = @rtm.getFromModel 'changes'
-    @permissions       = @rtm.getFromModel 'permissions'
-    @broadcastMessages = @rtm.getFromModel 'broadcastMessages'
-    @myWatchMap        = @rtm.getFromModel myWatchMapName
-    @mySnapshot        = @rtm.getFromModel mySnapshotName
+    refs = realtimeHelpers.getReferences @rtm, @getSocialChannelId(), initialSnapshot
 
-    @participants      or= @rtm.create 'list',   'participants', []
-    @changes           or= @rtm.create 'list',   'changes', []
-    @permissions       or= @rtm.create 'map',    'permissions', defaultPermission
-    @broadcastMessages or= @rtm.create 'list',   'broadcastMessages', []
-    @myWatchMap        or= @rtm.create 'map',    myWatchMapName, {}
-
-    initialSnapshot      = if @amIHost then @getWorkspaceSnapshot() else {}
-    @mySnapshot        or= @rtm.create 'map',    mySnapshotName, initialSnapshot
+    # for backwards compatibility.
+    # TODO: keep this until CollaborationModel abstraction. ~Umut
+    @participants      = refs.participants
+    @changes           = refs.changes
+    @permissions       = refs.permissions
+    @broadcastMessages = refs.broadcastMessages
+    @myWatchMap        = refs.watchMap
+    @mySnapshot        = refs.snapshot
 
 
   registerCollaborationSessionId: ->
 
-    collaborators = @rtm.getCollaborators()
-
-    for collaborator in collaborators when collaborator.isMe
-      participants = @participants.asArray()
-
-      for user, index in participants when user.nickname is nick()
-        newData = kd.utils.dict()
-
-        newData[key] = value  for key, value of user
-
-        newData.sessionId = collaborator.sessionId
-        @participants.remove index
-        @participants.insert index, newData
+    realtimeHelpers.registerCollaborationSessionId @rtm, @participants
 
 
   addParticipant: (account) ->
@@ -421,15 +374,28 @@ module.exports =
   unwatchParticipant: (nickname) -> @myWatchMap.delete nickname
 
 
+  bindSocialChannelEvents: ->
+
+    @socialChannel.on 'AddedToChannel', (socialAccount) =>
+
+      socialHelpers.fetchAccount socialAccount, (account) =>
+
+        return  unless account
+
+        {nickname} = account.profile
+        @statusBar.createParticipantAvatar nickname, no
+        @watchParticipant nickname
+
+
   bindRealtimeEvents: ->
 
-    @rtm.bindRealtimeListeners @changes, 'list'
-    @rtm.bindRealtimeListeners @broadcastMessages, 'list'
-    @rtm.bindRealtimeListeners @myWatchMap, 'map'
-    @rtm.bindRealtimeListeners @permissions, 'map'
+    @rtm.on 'CollaboratorJoined', (doc, participant) =>
+      @handleParticipantAction 'join', participant
+
+    @rtm.on 'CollaboratorLeft', (doc, participant) =>
+      @handleParticipantAction 'left', participant
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
-
       [value] = event.values
 
       switch list
@@ -437,11 +403,9 @@ module.exports =
         when @broadcastMessages then @handleBroadcastMessage value
 
     @rtm.on 'ValuesRemovedFromList', (list, event) =>
-
       @handleChange event.values[0]  if list is @changes
 
     @rtm.on 'MapValueChanged', (map, event) =>
-
       if map is @myWatchMap
         @handleWatchMapChange event
 
@@ -449,38 +413,11 @@ module.exports =
         @handlePermissionMapChange event
 
 
-  removeParticipantFromParticipantList: (nickname) ->
-    return warn 'participants is not set'  unless @participants
-
-    # find the index for participant
-    for participant, index in @participants.asArray()
-      if participant.nickname is nickname
-
-        # remove from participants list if the user exits
-        @participants.remove index
-        break
-
-  removeParticipantFromMaps: (nickname) ->
-    return warn 'rtm is not set'  unless @rtm
-
-    myWatchMapName     = "#{nickname}WatchMap"
-    mySnapshotName     = "#{nickname}Snapshot"
-
-    # delete the keys
-    @rtm.delete 'map', myWatchMapName
-    @rtm.delete 'map', mySnapshotName
-
-
-  removeParticipantFromPermissions: (nickname)->
-    return warn 'permissions is not set'  unless @permissions
-    # Removes the entry for the given key (if such an entry exists).
-    @permissions.delete(nickname)
-
-
   removeParticipant: (nickname) ->
-    @removeParticipantFromMaps nickname
-    @removeParticipantFromParticipantList nickname
-    @removeParticipantFromPermissions nickname
+
+    refs = { @participants, @permissions }
+
+    realtimeHelpers.removeFromManager @rtm, refs, nickname
 
 
   setRealtimeManager: (object) ->
@@ -494,20 +431,10 @@ module.exports =
 
   isRealtimeSessionActive: (id, callback) ->
 
-    kallback = =>
-      options = { title: @getRealtimeFileName id }
-      @rtm.fetchFileByTitle options, (err, file) =>
-        return callback no  if err
+    title = @getRealtimeFileName id
 
-        if file.result.items.length > 0
-        then callback yes, file
-        else callback no
-
-
-    if @rtm then kallback()
-    else
-      @rtm = new RealtimeManager
-      @rtm.ready => kallback()
+    @rtm or= new RealtimeManager
+    @rtm.ready => realtimeHelpers.isSessionActive @rtm, title, callback
 
 
   getCollaborationData: (callback = kd.noop) ->
@@ -517,27 +444,6 @@ module.exports =
       amIHost         : @amIHost
 
     callback collaborationData
-
-
-  isHostOnline: ->
-
-    host = @getCollaborationHost()
-
-    filtered = @participants
-      .asArray()
-      .filter (its) -> its.nickname is host
-
-    return no  unless filtered.length
-
-    { sessionId } = filtered.first
-
-    return no  unless sessionId
-
-    final = @rtm
-      .getCollaborators()
-      .filter (its) -> its.sessionId is sessionId
-
-    return final.length > 0
 
 
   startHeartbeat: ->
@@ -577,14 +483,18 @@ module.exports =
 
   pollRealtimeDocument: ->
 
-    @rtm.once 'FileQueryFinished', ({items}) =>
+    unless @rtm
+      kd.utils.killRepeat @pollInterval
+      return
 
-      return  if items.length
+    id = @getSocialChannelId()
+
+    @isRealtimeSessionActive id, (isActive) =>
+
+      return  if isActive
 
       kd.utils.killRepeat @pollInterval
       @showSessionEndedModal()
-
-    @rtm.fetchFileByTitle @getRealTimeFileName()
 
 
   handleBroadcastMessage: (data) ->
@@ -594,7 +504,8 @@ module.exports =
     if origin is nick()
       switch type
         when 'ParticipantWantsToLeave'
-          return @quit()
+          @removeMachineNode()
+          return kd.utils.defer @bound 'quit'
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
         else return
@@ -713,30 +624,49 @@ module.exports =
 
     @rtm = new RealtimeManager
     @showShareButton()
-    kd.utils.defer => @setCollaborationState 'loading'
+    kd.utils.defer => @rtm.ready => @setCollaborationState 'loading'
 
 
-  onCollaborationLoading: ->
+  onCollaborationLoading: do ->
+    constraints =
+      channelReady  : null
+      sessionActive : null
 
-    @statusBar.emit 'CollaborationLoading'
+    conditions = [
+      when : -> (constraints.channelReady is no) or (constraints.sessionActive is no)
+      to   : 'terminated'
+    ,
+      when : -> (constraints.channelReady is yes) and (constraints.sessionActive is yes)
+      to   : 'active'
+    ]
+    nextIfReady = (context) ->
+      for condition in conditions when condition.when()
+        context.setCollaborationState condition.to
+        break
+    setConstraint = (context, key, value) ->
+      constraints[key] = Boolean value
+      nextIfReady context
+    ->
 
-    { channelId } = @workspaceData
+      @statusBar.emit 'CollaborationLoading'
 
-    @rtm.ready =>
+      { channelId } = @workspaceData
+
       unless channelId
-        @setCollaborationState 'terminated'
+        setConstraint this, 'channelReady', no
         return
 
       @fetchSocialChannel (err, channel) =>
         if err or not channel
-          @setCollaborationState 'terminated'
+          setConstraint this, 'channelReady', no
           throwError err  if err
           return
 
+        setConstraint this, 'channelReady', yes
+
         @isRealtimeSessionActive channelId, (isActive) =>
-          if isActive or @isInSession
-          then @setCollaborationState 'active'
-          else @setCollaborationState 'terminated'
+          result = isActive or @isInSession
+          setConstraint this, 'sessionActive', result
 
 
   onCollaborationActive: ->
@@ -765,28 +695,19 @@ module.exports =
 
     return callback msg : 'no social channel'  unless @socialChannel
 
-    {message} = kd.singletons.socialapi
-    nickname  = nick()
-
-    message.sendPrivateMessage
-      body       : "@#{nickname} activated collaboration."
-      channelId  : @socialChannel.id
-      payload    :
-        'system-message' : 'start'
-        collaboration    : yes
-    , callback
+    kallback = (err, channel) => @whenRealtimeReady => callback err, channel
+    socialHelpers.sendActivationMessage @socialChannel, kallback
 
     @collaborationJustInitialized = yes
 
-    @rtm = new RealtimeManager  unless @rtm
+    @rtm or= new RealtimeManager
+    title  = @getRealtimeFileName()
 
-    options = { title: @getRealtimeFileName() }
-    @rtm.createFile options, (err, file) =>
+    realtimeHelpers.createCollaborationFile @rtm, title, (err, file) =>
       return throwError err  if err
       @loadCollaborationFile file.id
 
     @setMachineSharingStatus on, (err) ->
-
       throwError err  if err
 
 
@@ -799,34 +720,29 @@ module.exports =
   # IF USER IS NOT HOST
   #   should only call the callback without an error.
   #   given callback should do the rest. (e.g cleaning-up, quitting..)
-  stopCollaborationSession: (callback) ->
+  stopCollaborationSession: (callback) -> @whenRealtimeReady =>
 
     @chat.settingsPane.endSession.disable()
 
     return callback msg : 'no social channel'  unless @socialChannel
 
-    {message} = kd.singletons.socialapi
-    nickname  = nick()
-
     if @amIHost
-      @broadcastMessages.push origin: nickname, type: 'SessionEnded'
+      @broadcastMessage { type: 'SessionEnded' }
 
-    options = { title: @getRealtimeFileName() }
-    @rtm.deleteFile options, (err) =>
+    title = @getRealtimeFileName()
+    realtimeHelpers.deleteCollaborationFile @rtm, title, (err) =>
       return throwError err  if err
+      @setMachineSharingStatus off, (err) =>
+        return callback err  if err
+        @deletePrivateMessage (err) =>
+          return callback err  if err
+          @cleanupCollaboration { reinit: yes }
+          callback()
 
       @statusBar.emit 'CollaborationEnded'
       @stopChatSession()
       @modal?.destroy()
 
-      if @amIHost
-        @setMachineSharingStatus off, (err) =>
-          return callback err  if err
-          @deletePrivateMessage (err) =>
-            return callback err  if err
-            @cleanupCollaboration { reinit: yes }
-      else
-        callback null
 
     @mySnapshot.clear()
 
@@ -857,20 +773,12 @@ module.exports =
 
   ensureMachineShare: (usernames, callback) ->
 
-    kite = @mountedMachine.getBaseKite()
+    {fetchMissingParticipants} = envHelpers
 
-    kite.klientShared null
+    fetchMissingParticipants @mountedMachine, usernames, (err, missing) =>
+      return callback err  if err
 
-      .then (response) =>
-        participants = response.split ','
-        missing = usernames.filter (username) =>
-          participants.indexOf(username) is -1
-
-        @setMachineUser missing, yes, callback
-
-      .catch (err) =>
-        throwError err
-        callback()
+      @setMachineUser missing, yes, callback
 
 
   setMachineSharingStatus: (status, callback) ->
@@ -891,61 +799,25 @@ module.exports =
 
   setMachineUser: (usernames, share = yes, callback = kd.noop) ->
 
-    return callback()  unless usernames.length
+    # TODO: needs an investigation here.
+    # if this usernames length check would be done
+    # via helper method, the broadcastMessage
+    # lines would be executed as well. attn to @szkl.
+    return callback null  unless usernames.length
 
-    jMachine = @mountedMachine.getData()
-    method   = if share then 'share' else 'unshare'
-    jMachine[method] usernames, (err) =>
+    {setMachineUser} = envHelpers
 
-      return callback err  if err
+    setMachineUser @mountedMachine, usernames, share, (err) =>
+      if err
+        return  if err.message is 'User not found' and not share
+        return callback err  if err
 
-      kite   = @mountedMachine.getBaseKite()
-      method = if share then 'klientShare' else 'klientUnshare'
+      @whenRealtimeReady =>
+        @broadcastMessage
+          type: "#{if share then 'Set' else 'Unset'}MachineUser"
+          participants: usernames
 
-      queue = usernames.map (username) =>
-        =>
-          kite[method] {username}
-
-            .then =>
-
-              @broadcastMessages.push
-                type: "#{if share then 'Set' else 'Unset'}MachineUser"
-                participants: usernames
-
-              queue.fin()
-
-            .error (err) ->
-
-              queue.fin()
-
-              return  if err.message is 'User not found' and not share
-
-              callback err
-
-      sinkrow.dash queue, callback
-
-
-  getWorkspaceName: (callback) -> callback @workspaceData.name
-
-
-  createWorkspace: (options = {}) ->
-
-    name         = options.name or 'My Workspace'
-    rootPath     = "/home/#{nick()}"
-    {label, uid} = @mountedMachine
-
-    return remote.api.JWorkspace.create
-      name         : name
-      label        : options.label        or label
-      machineUId   : options.machineUId   or uid
-      machineLabel : options.machineLabel or label
-      rootPath     : options.rootPath     or rootPath
-      isDefault    : name is 'My Workspace'
-
-
-  updateWorkspace: (options = {}) ->
-
-    return remote.api.JWorkspace.update @workspaceData._id, { $set : options }
+      callback null
 
 
   # collab related modals (should be its own mixin)
@@ -977,7 +849,7 @@ module.exports =
 
   showSessionEndedModal: (content) ->
 
-    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore."
+    content ?= "This collaboration session has been terminated by the host @#{@collaborationHost}."
 
     options        =
       title        : 'Session ended'
@@ -1002,17 +874,17 @@ module.exports =
       content : "If you leave this session you won't be able to return back."
 
     @showModal options, =>
-      @broadcastMessages.push origin: nick(), type: 'ParticipantWantsToLeave'
       @stopChatSession()
       @modal.destroy()
 
       options = channelId: @socialChannel.getId()
       kd.singletons.socialapi.channel.leave options, (err) =>
         return showError err  if err
-        @setMachineUser [nick()], no, kd.noop
-        # remove the leaving participant's info from the collaborative doc
-        @removeParticipant nick()
-        @quit()
+        @setMachineUser [nick()], no, =>
+          # remove the leaving participant's info from the collaborative doc
+          @whenRealtimeReady =>
+            @broadcastMessage { type: 'ParticipantWantsToLeave' }
+            @removeParticipant nick()
 
 
   throwError: throwError = (err, args...) ->

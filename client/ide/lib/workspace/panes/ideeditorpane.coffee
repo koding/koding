@@ -5,6 +5,7 @@ FSFile = require 'app/util/fs/fsfile'
 IDEPane = require './idepane'
 Ace = require 'ace/ace'
 AceView = require 'ace/aceview'
+IDEHelpers = require '../../idehelpers'
 
 
 module.exports = class IDEEditorPane extends IDEPane
@@ -30,6 +31,9 @@ module.exports = class IDEEditorPane extends IDEPane
 
     file.once 'fs.delete.finished', =>
       kd.getSingleton('appManager').tell 'IDE', 'handleFileDeleted', file
+
+    @errorOnSave = no
+    file.on [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
 
     @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
     @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
@@ -77,6 +81,7 @@ module.exports = class IDEEditorPane extends IDEPane
   handleAutoSave: ->
 
     return   if @getFile().path.indexOf('localfile:/') > -1
+    return   if @errorOnSave
     @save()  if @getAce().isContentChanged()
 
 
@@ -212,19 +217,22 @@ module.exports = class IDEEditorPane extends IDEPane
 
   setLineWidgets: (row, col, username) ->
 
+    return  unless editor = @getEditor()
+
     oldWidget      = @lineWidgets[username]
-    {renderer}     = @getEditor()
+    {renderer}     = editor
     widgetManager  = @getAce().lineWidgetManager
     lineHeight     = renderer.lineHeight
     charWidth      = renderer.characterWidth
     color          = getColorFromString username
-    widgetStyle    = "border-bottom:2px dotted #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;"
+    widgetStyle    = "border-bottom:2px solid #{color};height:#{lineHeight}px;margin-top:-#{lineHeight+2}px;line-height:#{lineHeight+2}px"
     userWidgetCss  = "ace-line-widget-#{username}"
     lineCssClass   = "ace-line-widget #{userWidgetCss}"
     cursorStyle    = "background-color:#{color};height:#{lineHeight}px;margin-left:#{charWidth*col+3}px"
+    usernameStyle  = "background-color:#{color}"
     lineWidgetHTML = """
       <div class='#{lineCssClass}' style='#{widgetStyle}'>
-        <span class="username">#{username}</span>
+        <span class="username" style='#{usernameStyle}'>#{username}</span>
         <span class="ace-participant-cursor" style="#{cursorStyle}"></span>
       </div>
     """
@@ -284,7 +292,7 @@ module.exports = class IDEEditorPane extends IDEPane
 
       when 'FileSaved'
 
-        @parent.tabHandle.unsetClass 'modified'
+        @getAce().removeModifiedFromTab()
         @getAce().contentChanged = no
 
 
@@ -393,3 +401,15 @@ module.exports = class IDEEditorPane extends IDEPane
   makeEditable: ->
 
     @getEditor()?.setReadOnly no
+
+
+  handleSaveFailed: (err) ->
+
+    @errorOnSave = err?
+    IDEHelpers.showPermissionErrorOnSavingFile err  if err
+
+
+  destroy: ->
+
+    @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+

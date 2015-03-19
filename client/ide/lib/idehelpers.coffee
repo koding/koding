@@ -74,8 +74,22 @@ module.exports = helpers =
       contentText: 'The file can\'t be opened because you don\'t have permission to see its contents.'
 
 
+  showFileOperationUnsuccessfulError: ->
+
+    new FilePermissionsModal
+      title      : 'Operation Unsuccessful'
+      contentText: 'Please ensure that you have write permission for this file and its folder.'
+
+
   showPermissionErrorOnOpeningFile: (err) ->
 
     if (err?.message?.indexOf 'permission denied') > -1
       helpers.showFileAccessDeniedError()
+      return yes
+
+
+  showPermissionErrorOnSavingFile: (err) ->
+
+    if (err?.message?.indexOf 'permission denied') > -1
+      helpers.showFileOperationUnsuccessfulError()
       return yes

@@ -18,7 +18,7 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
 
     @addSubView @input = input = new KDInputView
       type         : 'text'
-      placeholder  : 'Type file name to search'
+      placeholder  : 'Type a file name to search'
       keyup        :
         'esc'      : @bound 'destroy'
         'enter'    : @bound 'handleEnterKey'
@@ -38,14 +38,16 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
     kd.getSingleton('windowController').addLayer this
     @on 'ReceivedClickElsewhere', @bound 'destroy'
 
+
   search: (text) ->
+
     return @clearSearch()  if text is ''
 
-    rootPath        = "/home/#{nick()}/"
+    appManager      = kd.getSingleton 'appManager'
+    rootPath        = appManager.getFrontApp().workspaceData.rootPath or "/home/#{nick()}/"
+    command         = "find '#{rootPath}' -type f -iname '*#{Encoder.XSSEncode text}*' -not -path '*/.*'"
     @isSearchActive = yes
     @lastTerm       = text
-    command         = "find '#{rootPath}' -type f -iname '*#{Encoder.XSSEncode text}*' -not -path '*/.*'"
-    appManager      = kd.getSingleton 'appManager'
 
     appManager.tell 'IDE', 'getMountedMachine', (err, machine) =>
       machine.getBaseKite().exec({ command })
@@ -54,7 +56,9 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
         @showWarning 'An error occurred, please try again.'
         kd.warn err
 
+
   parseResponse: (machine, res) =>
+
     return @showWarning 'An error occurred, please try again.' if res.stderr
     return @showWarning 'No files found'  unless res.stdout
 
@@ -82,7 +86,9 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
 
     @content.addSubView @listController.getView()
 
+
   handleNavigation: (direction) ->
+
     lc = @listController
     return  unless lc
 
@@ -91,7 +97,9 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
     [item] = lc.selectedItems
     item?.getElement().scrollIntoViewIfNeeded()
 
+
   handleKeyUp: (event) ->
+
     listenedKeys  = [13, 27, 38, 40]
     isListenedKey = listenedKeys.indexOf(event.which) > -1
     inputValue    = @input.getValue()
@@ -101,7 +109,9 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
 
     @search inputValue
 
+
   handleEnterKey: ->
+
     value = @input.getValue()
 
     if not @listController or @lastTerm isnt value
@@ -110,10 +120,13 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
       [selected] = @listController.selectedItems
       @openFile selected.getData().path  if selected
 
+
   clearSearch: ->
+
     @content.destroySubViews()
     @listController?.destroy()
     @isSearchActive = no
+
 
   openFile: (path) ->
 
@@ -125,12 +138,16 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
       @destroy()
       kd.getSingleton('appManager').tell 'IDE', 'openFile', file, contents
 
+
   showWarning: (text) ->
+
     @content.destroySubViews()
     @content.addSubView new KDCustomHTMLView
       cssClass  : 'warning'
       partial   : text
 
+
   viewAppended: ->
+
     super
     @input.setFocus()

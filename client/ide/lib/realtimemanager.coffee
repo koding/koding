@@ -290,6 +290,8 @@ module.exports = class RealtimeManager extends KDObject
 
   dispose: ->
 
-    @realtimeDoc.close()
+    @realtimeDoc?.close()
     @isDisposed = yes
     @destroy()
+    @readyState = 0
+    @isReady = no
