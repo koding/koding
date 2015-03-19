@@ -433,6 +433,17 @@ module.exports = class IDEAppController extends AppController
         if event.status in actionRequiredStates
           @showStateMachineModal machineItem, event
 
+      .on "reinit-#{machineItem._id}", @bound 'handleMachineReinit'
+
+
+  handleMachineReinit: ({status}) ->
+
+    switch status
+      when 'Building'
+        environmentDataProvider.ensureDefaultWorkspace kd.noop
+      when 'Running'
+        @quit()
+
 
   showStateMachineModal: (machineItem, event) ->
 
