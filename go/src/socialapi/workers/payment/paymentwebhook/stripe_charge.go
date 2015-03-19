@@ -6,14 +6,24 @@ import (
 )
 
 func stripePaymentRefunded(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, PaymentRefunded)
+	amountGetter := func(req *webhookmodels.StripeCharge) string {
+		return formatStripeAmount(req.Currency, req.AmountRefunded)
+	}
+
+	return stripeChargeHelper(raw, c, PaymentRefunded, amountGetter)
 }
 
 func stripePaymentFailed(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, PaymentFailed)
+	amountGetter := func(req *webhookmodels.StripeCharge) string {
+		return formatStripeAmount(req.Currency, req.Amount)
+	}
+
+	return stripeChargeHelper(raw, c, PaymentFailed, amountGetter)
 }
 
-func stripeChargeHelper(raw []byte, c *Controller, action Action) error {
+type amountGetterFn func(req *webhookmodels.StripeCharge) string
+
+func stripeChargeHelper(raw []byte, c *Controller, act Action, aFn amountGetterFn) error {
 	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)
@@ -26,11 +36,9 @@ func stripeChargeHelper(raw []byte, c *Controller, action Action) error {
 		return err
 	}
 
-	opts := map[string]string{
-		"price": formatStripeAmount(req.Currency, req.Amount),
-	}
+	opts := map[string]interface{}{"price": aFn(req)}
 
 	Log.Info("Stripe: Sent invoice email to: %s", user.Email)
 
-	return Email(user, action, opts)
+	return Email(user, act, opts)
 }
