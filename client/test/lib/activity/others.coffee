@@ -24,6 +24,7 @@ module.exports =
     helpers.postComment(browser, no, no)  for i in [1..4]
 
     browser
+      .refresh()
       .pause 2000
       .refresh()
       .waitForElementVisible  "#{activitySelector} [testpath=list-previous-link]", 25000
