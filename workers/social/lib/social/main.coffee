@@ -30,7 +30,9 @@ mqOptions.login = social.login if social?.login?
 broker = new Broker mqOptions
 
 mqConfig = {host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost}
-mqConfig.exchangeName = socialapi.eventExchangeName
+
+# TODO exchange version must be injected here, when we have that support
+mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
 
 
 koding = new Bongo {
