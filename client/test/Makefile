@@ -25,6 +25,7 @@ run:
 	@./run.sh activity others
 	@./run.sh account accountpage
 	@./run.sh account accountsettings
+	@./run.sh pricing payment
 	@./run.sh ide file
 	@./run.sh ide terminal
 	@./run.sh ide layout
