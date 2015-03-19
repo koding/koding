@@ -431,11 +431,6 @@ module.exports = class IDEAppController extends AppController
         if event.status in actionRequiredStates
           @showStateMachineModal machineItem, event
 
-      .on 'MachineBeingDestroyed', (machine) =>
-
-        if machine._id is @mountedMachine._id
-          @quit()
-
 
   showStateMachineModal: (machineItem, event) ->
 
