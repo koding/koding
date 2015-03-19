@@ -1203,7 +1203,6 @@ module.exports = class IDEAppController extends AppController
 
   quit: ->
 
-    @cleanupCollaboration()
 
     @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
