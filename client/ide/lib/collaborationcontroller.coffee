@@ -17,6 +17,7 @@ realtimeHelpers               = require './collaboration/helpers/realtime'
 socialHelpers                 = require './collaboration/helpers/social'
 envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
+environmentDataProvider       = require 'app/userenvironmentdataprovider'
 
 {warn} = kd
 
@@ -800,6 +801,7 @@ module.exports =
   removeMachineNode: ->
 
     kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
+    environmentDataProvider.removeCollaborationMachine @mountedMachine
 
 
   ensureMachineShare: (usernames, callback) ->
