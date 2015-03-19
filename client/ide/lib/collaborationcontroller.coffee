@@ -143,6 +143,8 @@ module.exports =
 
   onRealtimeParticipantJoined: (data) ->
 
+    return  unless @stateMachine.state is 'Active'
+
     {sessionId} = data.collaborator
 
     {targetUser} =
@@ -160,6 +162,8 @@ module.exports =
 
 
   onRealtimeParticipantLeft: (data) ->
+
+    return  unless @stateMachine.state is 'Active'
 
     {sessionId} = data.collaborator
 
@@ -632,9 +636,9 @@ module.exports =
 
     title = @getRealtimeFileName()
     realtimeHelpers.fetchCollaborationFile @rtm, title, (err, file) =>
-      # return callbacks.error err  if err
+      return callbacks.error err  if err
       realtimeHelpers.loadCollaborationFile @rtm, file.id, (err, doc) =>
-        # return callbacks.error err  if err
+        return callbacks.error err  if err
         @rtmFileId = file.id
         callbacks.success @socialChannel, doc
 
@@ -756,7 +760,9 @@ module.exports =
 
   cleanupCollaboration: (options = {}) ->
 
-    return  unless @stateMachine.state is 'Ending'
+    # TODO: remove Active session from here,
+    # we will deffo need a leaving state.
+    return  unless @stateMachine.state in ['Ending', 'Active']
 
     @rtm.once 'RealtimeManagerWillDispose', =>
       kd.utils.killRepeat @pingInterval
