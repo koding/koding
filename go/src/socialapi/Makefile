@@ -133,7 +133,7 @@ collaborationdev:
 
 mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
