@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/protocol"
 
 	"github.com/koding/logging"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -42,6 +43,10 @@ type Kloud struct {
 
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock
+
+	// ContextCreator is used to pass a manual context to each request. If not
+	// set context.Background()) is passed.
+	ContextCreator func() context.Context
 
 	// Enable debug mode
 	Debug bool

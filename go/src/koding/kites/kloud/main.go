@@ -18,6 +18,7 @@ import (
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/session"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -25,6 +26,7 @@ import (
 	kloudprotocol "koding/kites/kloud/protocol"
 
 	"github.com/koding/metrics"
+	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -214,6 +216,7 @@ func newKite(conf *Config) *kite.Kite {
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	kld := kloud.New()
+
 	kld.Storage = kodingProvider
 	kld.DomainStorage = domainStorage
 	kld.Domainer = dnsInstance
@@ -224,6 +227,15 @@ func newKite(conf *Config) *kite.Kite {
 	if err != nil {
 		panic(err)
 	}
+
+	// just create once, it will never change, however if this is going to
+	// change just put it inside the ContextCreator func
+	ctx := session.NewContext(context.Background(), &session.Session{
+		DB:   db,
+		Kite: k,
+		DNS:  dnsInstance,
+	})
+	kld.ContextCreator = func() context.Context { return ctx }
 
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
