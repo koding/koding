@@ -378,6 +378,16 @@ module.exports = class JMachine extends Module
         callback new KodingError "Target does not support machines."
 
 
+  fetchOwner: (callback) ->
+
+    owner = user for user in @users when user.owner and user.sudo
+    err   = -> callback new KodingError 'Owner user not found'
+    return err()  unless owner
+
+    JUser.one _id: owner.id, (err, user) ->
+      return err()  if err or not user
+      user.fetchOwnAccount callback
+
 
   # Shared Methods
   # --------------
@@ -679,14 +689,3 @@ module.exports = class JMachine extends Module
 
     @shareWith options, (err)->
       callback err
-
-
-  fetchOwner: (callback) ->
-
-    owner = user for user in @users when user.owner and user.sudo
-
-    JUser.one _id: owner.id, (err, user) ->
-
-      return callback 'Owner user not found'  unless user
-
-      user.fetchOwnAccount callback
