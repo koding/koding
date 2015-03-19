@@ -31,8 +31,7 @@
     "shortcuts": "^0.1.0",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
     "timeago": "^0.2.0",
-    "validator": "^3.33.0",
-    "xtend": "^4.0.0"
+    "validator": "^3.33.0"
   },
   "scripts": {
     "preinstall": "npm --prefix builder install && npm --prefix landing install",

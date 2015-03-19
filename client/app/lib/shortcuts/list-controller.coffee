@@ -1,6 +1,6 @@
 kd                = require 'kd'
 ShortcutsListItem = require './list-item'
-xtend             = require 'xtend'
+_                 = require 'underscore'
 
 module.exports =
 
@@ -8,7 +8,7 @@ class ShortcutsListController extends kd.ListViewController
 
   constructor: (options={}, data) ->
 
-    options = xtend options,
+    options = _.extend {}, options,
       selection: true
       view: new kd.ListView
         cssClass: 'shortcuts-list'
