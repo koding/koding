@@ -197,22 +197,20 @@ func (u *Updater) Run() {
 }
 
 // hasFreeSpace checks whether the disk has free space to provide the update.
-// If free space is lower than then the given mustHas it returns an error.
-func hasFreeSpace(mustHas uint64) error {
+// If free space is lower than then the given mustHave it returns an error.
+func hasFreeSpace(mustHave uint64) error {
 	stat := new(syscall.Statfs_t)
 
 	if err := syscall.Statfs("/", stat); err != nil {
 		return err
 	}
 
-	bsize := stat.Bsize / 512
+	// free is in MB
+	free := (uint64(stat.Bavail) * uint64(stat.Bsize)) / (1024 * 1024)
 
-	free := (uint64(stat.Bfree) * uint64(bsize)) >> 1
-	freeInMB := free / 1024
-
-	if freeInMB < mustHas {
+	if free < mustHave {
 		return fmt.Errorf("No enough space to upgrade klient. Need '%d'. Have: '%d'",
-			mustHas, freeInMB)
+			mustHave, free)
 	}
 
 	return nil
