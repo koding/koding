@@ -474,9 +474,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    @addMachineList()
-    @addFollowedTopics()
-    @addMessages()
+    kd.getSingleton('mainController').ready =>
+      @addMachineList()
+      @addFollowedTopics()
+      @addMessages()
 
 
   initiateFakeCounter: ->
