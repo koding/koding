@@ -8,6 +8,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/session"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -506,7 +507,13 @@ func (k *Kloud) Base(r *kite.Request) (resp interface{}, reqErr error) {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	err = builder.Builder(k.NewContext(context.Background()))
+	ctx := session.NewContext(context.Background(), &session.Session{
+		DB:   nil,
+		Kite: nil,
+		DNS:  nil,
+	})
+
+	err = builder.Builder(ctx)
 	if err != nil {
 		return nil, err
 	}
