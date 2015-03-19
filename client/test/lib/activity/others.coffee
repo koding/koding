@@ -25,7 +25,7 @@ module.exports =
 
     browser
       .refresh()
-      .pause 2000
+      .pause 2000  # an unfortunate fix for the wsod
       .refresh()
       .waitForElementVisible  "#{activitySelector} [testpath=list-previous-link]", 25000
       .end()
@@ -56,6 +56,8 @@ module.exports =
       .waitForElementVisible     publicSelector, 25000
       .click                     publicSelector
       .waitForElementVisible     recentSelector, 25000
+      .refresh()
+      .pause 2000  # an unfortunate fix for the wsod
       .refresh()
       .waitForElementVisible     publicSelector, 25000
       .assert.elementNotPresent  topicSelector
