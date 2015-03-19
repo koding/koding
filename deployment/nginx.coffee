@@ -303,27 +303,17 @@ module.exports.create = (KONFIG, environment)->
         proxy_set_header      X-Prerender-Token #{KONFIG.prerenderToken};
 
         set $prerender 0;
-        set $validation_result '';
         if ($http_user_agent ~* "baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator") {
-          set $validation_result 'valid bot';
+          set $prerender 1;
         }
-        if ($args ~ "_escaped_fragment_") {
-          set $validation_result 'valid bot';
+        if ($request_uri !~ "(^(\/)?$)|(\/(Pricing|About|Legal|Features)(\/|$))") {
+          set $prerender 0;
         }
-        if ($request_uri ~ "\/(Pricing|About|Legal|Features)(\/|&|\?|$)") {
-          set $validation_result "${validation_result} & valid page";
-        }
-        if ($args ~ '_escaped_fragment_=(&|$)') {
-          set $validation_result "${validation_result} & valid page";
-        }
-        if ($request_uri ~ "^(\/)?$") {
-          set $validation_result "${validation_result} & valid page";
+        if ($args ~ "_escaped_fragment_=$|(\/(Pricing|About|Legal|Features)(\/|$))") {
+          set $prerender 1;
         }
         if ($http_user_agent ~ "Prerender") {
-          set $validation_result '';
-        }
-        if ($validation_result = 'valid bot & valid page') {
-          set $prerender 1;
+          set $prerender 0;
         }
 
         #resolve using Google's DNS server to force DNS resolution and prevent caching of IPs
