@@ -65,7 +65,7 @@ func (c *ChannelLink) List(q *request.Query) ([]Channel, error) {
 
 // Create creates a link between two channels
 func (c *ChannelLink) Create() error {
-	return bongo.B.Create(c)
+	return c.create()
 }
 
 // Delete removes the link between two channels, most probably it wont touch to
@@ -117,7 +117,7 @@ func (c *ChannelLink) Blacklist() error {
 	return nil
 }
 
-func (c *ChannelLink) createUnscoped() error {
+func (c *ChannelLink) create() error {
 	if err := c.validate(); err != nil {
 		return err
 	}
@@ -139,5 +139,5 @@ func (c *ChannelLink) createUnscoped() error {
 		return err
 	}
 
-	return bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+	return bongo.B.Create(c)
 }
