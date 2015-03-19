@@ -636,14 +636,18 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   prepareIDE: ->
 
-    # FIXME: We shouldn't use computeController.fetchMachine in this case.
-    kd.getSingleton('computeController').fetchMachines (err) =>
+    {appManager, computeController} = kd.singletons
 
-      return showError "Couldn't fetch your VMs"  if err
+    # FIXME: We shouldn't use computeController.fetchMachine in this case.
+    computeController.fetchMachines (err) =>
+
+      return if showError err
 
       environmentDataProvider.fetchMachine @machine.uid, (machine) =>
 
-        return showError "Couldn't fetch your VMs"  unless machine
+        # return showError "Couldn't fetch your VMs"  unless machine
+        unless machine
+          return appManager.tell 'IDE', 'quit'
 
         @machine = machine
         @setData machine
