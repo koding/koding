@@ -31,4 +31,4 @@ module.exports = class MoreWorkspacesModal extends SidebarSearchModal
 
     for workspace in @getData()
       item = @listController.addItem workspace
-      item.once 'WorkspaceSelected', @bound 'destroy'
+      item.once 'ModalItemSelected', @bound 'destroy'

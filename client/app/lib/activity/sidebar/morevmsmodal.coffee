@@ -1,7 +1,7 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 SidebarSearchModal = require './sidebarsearchmodal'
-MachineItem = require './machineitem'
+ModalMachineItem = require './modalmachineitem'
 {handleNewMachineRequest} = require '../../providers/computehelpers'
 
 module.exports = class MoreVMsModal extends SidebarSearchModal
@@ -12,7 +12,7 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
     options.width            = 462
     options.title          or= 'VMs'
     options.disableSearch    = yes
-    options.itemClass      or= MachineItem
+    options.itemClass      or= ModalMachineItem
     options.bindModalDestroy = no
 
     super options, data
@@ -49,4 +49,4 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
 
     for machine in machines
       item = @listController.addItem machine.data
-      item.once 'MachineSelected', @bound 'destroy'
+      item.once 'ModalItemSelected', @bound 'destroy'
