@@ -3,6 +3,7 @@ nick = require 'app/util/nick'
 globals = require 'globals'
 remote = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
+sinkrow = require 'sinkrow'
 
 
 module.exports = UserEnvironmentDataProvider =
@@ -141,6 +142,11 @@ module.exports = UserEnvironmentDataProvider =
     @machineFetcher_ 'uid', uid, callback
 
 
+  fetchMachineById: (id, callback) ->
+
+    @machineFetcher_ '_id', id, callback
+
+
   fetchMachineAndWorkspaceByChannelId: (channelId, callback) ->
 
     machine   = null
@@ -156,22 +162,24 @@ module.exports = UserEnvironmentDataProvider =
     callback machine, workspace
 
 
-  validateCollaborationWorkspace: (machineLabel, workspaceSlug, channelId) ->
+  findWorkspace: (machineLabel, workspaceSlug, channelId) ->
 
-    data      = @getAllMachines()
-    workspace = null
+    for item in @getAllMachines()
 
-    for obj in data when obj.machine.label is machineLabel
-      for ws in obj.workspaces
-        hasSameLabel     = ws.machineLabel is machineLabel
-        hasSameSlug      = ws.slug is workspaceSlug
-        hasSameChannelId = ws.channeId is channelId
+      {machine, workspaces} = item
+
+      slugMatches  = machineLabel is machine.slug
+      labelMatches = machineLabel is machine.label
+
+      continue  unless slugMatches or labelMatches
+
+      for workspace in workspaces
+        hasSameLabel     = workspace.machineLabel is machine.label
+        hasSameSlug      = workspace.slug is workspaceSlug
+        hasSameChannelId = if channelId then workspace.channelId is channelId else yes
 
         if hasSameLabel and hasSameSlug and hasSameChannelId
-          workspace = ws
-          break
-
-    return workspace
+          return workspace
 
 
   getIDEFromUId: (uid) ->
@@ -185,3 +193,43 @@ module.exports = UserEnvironmentDataProvider =
       break
 
     return instance
+
+
+  createDefaultWorkspace: (machine, callback) ->
+
+    remote.api.JWorkspace.createDefault machine.uid, (err, workspace) ->
+
+      if err
+        console.error "User Environment  Data Provider: #{err}"
+
+      callback err, workspace
+
+
+  ensureDefaultWorkspace: (callback) ->
+
+    data = @get()
+
+    queue = @getMyMachines().concat @getSharedMachines()
+
+      .map ({machine, workspaces}) =>
+
+        =>
+
+          for workspace in workspaces when workspace.isDefault
+            return queue.fin()
+
+          @createDefaultWorkspace machine, (err, workspace) ->
+
+            return queue.fin()  if err
+
+            workspaces.push workspace  if workspace
+            queue.fin()
+
+    sinkrow.dash queue, callback
+
+
+  clearWorkspaces: (machine) ->
+
+    for item in @getAllMachines() when item.machine.uid is machine.uid
+      item.workspaces.splice 0
+      return

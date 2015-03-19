@@ -21,7 +21,7 @@
     "kd-shim-jspath": "^0.1.4",
     "kd-shim-sockjs-client": "^0.3.4",
     "kd-shim-jquery-sketchpad": "^0.1.1",
-    "kd.js": "^1.0.11",
+    "kd.js": "^1.0.12",
     "kite.js": "git://github.com/tetsuo/kite.js#0.4.0",
     "kookies": "^0.1.1",
     "lodash": "^2.4.1",
@@ -43,6 +43,7 @@
   "devDependencies": {
     "bant-build": "0.1.7",
     "browserify": "git://github.com/tetsuo/node-browserify#hotfix-dedupe-json",
+    "chai": "^2.1.1",
     "coffee-script": "1.8.0",
     "coffeeify": "^1.0.0",
     "debug": "^2.1.1",

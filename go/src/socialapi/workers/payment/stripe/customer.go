@@ -55,13 +55,6 @@ func CreateCustomer(token, accId, email string) (*paymentmodels.Customer, error)
 	return customerModel, err
 }
 
-func FindCustomerByOldId(oldId string) (*paymentmodels.Customer, error) {
-	customerModel := paymentmodels.NewCustomer()
-	err := customerModel.ByOldId(oldId)
-
-	return customerModel, err
-}
-
 func GetCustomer(id string) (*stripe.Customer, error) {
 	customer, err := stripeCustomer.Get(id, nil)
 	if err != nil {
@@ -72,8 +65,7 @@ func GetCustomer(id string) (*stripe.Customer, error) {
 }
 
 func DeleteCustomer(accId string) error {
-	customer := paymentmodels.NewCustomer()
-	err := customer.ByOldId(accId)
+	customer, err := paymentmodels.NewCustomer().ByOldId(accId)
 	if err != nil {
 		return err
 	}

@@ -40,6 +40,8 @@ func main() {
 	conf := r.Conf
 	kloud := conf.Kloud
 
+	Log = helper.CreateLogger(WorkerName, conf.PaymentWebhook.Debug)
+
 	// initialize client to talk to kloud
 	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
 	defer kiteClient.Close()
@@ -100,6 +102,7 @@ func initializeKiteClient(k *kite.Kite, kloudKey, kloudAddr string) *kite.Client
 	// create a new connection to the cloud
 	kiteClient := k.NewClient(kloudAddr)
 	kiteClient.Auth = &kite.Auth{Type: "kloudctl", Key: kloudKey}
+	kiteClient.Reconnect = true
 
 	// dial the kloud address
 	if err := kiteClient.DialTimeout(time.Second * 10); err != nil {
