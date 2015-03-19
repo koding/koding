@@ -498,8 +498,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     { machine, workspace } = data
 
-    for machineList in @machineLists
-      machineList.selectMachineAndWorkspace machine.uid, workspace.slug
+    kd.getSingleton('mainController').ready =>
+
+      for machineList in @machineLists
+        machineList.selectMachineAndWorkspace machine.uid, workspace.slug
 
 
   fetchEnvironmentData: (callback) ->
