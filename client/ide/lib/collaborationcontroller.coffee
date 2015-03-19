@@ -873,8 +873,9 @@ module.exports =
           style    : 'solid green medium'
           callback : => @modal.destroy()
 
+    @chat.end()
     @showModal options
-    @quit()
+    @handleCollaborationEndedForParticipant()
 
 
   showSessionEndedModal: (content) ->
