@@ -379,20 +379,17 @@ module.exports = class ComputeController extends KDController
 
       if machine?.provider is 'managed'
 
-        options =
+        options     =
           machineId : machine._id
           provider  : machine.provider
-
-        @emit "MachineBeingDestroyed", machine
 
         remote.api.ComputeProvider.remove options, (err)=>
           return  if err
 
-          # this need to be done automatically? ~ GG
-          kd.singletons.mainView.activitySidebar.removeMachineNode machine
-
           @_clearTrialCounts machine
-          @reset yes
+          @reset yes, ->
+            kd.singletons.appManager.tell 'IDE', 'quit'
+            kd.singletons.router.handleRoute '/IDE'
 
         return
 
