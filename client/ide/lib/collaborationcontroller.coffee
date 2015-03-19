@@ -849,7 +849,7 @@ module.exports =
 
   showSessionEndedModal: (content) ->
 
-    content ?= "This session is ended by @#{@collaborationHost} You won't be able to access it anymore."
+    content ?= "This collaboration session has been terminated by the host @#{@collaborationHost}."
 
     options        =
       title        : 'Session ended'
