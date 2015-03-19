@@ -358,6 +358,8 @@ module.exports = class IDEAppController extends AppController
 
   getMountedMachine: (callback = noop) ->
 
+    return callback()  unless @mountedMachineUId
+
     kd.utils.defer =>
       environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine

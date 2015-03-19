@@ -13,6 +13,8 @@ selectWorkspaceOnSidebar = (data) ->
 
   { machine, workspace } = data
 
+  return  unless machine or workspace
+
   kd.getSingleton('mainView').activitySidebar.selectWorkspace data
   storage = kd.singletons.localStorageController.storage 'IDE'
 
