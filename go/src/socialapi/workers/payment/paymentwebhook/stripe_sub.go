@@ -26,10 +26,7 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 		Log.Error(err.Error())
 	}
 
-	err = stripe.SubscriptionDeletedWebhook(sub)
-	if err != nil {
-		return err
-	}
+	stripe.SubscriptionDeletedWebhook(sub)
 
 	return subscriptionEmail(sub.CustomerId, sub.Plan.Name, SubscriptionDeleted)
 }
