@@ -289,8 +289,12 @@ module.exports =
     return hashtag
 
 
-  getFakeText: ->
-    return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
+  getFakeText: (maxLength) ->
+
+    text = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
+    text.substr(0, maxLength)  if maxLength
+
+    return text
 
 
   openFolderContextMenu: (browser, user, folderName) ->
