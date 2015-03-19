@@ -37,9 +37,6 @@ module.exports = class AccountEditUsername extends JView
 
     @avatar = new AvatarStaticView @getAvatarOptions(), @account
 
-    # TODO Since avatar upload is dependent on oskite
-    # these buttons are not appended to view, until a new
-    # avatar upload implementation
     @uploadAvatarBtn  = new KDButtonView
       style           : 'solid small green'
       cssClass        : 'upload-avatar'

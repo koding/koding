@@ -298,21 +298,19 @@ app.settings.styl
         margin-top          4px
 
 .kdlistitemview-oauth
-  width                     33%
-  float                     left
-  text-align                center
-  margin-bottom             34px
+  padding                   16px 0 14px !important
 
   .title
-    font-size               14px
-    color                   #434343
+    margin-top              0 !important
 
-  .koding-on-off
-    margin                  7px auto 0
+    cite
+      display               inline-block
+      vertical-align        middle
 
   .icon
-    display                 block
-    margin                  0 auto 12px
+    display                 inline-block
+    vertical-align          middle
+    margin-right            19px
 
   &.google .icon
     r-sprite                'account' 'ext-gplus'
@@ -386,6 +384,9 @@ app.settings.styl
     zoom                    1
     padding                 12px 0
 
+    .ssh-key-info
+      margin-right          90px
+
     h4
       display               block
       color                 #434343
@@ -402,7 +403,46 @@ app.settings.styl
       color                 #B3B3B3
 
     .buttons
-      display               none
+      opacity               0
+      vendor                transition, opacity .2s ease
+      abs                   15px 0px 0 0
+      height                16px
+
+      .kdbutton
+        background          none
+        margin              0 0 0 11px
+        padding             0
+        height              16px
+        border              none
+        outline             none
+
+      .kdbutton .icon
+        display             inline-block
+
+      .delete .icon
+        r-sprite            'account', 'ssh-delete'
+
+      .edit .icon
+        r-sprite            'account', 'ssh-edit'
+
+    &:hover .buttons
+      opacity               1
+
+.AppModal--account-tabSpinner
+  display                   block !important
+  width                     40px
+  margin                    0 auto
+
+.AppModal--account .kdbutton.delete-account
+  margin-top                14px
+  -webkit-transition        -webkit-transform .3s ease
+  -moz-transition           -moz-transform .3s ease
+  transition                transform .3s ease
+
+  &.escape
+    -webkit-transform       translateX(-200px)
+    -moz-transform          translateX(-200px)
+    transform               translateX(-200px)
 
 
 .kdmodal.payments-modal

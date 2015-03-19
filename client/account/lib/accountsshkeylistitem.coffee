@@ -63,10 +63,14 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
       cssClass : 'buttons'
 
     buttons.addSubView editLink = new KDButtonView
-      title    : "Edit"
+      iconOnly : yes
       cssClass : "edit"
-      style    : "solid medium green"
       callback : @bound "swapSwappable"
+
+    buttons.addSubView deleteLink = new KDButtonView
+      iconOnly : yes
+      cssClass : "delete"
+      callback : @bound "deleteItem"
 
     @swappable = swappable = new AccountsSwappable
       views : [form,info]
