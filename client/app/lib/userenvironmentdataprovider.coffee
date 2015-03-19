@@ -5,6 +5,8 @@ remote = require('app/remote').getInstance()
 Machine = require 'app/providers/machine'
 sinkrow = require 'sinkrow'
 
+KDNotificationView = kd.NotificationView
+
 
 module.exports = UserEnvironmentDataProvider =
 

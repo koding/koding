@@ -60,6 +60,7 @@ module.exports = class Ace extends KDView
       element = @getElement().querySelector "#editor#{@getId()}"
       return  unless element
       @editor = ace.edit element
+      element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
       @prepareEditor()
       if contents
         @setContents contents
