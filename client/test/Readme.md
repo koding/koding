@@ -1,20 +1,20 @@
 # test
 
-this folder contains browser automated tests that run on ([selenium server](http://www.seleniumhq.org)).
+this folder contains browser automated tests that run on [selenium server](http://www.seleniumhq.org).
 
 # quick start
 
-Go to client[../client] folder and run:
+Go to [client](../client) folder and run:
 
 ```sh
 λ koding/client make test
 ```
 
-This will configure your `nightwatch` environment, transpile coffee-scripts under `test/lib` directory into `test/build`, start selenium-server, and run your tests in the correct order that they need to be run.
+This will configure your `nightwatch` environment, transpile coffee-scripts under `test/lib` directory into `test/build`, start [selenium-server,](./vendor) and run your tests in the correct order that they need to be run.
 
 # configuration
 
-In order to run tests written with [Nightwatch.js](http://nightwatchjs.org) framework, you need to generate a [configuration script.](http://nightwatchjs.org/guide#settings-file).
+In order to run tests written with [Nightwatch.js](http://nightwatchjs.org) framework, you need to generate a [configuration script.](http://nightwatchjs.org/guide#settings-file)
 
 This file can be automatically generated with:
 
@@ -30,17 +30,21 @@ or you can directly run the configuration tool itself:
 
 Running any of those will write two files in `client` directory:
 
-- `client/.nightwatch.json` is the configuration file expected by `nightwatch` and it is generated specifically for the platform (os) you are on.
+### client/.nightwatch.json
+
+This is the configuration file expected by `nightwatch` and it is generated specifically for the platform (os) you are on.
 
 By default configuration tool, uses [a blueprint file](bin/nightwatch-blueprint.json) for the defaults.
 
-But you can overwrite any [key](http://nightwatchjs.org/guide#settings-file) from cli using [dot notation](https://github.com/bcoe/yargs#dot-notation):
+But you can overwrite [any key](http://nightwatchjs.org/guide#settings-file) from cli using [dot notation](https://github.com/bcoe/yargs#dot-notation):
 
 ```sh
 λ client/test ./bin/cmd.coffee browser --selenium.port 5555
 ```
 
-- `client/.config.json` is also being added a `test.url` key that you have specified.
+### client/.config.json
+
+This file is also extended with a `test.url` key that you have specified.
 
 Following is the help output of the configuration tool:
 
@@ -53,7 +57,8 @@ Commands:
 Options:
   --help, -h        show this message                                                                                        
   --url             specify a url that koding webserver is running on
-  --nightwatch      specify a nightwatch config blueprint file. actual config file will be written to client/.nightwatch.json
+  --nightwatch      specify a nightwatch config blueprint file.
+                    actual config file will be written to client/.nightwatch.json
   --start-selenium  if enabled starts a selenium server process [default: true]
 ```
 
@@ -99,7 +104,7 @@ Build and run:
 
 # running tests individually
 
-You can run tests individually using either `test` or `run.sh` scripts, these scripts are same except that `test` re-compiles before running:
+You can run tests individually using either `test` or `run.sh` scripts, these scripts are same except that `test` retranspiles coffees before running:
 
 Run `activity` suite tests:
 

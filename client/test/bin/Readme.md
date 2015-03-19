@@ -19,4 +19,4 @@ Options:
 
 # license
 
-2015 Koding, Inc.
+2015 Koding, Inc
