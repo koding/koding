@@ -45,16 +45,18 @@ You can also `./run backend` only which is the prefered way to develop frontend:
 
 Frontend application is being built by [builder](./builder) and it has a bunch of options that you won't probably need to alter since the most general purpose combinations are pre-configured in `Makefile`.
 
-Watch scripts, styles & sprites and recompile/transpile upon changes with inlined source maps:
-
-```sh
-λ koding/client make development
-```
-
-Creating source maps for scripts is kinda expensive. If you want faster builds in watch mode and don't need source maps:
+Watch scripts, styles & sprites and recompile/transpile upon changes:
 
 ```sh
 λ koding/client make watch
+```
+
+Creating source maps is kinda expensive, so they are disabled by default.
+
+If you don't mind slower builds in watch mode and need source maps, try this:
+
+```sh
+λ koding/client EXTRAS="--debug-js --debug-css" make watch
 ```
 
 If you want to have your source maps inlined, but no watch mode:
