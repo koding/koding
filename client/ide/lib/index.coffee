@@ -322,9 +322,9 @@ module.exports = class IDEAppController extends AppController
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
 
-        machine = new Machine { machine }  unless machine instanceof Machine
-
         return unless machine
+
+        machine = new Machine { machine }  unless machine instanceof Machine
 
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
