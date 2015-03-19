@@ -232,6 +232,16 @@ module.exports = UserEnvironmentDataProvider =
     sinkrow.dash queue, callback
 
 
+  removeMachine: (type, machine) ->
+
+    envData = globals.userEnvironmentData[type]
+
+    for item, index in envData when item.machine.uid is machine.uid
+      envData.splice index, 1
+      kd.utils.defer => @fetch kd.noop
+      return
+
+
   clearWorkspaces: (machine) ->
 
     for item in @getAllMachines() when item.machine.uid is machine.uid
