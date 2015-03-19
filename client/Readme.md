@@ -47,44 +47,44 @@ Frontend application is being built by [builder](./builder) and it has a bunch o
 
 Watch scripts, styles & sprites and recompile/transpile upon changes with inlined source maps:
 
-```
-λ dev/koding/client make development
+```sh
+λ koding/client make development
 ```
 
 Creating source maps for scripts is kinda expensive. If you want faster builds in watch mode and don't need source maps:
 
-```
-λ dev/koding/client make watch
+```sh
+λ koding/client make watch
 ```
 
 If you want to have your source maps inlined, but no watch mode:
 
-```
-λ dev/koding/client make debug
+```sh
+λ koding/client make debug
 ```
 
 Minify scripts and styles:
 
-```
-λ dev/koding/client make minify
+```sh
+λ koding/client make minify
 ```
 
 Minify scripts and styles, but write source maps of scripts to an external `.map` file:
 
-```
-λ dev/koding/client make minify-with-external-sourcemaps
+```sh
+λ koding/client make minify-with-external-sourcemaps
 ```
 
 Vanilla:
 
-```
-make vanilla
+```sh
+λ koding/client make vanilla
 ```
 
 Build [landing](./landing):
 
 ```
-λ dev/koding/client make landing
+λ koding/client make landing
 ```
 
 And finally there are `make all` and `make dist` which are simply aliases for `make landing development` and `make landing minify-with-external-sourcemaps` respectively.
@@ -125,35 +125,29 @@ A module's directory tree looks like this:
 
 To run browser tests, type:
 
-```
-λ dev/koding/client npm test
+```sh
+λ koding/client npm test
 ```
 
 or
 
-```
-λ dev/koding/client make test
+```sh
+λ koding/client make test
 ```
 
 If you have a [Selenium](http://www.seleniumhq.org) server started already on your machine, type:
 
-```
-λ dev/koding/client TEST_EXTRAS=--no-start-selenium make test
-```
-
-You can pass [Nightwatch.js](http://nightwatchjs.org) arguments with `TEST_NW_EXTRAS` environment variable:
-
-```
-λ dev/koding/client TEST_NW_EXTRAS=--verbose make test
+```sh
+λ koding/client TEST_EXTRAS=--no-start-selenium make test
 ```
 
 If your web server is not running on localhost, you can specify its url like this:
 
-```
-λ dev/koding/client TEST_EXTRAS="--url http://xyz.koding.io:8090" make test
+```sh
+λ koding/client TEST_EXTRAS="--url http://xyz.koding.io:8090" make test
 ```
 
-Read more about browser tests and test configuration cli [here.](test)
+Read more about browser tests and test configuration cli [here.](./test)
 
 # bant.json
 
