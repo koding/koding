@@ -30,7 +30,7 @@ module.exports =
     # and renders it as a link, but if we continue typing it understands that
     # it is an image
     image    = 'http://placehold.it/200x100 hello world!'
-    selector = activitySelector + ' .activity-content-wrapper .embed-image-view img'
+    selector = activitySelector + ' .activity-content-wrapper .link-embed-box img'
 
     browser
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
