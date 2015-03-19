@@ -369,6 +369,7 @@ module.exports =
     interval = 1000 * 15
     @sendPing() # send the first ping
     @pingInterval = kd.utils.repeat interval, @bound 'sendPing'
+    @on 'RealtimeManagerWillDispose', => kd.utils.killRepeat @pingInterval
 
 
   sendPing: ->
