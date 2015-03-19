@@ -684,10 +684,8 @@ module.exports =
     if @amIHost
       @endCollaborationForHost
         success: =>
-          # TODO: move this into its own method.
-          @statusBar.emit 'CollaborationEnded'
-          sharedSuccessFn()
-          @cleanupCollaboration()
+          @modal?.destroy()
+          @handleCollaborationEndedForHost()
 
     else
       @endCollaborationForParticipant
@@ -710,6 +708,22 @@ module.exports =
           envHelpers.detachSocialChannel @workspaceData, (err) =>
             return callbacks.error err  if err
             callbacks.success()
+
+
+  handleCollaborationEndedForHost: ->
+
+    return  unless @stateMachine.state in ['Ending']
+
+    @rtm.once 'RealtimeManagerWillDispose', =>
+      @chat.emit 'CollaborationEnded'
+      @chat.destroy()
+      @chat = null
+      @statusBar.emit 'CollaborationEnded'
+
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      kd.utils.defer @bound 'prepareCollaboration'
+
+    @cleanupCollaboration()
 
 
   endCollaborationForParticipant: (callbacks) ->
@@ -791,7 +805,6 @@ module.exports =
     @rtm.once 'RealtimeManagerDidDispose', =>
       @rtm = null
       delete @stateMachine
-      @prepareCollaboration  if @amIHost
 
     @rtm.dispose()
 
