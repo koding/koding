@@ -124,6 +124,7 @@ module.exports = class Managed extends ProviderInterface
 
     JMachine = require './machine'
     selector = JMachine.getSelectorFor client, { machineId, owner: yes }
+    selector.provider = @providerSlug
 
     JMachine.one selector, (err, machine)->
 
