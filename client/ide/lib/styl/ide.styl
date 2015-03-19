@@ -89,9 +89,6 @@ body.ide.dark
   .editor-bottom-bar
     bg                  color, dark-tab-header-bg
 
-  .kdsplitview-resizer
-    bg                  color, dark-tab-header-bg
-
   .terminal .green-on-black.console
     bg                  color, dark-panel-bg
 
@@ -147,10 +144,6 @@ body.ide.dark
 .ide
   .kdsplitview-resizer
     z-index             10 // ace occupies
-    &.vertical
-      width             2px
-    &.horizontal
-      height            2px
 
   .ace_editor
     height              100%
@@ -967,6 +960,12 @@ body.ide .kddialogview.save-as-dialog
       r-sprite              ide help
       margin-top            -6px
       display               block
+
+
+.ide
+  .kdsplitview-vertical .panel-0
+    borderBox()
+    border-right            2px solid dark-tab-header-bg
 
 
 .ide .application-page.read-only
