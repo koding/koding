@@ -205,6 +205,34 @@ func (f *Controller) addSynonym(indexName string, synonyms ...string) error {
 	return err
 }
 
+func (f *Controller) getSynonyms(indexName string) ([][]string, error) {
+	index, err := f.indexes.Get(indexName)
+	if err != nil {
+		return nil, err
+	}
+
+	settingsinter, err := index.GetSettings()
+	if err != nil {
+		return nil, err
+	}
+
+	settings, ok := settingsinter.(map[string]interface{})
+	if !ok {
+		settings = make(map[string]interface{})
+	}
+
+	// define the initial synonymns
+	synonymsSlice := make([][]string, 0)
+
+	if sint, ok := settings["synonyms"]; ok {
+		if sslice, ok := sint.([][]string); ok {
+			// if we have previous ones, use it
+			synonymsSlice = sslice
+		}
+	}
+
+	return synonymsSlice, nil
+}
 func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
 	// check required variables
 	if cl == nil {
