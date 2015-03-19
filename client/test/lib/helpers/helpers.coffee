@@ -194,7 +194,7 @@ module.exports =
     if shouldPostActivity
       @postActivity(browser)
 
-    comment = @getFakeText()
+    comment = @getFakeText 50
 
     @doPostComment(browser, comment, shouldAssert)
 
@@ -203,29 +203,22 @@ module.exports =
 
   doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
     browser
-      .click                    activitySelector + ' [testpath=CommentInputView]'
-      .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
-      .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
-
-    if hasEmbeddable
-      browser.pause 3000
-
-    browser
-      .click                    activitySelector + ' .has-markdown' # blur
-      .pause                    3000 # content preview
+      .click                      activitySelector + ' [testpath=CommentInputView]'
+      .setValue                   activitySelector + ' [testpath=CommentInputView]', comment
 
     if hasEmbeddable
       browser
-        .waitForElementVisible  '.comment-input-widget .link-embed-box', 20000
+        .click                    activitySelector + ' .has-markdown' # blur
+        .pause                    3000 # content preview
+        .waitForElementVisible    '.comment-input-widget .link-embed-box', 20000
 
     browser
-      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
-
+      .click                      activitySelector + ' .comment-container button[testpath=post-activity-button]'
 
     if shouldAssert
       browser
-        .pause               6000 # required
-        .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
+        .pause                    6000 # required
+        .assert.containsText      '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
 
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
