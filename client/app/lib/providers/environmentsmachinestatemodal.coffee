@@ -584,10 +584,8 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     FindManagedNodesModal = require './managed/findnodesmodal'
     findNodes = new FindManagedNodesModal { container }, @machine
-    findNodes.once 'RestartIDE', =>
-      @prepareIDE()
-      @destroy()
 
+    
   turnOnMachine: ->
 
     trackEvent 'Turn on machine, click',

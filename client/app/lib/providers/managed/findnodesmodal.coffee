@@ -101,9 +101,10 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
     updateMachineData {@machine, kite}, (err)=>
       return if showError err
-
-      kd.singletons.computeController.reset yes, =>
-        @emit 'RestartIDE', @machine
+      
+      {computeController, appManager} = kd.singletons
+      computeController.reset yes, =>
+        kd.utils.defer -> appManager.tell 'IDE', 'quit'
         @destroy()
 
   removeMachine: ->
