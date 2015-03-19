@@ -182,8 +182,8 @@ module.exports = class JWorkspace extends Module
       return callback 'Machine not found'  unless machine
 
       {nickname} = client.connection.delegate.profile
-
-      selector = {machineUId, slug: 'my-workspace'}
+      rootPath   = '/'  if machine.provider is 'managed'
+      selector   = {machineUId, slug: 'my-workspace'}
 
       @one selector, (err, workspace) =>
 
@@ -194,12 +194,12 @@ module.exports = class JWorkspace extends Module
 
           return callback err  if err
 
-          data =
+          data           =
             name         : 'My Workspace'
             isDefault    : yes
             machineLabel : machine.label
             machineUId   : machine.uid
-            rootPath     : "/home/#{nickname}"
+            rootPath     : rootPath ? "/home/#{nickname}"
             originId     : account.getId()
 
           @create client, data, callback
