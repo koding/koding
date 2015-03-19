@@ -98,8 +98,6 @@ module.exports = class NavigationMachineItem extends JView
 
     kd.utils.stopDOMEvent event
 
-    return  unless status?.state is Running
-
     @openMachineSettingsPopup()
 
 

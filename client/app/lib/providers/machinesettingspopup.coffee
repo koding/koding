@@ -108,7 +108,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         moreView        :
           label         : "More"
           itemClass     : KDCustomHTMLView
-          cssClass      : if data.isPermanent() then 'hidden'
+          cssClass      : if data.isPermanent() or not running then 'hidden'
 
     if data.isManaged()
 
@@ -206,7 +206,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
     diskUsage.updateBar 0, '%', 'checking usage...'
 
-    baseKite.systemInfo()
+    baseKite.systemInfo?()
 
       .then (info)->
 
@@ -346,9 +346,13 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
       shareVMLabel.unsetClass 'expanded'
 
     @addSubView @buttonContainer = new KDView
-      cssClass : "button-container #{'hidden' unless @machine.isManaged()}"
+      cssClass : "button-container hidden"
+
+    if @machine.isManaged() or currentState isnt Running
+      @buttonContainer.show()
 
     unless @machine.isManaged()
+
       @buttonContainer.addSubView @reinitButton = new KDButtonView
         style    : 'solid compact red reinit'
         title    : 'Reinitialize VM'
@@ -362,6 +366,7 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         callback : =>
           computeController.resize @machine, 10
           @destroy()
+
     else
 
       terminateTitle = 'Delete VM'
