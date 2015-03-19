@@ -36,6 +36,7 @@ module.exports = class JWorkspace extends Module
         deleteByUid: signature String, Function
         update     : signature String, Object, Function
         fetchByMachines: signature Function
+        createDefault  : signature String, Function
       instance     :
         delete     : signature Function
     sharedEvents   :
@@ -43,13 +44,21 @@ module.exports = class JWorkspace extends Module
       instance     : []
 
 
-  @create = secure (client, data, callback) ->
+  @create$ = secure (client, data, callback) ->
 
     {delegate}    = client.connection
     data.originId = delegate._id
 
-    nickname      = delegate.profile.nickname
-    data.slug     = slugify data.name?.toLowerCase()
+    @create client, data, callback
+
+
+  @create = secure (client, data, callback) ->
+
+    {delegate}     = client.connection
+    data.originId ?= delegate._id
+
+    nickname  = delegate.profile.nickname
+    data.slug = slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, originId, machineLabel} = data
 
@@ -137,7 +146,6 @@ module.exports = class JWorkspace extends Module
     selector     =
       originId   : client.connection.delegate._id
       machineUId : uid
-      slug       : $ne: 'my-workspace'
 
     JWorkspace.remove selector, (err)->
       callback err
@@ -166,16 +174,32 @@ module.exports = class JWorkspace extends Module
       ws.update options, callback
 
 
-  @createDefault: (client, options, callback) ->
+  @createDefault: secure (client, machineUId, callback) ->
 
-    {machine, rootPath} = options
-    {nickname} = client.connection.delegate.profile
+    JMachine.one$ client, machineUId, (err, machine) =>
 
-    data =
-      name         : 'My Workspace'
-      isDefault    : yes
-      machineLabel : machine.label
-      machineUId   : machine.uid
-      rootPath     : rootPath ? "/home/#{nickname}"
+      return callback err  if err
+      return callback 'Machine not found'  unless machine
 
-    @create client, data, callback
+      {nickname} = client.connection.delegate.profile
+
+      selector = {machineUId, slug: 'my-workspace'}
+
+      @one selector, (err, workspace) =>
+
+        return callback err  if err
+        return callback null, workspace  if workspace
+
+        machine.fetchOwner (err, account) =>
+
+          return callback err  if err
+
+          data =
+            name         : 'My Workspace'
+            isDefault    : yes
+            machineLabel : machine.label
+            machineUId   : machine.uid
+            rootPath     : "/home/#{nickname}"
+            originId     : account.getId()
+
+          @create client, data, callback

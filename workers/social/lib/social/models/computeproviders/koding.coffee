@@ -77,7 +77,7 @@ module.exports = class Koding extends ProviderInterface
       return callback err  if err
 
       JWorkspace = require '../workspace'
-      JWorkspace.createDefault client, {machine}, callback
+      JWorkspace.createDefault client, machine.uid, callback
 
 
   @update = (client, options, callback)->
