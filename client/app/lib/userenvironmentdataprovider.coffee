@@ -230,6 +230,11 @@ module.exports = UserEnvironmentDataProvider =
     sinkrow.dash queue, callback
 
 
+  removeCollaborationMachine: (machine) ->
+
+    @removeMachine 'collaboration', machine
+
+
   removeMachine: (type, machine) ->
 
     envData = globals.userEnvironmentData[type]
