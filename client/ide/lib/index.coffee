@@ -1192,7 +1192,7 @@ module.exports = class IDEAppController extends AppController
 
     @cleanupCollaboration()
 
-    @mountedMachine.getBaseKite().disconnect()
+    @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
     kd.singletons.appManager.quit this
 
