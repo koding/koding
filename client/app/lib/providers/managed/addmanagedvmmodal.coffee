@@ -11,14 +11,12 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
     hasContainer      = options.container?
 
-    defaults          =
+    options           = kd.utils.extend options,
       title           : 'Add your own VM'
       cssClass        : 'add-managedvm'
       appendToDomBody : !hasContainer
       draggable       : no
       overlay         : !hasContainer
-
-    options           = defaults extends options
 
     super options, data
 

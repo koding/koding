@@ -9,7 +9,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
     hasContainer      = options.container?
 
-    defaults          =
+    options           = kd.utils.extend options,
       title           : 'Search for available nodes'
       cssClass        : 'find-nodes'
       appendToDomBody : !hasContainer
@@ -17,9 +17,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
       overlay         : !hasContainer
 
     if options.reassign
-      defaults.title  = "Use different kite for machine #{data.label}"
-
-    options           = defaults extends options
+      options.title  ?= "Use different kite for machine #{data.label}"
 
     super options, data
 

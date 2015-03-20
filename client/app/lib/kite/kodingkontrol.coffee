@@ -27,7 +27,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     super
 
     @kite.on 'close', (reason)->
-      kd.log "Kontrol disconnected with reason:", reason
+      kd.log "Kontrol disconnected because ", reason
 
 
   getAuthOptions: ->

@@ -475,7 +475,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @button    = new KDButtonView
       title    : title
       cssClass : 'turn-on state-button solid green medium'
-      icon     : !@isManaged
+      icon     : not @isManaged
       callback : @bound callback
 
     @container.addSubView @button
