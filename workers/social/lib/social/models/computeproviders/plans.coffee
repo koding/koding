@@ -1,4 +1,5 @@
-module.exports       =
+{clone}              = require 'underscore'
+module.exports       = clone
   free               :
     total            : 1
     alwaysOn         : 0
