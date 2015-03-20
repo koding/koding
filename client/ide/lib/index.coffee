@@ -78,9 +78,8 @@ module.exports = class IDEAppController extends AppController
 
     $('body').addClass 'dark' # for theming
 
-    appView   = @getView()
-    workspace = @workspace = new IDEWorkspace { layoutOptions }
-    @ideViews = []
+    @workspace = new IDEWorkspace { layoutOptions }
+    @ideViews  = []
 
     # todo:
     # - following two should be abstracted out into a separate api
@@ -90,29 +89,7 @@ module.exports = class IDEAppController extends AppController
     {windowController} = kd.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
 
-    workspace.once 'ready', =>
-      panel = workspace.getView()
-      appView.addSubView panel
-
-      panel.once 'viewAppended', =>
-        ideView = panel.getPaneByName 'editorPane'
-        @setActiveTabView ideView.tabView
-        @registerIDEView  ideView
-
-        splitViewPanel = ideView.parent.parent
-        @createStatusBar splitViewPanel
-        @createFindAndReplaceView splitViewPanel
-
-        appView.emit 'KeyViewIsSet'
-
-        @createInitialView()
-        @bindCollapseEvents()
-
-        {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
-
-        @bindRouteHandler()
-        @initiateAutoSave()
-        @emit 'ready'
+    @workspace.once 'ready', -> @getView().addSubView @workspace.getView()
 
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
@@ -128,6 +105,31 @@ module.exports = class IDEAppController extends AppController
       @resizeActiveTerminalPane()
 
     @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
+
+
+  prepareIDE: ->
+
+    panel     = @workspace.getView()
+    appView   = @getView()
+    ideView   = panel.getPaneByName 'editorPane'
+
+    @setActiveTabView ideView.tabView
+    @registerIDEView  ideView
+
+    splitViewPanel = ideView.parent.parent
+    @createStatusBar splitViewPanel
+    @createFindAndReplaceView splitViewPanel
+
+    appView.emit 'KeyViewIsSet'
+
+    @createInitialView()
+    @bindCollapseEvents()
+
+    {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
+
+    @bindRouteHandler()
+    @initiateAutoSave()
+    @emit 'ready'
 
 
   bindRouteHandler: ->
@@ -382,6 +384,8 @@ module.exports = class IDEAppController extends AppController
         machineItem = new Machine machine: machineItem
 
       @mountedMachine = machineItem
+
+      @prepareIDE()
 
       callback = =>
 
