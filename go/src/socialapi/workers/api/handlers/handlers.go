@@ -13,9 +13,11 @@ import (
 	"socialapi/workers/api/modules/reply"
 	"socialapi/workers/common/handler"
 	"socialapi/workers/common/mux"
+
+	"github.com/koding/metrics"
 )
 
-func AddHandlers(m *mux.Mux) {
+func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 	//----------------------------------------------------------
 	// Message Operations
 	//----------------------------------------------------------
@@ -26,6 +28,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -35,6 +38,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.DeleteRequest,
 			Endpoint:       "/message/{id}",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// exempt contents are filtered
@@ -45,6 +49,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}",
+			Metrics:  metric,
 		})
 
 	// exempt contents are filtered
@@ -55,6 +60,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get-by-slug",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/slug/{slug}",
+			Metrics:  metric,
 		})
 
 	// exempt contents are filtered
@@ -65,6 +71,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "message-get-with-related",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/related",
+			Metrics:  metric,
 		})
 
 	//----------------------------------------------------------
@@ -77,6 +84,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}/reply",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 	// exempt contents are filtered
 	m.AddHandler(
@@ -85,6 +93,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "reply-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/reply",
+			Metrics:  metric,
 		})
 
 	//----------------------------------------------------------
@@ -97,6 +106,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}/interaction/{type}/add",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -106,6 +116,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/message/{id}/interaction/{type}/delete",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// get all the interactions for message
@@ -116,6 +127,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "interactions-list-typed",
 			Type:     handler.GetRequest,
 			Endpoint: "/message/{id}/interaction/{type}",
+			Metrics:  metric,
 		})
 
 	// Channel Operations
@@ -127,6 +139,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// exempt contents are filtered
@@ -137,6 +150,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel",
+			Metrics:  metric,
 		})
 
 	// exempt contents are filtered
@@ -147,6 +161,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-search",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/search",
+			Metrics:  metric,
 		})
 
 	// exempt contents are filtered
@@ -157,6 +172,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-get-byname",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/name/{name}",
+			Metrics:  metric,
 		})
 	m.AddHandler(
 		handler.Request{
@@ -164,6 +180,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-check-participation",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/checkparticipation",
+			Metrics:  metric,
 		})
 
 	// deprecated, here for socialworker
@@ -174,6 +191,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -183,6 +201,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/update",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -192,6 +211,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/delete",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// exempt contents are filtered
@@ -202,6 +222,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-get",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/{id}",
+			Metrics:  metric,
 		})
 
 	// add a new messages to the channel
@@ -212,6 +233,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/message",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// exempt contents are filtered
@@ -221,6 +243,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "participant-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/channel/{id}/participants",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -230,6 +253,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/participants/add",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -239,6 +263,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/participants/remove",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -248,6 +273,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/channel/{id}/participant/{accountId}/presence",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// list messages of the channel
@@ -259,6 +285,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-history-list",
 			Endpoint: "/channel/{id}/history",
 			Type:     handler.GetRequest,
+			Metrics:  metric,
 		})
 
 	// message count of the channel
@@ -268,6 +295,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "channel-history-count",
 			Endpoint: "/channel/{id}/history/count",
 			Type:     handler.GetRequest,
+			Metrics:  metric,
 		})
 
 	// register an account
@@ -278,6 +306,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/account",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -286,6 +315,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-update",
 			Type:     handler.PostRequest,
 			Endpoint: "/account/{id}",
+			Metrics:  metric,
 		})
 
 	// added troll mode protection
@@ -296,6 +326,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-channel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/channels",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -304,6 +335,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-channel-list-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/channels/count",
+			Metrics:  metric,
 		})
 
 	// list posts of the account
@@ -313,6 +345,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-post-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/posts",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -321,6 +354,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-post-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/posts/count",
+			Metrics:  metric,
 		})
 
 	// follow the account
@@ -331,6 +365,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/account/{id}/follow",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// un-follow the account
@@ -341,6 +376,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/account/{id}/unfollow",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// check ownership of an object
@@ -350,6 +386,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-owns",
 			Type:     handler.GetRequest,
 			Endpoint: "/account/{id}/owns",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -358,6 +395,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "account-info",
 			Type:     handler.GetRequest,
 			Endpoint: "/account",
+			Metrics:  metric,
 		})
 
 	// fetch profile feed
@@ -375,6 +413,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "activity-pin-get-channel",
 			Type:     handler.GetRequest,
 			Endpoint: "/activity/pin/channel",
+			Metrics:  metric,
 		})
 
 	// exempt contents are filtered
@@ -385,6 +424,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "activity-pin-list-message",
 			Type:     handler.GetRequest,
 			Endpoint: "/activity/pin/list",
+			Metrics:  metric,
 		})
 
 	// pin a new status update
@@ -395,6 +435,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/activity/pin/add",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 	// unpin a status update
 	m.AddHandler(
@@ -404,6 +445,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/activity/pin/remove",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// @todo add tests
@@ -414,6 +456,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/activity/pin/glance",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// get popular topics
@@ -425,6 +468,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "list-popular-topics",
 			Type:     handler.GetRequest,
 			Endpoint: "/popular/topics/{statisticName}",
+			Metrics:  metric,
 		})
 
 	// exempt contents are filtered
@@ -435,6 +479,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "list-popular-posts",
 			Type:     handler.GetRequest,
 			Endpoint: "/popular/posts/{channelName}",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -444,6 +489,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/privatechannel/init",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	m.AddHandler(
@@ -453,6 +499,7 @@ func AddHandlers(m *mux.Mux) {
 			Type:           handler.PostRequest,
 			Endpoint:       "/privatechannel/send",
 			CollectMetrics: true,
+			Metrics:        metric,
 		})
 
 	// exempt contents are filtered
@@ -462,6 +509,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatechannel-list",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatechannel/list",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -470,6 +518,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatechannel-search",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatechannel/search",
+			Metrics:  metric,
 		})
 
 	m.AddHandler(
@@ -478,5 +527,6 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "privatechannel-count",
 			Type:     handler.GetRequest,
 			Endpoint: "/privatechannel/count",
+			Metrics:  metric,
 		})
 }
