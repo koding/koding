@@ -8,7 +8,7 @@ import (
 	"github.com/streadway/amqp"
 )
 
-var SendEmailEventName = "sendemail"
+var SendEmailEventName = "send"
 
 // Controller holds required instances for processing events
 type Controller struct {
