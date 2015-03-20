@@ -43,7 +43,7 @@ func TestSegmentIOExporter(t *testing.T) {
 
 	defer server.Close()
 
-	Convey("", t, func() {
+	Convey("When using SegementIOExporter", t, func() {
 		props := map[string]interface{}{"key": "a"}
 		user := &User{Username: "indianajones", Email: "senthil@koding.com"}
 		event := &Event{Name: "test", Properties: props, User: user}
@@ -54,23 +54,25 @@ func TestSegmentIOExporter(t *testing.T) {
 		err := sender.Send(event)
 		So(err, ShouldBeNil)
 
-		var req *segmentRequest
-		var timeout = time.NewTimer(time.Second * 2).C
+		Convey("Then it should send", func() {
+			var req *segmentRequest
+			var timeout = time.NewTimer(time.Second * 2).C
 
-		select {
-		case req = <-messageArrived:
-			So(len(req.Batch), ShouldEqual, 1)
-		case <-timeout:
-			t.Fatal("no response from request to segmentio")
-		}
+			select {
+			case req = <-messageArrived:
+				So(len(req.Batch), ShouldEqual, 1)
+			case <-timeout:
+				t.Fatal("no response from request to segmentio")
+			}
 
-		p := req.Batch[0]
-		So(p.UserID, ShouldEqual, "indianajones")
-		So(p.Event, ShouldEqual, "test")
-		So(p.Properties, ShouldNotBeNil)
+			p := req.Batch[0]
+			So(p.UserID, ShouldEqual, "indianajones")
+			So(p.Event, ShouldEqual, "test")
+			So(p.Properties, ShouldNotBeNil)
 
-		key, ok := p.Properties["key"]
-		So(ok, ShouldBeTrue)
-		So(key.(string), ShouldEqual, "a")
+			key, ok := p.Properties["key"]
+			So(ok, ShouldBeTrue)
+			So(key.(string), ShouldEqual, "a")
+		})
 	})
 }

@@ -7,13 +7,15 @@ import (
 )
 
 func TestLogExporter(t *testing.T) {
-	Convey("", t, func() {
+	Convey("When using LogExporter", t, func() {
 		event := &Event{Name: "test"}
 
 		logExporter := NewLogExporter()
 		err := logExporter.Send(event)
 
-		So(err, ShouldBeNil)
-		So(len(logExporter.Events), ShouldEqual, 1)
+		Convey("Then it should save event for debugging", func() {
+			So(err, ShouldBeNil)
+			So(len(logExporter.Events), ShouldEqual, 1)
+		})
 	})
 }
