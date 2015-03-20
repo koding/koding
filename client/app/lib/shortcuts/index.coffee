@@ -1,5 +1,5 @@
 Shortcuts = require 'shortcuts'
-defaults  = require './defaults'
+defaults  = require './config'
 events    = require 'events'
 _         = require 'underscore'
 kd        = require 'kd'
@@ -35,7 +35,6 @@ class Keyboard extends events.EventEmitter
       , {}
       @shortcuts = new Shortcuts raw
 
-    window.z = @shortcuts
 
   addEventListeners: ->
 
@@ -44,7 +43,7 @@ class Keyboard extends events.EventEmitter
     @_store = appStorageController.storage 'Keyboard', STORAGE_VERSION
     @_store.ready _.bind @handleStoreReady, this
 
-    appManager.on 'FrontAppChange', 
+    appManager.on 'FrontAppChange',
       _.bind @handleFrontAppChange, this
 
     @shortcuts.on 'change', (collection) =>
