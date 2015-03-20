@@ -48,7 +48,7 @@ func DeleteLink(u *url.URL, h http.Header, _ interface{}, context *models.Contex
 func Blacklist(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
 	req := &models.ChannelLink{}
 	if err := prepareRequest(u, req); err != nil {
-		return err
+		return response.NewBadRequest(err)
 	}
 
 	return response.HandleResultAndError(req, req.Blacklist())
