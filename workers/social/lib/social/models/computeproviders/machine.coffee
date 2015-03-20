@@ -6,6 +6,8 @@ KodingError = require '../../error'
 {argv}      = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
+JUser       = require '../user'
+
 module.exports = class JMachine extends Module
 
   { ObjectId, signature, daisy, secure } = require 'bongo'
@@ -656,3 +658,14 @@ module.exports = class JMachine extends Module
 
     @shareWith options, (err)->
       callback err
+
+
+  fetchOwner: (callback) ->
+
+    owner = user for user in @users when user.owner and user.sudo
+
+    JUser.one _id: owner.id, (err, user) ->
+
+      return callback 'Owner user not found'  unless user
+
+      user.fetchOwnAccount callback

@@ -50,7 +50,6 @@ module.exports =
   # addVM: (browser) ->
 
   #   freeModalSelector = '.computeplan-modal.free-plan'
-  #   pricingPage       = '.content-page.pricing'
   #   vmSelector        = 'a[href="/IDE/koding-vm-1/my-workspace"]'
 
   #   helpers.beginTest(browser)
@@ -69,11 +68,8 @@ module.exports =
   #             .waitForElementVisible   freeModalSelector, 20000
   #             .waitForElementVisible   freeModalSelector + ' a.custom-link-view span', 20000
   #             .click                   freeModalSelector + ' a.custom-link-view span'
-  #             .waitForElementVisible   pricingPage, 25000
-  #             .waitForElementVisible   pricingPage + ' .plans .developer', 25000
-  #             .pause 2000
-  #             .click                   pricingPage + ' .plans .developer .plan-buy-button'
-
+  #
+  #           helpers.selectPlan(browser)
   #           helpers.fillPaymentForm(browser)
 
   #           browser.url helpers.getUrl() + '/IDE'

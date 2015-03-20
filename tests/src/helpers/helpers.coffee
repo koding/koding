@@ -71,6 +71,7 @@ module.exports =
               browser
                 .waitForElementNotVisible  modalSelector, 500000
                 .waitForElementVisible     vmSelector, 500000
+                .pause 10000
             else
               console.log 'turn on button is clicked, waiting for VM turn on'
 
@@ -79,6 +80,7 @@ module.exports =
                 .click                     turnOnButtonSelector
                 .waitForElementNotVisible  modalSelector, 500000
                 .waitForElementVisible     vmSelector, 500000
+                .pause 10000
 
 
   doLogin: (browser, user) ->
@@ -465,7 +467,7 @@ module.exports =
             .assert.containsText     avatarSelector, newName
 
 
-  fillPaymentForm: (browser) ->
+  fillPaymentForm: (browser, planType = 'developer') ->
 
     paymentModal  = '.payment-modal .payment-form-wrapper form.payment-method-entry-form'
     cardNumber    = '4111 1111 1111 1111'
@@ -498,8 +500,19 @@ module.exports =
       .waitForElementVisible   '[testpath=main-sidebar]', 20000
       .url                     @getUrl() + '/Pricing'
       .waitForElementVisible   '.content-page.pricing', 20000
-      .waitForElementVisible   '.single-plan.developer.current', 20000
+      .waitForElementVisible   '.single-plan.' + planType + '.current', 20000
 
+
+  selectPlan: (browser, planType = 'developer') ->
+
+    pricingPage = '.content-page.pricing'
+
+    browser
+      .waitForElementVisible   pricingPage, 25000
+      .waitForElementVisible   pricingPage + ' .plans .' + planType, 25000
+      .pause                   5000
+      .click                   pricingPage + ' .plans .' + planType + ' .plan-buy-button'
+      .pause                   5000
 
 
   getUrl: ->

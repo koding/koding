@@ -39,27 +39,27 @@ services=(
   koding/vmwatcher
 
   socialapi/workers/api
-  socialapi/workers/email/activityemail
-  socialapi/workers/email/dailyemail
-  socialapi/workers/notification
-  socialapi/workers/pinnedpost
-  socialapi/workers/popularpost
-  socialapi/workers/trollmode
-  socialapi/workers/populartopic
-  socialapi/workers/realtime
-  socialapi/workers/realtime/gatekeeper
-  socialapi/workers/realtime/dispatcher
-  socialapi/workers/topicfeed
-  socialapi/workers/migrator
-  socialapi/workers/sitemap/sitemapfeeder
-  socialapi/workers/sitemap/sitemapgenerator
-  socialapi/workers/sitemap/sitemapinitializer
-  socialapi/workers/algoliaconnector
-  socialapi/workers/email/privatemessageemail/privatemessageemailfeeder
-  socialapi/workers/email/privatemessageemail/privatemessageemailsender
+  socialapi/workers/cmd/notification
+  socialapi/workers/cmd/pinnedpost
+  socialapi/workers/cmd/popularpost
+  socialapi/workers/cmd/trollmode
+  socialapi/workers/cmd/populartopic
+  socialapi/workers/cmd/realtime
+  socialapi/workers/cmd/realtime/gatekeeper
+  socialapi/workers/cmd/realtime/dispatcher
+  socialapi/workers/cmd/topicfeed
+  socialapi/workers/cmd/migrator
+  socialapi/workers/cmd/sitemap/sitemapfeeder
+  socialapi/workers/cmd/sitemap/sitemapgenerator
+  socialapi/workers/cmd/sitemap/sitemapinitializer
+  socialapi/workers/cmd/algoliaconnector
   socialapi/workers/payment/paymentwebhook
   socialapi/workers/cmd/collaboration
-  socialapi/workers/cmd/emailsender
+  socialapi/workers/cmd/email/activityemail
+  socialapi/workers/cmd/email/dailyemail
+  socialapi/workers/cmd/email/privatemessageemailfeeder
+  socialapi/workers/cmd/email/privatemessageemailsender
+  socialapi/workers/cmd/email/emailsender
 )
 
 
