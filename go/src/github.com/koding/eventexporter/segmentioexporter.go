@@ -9,8 +9,8 @@ type SegementIOExporter struct {
 }
 
 func NewSegementIOExporter(key string, size int) *SegementIOExporter {
-	client := analytics.New(key)
-	client.Size = size
+	client := analytics.New(key) // access token to authorize requests
+	client.Size = size           // size of queue before flushing to api
 
 	return &SegementIOExporter{Client: client}
 }

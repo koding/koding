@@ -12,7 +12,9 @@ type SendgridExporter struct {
 }
 
 func NewSendgridExporter(username, password string) *SendgridExporter {
-	return &SendgridExporter{Client: sendgrid.NewSendGridClient(username, password)}
+	return &SendgridExporter{
+		Client: sendgrid.NewSendGridClient(username, password),
+	}
 }
 
 func (s *SendgridExporter) Send(event *Event) error {

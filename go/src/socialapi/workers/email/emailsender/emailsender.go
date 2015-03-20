@@ -35,7 +35,7 @@ func Send(m *Mail) error {
 func (c *Controller) Process(m *Mail) error {
 	var to = m.To
 
-	if isForcedRecipient(c.forcedRecipient) {
+	if isForceRecipient(c.forcedRecipient) {
 		to = c.forcedRecipient
 	}
 
@@ -62,6 +62,6 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func isForcedRecipient(email string) bool {
+func isForceRecipient(email string) bool {
 	return email != ""
 }
