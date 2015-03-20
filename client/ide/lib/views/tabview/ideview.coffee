@@ -105,7 +105,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   createEditor: (file, content, callback = kd.noop, emitChange = yes) ->
 
-    unless file
+    unless file # create dummy file and pass machine to that file
       path    = @getDummyFilePath()
       machine = kd.singletons.appManager.getFrontApp().mountedMachine
       file    = FSHelper.createFileInstance { path, machine }
