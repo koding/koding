@@ -182,10 +182,6 @@ func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
 	return nil
 }
 
-func (f *Controller) DeleteSynonym(cl *models.ChannelLink) error {
-	if err := f.validateSynonymRequest(cl); err != nil {
-		f.log.Error("DeleteSynonym validateSynonymRequest err:", err.Error())
-		return nil
 // addSynonym adds given sysnonym pairs to the given index. do not worry about
 // duplicate synonyms, algolia handles them perfectly
 func (f *Controller) addSynonym(indexName string, synonyms ...string) error {
