@@ -123,7 +123,7 @@ fix()
   position    fixed
 
 headerFont()
-  font-family Ubuntu, "Bree Serif", Helvetica, sans-serif
+  font-family Ubuntu, Helvetica, sans-serif
 
 pointer()
   cursor     pointer
@@ -318,3 +318,29 @@ styleScrollBars()
     .kdscrollthumb
       bg                color clr
       rounded           6px
+
+font-url(file)
+  return assetsPath + '/fonts/' + file
+
+webfont(family, file, style, weight)
+  @font-face
+    font-family family
+    font-weight weight
+    font-style style
+    src url(font-url(file))
+
+webfont2(family, file, weight=normal, hack-chrome-windows=false)
+  @font-face
+    font-family family
+    src url(font-url(file + '.eot'))
+    src url(font-url(file + '.eot?#iefix')) format('embedded-opentype'),
+        url(font-url(file + '.woff')) format('woff'),
+        url(font-url(file + '.ttf')) format('truetype'),
+        url(font-url(file + '.svg#'+ family)) format('svg')
+    font-weight weight
+    font-style normal
+  if hack-chrome-windows
+    @media screen and (-webkit-min-device-pixel-ratio:0)
+      @font-face
+        font-family family
+        src url(font-url(file + '.svg#'+ family)) format('svg')

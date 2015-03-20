@@ -1,33 +1,31 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
+$                    = require 'jquery'
+_                    = require 'underscore'
+getscript            = require 'getscript'
+kd                   = require 'kd'
+KDButtonView         = kd.ButtonView
 KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView = kd.NotificationView
-KDView = kd.View
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-trackEvent = require 'app/util/trackEvent'
-FSHelper = require 'app/util/fs/fshelper'
-$ = require 'jquery'
-settings = require './settings'
-getscript = require 'getscript'
-_ = require 'underscore'
+KDNotificationView   = kd.NotificationView
+KDView               = kd.View
+remote               = require('app/remote').getInstance()
+globals              = require 'globals'
+trackEvent           = require 'app/util/trackEvent'
+FSHelper             = require 'app/util/fs/fshelper'
+settings             = require './settings'
 
+module.exports =
 
-module.exports = class Ace extends KDView
+class Ace extends KDView
 
-  ACE_LOADED = false
+  ACE_READY = no
   @registerStaticEmitter()
 
-  getscript '/a/p/p/thirdparty/ace/_ace.js', (err) =>
-
+  getscript globals.acePath, (err) =>
     throw err  if err
 
-    ace.config.set 'basePath', '/a/p/p/thirdparty/ace'
-    ace.config.set 'themePath', '/a/p/p/thirdparty/ace'
-    ace.config.set 'modePath', '/a/p/p/thirdparty/ace'
-    ace.config.set 'workerPath', '/a/p/p/thirdparty/ace'
+    for k, v of globals.aceConfig
+      ace.config.set k, v
 
-    ACE_LOADED = true
+    ACE_READY = yes
     Ace.emit 'ScriptLoaded'
 
 
@@ -39,16 +37,17 @@ module.exports = class Ace extends KDView
     {appStorageController} = kd.singletons
     @appStorage            = appStorageController.storage 'Ace', '1.0.1'
 
-  setDomElement:(cssClass)->
 
+  setDomElement:(cssClass)->
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
+
 
   viewAppended:->
     super
     @hide()
     @appStorage.fetchStorage (storage)=>
 
-    if ACE_LOADED
+    if ACE_READY
     then @scriptLoaded()
     else Ace.once 'ScriptLoaded', @bound 'scriptLoaded'
 
@@ -123,6 +122,7 @@ module.exports = class Ace extends KDView
       @setOpenRecentFiles     @appStorage.getValue('openRecentFiles')     ? yes
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
 
+
   saveStarted:->
     @lastContentsSentForSave = @getContents()
 
@@ -174,12 +174,14 @@ module.exports = class Ace extends KDView
       # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
       # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
 
+
   showFindReplaceView: (openReplaceView) ->
     {findAndReplaceView} = @getDelegate()
     selectedText         = @editor.session.getTextRange @editor.getSelectionRange()
     findAndReplaceView.setViewHeight openReplaceView
     findAndReplaceView.setTextIntoFindInput selectedText
     findAndReplaceView.on 'FindAndReplaceViewClosed', => @focus()
+
 
   addKeyCombo: (name, winKey, macKey, callback) ->
     if typeof macKey is 'function'
@@ -193,13 +195,17 @@ module.exports = class Ace extends KDView
         mac   : macKey
       exec    : => callback?()
 
+
   isContentChanged: -> @contentChanged
+
   isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
+
 
   closeTab: ->
     aceView   = @getDelegate()
     {tabView} = aceView.getDelegate()
     tabView.removePane_ tabView.getActivePane()
+
 
   ###
   FS REQUESTS
@@ -226,51 +232,67 @@ module.exports = class Ace extends KDView
     else
       callback null, file.contents or ''
 
+
   ###
   GETTERS
   ###
 
   getContents:-> @editor.getSession().getValue()
 
+
   getTheme:-> @editor.getTheme().replace 'ace/theme/', ''
 
+
   getSyntax:-> @syntaxMode
+
 
   getUseSoftTabs:->
     @appStorage.getValue('useSoftTabs') ? @editor.getSession().getUseSoftTabs()
 
+
   getShowGutter:->
     @appStorage.getValue('showGutter') ? @editor.renderer.getShowGutter()
+
 
   getShowPrintMargin:->
     @appStorage.getValue('showPrintMargin') ? @editor.getShowPrintMargin()
 
+
   getHighlightActiveLine:->
     @appStorage.getValue('highlightActiveLine') ? @editor.getHighlightActiveLine()
+
 
   getShowInvisibles:->
     @appStorage.getValue('showInvisibles') ? @editor.getShowInvisibles()
 
+
   getFontSize:->
     @appStorage.getValue('fontSize') ? parseInt @$("#editor#{@getId()}").css('font-size') ? 12, 10
+
 
   getTabSize:->
     @appStorage.getValue('tabSize') ? @editor.getSession().getTabSize()
 
+
   getUseWordWrap:->
     @appStorage.getValue('useWordWrap') ? @editor.getSession().getUseWrapMode()
+
 
   getKeyboardHandler: ->
     @appStorage.getValue('keyboardHandler') ? 'default'
 
+
   getScrollPastEnd: ->
     @appStorage.getValue('scrollPastEnd') ? yes
+
 
   getOpenRecentFiles:->
     @appStorage.getValue('openRecentFiles') ? yes
 
+
   getEnableAutocomplete:->
     @appStorage.getValue('enableAutocomplete') ? yes
+
 
   getSettings:->
     theme               : @getTheme()
@@ -288,11 +310,13 @@ module.exports = class Ace extends KDView
     openRecentFiles     : @getOpenRecentFiles()
     enableAutocomplete  : @getEnableAutocomplete()
 
+
   ###
   SETTERS
   ###
 
   setContents:(contents)-> @editor.getSession().setValue contents
+
 
   setSyntax:(mode)->
 
@@ -311,11 +335,13 @@ module.exports = class Ace extends KDView
     @editor.getSession().setMode "ace/mode/#{mode}"
     @syntaxMode = mode
 
+
   setTheme:(themeName, save = yes)->
     themeName or= @appStorage.getValue('theme') or 'base16'
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
     @appStorage.setValue 'theme', themeName, => # do what is necessary here if any - SY
+
 
   setUseSoftTabs:(value, save = yes)->
 
@@ -323,11 +349,13 @@ module.exports = class Ace extends KDView
     return  unless save
     @appStorage.setValue 'useSoftTabs', value
 
+
   setShowGutter:(value, save = yes)->
 
     @editor.renderer.setShowGutter value
     return  unless save
     @appStorage.setValue 'showGutter', value
+
 
   setShowPrintMargin:(value, save = yes)->
 
@@ -335,13 +363,16 @@ module.exports = class Ace extends KDView
     return  unless save
     @appStorage.setValue 'showPrintMargin', value
 
+
   setHighlightActiveLine:(value, save = yes)->
 
     @editor.setHighlightActiveLine value
     return  unless save
     @appStorage.setValue 'highlightActiveLine', value
 
+
   # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
+
 
   setShowInvisibles:(value, save = yes)->
 
@@ -349,14 +380,17 @@ module.exports = class Ace extends KDView
     return  unless save
     @appStorage.setValue 'showInvisibles', value
 
+
   setKeyboardHandler: (name = 'default') ->
     @appStorage.setValue 'keyboardHandler', name
     handler = if name isnt 'default' then "ace/keyboard/#{name}" else null
     @editor.setKeyboardHandler handler
 
+
   setScrollPastEnd: (value = yes) ->
     @editor.setOption 'scrollPastEnd', value
     @appStorage.setValue 'scrollPastEnd', value
+
 
   setFontSize:(value, save = yes)->
     return if value is globals.config.oldFontSize
@@ -374,11 +408,13 @@ module.exports = class Ace extends KDView
     return  unless save
     @appStorage.setValue 'fontSize', value
 
+
   setTabSize:(value, save = yes)->
 
     @editor.getSession().setTabSize +value
     return  unless save
     @appStorage.setValue 'tabSize', value
+
 
   setUseWordWrap:(value, save = yes)->
 
@@ -386,10 +422,13 @@ module.exports = class Ace extends KDView
     return  unless save
     @appStorage.setValue 'useWordWrap', value
 
+
   setReadOnly:(value)-> @editor.setReadOnly value
+
 
   setOpenRecentFiles:(value, save = yes)->
     @appStorage.setValue 'openRecentFiles', value
+
 
   setEnableAutocomplete:(value, save = yes)->
 
@@ -399,10 +438,13 @@ module.exports = class Ace extends KDView
 
     @appStorage.setValue 'enableAutocomplete', value  if save
 
+
   gotoLine: (lineNumber) ->
     @editor.gotoLine lineNumber
 
+
   focus: -> @editor?.focus()
+
 
   ###
   HELPERS
@@ -435,6 +477,7 @@ module.exports = class Ace extends KDView
           details.on 'ReceivedClickElsewhere', =>
             details.destroy()
 
+
   #obsolete: Now we are using IDE saveAllFiles method
   saveAllFiles: ->
     aceApp = kd.singletons.appManager.get 'Ace'
@@ -445,6 +488,7 @@ module.exports = class Ace extends KDView
     for path, aceView of aceViews when aceView.data.parentPath isnt 'localfile:'
       aceView.ace.requestSave()
       aceView.ace.once 'FileContentRestored', @bound 'removeModifiedFromTab'
+
 
   removeModifiedFromTab: ->
     aceView      = @parent
@@ -466,6 +510,7 @@ module.exports = class Ace extends KDView
       kd.utils.wait 500, ->
         targetHandle.unsetClass 'modified'
         targetHandle.unsetClass 'saved'
+
 
   showGotoLine: ->
     unless @gotoLineModal

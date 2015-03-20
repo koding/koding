@@ -11,7 +11,7 @@
   },
   "main": "server/index.js",
   "scripts": {
-    "preinstall": "./scripts/reset-node-modules.sh",
+    "preinstall": "./scripts/reset-node-modules.sh && npm --prefix client install",
     "install": "./scripts/patch-node-modules.sh"
   },
   "dependencies": {
