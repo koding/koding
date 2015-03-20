@@ -4,8 +4,20 @@ ManagedVMBaseModal = require './basemodal'
 
 module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
-  constructor: ->
-    super title: 'Add your own VM'
+  constructor: (options = {}, data)->
+
+    hasContainer      = options.container?
+
+    defaults          =
+      title           : 'Add your own VM'
+      cssClass        : 'add-managedvm'
+      appendToDomBody : !hasContainer
+      draggable       : no
+      overlay         : !hasContainer
+
+    options           = defaults extends options
+
+    super options, data
 
     @states  =
 
