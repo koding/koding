@@ -99,13 +99,18 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
     {updateMachineData} = require './helpers'
 
+    @machine.getBaseKite(createIfNotExists = no).disconnect()
+
     updateMachineData {@machine, kite}, (err)=>
       return if showError err
-      
+
       {computeController, appManager} = kd.singletons
-      computeController.reset yes, =>
-        kd.utils.defer -> appManager.tell 'IDE', 'quit'
+      environmentDataProvider = require 'app/userenvironmentdataprovider'
+      environmentDataProvider.fetch =>
+        @machine.getBaseKite().connect()
+        appManager.tell 'IDE', 'quit'
         @destroy()
+
 
   removeMachine: ->
 
