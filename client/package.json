@@ -6,7 +6,7 @@
     "accounting": "^0.4.1",
     "backoff": "2.4.1",
     "bluebird": "^2.8.2",
-    "bongo-client": "git+ssh://git@github.com:koding/bongo-client",
+    "bongo-client": "git+ssh://git@github.com:koding/bongo-client#0.1.5",
     "broker-client": "git+ssh://git@github.com:koding/broker-client",
     "dateformat": "^1.0.11",
     "emojify.js": "^0.9.5",
