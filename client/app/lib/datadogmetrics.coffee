@@ -41,6 +41,8 @@ module.exports = class DatadogMetrics extends KDObject
       @inProgress = no
 
 
-  do ->
+  remote.once 'ready', ->
 
-    kd.utils.repeat 5 * 1000, -> DatadogMetrics.send()
+    do ->
+
+      kd.utils.repeat 5 * 1000, -> DatadogMetrics.send()
