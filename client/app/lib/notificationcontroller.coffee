@@ -29,11 +29,8 @@ module.exports = class NotificationController extends KDObject
 
   init: ->
 
-    @off 'NotificationHasArrived'
-    @notificationChannel?.close().off()
-    @notificationChannel?.off()
-    @subscribeToRealtimeUpdates()
     @setListeners()
+    @subscribeToRealtimeUpdates()
 
 
   subscribeToRealtimeUpdates:->
@@ -47,8 +44,8 @@ module.exports = class NotificationController extends KDObject
 
       return kd.warn 'notification subscription error', err  if err
 
-      @notificationChannel.off()
       @notificationChannel.on 'message', (notification)=>
+
         @emit 'NotificationHasArrived', notification
 
         { contents, context, event } = notification
@@ -56,9 +53,14 @@ module.exports = class NotificationController extends KDObject
         return unless contents
 
         event = if contents.event then contents.event else event
-        event = unless context is getGroup().slug then "#{event}-off-context" else event
-
+        # TODO enable this with team product
+        # event = unless context is getGroup().slug then "#{event}-off-context" else event
         # event is mainly -> ChannelUpdateHappened // do not delete this line. here for search purposes. - SY
+        @emit event, contents  if event
+
+      @notificationChannel.on 'social', (notification) =>
+        { contents, context, event } = notification
+
         @emit event, contents  if event
 
 
