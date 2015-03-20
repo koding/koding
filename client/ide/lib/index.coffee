@@ -33,7 +33,6 @@ IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
 AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
-ShortcutsModal                = require 'app/shortcuts/modal'
 
 require('./routes')()
 
@@ -740,10 +739,9 @@ class IDEAppController extends AppController
 
   showShortcutsView: ->
 
-    modal = new ShortcutsModal {},
-      kd.getSingleton('appManager')
-        .getShortcuts()
-        .config
+    { shortcutsController } = kd.singletons
+
+    shortcutsController.showModal()
 
 
   getActivePaneView: ->
