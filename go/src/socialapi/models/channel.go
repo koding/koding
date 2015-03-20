@@ -933,7 +933,7 @@ func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
 // FetchRoot fetches the root of a channel if linked
 func (c *Channel) FetchRoot() (*Channel, error) {
 	if c.Id == 0 {
-		return nil, ErrChannelIdIsNotSet
+		return nil, ErrIdIsNotSet
 	}
 
 	cl := NewChannelLink()

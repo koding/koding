@@ -2,7 +2,6 @@ package algoliaconnector
 
 import (
 	"errors"
-	"fmt"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
