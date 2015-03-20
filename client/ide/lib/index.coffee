@@ -89,7 +89,7 @@ module.exports = class IDEAppController extends AppController
     {windowController} = kd.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
 
-    @workspace.once 'ready', -> @getView().addSubView @workspace.getView()
+    @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
