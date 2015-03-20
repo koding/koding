@@ -325,14 +325,10 @@ module.exports = class SocialApiController extends KDController
         {name, typeConstant, token, id} = socialApiChannel
 
         subscriptionData =
-          serviceType: 'socialapi'
           group      : group.slug
           channelType: typeConstant
           channelName: name
           channelId  : id
-          isExclusive: yes
-          connectDirectly: yes
-          brokerChannelName: channelName
           token      : token
 
         kd.singletons.realtime.subscribeChannel subscriptionData, (err, realtimeChannel) ->

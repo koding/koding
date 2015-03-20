@@ -101,9 +101,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     environmentDataProvider.revive()
-    environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
 
     mainController.ready =>
+      environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
       whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
@@ -474,9 +474,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    @addMachineList()
-    @addFollowedTopics()
-    @addMessages()
+    kd.getSingleton('mainController').ready =>
+      @addMachineList()
+      @addFollowedTopics()
+      @addMessages()
 
 
   initiateFakeCounter: ->
@@ -497,8 +498,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     { machine, workspace } = data
 
-    for machineList in @machineLists
-      machineList.selectMachineAndWorkspace machine.uid, workspace.slug
+    kd.getSingleton('mainController').ready =>
+
+      for machineList in @machineLists
+        machineList.selectMachineAndWorkspace machine.uid, workspace.slug
 
 
   fetchEnvironmentData: (callback) ->

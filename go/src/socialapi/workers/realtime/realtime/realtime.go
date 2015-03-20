@@ -7,8 +7,6 @@ import (
 	"socialapi/workers/api/realtimehelper"
 	notificationmodels "socialapi/workers/notification/models"
 
-	"labix.org/v2/mgo"
-
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
 	"github.com/streadway/amqp"
@@ -650,19 +648,7 @@ func (f *Controller) publishToChannel(channelId int64, eventName string, data in
 		return err
 	}
 
-	// TODO broker related stuff. We do not need this for pubnub.
-	// When no one connected via broker, channel secret names are not created
-	// therefore we can ignore secret name fetch
-	names, err := models.SecretNamesByChannelId(channelId)
-	if err == mgo.ErrNotFound {
-		f.log.Info("Channel %d doesn't have any secret name", channelId)
-	} else if len(names) < 1 {
-		f.log.Info("Channel %d doesn't have any secret name", channelId)
-	} else if err != nil {
-		f.log.Info("Could not fetch channel %d secret names", channelId)
-	}
-
-	return realtimehelper.PushMessage(ch, eventName, data, names)
+	return realtimehelper.PushMessage(ch, eventName, data)
 }
 
 func (f *Controller) sendNotification(

@@ -967,7 +967,7 @@ Configuration = (options={}) ->
         echo '#---> UPDATING MONGO DB TO WORK WITH SOCIALAPI @cihangir <---#'
         mongo #{mongo} --eval='db.jAccounts.update({},{$unset:{socialApiId:0}},{multi:true}); db.jGroups.update({},{$unset:{socialApiChannelId:0}},{multi:true});'
 
-        go run ./go/src/socialapi/workers/migrator/main.go -c #{socialapi.configFilePath}
+        go run ./go/src/socialapi/workers/cmd/migrator/main.go -c #{socialapi.configFilePath}
 
         # Required step for guestuser
         mongo #{mongo} --eval='db.jAccounts.update({"profile.nickname":"guestuser"},{$set:{type:"unregistered", socialApiId:0}});'
