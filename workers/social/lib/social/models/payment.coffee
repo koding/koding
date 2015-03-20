@@ -193,4 +193,8 @@ module.exports = class Payment extends Base
     originId = client.connection.delegate.getId()
 
     JReward = require './rewards'
-    JReward.fetchEarnedAmount {originId}, callback
+    options = { unit: 'MB', type: 'disk', originId }
+
+    JReward.fetchEarnedAmount options, (err, amount)->
+      return callback err  if err?
+      callback null, amount / 1000
