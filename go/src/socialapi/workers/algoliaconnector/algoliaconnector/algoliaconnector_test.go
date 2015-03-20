@@ -209,6 +209,29 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 	}
 }
 
+// makeSureSynonyms checks if the given index's synonyms request returns the
+// desired err, it will re-try every 100ms until deadline of 15 seconds reached.
+// Algolia doesnt index the records right away, so try to go to a desired state
+func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
+	deadLine := time.After(time.Second * 15)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			synonyms, err := handler.getSynonyms(indexName)
+			if err != nil {
+				return err
+			}
+
+			if f(synonyms, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
+}
+
 // makeSureTopic checks if the given id's get request returns the desired err, it
 // will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
@@ -353,60 +376,67 @@ func TestMessageUpdated(t *testing.T) {
 }
 
 func TestIndexSettings(t *testing.T) {
-	r := runner.New("AlogoliaConnector-Test")
-	err := r.Init()
-	if err != nil {
-		panic(err)
-	}
+	runner, handler := getTestHandler()
+	defer runner.Close()
 
-	defer r.Close()
+	Convey("given some handler", t, func() {
 
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
-	// create message handler
-	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
-
-	Convey("given some fake non-topic channel", t, func() {
-		messages, err := handler.indexes.Get("messages")
-		So(err, ShouldBeNil)
-
-		Convey("it should save the document to algolia", func() {
-			settingsinter, err := messages.GetSettings()
+		Convey("we should be able to get the synonyms", func() {
+			oldsynonymns, err := handler.getSynonyms("messages")
 			So(err, ShouldBeNil)
+			So(oldsynonymns, ShouldNotBeNil)
 
-			fmt.Println("before - messages.GetSettings()-->", settingsinter, err)
+			Convey("when we add new synonyms", func() {
+				groupName := models.RandomName()
 
-			settings, ok := settingsinter.(map[string]interface{})
-			if !ok {
-				settings = make(map[string]interface{})
-			}
+				acc, err := models.CreateAccountInBothDbs()
+				So(err, ShouldBeNil)
+				So(acc, ShouldNotBeNil)
 
-			// define the initial synonymns
-			synonyms := make([][]string, 0)
+				root, err := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				So(err, ShouldBeNil)
+				So(root, ShouldNotBeNil)
 
-			if sint, ok := settings["synonyms"]; ok {
-				fmt.Println("ok, 1-->", ok, 1)
-				if sslice, ok := sint.([][]string); ok {
-					fmt.Println("ok, 2-->", ok, 2)
-					synonyms = sslice
+				leaf, err := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				So(err, ShouldBeNil)
+				So(leaf, ShouldNotBeNil)
+
+				cl := models.ChannelLink{
+					RootId: root.Id,
+					LeafId: leaf.Id,
 				}
-			}
 
-			newSynonym := make([]string, 0)
-			newSynonym = append(newSynonym, "js")
-			newSynonym = append(newSynonym, "javascript")
-			newSynonym = append(newSynonym, "nodejs")
+				So(handler.CreateSynonym(cl), ShouldBeNil)
 
-			synonyms = append(synonyms, newSynonym)
+				Convey("synonyms should be in settings", func() {
+					err = makeSureSynonyms(handler, "messages", func(synonyms [][]string, err error) bool {
+						if err != nil {
+							return false
+						}
 
-			settings["synonyms"] = synonyms
+						f1found, f2found := false, false
+						for _, synonym := range synonyms {
+							for _, synonymPair := range synonym {
+								if synonymPair == root.Name {
+									f1found = true
+								}
 
-			resp, err := messages.SetSettings(settings)
-			So(err, ShouldBeNil)
-			_, err = messages.WaitTask(resp)
-			So(err, ShouldBeNil)
+								if synonymPair == leaf.Name {
+									f2found = true
+								}
 
-			a, b := messages.GetSettings()
-			fmt.Println("after - messages.GetSettings()-->", a, b)
+								if f1found && f2found {
+									return true
+								}
+							}
+						}
+
+						return false
+					})
+
+					So(err, ShouldBeNil)
+				})
+			})
 		})
 	})
 }
