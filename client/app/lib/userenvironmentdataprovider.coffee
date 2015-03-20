@@ -217,15 +217,17 @@ module.exports = UserEnvironmentDataProvider =
 
         =>
 
-          for workspace in workspaces when workspace.isDefault
-            return queue.fin()
+          kd.utils.defer =>
 
-          @createDefaultWorkspace machine, (err, workspace) ->
+            for workspace in workspaces when workspace.isDefault
+              return queue.fin()
 
-            return queue.fin()  if err
+            @createDefaultWorkspace machine, (err, workspace) ->
 
-            workspaces.push workspace  if workspace
-            queue.fin()
+              return queue.fin()  if err
+
+              workspaces.push workspace  if workspace
+              queue.fin()
 
     sinkrow.dash queue, callback
 
