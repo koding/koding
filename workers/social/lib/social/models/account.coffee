@@ -1073,8 +1073,17 @@ module.exports = class JAccount extends jraphical.Module
     @createSocialApiId (err, socialApiId) =>
       return console.error "Could not send notification to account #{err}"  if err
 
-      @emit 'notification',
-        eventName: event, body: contents, account: {id: socialApiId, nick: @profile.nickname}
+      message = {
+        account: {id: socialApiId, nick: @profile.nickname}
+        eventName: "social"
+        body:
+          contents: contents
+          event: event
+          context: "koding"
+      }
+
+     @emit 'notification', {type: "dispatcher_notify_user", message: message}
+
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
