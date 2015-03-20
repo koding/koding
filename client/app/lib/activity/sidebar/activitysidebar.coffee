@@ -358,6 +358,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   addItem: (data, index) ->
 
     listController = @getListController data.typeConstant
+
+    return  unless listController
+
     item = @getItemByData data
 
     # add the new topic item in sidebar
