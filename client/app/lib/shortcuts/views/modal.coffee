@@ -1,7 +1,7 @@
 kd            = require 'kd'
 _             = require 'underscore'
 ShortcutsPane = require './pane'
-defaults      = require './defaults'
+defaults      = require '../config'
 
 module.exports =
 

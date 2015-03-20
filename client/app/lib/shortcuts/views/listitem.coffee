@@ -1,7 +1,7 @@
 kd               = require 'kd'
 JView            = require 'app/jview'
 KodingSwitch     = require 'app/commonviews/kodingswitch'
-BindingView      = require './list-item-binding'
+BindingView      = require './listitembinding'
 
 module.exports =
 

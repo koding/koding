@@ -1,6 +1,6 @@
 kd = require 'kd'
-ShortcutsListController = require './list-controller'
-ListHead = require './list-head'
+ShortcutsListController = require './listcontroller'
+ListHead = require './listhead'
 
 module.exports =
 

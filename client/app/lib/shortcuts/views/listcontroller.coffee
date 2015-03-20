@@ -1,5 +1,5 @@
 kd                = require 'kd'
-ShortcutsListItem = require './list-item'
+ShortcutsListItem = require './listitem'
 _                 = require 'underscore'
 
 module.exports =
