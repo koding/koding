@@ -442,9 +442,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       Terminating    : 'is terminating.'
       Updating       : 'is updating now.'
       Unknown        : 'is turned off.'
-      NotFound       : 'This machine does not exist.' # additional class level
-                                                      # state to show a modal
-                                                      # for unknown routes.
+      NotFound       : 'No machine found.' # additional class level
+                                           # state to show a modal
+                                           # for unknown routes.
 
     stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
     return "<span class='icon'></span>#{stateText}"
@@ -463,7 +463,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   createStateButton: ->
 
     if @state is 'NotFound'
-      title    = 'Create New Machine'
+      title    = 'Create a New Machine'
       callback = 'requestNewMachine'
     else if @isManaged
       title    = 'Search for Nodes'

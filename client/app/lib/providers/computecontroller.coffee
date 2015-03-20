@@ -387,9 +387,14 @@ module.exports = class ComputeController extends KDController
           return  if err
 
           @_clearTrialCounts machine
-          @reset yes, ->
+
+          # we don't need to wait for deletion of workspace here ~ GG
+          remote.api.JWorkspace.deleteByUid machine.uid, (err)->
+            console.warn "couldn't delete workspace:", err  if err
+
+          environmentDataProvider = require 'app/userenvironmentdataprovider'
+          environmentDataProvider.fetch => @reset yes, ->
             kd.singletons.appManager.tell 'IDE', 'quit'
-            kd.singletons.router.handleRoute '/IDE'
 
         return
 
