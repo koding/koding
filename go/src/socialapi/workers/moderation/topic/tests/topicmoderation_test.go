@@ -38,18 +38,15 @@ func TestModeration(t *testing.T) {
 		groupName := models.RandomName()
 
 		// create root channel with second acc
-		root, err := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
-		So(err, ShouldBeNil)
+		root := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 		So(root, ShouldNotBeNil)
 
 		// create leaf channel with second acc
-		leaf, err := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
-		So(err, ShouldBeNil)
+		leaf := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 		So(leaf, ShouldNotBeNil)
 
 		// create leaf2 channel with second acc
-		leaf2, err := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
-		So(err, ShouldBeNil)
+		leaf2 := models.CreateTypedGroupedChannelWithTest(acc2.Id, models.Channel_TYPE_TOPIC, groupName)
 		So(leaf2, ShouldNotBeNil)
 
 		// fetch admin's session
