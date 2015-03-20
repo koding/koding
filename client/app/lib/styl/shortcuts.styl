@@ -1,0 +1,138 @@
+.shortcuts-modal
+  overflow-y hidden !important
+
+  .kd-modal-title
+    margin-bottom: 12px !important
+
+  .buttons
+    .kdbutton:last-child
+      margin-left: 10px
+
+
+.shortcuts-pane
+  max-height: 400px
+  /*min-height 382px*/
+  /*overflow-y hidden !important*/
+  .listview-wrapper
+    max-height 300px
+    min-height 300px
+    overflow-y auto !important
+    
+    .shortcuts-list
+      .row
+        cursor: pointer
+      .row:hover
+        background-color #ffd
+      .row.selected
+        background-color #ddfdd3
+
+
+
+.shortcuts-head
+  padding: 0px 0px 12px
+
+  p
+    color: #000 !important
+    font-size: 16px !important
+
+
+.shortcuts-list
+
+  display table
+  width 100% !important
+
+  div.row:nth-child(even)
+    background-color: #f1f1f1
+
+  div.row
+    display table-row
+    width 100% !important
+    clear both
+    background-color: #fafafa
+
+    div.col
+      display table-column
+      width: 40%
+      float left
+      font-size 14px
+
+      span
+        display table-cell
+        padding 4px 16px
+        height 40px
+        vertical-align middle
+
+        keys
+          i
+            padding 2px 4px
+            border-radius 3px
+            border 1px solid #ccc
+            text-transform uppercase
+            font-size 12px
+            margin-right 4px
+            background-color #fff
+
+
+    div:nth-child(3)
+      width 20% !important
+      text-align center
+
+      .koding-on-off
+        -webkit-transform scale(0.5)
+
+.shortcuts-tab
+
+  .kdtabpaneview
+    background transparent !important
+    border-top 1px solid #ccc
+
+    .list-head
+
+      .shortcuts-list
+        border-bottom 1px solid #ccc
+
+        div.row
+          div.col
+            background-color #f0f0f0
+            height auto !important
+            font-weight bold
+            font-size 12px
+          span
+            display inline-table
+            height auto !important
+        div:nth-child(3)
+          width 20% !important
+          text-align left
+
+      .description
+        padding 8px 16px
+        background-color #ddddda
+        border-bottom 1px solid #ccc
+
+        p
+          margin 7px 0px
+          font-size 12px
+          line-height 18px
+
+        p b
+          font-weight bold
+
+  .kdtabhandlecontainer
+    background transparent !important
+    border-bottom 0px
+    height 29px !important
+    
+    .kdtabhandle
+      color #888 !important
+      border-radius 3px 3px 0px 0px
+      height 30px !important
+
+      &.active
+        background-color #ddddda !important
+        color #333 !important
+        border 1px solid #ccc
+        border-bottom 0px
+
+      b
+        display inline !important
+        font-size 14px

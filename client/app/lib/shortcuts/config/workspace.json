@@ -1,0 +1,437 @@
+[
+  {
+    "name": "findfilebyname",
+    "description": "Find File by Name",
+    "binding": [
+      [
+        "ctrl+alt+o"
+      ],
+      [
+        "ctrl+alt+o"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "searchallfiles",
+    "description": "Search in All Files",
+    "binding": [
+      [
+        "ctrl+alt+f"
+      ],
+      [
+        "ctrl+alt+f"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "splitvertically",
+    "description": "Split Vertically",
+    "binding": [
+      [
+        "ctrl+alt+v"
+      ],
+      [
+        "ctrl+alt+v"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "splithorizontally",
+    "description": "Split Horizontally",
+    "binding": [
+      [
+        "ctrl+alt+h"
+      ],
+      [
+        "ctrl+alt+h"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "mergesplitview",
+    "description": "Merge Split Panes",
+    "binding": [
+      [
+        "ctrl+alt+m"
+      ],
+      [
+        "ctrl+alt+m"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "previewfile",
+    "description": "Preview File",
+    "binding": [
+      [
+        "ctrl+alt+p"
+      ],
+      [
+        "ctrl+alt+p"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "saveallfiles",
+    "description": "Save All",
+    "binding": [
+      [
+        "ctrl+alt+s"
+      ],
+      [
+        "ctrl+alt+s"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "createnewfile",
+    "description": "New File",
+    "binding": [
+      [
+        "ctrl+alt+n"
+      ],
+      [
+        "ctrl+alt+n"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "createnewterminal",
+    "description": "New Terminal",
+    "binding": [
+      [
+        "ctrl+alt+t"
+      ],
+      [
+        "ctrl+alt+t"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "createnewbrowser",
+    "description": "New Browser",
+    "binding": [
+      [
+        "ctrl+alt+b"
+      ],
+      [
+        "ctrl+alt+b"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "createnewdrawing",
+    "description": "New Drawing Board",
+    "binding": [
+      [
+        "ctrl+alt+d"
+      ],
+      [
+        "ctrl+alt+d"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "togglesidebar",
+    "description": "Toggle Sidebar",
+    "binding": [
+      [
+        "ctrl+alt+k"
+      ],
+      [
+        "ctrl+alt+k"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "closetab",
+    "description": "Close Tab",
+    "binding": [
+      [
+        "ctrl+alt+w"
+      ],
+      [
+        "ctrl+alt+w"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gotolefttab",
+    "description": "Go to Left Tab",
+    "binding": [
+      [
+        "ctrl+alt+["
+      ],
+      [
+        "ctrl+alt+["
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gotorighttab",
+    "description": "Go to Right Tab",
+    "binding": [
+      [
+        "ctrl+alt+]"
+      ],
+      [
+        "ctrl+alt+]"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber1",
+    "description": "Go to Tab #1",
+    "binding": [
+      [
+        "ctrl+1"
+      ],
+      [
+        "command+1"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber2",
+    "description": "Go to Tab #2",
+    "binding": [
+      [
+        "ctrl+2"
+      ],
+      [
+        "command+2"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber3",
+    "description": "Go to Tab #3",
+    "binding": [
+      [
+        "ctrl+3"
+      ],
+      [
+        "command+3"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber4",
+    "description": "Go to Tab #4",
+    "binding": [
+      [
+        "ctrl+4"
+      ],
+      [
+        "command+4"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber5",
+    "description": "Go to Tab #5",
+    "binding": [
+      [
+        "ctrl+5"
+      ],
+      [
+        "command+5"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber6",
+    "description": "Go to Tab #6",
+    "binding": [
+      [
+        "ctrl+6"
+      ],
+      [
+        "command+6"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber7",
+    "description": "Go to Tab #7",
+    "binding": [
+      [
+        "ctrl+7"
+      ],
+      [
+        "command+7"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber8",
+    "description": "Go to Tab #8",
+    "binding": [
+      [
+        "ctrl+8"
+      ],
+      [
+        "command+8"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "gototabnumber9",
+    "description": "Go to Tab #9",
+    "binding": [
+      [
+        "ctrl+9"
+      ],
+      [
+        "command+9"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "fullscreen",
+    "description": "Fullscreen",
+    "binding": [
+      [
+        "ctrl+shift+enter"
+      ],
+      [
+        "command+shift+enter"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "movetabup",
+    "description": "Move Tab Up",
+    "binding": [
+      [
+        "ctrl+alt+shift+up"
+      ],
+      [
+        "command+alt+shift+up"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "movetabdown",
+    "description": "Move Tab Down",
+    "binding": [
+      [
+        "ctrl+alt+shift+down"
+      ],
+      [
+        "command+alt+shift+down"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "movetableft",
+    "description": "Move Tab Left",
+    "binding": [
+      [
+        "ctrl+alt+shift+left"
+      ],
+      [
+        "command+alt+shift+left"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "movetabright",
+    "description": "Move Tab Right",
+    "binding": [
+      [
+        "ctrl+alt+shift+right"
+      ],
+      [
+        "command+alt+shift+right"
+      ]
+    ],
+    "options": {
+      "global": true
+    }
+  }
+]

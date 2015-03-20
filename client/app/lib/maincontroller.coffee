@@ -1,52 +1,54 @@
-kd = require 'kd'
-KDController = kd.Controller
-KDKeyboardMap = kd.KeyboardMap
-KDNotificationView = kd.NotificationView
-emojify = require 'emojify.js'
-Promise = require 'bluebird'
-kookies = require 'kookies'
-globals = require 'globals'
-remote = require('./remote').getInstance()
-getGroup = require './util/getGroup'
-setPreferredDomain = require './util/setPreferredDomain'
-logout = require './util/logout'
-logToExternalWithTime = require './util/logToExternalWithTime'
-isLoggedIn = require './util/isLoggedIn'
-whoami = require './util/whoami'
-checkFlag = require './util/checkFlag'
-setVersionCookie = require './util/setVersionCookie'
-ActivityController = require './activitycontroller'
-AppStorageController = require './appstoragecontroller'
-ApplicationManager = require './applicationmanager'
-ComputeController = require './providers/computecontroller'
+kd                       = require 'kd'
+KDController             = kd.Controller
+KDNotificationView       = kd.NotificationView
+emojify                  = require 'emojify.js'
+Promise                  = require 'bluebird'
+kookies                  = require 'kookies'
+globals                  = require 'globals'
+remote                   = require('./remote').getInstance()
+getGroup                 = require './util/getGroup'
+setPreferredDomain       = require './util/setPreferredDomain'
+logout                   = require './util/logout'
+logToExternalWithTime    = require './util/logToExternalWithTime'
+isLoggedIn               = require './util/isLoggedIn'
+whoami                   = require './util/whoami'
+checkFlag                = require './util/checkFlag'
+setVersionCookie         = require './util/setVersionCookie'
+ActivityController       = require './activitycontroller'
+AppStorageController     = require './appstoragecontroller'
+ApplicationManager       = require './applicationmanager'
+ComputeController        = require './providers/computecontroller'
 ContentDisplayController = require './contentdisplay/contentdisplaycontroller'
-GroupsController = require './maincontroller/groupscontroller'
-HelpController = require './maincontroller/helpcontroller'
-IdleUserDetector = require './idleuserdetector'
-KiteCache = require './kite/kitecache'
-KodingAppsController = require './kodingappscontroller'
-KodingKontrol = require './kite/kodingkontrol'
-KodingRouter = require './kodingrouter'
-LinkController = require './linkcontroller'
-LocalStorage = require './localstorage'
-LocalStorageController = require './localstoragecontroller'
-LocalSyncController = require './localsynccontroller'
-LocationController = require './locationcontroller'
-MainView = require './mainview'
-MainViewController = require './mainviewcontroller'
-NotificationController = require './notificationcontroller'
-OAuthController = require './oauthcontroller'
-OnboardingController = require './onboarding/onboardingcontroller'
-PaymentController = require './payment/paymentcontroller'
-RealtimeController = require './realtimecontroller'
-SearchController = require './searchcontroller'
-SocialApiController = require './socialapicontroller'
-WelcomeModal = require './welcomemodal'
-WidgetController = require './widgetcontroller'
-PageTitleController = require './pagetitlecontroller'
+GroupsController         = require './maincontroller/groupscontroller'
+HelpController           = require './maincontroller/helpcontroller'
+IdleUserDetector         = require './idleuserdetector'
+KiteCache                = require './kite/kitecache'
+KodingAppsController     = require './kodingappscontroller'
+KodingKontrol            = require './kite/kodingkontrol'
+KodingRouter             = require './kodingrouter'
+LinkController           = require './linkcontroller'
+LocalStorage             = require './localstorage'
+LocalStorageController   = require './localstoragecontroller'
+LocalSyncController      = require './localsynccontroller'
+LocationController       = require './locationcontroller'
+MainView                 = require './mainview'
+MainViewController       = require './mainviewcontroller'
+NotificationController   = require './notificationcontroller'
+OAuthController          = require './oauthcontroller'
+OnboardingController     = require './onboarding/onboardingcontroller'
+PaymentController        = require './payment/paymentcontroller'
+RealtimeController       = require './realtimecontroller'
+SearchController         = require './searchcontroller'
+SocialApiController      = require './socialapicontroller'
+WelcomeModal             = require './welcomemodal'
+WidgetController         = require './widgetcontroller'
+PageTitleController      = require './pagetitlecontroller'
+ShortcutsController      = require './shortcuts'
 
+module.exports =
 
-module.exports = class MainController extends KDController
+class MainController extends KDController
+
   ###
 
   * EMITTED EVENTS
@@ -58,8 +60,6 @@ module.exports = class MainController extends KDController
     - accountChanged.to.loggedOut   [account, connectedState, firstLoad]
 
   ###
-
-  Promise.longStackTraces()
 
   connectedState = connected : no
 
@@ -118,7 +118,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'kontrol',                   new KodingKontrol
 
     kd.registerSingleton 'appManager',   appManager = new ApplicationManager
-    kd.registerSingleton 'globalKeyCombos',  combos = new KDKeyboardMap priority : 0
     kd.registerSingleton 'notificationController',    new NotificationController
     kd.registerSingleton 'linkController',            new LinkController
     kd.registerSingleton 'display',                   new ContentDisplayController
@@ -140,19 +139,23 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'search',                    new SearchController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
+    kd.registerSingleton 'shortcutsController',  kb = new ShortcutsController
+
+    kb.addEventListeners()
 
     router.listen()
+
     @mainViewController = mvc
+
     mv.appendToDomBody()
 
     @ready =>
-      kd.registerSingleton 'widgetController',        new WidgetController
-      kd.registerSingleton 'onboardingController',    new OnboardingController
+      kd.registerSingleton 'widgetController',     new WidgetController
+      kd.registerSingleton 'onboardingController', new OnboardingController
 
       @emit 'AppIsReady'
-      @prepareSupportShortcuts()
 
-      console.timeEnd 'Koding.com loaded'
+      @prepareSupportShortcuts()
 
     @forwardEvents remote, ['disconnected', 'reconnected']
 
