@@ -364,6 +364,13 @@ module.exports = class IDEAppController extends AppController
     @emit 'MachineDidMount', machine, @workspaceData
 
 
+  whenMachineReady: (callback) ->
+
+    if @mountedMachine
+    then callback @mountedMachine, @workspaceData
+    else @once 'MachineDidMount', callback
+
+
   getMountedMachine: (callback = noop) ->
 
     return callback()  unless @mountedMachineUId
