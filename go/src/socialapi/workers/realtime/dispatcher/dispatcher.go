@@ -91,7 +91,6 @@ func (c *Controller) NotifyUser(nm *models.NotificationMessage) error {
 		return nil
 	}
 
-	nm.EventName = "message"
 	nm.EventId = createEventId()
 
 	return c.Pubnub.NotifyUser(nm)
