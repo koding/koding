@@ -55,9 +55,17 @@ module.exports = (container, callback = kd.noop, options = {}) ->
     loadFilesOnInit   : yes
     machineToMount    : options.machine
 
-  finder = finderController.getView()
   finderController.reset()
 
   form.addSubView finderWrapper = new KDView cssClass : "save-as-dialog save-file-container", null
-  finderWrapper.addSubView finder
+  finderWrapper.addSubView finderController.getView()
   finderWrapper.setHeight 200
+
+  # FIXME: rootpath should be taken from options.
+  # i don't want to do it for now because this file should be
+  # refactored from the first line and should be moved to somewhere else.
+  # for now we can live with it and assuming appManager.frontApp is IDE in
+  # this case is safe because this is save/save-as modal.
+  if machine = options.machine
+    { rootPath } = kd.singletons.appManager.getFrontApp().workspaceData
+    finderController.updateMachineRoot machine.uid, rootPath
