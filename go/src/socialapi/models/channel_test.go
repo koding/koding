@@ -3,7 +3,6 @@ package models
 import (
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"testing"
 
@@ -1303,8 +1302,7 @@ func TestChannelFetchRoot(t *testing.T) {
 	defer r.Close()
 
 	Convey("while fetching the root", t, func() {
-		acc, err := models.CreateAccountInBothDbs()
-		So(err, ShouldBeNil)
+		acc := models.CreateAccountWithTest()
 		So(acc, ShouldNotBeNil)
 
 		Convey("if channel id is not set", func() {
@@ -1315,14 +1313,11 @@ func TestChannelFetchRoot(t *testing.T) {
 		})
 
 		Convey("when root doesnt exist", func() {
-			leaf, err := rest.CreateChannelByGroupNameAndType(
+			leaf := models.CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				RandomName(),
 				models.Channel_TYPE_TOPIC,
+				RandomName(),
 			)
-
-			So(err, ShouldBeNil)
-			So(leaf, ShouldNotBeNil)
 
 			Convey("should return bongo error", func() {
 				_, err := leaf.FetchRoot()
@@ -1333,24 +1328,23 @@ func TestChannelFetchRoot(t *testing.T) {
 
 		Convey("when root does exist", func() {
 			groupName := RandomName()
-			root, err := rest.CreateChannelByGroupNameAndType(
+			root := models.CreateTypedGroupedChannelWithTest(
 				acc.Id,
-				groupName,
 				models.Channel_TYPE_TOPIC,
-			) // create root channel with second acc
-			So(err, ShouldBeNil)
-
-			leaf, err := rest.CreateChannelByGroupNameAndType(
-				acc.Id,
 				groupName,
-				models.Channel_TYPE_TOPIC,
 			)
-			So(err, ShouldBeNil)
+
+			leaf := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
 
 			cl := &ChannelLink{
 				RootId: root.Id,
 				LeafId: leaf.Id,
 			}
+
 			So(cl.Create(), ShouldBeNil)
 
 			Convey("should return root", func() {
