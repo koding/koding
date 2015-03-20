@@ -78,7 +78,13 @@ module.exports = class JWorkspace extends Module
       workspace      = new JWorkspace data
 
       workspace.save (err) ->
-        return callback err  if err
+        if err
+          switch err.code
+            when 11000 # duplicate key error
+              callback()
+            else
+              callback err  if err
+          return
 
         delegate.emit 'NewWorkspaceCreated', workspace
         return callback null, workspace
