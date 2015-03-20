@@ -358,6 +358,12 @@ module.exports = class IDEAppController extends AppController
               pane.isInitial = yes
 
 
+  setMountedMachine: (machine) ->
+
+    @mountedMachine = machine
+    @emit 'MachineDidMount', machine, @workspaceData
+
+
   getMountedMachine: (callback = noop) ->
 
     return callback()  unless @mountedMachineUId
@@ -365,9 +371,9 @@ module.exports = class IDEAppController extends AppController
     kd.utils.defer =>
       environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine
-        @mountedMachine = machine
+        @setMountedMachine machine
 
-        callback null, @mountedMachine
+        callback null, machine
 
 
   mountMachineByMachineUId: (machineUId) ->
@@ -383,7 +389,7 @@ module.exports = class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
-      @mountedMachine = machineItem
+      @setMountedMachine machineItem
 
       @prepareIDE()
 
