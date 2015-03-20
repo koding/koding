@@ -1,10 +1,13 @@
 kd   = require 'kd'
 view = require './view'
 ManagedVMBaseModal = require './basemodal'
+checkFlag = require 'app/util/checkFlag'
 
 module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
   constructor: (options = {}, data)->
+
+    return  unless checkFlag 'super-admin'
 
     hasContainer      = options.container?
 

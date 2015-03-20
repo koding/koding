@@ -3,6 +3,7 @@ KDButtonView = kd.ButtonView
 SidebarSearchModal = require './sidebarsearchmodal'
 ModalMachineItem = require './modalmachineitem'
 {handleNewMachineRequest} = require '../../providers/computehelpers'
+checkFlag = require 'app/util/checkFlag'
 
 module.exports = class MoreVMsModal extends SidebarSearchModal
 
@@ -36,17 +37,21 @@ module.exports = class MoreVMsModal extends SidebarSearchModal
         @addButton.showLoader()
         handleNewMachineRequest provider: 'koding', @bound 'destroy'
 
-    @addManagedButton = new KDButtonView
-      title    : "Add Your own VM"
-      style    : 'add-big-btn'
-      icon     : yes
-      loader   : color : '#333'
-      callback : =>
-        @addManagedButton.showLoader()
-        handleNewMachineRequest provider: 'managed', @bound 'destroy'
-
     @addSubView @addButton, '.kdmodal-content'
-    @addSubView @addManagedButton, '.kdmodal-content'
+
+    if checkFlag 'super-admin'
+      
+      @setClass 'managed'
+      @addManagedButton = new KDButtonView
+        title    : "Add Your own VM"
+        style    : 'add-big-btn'
+        icon     : yes
+        loader   : color : '#333'
+        callback : =>
+          @addManagedButton.showLoader()
+          handleNewMachineRequest provider: 'managed', @bound 'destroy'
+
+      @addSubView @addManagedButton, '.kdmodal-content'
 
     super
 
