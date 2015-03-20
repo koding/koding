@@ -1,9 +1,10 @@
-Shortcuts = require 'shortcuts'
-defaults  = require './config'
-events    = require 'events'
-_         = require 'underscore'
-kd        = require 'kd'
-os        = require 'os'
+Shortcuts      = require 'shortcuts'
+defaults       = require './config'
+events         = require 'events'
+_              = require 'underscore'
+kd             = require 'kd'
+os             = require 'os'
+ShortcutsModal = require './views/modal'
 
 STORAGE_VERSION      = '1'
 STORAGE_BINDINGS_KEY = "bindings-#{os}"
@@ -91,3 +92,8 @@ class Keyboard extends events.EventEmitter
     if _.isArray(sets = app.getConfig().shortcuts)
       for key in sets
         @shortcuts.on "key:#{key}", app.bound 'handleShortcut'
+
+
+  showModal: ->
+
+    new ShortcutsModal {}, @shortcuts.config
