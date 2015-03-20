@@ -6,7 +6,7 @@
     "accounting": "^0.4.1",
     "backoff": "2.4.1",
     "bluebird": "^2.8.2",
-    "bongo-client": "git+ssh://git@github.com:koding/bongo-client#v0.2.0",
+    "bongo-client": "git+ssh://git@github.com:koding/bongo-client#v0.2.1",
     "broker-client": "git+ssh://git@github.com:tetsuo/broker-client#v0.3.0",
     "component-os": "0.0.1",
     "dateformat": "^1.0.11",

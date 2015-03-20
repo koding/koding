@@ -111,14 +111,6 @@ module.exports = class JAccount extends jraphical.Module
         unfollow: [
           (signature Function)
         ]
-        fetchFollowersWithRelationship:
-          (signature Object, Object, Function)
-        countFollowersWithRelationship:
-          (signature Object, Function)
-        countFollowingWithRelationship:
-          (signature Object, Function)
-        fetchFollowingWithRelationship:
-          (signature Object, Object, Function)
         fetchTopics:
           (signature Object, Object, Function)
         fetchAppStorage:
@@ -1077,12 +1069,12 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
-  sendNotification:(event, contents)->
-    @emit 'notification', {
-      routingKey: @profile.nickname
-      event, contents
-    }
+  sendNotification: (event, contents) ->
+    @createSocialApiId (err, socialApiId) =>
+      return console.error "Could not send notification to account #{err}"  if err
 
+      @emit 'notification',
+        eventName: event, body: contents, account: {id: socialApiId, nick: @profile.nickname}
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}
