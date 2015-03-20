@@ -1082,7 +1082,7 @@ module.exports = class JAccount extends jraphical.Module
           context: "koding"
       }
 
-     @emit 'notification', {type: "dispatcher_notify_user", message: message}
+      @emit 'notification', {type: "dispatcher_notify_user", message: message}
 
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
