@@ -32,9 +32,10 @@ func main() {
 	r.Register(models.ChannelMessageList{}).OnCreate().Handle((*algoliaconnector.Controller).MessageListSaved)
 	r.Register(models.ChannelMessageList{}).OnDelete().Handle((*algoliaconnector.Controller).MessageListDeleted)
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*algoliaconnector.Controller).MessageUpdated)
+
 	// moderation related
 	r.Register(models.ChannelLink{}).OnCreate().Handle((*algoliaconnector.Controller).CreateSynonym)
-	r.Register(models.ChannelLink{}).OnDelete().Handle((*algoliaconnector.Controller).DeleteSynonym)
+
 	r.Listen()
 	r.Wait()
 }
