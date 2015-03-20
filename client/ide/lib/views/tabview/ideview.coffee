@@ -105,7 +105,10 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
   createEditor: (file, content, callback = kd.noop, emitChange = yes) ->
 
-    file        = file    or FSHelper.createFileInstance path: @getDummyFilePath()
+    unless file
+      path    = @getDummyFilePath()
+      machine = kd.singletons.appManager.getFrontApp().mountedMachine
+      file    = FSHelper.createFileInstance { path, machine }
 
     # we need to show a notification that file is read-only or not accessible
     # only if it is opened by user action
@@ -453,7 +456,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
         callback          : => @terminateSessions machine
 
     items =
-      'New File'          : callback : => 
+      'New File'          : callback : =>
          newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
          @createEditor(newFile)
       'New Terminal'      : children : terminalSessions
