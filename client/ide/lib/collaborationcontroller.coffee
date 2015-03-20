@@ -562,11 +562,10 @@ module.exports =
     @collectButtonShownMetric()
 
 
-  prepareChatSession: ->
+  prepareChatSession: (callbacks) ->
 
     socialHelpers.initChannel (err, channel) =>
-
-      return @stateMachine.transition 'ErrorCreating'  if err
+      return callbacks.error err  if err
 
       @setSocialChannel channel
       @createChatPaneView channel
@@ -574,10 +573,8 @@ module.exports =
       envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
-          @chat.ready =>
-            @stateMachine.transition 'Prepared'
-        .error (err) =>
-          # @stateMachine.transition 'ErrorCreating'
+          @chat.ready => callbacks.success()
+        .error (err) => callbacks.error err
 
 
   onCollaborationPrepared: ->
@@ -759,8 +756,12 @@ module.exports =
   showChat: ->
 
     switch @stateMachine.state
-      when 'Active'     then @showChatPane()
-      when 'NotStarted' then @prepareChatSession()
+      when 'Active'
+       @showChatPane()
+      when 'NotStarted'
+        @prepareChatSession
+          success : => @stateMachine.transition 'Prepared'
+          error   : => # @stateMachine.transition 'ErrorPreparing'
 
 
   stopCollaborationSession: ->
