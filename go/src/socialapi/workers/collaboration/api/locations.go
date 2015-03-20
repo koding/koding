@@ -8,15 +8,17 @@ import (
 
 	"github.com/juju/ratelimit"
 	"github.com/koding/cache"
+	"github.com/koding/metrics"
 )
 
-func AddHandlers(m *mux.Mux) {
+func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  Ping,
 			Name:     "collaboration-ping",
 			Type:     handler.PostRequest,
 			Endpoint: "/collaboration/ping",
+			Metrics:  metric,
 			Ratelimit: func() func(r *http.Request) *ratelimit.Bucket {
 				var tokenCache = cache.NewLRU(1000)
 				return func(r *http.Request) *ratelimit.Bucket {
@@ -50,6 +52,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     "collaboration-end",
 			Type:     handler.PostRequest,
 			Endpoint: "/collaboration/end",
+			Metrics:  metric,
 		},
 	)
 }
