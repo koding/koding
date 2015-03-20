@@ -23,8 +23,8 @@ module.exports =
     helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
 
     browser
-      .pause   2000
-      .element 'css selector', '.login-input-view.validation-error', (result) =>
+      .pause   5000
+      .element 'css selector', '[testpath=main-sidebar]', (result) =>
 
         if result.status is 0
           browser.end()
