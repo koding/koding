@@ -55,9 +55,11 @@ import (
 	"github.com/koding/kite/protocol"
 	"github.com/koding/kite/testkeys"
 	"github.com/koding/kite/testutil"
+	"golang.org/x/net/context"
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/kloud"
@@ -84,6 +86,7 @@ var (
 type args struct {
 	MachineId  string
 	SnapshotId string
+	Provider   string
 }
 
 type singleUser struct {
@@ -128,16 +131,25 @@ func init() {
 
 	// Add Kloud handlers
 	kld := newKloud(provider)
+	s := &session.Session{
+		DB:   provider.Session,
+		Kite: kloudKite,
+		DNS:  provider.DNS,
+	}
+	kld.ContextCreator = func(ctx context.Context) context.Context {
+		return session.NewContext(ctx, s)
+	}
+
 	kloudKite.HandleFunc("build", kld.Build)
-	kloudKite.HandleFunc("destroy", kld.Destroy)
-	kloudKite.HandleFunc("start", kld.Start)
-	kloudKite.HandleFunc("stop", kld.Stop)
-	kloudKite.HandleFunc("reinit", kld.Reinit)
-	kloudKite.HandleFunc("restart", kld.Restart)
-	kloudKite.HandleFunc("resize", kld.Resize)
-	kloudKite.HandleFunc("event", kld.Event)
-	kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
-	kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
+	// kloudKite.HandleFunc("destroy", kld.Destroy)
+	// kloudKite.HandleFunc("start", kld.Start)
+	// kloudKite.HandleFunc("stop", kld.Stop)
+	// kloudKite.HandleFunc("reinit", kld.Reinit)
+	// kloudKite.HandleFunc("restart", kld.Restart)
+	// kloudKite.HandleFunc("resize", kld.Resize)
+	// kloudKite.HandleFunc("event", kld.Event)
+	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	// kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()

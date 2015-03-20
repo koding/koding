@@ -1,6 +1,14 @@
 package kloud
 
-import "golang.org/x/net/context"
+import (
+	"koding/kites/kloud/machinestate"
+
+	"golang.org/x/net/context"
+)
+
+type ctxKey int
+
+const requestKey ctxKey = 0
 
 // Provider is responsible of managing and controlling a cloud provider
 type Provider interface {
@@ -9,9 +17,9 @@ type Provider interface {
 }
 
 type Builder interface {
-	Builder(ctx context.Context) error
+	Build(ctx context.Context) error
 }
 
-type Artifact interface {
-	Values(key string) string
+type Stater interface {
+	State() machinestate.State
 }

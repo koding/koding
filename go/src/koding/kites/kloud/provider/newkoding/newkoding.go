@@ -5,6 +5,8 @@ import (
 	"koding/kites/kloud/machinestate"
 	"time"
 
+	"github.com/koding/logging"
+
 	"labix.org/v2/mgo/bson"
 )
 
@@ -42,6 +44,7 @@ type Machine struct {
 
 	// not availabile in MongoDB schema
 	Username string `bson:"-"`
+	Log      logging.Logger
 }
 
 func (m *Machine) State() machinestate.State {

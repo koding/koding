@@ -14,11 +14,11 @@ import (
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/provider/koding"
-	"koding/kites/kloud/session"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -228,29 +228,29 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	// just create once, it will never change, however if this is going to
-	// change just put it inside the ContextCreator func
-	ctx := session.NewContext(context.Background(), &session.Session{
+	s := &session.Session{
 		DB:   db,
 		Kite: k,
 		DNS:  dnsInstance,
-	})
-	kld.ContextCreator = func() context.Context { return ctx }
+	}
+	kld.ContextCreator = func(ctx context.Context) context.Context {
+		return session.NewContext(ctx, s)
+	}
 
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("start", kld.Start)
-	k.HandleFunc("stop", kld.Stop)
-	k.HandleFunc("restart", kld.Restart)
-	k.HandleFunc("info", kld.Info)
-	k.HandleFunc("destroy", kld.Destroy)
-	k.HandleFunc("event", kld.Event)
-	k.HandleFunc("resize", kld.Resize)
-	k.HandleFunc("reinit", kld.Reinit)
+	// k.HandleFunc("start", kld.Start)
+	// k.HandleFunc("stop", kld.Stop)
+	// k.HandleFunc("restart", kld.Restart)
+	// k.HandleFunc("info", kld.Info)
+	// k.HandleFunc("destroy", kld.Destroy)
+	// k.HandleFunc("event", kld.Event)
+	// k.HandleFunc("resize", kld.Resize)
+	// k.HandleFunc("reinit", kld.Reinit)
 
 	// Snapshot functionality
-	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
-	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
+	// k.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	// k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	// Domain records handling methods
 	k.HandleFunc("domain.set", kld.DomainSet)

@@ -36,6 +36,7 @@ const (
 	ErrBadResponse            = 404
 	ErrProviderAvailable      = 405
 	ErrProviderNotImplemented = 406
+	ErrBuilderNotImplemented  = 407
 
 	ErrUserNotConfirmed = 500
 )
@@ -73,6 +74,7 @@ var errors = map[int]string{
 	ErrBadResponse:            "Provider has a bad response.",
 	ErrProviderAvailable:      "Provider is already available",
 	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
+	ErrBuilderNotImplemented:  "Provider doesn't implement the builder interface",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

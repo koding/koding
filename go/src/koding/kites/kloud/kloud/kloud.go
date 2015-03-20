@@ -19,11 +19,9 @@ const (
 type Kloud struct {
 	Log logging.Logger
 
+	// rename to providers once finished
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
 	providers map[string]interface{}
-
-	// rename to providers once finished
-	builders map[string]Provider
 
 	// Domainer is responsible of managing dns records
 	Domainer protocol.Domainer
@@ -46,7 +44,7 @@ type Kloud struct {
 
 	// ContextCreator is used to pass a manual context to each request. If not
 	// set context.Background()) is passed.
-	ContextCreator func() context.Context
+	ContextCreator func(context.Context) context.Context
 
 	// Enable debug mode
 	Debug bool
@@ -58,7 +56,7 @@ func New() *Kloud {
 		idlock:    idlock.New(),
 		Log:       logging.NewLogger(NAME),
 		Eventers:  make(map[string]eventer.Eventer),
-		providers: make(map[string]interface{}),
+		providers: make(map[string]interface{}, 0),
 	}
 
 	return kld
