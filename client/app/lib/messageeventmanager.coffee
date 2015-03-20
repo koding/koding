@@ -4,6 +4,8 @@ filterTrollActivity = require './util/filterTrollActivity'
 whoami = require './util/whoami'
 kd = require 'kd'
 KDObject = kd.Object
+Encoder = require 'htmlencode'
+MongoOp = require 'bongo-client/node_modules/mongoop'
 
 module.exports = class MessageEventManager extends KDObject
 
@@ -20,6 +22,7 @@ module.exports = class MessageEventManager extends KDObject
         .on 'InteractionRemoved', @bound 'removeInteraction'
         .on 'ReplyAdded', @bound 'addReply'
         .on 'ReplyRemoved', @bound 'removeReply'
+        .on 'updateInstance', @bound 'updateMessage'
 
 
   addInteraction: (event) ->
@@ -114,3 +117,11 @@ module.exports = class MessageEventManager extends KDObject
 
     message.emit "update"
 
+
+  updateMessage: (data) ->
+    message = @getData()
+
+    new MongoOp(data).applyTo message
+
+    message.body = Encoder.XSSEncode message.body
+    message.emit 'update'
