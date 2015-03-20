@@ -12,8 +12,9 @@ var SendEmailEventName = "sendemail"
 
 // Controller holds required instances for processing events
 type Controller struct {
-	log     logging.Logger
-	emailer eventexporter.Exporter
+	log             logging.Logger
+	emailer         eventexporter.Exporter
+	forcedRecipient string
 }
 
 // New Creates a new controller for mail worker
@@ -32,7 +33,13 @@ func Send(m *Mail) error {
 // and sends the message according to the mail adress
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
-	user := &eventexporter.User{Email: m.To}
+	var to = m.To
+
+	if isForcedRecipient(c.forcedRecipient) {
+		to = c.forcedRecipient
+	}
+
+	user := &eventexporter.User{Email: to}
 	if m.Properties == nil {
 		m.Properties = NewProperties()
 	}
@@ -53,4 +60,8 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	delivery.Nack(false, true)
 
 	return false
+}
+
+func isForcedRecipient(email string) bool {
+	return email != ""
 }
