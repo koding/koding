@@ -128,7 +128,7 @@ module.exports = class SidebarMachineBox extends KDView
 
   removeAddWorkspaceInput: ->
 
-    @workspaceAdditionView.destroy()
+    @workspaceAdditionView?.destroy()
     @workspaceAdditionView = null
 
 

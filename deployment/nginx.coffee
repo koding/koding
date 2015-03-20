@@ -306,7 +306,10 @@ module.exports.create = (KONFIG, environment)->
         if ($http_user_agent ~* "baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator") {
           set $prerender 1;
         }
-        if ($args ~ "_escaped_fragment_") {
+        if ($request_uri !~ "(^(\/)?$)|(\/(Pricing|About|Legal|Features)(\/|$))") {
+          set $prerender 0;
+        }
+        if ($args ~ "_escaped_fragment_=$|(\/(Pricing|About|Legal|Features)(\/|$))") {
           set $prerender 1;
         }
         if ($http_user_agent ~ "Prerender") {

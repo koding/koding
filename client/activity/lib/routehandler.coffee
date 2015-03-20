@@ -6,8 +6,10 @@ activityPane = (callback) ->
   {appManager} = kd.singletons
   appManager.open 'Activity', (app) ->
     view = app.getView()
-    view.open 'topic', 'public'
-    callback view.tabs.getPaneByName 'topic-public'
+
+    kd.singleton('mainController').ready ->
+      view.open 'topic', 'public'
+      callback view.tabs.getPaneByName 'topic-public'
 
 handleChannel = (type, slug, callback) ->
   callback    ?= (app) -> app.getView().open type, slug
