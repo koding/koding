@@ -125,7 +125,7 @@ module.exports = class FeedController extends KDViewController
   selectFilter:(name, loadFeed=yes)->
     @selection = @filters[name]
     @resultsController.openTab @filters[name]
-    if @resultsController.listControllers[name].itemsOrdered.length is 0
+    if @resultsController.listControllers[name].getListItems().length is 0
       @loadFeed() if loadFeed
     @emit 'FilterChanged', name
 
@@ -146,7 +146,7 @@ module.exports = class FeedController extends KDViewController
 
     options.sort[sort.name.split('|')[0]] = sort.direction
     options.limit = @getOptions().limitPerPage
-    options.skip  = @resultsController.listControllers[filter.name].itemsOrdered.length
+    options.skip  = @resultsController.listControllers[filter.name].getListItems().length
     options
 
   emitLoadStarted:(filter)->
@@ -204,7 +204,7 @@ module.exports = class FeedController extends KDViewController
           unless err
             items = @sortByKey(items, filter.activeSort) if filter.activeSort
             listController.instantiateListItems items
-            @emitCountChanged listController.itemsOrdered.length, filter.name
+            @emitCountChanged listController.getListItems().length, filter.name
           else
             warn err
         else unless err
