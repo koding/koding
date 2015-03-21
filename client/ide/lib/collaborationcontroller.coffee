@@ -346,7 +346,7 @@ module.exports =
       object.rtm = @rtm
       object.emit 'RealtimeManagerSet'
 
-    if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
+    @whenRealtimeReady callback
 
 
   isRealtimeSessionActive: (id, callback) ->
@@ -886,7 +886,8 @@ module.exports =
         ok         :
           title    : 'OK'
           style    : 'solid green medium'
-          callback : => @modal.destroy()
+          callback : =>
+            @modal.destroy()
 
     @chat.end()
     @showModal options
