@@ -57,7 +57,7 @@ module.exports = class ProviderView extends KDView
       resizable : no
 
     # Add provider views to mainview
-    for provider in @providerController.itemsOrdered
+    for provider in @providerController.getListItems()
       @mainView.addPane provider.getData().view, no
 
     # Add Welcome pane

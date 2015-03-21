@@ -13,7 +13,7 @@ module.exports = class NavigationController extends KDListViewController
     @selectItemByName name  for {name} in previousSelection
 
   getItemByName:(name)->
-    for navItem in @itemsOrdered when navItem.getData()?.title is name
+    for navItem in @getListItems() when navItem.getData()?.title is name
       return navItem
 
   selectItemByName:(name)->
@@ -23,7 +23,7 @@ module.exports = class NavigationController extends KDListViewController
     return item
 
   removeItemByTitle:(name)->
-    for navItem in @itemsOrdered when navItem?.name is name
+    for navItem in @getListItems() when navItem?.name is name
       @removeItem navItem
 
   instantiateListItems:(items)->

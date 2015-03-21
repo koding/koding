@@ -73,7 +73,7 @@ module.exports = class AccountAppController extends AppController
 
   openSection:(section)->
 
-    for item in @navController.itemsOrdered when section is item.getData().slug
+    for item in @navController.getListItems() when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
       @navController.selectItem item
       break
