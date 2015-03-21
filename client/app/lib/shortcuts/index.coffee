@@ -18,7 +18,7 @@ KEYCFG_PLATFORM_METHOD_NAME = do ->
 
 module.exports =
 
-class Keyboard extends events.EventEmitter
+class ShortcutsController extends events.EventEmitter
 
   constructor: (opts={}) ->
 
@@ -35,6 +35,16 @@ class Keyboard extends events.EventEmitter
         return acc
       , {}
       @shortcuts = new Shortcuts raw
+
+
+  getJSON: (name) ->
+    # convenience method that returns a collection's json repr.
+    # this method omits all binding entries that is not compatible
+    # with the current operating system
+
+    @shortcuts.get(name)?.map (model) ->
+      _.extend model.toJSON(),
+        binding: model[KEYCFG_PLATFORM_METHOD_NAME]()
 
 
   addEventListeners: ->
