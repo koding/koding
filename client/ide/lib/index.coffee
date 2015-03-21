@@ -275,7 +275,11 @@ module.exports = class IDEAppController extends AppController
 
   openFile: (file, contents, callback = noop, emitChange) ->
 
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
+    kallback = (pane) =>
+      @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
+      callback pane
+
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
 
 
   openMachineTerminal: (machineData) ->
