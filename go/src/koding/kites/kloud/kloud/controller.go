@@ -283,6 +283,8 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 	k.Log.Debug("args %+v", args)
 
+	ctx := request.NewContext(context.Background(), r)
+
 	provider, ok := k.providers[args.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
@@ -293,7 +295,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	machine, err := p.Get(args.MachineId)
+	machine, err := p.Machine(ctx, args.MachineId)
 	if err != nil {
 		return nil, err
 	}
@@ -304,7 +306,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	}
 	state := stater.State()
 
-	ctx := request.NewContext(context.Background(), r)
 	if k.ContextCreator != nil {
 		ctx = k.ContextCreator(ctx)
 	}
@@ -521,5 +522,7 @@ func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	return p.Get(args.MachineId)
+	ctx := request.NewContext(context.Background(), r)
+
+	return p.Machine(ctx, args.MachineId)
 }
