@@ -17,3 +17,13 @@ exports.activity =
       <p>Following list provides key-bindings that are available in your <b>Activity Feeds.</b></p>
     """
   data: require './activity'
+
+
+exports.editor =
+
+  title: 'Editor'
+  description:
+    """
+      <p>Following list provides key-bindings that are available in <b>Editor.</b>
+    """
+  data: require './editor'
