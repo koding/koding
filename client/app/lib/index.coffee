@@ -11,8 +11,10 @@ whoami                 = require './util/whoami'
 ConnectionChecker      = require './connectionchecker'
 lazyrouter             = require './lazyrouter'
 setupAnalytics         = require './setupanalytics'
+os                     = require 'os'
 
 isStarted = false
+
 
 module.exports = (defaults) ->
 
@@ -29,6 +31,8 @@ bootup = ->
   # that depend on `remote`, and here we are. -og
   remote = require('./remote').getInstance()
   # it is very important that you invoke this method before anything else does, so f important.
+
+  globals.os = os # linux, mac or windows
 
   if globals.config.environment in ['dev', 'sandbox']
     global._kd      = kd
@@ -153,6 +157,7 @@ bootup = ->
       item.ping -> destroyCurrentNotif()  if currentNotif
 
   return true
+
 
 initialize = (defaults, next) ->
 
