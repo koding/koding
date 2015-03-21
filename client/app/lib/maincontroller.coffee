@@ -139,9 +139,9 @@ class MainController extends KDController
     kd.registerSingleton 'search',                    new SearchController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
-    kd.registerSingleton 'shortcutsController',  kb = new ShortcutsController
+    kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
 
-    kb.addEventListeners()
+    shortcuts.addEventListeners()
 
     router.listen()
 
