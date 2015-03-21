@@ -28,7 +28,7 @@ type Credential struct {
 	Meta      bson.M        `bson:"meta"`
 }
 
-func (p *Provider) Machine(ctx context.Context, id string) (*Machine, error) {
+func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, fmt.Errorf("Invalid machine id: %q", id)
 	}
@@ -56,6 +56,9 @@ func (p *Provider) Machine(ctx context.Context, id string) (*Machine, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	p.Log.Debug("machine: %v", machine)
+	p.Log.Debug("request: %v", req)
 
 	machine.Log = p.Log.New(id)
 	machine.Username = user.Name
