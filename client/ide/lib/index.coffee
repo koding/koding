@@ -746,9 +746,9 @@ class IDEAppController extends AppController
 
   showShortcutsView: ->
 
-    { shortcutsController } = kd.singletons
+    { shortcuts } = kd.singletons
 
-    shortcutsController.showModal()
+    shortcuts.showModal()
 
 
   getActivePaneView: ->
