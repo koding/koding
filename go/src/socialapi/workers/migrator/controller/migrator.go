@@ -70,6 +70,8 @@ func (mwc *Controller) Start() {
 
 	mwc.migrateAllGroups()
 
+	mwc.createPublicChannel()
+
 	mwc.createChangelogChannel()
 
 	mwc.GrantPublicAccess()
