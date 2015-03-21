@@ -1,10 +1,6 @@
 package kloud
 
-import (
-	"koding/kites/kloud/machinestate"
-
-	"golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 type ctxKey int
 
@@ -19,8 +15,4 @@ type Provider interface {
 
 type Builder interface {
 	Build(ctx context.Context) error
-}
-
-type Stater interface {
-	State() machinestate.State
 }

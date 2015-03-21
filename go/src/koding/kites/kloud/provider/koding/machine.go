@@ -2,6 +2,7 @@ package koding
 
 import (
 	"koding/db/models"
+	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/machinestate"
 	"time"
 
@@ -41,11 +42,11 @@ type Machine struct {
 	Users  []models.Permissions `bson:"users"`
 	Groups []models.Permissions `bson:"groups"`
 
-	// not availabile in MongoDB schema
+	// internal fields, not availabile in MongoDB schema
 	Username string       `bson:"-"`
 	User     *models.User `bson:"-"`
-
-	Log logging.Logger `bson:"-"`
+	Context  *session.Session
+	Log      logging.Logger `bson:"-"`
 }
 
 func (m *Machine) State() machinestate.State {

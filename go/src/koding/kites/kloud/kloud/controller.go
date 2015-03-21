@@ -1,10 +1,6 @@
 package kloud
 
 import (
-	"fmt"
-	"strings"
-	"time"
-
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
@@ -20,23 +16,6 @@ type ControlResult struct {
 }
 
 type machineFunc func(context.Context, interface{}) error
-
-type statePair struct {
-	initial machinestate.State
-	final   machinestate.State
-}
-
-var states = map[string]*statePair{
-	"build":          &statePair{initial: machinestate.Building, final: machinestate.Running},
-	"start":          &statePair{initial: machinestate.Starting, final: machinestate.Running},
-	"stop":           &statePair{initial: machinestate.Stopping, final: machinestate.Stopped},
-	"destroy":        &statePair{initial: machinestate.Terminating, final: machinestate.Terminated},
-	"restart":        &statePair{initial: machinestate.Rebooting, final: machinestate.Running},
-	"resize":         &statePair{initial: machinestate.Pending, final: machinestate.Running},
-	"reinit":         &statePair{initial: machinestate.Terminating, final: machinestate.Running},
-	"createSnapshot": &statePair{initial: machinestate.Snapshotting, final: machinestate.Running},
-	"deleteSnapshot": &statePair{initial: machinestate.Snapshotting, final: machinestate.Running},
-}
 
 // func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 // 	startFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
@@ -283,8 +262,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 	k.Log.Debug("args %+v", args)
 
-	ctx := request.NewContext(context.Background(), r)
-
 	provider, ok := k.providers[args.Provider]
 	if !ok {
 		return nil, NewError(ErrProviderNotFound)
@@ -295,19 +272,14 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
+	ctx := request.NewContext(context.Background(), r)
+	if k.ContextCreator != nil {
+		ctx = k.ContextCreator(ctx)
+	}
+
 	machine, err := p.Machine(ctx, args.MachineId)
 	if err != nil {
 		return nil, err
-	}
-
-	stater, ok := machine.(Stater)
-	if !ok {
-		return nil, fmt.Errorf("'%s' doesn't support State()", args.Provider)
-	}
-	state := stater.State()
-
-	if k.ContextCreator != nil {
-		ctx = k.ContextCreator(ctx)
 	}
 
 	// each method has his own unique eventer
@@ -315,94 +287,18 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	ev := k.NewEventer(eventId)
 	ctx = eventer.NewContext(ctx, ev)
 
-	// get our state pair. A state pair defines the initial and final state of
-	// a method.  For example, for "restart" method the initial state is
-	// "rebooting" and the final "running.
-	s, ok := states[r.Method]
-	if !ok {
-		return nil, fmt.Errorf("no state pair available for %s", r.Method)
-	}
-
-	// check if the argument has any Reason, and add it to the existing reason.
-	initialReason := fmt.Sprintf("Machine is '%s' due user command: '%s'.", s.initial, r.Method)
-	if args.Reason != "" {
-		initialReason += "Custom reason: " + args.Reason
-	}
-
-	// now mark that we are starting...
-	k.Storage.UpdateState(args.MachineId, initialReason, s.initial)
-
-	// push the first event so it's filled with it, let people know that we're
-	// starting.
-	ev.Push(&eventer.Event{
-		Message: fmt.Sprintf("Starting %s", r.Method),
-		Status:  s.initial,
-	})
-
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
 	// the current status of the running method.
 	go func() {
 		k.idlock.Get(args.MachineId).Lock()
-		defer k.idlock.Get(args.MachineId).Unlock()
-
-		k.Log.Info("[%s] ========== %s started (user: %s) ==========",
-			args.MachineId, strings.ToUpper(r.Method), r.Username)
-
-		start := time.Now()
-
-		status := s.final
-		finishReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.final, r.Method)
-		msg := fmt.Sprintf("%s is finished successfully.", r.Method)
-		eventErr := ""
 
 		err := fn(ctx, machine)
 		if err != nil {
-			k.Log.Error("[%s] %s failed. State is set back to origin '%s'. err: %s",
-				args.MachineId, r.Method, state, err.Error())
-
-			status = state
-
-			msg = ""
-
-			// special case `NetworkOut` error since client relies on this
-			// to show a modal
-			if strings.Contains(err.Error(), "NetworkOut") {
-				msg = err.Error()
-			}
-
-			// special case `plan is expired` error since client relies on this
-			// to show a modal
-			if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
-				msg = err.Error()
-			}
-
-			eventErr = fmt.Sprintf("%s failed. Please contact support.", r.Method)
-			finishReason = fmt.Sprintf("User command: '%s' failed. Setting back to state: %s",
-				r.Method, state)
-
-			k.Log.Info("[%s] ========== %s failed (user: %s) ==========",
-				args.MachineId, strings.ToUpper(r.Method), r.Username)
-		} else {
-			totalDuration := time.Since(start)
-			k.Log.Info("[%s] ========== %s finished with success (user: %s, duration: %s) ==========",
-				args.MachineId, strings.ToUpper(r.Method), r.Username, totalDuration)
+			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
 		}
 
-		if args.Reason != "" {
-			finishReason += "Custom reason: " + args.Reason
-		}
-
-		// update final status in storage
-		k.Storage.UpdateState(args.MachineId, finishReason, status)
-
-		// update final status in storage
-		ev.Push(&eventer.Event{
-			Message:    msg,
-			Status:     status,
-			Percentage: 100,
-			Error:      eventErr,
-		})
+		k.idlock.Get(args.MachineId).Unlock()
 
 		// unlock distributed lock
 		k.Locker.Unlock(args.MachineId)
@@ -410,7 +306,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 	return ControlResult{
 		EventId: eventId,
-		State:   s.initial,
+		// State:   s.initial,
 	}, nil
 }
 

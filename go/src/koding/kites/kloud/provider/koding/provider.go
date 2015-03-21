@@ -6,6 +6,8 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb"
 	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
 
@@ -18,8 +20,10 @@ import (
 )
 
 type Provider struct {
-	DB  *mongodb.MongoDB
-	Log logging.Logger
+	DB   *mongodb.MongoDB
+	Log  logging.Logger
+	Kite *kite.Kite
+	DNS  *dnsclient.DNS
 }
 
 type Credential struct {
@@ -63,6 +67,11 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	machine.Log = p.Log.New(id)
 	machine.Username = user.Name
 	machine.User = user
+	machine.Context = &session.Session{
+		DB:   p.DB,
+		Kite: p.Kite,
+		DNS:  p.DNS,
+	}
 
 	// check for validation and permission
 	if err := p.validate(machine, req); err != nil {

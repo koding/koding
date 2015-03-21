@@ -145,7 +145,7 @@ func init() {
 	// kloudKite.HandleFunc("reinit", kld.Reinit)
 	// kloudKite.HandleFunc("restart", kld.Restart)
 	// kloudKite.HandleFunc("resize", kld.Resize)
-	// kloudKite.HandleFunc("event", kld.Event)
+	kloudKite.HandleFunc("event", kld.Event)
 	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
 	// kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
