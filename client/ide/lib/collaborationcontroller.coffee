@@ -655,6 +655,9 @@ module.exports =
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
 
+    # attach realtime manager when a new editor pane is opened.
+    @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
+
 
   transitionViewsToActive: ->
 
