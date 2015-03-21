@@ -66,11 +66,7 @@ module.exports = class JWorkspace extends Module
     # to prevent storing any kind of data in it. -- acetz!
     data.layout = {}
 
-    generateUniqueName { originId, name, machineUId }, (err, res)->
-
-      return callback err  if err?
-
-      { slug, name } = res
+    kallback = (name, slug) ->
 
       data.name      = name
       data.slug      = slug
@@ -78,10 +74,27 @@ module.exports = class JWorkspace extends Module
       workspace      = new JWorkspace data
 
       workspace.save (err) ->
-        return callback err  if err
+        if err
+          switch err.code
+            when 11000 # duplicate key error
+              callback()
+            else
+              callback err  if err
+          return
 
         delegate.emit 'NewWorkspaceCreated', workspace
         return callback null, workspace
+
+    if data.isDefault
+    then kallback data.name, data.slug
+    else
+      generateUniqueName { originId, name, machineUId }, (err, res)->
+
+        return callback err  if err?
+
+        { name, slug } = res
+
+        kallback name, slug
 
 
   generateUniqueName = ({originId, machineUId, name, index}, callback)->
