@@ -1,4 +1,4 @@
-package newkoding
+package koding
 
 import (
 	"errors"

@@ -66,7 +66,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
 	kloudprotocol "koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/newkoding"
+	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/provider/oldkoding"
 	"koding/kites/kloud/sshutil"
 
@@ -759,7 +759,7 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 	}
 }
 
-func kodingProvider() *newkoding.Provider {
+func kodingProvider() *koding.Provider {
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
 	if mongoURL == "" {
 		panic("KLOUD_MONGODB_URL is not set")
@@ -767,7 +767,7 @@ func kodingProvider() *newkoding.Provider {
 
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
-	return &newkoding.Provider{
+	return &koding.Provider{
 		DB:  db,
 		Log: newLogger("newkoding", true),
 	}
