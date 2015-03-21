@@ -1,4 +1,4 @@
-package koding
+package oldkoding
 
 import (
 	"fmt"

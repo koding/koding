@@ -18,7 +18,7 @@ import (
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/keys"
 	"koding/kites/kloud/multiec2"
-	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/provider/oldkoding"
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/kloud"
@@ -146,8 +146,8 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	if conf.AMITag != "" {
-		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
-		koding.DefaultCustomAMITag = conf.AMITag
+		k.Log.Warning("Default AMI Tag changed from %s to %s", oldkoding.DefaultCustomAMITag, conf.AMITag)
+		oldkoding.DefaultCustomAMITag = conf.AMITag
 	}
 
 	klientFolder := "development/latest"
@@ -176,9 +176,9 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	dnsInstance := dnsclient.New(conf.HostedZone, auth)
-	domainStorage := koding.NewDomainStorage(db)
+	domainStorage := oldkoding.NewDomainStorage(db)
 
-	kodingProvider := &koding.Provider{
+	kodingProvider := &oldkoding.Provider{
 		Kite:          k,
 		Log:           newLogger("kloud", conf.DebugMode),
 		Session:       db,
@@ -190,7 +190,7 @@ func newKite(conf *Config) *kite.Kite {
 			"eu-west-1",
 		}),
 		DNS:               dnsInstance,
-		Bucket:            koding.NewBucket("koding-klient", klientFolder, auth),
+		Bucket:            oldkoding.NewBucket("koding-klient", klientFolder, auth),
 		Test:              conf.TestMode,
 		KontrolURL:        getKontrolURL(conf.KontrolURL),
 		KontrolPrivateKey: kontrolPrivateKey,
@@ -201,7 +201,7 @@ func newKite(conf *Config) *kite.Kite {
 		KlientPool:        klient.NewPool(k),
 		InactiveMachines:  make(map[string]*time.Timer),
 		Stats:             stats,
-		Fetcher: &koding.PaymentFetcher{
+		Fetcher: &oldkoding.PaymentFetcher{
 			DB:              db,
 			Log:             newLogger("kloud", conf.DebugMode),
 			PaymentEndpoint: conf.PlanEndpoint,

@@ -66,7 +66,8 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
 	kloudprotocol "koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/provider/newkoding"
+	"koding/kites/kloud/provider/oldkoding"
 	"koding/kites/kloud/sshutil"
 
 	"github.com/mitchellh/goamz/aws"
@@ -78,7 +79,7 @@ var (
 	kld       *kloud.Kloud
 	remote    *kite.Client
 	conf      *config.Config
-	provider  *koding.Provider
+	provider  *oldkoding.Provider
 
 	errNoSnapshotFound = errors.New("No snapshot found for the given user")
 )
@@ -424,7 +425,7 @@ func createUser(username string) (*singleUser, error) {
 	}
 
 	machineId := bson.NewObjectId()
-	machine := &koding.MachineDocument{
+	machine := &oldkoding.MachineDocument{
 		Id:         machineId,
 		Label:      "",
 		Domain:     username + ".dev.koding.io",
@@ -758,7 +759,21 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 	}
 }
 
-func newKodingProvider() *koding.Provider {
+func kodingProvider() *newkoding.Provider {
+	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
+	if mongoURL == "" {
+		panic("KLOUD_MONGODB_URL is not set")
+	}
+
+	modelhelper.Initialize(mongoURL)
+	db := modelhelper.Mongo
+	return &newkoding.Provider{
+		DB:  db,
+		Log: newLogger("newkoding", true),
+	}
+}
+
+func newKodingProvider() *oldkoding.Provider {
 	auth := aws.Auth{
 		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
 		SecretKey: "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",
@@ -771,9 +786,9 @@ func newKodingProvider() *koding.Provider {
 
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
-	domainStorage := koding.NewDomainStorage(db)
+	domainStorage := oldkoding.NewDomainStorage(db)
 
-	return &koding.Provider{
+	return &oldkoding.Provider{
 		Session:           db,
 		Kite:              kloudKite,
 		Log:               newLogger("koding", true),
@@ -789,15 +804,15 @@ func newKodingProvider() *koding.Provider {
 		}),
 		DNS:           dnsclient.New("dev.koding.io", auth),
 		DomainStorage: domainStorage,
-		Bucket:        koding.NewBucket("koding-klient", "development/latest", auth),
+		Bucket:        oldkoding.NewBucket("koding-klient", "development/latest", auth),
 		KeyName:       keys.DeployKeyName,
 		PublicKey:     keys.DeployPublicKey,
 		PrivateKey:    keys.DeployPrivateKey,
-		Fetcher:       NewTestFetcher(koding.Koding),
+		Fetcher:       NewTestFetcher(oldkoding.Koding),
 	}
 }
 
-func newKloud(p *koding.Provider) *kloud.Kloud {
+func newKloud(p *oldkoding.Provider) *kloud.Kloud {
 	kld := kloud.New()
 	kld.Log = newLogger("kloud", true)
 	kld.Locker = p
@@ -847,7 +862,7 @@ func getAmazonStorageSize(machineId string) (int, error) {
 }
 
 func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
-	var snapshot *koding.SnapshotDocument
+	var snapshot *oldkoding.SnapshotDocument
 	if err := provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
 	}); err != nil {
@@ -908,17 +923,17 @@ func isSnapshotNotFoundError(err error) bool {
 
 // TestFetcher satisfies the fetcher interface
 type TestFetcher struct {
-	Plan koding.Plan
+	Plan oldkoding.Plan
 }
 
-func NewTestFetcher(plan koding.Plan) *TestFetcher {
+func NewTestFetcher(plan oldkoding.Plan) *TestFetcher {
 	return &TestFetcher{
 		Plan: plan,
 	}
 }
 
-func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*koding.FetcherResponse, error) {
-	return &koding.FetcherResponse{
+func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*oldkoding.FetcherResponse, error) {
+	return &oldkoding.FetcherResponse{
 		Plan:  t.Plan,
 		State: "active",
 	}, nil

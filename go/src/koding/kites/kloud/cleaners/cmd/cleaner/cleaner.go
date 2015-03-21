@@ -3,7 +3,8 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
-	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/dnsclient"
+	"koding/kites/kloud/provider/oldkoding"
 	"sync"
 	"time"
 
@@ -18,8 +19,8 @@ type Cleaner struct {
 	AWS      *lookup.Lookup
 	MongoDB  *lookup.MongoDB
 	Postgres *lookup.Postgres
-	DNS      *koding.DNS
-	Domains  *koding.Domains
+	DNS      *dnsclient.DNS
+	Domains  *oldkoding.Domains
 	DryRun   bool
 	Debug    bool
 
@@ -53,8 +54,8 @@ func NewCleaner(conf *Config) *Cleaner {
 
 	l := lookup.NewAWS(auth)
 	m := lookup.NewMongoDB(conf.MongoURL)
-	dns := koding.NewDNSClient(conf.HostedZone, auth)
-	domains := koding.NewDomainStorage(m.DB)
+	dns := dnsclient.New(conf.HostedZone, auth)
+	domains := oldkoding.NewDomainStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
 		Host:     conf.Postgres.Host,
 		Port:     conf.Postgres.Port,
@@ -143,7 +144,7 @@ func (c *Cleaner) Slack(title, desc, msg string) error {
 }
 
 func (c *Cleaner) StopMachine(data *StopData) {
-	if err := c.DNS.Delete(data.domain, data.ipAddress); err != nil {
+	if err := c.DNS.Delete(data.domain); err != nil {
 		fmt.Printf("[%s] couldn't delete domain %s\n", data.id, err)
 	}
 
@@ -154,7 +155,7 @@ func (c *Cleaner) StopMachine(data *StopData) {
 	}
 
 	for _, ds := range domains {
-		if err := c.DNS.Delete(ds.Name, data.ipAddress); err != nil {
+		if err := c.DNS.Delete(ds.Name); err != nil {
 			fmt.Printf("[%s] couldn't delete domain: %s", data.id, err.Error())
 		}
 	}
