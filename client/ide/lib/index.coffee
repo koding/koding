@@ -631,15 +631,9 @@ class IDEAppController extends AppController
     @activeTabView.showPaneByIndex index + 1
 
 
-  goToTabNumber: (keyEvent) ->
+  goToTabNumber: (index) ->
 
-    keyEvent.preventDefault()
-    keyEvent.stopPropagation()
-
-    keyCodeMap    = [ 49..57 ]
-    requiredIndex = keyCodeMap.indexOf keyEvent.keyCode
-
-    @activeTabView.showPaneByIndex requiredIndex
+    @activeTabView.showPaneByIndex index
 
 
   goToLine: ->
@@ -1249,11 +1243,15 @@ class IDEAppController extends AppController
 
     return {instance, isActive: instance is this}
 
+
   handleShortcut: (e) ->
 
     kd.utils.stopDOMEvent e
 
-    switch e.model.name
+    key = e.model.name
+
+    switch key
+
       when 'findfilebyname'    then @showFileFinder()
       when 'searchallfiles'    then @showContentSearch()
       when 'splitvertically'   then @splitVertically()
@@ -1273,3 +1271,10 @@ class IDEAppController extends AppController
       when 'movetabdown'       then @moveTabDown()
       when 'movetableft'       then @moveTabLeft()
       when 'movetabright'      then @moveTabRight
+      else
+        if match = key.match /^gototabnumber(\d{1})$/
+          # XXX: nope -og
+          e.preventDefault()
+          e.stopPropagation()
+
+          @goToTabNumber parseInt(match[1], 10) - 1
