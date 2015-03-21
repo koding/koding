@@ -23,6 +23,7 @@ run:
 	@./run.sh activity editdelete
 	@./run.sh activity likeunlike
 	@./run.sh activity others
+	@./run.sh messages privatemessage
 	@./run.sh account accountpage
 	@./run.sh account accountsettings
 	@./run.sh pricing payment
