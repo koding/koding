@@ -555,11 +555,7 @@ class IDEAppController extends AppController
       @openFile file, contents
 
 
-  createNewTerminal: (options) ->
-
-    # options can be an Event instance if the initiator is
-    # a shortcut so make the options an empty object.
-    options = {}  if options.keyCode
+  createNewTerminal: (options={}) ->
 
     { machine, path, resurrectSessions } = options
 
