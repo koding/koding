@@ -80,9 +80,8 @@ class IDEAppController extends AppController
 
     $('body').addClass 'dark' # for theming
 
-    appView   = @getView()
-    workspace = @workspace = new IDEWorkspace { layoutOptions }
-    @ideViews = []
+    @workspace = new IDEWorkspace { layoutOptions }
+    @ideViews  = []
 
     # todo:
     # - following two should be abstracted out into a separate api
@@ -92,29 +91,7 @@ class IDEAppController extends AppController
     {windowController} = kd.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
 
-    workspace.once 'ready', =>
-      panel = workspace.getView()
-      appView.addSubView panel
-
-      panel.once 'viewAppended', =>
-        ideView = panel.getPaneByName 'editorPane'
-        @setActiveTabView ideView.tabView
-        @registerIDEView  ideView
-
-        splitViewPanel = ideView.parent.parent
-        @createStatusBar splitViewPanel
-        @createFindAndReplaceView splitViewPanel
-
-        appView.emit 'KeyViewIsSet'
-
-        @createInitialView()
-        @bindCollapseEvents()
-
-        {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
-
-        @bindRouteHandler()
-        @initiateAutoSave()
-        @emit 'ready'
+    @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
@@ -130,6 +107,31 @@ class IDEAppController extends AppController
       @resizeActiveTerminalPane()
 
     @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
+
+
+  prepareIDE: ->
+
+    panel     = @workspace.getView()
+    appView   = @getView()
+    ideView   = panel.getPaneByName 'editorPane'
+
+    @setActiveTabView ideView.tabView
+    @registerIDEView  ideView
+
+    splitViewPanel = ideView.parent.parent
+    @createStatusBar splitViewPanel
+    @createFindAndReplaceView splitViewPanel
+
+    appView.emit 'KeyViewIsSet'
+
+    @createInitialView()
+    @bindCollapseEvents()
+
+    {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
+
+    @bindRouteHandler()
+    @initiateAutoSave()
+    @emit 'ready'
 
 
   bindRouteHandler: ->
@@ -358,6 +360,19 @@ class IDEAppController extends AppController
               pane.isInitial = yes
 
 
+  setMountedMachine: (machine) ->
+
+    @mountedMachine = machine
+    @emit 'MachineDidMount', machine, @workspaceData
+
+
+  whenMachineReady: (callback) ->
+
+    if @mountedMachine
+    then callback @mountedMachine, @workspaceData
+    else @once 'MachineDidMount', callback
+
+
   getMountedMachine: (callback = noop) ->
 
     return callback()  unless @mountedMachineUId
@@ -365,9 +380,9 @@ class IDEAppController extends AppController
     kd.utils.defer =>
       environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine
-        @mountedMachine = machine
+        @setMountedMachine machine
 
-        callback null, @mountedMachine
+        callback null, machine
 
 
   mountMachineByMachineUId: (machineUId) ->
@@ -383,7 +398,9 @@ class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
-      @mountedMachine = machineItem
+      @setMountedMachine machineItem
+
+      @prepareIDE()
 
       callback = =>
 
@@ -1184,7 +1201,7 @@ class IDEAppController extends AppController
 
     @cleanupCollaboration()
 
-    @mountedMachine.getBaseKite().disconnect()
+    @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
     kd.singletons.appManager.quit this
 
