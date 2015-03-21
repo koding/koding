@@ -1231,3 +1231,28 @@ class IDEAppController extends AppController
     instance = appControllers.IDE.instances[appControllers.IDE.lastActiveIndex]
 
     return {instance, isActive: instance is this}
+
+  handleShortcut: (e) ->
+
+    kd.utils.stopDOMEvent e
+
+    switch e.model.name
+      when 'findfilebyname'    then @showFileFinder()
+      when 'searchallfiles'    then @showContentSearch()
+      when 'splitvertically'   then @splitVertically()
+      when 'splithorizontally' then @splitHorizontally()
+      when 'mergesplitview'    then @mergeSplitView()
+      when 'previewfile'       then @previewFile()
+      when 'saveallfiles'      then @saveAllFiles()
+      when 'createnewfile'     then @createNewFile()
+      when 'createnewterminal' then @createNewTerminal()
+      when 'createnewdrawing'  then @createNewDrawing()
+      when 'togglesidebar'     then @toggleSidebar()
+      when 'closetab'          then @closeTab()
+      when 'gotolefttab'       then @goToLeftTab()
+      when 'gotorighttab'      then @goToRightTab()
+      when 'fullscreen'        then @toggleFullscreenIDEView()
+      when 'movetabup'         then @moveTabUp()
+      when 'movetabdown'       then @moveTabDown()
+      when 'movetableft'       then @moveTabLeft()
+      when 'movetabright'      then @moveTabRight
