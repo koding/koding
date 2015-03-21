@@ -135,21 +135,6 @@
     }
   },
   {
-    "name": "createnewbrowser",
-    "description": "New Browser",
-    "binding": [
-      [
-        "ctrl+alt+b"
-      ],
-      [
-        "ctrl+alt+b"
-      ]
-    ],
-    "options": {
-      "global": true
-    }
-  },
-  {
     "name": "createnewdrawing",
     "description": "New Drawing Board",
     "binding": [
