@@ -1165,12 +1165,12 @@ module.exports = class IDEAppController extends AppController
 
   createEditorPaneFromChange: (change, hash) ->
 
-    { context }   = change
-    { file }      = context
-    { path }      = file
-    options       = { path, machine : @mountedMachine }
-    file          = FSHelper.createFileInstance options
-    file.paneHash = hash
+    { context }        = change
+    { file, paneType } = context
+    { path }           = file
+    options            = { path, machine : @mountedMachine }
+    file               = FSHelper.createFileInstance options
+    file.paneHash      = hash
 
     if @rtm?.realtimeDoc
       content = @rtm.getFromModel(path)?.getText() or ''
