@@ -3,14 +3,17 @@ package message
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+	"socialapi/workers/helper"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -30,10 +33,22 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 
 	req.InitialChannelId = channelId
 
-	// gets the IP of the Client
-	// and adds it to the payload of the ChannelMessage
-	cip := string(c.Client.IP)
-	req.Payload["ip"] = &cip
+	if req.Payload == nil {
+		req.Payload = gorm.Hstore{}
+	}
+
+	if _, ok := req.Payload["saveLocation"]; ok {
+		// gets the IP of the Client
+		// and adds it to the payload of the ChannelMessage
+		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ll := record.City.Names["en"]
+
+		req.Payload["location"] = &ll
+	}
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
 		return response.NewBadRequest(err)
