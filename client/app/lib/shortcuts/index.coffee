@@ -37,14 +37,18 @@ class ShortcutsController extends events.EventEmitter
       @shortcuts = new Shortcuts raw
 
 
-  getJSON: (name) ->
+  getJSON: (name, filterFn) ->
     # convenience method that returns a collection's json repr.
     # this method omits all binding entries that is not compatible
     # with the current operating system
 
-    @shortcuts.get(name)?.map (model) ->
-      _.extend model.toJSON(),
-        binding: model[KEYCFG_PLATFORM_METHOD_NAME]()
+    set = @shortcuts.get(name)?.chain()
+
+    if set
+      if filterFn then set = set.filter filterFn
+      set.map (model) ->
+        _.extend model.toJSON(), binding: model[KEYCFG_PLATFORM_METHOD_NAME]()
+      .value()
 
 
   addEventListeners: ->
