@@ -85,13 +85,23 @@ func TestChannelMessage(t *testing.T) {
 			So(post2, ShouldBeNil)
 		})
 
-		Convey("message should have IP of the Client", func() {
+		Convey("message should not have payload, if user does not allow", func() {
 			h := http.Header{}
 			h.Add("X-Forwarded-For", "208.72.139.54")
 			post, err := rest.CreatePostWithHeader(groupChannel.Id, account.Id, h)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
+			So(post.Payload, ShouldBeNil)
+		})
+
+		Convey("Message should have location if user allowed", func() {
+			location := make(map[string]interface{})
+			location["saveLocation"] = "Manisa"
+			post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, location)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
 			So(post.Payload, ShouldNotBeNil)
+			So(*(post.Payload["saveLocation"]), ShouldEqual, "Manisa")
 			fmt.Println(post.Payload)
 		})
 
