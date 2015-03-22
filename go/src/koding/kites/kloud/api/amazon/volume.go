@@ -1,56 +1,15 @@
 package amazon
 
 import (
-	"github.com/mitchellh/goamz/ec2"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
+
+	"github.com/mitchellh/goamz/ec2"
 )
-
-func (a *AmazonClient) DeleteSnapshot(snapshotId string) error {
-	_, err := a.Client.DeleteSnapshots([]string{snapshotId})
-	return err
-}
-
-// CreateSnapshot creates a new snapshot from the given volumeId and
-// description. It waits until it's ready.
-func (a *AmazonClient) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, error) {
-	resp, err := a.Client.CreateSnapshot(volumeId, desc)
-	if err != nil {
-		return nil, err
-	}
-
-	snapShot := resp.Snapshot
-
-	checkSnapshot := func(currentPercentage int) (machinestate.State, error) {
-		describeResp, err := a.Client.Snapshots([]string{resp.Id}, ec2.NewFilter())
-		if err != nil {
-			return 0, err
-		}
-
-		// shouldn't happen but let's check it anyway
-		if len(describeResp.Snapshots) == 0 {
-			return machinestate.Pending, nil
-		}
-
-		if describeResp.Snapshots[0].Status != "completed" {
-			return machinestate.Pending, nil
-		}
-
-		snapShot = describeResp.Snapshots[0]
-		return machinestate.Stopped, nil
-	}
-
-	ws := waitstate.WaitState{StateFunc: checkSnapshot, Action: "create-snapshot"}
-	if err := ws.Wait(); err != nil {
-		return nil, err
-	}
-
-	return &snapShot, nil
-}
 
 // CreateVolume creates a new volume from the given snapshot id and size. It
 // waits until it's ready.
-func (a *AmazonClient) CreateVolume(snapshotId, availZone, volumeType string, size int) (*ec2.Volume, error) {
+func (a *Amazon) CreateVolume(snapshotId, availZone, volumeType string, size int) (*ec2.Volume, error) {
 	volOptions := &ec2.CreateVolume{
 		AvailZone:  availZone,
 		Size:       int64(size),
@@ -93,7 +52,7 @@ func (a *AmazonClient) CreateVolume(snapshotId, availZone, volumeType string, si
 }
 
 // DetachVolume detach the given volumeId. It waits until it's ready.
-func (a *AmazonClient) DetachVolume(volumeId string) error {
+func (a *Amazon) DetachVolume(volumeId string) error {
 	if _, err := a.Client.DetachVolume(volumeId); err != nil {
 		return err
 	}
@@ -119,8 +78,8 @@ func (a *AmazonClient) DetachVolume(volumeId string) error {
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    checkDetaching,
-		Action: "detach-volume",
+		StateFunc: checkDetaching,
+		Action:    "detach-volume",
 	}
 
 	return ws.Wait()
@@ -128,7 +87,7 @@ func (a *AmazonClient) DetachVolume(volumeId string) error {
 
 // AttachVolume attach the given volumeId to the instance. DevicePath defines
 // the root path of the volume such as /dev/sda1. It waits until it's ready.
-func (a *AmazonClient) AttachVolume(volumeId, instanceId, devicePath string) error {
+func (a *Amazon) AttachVolume(volumeId, instanceId, devicePath string) error {
 	if _, err := a.Client.AttachVolume(volumeId, instanceId, devicePath); err != nil {
 		return err
 	}
@@ -153,8 +112,8 @@ func (a *AmazonClient) AttachVolume(volumeId, instanceId, devicePath string) err
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc:    checkAttaching,
-		Action: "attach-volume",
+		StateFunc: checkAttaching,
+		Action:    "attach-volume",
 	}
 
 	return ws.Wait()

@@ -25,7 +25,7 @@ func (m *Machine) build(ctx context.Context) error {
 
 	req, ok := request.FromContext(ctx)
 	if !ok {
-		return errors.New("req context is not available")
+		return errors.New("request context is not available")
 	}
 
 	// the user might send us a snapshot id

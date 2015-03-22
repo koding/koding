@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
+	"koding/kites/kloud/multiec2"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -20,10 +23,11 @@ import (
 )
 
 type Provider struct {
-	DB   *mongodb.MongoDB
-	Log  logging.Logger
-	Kite *kite.Kite
-	DNS  *dnsclient.DNS
+	DB         *mongodb.MongoDB
+	Log        logging.Logger
+	Kite       *kite.Kite
+	DNS        *dnsclient.DNS
+	EC2Clients *multiec2.Clients
 }
 
 type Credential struct {
@@ -54,23 +58,45 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
+	ev, ok := eventer.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("eventer context is not available")
+	}
+
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
 	user, err := p.getUser(req.Username)
 	if err != nil {
 		return nil, err
 	}
-
 	p.Log.Debug("machine: %v", machine)
 	p.Log.Debug("request: %v", req)
 
 	machine.Log = p.Log.New(id)
+
+	if machine.Meta.Region == "" {
+		machine.Meta.Region = "us-east-1"
+		machine.Log.Critical("region is not set in. Fallback to us-east-1.")
+	}
+
+	client, err := p.EC2Clients.Region(machine.Meta.Region)
+	if err != nil {
+		return nil, err
+	}
+
+	amazonClient, err := amazon.New(machine.Meta, client)
+	if err != nil {
+		return nil, fmt.Errorf("koding-amazon err: %s", err)
+	}
+
 	machine.Username = user.Name
 	machine.User = user
 	machine.Session = &session.Session{
-		DB:   p.DB,
-		Kite: p.Kite,
-		DNS:  p.DNS,
+		DB:        p.DB,
+		Kite:      p.Kite,
+		DNS:       p.DNS,
+		Eventer:   ev,
+		AWSClient: amazonClient,
 	}
 
 	// check for validation and permission

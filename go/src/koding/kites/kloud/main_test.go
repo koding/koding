@@ -520,6 +520,7 @@ func build(id string) error {
 func destroy(id string) error {
 	destroyArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("destroy", destroyArgs)
@@ -738,11 +739,17 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 		}
 
 		e := events[0]
+
+		fmt.Printf("e = %+v\n", e)
 		if e.Error != nil {
 			return e.Error
 		}
 
 		event := e.Event
+
+		if event.Error != "" {
+			return fmt.Errorf("%s: %s", args[0].Type, event.Error)
+		}
 
 		if event.Status == desiredState {
 			return nil
@@ -758,6 +765,11 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 }
 
 func kodingProvider() *koding.Provider {
+	auth := aws.Auth{
+		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
+		SecretKey: "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",
+	}
+
 	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
 	if mongoURL == "" {
 		panic("KLOUD_MONGODB_URL is not set")
@@ -765,9 +777,12 @@ func kodingProvider() *koding.Provider {
 
 	modelhelper.Initialize(mongoURL)
 	db := modelhelper.Mongo
+
 	return &koding.Provider{
-		DB:  db,
-		Log: newLogger("koding", true),
+		DB:   db,
+		Log:  newLogger("koding", true),
+		DNS:  dnsclient.New("dev.koding.io", auth),
+		Kite: kloudKite,
 	}
 }
 

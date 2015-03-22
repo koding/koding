@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 )
 
 var ErrWaitTimeout = errors.New("timeout while waiting for state")
+
+type PushFunc func(string, int, machinestate.State) // Event pusher function
 
 var MetaStates = map[string]MetaState{
 	// we don't need to wait until it's terminated or stopped. So once we see
@@ -41,12 +44,28 @@ type MetaState struct {
 // WaitState is used to track the state of a given process.
 type WaitState struct {
 	StateFunc       func(int) (machinestate.State, error) // State checker function
-	PushFunc        func(string, int, machinestate.State) // Event pusher function
+	PushFunc        PushFunc                              // Event pusher function
+	Eventer         eventer.Eventer                       // Event pusher
 	Action          string                                // Request of action to change states
 	Timeout         time.Duration                         // Global timeout to cancel the waiting
 	EventerInterval time.Duration                         // Ticker interval to push events
 	PollerInterval  time.Duration                         // Ticker interval to poll state changes
 	Start, Finish   int                                   // Eventer progress bounds
+}
+
+func (w *WaitState) Push(msg string, percentage int, state machinestate.State) {
+	if w.PushFunc != nil {
+		w.PushFunc(msg, percentage, state)
+		return
+	}
+
+	if w.Eventer != nil {
+		w.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     state,
+			Percentage: percentage,
+		})
+	}
 }
 
 // Wait calls the StateFunc with the specified interval and waits until it
@@ -92,10 +111,8 @@ func (w *WaitState) Wait() error {
 				w.Start += 2
 			}
 
-			if w.PushFunc != nil {
-				w.PushFunc(fmt.Sprintf("%s called. Desired states: %v. Current state: %s",
-					w.Action, metaState.Desired, metaState.OnGoing), w.Start, metaState.OnGoing)
-			}
+			w.Push(fmt.Sprintf("%s called. Desired states: %v. Current state: %s",
+				w.Action, metaState.Desired, metaState.OnGoing), w.Start, metaState.OnGoing)
 
 			if pollState.In(metaState.Desired...) {
 				return nil

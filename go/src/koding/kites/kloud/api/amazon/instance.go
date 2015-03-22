@@ -3,11 +3,64 @@ package amazon
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/waitstate"
 
 	"github.com/mitchellh/goamz/ec2"
 )
 
-var ErrNoInstances = errors.New("no instances found")
+var (
+	ErrInstanceTerminated = errors.New("instance is terminated")
+	ErrNoInstances        = errors.New("no instances found")
+)
+
+func (a *Amazon) Build(buildData *ec2.RunInstances) (string, error) {
+	resp, err := a.Client.RunInstances(buildData)
+	if err != nil {
+		return "", err
+	}
+
+	// we do not check intentionally, because CreateInstance() is designed to
+	// create only one instance. If it creates something else we catch it here
+	// by panicing
+	instance := resp.Instances[0]
+
+	return instance.InstanceId, nil
+}
+
+func (a *Amazon) CheckBuild(instanceId string, start, finish int) (ec2.Instance, error) {
+	var instance ec2.Instance
+	var err error
+	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		// a.track(instanceId, "Build")
+		panic("TODO: implement a.track")
+
+		instance, err = a.Instance(instanceId)
+		if err != nil {
+			return 0, err
+		}
+
+		currentStatus := statusToState(instance.State.Name)
+		if currentStatus.In(machinestate.Terminated, machinestate.Terminating) {
+			return 0, ErrInstanceTerminated
+		}
+
+		return currentStatus, nil
+	}
+
+	ws := waitstate.WaitState{
+		StateFunc: stateFunc,
+		Action:    "build",
+		Start:     start,
+		Finish:    finish,
+	}
+
+	if err := ws.Wait(); err != nil {
+		return ec2.Instance{}, err
+	}
+
+	return instance, nil
+}
 
 func (a *Amazon) Instance(id string) (ec2.Instance, error) {
 	resp, err := a.Client.Instances([]string{id}, ec2.NewFilter())

@@ -34,12 +34,7 @@ var states = map[string]*statePair{
 
 type methodFunc func(context.Context) error
 
-func (m *Machine) runMethod(ctx context.Context, fn methodFunc) error {
-	ev, ok := eventer.FromContext(ctx)
-	if !ok {
-		return errors.New("session context is not available")
-	}
-
+func (m *Machine) runMethod(ctx context.Context, fn methodFunc) (err error) {
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return errors.New("req context is not available")
@@ -66,6 +61,32 @@ func (m *Machine) runMethod(ctx context.Context, fn methodFunc) error {
 		initialReason += "Custom reason: " + args.Reason
 	}
 
+	// push the first event so it's filled with it, let people know that we're
+	// starting.
+	m.Session.Eventer.Push(&eventer.Event{
+		Message: fmt.Sprintf("Starting %s", req.Method),
+		Status:  s.initial,
+	})
+
+	status := s.final
+	msg := fmt.Sprintf("%s is finished successfully.", req.Method)
+	eventErr := ""
+
+	defer func() {
+		if err != nil {
+			m.Log.Info("========== %s failed (user: %s) ==========", strings.ToUpper(req.Method), m.Username)
+			eventErr = err.Error()
+		}
+
+		m.Session.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Status:     status,
+			Percentage: 100,
+			Error:      eventErr,
+		})
+
+	}()
+
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
 	// will return an error.
@@ -73,17 +94,6 @@ func (m *Machine) runMethod(ctx context.Context, fn methodFunc) error {
 		return fmt.Errorf("method '%s' not allowed for current state '%s'. Allowed methods are: %v",
 			req.Method, strings.ToLower(m.Status.State), m.State().ValidMethods())
 	}
-
-	status := s.final
-	msg := fmt.Sprintf("%s is finished successfully.", req.Method)
-	eventErr := ""
-
-	// push the first event so it's filled with it, let people know that we're
-	// starting.
-	ev.Push(&eventer.Event{
-		Message: fmt.Sprintf("Starting %s", req.Method),
-		Status:  s.initial,
-	})
 
 	if err := m.UpdateState(initialReason, s.initial); err != nil {
 		return err
@@ -93,14 +103,10 @@ func (m *Machine) runMethod(ctx context.Context, fn methodFunc) error {
 	currentState := m.State()
 	finishReason := fmt.Sprintf("Machine is '%s' due user command: '%s'", s.final, req.Method)
 
-	err := fn(ctx)
+	err = fn(ctx)
 	if err != nil {
-		m.Log.Info("========== BUILD failed (user: %s) ==========", m.Username)
-		m.Log.Error("%s failed. State is set back to origin '%s'. err: %s",
-			req.Method, currentState, err.Error())
-
+		// set back to old values
 		status = currentState
-
 		msg = ""
 
 		// special case `NetworkOut` error since client relies on this
@@ -120,16 +126,9 @@ func (m *Machine) runMethod(ctx context.Context, fn methodFunc) error {
 			req.Method, currentState)
 	} else {
 		totalDuration := time.Since(start)
-		m.Log.Info(" ========== BUILD finished with success (user: %s, duration: %s) ==========",
-			m.Username, totalDuration)
+		m.Log.Info(" ========== %s finished with success (user: %s, duration: %s) ==========",
+			strings.ToUpper(req.Method), m.Username, totalDuration)
 	}
-
-	ev.Push(&eventer.Event{
-		Message:    msg,
-		Status:     status,
-		Percentage: 100,
-		Error:      eventErr,
-	})
 
 	// update final status in storage
 	if args.Reason != "" {

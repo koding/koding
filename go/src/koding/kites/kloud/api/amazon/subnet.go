@@ -33,7 +33,7 @@ func (s Subnets) AvailabilityZone(zone string) (ec2.Subnet, error) {
 	return ec2.Subnet{}, errors.New("subnet not found")
 }
 
-func (a *AmazonClient) SubnetsWithTag(tag string) (Subnets, error) {
+func (a *Amazon) SubnetsWithTag(tag string) (Subnets, error) {
 	filter := ec2.NewFilter()
 	filter.Add("tag-value", tag)
 
@@ -45,7 +45,7 @@ func (a *AmazonClient) SubnetsWithTag(tag string) (Subnets, error) {
 	return resp.Subnets, nil
 }
 
-func (a *AmazonClient) SecurityGroupFromVPC(vpcId, tag string) (ec2.SecurityGroupInfo, error) {
+func (a *Amazon) SecurityGroupFromVPC(vpcId, tag string) (ec2.SecurityGroupInfo, error) {
 	filter := ec2.NewFilter()
 	filter.Add("vpc-id", vpcId)
 	filter.Add("tag-key", tag)
