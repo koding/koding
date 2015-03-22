@@ -218,19 +218,6 @@ class Ace extends KDView
     findAndReplaceView.on 'FindAndReplaceViewClosed', => @focus()
 
 
-  addKeyCombo: (name, winKey, macKey, callback) ->
-    if typeof macKey is 'function'
-      callback = macKey
-      macKey   = winKey.replace 'Ctrl', 'Command'
-      macKey   = macKey.replace 'Alt', 'Option'
-    @editor.commands.addCommand
-      name    : name
-      bindKey :
-        win   : winKey
-        mac   : macKey
-      exec    : => callback?()
-
-
   isContentChanged: -> @contentChanged
 
   isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
