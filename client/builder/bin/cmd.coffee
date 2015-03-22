@@ -70,7 +70,7 @@ yargs = require 'yargs'
 
   .describe 'collapse-js', 'collapse require paths to save extra bytes'
   .boolean 'collapse-js'
-  .default 'collapse-js', true
+  .default 'collapse-js', false
 
   .describe 'extract-js-sourcemaps', 'extract source maps in debug mode'
   .boolean 'extract-js-sourcemaps'
