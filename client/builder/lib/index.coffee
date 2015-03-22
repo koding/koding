@@ -232,16 +232,6 @@ class Haydar extends events.EventEmitter
         global      : yes
         mangle      : yes
         'screw-ie8' : yes
-        #compress: { # todo: investigate these -og
-          #sequences    : yes
-          #dead_code    : yes
-          #conditionals : yes
-          #booleans     : yes
-          #unused       : yes
-          #if_return    : yes
-          #join_vars    : yes
-          #drop_console : no
-        #}
       } ]
 
     aceBasePath = "#{opts.baseurl}/#{THIRDPARTY_OUTDIR}/ace"
@@ -253,6 +243,15 @@ class Haydar extends events.EventEmitter
       extensions : [ '.coffee' ]
       transform  : transforms
       rewriteMap : rewriteMap
+      noParse    : [
+        'jquery',
+        'underscore',
+        'lodash',
+        'emojify',
+        'kd-shim-algoliasearch', 'algoliasearch',
+        'accounting',
+        'timeago'
+      ]
       globals    : xtend opts.defaults, {
         modules    : modules
         REMOTE_API : opts.schema
