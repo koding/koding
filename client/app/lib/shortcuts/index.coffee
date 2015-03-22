@@ -3,7 +3,6 @@ defaults       = require './config'
 events         = require 'events'
 _              = require 'underscore'
 kd             = require 'kd'
-os             = require 'os'
 globals        = require 'globals'
 ShortcutsModal = require './views/modal'
 
