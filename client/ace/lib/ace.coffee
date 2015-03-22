@@ -54,7 +54,7 @@ class Ace extends KDView
     bindKey : bindKey
 
 
-  constructor:(options, file)->
+  constructor: (options, file) ->
 
     super options, file
 
@@ -63,14 +63,18 @@ class Ace extends KDView
     @appStorage            = appStorageController.storage 'Ace', '1.0.1'
 
 
-  setDomElement:(cssClass)->
+  setDomElement: (cssClass) ->
+
     @domElement = $ "<figure class='kdview'><div id='editor#{@getId()}' class='code-wrapper'></div></figure>"
 
 
-  viewAppended:->
+  viewAppended: ->
+
     super
+
     @hide()
-    @appStorage.fetchStorage (storage)=>
+
+    @appStorage.fetchStorage (storage)=> # XXX: wtf? -og
 
     if ACE_READY
     then @scriptLoaded()
@@ -79,13 +83,19 @@ class Ace extends KDView
 
   scriptLoaded: ->
 
-    @fetchContents (err, contents)=>
+    @fetchContents (err, contents) =>
+
       notification?.destroy()
       element = @getElement().querySelector "#editor#{@getId()}"
+
       return  unless element
+
       @editor = ace.edit element
+
       element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
+
       @prepareEditor()
+
       if contents
         @setContents contents
         @lastSavedContents = contents
@@ -119,6 +129,7 @@ class Ace extends KDView
 
 
   setContent: (content, emitFileContentChangedEvent = yes) ->
+
     @suppressListeners = yes  unless emitFileContentChangedEvent
 
     @editor.setValue content, -1
@@ -126,13 +137,14 @@ class Ace extends KDView
     @suppressListeners = no   unless emitFileContentChangedEvent
 
 
-  prepareEditor:->
+  prepareEditor: ->
 
     @setTheme null, no
     @setSyntax()
     @setEditorListeners()
 
-    @appStorage.fetchStorage (storage)=>
+    @appStorage.fetchStorage (storage) =>
+
       @setTheme()
       @setUseSoftTabs         @appStorage.getValue('useSoftTabs')         ? yes    ,no
       @setShowGutter          @appStorage.getValue('showGutter')          ? yes    ,no
@@ -148,7 +160,8 @@ class Ace extends KDView
       @setEnableAutocomplete  @appStorage.getValue('enableAutocomplete')  ? yes    ,no
 
 
-  saveStarted:->
+  saveStarted: ->
+
     @lastContentsSentForSave = @getContents()
 
 
@@ -162,13 +175,13 @@ class Ace extends KDView
     @askedForSave = no
 
 
-  saveAsFinished:(newFile, oldFile)->
+  saveAsFinished: (newFile, oldFile) ->
 
     @emit 'FileContentRestored'
     @emit 'FileHasBeenSavedAs', @getData()
 
 
-  setEditorListeners:->
+  setEditorListeners: ->
 
     @editor.getSession().selection.on 'changeCursor', (cursor) =>
       return if @suppressListeners
@@ -220,10 +233,12 @@ class Ace extends KDView
 
   isContentChanged: -> @contentChanged
 
+
   isCurrentContentChanged:-> @getContents() isnt @lastSavedContents
 
 
   closeTab: ->
+
     aceView   = @getDelegate()
     {tabView} = aceView.getDelegate()
     tabView.removePane_ tabView.getActivePane()
@@ -233,8 +248,10 @@ class Ace extends KDView
   FS REQUESTS
   ###
 
-  requestSave:->
+  requestSave: ->
+
     contents = @getContents()
+
     unless contents is '' or @isContentChanged()
       if @getDelegate().parent.active
         @notify 'Nothing to save!'
@@ -245,10 +262,14 @@ class Ace extends KDView
 
 
   requestSaveAs: ->
+
     @emit 'ace.requests.saveAs', @getContents()
 
-  fetchContents:(callback)->
+
+  fetchContents: (callback) ->
+
     file = @getData()
+
     unless /localfile:/.test file.path
       file.fetchContents callback
     else
@@ -259,44 +280,46 @@ class Ace extends KDView
   GETTERS
   ###
 
-  getContents:-> @editor.getSession().getValue()
+  getContents: ->
+    @editor.getSession().getValue()
 
 
-  getTheme:-> @editor.getTheme().replace 'ace/theme/', ''
+  getTheme: ->
+    @editor.getTheme().replace 'ace/theme/', ''
 
 
-  getSyntax:-> @syntaxMode
+  getSyntax: -> @syntaxMode
 
 
-  getUseSoftTabs:->
+  getUseSoftTabs: ->
     @appStorage.getValue('useSoftTabs') ? @editor.getSession().getUseSoftTabs()
 
 
-  getShowGutter:->
+  getShowGutter: ->
     @appStorage.getValue('showGutter') ? @editor.renderer.getShowGutter()
 
 
-  getShowPrintMargin:->
+  getShowPrintMargin: ->
     @appStorage.getValue('showPrintMargin') ? @editor.getShowPrintMargin()
 
 
-  getHighlightActiveLine:->
+  getHighlightActiveLine: ->
     @appStorage.getValue('highlightActiveLine') ? @editor.getHighlightActiveLine()
 
 
-  getShowInvisibles:->
+  getShowInvisibles: ->
     @appStorage.getValue('showInvisibles') ? @editor.getShowInvisibles()
 
 
-  getFontSize:->
+  getFontSize: ->
     @appStorage.getValue('fontSize') ? parseInt @$("#editor#{@getId()}").css('font-size') ? 12, 10
 
 
-  getTabSize:->
+  getTabSize: ->
     @appStorage.getValue('tabSize') ? @editor.getSession().getTabSize()
 
 
-  getUseWordWrap:->
+  getUseWordWrap: ->
     @appStorage.getValue('useWordWrap') ? @editor.getSession().getUseWrapMode()
 
 
@@ -308,15 +331,16 @@ class Ace extends KDView
     @appStorage.getValue('scrollPastEnd') ? yes
 
 
-  getOpenRecentFiles:->
+  getOpenRecentFiles: ->
     @appStorage.getValue('openRecentFiles') ? yes
 
 
-  getEnableAutocomplete:->
+  getEnableAutocomplete: ->
     @appStorage.getValue('enableAutocomplete') ? yes
 
 
-  getSettings:->
+  getSettings: ->
+
     theme               : @getTheme()
     syntax              : @getSyntax()
     useSoftTabs         : @getUseSoftTabs()
@@ -337,10 +361,11 @@ class Ace extends KDView
   SETTERS
   ###
 
-  setContents:(contents)-> @editor.getSession().setValue contents
+  setContents: (contents) ->
+    @editor.getSession().setValue contents
 
 
-  setSyntax:(mode)->
+  setSyntax: (mode) ->
 
     file = @getData()
     mode or= file.syntax
@@ -358,35 +383,37 @@ class Ace extends KDView
     @syntaxMode = mode
 
 
-  setTheme:(themeName, save = yes)->
+  setTheme: (themeName, save = yes) ->
+
     themeName or= @appStorage.getValue('theme') or 'base16'
+
     @editor.setTheme "ace/theme/#{themeName}"
     return  unless save
     @appStorage.setValue 'theme', themeName, => # do what is necessary here if any - SY
 
 
-  setUseSoftTabs:(value, save = yes)->
+  setUseSoftTabs: (value, save = yes) ->
 
     @editor.getSession().setUseSoftTabs value
     return  unless save
     @appStorage.setValue 'useSoftTabs', value
 
 
-  setShowGutter:(value, save = yes)->
+  setShowGutter: (value, save = yes) ->
 
     @editor.renderer.setShowGutter value
     return  unless save
     @appStorage.setValue 'showGutter', value
 
 
-  setShowPrintMargin:(value, save = yes)->
+  setShowPrintMargin: (value, save = yes) ->
 
     @editor.setShowPrintMargin value
     return  unless save
     @appStorage.setValue 'showPrintMargin', value
 
 
-  setHighlightActiveLine:(value, save = yes)->
+  setHighlightActiveLine: (value, save = yes) ->
 
     @editor.setHighlightActiveLine value
     return  unless save
@@ -396,7 +423,7 @@ class Ace extends KDView
   # setHighlightSelectedWord:(value)-> @editor.setHighlightActiveLine value
 
 
-  setShowInvisibles:(value, save = yes)->
+  setShowInvisibles: (value, save = yes) ->
 
     @editor.setShowInvisibles value
     return  unless save
@@ -404,17 +431,20 @@ class Ace extends KDView
 
 
   setKeyboardHandler: (name = 'default') ->
+
     @appStorage.setValue 'keyboardHandler', name
     handler = if name isnt 'default' then "ace/keyboard/#{name}" else null
     @editor.setKeyboardHandler handler
 
 
   setScrollPastEnd: (value = yes) ->
+
     @editor.setOption 'scrollPastEnd', value
     @appStorage.setValue 'scrollPastEnd', value
 
 
-  setFontSize:(value, save = yes)->
+  setFontSize: (value, save = yes) ->
+
     return if value is globals.config.oldFontSize
 
     style           = global.document.createElement 'style'
@@ -431,28 +461,29 @@ class Ace extends KDView
     @appStorage.setValue 'fontSize', value
 
 
-  setTabSize:(value, save = yes)->
+  setTabSize: (value, save = yes) ->
 
     @editor.getSession().setTabSize +value
     return  unless save
     @appStorage.setValue 'tabSize', value
 
 
-  setUseWordWrap:(value, save = yes)->
+  setUseWordWrap: (value, save = yes) ->
 
     @editor.getSession().setUseWrapMode value
     return  unless save
     @appStorage.setValue 'useWordWrap', value
 
 
-  setReadOnly:(value)-> @editor.setReadOnly value
+  setReadOnly: (value) ->
+    @editor.setReadOnly value
 
 
-  setOpenRecentFiles:(value, save = yes)->
+  setOpenRecentFiles: (value, save = yes) ->
     @appStorage.setValue 'openRecentFiles', value
 
 
-  setEnableAutocomplete:(value, save = yes)->
+  setEnableAutocomplete: (value, save = yes) ->
 
     @editor.setOptions
       enableBasicAutocompletion: value
@@ -473,7 +504,8 @@ class Ace extends KDView
   ###
 
   notification = null
-  notify:(msg, style, details, duration)->
+
+  notify: (msg, style, details, duration) ->
 
     notification.destroy() if notification
 
@@ -513,6 +545,7 @@ class Ace extends KDView
 
 
   removeModifiedFromTab: ->
+
     aceView      = @parent
 
     unless aceView
@@ -535,7 +568,9 @@ class Ace extends KDView
 
 
   showGotoLine: ->
+
     unless @gotoLineModal
+
       @gotoLineModal = new KDModalViewWithForms
         cssClass                : 'goto'
         width                   : 180
@@ -565,5 +600,3 @@ class Ace extends KDView
         @focus()
 
       @gotoLineModal.modalTabs.forms.Go.focusFirstElement()
-
-
