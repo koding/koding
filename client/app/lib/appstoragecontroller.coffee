@@ -27,7 +27,7 @@ class AppStorageController extends kd.Controller
 
     opts.fetch = FETCH_IMMEDIATELY  unless opts.fetch is false
 
-    key = "#{name}-#{version}"
+    key = "#{opts.name}-#{opts.version}"
 
     storage = @appStorages[key] or= new AppStorage opts.name, opts.version
     storage.fetchStorage()  if opts.fetch?
