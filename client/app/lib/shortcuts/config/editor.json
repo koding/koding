@@ -15,7 +15,7 @@
     }
   },
   {
-    "name": "saveas",
+    "name": "saveAs",
     "description": "Save As...",
     "binding": [
       [
@@ -30,7 +30,7 @@
     }
   },
   {
-    "name": "gotoline",
+    "name": "gotoLine",
     "description": "Go to Line",
     "binding": [
       [
@@ -60,7 +60,7 @@
     }
   },
   {
-    "name": "findandreplace",
+    "name": "replace",
     "description": "Find and Replace",
     "binding": [
       [
