@@ -115,6 +115,20 @@ class ShortcutsController extends events.EventEmitter
     new ShortcutsModal {}, @shortcuts.config
 
 
+  get: ->
+    # proxy to shortcuts#get
+    # see: http://github.com/koding/shortcuts
+
+    @shortcuts.get.apply @shortcuts, Array::slice.call arguments
+
+
+  update: ->
+    # proxy to shortcuts#update
+    # see: http://github.com/koding/shortcuts
+
+    @shortcuts.update @shortcuts, Array::slice.call arguments
+
+
   getJSON: (name, filterFn) ->
     # convenience method that returns a collection's json repr.
     # this method omits all binding entries that is not compatible
