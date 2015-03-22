@@ -33,6 +33,8 @@ bootup = ->
   # it is very important that you invoke this method before anything else does, so f important.
 
   globals.os = os # linux, mac or windows
+  globals.keymapType = do ->
+    if globals.os is 'mac' then globals.os else 'win'
 
   if globals.config.environment in ['dev', 'sandbox']
     global._kd      = kd
