@@ -14,6 +14,7 @@ import (
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/multiec2"
 
+	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"golang.org/x/net/context"
@@ -84,7 +85,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, err
 	}
 
-	amazonClient, err := amazon.New(machine.Meta, client)
+	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
