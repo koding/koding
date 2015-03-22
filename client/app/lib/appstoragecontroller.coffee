@@ -1,20 +1,32 @@
-kd = require 'kd'
-KDController = kd.Controller
-AppStorage = require './appstorage'
+kd           = require 'kd'
+AppStorage   = require './appstorage'
 
+module.exports =
 
-module.exports = class AppStorageController extends KDController
+class AppStorageController extends kd.Controller
 
-  constructor:->
+  DEFAULT_VERSION = '1.0'
+
+  constructor: ->
+
     super
+
     @appStorages = {}
 
-  storage:(appName, version = "1.0")->
-    key = "#{appName}-#{version}"
-    @appStorages[key] or= new AppStorage appName, version
-    storage = @appStorages[key]
+
+  storage: (name, version) ->
+
+    if 'object' is typeof name then opts = name
+    else
+      opts =
+        name: name
+        version: version or DEFAULT_VERSION
+
+    throw 'storage name must be provided'  unless 'string' is typeof opts.name
+
+    key = "#{name}-#{version}"
+
+    storage = @appStorages[key] or= new AppStorage opts.name, opts.version
     storage.fetchStorage()
+
     return storage
-
-# Let people can use AppStorage
-
