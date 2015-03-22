@@ -5,8 +5,6 @@ module.exports =
 
 class AppStorageController extends kd.Controller
 
-  FETCH_IMMEDIATELY = yes
-
   constructor: ->
 
     super
@@ -24,11 +22,9 @@ class AppStorageController extends kd.Controller
 
     throw 'storage name must be provided'  unless 'string' is typeof opts.name
 
-    opts.fetch = FETCH_IMMEDIATELY  unless opts.fetch is false
-
     key = "#{opts.name}-#{opts.version}"
 
     storage = @appStorages[key] or= new AppStorage opts.name, opts.version
-    storage.fetchStorage()  if opts.fetch?
+    storage.fetchStorage()  unless opts.fetch is false
 
     return storage
