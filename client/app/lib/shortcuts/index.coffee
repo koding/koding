@@ -8,7 +8,6 @@ globals        = require 'globals'
 ShortcutsModal = require './views/modal'
 
 STORAGE_VERSION      = '1'
-STORAGE_BINDINGS_KEY = "bindings-#{os}"
 THROTTLE_WAIT        = 300
 
 module.exports =
@@ -69,7 +68,7 @@ class ShortcutsController extends events.EventEmitter
       acc[model.name] = klass.getPlatformBindings model
     , {}
 
-    @_store.setValue STORAGE_BINDINGS_KEY, data
+    @_store.setValue klass.getPlatformStorageKey(), data
 
   , THROTTLE_WAIT,
     leading  : no
@@ -79,7 +78,7 @@ class ShortcutsController extends events.EventEmitter
   _restore: ->
     throw 'not ready'  unless @_isStoreReady
 
-    bindings = @_store.getValue(STORAGE_BINDINGS_KEY) or {}
+    bindings = @_store.getValue(klass.getPlatformStorageKey()) or {}
 
 
   handleStoreReady: ->
@@ -119,3 +118,8 @@ class ShortcutsController extends events.EventEmitter
   @getPlatformBindings: (model) ->
 
     return model[klass.bindingsGetterMethodName()]()
+
+
+  @getPlatformStorageKey: _.memoize ->
+
+    return "bindings-#{globals.keymapType}"
