@@ -18,6 +18,7 @@ type Userdata struct {
 	Bucket     *Bucket
 }
 
+// CloudInitConfig is used as source for the cloudInit template.
 type CloudInitConfig struct {
 	Username        string
 	UserSSHKeys     []string

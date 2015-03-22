@@ -238,7 +238,7 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	if b.plan != Free {
 		b.log.Debug("Paying user detected, Creating an Public Elastic IP")
 
-		elasticIp, err := allocateAndAssociateIP(b.amazon.Client, instanceId)
+		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(instanceId)
 		if err != nil {
 			b.log.Warning("couldn't not create elastic IP: %s", err)
 		} else {

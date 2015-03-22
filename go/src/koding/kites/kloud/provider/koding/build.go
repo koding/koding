@@ -136,7 +136,7 @@ func (m *Machine) build(ctx context.Context) error {
 				"instanceId":  instanceId,
 				"imageId":     imageId,
 				"queryString": queryString,
-				"region":      b.amazon.Builder.Region,
+				"region":      m.Region,
 			},
 		})
 	} else {
@@ -144,9 +144,9 @@ func (m *Machine) build(ctx context.Context) error {
 			instanceId, queryString)
 	}
 
-	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
+	m.push("Checking build process", b.normalize(50), machinestate.Building)
 	m.Log.Debug("Checking build process of instanceId '%s'", instanceId)
-	buildArtifact, err := b.checkBuild(instanceId)
+	buildArtifact, err := m.checkBuild(instanceId)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
@@ -157,15 +157,15 @@ func (m *Machine) build(ctx context.Context) error {
 		// build instances, such as volume limites. Unfortunaly a
 		// "RunInstances" doesn't return an error because that particular limit
 		// is being displayed on the UI.
-		b.amazon.Builder.InstanceId = ""
-		b.machine.QueryString = ""
-		b.amazon.Builder.Region = "us-east-1"
+		m.Meta.InstanceId = ""
+		m.QueryString = ""
+		m.Meta.Region = "us-east-1"
 
 		client, err := b.provider.EC2Clients.Region("us-east-1")
 		if err != nil {
 			return nil, err
 		}
-		b.amazon.Client = client
+		m.Session.AWSClient = client
 
 		b.provider.Update(b.machine.Id, &kloud.StorageData{
 			Type: "building",
@@ -192,7 +192,7 @@ func (m *Machine) build(ctx context.Context) error {
 
 	// allocate and associate a new Public IP for paying users, we can do
 	// this after we create the instance
-	if b.plan != Free {
+	if m.Payment.Plan != Free {
 		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
 		elasticIp, err := allocateAndAssociateIP(b.amazon.Client, instanceId)
@@ -208,14 +208,14 @@ func (m *Machine) build(ctx context.Context) error {
 
 	m.Log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
-	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
+	m.push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
 	m.Log.Debug("Adding and setting up domain and tags")
-	b.addDomainAndTags(buildArtifact)
+	m.addDomainAndTags(buildArtifact)
 
-	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
+	m.push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
 		b.normalize(90), machinestate.Building)
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", buildArtifact.IpAddress)
-	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
+	if err := m.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
 	}
 
@@ -545,14 +545,14 @@ func (m *Machine) addDomainAndTags(buildArtifact *protocol.Artifact) {
 		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
-	b.amazon.Push("Updating/Creating domain", b.normalize(70), machinestate.Building)
+	m.push("Updating/Creating domain", b.normalize(70), machinestate.Building)
 	m.Log.Debug("Updating/Creating domain %s", buildArtifact.IpAddress)
 
 	if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
 		m.Log.Error("updating domains for setting err: %s", err.Error())
 	}
 
-	b.amazon.Push("Updating domain aliases", b.normalize(72), machinestate.Building)
+	m.push("Updating domain aliases", b.normalize(72), machinestate.Building)
 	domains, err := b.provider.DomainStorage.GetByMachine(b.machine.Id)
 	if err != nil {
 		m.Log.Error("fetching domains for setting err: %s", err.Error())

@@ -31,6 +31,9 @@ type Provider struct {
 	DNS        *dnsclient.DNS
 	EC2Clients *multiec2.Clients
 	Userdata   *userdata.Userdata
+
+	// PaymentEndpoint is being used to fetch user plans
+	PaymentEndpoint string
 }
 
 type Credential struct {
@@ -92,6 +95,15 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
 
+	payment, err := p.FetchPlan(user.Name)
+	if err != nil {
+		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
+			m.Username, err)
+
+		payment = &PaymentResponse{Plan: Free}
+	}
+
+	machine.Payment = payment
 	machine.Username = user.Name
 	machine.User = user
 	machine.Session = &session.Session{

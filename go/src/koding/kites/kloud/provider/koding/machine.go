@@ -45,8 +45,10 @@ type Machine struct {
 	// internal fields, not availabile in MongoDB schema
 	Username string           `bson:"-"`
 	User     *models.User     `bson:"-"`
-	Session  *session.Session `bson:"-"`
-	Log      logging.Logger   `bson:"-"`
+	Payment  *PaymentResponse `bson:"-"`
+
+	Session *session.Session `bson:"-"`
+	Log     logging.Logger   `bson:"-"`
 }
 
 func (m *Machine) State() machinestate.State {
