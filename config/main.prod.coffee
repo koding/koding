@@ -80,6 +80,7 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    geoipdbpath             : "#{projectRoot}/go/geoipdb"
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
