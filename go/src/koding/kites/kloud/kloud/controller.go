@@ -291,14 +291,10 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	// side. However we do return an event id which is an unique for tracking
 	// the current status of the running method.
 	go func() {
-		k.idlock.Get(args.MachineId).Lock()
-
 		err := fn(ctx, machine)
 		if err != nil {
 			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
 		}
-
-		k.idlock.Get(args.MachineId).Unlock()
 
 		// unlock distributed lock
 		k.Locker.Unlock(args.MachineId)

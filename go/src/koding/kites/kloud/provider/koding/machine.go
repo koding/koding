@@ -45,7 +45,7 @@ type Machine struct {
 	// internal fields, not availabile in MongoDB schema
 	Username string       `bson:"-"`
 	User     *models.User `bson:"-"`
-	Context  *session.Session
+	Session  *session.Session
 	Log      logging.Logger `bson:"-"`
 }
 

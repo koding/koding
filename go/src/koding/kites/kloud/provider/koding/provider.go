@@ -67,7 +67,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	machine.Log = p.Log.New(id)
 	machine.Username = user.Name
 	machine.User = user
-	machine.Context = &session.Session{
+	machine.Session = &session.Session{
 		DB:   p.DB,
 		Kite: p.Kite,
 		DNS:  p.DNS,
