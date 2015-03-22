@@ -154,25 +154,37 @@ class Ace extends KDView
         @editor.completer and @editor.completer.autoInsert = off
         @editor.execCommand 'startAutocomplete'
 
-    {enableShortcuts, createFindAndReplaceView} = @getOptions()
+    {enableShortcuts} = @getOptions()
 
     if enableShortcuts
-      @addKeyCombo 'save',       'Ctrl-S',           @bound 'requestSave'
-      @addKeyCombo 'saveAs',     'Ctrl-Shift-S',     @bound 'requestSaveAs'
-      @addKeyCombo 'fullscreen', 'Ctrl-Enter', =>    @getDelegate().toggleFullscreen()
-      @addKeyCombo 'gotoLine',   'Ctrl-G',           @bound 'showGotoLine'
-      @addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
 
-      if createFindAndReplaceView
-        @addKeyCombo 'find',    'Ctrl-F', =>        @showFindReplaceView no
-        @addKeyCombo 'replace', 'Ctrl-Shift-F', =>  @showFindReplaceView yes
-      else
-        @addKeyCombo 'find',    'Ctrl-F', =>        @emit 'FindAndReplaceViewRequested', no
-        @addKeyCombo 'replace', 'Ctrl-Shift-F', =>  @emit 'FindAndReplaceViewRequested', yes
+      { shortcuts }                = kd.singletons
+      { createFindAndReplaceView } = @getOptions()
 
-      # these features are broken with IDE, should reimplement again
-      # @addKeyCombo "preview",    "Ctrl-Shift-P", =>  @getDelegate().preview()
-      # @addKeyCombo "closeTab",   "Ctrl-W", "Ctrl-W", @bound "closeTab"
+      shortcuts
+        .getJSON 'editor', (model) -> model.options?.overrides_ace
+        .forEach (model) =>
+          key = model.name
+
+          cb  =
+          switch key
+
+            when 'save'     then @requestSave
+            when 'saveAs'   then @requestSaveAs
+            when 'gotoLine' then @showGoToLine
+            else
+              if match = /^find$|^replace$/.exec key
+                replace = match.input is 'replace'
+                if createFindAndReplaceView
+                  @showFindReplaceView.bind this, replace
+                else
+                  @emit.bind this, 'FindAndReplaceViewRequested', replace
+
+          return  unless cb
+          
+          @addCommand toCommand model, cb
+
+      #@addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
 
 
   showFindReplaceView: (openReplaceView) ->
@@ -543,3 +555,4 @@ class Ace extends KDView
         @focus()
 
       @gotoLineModal.modalTabs.forms.Go.focusFirstElement()
+
