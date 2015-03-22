@@ -66,6 +66,8 @@ type (
 		CustomDomain CustomDomain
 
 		GoogleapiServiceAccount GoogleapiServiceAccount
+
+		Geoipdbpath string
 	}
 
 	// Postgres holds Postgresql database related configuration
