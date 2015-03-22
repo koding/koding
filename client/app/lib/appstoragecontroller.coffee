@@ -5,7 +5,6 @@ module.exports =
 
 class AppStorageController extends kd.Controller
 
-  DEFAULT_VERSION   = '1.0'
   FETCH_IMMEDIATELY = yes
 
   constructor: ->
@@ -21,7 +20,7 @@ class AppStorageController extends kd.Controller
     else
       opts =
         name    : name
-        version : version or DEFAULT_VERSION
+        version : version or AppStorage.DEFAULT_VERSION
 
     throw 'storage name must be provided'  unless 'string' is typeof opts.name
 
