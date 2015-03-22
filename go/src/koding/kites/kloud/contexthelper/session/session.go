@@ -5,6 +5,7 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -20,6 +21,7 @@ type Session struct {
 	DNS       *dnsclient.DNS
 	Eventer   eventer.Eventer
 	AWSClient *amazon.Amazon
+	Userdata  *userdata.Userdata
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {

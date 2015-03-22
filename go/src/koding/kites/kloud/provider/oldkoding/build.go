@@ -11,10 +11,10 @@ import (
 
 	"code.google.com/p/go.crypto/ssh"
 
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/amazon"
 	"koding/kites/kloud/waitstate"
 
 	"github.com/dgrijalva/jwt-go"
@@ -61,7 +61,7 @@ type ImageData struct {
 }
 
 type Build struct {
-	amazon        *amazon.AmazonClient
+	amazon        *amazon.Amazon
 	machine       *protocol.Machine
 	provider      *Provider
 	start, finish int

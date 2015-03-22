@@ -13,6 +13,7 @@ import (
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/userdata"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -29,6 +30,7 @@ type Provider struct {
 	Kite       *kite.Kite
 	DNS        *dnsclient.DNS
 	EC2Clients *multiec2.Clients
+	Userdata   *userdata.Userdata
 }
 
 type Credential struct {
@@ -96,6 +98,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		DB:        p.DB,
 		Kite:      p.Kite,
 		DNS:       p.DNS,
+		Userdata:  p.Userdata,
 		Eventer:   ev,
 		AWSClient: amazonClient,
 	}

@@ -43,10 +43,10 @@ type Machine struct {
 	Groups []models.Permissions `bson:"groups"`
 
 	// internal fields, not availabile in MongoDB schema
-	Username string       `bson:"-"`
-	User     *models.User `bson:"-"`
-	Session  *session.Session
-	Log      logging.Logger `bson:"-"`
+	Username string           `bson:"-"`
+	User     *models.User     `bson:"-"`
+	Session  *session.Session `bson:"-"`
+	Log      logging.Logger   `bson:"-"`
 }
 
 func (m *Machine) State() machinestate.State {

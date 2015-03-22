@@ -8,7 +8,6 @@ import (
 
 	"koding/db/mongodb"
 
-	amazonClient "koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
@@ -16,7 +15,6 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/amazon"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -82,28 +80,28 @@ type Provider struct {
 	NetworkUsageEndpoint string
 }
 
-func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
-	userLog := p.Log.New(m.Id)
-	a := &amazon.AmazonClient{
-		Log: userLog,
-		Push: func(msg string, percentage int, state machinestate.State) {
-			userLog.Debug("%s (username: %s)", msg, m.Username)
+func (p *Provider) NewClient(m *protocol.Machine) (*amazon.Amazon, error) {
+	// userLog := p.Log.New(m.Id)
+	// a := &amazon.AmazonClient{
+	// 	Log: userLog,
+	// 	Push: func(msg string, percentage int, state machinestate.State) {
+	// 		userLog.Debug("%s (username: %s)", msg, m.Username)
+	//
+	// 		m.Eventer.Push(&eventer.Event{
+	// 			Message:    msg,
+	// 			Status:     state,
+	// 			Percentage: percentage,
+	// 		})
+	// 	},
+	// 	// Metrics: p.Stats,
+	// }
 
-			m.Eventer.Push(&eventer.Event{
-				Message:    msg,
-				Status:     state,
-				Percentage: percentage,
-			})
-		},
-		Metrics: p.Stats,
-	}
-
-	var err error
+	// var err error
 
 	// we pass a nil client just to fill the Builder data. The reason for that
 	// is to retrieve the `region` of a user so we can create a client based on
 	// the region below.
-	a.Amazon, err = amazonClient.New(m.Builder, nil)
+	a, err := amazon.New(m.Builder, nil)
 	if err != nil {
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}

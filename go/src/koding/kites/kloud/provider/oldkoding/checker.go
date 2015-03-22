@@ -10,11 +10,10 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb"
-	aws "koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/amazon"
 
 	"github.com/koding/kite"
 	"github.com/koding/logging"
@@ -63,7 +62,7 @@ type Checker interface {
 }
 
 type PlanChecker struct {
-	Api      *amazon.AmazonClient
+	Api      *amazon.Amazon
 	DB       *mongodb.MongoDB
 	Machine  *protocol.Machine
 	Provider *Provider
@@ -262,7 +261,7 @@ func (p *PlanChecker) Total() error {
 	instances, err := p.userInstances()
 
 	// no match, allow to create instance
-	if err == aws.ErrNoInstances {
+	if err == amazon.ErrNoInstances {
 		p.Log.Debug("allowing user '%s'. current machine count: %d (plan limit: %d, plan: %s)",
 			p.Username, len(instances), allowedMachines, p.Plan)
 		return nil
