@@ -60,6 +60,13 @@ func main() {
 	modelhelper.Initialize(r.Conf.Mongo)
 	defer modelhelper.Close()
 
+	mmdb, err := helper.ReadGeoIPDB(r.Conf)
+	if err != nil {
+		r.Log.Critical("ip persisting wont work err: %s", err.Error())
+	} else {
+		defer mmdb.Close()
+	}
+
 	// set default values for dev env
 	if r.Conf.Environment == "dev" {
 		go setDefaults(r.Log)
