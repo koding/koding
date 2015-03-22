@@ -10,23 +10,18 @@ import (
 	_ "net/http/pprof"
 	"net/url"
 	"os"
-	"time"
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/keys"
 	"koding/kites/kloud/multiec2"
-	"koding/kites/kloud/provider/oldkoding"
+	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/userdata"
 
-	"koding/kites/kloud/klient"
+	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
-	kloudprotocol "koding/kites/kloud/protocol"
-
-	"github.com/koding/metrics"
-	"golang.org/x/net/context"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
@@ -146,17 +141,17 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	if conf.AMITag != "" {
-		k.Log.Warning("Default AMI Tag changed from %s to %s", oldkoding.DefaultCustomAMITag, conf.AMITag)
-		oldkoding.DefaultCustomAMITag = conf.AMITag
+		k.Log.Warning("Default AMI Tag changed from %s to %s", koding.DefaultCustomAMITag, conf.AMITag)
+		koding.DefaultCustomAMITag = conf.AMITag
 	}
 
 	klientFolder := "development/latest"
-	checkInterval := time.Second * 5
-	if conf.ProdMode {
-		k.Log.Info("Prod mode enabled")
-		klientFolder = "production/latest"
-		checkInterval = time.Millisecond * 500
-	}
+	// checkInterval := time.Second * 5
+	// if conf.ProdMode {
+	// 	k.Log.Info("Prod mode enabled")
+	// 	klientFolder = "production/latest"
+	// 	checkInterval = time.Millisecond * 500
+	// }
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
 
 	modelhelper.Initialize(conf.MongoURL)
@@ -170,71 +165,57 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "iSNZFtHwNFT8OpZ8Gsmj/Bp0tU1vqNw6DfgvIUsn",
 	}
 
-	stats, err := metrics.NewDogStatsD("kloud.aws")
-	if err != nil {
-		panic(err)
-	}
+	// stats, err := metrics.NewDogStatsD("kloud.aws")
+	// if err != nil {
+	// 	panic(err)
+	// }
 
 	dnsInstance := dnsclient.New(conf.HostedZone, auth)
-	domainStorage := oldkoding.NewDomainStorage(db)
 
-	kodingProvider := &oldkoding.Provider{
-		Kite:          k,
-		Log:           newLogger("kloud", conf.DebugMode),
-		Session:       db,
-		DomainStorage: domainStorage,
+	kodingProvider := &koding.Provider{
+		DB:   db,
+		Log:  newLogger("kloud", conf.DebugMode),
+		DNS:  dnsInstance,
+		Kite: k,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:               dnsInstance,
-		Bucket:            oldkoding.NewBucket("koding-klient", klientFolder, auth),
-		Test:              conf.TestMode,
-		KontrolURL:        getKontrolURL(conf.KontrolURL),
-		KontrolPrivateKey: kontrolPrivateKey,
-		KontrolPublicKey:  kontrolPublicKey,
-		KeyName:           keys.DeployKeyName,
-		PublicKey:         keys.DeployPublicKey,
-		PrivateKey:        keys.DeployPrivateKey,
-		KlientPool:        klient.NewPool(k),
-		InactiveMachines:  make(map[string]*time.Timer),
-		Stats:             stats,
-		Fetcher: &oldkoding.PaymentFetcher{
-			DB:              db,
-			Log:             newLogger("kloud", conf.DebugMode),
-			PaymentEndpoint: conf.PlanEndpoint,
-		},
+		// KlientPool:           klient.NewPool(k),
+		// InactiveMachines:     make(map[string]*time.Timer),
+		// Stats:                stats,
+		PaymentEndpoint:      conf.PlanEndpoint,
 		NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
+		Userdata: &userdata.Userdata{
+			Keycreator: &keycreator.Key{
+				KontrolURL:        getKontrolURL(conf.KontrolURL),
+				KontrolPrivateKey: kontrolPrivateKey,
+				KontrolPublicKey:  kontrolPublicKey,
+			},
+			Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
+		},
 	}
 
 	// be sure it satisfies the provider interface
-	var _ kloudprotocol.Provider = kodingProvider
-
-	go kodingProvider.RunChecker(checkInterval)
-	go kodingProvider.RunCleaners(time.Minute * 60)
+	// var _ kloudprotocol.Provider = kodingProvider
+	//
+	// go kodingProvider.RunChecker(checkInterval)
+	// go kodingProvider.RunCleaners(time.Minute * 60)
 
 	kld := kloud.New()
 
-	kld.Storage = kodingProvider
-	kld.DomainStorage = domainStorage
-	kld.Domainer = dnsInstance
+	kld.PublicKeys = publickeys.NewKeys()
+	// kld.Storage = kodingProvider
+	// kld.DomainStorage = domainStorage
+	// kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
 
-	err = kld.AddProvider("koding", kodingProvider)
+	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
-	}
-
-	s := &session.Session{
-		DB:   db,
-		Kite: k,
-		DNS:  dnsInstance,
-	}
-	kld.ContextCreator = func(ctx context.Context) context.Context {
-		return session.NewContext(ctx, s)
 	}
 
 	// Machine handling methods

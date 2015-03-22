@@ -110,7 +110,7 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		Provider: p,
 		DB:       p.Session,
 		Kite:     p.Kite,
-		Log:      a.Log,
+		Log:      p.Log,
 		Username: m.Username,
 		Machine:  m,
 		Plan:     fetcherResp,
@@ -124,7 +124,7 @@ func (p *Provider) Build(snapshotId string, m *protocol.Machine) (*protocol.Arti
 		checker:    checker,
 		start:      10,
 		finish:     90,
-		log:        a.Log,
+		log:        p.Log,
 		snapshotId: snapshotId,
 		cleanFuncs: make([]func(), 0),
 	}
@@ -149,7 +149,6 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	// if there is already a machine just check it again
 	if instanceId == "" {
-		b.amazon.Push("Generating and fetching build data", b.normalize(10), machinestate.Building)
 		b.log.Debug("Generating and fetching build data")
 		buildData, err := b.buildData()
 		if err != nil {
@@ -159,13 +158,11 @@ func (b *Build) run() (*protocol.Artifact, error) {
 		imageId = buildData.ImageData.imageId
 		queryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
 
-		b.amazon.Push("Checking limits and quota", b.normalize(20), machinestate.Building)
 		b.log.Debug("Checking user limitation and machine quotas")
 		if err := b.checkLimits(buildData); err != nil {
 			return nil, err
 		}
 
-		b.amazon.Push("Initiating build process", b.normalize(40), machinestate.Building)
 		b.log.Debug("Initiating creating process of instance")
 		instanceId, err = b.create(buildData)
 		if err != nil {
@@ -187,7 +184,6 @@ func (b *Build) run() (*protocol.Artifact, error) {
 			instanceId, queryString)
 	}
 
-	b.amazon.Push("Checking build process", b.normalize(50), machinestate.Building)
 	b.log.Debug("Checking build process of instanceId '%s'", instanceId)
 	buildArtifact, err := b.checkBuild(instanceId)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
@@ -238,12 +234,12 @@ func (b *Build) run() (*protocol.Artifact, error) {
 	if b.plan != Free {
 		b.log.Debug("Paying user detected, Creating an Public Elastic IP")
 
-		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(instanceId)
-		if err != nil {
-			b.log.Warning("couldn't not create elastic IP: %s", err)
-		} else {
-			buildArtifact.IpAddress = elasticIp
-		}
+		// elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(instanceId)
+		// if err != nil {
+		// 	b.log.Warning("couldn't not create elastic IP: %s", err)
+		// } else {
+		// 	buildArtifact.IpAddress = elasticIp
+		// }
 	}
 
 	buildArtifact.KiteQuery = queryString
@@ -251,12 +247,9 @@ func (b *Build) run() (*protocol.Artifact, error) {
 
 	b.log.Debug("Buildartifact is ready: %#v", buildArtifact)
 
-	b.amazon.Push("Adding and setting up domains and tags", b.normalize(70), machinestate.Building)
 	b.log.Debug("Adding and setting up domain and tags")
 	b.addDomainAndTags(buildArtifact)
 
-	b.amazon.Push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress),
-		b.normalize(90), machinestate.Building)
 	b.log.Debug("All finished, testing for klient connection IP [%s]", buildArtifact.IpAddress)
 	if err := b.checkKite(buildArtifact.KiteQuery); err != nil {
 		return nil, err
@@ -638,14 +631,12 @@ func (b *Build) addDomainAndTags(buildArtifact *protocol.Artifact) {
 		b.log.Debug("Instance name is an artifact (terminated), changing to %s", instanceName)
 	}
 
-	b.amazon.Push("Updating/Creating domain", b.normalize(70), machinestate.Building)
 	b.log.Debug("Updating/Creating domain %s", buildArtifact.IpAddress)
 
 	if err := b.provider.UpdateDomain(buildArtifact.IpAddress, b.machine.Domain.Name, b.machine.Username); err != nil {
 		b.log.Error("updating domains for setting err: %s", err.Error())
 	}
 
-	b.amazon.Push("Updating domain aliases", b.normalize(72), machinestate.Building)
 	domains, err := b.provider.DomainStorage.GetByMachine(b.machine.Id)
 	if err != nil {
 		b.log.Error("fetching domains for setting err: %s", err.Error())

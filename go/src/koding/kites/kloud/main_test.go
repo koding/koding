@@ -57,16 +57,16 @@ import (
 
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/keys"
+	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/multiec2"
-	kloudprotocol "koding/kites/kloud/protocol"
 	"koding/kites/kloud/provider/koding"
-	"koding/kites/kloud/provider/oldkoding"
 	"koding/kites/kloud/sshutil"
+	"koding/kites/kloud/userdata"
 
 	"github.com/mitchellh/goamz/aws"
 )
@@ -454,22 +454,21 @@ func createUser(username string) (*singleUser, error) {
 	}
 
 	machineId := bson.NewObjectId()
-	machine := &oldkoding.MachineDocument{
+	machine := &koding.Machine{
 		Id:         machineId,
 		Label:      "",
 		Domain:     username + ".dev.koding.io",
 		Credential: username,
 		Provider:   "koding",
 		CreatedAt:  time.Now().UTC(),
-		Meta: bson.M{
-			"region":        "eu-west-1",
-			"instance_type": "t2.micro",
-			"storage_size":  3,
-			"alwaysOn":      false,
-		},
-		Users:  users,
-		Groups: make([]models.Permissions, 0),
+		Users:      users,
+		Groups:     make([]models.Permissions, 0),
 	}
+
+	machine.Meta.Region = "eu-west-1"
+	machine.Meta.InstanceType = "t2.micro"
+	machine.Meta.StorageSize = 3
+	machine.Meta.AlwaysOn = false
 	machine.Assignee.InProgress = false
 	machine.Assignee.AssignedAt = time.Now().UTC()
 	machine.Status.State = machinestate.NotInitialized.String()
@@ -783,69 +782,29 @@ func kodingProvider() *koding.Provider {
 		Log:  newLogger("koding", true),
 		DNS:  dnsclient.New("dev.koding.io", auth),
 		Kite: kloudKite,
-	}
-}
-
-func newKodingProvider() *oldkoding.Provider {
-	auth := aws.Auth{
-		AccessKey: "AKIAJFKDHRJ7Q5G4MOUQ",
-		SecretKey: "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",
-	}
-
-	mongoURL := os.Getenv("KLOUD_MONGODB_URL")
-	if mongoURL == "" {
-		panic("KLOUD_MONGODB_URL is not set")
-	}
-
-	modelhelper.Initialize(mongoURL)
-	db := modelhelper.Mongo
-	domainStorage := oldkoding.NewDomainStorage(db)
-
-	return &oldkoding.Provider{
-		Session:           db,
-		Kite:              kloudKite,
-		Log:               newLogger("koding", true),
-		KontrolURL:        conf.KontrolURL,
-		KontrolPrivateKey: testkeys.Private,
-		KontrolPublicKey:  testkeys.Public,
-		Test:              true,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:           dnsclient.New("dev.koding.io", auth),
-		DomainStorage: domainStorage,
-		Bucket:        oldkoding.NewBucket("koding-klient", "development/latest", auth),
-		KeyName:       keys.DeployKeyName,
-		PublicKey:     keys.DeployPublicKey,
-		PrivateKey:    keys.DeployPrivateKey,
-		Fetcher:       NewTestFetcher(oldkoding.Koding),
+		Userdata: &userdata.Userdata{
+			Keycreator: &keycreator.Key{
+				KontrolURL:        conf.KontrolURL,
+				KontrolPrivateKey: testkeys.Private,
+				KontrolPublicKey:  testkeys.Public,
+			},
+			Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
+		},
 	}
 }
 
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	kld := kloud.New()
+	kld.PublicKeys = publickeys.NewKeys()
 	kld.Log = newLogger("kloud", true)
 	kld.Locker = p
-	// kld.Storage = p
-	// kld.DomainStorage = p.DomainStorage
-	// kld.Domainer = p.DNS
-	// kld.Debug = true
 	kld.AddProvider("koding", p)
-	return kld
-}
-
-func newKloud(p *oldkoding.Provider) *kloud.Kloud {
-	kld := kloud.New()
-	kld.Log = newLogger("kloud", true)
-	kld.Locker = p
-	kld.Storage = p
-	kld.DomainStorage = p.DomainStorage
-	kld.Domainer = p.DNS
-	kld.Debug = true
-	kld.AddProvider("oldkoding", p)
 	return kld
 }
 
@@ -947,19 +906,19 @@ func newKloud(p *oldkoding.Provider) *kloud.Kloud {
 // }
 
 // TestFetcher satisfies the fetcher interface
-type TestFetcher struct {
-	Plan oldkoding.Plan
-}
-
-func NewTestFetcher(plan oldkoding.Plan) *TestFetcher {
-	return &TestFetcher{
-		Plan: plan,
-	}
-}
-
-func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*oldkoding.FetcherResponse, error) {
-	return &oldkoding.FetcherResponse{
-		Plan:  t.Plan,
-		State: "active",
-	}, nil
-}
+// type TestFetcher struct {
+// 	Plan oldkoding.Plan
+// }
+//
+// func NewTestFetcher(plan oldkoding.Plan) *TestFetcher {
+// 	return &TestFetcher{
+// 		Plan: plan,
+// 	}
+// }
+//
+// func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*oldkoding.FetcherResponse, error) {
+// 	return &oldkoding.FetcherResponse{
+// 		Plan:  t.Plan,
+// 		State: "active",
+// 	}, nil
+// }
