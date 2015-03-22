@@ -194,9 +194,9 @@ class Ace extends KDView
           cb  =
           switch key
 
-            when 'save'     then @requestSave
-            when 'saveAs'   then @requestSaveAs
-            when 'gotoLine' then @showGoToLine
+            when 'save'     then @requestSave.bind this
+            when 'saveAs'   then @requestSaveAs.bind this
+            when 'gotoLine' then @showGotoLine.bind this
             else
               if match = /^find$|^replace$/.exec key
                 replace = match.input is 'replace'
