@@ -17,6 +17,7 @@ module.exports =
 class Ace extends KDView
 
   ACE_READY = no
+
   @registerStaticEmitter()
 
   getscript globals.acePath, (err) =>
@@ -27,6 +28,30 @@ class Ace extends KDView
 
     ACE_READY = yes
     Ace.emit 'ScriptLoaded'
+
+
+  toCommand = (obj, exec) ->
+
+    # given a keyconfig model json and a callback, converts it to
+    # conform to the ace command spec.
+    #
+    # main difference between keyconfig models and ace commands is, keyconfig
+    # accepts multiple bindings while ace doesn't.
+    #
+    # see: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
+
+    { shortcuts } = kd.singletons
+
+    bindKey = {}
+    bindKey[globals.keymapType] = obj.binding[0]
+      .split '+'
+      .map (frag) ->
+        return "#{frag.charAt(0).toUpperCase()}#{frag.slice(1)}"
+      .join '-'
+
+    name    : obj.name
+    exec    : exec
+    bindKey : bindKey
 
 
   constructor:(options, file)->
@@ -182,7 +207,7 @@ class Ace extends KDView
 
           return  unless cb
           
-          @addCommand toCommand model, cb
+          @editor.commands.addCommand toCommand(model, cb)
 
       #@addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
 
@@ -555,4 +580,5 @@ class Ace extends KDView
         @focus()
 
       @gotoLineModal.modalTabs.forms.Go.focusFirstElement()
+
 
