@@ -63,10 +63,10 @@ type networkUsageResponse struct {
 }
 
 func (m *Machine) NetworkUsage() error {
-	networkEndpoint, err := url.Parse(p.Provider.NetworkUsageEndpoint)
+	networkEndpoint, err := url.Parse(m.networkUsageEndpoint)
 	if err != nil {
 		m.Log.Debug("Failed to parse network-usage endpoint: %v. err: %v",
-			p.Provider.NetworkUsageEndpoint, err)
+			m.networkUsageEndpoint, err)
 		return err
 	}
 

@@ -155,10 +155,14 @@ func (m *Machine) build(ctx context.Context) error {
 			return err
 		}
 
-		if b.retryCount == 3 {
+		// check if we tried before, if not try again. Also do not panic for first time.
+		retryCount, _ := ctx.Value("retryKey").(int)
+		if retryCount == 3 {
 			return errors.New("I've tried to build three times in row without any success")
 		}
-		b.retryCount++
+		retryCount++
+
+		ctx = context.WithValue(ctx, "retryKey", retryCount) // increase
 
 		// call it again recursively
 		return m.build(ctx)
@@ -254,7 +258,7 @@ func (m *Machine) imageData() (*ImageData, error) {
 
 		// if we build the instance from a snapshot, it'll create a temporary
 		// AMI. Destroy it after we are finished or if something goes wrong.
-		b.cleanFuncs = append(b.cleanFuncs, func() {
+		m.cleanFuncs = append(m.cleanFuncs, func() {
 			m.Log.Debug("Deleting temporary AMI '%s'", registerResp.ImageId)
 			if _, err := m.Session.AWSClient.Client.DeregisterImage(registerResp.ImageId); err != nil {
 				m.Log.Warning("Couldn't delete AMI '%s': %s", registerResp.ImageId, err)

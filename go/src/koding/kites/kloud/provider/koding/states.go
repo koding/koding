@@ -78,6 +78,8 @@ func (m *Machine) runMethod(ctx context.Context, fn methodFunc) (err error) {
 			eventErr = err.Error()
 		}
 
+		go m.Cleanup() // call cleanup functions
+
 		m.Session.Eventer.Push(&eventer.Event{
 			Message:    msg,
 			Status:     status,

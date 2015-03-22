@@ -33,9 +33,7 @@ type Provider struct {
 	Userdata   *userdata.Userdata
 
 	// PaymentEndpoint is being used to fetch user plans
-	PaymentEndpoint string
-
-	// NetworkUsageEndpoint is used to fetch a machines network usage
+	PaymentEndpoint      string
 	NetworkUsageEndpoint string
 }
 
@@ -105,6 +103,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		payment = &PaymentResponse{Plan: Free}
 	}
 
+	machine.networkUsageEndpoint = p.NetworkUsageEndpoint
 	machine.Payment = payment
 	machine.Username = user.Name
 	machine.User = user
@@ -117,6 +116,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		AWSClient:  amazonClient,
 		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
 	}
+	machine.cleanFuncs = make([]func(), 0)
 
 	// check for validation and permission
 	if err := p.validate(machine, req); err != nil {

@@ -4,11 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
 	"koding/kites/kloud/protocol"
 	"time"
-
-	"github.com/koding/logging"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -28,19 +25,7 @@ type DomainDocument struct {
 	ModifiedAt time.Time     `bson:"modifiedAt"`
 }
 
-type Domains struct {
-	DB  *mongodb.MongoDB
-	Log logging.Logger
-}
-
-func NewDomainStorage(db *mongodb.MongoDB) *Domains {
-	return &Domains{
-		DB:  db,
-		Log: logging.NewLogger("kloud-domain"),
-	}
-}
-
-func (m *Machine) Add(domain *protocol.Domain) error {
+func (m *Machine) AddDomain(domain *protocol.Domain) error {
 	var account *models.Account
 	if err := m.Session.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": domain.Username}).One(&account)
@@ -71,7 +56,7 @@ func (m *Machine) Add(domain *protocol.Domain) error {
 	return nil
 }
 
-func (m *Machine) Delete(name string) error {
+func (m *Machine) DeleteDomain(name string) error {
 	err := m.Session.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"domain": name})
 	})
@@ -84,7 +69,7 @@ func (m *Machine) Delete(name string) error {
 	return nil
 }
 
-func (m *Machine) GetDomain(name string) (*protocol.Domain, error) {
+func (m *Machine) DomainByName(name string) (*protocol.Domain, error) {
 	doc := &DomainDocument{}
 	err := m.Session.DB.Run(domainCollection, func(c *mgo.Collection) error {
 		return c.Find(bson.M{"domain": name}).One(&doc)

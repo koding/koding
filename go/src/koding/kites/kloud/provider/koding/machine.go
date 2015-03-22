@@ -44,12 +44,30 @@ type Machine struct {
 	Groups []models.Permissions `bson:"groups"`
 
 	// internal fields, not availabile in MongoDB schema
-	Username string           `bson:"-"`
-	User     *models.User     `bson:"-"`
-	Payment  *PaymentResponse `bson:"-"`
+	Username             string           `bson:"-"`
+	User                 *models.User     `bson:"-"`
+	Payment              *PaymentResponse `bson:"-"`
+	Session              *session.Session `bson:"-"`
+	Log                  logging.Logger   `bson:"-"`
+	networkUsageEndpoint string           `bson:"-"`
 
-	Session *session.Session `bson:"-"`
-	Log     logging.Logger   `bson:"-"`
+	// cleanFuncs are a list of functions that are called when after a method
+	// is finished
+	cleanFuncs []func()
+}
+
+// Cleanup calls all cleanup functions and set the list to nil. Once called any
+// other call will not have any effect.
+func (m *Machine) Cleanup() {
+	if m.cleanFuncs == nil {
+		return
+	}
+
+	for _, fn := range m.cleanFuncs {
+		fn()
+	}
+
+	m.cleanFuncs = nil
 }
 
 func (m *Machine) State() machinestate.State {
