@@ -68,6 +68,10 @@ yargs = require 'yargs'
   .boolean 'minify-css'
   .default 'minify-css', false
 
+  .describe 'collapse-js', 'collapse require paths to save extra bytes'
+  .boolean 'collapse-js'
+  .default 'collapse-js', true
+
   .describe 'extract-js-sourcemaps', 'extract source maps in debug mode'
   .boolean 'extract-js-sourcemaps'
   .default 'extract-js-sourcemaps', false

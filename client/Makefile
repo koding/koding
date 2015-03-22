@@ -22,7 +22,7 @@ BUILDER_ARGS=\
 	$(EXTRAS)
 BUILDER_DEBUG_FLAGS?=--debug-js --debug-css
 BUILDER_WATCH_FLAGS?=--watch-js --watch-css --watch-sprites
-BUILDER_MINIFY_FLAGS?=--minify-css --minify-js
+BUILDER_MINIFY_FLAGS?=--minify-css --minify-js --collapse-js
 BUILDER_EXT_SOURCEMAPS_FLAGS?=--extract-js-sourcemaps --debug-js
 
 all: landing development

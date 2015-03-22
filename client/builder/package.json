@@ -8,6 +8,7 @@
     "as-stream": "^0.1.1",
     "async": "^0.9.0",
     "bant": "^0.2.2",
+    "bundle-collapser": "^1.1.4",
     "chalk": "^1.0.0",
     "chokidar": "^1.0.0-rc4",
     "coffeeify": "^1.0.0",

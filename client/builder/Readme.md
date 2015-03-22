@@ -25,6 +25,7 @@ Options:
   --debug-css              enable source maps for styles
   --minify-js              minify scripts
   --minify-css             minify styles
+  --collapse-js            collapse require paths to save extra bytes
   --extract-js-sourcemaps  extract source maps in debug mode
   --rev-id                 write outfiles into $outdir/$git-revision-id
   --notify                 enable system notifications in watch mode

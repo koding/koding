@@ -27,6 +27,7 @@ stylus        = require 'gulp-stylus'
 concat        = require 'gulp-concat'
 throttle      = require 'throttleit'
 child_process = require 'child_process'
+collapse      = require 'bundle-collapser/plugin'
 
 JS_OUTFILE                  = 'bundle.js'
 THIRDPARTY_OUTDIR           = 'thirdparty'
@@ -282,9 +283,10 @@ class Haydar extends events.EventEmitter
 
     b.use manifests
 
+    if opts.collapseJs then b.plugin collapse
+
     # force browser-pack to expose require
     b._bpack.hasExports = true
-
 
     bundle = =>
 
