@@ -4,21 +4,18 @@ events         = require 'events'
 _              = require 'underscore'
 kd             = require 'kd'
 os             = require 'os'
+globals        = require 'globals'
 ShortcutsModal = require './views/modal'
 
 STORAGE_VERSION      = '1'
 STORAGE_BINDINGS_KEY = "bindings-#{os}"
 THROTTLE_WAIT        = 300
 
-KEYCFG_PLATFORM_METHOD_NAME = do ->
-  if os is 'linux'
-    platform = 'win'
-  platform or= os
-  return "get#{platform.charAt(0).toUpperCase()}#{platform.slice 1, 3}Keys"
-
 module.exports =
 
 class ShortcutsController extends events.EventEmitter
+
+  klass = this
 
   constructor: (opts={}) ->
 
@@ -47,7 +44,7 @@ class ShortcutsController extends events.EventEmitter
     if set
       if filterFn then set = set.filter filterFn
       set.map (model) ->
-        _.extend model.toJSON(), binding: model[KEYCFG_PLATFORM_METHOD_NAME]()
+        _.extend model.toJSON(), binding: klass.getPlatformBindings model
       .value()
 
 
@@ -69,7 +66,7 @@ class ShortcutsController extends events.EventEmitter
     throw 'not ready'  unless @_isStoreReady
 
     data = collection.reduce (acc, model) ->
-      acc[model.name] = model[KEYCFG_PLATFORM_METHOD_NAME]()
+      acc[model.name] = klass.getPlatformBindings model
     , {}
 
     @_store.setValue STORAGE_BINDINGS_KEY, data
@@ -111,3 +108,14 @@ class ShortcutsController extends events.EventEmitter
   showModal: ->
 
     new ShortcutsModal {}, @shortcuts.config
+
+
+  @bindingsGetterMethodName: _.memoize ->
+
+    kmt = globals.keymapType
+    return "get#{kmt.charAt(0).toUpperCase()}#{kmt.slice 1, 3}Keys"
+
+
+  @getPlatformBindings: (model) ->
+
+    return model[klass.bindingsGetterMethodName()]()
