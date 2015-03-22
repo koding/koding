@@ -96,11 +96,11 @@ class Ace extends KDView
 
       @editor.gotoLine 0
 
-      # remove cmd+L binding. we have already defined cmd+g for this purpose
-      @editor.commands.removeCommand 'gotoline'
-
-      # we are using ctrl+alt+s for 'Save All' action
-      @editor.commands.removeCommand 'sortlines'
+      @editor.commands.removeCommands [
+        'gotoline'         # overriding this
+        'sortlines'        # using same mapping for 'save all' action. XXX: re-map sortlines
+        'showSettingsMenu' # f ace default settings menu
+      ]
 
       @focus()
       @show()
@@ -208,8 +208,6 @@ class Ace extends KDView
           return  unless cb
           
           @editor.commands.addCommand toCommand(model, cb)
-
-      #@addKeyCombo 'settings',   'Ctrl-,',           kd.noop # override default ace settings view
 
 
   showFindReplaceView: (openReplaceView) ->
