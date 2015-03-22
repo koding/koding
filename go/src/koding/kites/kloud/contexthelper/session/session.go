@@ -5,6 +5,7 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
@@ -16,12 +17,13 @@ type key int
 const sessionKey key = 0
 
 type Session struct {
-	DB        *mongodb.MongoDB
-	Kite      *kite.Kite
-	DNS       *dnsclient.DNS
-	Eventer   eventer.Eventer
-	AWSClient *amazon.Amazon
-	Userdata  *userdata.Userdata
+	DB         *mongodb.MongoDB
+	Kite       *kite.Kite
+	DNS        *dnsclient.DNS
+	Eventer    eventer.Eventer
+	AWSClient  *amazon.Amazon
+	AWSClients *multiec2.Clients
+	Userdata   *userdata.Userdata
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {

@@ -38,6 +38,7 @@ type Machine struct {
 		Region       string `bson:"region"`
 		StorageSize  int    `bson:"storage_size"`
 		SourceAmi    string `bson:"source_ami"`
+		SnapshotId   string `bson:"-"`
 	} `bson:"meta"`
 	Users  []models.Permissions `bson:"users"`
 	Groups []models.Permissions `bson:"groups"`

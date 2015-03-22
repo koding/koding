@@ -34,6 +34,9 @@ type Provider struct {
 
 	// PaymentEndpoint is being used to fetch user plans
 	PaymentEndpoint string
+
+	// NetworkUsageEndpoint is used to fetch a machines network usage
+	NetworkUsageEndpoint string
 }
 
 type Credential struct {
@@ -98,8 +101,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	payment, err := p.FetchPlan(user.Name)
 	if err != nil {
 		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
-			m.Username, err)
-
+			machine.Username, err)
 		payment = &PaymentResponse{Plan: Free}
 	}
 
@@ -107,12 +109,13 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	machine.Username = user.Name
 	machine.User = user
 	machine.Session = &session.Session{
-		DB:        p.DB,
-		Kite:      p.Kite,
-		DNS:       p.DNS,
-		Userdata:  p.Userdata,
-		Eventer:   ev,
-		AWSClient: amazonClient,
+		DB:         p.DB,
+		Kite:       p.Kite,
+		DNS:        p.DNS,
+		Userdata:   p.Userdata,
+		Eventer:    ev,
+		AWSClient:  amazonClient,
+		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
 	}
 
 	// check for validation and permission

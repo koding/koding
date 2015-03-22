@@ -3,6 +3,7 @@ package kloud
 import (
 	"os"
 
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
 	"koding/kites/kloud/protocol"
@@ -45,6 +46,12 @@ type Kloud struct {
 	// ContextCreator is used to pass a manual context to each request. If not
 	// set context.Background()) is passed.
 	ContextCreator func(context.Context) context.Context
+
+	// If available a key pair with the given public key and name should be
+	// deployed to the machine, the corresponding PrivateKey should be returned
+	// in the ProviderArtifact. Some providers such as Amazon creates
+	// publicKey's on the fly and generates the privateKey themself.
+	PublicKeys *publickeys.Keys
 
 	// Enable debug mode
 	Debug bool

@@ -36,7 +36,7 @@ func (p *Provider) FetchPlan(username string) (*PaymentResponse, error) {
 
 	var account *models.Account
 	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": m.Username}).One(&account)
+		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}); err != nil {
 		return nil, err
 	}
