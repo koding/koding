@@ -14,6 +14,8 @@ class AppStorage extends kd.Object
     @_applicationID      = appId
     @_applicationVersion = version
 
+    @isReady = no
+
     @reset()
 
     super
@@ -33,8 +35,7 @@ class AppStorage extends kd.Object
           if not error and storage
             @_storage = storage
             callback? @_storage
-            @emit 'storageFetched'
-            @emit 'ready'
+            @_setReady()
           else
             callback? null
 
@@ -42,8 +43,17 @@ class AppStorage extends kd.Object
 
       kd.utils.defer =>
         callback? @_storage
-        @emit 'storageFetched'
-        @emit 'ready'
+        @_setReady()
+
+
+  _setReady: ->
+
+    @isReady = yes
+
+    @emit 'storageFetched' # this shouldn't be here, not sure what else is using this.
+                           # most probably obsolete. -og
+
+    @emit 'ready'
 
 
   fetchValue: (key, callback, group = DEFAULT_GROUP_NAME, force = no) ->
@@ -59,14 +69,14 @@ class AppStorage extends kd.Object
 
     return unless @_storage
     return if @_storageData[group]?[key]? then @_storageData[group][key]
-    return if @_storage[group]?[key]? then @_storage[group][key]
+    return if @_storage[group]?[key]?     then @_storage[group][key]
 
 
   setValue: (key, value, callback, group = DEFAULT_GROUP_NAME) ->
 
     pack = @zip key, group, value
 
-    @_storageData[group] = {}  unless @_storageData[group]?
+    @_storageData[group]      = {}  unless @_storageData[group]?
     @_storageData[group][key] = value
 
     @fetchStorage (storage) ->
@@ -94,14 +104,14 @@ class AppStorage extends kd.Object
 
   reset: ->
 
-    @_storage = null
+    @_storage     = null
     @_storageData = {}
 
 
   zip: (key, group, value) ->
 
-    pack = {}
-    _key = group+'.'+key
+    pack       = {}
+    _key       = group+'.'+key
     pack[_key] = value
 
     pack
