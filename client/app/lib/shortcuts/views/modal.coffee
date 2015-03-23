@@ -3,58 +3,48 @@ _             = require 'underscore'
 ShortcutsPane = require './pane'
 defaults      = require '../config'
 
-module.exports =
-
-class ShortcutsModal extends kd.ModalView
+module.exports = class ShortcutsModal extends kd.ModalViewWithForms
 
   constructor: (options={}, keyconfig) ->
 
-    options.title   or= 'Shortcuts'
-    options.content or= """
-      <div class='shortcuts-head'>
-        <p>To change a shortcut, select it, click the key combination, and then type the new keys.</p>
-      </div>
-    """
-    options.overlay  or= yes
-    options.width    or= 540
-    options.height   or= 600
-    options.cssClass or= 'shortcuts-modal'
+    options =
+      title                   : 'Shortcuts'
+      cssClass                : 'shortcuts-modal'
+      overlay                 : yes
+      width                   : 640
+      height                  : 'auto'
+      buttons                 :
+        restore               :
+          title               : 'Restore Defaults'
+          style               : 'solid light-gray medium'
+          loader              : color : '#444444'
+          callback            : -> modal.destroy()
+        save                  :
+          title               : 'Save'
+          cssClass            : 'solid green medium'
+      tabs                    :
+        hideHandleCloseIcons  : yes
+        enableMoveTabHandle   : no
+        cssClass              : 'shortcuts-tab'
+        forms                 : @prepareTabData keyconfig
 
-    super options, keyconfig
+    super options
 
 
   viewAppended: ->
 
-    @addSubView tabView = new kd.TabView
+  prepareTabData: (keyconfig) ->
 
-      hideHandleCloseIcons : true
-      enableMoveTabHandle  : false
-      cssClass             : 'shortcuts-tab'
+    forms = {}
+    keyconfig.forEach (collection) ->
+      displayData = defaults[collection.name]
+      forms[displayData.title] =
+        fields                :
+          view                :
+            itemClass         : ShortcutsPane
+            description       : displayData.description
+            collection        : collection
 
-      paneData: @data.map (collection) ->
-        displayData = defaults[collection.name]
-        return {
-          title    : displayData.title
-          closable : no
-          view     : new ShortcutsPane {},
-            title       : displayData.title
-            description : displayData.description
-            collection  : collection
-        }
+    return forms
 
-    tabView.showPaneByIndex 0
 
-    buttonBar = new kd.View
-      cssClass: 'buttons'
-
-    buttonBar.addSubView new kd.ButtonView
-      title    : 'Restore Defaults'
-      cssClass : 'solid light-gray medium'
-      callback : kd.noop
-
-    buttonBar.addSubView new kd.ButtonView
-      title    : 'Save'
-      cssClass : 'solid green medium'
-      callback : kd.noop
-
-    @addSubView buttonBar
