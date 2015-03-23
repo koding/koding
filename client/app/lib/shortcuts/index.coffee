@@ -13,19 +13,19 @@ THROTTLE_WAIT   = 500
 
 module.exports =
 
-# Manages keyboard shortcuts.
-#
-# Wraps over a _shortcuts_ instance by default (if not passed explicitly
-# within opts.shortcuts), and makes sure we are listening and dispatching
-# correct keyboard events depending on an application's config.
-#
-# This also exposes convenience proxy methods to the underlying _keyconfig_
-# instance, and persists the state of a keyconfig#Collection to the app storage.
-#
 class ShortcutsController extends events.EventEmitter
 
   klass = this
 
+  # Manages keyboard shortcuts.
+  #
+  # Wraps over a _shortcuts_ instance by default (if not passed explicitly
+  # within opts.shortcuts), and makes sure we are listening and dispatching
+  # correct keyboard events depending on an application's config.
+  #
+  # This also exposes convenience proxy methods to the underlying _keyconfig_
+  # instance, and persists the state of a keyconfig#Collection to the app storage.
+  #
   constructor: (opts={}) ->
 
     super()
