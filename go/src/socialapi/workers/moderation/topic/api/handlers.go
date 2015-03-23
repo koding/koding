@@ -38,14 +38,4 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Metrics:  metric,
 		},
 	)
-
-	m.AddHandler(
-		handler.Request{
-			Handler:  DeleteLink,
-			Name:     models.ModerationChannelDeleteLink,
-			Type:     handler.DeleteRequest,
-			Endpoint: "/moderation/channel/{leafId}",
-			Metrics:  metric,
-		},
-	)
 }
