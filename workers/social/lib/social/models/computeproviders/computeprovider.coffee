@@ -81,35 +81,35 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-      { provider, stack, label, provisioners } = options
-      { r: { group, user, account } } = client
+    { provider, stack, label, provisioners } = options
+    { r: { group, user, account } } = client
 
-      provider.create client, options, (err, machineData)->
+    provider.create client, options, (err, machineData)->
 
+      return callback err  if err
+
+      { meta, postCreateOptions, credential } = machineData
+
+      label ?= machineData.label
+
+      JMachine.create {
+        provider : provider.slug
+        label, meta, group, user
+        credential, provisioners
+      }, (err, machine)->
+
+        # TODO if any error occurs here which means user paid for
+        # not created vm ~ GG
         return callback err  if err
 
-        { meta, postCreateOptions, credential } = machineData
+        provider.postCreate client, {
+          postCreateOptions, machine, meta, stack: stack._id
+        }, (err)->
 
-        label ?= machineData.label
-
-        JMachine.create {
-          provider : provider.slug
-          label, meta, group, user
-          credential, provisioners
-        }, (err, machine)->
-
-          # TODO if any error occurs here which means user paid for
-          # not created vm ~ GG
           return callback err  if err
 
-          provider.postCreate client, {
-            postCreateOptions, machine, meta, stack: stack._id
-          }, (err)->
-
-            return callback err  if err
-
-            stack.appendTo machines: machine.getId(), (err)->
-              callback err, machine
+          stack.appendTo machines: machine.getId(), (err)->
+            callback err, machine
 
 
   @create$ = permit 'create machines', success: revive
