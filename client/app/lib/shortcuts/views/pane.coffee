@@ -10,9 +10,8 @@ class ShortcutsModalPane extends kd.View
 
     options.cssClass = 'shortcuts-pane'
 
-    @collection = data.collection
-    @title = data.title
-    @description = data.description
+    @collection  = options.collection
+    @description = options.description
 
     super options, data
 
@@ -24,7 +23,7 @@ class ShortcutsModalPane extends kd.View
       description: @description
 
     @listController = new ShortcutsListController
-    
+
     @collection.each (model) =>
       @listController.addItem model
 
