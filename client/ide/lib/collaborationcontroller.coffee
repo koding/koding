@@ -522,6 +522,7 @@ module.exports =
         Loading      : => kd.utils.defer => @onCollaborationLoading()
         Resuming     : @bound 'onCollaborationResuming'
         NotStarted   : @bound 'onCollaborationNotStarted'
+        Preparing    : @bound 'onCollaborationPreparing'
         Prepared     : @bound 'onCollaborationPrepared'
         Creating     : @bound 'onCollaborationCreating'
         Active       : @bound 'onCollaborationActive'
@@ -575,6 +576,13 @@ module.exports =
           @workspaceData.channelId = channel.id
           @chat.ready => callbacks.success()
         .error (err) => callbacks.error err
+
+
+  onCollaborationPreparing: ->
+
+    @prepareChatSession
+      success : => @stateMachine.transition 'Prepared'
+      error   : => @stateMachine.transition 'ErrorPreparing'
 
 
   onCollaborationPrepared: ->
@@ -759,12 +767,8 @@ module.exports =
   showChat: ->
 
     switch @stateMachine.state
-      when 'Active'
-       @showChatPane()
-      when 'NotStarted'
-        @prepareChatSession
-          success : => @stateMachine.transition 'Prepared'
-          error   : => # @stateMachine.transition 'ErrorPreparing'
+      when 'Active' then @showChatPane()
+      when 'NotStarted' then @stateMachine.transition 'Preparing'
 
 
   stopCollaborationSession: ->
