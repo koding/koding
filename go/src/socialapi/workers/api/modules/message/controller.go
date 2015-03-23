@@ -3,7 +3,6 @@ package message
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"socialapi/config"
@@ -38,17 +37,17 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	}
 
 	if _, ok := req.Payload["saveLocation"]; ok {
-		delete(req.Payload, "saveLocation")
 		// gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
 		if err != nil {
-			log.Fatal(err)
+			helper.MustGetLogger().Error("errr while parsing ip, err :%s", err.Error())
+		} else {
+			ll := record.City.Names["en"]
+			req.Payload["location"] = &ll
 		}
 
-		ll := record.City.Names["en"]
-
-		req.Payload["location"] = &ll
+		delete(req.Payload, "saveLocation")
 	}
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
