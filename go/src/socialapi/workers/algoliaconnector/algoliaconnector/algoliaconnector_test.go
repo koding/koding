@@ -390,16 +390,16 @@ func TestIndexSettings(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(oldsynonymns, ShouldNotBeNil)
 
-			acc, err := models.CreateAccountInBothDbs()
-			So(acc, ShouldNotBeNil)
-
-			root := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
-			So(root, ShouldNotBeNil)
-
-			leaf := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
-			So(leaf, ShouldNotBeNil)
-
 			Convey("when we add new synonyms", func() {
+
+				acc, err := models.CreateAccountInBothDbs()
+				So(acc, ShouldNotBeNil)
+
+				root := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				So(root, ShouldNotBeNil)
+
+				leaf := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				So(leaf, ShouldNotBeNil)
 
 				cl := &models.ChannelLink{
 					RootId: root.Id,
@@ -485,11 +485,64 @@ func TestIndexSettings(t *testing.T) {
 
 							So(err, ShouldBeNil)
 						})
-					})
 
+						// adding another synonym should not break anything
+						Convey("adding another synonym should not break anything", func() {
+
+							anotherRoot := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+							So(root, ShouldNotBeNil)
+
+							anotherLeaf := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+							So(leaf, ShouldNotBeNil)
+
+							cl := &models.ChannelLink{
+								RootId: anotherRoot.Id,
+								LeafId: anotherLeaf.Id,
+							}
+
+							So(cl.Create(), ShouldBeNil)
+
+							So(handler.CreateSynonym(cl), ShouldBeNil)
+
+							Convey("all synonyms should be in settings", func() {
+								err = makeSureSynonyms(handler, "messages", func(synonyms [][]string, err error) bool {
+									if err != nil {
+										return false
+									}
+
+									f1found, f2found := false, false
+
+									for _, synonym := range synonyms {
+										for _, synonymPair := range synonym {
+											if synonymPair == root.Name {
+												f1found = true
+											}
+
+											if synonymPair == leaf.Name {
+												f2found = true
+											}
+
+											if f1found && f2found {
+												return true
+											}
+										}
+									}
+
+									return false
+								})
+
+								So(err, ShouldBeNil)
+								allsynonymns, err := handler.getSynonyms("messages")
+								So(err, ShouldBeNil)
+								// why ShouldBeGreaterThan? becase when we run
+								// the same test again, there may be other
+								// synonyms
+								So(len(allsynonymns), ShouldBeGreaterThan, 2)
+							})
+						})
+					})
 				})
 			})
-
 		})
 	})
 }
