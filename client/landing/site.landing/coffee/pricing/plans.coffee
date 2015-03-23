@@ -19,7 +19,7 @@ module.exports = class PricingPlansView extends KDView
 
   initViews: ->
 
-    for plan in @plans
+    for plan in @getPlans()
       plan.delegate = this
       planTitle = plan.title.toLowerCase()
       plan.state = @state
@@ -33,20 +33,42 @@ module.exports = class PricingPlansView extends KDView
     plan.setPlanInterval(planInterval)  for _, plan of @planViews
 
 
+  getPlans: ->
+
+    { reversePlans } = @state
+    method = if reversePlans then 'reverse' else 'slice'
+    return @plans[method]()
+
+
   plans: [
-    title        : 'Professional'
-    monthPrice   : '49.50'
-    reducedMonth : '39.95'
-    yearPrice    : '479.40'
-    discount     : 955
-    description  : 'Great for managing and delivering client work'
-    cssClass     : 'professional'
+    title        : 'Free'
+    monthPrice   : '0'
+    reducedMonth : '0'
+    yearPrice    : '0'
+    discount     : '0'
+    description  : 'Best for tinkering with and learning new technologies'
+    cssClass     : 'free'
     planFeatures : [
-      { partial: '5 VMs '          , cssClass: 'vm-count' }
-      { partial: '1 Core each'     , cssClass: 'cpu' }
-      { partial: '1GB RAM each'    , cssClass: 'ram' }
-      { partial: '50GB Total Disk' , cssClass: 'storage' }
-      { partial: '2 Always on VMs' , cssClass: 'always-on' }
+      { partial: '1 VM'           , cssClass: 'vm-count' }
+      { partial: '1 Core'         , cssClass: 'cpu' }
+      { partial: '1GB RAM'        , cssClass: 'ram' }
+      { partial: '3GB Total Disk' , cssClass: 'storage' }
+      { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
+    ]
+  ,
+    title        : 'Hobbyist'
+    monthPrice   : '12.50'
+    reducedMonth : '9.95'
+    yearPrice    : '119.40'
+    discount     : 255
+    description  : 'Best for expanded learning or for running a small blog/website'
+    cssClass     : 'hobbyist'
+    planFeatures : [
+      { partial: '1 VM '          , cssClass: 'vm-count' }
+      { partial: '1 Core'         , cssClass: 'cpu' }
+      { partial: '1GB RAM'        , cssClass: 'ram' }
+      { partial: '10GB Total Disk', cssClass: 'storage' }
+      { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Developer'
@@ -64,35 +86,18 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1 Always on VM'  , cssClass: 'always-on' }
     ]
   ,
-    title        : 'Hobbyist'
-    monthPrice   : '12.50'
-    reducedMonth : '9.95'
-    yearPrice    : '119.40'
-    discount     : 255
-    description  : 'Best for expanded learning or for running a small blog/website'
-    cssClass     : 'hobbyist'
+    title        : 'Professional'
+    monthPrice   : '49.50'
+    reducedMonth : '39.95'
+    yearPrice    : '479.40'
+    discount     : 955
+    description  : 'Great for managing and delivering client work'
+    cssClass     : 'professional'
     planFeatures : [
-      { partial: '1 VM '          , cssClass: 'vm-count' }
-      { partial: '1 Core'         , cssClass: 'cpu' }
-      { partial: '1GB RAM'        , cssClass: 'ram' }
-      { partial: '10GB Storage'   , cssClass: 'storage' }
-      { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
-    ]
-  ,
-    title        : 'Free'
-    monthPrice   : '0'
-    reducedMonth : '0'
-    yearPrice    : '0'
-    discount     : '0'
-    description  : 'Best for tinkering with and learning new technologies'
-    cssClass     : 'free'
-    planFeatures : [
-      { partial: '1 VM'           , cssClass: 'vm-count' }
-      { partial: '1 Core'         , cssClass: 'cpu' }
-      { partial: '1GB RAM'        , cssClass: 'ram' }
-      { partial: '3GB Total Disk' , cssClass: 'storage' }
-      { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
+      { partial: '5 VMs '          , cssClass: 'vm-count' }
+      { partial: '1 Core each'     , cssClass: 'cpu' }
+      { partial: '1GB RAM each'    , cssClass: 'ram' }
+      { partial: '50GB Total Disk' , cssClass: 'storage' }
+      { partial: '2 Always on VMs' , cssClass: 'always-on' }
     ]
   ]
-
-
