@@ -16,3 +16,7 @@ type Provider interface {
 type Builder interface {
 	Build(ctx context.Context) error
 }
+
+type Destroyer interface {
+	Destroy(ctx context.Context) error
+}

@@ -115,7 +115,7 @@ func (m *Machine) DomainsById() ([]*protocol.Domain, error) {
 	return domains, nil
 }
 
-func (m *Machine) UpdateMachine(name, machineId string) error {
+func (m *Machine) UpdateDomain(domainName, machineId string) error {
 	updateData := bson.M{
 		"machineId":  "",
 		"modifiedAt": time.Now().UTC(),
@@ -130,13 +130,14 @@ func (m *Machine) UpdateMachine(name, machineId string) error {
 	}
 
 	err := m.Session.DB.Run(domainCollection, func(c *mgo.Collection) error {
-		return c.Update(bson.M{"domain": name},
+		return c.Update(
+			bson.M{"domain": domainName},
 			bson.M{"$set": updateData},
 		)
 	})
 
 	if err != nil {
-		m.Log.Error("Could not update %v: err: %v", name, err)
+		m.Log.Error("Could not update %v: err: %v", domainName, err)
 		return errors.New("could not update domain from DB")
 	}
 

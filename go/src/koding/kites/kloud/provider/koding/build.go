@@ -60,7 +60,7 @@ type ImageData struct {
 	imageId            string
 }
 
-func (m *Machine) Build(ctx context.Context) (err error) {
+func (m *Machine) Build(ctx context.Context) error {
 	return m.runMethod(ctx, m.build)
 }
 
@@ -192,6 +192,11 @@ func (m *Machine) build(ctx context.Context) error {
 	if err := m.checkKite(m.QueryString); err != nil {
 		return err
 	}
+
+	resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
+		m.Username, m.Meta.InstanceId, m.IpAddress, m.QueryString)
+
+	m.Log.Info("========== BUILD results ========== %s", resultInfo)
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(

@@ -157,20 +157,6 @@ type machineFunc func(context.Context, interface{}) error
 // 	return k.coreMethods(r, restartFunc)
 // }
 //
-// func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
-// 	destroyFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		err := p.Destroy(m)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-//
-// 		// purge the data too
-// 		err = k.Storage.Delete(m.Id)
-// 		return nil, err
-// 	}
-//
-// 	return k.coreMethods(r, destroyFunc)
-// }
 //
 // func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
 // 	machine, err := k.PrepareMachine(r)

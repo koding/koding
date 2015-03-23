@@ -139,7 +139,7 @@ func init() {
 	}
 
 	kloudKite.HandleFunc("build", kld.Build)
-	// kloudKite.HandleFunc("destroy", kld.Destroy)
+	kloudKite.HandleFunc("destroy", kld.Destroy)
 	// kloudKite.HandleFunc("start", kld.Start)
 	// kloudKite.HandleFunc("stop", kld.Stop)
 	// kloudKite.HandleFunc("reinit", kld.Reinit)
