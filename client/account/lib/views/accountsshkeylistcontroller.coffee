@@ -15,7 +15,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
     @getListView().on "UpdatedItems", =>
       @newItem = no
-      newKeys = @getItemsOrdered().map (item)-> item.getData()
+      newKeys = @getListItems().map (item)-> item.getData()
       unless newKeys.length is 0 then @customItem?.destroy()
       remote.api.JUser.setSSHKeys newKeys, -> kd.log "Saved keys."
 

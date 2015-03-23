@@ -177,7 +177,7 @@ module.exports = class SidebarMachineBox extends KDView
 
   forEachWorkspaceItem: (callback) ->
 
-    callback item  for item in @listController.getItemsOrdered()
+    callback item  for item in @listController.getListItems()
 
 
   handleWorkspaceDeleted: (wsId) ->
