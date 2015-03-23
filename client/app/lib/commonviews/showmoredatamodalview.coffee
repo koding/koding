@@ -89,7 +89,7 @@ module.exports = class ShowMoreDataModalView extends KDModalView
 
   reviveFollowButtons: (ids) ->
     remote.api.JTag.fetchMyFollowees ids, (err, followees) =>
-      for modal in @controller.getItemsOrdered()
+      for modal in @controller.getListItems()
         button = modal.followButton
         id = button?.getData()?.getId()
         button.setState 'Unfollow' if id and id in followees
