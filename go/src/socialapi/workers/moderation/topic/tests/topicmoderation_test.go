@@ -117,7 +117,7 @@ func TestModeration(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(res, ShouldNotBeNil)
 
-			err = rest.BlackList(root.Id, leaf.Id, ses.ClientId)
+			err = rest.BlackList(leaf.Id, root.Id, ses.ClientId)
 			So(err, ShouldNotBeNil)
 		})
 	})
