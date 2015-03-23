@@ -184,8 +184,14 @@ fetchStackTemplate = (client, callback)->
     { user, group, account } = res
 
     unless group.stackTemplates?.length
-      console.warn "Failed to fetch stack template for #{group.slug} group"
-      return callback new KodingError "Template not set", "NotFound"
+      console.warn "There is no stack template assigned for #{group.slug} group"
+
+      # This is a fallback mechanism and valid only for production. ~ GG
+      if group.slug is 'koding'
+        {ObjectId} = require 'bongo'
+        group.stackTemplates = [ObjectId "53fe557af052f8e9435a04fa"]
+      else
+        return callback new KodingError "Template not set", "NotFound"
 
     # TODO Make this works with multiple stacks ~ gg
     stackTemplateId = group.stackTemplates[0]
