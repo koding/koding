@@ -38,6 +38,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	}
 
 	if _, ok := req.Payload["saveLocation"]; ok {
+		delete(req.Payload, "saveLocation")
 		// gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
