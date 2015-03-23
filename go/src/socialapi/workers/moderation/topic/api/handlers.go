@@ -31,18 +31,18 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  DeleteLink,
+			Handler:  Blacklist,
 			Name:     models.ModerationChannelDeleteLink,
-			Type:     handler.DeleteRequest,
-			Endpoint: "/moderation/channel/{rootId}/link/{leafId}",
+			Type:     handler.PostRequest,
+			Endpoint: "/moderation/channel/blacklist",
 			Metrics:  metric,
 		},
 	)
 
 	m.AddHandler(
 		handler.Request{
-			Handler:  Blacklist,
-			Name:     models.ModerationChannelBlacklist,
+			Handler:  DeleteLink,
+			Name:     models.ModerationChannelDeleteLink,
 			Type:     handler.DeleteRequest,
 			Endpoint: "/moderation/channel/{leafId}",
 			Metrics:  metric,
