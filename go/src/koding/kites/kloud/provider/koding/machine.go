@@ -32,13 +32,13 @@ type Machine struct {
 	CreatedAt  time.Time `bson:"createdAt"`
 	Meta       struct {
 		AlwaysOn     bool   `bson:"alwaysOn"`
-		InstanceId   string `bson:"instanceId"`
-		InstanceType string `bson:"instance_type"`
-		InstanceName string `bson:"instanceName"`
-		Region       string `bson:"region"`
-		StorageSize  int    `bson:"storage_size"`
-		SourceAmi    string `bson:"source_ami"`
-		SnapshotId   string `bson:"-"`
+		InstanceId   string `structs:"instanceId" bson:"instanceId"`
+		InstanceType string `structs:"instance_type" bson:"instance_type"`
+		InstanceName string `structs:"instanceName" bson:"instanceName"`
+		Region       string `structs:"region" bson:"region"`
+		StorageSize  int    `structs:"storage_size" bson:"storage_size"`
+		SourceAmi    string `structs:"source_ami" bson:"source_ami"`
+		SnapshotId   string `structs:"snapshotId" bson:"-"`
 	} `bson:"meta"`
 	Users  []models.Permissions `bson:"users"`
 	Groups []models.Permissions `bson:"groups"`
