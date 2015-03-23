@@ -5,7 +5,7 @@ module.exports = class CollaborationStateMachine extends KDStateMachine
 
   states: [
     'Loading', 'ErrorLoading', 'Resuming', 'NotStarted', 'Preparing'
-    'Prepared', 'Creating', 'ErrorCreating', 'Active', 'Ending'
+    'ErrorPreparing', 'Prepared', 'Creating', 'ErrorCreating', 'Active', 'Ending'
     # 'ErrorResuming_'
   ]
 
@@ -14,7 +14,8 @@ module.exports = class CollaborationStateMachine extends KDStateMachine
     ErrorLoading  : ['Loading']
     Resuming      : ['Active']
     NotStarted    : ['Preparing']
-    Preparing     : ['Prepared']
+    Preparing     : ['Prepared', 'ErrorPreparing']
+    ErrorPreparing: ['Preparing', 'NotStarted']
     Prepared      : ['Creating']
     Creating      : ['ErrorCreating', 'Active']
     ErrorCreating : ['Creating', 'NotStarted']

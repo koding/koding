@@ -15,6 +15,7 @@ describe 'CollaborationStateMachine', ->
     expect(states['Resuming']).to.be.ok
     expect(states['NotStarted']).to.be.ok
     expect(states['Preparing']).to.be.ok
+    expect(states['ErrorPreparing']).to.be.ok
     expect(states['Prepared']).to.be.ok
     expect(states['Creating']).to.be.ok
     expect(states['ErrorCreating']).to.be.ok
@@ -30,7 +31,7 @@ describe 'CollaborationStateMachine', ->
     legalStates = ['NotStarted', 'ErrorLoading', 'Resuming']
     illegalStates = [
       'Active', 'Preparing', 'Prepared', 'Creating'
-      'ErrorCreating', 'Ending', 'Loading'
+      'ErrorCreating', 'Ending', 'Loading', 'ErrorPreparing'
     ]
 
     assertLegalTransitions newSimpleMachine, legalStates
@@ -41,7 +42,7 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['Active']
     illegalStates = [
-      'Loading', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Loading', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
       'Preparing', 'Prepared', 'Creating', 'ErrorCreating', 'Ending'
     ]
 
@@ -53,7 +54,7 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['Loading']
     illegalStates = [
-      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
       'Preparing', 'Prepared', 'Creating', 'ErrorCreating', 'Ending'
     ]
 
@@ -75,7 +76,7 @@ describe 'CollaborationStateMachine', ->
 
   it 'tests Preparing state transitions', ->
 
-    legalStates = ['Prepared']
+    legalStates = ['Prepared', 'ErrorPreparing']
     illegalStates = [
       'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
       'Loading', 'Creating', 'ErrorCreating', 'Ending', 'Preparing'
@@ -85,11 +86,23 @@ describe 'CollaborationStateMachine', ->
     assertIllegalTransitions preparingMachine, illegalStates
 
 
+  it 'tests ErrorPreparing state transitions', ->
+
+    legalStates = ['Preparing', 'NotStarted']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'ErrorPreparing'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending'
+    ]
+
+    assertLegalTransitions errorPreparingMachine, legalStates
+    assertIllegalTransitions errorPreparingMachine, illegalStates
+
+
   it 'tests Prepared state transitions', ->
 
     legalStates = ['Creating']
     illegalStates = [
-      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
       'Loading', 'Prepared', 'ErrorCreating', 'Ending', 'Preparing'
     ]
 
@@ -102,7 +115,7 @@ describe 'CollaborationStateMachine', ->
     legalStates = ['Active', 'ErrorCreating']
     illegalStates = [
       'Creating', 'ErrorLoading', 'Resuming', 'NotStarted'
-      'Loading', 'Prepared', 'Ending', 'Preparing'
+      'Loading', 'Prepared', 'Ending', 'Preparing', 'ErrorPreparing'
     ]
 
     assertLegalTransitions creatingMachine, legalStates
@@ -114,7 +127,7 @@ describe 'CollaborationStateMachine', ->
     legalStates = ['NotStarted', 'Creating']
     illegalStates = [
       'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
-      'Loading', 'Prepared', 'Ending', 'Preparing'
+      'Loading', 'Prepared', 'Ending', 'Preparing', 'ErrorPreparing'
     ]
 
     assertLegalTransitions errorCreatingMachine, legalStates
@@ -125,7 +138,7 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['Ending']
     illegalStates = [
-      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active', 'ErrorPreparing'
       'Loading', 'Prepared', 'NotStarted', 'Creating', 'Preparing'
     ]
 
@@ -137,7 +150,7 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = []
     illegalStates = [
-      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active', 'ErrorPreparing'
       'Loading', 'Prepared', 'NotStarted', 'Creating', 'Ending', 'Preparing'
     ]
 
@@ -178,6 +191,11 @@ notStartedMachine = ->
 preparingMachine = ->
   machine = notStartedMachine()
   machine.transition 'Preparing'
+  return machine
+
+errorPreparingMachine = ->
+  machine = preparingMachine()
+  machine.transition 'ErrorPreparing'
   return machine
 
 preparedMachine = ->
