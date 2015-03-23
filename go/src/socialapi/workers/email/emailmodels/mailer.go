@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"socialapi/models"
 	"socialapi/workers/email/emailsender"
-	"time"
 )
-
-var DateLayout = "Jan 2, 2006"
 
 type Mailer struct {
 	UserContact *UserContact
@@ -57,9 +54,6 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 
 	m.Mail.Properties = emailsender.NewProperties()
 	m.Mail.Properties.Username = m.UserContact.Username
-
-	currentDate := time.Now().Format(DateLayout)
-	m.Mail.Properties.Options = map[string]interface{}{"currentDate": currentDate}
 
 	if err := emailsender.Send(m.Mail); err != nil {
 		return err

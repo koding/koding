@@ -1,8 +1,12 @@
 package eventexporter
 
 import (
+	"time"
+
 	analytics "github.com/segmentio/analytics-go"
 )
+
+var DateLayout = "Jan 2, 2006"
 
 type SegmentIOExporter struct {
 	Client *analytics.Client
@@ -38,6 +42,7 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 	}
 
 	event.Properties["email"] = event.User.Email
+	event.Properties["currentDate"] = time.Now().UTC().Format(DateLayout)
 
 	return &analytics.Track{
 		Event:      event.Name,
