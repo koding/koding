@@ -5,7 +5,7 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/topicfeed/topicfeed"
+	"socialapi/workers/topicfeed"
 	"testing"
 
 	"github.com/koding/bongo"
