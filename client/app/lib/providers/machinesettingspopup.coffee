@@ -397,12 +397,8 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
 
       @isPaidAccount = plan isnt 'free'
 
-      if plan in ['free', 'hobbyist'] and not @machine.isManaged()
-        @terminateButton.hide()
-
-        if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
-          @resizeButton?.show()
-
+      if plan is 'hobbyist' and @machine.jMachine.meta?.storage_size isnt 10
+        @resizeButton?.show() if currentState is Running
 
   shareMachineWithUser: (username) ->
     @machine.jMachine.shareWith target: username
