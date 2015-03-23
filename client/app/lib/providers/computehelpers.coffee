@@ -87,6 +87,8 @@ module.exports = class ComputeHelpers
             unless showError err
               globals.userMachines.push machine
 
+              kd.singletons.router.handleRoute "/IDE/#{machine.slug}"
+
 
   # Helper method to run a specific app
   # with a specific machine
