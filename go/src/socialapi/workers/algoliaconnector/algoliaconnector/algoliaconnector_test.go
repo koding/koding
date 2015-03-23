@@ -2,6 +2,7 @@ package algoliaconnector
 
 import (
 	"errors"
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/models"
 	"socialapi/workers/common/runner"
@@ -378,33 +379,34 @@ func TestMessageUpdated(t *testing.T) {
 func TestIndexSettings(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
+	modelhelper.Initialize(runner.Conf.Mongo)
+	defer modelhelper.Close()
 
 	Convey("given some handler", t, func() {
+		groupName := models.RandomName()
 
 		Convey("we should be able to get the synonyms", func() {
 			oldsynonymns, err := handler.getSynonyms("messages")
 			So(err, ShouldBeNil)
 			So(oldsynonymns, ShouldNotBeNil)
 
+			acc, err := models.CreateAccountInBothDbs()
+			So(acc, ShouldNotBeNil)
+
+			root := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			So(root, ShouldNotBeNil)
+
+			leaf := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+			So(leaf, ShouldNotBeNil)
+
 			Convey("when we add new synonyms", func() {
-				groupName := models.RandomName()
 
-				acc, err := models.CreateAccountInBothDbs()
-				So(err, ShouldBeNil)
-				So(acc, ShouldNotBeNil)
-
-				root, err := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
-				So(err, ShouldBeNil)
-				So(root, ShouldNotBeNil)
-
-				leaf, err := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
-				So(err, ShouldBeNil)
-				So(leaf, ShouldNotBeNil)
-
-				cl := models.ChannelLink{
+				cl := &models.ChannelLink{
 					RootId: root.Id,
 					LeafId: leaf.Id,
 				}
+
+				So(cl.Create(), ShouldBeNil)
 
 				So(handler.CreateSynonym(cl), ShouldBeNil)
 
@@ -415,6 +417,7 @@ func TestIndexSettings(t *testing.T) {
 						}
 
 						f1found, f2found := false, false
+
 						for _, synonym := range synonyms {
 							for _, synonymPair := range synonym {
 								if synonymPair == root.Name {
@@ -435,8 +438,58 @@ func TestIndexSettings(t *testing.T) {
 					})
 
 					So(err, ShouldBeNil)
+
+					Convey("if we override one of the the synonyms with third one", func() {
+						leaf2 := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+						So(err, ShouldBeNil)
+						So(leaf, ShouldNotBeNil)
+
+						cl := &models.ChannelLink{
+							RootId: root.Id,
+							LeafId: leaf2.Id,
+						}
+
+						So(cl.Create(), ShouldBeNil)
+						So(handler.CreateSynonym(cl), ShouldBeNil)
+
+						Convey("synonyms should be in settings", func() {
+							err = makeSureSynonyms(handler, "messages", func(synonyms [][]string, err error) bool {
+								if err != nil {
+									return false
+								}
+
+								f1found, f2found, f3found := false, false, false
+
+								for _, synonym := range synonyms {
+									for _, synonymPair := range synonym {
+										if synonymPair == root.Name {
+											f1found = true
+										}
+
+										if synonymPair == leaf.Name {
+											f2found = true
+										}
+
+										if synonymPair == leaf2.Name {
+											f3found = true
+										}
+
+										if f1found && f2found && f3found {
+											return true
+										}
+									}
+								}
+
+								return false
+							})
+
+							So(err, ShouldBeNil)
+						})
+					})
+
 				})
 			})
+
 		})
 	})
 }
