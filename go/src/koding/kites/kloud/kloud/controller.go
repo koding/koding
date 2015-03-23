@@ -5,7 +5,6 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -238,6 +237,12 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, NewError(ErrMachineIdMissing)
 	}
 
+	if args.Provider == "" {
+		return nil, NewError(ErrProviderIsMissing)
+	}
+
+	k.track(args.Provider, args.MachineId, r.Method)
+
 	// Lock the machine id so no one else can access it. It means this
 	// kloud instance is now responsible for this machine id. Its basically
 	// a distributed lock. It's unlocked when there is an error or if the
@@ -309,61 +314,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		EventId: eventId,
 		// State:   s.initial,
 	}, nil
-}
-
-func (k *Kloud) PrepareMachine(r *kite.Request) (resp *protocol.Machine, reqErr error) {
-	// calls with zero arguments causes args to be nil. Check it that we
-	// don't get a beloved panic
-	if r.Args == nil {
-		return nil, NewError(ErrNoArguments)
-	}
-
-	var args struct {
-		MachineId string
-	}
-
-	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return nil, err
-	}
-
-	if args.MachineId == "" {
-		return nil, NewError(ErrMachineIdMissing)
-	}
-
-	// Lock the machine id so no one else can access it. It means this
-	// kloud instance is now responsible for this machine id. Its basically
-	// a distributed lock. It's unlocked when there is an error or if the
-	// method call is finished (unlocking is done inside the responsible
-	// method calls).
-	if r.Method != "info" {
-		if err := k.Locker.Lock(args.MachineId); err != nil {
-			return nil, err
-		}
-
-		// if something goes wrong after step reset the document which is was
-		// set in the by previous step by Locker.Lock(). If there is no error,
-		// the lock will be unlocked in the respective method  function.
-		defer func() {
-			if reqErr != nil {
-				// otherwise that means Locker.Lock or something else in
-				// ControlFunc failed. Reset the lock again so it can be acquired by
-				// others.
-				k.Locker.Unlock(args.MachineId)
-			}
-		}()
-	}
-
-	// Get all the data we need.
-	machine, err := k.Storage.Get(args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
-	if machine.Username == "" {
-		return nil, NewError(ErrSignUsernameEmpty)
-	}
-
-	return machine, nil
 }
 
 func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {

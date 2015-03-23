@@ -25,13 +25,17 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, err
 	}
 
-	m, err := k.PrepareMachine(r)
-	if err != nil {
-		return nil, err
-	}
+	// m, err := k.PrepareMachine(r)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	//
+	// // PrepareMachine is locking for us, so unlock after we are done
+	// defer k.Locker.Unlock(m.Id)
 
-	// PrepareMachine is locking for us, so unlock after we are done
-	defer k.Locker.Unlock(m.Id)
+	var m *protocol.Machine
+
+	panic("handle domain!")
 
 	if m.IpAddress == "" {
 		return nil, fmt.Errorf("ip address is not defined")

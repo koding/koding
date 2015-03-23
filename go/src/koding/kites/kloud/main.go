@@ -26,6 +26,7 @@ import (
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
 )
@@ -165,11 +166,6 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "iSNZFtHwNFT8OpZ8Gsmj/Bp0tU1vqNw6DfgvIUsn",
 	}
 
-	// stats, err := metrics.NewDogStatsD("kloud.aws")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	dnsInstance := dnsclient.New(conf.HostedZone, auth)
 
 	kodingProvider := &koding.Provider{
@@ -204,8 +200,13 @@ func newKite(conf *Config) *kite.Kite {
 	// go kodingProvider.RunChecker(checkInterval)
 	// go kodingProvider.RunCleaners(time.Minute * 60)
 
-	kld := kloud.New()
+	stats, err := metrics.NewDogStatsD("kloud")
+	if err != nil {
+		panic(err)
+	}
 
+	kld := kloud.New()
+	kld.Metrics = stats
 	kld.PublicKeys = publickeys.NewKeys()
 	// kld.Storage = kodingProvider
 	// kld.DomainStorage = domainStorage
@@ -213,7 +214,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
 
-	err := kld.AddProvider("koding", kodingProvider)
+	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}

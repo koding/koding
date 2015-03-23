@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/protocol"
 
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"golang.org/x/net/context"
 )
 
@@ -52,6 +53,8 @@ type Kloud struct {
 	// in the ProviderArtifact. Some providers such as Amazon creates
 	// publicKey's on the fly and generates the privateKey themself.
 	PublicKeys *publickeys.Keys
+
+	Metrics *metrics.DogStatsD
 
 	// Enable debug mode
 	Debug bool

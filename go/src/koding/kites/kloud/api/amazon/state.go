@@ -13,26 +13,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// func (a *Amazon) track(ctx context.Context, id, call string) {
-// 	tags := []string{"action:" + call}
-//
-// 	if id != "" {
-// 		tags = append(tags, "instanceId:"+id)
-// 	}
-//
-// 	if a.Metrics == nil {
-// 		return
-// 	}
-//
-//  var Metrics *metrics.DogStatsD
-// 	Metrics.Count(
-// 		"call_to_describe_instance.counter", // metric name
-// 		1,    // count
-// 		tags, // tags for metric call
-// 		1.0,  // rate
-// 	)
-// }
-
 func (a *Amazon) Start(ctx context.Context) (*protocol.Artifact, error) {
 	ev, withPush := eventer.FromContext(ctx)
 	if !withPush {
@@ -54,10 +34,6 @@ func (a *Amazon) Start(ctx context.Context) (*protocol.Artifact, error) {
 
 	var instance ec2.Instance
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-
-		// a.track(a.Id(), "Start")
-		panic("TODO: implement track, remove it from here ")
-
 		instance, err = a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -105,9 +81,6 @@ func (a *Amazon) Stop(ctx context.Context) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		// a.track(a.Id(), "Stop")
-		panic("TODO: fix track")
-
 		instance, err := a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -147,9 +120,6 @@ func (a *Amazon) Restart(ctx context.Context) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		// a.track(a.Id(), "Restart")
-		panic("TODO: fix track")
-
 		instance, err := a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -193,9 +163,6 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		// a.track(a.Id(), "Destroy")
-		panic("TODO: fix track")
-
 		instance, err := a.Instance(a.Id())
 		if err != nil {
 			return 0, err
@@ -222,9 +189,6 @@ func (a *Amazon) Info() (*protocol.InfoArtifact, error) {
 			Name:  "not-existing-instance",
 		}, nil
 	}
-
-	// a.track(a.Id(), "Info")
-	panic("TODO: fix track")
 
 	instance, err := a.Instance(a.Id())
 	if err == ErrNoInstances {

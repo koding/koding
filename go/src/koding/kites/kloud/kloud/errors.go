@@ -23,12 +23,6 @@ const (
 	ErrEventTypeMissing = 202
 	ErrEventArgsEmpty   = 203
 
-	ErrSignUsernameEmpty   = 300
-	ErrSignKontrolURLEmpty = 301
-	ErrSignPrivateKeyEmpty = 302
-	ErrSignPublicKeyEmpty  = 303
-	ErrSignGenerateToken   = 304
-
 	ErrBadState               = 400
 	ErrProviderNotFound       = 401
 	ErrNoKiteConnection       = 402
@@ -37,6 +31,7 @@ const (
 	ErrProviderAvailable      = 405
 	ErrProviderNotImplemented = 406
 	ErrBuilderNotImplemented  = 407
+	ErrProviderIsMissing      = 408
 
 	ErrUserNotConfirmed = 500
 )
@@ -59,13 +54,6 @@ var errors = map[int]string{
 	ErrEventNotFound:    "Event not found.",
 	ErrEventArgsEmpty:   "Event arguments is empty, expecting an array.",
 
-	// Signer errors
-	ErrSignUsernameEmpty:   "Username is empty",
-	ErrSignKontrolURLEmpty: "Kontrol URL is empty",
-	ErrSignPrivateKeyEmpty: "Private key is empty",
-	ErrSignPublicKeyEmpty:  "Public key is empty",
-	ErrSignGenerateToken:   "Cannot generate token",
-
 	// Generic errors
 	ErrBadState:               "Bad state.",
 	ErrProviderNotFound:       "Provider is not found",
@@ -75,6 +63,7 @@ var errors = map[int]string{
 	ErrProviderAvailable:      "Provider is already available",
 	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
 	ErrBuilderNotImplemented:  "Provider doesn't implement the builder interface",
+	ErrProviderIsMissing:      "Provider argument is missing.",
 
 	// User errors
 	ErrUserNotConfirmed: "User account is not confirmed",

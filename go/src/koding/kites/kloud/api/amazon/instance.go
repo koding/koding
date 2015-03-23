@@ -32,9 +32,6 @@ func (a *Amazon) CheckBuild(instanceId string, start, finish int) (ec2.Instance,
 	var instance ec2.Instance
 	var err error
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		// a.track(instanceId, "Build")
-		panic("TODO: implement a.track")
-
 		instance, err = a.Instance(instanceId)
 		if err != nil {
 			return 0, err
