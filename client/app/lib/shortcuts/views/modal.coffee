@@ -33,6 +33,11 @@ module.exports = class ShortcutsModal extends kd.ModalViewWithForms
 
   viewAppended: ->
 
+    @modalTabs.on 'PaneDidShow', => kd.utils.defer @bound '_windowDidResize'
+
+    @_windowDidResize()
+
+
   prepareTabData: (keyconfig) ->
 
     forms = {}
