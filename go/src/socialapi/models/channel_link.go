@@ -112,9 +112,7 @@ func (c *ChannelLink) Delete() error {
 
 func (c *ChannelLink) Blacklist() error {
 	c.DeleteMessages = true
-	c.Create()
-
-	return nil
+	return c.Create()
 }
 
 func (c *ChannelLink) create() error {
