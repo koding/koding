@@ -10,7 +10,7 @@ class ShortcutsListItem extends kd.ListItemView
   JView.mixin @prototype
 
   constructor: (options={}, model) ->
-    
+
     options.tagName or= 'div'
     options.cssClass or= 'row'
 
@@ -19,9 +19,28 @@ class ShortcutsListItem extends kd.ListItemView
 
     super options, model
 
+    @bindingView.input.on 'blur', @bound 'hideInput'
+    @bindingView.on 'KeybindingUpdated', => @setClass 'updated'
+
+
+  click: -> @showInput()  unless @active
+
+
+  hideInput: ->
+
+    @bindingView.hideEditMode()
+    @active = no
+
+
+  showInput: ->
+
+    @bindingView.showEditMode()
+    @active = yes
+
+
   pistachio: ->
     """
-    <div class=col>{span{#(description)}}</div>
-    <div class=col>{span{> @bindingView }}</div>
-    <div class=col>{span{> @enabledView }}</div>
+    <div class=col>{{ #(description)}}</div>
+    <div class=col>{{> @bindingView }}</div>
+    <div class=col>{{> @enabledView }}</div>
     """
