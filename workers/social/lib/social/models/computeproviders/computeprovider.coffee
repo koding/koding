@@ -300,24 +300,27 @@ module.exports = class ComputeProvider extends Base
 
   do ->
 
-    JGroup = require '../group'
-    JGroup.on 'MemberAdded', ({group, member})->
-
-      # No need to try creating group stacks for guests group members
-      return  if group.slug is 'guests'
-
-      client =
-        connection :
-          delegate : member
-        context    : group : group.slug
-
-      ComputeProvider.createGroupStack client, (err, res = {})->
-
-        {stack, results} = res
-
-        if err?
-          {nickname} = member.profile
-          console.log "Create group stack failed for #{nickname}:", err, results
+    # This is moved into JUser::convert steps but we need to
+    # re-enable this for Teams product. ~ GG
+    #
+    # JGroup = require '../group'
+    # JGroup.on 'MemberAdded', ({group, member})->
+    #
+    #   # No need to try creating group stacks for guests group members
+    #   return  if group.slug is 'guests'
+    #
+    #   client =
+    #     connection :
+    #       delegate : member
+    #     context    : group : group.slug
+    #
+    #   ComputeProvider.createGroupStack client, (err, res = {})->
+    #
+    #     {stack, results} = res
+    #
+    #     if err?
+    #       {nickname} = member.profile
+    #       console.log "Create group stack failed for #{nickname}:", err, results
 
 
     JAccount = require '../account'
