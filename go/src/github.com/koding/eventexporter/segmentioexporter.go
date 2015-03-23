@@ -16,26 +16,35 @@ func NewSegementIOExporter(key string, size int) *SegementIOExporter {
 }
 
 func (s *SegementIOExporter) Send(event *Event) error {
+	trackEvent, err := buildTrack(event)
+	if err != nil {
+		return err
+	}
+
+	return s.Client.Track(trackEvent)
+}
+
+func buildTrack(event *Event) (*analytics.Track, error) {
 	if event.User.Username == "" {
-		return ErrorSegmentIOUsernameEmpty
+		return nil, ErrSegmentIOUsernameEmpty
 	}
 
 	if event.User.Email == "" {
-		return ErrorSegmentIOEmailEmpty
+		return nil, ErrSegmentIOEmailEmpty
 	}
 
 	if event.Name == "" {
-		return ErrorSegmentIOEventEmpty
+		return nil, ErrSegmentIOEventEmpty
 	}
 
 	event = addBody(event)
 	event.Properties["email"] = event.User.Email
 
-	return s.Client.Track(&analytics.Track{
+	return &analytics.Track{
 		Event:      event.Name,
 		UserId:     event.User.Username,
 		Properties: event.Properties,
-	})
+	}, nil
 }
 
 func addBody(event *Event) *Event {
