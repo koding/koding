@@ -84,7 +84,7 @@ module.exports = class ComputeProvider extends Base
       { provider, stack, label, provisioners } = options
       { r: { group, user, account } } = client
 
-      provider.create client, options, (err, machineData)=>
+      provider.create client, options, (err, machineData)->
 
         return callback err  if err
 
@@ -109,8 +109,6 @@ module.exports = class ComputeProvider extends Base
             return callback err  if err
 
             stack.appendTo machines: machine.getId(), (err)->
-
-              account.sendNotification "MachineCreated"  unless err
               callback err, machine
 
 
