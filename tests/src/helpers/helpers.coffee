@@ -441,7 +441,7 @@ module.exports =
     paragraph           = @getFakeText()
     newName             = paragraph.split(' ')[0]
     avatarSelector      = '.avatar-area a.profile'
-    accountPageSelector = '#main-panel-wrapper .user-profile'
+    accountPageSelector = '.AppModal--account'
     saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
 
     browser
