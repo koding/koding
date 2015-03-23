@@ -19,7 +19,7 @@ module.exports = class PricingPlansView extends KDView
 
   initViews: ->
 
-    for plan in @plans
+    for plan in @getPlans()
       plan.delegate = this
       planTitle = plan.title.toLowerCase()
       plan.state = @state
@@ -31,6 +31,13 @@ module.exports = class PricingPlansView extends KDView
   switchTo: (planInterval) ->
 
     plan.setPlanInterval(planInterval)  for _, plan of @planViews
+
+
+  getPlans: ->
+
+    { reversePlans } = @state
+    method = if reversePlans then 'reverse' else 'slice'
+    return @plans[method]()
 
 
   plans: [
@@ -60,7 +67,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1 VM '          , cssClass: 'vm-count' }
       { partial: '1 Core'         , cssClass: 'cpu' }
       { partial: '1GB RAM'        , cssClass: 'ram' }
-      { partial: '10GB Storage'   , cssClass: 'storage' }
+      { partial: '10GB Total Disk', cssClass: 'storage' }
       { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,
@@ -94,5 +101,3 @@ module.exports = class PricingPlansView extends KDView
       { partial: '2 Always on VMs' , cssClass: 'always-on' }
     ]
   ]
-
-
