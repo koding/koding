@@ -21,7 +21,7 @@ module.exports = class IDEChatHeadWatchItemView extends KDCustomHTMLView
     @addSubView @info = new CustomLinkView
       title        : ''
       cssClass     : 'info'
-      href         : 'http://learn.koding.com/collaboration#watch'
+      href         : 'http://learn.koding.com/guides/collaboration/#what-does-quot-watch-quot-mode-mean-'
       target       : '_blank'
 
 
