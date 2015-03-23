@@ -41,12 +41,32 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 		return nil, ErrSegmentIOEventEmpty
 	}
 
-	event.Properties["email"] = event.User.Email
-	event.Properties["currentDate"] = time.Now().UTC().Format(DateLayout)
+	event = addBody(event)
 
 	return &analytics.Track{
 		Event:      event.Name,
 		UserId:     event.User.Username,
 		Properties: event.Properties,
 	}, nil
+}
+
+func addBody(event *Event) *Event {
+	_, ok := event.Properties["body"]
+	if ok {
+		return event
+	}
+
+	if event.Body != nil {
+		if event.Properties == nil {
+			event.Properties = map[string]interface{}{}
+		}
+
+		event.Properties["body"] = event.Body.Content
+		event.Properties["bodyType"] = event.Body.Type
+	}
+
+	event.Properties["email"] = event.User.Email
+	event.Properties["currentDate"] = time.Now().UTC().Format(DateLayout)
+
+	return event
 }
