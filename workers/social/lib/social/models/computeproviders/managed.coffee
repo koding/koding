@@ -25,6 +25,8 @@ isValid = ({ipAddress, queryString, storage}, callback)->
 
   return yes
 
+getKiteIdOnly = (queryString)->
+  "///////#{queryString.split('/').reverse()[0]}"
 
 module.exports = class Managed extends ProviderInterface
 
@@ -43,7 +45,8 @@ module.exports = class Managed extends ProviderInterface
 
     return  unless isValid {queryString, ipAddress}, callback
 
-    provider = @providerSlug
+    queryString = getKiteIdOnly queryString
+    provider    = @providerSlug
 
     { guessNextLabel, fetchUserPlan, fetchUsage } = require './computeutils'
 
