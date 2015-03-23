@@ -22,6 +22,12 @@ module.exports = class ShortcutsModal extends kd.ModalViewWithForms
         save                  :
           title               : 'Save'
           cssClass            : 'solid green medium'
+          callback            : =>
+            # poc code - SY
+            console.log "this is fake!!!"
+            new kd.NotificationView title : 'Shortcuts saved!'
+            @modalTabs.getActivePane().form.inputs.view.listController.getListItems().forEach (item) ->
+              item.unsetClass 'updated'
       tabs                    :
         hideHandleCloseIcons  : yes
         enableMoveTabHandle   : no
