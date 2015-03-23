@@ -4,6 +4,7 @@ import (
 	"socialapi/workers/api/modules/account"
 	"socialapi/workers/api/modules/activity"
 	"socialapi/workers/api/modules/channel"
+	"socialapi/workers/api/modules/client"
 	"socialapi/workers/api/modules/interaction"
 	"socialapi/workers/api/modules/message"
 	"socialapi/workers/api/modules/messagelist"
@@ -16,6 +17,16 @@ import (
 )
 
 func AddHandlers(m *mux.Mux) {
+
+	m.AddHandler(
+		handler.Request{
+			Handler:  client.Location,
+			Name:     "client-location",
+			Type:     handler.GetRequest,
+			Endpoint: "/client/location",
+		},
+	)
+
 	//----------------------------------------------------------
 	// Message Operations
 	//----------------------------------------------------------
