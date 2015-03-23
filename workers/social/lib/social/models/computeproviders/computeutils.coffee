@@ -175,6 +175,20 @@ revive = do -> ({
     , shouldReviveClient
 
 
+checkTemplateUsage = (template, account, callback)->
+
+  {Relationship} = require 'jraphical'
+  Relationship.count
+    targetId   : template.getId()
+    targetName : "JStackTemplate"
+    sourceId   : account.getId()
+  , (err, count)->
+
+    if err or count > 0
+    then callback new KodingError "Template in use", "InUse", err
+    else callback null
+
+
 fetchStackTemplate = (client, callback)->
 
   reviveClient client, (err, res)->
@@ -210,15 +224,8 @@ fetchStackTemplate = (client, callback)->
         console.warn "Failed to create stack for #{user.username} !!"
         return callback new KodingError "Template not found", "NotFound", err
 
-      {Relationship} = require 'jraphical'
-      Relationship.count
-        targetId   : template.getId()
-        targetName : "JStackTemplate"
-        sourceId   : account.getId()
-      , (err, count)->
-
-        if err or count > 0
-          return callback new KodingError "Template in use", "InUse", err
+      checkTemplateUsage template, account, (err)->
+        return callback err  if err?
 
         res.template = template
         callback null, res
@@ -323,4 +330,5 @@ module.exports = {
   fetchUserPlan, fetchStackTemplate, fetchUsage
   PLANS, PROVIDERS, guessNextLabel, checkUsage
   revive, reviveClient, reviveCredential
+  checkTemplateUsage
 }

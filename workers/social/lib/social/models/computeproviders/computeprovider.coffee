@@ -9,7 +9,7 @@ module.exports = class ComputeProvider extends Base
 
   {
     PLANS, PROVIDERS, fetchStackTemplate, revive,
-    reviveClient, reviveCredential, fetchUsage
+    reviveClient, reviveCredential, fetchUsage, checkTemplateUsage
   } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
@@ -223,8 +223,12 @@ module.exports = class ComputeProvider extends Base
           connections : []
 
         queue.push ->
-          account.addStackTemplate template, (err)->
-            if err then callback err else queue.next()
+
+          checkTemplateUsage template, account, (err)->
+            return callback err  if err
+
+            account.addStackTemplate template, (err)->
+              if err then callback err else queue.next()
 
         template.machines?.forEach (machineInfo)->
 
