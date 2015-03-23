@@ -54,7 +54,7 @@ func UnLink(rootId, leafId int64, token string) error {
 func BlackList(rootId, leafId int64, token string) error {
 	data := &models.ChannelLink{RootId: rootId, LeafId: leafId}
 	url := "/moderation/channel/blacklist"
-	cl, err := sendModelWithAuth("POST", url, data, token)
+	_, err := sendModelWithAuth("POST", url, data, token)
 	if err != nil {
 		return err
 	}
