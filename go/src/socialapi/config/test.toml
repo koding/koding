@@ -98,3 +98,4 @@ clientSecret = "1iNPDf8-F9bTKmX8OWXlkYra"
 serviceAccountEmail = "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com"
 serviceAccountKeyFile = "/pipeline/build/keys/googleapi-privatekey.pem"
 
+geoipdbpath = "/pipeline/build/go/geoipdb"
