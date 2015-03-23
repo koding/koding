@@ -482,7 +482,7 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   editLastMessage: ->
 
-    items = @listController.getItemsOrdered().slice(0).reverse()
+    items = @listController.getListItems().slice(0).reverse()
     return item.showEditWidget() for item in items when isMyPost item.getData()
 
 

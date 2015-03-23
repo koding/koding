@@ -358,6 +358,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   addItem: (data, index) ->
 
     listController = @getListController data.typeConstant
+
+    return  unless listController
+
     item = @getItemByData data
 
     # add the new topic item in sidebar
@@ -536,10 +539,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     frontApp = kd.singletons.appManager.getFrontApp()
 
     if frontApp?.options.name is 'IDE'
-      machine   = frontApp.mountedMachine
-      workspace = frontApp.workspaceData
-
-      @selectWorkspace { machine, workspace }
+      frontApp.whenMachineReady (machine, workspace) =>
+        @selectWorkspace { machine, workspace }
 
 
   addMachines_: (data) ->
@@ -640,7 +641,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = kd.noop) ->
 
-    @fetchEnvironmentData @bound 'redrawMachineList'
+    kd.singletons.mainController.ready =>
+      @fetchEnvironmentData @bound 'redrawMachineList'
 
 
   invalidateWorkspaces: (machine) ->

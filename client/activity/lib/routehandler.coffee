@@ -13,8 +13,8 @@ activityPane = (callback) ->
 
 handleChannel = (type, slug, callback) ->
   callback    ?= (app) -> app.getView().open type, slug
-  {appManager} = kd.singletons
-  appManager.open 'Activity', callback
+  {appManager, mainController} = kd.singletons
+  mainController.ready -> appManager.open 'Activity', callback
 
 module.exports = -> lazyrouter.bind 'activity', (type, info, state, path, ctx) ->
 
