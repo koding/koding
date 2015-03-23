@@ -13,6 +13,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.ModerationChannelCreateLink,
 			Type:     handler.PostRequest,
 			Endpoint: "/moderation/channel/{rootId}/link",
+			Metrics:  metric,
 		},
 	)
 
@@ -22,6 +23,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.ModerationChannelGetLink,
 			Type:     handler.GetRequest,
 			Endpoint: "/moderation/channel/{rootId}/link",
+			Metrics:  metric,
 		},
 	)
 
@@ -31,6 +33,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.ModerationChannelDeleteLink,
 			Type:     handler.DeleteRequest,
 			Endpoint: "/moderation/channel/{rootId}/link/{leafId}",
+			Metrics:  metric,
 		},
 	)
 
@@ -40,6 +43,7 @@ func AddHandlers(m *mux.Mux) {
 			Name:     models.ModerationChannelBlacklist,
 			Type:     handler.DeleteRequest,
 			Endpoint: "/moderation/channel/{leafId}",
+			Metrics:  metric,
 		},
 	)
 }
