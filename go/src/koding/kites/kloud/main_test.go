@@ -465,7 +465,7 @@ func createUser(username string) (*singleUser, error) {
 		Groups:     make([]models.Permissions, 0),
 	}
 
-	machine.Meta.Region = "eu-west-1"
+	machine.Meta.Region = "us-east-1"
 	machine.Meta.InstanceType = "t2.micro"
 	machine.Meta.StorageSize = 3
 	machine.Meta.AlwaysOn = false
@@ -738,8 +738,6 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 		}
 
 		e := events[0]
-
-		fmt.Printf("e = %+v\n", e)
 		if e.Error != nil {
 			return e.Error
 		}

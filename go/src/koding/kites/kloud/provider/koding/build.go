@@ -15,7 +15,6 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
 
@@ -76,7 +75,8 @@ func (m *Machine) build(ctx context.Context) error {
 		SnapshotId string
 	}
 
-	if err := req.Args.One().Unmarshal(&args); err != nil {
+	err := req.Args.One().Unmarshal(&args)
+	if err != nil {
 		return err
 	}
 
@@ -88,14 +88,8 @@ func (m *Machine) build(ctx context.Context) error {
 		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
 	}
 
-	fmt.Println("building!")
-
-	var err error
-	imageId := ""
-	instanceId := m.Meta.InstanceId
-
 	// if there is already a machine just check it again
-	if instanceId == "" {
+	if m.Meta.InstanceId == "" {
 		m.push("Generating and fetching build data", 10, machinestate.Building)
 
 		m.Log.Debug("Generating and fetching build data")
@@ -115,7 +109,7 @@ func (m *Machine) build(ctx context.Context) error {
 
 		m.push("Initiating build process", 30, machinestate.Building)
 		m.Log.Debug("Initiating creating process of instance")
-		instanceId, err = m.create(buildData)
+		m.Meta.InstanceId, err = m.create(buildData)
 		if err != nil {
 			return err
 		}
@@ -124,7 +118,7 @@ func (m *Machine) build(ctx context.Context) error {
 			return c.UpdateId(
 				m.Id,
 				bson.M{"$set": bson.M{
-					"meta.instanceId": instanceId,
+					"meta.instanceId": m.Meta.InstanceId,
 					"meta.source_ami": m.Meta.SourceAmi,
 					"meta.region":     m.Meta.Region,
 					"queryString":     m.QueryString,
@@ -135,16 +129,17 @@ func (m *Machine) build(ctx context.Context) error {
 		}
 	} else {
 		m.Log.Debug("Continue build process with data, instanceId: '%s' and queryString: '%s'",
-			instanceId, m.QueryString)
+			m.Meta.InstanceId, m.QueryString)
 	}
 
 	m.push("Checking build process", 50, machinestate.Building)
-	m.Log.Debug("Checking build process of instanceId '%s'", instanceId)
-	buildArtifact, err := m.checkBuild(instanceId)
+	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
+
+	instance, err := m.Session.AWSClient.CheckBuild(m.Meta.InstanceId, 50, 70)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
-			instanceId, err)
+			m.Meta.InstanceId, err)
 
 		// we fallback to us-east-1 (it has the largest quota) because a
 		// terminated or no instances error only appears if the given region
@@ -173,34 +168,44 @@ func (m *Machine) build(ctx context.Context) error {
 		return err
 	}
 
+	m.Meta.InstanceType = instance.InstanceType
+	m.Meta.SourceAmi = instance.ImageId
+	m.IpAddress = instance.PublicIpAddress
+
 	// allocate and associate a new Public IP for paying users, we can do
 	// this after we create the instance
 	if m.Payment.Plan != Free {
 		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
-		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(instanceId)
+		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
 		if err != nil {
 			m.Log.Warning("couldn't not create elastic IP: %s", err)
 		} else {
-			buildArtifact.IpAddress = elasticIp
+			m.IpAddress = elasticIp
 		}
 	}
 
-	buildArtifact.KiteQuery = m.QueryString
-	buildArtifact.ImageId = imageId
-
-	m.Log.Debug("Buildartifact is ready: %#v", buildArtifact)
-
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
-	m.Log.Debug("Adding and setting up domain and tags")
-	m.addDomainAndTags(buildArtifact)
+	m.addDomainAndTags()
 
-	m.push(fmt.Sprintf("Checking klient connection '%s'", buildArtifact.IpAddress), 90, machinestate.Building)
-	m.Log.Debug("All finished, testing for klient connection IP [%s]", buildArtifact.IpAddress)
+	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 90, machinestate.Building)
+	if err := m.checkKite(m.QueryString); err != nil {
+		return err
+	}
 
-	panic("TODO: update buildartifact information to MongoDB")
-
-	return m.checkKite(buildArtifact.KiteQuery)
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"ipAddress":         m.IpAddress,
+				"queryString":       m.QueryString,
+				"meta.instanceType": m.Meta.InstanceType,
+				"meta.instanceName": m.Meta.InstanceName,
+				"meta.instanceId":   m.Meta.InstanceId,
+				"meta.source_ami":   m.Meta.SourceAmi,
+			}},
+		)
+	})
 }
 
 func (m *Machine) imageData() (*ImageData, error) {
@@ -473,7 +478,7 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 			m.Log.Warning("Fallback build by using availability zone: %s, subnet %s and instance type: %s",
 				zone, subnet.SubnetId, instanceType)
 
-			buildArtifact, err := m.Session.AWSClient.Build(buildData.EC2Data)
+			instanceId, err := m.Session.AWSClient.Build(buildData.EC2Data)
 			if err != nil {
 				// if there is no capacity we are going to use the next one
 				m.Log.Warning("Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
@@ -481,7 +486,7 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 				continue
 			}
 
-			return buildArtifact, nil // we got something that works!
+			return instanceId, nil // we got something that works!
 		}
 
 		return "", errors.New("tried all zones without any success.")
@@ -495,50 +500,36 @@ func (m *Machine) create(buildData *BuildData) (string, error) {
 	// TODO: filter out instances that are lower than the current user's
 	// instance type (so don't pick up t2.small if the user hasa t2.medium)
 	for _, instanceType := range InstancesList {
-		buildArtifact, err := tryAllZones(instanceType)
+		instanceId, err := tryAllZones(instanceType)
 		if err != nil {
 			m.Log.Critical("Fallback didn't work for instances: %s", err)
 			continue // pick up the next instance type
 		}
 
-		return buildArtifact, nil
+		return instanceId, nil
 	}
 
 	return "", errors.New("build reached the end. all fallback mechanism steps failed.")
 }
 
-func (m *Machine) checkBuild(instanceId string) (*protocol.Artifact, error) {
-	instance, err := m.Session.AWSClient.CheckBuild(instanceId, 50, 70)
-	if err != nil {
-		return nil, err
-	}
-
-	return &protocol.Artifact{
-		IpAddress:    instance.PublicIpAddress,
-		InstanceId:   instance.InstanceId,
-		InstanceType: instance.InstanceType,
-	}, nil
-
-}
-
-func (m *Machine) addDomainAndTags(buildArtifact *protocol.Artifact) {
+func (m *Machine) addDomainAndTags() {
 	// this can happen when an Info method is called on a terminated instance.
 	// This updates the DB records with the name that EC2 gives us, which is a
 	// "terminated-instance"
-	instanceName := m.Meta.InstanceName
-	if instanceName == "terminated-instance" {
-		instanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
-		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", instanceName)
+	m.Log.Debug("Adding and setting up domain and tags")
+	if m.Meta.InstanceName == "terminated-instance" {
+		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
+		m.Log.Debug("Instance name is an artifact (terminated), changing to %s", m.Meta.InstanceName)
 	}
 
 	m.push("Updating/Creating domain", 70, machinestate.Building)
-	m.Log.Debug("Updating/Creating domain %s", buildArtifact.IpAddress)
+	m.Log.Debug("Updating/Creating domain %s", m.IpAddress)
 
 	if err := m.Session.DNS.Validate(m.Domain, m.Username); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
-	if err := m.Session.DNS.Upsert(m.Domain, buildArtifact.IpAddress); err != nil {
+	if err := m.Session.DNS.Upsert(m.Domain, m.IpAddress); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
@@ -552,17 +543,13 @@ func (m *Machine) addDomainAndTags(buildArtifact *protocol.Artifact) {
 		if err := m.Session.DNS.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
-		if err := m.Session.DNS.Upsert(domain.Name, buildArtifact.IpAddress); err != nil {
+		if err := m.Session.DNS.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
 	}
 
-	buildArtifact.InstanceName = instanceName
-	buildArtifact.MachineId = m.Id.Hex()
-	buildArtifact.DomainName = m.Domain
-
 	tags := []ec2.Tag{
-		{Key: "Name", Value: buildArtifact.InstanceName},
+		{Key: "Name", Value: m.Meta.InstanceName},
 		{Key: "koding-user", Value: m.Username},
 		{Key: "koding-env", Value: m.Session.Kite.Config.Environment},
 		{Key: "koding-machineId", Value: m.Id.Hex()},
@@ -570,13 +557,13 @@ func (m *Machine) addDomainAndTags(buildArtifact *protocol.Artifact) {
 	}
 
 	m.Log.Debug("Adding user tags %v", tags)
-	if err := m.Session.AWSClient.AddTags(buildArtifact.InstanceId, tags); err != nil {
+	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
 }
 
 func (m *Machine) checkKite(query string) error {
-	m.Log.Debug("Connecting to remote Klient instance")
+	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
 	if m.isKlientReady() {
 		m.Log.Debug("klient is ready.")
 	} else {
@@ -587,7 +574,7 @@ func (m *Machine) checkKite(query string) error {
 }
 
 func (m *Machine) isKlientReady() bool {
-	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*2)
+	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*3)
 	if err != nil {
 		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
 		return false
