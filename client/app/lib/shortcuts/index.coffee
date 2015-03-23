@@ -5,7 +5,9 @@ _              = require 'underscore'
 kd             = require 'kd'
 globals        = require 'globals'
 ShortcutsModal = require './views/modal'
+cloneArray     = require 'app/util/cloneArray'
 
+STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '1'
 THROTTLE_WAIT   = 300
 
@@ -27,8 +29,7 @@ class ShortcutsController extends events.EventEmitter
 
     super()
 
-    @_store        = null
-    @_isStoreReady = no
+    @_store = null
 
     if opts.shortcuts instanceof Shortcuts
       @shortcuts = opts.shortcuts
@@ -44,53 +45,88 @@ class ShortcutsController extends events.EventEmitter
 
     { appManager, appStorageController } = kd.singletons
 
-    @_store = appStorageController.storage 'Keyboard', STORAGE_VERSION
+    @_store = appStorageController.storage
+      name    : klass.getPlatformStorageKey()
+      version : STORAGE_VERSION
+      fetch   : no
 
     # make sure we are not accessing storage until its ready.
     # this also updates kb bindings which are initially listening
     # for default combos.
-    @_store.ready _.bind @handleStoreReady, this
+    @_store.once 'ready', _.bind @_handleStoreReady, this
 
     # add valid kb event listeners and invalidate obsolete upon
     # front application is set and ready
-    appManager.on 'FrontAppChange',
-      _.bind @handleFrontAppChange, this
+    appManager.on 'FrontAppChange', _.bind @_handleFrontAppChange, this
 
-    # save db whenever a shortcut is changed.
-    # this should handled with some care to avoid exhausting
-    # resources, since shortcuts emits all changes.
-    @shortcuts.on 'change', (collection) =>
-      @_save collection
+    @_store.fetchStorage null, yes
 
 
-  _save: _.throttle (collection) ->
-    throw 'not ready'  unless @_isStoreReady
+  _save: _.throttle (collection, model) ->
 
-    data = collection.reduce (acc, model) ->
-      acc[model.name] = klass.getPlatformBindings model
-    , {}
+    throw 'could not persist changes'  unless @_store.isReady
+    # also means: do not call this method explicitly, use #update
 
-    @_store.setValue klass.getPlatformStorageKey(), data
+    throw 'not implemented :trollface:'
 
   , THROTTLE_WAIT,
     leading  : no
     trailing : yes
 
 
-  _restore: ->
-    throw 'not ready'  unless @_isStoreReady
+  _handleStoreReady: ->
 
-    bindings = @_store.getValue(klass.getPlatformStorageKey()) or {}
+    osIndex = if globals.os is 'mac' then 1 else 0
+
+    @shortcuts.config.each (collection) =>
+      collectionName = collection.name
+
+      objs = @_store.getValue collectionName
+
+      if _.isArray objs
+        _.each objs, (obj) =>
+
+          model = @shortcuts.get collectionName, obj.name
+          return  unless model
+
+          silent = if model.options?.custom then yes else no
+
+          # -------------------------------
+          # about custom shortcuts (eg ace)
+          # -------------------------------
+          #
+          # i don't really want to embed such logic into _shortcuts_; it should be
+          # totally 'shortcut type' agnostic and api provides the necessity to deal
+          # with such cases indeed.
+          #
+          # passing 'silent' as the 4th argument to shortcuts#update makes sure its
+          # internal keyconfig#change listener won't get dispatched anyhow, thus
+          # rendering the model in question unbound. plus, there is the _options_
+          # object you can use to denote such weirdos.
+          #
+          # just make sure you don't put any 'custom shortcut' set names
+          # into a bant.json file, since these sets are automatically thought to
+          # be _shortcuts_ compatible.
+
+          binding = null
+
+          if _.isArray obj.binding
+            binding = cloneArray model.binding
+            binding[osIndex] = [].concat(obj.binding).filter _.isString
+
+          @emit 'change', collection,
+            shortcuts.update collectionName, obj.name,
+              binding: binding
+              options: options
+            , silent
+
+    # persist to app storage whenever a shortcut is changed.
+    # this should handled with some care to avoid exhausting
+    # resources, since _shortcuts_ emits all changes.
+    @shortcuts.on 'change', _.bind @_save, this
 
 
-  handleStoreReady: ->
-
-    @_isStoreReady = yes
-
-    @_restore()
-
-
-  handleFrontAppChange: (app, prevApp) ->
+  _handleFrontAppChange: (app, prevApp) ->
     # invalidates previous app's keyboard events and adds new
     # listeners for the current one
 
@@ -116,14 +152,17 @@ class ShortcutsController extends events.EventEmitter
 
   get: ->
     # proxy to shortcuts#get
-    # see: http://github.com/koding/shortcuts
+    # see: http://github.com/koding/shortcuts#api
 
     @shortcuts.get.apply @shortcuts, Array::slice.call arguments
 
 
   update: ->
     # proxy to shortcuts#update
-    # see: http://github.com/koding/shortcuts
+    # see: http://github.com/koding/shortcuts#api
+
+    unless @_store.isReady
+      console.warn 'changes won\'t be persisted, since storage is not ready yet'
 
     @shortcuts.update @shortcuts, Array::slice.call arguments
 
@@ -156,7 +195,4 @@ class ShortcutsController extends events.EventEmitter
     return model[klass.bindingsGetterMethodName()]()
 
 
-  @getPlatformStorageKey: _.memoize ->
-    # returns either "bindings-win" or "bindings-mac"
-
-    return "bindings-#{globals.keymapType}"
+  @getPlatformStorageKey: -> "#{STORAGE_NAME}-#{globals.keymapType}"
