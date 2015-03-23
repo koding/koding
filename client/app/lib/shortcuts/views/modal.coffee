@@ -48,3 +48,14 @@ module.exports = class ShortcutsModal extends kd.ModalViewWithForms
     return forms
 
 
+  _windowDidResize: ->
+
+    {innerHeight} = window
+    titleHeight   = @$('.kdmodal-title').outerHeight no
+    handleHeight  = @$('.kdtabhandlecontainer').outerHeight no
+    headHeight    = @$('.list-head').outerHeight no
+    # 150px bc it looks good :) padding/margin etc. - SY
+    maxHeight     = Math.min 240, innerHeight - 150 - titleHeight - handleHeight - headHeight
+    @$('.kdmodal-content .shortcuts-pane .kdscrollview').css {maxHeight}
+
+    @setPositions()
