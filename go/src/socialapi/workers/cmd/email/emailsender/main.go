@@ -11,9 +11,6 @@ import (
 var (
 	Name        = "MailSender"
 	QueueLength = 1
-
-	// TODO: move this to config
-	SegmentIOKey = "kb2hfdgf20"
 )
 
 func main() {
@@ -22,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	exporter := eventexporter.NewSegmentIOExporter(SegmentIOKey, QueueLength)
+	exporter := eventexporter.NewSegmentIOExporter(r.Conf.Segment, QueueLength)
 	constructor := emailsender.New(exporter, r.Log)
 
 	r.SetContext(constructor)
