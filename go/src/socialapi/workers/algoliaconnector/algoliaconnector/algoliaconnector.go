@@ -185,16 +185,19 @@ func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
 		return err
 	}
 
-	if !isValidChannelType(rootChannel) {
-		return errors.New("root is not valid type for synonym")
-	}
-
-	leafChannel, err := models.ChannelById(cl.LeafId)
+	leafChannels, err := rootChannel.FetchLeaves()
 	if err != nil {
 		return err
 	}
 
-	return f.addSynonym("messages", rootChannel.Name, leafChannel.Name)
+	leafNames := make([]string, len(leafChannels)+1) // +1 for root channel
+	leafNames[0] = rootChannel.Name
+
+	for i, leafChannel := range leafChannels {
+		leafNames[i+1] = leafChannel.Name
+	}
+
+	return f.addSynonym("messages", leafNames...)
 }
 
 // addSynonym adds given sysnonym pairs to the given index. do not worry about
