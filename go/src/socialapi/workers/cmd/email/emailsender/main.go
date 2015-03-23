@@ -22,7 +22,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	exporter := eventexporter.NewSegementIOExporter(SegmentIOKey, QueueLength)
+	exporter := eventexporter.NewSegmentIOExporter(SegmentIOKey, QueueLength)
 	constructor := emailsender.New(exporter, r.Log)
 
 	r.SetContext(constructor)

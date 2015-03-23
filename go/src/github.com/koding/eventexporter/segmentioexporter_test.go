@@ -6,16 +6,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-type segmentRequest struct {
-	Batch []struct {
-		Event      string                 `json:"event"`
-		Properties map[string]interface{} `json:"properties"`
-		UserID     string                 `json:"userId"`
-	} `json:"batch"`
-}
-
 func TestSegmentIOExporter(t *testing.T) {
-	Convey("When using SegementIOExporter", t, func() {
+	Convey("When using SegmentIOExporter", t, func() {
 		Convey("Then it should return err if no username", func() {
 			user := &User{}
 			event := &Event{Name: "test", User: user}

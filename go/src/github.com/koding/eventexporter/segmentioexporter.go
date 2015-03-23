@@ -4,18 +4,18 @@ import (
 	analytics "github.com/segmentio/analytics-go"
 )
 
-type SegementIOExporter struct {
+type SegmentIOExporter struct {
 	Client *analytics.Client
 }
 
-func NewSegementIOExporter(key string, size int) *SegementIOExporter {
+func NewSegmentIOExporter(key string, size int) *SegmentIOExporter {
 	client := analytics.New(key) // access token to authorize requests
 	client.Size = size           // size of queue before flushing to api
 
-	return &SegementIOExporter{Client: client}
+	return &SegmentIOExporter{Client: client}
 }
 
-func (s *SegementIOExporter) Send(event *Event) error {
+func (s *SegmentIOExporter) Send(event *Event) error {
 	trackEvent, err := buildTrack(event)
 	if err != nil {
 		return err
@@ -37,7 +37,6 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 		return nil, ErrSegmentIOEventEmpty
 	}
 
-	event = addBody(event)
 	event.Properties["email"] = event.User.Email
 
 	return &analytics.Track{
@@ -45,22 +44,4 @@ func buildTrack(event *Event) (*analytics.Track, error) {
 		UserId:     event.User.Username,
 		Properties: event.Properties,
 	}, nil
-}
-
-func addBody(event *Event) *Event {
-	_, ok := event.Properties["body"]
-	if ok {
-		return event
-	}
-
-	if event.Body != nil {
-		if event.Properties == nil {
-			event.Properties = map[string]interface{}{}
-		}
-
-		event.Properties["body"] = event.Body.Content
-		event.Properties["bodyType"] = event.Body.Type
-	}
-
-	return event
 }
