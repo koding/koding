@@ -11,6 +11,7 @@
       ]
     ],
     "options": {
+      "custom": true,
       "overrides_ace": true
     }
   },
@@ -26,6 +27,7 @@
       ]
     ],
     "options": {
+      "custom": true,
       "overrides_ace": true
     }
   },
@@ -41,6 +43,7 @@
       ]
     ],
     "options": {
+      "custom": true,
       "overrides_ace": true
     }
   },
@@ -56,6 +59,7 @@
       ]
     ],
     "options": {
+      "custom": true,
       "overrides_ace": true
     }
   },
@@ -71,6 +75,7 @@
       ]
     ],
     "options": {
+      "custom": true,
       "overrides_ace": true
     }
   }
