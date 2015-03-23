@@ -29,6 +29,16 @@ Then when you start the application, democracy kicks in and magically binds/unbi
 
 Also see [shortcuts](https://github.com/koding/shortcuts) which is the primary api that orchestrates all these crazy things.
 
+# custom shortcuts (eg ace)
+
+I believe [shortcuts](http://github.com/koding/shortcuts) should not embed such logic and totally be _shortcut type_ agnostic; its api allows dealing with such cases indeed.
+
+Passing `silent` as the 4th argument to `shortcuts#update` makes sure its internal `keyconfig#change` listener won't get dispatched thus rendering the model in question unbound.
+
+Plus, there is the `options` object you can use to denote such weirdos.
+
+Just make sure you don't mix in any _custom shortcut_ within a regular set in [bant](http://github.com/bantjs/bant) manifests; since these sets are automatically thought to be [shortcuts](http://github.com/koding/shortcuts) compatible.
+
 # license
 
 2015 Koding, Inc
