@@ -1,23 +1,10 @@
 .shortcuts-modal
-  overflow-y hidden !important
 
-  .kd-modal-title
-    margin-bottom: 12px !important
-
-  .buttons
-    .kdbutton:last-child
-      margin-left: 10px
-
+  &.kdmodal .kdmodal-inner .kdmodal-content
+    overflow                hidden
 
 .shortcuts-pane
-  max-height: 400px
-  /*min-height 382px*/
-  /*overflow-y hidden !important*/
-  .listview-wrapper
-    max-height 300px
-    min-height 300px
-    overflow-y auto !important
-    
+
     .shortcuts-list
       .row
         cursor: pointer
@@ -121,7 +108,7 @@
     background transparent !important
     border-bottom 0px
     height 29px !important
-    
+
     .kdtabhandle
       color #888 !important
       border-radius 3px 3px 0px 0px
