@@ -1356,3 +1356,79 @@ func TestChannelFetchRoot(t *testing.T) {
 		})
 	})
 }
+
+func TestChannelFetchLeaves(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching the root", t, func() {
+		acc := models.CreateAccountWithTest()
+		So(acc, ShouldNotBeNil)
+
+		Convey("if channel id is not set", func() {
+			c := NewChannel()
+			_, err := c.FetchRoot()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrIdIsNotSet)
+		})
+
+		Convey("when leaf doesnt exist", func() {
+			root := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				RandomName(),
+			)
+
+			Convey("should return bongo error", func() {
+				leaves, err := root.FetchLeaves()
+				So(err, ShouldBeNil)
+				So(leaves, ShouldBeNil)
+			})
+		})
+
+		Convey("when leaves does exist", func() {
+			groupName := RandomName()
+			root := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			leaf1 := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			cl := &ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf1.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
+			leaf2 := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			cl = &ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf2.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
+			Convey("should return root", func() {
+				leaves, err := leaf.FetchLeaves()
+				So(err, ShouldBeNil)
+				So(leaves, ShouldNotBeNil)
+				So(len(leaves), ShouldEqual, 2)
+			})
+		})
+	})
+}

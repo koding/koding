@@ -963,3 +963,32 @@ func (c *Channel) FetchRoot() (*Channel, error) {
 	return channel, nil
 
 }
+
+// FetchLeaves fetches the leaves of a channel if linked
+func (c *Channel) FetchLeaves() ([]Channel, error) {
+	if c.Id == 0 {
+		return nil, ErrIdIsNotSet
+	}
+
+	cl := NewChannelLink()
+
+	var leafIds []int64
+
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"root_id": c.Id,
+		},
+		Pluck: "leaf_id",
+	}
+
+	if err := cl.Some(&leafIds, bq); err != nil {
+		return nil, err
+	}
+
+	var channels []Channel
+	if len(leafIds) == 0 {
+		return channels, nil
+	}
+
+	return c.FetchByIds(leafIds)
+}
