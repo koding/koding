@@ -18,7 +18,7 @@ module.exports = class PricingPlansView extends KDView
 
     @planViews = {}
 
-    for plan in @plans
+    for plan in @getPlans()
       plan.delegate = this
       planTitle = plan.title.toLowerCase()
       plan.state = @state
@@ -93,35 +93,27 @@ module.exports = class PricingPlansView extends KDView
     return plans.slice 0, index
 
 
+  getPlans: ->
+
+    { reversePlans } = @state
+    method = if reversePlans then 'reverse' else 'slice'
+    return @plans[method]()
+
+
   plans: [
-    title        : 'Professional'
-    monthPrice   : '49.50'
-    reducedMonth : '39.95'
-    yearPrice    : '479.40'
-    discount     : 955
-    description  : 'Great for managing and delivering client work'
-    cssClass     : 'professional'
+    title        : 'Free'
+    monthPrice   : '0'
+    reducedMonth : '0'
+    yearPrice    : '0'
+    discount     : '0'
+    description  : 'Best for tinkering with and learning new technologies'
+    cssClass     : 'free'
     planFeatures : [
-      { partial: '5 VMs '          , cssClass: 'vm-count' }
-      { partial: '1 Core each'     , cssClass: 'cpu' }
-      { partial: '1GB RAM each'    , cssClass: 'ram' }
-      { partial: '50GB Total Disk' , cssClass: 'storage' }
-      { partial: '2 Always on VMs' , cssClass: 'always-on' }
-    ]
-  ,
-    title        : 'Developer'
-    monthPrice   : '24.50'
-    reducedMonth : '19.95'
-    yearPrice    : '239.40'
-    discount     : 455
-    description  : 'Great for developers who work with multiple environments'
-    cssClass     : 'developer'
-    planFeatures : [
-      { partial: '3 VMs '          , cssClass: 'vm-count' }
-      { partial: '1 Core each'     , cssClass: 'cpu' }
-      { partial: '1GB RAM each'    , cssClass: 'ram' }
-      { partial: '25GB Total Disk' , cssClass: 'storage' }
-      { partial: '1 Always on VM'  , cssClass: 'always-on' }
+      { partial: '1 VM'           , cssClass: 'vm-count' }
+      { partial: '1 Core'         , cssClass: 'cpu' }
+      { partial: '1GB RAM'        , cssClass: 'ram' }
+      { partial: '3GB Total Disk' , cssClass: 'storage' }
+      { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,
     title        : 'Hobbyist'
@@ -139,18 +131,33 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
     ]
   ,
-    title        : 'Free'
-    monthPrice   : '0'
-    reducedMonth : '0'
-    yearPrice    : '0'
-    discount     : '0'
-    description  : 'Best for tinkering with and learning new technologies'
-    cssClass     : 'free'
+    title        : 'Developer'
+    monthPrice   : '24.50'
+    reducedMonth : '19.95'
+    yearPrice    : '239.40'
+    discount     : 455
+    description  : 'Great for developers who work with multiple environments'
+    cssClass     : 'developer'
     planFeatures : [
-      { partial: '1 VM'           , cssClass: 'vm-count' }
-      { partial: '1 Core'         , cssClass: 'cpu' }
-      { partial: '1GB RAM'        , cssClass: 'ram' }
-      { partial: '3GB Total Disk' , cssClass: 'storage' }
-      { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
+      { partial: '3 VMs '          , cssClass: 'vm-count' }
+      { partial: '1 Core each'     , cssClass: 'cpu' }
+      { partial: '1GB RAM each'    , cssClass: 'ram' }
+      { partial: '25GB Total Disk' , cssClass: 'storage' }
+      { partial: '1 Always on VM'  , cssClass: 'always-on' }
+    ]
+  ,
+    title        : 'Professional'
+    monthPrice   : '49.50'
+    reducedMonth : '39.95'
+    yearPrice    : '479.40'
+    discount     : 955
+    description  : 'Great for managing and delivering client work'
+    cssClass     : 'professional'
+    planFeatures : [
+      { partial: '5 VMs '          , cssClass: 'vm-count' }
+      { partial: '1 Core each'     , cssClass: 'cpu' }
+      { partial: '1GB RAM each'    , cssClass: 'ram' }
+      { partial: '50GB Total Disk' , cssClass: 'storage' }
+      { partial: '2 Always on VMs' , cssClass: 'always-on' }
     ]
   ]
