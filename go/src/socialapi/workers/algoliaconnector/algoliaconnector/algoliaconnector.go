@@ -236,16 +236,38 @@ func (f *Controller) getSynonyms(indexName string) ([][]string, error) {
 	}
 
 	// define the initial synonymns
-	synonymsSlice := make([][]string, 0)
+	synonyms := make([][]string, 0)
 
-	if sint, ok := settings["synonyms"]; ok {
-		if sslice, ok := sint.([][]string); ok {
-			// if we have previous ones, use it
-			synonymsSlice = sslice
-		}
+	synonymsSettings, ok := settings["synonyms"]
+	if !ok {
+		return synonyms, nil
 	}
 
-	return synonymsSlice, nil
+	// just for converting []interface{[]interface} to [][]string
+
+	// infact it is [][]string
+	synonymIntSlices, ok := synonymsSettings.([]interface{})
+	if !ok {
+		return synonyms, nil
+	}
+
+	for _, synonymIntSlice := range synonymIntSlices {
+
+		synonymInt, ok := synonymIntSlice.([]interface{})
+		if !ok {
+			return synonyms, nil
+		}
+
+		pair := make([]string, 0)
+		for _, tag := range synonymInt {
+			pair = append(pair, tag.(string))
+		}
+
+		synonyms = append(synonyms, pair)
+	}
+
+	// if we have previous ones, use it
+	return synonyms, nil
 }
 
 func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
