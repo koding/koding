@@ -282,15 +282,15 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		ctx = k.ContextCreator(ctx)
 	}
 
-	machine, err := p.Machine(ctx, args.MachineId)
-	if err != nil {
-		return nil, err
-	}
-
 	// each method has his own unique eventer
 	eventId := r.Method + "-" + args.MachineId
 	ev := k.NewEventer(eventId)
 	ctx = eventer.NewContext(ctx, ev)
+
+	machine, err := p.Machine(ctx, args.MachineId)
+	if err != nil {
+		return nil, err
+	}
 
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
