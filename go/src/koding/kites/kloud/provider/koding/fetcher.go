@@ -2,6 +2,7 @@ package koding
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"koding/db/models"
 	"net/http"
@@ -29,6 +30,10 @@ type PaymentResponse struct {
 }
 
 func (p *Provider) FetchPlan(username string) (*PaymentResponse, error) {
+	if p.PaymentEndpoint == "" {
+		return nil, errors.New("Payment endpoint is not set")
+	}
+
 	userEndpoint, err := url.Parse(p.PaymentEndpoint)
 	if err != nil {
 		return nil, err
