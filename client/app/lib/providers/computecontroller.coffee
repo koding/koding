@@ -245,8 +245,12 @@ module.exports = class ComputeController extends KDController
 
   findMachineFromQueryString: (queryString)->
 
+    return  unless queryString
+
+    kiteIdOnly = "///////#{queryString.split('/').reverse()[0]}"
+
     for machine in @machines
-      return machine  if machine.queryString is queryString
+      return machine  if machine.queryString in [queryString, kiteIdOnly]
 
 
   fetchAvailable: (options, callback)->

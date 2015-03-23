@@ -122,7 +122,7 @@ module.exports = class Managed extends ProviderInterface
       domain = ipAddress
       fieldsToUpdate = {domain, ipAddress}
 
-    fieldsToUpdate.queryString = queryString  if queryString?
+    fieldsToUpdate.queryString = getKiteIdOnly queryString  if queryString?
     fieldsToUpdate['meta.storage'] = storage  if storage?
 
     JMachine = require './machine'
