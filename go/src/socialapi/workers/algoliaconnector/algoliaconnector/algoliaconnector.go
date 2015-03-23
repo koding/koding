@@ -179,7 +179,22 @@ func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
 		return nil
 	}
 
-	return nil
+	// check channel types
+	rootChannel, err := models.ChannelById(cl.RootId)
+	if err != nil {
+		return err
+	}
+
+	if !isValidChannelType(rootChannel) {
+		return errors.New("root is not valid type for synonym")
+	}
+
+	leafChannel, err := models.ChannelById(cl.LeafId)
+	if err != nil {
+		return err
+	}
+
+	return f.addSynonym("messages", rootChannel.Name, leafChannel.Name)
 }
 
 // addSynonym adds given sysnonym pairs to the given index. do not worry about
@@ -229,6 +244,7 @@ func (f *Controller) getSynonyms(indexName string) ([][]string, error) {
 
 	return synonymsSlice, nil
 }
+
 func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
 	// check required variables
 	if cl == nil {
@@ -272,6 +288,7 @@ func (f *Controller) validateSynonymRequest(cl *models.ChannelLink) error {
 func isValidChannelType(c *models.Channel) bool {
 	return models.IsIn(
 		c.TypeConstant,
+		// type constant should be one of followings
 		models.Channel_TYPE_TOPIC,
 		models.Channel_TYPE_LINKED_TOPIC,
 	)
