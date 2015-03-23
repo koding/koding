@@ -13,16 +13,16 @@ type Exporter interface {
 }
 
 type Event struct {
-	Name       string
-	User       *User
-	Body       *Body
-	Properties map[string]interface{}
+	Name       string                 // name of event
+	User       *User                  // user who did event
+	Body       *Body                  // body of event; text or html
+	Properties map[string]interface{} // any additional properties
 }
 
 type BodyType int
 
 type Body struct {
-	Type    BodyType
+	Type    BodyType // text or html
 	Content string
 }
 
