@@ -52,7 +52,12 @@ func UnLink(rootId, leafId int64, token string) error {
 
 // BlackList deletes the channel and blocks it from re-creation as a channel
 func BlackList(rootId, leafId int64, token string) error {
-	url := fmt.Sprintf("/moderation/channel/%d?rootId=%d", leafId, rootId)
-	_, err := sendRequestWithAuth("DELETE", url, nil, token)
-	return err
+	data := &models.ChannelLink{RootId: rootId, LeafId: leafId}
+	url := "/moderation/channel/blacklist"
+	cl, err := sendModelWithAuth("POST", url, data, token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
