@@ -111,3 +111,45 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 
 	return k.coreMethods(r, startFunc)
 }
+
+func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
+	stopFunc := func(ctx context.Context, machine interface{}) error {
+		ev, ok := eventer.FromContext(ctx)
+		if !ok {
+			return fmt.Errorf("eventer context is not available")
+		}
+
+		ev.Push(&eventer.Event{
+			Message: "Machine is stopping",
+			Status:  machinestate.Stopping,
+		})
+
+		stopper, ok := machine.(Stopper)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		stater, ok := machine.(Stater)
+		if !ok {
+			return NewError(ErrStaterNotImplemented)
+		}
+		currentState := stater.State()
+
+		finalEvent := &eventer.Event{
+			Message:    "Stopping finished",
+			Status:     machinestate.Stopped,
+			Percentage: 100,
+		}
+
+		err := stopper.Stop(ctx)
+		if err != nil {
+			finalEvent.Error = "Stopping failed. Please contact support."
+			finalEvent.Status = currentState
+		}
+
+		ev.Push(finalEvent)
+		return nil
+	}
+
+	return k.coreMethods(r, stopFunc)
+}

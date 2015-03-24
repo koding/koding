@@ -128,26 +128,6 @@ type machineFunc func(context.Context, interface{}) error
 // 	return k.coreMethods(r, reinitFunc)
 // }
 //
-// func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
-// 	stopFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		err := p.Stop(m)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-//
-// 		err = k.Storage.Update(m.Id, &StorageData{
-// 			Type: "stop",
-// 			Data: map[string]interface{}{
-// 				"ipAddress": "",
-// 			},
-// 		})
-//
-// 		return nil, err
-// 	}
-//
-// 	return k.coreMethods(r, stopFunc)
-// }
-//
 // func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 // 	restartFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 // 		err := p.Restart(m)

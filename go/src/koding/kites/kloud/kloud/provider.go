@@ -25,6 +25,10 @@ type Destroyer interface {
 	Destroy(ctx context.Context) error
 }
 
+type Stopper interface {
+	Stop(ctx context.Context) error
+}
+
 // Stater returns the state of a machine
 type Stater interface {
 	State() machinestate.State

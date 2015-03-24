@@ -77,7 +77,6 @@ import (
 var (
 	kloudKite *kite.Kite
 	kld       *kloud.Kloud
-	remote    *kite.Client
 	conf      *config.Config
 	provider  *koding.Provider
 
@@ -95,6 +94,7 @@ type singleUser struct {
 	PrivateKey string
 	PublicKey  string
 	AccountId  bson.ObjectId
+	Remote     *kite.Client
 }
 
 func init() {
@@ -143,8 +143,8 @@ func init() {
 
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
+	kloudKite.HandleFunc("stop", kld.Stop)
 	// kloudKite.HandleFunc("start", kld.Start)
-	// kloudKite.HandleFunc("stop", kld.Stop)
 	// kloudKite.HandleFunc("reinit", kld.Reinit)
 	// kloudKite.HandleFunc("restart", kld.Restart)
 	// kloudKite.HandleFunc("resize", kld.Resize)
@@ -154,25 +154,6 @@ func init() {
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
-
-	user := kite.New("user", "0.0.1")
-	user.Config = conf.Copy()
-
-	kloudQuery := &protocol.KontrolQuery{
-		Username:    "testuser",
-		Environment: conf.Environment,
-		Name:        "kloud",
-	}
-	kites, err := user.GetKites(kloudQuery)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Get the caller
-	remote = kites[0]
-	if err := remote.Dial(); err != nil {
-		log.Fatal(err)
-	}
 }
 
 func TestBuild(t *testing.T) {
@@ -183,7 +164,7 @@ func TestBuild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := build(userData.MachineId); err != nil {
+	if err := build(userData.MachineId, userData.Remote); err != nil {
 		t.Fatal(err)
 	}
 
@@ -194,11 +175,11 @@ func TestBuild(t *testing.T) {
 	}
 
 	// invalid calls after build
-	if err := build(userData.MachineId); err == nil {
+	if err := build(userData.MachineId, userData.Remote); err == nil {
 		t.Error("`build` method can not be called on `running` machines.")
 	}
 
-	if err := destroy(userData.MachineId); err != nil {
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
 		t.Error(err)
 	}
 }
@@ -246,36 +227,37 @@ func checkSSHKey(id, privateKey string) error {
 	return nil
 }
 
-// func TestStop(t *testing.T) {
-// 	t.Parallel()
-// 	username := "testuser2"
-// 	userData, err := createUser(username)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	if err := build(userData.MachineId); err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	log.Println("Stopping machine")
-// 	if err := stop(userData.MachineId); err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	// the following calls should give an error, if not there is a problem
-// 	if err := build(userData.MachineId); err == nil {
-// 		t.Error("`build` method can not be called on `stopped` machines.")
-// 	}
-//
-// 	if err := stop(userData.MachineId); err == nil {
-// 		t.Error("`stop` method can not be called on `stopped` machines.")
-// 	}
-//
-// 	if err := destroy(userData.MachineId); err != nil {
-// 		t.Error(err)
-// 	}
-// }
+func TestStop(t *testing.T) {
+	t.Parallel()
+	username := "testuser2"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine")
+	if err := stop(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	// the following calls should give an error, if not there is a problem
+	if err := build(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`build` method can not be called on `stopped` machines.")
+	}
+
+	if err := stop(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`stop` method can not be called on `stopped` machines.")
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
+
 //
 // func TestStart(t *testing.T) {
 // 	t.Parallel()
@@ -494,15 +476,40 @@ func createUser(username string) (*singleUser, error) {
 		return nil, err
 	}
 
+	userKite := kite.New("user", "0.0.1")
+	c := conf.Copy()
+	c.KiteKey = testutil.NewKiteKeyUsername(username).Raw
+	c.Username = username
+	userKite.Config = c
+
+	kloudQuery := &protocol.KontrolQuery{
+		Username:    "testuser",
+		Environment: c.Environment,
+		Name:        "kloud",
+	}
+	kites, err := userKite.GetKites(kloudQuery)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Get the caller
+	remote := kites[0]
+	fmt.Printf("remote = %+v\n", remote)
+	fmt.Printf("remote.Username = %+v\n", remote.Username)
+	if err := remote.Dial(); err != nil {
+		log.Fatal(err)
+	}
+
 	return &singleUser{
 		MachineId:  machineId.Hex(),
 		PrivateKey: privateKey,
 		PublicKey:  publicKey,
 		AccountId:  accountId,
+		Remote:     remote,
 	}, nil
 }
 
-func build(id string) error {
+func build(id string, remote *kite.Client) error {
 	buildArgs := &args{
 		MachineId: id,
 		Provider:  "koding",
@@ -526,11 +533,11 @@ func build(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 
 }
 
-func destroy(id string) error {
+func destroy(id string, remote *kite.Client) error {
 	destroyArgs := &args{
 		MachineId: id,
 		Provider:  "koding",
@@ -553,12 +560,13 @@ func destroy(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Terminated)
+	return listenEvent(eArgs, machinestate.Terminated, remote)
 }
 
-func start(id string) error {
+func start(id string, remote *kite.Client) error {
 	startArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("start", startArgs)
@@ -579,12 +587,13 @@ func start(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func stop(id string) error {
+func stop(id string, remote *kite.Client) error {
 	stopArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("stop", stopArgs)
@@ -605,12 +614,13 @@ func stop(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Stopped)
+	return listenEvent(eArgs, machinestate.Stopped, remote)
 }
 
-func reinit(id string) error {
+func reinit(id string, remote *kite.Client) error {
 	reinitArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("reinit", reinitArgs)
@@ -631,12 +641,13 @@ func reinit(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func restart(id string) error {
+func restart(id string, remote *kite.Client) error {
 	restartArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("restart", restartArgs)
@@ -657,12 +668,13 @@ func restart(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func resize(id string) error {
+func resize(id string, remote *kite.Client) error {
 	resizeArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("resize", resizeArgs)
@@ -683,12 +695,13 @@ func resize(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func createSnapshot(id string) error {
+func createSnapshot(id string, remote *kite.Client) error {
 	createSnapshotArgs := &args{
 		MachineId: id,
+		Provider:  "koding",
 	}
 
 	resp, err := remote.Tell("createSnapshot", createSnapshotArgs)
@@ -709,13 +722,14 @@ func createSnapshot(id string) error {
 		},
 	})
 
-	return listenEvent(eArgs, machinestate.Running)
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
-func deleteSnapshot(id, snapshotId string) error {
+func deleteSnapshot(id, snapshotId string, remote *kite.Client) error {
 	deleteSnapshotArgs := &args{
 		MachineId:  id,
 		SnapshotId: snapshotId,
+		Provider:   "koding",
 	}
 
 	resp, err := remote.Tell("deleteSnapshot", deleteSnapshotArgs)
@@ -738,7 +752,7 @@ func deleteSnapshot(id, snapshotId string) error {
 // listenEvent calls the event method of kloud with the given arguments until
 // the desiredState is received. It times out if the desired state is not
 // reached in 10 miunuts.
-func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
+func listenEvent(args kloud.EventArgs, desiredState machinestate.State, remote *kite.Client) error {
 	tryUntil := time.Now().Add(time.Minute * 10)
 	for {
 		resp, err := remote.Tell("event", args)

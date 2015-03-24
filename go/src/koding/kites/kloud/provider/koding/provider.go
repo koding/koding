@@ -70,6 +70,9 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("eventer context is not available")
 	}
 
+	p.Log.Debug("=====> machine: %+v", machine)
+	p.Log.Debug("=====> req    : %+v", req)
+
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
 	user, err := p.getUser(req.Username)
