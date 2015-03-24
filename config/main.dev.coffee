@@ -613,6 +613,16 @@ Configuration = (options={}) ->
             sh -c "scripts/install-npm.sh -d client -s"
         fi
 
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/builder -s"
+        fi
+
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/landing -s"
+        fi
+
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
         if [  $OLD_COOKIE -ne 0 ]; then
             echo "You have tough-cookie@0.9.15 installed on your system, please remove node_modules directory and do npm i again";
