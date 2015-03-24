@@ -204,6 +204,7 @@ fetchStackTemplate = (client, callback)->
       if group.slug is 'koding'
         {ObjectId} = require 'bongo'
         group.stackTemplates = [ObjectId "53fe557af052f8e9435a04fa"]
+        console.error "[critical] Koding group template is not set!"
       else
         return callback new KodingError "Template not set", "NotFound"
 
@@ -239,6 +240,11 @@ guessNextLabel = (options, callback)->
 
   JMachine   = require './machine'
 
+  # Following query will try to sort possible JMachines ordered by
+  # create date and will return the newest one with following cases
+  #  - provider must be equal to provided provider
+  #  - user and group must be same and user must be owner of the machine
+  #  - label needs to start with provider name and ends with "-vm-{0-9}" ~ GG
   selector   =
     provider : provider
     users    : $elemMatch: id: user.getId(), sudo: yes, owner: yes
