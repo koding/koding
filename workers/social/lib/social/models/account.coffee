@@ -54,7 +54,7 @@ module.exports = class JAccount extends jraphical.Module
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name : 'notification' }
+        { name : 'messageBusEvent' }
         { name : 'RemovedFromCollection' }
         { name : 'NewWorkspaceCreated'}
       ]
@@ -1082,7 +1082,7 @@ module.exports = class JAccount extends jraphical.Module
           context: "koding"
       }
 
-      @emit 'notification', {type: "dispatcher_notify_user", message: message}
+      @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
 
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
