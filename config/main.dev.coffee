@@ -497,9 +497,8 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make build
+        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        make -C ${projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -723,12 +722,12 @@ Configuration = (options={}) ->
 
           echo
           echo '---------------------------------------------------------------'
-          echo '>>> CLIENT BUILD DISABLED! DO "cd client/ && make" MANUALLY <<<'
+          echo '>>> CLIENT BUILD DISABLED! DO "make -C client" MANUALLY <<<'
           echo '---------------------------------------------------------------'
           echo
 
         else
-          cd #{projectRoot}/client && make &
+          make -C #{projectRoot}/client
         fi
 
         # Show the all logs of workers
@@ -1048,9 +1047,8 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make landing development
+        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        make -C ${projectRoot}/client watch
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
