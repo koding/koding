@@ -33,6 +33,7 @@ module.exports =
     selector = activitySelector + ' .activity-content-wrapper .link-embed-box img'
 
     browser
+      .waitForElementVisible  '.activity-sidebar .followed.topics', 50000
       .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
       .waitForElementVisible  '[testpath=ActivityInputView]', 25000
       .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
