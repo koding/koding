@@ -13,7 +13,9 @@ func (m *Machine) Destroy(ctx context.Context) error {
 		return errors.New("can't destroy notinitialized machine.")
 	}
 
-	panic("imeplement updating state")
+	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
+		return err
+	}
 
 	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
 		return err
