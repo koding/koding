@@ -223,6 +223,7 @@ module.exports =
 
 
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
+
     browser
       .pause                    5000 # wait for IDE open
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
@@ -235,7 +236,7 @@ module.exports =
 
     if hasEmbeddable
       browser
-        .waitForElementVisible  '.activity-input-widget .link-embed-box', 20000
+        .waitForElementVisible  '[testpath=ActivityInputWidget] .link-embed-box', 20000
 
     browser
       .click                    '[testpath=post-activity-button]'
