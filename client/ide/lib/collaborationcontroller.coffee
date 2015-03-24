@@ -767,7 +767,8 @@ module.exports =
   showChat: ->
 
     switch @stateMachine.state
-      when 'Active' then @showChatPane()
+      when 'Active'     then @showChatPane()
+      when 'Prepared'   then @chat.show()
       when 'NotStarted' then @stateMachine.transition 'Preparing'
 
 
