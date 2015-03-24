@@ -57,9 +57,8 @@ build:
     - script:
         name: build client
         code: |
-          cd client
-          make dist
-          ../scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
+          ./run buildclient
+          ./scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
         code: go/build.sh
