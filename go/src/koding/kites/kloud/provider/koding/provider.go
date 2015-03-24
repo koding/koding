@@ -76,11 +76,8 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	if err != nil {
 		return nil, err
 	}
-	p.Log.Debug("machine: %v", machine)
-	p.Log.Debug("request: %v", req)
 
 	machine.Log = p.Log.New(id)
-
 	if machine.Meta.Region == "" {
 		machine.Meta.Region = "us-east-1"
 		machine.Log.Critical("region is not set in. Fallback to us-east-1.")

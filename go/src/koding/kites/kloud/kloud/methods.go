@@ -47,12 +47,35 @@ func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
 
 func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 	destroyFunc := func(ctx context.Context, machine interface{}) error {
+		ev, ok := eventer.FromContext(ctx)
+		if !ok {
+			return fmt.Errorf("eventer context is not available")
+		}
+
+		ev.Push(&eventer.Event{
+			Message: "Terminating started",
+			Status:  machinestate.Terminating,
+		})
+
 		destroyer, ok := machine.(Destroyer)
 		if !ok {
 			return NewError(ErrProviderNotImplemented)
 		}
 
-		return destroyer.Destroy(ctx)
+		finalEvent := &eventer.Event{
+			Message:    "Terminating finished",
+			Status:     machinestate.Terminated,
+			Percentage: 100,
+		}
+
+		err := destroyer.Destroy(ctx)
+		if err != nil {
+			finalEvent.Error = "Terminating failed. Please contact support."
+			finalEvent.Status = machinestate.NotInitialized
+		}
+
+		ev.Push(finalEvent)
+		return nil
 	}
 
 	return k.coreMethods(r, destroyFunc)
