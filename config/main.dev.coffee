@@ -733,6 +733,7 @@ Configuration = (options={}) ->
           echo
 
         else
+          sh -c "scripts/install-npm.sh -d client -u -p -s"
           make -C #{projectRoot}/client
         fi
 
