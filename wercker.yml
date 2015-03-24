@@ -235,6 +235,11 @@ deploy:
         content: ${WERCKER_GIT_COMMIT:0:8}
         overwrite: true
     - script:
+        name: setup nvm
+        code: |
+          source $HOME/.nvm/nvm.sh
+          nvm use 0.10.33
+    - script:
         name: zip
         code: |
           cd $WERCKER_ROOT
