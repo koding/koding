@@ -39,12 +39,13 @@ module.exports = class Koding extends ProviderInterface
       fetchUserPlan, fetchUsage } = require './computeutils'
 
     guessNextLabel { user, group, label, provider }, (err, label)=>
+      return callback err  if err
 
       fetchUserPlan client, (err, userPlan)=>
+        return callback err  if err
 
         fetchUsage client, {provider}, (err, usage)->
-
-          return callback err  if err?
+          return callback err  if err
 
           if err = checkUsage usage, userPlan, storage
             return callback err
