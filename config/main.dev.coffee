@@ -1055,7 +1055,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "buildclient" ]; then
 
         sh -c "scripts/install-npm.sh -d client -u -p -s"
-        make -C #{projectRoot}/client watch
+        make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
