@@ -1,7 +1,6 @@
 package main
 
 import (
-	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/paypal"
 
@@ -9,9 +8,7 @@ import (
 )
 
 func paypalSubscriptionCreated(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
-	return subscriptionEmail(
-		req.PayerId, req.Plan, paymentemail.SubscriptionCreated, c.Email,
-	)
+	return subscriptionEmail(req.PayerId, req.Plan, SubscriptionCreated)
 }
 
 func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, c *Controller) error {
@@ -21,9 +18,7 @@ func paypalSubscriptionDeleted(req *webhookmodels.PaypalGenericWebhook, c *Contr
 		Log.Error("Paypal: expired subscription failed", err.Error)
 	}
 
-	return subscriptionEmail(
-		req.PayerId, req.Plan, paymentemail.SubscriptionDeleted, c.Email,
-	)
+	return subscriptionEmail(req.PayerId, req.Plan, SubscriptionDeleted)
 }
 
 func paypalExpireSubscription(customerId string, k *kite.Client) error {
