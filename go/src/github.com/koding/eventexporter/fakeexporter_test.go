@@ -1,16 +1,19 @@
-package eventexportertest
+package eventexporter_test
 
 import (
 	"testing"
 
-	"github.com/koding/eventexporter"
+	"github.com/koding/eventexporter/eventexportertest"
+
+	. "github.com/koding/eventexporter"
+	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestFakeExporter(t *testing.T) {
 	Convey("When using FakeExporter", t, func() {
-		event := &eventexporter.Event{Name: "test"}
+		event := &Event{Name: "test"}
 
-		fakeExporter := NewFakeExporter()
+		fakeExporter := eventexportertest.NewFakeExporter()
 		err := fakeExporter.Send(event)
 
 		Convey("Then it should save event for debugging", func() {

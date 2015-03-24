@@ -21,11 +21,14 @@ eventexporter is a library to export events to 3rd party services.
 
 FakeExporter is a implementation of Exporter to be used in tests.
 
-    import "github.com/koding/eventexporter_test"
+    import (
+      "github.com/koding/eventexporter"
+      "github.com/koding/eventexporter/eventexportertest"
+    )
 
     event := &eventexporter.Event{Name: "test event"}
 
-    client := eventexporter.NewFakeExporter()
+    client := eventexportertest.NewFakeExporter()
     client.Send(event)
 
     fmt.Println(client.Events)
