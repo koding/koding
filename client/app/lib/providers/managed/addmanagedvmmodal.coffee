@@ -42,8 +42,7 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
 
       listKites: (data) =>
 
-        {list, button_add,
-         button_reload, message, loader} = view.addTo @container,
+        container       = view.addTo @container,
           instructions  : 'install'
           list          : { data }
           button_add    :
@@ -51,25 +50,39 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
             cssClass    : 'green'
             loader      : yes
             callback    : =>
+
+              {message, list, button_add} = container
+
               kite = list.controller.selectedItems.first.getData()
+
               if kite.machine
+                button_add.hideLoader()
+                message.updatePartial 'This kite is in use.'
                 message.show()
               else
                 message.hide()
-                @createMachine kite
+                @createMachine kite, container
+
           button_reload :
             iconOnly    : yes
             cssClass    : 'retry'
             callback    : =>
+
+              {button_reload, message, loader} = container
+
               button_reload.hide()
               message.hide()
               loader.show()
+
               @fetchKites()
+
           loader        :
             cssClass    : 'inline'
           message       :
             text        : 'This kite is in use.'
             cssClass    : 'inline hidden'
+
+        {list, button_add, message} = container
 
         list.controller
           .on 'ItemDeselectionPerformed', ->
@@ -78,16 +91,27 @@ module.exports = class AddManagedVMModal extends ManagedVMBaseModal
           .on 'ItemSelectionPerformed', button_add.bound 'enable'
 
 
-  createMachine: (kite)->
+  createMachine: (kite, container)->
 
     {createMachine} = require './helpers'
     createMachine kite, (err, machine)=>
 
       showError = require 'app/util/showError'
+      {message, button_add} = container
 
-      unless showError err
+      if err
 
-        kd.utils.defer ->
-          kd.singletons.router.handleRoute "/IDE/#{machine.slug}"
+        if err.name is 'UsageLimitReached'
+          message.updatePartial err.message
+          message.show()
+        else
+          showError err
 
-        @destroy()
+        button_add.hideLoader()
+
+        return
+
+      kd.utils.defer ->
+        kd.singletons.router.handleRoute "/IDE/#{machine.slug}"
+
+      @destroy()
