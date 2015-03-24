@@ -220,10 +220,11 @@ module.exports = class MessagePane extends KDTabPaneView
 
     return  if @getOption("type") is 'post'
 
-    channel = @getData()
+    channel     = @getData()
     {socialapi} = kd.singletons
+    attributes  = testpath: 'ActivityInputWidget'
 
-    @input = new ActivityInputWidget { channel, placeholder }
+    @input = new ActivityInputWidget { attributes, channel, placeholder }
 
 
   createFilterLinks: ->
