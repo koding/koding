@@ -7,7 +7,6 @@ const (
 
 // Exporter is the interface to export events to a 3rd party service.
 // Currently third party services: SegementIO and Sendgrid are implemented.
-// LogExporter also implements the interface, meant for testing purposes.
 type Exporter interface {
 	Send(*Event) error
 }

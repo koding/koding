@@ -1,4 +1,4 @@
-# eventexporter
+# eventexporter [![Build Status](https://travis-ci.org/koding/eventexporter.svg?branch=master)](https://travis-ci.org/koding/eventexporter)
 
 eventexporter is a library to export events to 3rd party services.
 
@@ -18,3 +18,14 @@ eventexporter is a library to export events to 3rd party services.
 
     client := eventexporter.NewSegementIOExporter(key, size)
     client.Send(event)
+
+FakeExporter is a implementation of Exporter to be used in tests.
+
+    import "github.com/koding/eventexporter_test"
+
+    event := &eventexporter.Event{Name: "test event"}
+
+    client := eventexporter.NewFakeExporter()
+    client.Send(event)
+
+    fmt.Println(client.Events)
