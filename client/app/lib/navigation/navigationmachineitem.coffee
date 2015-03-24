@@ -26,9 +26,9 @@ module.exports = class NavigationMachineItem extends JView
     machineOwner     = machine.getOwner()
     isMyMachine      = machine.isMine()
     machineRoutes    =
-      own            : "/IDE/#{@alias}/my-workspace"
+      own            : "/IDE/#{@alias}"
       collaboration  : "/IDE/#{workspaces.first?.channelId}"
-      permanentShare : "/IDE/#{machine.uid}/my-workspace"
+      permanentShare : "/IDE/#{machine.uid}"
 
     machineType = 'own'
 
