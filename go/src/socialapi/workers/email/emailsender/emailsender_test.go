@@ -4,7 +4,7 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
-	"github.com/koding/eventexporter"
+	"github.com/koding/eventexporter/eventexportertest"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -44,7 +44,7 @@ func TestNew(t *testing.T) {
 				Properties: &Properties{Username: "mehmet"},
 			}
 
-			exporter := eventexporter.NewLogExporter()
+			exporter := eventexportertest.NewFakeExporter()
 			c := New(exporter, r.Log)
 
 			err := c.Process(mail)

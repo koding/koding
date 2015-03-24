@@ -1,24 +1,10 @@
-package eventexporter_test
+package eventexportertest
 
 import (
 	"testing"
 
 	"github.com/koding/eventexporter"
-	. "github.com/smartystreets/goconvey/convey"
 )
-
-type FakeExporter struct {
-	Events []*eventexporter.Event
-}
-
-func NewFakeExporter() *FakeExporter {
-	return &FakeExporter{Events: []*eventexporter.Event{}}
-}
-
-func (l *FakeExporter) Send(event *eventexporter.Event) error {
-	l.Events = append(l.Events, event)
-	return nil
-}
 
 func TestFakeExporter(t *testing.T) {
 	Convey("When using FakeExporter", t, func() {
