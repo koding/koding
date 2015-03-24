@@ -221,12 +221,12 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
-	// k.HandleFunc("start", kld.Start)
-	// k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("stop", kld.Stop)
 	// k.HandleFunc("restart", kld.Restart)
 	// k.HandleFunc("info", kld.Info)
 	k.HandleFunc("destroy", kld.Destroy)
-	// k.HandleFunc("event", kld.Event)
+	k.HandleFunc("event", kld.Event)
 	// k.HandleFunc("resize", kld.Resize)
 	// k.HandleFunc("reinit", kld.Reinit)
 

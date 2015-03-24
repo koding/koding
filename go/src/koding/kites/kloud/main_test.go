@@ -60,7 +60,6 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
-	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keycreator"
@@ -132,21 +131,12 @@ func init() {
 
 	// Add Kloud handlers
 	kld := kloudWithKodingProvider(provider)
-	s := &session.Session{
-		DB:   provider.DB,
-		Kite: kloudKite,
-		// DNS:  provider.DNS,
-	}
-	kld.ContextCreator = func(ctx context.Context) context.Context {
-		return session.NewContext(ctx, s)
-	}
-
 	kloudKite.HandleFunc("build", kld.Build)
 	kloudKite.HandleFunc("destroy", kld.Destroy)
 	kloudKite.HandleFunc("stop", kld.Stop)
-	// kloudKite.HandleFunc("start", kld.Start)
-	// kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("start", kld.Start)
 	// kloudKite.HandleFunc("restart", kld.Restart)
+	// kloudKite.HandleFunc("reinit", kld.Reinit)
 	// kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
 	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
@@ -258,37 +248,37 @@ func TestStop(t *testing.T) {
 	}
 }
 
-//
-// func TestStart(t *testing.T) {
-// 	t.Parallel()
-// 	username := "testuser3"
-// 	userData, err := createUser(username)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	if err := build(userData.MachineId); err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	log.Println("Stopping machine to start machine again")
-// 	if err := stop(userData.MachineId); err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	log.Println("Starting machine")
-// 	if err := start(userData.MachineId); err != nil {
-// 		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
-// 	}
-//
-// 	if err := start(userData.MachineId); err == nil {
-// 		t.Error("`start` method can not be called on `started` machines.")
-// 	}
-//
-// 	if err := destroy(userData.MachineId); err != nil {
-// 		t.Error(err)
-// 	}
-// }
+func TestStart(t *testing.T) {
+	t.Parallel()
+	username := "testuser3"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Stopping machine to start machine again")
+	if err := stop(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Starting machine")
+	if err := start(userData.MachineId, userData.Remote); err != nil {
+		t.Errorf("`start` method can not be called on `stopped` machines: %s\n", err)
+	}
+
+	if err := start(userData.MachineId, userData.Remote); err == nil {
+		t.Error("`start` method can not be called on `started` machines.")
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
+
 //
 // func TestSnapshot(t *testing.T) {
 // 	t.Parallel()
