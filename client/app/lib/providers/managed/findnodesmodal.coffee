@@ -44,8 +44,7 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
 
       listKites: (data) =>
 
-        {loader, message, list,
-         button_assign, button_reload} = view.addTo @container,
+        container       = view.addTo @container,
           message_warn  :
             text        : "We are unable to reach your managed vm
                           (#{@machine.ipAddress}), but we've found following
@@ -56,12 +55,15 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
             title       : 'Use Selected Kite'
             cssClass    : 'green'
             callback    : =>
+
+              {message, list} = container
+
               kite = list.controller.selectedItems.first.getData()
-              if kite.machine
-                message.show()
-              else
-                message.hide()
-                @assignKite kite
+              return message.show()  if kite.machine
+
+              message.hide()
+              @assignKite kite
+
           button_delete :
             title       : 'Delete VM'
             cssClass    : "red #{if @getOption 'reassign' then 'hidden'}"
@@ -70,22 +72,27 @@ module.exports = class FindManagedNodesModal extends ManagedVMBaseModal
             iconOnly    : yes
             cssClass    : 'retry'
             callback    : =>
+
+              {button_reload, message, loader} = container
+
               button_reload.hide()
               message.hide()
               loader.show()
+
               @fetchKites()
+
           loader        :
             cssClass    : 'inline'
           message       :
             text        : 'This kite is in use.'
             cssClass    : 'inline hidden'
 
-        list.controller
+        {list, button_assign, message} = container
 
+        list.controller
           .on 'ItemDeselectionPerformed', ->
             button_assign.disable()
             message.hide()
-
           .on 'ItemSelectionPerformed', button_assign.bound 'enable'
 
 
