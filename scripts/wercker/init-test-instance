@@ -23,17 +23,16 @@ function npm_install ()
 
 service nginx stop
 
-npm_install koding
-npm_install client  client/
-npm_install landing client/landing
-
 cd $REPOSITORY_PATH
 
+npm --unsafe-perm install
 ./configure --host $HOST:8090
+./run buildclient
+TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
 ./run services
 ./run install
 ./run resetdb --yes
-./run &
+./run backend &
 disown $!
 
 sleep 60
