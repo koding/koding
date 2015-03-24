@@ -24,12 +24,17 @@ selectWorkspaceOnSidebar = (data) ->
     channelId      : workspace.channelId
 
   storage.setValue 'LatestWorkspace', workspaceData
+  storage.setValue "LatestWorkspace_#{machine.uid}", workspaceData
 
 
-getLatestWorkspace = ->
+getLatestWorkspace = (machine) ->
 
   storage   = kd.getSingleton('localStorageController').storage 'IDE'
-  workspace = storage.getValue 'LatestWorkspace'
+  if machine
+    workspace = storage.getValue "LatestWorkspace_#{machine.uid}"
+
+  unless machine and workspace
+    workspace = storage.getValue 'LatestWorkspace'
 
   return  unless workspace
 
@@ -104,7 +109,7 @@ routeToFallback = ->
 
 routeToMachineWorkspace = (machine) ->
 
-  latestWorkspace = getLatestWorkspace()
+  latestWorkspace = getLatestWorkspace machine
   workspaceSlug   = 'my-workspace'
 
   if latestWorkspace
