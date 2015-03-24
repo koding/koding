@@ -5,9 +5,7 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
 
   constructor: (options = {}, data) ->
 
-    defaults = width: 640
-    options  = defaults extends options
-
+    options.width   ?= 640
     options.cssClass = kd.utils.curry 'managed-vm modal', options.cssClass
 
     super options, data

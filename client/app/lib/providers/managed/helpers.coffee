@@ -2,10 +2,10 @@ nick = require 'app/util/nick'
 kd   = require 'kd'
 
 getIp = (url)->
-  _ = global.document.createElement 'a'
-  _.href = url
+  el = global.document.createElement 'a'
+  el.href = url
 
-  return _.hostname
+  return el.hostname
 
 
 module.exports =
