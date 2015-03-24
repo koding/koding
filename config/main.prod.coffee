@@ -163,6 +163,7 @@ Configuration = (options={}) ->
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'e6c3413236e08107'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    tokbox                         : { API_KEY: '45082272', API_SECRET: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
     collaboration :
       timeout     : 1 * 60 * 1000
