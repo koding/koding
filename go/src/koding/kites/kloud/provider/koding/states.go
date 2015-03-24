@@ -76,13 +76,3 @@ func (m *Machine) switchAWSRegion(region string) error {
 		)
 	})
 }
-
-// methodIn checks if the method exist in the given methods
-func methodIn(method string, methods ...string) bool {
-	for _, m := range methods {
-		if method == m {
-			return true
-		}
-	}
-	return false
-}

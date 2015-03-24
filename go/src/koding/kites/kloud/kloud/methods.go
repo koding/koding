@@ -26,6 +26,12 @@ func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
 			return NewError(ErrBuilderNotImplemented)
 		}
 
+		stater, ok := machine.(Stater)
+		if !ok {
+			return NewError(ErrStaterNotImplemented)
+		}
+		currentState := stater.State()
+
 		finalEvent := &eventer.Event{
 			Message:    "Building finished",
 			Status:     machinestate.Running,
@@ -35,7 +41,7 @@ func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
 		err := builder.Build(ctx)
 		if err != nil {
 			finalEvent.Error = "Build failed. Please contact support."
-			finalEvent.Status = machinestate.NotInitialized
+			finalEvent.Status = currentState // fallback to to old state
 		}
 
 		ev.Push(finalEvent)
@@ -62,6 +68,12 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 			return NewError(ErrProviderNotImplemented)
 		}
 
+		stater, ok := machine.(Stater)
+		if !ok {
+			return NewError(ErrStaterNotImplemented)
+		}
+		currentState := stater.State()
+
 		finalEvent := &eventer.Event{
 			Message:    "Terminating finished",
 			Status:     machinestate.Terminated,
@@ -71,7 +83,7 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 		err := destroyer.Destroy(ctx)
 		if err != nil {
 			finalEvent.Error = "Terminating failed. Please contact support."
-			finalEvent.Status = machinestate.NotInitialized
+			finalEvent.Status = currentState
 		}
 
 		ev.Push(finalEvent)

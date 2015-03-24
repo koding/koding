@@ -1,9 +1,11 @@
 package kloud
 
 import (
+	"fmt"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
+	"strings"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -281,6 +283,19 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		return nil, err
 	}
 
+	stater, ok := machine.(Stater)
+	if !ok {
+		return nil, NewError(ErrStaterNotImplemented)
+	}
+
+	// Check if the given method is in valid methods of that current state. For
+	// example if the method is "build", and the state is "stopped" than this
+	// will return an error.
+	if !methodIn(r.Method, stater.State().ValidMethods()...) {
+		return nil, fmt.Errorf("%s not allowed for current state '%s'. Allowed methods are: %v",
+			r.Method, strings.ToLower(stater.State().String()), stater.State().ValidMethods())
+	}
+
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
 	// the current status of the running method.
@@ -355,4 +370,14 @@ func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
 	ctx := request.NewContext(context.Background(), r)
 
 	return p.Machine(ctx, args.MachineId)
+}
+
+// methodIn checks if the method exist in the given methods
+func methodIn(method string, methods ...string) bool {
+	for _, m := range methods {
+		if method == m {
+			return true
+		}
+	}
+	return false
 }

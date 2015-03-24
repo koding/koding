@@ -32,6 +32,7 @@ const (
 	ErrProviderNotImplemented = 406
 	ErrBuilderNotImplemented  = 407
 	ErrProviderIsMissing      = 408
+	ErrStaterNotImplemented   = 409
 
 	ErrUserNotConfirmed = 500
 )
@@ -63,6 +64,7 @@ var errors = map[int]string{
 	ErrProviderAvailable:      "Provider is already available",
 	ErrProviderNotImplemented: "Provider doesn't implement the given interface",
 	ErrBuilderNotImplemented:  "Provider doesn't implement the builder interface",
+	ErrStaterNotImplemented:   "Provider doesn't implement the stater interface",
 	ErrProviderIsMissing:      "Provider argument is missing.",
 
 	// User errors

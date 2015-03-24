@@ -1,6 +1,10 @@
 package kloud
 
-import "golang.org/x/net/context"
+import (
+	"koding/kites/kloud/machinestate"
+
+	"golang.org/x/net/context"
+)
 
 type ctxKey int
 
@@ -19,4 +23,9 @@ type Builder interface {
 
 type Destroyer interface {
 	Destroy(ctx context.Context) error
+}
+
+// Stater returns the state of a machine
+type Stater interface {
+	State() machinestate.State
 }

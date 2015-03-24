@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -62,14 +61,6 @@ type ImageData struct {
 }
 
 func (m *Machine) Build(ctx context.Context) (err error) {
-	// Check if the given method is in valid methods of that current state. For
-	// example if the method is "build", and the state is "stopped" than this
-	// will return an error.
-	if !methodIn("build", m.State().ValidMethods()...) {
-		return fmt.Errorf("build not allowed for current state '%s'. Allowed methods are: %v",
-			strings.ToLower(m.Status.State), m.State().ValidMethods())
-	}
-
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return errors.New("request context is not available")
