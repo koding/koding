@@ -29,6 +29,10 @@ func (s *SegmentIOExporter) Send(event *Event) error {
 }
 
 func buildTrack(event *Event) (*analytics.Track, error) {
+	if event.User == nil {
+		return nil, ErrSegmentIOUsernameEmpty
+	}
+
 	if event.User.Username == "" {
 		return nil, ErrSegmentIOUsernameEmpty
 	}
