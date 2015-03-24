@@ -1167,6 +1167,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
+        sh -c scripts/validate-npm.sh
         run $1
 
       else
