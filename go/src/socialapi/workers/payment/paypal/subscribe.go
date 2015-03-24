@@ -2,6 +2,7 @@ package paypal
 
 import (
 	"errors"
+	"fmt"
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paymentstatus"
@@ -99,7 +100,9 @@ func handleCancelation(customer *paymentmodels.Customer, subscription *paymentmo
 	)
 	err = handlePaypalErr(response, err)
 	if err != nil {
-		return err
+		Log.Error(fmt.Sprintf(
+			"Error canceling plan on Paypal. User probably canceled from Paypal ui: %v", err,
+		))
 	}
 
 	return subscription.Cancel()

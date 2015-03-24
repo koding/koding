@@ -18,11 +18,8 @@ func init() {
 	// initialize client to talk to kloud
 	kiteClient := initializeKiteClient(r.Kite, conf.Kloud.SecretKey, conf.Kloud.Address)
 
-	// initialize client to send email
-	email := initializeEmail(conf.Email)
-
 	// initialize controller to inject dependencies
-	cont := &Controller{Kite: kiteClient, Email: email}
+	cont := &Controller{Kite: kiteClient}
 
 	controller = cont
 }

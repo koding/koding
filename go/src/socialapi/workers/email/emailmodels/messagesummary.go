@@ -40,6 +40,9 @@ func (ms *MessageSummary) Render() (string, error) {
 	mt := template.Must(template.New("message").Parse(templates.Message))
 	var buf bytes.Buffer
 
+	escapedBody := template.HTMLEscapeString(ms.Body)
+	ms.Body = escapedBody
+
 	if err := mt.ExecuteTemplate(&buf, "message", ms); err != nil {
 		return "", err
 	}
