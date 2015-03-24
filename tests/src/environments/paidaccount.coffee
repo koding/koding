@@ -27,7 +27,7 @@ module.exports =
   makeAlwaysOnForNotPaidUser: (browser) ->
 
     buttonSelector = '.more-form .alwayson'
-    vmSelector     = 'a[href="/IDE/koding-vm-1/my-workspace"]'
+    vmSelector     = 'a[href="/IDE/koding-vm-1"]'
 
     helpers.beginTest(browser)
 
@@ -50,7 +50,7 @@ module.exports =
   # addVM: (browser) ->
 
   #   freeModalSelector = '.computeplan-modal.free-plan'
-  #   vmSelector        = 'a[href="/IDE/koding-vm-1/my-workspace"]'
+  #   vmSelector        = 'a[href="/IDE/koding-vm-1"]'
 
   #   helpers.beginTest(browser)
   #   helpers.waitForVMRunning(browser)
@@ -83,7 +83,7 @@ module.exports =
   # turnOnNewPaidVM: (browser) ->
 
   #   vmName     = 'koding-vm-1'
-  #   vmSelector = 'a[href="/IDE/' + vmName + '/my-workspace"]'
+  #   vmSelector = 'a[href="/IDE/' + vmName + '"]'
 
   #   helpers.beginTest(browser)
 
@@ -124,4 +124,3 @@ module.exports =
   #           browser
   #             .waitForElementVisible   '.more-form .alwayson .koding-on-off.on', 20000
   #             .end()
-
