@@ -86,8 +86,9 @@ module.exports =
 
     browser
       .waitForElementVisible    '.kdtabhandle-tabs .settings', 20000
+      .waitForElementVisible    '.kdlistview-default.expanded', 50000
       .click                    '.kdtabhandle-tabs .settings'
-      .waitForElementVisible    '.settings-pane .settings-header',20000 # Assertion
+      .waitForElementVisible    '.settings-pane .settings-header:first-child',20000 # Assertion
       .end()
 
 
