@@ -11,7 +11,7 @@ module.exports =
     if not vmName
       vmName = 'koding-vm-0'
 
-    vmSelector = '.activity-sidebar a[href="/IDE/' + vmName + '/my-workspace"].running'
+    vmSelector = '.activity-sidebar a[href="/IDE/' + vmName + '"].running'
 
     browser
       .waitForElementVisible   vmSelector, 20000
@@ -80,6 +80,5 @@ module.exports =
       .waitForElementVisible    '.env-modal.paid-plan', 25000
       .click                    '.env-modal.paid-plan button'
       .waitForElementNotVisible '.env-modal.paid-plan', 250000
-      .waitForElementVisible    'a[href="/IDE/koding-vm-1/my-workspace"]', 25000
+      .waitForElementVisible    'a[href="/IDE/koding-vm-1"]', 25000
       .end()
-
