@@ -42,7 +42,7 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 	m.AddHandler(
 		handler.Request{
 			Handler:  Blacklist,
-			Name:     models.ModerationChannelDeleteLink,
+			Name:     models.ModerationChannelBlacklist,
 			Type:     handler.PostRequest,
 			Endpoint: "/moderation/channel/blacklist",
 			Metrics:  metric,
