@@ -205,9 +205,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.addDomainAndTags()
 
 	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 90, machinestate.Building)
-	if err := m.checkKite(m.QueryString); err != nil {
-		return err
-	}
+	m.checkKite()
 
 	resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
 		m.Username, m.Meta.InstanceId, m.IpAddress, m.QueryString)
@@ -591,15 +589,13 @@ func (m *Machine) addDomainAndTags() {
 	}
 }
 
-func (m *Machine) checkKite(query string) error {
+func (m *Machine) checkKite() {
 	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
 	if m.isKlientReady() {
 		m.Log.Debug("klient is ready.")
 	} else {
 		m.Log.Warning("klient is not ready. I couldn't connect to it.")
 	}
-
-	return nil
 }
 
 func (m *Machine) isKlientReady() bool {

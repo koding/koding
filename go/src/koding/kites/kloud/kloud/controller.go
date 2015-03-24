@@ -17,48 +17,6 @@ type ControlResult struct {
 
 type machineFunc func(context.Context, interface{}) error
 
-// func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
-// 	startFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		resp, err := p.Start(m)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-//
-// 		// some providers might provide empty information, therefore do not
-// 		// update anything for them
-// 		if resp == nil {
-// 			return resp, nil
-// 		}
-//
-// 		err = k.Storage.Update(m.Id, &StorageData{
-// 			Type: "start",
-// 			Data: map[string]interface{}{
-// 				"ipAddress":    resp.IpAddress,
-// 				"domainName":   resp.DomainName,
-// 				"instanceId":   resp.InstanceId,
-// 				"instanceName": resp.InstanceName,
-// 			},
-// 		})
-//
-// 		if err != nil {
-// 			k.Log.Error("[%s] updating data after start method was not possible: %s",
-// 				m.Id, err.Error())
-// 		}
-//
-// 		resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s]",
-// 			r.Username, resp.InstanceId, resp.IpAddress)
-//
-// 		k.Log.Info("[%s] ========== START results ========== %s",
-// 			m.Id, resultInfo)
-//
-// 		// do not return the error, the machine is already prepared and
-// 		// started, it should be ready
-// 		return resp, nil
-// 	}
-//
-// 	return k.coreMethods(r, startFunc)
-// }
-//
 // func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
 // 	resizeFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 // 		resp, err := p.Resize(m)

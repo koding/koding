@@ -95,17 +95,51 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 
 func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 	startFunc := func(ctx context.Context, machine interface{}) error {
-		// special case `NetworkOut` error since client relies on this
-		// to show a modal
-		// if strings.Contains(err.Error(), "NetworkOut") {
-		// 	msg = err.Error()
-		// }
+		ev, ok := eventer.FromContext(ctx)
+		if !ok {
+			return fmt.Errorf("eventer context is not available")
+		}
 
-		// special case `plan is expired` error since client relies on this
-		// to show a modal
-		// if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
-		// 	msg = err.Error()
-		// }
+		ev.Push(&eventer.Event{
+			Message: "Machine is starting",
+			Status:  machinestate.Starting,
+		})
+
+		starter, ok := machine.(Starter)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		stater, ok := machine.(Stater)
+		if !ok {
+			return NewError(ErrStaterNotImplemented)
+		}
+		currentState := stater.State()
+
+		finalEvent := &eventer.Event{
+			Message:    "Starting finished",
+			Status:     machinestate.Running,
+			Percentage: 100,
+		}
+
+		err := starter.Start(ctx)
+		if err != nil {
+			// special case `NetworkOut` error since client relies on this
+			// to show a modal
+			// if strings.Contains(err.Error(), "NetworkOut") {
+			// 	msg = err.Error()
+			// }
+
+			// special case `plan is expired` error since client relies on this
+			// to show a modal
+			// if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
+			// 	msg = err.Error()
+			// }
+			finalEvent.Error = "Starting failed. Please contact support."
+			finalEvent.Status = currentState
+		}
+
+		ev.Push(finalEvent)
 		return nil
 	}
 

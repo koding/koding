@@ -29,6 +29,10 @@ type Stopper interface {
 	Stop(ctx context.Context) error
 }
 
+type Starter interface {
+	Start(ctx context.Context) error
+}
+
 // Stater returns the state of a machine
 type Stater interface {
 	State() machinestate.State

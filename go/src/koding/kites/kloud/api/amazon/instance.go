@@ -135,19 +135,3 @@ func (a *Amazon) ListSubnetsFromVPC(vpcId string) (*ec2.SubnetsResp, error) {
 
 	return a.Client.DescribeSubnets([]string{}, filter)
 }
-
-func (a *Amazon) AllocateAndAssociateIP(instanceId string) (string, error) {
-	allocateResp, err := a.Client.AllocateAddress(&ec2.AllocateAddress{Domain: "vpc"})
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := a.Client.AssociateAddress(&ec2.AssociateAddress{
-		InstanceId:   instanceId,
-		AllocationId: allocateResp.AllocationId,
-	}); err != nil {
-		return "", err
-	}
-
-	return allocateResp.PublicIp, nil
-}

@@ -13,10 +13,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (a *Amazon) Start(ctx context.Context) (*protocol.Artifact, error) {
+func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 	ev, withPush := eventer.FromContext(ctx)
 	if !withPush {
-		return nil, errors.New("eventer context is not available")
+		return ec2.Instance{}, errors.New("eventer context is not available")
 	}
 
 	if withPush {
@@ -29,7 +29,7 @@ func (a *Amazon) Start(ctx context.Context) (*protocol.Artifact, error) {
 
 	_, err := a.Client.StartInstances(a.Id())
 	if err != nil {
-		return nil, err
+		return ec2.Instance{}, err
 	}
 
 	var instance ec2.Instance
@@ -51,14 +51,10 @@ func (a *Amazon) Start(ctx context.Context) (*protocol.Artifact, error) {
 	}
 
 	if err := ws.Wait(); err != nil {
-		return nil, err
+		return ec2.Instance{}, err
 	}
 
-	return &protocol.Artifact{
-		InstanceId:   instance.InstanceId,
-		IpAddress:    instance.PublicIpAddress,
-		InstanceType: a.Builder.InstanceType,
-	}, nil
+	return instance, nil
 }
 
 func (a *Amazon) Stop(ctx context.Context) error {
