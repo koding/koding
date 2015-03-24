@@ -2,6 +2,7 @@ package koding
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -63,6 +64,10 @@ type networkUsageResponse struct {
 }
 
 func (m *Machine) NetworkUsage() error {
+	if m.networkUsageEndpoint == "" {
+		return errors.New("Network usage endpoint is not set")
+	}
+
 	networkEndpoint, err := url.Parse(m.networkUsageEndpoint)
 	if err != nil {
 		m.Log.Debug("Failed to parse network-usage endpoint: %v. err: %v",
