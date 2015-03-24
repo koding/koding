@@ -9,13 +9,11 @@ import (
 )
 
 func (m *Machine) Destroy(ctx context.Context) error {
-	return m.runMethod(ctx, m.destroy)
-}
-
-func (m *Machine) destroy(ctx context.Context) error {
 	if m.State() == machinestate.NotInitialized {
 		return errors.New("can't destroy notinitialized machine.")
 	}
+
+	panic("imeplement updating state")
 
 	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
 		return err

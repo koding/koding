@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -60,11 +61,15 @@ type ImageData struct {
 	imageId            string
 }
 
-func (m *Machine) Build(ctx context.Context) error {
-	return m.runMethod(ctx, m.build)
-}
+func (m *Machine) Build(ctx context.Context) (err error) {
+	// Check if the given method is in valid methods of that current state. For
+	// example if the method is "build", and the state is "stopped" than this
+	// will return an error.
+	if !methodIn("build", m.State().ValidMethods()...) {
+		return fmt.Errorf("build not allowed for current state '%s'. Allowed methods are: %v",
+			strings.ToLower(m.Status.State), m.State().ValidMethods())
+	}
 
-func (m *Machine) build(ctx context.Context) error {
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return errors.New("request context is not available")
@@ -73,9 +78,10 @@ func (m *Machine) build(ctx context.Context) error {
 	// the user might send us a snapshot id
 	var args struct {
 		SnapshotId string
+		Reason     string
 	}
 
-	err := req.Args.One().Unmarshal(&args)
+	err = req.Args.One().Unmarshal(&args)
 	if err != nil {
 		return err
 	}
@@ -83,6 +89,25 @@ func (m *Machine) build(ctx context.Context) error {
 	if args.SnapshotId != "" {
 		m.Meta.SnapshotId = args.SnapshotId
 	}
+
+	reason := "Machine is building."
+	if args.Reason != "" {
+		reason += "Custom reason: " + args.Reason
+	}
+
+	if err := m.UpdateState(reason, machinestate.Building); err != nil {
+		return err
+	}
+
+	defer func() {
+		// run any availabile cleanupFunction
+		m.runCleanupFunctions()
+
+		// if there is any error mark it as NotInitialized
+		if err != nil {
+			m.UpdateState(reason, machinestate.NotInitialized)
+		}
+	}()
 
 	if m.Meta.InstanceName == "" {
 		m.Meta.InstanceName = "user-" + m.Username + "-" + strconv.FormatInt(time.Now().UTC().UnixNano(), 10)
@@ -160,7 +185,7 @@ func (m *Machine) build(ctx context.Context) error {
 		ctx = context.WithValue(ctx, "retryKey", retryCount) // increase
 
 		// call it again recursively
-		return m.build(ctx)
+		return m.Build(ctx)
 	}
 
 	// if it's something else return it!
@@ -198,6 +223,11 @@ func (m *Machine) build(ctx context.Context) error {
 
 	m.Log.Info("========== BUILD results ========== %s", resultInfo)
 
+	reason = "Machine is build successfully."
+	if args.Reason != "" {
+		reason += "Custom reason: " + args.Reason
+	}
+
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			m.Id,
@@ -208,6 +238,9 @@ func (m *Machine) build(ctx context.Context) error {
 				"meta.instanceName": m.Meta.InstanceName,
 				"meta.instanceId":   m.Meta.InstanceId,
 				"meta.source_ami":   m.Meta.SourceAmi,
+				"status.state":      machinestate.Running.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     reason,
 			}},
 		)
 	})

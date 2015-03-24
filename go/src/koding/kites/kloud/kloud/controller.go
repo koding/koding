@@ -4,15 +4,13 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/machinestate"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 )
 
 type ControlResult struct {
-	State   machinestate.State `json:"state"`
-	EventId string             `json:"eventId"`
+	EventId string `json:"eventId"`
 }
 
 type machineFunc func(context.Context, interface{}) error
@@ -298,7 +296,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 	return ControlResult{
 		EventId: eventId,
-		// State:   s.initial,
 	}, nil
 }
 

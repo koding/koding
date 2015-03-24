@@ -56,9 +56,10 @@ type Machine struct {
 	cleanFuncs []func()
 }
 
-// Cleanup calls all cleanup functions and set the list to nil. Once called any
-// other call will not have any effect.
-func (m *Machine) Cleanup() {
+// runCleanupFunctions calls all cleanup functions and set the
+// list to nil. Once called any other call will not have any
+// effect.
+func (m *Machine) runCleanupFunctions() {
 	if m.cleanFuncs == nil {
 		return
 	}
