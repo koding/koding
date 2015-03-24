@@ -41,6 +41,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -58,8 +59,10 @@ import (
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
@@ -186,9 +189,9 @@ func TestBuild(t *testing.T) {
 
 	// now try to ssh into the machine with temporary private key we created in
 	// the beginning
-	// if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
-	// 	t.Error(err)
-	// }
+	if err := checkSSHKey(userData.MachineId, userData.PrivateKey); err != nil {
+		t.Error(err)
+	}
 
 	// invalid calls after build
 	if err := build(userData.MachineId); err == nil {
@@ -200,37 +203,48 @@ func TestBuild(t *testing.T) {
 	}
 }
 
-// func checkSSHKey(id, privateKey string) error {
-// 	// now try to ssh into the machine with temporary private key we created in
-// 	// the beginning
-// 	machine, err := provider.Get(id)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	sshConfig, err := sshutil.SshConfig("root", privateKey)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	log.Printf("Connecting to machine with ip '%s' via ssh\n", machine.IpAddress)
-// 	sshClient, err := sshutil.ConnectSSH(machine.IpAddress+":22", sshConfig)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	log.Printf("Testing SSH deployment")
-// 	output, err := sshClient.StartCommand("whoami")
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	if strings.TrimSpace(string(output)) != "root" {
-// 		return fmt.Errorf("Whoami result should be root, got: %s", string(output))
-// 	}
-//
-// 	return nil
-// }
+func checkSSHKey(id, privateKey string) error {
+	log.Println("Checking deployed ssh key")
+	// now try to ssh into the machine with temporary private key we created in
+	// the beginning
+	ctx := request.NewContext(context.Background(), &kite.Request{
+		Username: "testuser",
+	})
+	ctx = eventer.NewContext(ctx, eventer.New(id))
+
+	m, err := provider.Machine(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	machine, ok := m.(*koding.Machine)
+	if !ok {
+		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
+	}
+
+	sshConfig, err := sshutil.SshConfig("root", privateKey)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Connecting to machine with ip '%s' via ssh\n", machine.IpAddress)
+	sshClient, err := sshutil.ConnectSSH(machine.IpAddress+":22", sshConfig)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Testing SSH deployment")
+	output, err := sshClient.StartCommand("whoami")
+	if err != nil {
+		return err
+	}
+
+	if strings.TrimSpace(string(output)) != "root" {
+		return fmt.Errorf("Whoami result should be root, got: %s", string(output))
+	}
+
+	return nil
+}
 
 // func TestStop(t *testing.T) {
 // 	t.Parallel()
@@ -742,8 +756,9 @@ func listenEvent(args kloud.EventArgs, desiredState machinestate.State) error {
 			return e.Error
 		}
 
-		event := e.Event
+		// fmt.Printf("e = %+v\n", e)
 
+		event := e.Event
 		if event.Error != "" {
 			return fmt.Errorf("%s: %s", args[0].Type, event.Error)
 		}

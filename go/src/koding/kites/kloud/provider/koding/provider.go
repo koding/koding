@@ -143,8 +143,10 @@ func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	m.Log.Debug("validating for method '%s'", r.Method)
 
 	// give access to kloudctl
-	if r.Auth.Key == command.KloudSecretKey {
-		return nil
+	if r.Auth != nil {
+		if r.Auth.Key == command.KloudSecretKey {
+			return nil
+		}
 	}
 
 	// check for user permissions
