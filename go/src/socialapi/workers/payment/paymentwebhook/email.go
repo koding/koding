@@ -26,10 +26,12 @@ var EmailSubjects = map[Action]string{
 	PaymentFailed:       "PaymentFailed",
 }
 
+var ErrEmailActionNotFound = errors.New("action not found")
+
 func SendEmail(user *models.User, action Action, opts map[string]interface{}) error {
 	subject, ok := EmailSubjects[action]
 	if !ok {
-		return errors.New("")
+		return ErrEmailActionNotFound
 	}
 
 	mail := &emailsender.Mail{
