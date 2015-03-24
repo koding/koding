@@ -37,12 +37,13 @@ module.exports = class SidebarTopicItem extends SidebarItem
 
     if typeConstant is 'group'
 
+      @setUnreadCount 0
+
       # if the public channel is visited before
       # find the exact route that last visited
       # and navigate to there
       for route in visitedRoutes by -1 when route.search('/Public') isnt -1
         kd.utils.stopDOMEvent event
-        @setUnreadCount 0
         router.handleRoute route
         return no
 
