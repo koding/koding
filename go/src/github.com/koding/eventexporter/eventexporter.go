@@ -12,6 +12,8 @@ type Exporter interface {
 	Send(*Event) error
 }
 
+// Event represent an action in time that is done by an user, has body
+// and optionally some properties.
 type Event struct {
 	Name       string                 // name of event
 	User       *User                  // user who did event
@@ -21,6 +23,9 @@ type Event struct {
 
 type BodyType int
 
+// Body is used to send text or html of event directly to 3rd party.
+// Ideally none of html should exist in codebase so it's easy to change,
+// however legacy html code still exists.
 type Body struct {
 	Type    BodyType // text or html
 	Content string
