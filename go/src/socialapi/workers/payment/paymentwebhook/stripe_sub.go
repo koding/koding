@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
@@ -23,10 +24,18 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 
 	err = stopMachinesForUser(sub.CustomerId, c.Kite)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf("Error stopping machines for customer:%s, %s",
+			sub.CustomerId, err,
+		))
 	}
 
-	stripe.SubscriptionDeletedWebhook(sub)
+	err = stripe.SubscriptionDeletedWebhook(sub)
+	if err != nil {
+		Log.Error(fmt.Sprintf(
+			"Error processing 'SubscriptionDeleted' webhook for customer:%s, %s",
+			sub.CustomerId, err,
+		))
+	}
 
 	return subscriptionEmail(sub.CustomerId, sub.Plan.Name, SubscriptionDeleted)
 }
