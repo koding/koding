@@ -75,7 +75,7 @@ func TestChannelHistory(t *testing.T) {
 								So(err, ShouldBeNil)
 								So(cl, ShouldNotBeNil)
 
-								history, err := rest.GetHistory(
+								_, err = rest.GetHistory(
 									c2.Id,
 									&request.Query{
 										AccountId: account.Id,
