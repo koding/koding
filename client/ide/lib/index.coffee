@@ -78,9 +78,8 @@ module.exports = class IDEAppController extends AppController
 
     $('body').addClass 'dark' # for theming
 
-    appView   = @getView()
-    workspace = @workspace = new IDEWorkspace { layoutOptions }
-    @ideViews = []
+    @workspace = new IDEWorkspace { layoutOptions }
+    @ideViews  = []
 
     # todo:
     # - following two should be abstracted out into a separate api
@@ -90,29 +89,7 @@ module.exports = class IDEAppController extends AppController
     {windowController} = kd.singletons
     windowController.addFocusListener @bound 'setActivePaneFocus'
 
-    workspace.once 'ready', =>
-      panel = workspace.getView()
-      appView.addSubView panel
-
-      panel.once 'viewAppended', =>
-        ideView = panel.getPaneByName 'editorPane'
-        @setActiveTabView ideView.tabView
-        @registerIDEView  ideView
-
-        splitViewPanel = ideView.parent.parent
-        @createStatusBar splitViewPanel
-        @createFindAndReplaceView splitViewPanel
-
-        appView.emit 'KeyViewIsSet'
-
-        @createInitialView()
-        @bindCollapseEvents()
-
-        {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
-
-        @bindRouteHandler()
-        @initiateAutoSave()
-        @emit 'ready'
+    @workspace.once 'ready', => @getView().addSubView @workspace.getView()
 
     kd.singletons.appManager.on 'AppIsBeingShown', (app) =>
 
@@ -128,6 +105,31 @@ module.exports = class IDEAppController extends AppController
       @resizeActiveTerminalPane()
 
     @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
+
+
+  prepareIDE: ->
+
+    panel     = @workspace.getView()
+    appView   = @getView()
+    ideView   = panel.getPaneByName 'editorPane'
+
+    @setActiveTabView ideView.tabView
+    @registerIDEView  ideView
+
+    splitViewPanel = ideView.parent.parent
+    @createStatusBar splitViewPanel
+    @createFindAndReplaceView splitViewPanel
+
+    appView.emit 'KeyViewIsSet'
+
+    @createInitialView()
+    @bindCollapseEvents()
+
+    {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
+
+    @bindRouteHandler()
+    @initiateAutoSave()
+    @emit 'ready'
 
 
   bindRouteHandler: ->
@@ -322,9 +324,9 @@ module.exports = class IDEAppController extends AppController
       @splitTabView 'horizontal', createNewEditor: no
       @getMountedMachine (err, machine) =>
 
-        machine = new Machine { machine }  unless machine instanceof Machine
-
         return unless machine
+
+        machine = new Machine { machine }  unless machine instanceof Machine
 
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
@@ -356,14 +358,29 @@ module.exports = class IDEAppController extends AppController
               pane.isInitial = yes
 
 
+  setMountedMachine: (machine) ->
+
+    @mountedMachine = machine
+    @emit 'MachineDidMount', machine, @workspaceData
+
+
+  whenMachineReady: (callback) ->
+
+    if @mountedMachine
+    then callback @mountedMachine, @workspaceData
+    else @once 'MachineDidMount', callback
+
+
   getMountedMachine: (callback = noop) ->
+
+    return callback()  unless @mountedMachineUId
 
     kd.utils.defer =>
       environmentDataProvider.fetchMachineByUId @mountedMachineUId, (machine, ws) =>
         machine = new Machine { machine }  unless machine instanceof Machine
-        @mountedMachine = machine
+        @setMountedMachine machine
 
-        callback null, @mountedMachine
+        callback null, machine
 
 
   mountMachineByMachineUId: (machineUId) ->
@@ -372,12 +389,16 @@ module.exports = class IDEAppController extends AppController
     container         = @getView()
 
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
-      return showError 'Something went wrong. Try again.'  unless machineItem
+
+      unless machineItem
+        return @createMachineStateModal { state: 'NotFound', container }
 
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
-      @mountedMachine = machineItem
+      @setMountedMachine machineItem
+
+      @prepareIDE()
 
       callback = =>
 
@@ -429,10 +450,16 @@ module.exports = class IDEAppController extends AppController
         if event.status in actionRequiredStates
           @showStateMachineModal machineItem, event
 
-      .on 'MachineBeingDestroyed', (machine) =>
+      .on "reinit-#{machineItem._id}", @bound 'handleMachineReinit'
 
-        if machine._id is @mountedMachine._id
-          @quit()
+
+  handleMachineReinit: ({status}) ->
+
+    switch status
+      when 'Building'
+        environmentDataProvider.ensureDefaultWorkspace kd.noop
+      when 'Running'
+        @quit()
 
 
   showStateMachineModal: (machineItem, event) ->
@@ -456,6 +483,8 @@ module.exports = class IDEAppController extends AppController
     mainView.toggleSidebar()  if mainView.isSidebarCollapsed
 
     { state, container, machineItem, initial } = options
+
+    container   ?= @getView()
     modalOptions = { state, container, initial }
     @machineStateModal = new EnvironmentsMachineStateModal modalOptions, machineItem
 
@@ -1176,10 +1205,12 @@ module.exports = class IDEAppController extends AppController
 
     @emit 'IDEWillQuit'
 
-    @mountedMachine.getBaseKite().disconnect()
+    @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
     kd.singletons.appManager.quit this
-    kd.singletons.router.handleRoute '/IDE'
+
+    kd.utils.defer ->
+      kd.singletons.router.handleRoute '/IDE'
 
     @emit 'IDEDidQuit'
 
