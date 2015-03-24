@@ -1423,8 +1423,8 @@ func TestChannelFetchLeaves(t *testing.T) {
 
 			So(cl.Create(), ShouldBeNil)
 
-			Convey("should return root", func() {
-				leaves, err := leaf.FetchLeaves()
+			Convey("should return its leaves", func() {
+				leaves, err := root.FetchLeaves()
 				So(err, ShouldBeNil)
 				So(leaves, ShouldNotBeNil)
 				So(len(leaves), ShouldEqual, 2)
