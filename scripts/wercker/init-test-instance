@@ -27,8 +27,8 @@ cd $REPOSITORY_PATH
 
 npm --unsafe-perm install
 ./configure --host $HOST:8090
+./run buildclient
 TEST_EXTRAS="--no-start-selenium --url http://$HOST:8090" make -C client/test build
-make -C client dist
 ./run services
 ./run install
 ./run resetdb --yes
