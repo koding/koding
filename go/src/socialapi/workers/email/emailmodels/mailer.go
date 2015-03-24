@@ -22,13 +22,13 @@ func NewMailer(a *models.Account) (*Mailer, error) {
 
 	return &Mailer{
 		UserContact: uc,
-		Mail:        new(emailsender.Mail),
+		Mail:        emailsender.NewEmptyMail(),
 	}, nil
 }
 
 func (m *Mailer) SendMail(contentType, body, subject string) error {
 	if m.Mail == nil {
-		m.Mail = new(emailsender.Mail)
+		m.Mail = emailsender.NewEmptyMail()
 	}
 
 	m.Mail.Text = body

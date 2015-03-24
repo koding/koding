@@ -33,6 +33,10 @@ func NewMail(to, from, subject, username string) *Mail {
 	return &Mail{To: to, From: from, Subject: subject, Properties: properties}
 }
 
+func NewEmptyMail() *Mail {
+	return &Mail{}
+}
+
 func (m Mail) GetId() int64 {
 	return 0
 }
