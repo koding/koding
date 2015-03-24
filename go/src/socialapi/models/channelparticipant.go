@@ -284,7 +284,7 @@ func (c *ChannelParticipant) FetchParticipatedChannelIds(a *Account, q *request.
 
 	// add exempt clause if needed
 	if !q.ShowExempt {
-		query = query.Where("api.channel.meta_bits = ?", Safe)
+		query = query.Where("api.channel.meta_bits <> ?", Troll)
 	}
 
 	rows, err := query.

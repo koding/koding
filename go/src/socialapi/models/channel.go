@@ -571,6 +571,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 		query.Selector["type_constant"] = q.Type
 	}
 
+	// this will hide moderation needed channels
+	query.AddScope(RemoveModerationNeededContent(c, false))
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)
