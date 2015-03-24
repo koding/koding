@@ -19,7 +19,10 @@ type Controller struct {
 
 // New Creates a new controller for mail worker
 func New(exporter eventexporter.Exporter, log logging.Logger) *Controller {
-	return &Controller{emailer: exporter, log: log}
+	return &Controller{
+		emailer: exporter,
+		log:     log,
+	}
 }
 
 // Send gets the mail struct that includes the message
@@ -47,7 +50,9 @@ func (c *Controller) Process(m *Mail) error {
 	user.Username = m.Properties.Username
 
 	event := &eventexporter.Event{
-		Name: m.Subject, User: user, Body: &eventexporter.Body{Content: m.HTML},
+		Name:       m.Subject,
+		User:       user,
+		Body:       &eventexporter.Body{Content: m.HTML},
 		Properties: m.Properties.Options,
 	}
 
