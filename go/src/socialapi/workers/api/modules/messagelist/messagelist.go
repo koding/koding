@@ -8,6 +8,8 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
+
+	"github.com/koding/bongo"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
@@ -26,12 +28,23 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 		return response.NewBadRequest(err)
 	}
 
+	root, err := c.FetchRoot()
+	if err != nil && err != bongo.RecordNotFound {
+		return response.NewBadRequest(err)
+	}
+
+	if root != nil {
+		h.Add("Location", fmt.Sprintf("/Activity/Topic/%s", root.Name))
+		fmt.Println("iste geldim buradayim")
+		return http.StatusMovedPermanently, h, nil, nil
+	}
+
 	if !query.ShowExempt {
 		query.ShowExempt = context.Client.Account.IsTroll
 	}
 
-	// if channel is exempt and
-	// user should see the content, return not found err
+	// if channel is exempt and user should see the
+	// content, return not found err
 	if c.MetaBits.Is(models.Troll) && !query.ShowExempt {
 		return response.NewNotFound()
 	}

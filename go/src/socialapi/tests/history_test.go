@@ -31,6 +31,11 @@ func TestChannelHistory(t *testing.T) {
 			channel, err = rest.CreateChannel(account.Id)
 			So(err, ShouldBeNil)
 			So(channel, ShouldNotBeNil)
+
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			Convey("While posting a new message to it", func() {
 				var channelParticipant *models.ChannelParticipant
 				var err error
@@ -50,22 +55,39 @@ func TestChannelHistory(t *testing.T) {
 
 						}
 						Convey("We should be able to fetch the history", func() {
-
-							ses, err := models.FetchOrCreateSession(account.Nick)
-							So(err, ShouldBeNil)
-							So(ses, ShouldNotBeNil)
-
 							history, err := rest.GetHistory(
 								channel.Id,
 								&request.Query{
-									AccountId: channelParticipant.AccountId,
+									AccountId: account.Id,
 								},
 								ses.ClientId,
 							)
 							So(err, ShouldBeNil)
 							So(history, ShouldNotBeNil)
 							So(len(history.MessageList), ShouldEqual, 10)
+
+							Convey("After linking to another channel", func() {
+								c2, err := rest.CreateChannelByGroupNameAndType(account.Id, channel.GroupName, models.Channel_TYPE_TOPIC)
+								So(err, ShouldBeNil)
+								So(c2, ShouldNotBeNil)
+
+								cl, err := rest.CreateLink(channel.Id, c2.Id, ses.ClientId)
+								So(err, ShouldBeNil)
+								So(cl, ShouldNotBeNil)
+
+								history, err := rest.GetHistory(
+									c2.Id,
+									&request.Query{
+										AccountId: account.Id,
+									},
+									ses.ClientId,
+								)
+
+								So(err, ShouldNotBeNil)
+								So(err.Error(), ShouldContainSubstring, "not found")
+							})
 						})
+
 						Convey("We should be not able to fetch the history if the clientId is not set", func() {
 
 							ses, err := models.FetchOrCreateSession(account.Nick)
@@ -75,7 +97,7 @@ func TestChannelHistory(t *testing.T) {
 							history, err := rest.GetHistory(
 								channel.Id,
 								&request.Query{
-									AccountId: channelParticipant.AccountId,
+									AccountId: account.Id,
 								},
 								"",
 							)
@@ -92,7 +114,7 @@ func TestChannelHistory(t *testing.T) {
 							history, err := rest.GetHistory(
 								channel.Id,
 								&request.Query{
-									AccountId: channelParticipant.AccountId,
+									AccountId: account.Id,
 								},
 								"foobarzaa",
 							)
