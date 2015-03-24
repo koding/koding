@@ -1,5 +1,5 @@
 kd   = require 'kd'
-view = require './view'
+view = require './viewhelpers'
 ManagedVMBaseModal = require './basemodal'
 checkFlag = require 'app/util/checkFlag'
 

@@ -1,4 +1,5 @@
 kd = require 'kd'
+view = require './viewhelpers'
 
 module.exports = class ManagedVMBaseModal extends kd.ModalView
 
