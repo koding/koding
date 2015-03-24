@@ -85,7 +85,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
         partial  : """
           <div class="arrow"></div>
           <div class="balloon"></div>
-          <p>This is your chat session, go ahead and <a href="#">add a friend</a> here.</p>
+          <p>Start your collaboration session by <a href="#">adding someone</a>.</p>
         """
 
     else
