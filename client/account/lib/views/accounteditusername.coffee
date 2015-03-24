@@ -271,15 +271,16 @@ module.exports = class AccountEditUsername extends JView
         else if isValid
           notify "Thanks for confirming your email address"
 
-    whoami().fetchEmailAndStatus (err, userInfo) =>
+    kd.singletons.mainController.ready =>
+      whoami().fetchEmailAndStatus (err, userInfo) =>
 
-      return kd.warn err  if err
+        return kd.warn err  if err
 
-      @userInfo = userInfo
+        @userInfo = userInfo
 
-      super
+        super
 
-      @putDefaults()
+        @putDefaults()
 
 
   putDefaults: ->
