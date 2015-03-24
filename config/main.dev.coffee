@@ -609,12 +609,8 @@ Configuration = (options={}) ->
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
-            echo your run file is older than your client package json. doing npm i.
             sleep 1
-            cd client && npm i && cd -
-
-            echo -e "\n\nPlease do ./configure and  ./run again\n"
-            exit 1;
+            sh -c "scripts/install-npm.sh -d client -s"
         fi
 
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
