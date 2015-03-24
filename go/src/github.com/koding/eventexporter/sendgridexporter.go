@@ -71,7 +71,7 @@ func setFrom(mail *sendgrid.SGMail, event *Event) (*sendgrid.SGMail, error) {
 
 func setBody(mail *sendgrid.SGMail, event *Event) (*sendgrid.SGMail, error) {
 	if event.Body == nil {
-		return mail, nil
+		return nil, ErrSendgridBodyEmpty
 	}
 
 	bodyType := event.Body.Type
