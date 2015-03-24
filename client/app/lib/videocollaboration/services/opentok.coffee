@@ -242,10 +242,10 @@ module.exports = class OpenTokService extends kd.Object
     publisher = OT.initPublisher element, publisherOptions
 
     publisher.on
-      accessAllowed      : (event) => @emit 'CameraAccessAllowed'
-      accessDenied       : (event) => @emit 'CameraAccessDenied'
-      accessDialogOpened : (event) => @emit 'CameraAccessQuestionAsked'
-      accessDialogClosed : (event) => @emit 'CameraAccessQuestionAnswered'
+      accessAllowed      : => @emit 'CameraAccessAllowed'
+      accessDenied       : => @emit 'CameraAccessDenied'
+      accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
+      accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
 
     return publisher
 

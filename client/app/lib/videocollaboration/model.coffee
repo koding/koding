@@ -54,7 +54,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @listens OpenTokService~CameraQuestionAsked
    * @listens OpenTokService~CameraQuestionAnswered
    * @listens OpenTokService~StreamDestroyed
-  ####
+  ###
   startPublishing: (options) -> @_service.whenReady =>
 
     @_service
@@ -83,7 +83,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * It ensures that OpenTokService instance is ready.
    *
    * @listens OpenTokService~NewSubscriber
-  ####
+  ###
   subscribe: -> @_service.whenReady =>
 
     @_service.on 'NewSubscriber', @bound 'handleNewSubscriber'
@@ -95,7 +95,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * Session creation handler.
    *
    * @param {OT.Session} session
-  ####
+  ###
   handleSessionCreated: (session) ->
 
     @session = session
@@ -107,20 +107,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * user in the `subscribers` object.
    *
    * @param {OT.Subscriber} subscriber
-  ####
+  ###
   handleNewSubscriber: (subscriber) ->
 
     { nick, video } = subscriber
-
-    @subscribers[nick] = subscriber
 
 
   ###*
    * Stream destroy handler. Sets back some defaults.
    * TODO: Destroy maybe?
-   *
-   * @param {OT.StreamDestroyedEvent} event
-  ####
+  ###
   handleStreamDestroyed: (event) ->
 
     @publisher = null
@@ -130,10 +126,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * Returns all the participants including the publisher(Logged in user).
    *
    * @return {Object} participants
-  ####
+  ###
   getParticipants: ->
 
-    participants = assign {}, @subscribers
+    participants = _.assign {}, @subscribers
     participants[KD.nick()] = { video: @publisher }
 
     return participants
@@ -143,13 +139,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * Switch to given users video feed.
    *
    * @param {String} nick
-  ####
+  ###
   switchTo: (nick) ->
 
-    participants = @getParticipants()
-    participant  = participants[nick]
-
-    return  unless participant
+    return  unless participant = @getParticipants()[nick]
 
     @hideAll()
     @showParticipant participant
@@ -157,23 +150,20 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
   ###*
    * Hides all video feeds.
-  ####
+  ###
   hideAll: ->
 
-    participants = @getParticipants()
-
-    @hideParticipant participant  for own _, participant of participants
+    @hideParticipant participant  for own _, participant of @getParticipants()
 
 
   ###*
    * Hides given participant's video feed.
    *
    * @param {OT.Subscriber|OT.Publisher} participant
-  ####
+  ###
   hideParticipant: (participant) ->
 
     { video } = participant
-
     video.element.style.display = 'none'
 
 
@@ -181,26 +171,24 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * Shows given participant's video feed.
    *
    * @param {OT.Subscriber|OT.Publisher} participant
-  ####
+  ###
   showParticipant: (participant) ->
 
-    { video } = participant
-
-    { element } = video
-
+    { element } = participant.video
     element.style.display = 'block'
+
     @fixParticipantVideo participant
 
 
   ###*
    * This is a convinient method.
-   * This is probably wrong but the way _service sessions
+   * This is probably wrong but the way openTok sessions
    * are working makes all subscriber videos invisible.
    * This method's pure existence is to support it.
    * p.s.: 173 is weird.
    *
    * @param {OT.Subscriber|OT.Publisher} participant
-  ####
+  ###
   fixParticipantVideo: (participant) ->
 
     { video } = participant
