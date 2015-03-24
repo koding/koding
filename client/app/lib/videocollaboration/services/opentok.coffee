@@ -54,12 +54,11 @@ module.exports = class OpenTokService extends kd.Object
       @_loaded = yes
 
 
-  whenReady: ->
+  whenReady: (callback) ->
 
-    new Promise (resolve) =>
-      if @isClientLoaded
-      then resolve()
-      else @once 'ClientLoaded', -> resolve()
+    if @_loaded
+    then callback()
+    else @once 'ClientLoaded', callback
 
 
   ###*

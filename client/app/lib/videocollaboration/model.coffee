@@ -18,7 +18,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @stream      = null
     @subscribers = {}
 
-    @_service.whenReady().then @bound 'init'
+    @_service.whenReady @bound 'init'
 
 
   getView: -> @view
@@ -55,7 +55,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @listens OpenTokService~CameraQuestionAnswered
    * @listens OpenTokService~StreamDestroyed
   ####
-  startPublishing: (options) -> @_service.whenReady().then =>
+  startPublishing: (options) -> @_service.whenReady =>
 
     @_service
       .on 'CameraAccessAllowed',          @view.bound 'show'
@@ -84,7 +84,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    *
    * @listens OpenTokService~NewSubscriber
   ####
-  subscribe: -> @_service.whenReady().then =>
+  subscribe: -> @_service.whenReady =>
 
     @_service.on 'NewSubscriber', @bound 'handleNewSubscriber'
 
