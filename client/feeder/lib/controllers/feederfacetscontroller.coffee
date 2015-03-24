@@ -48,12 +48,12 @@ module.exports = class FeederFacetsController extends KDViewController
   highlight:(filterName, sortName)->
     @facetTypes.forEach (facetType)=>
       controller = @["#{facetType}Controller"]
-      for item in controller.itemsOrdered
+      for item in controller.getListItems()
         {type, action} = item.getData()
         typeMatches = switch action
           when 'filter' then filterName is type
           when 'sort'   then sortName is type
-        isSelectedItem = typeMatches and controller.itemsOrdered.length > 1
+        isSelectedItem = typeMatches and controller.getListItems().length > 1
         controller.selectItem item  if isSelectedItem
 
 
