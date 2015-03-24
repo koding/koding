@@ -5,6 +5,7 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/machinestate"
 	"strings"
 
 	"github.com/koding/kite"
@@ -16,6 +17,24 @@ type ControlResult struct {
 }
 
 type machineFunc func(context.Context, interface{}) error
+
+// statePair defines a methods start and final states
+type statePair struct {
+	start machinestate.State
+	final machinestate.State
+}
+
+var states = map[string]*statePair{
+	"build":          &statePair{start: machinestate.Building, final: machinestate.Running},
+	"start":          &statePair{start: machinestate.Starting, final: machinestate.Running},
+	"stop":           &statePair{start: machinestate.Stopping, final: machinestate.Stopped},
+	"destroy":        &statePair{start: machinestate.Terminating, final: machinestate.Terminated},
+	"restart":        &statePair{start: machinestate.Rebooting, final: machinestate.Running},
+	"resize":         &statePair{start: machinestate.Pending, final: machinestate.Running},
+	"reinit":         &statePair{start: machinestate.Terminating, final: machinestate.Running},
+	"createSnapshot": &statePair{start: machinestate.Snapshotting, final: machinestate.Running},
+	"deleteSnapshot": &statePair{start: machinestate.Snapshotting, final: machinestate.Running},
+}
 
 // coreMethods is running and returning the response for the given machineFunc.
 // This method is used to avoid duplicate codes in many codes (because we do
@@ -104,6 +123,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	if !ok {
 		return nil, NewError(ErrStaterNotImplemented)
 	}
+	currentState := stater.State()
 
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
@@ -113,16 +133,34 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 			r.Method, strings.ToLower(stater.State().String()), stater.State().ValidMethods())
 	}
 
+	pair, ok := states[r.Method]
+	if !ok {
+		return nil, fmt.Errorf("no state pair available for %s", r.Method)
+	}
+
+	ev.Push(&eventer.Event{
+		Message: r.Method + " started",
+		Status:  pair.start,
+	})
+
 	// Start our core method in a goroutine to not block it for the client
 	// side. However we do return an event id which is an unique for tracking
 	// the current status of the running method.
 	go func() {
+		finalEvent := &eventer.Event{
+			Message:    r.Method + " finished",
+			Status:     pair.final,
+			Percentage: 100,
+		}
+
 		err := fn(ctx, machine)
 		if err != nil {
 			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
+			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
+			finalEvent.Status = currentState // fallback to to old state
 		}
 
-		// unlock distributed lock
+		ev.Push(finalEvent)
 		k.Locker.Unlock(args.MachineId)
 	}()
 
