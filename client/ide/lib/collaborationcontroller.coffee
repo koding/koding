@@ -346,7 +346,7 @@ module.exports =
       object.rtm = @rtm
       object.emit 'RealtimeManagerSet'
 
-    if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
+    @whenRealtimeReady callback
 
 
   isRealtimeSessionActive: (id, callback) ->
@@ -522,6 +522,7 @@ module.exports =
         Loading      : => kd.utils.defer => @onCollaborationLoading()
         Resuming     : @bound 'onCollaborationResuming'
         NotStarted   : @bound 'onCollaborationNotStarted'
+        Preparing    : @bound 'onCollaborationPreparing'
         Prepared     : @bound 'onCollaborationPrepared'
         Creating     : @bound 'onCollaborationCreating'
         Active       : @bound 'onCollaborationActive'
@@ -562,11 +563,10 @@ module.exports =
     @collectButtonShownMetric()
 
 
-  prepareChatSession: ->
+  prepareChatSession: (callbacks) ->
 
     socialHelpers.initChannel (err, channel) =>
-
-      return @stateMachine.transition 'ErrorCreating'  if err
+      return callbacks.error err  if err
 
       @setSocialChannel channel
       @createChatPaneView channel
@@ -574,10 +574,15 @@ module.exports =
       envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
         .then =>
           @workspaceData.channelId = channel.id
-          @chat.ready =>
-            @stateMachine.transition 'Prepared'
-        .error (err) =>
-          # @stateMachine.transition 'ErrorCreating'
+          @chat.ready => callbacks.success()
+        .error (err) => callbacks.error err
+
+
+  onCollaborationPreparing: ->
+
+    @prepareChatSession
+      success : => @stateMachine.transition 'Prepared'
+      error   : => @stateMachine.transition 'ErrorPreparing'
 
 
   onCollaborationPrepared: ->
@@ -657,6 +662,9 @@ module.exports =
 
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
+
+    # attach realtime manager when a new editor pane is opened.
+    @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
 
 
   transitionViewsToActive: ->
@@ -759,8 +767,8 @@ module.exports =
   showChat: ->
 
     switch @stateMachine.state
-      when 'Active'     then @showChatPane()
-      when 'NotStarted' then @prepareChatSession()
+      when 'Active' then @showChatPane()
+      when 'NotStarted' then @stateMachine.transition 'Preparing'
 
 
   stopCollaborationSession: ->
@@ -885,7 +893,8 @@ module.exports =
         ok         :
           title    : 'OK'
           style    : 'solid green medium'
-          callback : => @modal.destroy()
+          callback : =>
+            @modal.destroy()
 
     @chat.end()
     @showModal options

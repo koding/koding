@@ -14,6 +14,8 @@ describe 'CollaborationStateMachine', ->
     expect(states['ErrorLoading']).to.be.ok
     expect(states['Resuming']).to.be.ok
     expect(states['NotStarted']).to.be.ok
+    expect(states['Preparing']).to.be.ok
+    expect(states['ErrorPreparing']).to.be.ok
     expect(states['Prepared']).to.be.ok
     expect(states['Creating']).to.be.ok
     expect(states['ErrorCreating']).to.be.ok
@@ -28,8 +30,8 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['NotStarted', 'ErrorLoading', 'Resuming']
     illegalStates = [
-      'Active', 'Prepared', 'Creating'
-      'ErrorCreating', 'Ending', 'Loading'
+      'Active', 'Preparing', 'Prepared', 'Creating'
+      'ErrorCreating', 'Ending', 'Loading', 'ErrorPreparing'
     ]
 
     assertLegalTransitions newSimpleMachine, legalStates
@@ -40,8 +42,8 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['Active']
     illegalStates = [
-      'Loading', 'ErrorLoading', 'Resuming', 'NotStarted'
-      'Prepared', 'Creating', 'ErrorCreating', 'Ending'
+      'Loading', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
+      'Preparing', 'Prepared', 'Creating', 'ErrorCreating', 'Ending'
     ]
 
     assertLegalTransitions resumingMachine, legalStates
@@ -52,8 +54,8 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['Loading']
     illegalStates = [
-      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
-      'Prepared', 'Creating', 'ErrorCreating', 'Ending'
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
+      'Preparing', 'Prepared', 'Creating', 'ErrorCreating', 'Ending'
     ]
 
     assertLegalTransitions errorLoadingMachine, legalStates
@@ -62,22 +64,46 @@ describe 'CollaborationStateMachine', ->
 
   it 'tests NotStarted state transitions', ->
 
-    legalStates = ['Prepared']
+    legalStates = ['Preparing']
     illegalStates = [
       'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
-      'Loading', 'Creating', 'ErrorCreating', 'Ending'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending', 'Prepared'
     ]
 
     assertLegalTransitions notStartedMachine, legalStates
     assertIllegalTransitions notStartedMachine, illegalStates
 
 
+  it 'tests Preparing state transitions', ->
+
+    legalStates = ['Prepared', 'ErrorPreparing']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending', 'Preparing'
+    ]
+
+    assertLegalTransitions preparingMachine, legalStates
+    assertIllegalTransitions preparingMachine, illegalStates
+
+
+  it 'tests ErrorPreparing state transitions', ->
+
+    legalStates = ['Preparing', 'NotStarted']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'ErrorPreparing'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending'
+    ]
+
+    assertLegalTransitions errorPreparingMachine, legalStates
+    assertIllegalTransitions errorPreparingMachine, illegalStates
+
+
   it 'tests Prepared state transitions', ->
 
     legalStates = ['Creating']
     illegalStates = [
-      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
-      'Loading', 'Prepared', 'ErrorCreating', 'Ending'
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
+      'Loading', 'Prepared', 'ErrorCreating', 'Ending', 'Preparing'
     ]
 
     assertLegalTransitions preparedMachine, legalStates
@@ -89,7 +115,7 @@ describe 'CollaborationStateMachine', ->
     legalStates = ['Active', 'ErrorCreating']
     illegalStates = [
       'Creating', 'ErrorLoading', 'Resuming', 'NotStarted'
-      'Loading', 'Prepared', 'Ending'
+      'Loading', 'Prepared', 'Ending', 'Preparing', 'ErrorPreparing'
     ]
 
     assertLegalTransitions creatingMachine, legalStates
@@ -101,7 +127,7 @@ describe 'CollaborationStateMachine', ->
     legalStates = ['NotStarted', 'Creating']
     illegalStates = [
       'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
-      'Loading', 'Prepared', 'Ending'
+      'Loading', 'Prepared', 'Ending', 'Preparing', 'ErrorPreparing'
     ]
 
     assertLegalTransitions errorCreatingMachine, legalStates
@@ -112,8 +138,8 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = ['Ending']
     illegalStates = [
-      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
-      'Loading', 'Prepared', 'NotStarted', 'Creating'
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active', 'ErrorPreparing'
+      'Loading', 'Prepared', 'NotStarted', 'Creating', 'Preparing'
     ]
 
     assertLegalTransitions activeMachine, legalStates
@@ -124,8 +150,8 @@ describe 'CollaborationStateMachine', ->
 
     legalStates = []
     illegalStates = [
-      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
-      'Loading', 'Prepared', 'NotStarted', 'Creating', 'Ending'
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active', 'ErrorPreparing'
+      'Loading', 'Prepared', 'NotStarted', 'Creating', 'Ending', 'Preparing'
     ]
 
     assertLegalTransitions endingMachine, legalStates
@@ -162,8 +188,18 @@ notStartedMachine = ->
   machine.transition 'NotStarted'
   return machine
 
-preparedMachine = ->
+preparingMachine = ->
   machine = notStartedMachine()
+  machine.transition 'Preparing'
+  return machine
+
+errorPreparingMachine = ->
+  machine = preparingMachine()
+  machine.transition 'ErrorPreparing'
+  return machine
+
+preparedMachine = ->
+  machine = preparingMachine()
   machine.transition 'Prepared'
   return machine
 

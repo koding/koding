@@ -275,7 +275,11 @@ module.exports = class IDEAppController extends AppController
 
   openFile: (file, contents, callback = noop, emitChange) ->
 
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
+    kallback = (pane) =>
+      @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
+      callback pane
+
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
 
 
   openMachineTerminal: (machineData) ->
@@ -1145,40 +1149,50 @@ module.exports = class IDEAppController extends AppController
     @changeActiveTabView paneType
 
     switch paneType
-      when 'terminal'
-        terminalOptions =
-          machine       : @mountedMachine
-          session       : context.session
-          hash          : paneHash
-          joinUser      : @collaborationHost or nick()
-          fitToWindow   : not @isInSession
+      when 'terminal' then @createTerminalPaneFromChange change, paneHash
+      when 'editor'   then @createEditorPaneFromChange change, paneHash
+      when 'drawing'  then @createDrawingPaneFromChange change, paneHash
 
-        @createNewTerminal terminalOptions
+    if @mySnapshot and not @mySnapshot.get paneHash
+      @mySnapshot.set paneHash, change
 
-      when 'editor'
-        { file }      = context
-        { path }      = file
-        options       = { path, machine : @mountedMachine }
-        file          = FSHelper.createFileInstance options
-        file.paneHash = paneHash
 
-        if @rtm?.realtimeDoc
-          content = @rtm.getFromModel(path)?.getText() or ''
-          @openFile file, content, noop, no
-        else if file.isDummyFile()
-          @openFile file, context.file.content, noop, no
-        else
-          file.fetchContents (err, contents = '') =>
-            return showError err  if err
-            @changeActiveTabView paneType
-            @openFile file, contents, noop, no
+  createTerminalPaneFromChange: (change, hash) ->
 
-      when 'drawing'
-        @createNewDrawing paneHash
+    @createNewTerminal
+      machine       : @mountedMachine
+      session       : change.context.session
+      hash          : hash
+      joinUser      : @collaborationHost or nick()
+      fitToWindow   : not @isInSession
 
-    if @mySnapshot
-      unless @mySnapshot.get paneHash
-        @mySnapshot.set paneHash, change
+
+  createEditorPaneFromChange: (change, hash) ->
+
+    { context }        = change
+    { file, paneType } = context
+    { path }           = file
+    options            = { path, machine : @mountedMachine }
+    file               = FSHelper.createFileInstance options
+    file.paneHash      = hash
+
+    if @rtm?.realtimeDoc
+      content = @rtm.getFromModel(path)?.getText() or ''
+      @openFile file, content, noop, no
+
+    else if file.isDummyFile()
+      @openFile file, file.content, noop, no
+
+    else
+      file.fetchContents (err, contents = '') =>
+        return showError err  if err
+        @changeActiveTabView paneType
+        @openFile file, contents, noop, no
+
+
+  createDrawingPaneFromChange: (change, hash) ->
+
+    @createNewDrawing hash
 
 
   showModal: (modalOptions = {}, callback = noop) ->
