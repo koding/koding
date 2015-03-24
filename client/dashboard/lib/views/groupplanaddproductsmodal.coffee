@@ -73,7 +73,7 @@ module.exports = class GroupPlanAddProductsModal extends KDModalView
   save: ->
     quantities = {}
 
-    @products.getItemsOrdered().forEach (item) ->
+    @products.getListItems().forEach (item) ->
       { planCode } = item.getData()
       qty = item.qtyView.getValue()
       quantities[planCode] = qty  if qty > 0

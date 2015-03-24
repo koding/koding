@@ -50,7 +50,7 @@ module.exports = class Koding extends ProviderInterface
 
   @fetchPlans = (client, options, callback)->
 
-    callback null, PLANS
+    callback null, clone PLANS
 
 
   @ping = (client, options, callback)->

@@ -22,9 +22,14 @@ module.exports = class PricingAppView extends KDView
   TOO_MANY_ATTEMPT_BLOCK_KEY = 'BlockForTooManyAttempts'
 
   getInitialState : ->
-    {
+
+    dayOfWeek = (new Date).getDay()
+    reversePlans = dayOfWeek in [2, 4, 6, 7]
+
+    return {
       planInterval : 'year'
-      promotedPlan : 'hobbyist'
+      promotedPlan : if reversePlans then 'developer' else 'hobbyist'
+      reversePlans
     }
 
   constructor:(options = {}, data) ->

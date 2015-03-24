@@ -85,6 +85,19 @@ func (mwc *Controller) createChangelogChannel() {
 	}
 }
 
+func (mwc *Controller) createPublicChannel() {
+	c := models.NewChannel()
+	c.Name = "public"
+	c.GroupName = "koding"
+	c.TypeConstant = models.Channel_TYPE_GROUP
+	c.PrivacyConstant = models.Channel_PRIVACY_PUBLIC
+	c.CreatorId = 1
+	err := c.Create()
+	if err != nil {
+		mwc.log.Error("Could not create public channel: %s", err)
+	}
+}
+
 func (mwc *Controller) createGroupChannel(groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.Name = groupName

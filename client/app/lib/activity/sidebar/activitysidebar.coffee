@@ -101,9 +101,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     environmentDataProvider.revive()
-    environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
 
     mainController.ready =>
+      environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
       whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
@@ -358,6 +358,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   addItem: (data, index) ->
 
     listController = @getListController data.typeConstant
+
+    return  unless listController
+
     item = @getItemByData data
 
     # add the new topic item in sidebar
@@ -474,9 +477,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     super
 
-    @addMachineList()
-    @addFollowedTopics()
-    @addMessages()
+    kd.getSingleton('mainController').ready =>
+      @addMachineList()
+      @addFollowedTopics()
+      @addMessages()
 
 
   initiateFakeCounter: ->
@@ -497,8 +501,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     { machine, workspace } = data
 
-    for machineList in @machineLists
-      machineList.selectMachineAndWorkspace machine.uid, workspace.slug
+    kd.getSingleton('mainController').ready =>
+
+      for machineList in @machineLists
+        machineList.selectMachineAndWorkspace machine.uid, workspace.slug
 
 
   fetchEnvironmentData: (callback) ->
@@ -533,10 +539,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     frontApp = kd.singletons.appManager.getFrontApp()
 
     if frontApp?.options.name is 'IDE'
-      machine   = frontApp.mountedMachine
-      workspace = frontApp.workspaceData
-
-      @selectWorkspace { machine, workspace }
+      frontApp.whenMachineReady (machine, workspace) =>
+        @selectWorkspace { machine, workspace }
 
 
   addMachines_: (data) ->
@@ -637,7 +641,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = kd.noop) ->
 
-    @fetchEnvironmentData @bound 'redrawMachineList'
+    kd.singletons.mainController.ready =>
+      @fetchEnvironmentData @bound 'redrawMachineList'
 
 
   invalidateWorkspaces: (machine) ->
