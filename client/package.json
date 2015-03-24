@@ -34,7 +34,7 @@
     "validator": "^3.33.0"
   },
   "scripts": {
-    "preinstall": "npm --prefix builder install && npm --prefix landing install",
+    "preinstall": "../scripts/install-npm.sh -d client/builder -s && ../scripts/install-npm.sh -d client/landing -s",
     "test": "make test"
   },
   "browser": {
