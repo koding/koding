@@ -141,8 +141,8 @@ func init() {
 	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("event", kld.Event)
-	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
-	// kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
+	kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	go kloudKite.Run()
 	<-kloudKite.ServerReadyNotify()
@@ -281,53 +281,52 @@ func TestStart(t *testing.T) {
 	}
 }
 
-//
-// func TestSnapshot(t *testing.T) {
-// 	t.Parallel()
-// 	username := "testuser4"
-// 	userData, err := createUser(username)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	if err := build(userData.MachineId); err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	log.Println("Creating snapshot")
-// 	if err := createSnapshot(userData.MachineId); err != nil {
-// 		t.Error(err)
-// 	}
-//
-// 	log.Println("Retrieving snapshot id")
-// 	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	log.Println("Deleting snapshot")
-// 	if err := deleteSnapshot(userData.MachineId, snapshotId); err != nil {
-// 		t.Error(err)
-// 	}
-//
-// 	// once deleted there shouldn't be any snapshot data in MongoDB
-// 	log.Println("Checking snapshot data in MongoDB")
-// 	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
-// 		t.Error(err)
-// 	}
-//
-// 	// also check AWS, be sure it's been deleted
-// 	log.Println("Checking snapshot data in AWS")
-// 	err = checkSnapshotAWS(userData.MachineId, snapshotId)
-// 	if err != nil && !isSnapshotNotFoundError(err) {
-// 		t.Error(err)
-// 	}
-//
-// 	if err := destroy(userData.MachineId); err != nil {
-// 		t.Error(err)
-// 	}
-// }
-//
+func TestSnapshot(t *testing.T) {
+	t.Parallel()
+	username := "testuser4"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Creating snapshot")
+	if err := createSnapshot(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+
+	log.Println("Retrieving snapshot id")
+	snapshotId, err := getSnapshotId(userData.MachineId, userData.AccountId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	log.Println("Deleting snapshot")
+	if err := deleteSnapshot(userData.MachineId, snapshotId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+
+	// once deleted there shouldn't be any snapshot data in MongoDB
+	log.Println("Checking snapshot data in MongoDB")
+	if err := checkSnapshotMongoDB(snapshotId, userData.AccountId); err != errNoSnapshotFound {
+		t.Error(err)
+	}
+
+	// also check AWS, be sure it's been deleted
+	log.Println("Checking snapshot data in AWS")
+	err = checkSnapshotAWS(userData.MachineId, snapshotId)
+	if err != nil && !isSnapshotNotFoundError(err) {
+		t.Error(err)
+	}
+
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
+
 func TestResize(t *testing.T) {
 	t.Parallel()
 	username := "testuser5"
@@ -454,7 +453,7 @@ func createUser(username string) (*singleUser, error) {
 		Groups:     make([]models.Permissions, 0),
 	}
 
-	machine.Meta.Region = "us-east-1"
+	machine.Meta.Region = "eu-west-1"
 	machine.Meta.InstanceType = "t2.micro"
 	machine.Meta.StorageSize = 3
 	machine.Meta.AlwaysOn = false
@@ -875,66 +874,70 @@ func getAmazonStorageSize(machineId string) (int, error) {
 	return currentSize, nil
 }
 
-//
-// func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
-// 	var snapshot *oldkoding.SnapshotDocument
-// 	if err := provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
-// 		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
-// 	}); err != nil {
-// 		return "", err
-// 	}
-//
-// 	return snapshot.SnapshotId, nil
-// }
-//
-// func checkSnapshotAWS(machineId, snapshotId string) error {
-// 	m, err := provider.Get(machineId)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	a, err := provider.NewClient(m)
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	_, err = a.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
-// 	return err // nil means it exists
-// }
-//
-// func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
-// 	var err error
-// 	var count int
-//
-// 	err = provider.Session.Run("jSnapshots", func(c *mgo.Collection) error {
-// 		count, err = c.Find(bson.M{
-// 			"originId":   accountId,
-// 			"snapshotId": snapshotId,
-// 		}).Count()
-// 		return err
-// 	})
-//
-// 	if err != nil {
-// 		log.Printf("Could not fetch %v: err: %v", snapshotId, err)
-// 		return errors.New("could not check Snapshot existency")
-// 	}
-//
-// 	if count == 0 {
-// 		return errNoSnapshotFound
-// 	}
-//
-// 	return nil
-//
-// }
-//
-// func isSnapshotNotFoundError(err error) bool {
-// 	ec2Error, ok := err.(*ec2.Error)
-// 	if !ok {
-// 		return false
-// 	}
-//
-// 	return ec2Error.Code == "InvalidSnapshot.NotFound"
-// }
+func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
+	var snapshot *koding.SnapshotDocument
+	if err := provider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"originId": accountId, "machineId": bson.ObjectIdHex(machineId)}).One(&snapshot)
+	}); err != nil {
+		return "", err
+	}
+
+	return snapshot.SnapshotId, nil
+}
+
+func checkSnapshotAWS(machineId, snapshotId string) error {
+	ctx := request.NewContext(context.Background(), &kite.Request{
+		Username: "testuser",
+	})
+	ctx = eventer.NewContext(ctx, eventer.New(machineId))
+
+	m, err := provider.Machine(ctx, machineId)
+	if err != nil {
+		return err
+	}
+
+	machine, ok := m.(*koding.Machine)
+	if !ok {
+		return fmt.Errorf("%v doesn't is a koding.Machine struct", m)
+	}
+
+	_, err = machine.Session.AWSClient.Client.Snapshots([]string{snapshotId}, ec2.NewFilter())
+	return err // nil means it exists
+}
+
+func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
+	var err error
+	var count int
+
+	err = provider.DB.Run("jSnapshots", func(c *mgo.Collection) error {
+		count, err = c.Find(bson.M{
+			"originId":   accountId,
+			"snapshotId": snapshotId,
+		}).Count()
+		return err
+	})
+
+	if err != nil {
+		log.Printf("Could not fetch %v: err: %v", snapshotId, err)
+		return errors.New("could not check Snapshot existency")
+	}
+
+	if count == 0 {
+		return errNoSnapshotFound
+	}
+
+	return nil
+
+}
+
+func isSnapshotNotFoundError(err error) bool {
+	ec2Error, ok := err.(*ec2.Error)
+	if !ok {
+		return false
+	}
+
+	return ec2Error.Code == "InvalidSnapshot.NotFound"
+}
 
 // TestFetcher satisfies the fetcher interface
 type TestFetcher struct {

@@ -57,6 +57,11 @@ type Infoer interface {
 	Info(ctx context.Context) (map[string]string, error)
 }
 
+type Snapshotter interface {
+	CreateSnapshot(ctx context.Context) error
+	DeleteSnapshot(ctx context.Context) error
+}
+
 // Stater returns the state of a machine
 type Stater interface {
 	State() machinestate.State

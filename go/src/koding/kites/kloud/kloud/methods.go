@@ -45,7 +45,8 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 		return nil, NewError(ErrProviderNotImplemented)
 	}
 
-	infoData, err := i.Info(request.NewContext(context.Background(), r))
+	ctx := request.NewContext(context.Background(), r)
+	infoData, err := i.Info(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -163,4 +164,30 @@ func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 	}
 
 	return k.coreMethods(r, restartFunc)
+}
+
+func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr error) {
+	snapshotFunc := func(ctx context.Context, machine interface{}) error {
+		s, ok := machine.(Snapshotter)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		return s.CreateSnapshot(ctx)
+	}
+
+	return k.coreMethods(r, snapshotFunc)
+}
+
+func (k *Kloud) DeleteSnapshot(r *kite.Request) (interface{}, error) {
+	snapshotFunc := func(ctx context.Context, machine interface{}) error {
+		s, ok := machine.(Snapshotter)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		return s.DeleteSnapshot(ctx)
+	}
+
+	return k.coreMethods(r, snapshotFunc)
 }

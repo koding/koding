@@ -264,7 +264,7 @@ func (m *Machine) imageData() (*ImageData, error) {
 	if m.Meta.SnapshotId != "" {
 		m.Log.Debug("checking for snapshot permissions")
 		// check first if the snapshot belongs to the user, it might belong to someone else!
-		if err := m.CheckSnapshotExistence(); err != nil {
+		if err := m.checkSnapshotExistence(); err != nil {
 			return nil, err
 		}
 
