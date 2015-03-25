@@ -75,21 +75,6 @@ module.exports = class NavigationMachineItem extends JView
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
 
-      # These are updating machine data on this instance indivudally
-      # but since we have more data to update, I'm updating all machines
-      # for now.
-      #
-      # .on "revive-#{@machine._id}", (machine)=>
-      #   @machine = machine
-
-      #   @label.updatePartial @machine.label
-      #   @alias   = @machine.slug or @label
-      #   newPath  = groupifyLink "/IDE/#{@alias}/my-workspace"
-
-      #   @setAttributes
-      #     href   : newPath
-      #     title  : "Open IDE for #{@alias}"
-
 
   settingsEnabled: ->
 
