@@ -8,6 +8,7 @@ KDProgressBarView = kd.ProgressBarView
 JView = require '../jview'
 Machine = require '../providers/machine'
 MachineSettingsPopup = require '../providers/machinesettingspopup'
+PermanentShareConfirmationModal = require 'app/activity/sidebar/permanentshareconfirmationmodal'
 
 
 module.exports = class NavigationMachineItem extends JView
@@ -142,6 +143,7 @@ module.exports = class NavigationMachineItem extends JView
 
     if not m.isMine() and m.isPermanent() and not m.isApproved()
       kd.utils.stopDOMEvent e
+      new PermanentShareConfirmationModal { position: @getPopupPosition 20 }, m
 
     super
 
