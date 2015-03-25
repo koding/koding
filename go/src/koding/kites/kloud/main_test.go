@@ -141,7 +141,7 @@ func init() {
 	kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("event", kld.Event)
-	kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
 	// kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	go kloudKite.Run()
@@ -849,7 +849,7 @@ func getAmazonStorageSize(machineId string) (int, error) {
 
 	a := machine.Session.AWSClient
 
-	instance, err := a.Instance(a.Id())
+	instance, err := a.Instance()
 	if err != nil {
 		return 0, err
 	}

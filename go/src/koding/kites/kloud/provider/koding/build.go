@@ -609,7 +609,7 @@ func (m *Machine) isKlientReady() bool {
 	defer klientRef.Close()
 	m.Log.Debug("Sending a ping message")
 	if err := klientRef.Ping(); err != nil {
-		m.Log.Debug("Sending a ping message err:", err)
+		m.Log.Debug("Sending a ping message err: %s", err)
 		return false
 	}
 
