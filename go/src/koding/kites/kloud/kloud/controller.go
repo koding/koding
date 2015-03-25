@@ -203,41 +203,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 // 	return k.coreMethods(r, resizeFunc)
 // }
 //
-// func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
-// 	reinitFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		resp, err := p.Reinit(m)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-//
-// 		// some providers might provide empty information, therefore do not
-// 		// update anything for them
-// 		if resp == nil {
-// 			return resp, nil
-// 		}
-//
-// 		// if the username is not explicit changed, assign the original username to it
-// 		if resp.Username == "" {
-// 			resp.Username = m.Username
-// 		}
-//
-// 		err = k.Storage.Update(m.Id, &StorageData{
-// 			Type: "reinit",
-// 			Data: map[string]interface{}{
-// 				"ipAddress":    resp.IpAddress,
-// 				"domainName":   resp.DomainName,
-// 				"instanceId":   resp.InstanceId,
-// 				"instanceName": resp.InstanceName,
-// 				"queryString":  resp.KiteQuery,
-// 			},
-// 		})
-//
-// 		return resp, err
-// 	}
-//
-// 	return k.coreMethods(r, reinitFunc)
-// }
-//
 // func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 // 	restartFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
 // 		err := p.Restart(m)

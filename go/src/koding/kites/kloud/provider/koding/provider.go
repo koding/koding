@@ -99,7 +99,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	payment, err := p.FetchPlan(user.Name)
 	if err != nil {
 		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
-			machine.Username, err)
+			user.Name, err)
 		payment = &PaymentResponse{Plan: Free}
 	}
 

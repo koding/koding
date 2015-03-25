@@ -119,6 +119,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 		m.push("Checking limits and quota", 20, machinestate.Building)
 		m.Log.Debug("Checking user limitation and machine quotas")
+		// TODO: move out checking facility outwards machine and put it into kloud
 		if err := m.checkLimits(buildData); err != nil {
 			return err
 		}

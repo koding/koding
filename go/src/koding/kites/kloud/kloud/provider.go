@@ -33,6 +33,10 @@ type Starter interface {
 	Start(ctx context.Context) error
 }
 
+type Reiniter interface {
+	Reinit(ctx context.Context) error
+}
+
 // Stater returns the state of a machine
 type Stater interface {
 	State() machinestate.State

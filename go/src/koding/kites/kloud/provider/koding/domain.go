@@ -143,14 +143,3 @@ func (m *Machine) UpdateDomain(domainName, machineId string) error {
 
 	return nil
 }
-
-// UpdateDomain sets the ip to the given domain. If there is no record a new
-// record will be created otherwise existing record is updated. This is just a
-// helper method that uses our DNS struct.
-func (p *Provider) UpdateDomain(ip, domain, username string) error {
-	if err := p.DNS.Validate(domain, username); err != nil {
-		return err
-	}
-
-	return p.DNS.Upsert(domain, ip)
-}

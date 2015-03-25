@@ -17,17 +17,18 @@ func (m *Machine) Start(ctx context.Context) error {
 		return err
 	}
 
-	if err := m.AlwaysOn(); err != nil {
-		return err
-	}
-
-	if err := m.NetworkUsage(); err != nil {
-		return err
-	}
-
-	if err := m.PlanState(); err != nil {
-		return err
-	}
+	// TODO: move out checking facility outwards machine and put it into kloud
+	// if err := m.AlwaysOn(); err != nil {
+	// 	return err
+	// }
+	//
+	// if err := m.NetworkUsage(); err != nil {
+	// 	return err
+	// }
+	//
+	// if err := m.PlanState(); err != nil {
+	// 	return err
+	// }
 
 	infoResp, err := m.Session.AWSClient.Info()
 	if err != nil {
@@ -135,8 +136,12 @@ func (m *Machine) Start(ctx context.Context) error {
 	}
 
 	m.push("Initializing domain instance", 65, machinestate.Starting)
-	if err := m.UpdateDomain(m.Domain, m.Username); err != nil {
-		m.Log.Error("updating domains for starting err: %s", err.Error())
+	if err := m.Session.DNS.Validate(m.Domain, m.Username); err != nil {
+		m.Log.Error("couldn't update machine domain: %s", err.Error())
+	}
+
+	if err := m.Session.DNS.Upsert(m.Domain, m.IpAddress); err != nil {
+		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
 	// also get all domain aliases that belongs to this machine and unset
@@ -147,8 +152,11 @@ func (m *Machine) Start(ctx context.Context) error {
 	}
 
 	for _, domain := range domains {
-		if err := m.UpdateDomain(domain.Name, m.Username); err != nil {
-			m.Log.Error("couldn't update domain: %s", err.Error())
+		if err := m.Session.DNS.Validate(domain.Name, m.Username); err != nil {
+			m.Log.Error("couldn't update machine domain: %s", err.Error())
+		}
+		if err := m.Session.DNS.Upsert(domain.Name, m.IpAddress); err != nil {
+			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
 	}
 
