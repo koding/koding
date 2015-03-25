@@ -105,17 +105,15 @@ module.exports = class NavigationMachineItem extends JView
 
     kd.utils.stopDOMEvent event
 
-    @openMachineSettingsPopup()
+    new MachineSettingsPopup { position: @getPopupPosition() }, @machine
 
 
-  openMachineSettingsPopup: ->
+  getPopupPosition: ->
 
     bounds   = @getBounds()
     position =
       top    : Math.max   bounds.y - 38, 0
       left   : bounds.x + bounds.w + 16
-
-    new MachineSettingsPopup { position }, @machine
 
 
   handleMachineEvent: (event) ->
