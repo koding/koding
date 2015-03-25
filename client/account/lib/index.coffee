@@ -74,7 +74,7 @@ module.exports = class AccountAppController extends AppController
     wrapper = new AccountListWrapper
       cssClass : "settings-list-wrapper #{kd.utils.slugify title}"
       , itemData
-    wrapper.on 'ModalNeedToBeClose', @bound 'closeModal'
+    wrapper.on 'ModalCloseRequested', @bound 'closeModal'
 
     new KDTabPaneView
       view       : wrapper
