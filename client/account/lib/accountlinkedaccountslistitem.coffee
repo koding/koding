@@ -64,7 +64,7 @@ module.exports = class AccountLinkedAccountsListItem extends KDListItemView
   pistachio:->
 
     """
-    <div class='title'><span class='icon'></span>{cite{ #(title)}}</div>
     {{> @switch}}
+    <div class='title'><span class='icon'></span>{cite{ #(title)}}</div>
     """
 
