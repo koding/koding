@@ -916,11 +916,7 @@ module.exports = class IDEAppController extends AppController
     machine.getBaseKite().fetchTerminalSessions()
 
     unless @fakeViewsDestroyed
-      fakeEditorPane = @fakeEditor?.parent
-      fakeEditorPane?.parent.removePane fakeEditorPane
-
-      @fakeTerminalPane?.parent.removePane @fakeTerminalPane
-      @fakeFinderView?.destroy()
+      @removeFakeViews()
       @fakeViewsDestroyed = yes
 
     if snapshot
@@ -932,6 +928,15 @@ module.exports = class IDEAppController extends AppController
 
     data = { machine, workspace: @workspaceData }
     kd.singletons.mainView.activitySidebar.selectWorkspace data
+
+
+  removeFakeViews: ->
+
+    fakeEditorPane = @fakeEditor?.parent
+    fakeEditorPane?.parent.removePane fakeEditorPane
+
+    @fakeTerminalPane?.parent.removePane @fakeTerminalPane
+    @fakeFinderView?.destroy()
 
 
   resurrectLocalSnapshot: (snapshot) ->
