@@ -169,48 +169,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	}, nil
 }
 
-// func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
-// 	resizeFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		resp, err := p.Resize(m)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-//
-// 		// some providers might provide empty information, therefore do not
-// 		// update anything for them
-// 		if resp == nil {
-// 			return resp, nil
-// 		}
-//
-// 		err = k.Storage.Update(m.Id, &StorageData{
-// 			Type: "resize",
-// 			Data: map[string]interface{}{
-// 				"ipAddress":    resp.IpAddress,
-// 				"domainName":   resp.DomainName,
-// 				"instanceId":   resp.InstanceId,
-// 				"instanceName": resp.InstanceName,
-// 			},
-// 		})
-//
-// 		if err != nil {
-// 			k.Log.Error("[%s] updating data after resize method was not possible: %s",
-// 				m.Id, err.Error())
-// 		}
-//
-// 		return resp, nil
-// 	}
-//
-// 	return k.coreMethods(r, resizeFunc)
-// }
-//
-// func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
-// 	restartFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		err := p.Restart(m)
-// 		return nil, err
-// 	}
-//
-// 	return k.coreMethods(r, restartFunc)
-// }
 //
 //
 // func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {

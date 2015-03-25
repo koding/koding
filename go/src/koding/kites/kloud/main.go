@@ -181,8 +181,6 @@ func newKite(conf *Config) *kite.Kite {
 		}),
 		// KlientPool:           klient.NewPool(k),
 		// InactiveMachines:     make(map[string]*time.Timer),
-		// Stats:                stats,
-		PaymentEndpoint:      conf.PlanEndpoint,
 		NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		Userdata: &userdata.Userdata{
 			Keycreator: &keycreator.Key{
@@ -191,6 +189,10 @@ func newKite(conf *Config) *kite.Kite {
 				KontrolPublicKey:  kontrolPublicKey,
 			},
 			Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
+		},
+		PaymentFetcher: &koding.Payment{
+			DB:              db,
+			PaymentEndpoint: conf.PlanEndpoint,
 		},
 	}
 

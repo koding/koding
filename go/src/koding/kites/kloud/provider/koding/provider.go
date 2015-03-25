@@ -34,6 +34,7 @@ type Provider struct {
 
 	// PaymentEndpoint is being used to fetch user plans
 	PaymentEndpoint      string
+	PaymentFetcher       PaymentFetcher
 	NetworkUsageEndpoint string
 }
 
@@ -96,11 +97,11 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	payment, err := p.FetchPlan(user.Name)
+	payment, err := p.PaymentFetcher.Fetch(user.Name)
 	if err != nil {
 		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
 			user.Name, err)
-		payment = &PaymentResponse{Plan: Free}
+		payment = &PaymentResponse{Plan: Hobbyist}
 	}
 
 	machine.networkUsageEndpoint = p.NetworkUsageEndpoint

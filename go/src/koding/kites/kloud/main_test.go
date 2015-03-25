@@ -41,6 +41,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -71,6 +72,7 @@ import (
 	"koding/kites/kloud/userdata"
 
 	"github.com/mitchellh/goamz/aws"
+	"github.com/mitchellh/goamz/ec2"
 )
 
 var (
@@ -136,8 +138,8 @@ func init() {
 	kloudKite.HandleFunc("stop", kld.Stop)
 	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
+	kloudKite.HandleFunc("resize", kld.Resize)
 	// kloudKite.HandleFunc("restart", kld.Restart)
-	// kloudKite.HandleFunc("resize", kld.Resize)
 	kloudKite.HandleFunc("event", kld.Event)
 	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
 	// kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
@@ -326,60 +328,60 @@ func TestStart(t *testing.T) {
 // 	}
 // }
 //
-// func TestResize(t *testing.T) {
-// 	t.Parallel()
-// 	username := "testuser"
-// 	userData, err := createUser(username)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	if err := build(userData.MachineId); err != nil {
-// 		t.Fatal(err)
-// 	}
-//
-// 	resize := func(storageWant int) {
-// 		log.Printf("Resizing machine to %dGB\n", storageWant)
-// 		err = provider.Session.Run("jMachines", func(c *mgo.Collection) error {
-// 			return c.UpdateId(
-// 				bson.ObjectIdHex(userData.MachineId),
-// 				bson.M{
-// 					"$set": bson.M{
-// 						"meta.storage_size": storageWant,
-// 					},
-// 				},
-// 			)
-// 		})
-// 		if err != nil {
-// 			t.Error(err)
-// 		}
-//
-// 		if err := resize(userData.MachineId); err != nil {
-// 			t.Error(err)
-// 		}
-//
-// 		storageGot, err := getAmazonStorageSize(userData.MachineId)
-// 		if err != nil {
-// 			t.Error(err)
-// 		}
-//
-// 		if storageGot != storageWant {
-// 			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
-// 				storageWant,
-// 				storageGot,
-// 			)
-// 		}
-// 	}
-//
-// 	resize(5) // first increase
-// 	resize(7) // second increase
-// 	resize(9) // third increase
-//
-// 	log.Println("Destroying machine")
-// 	if err := destroy(userData.MachineId); err != nil {
-// 		t.Error(err)
-// 	}
-// }
+func TestResize(t *testing.T) {
+	t.Parallel()
+	username := "testuser5"
+	userData, err := createUser(username)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := build(userData.MachineId, userData.Remote); err != nil {
+		t.Fatal(err)
+	}
+
+	resize := func(storageWant int) {
+		log.Printf("Resizing machine to %dGB\n", storageWant)
+		err = provider.DB.Run("jMachines", func(c *mgo.Collection) error {
+			return c.UpdateId(
+				bson.ObjectIdHex(userData.MachineId),
+				bson.M{
+					"$set": bson.M{
+						"meta.storage_size": storageWant,
+					},
+				},
+			)
+		})
+		if err != nil {
+			t.Error(err)
+		}
+
+		if err := resize(userData.MachineId, userData.Remote); err != nil {
+			t.Error(err)
+		}
+
+		storageGot, err := getAmazonStorageSize(userData.MachineId)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if storageGot != storageWant {
+			t.Errorf("Resizing completed but storage sizes do not match. Want: %dGB, Got: %dGB",
+				storageWant,
+				storageGot,
+			)
+		}
+	}
+
+	resize(5) // first increase
+	resize(7) // second increase
+	resize(9) // third increase
+
+	log.Println("Destroying machine")
+	if err := destroy(userData.MachineId, userData.Remote); err != nil {
+		t.Error(err)
+	}
+}
 
 // createUser creates a test user in jUsers and a single jMachine document.
 func createUser(username string) (*singleUser, error) {
@@ -813,6 +815,7 @@ func kodingProvider() *koding.Provider {
 			},
 			Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
 		},
+		PaymentFetcher: NewTestFetcher(koding.Hobbyist),
 	}
 }
 
@@ -825,42 +828,50 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	return kld
 }
 
-// func getAmazonStorageSize(machineId string) (int, error) {
-// 	m, err := provider.Get(machineId)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-//
-// 	a, err := provider.NewClient(m)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-//
-// 	instance, err := a.Instance(a.Id())
-// 	if err != nil {
-// 		return 0, err
-// 	}
-//
-// 	if len(instance.BlockDevices) == 0 {
-// 		return 0, fmt.Errorf("fatal error: no block device available")
-// 	}
-//
-// 	// we need in a lot of placages!
-// 	oldVolumeId := instance.BlockDevices[0].VolumeId
-//
-// 	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
-// 	if err != nil {
-// 		return 0, err
-// 	}
-//
-// 	volSize := oldVolResp.Volumes[0].Size
-// 	currentSize, err := strconv.Atoi(volSize)
-// 	if err != nil {
-// 		return 0, err
-// 	}
-//
-// 	return currentSize, nil
-// }
+func getAmazonStorageSize(machineId string) (int, error) {
+	ctx := request.NewContext(context.Background(), &kite.Request{
+		Username: "testuser5",
+	})
+	ctx = eventer.NewContext(ctx, eventer.New(machineId))
+
+	m, err := provider.Machine(ctx, machineId)
+	if err != nil {
+		return 0, err
+	}
+
+	machine, ok := m.(*koding.Machine)
+	if !ok {
+		return 0, fmt.Errorf("%v doesn't is a koding.Machine struct", m)
+	}
+
+	a := machine.Session.AWSClient
+
+	instance, err := a.Instance(a.Id())
+	if err != nil {
+		return 0, err
+	}
+
+	if len(instance.BlockDevices) == 0 {
+		return 0, fmt.Errorf("fatal error: no block device available")
+	}
+
+	// we need in a lot of placages!
+	oldVolumeId := instance.BlockDevices[0].VolumeId
+
+	oldVolResp, err := machine.Session.AWSClient.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
+	if err != nil {
+		return 0, err
+	}
+
+	volSize := oldVolResp.Volumes[0].Size
+	currentSize, err := strconv.Atoi(volSize)
+	if err != nil {
+		return 0, err
+	}
+
+	return currentSize, nil
+}
+
 //
 // func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
 // 	var snapshot *oldkoding.SnapshotDocument
@@ -923,19 +934,19 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 // }
 
 // TestFetcher satisfies the fetcher interface
-// type TestFetcher struct {
-// 	Plan oldkoding.Plan
-// }
-//
-// func NewTestFetcher(plan oldkoding.Plan) *TestFetcher {
-// 	return &TestFetcher{
-// 		Plan: plan,
-// 	}
-// }
-//
-// func (t *TestFetcher) Fetch(m *kloudprotocol.Machine) (*oldkoding.FetcherResponse, error) {
-// 	return &oldkoding.FetcherResponse{
-// 		Plan:  t.Plan,
-// 		State: "active",
-// 	}, nil
-// }
+type TestFetcher struct {
+	Plan koding.Plan
+}
+
+func NewTestFetcher(plan koding.Plan) *TestFetcher {
+	return &TestFetcher{
+		Plan: plan,
+	}
+}
+
+func (t *TestFetcher) Fetch(username string) (*koding.PaymentResponse, error) {
+	return &koding.PaymentResponse{
+		Plan:  t.Plan,
+		State: "active",
+	}, nil
+}

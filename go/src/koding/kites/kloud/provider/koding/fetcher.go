@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
+	"koding/db/mongodb"
 	"net/http"
 	"net/url"
 	"time"
@@ -12,6 +13,10 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
+
+type PaymentFetcher interface {
+	Fetch(username string) (*PaymentResponse, error)
+}
 
 type SubscriptionsResponse struct {
 	AccountId          string    `json:"accountId"`
@@ -29,7 +34,12 @@ type PaymentResponse struct {
 	State string
 }
 
-func (p *Provider) FetchPlan(username string) (*PaymentResponse, error) {
+type Payment struct {
+	DB              *mongodb.MongoDB
+	PaymentEndpoint string
+}
+
+func (p *Payment) Fetch(username string) (*PaymentResponse, error) {
 	if p.PaymentEndpoint == "" {
 		return nil, errors.New("Payment endpoint is not set")
 	}

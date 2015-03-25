@@ -82,9 +82,22 @@ func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 	return k.coreMethods(r, reinitFunc)
 }
 
-// func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
-// 	reinitFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
-// 		resp, err := p.Reinit(m)
+func (k *Kloud) Resize(r *kite.Request) (resp interface{}, reqErr error) {
+	resizeFunc := func(ctx context.Context, machine interface{}) error {
+		resizer, ok := machine.(Resizer)
+		if !ok {
+			return NewError(ErrProviderNotImplemented)
+		}
+
+		return resizer.Resize(ctx)
+	}
+
+	return k.coreMethods(r, resizeFunc)
+}
+
+// func (k *Kloud) Resize(r *kite.Request) (reqResp interface{}, reqErr error) {
+// 	resizeFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+// 		resp, err := p.Resize(m)
 // 		if err != nil {
 // 			return nil, err
 // 		}
@@ -95,25 +108,32 @@ func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 // 			return resp, nil
 // 		}
 //
-// 		// if the username is not explicit changed, assign the original username to it
-// 		if resp.Username == "" {
-// 			resp.Username = m.Username
-// 		}
-//
 // 		err = k.Storage.Update(m.Id, &StorageData{
-// 			Type: "reinit",
+// 			Type: "resize",
 // 			Data: map[string]interface{}{
 // 				"ipAddress":    resp.IpAddress,
 // 				"domainName":   resp.DomainName,
 // 				"instanceId":   resp.InstanceId,
 // 				"instanceName": resp.InstanceName,
-// 				"queryString":  resp.KiteQuery,
 // 			},
 // 		})
 //
-// 		return resp, err
+// 		if err != nil {
+// 			k.Log.Error("[%s] updating data after resize method was not possible: %s",
+// 				m.Id, err.Error())
+// 		}
+//
+// 		return resp, nil
 // 	}
 //
-// 	return k.coreMethods(r, reinitFunc)
+// 	return k.coreMethods(r, resizeFunc)
 // }
 //
+// func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
+// 	restartFunc := func(m *protocol.Machine, p protocol.Provider) (interface{}, error) {
+// 		err := p.Restart(m)
+// 		return nil, err
+// 	}
+//
+// 	return k.coreMethods(r, restartFunc)
+// }
