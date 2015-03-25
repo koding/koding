@@ -6,16 +6,15 @@ AccountListViewController = require '../controllers/accountlistviewcontroller'
 PaymentHistoryListItem = require './paymenthistorylistitem'
 showError = require 'app/util/showError'
 SubscriptionView = require 'app/payment/subscriptionview'
-PaymentMethodView = require 'app/payment/paymentmethodview'
 UpdateCreditCardWorkflow = require 'app/payment/updatecreditcardworkflow'
 trackEvent = require 'app/util/trackEvent'
+KDButtonView = kd.ButtonView
 
 
 module.exports = class AccountBilling extends KDView
 
   initialState: {
     subscription: null
-    paymentMethod: null
     paymentHistory: null
   }
 
@@ -32,10 +31,6 @@ module.exports = class AccountBilling extends KDView
       tagName  : 'section'
       cssClass : 'subscription-wrapper clearfix'
 
-    @addSubView @paymentMethodWrapper = new KDCustomHTMLView
-      tagName  : 'section'
-      cssClass : 'payment-method-wrapper clearfix'
-
     @addSubView @paymentHistoryWrapper = new KDCustomHTMLView
       tagName  : 'section'
       cssClass : 'payment-history-wrapper clearfix'
@@ -49,8 +44,22 @@ module.exports = class AccountBilling extends KDView
 
     { paymentController } = kd.singletons
 
-    @subscriptionWrapper.addSubView new KDHeaderView
+    @subscriptionWrapper.addSubView header = new KDHeaderView
       title : 'Subscriptions'
+
+    header.addSubView new KDButtonView
+      style    : 'solid small green'
+      title    : 'Upgrade'
+      callback : @lazyBound 'emit', 'ChangeSubscriptionRequested'
+
+    @on 'ChangeSubscriptionRequested', ->
+      kd.singletons.router.handleRoute '/Pricing'
+
+      trackEvent 'Account Upgrade, click',
+        path     : '/Account/Billing'
+        category : 'userInteraction'
+        action   : 'clicks'
+        label    : 'billingUpgrade'
 
     paymentController.subscriptions (err, subscription) =>
       return showError err  if err?
@@ -59,57 +68,13 @@ module.exports = class AccountBilling extends KDView
 
       @subscription = new SubscriptionView {}, subscription
 
-      @subscription.on 'ChangeSubscriptionRequested', ->
-        kd.singletons.router.handleRoute '/Pricing'
-
-        trackEvent 'Account Upgrade, click',
-          path     : '/Account/Billing'
-          category : 'userInteraction'
-          action   : 'clicks'
-          label    : 'billingUpgrade'
-
       @subscriptionWrapper.addSubView @subscription
-
-      @initPaymentMethod subscription
 
 
   noItemView = (partial) ->
     return new KDCustomHTMLView
       cssClass : 'no-item'
       partial  : partial
-
-
-  putPaymentMethodView: (paymentMethod) ->
-
-    @paymentMethod?.destroy()
-
-    @state.paymentMethod = paymentMethod
-
-    @paymentMethod = new PaymentMethodView
-      editLink    : yes
-      removeLink  : no
-    , paymentMethod
-
-    @paymentMethod.on 'PaymentMethodEditRequested', @bound 'startWorkflow'
-
-    @paymentMethodWrapper.addSubView @paymentMethod
-
-
-  initPaymentMethod: (subscription) ->
-
-    { paymentController } = kd.singletons
-
-    @paymentMethodWrapper.addSubView new KDHeaderView
-      title : 'Payment Method'
-
-    paymentController.creditCard (err, cc) =>
-
-      card = null  if err?
-
-      if subscription.provider is 'stripe' and subscription.state isnt 'expired'
-        card = cc
-
-      @putPaymentMethodView card
 
 
   initPaymentHistory: ->

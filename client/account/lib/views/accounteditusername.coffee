@@ -37,55 +37,47 @@ module.exports = class AccountEditUsername extends JView
 
     @avatar = new AvatarStaticView @getAvatarOptions(), @account
 
-    # TODO Since avatar upload is dependent on oskite
-    # these buttons are not appended to view, until a new
-    # avatar upload implementation
     @uploadAvatarBtn  = new KDButtonView
-      icon            : yes
-      style           : 'solid medium green'
+      style           : 'solid small green'
       cssClass        : 'upload-avatar'
-      title           : 'Upload a photo'
+      title           : 'Upload Image'
       loader          : yes
 
     @uploadAvatarInput = new KDInputView
       type            : 'file'
-      cssClass        : 'upload-input'
+      cssClass        : 'AppModal--account-avatarArea-buttons-upload'
       change          : @bound 'uploadInputChange'
       attributes      :
         accept        : 'image/*'
 
     @useGravatarBtn  = new KDButtonView
-      icon           : yes
-      style          : 'solid medium gray'
+      style          : 'solid small gray'
       cssClass       : 'use-gravatar'
       title          : 'Use Gravatar'
       callback       : =>
         @account.modify "profile.avatar": ""
 
     @emailForm = new KDFormViewWithFields
+      cssClass             : 'AppModal-form'
       fields               :
-        profileHeader      :
-          itemClass        : KDHeaderView
-          title            : 'Profile Info'
-          cssClass         : 'section-header'
         firstName          :
+          cssClass         : 'Formline--half'
           placeholder      : "firstname"
           name             : "firstName"
-          cssClass         : "medium"
           label            : 'Name'
         lastName           :
-          cssClass         : "medium"
+          cssClass         : 'Formline--half'
           placeholder      : "lastname"
           name             : "lastName"
           label            : 'Last name'
         email              :
-          cssClass         : "medium"
+          cssClass         : 'Formline--half'
           placeholder      : "you@yourdomain.com"
           name             : "email"
           testPath         : "account-email-input"
           label            : 'Email'
         username           :
-          cssClass         : "medium"
+          cssClass         : 'Formline--half'
           placeholder      : "username"
           name             : "username"
           label            : 'Username'
@@ -93,17 +85,17 @@ module.exports = class AccountEditUsername extends JView
             readonly       : "#{not /^guest-/.test @account.profile.nickname}"
           testPath         : "account-username-input"
         passwordHeader     :
-          itemClass        : KDHeaderView
-          title            : 'Change Password'
-          cssClass         : 'section-header'
+          itemClass        : KDCustomHTMLView
+          partial          : 'CHANGE PASSWORD'
+          cssClass         : 'AppModal-form-sectionHeader'
         password           :
-          cssClass         : "medium"
+          cssClass         : 'Formline--half'
           placeholder      : "password"
           name             : "password"
           type             : "password"
           label            : 'Password'
         confirm            :
-          cssClass         : "medium"
+          cssClass         : 'Formline--half'
           placeholder      : "confirm password"
           name             : "confirmPassword"
           type             : "password"
@@ -112,8 +104,7 @@ module.exports = class AccountEditUsername extends JView
         Save               :
           title            : 'Save Changes'
           type             : 'submit'
-          cssClass         : 'profile-save-changes'
-          style            : 'solid green medium'
+          style            : 'solid green small'
           loader           : yes
       callback             : @bound 'update'
 
@@ -321,24 +312,23 @@ module.exports = class AccountEditUsername extends JView
 
   getAvatarOptions: ->
     tagName       : 'figure'
+    cssClass      : 'AppModal--account-avatar'
     size          :
-      width       : 150
-      height      : 150
+      width       : 95
+      height      : 95
 
 
   pistachio: ->
     """
-    <div class='account-avatar-area clearfix'>
+    <div class='AppModal--account-avatarArea clearfix'>
       {{> @avatar}}
-      <div class="avatar-buttons">
+      <div class="AppModal--account-avatarArea-buttons">
         {{> @uploadAvatarBtn}}
         {{> @uploadAvatarInput}}
         {{> @useGravatarBtn}}
       </div>
-      <section>
-        {{> @emailForm}}
-      </section>
     </div>
+    {{> @emailForm}}
     """
 
 
