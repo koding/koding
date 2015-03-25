@@ -227,10 +227,10 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("stop", kld.Stop)
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("reinit", kld.Reinit)
-	// k.HandleFunc("restart", kld.Restart)
+	k.HandleFunc("restart", kld.Restart)
 	// k.HandleFunc("info", kld.Info)
 	k.HandleFunc("event", kld.Event)
-	// k.HandleFunc("resize", kld.Resize)
+	k.HandleFunc("resize", kld.Resize)
 
 	// Snapshot functionality
 	// k.HandleFunc("createSnapshot", kld.CreateSnapshot)

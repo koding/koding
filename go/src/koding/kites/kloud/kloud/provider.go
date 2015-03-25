@@ -41,6 +41,10 @@ type Resizer interface {
 	Resize(ctx context.Context) error
 }
 
+type Restarter interface {
+	Restart(ctx context.Context) error
+}
+
 // Stater returns the state of a machine
 type Stater interface {
 	State() machinestate.State

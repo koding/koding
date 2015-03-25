@@ -139,7 +139,7 @@ func init() {
 	kloudKite.HandleFunc("start", kld.Start)
 	kloudKite.HandleFunc("reinit", kld.Reinit)
 	kloudKite.HandleFunc("resize", kld.Resize)
-	// kloudKite.HandleFunc("restart", kld.Restart)
+	kloudKite.HandleFunc("restart", kld.Restart)
 	kloudKite.HandleFunc("event", kld.Event)
 	// kloudKite.HandleFunc("createSnapshot", kld.CreateSnapshot)
 	// kloudKite.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
@@ -340,6 +340,13 @@ func TestResize(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	defer func() {
+		log.Println("Destroying machine")
+		if err := destroy(userData.MachineId, userData.Remote); err != nil {
+			t.Error(err)
+		}
+	}()
+
 	resize := func(storageWant int) {
 		log.Printf("Resizing machine to %dGB\n", storageWant)
 		err = provider.DB.Run("jMachines", func(c *mgo.Collection) error {
@@ -375,12 +382,6 @@ func TestResize(t *testing.T) {
 
 	resize(5) // first increase
 	resize(7) // second increase
-	resize(9) // third increase
-
-	log.Println("Destroying machine")
-	if err := destroy(userData.MachineId, userData.Remote); err != nil {
-		t.Error(err)
-	}
 }
 
 // createUser creates a test user in jUsers and a single jMachine document.
@@ -820,9 +821,11 @@ func kodingProvider() *koding.Provider {
 }
 
 func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
+	debugEnabled := false
+
 	kld := kloud.New()
 	kld.PublicKeys = publickeys.NewKeys()
-	kld.Log = newLogger("kloud", true)
+	kld.Log = newLogger("kloud", debugEnabled)
 	kld.Locker = p
 	kld.AddProvider("koding", p)
 	return kld
