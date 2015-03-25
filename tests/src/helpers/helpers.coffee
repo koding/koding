@@ -442,7 +442,7 @@ module.exports =
     newName             = paragraph.split(' ')[0]
     avatarSelector      = '.avatar-area a.profile'
     accountPageSelector = '.AppModal--account'
-    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
+    saveButtonSelector  = accountPageSelector + ' .button-field'
 
     browser
       .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
