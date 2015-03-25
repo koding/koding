@@ -922,9 +922,7 @@ module.exports = class IDEAppController extends AppController
     if snapshot
       @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
     else
-      @ideViews.first.createEditor()
-      @ideViews.last.createTerminal { machine }
-      @setActiveTabView @ideViews.first.tabView
+      @addInitialViews()
 
     data = { machine, workspace: @workspaceData }
     kd.singletons.mainView.activitySidebar.selectWorkspace data
@@ -937,6 +935,13 @@ module.exports = class IDEAppController extends AppController
 
     @fakeTerminalPane?.parent.removePane @fakeTerminalPane
     @fakeFinderView?.destroy()
+
+
+  addInitialViews: ->
+
+    @ideViews.first.createEditor()
+    @ideViews.last.createTerminal { machine }
+    @setActiveTabView @ideViews.first.tabView
 
 
   resurrectLocalSnapshot: (snapshot) ->
