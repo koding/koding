@@ -14,6 +14,9 @@ describe 'CollaborationStateMachine', ->
     expect(states['ErrorLoading']).to.be.ok
     expect(states['Resuming']).to.be.ok
     expect(states['NotStarted']).to.be.ok
+    expect(states['Preparing']).to.be.ok
+    expect(states['ErrorPreparing']).to.be.ok
+    expect(states['Prepared']).to.be.ok
     expect(states['Creating']).to.be.ok
     expect(states['ErrorCreating']).to.be.ok
     expect(states['Active']).to.be.ok
@@ -23,148 +26,148 @@ describe 'CollaborationStateMachine', ->
   it 'tests Loading state transitions', ->
 
     machine = newSimpleMachine()
-
     expect(machine.state).to.equal 'Loading'
 
-    # illegal states
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
-    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
+    legalStates = ['NotStarted', 'ErrorLoading', 'Resuming']
+    illegalStates = [
+      'Active', 'Preparing', 'Prepared', 'Creating'
+      'ErrorCreating', 'Ending', 'Loading', 'ErrorPreparing'
+    ]
 
-    # legal states
-    machine = newSimpleMachine()
-    machine.transition 'NotStarted'
-    expect(machine.state).to.equal 'NotStarted'
-
-    machine = newSimpleMachine()
-    machine.transition 'ErrorLoading'
-    expect(machine.state).to.equal 'ErrorLoading'
-
-    machine = newSimpleMachine()
-    machine.transition 'Resuming'
-    expect(machine.state).to.equal 'Resuming'
+    assertLegalTransitions newSimpleMachine, legalStates
+    assertIllegalTransitions newSimpleMachine, illegalStates
 
 
   it 'tests Resuming state transitions', ->
 
-    machine = resumingMachine()
-    machine.transition 'Active'
-    expect(machine.state).to.equal 'Active'
+    legalStates = ['Active']
+    illegalStates = [
+      'Loading', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
+      'Preparing', 'Prepared', 'Creating', 'ErrorCreating', 'Ending'
+    ]
 
-    # illegal states
-    machine = resumingMachine()
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
-    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
-    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
+    assertLegalTransitions resumingMachine, legalStates
+    assertIllegalTransitions resumingMachine, illegalStates
 
 
   it 'tests ErrorLoading state transitions', ->
 
-    machine = errorLoadingMachine()
-    machine.transition 'Loading'
-    expect(machine.state).to.equal 'Loading'
+    legalStates = ['Loading']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
+      'Preparing', 'Prepared', 'Creating', 'ErrorCreating', 'Ending'
+    ]
 
-    # illegal states
-    machine = errorLoadingMachine()
-    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
+    assertLegalTransitions errorLoadingMachine, legalStates
+    assertIllegalTransitions errorLoadingMachine, illegalStates
 
 
   it 'tests NotStarted state transitions', ->
 
-    machine = notStartedMachine()
-    machine.transition 'Creating'
-    expect(machine.state).to.equal 'Creating'
+    legalStates = ['Preparing']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending', 'Prepared'
+    ]
 
-    # illegal states
-    machine = notStartedMachine()
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
+    assertLegalTransitions notStartedMachine, legalStates
+    assertIllegalTransitions notStartedMachine, illegalStates
+
+
+  it 'tests Preparing state transitions', ->
+
+    legalStates = ['Prepared', 'ErrorPreparing']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending', 'Preparing'
+    ]
+
+    assertLegalTransitions preparingMachine, legalStates
+    assertIllegalTransitions preparingMachine, illegalStates
+
+
+  it 'tests ErrorPreparing state transitions', ->
+
+    legalStates = ['Preparing', 'NotStarted']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'ErrorPreparing'
+      'Loading', 'Creating', 'ErrorCreating', 'Ending'
+    ]
+
+    assertLegalTransitions errorPreparingMachine, legalStates
+    assertIllegalTransitions errorPreparingMachine, illegalStates
+
+
+  it 'tests Prepared state transitions', ->
+
+    legalStates = ['Creating']
+    illegalStates = [
+      'Active', 'ErrorLoading', 'Resuming', 'NotStarted', 'ErrorPreparing'
+      'Loading', 'Prepared', 'ErrorCreating', 'Ending', 'Preparing'
+    ]
+
+    assertLegalTransitions preparedMachine, legalStates
+    assertIllegalTransitions preparedMachine, illegalStates
 
 
   it 'tests Creating state transitions', ->
 
-    machine = creatingMachine()
-    machine.transition 'ErrorCreating'
-    expect(machine.state).to.equal 'ErrorCreating'
+    legalStates = ['Active', 'ErrorCreating']
+    illegalStates = [
+      'Creating', 'ErrorLoading', 'Resuming', 'NotStarted'
+      'Loading', 'Prepared', 'Ending', 'Preparing', 'ErrorPreparing'
+    ]
 
-    # illegal states
-    machine = creatingMachine()
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
-    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
+    assertLegalTransitions creatingMachine, legalStates
+    assertIllegalTransitions creatingMachine, illegalStates
 
 
   it 'tests ErrorCreating state transitions', ->
 
-    machine = errorCreatingMachine()
-    machine.transition 'NotStarted'
-    expect(machine.state).to.equal 'NotStarted'
+    legalStates = ['NotStarted', 'Creating']
+    illegalStates = [
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active'
+      'Loading', 'Prepared', 'Ending', 'Preparing', 'ErrorPreparing'
+    ]
 
-    machine = errorCreatingMachine()
-    machine.transition 'Creating'
-    expect(machine.state).to.equal 'Creating'
-
-    # illegal states
-    machine = errorCreatingMachine()
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
+    assertLegalTransitions errorCreatingMachine, legalStates
+    assertIllegalTransitions errorCreatingMachine, illegalStates
 
 
   it 'tests Active state transitions', ->
 
-    machine = activeMachine()
-    machine.transition 'Ending'
-    expect(machine.state).to.equal 'Ending'
+    legalStates = ['Ending']
+    illegalStates = [
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active', 'ErrorPreparing'
+      'Loading', 'Prepared', 'NotStarted', 'Creating', 'Preparing'
+    ]
 
-    # illegal states
-    machine = activeMachine()
-    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
+    assertLegalTransitions activeMachine, legalStates
+    assertIllegalTransitions activeMachine, illegalStates
 
 
   it 'tests Ending state transitions', ->
 
-    # illegal states
-    machine = endingMachine()
-    expect(-> machine.transition 'Creating').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorCreating').to.throw /illegal state transition/
-    expect(-> machine.transition 'Loading').to.throw /illegal state transition/
-    expect(-> machine.transition 'Resuming').to.throw /illegal state transition/
-    expect(-> machine.transition 'ErrorLoading').to.throw /illegal state transition/
-    expect(-> machine.transition 'NotStarted').to.throw /illegal state transition/
-    expect(-> machine.transition 'Active').to.throw /illegal state transition/
-    expect(-> machine.transition 'Ending').to.throw /illegal state transition/
+    legalStates = []
+    illegalStates = [
+      'ErrorCreating', 'ErrorLoading', 'Resuming', 'Active', 'ErrorPreparing'
+      'Loading', 'Prepared', 'NotStarted', 'Creating', 'Ending', 'Preparing'
+    ]
 
+    assertLegalTransitions endingMachine, legalStates
+    assertIllegalTransitions endingMachine, illegalStates
+
+
+assertLegalTransitions = (machineFactoryFn, states) ->
+  states.forEach (state) ->
+    machine = machineFactoryFn()
+    machine.transition state
+    expect(machine.state).to.equal state
+
+assertIllegalTransitions = (machineFactoryFn, states) ->
+  states.forEach (state) ->
+    machine = machineFactoryFn()
+    expect(-> machine.transition state).to.throw /illegal state transition/
 
 newSimpleMachine = -> new CollabStateMachine
 
@@ -185,8 +188,23 @@ notStartedMachine = ->
   machine.transition 'NotStarted'
   return machine
 
-creatingMachine = ->
+preparingMachine = ->
   machine = notStartedMachine()
+  machine.transition 'Preparing'
+  return machine
+
+errorPreparingMachine = ->
+  machine = preparingMachine()
+  machine.transition 'ErrorPreparing'
+  return machine
+
+preparedMachine = ->
+  machine = preparingMachine()
+  machine.transition 'Prepared'
+  return machine
+
+creatingMachine = ->
+  machine = preparedMachine()
   machine.transition 'Creating'
   return machine
 
@@ -204,3 +222,4 @@ endingMachine = ->
   machine = activeMachine()
   machine.transition 'Ending'
   return machine
+

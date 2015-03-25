@@ -64,8 +64,6 @@ module.exports = class IDETerminalPane extends IDEPane
 
       @machine.getBaseKite().fetchTerminalSessions()
 
-    kd.singletons.appManager.tell 'IDE', 'setRealtimeManager', this
-
     @once 'RealtimeManagerSet', =>
       return  if @rtm.isDisposed
       myPermission = @rtm.getFromModel('permissions').get nick()

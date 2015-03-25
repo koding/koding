@@ -2,6 +2,21 @@ getNick = require 'app/util/nick'
 _ = require 'lodash'
 
 ###*
+ * Fetches collaboration file with given fileName and calls the callback with it.
+ *
+ * @param {RealtimeManager} manager
+ * @param {string} fileName
+ * @param {function(err: object, result: object)}
+###
+fetchCollaborationFile = (manager, fileName, callback) ->
+
+  isSessionActive manager, fileName, (isActive, file) =>
+    if isActive
+    then callback null, file
+    else callback 'trying to fetch file from inactive session'
+
+
+###*
  * Load file with given id into RealtimeManager instance.
  *
  * @param {RealtimeManager} manager
@@ -14,9 +29,6 @@ loadCollaborationFile = (manager, id, callback) ->
 
   manager.getFile options, (err, doc) ->
     return callback err  if err
-
-    manager.setRealtimeDoc doc
-    manager.isReady = yes
     callback null, doc
 
 
@@ -140,6 +152,13 @@ getReferences = (manager, channelId, initialSnapshot) ->
   manager.bindRealtimeListeners refs.broadcastMessages, 'list'
   manager.bindRealtimeListeners refs.watchMap, 'map'
   manager.bindRealtimeListeners refs.permissions, 'map'
+
+  manager.once 'RealtimeManagerWillDispose', =>
+    refs.snapshot.clear()
+    manager.unbindRealtimeListeners refs.changes, 'list'
+    manager.unbindRealtimeListeners refs.broadcastMessages, 'list'
+    manager.unbindRealtimeListeners refs.watchMap, 'map'
+    manager.unbindRealtimeListeners refs.permissions, 'map'
 
   return refs
 
@@ -289,6 +308,7 @@ isUserOnline = (manager, participants, username) ->
 
 
 module.exports = {
+  fetchCollaborationFile
   loadCollaborationFile
   createCollaborationFile
   deleteCollaborationFile

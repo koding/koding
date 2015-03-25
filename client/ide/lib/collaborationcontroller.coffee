@@ -1,4 +1,3 @@
-machina                       = require 'machina'
 _                             = require 'lodash'
 remote                        = require('app/remote').getInstance()
 dateFormat                    = require 'dateformat'
@@ -17,6 +16,8 @@ doXhrRequest                  = require 'app/util/doXhrRequest'
 realtimeHelpers               = require './collaboration/helpers/realtime'
 socialHelpers                 = require './collaboration/helpers/social'
 envHelpers                    = require './collaboration/helpers/environment'
+CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
+environmentDataProvider       = require 'app/userenvironmentdataprovider'
 
 {warn} = kd
 
@@ -33,20 +34,6 @@ module.exports =
   setSocialChannel: (channel) ->
 
     @socialChannel = channel
-
-
-  initPrivateMessage: (callback) ->
-
-    socialHelpers.initChannel (err, channel) =>
-      return callback err  if err
-
-      @setSocialChannel channel
-      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
-        .then =>
-          @workspaceData.channelId = channel.id
-          callback null, channel
-          @chat.ready => @chat.emit 'CollaborationNotInitialized'
-        .error callback
 
 
   fetchSocialChannel: (callback) ->
@@ -94,55 +81,16 @@ module.exports =
       callback accounts
 
 
-  continuePrivateMessage: (callback) ->
-
-    @chat.emit 'CollaborationStarted'
-
-    @listChatParticipants (accounts) =>
-      @statusBar.emit 'ShowAvatars', accounts, @participants.asArray()
-
-    callback null
-
-
-  startChatSession: (callback) ->
-
-    channelId = @channelId or @workspaceData.channelId
-
-    if channelId
-    then @reactivateChatSession callback
-    else @initPrivateMessage callback
-
-
-  reactivateChatSession: (callback) ->
-
-    @fetchSocialChannel (err, channel) =>
-      if err or not channel
-        return @initPrivateMessage callback
-
-      @createChatPaneView channel
-      @isRealtimeSessionActive channel.id, (isActive, file) =>
-        if isActive
-          @whenRealtimeReady => @continuePrivateMessage callback
-          return @loadCollaborationFile file.id
-
-        @statusBar.share.show()
-        @chat.emit 'CollaborationNotInitialized'
-
-
   getRealtimeFileName: (id) ->
 
-    unless id = @getSocialChannelId()
+    id or= @getSocialChannelId()
+
+    unless id
       return showError 'social channel id is not provided'
 
     hostName = @getCollaborationHost()
 
     return "#{hostName}.#{id}"
-
-
-  stopChatSession: ->
-
-    @chat.emit 'CollaborationEnded'
-    @chat = null
 
 
   whenRealtimeReady: (callback) ->
@@ -152,63 +100,28 @@ module.exports =
     else @once 'RTMIsReady', callback
 
 
-  showChat: ->
-
-    return @createChatPane()  unless @chat
-
-    @chat.start()
-
-
-  createChatPane: ->
-
-    @startChatSession (err, channel) =>
-
-      return showError err  if err
-
-      @createChatPaneView channel
-
-
-  createChatPaneView: (channel) ->
-    return throwError 'RealtimeManager is not set'  unless @rtm
-
-    options = { @rtm, @isInSession }
-    @getView().addSubView @chat = new IDEChatView options, channel
-    @chat.show()
-
-    @on 'RTMIsReady', =>
-      @listChatParticipants (accounts) =>
-        @chat.settingsPane.createParticipantsList accounts
-
-      @statusBar.emit 'CollaborationStarted'
-
-      {settingsPane} = @chat
-
-      settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
-      settingsPane.updateDefaultPermissions()
-
-
   kickParticipant: (account) ->
 
     return  unless @amIHost
 
-    targetUser = account.profile.nickname
+    target = account.profile.nickname
 
-    displayError = (err) ->
-      showError err
-      throwError err
+    # this object is used to follow the same pattern as other
+    # methods. IMO, it makes it easier to read. ~Umut
+    callbacks =
+      success: =>
+        @broadcastMessage { target, type: 'ParticipantKicked' }
+        @handleParticipantKicked target
+      error: (err) ->
+        # TODO: better error handling.
+        showError err
+        throwError err
 
-    @setMachineUser [targetUser], no, (err) =>
-      return displayError err  if err
-
+    @setMachineUser [target], no, (err) =>
+      return callbacks.error err  if err
       socialHelpers.kickParticipants @socialChannel, [account], (err, result) =>
-        return displayError err  if err
-
-        message    =
-          type     : 'ParticipantKicked'
-          target   : targetUser
-
-        @broadcastMessage message
-        @handleParticipantKicked targetUser
+        return callbacks.error err  if err
+        callbacks.success()
 
 
   handleParticipantKicked: (username) ->
@@ -222,9 +135,7 @@ module.exports =
 
   handleParticipantAction: (actionType, changeData) ->
 
-    return  unless @rtm
-
-    kd.utils.wait 2000, => @whenRealtimeReady =>
+    kd.utils.wait 2000, =>
 
       switch actionType
         when 'join' then @onRealtimeParticipantJoined changeData
@@ -232,6 +143,8 @@ module.exports =
 
 
   onRealtimeParticipantJoined: (data) ->
+
+    return  unless @stateMachine.state is 'Active'
 
     {sessionId} = data.collaborator
 
@@ -250,6 +163,8 @@ module.exports =
 
 
   onRealtimeParticipantLeft: (data) ->
+
+    return  unless @stateMachine.state is 'Active'
 
     {sessionId} = data.collaborator
 
@@ -278,10 +193,11 @@ module.exports =
   activateRealtimeManager: (doc) ->
 
     @rtm.setRealtimeDoc doc
+    @bindRealtimeErrorEvents()
+
     @setCollaborativeReferences()
     @addParticipant whoami()
     @registerCollaborationSessionId()
-    @bindRealtimeEvents()
 
     if @amIHost
     then @activateRealtimeManagerForHost()
@@ -315,20 +231,6 @@ module.exports =
       @makeReadOnly()
 
 
-  loadCollaborationFile: (fileId) ->
-
-    return  unless fileId
-
-    @rtmFileId = fileId
-
-    realtimeHelpers.loadCollaborationFile @rtm, fileId, (err, doc) =>
-      return throwError err  if err
-
-      @activateRealtimeManager doc
-      @bindSocialChannelEvents()
-      @finderPane.on 'ChangeHappened', @bound 'syncChange'
-
-
   reviveHostSnapshot: ->
 
     hostName     = @getCollaborationHost()
@@ -352,6 +254,14 @@ module.exports =
     @broadcastMessages = refs.broadcastMessages
     @myWatchMap        = refs.watchMap
     @mySnapshot        = refs.snapshot
+
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      @participants      = null
+      @changes           = null
+      @permissions       = null
+      @broadcastMessages = null
+      @myWatchMap        = null
+      @mySnapshot        = null
 
 
   registerCollaborationSessionId: ->
@@ -413,6 +323,16 @@ module.exports =
         @handlePermissionMapChange event
 
 
+  bindRealtimeErrorEvents: ->
+
+    @on 'ErrorRealtimeFileMissing',   throwError
+    @on 'ErrorRealtimeServer',        throwError
+    @on 'ErrorRealtimeUserForbidden', throwError
+    @on 'ErrorRealtimeTokenExpired',  throwError
+    @on 'ErrorGoogleDriveApiClient',  throwError
+    @on 'ErrorHappened',              throwError
+
+
   removeParticipant: (nickname) ->
 
     refs = { @participants, @permissions }
@@ -426,7 +346,7 @@ module.exports =
       object.rtm = @rtm
       object.emit 'RealtimeManagerSet'
 
-    if @rtm?.isReady then callback() else @once 'RTMIsReady', => callback()
+    @whenRealtimeReady callback
 
 
   isRealtimeSessionActive: (id, callback) ->
@@ -451,6 +371,7 @@ module.exports =
     interval = 1000 * 15
     @sendPing() # send the first ping
     @pingInterval = kd.utils.repeat interval, @bound 'sendPing'
+    @on 'RealtimeManagerWillDispose', => kd.utils.killRepeat @pingInterval
 
 
   sendPing: ->
@@ -503,9 +424,6 @@ module.exports =
 
     if origin is nick()
       switch type
-        when 'ParticipantWantsToLeave'
-          @removeMachineNode()
-          return kd.utils.defer @bound 'quit'
         when 'ParticipantKicked'
           return @handleParticipantKicked data.target
         else return
@@ -597,171 +515,308 @@ module.exports =
     IDEMetrics.collect 'StatusBar.collaboration_button', 'shown'
 
 
-  setCollaborationState: (state) ->
-
-    @stateMachine.transition state
-    @emit 'change', { state }
-
-
   initCollaborationStateMachine: ->
 
-    @stateMachine = new machina.Fsm
-      initialState: 'uninitialized'
-      states:
-        uninitialized:
-          _onEnter: @bound 'onCollaborationUninitialized'
-        loading:
-          _onEnter: @bound 'onCollaborationLoading'
-        active:
-          _onEnter: @bound 'onCollaborationActive'
-        terminated:
-          _onEnter: @bound 'onCollaborationTerminated'
-        notAuthorized:
-          _onEnter: @bound 'onCollaborationNotAuthorized'
+    @stateMachine = new CollaborationStateMachine
+      stateHandlers:
+        Loading      : => kd.utils.defer => @onCollaborationLoading()
+        Resuming     : @bound 'onCollaborationResuming'
+        NotStarted   : @bound 'onCollaborationNotStarted'
+        Preparing    : @bound 'onCollaborationPreparing'
+        Prepared     : @bound 'onCollaborationPrepared'
+        Creating     : @bound 'onCollaborationCreating'
+        Active       : @bound 'onCollaborationActive'
+        Ending       : @bound 'onCollaborationEnding'
 
 
-  onCollaborationUninitialized: ->
 
-    @rtm = new RealtimeManager
-    @showShareButton()
-    kd.utils.defer => @rtm.ready => @setCollaborationState 'loading'
+  onCollaborationLoading: ->
 
+    @statusBar.emit 'CollaborationLoading'
 
-  onCollaborationLoading: do ->
-    constraints =
-      channelReady  : null
-      sessionActive : null
-
-    conditions = [
-      when : -> (constraints.channelReady is no) or (constraints.sessionActive is no)
-      to   : 'terminated'
-    ,
-      when : -> (constraints.channelReady is yes) and (constraints.sessionActive is yes)
-      to   : 'active'
-    ]
-    nextIfReady = (context) ->
-      for condition in conditions when condition.when()
-        context.setCollaborationState condition.to
-        break
-    setConstraint = (context, key, value) ->
-      constraints[key] = Boolean value
-      nextIfReady context
-    ->
-
-      @statusBar.emit 'CollaborationLoading'
-
-      { channelId } = @workspaceData
-
-      unless channelId
-        setConstraint this, 'channelReady', no
-        return
-
-      @fetchSocialChannel (err, channel) =>
-        if err or not channel
-          setConstraint this, 'channelReady', no
-          throwError err  if err
-          return
-
-        setConstraint this, 'channelReady', yes
-
-        @isRealtimeSessionActive channelId, (isActive) =>
-          result = isActive or @isInSession
-          setConstraint this, 'sessionActive', result
+    @checkSessionActivity
+      active     : => @stateMachine.transition 'Resuming'
+      notStarted : => @stateMachine.transition 'NotStarted'
+      error      : => @stateMachine.transition 'ErrorLoading'
 
 
-  onCollaborationActive: ->
+  checkSessionActivity: (callbacks) ->
 
-    @startChatSession => @chat.showChatPane()
-    @chat.hide()
-    @statusBar.emit 'CollaborationStarted'
-    @collectButtonShownMetric()
+    {channelId} = @workspaceData
+
+    callMethod = (name, args...) -> callbacks[name] args...
+
+    unless @workspaceData.channelId
+      return callMethod 'notStarted'
+
+    @fetchSocialChannel (err, channel) =>
+      return callMethod 'error'  if err
+      @isRealtimeSessionActive channel.id, (isActive, file) =>
+        if isActive
+        then callMethod 'active', channel, file
+        else callMethod 'notStarted'
 
 
-  onCollaborationTerminated: ->
+  onCollaborationNotStarted: ->
 
     @statusBar.emit 'CollaborationEnded'
     @collectButtonShownMetric()
 
 
-  onCollaborationNotAuthorized: ->
+  prepareChatSession: (callbacks) ->
+
+    socialHelpers.initChannel (err, channel) =>
+      return callbacks.error err  if err
+
+      @setSocialChannel channel
+      @createChatPaneView channel
+
+      envHelpers.updateWorkspace @workspaceData, { channelId : channel.id }
+        .then =>
+          @workspaceData.channelId = channel.id
+          @chat.ready => callbacks.success()
+        .error (err) => callbacks.error err
+
+
+  onCollaborationPreparing: ->
+
+    @prepareChatSession
+      success : => @stateMachine.transition 'Prepared'
+      error   : => @stateMachine.transition 'ErrorPreparing'
+
+
+  onCollaborationPrepared: ->
+
+    @chat.emit 'CollaborationNotInitialized'
+
+
+  startCollaborationSession: ->
+
+    switch @stateMachine.state
+      when 'Prepared' then @stateMachine.transition 'Creating'
+
+
+  onCollaborationCreating: ->
+
+    @createCollaborationSession
+      success : (doc) =>
+        @whenRealtimeReady => @stateMachine.transition 'Active'
+        @activateRealtimeManager doc
+      error: =>
+        @stateMachine.transition 'ErrorCreating'
+
+
+  createCollaborationSession: (callbacks) ->
+
+    fileName = @getRealtimeFileName()
+    socialHelpers.sendActivationMessage @socialChannel, kd.noop
+
+    realtimeHelpers.createCollaborationFile @rtm, fileName, (err, file) =>
+      return callbacks.error err  if err
+
+      realtimeHelpers.loadCollaborationFile @rtm, file.id, (err, doc) =>
+        return callbacks.error err  if err
+
+        @rtmFileId = file.id
+        @setMachineSharingStatus on, (err) =>
+          return callbacks.error err  if err
+          callbacks.success doc
+
+
+  onCollaborationResuming: ->
+
+    successCb = (channel, doc) =>
+      @whenRealtimeReady =>
+        @setSocialChannel channel
+        @createChatPaneView channel
+        @chat.ready => @stateMachine.transition 'Active'
+
+      @activateRealtimeManager doc
+
+    errorCb = => # @stateMachine.transition 'ErrorResuming'
+
+    @resumeCollaborationSession
+      success : successCb
+      error   : errorCb
+
+
+  resumeCollaborationSession: (callbacks) ->
+
+    title = @getRealtimeFileName()
+    realtimeHelpers.fetchCollaborationFile @rtm, title, (err, file) =>
+      return callbacks.error err  if err
+      realtimeHelpers.loadCollaborationFile @rtm, file.id, (err, doc) =>
+        return callbacks.error err  if err
+        @rtmFileId = file.id
+        callbacks.success @socialChannel, doc
+
+
+  onCollaborationActive: ->
+
+    @showChatPane()
+
+    @transitionViewsToActive()
+    @collectButtonShownMetric()
+    @bindRealtimeEvents()
+    @bindSocialChannelEvents()
+
+    # attach RTM instance to already in-screen panes.
+    @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
+
+    # attach realtime manager when a new editor pane is opened.
+    @on 'EditorPaneDidOpen', @bound 'setRealtimeManager'
+
+
+  transitionViewsToActive: ->
+
+    @listChatParticipants (accounts) =>
+      @chat.settingsPane.createParticipantsList accounts
+
+    {settingsPane} = @chat
+    settingsPane.on 'ParticipantKicked', @bound 'handleParticipantKicked'
+    settingsPane.updateDefaultPermissions()
+
+    @chat.emit 'CollaborationStarted'
+    @statusBar.emit 'CollaborationStarted'
+
+
+  onCollaborationEnding: ->
+
+    @chat.settingsPane.endSession.disable()
+
+    sharedSuccessFn = =>
+      @chat.emit 'CollaborationEnded'
+      @chat = null
+      @modal?.destroy()
+
+    if @amIHost
+      @endCollaborationForHost
+        success: =>
+          @modal?.destroy()
+          @handleCollaborationEndedForHost()
+
+    else
+      @endCollaborationForParticipant
+        success: =>
+          @modal?.destroy()
+          @handleCollaborationEndedForParticipant()
+
+
+  endCollaborationForHost: (callbacks) ->
+
+    @broadcastMessage { type: 'SessionEnded' }
+
+    fileName = @getRealtimeFileName()
+    realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
+      return callbacks.error err  if err
+      @setMachineSharingStatus off, (err) =>
+        return callbacks.error err  if err
+        socialHelpers.destroyChannel @socialChannel, (err) =>
+          return callbacks.error err  if err
+          envHelpers.detachSocialChannel @workspaceData, (err) =>
+            return callbacks.error err  if err
+            callbacks.success()
+
+
+  handleCollaborationEndedForHost: ->
+
+    return  unless @stateMachine.state in ['Ending']
+
+    @rtm.once 'RealtimeManagerWillDispose', =>
+      @chat.emit 'CollaborationEnded'
+      @chat.destroy()
+      @chat = null
+      @statusBar.emit 'CollaborationEnded'
+
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      kd.utils.defer @bound 'prepareCollaboration'
+
+    @cleanupCollaboration()
+
+
+  endCollaborationForParticipant: (callbacks) ->
+
+    @broadcastMessage { type: 'ParticipantWantsToLeave' }
+
+    socialHelpers.leaveChannel @socialChannel, (err) =>
+      return callbacks.error err  if err
+      @setMachineUser [nick()], no, =>
+        callbacks.success()
+
+
+  handleCollaborationEndedForParticipant: ->
+
+    # TODO: fix explicit state checks.
+    return  unless @stateMachine.state in ['Active', 'Ending']
+
+    # TODO: fix implicit emit.
+    @rtm.once 'RealtimeManagerWillDispose', =>
+      @chat.emit 'CollaborationEnded'
+      @chat.destroy()
+      @chat = null
+      @statusBar.emit 'CollaborationEnded'
+      @removeParticipant nick()
+      @removeMachineNode()
+
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      kd.utils.defer @bound 'quit'
+
+    @cleanupCollaboration()
+
+
+  showChat: ->
+
+    switch @stateMachine.state
+      when 'Active'     then @showChatPane()
+      when 'Prepared'   then @chat.show()
+      when 'NotStarted' then @stateMachine.transition 'Preparing'
+
+
+  stopCollaborationSession: ->
+
+    switch @stateMachine.state
+      when 'Active' then @stateMachine.transition 'Ending'
+
+
+  showChatPane: ->
+
+    @chat.showChatPane()
+    @chat.start()
+
+
+  createChatPaneView: (channel) ->
+    return throwError 'RealtimeManager is not set'  unless @rtm
+
+    @chat = new IDEChatView { @rtm, @isInSession }, channel
+    @getView().addSubView @chat
 
 
   prepareCollaboration: ->
 
-    @initCollaborationStateMachine()
-
-
-  startCollaborationSession: (callback) ->
-
-    return callback msg : 'no social channel'  unless @socialChannel
-
-    kallback = (err, channel) => @whenRealtimeReady => callback err, channel
-    socialHelpers.sendActivationMessage @socialChannel, kallback
-
-    @collaborationJustInitialized = yes
-
-    @rtm or= new RealtimeManager
-    title  = @getRealtimeFileName()
-
-    realtimeHelpers.createCollaborationFile @rtm, title, (err, file) =>
-      return throwError err  if err
-      @loadCollaborationFile file.id
-
-    @setMachineSharingStatus on, (err) ->
-      throwError err  if err
-
-
-  # should clean realtime manager.
-  # should delete workspace channel id.
-  # should broadcast the session ended message.
-  # IF USER IS HOST
-  #   should delete private message.
-  #   should set machine sharing status to off.
-  # IF USER IS NOT HOST
-  #   should only call the callback without an error.
-  #   given callback should do the rest. (e.g cleaning-up, quitting..)
-  stopCollaborationSession: (callback) -> @whenRealtimeReady =>
-
-    @chat.settingsPane.endSession.disable()
-
-    return callback msg : 'no social channel'  unless @socialChannel
-
-    if @amIHost
-      @broadcastMessage { type: 'SessionEnded' }
-
-    title = @getRealtimeFileName()
-    realtimeHelpers.deleteCollaborationFile @rtm, title, (err) =>
-      return throwError err  if err
-      @setMachineSharingStatus off, (err) =>
-        return callback err  if err
-        @deletePrivateMessage (err) =>
-          return callback err  if err
-          @cleanupCollaboration { reinit: yes }
-          callback()
-
-      @statusBar.emit 'CollaborationEnded'
-      @stopChatSession()
-      @modal?.destroy()
-
-
-    @mySnapshot.clear()
+    @rtm = new RealtimeManager
+    @showShareButton()
+    @rtm.ready => @initCollaborationStateMachine()
 
 
   getCollaborationHost: -> if @amIHost then nick() else @collaborationHost
 
 
   cleanupCollaboration: (options = {}) ->
-    return warn 'RealtimeManager is not set'  unless @rtm
 
-    kd.utils.killRepeat @pingInterval
-    @rtm?.dispose()
-    @rtm = null
-    kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
-    @forEachSubViewInIDEViews_ 'editor', (ep) => ep.removeAllCursorWidgets()
+    # TODO: remove Active session from here,
+    # we will deffo need a leaving state.
+    return  unless @stateMachine.state in ['Ending', 'Active']
 
-    { reinit } = options
+    @rtm.once 'RealtimeManagerWillDispose', =>
+      kd.utils.killRepeat @pingInterval
+      kd.singletons.mainView.activitySidebar.emit 'ReloadMessagesRequested'
 
-    @prepareCollaboration()  if reinit
+    @rtm.once 'RealtimeManagerDidDispose', =>
+      @rtm = null
+      delete @stateMachine
+
+    @rtm.dispose()
+
 
   # environment related
 
@@ -769,6 +824,7 @@ module.exports =
   removeMachineNode: ->
 
     kd.singletons.mainView.activitySidebar.removeMachineNode @mountedMachine
+    environmentDataProvider.removeCollaborationMachine @mountedMachine
 
 
   ensureMachineShare: (usernames, callback) ->
@@ -808,14 +864,11 @@ module.exports =
     {setMachineUser} = envHelpers
 
     setMachineUser @mountedMachine, usernames, share, (err) =>
-      if err
-        return  if err.message is 'User not found' and not share
-        return callback err  if err
+      return callback err  if err
 
-      @whenRealtimeReady =>
-        @broadcastMessage
-          type: "#{if share then 'Set' else 'Unset'}MachineUser"
-          participants: usernames
+      @broadcastMessage
+        type: "#{if share then 'Set' else 'Unset'}MachineUser"
+        participants: usernames
 
       callback null
 
@@ -841,10 +894,12 @@ module.exports =
         ok         :
           title    : 'OK'
           style    : 'solid green medium'
-          callback : => @modal.destroy()
+          callback : =>
+            @modal.destroy()
 
+    @chat.end()
     @showModal options
-    @quit()
+    @handleCollaborationEndedForParticipant()
 
 
   showSessionEndedModal: (content) ->
@@ -861,10 +916,10 @@ module.exports =
           title    : 'LEAVE'
           callback : =>
             @modal.destroy()
-            @quit()
-            @removeMachineNode()
 
+    @chat.end()
     @showModal options
+    @handleCollaborationEndedForParticipant()
 
 
   handleParticipantLeaveAction: ->
@@ -873,18 +928,7 @@ module.exports =
       title   : 'Are you sure?'
       content : "If you leave this session you won't be able to return back."
 
-    @showModal options, =>
-      @stopChatSession()
-      @modal.destroy()
-
-      options = channelId: @socialChannel.getId()
-      kd.singletons.socialapi.channel.leave options, (err) =>
-        return showError err  if err
-        @setMachineUser [nick()], no, =>
-          # remove the leaving participant's info from the collaborative doc
-          @whenRealtimeReady =>
-            @broadcastMessage { type: 'ParticipantWantsToLeave' }
-            @removeParticipant nick()
+    @showModal options, => @stateMachine.transition 'Ending'
 
 
   throwError: throwError = (err, args...) ->
