@@ -93,12 +93,14 @@ module.exports = class NavigationMachineItem extends JView
     new MachineSettingsPopup { position: @getPopupPosition() }, @machine
 
 
-  getPopupPosition: ->
+  getPopupPosition: (extraTop = 0) ->
 
     bounds   = @getBounds()
     position =
-      top    : Math.max   bounds.y - 38, 0
+      top    : Math.max(bounds.y - 38, 0) + extraTop
       left   : bounds.x + bounds.w + 16
+
+    return position
 
 
   handleMachineEvent: (event) ->
