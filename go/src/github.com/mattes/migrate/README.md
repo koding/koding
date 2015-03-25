@@ -23,7 +23,7 @@ __Features__
 
  * [PostgreSQL](https://github.com/mattes/migrate/tree/master/driver/postgres)
  * [Cassandra](https://github.com/mattes/migrate/tree/master/driver/cassandra)
- * SQLite ([planned](https://github.com/mattes/migrate/issues/2))
+ * [SQLite](https://github.com/mattes/migrate/tree/master/driver/sqlite3)
  * [MySQL](https://github.com/mattes/migrate/tree/master/driver/mysql) ([experimental](https://github.com/mattes/migrate/issues/1#issuecomment-58728186))
  * Bash (planned)
 
@@ -65,6 +65,8 @@ migrate -url driver://url -path ./migrations migrate -2
 migrate -url driver://url -path ./migrations migrate -n
 
 # go to specific migration
+migrate -url driver://url -path ./migrations goto 1
+migrate -url driver://url -path ./migrations goto 10
 migrate -url driver://url -path ./migrations goto v
 ```
 
@@ -114,5 +116,6 @@ that the filename extension depends on the driver.
  * https://github.com/tanel/dbmigrate
  * https://github.com/BurntSushi/migration
  * https://github.com/DavidHuie/gomigrate
+ * https://github.com/rubenv/sql-migrate
 
 
