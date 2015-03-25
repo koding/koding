@@ -540,7 +540,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     if frontApp?.options.name is 'IDE'
       frontApp.whenMachineReady (machine, workspace) =>
-        @selectWorkspace { machine, workspace }
+        @selectWorkspace { machine, workspace }  if machine and workspace
 
 
   addMachines_: (data) ->

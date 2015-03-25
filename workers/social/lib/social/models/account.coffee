@@ -54,7 +54,7 @@ module.exports = class JAccount extends jraphical.Module
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name : 'notification' }
+        { name : 'messageBusEvent' }
         { name : 'RemovedFromCollection' }
         { name : 'NewWorkspaceCreated'}
       ]
@@ -1071,10 +1071,19 @@ module.exports = class JAccount extends jraphical.Module
 
   sendNotification: (event, contents) ->
     @createSocialApiId (err, socialApiId) =>
-      return console.error "Could not send notification to account #{err}"  if err
+      return console.error "Could not send notification to account:", err  if err
 
-      @emit 'notification',
-        eventName: event, body: contents, account: {id: socialApiId, nick: @profile.nickname}
+      message = {
+        account: {id: socialApiId, nick: @profile.nickname}
+        eventName: "social"
+        body:
+          contents: contents
+          event: event
+          context: "koding"
+      }
+
+      @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
+
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback
     options ?= {}

@@ -8,564 +8,441 @@ app.settings.styl
 */
 }
 
-#content-page-account > .kdtabview
-  padding                       34px 34px 0 0
-  overflow                      visible
-
-body.account
-
-  #main-tab-view
-    overflow                      visible
-
-  .kdtabpaneview.account
-    vendor                        transform, translateX(0)
-
-  .app-sidebar
-    background                    #EFEFEF
-    padding                       21px 16px 16px 34px
-    left                          0
-
-    nav
-      a
-        display                   block
-        line-height               24px
-        font-size                 14px
-        color                     #4C4C4C
-        font-weight               600
-        opacity                   .99
-        noTextDeco()
-
-        &.selected
-          text-decoration         underline
-
-      .divider
-        height                    24px
-
-  .settings-list-wrapper
-    form
-      margin-right              -17px
-
-      .formline
-        padding                 0 17px 0 0
-        margin                  0 0 16px
-        borderBox()
-
-        .input-wrapper
-          margin                0
-
-        &.button-field
-          clear                 both
-          border                none
-          margin-top            6px
-
-          .kdbutton
-            margin-left         6px
-
-    .kdlabel
-      font-size                 14px
-      color                     #8D8D8D
-      float                     none
-      line-height               19px
-      margin                    0 0 7px
-      font-weight               200
-
-    .kdinput.text
-      rounded                   3px
-      background                #fff
-      border                    1px solid #C9C9C9
-      padding                   8px 13px 10px
-      font-size                 14px
-      line-height               19px
-      color                     #4C4C4C
-      font-weight               600
-      opacity                   .99
-      margin                    0
-
-    .lazy-loader
-      text-align                center
-      padding                   40px 0
-
-    .no-item-found
-      color                     #878787
-      font-size                 14px
-      padding                   24px 0
-      text-align                center
-
-    &.user-profile
-      .account-avatar-area
-        margin                    0 0 44px
-
-      .avatar-buttons
-        margin                    30px 0 0 24px
-        position                  relative
-        fl()
-
-        .kdbutton
-          display                 block
-          float                   none
-          text-align              left
-          width                   205px
-          margin                  0 0 7px
-          padding                 0 0 0 15px
-
-          canvas
-            vertical-align        middle
-
-          .icon
-            padding               0
-            margin                12px 12px 0 0
-            fl()
-
-
-        .upload-avatar .icon
-          r-sprite                'account', 'photo-16'
-
-        .use-gravatar .icon
-          margin-left             1px
-          r-sprite                'account', 'import-16'
-
-        .upload-input
-          display                 block
-          size                    205px 40px
-          abs                     0px 0 0 0px
-          opacity                 0
-          cursor                  pointer
-
-
-      .avatarview
-        display                   block
-        size                      150px, 150px
-        fl()
-
-        img
-          display                 block
-          margin                  0
-
-      form
-        .formline
-          width                   50%
-          fl()
-
-          &.section-header
-            width                 100%
-            clear                 both
-            margin-bottom         21px
-            margin-top            21px
-
-          &.button-field
-            width                 100%
-
-        .kdheaderview
-          display                 block
-          font-size               14px
-          line-height             19px
-          size                    auto, auto
-          color                   #4C4C4C
-          margin                  0
-          padding                 0
-          border                  none
-          font-weight             600
-
-
-          span
-            margin                0
-            padding               0
-
-
-    &.linked-accounts
-    &.email-notifications
-      max-width                   800px
-      ul.off
-        li:not(:first-child):before
-          size                  100% 100%
-
-      li:not(:first-child)
-        &:before
-          bg                    color rgba(255,255,255,.9)
-          content               ''
-          size                  100% 0%
-          z-index               101
-          abs()
-
-      li
-        size                      100%, 65px
-        line-height               65px
-        border-bottom             1px solid #DEDEDE
-        padding                   0 4px 0 4px
-        clear                     both
-        borderBox()
-        rel()
-
-        &:last-of-type
-        &.has-sub
-          border-bottom           none
-
-        &.sub
-          line-height             37px
-          height                  51px
-          padding                 0 4px 0 24px
-          > .title
-            font-size             14px
-
-        > .title
-          line-height             normal
-          kalc                    width, 100% \- 125px
-          display                 inline-block
-          vertical-align          middle
-
-        .koding-on-off
-        .kdselectbox
-          margin-top              18px
-          fr()
-
-        .kdselectbox
-          margin-top              0
-
-
-    &.delete-account
-      .delete-account-view
-        line-height               40px
-
-        .kdbutton.delete-account
-          -webkit-transition      -webkit-transform .2s ease
-          -moz-transition         -moz-transform .2s ease
-          transition              transform .2s ease
-
-          &.escape
-            vendor                transform, translateX(-120%)
-
-    &.credentials
-
-      &.form-open
-        ul.credentials
-          display                 none
-
-        .account-add-big-btn
-          display                 none
-
-      &.share-open
-        .credential-item:not(.sharing-item)
-          display                 none
-
-        .sharing-item
-          margin-bottom           24px
-
-      form
-        margin-right              -17px
-
-        .formline
-          width                   25%
-          min-width               179px
-          fl()
-
-          &.owner
-            margin-top            31px
-
-            .kdlabel
-              margin              0 7px 0 0
-              line-height         27px
-              fl()
-
-        .button-field
-          width                   auto
-          clear                   none
-          margin-top              25px
-          fr()
-
-      .credential-item
-        size                      100%, auto
-        padding                   23px 0
-        margin                    0
-        border-bottom             1px solid #DEDEDE
-
-        .kdview
-          height                  auto
-
-        .credential-info
-          font-size               14px
-          line-height             19px
-          fl()
-
-          h4
-            font-weight           600
-            margin                0 0 1px
-            padding               0
-            color                 #4C4C4C
-
-          p
-            font-weight           400
-            color                 #7B7B7B
-
-        .buttons
-          fr()
-
-          .kdbutton
-            display               block
-            margin                10px 0 0 16px
-            background            transparent
-            border                none
-            fr()
-
-            &.share
-              r-sprite            'app', 'share-gray-16'
-
-            &.show
-              r-sprite            'app', 'zoomin-gray-16'
-
-            &.participants
-              r-sprite            'app', 'users-gray-16'
-
-            &.delete
-              r-sprite            'app', 'delete-gray-16'
-
-    &.koding-keys
-      .no-item-found
-        padding                   0
-        text-align                left
-        line-height               19px
-        color                     #000
-
-        h2
-          font-weight             600
-          color                   #D75B5B
-          display                 block
-          padding                 16px
-          border                  1px solid #D75B5B
-          rounded                 3px
-          margin-bottom           24px
-
-        code
-          display                 block
-          background              #efefef
-          padding                 16px
-          margin                  8px 0
-          color                   #323232
-          rounded                 3px
-          font-family             "SourceCodePro"
-
-          a
-            color                 #323232
-
-    &.ssh-keys
-      > .kdlistview.keys
-        padding-top               40px
-
-      .add-big-btn
-        abs                       0px 0 0 0px
-
-      .add-key-form
-        margin-top                34px
-
-        &:after
-          content                 ''
-          display                 block
-          width                   auto
-          margin                  24px 17px 0 0
-          height                  1px
-          background              #dedede
-
-      .ssh-key-item
-        size                      100%, auto
-        padding                   23px 0
-        margin                    0
-        border-bottom             1px solid #DEDEDE
-
-        .kdview
-          height                  auto
-
-        .ssh-key-info
-          font-size               14px
-          line-height             19px
-          fl()
-
-          h4
-            font-weight           600
-            margin                0 0 1px
-            padding               0
-            color                 #4C4C4C
-
-          p
-            font-weight           400
-            color                 #7B7B7B
-
-        .buttons
-          fr()
-
-          // .kdbutton
-          //   display               block
-          //   margin                10px 0 0 16px
-          //   background            transparent
-          //   border                none
-          //   fr()
-
-          //   &.share
-          //     r-sprite            'app', 'share-gray-16'
-
-          //   &.show
-          //     r-sprite            'app', 'zoomin-gray-16'
-
-          //   &.participants
-          //     r-sprite            'app', 'users-gray-16'
-
-          //   &.delete
-          //     r-sprite            'app', 'delete-gray-16'
-
-
-    &.billing
-
-      section
-        margin-bottom    40px
-
-        .no-item-found
-          text-align     left
-          line-height    40px
-          padding        0
-
-      h4
-        color            #7B7B7B
-        font-weight      400
-        padding          0
-
-      .kdheaderview
-        display            block
-        font-size          14px
-        line-height        19px
-        size               auto, auto
-        color              #4C4C4C
-        margin             0 0 20px
-        padding            0
-        border             none
-        font-weight        600
-
-        span
-          margin           0
-          padding          0
-
-      .payment-method-wrapper
-        height             92px
-
-        .payment-method
-          height           auto
-          border-bottom    none
-          line-height      40px
-
-      .subscription-wrapper
-        width              auto
-        font-size          14px
-        line-height        19px
-        height             79px
-
-        .kdbutton
-          fr()
-
-        .subscription h4
-          line-height      40px
-          fl()
-
-          .price
-            font-weight    200
-
-        p
-          font-weight      600
-          color            #4C4C4C
-
-      .payment-history-wrapper
-
-        .kdlistitemview
-          padding                   21px 0
-          border-bottom             1px solid #DEDEDE
-
-          .amount:before
-            display                 inline
-            content                 '$'
-
-        h4
-          fl()
-
-        .status-icon
-          size                      38px, 38px
-          border                    1px solid #EAEAEA
-          rounded                   3px
-          margin                    0 18px 0 0
-          text-align                center
-          line-height               38px
-          fl()
-
-          span
-            display                 inline-block
-            r-sprite                'account', 'cross-8'
-
-          &.success span
-            r-sprite                'account', 'check-8'
-
-        .billing-info
-          line-height               19px
-          font-size                 14px
-          color                     #7B7B7B
-          fl()
-
-          strong
-            font-weight             600
-
-          .invoice-date
-            color                   #4C4C4C
-            line-height             40px
-
-          .card-number
-            margin                  6px 0 0
-            display                 block
-            color                   #919191
-
-        .invoice-btn
-          fr()
-
-    &.your-subscriptions
-
-      .kdlistitemview-subscription
-        size                      100%, auto
-        padding                   23px 0
-        margin                    0
-        border-bottom             1px solid #DEDEDE
-
-        .kdview
-          height                  auto
-
-        .subscription-info
-          width                   auto
-          font-size               14px
-          line-height             19px
-          fl()
-
-          h4
-            color                 #7B7B7B
-            font-weight           400
-            margin                0 0 1px
-            padding               0
-
-            .price
-              font-weight         200
-
-          p
-            font-weight           600
-            color                 #4C4C4C
-
-        .controls
-          fr()
-
-          .kdbutton
-            margin-left           6px
-
-
-    &.terms-of-service
-    &.privacy-policy
-      margin                      -38px 0 0 -34px
-      kalc                        width, 100% \+ 66px
-
-      iframe
-       size                       100%, 100%
-       display                    block
-       margin                     0
-       padding                    0
+// Generic AppModal Styles
+
+.AppModal
+  .kdmodal-content
+    overflow                hidden
+    overflow                _visible
+    zoom                    1
+    font-size               14px
+    color                   #434343
+
+  button.kdbutton.small
+    border-radius           3px
+    height                  29px
+    line-height             29px
+    text-align              center
+    padding                 0 8px
+
+    .button-title
+      font-size             12px
+      text-rendering        auto
+      line-height           inherit !important
+
+    &.solid
+      &.green
+        background          #00B057
+
+      .button-title
+        color               #fff
+
+    &.thin
+      border-width          1px
+
+      &.gray
+        border-color        #BDC3C7
+
+        .button-title
+          color             #BDC3C7
+
+  .koding-on-off.small
+    size                    42px 22px
+    border-radius           19px
+    background              #D8D8D8
+    padding                 4px 6px
+
+    a.knob
+      background            #fff
+      size                  14px 14px
+
+    &.on
+      background            #52A840
+
+    &.on a.knob
+      vendor                transform, translateX(16px)
+
+  .formline.button-field .kdbutton
+    height                  29px
+    line-height             29px
+
+    .button-title
+      line-height           inherit !important
+
+.AppModal-nav
+  width                     190px
+  float                     left
+  margin                    0 30px 0 0
+  border-right              1px solid #E7E7E7
+
+.AppModal-navItem
+  display                   block
+  height                    45px
+  line-height               45px
+  padding                   0 0 0 13px
+  border                    1px solid transparent
+  border-right              none
+  border-radius             3px 0 0 3px
+  color                     #A1A1A1
+  font-size                 14px
+  font-weight               500
+  borderBox()
+  noTextDeco()
+
+  &.selected
+    border-color            #E7E7E7
+    color                   #52A840
+
+.AppModal-content
+  overflow                  hidden
+  overflow                  _visible
+  zoom                      1
+  width                     auto
+
+.AppModal-form
+  margin                    0 -12px
+  padding-top               30px
+
+  .formline
+    display                 block
+    margin-bottom           25px
+    padding                 0 12px
+    width                   auto
+    font-size               14px
+    clear                   both
+    borderBox()
+
+  div.input-wrapper
+    margin-bottom           0 !important
+
+  .formline.button-field
+    padding                 28px 12px 0 !important
+    width                   auto
+    border-top              1px solid #E7E7E7 !important
+
+  .Formline--half
+    width                   50%
+    float                   left
+    clear                   none
+
+  label.kdlabel
+    display                 block
+    margin                  0 0 7px
+    padding                 0
+    line-height             20px
+    color                   #434343
+    font-weight             14px
+    float                   none
+
+  input.kdinput
+  textarea.kdinput
+    display                 block
+    width                   100%
+    padding                 8px 14px
+    line-height             20px
+    outline                 none
+    resize                  none
+    border-radius           4px
+    border                  1px solid #D2D2D2
+    background              #fff
+    font-size               14px
+    color                   #A2A2A2
+
+.AppModal-form-sectionHeader.formline
+  border-top                1px solid #E7E7E7
+  border-bottom             none
+  padding-top               24px
+  font-size                 14px
+  line-height               19px
+  color                     #A1A1A1
+
+// Account AppModal Styles
+
+.AppModal--account
+  .AppModal-navItem:before
+    content                 ''
+    display                 inline-block
+    vertical-align          sub
+    margin-right            13px
+
+  .AppModal-navItem.profile
+    &:before
+      r-sprite              'account' 'editprofile'
+
+    &.selected:before
+      r-sprite              'account' 'editprofile-active'
+
+  .AppModal-navItem.email
+    &:before
+      r-sprite              'account' 'notifications'
+
+    &.selected:before
+      r-sprite              'account' 'notifications-active'
+
+  .AppModal-navItem.externals
+    &:before
+      r-sprite              'account' 'linkedacc'
+
+    &.selected:before
+      r-sprite              'account' 'linkedacc-active'
+
+  .AppModal-navItem.billing
+    &:before
+      margin-right          19px
+      r-sprite              'account' 'billing'
+
+    &.selected:before
+      r-sprite              'account' 'billing-active'
+
+  .AppModal-navItem.ssh
+    &:before
+      r-sprite              'account' 'sshkeys'
+
+    &.selected:before
+      r-sprite              'account' 'sshkeys-active'
+
+  .AppModal-navItem.delete
+    margin-right            15px
+    &:before
+      r-sprite              'account' 'terminate'
+
+    &.selected:before
+      r-sprite              'account' 'terminate-active'
+
+
+
+.AppModal--account-avatarArea
+  overflow                  hidden
+  overflow                  _visible
+  zoom                      1
+
+.AppModal--account-avatar
+  float                     left
+  padding                   0
+  margin-right              26px
+  background                none
+
+  img
+    display                 block
+    margin                  0
+
+.AppModal--account-avatarArea-buttons
+  overflow                  hidden
+  overflow                  _visible
+  zoom                      1
+  padding-top               16px
+  width                     122px
+
+  button.kdbutton.solid.small
+    padding                 0
+    margin-top              10px
+    width                   112px
+
+.AppModal--account-avatarArea-buttons-upload
+  opacity                   0
+  display                   block
+  size                      122px 29px
+  abs                       26px 0 0 116px
+  cursor                    pointer
+  z-index                   10
+
+.AppModal--account-switchList
+  .koding-on-off
+    float                   right
+    margin-left             75px
+
+  .email-on-off-loader
+    display                 none
+
+  li > .title
+    overflow                hidden
+    overflow                _visible
+    zoom                    1
+    width                   auto
+    color                   #434343
+    font-size               14px
+    line-height             20px
+    margin-top              2px
+
+    small
+      font-size             12px
+      line-height           18px
+      color                 #808080
+      margin-top            6px
+      display               block
+
+  .kdselectbox
+    float                   right
+    margin-left             75px
+    height                  29px
+
+    .title
+      line-height           29px
+
+  li
+    display                 block
+    overflow                hidden
+    overflow                _visible
+    zoom                    1
+    padding                 16px 0
+
+    & ~ li
+      border-top            1px solid #EFEFEF
+
+    &.sub
+      border-top            none
+      padding-top           0
+
+      > .title
+        color               #939393
+        margin-top          4px
+
+.kdlistitemview-oauth
+  padding                   16px 0 14px !important
+
+  .title
+    margin-top              0 !important
+
+    cite
+      display               inline-block
+      vertical-align        middle
+
+  .icon
+    display                 inline-block
+    vertical-align          middle
+    margin-right            19px
+
+  &.google .icon
+    r-sprite                'account' 'ext-gplus'
+
+  &.linkedin .icon
+    r-sprite                'account' 'ext-linkedin'
+
+  &.twitter .icon
+    r-sprite                'account' 'ext-twitter'
+
+  &.odesk .icon
+    r-sprite                'account' 'ext-odesk'
+
+  &.facebook .icon
+    r-sprite                'account' 'ext-facebook'
+
+  &.github .icon
+    r-sprite                'account' 'ext-github'
+
+.AppModal--account .settings-list-wrapper
+  h4.kdheaderview
+    font-size               14px
+    color                   #787878
+    line-height             30px
+    padding                 0 0 17px
+    boreder-bottom          1px solid #EFEFEF
+
+    > span
+      margin                0
+
+    .kdbutton
+      float                 right
+
+  section
+    margin-bottom           40px
+
+  .subscription
+    color                   #434343
+    font-size               14px
+    line-height             20px
+    margin-top              15px
+
+  .no-item-found
+    text-align              center
+    padding-top             34px
+    font-size               14px
+    color                   #CBCBCB
+
+  &.ssh-keys
+    position                relative
+
+    ul.keys
+      padding-top           38px
+
+    h4.kdheaderview
+      abs                   0px 0 0 0px
+      width                 100%
+
+    .AppModal-form
+      margin-bottom         24px
+
+  li ~ li
+    .ssh-key-item
+      border-top            1px solid #EFEFEF
+
+  .ssh-key-item
+    font-size               14px
+    font-weight             400
+    overflow                hidden
+    overflow                _visible
+    zoom                    1
+    padding                 12px 0
+
+    .ssh-key-info
+      margin-right          90px
+
+    h4
+      display               block
+      color                 #434343
+      float                 left
+      margin-right          15px
+
+    p
+      overflow              hidden
+      overflow              _visible
+      zoom                  1
+      display               block
+      white-space           nowrap
+      text-overflow         ellipsis
+      color                 #B3B3B3
+
+    .buttons
+      opacity               0
+      vendor                transition, opacity .2s ease
+      abs                   15px 0px 0 0
+      height                16px
+
+      .kdbutton
+        background          none
+        margin              0 0 0 11px
+        padding             0
+        height              16px
+        border              none
+        outline             none
+
+      .kdbutton .icon
+        display             inline-block
+
+      .delete .icon
+        r-sprite            'account', 'ssh-delete'
+
+      .edit .icon
+        r-sprite            'account', 'ssh-edit'
+
+    &:hover .buttons
+      opacity               1
+
+.AppModal--account-tabSpinner
+  display                   block !important
+  width                     40px
+  margin                    0 auto
+
+.AppModal--account .kdbutton.delete-account
+  margin-top                14px
+  -webkit-transition        -webkit-transform .3s ease
+  -moz-transition           -moz-transform .3s ease
+  transition                transform .3s ease
+
+  &.escape
+    -webkit-transform       translateX(-200px)
+    -moz-transform          translateX(-200px)
+    transform               translateX(-200px)
 
 
 .kdmodal.payments-modal

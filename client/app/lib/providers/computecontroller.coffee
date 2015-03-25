@@ -21,7 +21,8 @@ module.exports = class ComputeController extends KDController
   @providers = globals.config.providers
   @timeout   = globals.config.COMPUTECONTROLLER_TIMEOUT
   @Error     = {
-    'TimeoutError', 'KiteError', Pending: '107', NotVerified: '500'
+    'TimeoutError', 'KiteError', 'NotSupported'
+    Pending: '107', NotVerified: '500'
   }
 
   constructor: ->
@@ -70,21 +71,30 @@ module.exports = class ComputeController extends KDController
       username     : globals.config.kites.kontrol.username
 
 
-  reset: (render = no)->
+  reset: (render = no, callback = ->)->
 
-    @stacks   = []
-    @machines = []
-    @plans    = null
-    @_trials  = {}
+    @stacks       = []
+    @machines     = []
+    @machinesById = {}
+    @plans        = null
+    @_trials      = {}
 
     if render then @fetchStacks =>
       @info machine for machine in @machines
       @emit "RenderMachines", @machines
+      callback null
 
 
   _clearTrialCounts: (machine)->
     @_trials[machine.uid] = {}
 
+
+  methodNotSupportedBy = (machine)->
+    if machine?.provider is 'managed'
+      return {
+        name    : 'NotSupported'
+        message : 'Operation is not supported for this VM'
+      }
 
   errorHandler: (call, task, machine)->
 
@@ -127,6 +137,12 @@ module.exports = class ComputeController extends KDController
           else
             kd.warn "[CC] error:", err
 
+        when Error.NotSupported
+
+          kd.info "Cancelling... #{task} ..."
+          call.cancel()
+
+
       unless safeToSuspend
         @emit "error", { task, err, machine }
         @emit "error-#{machine._id}", { task, err, machine }
@@ -166,9 +182,12 @@ module.exports = class ComputeController extends KDController
             queue = []
             return
 
+          @machinesById = {}
+
           machines = []
           for machine in _machines
-            machines.push new Machine { machine }
+            machines.push machine = new Machine { machine }
+            @machinesById[machine._id] = machine
 
           @stacks   = stacks
           @machines = machines
@@ -221,15 +240,17 @@ module.exports = class ComputeController extends KDController
 
 
   findMachineFromMachineId: (machineId)->
-
-    for machine in @machines
-      return machine  if machine._id is machineId
+    return @machinesById[machineId]
 
 
   findMachineFromQueryString: (queryString)->
 
+    return  unless queryString
+
+    kiteIdOnly = "///////#{queryString.split('/').reverse()[0]}"
+
     for machine in @machines
-      return machine  if machine.queryString is queryString
+      return machine  if machine.queryString in [queryString, kiteIdOnly]
 
 
   fetchAvailable: (options, callback)->
@@ -259,11 +280,14 @@ module.exports = class ComputeController extends KDController
     if @plans
       kd.utils.defer => callback @plans
     else
-      remote.api.ComputeProvider.fetchPlans
-        provider: "koding"
-      , (err, plans)=>
-          if err? then kd.warn err
-          else @plans = plans
+      remote.api.ComputeProvider.fetchPlans (err, plans)=>
+        # If there is an error at least return a simple plan
+        # which includes only 'free' plan
+        if err? or not plans?
+          kd.warn err
+          callback { free: total: 1, alwaysOn: 0, storage: 3 }
+        else
+          @plans = plans
           callback plans
 
 
@@ -294,6 +318,10 @@ module.exports = class ComputeController extends KDController
     @fetchUserPlan (plan)=> @fetchPlans (plans)=>
       @fetchUsage { provider }, (err, usage)=>
         @fetchRewards { unit: 'GB' }, (err, reward)->
+          # If there is an invalid plan set for user
+          # or plans failed to fetch, then fallback to 'free' plan
+          plan = 'free'  unless plans[plan]?
+
           callback err, { plan, plans, usage, reward }
 
 
@@ -302,8 +330,8 @@ module.exports = class ComputeController extends KDController
 
   create: (options, callback)->
     remote.api.ComputeProvider.create options, (err, machine)=>
-      @reset yes  unless err?
-      callback err, machine
+      return callback err  if err?
+      @reset yes, -> callback null, machine
 
 
   createDefaultStack: ->
@@ -351,11 +379,32 @@ module.exports = class ComputeController extends KDController
 
     destroy = (machine)=>
 
+      machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      if machine?.provider is 'managed'
+
+        options     =
+          machineId : machine._id
+          provider  : machine.provider
+
+        remote.api.ComputeProvider.remove options, (err)=>
+          return  if err
+
+          @_clearTrialCounts machine
+
+          # we don't need to wait for deletion of workspace here ~ GG
+          remote.api.JWorkspace.deleteByUid machine.uid, (err)->
+            console.warn "couldn't delete workspace:", err  if err
+
+          environmentDataProvider = require 'app/userenvironmentdataprovider'
+          environmentDataProvider.fetch => @reset yes, ->
+            kd.singletons.appManager.tell 'IDE', 'quit'
+
+        return
+
       @eventListener.triggerState machine,
         status      : Machine.State.Terminating
         percentage  : 0
-
-      machine.getBaseKite( createIfNotExists = no ).disconnect()
 
       call = @getKloud().destroy { machineId: machine._id }
 
@@ -381,6 +430,8 @@ module.exports = class ComputeController extends KDController
 
 
   reinit: (machine)->
+
+    return if methodNotSupportedBy machine
 
     ComputeController_UI.askFor 'reinit', {machine, force: @_force}, =>
 
@@ -410,16 +461,13 @@ module.exports = class ComputeController extends KDController
 
   resize: (machine, resizeTo = 10)->
 
+    return if methodNotSupportedBy machine
+
     ComputeController_UI.askFor 'resize', {
       machine, force: @_force, resizeTo
     }, =>
 
-      options =
-        machineId : machine._id
-        provider  : machine.provider
-        resize    : resizeTo
-
-      remote.api.ComputeProvider.update options, (err)=>
+      @update machine, resize: resizeTo, (err) =>
 
         if err and err.name isnt 'SameValueForResize'
           return  showError err
@@ -449,6 +497,8 @@ module.exports = class ComputeController extends KDController
 
   build: (machine)->
 
+    return if methodNotSupportedBy machine
+
     @eventListener.triggerState machine,
       status      : Machine.State.Building
       percentage  : 0
@@ -472,6 +522,8 @@ module.exports = class ComputeController extends KDController
 
   start: (machine)->
 
+    return if methodNotSupportedBy machine
+
     @eventListener.triggerState machine,
       status      : Machine.State.Starting
       percentage  : 0
@@ -494,6 +546,8 @@ module.exports = class ComputeController extends KDController
 
 
   stop: (machine)->
+
+    return if methodNotSupportedBy machine
 
     @eventListener.triggerState machine,
       status      : Machine.State.Stopping
@@ -519,10 +573,16 @@ module.exports = class ComputeController extends KDController
 
   setAlwaysOn: (machine, state, callback = kd.noop)->
 
-    options =
-      machineId : machine._id
-      provider  : machine.provider
-      alwaysOn  : state
+    if err = methodNotSupportedBy machine
+      return callback err
+
+    @update machine, alwaysOn: state, callback
+
+
+  update: (machine, options, callback = kd.noop)->
+
+    options.machineId = machine._id
+    options.provider  = machine.provider
 
     remote.api.ComputeProvider.update options, (err)=>
       @triggerReviveFor machine._id  unless err?
