@@ -6,6 +6,10 @@ I started with idea of creating webhook to actions mapping, but due to Go's stat
 
 One thing to note, paypal webhooks are directed via node webserver since paypal sends in `application/x-www-form-urlencoded` and go doesn't support unmarshalling it into a struct like it does for json. Marshalling that into json and then unmarshalling oddly returns arrays for ALL values. The webhooks were originally redirected via node webserver for different reasons, so I decided to keep it there.
 
+## Update March 23, 2015
+
+We've moved to using SegmentIO + Iterable to send emails. This worker no longer calls sendgrid api; it sends message to `emailSender` which then sends events to Iterable.
+
 ## Testing
 
 go test -c

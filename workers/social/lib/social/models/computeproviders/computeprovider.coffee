@@ -8,8 +8,8 @@ KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 module.exports = class ComputeProvider extends Base
 
   {
-    PROVIDERS, fetchStackTemplate, revive,
-    reviveClient, reviveCredential
+    PLANS, PROVIDERS, fetchStackTemplate, revive,
+    reviveClient, reviveCredential, fetchUsage, checkTemplateUsage
   } = require './computeutils'
 
   @trait __dirname, '../../traits/protected'
@@ -45,7 +45,7 @@ module.exports = class ComputeProvider extends Base
         fetchUsage        :
           (signature Object, Function)
         fetchPlans        :
-          (signature Object, Function)
+          (signature Function)
         fetchProviders    :
           (signature Function)
         createGroupStack  :
@@ -81,37 +81,35 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-      { provider, stack, label, provisioners } = options
-      { r: { group, user, account } } = client
+    { provider, stack, label, provisioners } = options
+    { r: { group, user, account } } = client
 
-      provider.create client, options, (err, machineData)=>
+    provider.create client, options, (err, machineData)->
 
+      return callback err  if err
+
+      { meta, postCreateOptions, credential } = machineData
+
+      label ?= machineData.label
+
+      JMachine.create {
+        provider : provider.slug
+        label, meta, group, user
+        credential, provisioners
+      }, (err, machine)->
+
+        # TODO if any error occurs here which means user paid for
+        # not created vm ~ GG
         return callback err  if err
 
-        { meta, postCreateOptions, credential } = machineData
+        provider.postCreate client, {
+          postCreateOptions, machine, meta, stack: stack._id
+        }, (err)->
 
-        label ?= machineData.label
-
-        JMachine.create {
-          provider : provider.slug
-          label, meta, group, user
-          credential, provisioners
-        }, (err, machine)->
-
-          # TODO if any error occurs here which means user paid for
-          # not created vm ~ GG
           return callback err  if err
 
-          provider.postCreate client, {
-            postCreateOptions, machine, meta, stack: stack._id
-          }, (err)->
-
-            return callback err  if err
-
-            stack.appendTo machines: machine.getId(), (err)->
-
-              account.sendNotification "MachineCreated"  unless err
-              callback err, machine
+          stack.appendTo machines: machine.getId(), (err)->
+            callback err, machine
 
 
   @create$ = permit 'create machines', success: revive
@@ -157,22 +155,13 @@ module.exports = class ComputeProvider extends Base
 
   , (client, options, callback)->
 
-    {provider} = options
-    provider.fetchUsage client, options, callback
+    {slug} = options.provider
+    fetchUsage client, provider: slug, callback
 
 
-  @fetchPlans$ = secure (client, options, callback)->
-    ComputeProvider.fetchPlans client, options, callback
-
-  @fetchPlans = revive
-
-    shouldReviveClient   : no
-    shouldPassCredential : no
-
-  , (client, options, callback)->
-
-    {provider} = options
-    provider.fetchPlans client, options, callback
+  @fetchPlans = permit 'create machines',
+    success: (client, callback)->
+      callback null, PLANS
 
 
   @update = secure revive
@@ -234,8 +223,12 @@ module.exports = class ComputeProvider extends Base
           connections : []
 
         queue.push ->
-          account.addStackTemplate template, (err)->
-            if err then callback err else queue.next()
+
+          checkTemplateUsage template, account, (err)->
+            return callback err  if err
+
+            account.addStackTemplate template, (err)->
+              if err then callback err else queue.next()
 
         template.machines?.forEach (machineInfo)->
 
@@ -309,24 +302,27 @@ module.exports = class ComputeProvider extends Base
 
   do ->
 
-    JGroup = require '../group'
-    JGroup.on 'MemberAdded', ({group, member})->
-
-      # No need to try creating group stacks for guests group members
-      return  if group.slug is 'guests'
-
-      client =
-        connection :
-          delegate : member
-        context    : group : group.slug
-
-      ComputeProvider.createGroupStack client, (err, res = {})->
-
-        {stack, results} = res
-
-        if err?
-          {nickname} = member.profile
-          console.log "Create group stack failed for #{nickname}:", err, results
+    # This is moved into JUser::convert steps but we need to
+    # re-enable this for Teams product. ~ GG
+    #
+    # JGroup = require '../group'
+    # JGroup.on 'MemberAdded', ({group, member})->
+    #
+    #   # No need to try creating group stacks for guests group members
+    #   return  if group.slug is 'guests'
+    #
+    #   client =
+    #     connection :
+    #       delegate : member
+    #     context    : group : group.slug
+    #
+    #   ComputeProvider.createGroupStack client, (err, res = {})->
+    #
+    #     {stack, results} = res
+    #
+    #     if err?
+    #       {nickname} = member.profile
+    #       console.log "Create group stack failed for #{nickname}:", err, results
 
 
     JAccount = require '../account'
@@ -385,4 +381,3 @@ module.exports = class ComputeProvider extends Base
                              from *.#{oldDomain} to #{newDomain}"""
             else
               console.log "Failed to update machine domain for #{username}", err
-

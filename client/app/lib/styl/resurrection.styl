@@ -1555,3 +1555,109 @@ paymentGrayLighter  = #f8f8f8
       vendor            box-shadow, none
       rounded           4px
 
+.managed-vm
+
+  a
+    noTextDeco()
+    color             #333
+
+  .kdlistview
+    font-size         14px
+    font-weight       bold
+    margin-bottom     20px
+
+    .kite-item
+      display         flex
+      border-bottom   1px solid #ccc
+      cursor          default
+
+      &.header
+        font-size     13px
+        opacity       .6
+        &:hover
+          background  inherit !important
+
+      &:hover
+        background    #eee
+
+      &.selected
+        background    #ddd
+
+      > div
+        margin        auto
+        width         100px
+        padding       8px
+        white-space   nowrap
+        text-overflow ellipsis
+        overflow      hidden
+
+  &.find-nodes
+  &.add-managedvm
+    left            50% !important
+    margin-left     -190px
+    .kdmodal-title
+      cursor        default
+
+  &.modal
+
+    .kdbutton.icon-only
+
+      background    none
+      border        none
+      padding       9px // Added for sprites and retina screens issue ~GG
+      margin        10px 0
+      float         left
+
+      &.retry
+        r-sprite    'ide', 'refresh'
+
+      &.inline
+        display     inline-block
+        float       none     !important
+        margin      3px 10px !important
+
+
+    .kdbutton
+      float         right
+      margin-left   10px
+
+      &[disabled=disabled]
+        opacity     .6
+
+    .kdloader
+      width         auto
+      margin        3px 10px
+      &.inline
+        margin      10px 0 !important
+
+    .title
+      width         auto
+      display       inline-block
+      line-height   23px
+
+    .kdview.view-waiting
+
+      text-align    center
+      padding       20px
+      box-sizing    border-box
+      min-height    70px
+
+      .message
+        display     inline
+
+    .kdview.message
+
+      &.inline
+        font-size     14px
+        float         left
+        width         auto
+        margin        8px
+
+      &.warning
+        font-size     13px
+        background    #FEFFEF
+        border        1px solid #ccc
+        box-sizing    border-box
+        padding       10px
+        border-radius 4px
+        line-height   15px

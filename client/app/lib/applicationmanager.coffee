@@ -1,15 +1,15 @@
-$ = require 'jquery'
-globals = require 'globals'
-getAppOptions = require './util/getAppOptions'
-getAppClass = require './util/getAppClass'
-kd = require 'kd'
+$                    = require 'jquery'
+globals              = require 'globals'
+kd                   = require 'kd'
 KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView = kd.NotificationView
-KDObject = kd.Object
-KDOnOffSwitch = kd.OnOffSwitch
-KDSelectBox = kd.SelectBox
-KDView = kd.View
-FSHelper = require './util/fs/fshelper'
+KDNotificationView   = kd.NotificationView
+KDObject             = kd.Object
+KDOnOffSwitch        = kd.OnOffSwitch
+KDSelectBox          = kd.SelectBox
+KDView               = kd.View
+getAppOptions        = require './util/getAppOptions'
+getAppClass          = require './util/getAppClass'
+FSHelper             = require './util/fs/fshelper'
 KodingAppsController = require './kodingappscontroller'
 
 

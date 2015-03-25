@@ -442,8 +442,8 @@ module.exports =
     paragraph           = @getFakeText()
     newName             = paragraph.split(' ')[0]
     avatarSelector      = '.avatar-area a.profile'
-    accountPageSelector = '#main-panel-wrapper .user-profile'
-    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
+    accountPageSelector = '.AppModal--account'
+    saveButtonSelector  = accountPageSelector + ' .button-field'
 
     browser
       .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
