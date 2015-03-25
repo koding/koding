@@ -54,7 +54,7 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
-  segment                 = '4c570qjqo0'
+  segment                 = 'kb2hfdgf20'
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
