@@ -166,7 +166,7 @@ module.exports = class RealtimeController extends KDController
     options = { channelName: pubnubChannelName, channelId }
 
     # authentication needed for private message channels
-    if typeConstant is 'privatemessage'
+    if typeConstant in ['privatemessage', 'collaboration']
       options.authenticate =
         endPoint : "/api/gatekeeper/subscribe/channel"
         data     : { name: channelName, typeConstant, groupName: group }
