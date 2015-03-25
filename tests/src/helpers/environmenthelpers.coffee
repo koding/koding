@@ -40,6 +40,14 @@ module.exports =
       .moveToElement           sidebarTitle + ' a.buy-vm', 10, 10
       .click                   sidebarTitle + ' a.buy-vm'
 
+    @clickAddKodingVMButton browser
+
+  clickAddKodingVMButton: (browser) ->
+
+    sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
+    browser
+      .waitForElementVisible   '.more-modal.more-vms', 20000 # Assertion
+      .click                   '.kdbutton.create-koding-vm'
 
   seeUpgradeModal: (browser) ->
 

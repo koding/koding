@@ -1,8 +1,4 @@
 SidebarMachineList = require './sidebarmachinelist'
-MoreVMsModal = require 'app/activity/sidebar/morevmsmodal'
-ComputeHelpers = require '../../providers/computehelpers'
-Machine = require 'app/providers/machine'
-
 
 module.exports = class SidebarOwnMachinesList extends SidebarMachineList
 
@@ -13,7 +9,3 @@ module.exports = class SidebarOwnMachinesList extends SidebarMachineList
     options.cssClass    = 'my-machines'
 
     super options, data
-
-    @on 'ListHeaderPlusIconClicked', -> ComputeHelpers.handleNewMachineRequest()
-
-    @on 'ListHeaderClicked', => new MoreVMsModal {}, @getMachines()
