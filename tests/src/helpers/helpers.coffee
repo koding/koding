@@ -52,7 +52,7 @@ module.exports =
     unless machineName
       machineName = 'koding-vm-0'
 
-    vmSelector     = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
+    vmSelector     = '[href="/IDE/' + machineName + '"].running.vm'
     modalSelector  = '.env-modal.env-machine-state'
     loaderSelector = modalSelector + ' .kdloader'
     buildingLabel  = modalSelector + ' .state-label.building'
@@ -441,8 +441,8 @@ module.exports =
     paragraph           = @getFakeText()
     newName             = paragraph.split(' ')[0]
     avatarSelector      = '.avatar-area a.profile'
-    accountPageSelector = '#main-panel-wrapper .user-profile'
-    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
+    accountPageSelector = '.AppModal--account'
+    saveButtonSelector  = accountPageSelector + ' .button-field'
 
     browser
       .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000

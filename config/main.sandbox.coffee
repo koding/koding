@@ -54,6 +54,8 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
+  segment                 = '4c570qjqo0'
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -81,6 +83,7 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    segment                 : segment
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -160,7 +163,7 @@ Configuration = (options={}) ->
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
     recapthcha                     : '6LfZL_kSAAAAAIrbAbnMPt9ri79pyHUZ0-QqB6Iz'
-    segment                        : '4c570qjqo0'
+    segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'

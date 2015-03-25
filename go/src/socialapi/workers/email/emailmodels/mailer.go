@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/models"
-	"socialapi/workers/email/sender"
+	"socialapi/workers/email/emailsender"
 )
 
 type Mailer struct {
 	UserContact *UserContact
-	Mail        *sender.Mail
+	Mail        *emailsender.Mail
 	Information string
 }
 
@@ -22,13 +22,13 @@ func NewMailer(a *models.Account) (*Mailer, error) {
 
 	return &Mailer{
 		UserContact: uc,
-		Mail:        new(sender.Mail),
+		Mail:        emailsender.NewEmptyMail(),
 	}, nil
 }
 
 func (m *Mailer) SendMail(contentType, body, subject string) error {
 	if m.Mail == nil {
-		m.Mail = new(sender.Mail)
+		m.Mail = emailsender.NewEmptyMail()
 	}
 
 	m.Mail.Text = body
@@ -48,11 +48,14 @@ func (m *Mailer) SendMail(contentType, body, subject string) error {
 	}
 
 	fullname := fmt.Sprintf("%s %s", m.UserContact.FirstName, m.UserContact.LastName)
-	m.Mail.Text = content
+	m.Mail.HTML = content
 	m.Mail.To = m.UserContact.Email
 	m.Mail.ToName = fullname
 
-	if err := sender.Send(m.Mail); err != nil {
+	m.Mail.Properties = emailsender.NewProperties()
+	m.Mail.Properties.Username = m.UserContact.Username
+
+	if err := emailsender.Send(m.Mail); err != nil {
 		return err
 	}
 
