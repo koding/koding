@@ -51,7 +51,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @showBusy()
     @show()
 
-    whoami().isEmailVerified (err, verified)=>
+    {computeController} = kd.singletons
+
+    computeController.ready => whoami().isEmailVerified (err, verified) =>
 
       kd.warn err  if err?
 
