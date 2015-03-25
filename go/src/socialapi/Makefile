@@ -53,7 +53,7 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev mailsenderdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -135,7 +135,12 @@ mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/sender -c $(CONFIG) $(DBG) $(METRICS)
 
-configuremigration:
+
+topicmoderationdev:
+	@echo "$(OK_COLOR)==> Running Topic Moderation Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/topicmoderation -watch socialapi/workers/moderation -c $(CONFIG) $(DBG) $(METRICS)
+
+onfiguremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jNewStatusUpdates.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jComments.update({},{\$$unset:{socialMessageId:0}},{multi:true})'")
