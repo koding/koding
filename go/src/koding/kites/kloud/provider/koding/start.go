@@ -2,6 +2,7 @@ package koding
 
 import (
 	"errors"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 	"time"
 
@@ -30,7 +31,7 @@ func (m *Machine) Start(ctx context.Context) error {
 	// 	return err
 	// }
 
-	infoResp, err := m.Session.AWSClient.Info()
+	instance, err := m.Session.AWSClient.Instance()
 	if err != nil {
 		return err
 	}
@@ -41,9 +42,9 @@ func (m *Machine) Start(ctx context.Context) error {
 	// and revert back to t2.micro. This is lazy auto healing of instances that
 	// were created because there were no capacity for their specific instance
 	// type.
-	if infoResp.InstanceType != m.Meta.InstanceType {
+	if instance.InstanceType != m.Meta.InstanceType {
 		m.Log.Warning("instance is using '%s'. Changing back to '%s'",
-			infoResp.InstanceType, m.Meta.InstanceType)
+			instance.InstanceType, m.Meta.InstanceType)
 
 		opts := &ec2.ModifyInstance{InstanceType: instances[m.Meta.InstanceType].String()}
 
@@ -57,10 +58,12 @@ func (m *Machine) Start(ctx context.Context) error {
 		time.Sleep(time.Second * 2)
 	}
 
+	infoState := amazon.StatusToState(instance.State.Name)
+
 	// only start if the machine is stopped, stopping
-	if infoResp.State.In(machinestate.Stopped, machinestate.Stopping) {
+	if infoState.In(machinestate.Stopped, machinestate.Stopping) {
 		// Give time until it's being stopped
-		if infoResp.State == machinestate.Stopping {
+		if infoState == machinestate.Stopping {
 			time.Sleep(time.Second * 20)
 		}
 

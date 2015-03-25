@@ -32,12 +32,12 @@ func (a *Amazon) CheckBuild(instanceId string, start, finish int) (ec2.Instance,
 	var instance ec2.Instance
 	var err error
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		instance, err = a.Instance(instanceId)
+		instance, err = a.InstanceById(instanceId)
 		if err != nil {
 			return 0, err
 		}
 
-		currentStatus := statusToState(instance.State.Name)
+		currentStatus := StatusToState(instance.State.Name)
 		if currentStatus.In(machinestate.Terminated, machinestate.Terminating) {
 			return 0, ErrInstanceTerminated
 		}
@@ -59,7 +59,11 @@ func (a *Amazon) CheckBuild(instanceId string, start, finish int) (ec2.Instance,
 	return instance, nil
 }
 
-func (a *Amazon) Instance(id string) (ec2.Instance, error) {
+func (a *Amazon) Instance() (ec2.Instance, error) {
+	return a.InstanceById(a.Builder.InstanceId)
+}
+
+func (a *Amazon) InstanceById(id string) (ec2.Instance, error) {
 	resp, err := a.Client.Instances([]string{id}, ec2.NewFilter())
 	if err != nil {
 		if awsErr, ok := err.(*ec2.Error); ok {

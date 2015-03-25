@@ -49,7 +49,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	a := m.Session.AWSClient
 
 	m.Log.Info("checking if size is eligible for instance %s", a.Id())
-	instance, err := a.Instance(a.Id())
+	instance, err := a.Instance()
 	if err != nil {
 		return err
 	}

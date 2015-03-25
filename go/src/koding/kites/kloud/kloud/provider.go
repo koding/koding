@@ -6,9 +6,17 @@ import (
 	"golang.org/x/net/context"
 )
 
-type ctxKey int
+// InfoArtifact should be returned from a Info method.
+type InfoArtifact struct {
+	// State defines the state of the machine
+	State machinestate.State
 
-const requestKey ctxKey = 0
+	// Name defines the name of the machine.
+	Name string
+
+	// InstanceType defines the type of the given machine
+	InstanceType string
+}
 
 // Provider is responsible of managing and controlling a cloud provider
 type Provider interface {
@@ -43,6 +51,10 @@ type Resizer interface {
 
 type Restarter interface {
 	Restart(ctx context.Context) error
+}
+
+type Infoer interface {
+	Info(ctx context.Context) (map[string]string, error)
 }
 
 // Stater returns the state of a machine

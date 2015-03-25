@@ -169,49 +169,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	}, nil
 }
 
-//
-//
-// func (k *Kloud) Info(r *kite.Request) (infoResp interface{}, infoErr error) {
-// 	machine, err := k.PrepareMachine(r)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	defer func() {
-// 		if infoErr != nil {
-// 			k.Log.Error("[%s] info failed. err: %s", machine.Id, infoErr.Error())
-// 		}
-// 	}()
-//
-// 	if machine.State == machinestate.NotInitialized {
-// 		return &protocol.InfoArtifact{
-// 			State: machinestate.NotInitialized,
-// 			Name:  "not-initialized-instance",
-// 		}, nil
-// 	}
-//
-// 	provider, ok := k.providers[machine.Provider]
-// 	if !ok {
-// 		return nil, NewError(ErrProviderAvailable)
-// 	}
-//
-// 	controller, ok := provider.(protocol.Provider)
-// 	if !ok {
-// 		return nil, NewError(ErrProviderNotImplemented)
-// 	}
-//
-// 	response, err := controller.Info(machine)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-//
-// 	if response.State == machinestate.Unknown {
-// 		response.State = machine.State
-// 	}
-//
-// 	return response, nil
-// }
-
 func (k *Kloud) GetMachine(r *kite.Request) (resp interface{}, reqErr error) {
 	// calls with zero arguments causes args to be nil. Check it that we
 	// don't get a beloved panic

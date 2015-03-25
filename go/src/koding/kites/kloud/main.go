@@ -228,7 +228,7 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("start", kld.Start)
 	k.HandleFunc("reinit", kld.Reinit)
 	k.HandleFunc("restart", kld.Restart)
-	// k.HandleFunc("info", kld.Info)
+	k.HandleFunc("info", kld.Info)
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("resize", kld.Resize)
 

@@ -1,9 +1,66 @@
 package kloud
 
 import (
+	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/protocol"
+
 	"github.com/koding/kite"
+	"github.com/mitchellh/mapstructure"
 	"golang.org/x/net/context"
 )
+
+// InfoResponse is returned from a info method
+type InfoResponse struct {
+	// State defines the state of the machine
+	State string
+
+	// Name defines the name of the machine.
+	Name string
+
+	// InstanceType defines the type of the given machine
+	InstanceType string
+}
+
+func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
+	machine, err := k.GetMachine(r)
+	if err != nil {
+		return nil, err
+	}
+
+	stater, ok := machine.(Stater)
+	if !ok {
+		return nil, NewError(ErrStaterNotImplemented)
+	}
+
+	if stater.State() == machinestate.NotInitialized {
+		return &protocol.InfoArtifact{
+			State: machinestate.NotInitialized,
+			Name:  "not-initialized-instance",
+		}, nil
+	}
+
+	i, ok := machine.(Infoer)
+	if !ok {
+		return nil, NewError(ErrProviderNotImplemented)
+	}
+
+	infoData, err := i.Info(request.NewContext(context.Background(), r))
+	if err != nil {
+		return nil, err
+	}
+
+	var response *InfoResponse
+	if err := mapstructure.Decode(infoData, response); err != nil {
+		return nil, err
+	}
+
+	if response.State == machinestate.Unknown.String() {
+		response.State = stater.State().String()
+	}
+
+	return response, nil
+}
 
 func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
 	buildFunc := func(ctx context.Context, machine interface{}) error {

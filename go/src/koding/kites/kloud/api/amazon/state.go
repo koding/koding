@@ -2,10 +2,8 @@ package amazon
 
 import (
 	"errors"
-	"fmt"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
 	"koding/kites/kloud/waitstate"
 	"strings"
 
@@ -34,12 +32,12 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 
 	var instance ec2.Instance
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		instance, err = a.Instance(a.Id())
+		instance, err = a.Instance()
 		if err != nil {
 			return 0, err
 		}
 
-		return statusToState(instance.State.Name), nil
+		return StatusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -77,12 +75,12 @@ func (a *Amazon) Stop(ctx context.Context) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		instance, err := a.Instance(a.Id())
+		instance, err := a.Instance()
 		if err != nil {
 			return 0, err
 		}
 
-		return statusToState(instance.State.Name), nil
+		return StatusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -116,12 +114,12 @@ func (a *Amazon) Restart(ctx context.Context) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		instance, err := a.Instance(a.Id())
+		instance, err := a.Instance()
 		if err != nil {
 			return 0, err
 		}
 
-		return statusToState(instance.State.Name), nil
+		return StatusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -159,12 +157,12 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
-		instance, err := a.Instance(a.Id())
+		instance, err := a.Instance()
 		if err != nil {
 			return 0, err
 		}
 
-		return statusToState(instance.State.Name), nil
+		return StatusToState(instance.State.Name), nil
 	}
 
 	ws := waitstate.WaitState{
@@ -178,54 +176,9 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	return ws.Wait()
 }
 
-func (a *Amazon) Info() (*protocol.InfoArtifact, error) {
-	if a.Id() == "" {
-		return &protocol.InfoArtifact{
-			State: machinestate.NotInitialized,
-			Name:  "not-existing-instance",
-		}, nil
-	}
-
-	instance, err := a.Instance(a.Id())
-	if err == ErrNoInstances {
-		return &protocol.InfoArtifact{
-			State: machinestate.NotInitialized,
-			Name:  "not-existing-instance",
-		}, nil
-	}
-
-	// if it's something else, return it back
-	if err != nil {
-		return nil, err
-	}
-
-	if statusToState(instance.State.Name) == machinestate.Unknown {
-		return nil, fmt.Errorf("Unknown amazon status: %+v. This needs to be fixed.", instance.State)
-	}
-
-	var instanceName string
-	for _, tag := range instance.Tags {
-		if tag.Key == "Name" {
-			instanceName = tag.Value
-		}
-	}
-
-	// this shouldn't happen
-	if instanceName == "" {
-		return nil, fmt.Errorf("instance %s doesn't have a name tag. needs to be fixed!", a.Id())
-	}
-
-	return &protocol.InfoArtifact{
-		State:        statusToState(instance.State.Name),
-		Name:         instanceName,
-		InstanceType: instance.InstanceType,
-	}, nil
-
-}
-
-// statusToState converts a amazon status to a sensible machinestate.State
+// StatusToState converts a amazon status to a sensible machinestate.State
 // format
-func statusToState(status string) machinestate.State {
+func StatusToState(status string) machinestate.State {
 	status = strings.ToLower(status)
 
 	// Valid values: pending | running | shutting-down | terminated | stopping | stopped
