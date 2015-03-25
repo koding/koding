@@ -25,9 +25,9 @@ func (m *Machine) Reinit(ctx context.Context) error {
 			m.Id,
 			bson.M{"$set": bson.M{
 				"ipAddress":         "",
+				"queryString":       "",
 				"meta.instanceId":   "",
 				"meta.instanceName": "",
-				"queryString":       "",
 				"status.state":      machinestate.NotInitialized.String(),
 				"status.modifiedAt": time.Now().UTC(),
 				"status.reason":     "Reinit cleanup",
@@ -39,10 +39,11 @@ func (m *Machine) Reinit(ctx context.Context) error {
 	}
 
 	// cleanup this too so "build" can continue with a clean setup
-	m.Meta.InstanceId = ""
-	m.Meta.InstanceName = ""
 	m.IpAddress = ""
 	m.QueryString = ""
+	m.Meta.InstanceId = ""
+	m.Meta.InstanceName = ""
+	m.Status.State = machinestate.NotInitialized.String()
 
 	// this updates/creates domain
 	return m.Build(ctx)

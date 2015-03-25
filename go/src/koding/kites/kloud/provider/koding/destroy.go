@@ -8,8 +8,17 @@ import (
 	"golang.org/x/net/context"
 )
 
-// destroyMachine destroy the given machine and deletes all associated domains
-func (m *Machine) destroyMachine(ctx context.Context) error {
+// Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
+// function but updates/deletes the MongoDB document once finished.
+func (m *Machine) Destroy(ctx context.Context) error {
+	if m.State() == machinestate.NotInitialized {
+		return errors.New("can't destroy notinitialized machine.")
+	}
+
+	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
+		return err
+	}
+
 	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
 		return err
 	}
@@ -59,23 +68,6 @@ func (m *Machine) destroyMachine(ctx context.Context) error {
 	m.Meta.InstanceName = ""
 	m.IpAddress = ""
 	m.QueryString = ""
-	return nil
-}
-
-// Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
-// function but updates/deletes the MongoDB document once finished.
-func (m *Machine) Destroy(ctx context.Context) error {
-	if m.State() == machinestate.NotInitialized {
-		return errors.New("can't destroy notinitialized machine.")
-	}
-
-	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
-		return err
-	}
-
-	if err := m.destroyMachine(ctx); err != nil {
-		return err
-	}
 
 	return m.DeleteDocument()
 }
