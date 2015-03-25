@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	Name = "topicmoderation"
+	Name = "TopicModeration"
 )
 
 func main() {
