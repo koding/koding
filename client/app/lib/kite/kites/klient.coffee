@@ -81,20 +81,30 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
         return remote
 
 
+  _removeSession: (session)->
+
+    @removeFromActiveSessions session
+    @terminalSessions = @terminalSessions.filter (currentSession)->
+      session isnt currentSession
+
+
   webtermKillSession: (options)->
 
     {session} = options
 
     @tell 'webterm.killSession', options
 
-      .then (state) =>
+    .then (state) =>
 
-        @removeFromActiveSessions session
+      @_removeSession session
+      return state
 
-        @terminalSessions = @terminalSessions.filter (currentSession)->
-          session isnt currentSession
+    .catch (err)=>
 
-        return state
+      if err.name is 'KiteError' and /No screen session found/i.test err.message
+        @_removeSession session
+
+      throw err
 
 
   fetchTerminalSessions: (session)->
