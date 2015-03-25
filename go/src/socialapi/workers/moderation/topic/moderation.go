@@ -321,17 +321,22 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 			}
 
 			// replace all occurences of the leaf node hashbangs with the root
-			// nodes. We can't determine if the multiple occurences of the same
-			// `Name` constitues a meaningful sentence - yes we can but it is
-			// not feasible for now...
-			cm.Body = strings.Replace(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString, -1)
+			// nodes. We _can't_ determine if the multiple occurences of the
+			// same `Name` constitues a meaningful sentence - yes we can, but it
+			// is not feasible for now...
+			cm.Body = processWithNewTag(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString)
 
 			// update the message itself
-			if err := bongo.B.Update(cm); err != nil {
+			if err := bongo.B.
+				Unscoped().
+				Table(cm.TableName()).
+				Model(*cm). // should not be a pointer, why? dont ask me for now
+				Update(cm).Error; err != nil {
 				c.log.Error("Err while updating the mesage %s", err.Error())
 				erroredMessageLists = append(erroredMessageLists, messageLists[i])
 				continue
 			}
+			cm.AfterUpdate() // do not forget to send updated event
 		}
 	}
 
@@ -405,3 +410,4 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 
 	return nil
 }
+
