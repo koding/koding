@@ -4,6 +4,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
 	"socialapi/request"
+	"socialapi/rest"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/notification"
 	"socialapi/workers/notification/models"
@@ -101,7 +102,7 @@ func createUser(user *socialapimodels.Account) {
 }
 
 func createOwnerMessage(body string) *socialapimodels.ChannelMessage {
-	message, err := createPost(testGroupChannel.Id, ownerAccount.Id, body)
+	message, err := createPost(testGroupChannel, ownerAccount, body)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -109,17 +110,17 @@ func createOwnerMessage(body string) *socialapimodels.ChannelMessage {
 	return message
 }
 
-func createPost(groupChannelId, ownerId int64, body string) (*socialapimodels.ChannelMessage, error) {
+func createPost(groupChannel *socialapimodels.Channel, owner *socialapimodels.Account, body string) (*socialapimodels.ChannelMessage, error) {
 
-	return createPostWithType(groupChannelId, ownerId, body, socialapimodels.ChannelMessage_TYPE_POST)
+	return createPostWithType(groupChannel, owner, body, socialapimodels.ChannelMessage_TYPE_POST)
 }
 
-func createPostWithType(groupChannelId, ownerId int64, body string, typeConstant string) (*socialapimodels.ChannelMessage, error) {
+func createPostWithType(groupChannel *socialapimodels.Channel, owner *socialapimodels.Account, body, typeConstant string) (*socialapimodels.ChannelMessage, error) {
 
 	cm := socialapimodels.NewChannelMessage()
 	cm.Body = body
-	cm.InitialChannelId = groupChannelId
-	cm.AccountId = ownerId
+	cm.InitialChannelId = groupChannel.Id
+	cm.AccountId = owner.Id
 	cm.TypeConstant = typeConstant
 
 	err := cm.Create()
@@ -130,12 +131,12 @@ func createPostWithType(groupChannelId, ownerId int64, body string, typeConstant
 	return cm, nil
 }
 
-func createReply(groupChannelId, ownerId, messageId int64, body string) (*socialapimodels.MessageReply, error) {
-	cm, err := createPost(groupChannelId, ownerId, body)
+func createReply(groupChannel *socialapimodels.Channel, owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, body string) (*socialapimodels.MessageReply, error) {
+	cm, err := createPost(groupChannel, owner, body)
 	So(err, ShouldBeNil)
 
 	reply := socialapimodels.NewMessageReply()
-	reply.MessageId = messageId
+	reply.MessageId = parentMessage.Id
 	reply.ReplyId = cm.Id
 
 	err = reply.Create()
@@ -173,6 +174,15 @@ func TestNotificationCreation(t *testing.T) {
 
 	controller := notification.New(r.Bongo.Broker.MQ, r.Log)
 
+	createReplyHelper := func(owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, reply string) {
+		replyMessage, err := createReply(testGroupChannel, owner, parentMessage, reply)
+		So(err, ShouldBeNil)
+		So(replyMessage, ShouldNotBeNil)
+
+		err = controller.CreateReplyNotification(replyMessage)
+		So(err, ShouldBeNil)
+	}
+
 	Convey("while testing notifications", t, func() {
 
 		Convey("As a message owner I want to receive reply notifications", func() {
@@ -187,30 +197,21 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("I should only receive notification for my messages with post type", func() {
 				messageBody := "notification first message"
 
-				pm, err := createPostWithType(testGroupChannel.Id, ownerAccount.Id, messageBody, socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE)
+				pm, err := createPostWithType(testGroupChannel, ownerAccount, messageBody, socialapimodels.ChannelMessage_TYPE_PRIVATE_MESSAGE)
 				So(err, ShouldBeNil)
 
-				reply, err := createReply(testGroupChannel.Id, secondUser.Id, pm.Id, messageBody)
-				So(err, ShouldBeNil)
-
-				err = controller.CreateReplyNotification(reply)
-				So(err, ShouldBeNil)
+				createReplyHelper(secondUser, pm, messageBody)
 
 				nl, err := fetchNotification(ownerAccount.Id)
 				So(err, ShouldBeNil)
 				So(len(nl.Notifications), ShouldEqual, 0)
 			})
 
-			Convey("When first user replies my post I should be able to receive notification", func() {
-				replyMessage, err := createReply(testGroupChannel.Id, firstUser.Id, firstMessage.Id, "reply1")
-				So(err, ShouldBeNil)
-				So(replyMessage, ShouldNotBeNil)
-
-				err = controller.CreateReplyNotification(replyMessage)
-				So(err, ShouldBeNil)
-
+			Convey("(Basic Reply Notification Test) When first user replies my post I should be able to receive notification", func() {
+				createReplyHelper(firstUser, firstMessage, "reply1")
 				nl, err := fetchNotification(ownerAccount.Id)
 				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
 				So(len(nl.Notifications), ShouldEqual, 1)
 				notification := nl.Notifications[0]
 				So(notification, ShouldNotBeNil)
@@ -225,13 +226,13 @@ func TestNotificationCreation(t *testing.T) {
 					So(nl, ShouldNotBeNil)
 					So(len(nl.Notifications), ShouldEqual, 0)
 
-					replyMessage, err = createReply(testGroupChannel.Id, firstUser.Id, firstMessage.Id, "reply2")
+					createReplyHelper(firstUser, firstMessage, "reply2")
 					nl, err = fetchNotification(firstUser.Id)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 					So(len(nl.Notifications), ShouldEqual, 0)
 
-					Convey("I should not receive any new notification for second reply from first user", func() {
+					Convey("Unread notification count should still be 1 for my account", func() {
 						nl, err := fetchNotification(ownerAccount.Id)
 						So(err, ShouldBeNil)
 						So(nl, ShouldNotBeNil)
@@ -240,253 +241,75 @@ func TestNotificationCreation(t *testing.T) {
 						So(nl.UnreadCount, ShouldEqual, 1)
 					})
 				})
+
+				Convey("When second user replies my post actor count must be two for the latest notification", func() {
+					createReplyHelper(secondUser, firstMessage, "reply2")
+					nl, err := fetchNotification(ownerAccount.Id)
+					So(err, ShouldBeNil)
+					So(nl, ShouldNotBeNil)
+					So(len(nl.Notifications), ShouldEqual, 1)
+					So(nl.Notifications[0].ActorCount, ShouldEqual, 2)
+
+					So(len(nl.Notifications[0].LatestActors), ShouldEqual, 2)
+					So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
+					So(nl.Notifications[0].LatestActors[1], ShouldEqual, firstUser.Id)
+				})
+			})
+
+			Convey("Beside the message owner all commenters should be able to receive notification for further replies", func() {
+
+				Convey("When third user replies the message, owner, first and second users receive notification", func() {
+					createReplyHelper(thirdUser, firstMessage, "reply3")
+
+					nl, err := fetchNotification(ownerAccount.Id)
+					So(err, ShouldBeNil)
+					So(nl, ShouldNotBeNil)
+					So(nl.Notifications[0].ActorCount, ShouldEqual, 3)
+
+					So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
+					So(nl.Notifications[0].LatestActors[1], ShouldEqual, secondUser.Id)
+					So(nl.Notifications[0].LatestActors[2], ShouldEqual, firstUser.Id)
+
+					// first user notification fetch
+					nl, err = fetchNotification(firstUser.Id)
+					So(err, ShouldBeNil)
+					So(nl, ShouldNotBeNil)
+
+					So(len(nl.Notifications), ShouldEqual, 1)
+					So(nl.Notifications[0].ActorCount, ShouldEqual, 2)
+
+					So(len(nl.Notifications[0].LatestActors), ShouldEqual, 2)
+					So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
+					So(nl.Notifications[0].LatestActors[1], ShouldEqual, secondUser.Id)
+
+					// second user notification fetch
+					nl, err = rest.GetNotificationList(secondUser.Id)
+					So(err, ShouldBeNil)
+					So(nl, ShouldNotBeNil)
+
+					So(len(nl.Notifications), ShouldEqual, 1)
+					// because it must only see the notifiers after him
+					So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
+
+					So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
+					So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
+				})
+
 			})
 
 		})
 
-		//Convey("Second user should be able to reply it", func() {
-		//    replyMessage, err := rest.AddReply(firstMessage.Id, secondUser.Id, testGroupChannel.Id)
-		//    So(err, ShouldBeNil)
-		//    So(replyMessage, ShouldNotBeNil)
-		//    time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-		//})
+		Convey("As a message owner I should not be notified for my own replies", func() {
+			createReplyHelper(ownerAccount, secondMessage, "reply1")
 
-		//Convey("I should be able to receive a new notification for the same message", func() {
-		//    nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-		//    Convey("And Notification list should contain one notification", func() {
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//    })
-		//    Convey("Notifier count should be 2", func() {
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 2)
-		//    })
+			nl, err := fetchNotification(ownerAccount.Id)
+			So(err, ShouldBeNil)
+			So(nl, ShouldNotBeNil)
 
-		//    Convey("Notification should contain second and first user consecutively", func() {
-		//        So(len(nl.Notifications[0].LatestActors), ShouldEqual, 2)
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-		//        So(nl.Notifications[0].LatestActors[1], ShouldEqual, firstUser.Id)
-		//    })
+			So(len(nl.Notifications), ShouldEqual, 1)
+			So(nl.UnreadCount, ShouldEqual, 1)
+		})
 
-		//})
-
-		//Convey("First user should be able to receive notification as the previous commenter", func() {
-		//    nl, err := rest.GetNotificationList(firstUser.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-
-		//    Convey("And Notification list should contain one notification", func() {
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//        Convey("Notifier count should be 1", func() {
-		//            So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-		//        })
-		//        Convey("Notification should contain second user", func() {
-		//            So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-		//            So(nl.Notifications[0].LatestActors[0], ShouldEqual, secondUser.Id)
-		//        })
-		//    })
-
-		//})
-
-		//Convey("Third user should be able to reply it", func() {
-		//    replyMessage, err := rest.AddReply(firstMessage.Id, thirdUser.Id, testGroupChannel.Id)
-		//    So(err, ShouldBeNil)
-		//    So(replyMessage, ShouldNotBeNil)
-		//    time.Sleep(SLEEP_TIME * time.Second)
-		//})
-
-		//Convey("I should be able to receive notification as the message owner", func() {
-		//    nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-		//    Convey("Notifier count should be 3", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 3)
-		//    })
-
-		//    Convey("Notification should contain third, second and first user consecutively", func() {
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
-		//        So(nl.Notifications[0].LatestActors[1], ShouldEqual, secondUser.Id)
-		//        So(nl.Notifications[0].LatestActors[2], ShouldEqual, firstUser.Id)
-		//    })
-		//})
-
-		//Convey("First user should be able to receive notification after third user's post", func() {
-		//    nl, err := rest.GetNotificationList(firstUser.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-
-		//    Convey("And Notification list should contain one notification", func() {
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//    })
-		//    Convey("Notifier count should be 2", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 2)
-		//    })
-
-		//    Convey("Notification should contain third and second user consecutively", func() {
-		//        So(len(nl.Notifications[0].LatestActors), ShouldEqual, 2)
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
-		//        So(nl.Notifications[0].LatestActors[1], ShouldEqual, secondUser.Id)
-		//    })
-
-		//})
-
-		//Convey("Second user should be able to receive notification as the previous commenter", func() {
-		//    nl, err := rest.GetNotificationList(secondUser.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-
-		//    Convey("And Notification list should contain one notification", func() {
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//    })
-		//    // because it must only see the notifiers after him
-		//    Convey("Notifier count should be 1", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-		//    })
-
-		//    Convey("Notification should contain third user only", func() {
-		//        So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
-		//    })
-
-		//})
-
-		//Convey("Forth user should be able to reply it", func() {
-		//    replyMessage, err := rest.AddReply(firstMessage.Id, forthUser.Id, testGroupChannel.Id)
-		//    So(err, ShouldBeNil)
-		//    So(replyMessage, ShouldNotBeNil)
-		//    time.Sleep(SLEEP_TIME * time.Second)
-		//})
-
-		//Convey("I should be able to receive notification as the message owner after forth users reply", func() {
-		//    nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-		//    Convey("Notification should contain forth, third and second user consecutively, first user should not be included", func() {
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, forthUser.Id)
-		//        So(nl.Notifications[0].LatestActors[1], ShouldEqual, thirdUser.Id)
-		//        So(nl.Notifications[0].LatestActors[2], ShouldEqual, secondUser.Id)
-		//    })
-
-		//    Convey("Notifier count should be 4", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
-		//    })
-
-		//})
-
-		//Convey("First user should be able to reply it", func() {
-		//    replyMessage, err := rest.AddReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
-		//    So(err, ShouldBeNil)
-		//    So(replyMessage, ShouldNotBeNil)
-		//    time.Sleep(SLEEP_TIME * time.Second)
-		//})
-
-		//Convey("I should be able to receive notification as the message owner after first user's reply", func() {
-		//    nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-		//    Convey("Notification should contain first, forth, and third user consecutively (first user is relisted)", func() {
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-		//        So(nl.Notifications[0].LatestActors[1], ShouldEqual, forthUser.Id)
-		//        So(nl.Notifications[0].LatestActors[2], ShouldEqual, thirdUser.Id)
-		//    })
-
-		//    Convey("Notifier count should be 4", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
-		//    })
-
-		//})
-
-		//Convey("First user should be able to reply it again (owner of consecutive comments)", func() {
-		//    replyMessage, err := rest.AddReply(firstMessage.Id, firstUser.Id, testGroupChannel.Id)
-		//    So(err, ShouldBeNil)
-		//    So(replyMessage, ShouldNotBeNil)
-		//    time.Sleep(SLEEP_TIME * time.Second) // waiting for async message
-		//})
-
-		//Convey("I should be able to receive notification as the message owner", func() {
-		//    nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-		//    Convey("Notification should not see first user twice", func() {
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-		//        So(nl.Notifications[0].LatestActors[1], ShouldEqual, forthUser.Id)
-		//        So(nl.Notifications[0].LatestActors[2], ShouldEqual, thirdUser.Id)
-		//    })
-
-		//    Convey("Notifier count should be still 4", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 4)
-		//    })
-
-		//})
-
-		//Convey("Forth user should be able to receive notification as the previous commenter", func() {
-		//    nl, err := rest.GetNotificationList(forthUser.Id)
-		//    So(err, ShouldBeNil)
-		//    So(nl, ShouldNotBeNil)
-		//    Convey("Notifier count should be 1", func() {
-		//        So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-		//    })
-
-		//    Convey("Notification should contain only first user since she is the last commenter", func() {
-		//        So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-		//    })
-
-		//})
-
-		//Convey("As a message owner I must not be notified by my own replies", func() {
-		//    Convey("I should be able to reply my message", func() {
-		//        replyMessage, err := rest.AddReply(secondMessage.Id, ownerAccount.Id, testGroupChannel.Id)
-		//        So(err, ShouldBeNil)
-		//        So(replyMessage, ShouldNotBeNil)
-		//        time.Sleep(SLEEP_TIME * time.Second)
-		//    })
-
-		//    Convey("I should not receive notification for my own message", func() {
-		//        nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//        So(err, ShouldBeNil)
-		//        So(nl, ShouldNotBeNil)
-
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//        So(nl.UnreadCount, ShouldEqual, 1)
-		//    })
-
-		//    Convey("First user should be able to reply it", func() {
-		//        replyMessage, err := rest.AddReply(secondMessage.Id, firstUser.Id, testGroupChannel.Id)
-		//        So(err, ShouldBeNil)
-		//        So(replyMessage, ShouldNotBeNil)
-		//        time.Sleep(SLEEP_TIME * time.Second)
-		//    })
-
-		//    Convey("I should be able to receive comment notification", func() {
-		//        nl, err := rest.GetNotificationList(ownerAccount.Id)
-		//        So(err, ShouldBeNil)
-		//        So(nl, ShouldNotBeNil)
-
-		//        Convey("And Notification list should contain two notifications for my two posts", func() {
-		//            So(nl.UnreadCount, ShouldEqual, 2)
-		//            So(len(nl.Notifications), ShouldEqual, 2)
-		//            Convey("Notifier count should be 1", func() {
-		//                So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
-		//            })
-		//            Convey("Notification should contain first user as actor", func() {
-		//                So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
-		//                So(nl.Notifications[0].LatestActors[0], ShouldEqual, firstUser.Id)
-		//            })
-		//        })
-
-		//    })
-
-		//    Convey("First user should not receive notification", func() {
-		//        nl, err := rest.GetNotificationList(firstUser.Id)
-		//        So(err, ShouldBeNil)
-		//        So(nl, ShouldNotBeNil)
-
-		//        So(len(nl.Notifications), ShouldEqual, 1)
-		//        So(nl.UnreadCount, ShouldEqual, 1)
-		//    })
-
-		//})
 		//Convey("As a message owner I want to receive like notifications", func() {
 		//    Convey("First user should be able to like it", func() {
 		//        _, err := rest.AddInteraction(socialapimodels.Interaction_TYPE_LIKE, firstMessage.Id, firstUser.Id)
