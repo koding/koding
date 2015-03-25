@@ -411,3 +411,28 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 	return nil
 }
 
+func processWithNewTag(body, leaf, root string) string {
+	// replace all occurences of the leaf node hashbangs with the root
+	// nodes. We _can't_ determine if the multiple occurences of the
+	// same `Name` constitues a meaningful sentence - yes we can, but it
+	// is not feasible for now...
+	body = strings.Replace(body, leaf, root, -1)
+
+	// remove multiple consecutive occurrences of the same tag, if exists
+	splittedBody := strings.Split(body, root)
+	modifiedBody := make([]string, 0)
+
+	for i := 0; i < len(splittedBody); i++ {
+		r := splittedBody[i]
+		if r == "" || r == " " {
+			if i == 0 || i == len(splittedBody)-1 {
+				// if we dont have  any previous or next, add it
+				modifiedBody = append(modifiedBody, r)
+			}
+		} else {
+			modifiedBody = append(modifiedBody, r)
+		}
+	}
+
+	return strings.Join(modifiedBody, root)
+}
