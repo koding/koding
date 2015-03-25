@@ -151,6 +151,16 @@ module.exports = class NavigationMachineItem extends JView
       kd.utils.wait 1000, @progress.bound 'hide'
 
 
+  click: (e) ->
+
+    m = @machine
+
+    if not m.isMine() and m.isPermanent() and not m.isApproved()
+      kd.utils.stopDOMEvent e
+
+    super
+
+
   pistachio: ->
 
     return """
