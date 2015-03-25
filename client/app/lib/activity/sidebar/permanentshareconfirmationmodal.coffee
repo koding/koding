@@ -9,6 +9,7 @@ remote = require('app/remote').getInstance()
 
 module.exports = class PermanentShareConfirmationModal extends KDModalView
 
+
   constructor: (options = {}, data) ->
 
     options.width    = 250
@@ -19,6 +20,9 @@ module.exports = class PermanentShareConfirmationModal extends KDModalView
 
     @createArrow()
     @createElements()
+
+    kd.getSingleton('windowController').addLayer this
+    @on 'ReceivedClickElsewhere', @bound 'destroy'
 
 
   createArrow: ->
