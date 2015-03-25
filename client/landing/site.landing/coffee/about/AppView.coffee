@@ -63,7 +63,7 @@ module.exports = class AboutView extends JView
         <div class='brand-box logo'>
           <div class='info'>
             Koding Logo <br>
-            <a href='#'>.pdf</a> <a href='#'>.ai</a>
+            <a href='https://brandfolder.com/koding' target='_blank'>.pdf</a> <a href='https://brandfolder.com/koding' target='_blank'>.ai</a>
           </div>
           <div class='examples'>
             <figure></figure>
