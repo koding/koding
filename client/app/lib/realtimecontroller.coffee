@@ -130,8 +130,7 @@ module.exports = class RealtimeController extends KDController
     requestFn = =>
       doXhrRequest {endPoint, data}, (err) =>
         if err
-          kd.warn "Channel authentication failed: #{err.message}"
-          return
+          return callback {message: "Channel authentication failed: #{err.message}"}
 
         # when we make an authentication request, server responses with realtimeToken
         # in cookie here. If it is not set, then there is no need to subscription attempt
