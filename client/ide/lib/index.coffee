@@ -926,6 +926,7 @@ module.exports = class IDEAppController extends AppController
 
     data = { machine, workspace: @workspaceData }
     kd.singletons.mainView.activitySidebar.selectWorkspace data
+    @emit 'IDEReady'
 
 
   removeFakeViews: ->
