@@ -2,6 +2,8 @@
 package emailsender
 
 import (
+	"koding/db/mongodb/modelhelper"
+
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
@@ -48,6 +50,17 @@ func (c *Controller) Process(m *Mail) error {
 	}
 
 	user.Username = m.Properties.Username
+
+	if user.Username == "" {
+		u, err := modelhelper.FetchUserByEmail(to)
+		if err != nil {
+			return err
+		}
+
+		user.Username = u.Name
+	}
+
+	m.Properties.Options["subject"] = m.Subject
 
 	event := &eventexporter.Event{
 		Name:       m.Subject,
