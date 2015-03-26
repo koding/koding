@@ -500,7 +500,9 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        sh -c "scripts/install-npm.sh -d client/landing -u"
+        sh -c "scripts/install-npm.sh -d client/builder -u"
+        sh -c "scripts/install-npm.sh -d client -u -p"
         make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
