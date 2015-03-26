@@ -397,10 +397,17 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 
 			// update the message itself. Used bongo.Update because
 			// ChannelMessage's Update method is overwritten
-			if err := bongo.B.Update(cm); err != nil {
+			if err := bongo.B.
+				Unscoped().
+				Table(cm.TableName()).
+				Model(*cm). // should not be a pointer, why? dont ask me for now
+				Update(cm).Error; err != nil {
 				c.log.Error("Err while updating the mesage %s", err.Error())
 				erroredMessages = append(erroredMessages, messages[i])
+				continue
 			}
+			cm.AfterUpdate() // do not forget to send updated event
+
 		}
 	}
 
