@@ -26,7 +26,7 @@ func TestModeration(t *testing.T) {
 
 	Convey("While creating a link to a channel", t, func() {
 		// create admin
-		admin, err := models.CreateAccountInBothDbs()
+		admin, err := models.CreateAccountInBothDbsWithNick("sinan")
 		So(err, ShouldBeNil)
 		So(admin, ShouldNotBeNil)
 
@@ -109,7 +109,7 @@ func TestModeration(t *testing.T) {
 		})
 
 		Convey("We should be able to blacklist channel without any leaves", func() {
-			So(rest.BlackList(root.Id, leaf.Id, ses.ClientId), ShouldNotBeNil)
+			So(rest.BlackList(root.Id, leaf.Id, ses.ClientId), ShouldBeNil)
 		})
 
 		Convey("We should not be able to blacklist channel with leaves", func() {
