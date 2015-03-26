@@ -12,7 +12,56 @@ module.exports = class SearchController extends KDObject
 
     super options, data
 
-    { appId, apiKey } = globals.config.algolia
+    @indexes = {}
+
+    @initAlgolia()
+
+
+  initAlgolia: ->
+
+    { appId } = globals.config.algolia
+
+    @ready = no
+
+    @fetchApiKey (err, apiKey) =>
+
+      return kd.error err  if err
+
+      @fetchGroupId (err, currentGroupId) =>
+
+        return console.error "Could not fetch current group id: #{err}"  if err
+
+        @algolia = new Algolia appId, apiKey
+        @algolia.setSecurityTags(createSecurityTag(currentGroupId))
+        @ready = yes
+
+
+  createSecurityTag = (currentGroupId) ->
+    userId = globals.userAccount.socialApiId
+    return "(#{currentGroupId},user-#{userId})"
+
+
+  fetchGroupId: (callback) ->
+
+    currentGroupId = globals.currentGroup.socialApiChannelId
+
+    # TODO in case of an error this currentGroup.socialApiChannelId is not set.
+    # this is just a workaround, and if possible solve this issue and remove these lines
+    return callback null, currentGroupId  if currentGroupId
+
+    remote.api.JGroup.one {slug: globals.currentGroup.slug}, (err, group) ->
+
+      return callback err  if err
+
+      return callback null, group.socialApiChannelId  if group?.socialApiChannelId
+
+      return callback {message: "socialApiChannelId not found"}
+
+
+  fetchApiKey: (callback) ->
+    bo = backoff.exponential
+      initialDelay: 700
+      maxDelay    : 15000
 
     @indexes = {}
     @algolia = new Algolia appId, apiKey
