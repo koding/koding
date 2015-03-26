@@ -291,7 +291,7 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker te
 
 	@`which go` test config/*.go $(DBG)
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
 
 	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/metrics/*.go
@@ -330,7 +330,7 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker te
 	@./handler.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./handler.test
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> api integration tests... $(NO_COLOR)"
 	@`which go` test -c tests/*.go
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
@@ -339,11 +339,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker te
 	@`which go` test -c workers/realtime/realtime/*.go
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./realtime.test
-
-	@echo "$(OK_COLOR)--> moderation tests... $(NO_COLOR)"
-	@`which go` test -c workers/moderation/topic/*.go
-	@./topic.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./topic.test
 
 	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
 	@`which go` test -c workers/sitemap/sitemapgenerator/*.go
