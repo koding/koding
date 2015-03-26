@@ -40,7 +40,7 @@ module.exports = class SearchController extends KDObject
 
   createSecurityTag = (currentGroupId) ->
     userId = globals.userAccount.socialApiId
-    return "(#{currentGroupId},user-#{userId})"
+    return "(#{currentGroupId},account-#{userId})"
 
 
   fetchGroupId: (callback) ->

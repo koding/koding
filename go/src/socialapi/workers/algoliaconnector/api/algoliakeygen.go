@@ -56,5 +56,5 @@ func generateTagFilters(c models.Channel, accountId int64) string {
 }
 
 func generateUserToken(accountId int64) string {
-	return fmt.Sprintf("user-%d", accountId)
+	return fmt.Sprintf("account-%d", accountId)
 }
