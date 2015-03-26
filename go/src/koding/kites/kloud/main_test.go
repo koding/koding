@@ -61,12 +61,12 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
-	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
@@ -801,10 +801,10 @@ func kodingProvider() *koding.Provider {
 	db := modelhelper.Mongo
 
 	return &koding.Provider{
-		DB:   db,
-		Log:  newLogger("koding", true),
-		DNS:  dnsclient.New("dev.koding.io", auth),
-		Kite: kloudKite,
+		DB:        db,
+		Log:       newLogger("koding", true),
+		DNSClient: dnsclient.NewRoute53Client("dev.koding.io", auth),
+		Kite:      kloudKite,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",

@@ -4,10 +4,10 @@ import (
 	"os"
 
 	"koding/kites/kloud/contexthelper/publickeys"
-	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/idlock"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/idlock"
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"koding/kites/kloud/cleaners/lookup"
-	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/provider/oldkoding"
+	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/pkg/dnsclient"
 	"sync"
 	"time"
 
@@ -19,8 +19,8 @@ type Cleaner struct {
 	AWS      *lookup.Lookup
 	MongoDB  *lookup.MongoDB
 	Postgres *lookup.Postgres
-	DNS      *dnsclient.DNS
-	Domains  *oldkoding.Domains
+	DNS      dnsclient.Client
+	Domains  dnsstorage.Storage
 	DryRun   bool
 	Debug    bool
 
@@ -54,8 +54,8 @@ func NewCleaner(conf *Config) *Cleaner {
 
 	l := lookup.NewAWS(auth)
 	m := lookup.NewMongoDB(conf.MongoURL)
-	dns := dnsclient.New(conf.HostedZone, auth)
-	domains := oldkoding.NewDomainStorage(m.DB)
+	dns := dnsclient.NewRoute53Client(conf.HostedZone, auth)
+	domains := dnsstorage.NewMongodbStorage(m.DB)
 	p := lookup.NewPostgres(&lookup.PostgresConfig{
 		Host:     conf.Postgres.Host,
 		Port:     conf.Postgres.Port,

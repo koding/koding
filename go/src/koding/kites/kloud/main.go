@@ -14,8 +14,8 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
-	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/userdata"
 

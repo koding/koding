@@ -8,12 +8,12 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
-	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 
 	"github.com/fatih/structs"
@@ -30,7 +30,7 @@ type Provider struct {
 	Log        logging.Logger
 	Kite       *kite.Kite
 	DNSClient  *dnsclient.Route53
-	DNSStorage dnsstorage.Storage
+	DNSStorage *dnsstorage.MongodbStorage
 	EC2Clients *multiec2.Clients
 	Userdata   *userdata.Userdata
 

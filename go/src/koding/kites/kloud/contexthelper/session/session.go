@@ -3,10 +3,10 @@ package session
 import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/dnsclient"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
