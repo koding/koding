@@ -27,10 +27,9 @@ func NewHandler(c *algoliasearch.Client, l logging.Logger, apiKey string) *Handl
 
 func AddHandlers(m *mux.Mux, metric *metrics.Metrics, l logging.Logger) {
 	algoliaConf := config.MustGet().Algolia
-	key := "d15cab2a1bcead494e38cc33d32c4621"
 	c := algoliasearch.NewClient(algoliaConf.AppId, algoliaConf.ApiSecretKey)
 
-	h := NewHandler(c, l, key)
+	h := NewHandler(c, l, algoliaConf.ApiTokenKey)
 	m.AddHandler(
 		handler.Request{
 			Handler:  h.GenerateKey,
