@@ -40,7 +40,9 @@ module.exports = class ActivityContentPane extends KDTabPaneView
 
   appendContent: (items) ->
 
-    return  unless items?.length
+    unless items?.length
+      @listController.hideLazyLoader()
+      return
 
     items.forEach (item) => kd.utils.defer => @listController.addItem item
 
