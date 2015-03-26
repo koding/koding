@@ -6,6 +6,7 @@ kd             = require 'kd'
 globals        = require 'globals'
 ShortcutsModal = require './views/modal'
 cloneArray     = require 'app/util/cloneArray'
+AppController  = require 'app/appcontroller'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '4'
@@ -165,16 +166,16 @@ class ShortcutsController extends events.EventEmitter
   #
   _handleFrontAppChange: (app, prevApp) ->
 
-    appId     = app.canonicalName
+    appId     = app?.canonicalName
     prevAppId = prevApp?.canonicalName
 
     return  if appId is prevAppId
 
-    if prevApp and _.isArray(sets = prevApp.getConfig().shortcuts)
+    if prevApp instanceof AppController and _.isArray(sets = prevApp.getConfig().shortcuts)
       for key in sets
         @shortcuts.removeListener "key:#{key}", prevApp.bound 'handleShortcut'
 
-    if _.isArray(sets = app.getConfig().shortcuts)
+    if app instanceof AppController and _.isArray(sets = app.getConfig().shortcuts)
       for key in sets
         @shortcuts.on "key:#{key}", app.bound 'handleShortcut'
 
