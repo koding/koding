@@ -195,7 +195,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	m.push("Updating domain aliases", 87, machinestate.Pending)
 	// also get all domain aliases that belongs to this machine and unset
-	domains, err := m.DomainsById()
+	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
 	}

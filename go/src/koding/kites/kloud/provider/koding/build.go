@@ -562,7 +562,7 @@ func (m *Machine) addDomainAndTags() {
 	}
 
 	m.push("Updating domain aliases", 72, machinestate.Building)
-	domains, err := m.DomainsById()
+	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for setting err: %s", err.Error())
 	}

@@ -30,7 +30,7 @@ func (m *Machine) Destroy(ctx context.Context) error {
 		m.Log.Error("deleting domain during destroying err: %s", err.Error())
 	}
 
-	domains, err := m.DomainsById()
+	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
 	}
@@ -41,7 +41,8 @@ func (m *Machine) Destroy(ctx context.Context) error {
 			m.Log.Error("couldn't delete domain: %s", err.Error())
 		}
 
-		if err := m.UpdateDomain(domain.Name, ""); err != nil {
+		err := m.Session.DNSStorage.UpdateMachine(domain.Name, "")
+		if err != nil {
 			m.Log.Error("couldn't unset machine domain: %s", err.Error())
 		}
 	}

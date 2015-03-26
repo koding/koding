@@ -149,7 +149,7 @@ func (m *Machine) Start(ctx context.Context) error {
 
 	// also get all domain aliases that belongs to this machine and unset
 	m.push("Updating domain aliases", 80, machinestate.Starting)
-	domains, err := m.DomainsById()
+	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
 		m.Log.Error("fetching domains for starting err: %s", err.Error())
 	}

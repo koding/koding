@@ -14,6 +14,7 @@ import (
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/provider/koding"
@@ -167,12 +168,14 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
+	dnsStorage := dnsstorage.NewMongodbStorage(db)
 
 	kodingProvider := &koding.Provider{
-		DB:        db,
-		Log:       newLogger("kloud", conf.DebugMode),
-		DNSClient: dnsInstance,
-		Kite:      k,
+		DB:         db,
+		Log:        newLogger("kloud", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -207,7 +210,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld := kloud.New()
 	kld.Metrics = stats
 	kld.PublicKeys = publickeys.NewKeys()
-	// kld.DomainStorage = domainStorage
+	kld.DomainStorage = dnsStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
