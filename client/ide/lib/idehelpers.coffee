@@ -5,8 +5,8 @@ globals = require 'globals'
 FSHelper = require 'app/util/fs/fshelper'
 FilePermissionsModal = require './views/modals/filepermissionsmodal'
 
-WORKSPACE_WELCOME_TXT = '''
-  # Awesome, you\'ve just made a new workspace!
+WORKSPACE_WELCOME_TXT = """
+  # Awesome, you've just made a new workspace!
   Workspaces are fantastic for organizing your work. This new workspace, which lives inside the 'Workspaces' folder of your home
   directory, is a place where you can store all relevant and related files to a particular project. For example, if you
   are working on multiple projects, its nice to have them separated as follows:
@@ -24,7 +24,7 @@ WORKSPACE_WELCOME_TXT = '''
   like IDE settings, files open, Terminals open, etc.
 
   Enjoy and Happy Koding!
-'''
+"""
 
 module.exports = helpers =
 
