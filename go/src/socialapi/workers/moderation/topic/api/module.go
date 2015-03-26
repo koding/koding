@@ -46,10 +46,6 @@ func DeleteLink(u *url.URL, h http.Header, _ interface{}, context *models.Contex
 // Blacklist remove the channel content from system completely, it shouldnt have
 // any leaf channels in order to be blacklisted
 func Blacklist(u *url.URL, h http.Header, req *models.ChannelLink, context *models.Context) (int, http.Header, interface{}, error) {
-	if err := prepareRequest(u, req); err != nil {
-		return response.NewBadRequest(err)
-	}
-
 	return response.HandleResultAndError(req, req.Blacklist())
 }
 
