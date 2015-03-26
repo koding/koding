@@ -14,7 +14,7 @@ wrapCallback = (callback)->
         return callback {message: "Social API is currently under maintenance"}
       return callback err
 
-    if response.statusCode >= 400
+    if response.statusCode >= 300
       return callback body
     else
       return callback null, body
