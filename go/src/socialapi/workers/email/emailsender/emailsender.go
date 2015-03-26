@@ -54,10 +54,10 @@ func (c *Controller) Process(m *Mail) error {
 	if user.Username == "" {
 		u, err := modelhelper.FetchUserByEmail(to)
 		if err != nil {
-			return err
+			user.Username = "unknown user"
+		} else {
+			user.Username = u.Name
 		}
-
-		user.Username = u.Name
 	}
 
 	m.SetOption("subject", m.Subject)
