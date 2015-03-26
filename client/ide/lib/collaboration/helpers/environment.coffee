@@ -51,11 +51,13 @@ setMachineUser = (machine, usernames, share, callback) ->
     queue = usernames.map (username) ->
       ->
         kite[method]({username}).then ->
-          callback null
           queue.fin()
 
         .error (err) ->
           queue.fin()
+
+          return  if err.message is 'User not found' and not share
+
           callback err
 
     sinkrow.dash queue, callback

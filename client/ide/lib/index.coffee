@@ -277,7 +277,11 @@ class IDEAppController extends AppController
 
   openFile: (file, contents, callback = noop, emitChange) ->
 
-    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, callback, emitChange
+    kallback = (pane) =>
+      @emit 'EditorPaneDidOpen', pane  if pane?.options.paneType is 'editor'
+      callback pane
+
+    @activeTabView.emit 'FileNeedsToBeOpened', file, contents, kallback, emitChange
 
 
   openMachineTerminal: (machineData) ->
@@ -402,43 +406,33 @@ class IDEAppController extends AppController
 
       @prepareIDE()
 
-      callback = =>
-
-        if machineItem
-          {state}         = machineItem.status
-          machineId       = machineItem._id
-          baseMachineKite = machineItem.getBaseKite()
-          isKiteConnected = baseMachineKite._state is 1
+      if machineItem
+        {state}         = machineItem.status
+        machineId       = machineItem._id
+        baseMachineKite = machineItem.getBaseKite()
+        isKiteConnected = baseMachineKite._state is 1
 
 
-          if state is Running and isKiteConnected
-            @mountMachine machineItem
-            baseMachineKite.fetchTerminalSessions()
-
-          else
-            unless @machineStateModal
-
-              @createMachineStateModal {
-                state, container, machineItem, initial: yes
-              }
-
-              if state is NotInitialized
-                @machineStateModal.once 'MachineTurnOnStarted', =>
-                  kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
-
-          @prepareCollaboration()
-          @bindMachineEvents machineItem
+        if state is Running and isKiteConnected
+          @mountMachine machineItem
+          baseMachineKite.fetchTerminalSessions()
 
         else
-          @createMachineStateModal { state: 'NotFound', container }
+          unless @machineStateModal
 
+            @createMachineStateModal {
+              state, container, machineItem, initial: yes
+            }
 
-      @appStorage = kd.getSingleton('appStorageController').storage 'IDE', '1.0.0'
-      @appStorage.fetchStorage =>
+            if state is NotInitialized
+              @machineStateModal.once 'MachineTurnOnStarted', =>
+                kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-        isOnboardingModalShown = @appStorage.getValue 'isOnboardingModalShown'
+        @prepareCollaboration()
+        @bindMachineEvents machineItem
 
-        callback()
+      else
+        @createMachineStateModal { state: 'NotFound', container }
 
 
   bindMachineEvents: (machineItem) ->
@@ -1131,40 +1125,50 @@ class IDEAppController extends AppController
     @changeActiveTabView paneType
 
     switch paneType
-      when 'terminal'
-        terminalOptions =
-          machine       : @mountedMachine
-          session       : context.session
-          hash          : paneHash
-          joinUser      : @collaborationHost or nick()
-          fitToWindow   : not @isInSession
+      when 'terminal' then @createTerminalPaneFromChange change, paneHash
+      when 'editor'   then @createEditorPaneFromChange change, paneHash
+      when 'drawing'  then @createDrawingPaneFromChange change, paneHash
 
-        @createNewTerminal terminalOptions
+    if @mySnapshot and not @mySnapshot.get paneHash
+      @mySnapshot.set paneHash, change
 
-      when 'editor'
-        { file }      = context
-        { path }      = file
-        options       = { path, machine : @mountedMachine }
-        file          = FSHelper.createFileInstance options
-        file.paneHash = paneHash
 
-        if @rtm?.realtimeDoc
-          content = @rtm.getFromModel(path)?.getText() or ''
-          @openFile file, content, noop, no
-        else if file.isDummyFile()
-          @openFile file, context.file.content, noop, no
-        else
-          file.fetchContents (err, contents = '') =>
-            return showError err  if err
-            @changeActiveTabView paneType
-            @openFile file, contents, noop, no
+  createTerminalPaneFromChange: (change, hash) ->
 
-      when 'drawing'
-        @createNewDrawing paneHash
+    @createNewTerminal
+      machine       : @mountedMachine
+      session       : change.context.session
+      hash          : hash
+      joinUser      : @collaborationHost or nick()
+      fitToWindow   : not @isInSession
 
-    if @mySnapshot
-      unless @mySnapshot.get paneHash
-        @mySnapshot.set paneHash, change
+
+  createEditorPaneFromChange: (change, hash) ->
+
+    { context }        = change
+    { file, paneType } = context
+    { path }           = file
+    options            = { path, machine : @mountedMachine }
+    file               = FSHelper.createFileInstance options
+    file.paneHash      = hash
+
+    if @rtm?.realtimeDoc
+      content = @rtm.getFromModel(path)?.getText() or ''
+      @openFile file, content, noop, no
+
+    else if file.isDummyFile()
+      @openFile file, file.content, noop, no
+
+    else
+      file.fetchContents (err, contents = '') =>
+        return showError err  if err
+        @changeActiveTabView paneType
+        @openFile file, contents, noop, no
+
+
+  createDrawingPaneFromChange: (change, hash) ->
+
+    @createNewDrawing hash
 
 
   showModal: (modalOptions = {}, callback = noop) ->
@@ -1189,7 +1193,7 @@ class IDEAppController extends AppController
 
   quit: ->
 
-    @cleanupCollaboration()
+    @emit 'IDEWillQuit'
 
     @mountedMachine.getBaseKite(createIfNotExists = no).disconnect()
 
@@ -1197,6 +1201,8 @@ class IDEAppController extends AppController
 
     kd.utils.defer ->
       kd.singletons.router.handleRoute '/IDE'
+
+    @emit 'IDEDidQuit'
 
 
   removeParticipantCursorWidget: (targetUser) ->

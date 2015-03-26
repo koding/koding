@@ -458,7 +458,7 @@ module.exports = class IDEView extends IDEWorkspaceTabView
     items =
       'New File'          : callback : =>
          newFile = FSHelper.createFileInstance { path: @getDummyFilePath(), machine }
-         @createEditor(newFile)
+         kd.singletons.appManager.tell 'IDE', 'openFile', newFile
       'New Terminal'      : children : terminalSessions
       # 'New Browser'       : callback : => @createPreview()
       'New Drawing Board' :

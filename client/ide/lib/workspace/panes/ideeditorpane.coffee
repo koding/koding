@@ -71,8 +71,6 @@ module.exports = class IDEEditorPane extends IDEPane
       @bindChangeListeners()
       @emit 'EditorIsReady'
 
-      kd.singletons.appManager.tell 'IDE', 'setRealtimeManager', this
-
       @once 'RealtimeManagerSet', =>
         myPermission = @rtm.getFromModel('permissions').get nick()
         @makeReadOnly()  if myPermission is 'read'
@@ -322,6 +320,9 @@ module.exports = class IDEEditorPane extends IDEPane
     @rtm
       .on 'TextInsertedIntoString', @bound 'handleCollaborativeStringEvent'
       .on 'TextDeletedFromString',  @bound 'handleCollaborativeStringEvent'
+      .on 'RealtimeManagerWillDispose', =>
+        @rtm.unbindRealtimeListeners string, 'string'
+        @removeAllCursorWidgets()
 
 
   handleCollaborativeStringEvent: (changedString, change) ->
