@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -11,6 +12,11 @@ import (
 // CreateLink creates a new link between two channels, root and leaf id should
 // be given in the request
 func CreateLink(u *url.URL, h http.Header, req *models.ChannelLink, context *models.Context) (int, http.Header, interface{}, error) {
+	// only admin users can request
+	if !context.IsAdmin() {
+		return response.NewAccessDenied(errors.New("not admin"))
+	}
+
 	rootId, err := request.GetURIInt64(u, "rootId") // get root id from query
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -23,18 +29,39 @@ func CreateLink(u *url.URL, h http.Header, req *models.ChannelLink, context *mod
 
 // GetLinks returns the leaves of a root channel
 func GetLinks(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	// only admin users can request
+	if !context.IsAdmin() {
+		return response.NewAccessDenied(errors.New("not admin"))
+	}
+
+	q := request.GetQuery(u)
 	req := &models.ChannelLink{}
 	if err := prepareRequest(u, req); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.HandleResultAndError(
-		req.List(request.GetQuery(u)),
-	)
+	channels, err := req.List(request.GetQuery(u))
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cc := models.NewChannelContainers()
+	if err := cc.Fetch(channels, q); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	cc.AddIsParticipant(context.Client.Account.Id)
+	cc.AddLastMessage(context.Client.Account.Id)
+	return response.HandleResultAndError(cc, cc.Err())
 }
 
 // DeleteLink removes the connection between two channels
 func DeleteLink(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
+	// only admin users can request
+	if !context.IsAdmin() {
+		return response.NewAccessDenied(errors.New("not admin"))
+	}
+
 	req := &models.ChannelLink{}
 	if err := prepareRequest(u, req); err != nil {
 		return response.NewBadRequest(err)
@@ -46,6 +73,11 @@ func DeleteLink(u *url.URL, h http.Header, _ interface{}, context *models.Contex
 // Blacklist remove the channel content from system completely, it shouldnt have
 // any leaf channels in order to be blacklisted
 func Blacklist(u *url.URL, h http.Header, req *models.ChannelLink, context *models.Context) (int, http.Header, interface{}, error) {
+	// only admin users can request
+	if !context.IsAdmin() {
+		return response.NewAccessDenied(errors.New("not admin"))
+	}
+
 	return response.HandleResultAndError(req, req.Blacklist())
 }
 
