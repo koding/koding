@@ -20,6 +20,7 @@ AvatarView             = require 'app/commonviews/avatarviews/avatarview'
 isMyPost               = require 'app/util/isMyPost'
 hasPermission          = require 'app/util/hasPermission'
 updateEmbedBox         = require 'activity/mixins/updateembedbox'
+animatedRemoveMixin    = require 'activity/mixins/animatedremove'
 
 module.exports = class CommentListItemView extends KDListItemView
 
@@ -127,10 +128,10 @@ module.exports = class CommentListItemView extends KDListItemView
     modal.once 'DeleteError'     , @bound 'show'
 
 
-  hide          : (rest...) -> require('../activitylistitemview')::hide.apply this, rest
-  show          : (rest...) -> require('../activitylistitemview')::show.apply this, rest
-  delete        : (rest...) -> require('../activitylistitemview')::delete.apply this, rest
-  whenSubmitted : (rest...) -> require('../activitylistitemview')::whenSubmitted.apply this, rest
+  hide                 : animatedRemoveMixin.hide
+  show                 : animatedRemoveMixin.show
+  delete               : animatedRemoveMixin.remove
+  whenRemovingFinished : animatedRemoveMixin.whenRemovingFinished
 
 
   createReplyLink: ->
