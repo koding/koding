@@ -5,8 +5,6 @@ kd = require 'kd'
 KDNotificationView = kd.NotificationView
 KDObject = kd.Object
 remote = require('./remote').getInstance()
-backoff = require 'backoff'
-doXhrRequest = require './util/doXhrRequest'
 
 module.exports = class SearchController extends KDObject
 
@@ -14,63 +12,15 @@ module.exports = class SearchController extends KDObject
 
     super options, data
 
+    { appId, apiKey } = globals.config.algolia
+
     @indexes = {}
-
-    @initAlgolia()
-
-
-  initAlgolia: ->
-
-    { appId } = globals.config.algolia
-
-    @ready = no
-
-    @fetchApiKey (err, apiKey) =>
-
-      return kd.error err  if err
-      @algolia = new Algolia appId, apiKey
-      @algolia.setSecurityTags(createSecurityTag())
-      @ready = yes
-
-  createSecurityTag = ->
-    currentGroupId = globals.currentGroup.socialApiChannelId
-    userId = globals.userAccount.socialApiId
-    return "(#{currentGroupId},user-#{userId})"
-
-  fetchApiKey: (callback) ->
-    bo = backoff.exponential
-      initialDelay: 700
-      maxDelay    : 15000
-
-    bo.on 'fail', -> callback {message: "Authentication failed."}
-    bo.failAfter 15
-
-    bo.on 'ready', -> bo.backoff()
-
-    requestFn = =>
-      doXhrRequest {endPoint: "/api/social/search-key", type: "GET"}, (err, res) =>
-        if err
-          kd.warn "Could not fetch search api key: #{err.message}"
-          return
-
-        unless res?.apiKey
-          kd.warn "Empty search api key response"
-          return
-
-        bo.reset()
-
-        callback null, res.apiKey
-
-    bo.on 'backoff', requestFn
-
-    bo.backoff()
+    @algolia = new Algolia appId, apiKey
 
 
   search: (indexName, seed, options) ->
 
     new Promise (resolve, reject) =>
-
-      return reject new Error 'Search not ready yet'  unless @ready
 
       return reject new Error 'Illegal input'  if seed is ''
 
