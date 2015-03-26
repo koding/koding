@@ -682,7 +682,9 @@ module.exports = class SocialApiController extends KDController
       doXhrRequest {
         endPoint : "/api/social/moderation/channel/#{options.rootId}/link?#{serialize(options)}"
         type     : 'GET'
-      }, callback
+      }, (err, result)->
+        return callback err if err
+        return callback null, mapChannels result
 
     blacklist: (options, callback) ->
       doXhrRequest {
