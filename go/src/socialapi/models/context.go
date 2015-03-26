@@ -24,3 +24,17 @@ func (c *Context) IsLoggedIn() bool {
 
 	return true
 }
+
+func (c *Context) IsAdmin() bool {
+	if !c.IsLoggedIn() {
+		return false
+	}
+
+	return IsIn(c.Client.Account.Nick, superAdmins...)
+}
+
+var superAdmins = []string{
+	"sinan", "devrim", "gokmen", "fatihacet", "arslan",
+	"sent-hil", "cihangirsavas", "leeolayvar", "stefanbc",
+	"szkl", "canthefason", "nitin", "usirin",
+}
