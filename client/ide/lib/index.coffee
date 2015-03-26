@@ -404,43 +404,33 @@ module.exports = class IDEAppController extends AppController
 
       @prepareIDE()
 
-      callback = =>
-
-        if machineItem
-          {state}         = machineItem.status
-          machineId       = machineItem._id
-          baseMachineKite = machineItem.getBaseKite()
-          isKiteConnected = baseMachineKite._state is 1
+      if machineItem
+        {state}         = machineItem.status
+        machineId       = machineItem._id
+        baseMachineKite = machineItem.getBaseKite()
+        isKiteConnected = baseMachineKite._state is 1
 
 
-          if state is Running and isKiteConnected
-            @mountMachine machineItem
-            baseMachineKite.fetchTerminalSessions()
-
-          else
-            unless @machineStateModal
-
-              @createMachineStateModal {
-                state, container, machineItem, initial: yes
-              }
-
-              if state is NotInitialized
-                @machineStateModal.once 'MachineTurnOnStarted', =>
-                  kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
-
-          @prepareCollaboration()
-          @bindMachineEvents machineItem
+        if state is Running and isKiteConnected
+          @mountMachine machineItem
+          baseMachineKite.fetchTerminalSessions()
 
         else
-          @createMachineStateModal { state: 'NotFound', container }
+          unless @machineStateModal
 
+            @createMachineStateModal {
+              state, container, machineItem, initial: yes
+            }
 
-      @appStorage = kd.getSingleton('appStorageController').storage 'IDE', '1.0.0'
-      @appStorage.fetchStorage =>
+            if state is NotInitialized
+              @machineStateModal.once 'MachineTurnOnStarted', =>
+                kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-        isOnboardingModalShown = @appStorage.getValue 'isOnboardingModalShown'
+        @prepareCollaboration()
+        @bindMachineEvents machineItem
 
-        callback()
+      else
+        @createMachineStateModal { state: 'NotFound', container }
 
 
   bindMachineEvents: (machineItem) ->
