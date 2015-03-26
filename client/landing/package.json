@@ -1,6 +1,7 @@
 {
   "name": "koding-landing",
   "version": "0.1.0",
+  "private": true,
   "description": "Koding's landing pages",
   "repository": {
     "type": "git",
