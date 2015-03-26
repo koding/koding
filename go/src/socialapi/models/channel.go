@@ -546,10 +546,23 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
-	if err := c.One(query); err != nil {
+	err := c.One(query)
+	if err != nil && err != bongo.RecordNotFound {
 		return channel, err
 	}
 
+	if err == bongo.RecordNotFound {
+		query.Selector["type_constant"] = Channel_TYPE_LINKED_TOPIC
+		if err := c.One(query); err != nil {
+			return channel, err
+		} else {
+			if root, err := c.FetchRoot(); err != nil {
+				return channel, err
+			} else {
+				return channel, ErrChannelIsLeafFunc(root.Name, root.TypeConstant)
+			}
+		}
+	}
 	return *c, nil
 }
 
