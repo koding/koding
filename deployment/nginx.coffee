@@ -316,10 +316,6 @@ module.exports.create = (KONFIG, environment)->
           set $prerender 0;
         }
 
-        if ($arg__escaped_fragment_ !~* 'Pricing|About|Legal|Features') {
-          set $prerender 0;
-        }
-
         #resolve using Google's DNS server to force DNS resolution and prevent caching of IPs
         resolver 8.8.8.8;
 
@@ -378,12 +374,6 @@ module.exports.create = (KONFIG, environment)->
     # redirect old.koding.com to koding.com
     server {
        server_name "~^old.koding.com" ;
-       return 301 $scheme://koding.com$request_uri ;
-    }
-
-    # redirect kodingen.com to koding.com
-    server {
-       server_name "~^kodingen.com" ;
        return 301 $scheme://koding.com$request_uri ;
     }
 
