@@ -127,9 +127,9 @@ module.exports = class ActivityAppView extends KDView
             location="/Activity/Public"
 
             if res.typeConstant isnt "group"
-              location="/Activity/Topic/#{err.rootName}"
+              location="/Activity/Topic/#{res.rootName}"
 
-            window.location.href=location
+            return window.location.href=location
 
           router.handleNotFound router.getCurrentPath()
         else
