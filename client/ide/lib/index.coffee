@@ -414,6 +414,7 @@ module.exports = class IDEAppController extends AppController
         if state is Running and isKiteConnected
           @mountMachine machineItem
           baseMachineKite.fetchTerminalSessions()
+          @prepareCollaboration()
 
         else
           unless @machineStateModal
@@ -426,7 +427,8 @@ module.exports = class IDEAppController extends AppController
               @machineStateModal.once 'MachineTurnOnStarted', =>
                 kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-        @prepareCollaboration()
+          @once 'IDEReady', => @prepareCollaboration()
+
         @bindMachineEvents machineItem
 
       else
