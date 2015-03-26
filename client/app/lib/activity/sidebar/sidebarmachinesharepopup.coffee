@@ -9,7 +9,7 @@ remote = require('app/remote').getInstance()
 envDataProvider = require 'app/userenvironmentdataprovider'
 
 
-module.exports = class PermanentShareConfirmationModal extends KDModalView
+module.exports = class SidebarMachineSharePopup extends KDModalView
 
 
   constructor: (options = {}, data) ->
