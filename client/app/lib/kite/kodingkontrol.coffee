@@ -23,6 +23,13 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     @regions = {}
 
 
+  authenticate: ->
+    super
+
+    @kite.on 'close', (reason)->
+      kd.log "Kontrol disconnected because ", reason
+
+
   getAuthOptions: ->
 
     @_lastUsedKey = kookies.get 'clientId'
@@ -74,10 +81,20 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
   fetchKites: Promise.promisify (args, callback) ->
 
-    @reauthenticate()  unless @kite?
-
     {query} = args
-    args    = @injectQueryParams args
+
+    @queryKites args
+      .then (result)=>
+        if query? and result.kites.length > 0
+          KiteCache.cache query, result.kites.first
+
+        callback null, @createKites result.kites
+
+
+  queryKites: Promise.promisify (args, callback) ->
+
+    @reauthenticate()  unless @kite?
+    args = @injectQueryParams args
 
     @kite.tell 'getKites', [args], (err, result) =>
       return callback err  if err?
@@ -86,22 +103,19 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         callback @createKiteNotFoundError args.query
         return
 
-      if query? and result.kites.length > 0
-        KiteCache.cache query, result.kites.first
-
-      callback null, @createKites result.kites
+      callback null, result
 
 
   getVersion: (name) ->
-    return globals.config.kites[name].version ? '1.0.0'
+    return globals.config.kites[name]?.version
 
 
   injectQueryParams: (args = {}) ->
 
     args.query             ?= {}
-    args.query.version     ?= @getVersion args.query.name
+    if version = @getVersion args.query.name
+      args.query.version   ?= version
     args.query.username    ?= globals.config.kites.kontrol.username
-    args.query.environment ?= globals.config.environment
 
     return args
 
