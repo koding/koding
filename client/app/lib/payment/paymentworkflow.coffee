@@ -19,7 +19,7 @@ PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 trackEvent = require 'app/util/trackEvent'
-$ = require "jquery"
+_ = require 'lodash'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -37,7 +37,7 @@ module.exports = class PaymentWorkflow extends KDController
     super options, data
 
     @state = kd.utils.extend @getInitialState(), options.state
-    @startingState = $.extend(true, {}, @state)
+    @startingState = _.assign {}, @state
 
     kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
@@ -212,11 +212,11 @@ module.exports = class PaymentWorkflow extends KDController
     {planTitle, provider, planInterval} = @state
     planId  = "#{planTitle}-#{planInterval}"
 
-    me = whoami().getId()
-    orderId = "#{me}-#{planId}"
+    userId = whoami().getId()
+    orderId = "#{userId}-#{planId}"
 
     {currentPlanInterval, monthPrice, yearPrice} = @state
-    if currentPlanInterval is PaymentConstants.planTitle.Month
+    if currentPlanInterval is PaymentConstants.planInterval.MONTH
       amount = monthPrice
     else
       amount = yearPrice
