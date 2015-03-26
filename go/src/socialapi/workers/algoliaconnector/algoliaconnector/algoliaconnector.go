@@ -12,6 +12,12 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const (
+	IndexMessages = "messages"
+	IndexTopics   = "topics"
+	IndexAccounts = "accounts"
+)
+
 var (
 	ErrAlgoliaObjectIdNotFoundMsg = "ObjectID does not exist"
 	ErrAlgoliaIndexNotExistMsg    = "Index messages.test does not exist"
@@ -68,9 +74,9 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 		log:    log,
 		client: client,
 		indexes: &IndexSet{
-			"topics":   client.InitIndex("topics" + indexSuffix),
-			"accounts": client.InitIndex("accounts" + indexSuffix),
-			"messages": client.InitIndex("messages" + indexSuffix),
+			IndexTopics:   client.InitIndex(IndexTopics + indexSuffix),
+			IndexAccounts: client.InitIndex(IndexAccounts + indexSuffix),
+			IndexMessages: client.InitIndex(IndexMessages + indexSuffix),
 		},
 	}
 }
@@ -79,7 +85,7 @@ func (f *Controller) TopicSaved(data *models.Channel) error {
 	if data.TypeConstant != models.Channel_TYPE_TOPIC {
 		return nil
 	}
-	return f.insert("topics", map[string]interface{}{
+	return f.insert(IndexTopics, map[string]interface{}{
 		"objectID": strconv.FormatInt(data.Id, 10),
 		"name":     data.Name,
 		"purpose":  data.Purpose,
@@ -95,11 +101,11 @@ func (f *Controller) TopicUpdated(data *models.Channel) error {
 		return nil
 	}
 
-	return f.delete("topics", strconv.FormatInt(data.Id, 10))
+	return f.delete(IndexTopics, strconv.FormatInt(data.Id, 10))
 }
 
 func (f *Controller) AccountSaved(data *models.Account) error {
-	return f.insert("accounts", map[string]interface{}{
+	return f.insert(IndexAccounts, map[string]interface{}{
 		"objectID": data.OldId,
 		"nick":     data.Nick,
 	})
@@ -115,7 +121,7 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 	objectId := strconv.FormatInt(message.Id, 10)
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 
-	record, err := f.get("messages", objectId)
+	record, err := f.get(IndexMessages, objectId)
 	if err != nil &&
 		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
 		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
@@ -123,28 +129,28 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 	}
 
 	if record == nil {
-		return f.insert("messages", map[string]interface{}{
+		return f.insert(IndexMessages, map[string]interface{}{
 			"objectID": objectId,
 			"body":     message.Body,
 			"_tags":    []string{channelId},
 		})
 	}
 
-	return f.partialUpdate("messages", map[string]interface{}{
+	return f.partialUpdate(IndexMessages, map[string]interface{}{
 		"objectID": objectId,
 		"_tags":    appendMessageTag(record, channelId),
 	})
 }
 
 func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) error {
-	index, err := f.indexes.Get("messages")
+	index, err := f.indexes.Get(IndexMessages)
 	if err != nil {
 		return err
 	}
 
 	objectId := strconv.FormatInt(listing.MessageId, 10)
 
-	record, err := f.get("messages", objectId)
+	record, err := f.get(IndexMessages, objectId)
 	if err != nil &&
 		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
 		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
@@ -160,14 +166,14 @@ func (f *Controller) MessageListDeleted(listing *models.ChannelMessageList) erro
 		}
 	}
 
-	return f.partialUpdate("messages", map[string]interface{}{
+	return f.partialUpdate(IndexMessages, map[string]interface{}{
 		"objectID": objectId,
 		"_tags":    removeMessageTag(record, strconv.FormatInt(listing.ChannelId, 10)),
 	})
 }
 
 func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
-	return f.partialUpdate("messages", map[string]interface{}{
+	return f.partialUpdate(IndexMessages, map[string]interface{}{
 		"objectID": strconv.FormatInt(message.Id, 10),
 		"body":     message.Body,
 	})
@@ -191,13 +197,18 @@ func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
 	}
 
 	leafNames := make([]string, len(leafChannels)+1) // +1 for root channel
+	// add root channel to the first part
 	leafNames[0] = rootChannel.Name
 
 	for i, leafChannel := range leafChannels {
 		leafNames[i+1] = leafChannel.Name
 	}
 
-	return f.addSynonym("messages", leafNames...)
+	if err := f.addSynonym(IndexMessages, leafNames...); err != nil {
+		return err
+	}
+
+	return f.addSynonym(IndexTopics, leafNames...)
 }
 
 // addSynonym adds given sysnonym pairs to the given index. do not worry about
