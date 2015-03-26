@@ -1022,11 +1022,16 @@ h3.sidebar-title
 
 
 
-// sidebar approve modalz
-.approve-modal
+// sidebar share modalz
+.share-modal
 
   .close-icon
     hidden()
+
+  button.solid.medium
+    width                   100px
+    &:last-child
+      margin-left           10px
 
   .kdmodal-inner
     margin                  20px !important
@@ -1034,11 +1039,14 @@ h3.sidebar-title
   .title
     color                   #909090
     font-size               14px
-    margin-bottom           15px
+    margin                  10px 0
 
   .avatarview
     display                 inline-block
     size                    30px, 30px
+
+  .user-view
+    height                  30px
 
   .user-details
     display                 inline-block
