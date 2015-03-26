@@ -664,6 +664,33 @@ module.exports = class SocialApiController extends KDController
 
     revive               : mapChannel
 
+  moderation:
+    link     : (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/#{options.rootId}/link"
+        type     : 'POST'
+        data     : options
+      }, callback
+
+    unlink   : (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/#{options.rootId}/link/#{options.leafId}?#{serialize(options)}"
+        type     : 'DELETE'
+      }, callback
+
+    list     : (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/#{options.rootId}/link?#{serialize(options)}"
+        type     : 'GET'
+      }, callback
+
+    blacklist: (options, callback) ->
+      doXhrRequest {
+        endPoint : "/api/social/moderation/channel/blacklist"
+        type     : 'POST'
+        data     : options
+      }, callback
+
   notifications          :
     fetch                : notificationRequesterFn
       fnName             : 'fetch'
