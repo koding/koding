@@ -492,6 +492,7 @@ func (c *ChannelParticipant) RawUpdateLastSeenAt(t time.Time) error {
 	return nil
 }
 
+// FetchRole fetches the role from db, has sane defaults too
 func (c *ChannelParticipant) FetchRole() (string, error) {
 	// mark guests as guest
 	if c.AccountId == 0 {
