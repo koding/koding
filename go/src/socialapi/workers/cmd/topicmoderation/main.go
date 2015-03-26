@@ -1,3 +1,4 @@
+// Package main runs the server for topic moderation worker
 package main
 
 import (
@@ -8,6 +9,7 @@ import (
 )
 
 var (
+	// Name holds the worker name
 	Name = "TopicModeration"
 )
 

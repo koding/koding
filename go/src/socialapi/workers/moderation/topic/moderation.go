@@ -1,3 +1,4 @@
+// Package topic provides api functions for topic moderation worker
 package topic
 
 import (
@@ -72,7 +73,7 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 	return nil
 }
 
-// Unlink is not implemented yet
+// UnLink is not implemented yet
 func (c *Controller) UnLink(cl *models.ChannelLink) error {
 	if err := c.validateRequest(cl); err != nil {
 		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
@@ -186,7 +187,7 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 
 	// if error happens, return it, next time it will be re-tried
 	if len(erroredChannelParticipants) != 0 {
-		return errors.New(fmt.Sprintf("some errors: %v", erroredChannelParticipants))
+		return fmt.Errorf("some errors: %v", erroredChannelParticipants)
 	}
 
 	return nil
@@ -341,7 +342,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 	}
 
 	if len(erroredMessageLists) != 0 {
-		return errors.New(fmt.Sprintf("some errors: %v", erroredMessageLists))
+		return fmt.Errorf("some errors: %v", erroredMessageLists)
 	}
 
 	return nil
@@ -412,7 +413,7 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 	}
 
 	if len(erroredMessages) != 0 {
-		return errors.New(fmt.Sprintf("some errors: %v", erroredMessages))
+		return fmt.Errorf("some errors: %v", erroredMessages)
 	}
 
 	return nil

@@ -1,3 +1,4 @@
+// Package api provides endpoints for topic moderation system
 package api
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/koding/metrics"
 )
 
+// AddHandlers added the internal handlers to the given Muxer
 func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 	m.AddHandler(
 		handler.Request{
