@@ -51,7 +51,8 @@ build:
     - script:
         name: build client
         code: |
-          ./run buildclient
+          sh -c "scripts/install-npm.sh -d client -u -p"
+          make -C client dist
           ./scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH - build client finished" "building" 35
     - script:
         name: build go binaries
@@ -107,8 +108,6 @@ deploy:
           cd $WERCKER_ROOT
 
           ./configure --config $CONFIG --projectRoot /opt/koding
-          sh -c "scripts/install-npm.sh -d client -p"
-          make -C client dist
 
           rm -rf .git .build node_modules client/node_modules client/builder/node_modules client/landing/node_modules client/.sprites
           rm -rf go/bin go/pkg
