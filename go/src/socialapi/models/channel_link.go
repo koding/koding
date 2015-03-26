@@ -28,18 +28,6 @@ type ChannelLink struct {
 	DeleteMessages bool `json:"deleteMessages,omitempty" sql:"-"`
 }
 
-func (c *ChannelLink) validate() error {
-	if c.LeafId == 0 {
-		return ErrLeafIsNotSet
-	}
-
-	if c.RootId == 0 {
-		return ErrRootIsNotSet
-	}
-
-	return nil
-}
-
 // List gets the all leaves of a given channel
 func (c *ChannelLink) List(q *request.Query) ([]Channel, error) {
 	if c.RootId == 0 {
@@ -110,6 +98,8 @@ func (c *ChannelLink) Delete() error {
 	return bongo.B.Delete(toBeDeletedCL)
 }
 
+// Blacklist deletes the messages and links the leaf channel to the root while
+// removing the participants
 func (c *ChannelLink) Blacklist() error {
 	c.DeleteMessages = true
 	return c.Create()
@@ -138,4 +128,16 @@ func (c *ChannelLink) create() error {
 	}
 
 	return bongo.B.Create(c)
+}
+
+func (c *ChannelLink) validate() error {
+	if c.LeafId == 0 {
+		return ErrLeafIsNotSet
+	}
+
+	if c.RootId == 0 {
+		return ErrRootIsNotSet
+	}
+
+	return nil
 }

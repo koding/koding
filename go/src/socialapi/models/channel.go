@@ -524,6 +524,8 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+// ByName fetches the channel by name, type_constant and group_name, it doesnt
+// have the best name, but evolved to this situation :/
 func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	var channel Channel
 
@@ -551,18 +553,20 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 		return channel, err
 	}
 
+	// try to fetch it's root
 	if err == bongo.RecordNotFound {
 		query.Selector["type_constant"] = Channel_TYPE_LINKED_TOPIC
 		if err := c.One(query); err != nil {
 			return channel, err
+		}
+
+		if root, err := c.FetchRoot(); err != nil {
+			return channel, err
 		} else {
-			if root, err := c.FetchRoot(); err != nil {
-				return channel, err
-			} else {
-				return channel, ErrChannelIsLeafFunc(root.Name, root.TypeConstant)
-			}
+			return channel, ErrChannelIsLeafFunc(root.Name, root.TypeConstant)
 		}
 	}
+
 	return *c, nil
 }
 
@@ -976,7 +980,6 @@ func (c *Channel) FetchRoot() (*Channel, error) {
 	}
 
 	return channel, nil
-
 }
 
 // FetchLeaves fetches the leaves of a channel if linked
@@ -1000,9 +1003,8 @@ func (c *Channel) FetchLeaves() ([]Channel, error) {
 		return nil, err
 	}
 
-	var channels []Channel
 	if len(leafIds) == 0 {
-		return channels, nil
+		return nil, nil
 	}
 
 	return c.FetchByIds(leafIds)
