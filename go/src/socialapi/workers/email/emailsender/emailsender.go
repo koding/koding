@@ -49,10 +49,6 @@ func (c *Controller) Process(m *Mail) error {
 		m.Properties = NewProperties()
 	}
 
-	if m.Properties.Options == nil {
-		m.Properties.Options = NewPropertiesOptions()
-	}
-
 	user.Username = m.Properties.Username
 
 	if user.Username == "" {
@@ -64,7 +60,7 @@ func (c *Controller) Process(m *Mail) error {
 		user.Username = u.Name
 	}
 
-	m.Properties.Options["subject"] = m.Subject
+	m.SetOption("subject", m.Subject)
 
 	event := &eventexporter.Event{
 		Name:       m.Subject,

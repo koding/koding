@@ -55,3 +55,11 @@ func (m Mail) GetId() int64 {
 func (m Mail) BongoName() string {
 	return "api.mail"
 }
+
+func (m *Mail) SetOption(key string, value interface{}) {
+	if m.Properties.Options == nil {
+		m.Properties.Options = NewPropertiesOptions()
+	}
+
+	m.Properties.Options["subject"] = m.Subject
+}
