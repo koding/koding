@@ -24,7 +24,7 @@ func (m *Machine) Destroy(ctx context.Context) error {
 	}
 
 	m.push("Deleting base domain", 85, machinestate.Terminating)
-	if err := m.Session.DNS.Delete(m.Domain); err != nil {
+	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
 		// if it's already deleted, for example because of a STOP, than we just
 		// log it here instead of returning the error
 		m.Log.Error("deleting domain during destroying err: %s", err.Error())
@@ -37,7 +37,7 @@ func (m *Machine) Destroy(ctx context.Context) error {
 
 	m.push("Deleting custom domain", 90, machinestate.Terminating)
 	for _, domain := range domains {
-		if err := m.Session.DNS.Delete(domain.Name); err != nil {
+		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
 			m.Log.Error("couldn't delete domain: %s", err.Error())
 		}
 

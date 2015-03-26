@@ -75,6 +75,6 @@ func (m *Machine) State() machinestate.State {
 	return machinestate.States[m.Status.State]
 }
 
-func (m *Machine) PublicIpAddress() {
+func (m *Machine) PublicIpAddress() string {
 	return m.IpAddress
 }

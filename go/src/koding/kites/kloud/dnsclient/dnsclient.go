@@ -3,7 +3,6 @@ package dnsclient
 import (
 	"errors"
 	"fmt"
-	"koding/kites/kloud/protocol"
 	"strings"
 
 	"github.com/dchest/validator"
@@ -14,15 +13,15 @@ import (
 
 var ErrNoRecord = errors.New("no records available")
 
-type DNS struct {
-	Route53    *route53.Route53
+type Route53 struct {
+	*route53.Route53
 	hostedZone string
 	ZoneId     string
 	Log        logging.Logger
 }
 
-// New initializes a new DNS instance with default Koding credentials
-func New(hostedZone string, auth aws.Auth) *DNS {
+// NewRoute53Client initializes a new DNSClient interface instance based on AWS Route53
+func NewRoute53Client(hostedZone string, auth aws.Auth) *Route53 {
 	// our route53 is based on this region, so we use it
 	dns := route53.New(auth, aws.USEast)
 
@@ -45,17 +44,18 @@ func New(hostedZone string, auth aws.Auth) *DNS {
 		panic(fmt.Sprintf("Hosted zone with the name '%s' doesn't exist", hostedZone))
 	}
 
-	return &DNS{
-		Route53:    dns,
+	r := &Route53{
 		hostedZone: hostedZone,
 		ZoneId:     zoneId,
 		Log:        logging.NewLogger("kloud-dns"),
 	}
+	r.Route53 = dns
+	return r
 }
 
 // Upsert creates or updates a the domain record with the given ip address. If
 // the record already exists, the record is updated with the new IP.
-func (d *DNS) Upsert(domain string, newIP string) error {
+func (r *Route53) Upsert(domain string, newIP string) error {
 	change := &route53.ChangeResourceRecordSetsRequest{
 		Comment: "Upserting domain",
 		Changes: []route53.Change{
@@ -71,10 +71,10 @@ func (d *DNS) Upsert(domain string, newIP string) error {
 		},
 	}
 
-	d.Log.Debug("upserting domain name: %s to be associated with following ip: %v", domain, newIP)
-	_, err := d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	r.Log.Debug("upserting domain name: %s to be associated with following ip: %v", domain, newIP)
+	_, err := r.ChangeResourceRecordSets(r.ZoneId, change)
 	if err != nil {
-		d.Log.Error(err.Error())
+		r.Log.Error(err.Error())
 		return errors.New("could not create domain")
 	}
 
@@ -82,16 +82,16 @@ func (d *DNS) Upsert(domain string, newIP string) error {
 }
 
 // Domain retrieves the record set for the given domain name
-func (d *DNS) Get(domain string) (*protocol.Record, error) {
+func (r *Route53) Get(domain string) (*Record, error) {
 	lopts := &route53.ListOpts{
 		Name: domain,
 	}
 
-	d.Log.Debug("fetching domain record for name: %s", domain)
+	r.Log.Debug("fetching domain record for name: %s", domain)
 
-	resp, err := d.Route53.ListResourceRecordSets(d.ZoneId, lopts)
+	resp, err := r.ListResourceRecordSets(r.ZoneId, lopts)
 	if err != nil {
-		d.Log.Error(err.Error())
+		r.Log.Error(err.Error())
 		return nil, errors.New("could not fetch domain")
 	}
 
@@ -103,7 +103,7 @@ func (d *DNS) Get(domain string) (*protocol.Record, error) {
 		// the "." point is here because records are listed as
 		// "arslan.koding.io." , "test.arslan.dev.koding.io." and so on
 		if strings.TrimSuffix(r.Name, ".") == domain {
-			return &protocol.Record{
+			return &Record{
 				Name: r.Name,
 				IP:   r.Records[0],
 				TTL:  r.TTL,
@@ -115,8 +115,8 @@ func (d *DNS) Get(domain string) (*protocol.Record, error) {
 }
 
 // Rename changes the domain from oldDomain to newDomain in a single transaction
-func (d *DNS) Rename(oldDomain, newDomain string) error {
-	record, err := d.Get(oldDomain)
+func (r *Route53) Rename(oldDomain, newDomain string) error {
+	record, err := r.Get(oldDomain)
 	if err != nil {
 		return err
 	}
@@ -145,10 +145,10 @@ func (d *DNS) Rename(oldDomain, newDomain string) error {
 		},
 	}
 
-	d.Log.Debug("updating domain name of IP %s from %v to %v", record.IP, oldDomain, newDomain)
-	_, err = d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	r.Log.Debug("updating domain name of IP %s from %v to %v", record.IP, oldDomain, newDomain)
+	_, err = r.ChangeResourceRecordSets(r.ZoneId, change)
 	if err != nil {
-		d.Log.Error(err.Error())
+		r.Log.Error(err.Error())
 		return errors.New("could not rename domain")
 	}
 
@@ -156,10 +156,10 @@ func (d *DNS) Rename(oldDomain, newDomain string) error {
 }
 
 // DeleteDomain deletes a domain record for the given domain
-func (d *DNS) Delete(domain string) error {
+func (r *Route53) Delete(domain string) error {
 	// fetch correct TTL value, instead of relying on a hardcoded value for TTL
 	// and IP
-	record, err := d.Get(domain)
+	record, err := r.Get(domain)
 	if err != nil {
 		return err
 	}
@@ -179,22 +179,22 @@ func (d *DNS) Delete(domain string) error {
 		},
 	}
 
-	d.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, record.IP)
-	_, err = d.Route53.ChangeResourceRecordSets(d.ZoneId, change)
+	r.Log.Debug("deleting domain name: %s which was associated to following ip: %v", domain, record.IP)
+	_, err = r.ChangeResourceRecordSets(r.ZoneId, change)
 	if err != nil {
-		d.Log.Error(err.Error())
+		r.Log.Error(err.Error())
 		return errors.New("could not delete domain")
 	}
 
 	return nil
 }
 
-func (d *DNS) HostedZone() string {
-	return d.hostedZone
+func (r *Route53) HostedZone() string {
+	return r.hostedZone
 }
 
-func (d *DNS) Validate(domain, username string) error {
-	hostedZone := d.hostedZone
+func (r *Route53) Validate(domain, username string) error {
+	hostedZone := r.hostedZone
 
 	if domain == "" {
 		return fmt.Errorf("Domain name argument is empty")

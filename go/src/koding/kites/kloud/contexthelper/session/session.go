@@ -4,6 +4,7 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/dnsclient"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/multiec2"
 	"koding/kites/kloud/userdata"
@@ -19,7 +20,8 @@ const sessionKey key = 0
 type Session struct {
 	DB         *mongodb.MongoDB
 	Kite       *kite.Kite
-	DNS        *dnsclient.DNS
+	DNSClient  dnsclient.Client
+	DNSStorage dnsstorage.Storage
 	Eventer    eventer.Eventer
 	AWSClient  *amazon.Amazon
 	AWSClients *multiec2.Clients

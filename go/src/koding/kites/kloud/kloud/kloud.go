@@ -4,9 +4,10 @@ import (
 	"os"
 
 	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/dnsclient"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/idlock"
-	"koding/kites/kloud/protocol"
 
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
@@ -26,10 +27,10 @@ type Kloud struct {
 	providers map[string]interface{}
 
 	// Domainer is responsible of managing dns records
-	Domainer protocol.Domainer
+	Domainer dnsclient.Client
 
 	// DomainStorage is used to store persistent data about domain data
-	DomainStorage protocol.DomainStorage
+	DomainStorage dnsstorage.Storage
 
 	// Locker is used to lock/unlock distributed locks based on unique ids
 	Locker Locker

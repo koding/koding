@@ -2,7 +2,7 @@ package kloud
 
 import (
 	"fmt"
-	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/dnsstorage"
 	"strings"
 
 	"github.com/koding/kite"
@@ -57,7 +57,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 			return nil, err
 		}
 
-		domain := &protocol.Domain{
+		domain := &dnsstorage.Domain{
 			Username:  r.Username,
 			MachineId: args.MachineId,
 			Name:      args.DomainName,

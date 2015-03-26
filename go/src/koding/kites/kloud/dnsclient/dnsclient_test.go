@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	dns         *DNS
+	dns         *Route53
 	testDomain  = "kloud-test.dev.koding.io"
 	testDomain2 = "kloud-test2.dev.koding.io"
 	testIP      = "127.0.0.1"
@@ -25,7 +25,7 @@ func init() {
 		panic(err)
 	}
 
-	dns = New("dev.koding.io", auth)
+	dns = NewRoute53Client("dev.koding.io", auth)
 }
 
 func TestCreate(t *testing.T) {

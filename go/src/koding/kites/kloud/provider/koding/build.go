@@ -553,11 +553,11 @@ func (m *Machine) addDomainAndTags() {
 	m.push("Updating/Creating domain", 70, machinestate.Building)
 	m.Log.Debug("Updating/Creating domain %s", m.IpAddress)
 
-	if err := m.Session.DNS.Validate(m.Domain, m.Username); err != nil {
+	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
-	if err := m.Session.DNS.Upsert(m.Domain, m.IpAddress); err != nil {
+	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
@@ -568,10 +568,10 @@ func (m *Machine) addDomainAndTags() {
 	}
 
 	for _, domain := range domains {
-		if err := m.Session.DNS.Validate(domain.Name, m.Username); err != nil {
+		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
-		if err := m.Session.DNS.Upsert(domain.Name, m.IpAddress); err != nil {
+		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
 	}

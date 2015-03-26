@@ -186,10 +186,10 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	m.push("Updating domain", 85, machinestate.Pending)
 
-	if err := m.Session.DNS.Validate(m.Domain, m.Username); err != nil {
+	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
-	if err := m.Session.DNS.Upsert(m.Domain, m.IpAddress); err != nil {
+	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
@@ -201,10 +201,10 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	}
 
 	for _, domain := range domains {
-		if err := m.Session.DNS.Validate(domain.Name, m.Username); err != nil {
+		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
-		if err := m.Session.DNS.Upsert(domain.Name, m.IpAddress); err != nil {
+		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
 	}

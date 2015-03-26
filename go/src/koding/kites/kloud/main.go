@@ -166,13 +166,13 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "iSNZFtHwNFT8OpZ8Gsmj/Bp0tU1vqNw6DfgvIUsn",
 	}
 
-	dnsInstance := dnsclient.New(conf.HostedZone, auth)
+	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
 
 	kodingProvider := &koding.Provider{
-		DB:   db,
-		Log:  newLogger("kloud", conf.DebugMode),
-		DNS:  dnsInstance,
-		Kite: k,
+		DB:        db,
+		Log:       newLogger("kloud", conf.DebugMode),
+		DNSClient: dnsInstance,
+		Kite:      k,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -196,9 +196,6 @@ func newKite(conf *Config) *kite.Kite {
 		},
 	}
 
-	// be sure it satisfies the provider interface
-	// var _ kloudprotocol.Provider = kodingProvider
-	//
 	// go kodingProvider.RunChecker(checkInterval)
 	// go kodingProvider.RunCleaners(time.Minute * 60)
 
@@ -210,9 +207,8 @@ func newKite(conf *Config) *kite.Kite {
 	kld := kloud.New()
 	kld.Metrics = stats
 	kld.PublicKeys = publickeys.NewKeys()
-	// kld.Storage = kodingProvider
 	// kld.DomainStorage = domainStorage
-	// kld.Domainer = dnsInstance
+	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
 

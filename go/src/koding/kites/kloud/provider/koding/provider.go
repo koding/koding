@@ -9,6 +9,7 @@ import (
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/dnsclient"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
@@ -28,7 +29,8 @@ type Provider struct {
 	DB         *mongodb.MongoDB
 	Log        logging.Logger
 	Kite       *kite.Kite
-	DNS        *dnsclient.DNS
+	DNSClient  *dnsclient.Route53
+	DNSStorage dnsstorage.Storage
 	EC2Clients *multiec2.Clients
 	Userdata   *userdata.Userdata
 
@@ -111,7 +113,7 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 	machine.Session = &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
-		DNS:        p.DNS,
+		DNSClient:  p.DNSClient,
 		Userdata:   p.Userdata,
 		Eventer:    ev,
 		AWSClient:  amazonClient,

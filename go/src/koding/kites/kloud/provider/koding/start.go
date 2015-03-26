@@ -139,11 +139,11 @@ func (m *Machine) Start(ctx context.Context) error {
 	}
 
 	m.push("Initializing domain instance", 65, machinestate.Starting)
-	if err := m.Session.DNS.Validate(m.Domain, m.Username); err != nil {
+	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
-	if err := m.Session.DNS.Upsert(m.Domain, m.IpAddress); err != nil {
+	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
 		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
@@ -155,10 +155,10 @@ func (m *Machine) Start(ctx context.Context) error {
 	}
 
 	for _, domain := range domains {
-		if err := m.Session.DNS.Validate(domain.Name, m.Username); err != nil {
+		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
-		if err := m.Session.DNS.Upsert(domain.Name, m.IpAddress); err != nil {
+		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
 			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
 	}

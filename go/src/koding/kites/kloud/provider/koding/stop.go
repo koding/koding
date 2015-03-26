@@ -21,12 +21,12 @@ func (m *Machine) Stop(ctx context.Context) error {
 	}
 
 	m.push("Initializing domain instance", 65, machinestate.Stopping)
-	if err := m.Session.DNS.Validate(m.Domain, m.Username); err != nil {
+	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
 		return err
 	}
 
 	m.push("Deleting domain", 85, machinestate.Stopping)
-	if err := m.Session.DNS.Delete(m.Domain); err != nil {
+	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
 		m.Log.Warning("couldn't delete domain %s", err)
 	}
 
@@ -37,7 +37,7 @@ func (m *Machine) Stop(ctx context.Context) error {
 	}
 
 	for _, domain := range domains {
-		if err := m.Session.DNS.Delete(domain.Name); err != nil {
+		if err := m.Session.DNSClient.Delete(domain.Name); err != nil {
 			m.Log.Error("couldn't delete domain: %s", err.Error())
 		}
 	}
