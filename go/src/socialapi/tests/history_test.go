@@ -24,7 +24,7 @@ func TestChannelHistory(t *testing.T) {
 	Convey("While testing history of a channel", t, func() {
 		var channel *models.Channel
 		Convey("We should be able to create it(channel) first", func() {
-			account, err := models.CreateAccountInBothDbs()
+			account, err := models.CreateAccountInBothDbsWithNick("sinan")
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
