@@ -414,6 +414,7 @@ module.exports = class IDEAppController extends AppController
         if state is Running and isKiteConnected
           @mountMachine machineItem
           baseMachineKite.fetchTerminalSessions()
+          @prepareCollaboration()
 
         else
           unless @machineStateModal
@@ -426,7 +427,8 @@ module.exports = class IDEAppController extends AppController
               @machineStateModal.once 'MachineTurnOnStarted', =>
                 kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
 
-        @prepareCollaboration()
+          @once 'IDEReady', => @prepareCollaboration()
+
         @bindMachineEvents machineItem
 
       else
@@ -916,22 +918,33 @@ module.exports = class IDEAppController extends AppController
     machine.getBaseKite().fetchTerminalSessions()
 
     unless @fakeViewsDestroyed
-      fakeEditorPane = @fakeEditor?.parent
-      fakeEditorPane?.parent.removePane fakeEditorPane
-
-      @fakeTerminalPane?.parent.removePane @fakeTerminalPane
-      @fakeFinderView?.destroy()
+      @removeFakeViews()
       @fakeViewsDestroyed = yes
 
     if snapshot
       @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
     else
-      @ideViews.first.createEditor()
-      @ideViews.last.createTerminal { machine }
-      @setActiveTabView @ideViews.first.tabView
+      @addInitialViews()
 
     data = { machine, workspace: @workspaceData }
     kd.singletons.mainView.activitySidebar.selectWorkspace data
+    @emit 'IDEReady'
+
+
+  removeFakeViews: ->
+
+    fakeEditorPane = @fakeEditor?.parent
+    fakeEditorPane?.parent.removePane fakeEditorPane
+
+    @fakeTerminalPane?.parent.removePane @fakeTerminalPane
+    @fakeFinderView?.destroy()
+
+
+  addInitialViews: ->
+
+    @ideViews.first.createEditor()
+    @ideViews.last.createTerminal { machine }
+    @setActiveTabView @ideViews.first.tabView
 
 
   resurrectLocalSnapshot: (snapshot) ->
