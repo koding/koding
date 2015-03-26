@@ -221,7 +221,7 @@ testmoderationintegration:
 	@rm ./tests.test
 
 testalgolia:
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> algoliaconnector unit tests... $(NO_COLOR)"
 	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test -c $(CONFIG)
 	@rm ./algoliaconnector.test
