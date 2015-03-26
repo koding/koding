@@ -303,7 +303,7 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 					Table(m.TableName()).
 					Model(&messageList).
 					UpdateColumn("channel_id", cl.RootId).
-					Error; err != nil {
+					Error; err != nil && !models.IsUniqueConstraintError(err) {
 					c.log.Error("Err while updating the mesage %s", err.Error())
 					erroredMessageLists = append(erroredMessageLists, messageLists[i])
 					continue
