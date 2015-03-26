@@ -57,26 +57,27 @@ var (
 	ErrChannelHasLeaves = errors.New("channel has leaves")
 	ErrGroupsAreNotSame = errors.New("groups are not same")
 	ErrLeafIsRootToo    = errors.New("leaf channel is root of another channel")
-
-	channelIsLeafPrefix = "channel is leaf"
-
-	ErrChannelIsLeafFunc = func(rootName, typeConstant string) error {
-		return ChannelIsLeafError(
-			fmt.Errorf(
-				"{\"rootName\":\"%s\", \"typeConstant\":\"%s\"}",
-				rootName,
-				typeConstant,
-			))
-	}
-
-	IsChannelLeafErr = func(err error) bool {
-		if err == nil {
-			return false
-		}
-
-		_, ok := err.(ChannelIsLeafError)
-		return ok
-	}
 )
 
 type ChannelIsLeafError error
+
+func ErrChannelIsLeafFunc(rootName, typeConstant string) error {
+	return ChannelIsLeafError(
+		fmt.Errorf(
+			// poor man's json encoding - not to handle error case of
+			// json.MarshalJSON, if we add new properties into this string, we
+			// should use std package
+			"{\"rootName\":\"%s\", \"typeConstant\":\"%s\"}",
+			rootName,
+			typeConstant,
+		))
+}
+
+func IsChannelLeafErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	_, ok := err.(ChannelIsLeafError)
+	return ok
+}
