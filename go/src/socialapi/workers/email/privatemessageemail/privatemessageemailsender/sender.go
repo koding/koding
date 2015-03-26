@@ -22,8 +22,7 @@ var cronJob *cron.Cron
 const (
 	Schedule     = "0 * * * * *"
 	MessageLimit = 3
-	Subject      = "[Koding] Chat notifications for %s"
-	DateLayout   = "Jan 2, 2006"
+	Subject      = "Chat notifications"
 	MAXROUTINES  = 4
 )
 
@@ -154,9 +153,8 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		}
 
 		// Send
-		subject := fmt.Sprintf(Subject, time.Now().Format(DateLayout))
 		mailer.Information = information
-		if err := mailer.SendMail("chat", body, subject); err != nil {
+		if err := mailer.SendMail("chat", body, Subject); err != nil {
 			c.log.Error("Could not send email for account: %d: %s", account.Id, err)
 		}
 	}

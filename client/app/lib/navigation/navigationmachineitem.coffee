@@ -63,7 +63,7 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    if @machine.isMine()
+    if @machine.isMine() and @settingsEnabled()
       @settingsIcon = new KDCustomHTMLView
         tagName     : 'span'
         click       : @bound 'handleMachineSettingsClick'
@@ -91,14 +91,19 @@ module.exports = class NavigationMachineItem extends JView
       #     title  : "Open IDE for #{@alias}"
 
 
+  settingsEnabled: ->
+
+    { status:{ state } } = @machine
+    { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
+
+    return state in [NotInitialized, Running, Stopped, Terminated, Unknown]
+
+
   handleMachineSettingsClick: (event) ->
 
-    { status } = @machine
-    { Building, Running } = Machine.State
+    return  if not @settingsEnabled()
 
     kd.utils.stopDOMEvent event
-
-    return  unless status?.state is Running
 
     @openMachineSettingsPopup()
 
