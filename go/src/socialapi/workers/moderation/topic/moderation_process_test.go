@@ -491,3 +491,44 @@ func TestProcess(t *testing.T) {
 
 	})
 }
+
+func TestProcessWithNewTag(t *testing.T) {
+	Convey("process with tag", t, func() {
+		root := "#hi"
+		leaf := "#say"
+		body := "my leaf " + leaf + " and new root " + root + " topic"
+
+		Convey("should replace leaf with root", func() {
+			So(processWithNewTag(body, leaf, root), ShouldNotContainSubstring, leaf)
+		})
+
+		Convey("should not contain multiple root", func() {
+
+			Convey("if they are consecutive at the end", func() {
+				end := root + " " + root
+				body = body + " " + end
+
+				So(processWithNewTag(body, leaf, root), ShouldNotEndWith, end)
+			})
+
+			Convey("if they are consecutive at the beginning", func() {
+				head := root + " " + root
+				body = head + " " + body
+
+				So(processWithNewTag(body, leaf, root), ShouldNotStartWith, head)
+			})
+			Convey("if they are consecutive in the middle", func() {
+				middle := root + " " + root
+				body = "hey " + middle + " say"
+
+				So(processWithNewTag(body, leaf, root), ShouldNotContainSubstring, middle)
+				So(processWithNewTag(body, leaf, root), ShouldContainSubstring, root)
+			})
+			Convey("if it has strange structure", func() {
+				body := "#hi #hi #hi my hi topic #hi #hi #hi i like #hi all hi's #hi #hi"
+				res := "#hi my hi topic #hi i like #hi all hi's #hi"
+				So(processWithNewTag(body, "#hi2", "#hi"), ShouldEqual, res)
+			})
+		})
+	})
+}
