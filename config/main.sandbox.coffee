@@ -408,6 +408,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
           }
           {
+            location    : "~ /api/social/search-key"
+            proxyPass   : "http://socialapi/search-key$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
