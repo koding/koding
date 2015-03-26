@@ -85,7 +85,12 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
   selectMachineAndWorkspace: (machineUId, workspaceSlug) ->
 
     @forEachMachineBoxes (box) ->
-      if box.machine.uid is machineUId
+      { machine } = box
+      if machine.uid is machineUId
+        # don't select not approved machines
+        if not machine.isMine() and machine.isPermanent() and not machine.isApproved()
+          return no
+
         box.select()
         box.selectWorkspace workspaceSlug
       else
