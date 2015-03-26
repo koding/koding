@@ -17,7 +17,6 @@ ComputeHelpers = require './computehelpers'
 sendDataDogEvent = require '../util/sendDataDogEvent'
 HelpSupportModal = '../commonviews/helpsupportmodal'
 trackEvent = require 'app/util/trackEvent'
-showError  = require 'app/util/showError'
 environmentDataProvider = require 'app/userenvironmentdataprovider'
 
 
@@ -46,11 +45,15 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     @machineName = jMachine.label
     @machineId   = jMachine._id
     {@state}     = @machine.status
+    @isManaged   = @machine.provider is 'managed'
+
 
     @showBusy()
     @show()
 
-    whoami().isEmailVerified (err, verified)=>
+    {computeController} = kd.singletons
+
+    computeController.ready => whoami().isEmailVerified (err, verified) =>
 
       kd.warn err  if err?
 
@@ -180,11 +183,14 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     computeController.on "build-#{@machineId}", @bound 'updateStatus'
     computeController.on "stop-#{@machineId}",  @bound 'updateStatus'
 
-    computeController.on "reinit-#{@machineId}",(event)=>
+    computeController.on "reinit-#{@machineId}", (event) =>
       @updateStatus event, 'reinit'
 
-    computeController.on "resize-#{@machineId}",(event)=>
+    computeController.on "resize-#{@machineId}", (event) =>
       @updateStatus event, 'resize'
+
+    if @isManaged
+      computeController.on "public-#{@machineId}", @bound 'updateStatus'
 
     computeController.eventListener.followUpcomingEvents @machine
 
@@ -331,7 +337,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
           kd.utils.wait 10000, =>
             @buildExpiredView subscription, "downgrade"
         else
-          ComputeHelpers.handleNewMachineRequest (err)=>
+          ComputeHelpers.handleNewMachineRequest provider: 'koding', (err)->
             global.location.reload yes
 
       return
@@ -400,7 +406,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @createStateLabel()
 
-    if @state in [ Stopped, NotInitialized, Unknown ]
+    if @state in [ Stopped, NotInitialized, Unknown, 'NotFound' ]
       @createStateButton()
     else if @state in [ Starting, Building, Pending, Stopping,
                         Terminating, Updating, Rebooting ]
@@ -415,7 +421,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
         successfully deleted.Please select a new VM to operate on from
         the VMs list or create a new one.
       "
-
     else if @state is Running
       @prepareIDE()
       @destroy()
@@ -427,7 +432,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
   getStateLabel:->
 
     stateTexts       =
-      Stopped        : 'is turned off.'
+      Stopped        : if @isManaged then 'is not reachable.' else 'is turned off.'
       Starting       : 'is starting now.'
       Stopping       : 'is stopping now.'
       Pending        : 'is resizing now.'
@@ -439,9 +444,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
       Terminating    : 'is terminating.'
       Updating       : 'is updating now.'
       Unknown        : 'is turned off.'
-      NotFound       : 'This machine does not exist.' # additional class level
-                                                      # state to show a modal
-                                                      # for unknown routes.
+      NotFound       : 'No machine found.' # additional class level
+                                           # state to show a modal
+                                           # for unknown routes.
 
     stateText = "<strong>#{@machineName or ''}</strong> #{stateTexts[@state]}"
     return "<span class='icon'></span>#{stateText}"
@@ -459,11 +464,21 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   createStateButton: ->
 
-    @button      = new KDButtonView
-      title      : 'Turn it on'
-      cssClass   : 'turn-on state-button solid green medium'
-      icon       : yes
-      callback   : @bound 'turnOnMachine'
+    if @state is 'NotFound'
+      title    = 'Create a New Machine'
+      callback = 'requestNewMachine'
+    else if @isManaged
+      title    = 'Search for Nodes'
+      callback = 'findNodes'
+    else
+      title    = 'Turn it on'
+      callback = 'turnOnMachine'
+
+    @button    = new KDButtonView
+      title    : title
+      cssClass : 'turn-on state-button solid green medium'
+      icon     : not @isManaged
+      callback : @bound callback
 
     @container.addSubView @button
 
@@ -574,6 +589,21 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     return @show()
 
 
+  findNodes: ->
+    {container} = @getOptions()
+
+    FindManagedNodesModal = require './managed/findnodesmodal'
+    findNodes = new FindManagedNodesModal { container }, @machine
+
+
+  requestNewMachine: ->
+
+    {container} = @getOptions()
+
+    MoreVMsModal = require 'app/activity/sidebar/morevmsmodal'
+    new MoreVMsModal { container }
+
+
   turnOnMachine: ->
 
     trackEvent 'Turn on machine, click',
@@ -608,14 +638,18 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
   prepareIDE: ->
 
-    # FIXME: We shouldn't use computeController.fetchMachine in this case.
-    kd.getSingleton('computeController').fetchMachines (err) =>
+    {appManager, computeController} = kd.singletons
 
-      return showError "Couldn't fetch your VMs"  if err
+    # FIXME: We shouldn't use computeController.fetchMachine in this case.
+    computeController.fetchMachines (err) =>
+
+      return if showError err
 
       environmentDataProvider.fetchMachine @machine.uid, (machine) =>
 
-        return showError "Couldn't fetch your VMs"  unless machine
+        # return showError "Couldn't fetch your VMs"  unless machine
+        unless machine
+          return appManager.tell 'IDE', 'quit'
 
         @machine = machine
         @setData machine

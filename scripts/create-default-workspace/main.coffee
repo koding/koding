@@ -73,7 +73,7 @@ koding.once 'dbClientReady', ->
 
         process.stdout.write 'Creating default workspace'
 
-        JWorkspace.createDefault client, machine, (err, workspace) ->
+        JWorkspace.createDefault client, machine.uid, (err, workspace) ->
           console.error err  if err
 
           process.stdout.write ": #{workspace.getId()}\n"

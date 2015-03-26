@@ -13,14 +13,14 @@ PASS_THROUGH = (..., callback)-> callback null
 
 module.exports = class ProviderInterface
 
+  @providerSlug   = 'baseprovider'
+
   @ping           = NOT_IMPLEMENTED
 
   @create         = NOT_IMPLEMENTED
   @remove         = NOT_IMPLEMENTED
   @update         = NOT_IMPLEMENTED
 
-  @fetchUsage     = NOT_IMPLEMENTED
-  @fetchPlans     = NOT_IMPLEMENTED
   @fetchAvailable = NOT_IMPLEMENTED
 
   @postCreate     = PASS_THROUGH

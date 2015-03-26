@@ -1071,7 +1071,7 @@ module.exports = class JAccount extends jraphical.Module
 
   sendNotification: (event, contents) ->
     @createSocialApiId (err, socialApiId) =>
-      return console.error "Could not send notification to account #{err}"  if err
+      return console.error "Could not send notification to account:", err  if err
 
       message = {
         account: {id: socialApiId, nick: @profile.nickname}
