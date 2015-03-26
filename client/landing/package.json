@@ -12,7 +12,7 @@
       "email": "sinan@koding.com"
     }
   ],
-  "devDependencies": {
+  "dependencies": {
     "basic-auth-connect": "^1.0.0",
     "bluebird": "^2.3.11",
     "body-parser": "^1.8.2",
