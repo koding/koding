@@ -135,13 +135,20 @@ module.exports = class NavigationMachineItem extends JView
       kd.utils.wait 1000, @progress.bound 'hide'
 
 
+  showSidebarSharePopup: (options = {}) ->
+
+    options.position = @getPopupPosition 20
+
+    new SidebarMachineSharePopup options, @machine
+
+
   click: (e) ->
 
     m = @machine
 
     if not m.isMine() and m.isPermanent() and not m.isApproved()
       kd.utils.stopDOMEvent e
-      new SidebarMachineSharePopup { position: @getPopupPosition 20 }, m
+      @showSidebarSharePopup()
 
     super
 
