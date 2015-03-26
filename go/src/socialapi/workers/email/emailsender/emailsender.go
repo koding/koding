@@ -49,6 +49,10 @@ func (c *Controller) Process(m *Mail) error {
 		m.Properties = NewProperties()
 	}
 
+	if m.Properties.Options == nil {
+		m.Properties.Options = NewPropertiesOptions()
+	}
+
 	user.Username = m.Properties.Username
 
 	if user.Username == "" {

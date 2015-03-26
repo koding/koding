@@ -22,12 +22,14 @@ type Properties struct {
 }
 
 func NewProperties() *Properties {
-	options := map[string]interface{}{}
-
 	return &Properties{
 		Username: "",
-		Options:  options,
+		Options:  NewPropertiesOptions(),
 	}
+}
+
+func NewPropertiesOptions() map[string]interface{} {
+	return map[string]interface{}{}
 }
 
 func NewMail(to, from, subject, username string) *Mail {
