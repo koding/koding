@@ -1,6 +1,7 @@
 {
   "name": "koding-landing",
   "version": "0.1.0",
+  "private": true,
   "description": "Koding's landing pages",
   "repository": {
     "type": "git",
@@ -12,7 +13,7 @@
       "email": "sinan@koding.com"
     }
   ],
-  "devDependencies": {
+  "dependencies": {
     "basic-auth-connect": "^1.0.0",
     "bluebird": "^2.3.11",
     "body-parser": "^1.8.2",
