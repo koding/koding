@@ -1,6 +1,9 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrMessageAlreadyInTheChannel = errors.New("message is already in the channel")
@@ -54,4 +57,26 @@ var (
 	ErrChannelHasLeaves = errors.New("channel has leaves")
 	ErrGroupsAreNotSame = errors.New("groups are not same")
 	ErrLeafIsRootToo    = errors.New("leaf channel is root of another channel")
+
+	channelIsLeafPrefix = "channel is leaf"
+
+	ErrChannelIsLeafFunc = func(rootName, typeConstant string) error {
+		return ChannelIsLeafError(
+			fmt.Errorf(
+				"{\"rootName\":\"%s\", \"typeConstant\":\"%s\"}",
+				rootName,
+				typeConstant,
+			))
+	}
+
+	IsChannelLeafErr = func(err error) bool {
+		if err == nil {
+			return false
+		}
+
+		_, ok := err.(ChannelIsLeafError)
+		return ok
+	}
 )
+
+type ChannelIsLeafError error
