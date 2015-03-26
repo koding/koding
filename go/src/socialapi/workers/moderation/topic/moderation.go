@@ -43,6 +43,11 @@ func (c *Controller) Delete(cl *models.ChannelLink) error {
 	return nil
 }
 
+// UnLink just here for referance
+func (c *Controller) UnLink(cl *models.ChannelLink) error {
+	return nil
+}
+
 // Blacklist moves the participants and the messages of a leaf channel to the
 // root channel, it may remove the messages if the option is passed
 func (c *Controller) Blacklist(cl *models.ChannelLink) error {
@@ -69,18 +74,6 @@ func (c *Controller) process(cl *models.ChannelLink) error {
 		c.log.Error("Error while updating the initial channel ids, err: %s ", err.Error())
 		return err
 	}
-
-	return nil
-}
-
-// UnLink is not implemented yet
-func (c *Controller) UnLink(cl *models.ChannelLink) error {
-	if err := c.validateRequest(cl); err != nil {
-		c.log.Error("Validation failed for creating link; skipping, err: %s ", err.Error())
-		return nil
-	}
-
-	c.log.Info("nothing to do for unlink for now")
 
 	return nil
 }
@@ -321,10 +314,6 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				cm.InitialChannelId = rootChannel.Id
 			}
 
-			// replace all occurences of the leaf node hashbangs with the root
-			// nodes. We _can't_ determine if the multiple occurences of the
-			// same `Name` constitues a meaningful sentence - yes we can, but it
-			// is not feasible for now...
 			cm.Body = processWithNewTag(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString)
 
 			// update the message itself

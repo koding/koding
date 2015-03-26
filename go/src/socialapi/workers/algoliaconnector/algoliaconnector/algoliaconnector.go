@@ -211,7 +211,7 @@ func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
 	return f.addSynonym(IndexTopics, leafNames...)
 }
 
-// addSynonym adds given sysnonym pairs to the given index. do not worry about
+// addSynonym adds given synonym pairs to the given index. do not worry about
 // duplicate synonyms, algolia handles them perfectly
 func (f *Controller) addSynonym(indexName string, synonyms ...string) error {
 	// TODO - this get & use pattern is very prone to race conditions

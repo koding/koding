@@ -242,7 +242,7 @@ func makeSureTopic(handler *Controller, id int64, f func(map[string]interface{},
 	for {
 		select {
 		case <-tick:
-			record, err := handler.get("topics", strconv.FormatInt(id, 10))
+			record, err := handler.get(IndexTopics, strconv.FormatInt(id, 10))
 			if f(record, err) {
 				return nil
 			}
