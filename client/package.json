@@ -34,7 +34,7 @@
     "validator": "^3.33.0"
   },
   "scripts": {
-    "preinstall": "../scripts/install-npm.sh -d client/builder -s && ../scripts/install-npm.sh -d client/landing -s",
+    "preinstall": "../scripts/install-npm.sh -d client/builder && ../scripts/install-npm.sh -d client/landing",
     "test": "make test"
   },
   "browser": {
