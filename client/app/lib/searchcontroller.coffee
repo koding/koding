@@ -47,8 +47,8 @@ module.exports = class SearchController extends KDObject
 
     bo.on 'ready', -> bo.backoff()
 
-    requestFn = =>
-      doXhrRequest {endPoint: "/api/social/search-key", type: "GET"}, (err, res) =>
+    requestFn = ->
+      doXhrRequest {endPoint: "/api/social/search-key", type: "GET"}, (err, res) ->
         if err
           kd.warn "Could not fetch search api key: #{err.message}"
           return
