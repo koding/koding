@@ -200,7 +200,7 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 	for {
 		select {
 		case <-tick:
-			record, err := handler.get("messages", strconv.FormatInt(id, 10))
+			record, err := handler.get(IndexMessages, strconv.FormatInt(id, 10))
 			if f(record, err) {
 				return nil
 			}
@@ -386,7 +386,7 @@ func TestIndexSettings(t *testing.T) {
 		groupName := models.RandomName()
 
 		Convey("we should be able to get the synonyms", func() {
-			oldsynonymns, err := handler.getSynonyms("messages")
+			oldsynonymns, err := handler.getSynonyms(IndexMessages)
 			So(err, ShouldBeNil)
 			So(oldsynonymns, ShouldNotBeNil)
 
@@ -411,7 +411,7 @@ func TestIndexSettings(t *testing.T) {
 				So(handler.CreateSynonym(cl), ShouldBeNil)
 
 				Convey("synonyms should be in settings", func() {
-					err = makeSureSynonyms(handler, "messages", func(synonyms [][]string, err error) bool {
+					err = makeSureSynonyms(handler, IndexMessages, func(synonyms [][]string, err error) bool {
 						if err != nil {
 							return false
 						}
@@ -453,7 +453,7 @@ func TestIndexSettings(t *testing.T) {
 						So(handler.CreateSynonym(cl), ShouldBeNil)
 
 						Convey("synonyms should be in settings", func() {
-							err = makeSureSynonyms(handler, "messages", func(synonyms [][]string, err error) bool {
+							err = makeSureSynonyms(handler, IndexMessages, func(synonyms [][]string, err error) bool {
 								if err != nil {
 									return false
 								}
@@ -505,7 +505,7 @@ func TestIndexSettings(t *testing.T) {
 							So(handler.CreateSynonym(cl), ShouldBeNil)
 
 							Convey("all synonyms should be in settings", func() {
-								err = makeSureSynonyms(handler, "messages", func(synonyms [][]string, err error) bool {
+								err = makeSureSynonyms(handler, IndexMessages, func(synonyms [][]string, err error) bool {
 									if err != nil {
 										return false
 									}
@@ -532,7 +532,7 @@ func TestIndexSettings(t *testing.T) {
 								})
 
 								So(err, ShouldBeNil)
-								allsynonymns, err := handler.getSynonyms("messages")
+								allsynonymns, err := handler.getSynonyms(IndexMessages)
 								So(err, ShouldBeNil)
 								// why ShouldBeGreaterThan? becase when we run
 								// the same test again, there may be other
