@@ -729,16 +729,20 @@ func deleteSnapshot(id, snapshotId string, remote *kite.Client) error {
 		return err
 	}
 
-	result, err := resp.Bool()
+	var result kloud.ControlResult
+	err = resp.Unmarshal(&result)
 	if err != nil {
 		return err
 	}
 
-	if !result {
-		return errors.New("Successfull snapshot deletion should return true, got false")
-	}
+	eArgs := kloud.EventArgs([]kloud.EventArg{
+		kloud.EventArg{
+			EventId: deleteSnapshotArgs.MachineId,
+			Type:    "deleteSnapshot",
+		},
+	})
 
-	return nil
+	return listenEvent(eArgs, machinestate.Running, remote)
 }
 
 // listenEvent calls the event method of kloud with the given arguments until
@@ -887,7 +891,7 @@ func getSnapshotId(machineId string, accountId bson.ObjectId) (string, error) {
 
 func checkSnapshotAWS(machineId, snapshotId string) error {
 	ctx := request.NewContext(context.Background(), &kite.Request{
-		Username: "testuser",
+		Username: "testuser4",
 	})
 	ctx = eventer.NewContext(ctx, eventer.New(machineId))
 
@@ -927,7 +931,6 @@ func checkSnapshotMongoDB(snapshotId string, accountId bson.ObjectId) error {
 	}
 
 	return nil
-
 }
 
 func isSnapshotNotFoundError(err error) bool {
