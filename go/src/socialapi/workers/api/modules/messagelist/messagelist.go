@@ -35,7 +35,6 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 
 	if root != nil {
 		h.Add("Location", fmt.Sprintf("/Activity/Topic/%s", root.Name))
-		fmt.Println("iste geldim buradayim")
 		return http.StatusMovedPermanently, h, nil, nil
 	}
 
