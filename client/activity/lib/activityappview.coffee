@@ -122,7 +122,7 @@ module.exports = class ActivityAppView extends KDView
         if err
           # if channel is redirected to another
           # handle here
-          if err.error = "moved_permanently"
+          if err.error is "moved_permanently"
             res = try JSON.parse err.description
             location="/Activity/Public"
 
