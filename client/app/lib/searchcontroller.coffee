@@ -147,7 +147,9 @@ module.exports = class SearchController extends KDObject
             resolve message
       .filter Boolean
       .catch (e) ->
-        new KDNotificationView title: "Search error!"
+        kd.error "Search error: #{e}"
+        return new KDNotificationView
+          title: "Search error!"
 
   getIndex: (indexName) ->
     unless @indexes[indexName]?

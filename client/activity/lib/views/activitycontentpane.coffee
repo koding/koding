@@ -39,7 +39,11 @@ module.exports = class ActivityContentPane extends KDTabPaneView
     @emit 'ContentIsShown'
 
   appendContent: (items) ->
+
+    return  unless items?.length
+
     items.forEach (item) => kd.utils.defer => @listController.addItem item
+
     @listController.hideLazyLoader()
 
   getLoadedCount: -> @listController.getItemCount()
