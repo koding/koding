@@ -7,7 +7,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -219,50 +221,63 @@ func CreateAccountInBothDbsWithNick(nick string) (*Account, error) {
 	accId := bson.NewObjectId()
 	accHex := nick
 
-	oldAcc := &kodingmodels.Account{
-		Id: accId,
-		Profile: struct {
-			Nickname  string `bson:"nickname" json:"nickname"`
-			FirstName string `bson:"firstName" json:"firstName"`
-			LastName  string `bson:"lastName" json:"lastName"`
-			Hash      string `bson:"hash" json:"hash"`
-		}{
-			Nickname: nick,
-		},
+	oldAcc, err := modelhelper.GetAccount(nick)
+	if err == mgo.ErrNotFound {
+
+		oldAcc = &kodingmodels.Account{
+			Id: accId,
+			Profile: struct {
+				Nickname  string `bson:"nickname" json:"nickname"`
+				FirstName string `bson:"firstName" json:"firstName"`
+				LastName  string `bson:"lastName" json:"lastName"`
+				Hash      string `bson:"hash" json:"hash"`
+			}{
+				Nickname: nick,
+			},
+		}
+
+		err := modelhelper.CreateAccount(oldAcc)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	err := modelhelper.CreateAccount(oldAcc)
-	if err != nil {
-		return nil, err
-	}
+	oldUser, err := modelhelper.GetUser(nick)
+	if err == mgo.ErrNotFound {
+		oldUser = &kodingmodels.User{
+			ObjectId:       bson.NewObjectId(),
+			Password:       accHex,
+			Salt:           accHex,
+			Name:           nick,
+			Email:          accHex + "@koding.com",
+			EmailFrequency: kodingmodels.EmailFrequency{},
+		}
 
-	oldUser := &kodingmodels.User{
-		ObjectId:       bson.NewObjectId(),
-		Password:       accHex,
-		Salt:           accHex,
-		Name:           nick,
-		Email:          accHex + "@koding.com",
-		EmailFrequency: kodingmodels.EmailFrequency{},
-	}
-
-	err = modelhelper.CreateUser(oldUser)
-	if err != nil {
-		return nil, err
+		err = modelhelper.CreateUser(oldUser)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	a := NewAccount()
 	a.Nick = nick
 	a.OldId = accId.Hex()
-	if err := a.Create(); err != nil {
-		return nil, err
+
+	if err := a.ByNick(nick); err == bongo.RecordNotFound {
+		if err := a.Create(); err != nil {
+			return nil, err
+		}
 	}
 
-	s := modelhelper.Selector{"_id": accId}
-	o := modelhelper.Selector{"$set": modelhelper.Selector{
-		"socialApiId": strconv.FormatInt(a.Id, 10),
-	}}
-	if err := modelhelper.UpdateAccount(s, o); err != nil {
-		return nil, err
+	if oldAcc.SocialApiId != strconv.FormatInt(a.Id, 10) {
+		s := modelhelper.Selector{"_id": accId}
+		o := modelhelper.Selector{"$set": modelhelper.Selector{
+			"socialApiId": strconv.FormatInt(a.Id, 10),
+		}}
+
+		if err := modelhelper.UpdateAccount(s, o); err != nil {
+			return nil, err
+		}
 	}
 
 	return a, nil
