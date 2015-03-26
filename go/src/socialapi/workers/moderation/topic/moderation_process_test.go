@@ -2,7 +2,6 @@ package topic
 
 import (
 	"fmt"
-	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"math"
 
@@ -12,28 +11,9 @@ import (
 	"socialapi/workers/common/runner"
 	"testing"
 
-	"labix.org/v2/mgo/bson"
-
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
-
-func CreatePrivateMessageUser() {
-	acc, err := modelhelper.GetAccount("sinan")
-	if err == nil {
-		return
-	}
-
-	if err != modelhelper.ErrNotFound {
-		panic(err)
-	}
-
-	acc = new(mongomodels.Account)
-	acc.Id = bson.NewObjectId()
-	acc.Profile.Nickname = "sinan"
-
-	modelhelper.CreateAccount(acc)
-}
 
 func TestProcess(t *testing.T) {
 	r := runner.New("test-moderation-blacklist")
@@ -46,8 +26,6 @@ func TestProcess(t *testing.T) {
 
 	modelhelper.Initialize(r.Conf.Mongo)
 	defer modelhelper.Close()
-
-	CreatePrivateMessageUser()
 
 	Convey("given a controller", t, func() {
 
