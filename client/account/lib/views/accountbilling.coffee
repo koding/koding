@@ -54,6 +54,7 @@ module.exports = class AccountBilling extends KDView
 
     @on 'ChangeSubscriptionRequested', ->
       kd.singletons.router.handleRoute '/Pricing'
+      @parent.emit 'ModalCloseRequested'
 
       trackEvent 'Account Upgrade, click',
         path     : '/Account/Billing'
