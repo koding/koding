@@ -71,18 +71,16 @@ module.exports = class NavigationMachineItem extends JView
     else
       @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
-    kd.singletons.computeController
-
-      .on "public-#{@machine._id}", (event)=>
-        @handleMachineEvent event
+    kd.singletons.computeController.on "public-#{@machine._id}", (event)=>
+      @handleMachineEvent event
 
 
   settingsEnabled: ->
 
-    { status:{ state } } = @machine
+    { status: { state } } = @machine
     { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
 
-    return state in [NotInitialized, Running, Stopped, Terminated, Unknown]
+    return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
 
 
   handleMachineSettingsClick: (event) ->
