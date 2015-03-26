@@ -8,7 +8,9 @@ PROVIDERS =
   digitalocean : require './digitalocean'
   engineyard   : require './engineyard'
   google       : require './google'
+  managed      : require './managed'
 
+PLANS          = require './plans'
 
 reviveProvisioners = (client, provisioners, callback, revive = no)->
 
@@ -145,7 +147,7 @@ revive = do -> ({
       # since the user session is enough for koding provider for now.
 
       if shouldPassCredential and not credential?
-        unless provider is 'koding'
+        unless provider in ['koding', 'managed']
           return callback new KodingError \
             "Credential is required.", "MissingCredential"
 
@@ -154,7 +156,7 @@ revive = do -> ({
         if err then return callback err
 
         if shouldPassCredential and not cred?
-          unless provider is 'koding'
+          unless provider in ['koding', 'managed']
             return callback \
               new KodingError "Credential failed.", "AccessDenied"
         else
@@ -173,6 +175,19 @@ revive = do -> ({
     , shouldReviveClient
 
 
+checkTemplateUsage = (template, account, callback)->
+
+  {Relationship} = require 'jraphical'
+  Relationship.count
+    targetId   : template.getId()
+    targetName : "JStackTemplate"
+    sourceId   : account.getId()
+  , (err, count)->
+
+    if err or count > 0
+    then callback new KodingError "Template in use", "InUse", err
+    else callback null
+
 
 fetchStackTemplate = (client, callback)->
 
@@ -183,8 +198,15 @@ fetchStackTemplate = (client, callback)->
     { user, group, account } = res
 
     unless group.stackTemplates?.length
-      console.warn "Failed to fetch stack template for #{group.slug} group"
-      return callback new KodingError "Template not set", "NotFound"
+      console.warn "There is no stack template assigned for #{group.slug} group"
+
+      # This is a fallback mechanism and valid only for production. ~ GG
+      if group.slug is 'koding'
+        {ObjectId} = require 'bongo'
+        group.stackTemplates = [ObjectId "53fe557af052f8e9435a04fa"]
+        console.error "[critical] Koding group template is not set!"
+      else
+        return callback new KodingError "Template not set", "NotFound"
 
     # TODO Make this works with multiple stacks ~ gg
     stackTemplateId = group.stackTemplates[0]
@@ -203,20 +225,116 @@ fetchStackTemplate = (client, callback)->
         console.warn "Failed to create stack for #{user.username} !!"
         return callback new KodingError "Template not found", "NotFound", err
 
-      {Relationship} = require 'jraphical'
-      Relationship.count
-        targetId   : template.getId()
-        targetName : "JStackTemplate"
-        sourceId   : account.getId()
-      , (err, count)->
-
-        if err or count > 0
-          return callback new KodingError "Template in use", "InUse", err
+      checkTemplateUsage template, account, (err)->
+        return callback err  if err?
 
         res.template = template
         callback null, res
 
 
+guessNextLabel = (options, callback)->
+
+  {user, group, provider, label} = options
+
+  return callback null, label  if label?
+
+  JMachine   = require './machine'
+
+  # Following query will try to sort possible JMachines ordered by
+  # create date and will return the newest one with following cases
+  #  - provider must be equal to provided provider
+  #  - user and group must be same and user must be owner of the machine
+  #  - label needs to start with provider name and ends with "-vm-{0-9}" ~ GG
+  selector   =
+    provider : provider
+    users    : $elemMatch: id: user.getId(), sudo: yes, owner: yes
+    groups   : $elemMatch: id: group.getId()
+    label    : ///^#{provider}-vm-[0-9]*$///
+
+  options    =
+    limit    : 1
+    sort     : createdAt : -1
+
+  JMachine.one selector, options, (err, machine)->
+
+    return callback err  if err?
+    unless machine?
+      callback null, "#{provider}-vm-0"
+    else
+
+      index = +(machine.label.split "#{provider}-vm-")[1]
+      callback null, "#{provider}-vm-#{index+1}"
+
+
+fetchUserPlan = (client, callback)->
+
+  {clone} = require 'underscore'
+  Payment = require '../payment'
+  Payment.subscriptions client, {}, (err, subscription)=>
+
+    if err? or not subscription?
+    then plan = 'free'
+    else plan = subscription.planTitle
+
+    # we need to clone the plan data since we are using global data here,
+    # when we modify it at line 84 everything will be broken after the
+    # first operation until this social restarts ~ GG
+    planData  = clone PLANS[plan]
+
+    JReward   = require '../rewards'
+    JReward.fetchEarnedAmount
+      unit     : 'MB'
+      type     : 'disk'
+      originId : client.r.account.getId()
+
+    , (err, amount)->
+
+      amount = 0  if err
+      planData.storage += Math.floor amount / 1000
+
+      callback err, planData
+
+
+checkUsage = (usage, plan, storage)->
+
+  err = null
+  if usage.total + 1 > plan.total
+    err = "Total limit of #{plan.total} machines has been reached."
+  else if usage.storage + storage > plan.storage
+    err = "Total limit of #{plan.storage}GB storage limit has been reached."
+
+  if err then return new KodingError err
+
+
+fetchUsage = (client, options, callback)->
+
+  JMachine = require './machine'
+
+  { r: { group, user } } = client
+  { provider }           = options
+
+  selector        = { provider }
+  selector.users  = $elemMatch: id: user.getId(), sudo: yes, owner: yes
+  selector.groups = $elemMatch: id: group.getId()
+
+  JMachine.some selector, limit: 30, (err, machines)->
+
+    return callback err  if err?
+
+    total    = machines.length
+    alwaysOn = 0
+    storage  = 0
+
+    machines.forEach (machine)->
+      alwaysOn++  if machine.meta?.alwaysOn
+      storage += machine.meta?.storage_size ? 3
+
+    callback null, { total, alwaysOn, storage }
+
+
 module.exports = {
-  PROVIDERS, fetchStackTemplate, revive, reviveClient, reviveCredential
+  fetchUserPlan, fetchStackTemplate, fetchUsage
+  PLANS, PROVIDERS, guessNextLabel, checkUsage
+  revive, reviveClient, reviveCredential
+  checkTemplateUsage
 }

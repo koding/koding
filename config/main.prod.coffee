@@ -53,6 +53,8 @@ Configuration = (options={}) ->
   # configuration for socialapi, order will be the same with
   # ./go/src/socialapi/config/configtypes.go
 
+  segment                 = '4c570qjqo0'
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -80,7 +82,10 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+
     geoipdbpath             : "#{projectRoot}/go/geoipdb"
+
+    segment                 : segment
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -160,10 +165,11 @@ Configuration = (options={}) ->
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     mixpanel                       : mixpanel.token
     recaptcha                      : '6LfFAPcSAAAAAPmec0-3i_hTWE8JhmCu_JWh5h6e'
-    segment                        : '4c570qjqo0'
+    segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'e6c3413236e08107'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    tokbox                         : { API_KEY: '45082272', API_SECRET: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
     collaboration :
       timeout     : 1 * 60 * 1000

@@ -11,6 +11,7 @@ module.exports = class AccountListViewController extends KDListViewController
 
     options.lazyLoaderOptions =
       spinnerOptions          :
+        cssClass              : 'AppModal--account-tabSpinner'
         loaderOptions         :
           shape               : 'spiral'
           color               : '#a4a4a4'

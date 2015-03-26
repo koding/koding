@@ -35,6 +35,13 @@ module.exports = globals.config.providers =
     description            : "Koding rulez."
     credentialFields       : {}
 
+  managed                  :
+    name                   : "Managed VMs"
+    link                   : "https://koding.com"
+    title                  : "Managed VM Credential"
+    description            : "Use your power."
+    credentialFields       : {}
+
   google                   :
     name                   : "Google Compute Engine"
     link                   : "https://cloud.google.com/products/compute-engine/"
