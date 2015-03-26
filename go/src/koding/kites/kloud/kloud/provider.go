@@ -62,6 +62,10 @@ type Snapshotter interface {
 	DeleteSnapshot(ctx context.Context) error
 }
 
+type PublicIpAddressFetcher interface {
+	PublicIpAddress() string
+}
+
 // Stater returns the state of a machine
 type Stater interface {
 	State() machinestate.State

@@ -74,3 +74,7 @@ func (m *Machine) runCleanupFunctions() {
 func (m *Machine) State() machinestate.State {
 	return machinestate.States[m.Status.State]
 }
+
+func (m *Machine) PublicIpAddress() {
+	return m.IpAddress
+}

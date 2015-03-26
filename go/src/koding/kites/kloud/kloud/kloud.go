@@ -28,10 +28,6 @@ type Kloud struct {
 	// Domainer is responsible of managing dns records
 	Domainer protocol.Domainer
 
-	// Storage is used to store persistent data which is used by the Provider
-	// during certain actions
-	Storage Storage
-
 	// DomainStorage is used to store persistent data about domain data
 	DomainStorage protocol.DomainStorage
 

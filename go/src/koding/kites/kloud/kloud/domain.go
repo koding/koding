@@ -2,7 +2,6 @@ package kloud
 
 import (
 	"fmt"
-	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/protocol"
 	"strings"
 
@@ -11,9 +10,10 @@ import (
 
 type domainArgs struct {
 	DomainName string
+	MachineId  string
 }
 
-type domainFunc func(*protocol.Machine, *domainArgs) (interface{}, error)
+type domainFunc func(PublicIpAddressFetcher, *domainArgs) (interface{}, error)
 
 func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{}, err error) {
 	args := &domainArgs{}
@@ -25,45 +25,41 @@ func (k *Kloud) domainHandler(r *kite.Request, fn domainFunc) (resp interface{},
 		return nil, err
 	}
 
-	// m, err := k.PrepareMachine(r)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	//
-	// // PrepareMachine is locking for us, so unlock after we are done
-	// defer k.Locker.Unlock(m.Id)
+	m, err := k.GetMachine(r)
+	if err != nil {
+		return nil, err
+	}
+	defer k.Locker.Unlock(args.MachineId)
 
-	var m *protocol.Machine
+	fetcher, ok := m.(PublicIpAddressFetcher)
+	if !ok {
+		return nil, fmt.Errorf("PublicIpAddressHolder is not supported")
+	}
 
-	panic("handle domain!")
-
-	if m.IpAddress == "" {
+	if fetcher.PublicIpAddress() == "" {
 		return nil, fmt.Errorf("ip address is not defined")
 	}
 
-	// fake eventer to avoid panics if someone tries to use the eventer
-	m.Eventer = &eventer.Events{}
-
 	k.Log.Debug("'%s' method is called with args: %+v\n", r.Method, args)
 
-	return fn(m, args)
+	return fn(fetcher, args)
 }
 
 func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
-	addFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+	addFunc := func(fetcher PublicIpAddressFetcher, args *domainArgs) (interface{}, error) {
 		// a non nil means the domain exists
 		if _, err := k.Domainer.Get(args.DomainName); err == nil {
 			return nil, fmt.Errorf("domain record already exists")
 		}
 
 		// now assign the machine ip to the given domain name
-		if err := k.Domainer.Upsert(args.DomainName, m.IpAddress); err != nil {
+		if err := k.Domainer.Upsert(args.DomainName, fetcher.PublicIpAddress()); err != nil {
 			return nil, err
 		}
 
 		domain := &protocol.Domain{
-			Username:  m.Username,
-			MachineId: m.Id,
+			Username:  r.Username,
+			MachineId: args.MachineId,
 			Name:      args.DomainName,
 		}
 
@@ -78,7 +74,7 @@ func (k *Kloud) DomainAdd(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
-	removeFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+	removeFunc := func(fetcher PublicIpAddressFetcher, args *domainArgs) (interface{}, error) {
 		// do not return on error because it might be already delete via unset
 		k.Domainer.Delete(args.DomainName)
 
@@ -93,7 +89,7 @@ func (k *Kloud) DomainRemove(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
-	unsetFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+	unsetFunc := func(fetcher PublicIpAddressFetcher, args *domainArgs) (interface{}, error) {
 		// be sure the domain does exist in storage before we delete the domain
 		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
 			return nil, fmt.Errorf("domain does not exists in DB")
@@ -116,7 +112,7 @@ func (k *Kloud) DomainUnset(r *kite.Request) (resp interface{}, reqErr error) {
 }
 
 func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
-	setFunc := func(m *protocol.Machine, args *domainArgs) (interface{}, error) {
+	setFunc := func(fetcher PublicIpAddressFetcher, args *domainArgs) (interface{}, error) {
 		// be sure the domain does exist in storage before we create the domain
 		if _, err := k.DomainStorage.Get(args.DomainName); err != nil {
 			return nil, fmt.Errorf("domain does not exists in DB")
@@ -124,8 +120,9 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 
 		record, err := k.Domainer.Get(args.DomainName)
 		if err != nil && strings.Contains(err.Error(), "no records available") {
-			k.Log.Debug("[%s] setting domain '%s' to IP '%s'", m.Id, args.DomainName, m.IpAddress)
-			if err := k.Domainer.Upsert(args.DomainName, m.IpAddress); err != nil {
+			k.Log.Debug("[%s] setting domain '%s' to IP '%s'",
+				args.MachineId, args.DomainName, fetcher.PublicIpAddress())
+			if err := k.Domainer.Upsert(args.DomainName, fetcher.PublicIpAddress()); err != nil {
 				return nil, err
 			}
 		} else if err != nil {
@@ -134,17 +131,17 @@ func (k *Kloud) DomainSet(r *kite.Request) (resp interface{}, reqErr error) {
 		}
 
 		// check for err again, otherwise we get a panic by acessing record's fields
-		if err == nil && record.IP != m.IpAddress {
+		if err == nil && record.IP != fetcher.PublicIpAddress() {
 			k.Log.Debug("[%s] setting domain '%s' from old IP '%s' to new Ip '%s'",
-				m.Id, args.DomainName, record.IP, m.IpAddress)
-			if err := k.Domainer.Upsert(args.DomainName, m.IpAddress); err != nil {
+				args.MachineId, args.DomainName, record.IP, fetcher.PublicIpAddress())
+			if err := k.Domainer.Upsert(args.DomainName, fetcher.PublicIpAddress()); err != nil {
 				fmt.Printf("err = %+v\n", err)
 				return nil, err
 			}
 		}
 
 		// adding the machineID for the given domain.
-		if err := k.DomainStorage.UpdateMachine(args.DomainName, m.Id); err != nil {
+		if err := k.DomainStorage.UpdateMachine(args.DomainName, args.MachineId); err != nil {
 			return nil, err
 		}
 
