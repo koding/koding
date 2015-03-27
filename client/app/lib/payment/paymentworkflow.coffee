@@ -19,7 +19,7 @@ PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 trackEvent = require 'app/util/trackEvent'
-_ = require 'lodash'
+_ = require 'underscore'
 
 
 module.exports = class PaymentWorkflow extends KDController
