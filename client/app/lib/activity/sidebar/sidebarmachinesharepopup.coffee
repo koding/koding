@@ -3,6 +3,7 @@ KDModalView = kd.ModalView
 KDCustomHTMLView = kd.CustomHTMLView
 KDView = kd.View
 KDButtonView = kd.ButtonView
+KDOverlayView = kd.OverlayView
 AvatarView = require 'app/commonviews/avatarviews/avatarview'
 showError = require 'app/util/showError'
 remote = require('app/remote').getInstance()
@@ -17,14 +18,19 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     options.width    = 250
     options.height   = 'auto'
     options.cssClass = 'activity-modal share-modal'
+    options.sticky  ?= no
 
     super options, data
 
     @createArrow()
     @createElements()
 
-    kd.getSingleton('windowController').addLayer this
-    @on 'ReceivedClickElsewhere', @bound 'destroy'
+    if options.sticky
+      @createOverlay()
+      kd.singletons.router.once 'RouteInfoHandled', @bound 'destroy'
+    else
+      kd.singletons.windowController.addLayer this
+      @on 'ReceivedClickElsewhere', @bound 'destroy'
 
 
   createArrow: ->
@@ -34,6 +40,13 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     _addSubview new KDCustomHTMLView
       cssClass  : 'modal-arrow'
       position  : top : 20
+
+
+  createOverlay: ->
+
+    @overlay = new KDOverlayView
+      isRemovable : no
+      cssClass    : 'env-modal-overlay approve-overlay'
 
 
   createElements: ->
