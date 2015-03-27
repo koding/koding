@@ -1,0 +1,222 @@
+package koding
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/fatih/structs"
+	"github.com/koding/kite"
+	"golang.org/x/net/context"
+
+	"koding/db/models"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/klient"
+	"koding/kites/kloud/machinestate"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
+)
+
+// RunChecker runs the checker every given interval time. It fetches a single
+// document.
+func (p *Provider) RunChecker(interval time.Duration) {
+	for _ = range time.Tick(interval) {
+		// do not block the next tick
+		go func() {
+			machine, err := p.FetchOne()
+			if err != nil {
+				// do not show an error if the query didn't find anything, that
+				// means there is no such a document, which we don't care
+				if err != mgo.ErrNotFound {
+					p.Log.Warning("FetchOne err: %v", err)
+				}
+
+				// move one with the next one
+				return
+			}
+
+			if err := p.CheckUsage(machine); err != nil {
+				// only log if it's something else
+				if err != kite.ErrNoKitesAvailable {
+					p.Log.Error("[%s] check usage of klient kite [%s] err: %v",
+						machine.Id.Hex(), machine.IpAddress, err)
+				}
+			}
+		}()
+	}
+}
+
+// CheckUsage checks a single machine usages patterns and applies certain
+// restrictions (if any available). For example it could stop a machine after a
+// certain inactivity time.
+func (p *Provider) CheckUsage(m *Machine) error {
+	if m == nil {
+		return errors.New("checking machine. document is nil")
+	}
+
+	m.Log = p.Log.New(m.Id.Hex())
+
+	// will be replaced once we connect to klient in checker.Timeout() we are
+	// adding it so it doesn't panic when someone tries to retrieve it
+	m.Username = "kloud-checker"
+
+	var user *models.User
+	if err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
+		return c.FindId(m.Id).One(&user)
+	}); err != nil {
+		m.Log.Warning("Failed to fetch user information while checking storage. err: %v",
+			err)
+		return err
+	}
+
+	payment, err := p.PaymentFetcher.Fetch(user.Name)
+	if err != nil {
+		m.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
+			user.Name, err)
+		payment = &PaymentResponse{Plan: Hobbyist}
+	}
+
+	if m.Meta.Region == "" {
+		return errors.New("region is not set in.")
+	}
+
+	client, err := p.EC2Clients.Region(m.Meta.Region)
+	if err != nil {
+		return err
+	}
+
+	amazonClient, err := amazon.New(structs.Map(m.Meta), client)
+	if err != nil {
+		return fmt.Errorf("koding-amazon err: %s", err)
+	}
+
+	m.networkUsageEndpoint = p.NetworkUsageEndpoint
+	m.Payment = payment
+	m.Username = user.Name
+	m.User = user
+	m.Session = &session.Session{
+		DB:         p.DB,
+		Kite:       p.Kite,
+		DNSClient:  p.DNSClient,
+		Userdata:   p.Userdata,
+		AWSClient:  amazonClient,
+		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
+	}
+	m.cleanFuncs = make([]func(), 0)
+
+	// for now just check for timeout. This will dial the remote klient to get
+	// the usage data
+	return p.checkTimeout(m)
+}
+
+func (p *Provider) checkTimeout(m *Machine) error {
+	// Check klient state before rushing to AWS.
+	klientRef, err := klient.Connect(m.Session.Kite, m.QueryString)
+	if err != nil {
+		return err
+	}
+
+	// replace with the real and authenticated username
+	m.Username = klientRef.Username
+
+	// get the usage directly from the klient, which is the most predictable source
+	usg, err := klientRef.Usage()
+
+	// close the underlying connection once we get the usage
+	klientRef.Close()
+	klientRef = nil
+	if err != nil {
+		return err
+	}
+
+	// get the timeout from the plan in which the user belongs to
+	planTimeout := m.Payment.Plan.Limits().Timeout
+
+	p.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+		m.IpAddress, usg.InactiveDuration, planTimeout, m.Payment.Plan)
+
+	// It still have plenty of time to work, do not stop it
+	if usg.InactiveDuration <= planTimeout {
+		return nil
+	}
+
+	p.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
+		m.IpAddress, usg.InactiveDuration, m.Payment.Plan)
+
+	// lock so it doesn't interfere with others.
+	p.Lock(m.Id.Hex())
+
+	// mark our state as stopping so others know what we are doing
+	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
+		planTimeout.Minutes())
+
+	m.UpdateState(stoppingReason, machinestate.Stopping)
+
+	defer func() {
+		// call it in defer, so even if "Stop" fails it should reset the state
+		stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes",
+			planTimeout.Minutes())
+		m.UpdateState(stopReason, machinestate.Stopping)
+		p.Unlock(m.Id.Hex())
+	}()
+
+	// Hasta la vista, baby!
+	return m.Stop(context.Background())
+}
+
+// FetchOne() fetches a single machine document from mongodb that meets the criterias:
+//
+// 1. belongs to koding provider
+// 2. are running
+// 3. are not always on machines
+// 4. are not assigned to anyone yet (unlocked)
+// 5. are not picked up by others yet recently
+func (p *Provider) FetchOne() (*Machine, error) {
+	machine := &Machine{}
+	query := func(c *mgo.Collection) error {
+		// check only machines that:
+		// 1. belongs to koding provider
+		// 2. are running
+		// 3. are not always on machines
+		// 4. are not assigned to anyone yet (unlocked)
+		// 5. are not picked up by others yet recently in last 30 seconds
+		//
+		// The $ne is used to catch documents whose field is not true including
+		// that do not contain that particular field
+		egligibleMachines := bson.M{
+			"provider":            "koding",
+			"status.state":        machinestate.Running.String(),
+			"meta.alwaysOn":       bson.M{"$ne": true},
+			"assignee.inProgress": bson.M{"$ne": true},
+			"assignee.assignedAt": bson.M{"$lt": time.Now().UTC().Add(-time.Second * 30)},
+		}
+
+		// update so we don't pick up recent things
+		update := mgo.Change{
+			Update: bson.M{
+				"$set": bson.M{
+					"assignee.assignedAt": time.Now().UTC(),
+				},
+			},
+		}
+
+		// We sort according to the latest assignment date, which let's us pick
+		// always the oldest one instead of random/first. Returning an error
+		// means there is no document that matches our criteria.
+		// err := c.Find(egligibleMachines).Sort("assignee.assignedAt").One(&machine)
+		_, err := c.Find(egligibleMachines).Sort("assignee.assignedAt").Apply(update, &machine)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if err := p.DB.Run("jMachines", query); err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}

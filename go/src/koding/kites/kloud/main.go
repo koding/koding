@@ -10,6 +10,7 @@ import (
 	_ "net/http/pprof"
 	"net/url"
 	"os"
+	"time"
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
@@ -148,12 +149,6 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	klientFolder := "development/latest"
-	// checkInterval := time.Second * 5
-	// if conf.ProdMode {
-	// 	k.Log.Info("Prod mode enabled")
-	// 	klientFolder = "production/latest"
-	// 	checkInterval = time.Millisecond * 500
-	// }
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
 
 	modelhelper.Initialize(conf.MongoURL)
@@ -182,8 +177,6 @@ func newKite(conf *Config) *kite.Kite {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		// KlientPool:           klient.NewPool(k),
-		// InactiveMachines:     make(map[string]*time.Timer),
 		NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		Userdata: &userdata.Userdata{
 			Keycreator: &keycreator.Key{
@@ -199,7 +192,14 @@ func newKite(conf *Config) *kite.Kite {
 		},
 	}
 
-	// go kodingProvider.RunChecker(checkInterval)
+	checkInterval := time.Second * 5
+	if conf.ProdMode {
+		k.Log.Info("Prod mode enabled")
+		klientFolder = "production/latest"
+		checkInterval = time.Millisecond * 500
+	}
+
+	go kodingProvider.RunChecker(checkInterval)
 	// go kodingProvider.RunCleaners(time.Minute * 60)
 
 	stats, err := metrics.NewDogStatsD("kloud")
@@ -232,8 +232,8 @@ func newKite(conf *Config) *kite.Kite {
 	k.HandleFunc("resize", kld.Resize)
 
 	// Snapshot functionality
-	// k.HandleFunc("createSnapshot", kld.CreateSnapshot)
-	// k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
+	k.HandleFunc("createSnapshot", kld.CreateSnapshot)
+	k.HandleFunc("deleteSnapshot", kld.DeleteSnapshot)
 
 	// Domain records handling methods
 	k.HandleFunc("domain.set", kld.DomainSet)
