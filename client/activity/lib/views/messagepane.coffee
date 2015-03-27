@@ -293,7 +293,7 @@ module.exports = class MessagePane extends KDTabPaneView
     [item] = listItems.filter (item) -> item.getData().getId() is message.getId()
 
     if item?
-      item.once 'HideAnimationFinished', =>
+      item.whenRemovingFinished =>
         @listController.removeItem item
         @listController.showNoItemWidget()  if @listController.getListItems().length is 0
 
