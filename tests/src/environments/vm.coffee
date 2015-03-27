@@ -34,6 +34,7 @@ module.exports =
 
 
   CheckVMDiskUsage: (browser) ->
+  checkVMDiskUsage: (browser) ->
 
     diskUsageSelector     = modalSelector + ' .diskusage'
     diskUsageBarSelector  = diskUsageSelector + ' .input-wrapper .progressbar-container.disk-usage'
