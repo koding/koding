@@ -401,6 +401,13 @@ module.exports = class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
+      if not machineItem.isMine()
+        if machineItem.isPermanent() and not machineItem.isApproved()
+          { activitySidebar } = kd.singletons.mainView
+          box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
+          box.machineItem.showSidebarSharePopup sticky: yes
+          withFakeViews = yes
+
       @setMountedMachine machineItem
 
       @prepareIDE withFakeViews
