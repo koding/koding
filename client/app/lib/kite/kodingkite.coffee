@@ -35,16 +35,8 @@ module.exports = class KodingKite extends KDObject
                  or there is a problem with connection."
 
 
-  extractInfoFromWsEvent = (event)->
-    {reason, code, wasClean, timestamp, type} = event
-
-    return {reason, code, wasClean, timestamp, type}
-
-
-  getTransport: -> @transport
-
-
   setTransport: (@transport) ->
+
     if @transport?.ws?
       @transport.disconnect()
 
