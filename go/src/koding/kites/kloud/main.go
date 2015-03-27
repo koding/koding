@@ -200,7 +200,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	go kodingProvider.RunChecker(checkInterval)
-	// go kodingProvider.RunCleaners(time.Minute * 60)
+	go kodingProvider.RunCleaners(time.Minute * 60)
 
 	stats, err := metrics.NewDogStatsD("kloud")
 	if err != nil {
