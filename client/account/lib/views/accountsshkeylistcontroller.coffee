@@ -1,9 +1,13 @@
 $ = require 'jquery'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
+KDCustomHTMLView = kd.CustomHTMLView
 AccountListViewController = require '../controllers/accountlistviewcontroller'
+AccountNewSshKeyView = require './accountnewsshkeyview'
 remote = require('app/remote').getInstance()
 KDHeaderView = kd.HeaderView
+showError = require 'app/util/showError'
+Machine = require 'app/providers/machine'
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
@@ -18,11 +22,19 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       @newItem = no
       newKeys = @getListItems().map (item)-> item.getData()
       unless newKeys.length is 0 then @customItem?.destroy()
+      @updateHelpLinkVisibility newKeys
       remote.api.JUser.setSSHKeys newKeys, -> kd.log "Saved keys."
 
     @getListView().on "RemoveItem", (item)=>
       @newItem = no
       @removeItem item
+      @getListView().emit "UpdatedItems"
+
+    @getListView().on "NewKeySubmitted", (item)=>
+      @newItem = no
+      { key, title } = item.getData()
+      @removeItem item
+      @addItem { key, title }
       @getListView().emit "UpdatedItems"
 
     @newItem = no
@@ -44,11 +56,54 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
         title     : 'ADD NEW KEY'
         style     : 'solid green small'
         icon      : yes
-        callback  : =>
-          unless @newItem
-            @newItem = true
-            @addItem {key: '', title: ''}, 0
-            @getListView().items.first.swapSwappable hideDelete: yes
+        callback  : @bound 'addNewKey'
 
       @getListView().addSubView @header, '', yes
 
+      @sshKeyHelpLink = new KDCustomHTMLView
+        cssClass : 'ssh-key-help'
+        partial  : """
+          <a href="http://learn.koding.com/delete-ssh-key" target="_blank">How to delete ssh key from your VM</a>
+        """
+      @getListView().addSubView @sshKeyHelpLink
+      @updateHelpLinkVisibility keys
+
+
+  addNewKey: ->
+
+    unless @newItem
+      @newItem = yes
+      { computeController } = kd.singletons
+      computeController.fetchMachines (err, machines) =>
+        return showError err  if err
+
+        { ViewType } = AccountNewSshKeyView
+        type = ViewType.NoMachines
+        if machines.length is 1 and @isMachineActive machines.first
+          type = ViewType.SingleMachine
+        else if machines.length > 1
+          for machine in machines when @isMachineActive machine
+            type = ViewType.ManyMachines
+            break
+
+        newSshKey = new AccountNewSshKeyView {
+            delegate : @getListView()
+            type
+          },
+          machines
+
+        @getListView().addItemView newSshKey, 0
+
+
+  updateHelpLinkVisibility: (keys) ->
+
+    if keys.length is 0
+      @sshKeyHelpLink.hide()
+    else
+      @sshKeyHelpLink.show()
+
+
+  isMachineActive: (machine) ->
+
+    { status: { state } } = machine
+    return state is Machine.State.Running
