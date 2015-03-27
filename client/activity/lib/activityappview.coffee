@@ -124,12 +124,13 @@ module.exports = class ActivityAppView extends KDView
           # handle here
           if err.error is "moved_permanently"
             res = try JSON.parse err.description
-            location="/Activity/Public"
+            location = "/Activity/Public"
 
             if res.typeConstant isnt "group"
-              location="/Activity/Topic/#{res.rootName}"
+              location = "/Activity/Topic/#{res.rootName}"
 
-            return window.location.href=location
+            global.location.href = location
+            return
 
           router.handleNotFound router.getCurrentPath()
         else

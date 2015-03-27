@@ -144,10 +144,10 @@ module.exports =
 
         if err.error is "moved_permanently"
           desc = try JSON.parse err.description
-          location="/Activity/Public"
+          location = "/Activity/Public"
 
           if desc.typeConstant isnt "group"
-            location="/Activity/Topic/#{desc.rootName}"
+            location = "/Activity/Topic/#{desc.rootName}"
           return res.redirect 301, location
 
         return res.status(404).send error_404()  if err.error is 'koding.NotFoundError'
