@@ -30,10 +30,6 @@ type Checker interface {
 	// always on limit
 	AlwaysOn() error
 
-	// Timeout checks whether the user has reached the current plan's
-	// inactivity timeout.
-	Timeout() error
-
 	// SnapshotTotal checks whether the user reached the current plan's limit
 	// of having a total numbers of snapshots. It returns an error if the limit
 	// is reached or an unexplained error happened
@@ -168,71 +164,6 @@ func (m *Machine) AlwaysOn() error {
 	return fmt.Errorf("total alwaysOn limit has been reached. Current count: %d Plan limit: %d",
 		alwaysOnMachines, alwaysOnLimit)
 }
-
-// func (m *Machine) Timeout() error {
-// 	// Check klient state before rushing to AWS.
-// 	klientRef, err := klient.Connect(p.Kite, m.QueryString)
-// 	if err == kite.ErrNoKitesAvailable {
-// 		p.Provider.startTimer(m)
-// 		return err
-// 	}
-//
-// 	// return if it's something else
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	// now the klient is connected and we can ping it, stop the timer and
-// 	// remove it from the list of inactive machines if it's still there.
-// 	p.Provider.stopTimer(m)
-//
-// 	// replace with the real and authenticated username
-// 	p.Machine.Builder["username"] = klientRef.Username
-// 	m.Username = klientRef.Username
-//
-// 	// get the usage directly from the klient, which is the most predictable source
-// 	usg, err := klientRef.Usage()
-//
-// 	klientRef.Close()
-// 	klientRef = nil
-//
-// 	if err != nil {
-// 		return err
-// 	}
-//
-// 	// get the timeout from the plan in which the user belongs to
-// 	planTimeout := m.Payment.Plan.Limits().Timeout
-//
-// 	m.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
-// 		m.IpAddress, usg.InactiveDuration, planTimeout, m.Payment.Plan)
-//
-// 	// It still have plenty of time to work, do not stop it
-// 	if usg.InactiveDuration <= planTimeout {
-// 		return nil
-// 	}
-//
-// 	m.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
-// 		m.IpAddress, usg.InactiveDuration, m.Payment.Plan)
-//
-// 	// lock so it doesn't interfere with others.
-// 	p.Provider.Lock(m.Id.Hex())
-//
-// 	// mark our state as stopping so others know what we are doing
-// 	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
-// 		planTimeout.Minutes())
-// 	m.UpdateState(stoppingReason, machinestate.Stopping)
-//
-// 	defer func() {
-// 		// call it in defer, so even if "Stop" fails it should reset the state
-// 		stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes", planTimeout.Minutes())
-// 		m.UpdateState(stopReason, machinestate.Stopped)
-//
-// 		p.Provider.Unlock(m.Id.Hex())
-// 	}()
-//
-// 	// Hasta la vista, baby!
-// 	return p.Provider.Stop(m)
-// }
 
 func (m *Machine) PlanState() error {
 	// if the plan is expired there is no need to return the plan anymore
