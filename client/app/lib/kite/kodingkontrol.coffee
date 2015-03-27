@@ -168,21 +168,20 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
       kite.on 'close', (event)=>
 
-        if event?.code is 1002 and \
-           event?.reason is "Can't connect to server"
+        return  unless event?.code is 1002
 
-          kite.options.autoReconnect = no
-          KiteCache.unset query
+        kite.options.autoReconnect = no
+        KiteCache.unset query
 
-          kiteInstance = @kites[kiteName]?['singleton'] or {}
-          {waitingPromises} = kiteInstance
+        kiteInstance = @kites[kiteName]?['singleton'] or {}
+        {waitingPromises} = kiteInstance
 
-          delete @kites[kiteName]['singleton']
+        delete @kites[kiteName]['singleton']
 
-          if machine = computeController.findMachineFromQueryString queryString
-            delete @kites[kiteName][machine.uid]
+        if machine = computeController.findMachineFromQueryString queryString
+          delete @kites[kiteName][machine.uid]
 
-          (@getKite { name: kiteName, queryString, waitingPromises })?.connect()
+        (@getKite { name: kiteName, queryString, waitingPromises })?.connect()
 
     return kite
 
@@ -212,7 +211,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
     if waitingPromises? and waitingPromises.length > 0
 
-      kite.once 'connected', ->
+      kite.once 'open', ->
         for promise in waitingPromises
           [resolve, args] = promise
           resolve (

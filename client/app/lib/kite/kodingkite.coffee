@@ -128,11 +128,15 @@ module.exports = class KodingKite extends KDObject
   disconnect: ->
 
     @isDisconnected = yes
-    @transport?.disconnect()
+
+    if @transport
+    then @transport.disconnect()
+    else @emit 'close', reason: 'user action'
 
 
   reconnect:  ->
 
+    @emit 'reconnect'
 
     # With a very corrupted connection
     # it's possible to have an empty @transport object ~GG
