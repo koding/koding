@@ -56,6 +56,7 @@ module.exports = class JMail extends Model
       content         : String
       unsubscribeId   : String
       bcc             : String
+      properties      : Object
 
   save:(callback)->
     @unsubscribeId = getUniqueId()+''  unless @_id? or @force
