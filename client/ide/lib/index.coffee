@@ -943,7 +943,7 @@ module.exports = class IDEAppController extends AppController
   addInitialViews: ->
 
     @ideViews.first.createEditor()
-    @ideViews.last.createTerminal { machine }
+    @ideViews.last.createTerminal machine: @mountedMachine
     @setActiveTabView @ideViews.first.tabView
 
 
