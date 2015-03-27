@@ -52,4 +52,5 @@ module.exports =
       .moveToElement           diskUsageBarSelector + ' .bar span.light-label', 70, 7 # Assertion
       .pause  3000
       .waitForElementVisible   '.kdtooltip', 20000 # Assertion
+      .end()
 
