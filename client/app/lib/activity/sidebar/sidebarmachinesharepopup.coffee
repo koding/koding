@@ -92,6 +92,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       cssClass : 'user-details'
 
 
+    # FIXME: cacheable is actually not cacheable, must be fixed before deploy.
     remote.cacheable nickname, (err, accounts) =>
 
       return showError err  if err
@@ -111,9 +112,30 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     @approveButton.showLoader()
     jMachine.approve (err) =>
       return showError err  if err
+      { router, mainView } = kd.singletons
 
-      kd.singletons.router.handleRoute "/IDE/#{jMachine.uid}/my-workspace"
-      @destroy()
+      doNavigation = =>
+        # route to permanent shared url to open the ide
+        router.handleRoute "/IDE/#{jMachine.uid}/my-workspace"
+
+        # defer sidebar redraw sidebar to properly select workspace
+        kd.utils.defer =>
+          mainView.activitySidebar.redrawMachineList()
+          @destroy()
+
+
+      envDataProvider.fetch =>
+        # if there is an ide instance this means user landed to ide with direct url
+        ideApp = envDataProvider.getIDEFromUId jMachine.uid
+
+        if ideApp
+          ideApp.quit()
+          # i needed to wait 737ms to do the navigation. actually i don't want
+          # to burn more ATP for this case because it's the only case if user
+          # navigates to that url manually by knowing the machine uid and stuff
+          kd.utils.wait 737, => doNavigation()
+        else
+          doNavigation()
 
 
   denyShare: ->
