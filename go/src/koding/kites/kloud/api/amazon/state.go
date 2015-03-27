@@ -12,11 +12,8 @@ import (
 )
 
 func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
+	// if we have eventer, use it
 	ev, withPush := eventer.FromContext(ctx)
-	if !withPush {
-		return ec2.Instance{}, errors.New("eventer context is not available")
-	}
-
 	if withPush {
 		ev.Push(&eventer.Event{
 			Message:    "Starting machine",
@@ -56,11 +53,8 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 }
 
 func (a *Amazon) Stop(ctx context.Context) error {
+	// if we have eventer, use it
 	ev, withPush := eventer.FromContext(ctx)
-	if !withPush {
-		return errors.New("eventer context is not available")
-	}
-
 	if withPush {
 		ev.Push(&eventer.Event{
 			Message:    "Stopping machine",
@@ -96,10 +90,6 @@ func (a *Amazon) Stop(ctx context.Context) error {
 
 func (a *Amazon) Restart(ctx context.Context) error {
 	ev, withPush := eventer.FromContext(ctx)
-	if !withPush {
-		return errors.New("eventer context is not available")
-	}
-
 	if withPush {
 		ev.Push(&eventer.Event{
 			Message:    "Restarting machine",
@@ -134,15 +124,11 @@ func (a *Amazon) Restart(ctx context.Context) error {
 }
 
 func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
-	ev, withPush := eventer.FromContext(ctx)
-	if !withPush {
-		return errors.New("eventer context is not available")
-	}
-
 	if a.Id() == "" {
 		return errors.New("instance id is empty")
 	}
 
+	ev, withPush := eventer.FromContext(ctx)
 	if withPush {
 		ev.Push(&eventer.Event{
 			Message:    "Terminating machine",

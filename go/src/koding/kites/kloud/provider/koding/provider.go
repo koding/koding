@@ -93,7 +93,11 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	// get user model which contains user ssh keys or the list of users that
 	// are allowed to use this machine
-	user, err := p.getUser(machine.Id)
+	if len(machine.Users) == 0 {
+		return errors.New("permitted users list is empty")
+	}
+
+	user, err := p.getOwner(machine.Users)
 	if err != nil {
 		return err
 	}
@@ -123,6 +127,7 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		DB:         p.DB,
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
+		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
 		AWSClient:  amazonClient,
 		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
@@ -137,14 +142,28 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	return nil
 }
 
-func (p *Provider) getUser(userId bson.ObjectId) (*models.User, error) {
+// getOwner returns the owner of the machine, if it's not found it returns an
+// error.
+func (p *Provider) getOwner(users []models.Permissions) (*models.User, error) {
+	var ownerId bson.ObjectId
+
+	for _, user := range users {
+		if user.Sudo && user.Owner {
+			ownerId = user.Id
+		}
+	}
+
+	if !ownerId.Valid() {
+		return nil, errors.New("owner not found")
+	}
+
 	var user *models.User
 	err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.FindId(userId).One(&user)
+		return c.FindId(users[0].Id).One(&user)
 	})
 
 	if err == mgo.ErrNotFound {
-		return nil, fmt.Errorf("User with Id not found: %s", userId.Hex())
+		return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
 	}
 	if err != nil {
 		return nil, fmt.Errorf("username lookup error: %v", err)

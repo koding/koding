@@ -61,6 +61,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
@@ -801,10 +802,11 @@ func kodingProvider() *koding.Provider {
 	db := modelhelper.Mongo
 
 	return &koding.Provider{
-		DB:        db,
-		Log:       newLogger("koding", true),
-		DNSClient: dnsclient.NewRoute53Client("dev.koding.io", auth),
-		Kite:      kloudKite,
+		DB:         db,
+		Log:        newLogger("koding", true),
+		DNSClient:  dnsclient.NewRoute53Client("dev.koding.io", auth),
+		DNSStorage: dnsstorage.NewMongodbStorage(db),
+		Kite:       kloudKite,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
@@ -829,6 +831,8 @@ func kloudWithKodingProvider(p *koding.Provider) *kloud.Kloud {
 	kld := kloud.New()
 	kld.PublicKeys = publickeys.NewKeys()
 	kld.Log = newLogger("kloud", debugEnabled)
+	kld.DomainStorage = p.DNSStorage
+	kld.Domainer = p.DNSClient
 	kld.Locker = p
 	kld.AddProvider("koding", p)
 	return kld
