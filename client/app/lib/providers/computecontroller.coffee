@@ -19,7 +19,6 @@ require './config'
 module.exports = class ComputeController extends KDController
 
   @providers = globals.config.providers
-  @timeout   = globals.config.COMPUTECONTROLLER_TIMEOUT
   @Error     = {
     'TimeoutError', 'KiteError', 'NotSupported'
     Pending: '107', NotVerified: '500'
