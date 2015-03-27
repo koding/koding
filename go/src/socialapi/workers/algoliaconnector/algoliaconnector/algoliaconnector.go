@@ -74,7 +74,11 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 
 	channel, err := c.ByName(q)
 	if err != nil {
-		log.Fatal("Could not fetch koding channel: %s:", err)
+		log.Error("Could not fetch koding channel: %s:", err)
+	}
+	var channelId string
+	if channel.Id != 0 {
+		channelId = strconv.FormatInt(channel.Id, 10)
 	}
 
 	return &Controller{
@@ -85,7 +89,7 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 			"accounts": client.InitIndex("accounts" + indexSuffix),
 			"messages": client.InitIndex("messages" + indexSuffix),
 		},
-		kodingChannelId: strconv.FormatInt(channel.Id, 10),
+		kodingChannelId: channelId,
 	}
 }
 
