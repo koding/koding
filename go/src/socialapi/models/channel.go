@@ -762,7 +762,8 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 
 	// see only your private messages
 	// user should be added as a participant to private message
-	if c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE {
+	if c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE ||
+		c.TypeConstant == Channel_TYPE_COLLABORATION {
 		return false, nil
 	}
 

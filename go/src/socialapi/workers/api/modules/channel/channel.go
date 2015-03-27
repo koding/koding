@@ -194,7 +194,8 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 	}
 
 	// it looks like this is public channel and no need to check for participation
-	if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
+	if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		channel.TypeConstant != models.Channel_TYPE_COLLABORATION {
 		return response.NewOK(res)
 	}
 

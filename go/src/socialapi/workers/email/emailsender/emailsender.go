@@ -1,29 +1,27 @@
 // Package sender provides an API for mail sending operations
-package sender
+package emailsender
 
 import (
 	"github.com/koding/bongo"
+	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
 
-// Emailer includes Send method to be implemented
-type Emailer interface {
-	Send(*Mail) error
-}
+var SendEmailEventName = "send"
 
 // Controller holds required instances for processing events
 type Controller struct {
 	log             logging.Logger
-	emailer         Emailer
-	ForcedRecipient string
+	emailer         eventexporter.Exporter
+	forcedRecipient string
 }
 
 // New Creates a new controller for mail worker
-func New(log logging.Logger, em Emailer) *Controller {
+func New(exporter eventexporter.Exporter, log logging.Logger) *Controller {
 	return &Controller{
+		emailer: exporter,
 		log:     log,
-		emailer: em,
 	}
 }
 
@@ -31,18 +29,34 @@ func New(log logging.Logger, em Emailer) *Controller {
 // when we call this function, it sends the given mail to the
 // address that will be sent.
 func Send(m *Mail) error {
-	return bongo.B.PublishEvent("send", m)
+	return bongo.B.PublishEvent(SendEmailEventName, m)
 }
 
 // Process creates and sets the message that will be sent,
 // and sends the message according to the mail adress
 // its a helper method to send message
 func (c *Controller) Process(m *Mail) error {
-	if c.ForcedRecipient != "" {
-		m.To = c.ForcedRecipient
+	var to = m.To
+
+	if isForceRecipient(c.forcedRecipient) {
+		to = c.forcedRecipient
 	}
 
-	return c.emailer.Send(m)
+	user := &eventexporter.User{Email: to}
+	if m.Properties == nil {
+		m.Properties = NewProperties()
+	}
+
+	user.Username = m.Properties.Username
+
+	event := &eventexporter.Event{
+		Name:       m.Subject,
+		User:       user,
+		Body:       &eventexporter.Body{Content: m.HTML},
+		Properties: m.Properties.Options,
+	}
+
+	return c.emailer.Send(event)
 }
 
 // DefaultErrHandler controls the errors, return false if an error occurred
@@ -51,4 +65,8 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	delivery.Nack(false, true)
 
 	return false
+}
+
+func isForceRecipient(email string) bool {
+	return email != ""
 }

@@ -49,8 +49,8 @@ Configuration = (options={}) ->
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
-  algolia             = { appId:    'DYVV81J2S1'                                  , apiKey:             '303eb858050b1067bcd704d6cbfb977c'      , indexSuffix:        ".#{ os.hostname() }"     }
-  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "#{algolia.apiKey}"                     , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46' }
+  algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                 }
+  algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "303eb858050b1067bcd704d6cbfb977c"      , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46'   , apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
   postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
@@ -67,6 +67,7 @@ Configuration = (options={}) ->
 
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
+  segment                 = 'kb2hfdgf20'
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -95,6 +96,7 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    segment                 : segment
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -169,10 +171,11 @@ Configuration = (options={}) ->
     rollbar                        : "71c25e4dc728431b88f82bd3e7a600c9"
     recaptcha                      : '6LdLAPcSAAAAAJe857OKXNdYzN3C1D55DwGW0RgT'
     mixpanel                       : mixpanel.token
-    segment                        : '4c570qjqo0'
+    segment                        : segment
     googleapiServiceAccount        : googleapiServiceAccount
     siftScience                    : 'a41deacd57929378'
     prerenderToken                 : 'St4CU4a5hvfYCEOboftc'
+    tokbox                         : { API_KEY: '45082272', API_SECRET: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
     collaboration :
       timeout     : 1 * 60 * 1000
@@ -378,6 +381,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/collaboration/ping"
             proxyPass   : "http://socialapi/collaboration/ping$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/search-key"
+            proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"

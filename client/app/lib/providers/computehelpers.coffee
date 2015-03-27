@@ -6,6 +6,7 @@ showError = require '../util/showError'
 ComputePlansModalPaid = require './computeplansmodalpaid'
 ComputePlansModalFree = require './computeplansmodalfree'
 KDNotificationView = kd.NotificationView
+AddManagedVMModal = require './managed/addmanagedvmmodal'
 
 
 module.exports = class ComputeHelpers
@@ -30,12 +31,15 @@ module.exports = class ComputeHelpers
         .then ->
           callback null
 
-
-  @handleNewMachineRequest = (callback = kd.noop)->
+  @handleNewMachineRequest = (options = {}, callback = kd.noop)->
 
     cc = kd.singletons.computeController
 
     return  if cc._inprogress
+
+    if options.provider is 'managed'
+      return callback new AddManagedVMModal
+
     cc._inprogress = yes
 
     cc.fetchPlanCombo "koding", (err, info) ->
@@ -56,7 +60,7 @@ module.exports = class ComputeHelpers
         callback()
         return
 
-      cc.fetchMachines (err, machines)=>
+      cc.queryMachines provider: 'koding', (err, machines)=>
 
         kd.warn err  if err?
 
@@ -82,6 +86,8 @@ module.exports = class ComputeHelpers
 
             unless showError err
               globals.userMachines.push machine
+
+              kd.singletons.router.handleRoute "/IDE/#{machine.slug}"
 
 
   # Helper method to run a specific app
@@ -128,7 +134,7 @@ module.exports = class ComputeHelpers
 
     provisioner = machine.provisioners?.first
     return callback null  unless provisioner
- 
+
     remote = require('app/remote').getInstance()
     remote.api.JProvisioner.one slug: provisioner, callback
 

@@ -25,7 +25,7 @@ const (
 	RECIPIENTSKEY = "recipients"
 	SCHEDULE      = "0 0 0 * * *"
 
-	Subject     = "[Koding] Your Koding Activity for today: %s"
+	Subject     = "DailyDigest"
 	Information = "Here is what happened on Koding.com today!"
 )
 
@@ -146,9 +146,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		today = today.In(loc)
 	}
 
-	subject := fmt.Sprintf(Subject, today.Format(DATEFORMAT))
-
-	return mailer.SendMail("daily", body, subject)
+	return mailer.SendMail("daily", body, Subject)
 }
 
 func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {

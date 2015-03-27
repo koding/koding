@@ -133,7 +133,7 @@ collaborationdev:
 
 mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/sender -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(METRICS)
 
 
 topicmoderationdev:
@@ -252,9 +252,9 @@ testmodels:
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/sender/*.go
-	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./sender.test
+	@`which go` test -c workers/email/emailsender/*.go
+	@./emailsender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./emailsender.test
 
 testmail:
 	@echo "$(OK_COLOR)--> mail tests... $(NO_COLOR)"
@@ -286,7 +286,15 @@ testemailworker:
 	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker testpermission testmoderation testalgolia testtopicfeeed
+testnotification:
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
+	@`which go` test -c workers/notification/tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testpermission testmoderation testalgolia testtopicfeeed testnotification
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)

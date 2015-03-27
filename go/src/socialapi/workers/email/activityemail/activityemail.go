@@ -30,7 +30,7 @@ const (
 	CACHEPREFIX   = "dailymail"
 	RECIPIENTSKEY = "recipients"
 
-	Subject = "[Koding] You have a new %s"
+	Subject = "%s"
 )
 
 type Controller struct {

@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"socialapi/workers/payment/paymentemail"
+	"fmt"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 	"socialapi/workers/payment/stripe"
 )
@@ -13,9 +13,7 @@ func stripeSubscriptionCreated(raw []byte, c *Controller) error {
 		return err
 	}
 
-	return subscriptionEmail(
-		sub.CustomerId, sub.Plan.Name, paymentemail.SubscriptionCreated, c.Email,
-	)
+	return subscriptionEmail(sub.CustomerId, sub.Plan.Name, SubscriptionCreated)
 }
 
 func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
@@ -26,17 +24,20 @@ func stripeSubscriptionDeleted(raw []byte, c *Controller) error {
 
 	err = stopMachinesForUser(sub.CustomerId, c.Kite)
 	if err != nil {
-		Log.Error(err.Error())
+		Log.Error(fmt.Sprintf("Error stopping machines for customer:%s, %s",
+			sub.CustomerId, err,
+		))
 	}
 
 	err = stripe.SubscriptionDeletedWebhook(sub)
 	if err != nil {
-		return err
+		Log.Error(fmt.Sprintf(
+			"Error processing 'SubscriptionDeleted' webhook for customer:%s, %s",
+			sub.CustomerId, err,
+		))
 	}
 
-	return subscriptionEmail(
-		sub.CustomerId, sub.Plan.Name, paymentemail.SubscriptionDeleted, c.Email,
-	)
+	return subscriptionEmail(sub.CustomerId, sub.Plan.Name, SubscriptionDeleted)
 }
 
 func stripeSubscriptionUpdated(raw []byte, c *Controller) error {
@@ -52,9 +53,7 @@ func stripeSubscriptionUpdated(raw []byte, c *Controller) error {
 		return nil
 	}
 
-	return subscriptionEmail(
-		sub.CustomerId, currentPlanName, paymentemail.SubscriptionChanged, c.Email,
-	)
+	return subscriptionEmail(sub.CustomerId, currentPlanName, SubscriptionChanged)
 }
 
 func unmarshalSubscription(raw []byte) (*webhookmodels.StripeSubscription, error) {
