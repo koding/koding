@@ -336,7 +336,7 @@ module.exports = class IDEAppController extends AppController
           ideView.mountedMachine = @mountedMachine
 
         if not @isMachineRunning() or withFakeViews
-          nickname     = nick()
+          nickname     = machine.getOwner()
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
