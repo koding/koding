@@ -9,7 +9,7 @@ cloneArray     = require 'app/util/cloneArray'
 AppController  = require 'app/appcontroller'
 
 STORAGE_NAME    = 'shortcuts'
-STORAGE_VERSION = '4'
+STORAGE_VERSION = '4.1'
 THROTTLE_WAIT   = 500
 
 module.exports =
@@ -100,8 +100,13 @@ class ShortcutsController extends events.EventEmitter
                 if (_.isEmpty obj.options) or (not _.isBoolean obj.options.enabled)
             if (not _.isArray obj.binding) or _.isEmpty obj.binding
               delete obj.binding
+              # and disable it silently
+              obj.options or= {}
+              _.extend obj.options, enabled: no
           .value()
 
+        # this should pass anyhow (since there will be always _name_ prop)
+        # but still it doesn't hurt to be little paranoid here.
         set.push value  unless _.isEmpty value
 
       unless _.isEmpty set
