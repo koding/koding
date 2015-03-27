@@ -67,7 +67,7 @@ CancelUrl = "/-/payments/paypal/cancel"
 
 [gatekeeper]
 host = "localhost"
-port = 7200
+port = "7200"
 
 [gatekeeper.pubnub]
 publishkey = "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"
