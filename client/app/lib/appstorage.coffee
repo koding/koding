@@ -1,5 +1,5 @@
-kd       = require 'kd'
-whoami   = require './util/whoami'
+kd         = require 'kd'
+whoami     = require './util/whoami'
 
 module.exports =
 
@@ -7,7 +7,7 @@ class AppStorage extends kd.Object
 
   @DEFAULT_VERSION: '1.0'
 
-  DEFAULT_GROUP_NAME = 'bucket'
+  @DEFAULT_GROUP_NAME = 'bucket'
 
   constructor: (appId, version = AppStorage.DEFAULT_VERSION) ->
 
@@ -56,7 +56,7 @@ class AppStorage extends kd.Object
     @emit 'ready'
 
 
-  fetchValue: (key, callback, group = DEFAULT_GROUP_NAME, force = no) ->
+  fetchValue: (key, callback, group = AppStorage.DEFAULT_GROUP_NAME, force = no) ->
 
     @reset()
 
@@ -65,14 +65,14 @@ class AppStorage extends kd.Object
     , force
 
 
-  getValue: (key, group = DEFAULT_GROUP_NAME) ->
+  getValue: (key, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
     return unless @_storage
     return if @_storageData[group]?[key]? then @_storageData[group][key]
     return if @_storage[group]?[key]?     then @_storage[group][key]
 
 
-  setValue: (key, value, callback, group = DEFAULT_GROUP_NAME) ->
+  setValue: (key, value, callback, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
     pack = @zip key, group, value
 
@@ -91,7 +91,7 @@ class AppStorage extends kd.Object
       @setValue key, value  unless (@getValue key)?
 
 
-  unsetKey: (key, callback, group = DEFAULT_GROUP_NAME) ->
+  unsetKey: (key, callback, group = AppStorage.DEFAULT_GROUP_NAME) ->
 
     pack = @zip key, group, 1
 
