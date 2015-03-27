@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
 	"strconv"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
@@ -19,9 +20,10 @@ var (
 type IndexSet map[string]*algoliasearch.Index
 
 type Controller struct {
-	log     logging.Logger
-	client  *algoliasearch.Client
-	indexes *IndexSet
+	log             logging.Logger
+	client          *algoliasearch.Client
+	indexes         *IndexSet
+	kodingChannelId string
 }
 
 // IsAlgoliaError checks if the given algolia error string and given messages
@@ -63,6 +65,18 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *Controller {
+	// TODO later on listen channel_participant_added event and remove this koding channel fetch
+	c := models.NewChannel()
+	q := request.NewQuery()
+	q.GroupName = "koding"
+	q.Name = "public"
+	q.Type = models.Channel_TYPE_GROUP
+
+	channel, err := c.ByName(q)
+	if err != nil {
+		log.Fatal("Could not fetch koding channel: %s:", err)
+	}
+
 	return &Controller{
 		log:    log,
 		client: client,
@@ -71,6 +85,7 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 			"accounts": client.InitIndex("accounts" + indexSuffix),
 			"messages": client.InitIndex("messages" + indexSuffix),
 		},
+		kodingChannelId: strconv.FormatInt(channel.Id, 10),
 	}
 }
 
@@ -89,6 +104,7 @@ func (f *Controller) AccountSaved(data *models.Account) error {
 	return f.insert("accounts", map[string]interface{}{
 		"objectID": data.OldId,
 		"nick":     data.Nick,
+		"_tags":    []string{f.kodingChannelId},
 	})
 }
 
