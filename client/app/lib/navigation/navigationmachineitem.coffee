@@ -64,10 +64,16 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    if @machine.isMine() and @settingsEnabled()
-      @settingsIcon = new KDCustomHTMLView
-        tagName     : 'span'
-        click       : @bound 'handleMachineSettingsClick'
+    isMine      = @machine.isMine()
+    isPermanent = @machine.isPermanent() and @machine.isApproved()
+
+    if isMine or isPermanent
+      if @settingsEnabled()
+        @settingsIcon = new KDCustomHTMLView
+          tagName     : 'span'
+          click       : (e) =>
+            if isMine then @handleMachineSettingsClick e
+            else if isPermanent then @showSidebarSharePopup()
     else
       @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
