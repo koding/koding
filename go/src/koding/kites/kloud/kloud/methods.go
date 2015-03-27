@@ -1,6 +1,7 @@
 package kloud
 
 import (
+	"fmt"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/protocol"
@@ -42,7 +43,7 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 
 	i, ok := machine.(Infoer)
 	if !ok {
-		return nil, NewError(ErrProviderNotImplemented)
+		return nil, fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 	}
 
 	ctx := request.NewContext(context.Background(), r)
@@ -67,7 +68,7 @@ func (k *Kloud) Build(r *kite.Request) (interface{}, error) {
 	buildFunc := func(ctx context.Context, machine interface{}) error {
 		builder, ok := machine.(Builder)
 		if !ok {
-			return NewError(ErrBuilderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return builder.Build(ctx)
@@ -80,7 +81,7 @@ func (k *Kloud) Destroy(r *kite.Request) (resp interface{}, reqErr error) {
 	destroyFunc := func(ctx context.Context, machine interface{}) error {
 		destroyer, ok := machine.(Destroyer)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return destroyer.Destroy(ctx)
@@ -93,7 +94,7 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 	startFunc := func(ctx context.Context, machine interface{}) error {
 		starter, ok := machine.(Starter)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		// TODO: fix this out
@@ -118,7 +119,7 @@ func (k *Kloud) Stop(r *kite.Request) (resp interface{}, reqErr error) {
 	stopFunc := func(ctx context.Context, machine interface{}) error {
 		stopper, ok := machine.(Stopper)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return stopper.Stop(ctx)
@@ -131,7 +132,7 @@ func (k *Kloud) Reinit(r *kite.Request) (resp interface{}, reqErr error) {
 	reinitFunc := func(ctx context.Context, machine interface{}) error {
 		reiniter, ok := machine.(Reiniter)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return reiniter.Reinit(ctx)
@@ -144,7 +145,7 @@ func (k *Kloud) Resize(r *kite.Request) (resp interface{}, reqErr error) {
 	resizeFunc := func(ctx context.Context, machine interface{}) error {
 		resizer, ok := machine.(Resizer)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return resizer.Resize(ctx)
@@ -157,7 +158,7 @@ func (k *Kloud) Restart(r *kite.Request) (resp interface{}, reqErr error) {
 	restartFunc := func(ctx context.Context, machine interface{}) error {
 		restart, ok := machine.(Restarter)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return restart.Restart(ctx)
@@ -170,7 +171,7 @@ func (k *Kloud) CreateSnapshot(r *kite.Request) (reqResp interface{}, reqErr err
 	snapshotFunc := func(ctx context.Context, machine interface{}) error {
 		s, ok := machine.(Snapshotter)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return s.CreateSnapshot(ctx)
@@ -183,7 +184,7 @@ func (k *Kloud) DeleteSnapshot(r *kite.Request) (interface{}, error) {
 	snapshotFunc := func(ctx context.Context, machine interface{}) error {
 		s, ok := machine.(Snapshotter)
 		if !ok {
-			return NewError(ErrProviderNotImplemented)
+			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
 		return s.DeleteSnapshot(ctx)

@@ -37,7 +37,7 @@ const (
 	ErrUserNotConfirmed = 500
 )
 
-var errors = map[int]string{
+var kloudErrors = map[int]string{
 	// Machine errors
 	ErrMachineIdMissing:      "Machine id is missing.",
 	ErrMachineInitialized:    "Machine is already initialized and prepared.",
@@ -80,7 +80,7 @@ func NewErrorMessage(errMsg string) *kite.Error {
 }
 
 func NewError(errorCode int) *kite.Error {
-	errMsg, ok := errors[errorCode]
+	errMsg, ok := kloudErrors[errorCode]
 	if !ok {
 		panic(fmt.Sprintf("no message is defined for error code %d", errorCode))
 	}
