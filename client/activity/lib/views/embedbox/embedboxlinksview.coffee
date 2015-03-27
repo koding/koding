@@ -33,7 +33,7 @@ module.exports = class EmbedBoxLinksView extends KDView
     @emit 'LinksCleared'
 
   setActiveLinkIndex: (index) ->
-    item = @linkListController.itemsOrdered[index]
+    item = @linkListController.getListItems()[index]
     @linkListController.deselectAllItems()
     @linkListController.selectSingleItem item
 
@@ -46,7 +46,7 @@ module.exports = class EmbedBoxLinksView extends KDView
     @emit 'LinkAdded', url, data
 
   removeLink: (url) ->
-    @linkListController.itemsOrdered.forEach (item, index) =>
+    @linkListController.getListItems().forEach (item, index) =>
       data = item.getData()
       if data.url is url
         @linkListController.removeItem item

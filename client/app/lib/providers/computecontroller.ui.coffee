@@ -124,7 +124,7 @@ module.exports = class ComputeController_UI
 
   @askFor: (action, options, callback)->
 
-    {force, machine, resizeTo, task} = options
+    {force, machine, resizeTo} = options
 
     if resizeTo?
       resizeFrom = machine.jMachine.meta?.storage_size or 3
@@ -137,43 +137,58 @@ module.exports = class ComputeController_UI
 
     return callback()  if force
 
-    tasks =
+    {provider}    = machine
 
-      resize    :
-        title   : "Resize VM?"
-        message : "
-          If you choose to proceed, this VM will be resized #{resizeDetails}.
-          During the resize process, you will not be able to use the VM but
-          all your files, workspaces and data will be safe.
-        "
-        button  : "Proceed"
-      reinit    :
-        title   : "Reinitialize VM?"
-        message : "
-          If you choose to proceed, this VM will be reset to default state.
-          You will loose all your files, workspaces and data but your VM
-          settings (VM aliases, sub-domains etc.) will not be lost.
-        "
-        button  : "Proceed"
-      destroy   :
-        title   : "Remove VM?"
-        message : "
-          <p>Terminating this VM will destroy all of its:</p>
-            <br/>
-            <li> files and data </li>
-            <li> workspaces </li>
-            <li> running services </li>
-            <li> settings </li>
-            <li> custom domains (if any) </li>
-            <br/>
-          <p>This action cannot be reversed!
-          Are you sure you want to proceed?</p>
+    tasks         =
 
-        "
-        button  : "Yes, remove"
+      default     :
+        resize    :
+          title   : "Resize VM?"
+          message : "
+            If you choose to proceed, this VM will be resized #{resizeDetails}.
+            During the resize process, you will not be able to use the VM but
+            all your files, workspaces and data will be safe.
+          "
+          button  : "Proceed"
+        reinit    :
+          title   : "Reinitialize VM?"
+          message : "
+            If you choose to proceed, this VM will be reset to default state.
+            You will loose all your files, workspaces and data but your VM
+            settings (VM aliases, sub-domains etc.) will not be lost.
+          "
+          button  : "Proceed"
+        destroy   :
+          title   : "Remove VM?"
+          message : "
+            <p>Terminating this VM will destroy all of its:</p>
+              <br/>
+              <li> files and data </li>
+              <li> workspaces </li>
+              <li> running services </li>
+              <li> settings </li>
+              <li> custom domains (if any) </li>
+              <br/>
+            <p>This action cannot be reversed!
+            Are you sure you want to proceed?</p>
+          "
+          button  : "Yes, remove"
+      managed     :
+        destroy   :
+          title   : "Delete VM from Koding?"
+          message : "
+            <p>Deleting this VM will only remove it's connection with Koding,
+               all your files and changes on this VM will remain same.
+            </p><br/>
+            <p>Are you sure you want to proceed?</p>
+          "
+          button  : "Yes, delete"
 
-    if tasks[action]?
-      {title, message, button} = tasks[action]
+    task = tasks[provider]?[action] ? tasks.default[action]
+
+    throw message: "Failed to find action #{action}"  unless task
+
+    {title, message, button} = task
 
     modal = KDModalView.confirm
       title       : title   ? "Remove?"

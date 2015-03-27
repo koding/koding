@@ -7,8 +7,8 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"socialapi/workers/popularpost/popularpost"
-	"socialapi/workers/populartopic/populartopic"
+	"socialapi/workers/popularpost"
+	"socialapi/workers/populartopic"
 	"strconv"
 	"time"
 

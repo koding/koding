@@ -4,7 +4,6 @@ doXhrRequest = require './util/doXhrRequest'
 sendDataDogEvent = require './util/sendDataDogEvent'
 remote = require('./remote').getInstance()
 whoami = require './util/whoami'
-isPubnubEnabled = require './util/isPubnubEnabled'
 kd = require 'kd'
 KDController = kd.Controller
 KDTimeAgoView = kd.TimeAgoView
@@ -13,6 +12,8 @@ PubnubChannel = require './pubnubchannel'
 
 
 module.exports = class RealtimeController extends KDController
+
+  {noop} = kd
 
   constructor: (options = {}, data) ->
 
@@ -23,64 +24,84 @@ module.exports = class RealtimeController extends KDController
     # this is used for discarding events that are received multiple times
     @eventCache = {}
 
+    @initLocalStorage()
+
+    super options, data
+
+    @initPubNub()
+
+    @syncTime()
+
+    @initAuthentication()
+
+
+  fetchServerTime: (callback = noop) ->
+    @pubnub.time (timestamp) =>
+      return callback Date.now() * 10000  unless timestamp
+
+      @serverTimestamp = timestamp
+      @emit 'Ping', timestamp
+      callback timestamp
+
+
+  initPubNub: ->
+    {subscribekey, ssl} = globals.config.pubnub
+
+    options =
+      subscribe_key : subscribekey
+      uuid          : whoami()._id
+      ssl           : if globals.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
+
+    @pubnub = PUBNUB.init options
+
+    # when we send a new message, a user receives both the message itself and notification message
+    # consecutively, which sometimes causes one of these messages to be dropped.
+    # until we learn a better solution, we have seperated notification channel for a new pubnub connection
+    # https://www.pivotaltracker.com/story/show/88210800
+    @pbNotification = PUBNUB.init options
+
+
+  syncTime: ->
+
+    @fetchServerTime (timestamp) =>
+      @lastSeenOnline = timestamp
+
+    setInterval =>
+      @fetchServerTime()
+    , 10000
+
+
+  initLocalStorage: ->
     @localStorage  = kd.getSingleton("localStorageController").storage "realtime"
+
+    # TODO we can remove this later on
+    @localStorage.unsetKey 'isPubnubEnabled'
 
     # each forbidden channel name is stored in local storage
     # this is used for preventing datadog
     unless @localStorage.getValue 'ForbiddenChannels'
       @localStorage.setValue 'ForbiddenChannels', {}
 
-    super options, data
 
-    {subscribekey, ssl} = globals.config.pubnub
-    @timeDiff = 0
-
+  initAuthentication: ->
     @authenticated = false
 
-    if isPubnubEnabled()
-      options =
-        subscribe_key : subscribekey
-        uuid          : whoami()._id
-        ssl           : if globals.config.environment is 'dev' then window.location.protocol is 'https:' else ssl
+    realtimeToken = kookies.get("realtimeToken")
 
-      @pubnub = PUBNUB.init options
+    if realtimeToken?
+      @setAuthToken realtimeToken
+      @authenticated = yes
 
-      # when we send a new message, a user receives both the message itself and notification message
-      # consecutively, which sometimes causes one of these messages to be dropped.
-      # until we learn a better solution, we have seperated notification channel for a new pubnub connection
-      # https://www.pivotaltracker.com/story/show/88210800
-      @pbNotification = PUBNUB.init options
+      return
 
-      @lastSeenOnline = Date.now() * 10000
+    # in case of realtime token does not exist, fetch it from Gatekeeper
+    options = { endPoint : "/api/gatekeeper/token", data: { id: whoami().socialApiId } }
+    @authenticate options, (err) =>
 
-      realtimeToken = kookies.get("realtimeToken")
-      @fetchServerTime()
-      setInterval =>
-        @fetchServerTime()
-      , 10000
+      return kd.warn err  if err
 
-      if realtimeToken?
-        @setAuthToken realtimeToken
-        @authenticated = yes
-
-        return
-
-      # in case of realtime token does not exist, fetch it from Gatekeeper
-      options = { endPoint : "/api/gatekeeper/token", data: { id: whoami().socialApiId } }
-      @authenticate options, (err) =>
-
-        return kd.warn err  if err
-
-        @authenticated = yes
-        @emit 'authenticated'
-
-
-  fetchServerTime: ->
-    @pubnub.time (timestamp) =>
-      return  unless timestamp
-
-      @serverTimestamp = timestamp
-      @emit 'Ping', timestamp
+      @authenticated = yes
+      @emit 'authenticated'
 
 
   setAuthToken: (token) ->
@@ -109,8 +130,7 @@ module.exports = class RealtimeController extends KDController
     requestFn = =>
       doXhrRequest {endPoint, data}, (err) =>
         if err
-          kd.warn "Channel authentication failed: #{err.message}"
-          return
+          return callback {message: "Channel authentication failed: #{err.message}"}
 
         # when we make an authentication request, server responses with realtimeToken
         # in cookie here. If it is not set, then there is no need to subscription attempt
@@ -131,13 +151,9 @@ module.exports = class RealtimeController extends KDController
 
 
   # subscriptionData =
-  #   serviceType: 'socialapi'
   #   group      : group.slug
   #   channelType: typeConstant
   #   channelName: name
-  #   isExclusive: yes
-  #   connectDirectly: yes
-  #   brokerChannelName: channelName
   subscribeChannel: (subscriptionData, callback) ->
 
     # validate first
@@ -145,14 +161,12 @@ module.exports = class RealtimeController extends KDController
 
     return callback { message: 'channel name is not defined' }  unless channelName
 
-    return @subscribeBroker subscriptionData, callback  unless isPubnubEnabled()
-
     pubnubChannelName = "channel-#{token}"
 
     options = { channelName: pubnubChannelName, channelId }
 
     # authentication needed for private message channels
-    if typeConstant is 'privatemessage'
+    if typeConstant in ['privatemessage', 'collaboration']
       options.authenticate =
         endPoint : "/api/gatekeeper/subscribe/channel"
         data     : { name: channelName, typeConstant, groupName: group }
@@ -164,24 +178,6 @@ module.exports = class RealtimeController extends KDController
 
   # unsubscribeChannel unsubscribes the user from given channel
   unsubscribeChannel: (channel) ->
-
-    return @unsubscribeBroker channel  unless isPubnubEnabled()
-
-    @unsubscribePubnub channel
-
-
-  unsubscribeBroker: (channel) ->
-    {groupName, typeConstant, name} = channel
-    channelName = "socialapi.#{groupName}-#{typeConstant}-#{name}"
-    # unsubscribe from the channel.
-    # When a user leaves, and then rejoins a private channel, broker sends
-    # related channel from cache, but this channel contains old secret name.
-    # For this reason I have added this unsubscribe call.
-    # !!! This cache invalidation must be handled when cycleChannel event is received
-    remote.mq.unsubscribe channelName
-
-
-  unsubscribePubnub: (channel) ->
 
     return  unless channel
 
@@ -198,8 +194,6 @@ module.exports = class RealtimeController extends KDController
   # message channels do not need any authentication
   subscribeMessage: (message, callback) ->
 
-    return callback null, message  unless isPubnubEnabled()
-
     {token} = message
 
     channelName = "instance-#{token}"
@@ -215,12 +209,6 @@ module.exports = class RealtimeController extends KDController
 
 
   subscribeNotification: (callback) ->
-    unless isPubnubEnabled()
-      notificationChannel = remote.subscribe 'notification',
-        serviceType : 'notification'
-        isExclusive : yes
-
-      return callback null, notificationChannel
 
     { nickname } = whoami().profile
     { environment } = globals.config
@@ -274,9 +262,7 @@ module.exports = class RealtimeController extends KDController
         # and some messages are dropped in this resubscription time interval
         # for this reason for every subscribe request, we are fetching all messages sent
         # in last 3 seconds
-        # another issue is if user's computer time is ahead of server, it is not receiving the events.
-        # this timeDiff is added because of this problem. https://www.pivotaltracker.com/story/show/87093608
-        timetoken: (((new Date()).getTime() - 3000) * 10000) - @timeDiff
+        timetoken: @serverTimestamp - 30000000
         restore : yes
 
       return callback err  if err
@@ -425,19 +411,4 @@ module.exports = class RealtimeController extends KDController
     delete forbiddenChannels[channelName]
 
     @localStorage.setValue 'ForbiddenChannels', forbiddenChannels
-
-
-  # subscribeBroker subscribes the broker channels when it is enabled.
-  # This will be deleted later on
-  subscribeBroker: (subscriptionData = {}, callback) ->
-    {brokerChannelName:channelName} = subscriptionData
-    # do not use callbacks while subscribing, remote.subscribe already
-    # returns the required channel object. Use it. Callbacks are called
-    # twice in the subscribe function
-    realtimeChannel = remote.subscribe channelName, subscriptionData
-
-    callback null, realtimeChannel
-
-
-
 

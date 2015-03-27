@@ -14,6 +14,8 @@ type (
 		// Protocol holds used protocol information
 		Protocol string `env:"key=KONFIG_SOCIALAPI_PROTOCOL                           required"`
 
+		Segment string `env:"key=KONFIG_SOCIALAPI_SEGMENT                             required"`
+
 		// Email holds the required configuration data for email related workers
 		Email Email
 
@@ -71,6 +73,7 @@ type (
 		ApiKey       string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APIKEY                       required"`
 		ApiSecretKey string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISECRETKEY                 required"`
 		IndexSuffix  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX                  required"`
+		ApiTokenKey  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APITOKENKEY                  required"`
 	}
 
 	// Mixpanel holds mixpanel credentials

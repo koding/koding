@@ -1,31 +1,32 @@
-kd = require 'kd'
-KDBlockingModalView = kd.BlockingModalView
-KDCustomHTMLView = kd.CustomHTMLView
-KDListView = kd.ListView
-KDListViewController = kd.ListViewController
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDTabPaneView = kd.TabPaneView
-KDTabView = kd.TabView
-KDView = kd.View
-AccountListWrapper = require './accountlistwrapper'
+kd                    = require 'kd'
+KDBlockingModalView   = kd.BlockingModalView
+KDCustomHTMLView      = kd.CustomHTMLView
+KDListView            = kd.ListView
+KDListViewController  = kd.ListViewController
+KDModalView           = kd.ModalView
+KDNotificationView    = kd.NotificationView
+KDTabPaneView         = kd.TabPaneView
+KDTabView             = kd.TabView
+KDView                = kd.View
+remote                = require('app/remote').getInstance()
+AccountListWrapper    = require './accountlistwrapper'
 AccountNavigationItem = require './accountnavigationitem'
-ReferrerModal = require './views/referrermodal'
-remote = require('app/remote').getInstance()
-whoami = require 'app/util/whoami'
-showError = require 'app/util/showError'
-oauthEnabled = require 'app/util/oauthEnabled'
-AppController = require 'app/appcontroller'
-Encoder = require 'htmlencode'
+ReferrerModal         = require './views/referrermodal'
+whoami                = require 'app/util/whoami'
+showError             = require 'app/util/showError'
+oauthEnabled          = require 'app/util/oauthEnabled'
+AppController         = require 'app/appcontroller'
+Encoder               = require 'htmlencode'
 require('./routehandler')()
 
 
 module.exports = class AccountAppController extends AppController
 
   @options =
-    name  : 'Account'
+    name       : 'Account'
+    background : yes
 
-  items =
+  NAV_ITEMS =
     personal :
       title  : "Personal"
       items  : [
@@ -53,35 +54,47 @@ module.exports = class AccountAppController extends AppController
 
 
   if oauthEnabled() is yes
-    items.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
+    NAV_ITEMS.personal.items.push({ slug : 'Externals', title : "Linked accounts",     listType: "linkedAccounts" })
 
-  constructor:(options={}, data)->
+  constructor: (options = {}, data) ->
 
-    options.view = new KDView cssClass : "content-page"
+    options.view = new KDModalView
+      title    : 'Account Settings'
+      cssClass : 'AppModal AppModal--account'
+      width    : 805
+      overlay  : yes
 
     super options, data
 
 
-  createTab:(itemData)->
+  createTab: (itemData) ->
+
     {title, listType} = itemData
 
-    new KDTabPaneView
-      view       : new AccountListWrapper
-        cssClass : "settings-list-wrapper #{kd.utils.slugify title}"
+    wrapper = new AccountListWrapper
+      cssClass : "settings-list-wrapper #{kd.utils.slugify title}"
       , itemData
 
+    wrapper.on 'ModalCloseRequested', @bound 'closeModal'
 
-  openSection:(section)->
+    new KDTabPaneView
+      view       : wrapper
 
-    for item in @navController.itemsOrdered when section is item.getData().slug
+  closeModal: ->
+
+    @mainView.destroy()
+
+  openSection: (section) ->
+
+    for item in @navController.getListItems() when section is item.getData().slug
       @tabView.addPane @createTab item.getData()
       @navController.selectItem item
       break
 
 
-  loadView:(mainView)->
+  loadView: (modal) ->
 
-    # SET UP VIEWS
+    @navController?.destroy()
     @navController = new KDListViewController
       view        : new KDListView
         tagName   : 'nav'
@@ -90,20 +103,34 @@ module.exports = class AccountAppController extends AppController
       wrapper     : no
       scrollView  : no
 
-    mainView.addSubView aside = new KDView
+    modal.addSubView aside = new KDView
       tagName   : 'aside'
-      cssClass  : 'app-sidebar'
+      cssClass  : 'AppModal-nav'
 
     aside.addSubView navView = @navController.getView()
 
-    mainView.addSubView @tabView = new KDTabView
+    modal.addSubView appContent = new KDCustomHTMLView
+      cssClass            : 'AppModal-content'
+
+    appContent.addSubView @tabView = new KDTabView
       hideHandleContainer : yes
 
-    for own sectionKey, section of items
-      @navController.instantiateListItems section.items
-      navView.addSubView new KDCustomHTMLView cssClass : "divider"
+    items = []
+    for own sectionKey, section of NAV_ITEMS
+      items = items.concat section.items
 
-  showReferrerModal:(options={})->
+    @navController.instantiateListItems items
+
+    modal.once 'KDObjectWillBeDestroyed', ->
+      { router } = kd.singletons
+      previousRoutes = router.visitedRoutes.filter (route) -> not /^\/Account.*/.test(route)
+      if previousRoutes.length > 0
+      then router.handleRoute previousRoutes.last
+      else router.handleRoute router.getDefaultRoute()
+
+
+  showReferrerModal: (options = {}) ->
+
     return  if @referrerModal and not @referrerModal.isDestroyed
 
     options.top         ?= 50
@@ -112,7 +139,9 @@ module.exports = class AccountAppController extends AppController
 
     @referrerModal = new ReferrerModal options
 
-  displayConfirmEmailModal:(name, username, callback=kd.noop)->
+
+  displayConfirmEmailModal: (name, username, callback=kd.noop) ->
+
     name or= whoami().profile.firstName
     message =
       """
@@ -139,7 +168,8 @@ module.exports = class AccountAppController extends AppController
 
     callback modal
 
-  resendHandler : (modal, username)->
+
+  resendHandler : (modal, username) ->
 
     remote.api.JPasswordRecovery.resendVerification username, (err)=>
       modal.buttons["Resend Confirmation Email"].hideLoader()
@@ -150,10 +180,12 @@ module.exports = class AccountAppController extends AppController
         duration  : 4500
 
 
-  showRegistrationNeededModal:->
+  showRegistrationNeededModal: ->
+
     return if @modal
 
-    handler = (modal, route)->
+    handler = (modal, route) ->
+
       modal.destroy()
       kd.utils.wait 1000, -> kd.getSingleton("router").handleRoute route
 

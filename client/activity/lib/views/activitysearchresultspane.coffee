@@ -17,7 +17,7 @@ module.exports = class ActivitySearchResultsPane extends ActivityContentPane
     @listController.removeAllItems()
     @currentPage = 0
 
-  appendContent: (content) ->
+  appendContent: (content = []) ->
     super content
     @currentPage = null  if content.length < @getOption 'resultsPerPage'
 

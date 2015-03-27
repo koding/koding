@@ -12,44 +12,53 @@ module.exports = class JWorkspace extends Module
 
   @set
 
-    indexes        :
-      originId     : 'sparse'
-      slug         : 'sparse'
+    indexes             :
+      originId          : 'sparse'
+      slug              : 'sparse'
 
-    schema         :
-      name         : String
-      slug         : String
-      isDefault    :
-        type       : Boolean
-        default    : no
-      channelId    : String
-      machineUId   : String
-      machineLabel : String
-      rootPath     : String
-      originId     : ObjectId
-      layout       : Object
+    schema              :
+      name              : String
+      slug              : String
+      isDefault         :
+        type            : Boolean
+        default         : no
+      channelId         : String
+      machineUId        : String
+      machineLabel      : String
+      rootPath          : String
+      originId          : ObjectId
+      layout            : Object
 
-    sharedMethods  :
-      static       :
-        create     : signature Object, Function
-        deleteById : signature String, Function
-        deleteByUid: signature String, Function
-        update     : signature String, Object, Function
-        fetchByMachines: signature Function
-      instance     :
-        delete     : signature Function
-    sharedEvents   :
-      static       : []
-      instance     : []
+    sharedMethods       :
+      static            :
+        create          : signature Object, Function
+        deleteById      : signature String, Function
+        deleteByUid     : signature String, Function
+        update          : signature String, Object, Function
+        fetchByMachines : signature Function
+        createDefault   : signature String, Function
+      instance          :
+        delete          : signature Function
+    sharedEvents        :
+      static            : []
+      instance          : []
 
 
-  @create = secure (client, data, callback) ->
+  @create$ = secure (client, data, callback) ->
 
     {delegate}    = client.connection
     data.originId = delegate._id
 
-    nickname      = delegate.profile.nickname
-    data.slug     = slugify data.name?.toLowerCase()
+    @create client, data, callback
+
+
+  @create = secure (client, data, callback) ->
+
+    {delegate}     = client.connection
+    data.originId ?= delegate._id
+
+    nickname  = delegate.profile.nickname
+    data.slug = slugify data.name?.toLowerCase()
 
     {name, slug, machineUId, rootPath, originId, machineLabel} = data
 
@@ -57,11 +66,7 @@ module.exports = class JWorkspace extends Module
     # to prevent storing any kind of data in it. -- acetz!
     data.layout = {}
 
-    generateUniqueName { originId, name, machineUId }, (err, res)->
-
-      return callback err  if err?
-
-      { slug, name } = res
+    kallback = (name, slug) ->
 
       data.name      = name
       data.slug      = slug
@@ -69,10 +74,27 @@ module.exports = class JWorkspace extends Module
       workspace      = new JWorkspace data
 
       workspace.save (err) ->
-        return callback err  if err
+        if err
+          switch err.code
+            when 11000 # duplicate key error
+              callback()
+            else
+              callback err  if err
+          return
 
         delegate.emit 'NewWorkspaceCreated', workspace
         return callback null, workspace
+
+    if data.isDefault
+    then kallback data.name, data.slug
+    else
+      generateUniqueName { originId, name, machineUId }, (err, res)->
+
+        return callback err  if err?
+
+        { name, slug } = res
+
+        kallback name, slug
 
 
   generateUniqueName = ({originId, machineUId, name, index}, callback)->
@@ -137,7 +159,6 @@ module.exports = class JWorkspace extends Module
     selector     =
       originId   : client.connection.delegate._id
       machineUId : uid
-      slug       : $ne: 'my-workspace'
 
     JWorkspace.remove selector, (err)->
       callback err
@@ -166,15 +187,34 @@ module.exports = class JWorkspace extends Module
       ws.update options, callback
 
 
-  @createDefault: (client, machine, callback) ->
+  @createDefault: secure (client, machineUId, callback) ->
 
-    {nickname} = client.connection.delegate.profile
+    JMachine.one$ client, machineUId, (err, machine) =>
 
-    data =
-      name         : 'My Workspace'
-      isDefault    : yes
-      machineLabel : machine.label
-      machineUId   : machine.uid
-      rootPath     : "/home/#{nickname}"
+      return callback err  if err
+      return callback 'Machine not found'  unless machine
 
-    @create client, data, callback
+      {nickname} = client.connection.delegate.profile
+      rootPath   = '/'  if machine.provider is 'managed'
+      selector   = {machineUId, slug: 'my-workspace'}
+
+      @one selector, (err, workspace) =>
+
+        return callback err  if err
+        return callback null, workspace  if workspace
+
+        machine.fetchOwner (err, account) =>
+
+          return callback err  if err
+
+          {nickname}     = account.profile
+          
+          data           =
+            name         : 'My Workspace'
+            isDefault    : yes
+            machineLabel : machine.label
+            machineUId   : machine.uid
+            rootPath     : rootPath ? "/home/#{nickname}"
+            originId     : account.getId()
+
+          @create client, data, callback

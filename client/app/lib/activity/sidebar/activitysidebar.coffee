@@ -96,12 +96,14 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
       .on 'MachineDataModified',       @bound 'updateMachines'
       .on 'RenderMachines',            @bound 'updateMachines'
       .on 'MachineBeingDestroyed',     @bound 'invalidateWorkspaces'
+      .on 'MachineBuilt',              @bound 'machineBuilt'
 
     @on 'ReloadMessagesRequested',     @bound 'handleReloadMessages'
 
     environmentDataProvider.revive()
 
     mainController.ready =>
+      environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
       whoami().on 'NewWorkspaceCreated', @bound 'updateMachines'
 
 
@@ -356,6 +358,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   addItem: (data, index) ->
 
     listController = @getListController data.typeConstant
+
+    return  unless listController
+
     item = @getItemByData data
 
     # add the new topic item in sidebar
@@ -495,8 +500,10 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     { machine, workspace } = data
 
-    for machineList in @machineLists
-      machineList.selectMachineAndWorkspace machine.uid, workspace.slug
+    kd.getSingleton('mainController').ready =>
+
+      for machineList in @machineLists
+        machineList.selectMachineAndWorkspace machine.uid, workspace.slug
 
 
   fetchEnvironmentData: (callback) ->
@@ -530,11 +537,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
     frontApp = kd.singletons.appManager.getFrontApp()
 
-    if frontApp.options.name is 'IDE'
-      machine   = frontApp.mountedMachine
-      workspace = frontApp.workspaceData
-
-      @selectWorkspace { machine, workspace }
+    if frontApp?.options.name is 'IDE'
+      frontApp.whenMachineReady (machine, workspace) =>
+        @selectWorkspace { machine, workspace }  if machine and workspace
 
 
   addMachines_: (data) ->
@@ -635,9 +640,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
   updateMachines: (callback = kd.noop) ->
 
-    @fetchEnvironmentData (data) =>
-      @ownMachinesList.updateList data.own
-      @sharedMachinesList.updateList data.shared.concat data.collaboration
+    kd.singletons.mainController.ready =>
+      @fetchEnvironmentData @bound 'redrawMachineList'
 
 
   invalidateWorkspaces: (machine) ->
@@ -647,6 +651,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     remote.api.JWorkspace.deleteByUid machine.uid, (err) =>
 
       return kd.warn err  if err
+
+      environmentDataProvider.clearWorkspaces machine
+      @redrawMachineList()
 
 
   removeMachineNode: (machine) ->
@@ -665,3 +672,8 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
           box = machineBox
 
     return box
+
+
+  machineBuilt: ->
+
+    environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'

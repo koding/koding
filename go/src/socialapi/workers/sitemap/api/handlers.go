@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/koding/metrics"
 	"github.com/koding/runner"
 )
 
@@ -36,7 +37,7 @@ func NewSitemapHandler() *SitemapHandler {
 	}
 }
 
-func AddHandlers(m *mux.Mux) {
+func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 	sh := NewSitemapHandler()
 
 	m.AddUnscopedHandler(
@@ -44,6 +45,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  sh.FetchRoot,
 			Type:     handler.GetRequest,
 			Endpoint: "/sitemap.xml",
+			Metrics:  metric,
 		})
 
 	m.AddUnscopedHandler(
@@ -51,6 +53,7 @@ func AddHandlers(m *mux.Mux) {
 			Handler:  sh.FetchByName,
 			Type:     handler.GetRequest,
 			Endpoint: "/sitemap/{name}",
+			Metrics:  metric,
 		})
 }
 

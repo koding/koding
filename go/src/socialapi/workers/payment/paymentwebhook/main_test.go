@@ -23,7 +23,7 @@ func init() {
 	email := initializeEmail(appConfig.Email)
 
 	// initialize controller to inject dependencies
-	cont := &Controller{Kite: kiteClient, Email: email}
+	cont := &Controller{Kite: kiteClient}
 
 	controller = cont
 }

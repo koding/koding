@@ -60,9 +60,6 @@ func NewClientSettings(conf config.Pubnub) *pubnub.ClientSettings {
 func (p *PubNub) UpdateChannel(pm *PushMessage) error {
 	pmc := NewPrivateMessageChannel(*pm.Channel)
 
-	// TODO do not send these secret names
-	// pm.Channel.SecretNames = []string{}
-
 	// channel grant public access for public channels
 	typeConstant := pmc.Type
 	if typeConstant == "privatemessage" || typeConstant == "pinnedactivity" {
@@ -125,6 +122,13 @@ func (p *PubNub) UpdateInstance(um *UpdateInstanceMessage) error {
 
 	if err := p.GrantPublicAccess(mc); err != nil {
 		return err
+	}
+
+	// um.Body is just message data itself in a map. Since we are going
+	// to apply the changes via MongoOp in client side, we are sending
+	// the changes with '$set' key.
+	if um.EventName == "updateInstance" {
+		um.Body = map[string]interface{}{"$set": um.Body}
 	}
 
 	// Prepend instance id to event name. We are no longer creating a channel

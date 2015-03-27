@@ -106,7 +106,9 @@ func sh(r metrics.Registry, s *DogStatsD) error {
 			s.Gauge(name+".count.gauge", process(m.Count()), nil, 1.0)
 		case metrics.Timer:
 			t := metric.Snapshot()
-			s.Gauge(name+".count.gauge", process(t.Count()), nil, 1.0)
+			s.Gauge(name+".mean.timer", t.Mean(), nil, 1.0)
+			s.Gauge(name+".max.timer", process(t.Max()), nil, 1.0)
+			s.Gauge(name+".min.timer", process(t.Min()), nil, 1.0)
 		}
 	})
 	return nil

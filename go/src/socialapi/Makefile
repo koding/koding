@@ -69,63 +69,63 @@ apidev:
 
 topicfeeddev:
 	@echo "$(OK_COLOR)==> Running Topic Feed Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/topicfeed -watch socialapi/workers/topicfeed -c $(CONFIG) $(DBG) $(METRICS)
 
 realtimedev:
 	@echo "$(OK_COLOR)==> Running Realtime Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/realtime -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime -watch socialapi/workers/realtime/realtime -c $(CONFIG) $(DBG) $(METRICS)
 
 populartopicdev:
 	@echo "$(OK_COLOR)==> Running Popular Topics Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/populartopic -watch socialapi/workers/populartopic -c $(CONFIG) $(DBG) $(METRICS)
 
 pinnedpostdev:
 	@echo "$(OK_COLOR)==> Running PinnedPost Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/pinnedpost -watch socialapi/workers/pinnedpost -c $(CONFIG) $(DBG) $(METRICS)
 
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/notification -watch socialapi/workers/notification -c $(CONFIG) $(DBG) $(METRICS)
 
 emaildev: activityemaildev dailyemaildev privatemessageemaildev
 
 activityemaildev:
 	@echo "$(OK_COLOR)==> Running Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/activityemail -watch socialapi/workers/email/activityemail -c $(CONFIG) $(DBG) $(METRICS)
 
 dailyemaildev:
 	@echo "$(OK_COLOR)==> Running Daily Email Notifier Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/dailyemail -watch socialapi/workers/email/dailyemail -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemaildev: privatemessageemailfeederdev privatemessageemailsenderdev
 
 privatemessageemailfeederdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailfeeder -watch socialapi/workers/email/privatemessageemail/privatemessageemailfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
 privatemessageemailsenderdev:
 	@echo "$(OK_COLOR)==> Running Private Message Email Sender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/email/privatemessageemail/privatemessageemailsender -watch socialapi/workers/email -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/privatemessageemailsender -watch socialapi/workers/email/privatemessageemail/privatemessageemailsender -c $(CONFIG) $(DBG) $(METRICS)
 
 popularpostdev:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/popularpost -watch socialapi/workers/popularpost -c $(CONFIG) $(DBG) $(METRICS)
 
 trollmodeldev:
 	@echo "$(OK_COLOR)==> Running Troll Mode Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/trollmode -watch socialapi/workers/trollmode -c $(CONFIG) $(DBG) $(METRICS)
 
 dispatcherdev:
 	@echo "$(OK_COLOR)==> Running Dispatcher Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime/dispatcher -watch socialapi/workers/realtime/dispatcher -c $(CONFIG) $(DBG) $(METRICS)
 
 gatekeeperdev:
 	@echo "$(OK_COLOR)==> Running Gatekeeper Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/realtime/gatekeeper -watch socialapi/workers/realtime/gatekeeper -c $(CONFIG) $(DBG) $(METRICS)
 
 collaborationdev:
 	@echo "$(OK_COLOR)==> Running Collaboration Worker $(NO_COLOR)"
@@ -133,7 +133,7 @@ collaborationdev:
 
 mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/emailsender -watch socialapi/workers/email/sender -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
@@ -144,20 +144,20 @@ configuremigration:
 
 migrate:
 	@echo "$(OK_COLOR)==> Running Popular Posts Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/migrator -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/migrator -watch socialapi/workers/migrator/controller -c $(CONFIG) $(DBG) $(METRICS)
 sitemapdev: sitemapfeederdev sitemapgeneratordev
 
 sitemapfeederdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Feeder Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapfeeder -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapgeneratordev:
 	@echo "$(OK_COLOR)==> Running Sitemap Generator Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapgenerator -watch socialapi/workers/sitemap/sitemapgenerator -c $(CONFIG) $(DBG) $(METRICS)
 
 sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/sitemap/sitemapinitializer -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapinitializer -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
@@ -214,16 +214,42 @@ testmodels:
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/sender/*.go
-	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./sender.test
+	@`which go` test -c workers/email/emailsender/*.go
+	@./emailsender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./emailsender.test
 
-testapi: testcollaboration testmailsender testmail testmodels
+testemailworker:
+	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
+	# @`which go` test -c workers/email/activityemail/*.go
+	# @./activityemail.test $(DBG) $(METRICS) -c $(CONFIG)
+	# @rm ./activityemail.test
+
+	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/*.go
+	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./feeder.test
+
+	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/*.go
+	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./sender.test
+
+	@`which go` test -c workers/email/emailmodels/*.go
+	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./emailmodels.test
+
+testnotification:
+
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
+	@`which go` test -c workers/notification/tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testnotification
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> algolia tests... $(NO_COLOR)"
 	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test -c $(CONFIG)
 	@rm ./algoliaconnector.test
@@ -236,12 +262,12 @@ testapi: testcollaboration testmailsender testmail testmodels
 	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@`which go` test workers/trollmode/tests/*.go
-	@`which go` test -c workers/trollmode/trollmode/*.go
+	@`which go` test -c workers/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
 
 	@echo "$(OK_COLOR)--> topic feed tests... $(NO_COLOR)"
-	@`which go` test -c workers/topicfeed/topicfeed/*.go
+	@`which go` test -c workers/topicfeed/*.go
 
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	@`which go` test -c workers/payment/*.go
@@ -268,26 +294,13 @@ testapi: testcollaboration testmailsender testmail testmodels
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 
-	@echo "$(OK_COLOR)--> notification email tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailfeeder/feeder/*.go
-	@./feeder.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./feeder.test
-
-	@`which go` test -c workers/email/privatemessageemail/privatemessageemailsender/sender/*.go
-	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./sender.test
-
-	@`which go` test -c workers/email/emailmodels/*.go
-	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./emailmodels.test
-
 	@echo "$(OK_COLOR)--> realtime tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/realtime/*.go
 	@./realtime.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./realtime.test
 
 	@echo "$(OK_COLOR)--> sitemap generator tests... $(NO_COLOR)"
-	@`which go` test -c workers/sitemap/sitemapgenerator/generator/*.go
+	@`which go` test -c workers/sitemap/sitemapgenerator/*.go
 	@./generator.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./generator.test
 

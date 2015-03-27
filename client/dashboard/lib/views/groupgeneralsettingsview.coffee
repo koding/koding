@@ -113,7 +113,9 @@ module.exports = class GroupGeneralSettingsView extends JView
     group      = @getData()
 
     if formData.stackTemplates is "none"
-      formData.stackTemplates = []
+      formData.stackTemplates = [ ]
+    else if not formData.stackTemplates?
+      delete formData.stackTemplates
     else
       formData.stackTemplates = [ formData.stackTemplates ]
 
@@ -169,5 +171,3 @@ module.exports = class GroupGeneralSettingsView extends JView
           Stack.setDefaultValue "none"
 
   pistachio:-> "{{> @settingsForm}}"
-
-

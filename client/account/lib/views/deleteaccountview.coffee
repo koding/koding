@@ -14,7 +14,7 @@ module.exports = class DeleteAccountView extends JView
 
     @button = new KDButtonView
       title      : "Delete Account"
-      cssClass   : "delete-account solid red fr medium"
+      cssClass   : "delete-account solid red fr small"
       bind       : "mouseenter"
       mouseenter : do ->
         times = 0
@@ -33,7 +33,7 @@ module.exports = class DeleteAccountView extends JView
 
   pistachio:->
     """
-    <span>Delete your account (if you can)</span>
+    <h4 class="kdview kdheaderview"><span>Delete your account</span></h4>
     {{> @button}}
     """
 

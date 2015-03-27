@@ -1,4 +1,5 @@
 {Module} = require 'jraphical'
+KodingError = require '../error'
 
 class PINExistsError extends Error
   constructor:(message)->
@@ -46,7 +47,6 @@ module.exports = class JVerificationToken extends Module
 
     if not email
 
-      KodingError = require '../error'
       callback new KodingError "E-mail is not provided!"
 
     else
