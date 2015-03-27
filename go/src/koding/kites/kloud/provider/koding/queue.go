@@ -5,13 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
 
-	"koding/db/models"
-	"koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 
@@ -56,62 +52,15 @@ func (p *Provider) CheckUsage(m *Machine) error {
 		return errors.New("checking machine. document is nil")
 	}
 
-	m.Log = p.Log.New(m.Id.Hex())
-
-	// will be replaced once we connect to klient in checker.Timeout() we are
-	// adding it so it doesn't panic when someone tries to retrieve it
-	m.Username = "kloud-checker"
-
-	var user *models.User
-	if err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.FindId(m.Id).One(&user)
-	}); err != nil {
-		m.Log.Warning("Failed to fetch user information while checking storage. err: %v",
-			err)
-		return err
-	}
-
-	payment, err := p.PaymentFetcher.Fetch(user.Name)
-	if err != nil {
-		m.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
-			user.Name, err)
-		payment = &PaymentResponse{Plan: Hobbyist}
-	}
-
 	if m.Meta.Region == "" {
 		return errors.New("region is not set in.")
 	}
 
-	client, err := p.EC2Clients.Region(m.Meta.Region)
-	if err != nil {
+	ctx := context.Background()
+	if err := p.attachSession(ctx, m); err != nil {
 		return err
 	}
 
-	amazonClient, err := amazon.New(structs.Map(m.Meta), client)
-	if err != nil {
-		return fmt.Errorf("koding-amazon err: %s", err)
-	}
-
-	m.networkUsageEndpoint = p.NetworkUsageEndpoint
-	m.Payment = payment
-	m.Username = user.Name
-	m.User = user
-	m.Session = &session.Session{
-		DB:         p.DB,
-		Kite:       p.Kite,
-		DNSClient:  p.DNSClient,
-		Userdata:   p.Userdata,
-		AWSClient:  amazonClient,
-		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
-	}
-	m.cleanFuncs = make([]func(), 0)
-
-	// for now just check for timeout. This will dial the remote klient to get
-	// the usage data
-	return p.checkTimeout(m)
-}
-
-func (p *Provider) checkTimeout(m *Machine) error {
 	// Check klient state before rushing to AWS.
 	klientRef, err := klient.Connect(m.Session.Kite, m.QueryString)
 	if err != nil {
@@ -163,7 +112,7 @@ func (p *Provider) checkTimeout(m *Machine) error {
 	}()
 
 	// Hasta la vista, baby!
-	return m.Stop(context.Background())
+	return m.Stop(ctx)
 }
 
 // FetchOne() fetches a single machine document from mongodb that meets the criterias:

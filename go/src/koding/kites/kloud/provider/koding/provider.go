@@ -63,40 +63,49 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 
+	machine.Log = p.Log.New(id)
+
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("request context is not available")
 	}
 
-	ev, ok := eventer.FromContext(ctx)
-	if !ok {
-		return nil, errors.New("eventer context is not available")
-	}
-
 	p.Log.Debug("=====> machine: %+v", machine)
 	p.Log.Debug("=====> req    : %+v", req)
 
-	// get user model which contains user ssh keys or the list of users that
-	// are allowed to use this machine
-	user, err := p.getUser(req.Username)
-	if err != nil {
-		return nil, err
-	}
-
-	machine.Log = p.Log.New(id)
 	if machine.Meta.Region == "" {
 		machine.Meta.Region = "us-east-1"
 		machine.Log.Critical("region is not set in. Fallback to us-east-1.")
 	}
 
+	if err := p.attachSession(ctx, machine); err != nil {
+		return nil, err
+	}
+
+	// check for validation and permission
+	if err := p.validate(machine, req); err != nil {
+		return nil, err
+	}
+
+	return machine, nil
+}
+
+func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
+	// get user model which contains user ssh keys or the list of users that
+	// are allowed to use this machine
+	user, err := p.getUser(machine.Id)
+	if err != nil {
+		return err
+	}
+
 	client, err := p.EC2Clients.Region(machine.Meta.Region)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
 	if err != nil {
-		return nil, fmt.Errorf("koding-amazon err: %s", err)
+		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
 	payment, err := p.PaymentFetcher.Fetch(user.Name)
@@ -115,28 +124,27 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		Userdata:   p.Userdata,
-		Eventer:    ev,
 		AWSClient:  amazonClient,
 		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
 	}
 	machine.cleanFuncs = make([]func(), 0)
 
-	// check for validation and permission
-	if err := p.validate(machine, req); err != nil {
-		return nil, err
+	ev, ok := eventer.FromContext(ctx)
+	if ok {
+		machine.Session.Eventer = ev
 	}
 
-	return machine, nil
+	return nil
 }
 
-func (p *Provider) getUser(username string) (*models.User, error) {
+func (p *Provider) getUser(userId bson.ObjectId) (*models.User, error) {
 	var user *models.User
 	err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"username": username}).One(&user)
+		return c.FindId(userId).One(&user)
 	})
 
 	if err == mgo.ErrNotFound {
-		return nil, fmt.Errorf("username not found: %s", username)
+		return nil, fmt.Errorf("User with Id not found: %s", userId.Hex())
 	}
 	if err != nil {
 		return nil, fmt.Errorf("username lookup error: %v", err)
@@ -148,11 +156,15 @@ func (p *Provider) getUser(username string) (*models.User, error) {
 func (p *Provider) validate(m *Machine, r *kite.Request) error {
 	m.Log.Debug("validating for method '%s'", r.Method)
 
-	// give access to kloudctl
+	// give access to kloudctl immediately
 	if r.Auth != nil {
 		if r.Auth.Key == command.KloudSecretKey {
 			return nil
 		}
+	}
+
+	if r.Username != m.User.Name {
+		return errors.New("username is not permitted to make any action")
 	}
 
 	// check for user permissions
