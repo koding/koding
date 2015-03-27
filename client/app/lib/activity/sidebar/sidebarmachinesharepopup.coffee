@@ -125,3 +125,9 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       @destroy()
       envDataProvider.fetch =>
         kd.singletons.mainView.activitySidebar.redrawMachineList()
+
+  destroy: ->
+
+    @overlay?.destroy()
+
+    super
