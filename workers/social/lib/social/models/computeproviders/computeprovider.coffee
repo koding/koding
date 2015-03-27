@@ -329,55 +329,23 @@ module.exports = class ComputeProvider extends Base
     JAccount.on 'UsernameChanged', ({ oldUsername, username, isRegistration })->
 
       return  unless oldUsername and username
+      return  if isRegistration
 
       JMachine = require './machine'
 
-      unless isRegistration
+      console.log "Removing user #{oldUsername} vms..."
 
-        console.log "Removing user #{oldUsername} vms..."
+      JMachine.update
+        provider      : $in: ['koding', 'managed']
+        credential    : oldUsername
+      ,
+        $set          :
+          userDeleted : yes
+      ,
+        multi         : yes
+      , (err)->
+        if err?
+          console.error \
+            "Failed to mark them as deleted for #{oldUsername}:", err
 
-        JMachine.update
-          provider      : 'koding'
-          credential    : oldUsername
-        ,
-          $set          :
-            userDeleted : yes
-        ,
-          multi         : yes
-        , (err)->
-          if err?
-            console.error \
-              "Failed to mark them as deleted for #{oldUsername}:", err
-
-        return
-
-
-      oldDomain = "#{oldUsername}.#{KONFIG.userSitesDomain}"
-
-      JMachine.one
-
-        provider : 'koding'
-        domain   : ///#{oldDomain}$///
-
-      , (err, machine)->
-
-        if err? or not machine
-          # discard any error or not found cases
-          # console.log "Failed to find machine for #{username}", err
-        else
-
-          newDomain = "#{machine.uid}.#{username}.#{KONFIG.userSitesDomain}"
-
-          machine.update
-
-            $set         :
-              domain     : newDomain
-              credential : username
-
-          , (err)->
-
-            unless err
-              console.log """Machine domain updated for #{username}
-                             from *.#{oldDomain} to #{newDomain}"""
-            else
-              console.log "Failed to update machine domain for #{username}", err
+      return

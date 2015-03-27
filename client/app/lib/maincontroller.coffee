@@ -136,7 +136,6 @@ class MainController extends KDController
     kd.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     kd.registerSingleton 'kodingAppsController',      new KodingAppsController
     kd.registerSingleton 'socialapi',                 new SocialApiController
-    kd.registerSingleton 'search',                    new SearchController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
     kd.registerSingleton 'shortcuts',     shortcuts = new ShortcutsController
@@ -150,8 +149,9 @@ class MainController extends KDController
     mv.appendToDomBody()
 
     @ready =>
-      kd.registerSingleton 'widgetController',     new WidgetController
-      kd.registerSingleton 'onboardingController', new OnboardingController
+      kd.registerSingleton 'search',                  new SearchController
+      kd.registerSingleton 'widgetController',        new WidgetController
+      kd.registerSingleton 'onboardingController',    new OnboardingController
 
       @emit 'AppIsReady'
 
