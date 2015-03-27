@@ -1,6 +1,7 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"log"
 	"socialapi/workers/common/runner"
 	"socialapi/workers/email/emailsender"
@@ -18,6 +19,8 @@ func main() {
 	if err := r.Init(); err != nil {
 		log.Fatal(err)
 	}
+
+	modelhelper.Initialize(r.Conf.Mongo)
 
 	exporter := eventexporter.NewSegmentIOExporter(r.Conf.Segment, QueueLength)
 	constructor := emailsender.New(exporter, r.Log)
