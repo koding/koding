@@ -22,6 +22,10 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
     super options, data
 
+    if @getData().isApproved()
+      @isApproved = yes
+      @setClass 'approved'
+
     @createArrow()
     @createElements()
 
