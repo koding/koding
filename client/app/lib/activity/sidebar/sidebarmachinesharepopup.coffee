@@ -55,32 +55,45 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   createElements: ->
 
+    text       = 'wants to share this VM with you'
+    titleFirst = no
+
+    if @isApproved
+      text       = 'Shared with you by'
+      titleFirst = yes
+
     @createAvatarView @getData().getOwner()
-    @createTitle 'wants to share this VM with you'
+    @createTitle text, titleFirst
     @createButtons()
 
 
-  createTitle: (text) ->
+  createTitle: (text, prepend) ->
 
-    @addSubView new KDCustomHTMLView
+    view = new KDCustomHTMLView
       tagName  : 'p'
       cssClass : 'title'
       partial  : text
 
+    @addSubView view, null, prepend
+
 
   createButtons: ->
 
+    title = if @isApproved then'LEAVE SHARED VM' else 'REJECT'
+
     @addSubView @denyButton = new KDButtonView
       cssClass : 'solid medium red'
-      title    : 'REJECT'
+      title    : title
       loader   : yes
       callback : @bound 'denyShare'
 
-    @addSubView @approveButton = new KDButtonView
-      cssClass : 'solid green medium'
-      title    : 'ACCEPT'
-      loader   : yes
-      callback : @bound 'approveShare'
+    unless @isApproved
+
+      @addSubView @approveButton = new KDButtonView
+        cssClass : 'solid green medium'
+        title    : 'ACCEPT'
+        loader   : yes
+        callback : @bound 'approveShare'
 
 
   createAvatarView: (nickname) ->
