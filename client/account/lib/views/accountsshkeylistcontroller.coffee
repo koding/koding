@@ -22,7 +22,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       @newItem = no
       newKeys = @getListItems().map (item)-> item.getData()
       unless newKeys.length is 0 then @customItem?.destroy()
-      @updateHelpLinkVisibility newKeys
+      @updateHelpLink newKeys
       remote.api.JUser.setSSHKeys newKeys, -> kd.log "Saved keys."
 
     @getListView().on "RemoveItem", (item)=>
@@ -60,13 +60,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
       @getListView().addSubView @header, '', yes
 
-      @sshKeyHelpLink = new KDCustomHTMLView
-        cssClass : 'ssh-key-help'
-        partial  : """
-          <a href="http://learn.koding.com/delete-ssh-key" target="_blank">How to delete ssh key from your VM</a>
-        """
-      @getListView().addSubView @sshKeyHelpLink
-      @updateHelpLinkVisibility keys
+      @updateHelpLink keys
 
 
   addNewKey: ->
@@ -95,12 +89,16 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
         @getListView().addItemView newSshKey, 0
 
 
-  updateHelpLinkVisibility: (keys) ->
+  updateHelpLink: (keys) ->
 
-    if keys.length is 0
-      @sshKeyHelpLink.hide()
-    else
-      @sshKeyHelpLink.show()
+    @sshKeyHelpLink?.destroy()
+    if keys.length > 0
+      @sshKeyHelpLink = new KDCustomHTMLView
+        cssClass : 'ssh-key-help'
+        partial  : """
+          <a href="http://learn.koding.com/delete-ssh-key" target="_blank">How to delete ssh key from your VM</a>
+        """
+      @getListView().addSubView @sshKeyHelpLink
 
 
   isMachineActive: (machine) ->
