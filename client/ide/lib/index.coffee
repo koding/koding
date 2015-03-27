@@ -107,7 +107,7 @@ module.exports = class IDEAppController extends AppController
     @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
 
 
-  prepareIDE: ->
+  prepareIDE: (withFakeViews = no) ->
 
     panel     = @workspace.getView()
     appView   = @getView()
@@ -122,7 +122,7 @@ module.exports = class IDEAppController extends AppController
 
     appView.emit 'KeyViewIsSet'
 
-    @createInitialView()
+    @createInitialView withFakeViews
     @bindCollapseEvents()
 
     {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
@@ -322,7 +322,7 @@ module.exports = class IDEAppController extends AppController
     return @mountedMachine.status.state is Running
 
 
-  createInitialView: ->
+  createInitialView: (withFakeViews) ->
 
     kd.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
@@ -335,7 +335,7 @@ module.exports = class IDEAppController extends AppController
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
 
-        unless @isMachineRunning()
+        if not @isMachineRunning() or withFakeViews
           nickname     = nick()
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
@@ -391,6 +391,7 @@ module.exports = class IDEAppController extends AppController
 
     computeController = kd.getSingleton 'computeController'
     container         = @getView()
+    withFakeViews     = no
 
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
 
@@ -402,7 +403,9 @@ module.exports = class IDEAppController extends AppController
 
       @setMountedMachine machineItem
 
-      @prepareIDE()
+      @prepareIDE withFakeViews
+
+      return no  if withFakeViews
 
       if machineItem
         {state}         = machineItem.status
