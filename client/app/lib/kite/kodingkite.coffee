@@ -21,7 +21,6 @@ module.exports = class KodingKite extends KDObject
     @on 'open', =>
       @isDisconnected = no # This one is the manual disconnect request ~ GG
       @_state = CONNECTED
-      @emit "connected"
 
     @on 'close', (reason)=>
       kd.log "Disconnected with reason:", reason
@@ -162,7 +161,7 @@ module.exports = class KodingKite extends KDObject
 
       cid = (@waitingCalls.push args) - 1
 
-      @once 'connected', =>
+      @once 'open', =>
 
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
