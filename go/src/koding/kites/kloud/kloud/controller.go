@@ -7,6 +7,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"strings"
+	"time"
 
 	"github.com/koding/kite"
 	"golang.org/x/net/context"
@@ -153,12 +154,18 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 			Percentage: 100,
 		}
 
+		k.Log.Info("[%s] ======> %s started <======", args.Provider, args.MachineId, strings.ToUpper(r.Method))
+		start := time.Now()
+
 		err := fn(ctx, machine)
 		if err != nil {
 			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
 			finalEvent.Status = currentState // fallback to to old state
 		}
+
+		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
+			args.Provider, args.MachineId, strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 		k.Locker.Unlock(args.MachineId)
