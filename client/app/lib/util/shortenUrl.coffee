@@ -1,5 +1,5 @@
 $ = require 'jquery'
-showError = require "./showError"
+kd = require 'kd'
 
 module.exports = shortenUrl = (url, callback)->
   request = $.ajax "https://www.googleapis.com/urlshortener/v1/url",
@@ -13,5 +13,5 @@ module.exports = shortenUrl = (url, callback)->
     callback data?.id or url, data
 
   request.error ({status, statusText, responseText})->
-    showError "URL shorten error, returning self as fallback.", status, statusText, responseText
+    kd.log "URL shorten error, returning self as fallback.", status, statusText, responseText
     callback url
