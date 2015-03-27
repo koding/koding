@@ -122,9 +122,11 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
     @getData().jMachine.deny (err) =>
       return showError err  if err
 
-      @destroy()
+      # fetch the data and redraw the sidebar to remove the denied machine.
       envDataProvider.fetch =>
         kd.singletons.mainView.activitySidebar.redrawMachineList()
+        @destroy()
+
 
   destroy: ->
 
