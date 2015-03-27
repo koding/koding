@@ -245,18 +245,3 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
 
     return kite
-
-
-  setTryingToReconnect: (show = yes)->
-
-    @dcNotification?.destroy()
-    @dcNotification = null
-
-    return  unless show
-
-    console.log 'Trying to reconnect...'
-
-    # @dcNotification = new KDNotificationView
-    #   title    : 'Trying to reconnect...'
-    #   type     : 'tray'
-    #   duration : 999999

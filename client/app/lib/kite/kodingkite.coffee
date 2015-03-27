@@ -127,17 +127,12 @@ module.exports = class KodingKite extends KDObject
 
   disconnect: ->
 
-    {kontrol} = kd.singletons
-    kontrol.setTryingToReconnect no
-
     @isDisconnected = yes
     @transport?.disconnect()
 
 
   reconnect:  ->
 
-    {kontrol} = kd.singletons
-    kontrol.setTryingToReconnect()
 
     # With a very corrupted connection
     # it's possible to have an empty @transport object ~GG
@@ -163,6 +158,3 @@ module.exports = class KodingKite extends KDObject
 
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
-
-        {kontrol} = kd.singletons
-        kontrol.setTryingToReconnect no
