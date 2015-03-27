@@ -305,9 +305,12 @@ class ShortcutsController extends events.EventEmitter
   @_insertPlatformBinding: (model, platformBinding) ->
 
     binding = cloneArray model.binding
+    idx = klass._bindingPlatformIndex()
 
     if _.isArray platformBinding
-      binding[klass._bindingPlatformIndex()] = platformBinding.filter _.isString
+      binding[idx] = platformBinding.filter _.isString
+    else
+      binding[idx] = []
 
     return binding
 
