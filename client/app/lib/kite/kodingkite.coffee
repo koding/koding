@@ -26,6 +26,12 @@ module.exports = class KodingKite extends KDObject
       kd.log "Disconnected with reason:", reason
       @_state = DISCONNECTED
 
+      return  unless @transport?
+
+      {options:{autoReconnect}} = @transport
+      @emit 'reconnect'  if not @isDisconnected and autoReconnect
+
+
     @waitingCalls = []
     @waitingPromises = []
 
@@ -107,6 +113,7 @@ module.exports = class KodingKite extends KDObject
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) -> @tell rpcMethod, payload
 
+
   @createApiMapping = (api) ->
     for own method, rpcMethod of api
       @::[method] = @createMethod @prototype, { method, rpcMethod }
@@ -115,7 +122,6 @@ module.exports = class KodingKite extends KDObject
   connect: ->
 
     return  if @_state is CONNECTED
-
     @ready => @transport?.connect()
 
 

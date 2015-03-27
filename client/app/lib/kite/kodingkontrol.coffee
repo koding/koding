@@ -210,14 +210,6 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     # since its not cached before
     kite = @getKiteProxy { name, correlationName, transportOptions }
 
-    if kite.options.name is 'klient'
-      kite
-        .on 'close', =>
-          if not kite.isDisconnected and kite.transport?.options.autoReconnect
-            @setTryingToReconnect()
-        .on 'open',  =>
-          @setTryingToReconnect no
-
     if waitingPromises? and waitingPromises.length > 0
 
       kite.once 'connected', ->
