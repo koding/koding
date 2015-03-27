@@ -104,7 +104,7 @@ type (
 
 	GateKeeper struct {
 		Host   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_HOST"`
-		Port   int    `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
+		Port   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
 		Pubnub Pubnub
 	}
 
