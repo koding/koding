@@ -1,13 +1,13 @@
-kd = require 'kd'
-KDModalView = kd.ModalView
+kd               = require 'kd'
+KDModalView      = kd.ModalView
 KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
-KDButtonView = kd.ButtonView
-KDOverlayView = kd.OverlayView
-AvatarView = require 'app/commonviews/avatarviews/avatarview'
-showError = require 'app/util/showError'
-remote = require('app/remote').getInstance()
-envDataProvider = require 'app/userenvironmentdataprovider'
+KDView           = kd.View
+KDButtonView     = kd.ButtonView
+KDOverlayView    = kd.OverlayView
+AvatarView       = require 'app/commonviews/avatarviews/avatarview'
+showError        = require 'app/util/showError'
+remote           = require('app/remote').getInstance()
+envDataProvider  = require 'app/userenvironmentdataprovider'
 
 
 module.exports = class SidebarMachineSharePopup extends KDModalView
