@@ -1,7 +1,7 @@
-$ = require 'jquery'
-kd = require 'kd'
-KDObject = kd.Object
-IDEMetrics = require './idemetrics'
+$               = require 'jquery'
+kd              = require 'kd'
+KDObject        = kd.Object
+IDEMetrics      = require './idemetrics'
 GoogleApiClient = require './googleapiclient'
 
 module.exports = class RealtimeManager extends KDObject
@@ -217,59 +217,86 @@ module.exports = class RealtimeManager extends KDObject
       # delete key from root map
       model.getRoot().delete key
 
+
   textInserted: (string, e) ->
+
     return  if @isDisposed
+
     @emit 'TextInsertedIntoString', string, e
 
+
   textDeleted: (string, e) ->
+
     return  if @isDisposed
+
     @emit 'TextDeletedFromString', string, e
 
+
   bindStringListeners: (string) ->
+
     string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
     string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
+
   unbindStringListeners: (string) ->
+
     string.removeEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
     string.removeEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
 
   mapValueChanged: (map, v) ->
+
     return  if @isDisposed
     @emit 'MapValueChanged', map, v
 
+
   bindMapListeners: (map) ->
+
     map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
+
   unbindMapListeners: (map) ->
+
     map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
+
   listValueAdded: (list, v) ->
+
     return  if @isDisposed
+
     @emit 'ValuesAddedToList', list, v
 
+
   listValueRemoved: (list, v) ->
+
     return  if @isDisposed
+
     @emit 'ValuesRemovedFromList', list, v
 
+
   listValueSet: (list, e) ->
+
     return  if @isDisposed
+
     @emit 'ListValuesSet', list, e
 
 
   bindListListeners: (list) ->
+
     list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
     list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
     list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
 
 
   unbindListListeners: (list) ->
+
     list.removeEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
     list.removeEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
     list.removeEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
 
 
   binder: (collaborativeObj, type, callback) ->
+
     # all kind of collaborativeObjs have id
     throw new Error "id is not set" if not collaborativeObj.id
 
@@ -279,7 +306,7 @@ module.exports = class RealtimeManager extends KDObject
 
   unbindRealtimeListeners: (instance, type) ->
 
-    return if (index = @collaborativeInstances.indexOf instance) is -1
+    return  if (index = @collaborativeInstances.indexOf instance) is -1
 
     @collaborativeInstances.splice index, 1
 
@@ -315,3 +342,4 @@ module.exports = class RealtimeManager extends KDObject
     @isReady = no
 
     @emit 'RealtimeManagerDidDispose'
+
