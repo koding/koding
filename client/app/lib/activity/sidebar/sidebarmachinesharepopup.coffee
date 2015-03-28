@@ -85,7 +85,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       cssClass : 'solid medium red'
       title    : title
       loader   : yes
-      callback : @bound 'denyShare'
+      callback : @bound 'deny'
 
     unless @isApproved
 
@@ -93,7 +93,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
         cssClass : 'solid green medium'
         title    : 'ACCEPT'
         loader   : yes
-        callback : @bound 'approveShare'
+        callback : @bound 'approve'
 
 
   createAvatarView: (nickname) ->
@@ -122,7 +122,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       "
 
 
-  approveShare: ->
+  approve: ->
 
     { jMachine } = @getData()
 
@@ -155,7 +155,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
           doNavigation()
 
 
-  denyShare: ->
+  deny: ->
 
     @denyButton.showLoader()
     @getData().jMachine.deny (err) =>
@@ -166,6 +166,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
         kd.singletons.mainView.activitySidebar.redrawMachineList()
 
         if @isApproved
+          # quit IDE if exists
           envDataProvider.getIDEFromUId(@getData().uid)?.quit()
 
         @destroy()
