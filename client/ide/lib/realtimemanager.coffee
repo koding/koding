@@ -10,6 +10,9 @@ module.exports = class RealtimeManager extends KDObject
 
     super options, data
 
+    @collaborativeInstances = []
+    @collaborativeEventListeners = {}
+
     IDEMetrics.collect 'RealTimeManager.google_api_client', 'request'
     GoogleApiClient.on 'ready', =>
       GoogleApiClient.loadDriveApi =>
@@ -223,12 +226,12 @@ module.exports = class RealtimeManager extends KDObject
     @emit 'TextDeletedFromString', string, e
 
   bindStringListeners: (string) ->
-    string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, @textInserted
-    string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, @textDeleted
+    string.addEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
+    string.addEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
   unbindStringListeners: (string) ->
-    string.removeEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, @textInserted
-    string.removeEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, @textDeleted
+    string.removeEventListener gapi.drive.realtime.EventType.TEXT_INSERTED, @binder string, 'inserted', @textInserted
+    string.removeEventListener gapi.drive.realtime.EventType.TEXT_DELETED, @binder string, 'deleted', @textDeleted
 
 
   mapValueChanged: (map, v) ->
@@ -236,10 +239,10 @@ module.exports = class RealtimeManager extends KDObject
     @emit 'MapValueChanged', map, v
 
   bindMapListeners: (map) ->
-    map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, @mapValueChanged
+    map.addEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
   unbindMapListeners: (map) ->
-    map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, @mapValueChanged
+    map.removeEventListener gapi.drive.realtime.EventType.VALUE_CHANGED, @binder map, 'changed', @mapValueChanged
 
   listValueAdded: (list, v) ->
     return  if @isDisposed
@@ -253,46 +256,50 @@ module.exports = class RealtimeManager extends KDObject
     return  if @isDisposed
     @emit 'ListValuesSet', list, e
 
+
   bindListListeners: (list) ->
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, @listValueAdded
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, @listValueRemoved
-    list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, @listValueSet
+    list.addEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
+    list.addEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
+    list.addEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
+
 
   unbindListListeners: (list) ->
-    list.removeEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, @listValueAdded
-    list.removeEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, @listValueRemoved
-    list.removeEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, @listValueSet
+    list.removeEventListener gapi.drive.realtime.EventType.VALUES_ADDED, @binder list, 'added', @listValueAdded
+    list.removeEventListener gapi.drive.realtime.EventType.VALUES_REMOVED, @binder list, 'removed', @listValueRemoved
+    list.removeEventListener gapi.drive.realtime.EventType.VALUES_SET, @binder list, 'set', @listValueSet
 
 
-  # values holds the event handlers of the collaborative objects
-  values = {}
-
-  binder: (collaborativeObj, callback) ->
+  binder: (collaborativeObj, type, callback) ->
     # all kind of collaborativeObjs have id
     throw new Error "id is not set" if not collaborativeObj.id
 
-    values[collaborativeObj.id] or= (v) =>
-      callback.call this, collaborativeObj, v
+    listeners = @collaborativeEventListeners[collaborativeObj.id] or= {}
+    return listeners[type] or= (v) => callback.call this, collaborativeObj, v
 
-    return values[collaborativeObj.id]
 
-  unbindRealtimeListeners: do (instances = []) ->
-    (instance, type) ->
-      return  if instances.indexOf(instance) > -1 or @isDisposed
-      instances.push instance
-      switch type
-        when 'string' then @unbindStringListeners instance
-        when 'map' then @unbindMapListeners instance
-        when 'list' then @unbindListListeners instance
+  unbindRealtimeListeners: (instance, type) ->
 
-  bindRealtimeListeners: do (instances = []) ->
-    (instance, type) ->
-      return  if instances.indexOf(instance) > -1 or @isDisposed
-      instances.push instance
-      switch type
-        when 'string' then  @bindStringListeners instance
-        when 'map' then @bindMapListeners instance
-        when 'list' then @bindListListeners instance
+    return if (index = @collaborativeInstances.indexOf instance) is -1
+
+    @collaborativeInstances.splice index, 1
+
+    switch type
+      when 'string' then @unbindStringListeners instance
+      when 'map'    then @unbindMapListeners instance
+      when 'list'   then @unbindListListeners instance
+
+
+  bindRealtimeListeners: (instance, type) ->
+
+    return  if @isDisposed or @collaborativeInstances.indexOf(instance) > -1
+
+    @collaborativeInstances.push instance
+
+    switch type
+      when 'string' then @bindStringListeners instance
+      when 'map'    then @bindMapListeners instance
+      when 'list'   then @bindListListeners instance
+
 
   getCollaborators: -> return @getRealtimeDoc().getCollaborators()
 
