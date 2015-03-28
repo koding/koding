@@ -3,14 +3,15 @@ defaults       = require './config'
 events         = require 'events'
 _              = require 'underscore'
 kd             = require 'kd'
+traverse       = require 'traverse'
 globals        = require 'globals'
 ShortcutsModal = require './views/modal'
-cloneArray     = require 'app/util/cloneArray'
 AppController  = require 'app/appcontroller'
+AppStorage     = require 'app/appstorage'
 
 STORAGE_NAME    = 'shortcuts'
-STORAGE_VERSION = '4.1'
-THROTTLE_WAIT   = 500
+STORAGE_VERSION = '7'
+THROTTLE_WAIT   = 2000
 
 module.exports =
 
@@ -31,7 +32,8 @@ class ShortcutsController extends events.EventEmitter
 
     super()
 
-    @_store = null
+    @_store  = null
+    @_buffer = null
 
     if opts.shortcuts instanceof Shortcuts
       @shortcuts = opts.shortcuts
@@ -41,10 +43,19 @@ class ShortcutsController extends events.EventEmitter
           return acc
         , {}
 
+    @_flushBuffer()
+
+
+  # Prepares buffer for the next batch of changes.
+  #
+  _flushBuffer: ->
+
     @_buffer = @shortcuts.config.reduce (acc, collection) ->
       acc[collection.name] = []
       return acc
     , {}
+
+    return this
 
 
   # Party starts here.
@@ -73,52 +84,41 @@ class ShortcutsController extends events.EventEmitter
 
   # Persists changes to app storage.
   #
-  # This is a throttled method and will only be called per every
+  # This is a throttled method and will only be called once per every
   # _THROTTLE_WAIT_ milliseconds.
   #
   _save: _.throttle ->
 
-    throw 'could not persist changes'  unless @_store.isReady
+    unless @_store.isReady
+      console.warn 'could not persist shortcut changes'
+      @_flushBuffer()
+      return
 
-    for key, models of @_buffer
+    # take over buffer
+    buffer = traverse(@_buffer).clone()
+    @_flushBuffer()
 
-      set = []
+    # transform it, so we can extend the remote object
+    pack =
+      _
+        .reduce buffer, (sum, collection, key) ->
+          return collection.reduce (acc, model) ->
+            name = model.name.replace /\./g, '$' # safety first
+            acc["#{AppStorage.DEFAULT_GROUP_NAME}.#{key}.#{name}"] = model
+            return acc
+          , sum
+        , {}
 
-      while (model = @_buffer[key].pop())?
-        value =
-        _
-          .chain(model.toJSON())
-          # since every platform has independent storages, we are only
-          # saving this platform's bindings
-          .extend binding: klass._getPlatformBinding model
-          .pick 'binding', 'options', 'name' # and nothing more
-          .tap (obj) -> # to validate
-            if _.isObject obj.options
-              # the only whitelisted options prop is _enabled_
-              obj.options = _.pick obj.options, 'enabled'
-              delete obj.options  \
-                if (_.isEmpty obj.options) or (not _.isBoolean obj.options.enabled)
-            if (not _.isArray obj.binding) or _.isEmpty obj.binding
-              delete obj.binding
-              # and disable it silently
-              obj.options or= {}
-              _.extend obj.options, enabled: no
-          .value()
+    # so we extend the remote object
+    @_store._storage.update $set: pack, =>
 
-        # this should pass anyhow (since there will be always _name_ prop)
-        # but still it doesn't hurt to be little paranoid here.
-        set.push value  unless _.isEmpty value
+      # and make sure everybody is aware of the changes we've just made
+      _.each (buffer, objs, collectionName) =>
+        collection = @get collectionName
+        _.each objs, (value) =>
+          @emit 'change', collection, collection.find name: value.name
 
-      unless _.isEmpty set
-        @_store.setValue key, set,
-          _
-            .chain (collectionName, modelNames) ->
-              _.each modelNames, (modelName) =>
-                collection = @shortcuts.get collectionName
-                @emit 'change', collection, collection.find name: modelName
-            .partial key, _.pluck set, 'name'
-            .bind @
-            .value()
+    return
 
   , THROTTLE_WAIT,
     leading  : no
@@ -134,10 +134,21 @@ class ShortcutsController extends events.EventEmitter
   #
   _handleShortcutsChange: (collection, model) ->
 
-    queue = @_buffer[collection.name]
-    idx   = _.findWhere queue, name: model.name
+    queue   = @_buffer[collection.name]
+    idx     = _.findWhere queue, name: model.name
+    obj     = name: model.name
+    binding = klass._getPlatformBinding model
 
-    queue[((~idx and idx) or queue.length)] = model
+    if (_.isArray binding) and  (not _.isEmpty binding)
+      obj.binding = traverse(binding).clone()
+    else
+      obj.binding = null
+
+    # even if enabled is _true_ by default for this model, we always save it on
+    # appstorage. defaults may change, but user overrides should stay.
+    obj.enabled = if model.options?.enabled is no then no else yes
+
+    queue[((~idx and idx) or queue.length)] = obj
 
     @_save()
 
@@ -146,24 +157,36 @@ class ShortcutsController extends events.EventEmitter
   #
   _handleStoreReady: ->
 
-    @shortcuts.config.each (collection) =>
-      collectionName = collection.name
+    overrides = @_store._storage[AppStorage.DEFAULT_GROUP_NAME]
 
-      objs = @_store.getValue collectionName
+    _.each overrides, (objs, collectionName) =>
+      collection = @shortcuts.get collectionName
 
-      if _.isArray objs
-        _.each objs, (obj) =>
+      _.each objs, (override) =>
+        model = collection.find name: override.name
+        return  unless model
 
-          model = @shortcuts.get collectionName, obj.name
-          return  unless model
+        enabled = if model.options?.enabled is no then no else yes
 
+        matchesEnabled = override.enabled is enabled
+        matchesBinding = _.isEqual klass._getPlatformBinding(model), override.binding
+
+        console.log model, override
+        console.log matchesEnabled, matchesBinding
+
+        unless matchesEnabled and matchesBinding
           @emit 'change', collection,
-            @shortcuts.update collectionName, model.name,
-              binding: klass._insertPlatformBinding model, obj.binding
-              options: obj.options
-            , klass._isCustomShortcut model
+            @shortcuts.update collection.name, model.name, {
+              binding: klass._replacePlatformBinding model, override.binding,
+              options: enabled: override.enabled
+            },
+              klass._isCustomShortcut model
+
+        return
 
     @shortcuts.on 'change', _.bind @_handleShortcutsChange, this
+
+    return
 
 
   # Invalidates previous app's keyboard events and adds new
@@ -200,6 +223,7 @@ class ShortcutsController extends events.EventEmitter
 
     @shortcuts.get.apply @shortcuts, Array::slice.call arguments
 
+
   # Updates a _keyconfig#Model_.
   #
   # This api is pretty-much same with _shortcuts#update_.
@@ -207,9 +231,9 @@ class ShortcutsController extends events.EventEmitter
   # One important difference is _silent_ argument is handled internally,
   # and not exposed. That's because passing _silent_ to _shortcuts#update_
   # as true makes sure _shortcuts_ doesn't add any keyboard event listeners,
-  # yet it still updates the underlying _keyconfig_ instance.
+  # yet it still updates the underlying _keyconfig_ instance. This is how we
+  # deal with shortcuts that should be handled manually.
   #
-  # This is how we deal with shortcuts that should be handled manually.
   #
   update: (collectionName, modelName, value) ->
 
@@ -217,22 +241,34 @@ class ShortcutsController extends events.EventEmitter
 
     overrides = _.pick value, 'binding', 'options'
 
-    unless Object.keys(overrides).length
-      throw 'value should contain \'binding\' and/or \'options\' props'
-
-    unless @_store.isReady
-      console.warn 'changes won\'t be persisted, since storage is not ready yet'
+    throw 'missing \'binding\' and/or \'options\' props'  if _.isEmpty overrides
+    console.warn 'changes won\'t be persisted, storage is not ready yet'  unless @_store.isReady
 
     model = @shortcuts.get collectionName, modelName
+
     throw "#{modelName} not found"  unless model
 
-    if overrides.binding
-      overrides.binding = klass._insertPlatformBinding model, overrides.binding
+    # _lodash#pick_ returns a shallow copy; make sure we don't override the given value
+    overrides = traverse(overrides).clone()
+
+    # _isNull_ test is necessary here to make sure we don't update other
+    # platform bindings accidentally
+    if _.isArray(overrides.binding) or _.isNull(overrides.binding)
+      overrides.binding = klass._replacePlatformBinding model, overrides.binding
+    else
+      delete overrides.binding
+
+    # _options.enabled_ must be precisely set to _false_ in order to disable a shortcut;
+    # any other falsey setting will always be converted to _true_
+    if _.isObject overrides.options
+      whitelistedOptions = _.pick overrides.options, 'enabled'
+      unless _.isEmpty whitelistedOptions
+        overrides.options.enabled = if overrides.options.enabled is no then no else yes
 
     silent = klass._isCustomShortcut model
+    res    = @shortcuts.update collectionName, modelName, overrides, silent
 
-    res = @shortcuts.update collectionName, modelName, overrides, silent
-
+    # we manually trigger change for custom shortcuts
     if silent then @_handleShortcutsChange @shortcuts.get(collectionName), res
 
     return res
@@ -298,19 +334,15 @@ class ShortcutsController extends events.EventEmitter
     if globals.keymapType is 'mac' then 1 else 0
 
 
-  # Given a keyconfig#Model and a 1d array of bindings, validates and inserts
-  # the array at the correct position for the current platform, and returns
-  # a deep clone of the model's binding.
+  # Returns a clone of model's binding with given binding array inserted at the
+  # correct position for the current platform.
   #
-  @_insertPlatformBinding: (model, platformBinding) ->
+  @_replacePlatformBinding: (model, platformBinding) ->
 
-    binding = cloneArray model.binding
-    idx = klass._bindingPlatformIndex()
-
-    if _.isArray platformBinding
-      binding[idx] = platformBinding.filter _.isString
-    else
-      binding[idx] = []
+    binding      = traverse(model.binding).clone()
+    idx          = klass._bindingPlatformIndex()
+    arr          = platformBinding?.filter _.isString
+    binding[idx] = if (_.isArray arr) and arr.length then arr else null
 
     return binding
 
