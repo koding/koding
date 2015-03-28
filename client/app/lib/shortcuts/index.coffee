@@ -11,7 +11,7 @@ AppStorage     = require 'app/appstorage'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '7'
-THROTTLE_WAIT   = 2000
+THROTTLE_WAIT   = 300
 
 module.exports =
 
