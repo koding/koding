@@ -11,7 +11,10 @@
         "alt+down"
       ]
     ],
-    "description": "Next window"
+    "description": "Next window",
+    "options": {
+      "global": true
+    }
   },
   {
     "name": "prevwindow",
@@ -25,6 +28,9 @@
         "alt+up"
       ]
     ],
-    "description": "Previous window"
+    "description": "Previous window",
+    "options": {
+      "global": true
+    }
   }
 ]
