@@ -27,3 +27,12 @@ exports.editor =
       <p>Following list provides key-bindings that are available in <b>Editor.</b>
     """
   data: require './editor'
+
+
+aceBindings = require './ace114'
+
+exports.ace_default            = title: '', description: '', data: aceBindings.default
+exports.ace_defaultMultiSelect = title: '', description: '', data: aceBindings.defaultMultiSelect
+exports.ace_multiSelect        = title: '', description: '', data: aceBindings.multiSelect
+exports.ace_iSearch            = title: '', description: '', data: aceBindings.iSearch
+exports.ace_iSearchStart       = title: '', description: '', data: aceBindings.iSearchStart
