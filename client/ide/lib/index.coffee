@@ -742,9 +742,14 @@ class IDEAppController extends AppController
 
   showShortcutsView: ->
 
-    { shortcuts } = kd.singletons
+    paneView = null
 
-    shortcuts.showModal()
+    @forEachSubViewInIDEViews_ (view) ->
+      paneView = view.parent  if view instanceof IDEShortcutsView
+
+    return paneView.parent.showPane paneView if paneView
+
+    @activeTabView.emit 'ShortcutsViewRequested'
 
 
   getActivePaneView: ->
