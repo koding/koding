@@ -274,17 +274,41 @@ class ShortcutsController extends events.EventEmitter
     return res
 
 
-  # Convenience method that returns json representation of all the shortcuts.
+  # Convenience method that returns json representation of all the shortcuts
+  # as a collection.
   #
-  # Note that, this will only include bindings for the current platform.
+  # Note that, 
+  #
+  # * Returning value only includes bindings for the current platform.
+  # * Ace bindings will be merged into editor.
   #
   toJSON: ->
 
-    _.map defaults, (value, key) =>
+    aces = []
 
-      title       : value.title
-      description : value.description
-      data        : @getJSON key
+    arr  = _
+      .reduce defaults, (acc, value, key) =>
+        data  = @getJSON key
+        frags = key.split '_'
+
+        if frags[0] is 'ace'
+          aces = aces.concat data
+        else
+          acc.push
+            _key        : key
+            title       : value.title
+            description : value.description
+            data        : @getJSON key
+        return acc
+      , []
+
+    idx = -1
+    arr.some (value) ->
+      return ++idx and (value._key is 'editor')
+
+    if ~idx then arr[idx].data = arr[idx].data.concat aces
+
+    return arr
 
 
   # Convenience method that returns a _keyconfig#Collection's_ json representation
