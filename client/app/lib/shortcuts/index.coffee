@@ -274,6 +274,19 @@ class ShortcutsController extends events.EventEmitter
     return res
 
 
+  # Convenience method that returns json representation of all the shortcuts.
+  #
+  # Note that, this will only include bindings for the current platform.
+  #
+  toJSON: ->
+
+    _.map defaults, (value, key) =>
+
+      title       : value.title
+      description : value.description
+      data        : @getJSON key
+
+
   # Convenience method that returns a _keyconfig#Collection's_ json representation
   # for the current platform. Optionally takes a filter predicate.
   #
