@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
@@ -35,8 +34,8 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	}
 
 	if stater.State() == machinestate.NotInitialized {
-		return &protocol.InfoArtifact{
-			State: machinestate.NotInitialized,
+		return &InfoResponse{
+			State: machinestate.NotInitialized.String(),
 			Name:  "not-initialized-instance",
 		}, nil
 	}
