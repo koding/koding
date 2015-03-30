@@ -221,6 +221,7 @@ Configuration = (options={}) ->
     pubnub               : { subscribekey: pubnub.subscribekey , ssl: yes, enabled: yes     }
     collaboration        : KONFIG.collaboration
     paymentBlockDuration : 24 * 60 * 60 * 1000 # 24 hours
+    tokbox               : { apiKey: tokbox.apiKey }
 
     # NOTE: when you add to runtime options above, be sure to modify
     # `RuntimeOptions` struct in `go/src/koding/tools/config/config.go`
