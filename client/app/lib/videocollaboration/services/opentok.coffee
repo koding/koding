@@ -140,23 +140,17 @@ module.exports = class OpenTokService extends kd.Object
    * @return {OT.Publisher} publisher
    * @see {@link https://tokbox.com/opentok/libraries/client/js/reference/OT.html#initPublisher}
   ###
-  createPublisher: (element, publisherOptions = {}) ->
+  createPublisher: (view, publisherOptions = {}, callback) ->
 
-    publisherOptions.name       or= KD.nick()
+    publisherOptions.name       or= getNick()
     publisherOptions.style      or= { nameDisplayMode: on }
     publisherOptions.insertMode or= 'append'
 
     publisherOptions.height = 265
     publisherOptions.width  = 325
 
-    publisher = OT.initPublisher element, publisherOptions
-
-    publisher.on
-      accessAllowed      : => @emit 'CameraAccessAllowed'
-      accessDenied       : => @emit 'CameraAccessDenied'
-      accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
-      accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
-
-    return publisher
-
+    publisher = OT.initPublisher view.getElement(), publisherOptions, (err) =>
+      if err
+      then callback err
+      else callback null, publisher
 
