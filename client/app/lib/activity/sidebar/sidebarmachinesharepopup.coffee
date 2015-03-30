@@ -124,7 +124,8 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   approve: ->
 
-    { jMachine } = @getData()
+    machine      = @getData()
+    { jMachine } = machine
 
     @approveButton.showLoader()
     jMachine.approve (err) =>
@@ -132,8 +133,13 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       { router, mainView } = kd.singletons
 
       doNavigation = =>
+        route = "/IDE/#{jMachine.uid}/my-workspace" # permanent shared route
+
+        unless machine.isPermanent() # collaboration route
+          route = "/IDE/#{@getOptions().channelId}"
+
         # route to permanent shared url to open the ide
-        router.handleRoute "/IDE/#{jMachine.uid}/my-workspace"
+        router.handleRoute route
 
         # defer sidebar redraw sidebar to properly select workspace
         kd.utils.defer =>
