@@ -214,13 +214,6 @@ module.exports = class OpenTokService extends kd.Object
     session.signal data, _errorSignal
 
 
-  ###*
-   * Default error signal.
-  ###
-  _errorSignal = (error) ->
-
-    log "signal error #{error.reason}"  if error
-
 
   ###*
    * It creates the `OT.Publisher` instance for sending video/audio.
