@@ -112,6 +112,9 @@ routeToMachineWorkspace = (machine) ->
   latestWorkspace = getLatestWorkspace machine
   workspaceSlug   = 'my-workspace'
 
+  unless machine instanceof Machine
+    machine = new Machine { machine }
+
   if latestWorkspace
     { machineLabel } = latestWorkspace
     if machineLabel is machine.label
