@@ -269,22 +269,25 @@ class ShortcutsController extends kd.Controller
   # Convenience method that returns json representation of all the shortcuts
   # as a collection.
   #
-  # Note that, 
+  # Note that:
   #
   # * Returning value only includes bindings for the current platform.
-  # * Ace bindings will be merged into editor.
+  # * _extends_ field is used to merge a collection into the specified one.
+  # That's because some shortcuts are logically in the same group and should
+  # be displayed along; but in fact they are not and should be separated
+  # to avoid collisions.
   #
   toJSON: ->
 
-    aces = []
+    extended = {}
 
-    arr  = _
+    repr  = _
       .reduce defaults, (acc, value, key) =>
-        data  = @getJSON key
-        frags = key.split '_'
+        data   = @getJSON key
+        parent = value.extends
 
-        if frags[0] is 'ace'
-          aces = aces.concat data
+        if _.isString parent
+          extended[parent] = (extended[parent] or []).concat data
         else
           acc.push
             _key        : key
@@ -294,10 +297,11 @@ class ShortcutsController extends kd.Controller
         return acc
       , []
 
-    if ~(idx = _.findIndex(arr, _key: 'editor'))
-      arr[idx].data = arr[idx].data.concat aces
+    _.each extended, (value, key) ->
+      if ~(idx = _.findIndex(repr, _key: key))
+        repr[idx].data = repr[idx].data.concat value
 
-    return arr
+    return repr
 
 
   # Convenience method that returns a _keyconfig#Collection's_ json representation

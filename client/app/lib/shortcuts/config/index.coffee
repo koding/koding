@@ -29,10 +29,37 @@ exports.editor =
   data: require './editor'
 
 
-aceBindings = require './ace114'
+# ace bindings extracted from ace 114.
+#
+# 'ns' denotes ace namespace that this command belongs to.
+#
+# See:
+# https://github.com/ajaxorg/ace/tree/v1.1.4/lib/ace/commands
+#
 
-exports.ace_default            = title: '', description: '', data: aceBindings.default
-exports.ace_defaultMultiSelect = title: '', description: '', data: aceBindings.defaultMultiSelect
-exports.ace_multiSelect        = title: '', description: '', data: aceBindings.multiSelect
-exports.ace_iSearch            = title: '', description: '', data: aceBindings.iSearch
-exports.ace_iSearchStart       = title: '', description: '', data: aceBindings.iSearchStart
+aceBindings = require './ace'
+
+exports.acedefault =
+  data    : aceBindings.default
+  ns      : 'default'
+  extends : 'editor'
+
+exports.acedefaultmultiselect =
+  data    : aceBindings.defaultMultiSelect
+  ns      : 'defaultMultiSelect'
+  extends : 'editor'
+
+exports.acemultiselect =
+  data    : aceBindings.multiSelect
+  ns      : 'multiSelect'
+  extends : 'editor'
+
+exports.aceisearch =
+  data    : aceBindings.iSearch
+  ns      : 'iSearch'
+  extends : 'editor'
+
+exports.aceisearchstart =
+  data    : aceBindings.iSearchStart
+  ns      : 'iSearchStart'
+  extends : 'editor'
