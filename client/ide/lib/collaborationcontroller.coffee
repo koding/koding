@@ -27,7 +27,7 @@ environmentDataProvider       = require 'app/userenvironmentdataprovider'
 #
 # @see `IDEAppController`
 
-module.exports =
+module.exports = CollaborationController =
 
   # social related
 
