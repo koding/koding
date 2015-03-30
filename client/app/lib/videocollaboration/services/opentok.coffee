@@ -121,16 +121,12 @@ module.exports = class OpenTokService extends kd.Object
    *
    * @param {OT.Session} session
    * @param {String} type
-   * @param {OT.Subscriber} to
    * @param {Object=} data
   ###
-  sendSignal: (session, type, to, data = {})->
+  sendSignal: (session, type, data = {})->
 
-    data.to = to
-
-    # TODO: proper signal error handling maybe?
-    session.signal data, _errorSignal
-
+    signalData = { type, data: JSON.stringify data }
+    session.signal signalData, helper._errorSignal
 
 
   ###*
