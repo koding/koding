@@ -165,7 +165,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		}
 
 		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
-			args.Provider, args.MachineId, strings.ToUpper(r.Method), time.Since(start))
+			args.MachineId, strings.ToUpper(r.Method), time.Since(start))
 
 		ev.Push(finalEvent)
 		k.Locker.Unlock(args.MachineId)

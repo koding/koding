@@ -10,6 +10,7 @@ import (
 
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/plans"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -81,7 +82,8 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	}
 
 	// get the timeout from the plan in which the user belongs to
-	planTimeout := m.Payment.Plan.Limits().Timeout
+	plan := plans.Plans[m.Payment.Plan]
+	planTimeout := plan.Timeout
 
 	p.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
 		m.IpAddress, usg.InactiveDuration, planTimeout, m.Payment.Plan)

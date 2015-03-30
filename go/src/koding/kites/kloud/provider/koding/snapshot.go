@@ -58,7 +58,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) error {
 		return err
 	}
 
-	if err := m.SnapshotTotal(); err != nil {
+	if err := m.Checker.SnapshotTotal(m.Id.Hex(), m.Username); err != nil {
 		return err
 	}
 

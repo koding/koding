@@ -4,6 +4,7 @@ import (
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/plans"
 	"time"
 
 	"github.com/koding/logging"
@@ -44,12 +45,12 @@ type Machine struct {
 	Groups []models.Permissions `bson:"groups"`
 
 	// internal fields, not availabile in MongoDB schema
-	Username             string           `bson:"-"`
-	User                 *models.User     `bson:"-"`
-	Payment              *PaymentResponse `bson:"-"`
-	Session              *session.Session `bson:"-"`
-	Log                  logging.Logger   `bson:"-"`
-	networkUsageEndpoint string           `bson:"-"`
+	Username string                 `bson:"-"`
+	User     *models.User           `bson:"-"`
+	Payment  *plans.PaymentResponse `bson:"-"`
+	Checker  plans.Checker          `bson:"-"`
+	Session  *session.Session       `bson:"-"`
+	Log      logging.Logger         `bson:"-"`
 
 	// cleanFuncs are a list of functions that are called when after a method
 	// is finished

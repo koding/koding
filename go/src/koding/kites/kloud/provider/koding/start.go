@@ -2,8 +2,11 @@ package koding
 
 import (
 	"errors"
+	"fmt"
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/plans"
+	"strings"
 	"time"
 
 	"labix.org/v2/mgo"
@@ -18,18 +21,17 @@ func (m *Machine) Start(ctx context.Context) error {
 		return err
 	}
 
-	// TODO: move out checking facility outwards machine and put it into kloud
-	// if err := m.AlwaysOn(); err != nil {
-	// 	return err
-	// }
-	//
-	// if err := m.NetworkUsage(); err != nil {
-	// 	return err
-	// }
-	//
-	// if err := m.PlanState(); err != nil {
-	// 	return err
-	// }
+	if err := m.Checker.AlwaysOn(m.Username); err != nil {
+		return err
+	}
+
+	if err := m.Checker.NetworkUsage(m.Username); err != nil {
+		return err
+	}
+
+	if strings.ToLower(m.Payment.State) == "expired" {
+		return fmt.Errorf("[%s] Plan is expired", m.Id.Hex())
+	}
 
 	instance, err := m.Session.AWSClient.Instance()
 	if err != nil {
@@ -46,7 +48,7 @@ func (m *Machine) Start(ctx context.Context) error {
 		m.Log.Warning("instance is using '%s'. Changing back to '%s'",
 			instance.InstanceType, m.Meta.InstanceType)
 
-		opts := &ec2.ModifyInstance{InstanceType: instances[m.Meta.InstanceType].String()}
+		opts := &ec2.ModifyInstance{InstanceType: plans.Instances[m.Meta.InstanceType].String()}
 
 		if _, err := m.Session.AWSClient.Client.ModifyInstance(m.Meta.InstanceId, opts); err != nil {
 			m.Log.Warning("couldn't change instance to '%s' again. err: %s",
@@ -124,7 +126,7 @@ func (m *Machine) Start(ctx context.Context) error {
 	// assigned yet (Elastic IP's are assigned only during the Build). We
 	// lookup the IP from the Elastic IPs, if it's not available (returns an
 	// error) we proceed and create it.
-	if m.Payment.Plan != Free { // check this first to avoid an additional AWS call
+	if m.Payment.Plan != "free" { // check this first to avoid an additional AWS call
 		_, err = m.Session.AWSClient.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter())
 		if isAddressNotFoundError(err) {
 			m.Log.Debug("Paying user detected, Creating an Public Elastic IP")

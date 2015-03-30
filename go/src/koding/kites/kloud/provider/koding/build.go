@@ -15,6 +15,7 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 	"koding/kites/kloud/waitstate"
 
@@ -191,7 +192,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// allocate and associate a new Public IP for paying users, we can do
 	// this after we create the instance
-	if m.Payment.Plan != Free {
+	if m.Payment.Plan != "free" {
 		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
 
 		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
@@ -363,7 +364,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	if m.Session.AWSClient.Builder.InstanceType == "" {
 		m.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro",
 			m.Id.Hex())
-		m.Session.AWSClient.Builder.InstanceType = T2Micro.String()
+		m.Session.AWSClient.Builder.InstanceType = plans.T2Micro.String()
 	}
 
 	kiteUUID, err := uuid.NewV4()
@@ -423,25 +424,25 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 
 // checkLimits checks whether the given buildData is valid to be used to create a new instance
 func (m *Machine) checkLimits(buildData *BuildData) error {
-	if err := m.Total(); err != nil {
+	if err := m.Checker.Total(m.Username); err != nil {
 		return err
 	}
 
-	if err := m.AlwaysOn(); err != nil {
+	if err := m.Checker.AlwaysOn(m.Username); err != nil {
 		return err
 	}
 
 	m.Log.Debug("Check if user is allowed to create instance type %s", buildData.EC2Data.InstanceType)
 
 	// check if the user is egligible to create a vm with this instance type
-	if err := m.AllowedInstances(instances[buildData.EC2Data.InstanceType]); err != nil {
+	if err := m.Checker.AllowedInstances(plans.Instances[buildData.EC2Data.InstanceType]); err != nil {
 		m.Log.Critical("Instance type (%s) is not allowed. Fallback to t2.micro",
 			buildData.EC2Data.InstanceType)
-		buildData.EC2Data.InstanceType = T2Micro.String()
+		buildData.EC2Data.InstanceType = plans.T2Micro.String()
 	}
 
 	// check if the user is egligible to create a vm with this size
-	if err := m.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize)); err != nil {
+	if err := m.Checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize), m.Username); err != nil {
 		return err
 	}
 

@@ -18,6 +18,7 @@ import (
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/userdata"
 
@@ -177,7 +178,6 @@ func newKite(conf *Config) *kite.Kite {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		Userdata: &userdata.Userdata{
 			Keycreator: &keycreator.Key{
 				KontrolURL:        getKontrolURL(conf.KontrolURL),
@@ -186,9 +186,11 @@ func newKite(conf *Config) *kite.Kite {
 			},
 			Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
 		},
-		PaymentFetcher: &koding.Payment{
-			DB:              db,
+		PaymentFetcher: &plans.Payment{
 			PaymentEndpoint: conf.PlanEndpoint,
+		},
+		CheckerFetcher: &plans.KodingChecker{
+			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		},
 	}
 

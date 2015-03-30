@@ -14,6 +14,7 @@ import (
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 
 	"github.com/fatih/structs"
@@ -34,10 +35,8 @@ type Provider struct {
 	EC2Clients *multiec2.Clients
 	Userdata   *userdata.Userdata
 
-	// PaymentEndpoint is being used to fetch user plans
-	PaymentEndpoint      string
-	PaymentFetcher       PaymentFetcher
-	NetworkUsageEndpoint string
+	PaymentFetcher plans.PaymentFetcher
+	CheckerFetcher plans.CheckerFetcher
 }
 
 type Credential struct {
@@ -112,27 +111,42 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	payment, err := p.PaymentFetcher.Fetch(user.Name)
-	if err != nil {
-		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
-			user.Name, err)
-		payment = &PaymentResponse{Plan: Hobbyist}
-	}
-
-	machine.networkUsageEndpoint = p.NetworkUsageEndpoint
-	machine.Payment = payment
-	machine.Username = user.Name
-	machine.User = user
-	machine.Session = &session.Session{
+	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
 		DNSClient:  p.DNSClient,
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
 		AWSClient:  amazonClient,
-		AWSClients: p.EC2Clients, // used to fallback if something goes wrong
+		AWSClients: p.EC2Clients, // used for fallback if something goes wrong
+		Log:        machine.Log,
 	}
+
+	// we use session a lot of in Machine owned methods, so that's why we
+	// assign it to a field for easy access
+	machine.Session = sess
+
+	// we pass it also to the context, so other packages, such as plans checker
+	// can make use of it.
+	ctx = session.NewContext(ctx, sess)
+
+	payment, err := p.PaymentFetcher.Fetch(ctx, user.Name)
+	if err != nil {
+		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
+			user.Name, err)
+		payment = &plans.PaymentResponse{Plan: "Free"}
+	}
+
+	checker, err := p.CheckerFetcher.Fetch(ctx, payment.Plan)
+	if err != nil {
+		return err
+	}
+
+	machine.Payment = payment
+	machine.Username = user.Name
+	machine.User = user
 	machine.cleanFuncs = make([]func(), 0)
+	machine.Checker = checker
 
 	ev, ok := eventer.FromContext(ctx)
 	if ok {

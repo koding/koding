@@ -80,7 +80,7 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	// difference that we want to add. So say if the current size is 3
 	// and our desired size is 10, we need to ask if we have still
 	// limit for a 7 GB space.
-	if err := m.Storage(desiredSize - currentSize); err != nil {
+	if err := m.Checker.Storage(desiredSize-currentSize, m.Username); err != nil {
 		return err
 	}
 

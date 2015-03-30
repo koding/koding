@@ -10,6 +10,7 @@ import (
 	"koding/kites/kloud/userdata"
 
 	"github.com/koding/kite"
+	"github.com/koding/logging"
 	"golang.org/x/net/context"
 )
 
@@ -26,6 +27,7 @@ type Session struct {
 	AWSClient  *amazon.Amazon
 	AWSClients *multiec2.Clients
 	Userdata   *userdata.Userdata
+	Log        logging.Logger
 }
 
 func FromContext(ctx context.Context) (*Session, bool) {

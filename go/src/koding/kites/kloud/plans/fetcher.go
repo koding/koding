@@ -1,21 +1,28 @@
-package koding
+package plans
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"koding/db/models"
-	"koding/db/mongodb"
+	"koding/kites/kloud/contexthelper/session"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
 type PaymentFetcher interface {
-	Fetch(username string) (*PaymentResponse, error)
+	Fetch(ctx context.Context, username string) (*PaymentResponse, error)
+}
+
+type CheckerFetcher interface {
+	Fetch(ctx context.Context, plan string) (Checker, error)
 }
 
 type SubscriptionsResponse struct {
@@ -30,16 +37,20 @@ type SubscriptionsResponse struct {
 }
 
 type PaymentResponse struct {
-	Plan  Plan
+	Plan  string
 	State string
 }
 
 type Payment struct {
-	DB              *mongodb.MongoDB
 	PaymentEndpoint string
 }
 
-func (p *Payment) Fetch(username string) (*PaymentResponse, error) {
+func (p *Payment) Fetch(ctx context.Context, username string) (*PaymentResponse, error) {
+	sess, ok := session.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("Payment fetcher couldn't obtain session context")
+	}
+
 	if p.PaymentEndpoint == "" {
 		return nil, errors.New("Payment endpoint is not set")
 	}
@@ -50,7 +61,7 @@ func (p *Payment) Fetch(username string) (*PaymentResponse, error) {
 	}
 
 	var account *models.Account
-	if err := p.DB.Run("jAccounts", func(c *mgo.Collection) error {
+	if err := sess.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": username}).One(&account)
 	}); err != nil {
 		return nil, err
@@ -81,13 +92,8 @@ func (p *Payment) Fetch(username string) (*PaymentResponse, error) {
 		return nil, fmt.Errorf("could not fetch subscription. status code: %d", resp.StatusCode)
 	}
 
-	plan, ok := plans[subscription.PlanTitle]
-	if !ok {
-		return nil, fmt.Errorf("could not find plan. There is no plan called '%s'", subscription.PlanTitle)
-	}
-
 	return &PaymentResponse{
-		Plan:  plan,
+		Plan:  strings.ToLower(subscription.PlanTitle),
 		State: subscription.State,
 	}, nil
 }

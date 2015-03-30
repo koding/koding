@@ -68,6 +68,7 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/sshutil"
 	"koding/kites/kloud/userdata"
@@ -821,7 +822,8 @@ func kodingProvider() *koding.Provider {
 			},
 			Bucket: userdata.NewBucket("koding-klient", "development/latest", auth),
 		},
-		PaymentFetcher: NewTestFetcher(koding.Hobbyist),
+		PaymentFetcher: NewTestFetcher("hobbyist"),
+		CheckerFetcher: NewTestChecker(),
 	}
 }
 
@@ -948,18 +950,55 @@ func isSnapshotNotFoundError(err error) bool {
 
 // TestFetcher satisfies the fetcher interface
 type TestFetcher struct {
-	Plan koding.Plan
+	Plan string
 }
 
-func NewTestFetcher(plan koding.Plan) *TestFetcher {
+func NewTestFetcher(plan string) *TestFetcher {
 	return &TestFetcher{
 		Plan: plan,
 	}
 }
 
-func (t *TestFetcher) Fetch(username string) (*koding.PaymentResponse, error) {
-	return &koding.PaymentResponse{
+func (t *TestFetcher) Fetch(ctx context.Context, username string) (*plans.PaymentResponse, error) {
+	return &plans.PaymentResponse{
 		Plan:  t.Plan,
 		State: "active",
 	}, nil
+}
+
+// TestFetcher satisfies the fetcher interface
+type TestChecker struct{}
+
+func NewTestChecker() *TestChecker {
+	return &TestChecker{}
+}
+
+func (t *TestChecker) Fetch(ctx context.Context, plan string) (plans.Checker, error) {
+	return &TestPlan{}, nil
+}
+
+type TestPlan struct{}
+
+func (t *TestPlan) Total(username string) error {
+	return nil
+}
+
+func (t *TestPlan) AlwaysOn(username string) error {
+	return nil
+}
+
+func (t *TestPlan) SnapshotTotal(machineId, username string) error {
+	return nil
+}
+
+func (t *TestPlan) Storage(wantStorage int, username string) error {
+	return nil
+}
+
+func (t *TestPlan) AllowedInstances(wantInstance plans.InstanceType) error {
+	return nil
+}
+
+func (t *TestPlan) NetworkUsage(username string) error {
+	return nil
 }
