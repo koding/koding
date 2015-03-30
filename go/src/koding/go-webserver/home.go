@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	"net/http"
@@ -14,16 +13,23 @@ var (
 
 func getGroup(r *http.Request) (*models.Group, error) {
 	c, err := r.Cookie("groupName")
-	if err != nil {
+	if err != nil && err != http.ErrNoCookie {
 		return nil, err
 	}
 
-	if c.Value == "" {
-		return nil, errors.New("couldnt find group name")
+	// set initial group name
+	groupName := "koding"
+
+	// try to get cookie value
+	if c != nil && c.Value != "" {
+		groupName = c.Value
+	} else {
+		Log.Error("couldnt find groupname, setting koding as group for now")
+		groupName = "koding"
 	}
 
 	// TODO implement caching here
-	group, err := modelhelper.GetGroup(c.Value)
+	group, err := modelhelper.GetGroup(groupName)
 	if err != nil {
 		return nil, err
 	}
