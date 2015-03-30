@@ -8,6 +8,8 @@ AvatarView       = require 'app/commonviews/avatarviews/avatarview'
 showError        = require 'app/util/showError'
 remote           = require('app/remote').getInstance()
 envDataProvider  = require 'app/userenvironmentdataprovider'
+envHelpers       = require 'ide/collaboration/helpers/environment'
+nick             = require 'app/util/nick'
 
 
 module.exports = class SidebarMachineSharePopup extends KDModalView
@@ -162,19 +164,33 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   deny: ->
 
+    machine = @getData()
+
     @denyButton.showLoader()
-    @getData().jMachine.deny (err) =>
+    machine.jMachine.deny (err) =>
       return showError err  if err
 
-      # fetch the data and redraw the sidebar to remove the denied machine.
-      envDataProvider.fetch =>
-        kd.singletons.mainView.activitySidebar.redrawMachineList()
+      if machine.isPermanent() then @handleDeny()
+      else # remove user from chat and unshare machine for collaboration
+        { channelId } = @getOptions()
+        kd.singletons.socialapi.channel.leave { channelId }, (err) =>
+          return showError err  if err
 
-        if @isApproved
-          # quit IDE if exists
-          envDataProvider.getIDEFromUId(@getData().uid)?.quit()
+          envHelpers.setMachineUser machine, [ nick() ], no, (err) =>
+            return showError err  if err
+            @handleDeny()
 
-        @destroy()
+
+  handleDeny: ->
+
+    # fetch the data and redraw the sidebar to remove the denied machine.
+    envDataProvider.fetch =>
+      kd.singletons.mainView.activitySidebar.redrawMachineList()
+
+      if @isApproved # quit IDE if exists
+        envDataProvider.getIDEFromUId(@getData().uid)?.quit()
+
+      @destroy()
 
 
   destroy: ->
