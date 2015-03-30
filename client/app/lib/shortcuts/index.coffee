@@ -129,7 +129,6 @@ class ShortcutsController extends kd.Controller
   _handleShortcutsChange: (collection, model) ->
 
     queue   = @_buffer[collection.name]
-    idx     = _.findWhere queue, name: model.name
     obj     = name: model.name
     binding = klass._getPlatformBinding model
 
@@ -142,7 +141,10 @@ class ShortcutsController extends kd.Controller
     # appstorage. defaults may change, but user overrides should stay.
     obj.enabled = if model.options?.enabled is no then no else yes
 
-    queue[((~idx and idx) or queue.length)] = obj
+    idx = _.findIndex queue, name: model.name
+    idx = if ~idx then idx else queue.length
+
+    queue[idx] = obj
 
     @_save()
 
