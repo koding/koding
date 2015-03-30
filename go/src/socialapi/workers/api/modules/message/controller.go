@@ -36,8 +36,8 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		req.Payload = gorm.Hstore{}
 	}
 
-	if _, ok := req.Payload["saveLocation"]; ok {
-		// gets the IP of the Client
+    if c.Client.Account.ShareLocation {
+        // gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
 		if err != nil {
@@ -46,9 +46,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 			ll := record.City.Names["en"]
 			req.Payload["location"] = &ll
 		}
-
-		delete(req.Payload, "saveLocation")
-	}
+    }
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
 		return response.NewBadRequest(err)
