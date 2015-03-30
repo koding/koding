@@ -23,7 +23,7 @@
     "kd.js": "^2.0.0",
     "kite.js": "git://github.com/tetsuo/kite.js#v0.5.0",
     "kookies": "^0.1.1",
-    "lodash": "^2.4.1",
+    "lodash": "^3.6.0",
     "machina": "1.0.0-1",
     "marked": "^0.3.2",
     "ndpane": "^0.1.2",
@@ -42,7 +42,7 @@
     "kd": "kd.js",
     "jspath": "kd-shim-jspath",
     "algoliasearch": "kd-shim-algoliasearch",
-    "underscore": "lodash/dist/lodash.underscore.js",
+    "underscore": "lodash",
     "sockjs-client": "kd-shim-sockjs-client",
     "os": "component-os"
   },
