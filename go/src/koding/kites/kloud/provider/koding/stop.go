@@ -10,15 +10,27 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (m *Machine) Stop(ctx context.Context) error {
+func (m *Machine) Stop(ctx context.Context) (err error) {
 	if err := m.UpdateState("Machine is stopping", machinestate.Stopping); err != nil {
 		return err
 	}
 
-	err := m.Session.AWSClient.Stop(ctx)
+	// update the state to intiial state if something goes wrong, we are going
+	// to change latestate to a more safe state if we passed a certain step
+	// below
+	latestState := m.State()
+	defer func() {
+		if err != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
+
+	err = m.Session.AWSClient.Stop(ctx)
 	if err != nil {
 		return err
 	}
+
+	latestState = machinestate.Stopped
 
 	m.push("Initializing domain instance", 65, machinestate.Stopping)
 	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {

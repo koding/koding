@@ -16,10 +16,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-func (m *Machine) Start(ctx context.Context) error {
+func (m *Machine) Start(ctx context.Context) (err error) {
 	if err := m.UpdateState("Machine is starting", machinestate.Starting); err != nil {
 		return err
 	}
+
+	// update the state to intiial state if something goes wrong, we are going
+	// to change latestate to a more safe state if we passed a certain step
+	// below
+	latestState := m.State()
+	defer func() {
+		if err != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
 
 	if err := m.Checker.AlwaysOn(m.Username); err != nil {
 		return err
@@ -121,6 +131,9 @@ func (m *Machine) Start(ctx context.Context) error {
 			return err
 		}
 	}
+
+	// now we can assume that the machine is running
+	latestState = machinestate.Running
 
 	// Assign a Elastic IP for a paying customer if it doesn't have any
 	// assigned yet (Elastic IP's are assigned only during the Build). We

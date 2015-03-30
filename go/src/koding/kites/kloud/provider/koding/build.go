@@ -91,13 +91,14 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
+	latestState := m.State()
 	defer func() {
 		// run any availabile cleanupFunction
 		m.runCleanupFunctions()
 
 		// if there is any error mark it as NotInitialized
 		if err != nil {
-			m.UpdateState(reason, machinestate.NotInitialized)
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
 
@@ -185,6 +186,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	if err != nil {
 		return err
 	}
+
+	// now it's safe to say it's running
+	latestState = machinestate.Running
 
 	m.Meta.InstanceType = instance.InstanceType
 	m.Meta.SourceAmi = instance.ImageId

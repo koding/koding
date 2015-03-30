@@ -10,7 +10,7 @@ import (
 
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
-func (m *Machine) Destroy(ctx context.Context) error {
+func (m *Machine) Destroy(ctx context.Context) (err error) {
 	if m.State() == machinestate.NotInitialized {
 		return errors.New("can't destroy notinitialized machine.")
 	}
@@ -18,6 +18,16 @@ func (m *Machine) Destroy(ctx context.Context) error {
 	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
 		return err
 	}
+
+	// update the state to intiial state if something goes wrong, we are going
+	// to change latestate to a more safe state if we passed a certain step
+	// below
+	latestState := m.State()
+	defer func() {
+		if err != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
 
 	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
 		return err
@@ -54,14 +64,12 @@ func (m *Machine) Destroy(ctx context.Context) error {
 		nil,
 		ec2.NewFilter(),
 	); err == nil {
-		if len(resp.Addresses) == 0 {
-			return nil // nothing to do
+		if len(resp.Addresses) != 0 {
+			address := resp.Addresses[0]
+			m.Log.Debug("Got an elastic IP %+v. Going to relaease it", address)
+
+			m.Session.AWSClient.Client.ReleaseAddress(address.AllocationId)
 		}
-
-		address := resp.Addresses[0]
-		m.Log.Debug("Got an elastic IP %+v. Going to relaease it", address)
-
-		m.Session.AWSClient.Client.ReleaseAddress(address.AllocationId)
 	}
 
 	// clean up these details, the instance doesn't exist anymore

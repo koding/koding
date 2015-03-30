@@ -44,6 +44,16 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		return err
 	}
 
+	// update the state to intiial state if something goes wrong, we are going
+	// to change latestate to a more safe state if we passed a certain step
+	// below
+	latestState := m.State()
+	defer func() {
+		if resErr != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
+
 	m.push("Resizing initialized", 10, machinestate.Pending)
 
 	a := m.Session.AWSClient
@@ -105,6 +115,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 			return err
 		}
 	}
+
+	// now we are in a stopped state
+	latestState = machinestate.Stopped
 
 	m.push("Creating new snapshot", 40, machinestate.Pending)
 	m.Log.Info("creating new snapshot from volume id %s", oldVolumeId)
@@ -182,6 +195,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	if err != nil {
 		return err
 	}
+
+	latestState = machinestate.Running
+
 	m.IpAddress = instance.PublicIpAddress
 
 	m.push("Updating domain", 85, machinestate.Pending)
