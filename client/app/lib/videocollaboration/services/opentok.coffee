@@ -102,17 +102,16 @@ module.exports = class OpenTokService extends kd.Object
    *
    * @param {SocialChannel} channel
    * @param {String} role
+   * @param {object} callbacks
   ###
-  connect: (channel, role) ->
+  connect: (channel, callbacks) ->
 
     @fetchChannelSession channel, (session) =>
       helper.generateToken session, (token) =>
         session.connect token, (err) =>
-          return warn { err }  if err
-          @emit 'SessionCreated', session
-
-          session.on 'connectionCreated', \
-            @lazyBound 'emit', 'ConnectionCreated'
+          if err
+          then callbacks.error err
+          else callbacks.success session
 
 
   ###*
