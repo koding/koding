@@ -45,7 +45,7 @@ module.exports = class OpenTokService extends kd.Object
    * Initializes the client library of OpenTok.
    * TODO: It may be wise to include this in our bundle?
    *
-   * @emits OpenTokService#ClientLoaded
+   * @emits OpenTokService~ClientLoaded
   ###
   initOpenTokClient: ->
 
@@ -58,6 +58,13 @@ module.exports = class OpenTokService extends kd.Object
       @_loaded = yes
 
 
+  ###*
+   * Call given callback if loaded, otherwise register callback to be called
+   * when 'ClientLoaded' event is emitted.
+   *
+   * @param {function} callback
+   * @listens OpenTokService~ClientLoaded
+  ###
   whenReady: (callback) ->
 
     if @_loaded
