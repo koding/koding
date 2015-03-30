@@ -78,9 +78,6 @@ module.exports = class OpenTokService extends kd.Object
   ###
   getChannelSession: (channel, callback) ->
 
-    # TODO: move this to config.
-    API_KEY = '45082272'
-
     { id } = channel
 
     return callback @sessions[id]  if @sessions[id]
