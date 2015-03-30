@@ -2,19 +2,28 @@ package main
 
 import (
 	"encoding/json"
-	"socialapi/workers/payment/paymentemail"
 	"socialapi/workers/payment/paymentwebhook/webhookmodels"
 )
 
 func stripePaymentRefunded(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, paymentemail.PaymentRefunded)
+	amountGetter := func(req *webhookmodels.StripeCharge) float64 {
+		return req.AmountRefunded
+	}
+
+	return stripeChargeHelper(raw, c, PaymentRefunded, amountGetter)
 }
 
 func stripePaymentFailed(raw []byte, c *Controller) error {
-	return stripeChargeHelper(raw, c, paymentemail.PaymentFailed)
+	amountGetter := func(req *webhookmodels.StripeCharge) float64 {
+		return req.Amount
+	}
+
+	return stripeChargeHelper(raw, c, PaymentFailed, amountGetter)
 }
 
-func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) error {
+type amountGetterFn func(req *webhookmodels.StripeCharge) float64
+
+func stripeChargeHelper(raw []byte, c *Controller, act Action, aFn amountGetterFn) error {
 	var req *webhookmodels.StripeCharge
 
 	err := json.Unmarshal(raw, &req)
@@ -22,16 +31,15 @@ func stripeChargeHelper(raw []byte, c *Controller, action paymentemail.Action) e
 		return err
 	}
 
-	emailAddress, err := getEmailForCustomer(req.CustomerId)
+	user, err := getUserForCustomer(req.CustomerId)
 	if err != nil {
 		return err
 	}
 
-	opts := map[string]string{
-		"price": formatStripeAmount(req.Currency, req.Amount),
-	}
+	amount := formatStripeAmount(req.Currency, aFn(req))
+	opts := map[string]interface{}{"price": amount}
 
-	Log.Info("Stripe: Sent invoice email to: %s", emailAddress)
+	Log.Info("Stripe: Sent invoice email to: %s", user.Email)
 
-	return paymentemail.Send(c.Email, action, emailAddress, opts)
+	return SendEmail(user, act, opts)
 }

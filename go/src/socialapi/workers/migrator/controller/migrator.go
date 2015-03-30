@@ -64,13 +64,15 @@ func (mwc *Controller) CronStart() {
 func (mwc *Controller) Start() {
 	mwc.log.Notice("Migration started")
 
-	mwc.migrateAllAccountsToAlgolia()
-
 	mwc.migrateAllAccounts()
 
 	mwc.migrateAllGroups()
 
+	mwc.createPublicChannel()
+
 	mwc.createChangelogChannel()
+
+	mwc.migrateAllAccountsToAlgolia()
 
 	mwc.GrantPublicAccess()
 

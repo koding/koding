@@ -54,7 +54,7 @@ module.exports = class JAccount extends jraphical.Module
         # when a user sends a status update, we are sending 7 events
         # when a user logs-in we are sending 10 events
         # { name: 'updateInstance' }
-        { name : 'notification' }
+        { name : 'messageBusEvent' }
         { name : 'RemovedFromCollection' }
         { name : 'NewWorkspaceCreated'}
       ]
@@ -111,14 +111,6 @@ module.exports = class JAccount extends jraphical.Module
         unfollow: [
           (signature Function)
         ]
-        fetchFollowersWithRelationship:
-          (signature Object, Object, Function)
-        countFollowersWithRelationship:
-          (signature Object, Function)
-        countFollowingWithRelationship:
-          (signature Object, Function)
-        fetchFollowingWithRelationship:
-          (signature Object, Object, Function)
         fetchTopics:
           (signature Object, Object, Function)
         fetchAppStorage:
@@ -1077,11 +1069,20 @@ module.exports = class JAccount extends jraphical.Module
     isTainted = @taintedAccounts[id]
     isTainted
 
-  sendNotification:(event, contents)->
-    @emit 'notification', {
-      routingKey: @profile.nickname
-      event, contents
-    }
+  sendNotification: (event, contents) ->
+    @createSocialApiId (err, socialApiId) =>
+      return console.error "Could not send notification to account:", err  if err
+
+      message = {
+        account: {id: socialApiId, nick: @profile.nickname}
+        eventName: "social"
+        body:
+          contents: contents
+          event: event
+          context: "koding"
+      }
+
+      @emit 'messageBusEvent', {type: "dispatcher_notify_user", message: message}
 
   fetchGroupsWithPending:(method, status, options, callback)->
     [callback, options] = [options, callback]  unless callback

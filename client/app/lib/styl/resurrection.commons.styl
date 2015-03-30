@@ -669,7 +669,12 @@ button.app-settings-menu
 
 .kdmodal.more-modal
 
-  .kdlistitemview-sidebar-item
+  &.managed
+    .add-big-btn
+      width          45%
+      margin         0 10px 20px
+
+  .kdlistitemview.sidebar-item
     display          block
     width            auto
     height           35px
@@ -683,7 +688,7 @@ button.app-settings-menu
       color          #5e5e5e
       noTextDeco()
 
-    & ~ .kdlistitemview-sidebar-item
+    & ~ .kdlistitemview.sidebar-item
       margin-top     8px
 
     &:before
@@ -708,10 +713,10 @@ button.app-settings-menu
       margin-top     8px
       fr()
 
-.more-vms .kdlistitemview-sidebar-item:before
+.more-vms .kdlistitemview.machine:before
   content              'K'
 
-.more-workspaces .kdlistitemview-sidebar-item:before
+.more-workspaces .kdlistitemview.workspace:before
   content              'W'
 
 

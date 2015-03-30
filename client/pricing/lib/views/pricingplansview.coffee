@@ -18,7 +18,7 @@ module.exports = class PricingPlansView extends KDView
 
     @planViews = {}
 
-    for plan in @plans
+    for plan in @getPlans()
       plan.delegate = this
       planTitle = plan.title.toLowerCase()
       plan.state = @state
@@ -91,6 +91,13 @@ module.exports = class PricingPlansView extends KDView
     index = plans.indexOf planTitle
 
     return plans.slice 0, index
+
+
+  getPlans: ->
+
+    { reversePlans } = @state
+    method = if reversePlans then 'reverse' else 'slice'
+    return @plans[method]()
 
 
   plans: [

@@ -1,34 +1,35 @@
 package main
 
 import (
-	"fmt"
+	"koding/db/mongodb/modelhelper"
+	"log"
 	"socialapi/workers/common/runner"
-	"socialapi/workers/email/sender"
+	"socialapi/workers/email/emailsender"
 
-	"github.com/sendgrid/sendgrid-go"
+	"github.com/koding/eventexporter"
 )
 
 var (
-	Name = "MailSender"
+	Name        = "MailSender"
+	QueueLength = 1
 )
 
 func main() {
 	r := runner.New(Name)
 	if err := r.Init(); err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
-	sg := sendgrid.NewSendGridClient(r.Conf.Email.Username, r.Conf.Email.Password)
-	sgm := &sender.SendGridMail{
-		Sendgrid: sg,
-	}
+	modelhelper.Initialize(r.Conf.Mongo)
 
-	constructor := sender.New(r.Log, sgm)
-	constructor.ForcedRecipient = r.Conf.Email.ForcedRecipient
+	exporter := eventexporter.NewSegmentIOExporter(r.Conf.Segment, QueueLength)
+	constructor := emailsender.New(exporter, r.Log)
 
 	r.SetContext(constructor)
-	r.Register(sender.Mail{}).On("send").Handle((*sender.Controller).Process)
+
+	r.Register(emailsender.Mail{}).On(emailsender.SendEmailEventName).Handle(
+		(*emailsender.Controller).Process)
+
 	r.Listen()
 	r.Wait()
 }

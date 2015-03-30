@@ -57,8 +57,8 @@ module.exports =
         password : 'xXbeDUPwtYhmw9KNKXiD8jf'
 
       machineName     = vms[0]
-      machineLink     = '/IDE/' + machineName + '/my-workspace'
-      machineSelector = "a[href='" + machineLink + "']"
+      machineLink     = "/IDE/#{machineName}"
+      machineSelector = "a[href='#{machineLink}']"
 
       unless machineName
         postToSlack username + " doesn't have a always on VM, ignoring user..."

@@ -133,7 +133,7 @@ collaborationdev:
 
 mailsenderdev:
 	@echo "$(OK_COLOR)==> Running Mailsender Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/sender -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/email/emailsender -watch socialapi/workers/email/emailsender -c $(CONFIG) $(DBG) $(METRICS)
 
 configuremigration:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.relationships.update({},{\$$unset:{migrationStatus:0}},{multi:true})'")
@@ -214,9 +214,9 @@ testmodels:
 
 testmailsender:
 	@echo "$(OK_COLOR)--> Mailsender tests... $(NO_COLOR)"
-	@`which go` test -c workers/email/sender/*.go
-	@./sender.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./sender.test
+	@`which go` test -c workers/email/emailsender/*.go
+	@./emailsender.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./emailsender.test
 
 testemailworker:
 	# @echo "$(OK_COLOR)--> activity email tests.. $(NO_COLOR)"
@@ -237,12 +237,19 @@ testemailworker:
 	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker
+testnotification:
+
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
+	@`which go` test -c workers/notification/tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testnotification
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> algolia tests... $(NO_COLOR)"
 	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test -c $(CONFIG)
 	@rm ./algoliaconnector.test

@@ -52,7 +52,7 @@ module.exports =
     unless machineName
       machineName = 'koding-vm-0'
 
-    vmSelector     = '[href="/IDE/'+machineName+'/my-workspace"].running.vm'
+    vmSelector     = '[href="/IDE/' + machineName + '"].running.vm'
     modalSelector  = '.env-modal.env-machine-state'
     loaderSelector = modalSelector + ' .kdloader'
     buildingLabel  = modalSelector + ' .state-label.building'
@@ -223,6 +223,7 @@ module.exports =
 
 
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
+
     browser
       .pause                    5000 # wait for IDE open
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
@@ -235,7 +236,7 @@ module.exports =
 
     if hasEmbeddable
       browser
-        .waitForElementVisible  '.activity-input-widget .link-embed-box', 20000
+        .waitForElementVisible  '[testpath=ActivityInputWidget] .link-embed-box', 20000
 
     browser
       .click                    '[testpath=post-activity-button]'
@@ -441,8 +442,8 @@ module.exports =
     paragraph           = @getFakeText()
     newName             = paragraph.split(' ')[0]
     avatarSelector      = '.avatar-area a.profile'
-    accountPageSelector = '#main-panel-wrapper .user-profile'
-    saveButtonSelector  = accountPageSelector + ' .button-field .profile-save-changes'
+    accountPageSelector = '.AppModal--account'
+    saveButtonSelector  = accountPageSelector + ' .button-field'
 
     browser
       .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000

@@ -137,7 +137,6 @@ module.exports = class MainController extends KDController
     kd.registerSingleton 'mainViewController',  mvc = new MainViewController view : mv
     kd.registerSingleton 'kodingAppsController',      new KodingAppsController
     kd.registerSingleton 'socialapi',                 new SocialApiController
-    kd.registerSingleton 'search',                    new SearchController
     kd.registerSingleton 'realtime',                  new RealtimeController
     kd.registerSingleton 'pageTitle',                 new PageTitleController
 
@@ -146,6 +145,8 @@ module.exports = class MainController extends KDController
     mv.appendToDomBody()
 
     @ready =>
+
+      kd.registerSingleton 'search',                  new SearchController
       kd.registerSingleton 'widgetController',        new WidgetController
       kd.registerSingleton 'onboardingController',    new OnboardingController
 

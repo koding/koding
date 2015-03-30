@@ -16,8 +16,7 @@ func (mwc *Controller) migrateAllAccountsToAlgolia() {
 	successCount := 0
 
 	s := modelhelper.Selector{
-		"migration": modelhelper.Selector{"$exists": false},
-		"type":      "registered",
+		"type": "registered",
 	}
 
 	c := config.MustGet()

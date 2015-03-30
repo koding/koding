@@ -7,6 +7,31 @@ globals = require 'globals'
 
 module.exports = class KodingKite_KloudKite extends require('../kodingkite')
 
+  SUPPORTED_PROVIDERS = ['koding']
+
+  getProvider = (machineId)->
+    kd.singletons.computeController.machinesById[machineId]?.provider
+
+  isManaged = (machineId)->
+    (getProvider machineId) is 'managed'
+
+  @createMethod = (ctx, { method, rpcMethod }) ->
+    ctx[method] = (payload) ->
+
+      if payload?.machineId?
+
+        provider = getProvider payload.machineId
+
+        if provider not in SUPPORTED_PROVIDERS
+          # machine provider is not supported by kloud #{payload.machineId}
+          return Promise.reject
+            name    : 'NotSupported'
+            message : 'Operation is not supported for this VM'
+
+        payload.provider = provider
+
+      @tell rpcMethod, payload
+
   @createApiMapping
     stop         : 'stop'
     start        : 'start'
@@ -41,7 +66,7 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       @needsRequest[machineId] = no
 
       # This is for tests, it bypasses klient info state
-      if @_disableKlientInfo
+      if @_disableKlientInfo and not isManaged machineId
         @askInfoFromKloud machineId, currentState
       else
         @askInfoFromKlient machineId, (klientInfo)=>
@@ -72,11 +97,12 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
     if not machine or not machineId
       return callback null
 
+    managed    = machine.provider is 'managed'
     klientKite = klient?[machine.uid]
 
     unless klientKite?
 
-      if machine.status.state is Machine.State.Running
+      if machine.status.state is Machine.State.Running or managed
 
         klientKite = kontrol.getKite
           name            : 'klient'
@@ -86,30 +112,35 @@ module.exports = class KodingKite_KloudKite extends require('../kodingkite')
       else
         return callback null
 
+
     klientKite.ping()
 
       .then (res)->
 
         if res is 'pong'
-        then callback State: Machine.State.Running, via: 'klient'
+          callback State: Machine.State.Running, via: 'klient'
         else
           computeController.invalidateCache machineId
           callback null
 
       .timeout 5000
 
-      .catch ->
+      .catch (err)->
 
-        KiteLogger.failed 'klient', 'kite.ping'
-
-        callback null
+        if err?.name is 'TimeoutError' and managed
+          callback State: Machine.State.Stopped, via: 'klient'
+        else
+          KiteLogger.failed 'klient', 'kite.ping'
+          callback null
 
 
   askInfoFromKloud: (machineId, currentState) ->
 
     {kontrol, computeController} = kd.singletons
 
-    @tell 'info', { machineId }
+    provider = getProvider machineId
+
+    @tell 'info', { machineId, provider }
 
       .then (info) =>
 

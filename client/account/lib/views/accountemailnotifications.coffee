@@ -31,10 +31,6 @@ module.exports = class AccountEmailNotifications extends KDView
 
     {subSettings} = privateMessage
 
-    subSettings.addSubView new KDCustomHTMLView
-      partial  : 'Send me an email after'
-      cssClass : 'title'
-
     @notificationDelay =  new KDSelectBox
       defaultValue  : 5
       selectOptions : [
@@ -51,6 +47,10 @@ module.exports = class AccountEmailNotifications extends KDView
           kd.warn "Could not update notification delay", err if err
 
     subSettings.addSubView @notificationDelay
+
+    subSettings.addSubView new KDCustomHTMLView
+      partial  : 'Send me an email after'
+      cssClass : 'title'
 
   pmNotificationDelayFieldAdded: (value) -> @notificationDelay.setValue value or 5
 
@@ -91,13 +91,15 @@ module.exports = class AccountEmailNotifications extends KDView
       mention          :
         title          : 'When someone mentions me'
       marketing        :
-        title          : 'When Koding has member updates (like VM security updates, privacy updates, inactive account notices, offers and campaigns.)'
+        title          : 'When Koding has member updates <small>Like VM security updates, privacy updates, inactive account notices, offers and campaigns.</small>'
       pmNotificationDelay:
         title          : ''
 
     view = this
 
-    @addSubView @list = new KDCustomHTMLView tagName : 'ul'
+    @addSubView @list = new KDCustomHTMLView
+      tagName : 'ul'
+      cssClass: 'AppModal--account-switchList'
 
     for own flag, field of fields
 
@@ -119,8 +121,8 @@ module.exports = class AccountEmailNotifications extends KDView
         size          : width : 12
         loaderOptions : color : "#FFFFFF"
 
-      field.formView.addSubView title
       field.formView.addSubView fieldSwitch
+      field.formView.addSubView title
       fields[flag].formView.addSubView fields[flag].loader
 
       @["#{flag}FieldAdded"]? frequency[flag]

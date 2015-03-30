@@ -78,8 +78,10 @@ func dealWithMachinesOverLimit() error {
 	return nil
 }
 
+var KodingProvider = "koding"
+
 func getRunningVms() ([]*models.Machine, error) {
-	return modelhelper.GetRunningVms()
+	return modelhelper.GetRunningVms(KodingProvider)
 }
 
 func extractUsernames(machines []*models.Machine) []interface{} {

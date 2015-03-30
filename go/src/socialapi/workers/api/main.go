@@ -8,6 +8,7 @@ import (
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 
 	"socialapi/config"
+	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
@@ -40,17 +41,18 @@ func main() {
 	m := mux.New(mc, r.Log)
 
 	m.Metrics = r.Metrics
-	handlers.AddHandlers(m)
+	handlers.AddHandlers(m, r.Metrics)
 	m.Listen()
 	// shutdown server
 	defer m.Close()
 
-	collaboration.AddHandlers(m)
-	paymentapi.AddHandlers(m)
-	notificationapi.AddHandlers(m)
-	trollmodeapi.AddHandlers(m)
-	sitemapapi.AddHandlers(m)
-	mailapi.AddHandlers(m)
+	collaboration.AddHandlers(m, r.Metrics)
+	paymentapi.AddHandlers(m, r.Metrics)
+	notificationapi.AddHandlers(m, r.Metrics)
+	trollmodeapi.AddHandlers(m, r.Metrics)
+	sitemapapi.AddHandlers(m, r.Metrics)
+	mailapi.AddHandlers(m, r.Metrics)
+	algoliaapi.AddHandlers(m, r.Metrics, r.Log)
 
 	// init redis
 	redisConn := helper.MustInitRedisConn(r.Conf)

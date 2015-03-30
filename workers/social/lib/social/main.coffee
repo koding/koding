@@ -20,7 +20,7 @@ Broker = require 'broker'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 Object.defineProperty global, 'KONFIG', value: KONFIG
-{mq, email, social, mongoReplSet} = KONFIG
+{mq, email, social, mongoReplSet, socialapi} = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"  if 'string' is typeof KONFIG.mongo
 
@@ -29,6 +29,10 @@ mqOptions.login = social.login if social?.login?
 
 broker = new Broker mqOptions
 
+mqConfig = {host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost}
+
+# TODO exchange version must be injected here, when we have that support
+mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
 
 
 koding = new Bongo {
@@ -38,6 +42,8 @@ koding = new Bongo {
   models      : './models'
   resourceName: social.queueName
   mq          : broker
+  mqConfig    : mqConfig
+
 
   kite          :
     name        : 'social'

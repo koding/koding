@@ -86,8 +86,9 @@ module.exports =
 
     browser
       .waitForElementVisible    '.kdtabhandle-tabs .settings', 20000
+      .waitForElementVisible    '.kdlistview-default.expanded', 50000
       .click                    '.kdtabhandle-tabs .settings'
-      .waitForElementVisible    '.settings-pane .settings-header',20000 # Assertion
+      .waitForElementVisible    '.settings-pane .settings-header:first-child',20000 # Assertion
       .end()
 
 
@@ -97,8 +98,9 @@ module.exports =
     helpers.waitForVMRunning(browser)
 
     browser
-      .waitForElementVisible     '.application-tab-handle-holder', 20000
-      .click                     '.application-tab-handle-holder .plus'
+      .waitForElementVisible    '.kdlistview-default.expanded', 50000
+      .waitForElementVisible     '.panel-1 .panel-0 .application-tab-handle-holder', 20000
+      .click                     '.panel-1 .panel-0 .application-tab-handle-holder .plus'
       .waitForElementVisible     '.context-list-wrapper', 20000
       .click                     '.context-list-wrapper li.enter-fullscreen'
       .waitForElementVisible     '.ws-tabview.fullscren', 20000 # Assertion
