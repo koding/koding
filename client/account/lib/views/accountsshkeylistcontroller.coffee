@@ -96,7 +96,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       @sshKeyHelpLink = new KDCustomHTMLView
         cssClass : 'ssh-key-help'
         partial  : """
-          <a href="http://learn.koding.com/delete-ssh-key" target="_blank">How to delete ssh key from your VM</a>
+          <a href="http://learn.koding.com/guides/ssh-into-your-vm/#deleting-a-key" target="_blank">How to delete ssh key from your VM</a>
         """
       @getListView().addSubView @sshKeyHelpLink
 
