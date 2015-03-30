@@ -76,17 +76,18 @@ module.exports = class OpenTokService extends kd.Object
    * @param {SocialChannel} channel - Pair channel of session.
    * @param {Function=} callback - it will be called with the session object.
   ###
-  getChannelSession: (channel, callback) ->
+  fetchChannelSession: (channel, callback) ->
 
     { id } = channel
 
     return callback @sessions[id]  if @sessions[id]
 
-    generateChannelSession channel, (session) =>
+    helper.generateSession channel, (session) =>
 
       { sessionId } = session
+      { apiKey } = globals.config.tokbox
 
-      session = @sessions[channel.id] = OT.initSession API_KEY, sessionId
+      session = @sessions[channel.id] = OT.initSession apiKey, sessionId
 
       session.sessionId = sessionId
 
@@ -104,9 +105,8 @@ module.exports = class OpenTokService extends kd.Object
   ###
   connect: (channel, role) ->
 
-    @getChannelSession channel, (session) =>
-      { sessionId } = session
-      getToken { sessionId, role }, (token) =>
+    @fetchChannelSession channel, (session) =>
+      helper.generateToken session, (token) =>
         session.connect token, (err) =>
           return warn { err }  if err
           @emit 'SessionCreated', session
