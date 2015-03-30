@@ -168,16 +168,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
-   * Shows given participant's video feed.
    *
-   * @param {OT.Subscriber|OT.Publisher} participant
   ###
-  showParticipant: (participant) ->
 
-    { element } = participant.video
-    element.style.display = 'block'
 
-    @fixParticipantVideo participant
 
 
   ###*
