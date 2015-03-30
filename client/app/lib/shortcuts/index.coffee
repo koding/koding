@@ -171,9 +171,6 @@ class ShortcutsController extends kd.Controller
         matchesEnabled = override.enabled is enabled
         matchesBinding = _.isEqual klass._getPlatformBinding(model), override.binding
 
-        console.log model, override
-        console.log matchesEnabled, matchesBinding
-
         unless matchesEnabled and matchesBinding
           @emit 'change', collection,
             @shortcuts.update collection.name, model.name, {
