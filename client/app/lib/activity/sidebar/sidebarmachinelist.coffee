@@ -88,7 +88,7 @@ module.exports = class SidebarMachineList extends KDCustomHTMLView
       { machine } = box
       if machine.uid is machineUId
         # don't select not approved machines
-        if not machine.isMine() and machine.isPermanent() and not machine.isApproved()
+        if not machine.isMine() and not machine.isApproved()
           return no
 
         box.select()

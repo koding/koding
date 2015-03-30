@@ -152,7 +152,7 @@ module.exports = class NavigationMachineItem extends JView
 
     m = @machine
 
-    if not m.isMine() and m.isPermanent() and not m.isApproved()
+    if not m.isMine() and not m.isApproved()
       kd.utils.stopDOMEvent e
       @showSidebarSharePopup()
 
