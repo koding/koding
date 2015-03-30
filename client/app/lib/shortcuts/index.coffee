@@ -10,7 +10,7 @@ AppStorage     = require 'app/appstorage'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '7'
-THROTTLE_WAIT   = 300
+DEBOUNCE_WAIT   = 300
 
 module.exports =
 
@@ -28,7 +28,6 @@ class ShortcutsController extends kd.Controller
   # instance, and persists the state of a keyconfig#Collection to the app storage.
   #
   constructor: (options={}, data) ->
-
 
     @_store  = null
     @_buffer = null
@@ -84,10 +83,7 @@ class ShortcutsController extends kd.Controller
 
   # Persists changes to app storage.
   #
-  # This is a throttled method and will only be called once per every
-  # _THROTTLE_WAIT_ milliseconds.
-  #
-  _save: _.throttle ->
+  _save: _.debounce ->
 
     unless @_store.isReady
       console.warn 'could not persist shortcut changes'
@@ -120,9 +116,7 @@ class ShortcutsController extends kd.Controller
 
     return
 
-  , THROTTLE_WAIT,
-    leading  : no
-    trailing : yes
+  , DEBOUNCE_WAIT, no # see https://lodash.com/docs#debounce
 
 
   # Buffers up changed models.
