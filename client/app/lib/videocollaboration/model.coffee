@@ -181,21 +181,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
-   * This is a convinient method.
-   * This is probably wrong but the way openTok sessions
-   * are working makes all subscriber videos invisible.
-   * This method's pure existence is to support it.
-   * p.s.: 173 is weird.
    *
-   * @param {OT.Subscriber|OT.Publisher} participant
   ###
-  fixParticipantVideo: (participant) ->
 
-    { video } = participant
-
-    KD.utils.wait 173, ->
-      vElement = video.videoElement()
-      vElement.style.left   = '-14px'
-      vElement.style.height = '265px'
-      vElement.style.width  = '355px'
 
