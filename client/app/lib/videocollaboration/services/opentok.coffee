@@ -1,7 +1,11 @@
 kd                   = require 'kd'
 $                    = require 'jquery'
 helper               = require '../helper'
+globals              = require 'globals'
+getNick              = require 'app/util/nick'
 KodingAppsController = require '../../kodingappscontroller'
+
+OPENTOK_URL = '//static.opentok.com/webrtc/v2.2/js/opentok.min.js'
 
 module.exports = class OpenTokService extends kd.Object
 
@@ -47,7 +51,7 @@ module.exports = class OpenTokService extends kd.Object
 
     options =
       identifier : 'open-tok'
-      url        : '//static.opentok.com/webrtc/v2.2/js/opentok.min.js'
+      url        : OPENTOK_URL
 
     KodingAppsController.appendHeadElement 'script', options, =>
       @emit 'ClientLoaded'
