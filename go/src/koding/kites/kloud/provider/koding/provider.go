@@ -12,10 +12,12 @@ import (
 	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
+	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
+	"time"
 
 	"github.com/fatih/structs"
 	"github.com/koding/kite"
@@ -236,4 +238,29 @@ func (p *Provider) credential(publicKey string) (*Credential, error) {
 	}
 
 	return credential, nil
+}
+
+func (m *Machine) UpdateState(reason string, state machinestate.State) error {
+	m.Log.Debug("Updating state to '%v'", state)
+	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{
+				"_id": m.Id,
+			},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
+				},
+			},
+		)
+	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
+			state, m.Id.Hex(), err)
+	}
+
+	return nil
 }

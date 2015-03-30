@@ -2,7 +2,10 @@ package koding
 
 import (
 	"errors"
+	"fmt"
 	"koding/kites/kloud/machinestate"
+
+	"labix.org/v2/mgo"
 
 	"github.com/mitchellh/goamz/ec2"
 	"golang.org/x/net/context"
@@ -79,4 +82,18 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	m.QueryString = ""
 
 	return m.DeleteDocument()
+}
+
+// DeleteDocument deletes the associated MongoDB document.
+func (m *Machine) DeleteDocument() error {
+	m.Log.Debug("Deleting machine document")
+	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.RemoveId(m.Id)
+	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't delete document with id: %s err: %s", m.Id.Hex(), err)
+	}
+
+	return nil
 }

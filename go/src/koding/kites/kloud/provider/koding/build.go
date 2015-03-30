@@ -675,3 +675,28 @@ func isAddressNotFoundError(err error) bool {
 
 	return ec2Error.Code == "InvalidAddress.NotFound"
 }
+
+// switchAWSRegion switches to the given AWS region. This should be only used when
+// you know what to do, otherwiese never, never change the region of a machine.
+func (m *Machine) switchAWSRegion(region string) error {
+	m.Meta.InstanceId = "" // we neglect any previous instanceId
+	m.QueryString = ""     //
+	m.Meta.Region = "us-east-1"
+
+	client, err := m.Session.AWSClients.Region("us-east-1")
+	if err != nil {
+		return err
+	}
+	m.Session.AWSClient.Client = client
+
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"meta.instanceId": "",
+				"queryString":     "",
+				"meta.region":     "us-east-1",
+			}},
+		)
+	})
+}
