@@ -154,7 +154,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 			Percentage: 100,
 		}
 
-		k.Log.Info("[%s] ======> %s started <======", args.Provider, args.MachineId, strings.ToUpper(r.Method))
+		k.Log.Info("[%s] ======> %s started <======", args.MachineId, strings.ToUpper(r.Method))
 		start := time.Now()
 
 		err := fn(ctx, machine)
