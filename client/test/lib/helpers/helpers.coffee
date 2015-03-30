@@ -2,7 +2,6 @@ utils    = require '../utils/utils.js'
 register = require '../register/register.js'
 faker    = require 'faker'
 assert   = require 'assert'
-testUrl  = require('../../../../.config.json').test.url
 
 activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=ActivityListItemView]:first-child'
 
@@ -194,7 +193,7 @@ module.exports =
     if shouldPostActivity
       @postActivity(browser)
 
-    comment = @getFakeText 50
+    comment = @getFakeText()
 
     @doPostComment(browser, comment, shouldAssert)
 
@@ -203,25 +202,28 @@ module.exports =
 
   doPostComment: (browser, comment, shouldAssert = yes, hasEmbeddable = no) ->
     browser
-      .click                      activitySelector + ' [testpath=CommentInputView]'
-      .setValue                   activitySelector + ' [testpath=CommentInputView]', comment
+      .click                    activitySelector + ' [testpath=CommentInputView]'
+      .setValue                 activitySelector + ' [testpath=CommentInputView]', comment
+      .waitForElementVisible    activitySelector + ' .comment-container .comment-input-wrapper', 20000
+      .click                    activitySelector + ' .has-markdown' # blur
+      .pause                    3000 # content preview
 
     if hasEmbeddable
       browser
-        .click                    activitySelector + ' .has-markdown' # blur
-        .pause                    3000 # content preview
-        .waitForElementVisible    '.comment-input-widget .link-embed-box', 20000
+        .waitForElementVisible  '.comment-input-widget .link-embed-box', 20000
 
     browser
-      .click                      activitySelector + ' .comment-container button[testpath=post-activity-button]'
+      .click                    activitySelector + ' .comment-container button[testpath=post-activity-button]'
+
 
     if shouldAssert
       browser
-        .pause                    6000 # required
-        .assert.containsText      '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
+        .pause               6000 # required
+        .assert.containsText '[testpath=ActivityListItemView]:first-child .comment-body-container', comment # Assertion
 
 
   doPostActivity: (browser, post, shouldAssert = yes, hasEmbeddable = no) ->
+
     browser
       .pause                    5000 # wait for IDE open
       .click                    '[testpath="public-feed-link/Activity/Topic/public"]'
@@ -230,15 +232,11 @@ module.exports =
       .waitForElementVisible    '.most-recent [testpath=activity-list]', 30000
       .click                    '[testpath=ActivityInputView]'
       .setValue                 '[testpath=ActivityInputView]', post
+      .click                    '.channel-title'
 
     if hasEmbeddable
       browser
-        .pause 3000
-        .click '.channel-title'
-        .waitForElementVisible  '.activity-input-widget .link-embed-box', 20000
-    else
-      browser
-        .click '.channel-title'
+        .waitForElementVisible  '[testpath=ActivityInputWidget] .link-embed-box', 20000
 
     browser
       .click                    '[testpath=post-activity-button]'
@@ -282,12 +280,8 @@ module.exports =
     return hashtag
 
 
-  getFakeText: (maxLength) ->
-
-    text = faker.Lorem.paragraph().replace(/(?:\r\n|\r|\n)/g, '')
-    text.substr(0, maxLength)  if maxLength
-
-    return text
+  getFakeText: ->
+    return faker.Lorem.paragraph().replace /(?:\r\n|\r|\n)/g, ''
 
 
   openFolderContextMenu: (browser, user, folderName) ->
@@ -523,5 +517,5 @@ module.exports =
 
 
   getUrl: ->
-    return testUrl
+    return 'http://lvh.me:8090'
     # return 'https://koding:1q2w3e4r@sandbox.koding.com/'

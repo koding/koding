@@ -95,3 +95,20 @@ module.exports =
       .waitForElementNotPresent '.kdoverlay', 25000
       .assert.containsText      activitySelector + ' .comment-container', comment # Assertion
       .end()
+
+
+  cancelEditingComment: (browser) ->
+
+    comment         = helpers.postComment(browser)
+    commentSelector = activitySelector + ' .comment-container button.comment-menu'
+    editSelector    = activitySelector + ' .comment-contents [testpath=CommentInputView]:first-child'
+
+    browser
+      .waitForElementPresent     commentSelector, 25000
+      .click                     commentSelector
+      .waitForElementVisible     '.kdcontextmenu .edit-comment', 25000
+      .click                     '.kdcontextmenu .edit-comment'
+      .setValue                  editSelector, [ browser.Keys.ESCAPE ]
+      .waitForElementNotVisible  activitySelector + ' [testpath=post-activity-button]',25000
+      .pause  3000
+      .end()
