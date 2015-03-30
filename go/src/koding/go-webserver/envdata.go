@@ -30,7 +30,7 @@ func getEnvData(userInfo *UserInfo) *EnvData {
 
 	socialApiId := userInfo.SocialApiId
 	if socialApiId != "" {
-		collab = getCollab(userId, socialApiId)
+		collab = getCollab(userInfo)
 	}
 
 	return &EnvData{
@@ -61,19 +61,19 @@ func getShared(userId bson.ObjectId) []*MachineAndWorkspaces {
 	return getWorkspacesForEachMachine(sharedMachines)
 }
 
-func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces {
-	machines, err := modelhelper.GetCollabMachines(userId)
+func getCollab(userInfo *UserInfo) []*MachineAndWorkspaces {
+	machines, err := modelhelper.GetCollabMachines(userInfo.UserId, userInfo.Group)
 	if err != nil {
 		Log.Error(fmt.Sprintf(
-			"Error fetching collaboration machines for: %s %s", userId, err))
+			"Error fetching collaboration machines for: %s %s", userInfo.UserId, err))
 		return nil
 	}
 
-	channelIds, err := getCollabChannels(socialApiId)
+	channelIds, err := getCollabChannels(userInfo)
 	if err != nil {
 		Log.Error(fmt.Sprintf(
 			"Error fetching collaboration channelIds for: %s %s %s",
-			userId, socialApiId, err))
+			userInfo.UserId, userInfo.SocialApiId, err))
 		return nil
 	}
 
@@ -81,7 +81,7 @@ func getCollab(userId bson.ObjectId, socialApiId string) []*MachineAndWorkspaces
 	if err != nil {
 		Log.Error(fmt.Sprintf(
 			"Error fetching workspaces channelIds for: %s %s %s",
-			userId, channelIds, err))
+			userInfo.UserId, channelIds, err))
 		return nil
 	}
 
@@ -128,9 +128,9 @@ func getWorkspacesForEachMachine(machines []*modelhelper.MachineContainer) []*Ma
 	return mws
 }
 
-func getCollabChannels(socialApiId string) ([]string, error) {
+func getCollabChannels(userInfo *UserInfo) ([]string, error) {
 	path := "%v/privatechannel/list?accountId=%[2]s"
-	url := buildUrl(path, socialApiId, "type=collaboration")
+	url := buildUrl(path, userInfo.SocialApiId, "type=collaboration", fmt.Sprintf("groupName=", userInfo.Group.Slug))
 
 	rawResponse, err := fetchSocialItem(url)
 	if err != nil {

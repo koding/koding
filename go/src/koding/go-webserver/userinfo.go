@@ -11,19 +11,42 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-// UserInfo contains the relevant user models and other info
-// required to render loggedin page.
+// UserInfo contains the relevant user models and other info required to render
+// loggedin page.
 type UserInfo struct {
-	ClientId, Username, SocialApiId string
-	UserId, AccountId               bson.ObjectId
-	Account                         *models.Account
-	Impersonating                   bool
+	// ClientId holds the session info of the current requester
+	ClientId string
+
+	// Username is the username of the current requester
+	Username string
+
+	// SocialApiId holds the id of the current requester in social api
+	SocialApiId string
+
+	// UserId holds the mongo user id of the requester
+	UserId bson.ObjectId
+
+	// AccountId holds the mongo account id of the requester  - Not sure why we
+	// need this ?
+	AccountId bson.ObjectId
+
+	// Account holds the account
+	Account *models.Account
+
+	// Impersonating holds if the current user is impersonating another one
+	Impersonating bool
+
+	// Group holds the current group context for the request
+	Group *models.Group
 }
 
-// fetchUseInfo fetches different user models and returns UserInfo.
-// It first fetches `clientId` cookie and if it exists, it fetches
-// JSession and other info.
-func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
+// fetchUseInfo fetches different user models and returns UserInfo.  It first
+// fetches `clientId` cookie and if it exists, it fetches JSession and other
+// info.
+func prepareUserInfo(w http.ResponseWriter, r *http.Request, group *models.Group) (*UserInfo, error) {
+	subdomain := r.Header.Get("Referer")
+	fmt.Println("r.Header-->", r.Header)
+	fmt.Println("subdomain-->", subdomain)
 	cookie, err := getCookie(w, r)
 	if err != nil {
 		return nil, err
@@ -58,6 +81,7 @@ func fetchUserInfo(w http.ResponseWriter, r *http.Request) (*UserInfo, error) {
 		UserId:        user.ObjectId,
 		Account:       account,
 		Impersonating: session.Impersonating,
+		Group:         group,
 	}
 
 	return userInfo, nil

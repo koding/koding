@@ -709,7 +709,7 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 	}
 
 	// anyone can read group activity
-	if c.TypeConstant == Channel_TYPE_GROUP {
+	if c.TypeConstant == Channel_TYPE_GROUP && c.Name == Channel_KODING_NAME {
 		return true, nil
 	}
 
