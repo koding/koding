@@ -1,6 +1,12 @@
 kd             = require 'kd'
 _              = require 'lodash'
 OpenTokService = require './services/opentok'
+kd              = require 'kd'
+_               = require 'lodash'
+getNick         = require 'app/util/nick'
+
+OpenTokService  = require './services/opentok'
+ParticipantType = require './types/participant'
 
 module.exports = class VideoCollaborationModel extends kd.Object
 
@@ -13,6 +19,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     activeParticipant  : null
 
   # @param {SocialChannel} options.channel
+  # @param {BaseChatVideoView} options.view
   constructor: (options = {}, data) ->
 
     super options, data
@@ -30,6 +37,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @_service.whenReady @bound 'init'
 
 
+  ###*
+   * Returns the view.
+   *
+   * @return {KDView} view
+  ###
   getView: -> @view
   getChannel: -> @channel
 
