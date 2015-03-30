@@ -4,12 +4,21 @@ OpenTokService = require './services/opentok'
 
 module.exports = class VideoCollaborationModel extends kd.Object
 
+  defaultState:
+    video              : on
+    audio              : on
+    publishing         : off
+    connectedToSession : no
+    maxConnectionCount : 999
+    activeParticipant  : null
+
   # @param {SocialChannel} options.channel
   constructor: (options = {}, data) ->
 
     super options, data
 
     @_service = OpenTokService.getInstance()
+    @state = _.assign {}, options.state, @defaultState
 
     { @channel, @view } = options
 
@@ -175,7 +184,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Merges instance state with given state.
    *
+   * @param {object} _state
+   * @return {object} state
   ###
+  setState: (state) -> @state = _.assign {}, @state, state
 
 
