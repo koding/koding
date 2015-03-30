@@ -53,11 +53,11 @@ module.exports = helpers =
     workspaces = o.workspaces for o in globals?.userEnvironmentData?.own when o.machine.uid is machineUId
     workspace = w for w in workspaces when w.rootPath is rootPath
 
-    handleRout = (machine, workspace) ->
+    handleRoute = (machine, workspace) ->
       href = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
       router.handleRoute href
 
-    return handleRout(machine, workspace) if workspace
+    return handleRoute(machine, workspace) if workspace
 
     remote.api.JWorkspace.create data, (err, workspace) =>
       return helpers.handleWorkspaceCreateError_ eventObj, err  if err
@@ -79,7 +79,7 @@ module.exports = helpers =
 
           eventObj.emit 'WorkspaceCreated', workspace
 
-          handleRout(machine, workspace)
+          handleRoute(machine, workspace)
 
 
   handleWorkspaceCreateError_: (eventObj, error) ->
