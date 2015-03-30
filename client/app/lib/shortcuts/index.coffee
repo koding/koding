@@ -1,6 +1,5 @@
 Shortcuts      = require 'shortcuts'
 defaults       = require './config'
-events         = require 'events'
 _              = require 'underscore'
 kd             = require 'kd'
 traverse       = require 'traverse'
@@ -15,7 +14,7 @@ THROTTLE_WAIT   = 300
 
 module.exports =
 
-class ShortcutsController extends events.EventEmitter
+class ShortcutsController extends kd.Controller
 
   klass = this
 
@@ -28,15 +27,14 @@ class ShortcutsController extends events.EventEmitter
   # This also exposes convenience proxy methods to the underlying _keyconfig_
   # instance, and persists the state of a keyconfig#Collection to the app storage.
   #
-  constructor: (opts={}) ->
+  constructor: (options={}, data) ->
 
-    super()
 
     @_store  = null
     @_buffer = null
 
-    if opts.shortcuts instanceof Shortcuts
-      @shortcuts = opts.shortcuts
+    if options.shortcuts instanceof Shortcuts
+      @shortcuts = options.shortcuts
     else
       @shortcuts = new Shortcuts _.keys(defaults).reduce (acc, key) ->
           acc[key] = defaults[key].data
@@ -44,6 +42,8 @@ class ShortcutsController extends events.EventEmitter
         , {}
 
     @_flushBuffer()
+
+    super options, data
 
 
   # Prepares buffer for the next batch of changes.
