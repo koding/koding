@@ -2,7 +2,6 @@ kd                 = require 'kd'
 KDViewController   = kd.ViewController
 getAppOptions      = require './util/getAppOptions'
 globals            = require 'globals'
-_                  = require 'underscore'
 
 module.exports =
 
@@ -13,8 +12,6 @@ class AppController extends KDViewController
     super
 
     { name, version } = @getOptions()
-
-    @canonicalName = name.toLowerCase() + '$' + version.toLowerCase() + '$' + _.uniqueId()
 
     kd.singleton('mainController').ready =>
       # defer should be removed, this should be listening to a different event - SY
@@ -32,8 +29,8 @@ class AppController extends KDViewController
 
 
   createContentDisplay: (models, callback)->
-    console.warn @canonicalName + '#createContentDisplay not implemented'
+    console.warn @id + '#createContentDisplay not implemented'
 
 
   handleShortcut: (e) ->
-    console.warn @canonicalName + '#handleShortcut not implemented'
+    console.warn @id + '#handleShortcut not implemented'

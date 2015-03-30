@@ -191,8 +191,8 @@ class ShortcutsController extends kd.Controller
   #
   _handleFrontAppChange: (app, prevApp) ->
 
-    appId     = app?.canonicalName
-    prevAppId = prevApp?.canonicalName
+    appId     = app?.id
+    prevAppId = prevApp?.id
 
     return  if appId is prevAppId
 
