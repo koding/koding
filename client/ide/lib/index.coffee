@@ -391,6 +391,8 @@ class IDEAppController extends AppController
 
   mountMachineByMachineUId: (machineUId) ->
 
+    return  if @mountedMachine
+
     computeController = kd.getSingleton 'computeController'
     container         = @getView()
 
