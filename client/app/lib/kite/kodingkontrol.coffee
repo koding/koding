@@ -181,7 +181,7 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
         if machine = computeController.findMachineFromQueryString queryString
           delete @kites[kiteName][machine.uid]
 
-        (@getKite { name: kiteName, queryString, waitingPromises })?.connect()
+        @getKite { name: kiteName, queryString, waitingPromises }
 
     return kite
 

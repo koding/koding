@@ -13,6 +13,13 @@ module.exports = class KodingKite extends KDObject
   [DISCONNECTED, CONNECTED] = [0, 1]
   MAX_QUEUE_SIZE = 50
 
+
+  init: ->
+
+    @connect()
+    Promise.resolve()
+
+
   constructor: (options) ->
     super options
 
