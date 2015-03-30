@@ -66,47 +66,6 @@ module.exports = class OpenTokService extends kd.Object
 
 
   ###*
-   * It makes a request to the backend and gets session id
-   * and creates a session with that session id.
-   *
-   * @param {SocialChannel} channel - Session will be generated based on channel.
-   * @param {Function=} callback - it will be called on success.
-   * @private
-  ###
-  generateChannelSession = (channel, callback) ->
-
-    $.ajax
-      url      : '/-/video-chat/session'
-      method   : 'post'
-      dataType : 'JSON'
-      data     : { channelId: channel.id }
-      success  : callback
-
-
-  ###*
-   * It makes a request to the backend and gets the token for given session id.
-   *
-   * @param {string} options.sessionId - session id for token to be generated.
-   * @param {string=} options.role - role of user in video chat.  (e.g 'publisher', 'moderator')
-   * @param {number=} options.expireTime - expiration time for a token. Needs to be lower than 30 days.
-   * @param {Function=} callback - callback to be called with token from backend.
-   * @see {@link https://tokbox.com/opentok/concepts/token_creation.html}
-  ###
-  getToken = (options, callback) ->
-
-    { sessionId, role } = options
-
-    role or= 'publisher'
-
-    $.ajax
-      url      : "/-/video-chat/token"
-      method   : 'post'
-      dataType : 'JSON'
-      data     : { role, sessionId }
-      success  : (options) -> callback options.token
-
-
-  ###*
    * It gets the session for channel and calls the callback with it.
    *
    * It can call the callback with following:
@@ -135,44 +94,6 @@ module.exports = class OpenTokService extends kd.Object
       session.sessionId = sessionId
 
       callback session
-
-
-  ###*
-   * This method is necessary to be called before everything to be able
-   * to get updates from tokbox. It registers the given view's dom element
-   * as a container for the video chat session.
-   *
-   * When publishing from a client, we are adding `KD.nick()` as `name`
-   * in `publisherOptions`, when we want to cache the subscribers for easy
-   * access later, we are getting that published name from stream's name property
-   * when we are listening session's `streamCreated` event. And we are using it
-   * as a key to write instance's `subscribers` object when the subscriber is created.
-   * So that we can be able to switch the main video to subscriber videos, by
-   * just using user's `nickname`.
-   *
-   * @param {SocialChannel} channel
-   * @param {KDView} view - container view for video chat.
-   * @param {Object} options - options to be passed to subscribe event
-   * @listens OT.session~streamCreated
-  ###
-  subscribeToVideoUpdates: (channel, view, options = {}) ->
-
-    @getChannelSession channel, (session) =>
-
-      { sessionId } = session
-
-      session.on 'streamCreated', (event) =>
-
-        options.height     or= "100%"
-        options.width      or= "100%"
-        options.insertMode or= 'append'
-
-        { stream } = event
-        nick       = stream.name
-        element    = view.getElement()
-        subscriber = session.subscribe stream, element, options
-
-        @emit 'NewSubscriber', { nick, video: subscriber }
 
 
   ###*
