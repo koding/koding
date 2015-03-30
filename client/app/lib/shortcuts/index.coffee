@@ -2,7 +2,6 @@ Shortcuts      = require 'shortcuts'
 defaults       = require './config'
 _              = require 'underscore'
 kd             = require 'kd'
-traverse       = require 'traverse'
 globals        = require 'globals'
 ShortcutsModal = require './views/modal'
 AppController  = require 'app/appcontroller'
@@ -91,7 +90,7 @@ class ShortcutsController extends kd.Controller
       return
 
     # take over buffer
-    buffer = traverse(@_buffer).clone()
+    buffer = _.clone @_buffer, yes
     @_flushBuffer()
 
     # transform it, so we can extend the remote object
@@ -133,7 +132,7 @@ class ShortcutsController extends kd.Controller
     binding = klass._getPlatformBinding model
 
     if (_.isArray binding) and  (not _.isEmpty binding)
-      obj.binding = traverse(binding).clone()
+      obj.binding = _.clone binding, yes
     else
       obj.binding = null
 
@@ -242,7 +241,7 @@ class ShortcutsController extends kd.Controller
     throw "#{modelName} not found"  unless model
 
     # _lodash#pick_ returns a shallow copy; make sure we don't override the given value
-    overrides = traverse(overrides).clone()
+    overrides = _.clone overrides, yes
 
     # _isNull_ test is necessary here to make sure we don't update other
     # platform bindings accidentally
@@ -366,7 +365,7 @@ class ShortcutsController extends kd.Controller
   #
   @_replacePlatformBinding: (model, platformBinding) ->
 
-    binding      = traverse(model.binding).clone()
+    binding      = _.clone model.binding, yes
     idx          = klass._bindingPlatformIndex()
     arr          = platformBinding?.filter _.isString
     binding[idx] = if (_.isArray arr) and arr.length then arr else null
