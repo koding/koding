@@ -2,13 +2,13 @@ helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
+modalSelector = '.activity-modal.vm-settings'
 
 module.exports =
 
 
   turnOffVm: (browser) ->
 
-    modalSelector = '.activity-modal.vm-settings'
     linkSelector  = modalSelector + ' .statustoggle .input-wrapper'
 
     helpers.beginTest(browser)
@@ -31,3 +31,26 @@ module.exports =
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
     browser.end()
+
+
+  CheckVMDiskUsage: (browser) ->
+  checkVMDiskUsage: (browser) ->
+
+    diskUsageSelector     = modalSelector + ' .diskusage'
+    diskUsageBarSelector  = diskUsageSelector + ' .input-wrapper .progressbar-container.disk-usage'
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    environmentHelpers.openVmSettingsModal(browser)
+
+    browser
+      .waitForElementVisible   diskUsageSelector, 20000
+      .waitForElementVisible   diskUsageSelector + ' label.disk-usage', 20000
+      .waitForElementVisible   diskUsageBarSelector, 20000
+      .waitForElementVisible   diskUsageBarSelector + ' .bar', 20000 # Assertion
+      .moveToElement           diskUsageBarSelector + ' .bar span.light-label', 70, 7 # Assertion
+      .pause  3000
+      .waitForElementVisible   '.kdtooltip', 20000 # Assertion
+      .end()
+
