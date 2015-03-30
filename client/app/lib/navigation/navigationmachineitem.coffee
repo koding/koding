@@ -28,7 +28,7 @@ module.exports = class NavigationMachineItem extends JView
     isMyMachine      = machine.isMine()
     machineRoutes    =
       own            : "/IDE/#{@alias}"
-      collaboration  : "/IDE/#{workspaces.first?.channelId}"
+      collaboration  : "/IDE/#{@getChannelId data}"
       permanentShare : "/IDE/#{machine.uid}"
 
     machineType = 'own'
@@ -141,9 +141,16 @@ module.exports = class NavigationMachineItem extends JView
       kd.utils.wait 1000, @progress.bound 'hide'
 
 
+  # passing data is required because this method is called before super call.
+  getChannelId: (data) ->
+
+    return data.workspaces.first?.channelId
+
+
   showSidebarSharePopup: (options = {}) ->
 
-    options.position = @getPopupPosition 20
+    options.position  = @getPopupPosition 20
+    options.channelId = @getChannelId @getData()
 
     new SidebarMachineSharePopup options, @machine
 
