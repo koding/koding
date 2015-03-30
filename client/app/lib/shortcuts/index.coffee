@@ -116,7 +116,7 @@ class ShortcutsController extends kd.Controller
 
     return
 
-  , DEBOUNCE_WAIT, no # see https://lodash.com/docs#debounce
+  , DEBOUNCE_WAIT
 
 
   # Buffers up changed models.
@@ -295,11 +295,8 @@ class ShortcutsController extends kd.Controller
         return acc
       , []
 
-    idx = -1
-    arr.some (value) ->
-      return ++idx and (value._key is 'editor')
-
-    if ~idx then arr[idx].data = arr[idx].data.concat aces
+    if ~(idx = _.findIndex(arr, _key: 'editor'))
+      arr[idx].data = arr[idx].data.concat aces
 
     return arr
 
