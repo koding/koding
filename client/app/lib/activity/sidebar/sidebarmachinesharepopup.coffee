@@ -124,16 +124,15 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   approve: ->
 
-    machine      = @getData()
-    { jMachine } = machine
+    machine = @getData()
 
     @approveButton.showLoader()
-    jMachine.approve (err) =>
+    machine.jMachine.approve (err) =>
       return showError err  if err
       { router, mainView } = kd.singletons
 
       doNavigation = =>
-        route = "/IDE/#{jMachine.uid}/my-workspace" # permanent shared route
+        route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
 
         unless machine.isPermanent() # collaboration route
           route = "/IDE/#{@getOptions().channelId}"
@@ -149,7 +148,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
       envDataProvider.fetch =>
         # if there is an ide instance this means user landed to ide with direct url
-        ideApp = envDataProvider.getIDEFromUId jMachine.uid
+        ideApp = envDataProvider.getIDEFromUId machine.uid
 
         if ideApp
           ideApp.quit()
