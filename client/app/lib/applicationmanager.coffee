@@ -295,7 +295,7 @@ class ApplicationManager extends KDObject
     prevAppInstance = @frontApp
     @frontApp = appInstance
 
-    @emit 'FrontAppChange', appInstance, prevAppInstance
+    @emit 'FrontAppIsChanged', appInstance, prevAppInstance
 
 
   getFrontAppManifest: ->

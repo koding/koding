@@ -77,7 +77,7 @@ class ShortcutsController extends kd.Controller
 
     # Add valid keyboard event listeners and invalidate obsolete upon
     # front application is set and ready.
-    appManager.on 'FrontAppChange', _.bind @_handleFrontAppChange, this
+    appManager.on 'FrontAppIsChanged', _.bind @_handleFrontAppChange, this
 
     @_store.fetchStorage null, yes
 
