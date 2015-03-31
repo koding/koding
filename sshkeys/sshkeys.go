@@ -31,6 +31,11 @@ type ListMode bool
 var (
 	FullKeys     ListMode = true
 	Fingerprints ListMode = false
+
+	// We need a mutex because updates to the authorised keys file are done by
+	// reading the contents, updating, and writing back out. So only one caller
+	// at a time can use either Add, Delete, List.
+	mutex sync.Mutex
 )
 
 const (
@@ -164,11 +169,6 @@ func writeAuthorisedKeys(username string, keys []string) error {
 	}
 	return nil
 }
-
-// We need a mutex because updates to the authorised keys file are done by
-// reading the contents, updating, and writing back out. So only one caller
-// at a time can use either Add, Delete, List.
-var mutex sync.Mutex
 
 // AddKeys adds the specified ssh keys to the authorized_keys file for user.
 // Returns an error if there is an issue with *any* of the supplied keys.
