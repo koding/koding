@@ -49,7 +49,7 @@ type AuthorisedKey struct {
 }
 
 func authKeysDir(username string) (string, error) {
-	u, err := user.Current()
+	u, err := user.Lookup(username)
 	if err != nil {
 		return "", err
 	}
