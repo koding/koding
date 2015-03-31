@@ -34,8 +34,8 @@ type Command struct {
 }
 
 var (
-	ErrNoSession      = errors.New("ErrNoSession")
-	ErrInvalidSession = errors.New("ErrInvalidSession")
+	ErrNoSession     = errors.New("session doesn't exists")
+	ErrSessionExists = errors.New("session with the same name exists already")
 )
 
 func getUserEntry(username string) (*passwd.Entry, error) {
@@ -101,7 +101,13 @@ func newCommand(mode, session, username string) (*Command, error) {
 		// if the user didn't send a session name, create a custom randomized
 		if session == "" {
 			session = randomString()
+		} else {
+			// prevent duplicate session names
+			if sessionExists(session, username) {
+				return nil, ErrSessionExists
+			}
 		}
+
 		args = append(args, sessionPrefix+"."+session)
 	default:
 		return nil, fmt.Errorf("mode '%s' is unknown. Valid modes are:  [shared|noscreen|resume|create]", mode)
