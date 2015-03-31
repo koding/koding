@@ -1,7 +1,7 @@
 utils   = require '../utils/utils.js'
 helpers = require '../helpers/helpers.js'
 
-changePasswordHelper = (browser, newPassword1, newPassword2, notificationText, callback) ->
+changePasswordHelper = (browser, newPassword1, newPassword2, currentPassword, notificationText, callback) ->
 
   inputSelector         = '.password input.text'
   modalSelector         = '.AppModal-form'
@@ -10,6 +10,9 @@ changePasswordHelper = (browser, newPassword1, newPassword2, notificationText, c
 
   user = helpers.beginTest(browser)
   helpers.openAccountPage(browser)
+
+  if not currentPassword
+    currentPassword = user.password
 
   browser
     .waitForElementVisible   inputSelector, 20000
@@ -24,7 +27,7 @@ changePasswordHelper = (browser, newPassword1, newPassword2, notificationText, c
     browser
       .waitForElementVisible   passwordModalSelector , 20000
       .waitForElementVisible   passwordModalSelector + ' input[name=password]', 20000
-      .setValue                passwordModalSelector + ' input[name=password]', user.password, =>
+      .setValue                passwordModalSelector + ' input[name=password]', currentPassword, =>
         browser
           .click                   passwordModalSelector + ' button[type=submit]'
           .waitForElementVisible   '.kdnotification.main', 20000
@@ -39,6 +42,7 @@ changePasswordHelper = (browser, newPassword1, newPassword2, notificationText, c
 
 
 module.exports =
+
 
   editFirstName: (browser) ->
 
@@ -62,7 +66,16 @@ module.exports =
 
     notificationText = 'Passwords did not match'
 
-    changePasswordHelper(browser, 'koding', 'kodingtest', notificationText)
+    changePasswordHelper(browser, 'koding', 'kodingtest', null, notificationText)
+    browser.end()
+
+
+  tryToChangePasswordWithInvalidCurrentPassword: (browser) ->
+
+    newPassword      = utils.getPassword()
+    notificationText = 'Current password cannot be confirmed'
+
+    changePasswordHelper(browser, newPassword, newPassword, 'invalidpassword', notificationText)
     browser.end()
 
 
@@ -79,4 +92,4 @@ module.exports =
     newPassword      = utils.getPassword()
     notificationText = 'Your account information is updated.'
 
-    changePasswordHelper(browser, newPassword, newPassword, notificationText, fn)
+    changePasswordHelper(browser, newPassword, newPassword, null, notificationText, fn)
