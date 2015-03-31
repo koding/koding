@@ -306,7 +306,7 @@ module.exports = class SocialApiController extends KDController
   # existing message. This is for preventing the case. - ctf
   filterMessage = (data) ->
     {message} = data  unless data.typeConstant?
-    if cachedMessage = kd.singletons.socialapi._cache?[message.typeConstant]?[message.id]
+    if cachedMessage = kd.singletons.socialapi.retrieveCachedItem message.typeConstant, message.id
       return yes  if cachedMessage.isShown
 
     message.isShown = yes
@@ -426,13 +426,15 @@ module.exports = class SocialApiController extends KDController
 
     if type is 'topic'
       for own id_, topic of @_cache.topic when topic.name is id
-        item = topic
+        return topic
 
-    if not item and type is 'activity'
+    if type is 'activity'
       for own id_, post of @_cache.post when post.slug is id
-        item = post
+        return post
 
-    return item
+    return null
+
+
   retrieveCachedItemById: (id) ->
 
     for own typeConstant, items of @_cache
