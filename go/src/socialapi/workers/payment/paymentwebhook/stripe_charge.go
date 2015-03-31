@@ -31,15 +31,8 @@ func stripeChargeHelper(raw []byte, c *Controller, act Action, aFn amountGetterF
 		return err
 	}
 
-	user, err := getUserForCustomer(req.CustomerId)
-	if err != nil {
-		return err
-	}
-
 	amount := formatStripeAmount(req.Currency, aFn(req))
 	opts := map[string]interface{}{"price": amount}
 
-	Log.Info("Stripe: Sent invoice email to: %s", user.Email)
-
-	return SendEmail(user, act, opts)
+	return SendEmail(req.CustomerId, act, opts)
 }
