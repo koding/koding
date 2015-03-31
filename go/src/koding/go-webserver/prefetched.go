@@ -17,8 +17,6 @@ func sendAccount(account *models.Account, outputter *Outputter) {
 }
 
 func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
-	socialApiId := userInfo.SocialApiId
-
 	showExempt := "false"
 	// show troll content if only user is admin or requester is marked as troll
 	if userInfo.Account != nil &&
@@ -27,7 +25,7 @@ func fetchSocial(userInfo *UserInfo, outputter *Outputter) {
 	}
 
 	var wg sync.WaitGroup
-	urls := socialUrls(socialApiId, "showExempt="+showExempt)
+	urls := socialUrls(userInfo, "showExempt="+showExempt)
 
 	onSocialItem := make(chan *Item, len(urls))
 
@@ -99,7 +97,11 @@ func fetchSocialItem(url string) (interface{}, error) {
 	return data, nil
 }
 
-func socialUrls(id string, extras ...string) map[string]string {
+func socialUrls(userInfo *UserInfo, extras ...string) map[string]string {
+	id := userInfo.SocialApiId
+	groupQuery := fmt.Sprintf("groupName=%s", userInfo.Group.Slug)
+	extras = append(extras, groupQuery)
+
 	var urls = map[string]string{
 		"followedChannels": buildUrl("%s/account/%[2]s/channels?accountId=%[2]s", id, extras...),
 		"privateMessages":  buildUrl("%s/privatechannel/list?accountId=%s", id, extras...),

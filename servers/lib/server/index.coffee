@@ -141,15 +141,15 @@ app.post '/-/video-chat/session', (req, res) ->
 
   { channelId } = req.body
 
-  return res.status(400).send { err: 'Channel ID is required.'      }  unless channelId
 
+  return res.status(400).send { err: 'Channel ID is required.'      }  unless channelId
   return res.status(200).send { sessionId: videoSessions[channelId] }  if videoSessions[channelId]
 
-  { API_KEY, API_SECRET } = KONFIG.tokbox
+  { apiKey, apiSecret } = KONFIG.tokbox
 
   OpenTok = require 'opentok'
 
-  opentok = new OpenTok API_KEY, API_SECRET
+  opentok = new OpenTok apiKey, apiSecret
 
   opentok.createSession (err, session) ->
 
@@ -165,11 +165,11 @@ app.post '/-/video-chat/token', (req, res) ->
   return res.status(400).send { err: "Session ID is required." } unless sessionId
   return res.status(400).send { err: "Role is required"        } unless role
 
-  { API_KEY, API_SECRET } = KONFIG.tokbox
+  { apiKey, apiSecret } = KONFIG.tokbox
 
   OpenTok = require 'opentok'
 
-  opentok = new OpenTok API_KEY, API_SECRET
+  opentok = new OpenTok apiKey, apiSecret
 
   token = opentok.generateToken sessionId, { role }
 
