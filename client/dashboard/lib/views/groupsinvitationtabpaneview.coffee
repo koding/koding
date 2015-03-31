@@ -29,7 +29,6 @@ module.exports = class GroupsInvitationTabPaneView extends KDView
 
     @addSubView @listView = @controller.getView()
 
-    @controller.on 'UpdatePendingCount',      @updatePendingCount.bind this
     @listView.on   'InvitationStatusChanged', =>
       @getDelegate().tabHandle?.markDirty()
 
@@ -56,15 +55,9 @@ module.exports = class GroupsInvitationTabPaneView extends KDView
     @controller.removeAllItems()
     @timestamp = null
     @fetchAndPopulate()
-    @updatePendingCount @parent
 
   setShowResolved:(showResolved)-> @options.showResolved = showResolved
 
-  updatePendingCount:(pane)->
-    pane ?= @parent
-    @getData().countInvitationsFromGraph @options.type,\
-      {status: @options.unresolvedStatus}, (err, count)->
-        pane.getHandle().updatePendingCount count  unless err
 
   fetchAndPopulate:->
     @controller.showLazyLoader no
