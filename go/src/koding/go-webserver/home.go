@@ -1,8 +1,6 @@
 package main
 
 import (
-	"koding/db/models"
-	"koding/db/mongodb/modelhelper"
 	"net/http"
 	"time"
 )
@@ -11,44 +9,11 @@ var (
 	TimeoutTime = 3000 * time.Millisecond
 )
 
-func getGroup(r *http.Request) (*models.Group, error) {
-	c, err := r.Cookie("groupName")
-	if err != nil && err != http.ErrNoCookie {
-		return nil, err
-	}
-
-	// set initial group name
-	groupName := "koding"
-
-	// try to get cookie value
-	if c != nil && c.Value != "" {
-		groupName = c.Value
-	} else {
-		Log.Error("couldnt find groupname, setting koding as group for now")
-		groupName = "koding"
-	}
-
-	// TODO implement caching here
-	group, err := modelhelper.GetGroup(groupName)
-	if err != nil {
-		return nil, err
-	}
-
-	return group, nil
-}
-
 // HomeHandler renders both loggedin and loggedout page for user.
 // When user is loggedin, we send some extra data with the payload
 // so the client doesn't need to fetch them after the page loads.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	group, err := getGroup(r)
-	if err != nil {
-		Log.Error("err while getting group %s", err.Error())
-		writeLoggedOutHomeToResp(w)
-		return
-	}
-
-	userInfo, err := prepareUserInfo(w, r, group)
+	userInfo, err := prepareUserInfo(w, r)
 	if err != nil {
 		writeLoggedOutHomeToResp(w)
 		return
@@ -70,7 +35,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := NewLoggedInUser()
-	user.Set("Group", group)
+	user.Set("Group", userInfo.Group)
 	user.Set("Username", userInfo.Username)
 	user.Set("SessionId", userInfo.ClientId)
 	user.Set("Impersonating", userInfo.Impersonating)
