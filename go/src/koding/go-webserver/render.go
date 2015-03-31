@@ -48,7 +48,7 @@ func writeLoggedInHomeToResp(w http.ResponseWriter, u *LoggedInUser) {
 		return
 	}
 
-	fmt.Fprintf(w, buf.String())
+	fmt.Fprint(w, buf.String())
 }
 
 func writeLoggedOutHomeToResp(w http.ResponseWriter) {
@@ -61,7 +61,7 @@ func writeLoggedOutHomeToResp(w http.ResponseWriter) {
 		Log.Error("Failed to render loggedout page: %s", err)
 	}
 
-	fmt.Fprintf(w, buf.String())
+	fmt.Fprint(w, buf.String())
 }
 
 func buildHomeContent() HomeContent {

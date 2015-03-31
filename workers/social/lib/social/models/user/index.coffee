@@ -19,6 +19,7 @@ module.exports = class JUser extends jraphical.Module
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
   Sendgrid        = require '../sendgrid'
+  ComputeProvider = require '../computeproviders/computeprovider'
 
   { v4: createId } = require 'node-uuid'
 
@@ -1000,13 +1001,26 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        _client =
+          connection : delegate : account
+          context    : group    : 'koding'
+
+        ComputeProvider.createGroupStack _client, (err)->
+          if err?
+            console.warn "Failed to create group stack for #{username}:", err
+
+          # We are not returning error here on purpose, even stack template
+          # not created for a user we don't want to break registration process
+          # at all ~ GG
+          queue.next()
+
+      ->
         account.update $set: type: 'registered', (err) ->
           return callback err  if err?
           queue.next()
 
       ->
-        unless referrer?
-          return queue.next()
+        return queue.next()  unless referrer
 
         if username is referrer
           console.error "User (#{username}) tried to refer themself."

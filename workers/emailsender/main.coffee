@@ -8,7 +8,7 @@ htmlify       = require 'koding-htmlify'
 Emailer       = require '../social/lib/social/emailer'
 template      = require './templates'
 
-{mq, mongo, emailWorker, uri} = \
+{mq, mongo, emailWorker, uri, socialapi} = \
   require('koding-config-manager').load("main.#{argv.c}")
 
 if 'string' is typeof mongo
@@ -16,9 +16,14 @@ if 'string' is typeof mongo
 
 broker = new Broker mq
 
+mqConfig = {host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost}
+
+mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
+
 worker = new Bongo {
   mongo
   mq     : broker
+  mqConfig : mqConfig
   root   : __dirname
   models : ['../social/lib/social/models/email.coffee']
 }
@@ -31,34 +36,28 @@ log "E-Mail Sender Worker has started with PID #{process.pid}"
 sendEmail = (emailContent)->
   {from, replyto, email, subject, content, unsubscribeId, bcc} = emailContent
 
-  To       = emailWorker.forcedRecipient or email
-  From     = if from is 'hello@koding.com' then "Koding <#{from}>" else from
-  HtmlBody = template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
-  TextBody = template.textTemplate content, unsubscribeId, email
+  To   = emailWorker.forcedRecipient or email
+  From = if from is 'hello@koding.com' then "Koding <#{from}>" else from
+  Html = template.htmlTemplate htmlify(content, linkStyle:template.linkStyle), unsubscribeId, email
+  Text = template.textTemplate content, unsubscribeId, email
 
-  Emailer.send {
+  mail = {
     From
     To
-    Subject   : subject or "Notification"
-    HtmlBody
-    TextBody
-    ReplyTo   : replyto
-    Bcc       : bcc
-  }, (err, res)->
+    Html
+    Text
+    Subject : subject or "Notification"
+    ReplyTo : replyto
+    Bcc     : bcc
+  }
 
-    dateAttempted = new Date()
+  worker.publishEventToExchange {type : "api.mail_send", message: mail}
 
-    if err
-      console.warn "An error occurred: #{err}"
-      status = 'failed'
-      smtpId = null
-    else
-      { smtpId } = res?.messageId
-      log "An e-mail sent to #{To}"
-      status = 'attempted'
+  status = 'attempted'
+  dateAttempted = new Date()
 
-    emailContent.update $set: {status, dateAttempted, smtpId}, (err)->
-      console.error err if err
+  emailContent.update $set: {status, dateAttempted}, (err)->
+    console.error err if err
 
 emailSender = ->
   {JMail} = worker.models

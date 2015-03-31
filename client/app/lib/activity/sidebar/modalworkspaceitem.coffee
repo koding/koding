@@ -1,27 +1,11 @@
-JView = require '../../jview'
-kd = require 'kd'
-KDListItemView = kd.ListItemView
-KDCustomHTMLView = kd.CustomHTMLView
+ModalItem = require './modalitem'
 
-
-module.exports = class ModalWorkspaceItem extends KDListItemView
-
-  JView.mixin @prototype
+module.exports = class ModalWorkspaceItem extends ModalItem
 
   constructor: (options = {}, data) ->
 
-    options.type     = 'sidebar-item'
-    options.partial  = ''
-
     super
-
-    href = "/IDE/#{data.machineLabel}/#{data.slug}"
-
-    @addSubView new KDCustomHTMLView
-      tagName   : 'a'
-      attributes: { href }
-      partial   : data.name
-      click     : (e) =>
-        kd.utils.stopDOMEvent e
-        @emit 'WorkspaceSelected'
-        kd.singletons.router.handleRoute href
+      type  : 'workspace'
+      href  : "/IDE/#{data.machineLabel}/#{data.slug}"
+      title : data.name
+    , data

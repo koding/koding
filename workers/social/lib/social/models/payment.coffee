@@ -173,26 +173,21 @@ module.exports = class Payment extends Base
 
   fetchUsage = (client, callback)->
     ComputeProvider = require "./computeproviders/computeprovider"
-    ComputeProvider.fetchUsage client, {
-      provider   : "koding"
-      credential : client.connection.delegate.profile.nickname
-    }, callback
+    ComputeProvider.fetchUsage client, { provider: "koding" }, callback
 
   fetchPlan = (client, planTitle, callback)->
-    ComputeProvider = require "./computeproviders/computeprovider"
-    ComputeProvider.fetchPlans client,
-      provider   : "koding"
-    , (err, plans)->
-      return err  if err
 
-      plan = plans[planTitle]
-      return callback {"message" : "plan not found"}  unless plan
+    plans = require "./computeproviders/plans"
+    plan  = plans[planTitle]
 
-      fetchReferrerSpace client, (err, space)->
-        return callback err  if err
+    return callback {"message" : "plan not found"}  unless plan
 
-        plan.storage += space
-        callback null, plan
+    fetchReferrerSpace client, (err, space)->
+      return callback err  if err
+
+      plan.storage += space
+
+      callback null, plan
 
   fetchReferrerSpace = (client, callback)->
     originId = client.connection.delegate.getId()

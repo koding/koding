@@ -19,6 +19,7 @@ PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 trackEvent = require 'app/util/trackEvent'
+_ = require 'underscore'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -36,7 +37,7 @@ module.exports = class PaymentWorkflow extends KDController
     super options, data
 
     @state = kd.utils.extend @getInitialState(), options.state
-    @startingPlan = @state.currentPlan
+    @startingState = _.extend {}, @state
 
     kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 
@@ -200,17 +201,25 @@ module.exports = class PaymentWorkflow extends KDController
 
   trackPaymentSucceeded: ->
 
-    if @startingPlan is PaymentConstants.planTitle.FREE
-      trackEvent 'Account upgrade plan, success',
-        category : 'userInteraction'
-        action   : 'microConversions'
-        label    : 'upgradeFreeAccount'
+    unless @startingState.currentPlan is PaymentConstants.planTitle.FREE
+      return
 
-    me = whoami().getId()
+    trackEvent 'Account upgrade plan, success',
+      category : 'userInteraction'
+      action   : 'microConversions'
+      label    : 'upgradeFreeAccount'
+
     {planTitle, provider, planInterval} = @state
-
     planId  = "#{planTitle}-#{planInterval}"
-    orderId = "#{me}-#{planId}"
+
+    userId = whoami().getId()
+    orderId = "#{userId}-#{planId}"
+
+    {currentPlanInterval, monthPrice, yearPrice} = @state
+    if currentPlanInterval is PaymentConstants.planInterval.MONTH
+      amount = monthPrice
+    else
+      amount = yearPrice
 
     trackEvent 'Completed Order',
       orderId  : orderId
@@ -220,6 +229,8 @@ module.exports = class PaymentWorkflow extends KDController
         interval : planInterval
         category : provider
         quantity : 1
+        total    : amount
+        currency : 'USD',
     }]
 
 
