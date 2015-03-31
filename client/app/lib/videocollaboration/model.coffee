@@ -5,6 +5,7 @@ getNick         = require 'app/util/nick'
 OpenTokService  = require './services/opentok'
 ParticipantType = require './types/participant'
 ViewModel       = require './viewmodel'
+helper          = require './helper'
 
 module.exports = class VideoCollaborationModel extends kd.Object
 
