@@ -123,7 +123,12 @@ func (t *Terminal) KillSession(r *kite.Request) (interface{}, error) {
 
 // KillSessions kills all available screen sessions
 func (t *Terminal) KillSessions(r *kite.Request) (interface{}, error) {
-	if err := killSessions(r.Username); err != nil {
+	user, err := user.Current()
+	if err != nil {
+		return nil, fmt.Errorf("Could not get user: %s", err)
+	}
+
+	if err := killSessions(user.Username); err != nil {
 		return nil, err
 	}
 
@@ -167,7 +172,7 @@ func (t *Terminal) RenameSession(r *kite.Request) (interface{}, error) {
 func (t *Terminal) GetSessions(r *kite.Request) (interface{}, error) {
 	user, err := user.Current()
 	if err != nil {
-		return nil, fmt.Errorf("Could not get home dir: %s", err)
+		return nil, fmt.Errorf("Could not get user: %s", err)
 	}
 
 	sessions := screenSessions(user.Username)
