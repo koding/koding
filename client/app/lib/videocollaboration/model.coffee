@@ -47,17 +47,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
-   * Gives the initial kick-off for video-chat process.
    *
-   * @param {Function=} callback
-   * @listens OpenTokService~SessionCreated
   ###
-  init: (callback = kd.noop) ->
 
-    @_service.on 'SessionCreated', @bound 'handleSessionCreated'
 
-    @_service.connect @channel
-    @subscribe()
 
 
   ###*
