@@ -11,7 +11,15 @@ import (
 	"golang.org/x/net/context"
 )
 
+var (
+	ErrInstanceIdEmpty = errors.New("instance id is empty")
+)
+
 func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
+	if a.Id() == "" {
+		return ec2.Instance{}, ErrInstanceIdEmpty
+	}
+
 	// if we have eventer, use it
 	ev, withPush := eventer.FromContext(ctx)
 	if withPush {
@@ -53,6 +61,10 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 }
 
 func (a *Amazon) Stop(ctx context.Context) error {
+	if a.Id() == "" {
+		return ErrInstanceIdEmpty
+	}
+
 	// if we have eventer, use it
 	ev, withPush := eventer.FromContext(ctx)
 	if withPush {
@@ -89,6 +101,10 @@ func (a *Amazon) Stop(ctx context.Context) error {
 }
 
 func (a *Amazon) Restart(ctx context.Context) error {
+	if a.Id() == "" {
+		return ErrInstanceIdEmpty
+	}
+
 	ev, withPush := eventer.FromContext(ctx)
 	if withPush {
 		ev.Push(&eventer.Event{
@@ -125,7 +141,7 @@ func (a *Amazon) Restart(ctx context.Context) error {
 
 func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	if a.Id() == "" {
-		return errors.New("instance id is empty")
+		return ErrInstanceIdEmpty
 	}
 
 	ev, withPush := eventer.FromContext(ctx)
