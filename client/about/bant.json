@@ -1,4 +1,10 @@
 {
   "name": "about",
-  "main": "./lib/index.coffee"
+  "main": "./lib/index.coffee",
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
 }

@@ -13,6 +13,13 @@ module.exports = class KodingKite extends KDObject
   [DISCONNECTED, CONNECTED] = [0, 1]
   MAX_QUEUE_SIZE = 50
 
+
+  init: ->
+
+    @connect()
+    Promise.resolve()
+
+
   constructor: (options) ->
     super options
 
@@ -21,11 +28,16 @@ module.exports = class KodingKite extends KDObject
     @on 'open', =>
       @isDisconnected = no # This one is the manual disconnect request ~ GG
       @_state = CONNECTED
-      @emit "connected"
 
     @on 'close', (reason)=>
       kd.log "Disconnected with reason:", reason
       @_state = DISCONNECTED
+
+      return  unless @transport?
+
+      {options:{autoReconnect}} = @transport
+      @emit 'reconnect'  if not @isDisconnected and autoReconnect
+
 
     @waitingCalls = []
     @waitingPromises = []
@@ -36,16 +48,8 @@ module.exports = class KodingKite extends KDObject
                  or there is a problem with connection."
 
 
-  extractInfoFromWsEvent = (event)->
-    {reason, code, wasClean, timestamp, type} = event
-
-    return {reason, code, wasClean, timestamp, type}
-
-
-  getTransport: -> @transport
-
-
   setTransport: (@transport) ->
+
     if @transport?.ws?
       @transport.disconnect()
 
@@ -116,6 +120,7 @@ module.exports = class KodingKite extends KDObject
   @createMethod = (ctx, { method, rpcMethod }) ->
     ctx[method] = (payload) -> @tell rpcMethod, payload
 
+
   @createApiMapping = (api) ->
     for own method, rpcMethod of api
       @::[method] = @createMethod @prototype, { method, rpcMethod }
@@ -124,23 +129,21 @@ module.exports = class KodingKite extends KDObject
   connect: ->
 
     return  if @_state is CONNECTED
-
     @ready => @transport?.connect()
 
 
   disconnect: ->
 
-    {kontrol} = kd.singletons
-    kontrol.setTryingToReconnect no
-
     @isDisconnected = yes
-    @transport?.disconnect()
+
+    if @transport
+    then @transport.disconnect()
+    else @emit 'close', reason: 'user action'
 
 
   reconnect:  ->
 
-    {kontrol} = kd.singletons
-    kontrol.setTryingToReconnect()
+    @emit 'reconnect'
 
     # With a very corrupted connection
     # it's possible to have an empty @transport object ~GG
@@ -162,10 +165,7 @@ module.exports = class KodingKite extends KDObject
 
       cid = (@waitingCalls.push args) - 1
 
-      @once 'connected', =>
+      @once 'open', =>
 
         resolve @waitingCalls[cid]
         delete  @waitingCalls[cid]
-
-        {kontrol} = kd.singletons
-        kontrol.setTryingToReconnect no
