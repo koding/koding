@@ -1,10 +1,11 @@
-kookies = require 'kookies'
-getGroup = require './util/getGroup'
-whoami = require './util/whoami'
-kd = require 'kd'
-KDModalView = kd.ModalView
+kookies            = require 'kookies'
+getGroup           = require './util/getGroup'
+whoami             = require './util/whoami'
+envDataProvider    = require 'app/userenvironmentdataprovider'
+kd                 = require 'kd'
+KDModalView        = kd.ModalView
 KDNotificationView = kd.NotificationView
-KDObject = kd.Object
+KDObject           = kd.Object
 
 
 module.exports = class NotificationController extends KDObject
@@ -74,7 +75,8 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
-    @on 'MachineListUpdated', ->
+    @on 'MachineListUpdated', (machineUId) ->
+      envDataProvider.lastUpdatedMachineUId = machineUId
       kd.singletons.computeController.reset yes
 
     @on 'UsernameChanged', ({username, oldUsername}) ->

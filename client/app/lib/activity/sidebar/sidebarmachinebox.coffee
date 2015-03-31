@@ -38,6 +38,11 @@ module.exports = class SidebarMachineBox extends KDView
 
     @machine.on 'MachineLabelUpdated', @bound 'handleMachineLabelUpdated'
 
+    if environmentDataProvider.lastUpdatedMachineUId is @machine.uid
+      kd.utils.defer => # defer showing popup to get the coordinates correctly
+        delete environmentDataProvider.lastUpdatedMachineUId
+        @machineItem.showSidebarSharePopup()
+
 
   createWorkspacesList: ->
 
