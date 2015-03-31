@@ -1,6 +1,6 @@
 whoami = require './whoami'
 
-module.exports = (notification = {}) ->
+module.exports = isMyNotification = (notification = {}) ->
 
   { accountId } = notification.channelMessage
 
