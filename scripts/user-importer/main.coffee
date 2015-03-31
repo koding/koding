@@ -48,7 +48,11 @@ createUsers = (users)->
 
             return next()
 
-          account.update $set: type: 'registered', (err)->
+          account.update {
+            $set          :
+              type        : 'registered'
+              globalFlags : ['super-admin']
+          }, (err)->
 
             if err?
               console.log "  Failed to activate #{u.username}:", err
@@ -69,7 +73,16 @@ createUsers = (users)->
                 if err then console.log "     Failed to add: ", err
                 else        console.log "     Joined to group #{u.group}."
 
-                next()
+                client =
+                  connection : delegate : account
+                  context    : group    : u.group
+
+                ComputeProvider.createGroupStack client, (err)->
+
+                  if err then console.log "     Failed to create stack: ", err
+                  else        console.log "     Default stack created for #{u.group}."
+
+                  next()
 
 
     # An array like this

@@ -118,6 +118,7 @@ type (
 		ApiKey       string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APIKEY                       required"`
 		ApiSecretKey string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISECRETKEY                 required"`
 		IndexSuffix  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX                  required"`
+		ApiTokenKey  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APITOKENKEY                  required"`
 	}
 
 	// Mixpanel holds mixpanel credentials

@@ -186,11 +186,6 @@ func CheckParticipation(u *url.URL, h http.Header, _ interface{}, context *model
 		res.AccountToken = context.Client.Account.Token
 	}
 
-	// it looks like this is public channel and no need to check for participation
-	if channel.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE {
-		return response.NewOK(res)
-	}
-
 	canOpen, err := channel.CanOpen(q.AccountId)
 	if err != nil {
 		return response.NewBadRequest(err)

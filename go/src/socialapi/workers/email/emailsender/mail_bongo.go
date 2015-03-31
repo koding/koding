@@ -22,12 +22,14 @@ type Properties struct {
 }
 
 func NewProperties() *Properties {
-	options := map[string]interface{}{}
-
 	return &Properties{
 		Username: "",
-		Options:  options,
+		Options:  NewPropertiesOptions(),
 	}
+}
+
+func NewPropertiesOptions() map[string]interface{} {
+	return map[string]interface{}{}
 }
 
 func NewMail(to, from, subject, username string) *Mail {
@@ -52,4 +54,12 @@ func (m Mail) GetId() int64 {
 
 func (m Mail) BongoName() string {
 	return "api.mail"
+}
+
+func (m *Mail) SetOption(key string, value interface{}) {
+	if m.Properties.Options == nil {
+		m.Properties.Options = NewPropertiesOptions()
+	}
+
+	m.Properties.Options["subject"] = m.Subject
 }

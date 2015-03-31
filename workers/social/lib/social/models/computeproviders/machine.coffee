@@ -6,8 +6,6 @@ KodingError = require '../../error'
 {argv}      = require 'optimist'
 KONFIG      = require('koding-config-manager').load("main.#{argv.c}")
 
-JUser       = require '../user'
-
 module.exports = class JMachine extends Module
 
   { ObjectId, signature, daisy, secure } = require 'bongo'
@@ -144,7 +142,7 @@ module.exports = class JMachine extends Module
 
   generateSlugFromLabel = ({user, group, label, index}, callback)->
 
-    slug = if index? then "#{label}-#{index}" else label
+    slug = _label = if index? then "#{label}-#{index}" else label
     slug = slugify slug
 
     JMachine.count {
@@ -156,7 +154,7 @@ module.exports = class JMachine extends Module
       return callback err  if err?
 
       if count is 0
-        callback null, slug
+        callback null, {slug, label: _label}
       else
         index ?= 0
         index += 1
@@ -266,11 +264,12 @@ module.exports = class JMachine extends Module
 
     {label} = data
 
-    generateSlugFromLabel {user, group, label}, (err, slug)->
+    generateSlugFromLabel {user, group, label}, (err, {slug, label})->
 
       return callback err  if err?
 
-      data.slug = slug
+      data.label = label
+      data.slug  = slug
 
       machine = new JMachine data
       machine.save (err)->
@@ -282,7 +281,35 @@ module.exports = class JMachine extends Module
           callback null, machine
 
 
+  @getSelectorFor = (client, {machineId, owner})->
+
+    { r: { group, user } } = client
+
+    userObj    = if owner then {sudo: yes, owner: yes} else {}
+    userObj.id = user.getId()
+
+    selector  =
+      $or     : [
+        { _id : ObjectId machineId }
+        { uid : machineId }
+      ]
+      users   : $elemMatch: userObj
+      groups  : $elemMatch: id: group.getId()
+
+    return selector
+
+
   # Instance Methods
+
+  destroy: (client, callback)->
+
+    { r: { user } } = client
+
+    unless isOwner user, this
+      return callback new KodingError 'Access denied'
+
+    @remove callback
+
 
   addUsers: (options, callback)->
 
@@ -349,6 +376,17 @@ module.exports = class JMachine extends Module
         callback new KodingError "Target does not support machines."
 
 
+  fetchOwner: (callback) ->
+
+    owner = user for user in @users when user.owner and user.sudo
+    errCb = -> callback new KodingError 'Owner user not found'
+    return errCb()  unless owner
+
+    JUser = require '../user'
+    JUser.one _id: owner.id, (err, user) ->
+      return errCb()  if err or not user
+      user.fetchOwnAccount callback
+
 
   # Shared Methods
   # --------------
@@ -364,15 +402,7 @@ module.exports = class JMachine extends Module
 
     , (client, machineId, callback)->
 
-      { r: { group, user } } = client
-
-      selector  =
-        $or     : [
-          { _id : ObjectId machineId }
-          { uid : machineId }
-        ]
-        users   : $elemMatch: id: user.getId()
-        groups  : $elemMatch: id: group.getId()
+      selector = @getSelectorFor client, {machineId}
 
       JMachine.one selector, (err, machine)->
         callback err, machine
@@ -501,7 +531,7 @@ module.exports = class JMachine extends Module
         return callback new KodingError "Nickname cannot be empty"
 
       if slug isnt @slug
-        generateSlugFromLabel { user, group, label }, (err, slug)=>
+        generateSlugFromLabel { user, group, label }, (err, {slug, label})=>
           return callback err  if err?
           @update $set: { slug, label }, (err)-> kallback err, slug
       else
@@ -658,14 +688,3 @@ module.exports = class JMachine extends Module
 
     @shareWith options, (err)->
       callback err
-
-
-  fetchOwner: (callback) ->
-
-    owner = user for user in @users when user.owner and user.sudo
-
-    JUser.one _id: owner.id, (err, user) ->
-
-      return callback 'Owner user not found'  unless user
-
-      user.fetchOwnAccount callback

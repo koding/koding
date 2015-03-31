@@ -13,7 +13,7 @@ var (
 // When user is loggedin, we send some extra data with the payload
 // so the client doesn't need to fetch them after the page loads.
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	userInfo, err := fetchUserInfo(w, r)
+	userInfo, err := prepareUserInfo(w, r)
 	if err != nil {
 		writeLoggedOutHomeToResp(w)
 		return
@@ -35,7 +35,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := NewLoggedInUser()
-	user.Set("Group", kodingGroup)
+	user.Set("Group", userInfo.Group)
 	user.Set("Username", userInfo.Username)
 	user.Set("SessionId", userInfo.ClientId)
 	user.Set("Impersonating", userInfo.Impersonating)
