@@ -40,7 +40,7 @@ type Channel struct {
 	MetaBits MetaBits `json:"metaBits"`
 
 	// Extra data storage
-	Payload gorm.Hstore `json:"payload,omitempty"`
+	Payload gorm.Hstore `json:"payload"`
 
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
