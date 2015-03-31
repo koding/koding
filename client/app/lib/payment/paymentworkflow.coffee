@@ -19,7 +19,7 @@ PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 trackEvent = require 'app/util/trackEvent'
-_ = require 'lodash'
+_ = require 'underscore'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -37,7 +37,7 @@ module.exports = class PaymentWorkflow extends KDController
     super options, data
 
     @state = kd.utils.extend @getInitialState(), options.state
-    @startingState = _.assign {}, @state
+    @startingState = _.extend {}, @state
 
     kd.singletons.appManager.tell 'Pricing', 'loadPaymentProvider', @bound 'start'
 

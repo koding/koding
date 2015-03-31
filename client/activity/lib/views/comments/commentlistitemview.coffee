@@ -1,25 +1,26 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
-KDTimeAgoView = kd.TimeAgoView
-KDView = kd.View
-emojify = require 'emojify.js'
-CommentDeleteModal = require './commentdeletemodal'
+kd                     = require 'kd'
+KDButtonView           = kd.ButtonView
+KDCustomHTMLView       = kd.CustomHTMLView
+KDListItemView         = kd.ListItemView
+KDTimeAgoView          = kd.TimeAgoView
+KDView                 = kd.View
+emojify                = require 'emojify.js'
+CommentDeleteModal     = require './commentdeletemodal'
 CommentInputEditWidget = require './commentinputeditwidget'
-CommentLikeView = require './commentlikeview'
-CommentSettingsButton = require './commentsettingsbutton'
-remote = require('app/remote').getInstance()
-formatContent = require 'app/util/formatContent'
-showError = require 'app/util/showError'
-ProfileLinkView = require 'app/commonviews/linkviews/profilelinkview'
-JView = require 'app/jview'
-JCustomHTMLView = require 'app/jcustomhtmlview'
-CustomLinkView = require 'app/customlinkview'
-AvatarView = require 'app/commonviews/avatarviews/avatarview'
-isMyPost = require 'app/util/isMyPost'
-hasPermission = require 'app/util/hasPermission'
-updateEmbedBox = require 'activity/mixins/updateembedbox'
+CommentLikeView        = require './commentlikeview'
+CommentSettingsButton  = require './commentsettingsbutton'
+remote                 = require('app/remote').getInstance()
+formatContent          = require 'app/util/formatContent'
+showError              = require 'app/util/showError'
+ProfileLinkView        = require 'app/commonviews/linkviews/profilelinkview'
+JView                  = require 'app/jview'
+JCustomHTMLView        = require 'app/jcustomhtmlview'
+CustomLinkView         = require 'app/customlinkview'
+AvatarView             = require 'app/commonviews/avatarviews/avatarview'
+isMyPost               = require 'app/util/isMyPost'
+hasPermission          = require 'app/util/hasPermission'
+updateEmbedBox         = require 'activity/mixins/updateembedbox'
+animatedRemoveMixin    = require 'activity/mixins/animatedremove'
 
 module.exports = class CommentListItemView extends KDListItemView
 
@@ -127,10 +128,10 @@ module.exports = class CommentListItemView extends KDListItemView
     modal.once 'DeleteError'     , @bound 'show'
 
 
-  hide          : (rest...) -> require('../activitylistitemview')::hide.apply this, rest
-  show          : (rest...) -> require('../activitylistitemview')::show.apply this, rest
-  delete        : (rest...) -> require('../activitylistitemview')::delete.apply this, rest
-  whenSubmitted : (rest...) -> require('../activitylistitemview')::whenSubmitted.apply this, rest
+  hide                 : animatedRemoveMixin.hide
+  show                 : animatedRemoveMixin.show
+  delete               : animatedRemoveMixin.remove
+  whenRemovingFinished : animatedRemoveMixin.whenRemovingFinished
 
 
   createReplyLink: ->

@@ -56,7 +56,7 @@ type ChannelMessage struct {
 	DeletedAt time.Time `json:"deletedAt"`
 
 	// Extra data storage
-	Payload gorm.Hstore `json:"payload,omitempty"`
+	Payload gorm.Hstore `json:"payload"`
 
 	// is required to identify to request in client side
 	ClientRequestId string `json:"clientRequestId,omitempty" sql:"-"`
