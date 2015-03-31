@@ -3,7 +3,7 @@ module.exports = (options, callback)->
   getStyles    = require './../styleblock'
   fetchScripts = require './../scriptblock'
   getTitle     = require './../title'
-  getGraphMeta = require './..graphmeta'
+  getGraphMeta = require './../graphmeta'
 
 
   {
