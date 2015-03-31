@@ -76,7 +76,7 @@ module.exports = class SocialApiController extends KDController
 
     {socialapi} = kd.singletons
 
-    channel = socialapi._cache["privatemessage"][channelId]
+    channel = socialapi.retrieveCachedItemById channelId
 
     return  unless channel
 
@@ -433,7 +433,12 @@ module.exports = class SocialApiController extends KDController
         item = post
 
     return item
+  retrieveCachedItemById: (id) ->
 
+    for own typeConstant, items of @_cache
+      return item  if item = @_cache[typeConstant][id]
+
+    return null
 
   cacheable: (type, id, force, callback) ->
     [callback, force] = [force, no]  unless callback
