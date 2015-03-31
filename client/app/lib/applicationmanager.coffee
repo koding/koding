@@ -1,5 +1,8 @@
 $                    = require 'jquery'
+_                    = require 'underscore'
 globals              = require 'globals'
+getAppOptions        = require './util/getAppOptions'
+getAppClass          = require './util/getAppClass'
 kd                   = require 'kd'
 KDModalViewWithForms = kd.ModalViewWithForms
 KDNotificationView   = kd.NotificationView
@@ -7,13 +10,12 @@ KDObject             = kd.Object
 KDOnOffSwitch        = kd.OnOffSwitch
 KDSelectBox          = kd.SelectBox
 KDView               = kd.View
-getAppOptions        = require './util/getAppOptions'
-getAppClass          = require './util/getAppClass'
 FSHelper             = require './util/fs/fshelper'
 KodingAppsController = require './kodingappscontroller'
 
+module.exports =
 
-module.exports = class ApplicationManager extends KDObject
+class ApplicationManager extends KDObject
 
   ###
 
@@ -24,7 +26,7 @@ module.exports = class ApplicationManager extends KDObject
 
   constructor: ->
 
-    super
+    super()
 
     @appControllers = {}
     @frontApp       = null
@@ -44,11 +46,15 @@ module.exports = class ApplicationManager extends KDObject
         break
       return safeToUnload ? yes
 
+
   isAppInternal: (name = '') -> globals.config.apps[name]?
+
 
   isAppLoaded: (name = '') -> (name in Object.keys globals.appClasses)
 
+
   shouldLoadApp: (name = '') -> (@isAppInternal name) and not (@isAppLoaded name)
+
 
   open: do ->
 
@@ -120,14 +126,17 @@ module.exports = class ApplicationManager extends KDObject
 
       else do defaultCallback
 
+
   openFileWithApplication: (appName, file) ->
     @open appName, => kd.utils.defer => @getFrontApp().openFile file
+
 
   promptOpenFileWith:(file)->
     finderController = kd.getSingleton "finderController"
     {treeController} = finderController
     view = new KDView {}, file
     treeController.showOpenWithModal view
+
 
   openFile:(file)->
 
@@ -163,6 +172,7 @@ module.exports = class ApplicationManager extends KDObject
     if app then kd.utils.defer -> cb app
     else @create name, cb
 
+
   require: (name, params, callback) ->
     kd.log "AppManager: requiring an app", name
     [callback, params] = [params, callback]  unless callback
@@ -171,6 +181,7 @@ module.exports = class ApplicationManager extends KDObject
     then callback app
     else @create name, params, callback
 
+
   create:(name, params, callback)->
 
     [callback, params] = [params, callback]  unless callback
@@ -178,13 +189,13 @@ module.exports = class ApplicationManager extends KDObject
     AppClass              = getAppClass name
     appOptions            = $.extend {}, true, getAppOptions name
     appOptions.params     = params
+
     @register appInstance = new AppClass appOptions  if AppClass
 
     if @shouldLoadApp name
       return KodingAppsController.loadInternalApp name, (err)=>
         return kd.warn err  if err
         kd.utils.defer => @create name, params, callback
-
 
     kd.utils.defer =>
       return @emit "AppCouldntBeCreated"  unless appInstance
@@ -194,6 +205,7 @@ module.exports = class ApplicationManager extends KDObject
         return kd.getSingleton("kodingAppsController").putAppResources appInstance, callback
 
       callback? appInstance
+
 
   show:(name, appParams, callback)->
 
@@ -209,6 +221,7 @@ module.exports = class ApplicationManager extends KDObject
     @setLastActiveIndex appInstance
     kd.utils.defer -> callback? appInstance
 
+
   showInstance:(appInstance, callback)->
 
     appView    = appInstance.getView?() or null
@@ -221,16 +234,19 @@ module.exports = class ApplicationManager extends KDObject
     @setLastActiveIndex appInstance
     kd.utils.defer -> callback? appInstance
 
+
   quit:(appInstance, callback = kd.noop)->
     view = appInstance.getView?()
     destroyer = if view? then view else appInstance
     destroyer.destroy()
     callback()
 
+
   quitAll:->
 
     for own name, apps of @appControllers
       @quit app  for app in apps.instances
+
 
   quitByName: (name, closeAllInstances = yes) ->
     appController = @appControllers[name]
@@ -242,12 +258,14 @@ module.exports = class ApplicationManager extends KDObject
     else
       @quit appController.instances[appController.lastActiveIndex]
 
+
   get:(name)->
 
     if apps = @appControllers[name]
       apps.instances[apps.lastActiveIndex] or apps.instances.first
     else
       null
+
 
   getByView: (view)->
 
@@ -261,19 +279,29 @@ module.exports = class ApplicationManager extends KDObject
 
     return appInstance
 
+
   getFrontApp:-> @frontApp
+
 
   setFrontApp: (appInstance) ->
 
     {router}  = kd.singletons
     {name} = appInstance.getOptions()
+
     router.setPageTitle name  if name
+
     @setLastActiveIndex appInstance
+
+    prevAppInstance = @frontApp
     @frontApp = appInstance
+
+    @emit 'FrontAppIsChanged', appInstance, prevAppInstance
+
 
   getFrontAppManifest: ->
     {name}  = @getFrontApp().getOptions()
     return getAppOptions name
+
 
   register:(appInstance)->
 
@@ -287,6 +315,7 @@ module.exports = class ApplicationManager extends KDObject
 
     @emit "AppRegistered", name, appInstance.options
 
+
   unregister:(appInstance)->
 
     name  = appInstance.getOption "name"
@@ -299,6 +328,7 @@ module.exports = class ApplicationManager extends KDObject
 
       if @appControllers[name].instances.length is 0
         delete @appControllers[name]
+
 
   createPromptModal:(appOptions, callback)->
     # show modal and wait for response
@@ -341,6 +371,7 @@ module.exports = class ApplicationManager extends KDObject
                   modal.cancel()
                   callback null
 
+
   setListeners:(appInstance)->
 
     destroyer = if view = appInstance.getView?() then view else appInstance
@@ -348,6 +379,7 @@ module.exports = class ApplicationManager extends KDObject
       @unregister appInstance
       appInstance.emit "AppDidQuit"
       kd.getSingleton('appManager').emit  "AppDidQuit", appInstance
+
 
   setLastActiveIndex:(appInstance)->
 
@@ -361,8 +393,10 @@ module.exports = class ApplicationManager extends KDObject
 
   # setGroup:-> console.log 'setGroup', arguments
 
+
   # temp
   notification = null
+
 
   notify:(msg)->
 
@@ -373,12 +407,14 @@ module.exports = class ApplicationManager extends KDObject
       type      : "mini"
       duration  : 2500
 
+
   handleAppNotFound: ->
     new KDNotificationView
       title    : "You don't have this app installed!"
       type     : "mini"
       cssClass : "error"
       duration : 5000
+
 
   # deprecate these
 

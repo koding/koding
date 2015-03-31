@@ -506,9 +506,10 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make build
+        sh -c "scripts/install-npm.sh -d client/landing -u"
+        sh -c "scripts/install-npm.sh -d client/builder -u"
+        sh -c "scripts/install-npm.sh -d client -u -p"
+        make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -619,12 +620,18 @@ Configuration = (options={}) ->
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
-            echo your run file is older than your client package json. doing npm i.
             sleep 1
-            cd client && npm i && cd -
+            sh -c "scripts/install-npm.sh -d client -s"
+        fi
 
-            echo -e "\n\nPlease do ./configure and  ./run again\n"
-            exit 1;
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/builder -s"
+        fi
+
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/landing -s"
         fi
 
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
@@ -732,12 +739,13 @@ Configuration = (options={}) ->
 
           echo
           echo '---------------------------------------------------------------'
-          echo '>>> CLIENT BUILD DISABLED! DO "cd client/ && make" MANUALLY <<<'
+          echo '>>> CLIENT BUILD DISABLED! DO "make -C client" MANUALLY <<<'
           echo '---------------------------------------------------------------'
           echo
 
         else
-          cd #{projectRoot}/client && make &
+          sh -c "scripts/install-npm.sh -d client -u -p -s"
+          make -C #{projectRoot}/client
         fi
 
         # Show the all logs of workers
@@ -1057,9 +1065,8 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make
+        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
@@ -1171,6 +1178,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
+        sh -c scripts/validate-npm.sh
         run $1
 
       else
