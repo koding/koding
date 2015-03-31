@@ -86,7 +86,7 @@ module.exports = class SocialApiController extends KDController
     delete socialapi.openedChannels[channelName] if socialapi.openedChannels[channelName]?
 
     {typeConstant, id} = channel
-    delete socialapi._cache[typeConstant][id]
+    socialapi.deleteCachedItem typeConstant, id
 
     {realtime} = kd.singletons
 
@@ -439,6 +439,11 @@ module.exports = class SocialApiController extends KDController
       return item  if item = @_cache[typeConstant][id]
 
     return null
+
+
+  deleteCachedItem: (type, id) ->
+    delete @_cache[type]?[id]
+
 
   cacheable: (type, id, force, callback) ->
     [callback, force] = [force, no]  unless callback
