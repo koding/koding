@@ -190,7 +190,7 @@ module.exports = UserEnvironmentDataProvider =
 
     return null  unless IDE
 
-    for i in IDE.instances when i.mountedMachineUId
+    for i in IDE.instances when i.mountedMachineUId is uid
       instance = i
       break
 
