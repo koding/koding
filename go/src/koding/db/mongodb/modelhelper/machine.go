@@ -89,11 +89,11 @@ func GetSharedMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
 	return findMachineContainers(query)
 }
 
-func GetCollabMachines(userId bson.ObjectId) ([]*MachineContainer, error) {
-	query := bson.M{"users": bson.M{
-		"$elemMatch": bson.M{"id": userId, "owner": false,
-			"permanent": bson.M{"$ne": true}},
-	}}
+func GetCollabMachines(userId bson.ObjectId, group *models.Group) ([]*MachineContainer, error) {
+	query := bson.M{
+		"users":  bson.M{"$elemMatch": bson.M{"id": userId, "owner": false, "permanent": bson.M{"$ne": true}}},
+		"groups": bson.M{"$elemMatch": bson.M{"id": group.Id}},
+	}
 
 	return findMachineContainers(query)
 }
