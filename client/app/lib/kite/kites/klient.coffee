@@ -40,12 +40,6 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     @terminalSessions = []
 
 
-  init: ->
-
-    @connect()
-    Promise.resolve()
-
-
   # setTransport is used to override the setTransport method in KodingKite
   # prior to connection so we can have a custom URL. This is used so Klient
   # Kite can go over our internal userproxy
