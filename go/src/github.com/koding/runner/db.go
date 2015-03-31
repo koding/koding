@@ -16,7 +16,7 @@ var DB *gorm.DB
 
 func MustInitDB(conf *Config, log logging.Logger, debug bool) *gorm.DB {
 	connString := fmt.Sprintf(
-		"host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		conf.Postgres.Host,
 		conf.Postgres.Port,
 		conf.Postgres.Username,

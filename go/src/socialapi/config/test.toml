@@ -1,6 +1,6 @@
 [postgres]
 Host=     "localhost"
-Port=     5432
+Port=     "5432"
 Username= "socialapplication"
 Password= "socialapplication"
 DBName=   "social"

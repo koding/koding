@@ -2,6 +2,10 @@ package runner
 
 import "github.com/koding/multiconfig"
 
+var (
+	conf *Config
+)
+
 type (
 	// Config holds all the configuration variables of socialapi
 	Config struct {
@@ -38,7 +42,7 @@ type (
 	// Postgres holds Postgresql database related configuration
 	Postgres struct {
 		Host     string
-		Port     int
+		Port     string
 		Username string
 		Password string
 		DBName   string
@@ -58,10 +62,6 @@ type (
 		URL string
 		DB  int
 	}
-)
-
-var (
-	conf *Config
 )
 
 // Returns config, if it is nil, panics
