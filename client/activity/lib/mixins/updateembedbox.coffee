@@ -5,7 +5,7 @@ getEmbedType     = require 'app/util/getEmbedType'
 
 hasEmbed = (data) -> data.link? and Object.keys(data.link).length > 0
 
-module.exports =  ->
+module.exports = updateEmbedBoxMixin = ->
 
   data     = @getData()
   embedBox = if data.link?
