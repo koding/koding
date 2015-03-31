@@ -11,5 +11,8 @@
   ],
   "styles": [
     "./lib/styl"
+  ],
+  "shortcuts": [ 
+    "workspace"
   ]
 }
