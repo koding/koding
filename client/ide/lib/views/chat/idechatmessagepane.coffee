@@ -133,6 +133,9 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @addSubView header
 
 
+  requestJoinVideo: -> @emit 'ChatVideoRequested'
+
+
   createMenu: ->
 
     channel = @getData()
@@ -150,10 +153,11 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
   settingsMenu: ->
 
     menu =
-      'Search'     : cssClass : 'disabled', callback: kd.noop
-      # 'Settings'   : callback : @getDelegate().bound 'showSettingsPane'
-      'Minimize'   : callback : @getDelegate().bound 'end'
-      'Learn More' : separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration'
+      'Search'          : { cssClass : 'disabled', callback: kd.noop }
+      'Minimize'        : { callback : @getDelegate().bound 'end' }
+      'Join Video Chat' : { callback : @bound 'requestJoinVideo' }
+      'Learn More'      : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
+      # 'Settings'      : { callback : @getDelegate().bound 'showSettingsPane' }
 
     if @isInSession
     then menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
