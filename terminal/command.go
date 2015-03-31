@@ -34,8 +34,8 @@ type Command struct {
 }
 
 var (
-	ErrNoSession      = errors.New("ErrNoSession")
-	ErrInvalidSession = errors.New("ErrInvalidSession")
+	ErrNoSession     = errors.New("session doesn't exists")
+	ErrSessionExists = errors.New("session with the same name exists already")
 )
 
 func getUserEntry(username string) (*passwd.Entry, error) {
@@ -78,6 +78,9 @@ func newCommand(mode, session, username string) (*Command, error) {
 	defaultShell := getDefaultShell(username)
 	args := []string{"-e^Bb", "-s", defaultShell, "-S"}
 
+	// TODO: resume and create are backwards compatible modes. Remove then once
+	// the client side switched to use the "attach" mode which does both,
+	// resume or create.
 	switch mode {
 	case "shared", "resume":
 		if session == "" {
@@ -97,12 +100,16 @@ func newCommand(mode, session, username string) (*Command, error) {
 	case "noscreen":
 		name = defaultShell
 		args = []string{}
-	case "create":
+	case "attach", "create":
 		// if the user didn't send a session name, create a custom randomized
 		if session == "" {
 			session = randomString()
 		}
-		args = append(args, sessionPrefix+"."+session)
+
+		// -a  : includes all capabilities
+		// -A  : adapts the sizes of all windows to the current terminal
+		// -DR : if session is running, re attach. If not create a new one
+		args = append(args, sessionPrefix+"."+session, "-aADR")
 	default:
 		return nil, fmt.Errorf("mode '%s' is unknown. Valid modes are:  [shared|noscreen|resume|create]", mode)
 	}

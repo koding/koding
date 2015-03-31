@@ -149,6 +149,11 @@ func (t *Terminal) RenameSession(r *kite.Request) (interface{}, error) {
 		return nil, errors.New("session name to be renamed is empty")
 	}
 
+	// prevent to rename it to a session that exists already
+	if sessionExists(params.NewName, r.Username) {
+		return nil, ErrNoSession
+	}
+
 	if err := renameSession(params.OldName, params.NewName); err != nil {
 		return nil, err
 	}
