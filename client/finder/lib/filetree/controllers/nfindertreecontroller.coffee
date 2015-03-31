@@ -262,6 +262,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
     Promise.all(results).then =>
       @notify "#{deletedNodes.length} item#{if deletedNodes.length > 1 then 's' else ''} deleted!", "success"
+      @emit 'NodesRemoved', deletedNodes
       @removeNodeView node for node in deletedNodes
 
     .catch (err) =>
@@ -282,6 +283,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
 
       nodeData.rename newValue, (err)=>
         if err then @notify null, null, err
+        @emit 'NodeRenamed', nodeData, newValue
 
       # @setKeyView()
       @beingEdited = null
@@ -330,6 +332,7 @@ module.exports = class NFinderTreeController extends JTreeViewController
         movedNodes.push node
 
     Promise.all(results).then =>
+      @emit 'NodesMoved', movedNodes, targetItem
       @notify "#{movedNodes.length} item#{if movedNodes.length > 1 then 's' else ''} moved!", "success"
       @removeNodeView node for node in movedNodes
       @refreshFolder targetNodeView
