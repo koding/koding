@@ -1,12 +1,10 @@
-kd             = require 'kd'
-_              = require 'lodash'
-OpenTokService = require './services/opentok'
 kd              = require 'kd'
 _               = require 'lodash'
 getNick         = require 'app/util/nick'
 
 OpenTokService  = require './services/opentok'
 ParticipantType = require './types/participant'
+ViewModel       = require './viewmodel'
 
 module.exports = class VideoCollaborationModel extends kd.Object
 
@@ -24,7 +22,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     super options, data
 
-    @_service = OpenTokService.getInstance()
     @state = _.assign {}, options.state, @defaultState
 
     { @channel, @view } = options
@@ -34,6 +31,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @stream      = null
     @subscribers = {}
 
+    # attach this model and the view into a view model, it can track the model
+    # for necessary events and reacts to it.
+    @_videoModel = new ViewModel { @view, model: this }
+
+    # instantiate the service and when it's ready, start this model's
+    # intitalization process.
+    @_service = OpenTokService.getInstance()
     @_service.whenReady @bound 'init'
 
 
@@ -53,141 +57,230 @@ module.exports = class VideoCollaborationModel extends kd.Object
   getChannel: -> @channel
 
 
-
-
   ###*
-   * Starts publishing video.
+   * Connects to service, then delegates to necessary method.
    *
-   * It ensures that OpenTokService instance
-   * is ready to work via its whenReady method.
-   * The options argument is just a convinient way to extend
-   * publisher options when starting publishing.
-   * `OpenTokService#createPublisher` has necessary defaults already.
-   *
-   * @param {Object=} options - publisher options to be passed.
-   * @listens OpenTokService~CameraAccessAllowed
-   * @listens OpenTokService~CameraAccessDenied
-   * @listens OpenTokService~CameraQuestionAsked
-   * @listens OpenTokService~CameraQuestionAnswered
-   * @listens OpenTokService~StreamDestroyed
+   * TODO: Error Handling.
   ###
-  startPublishing: (options) -> @_service.whenReady =>
+  init: ->
 
-    @_service
-      .on 'CameraAccessAllowed',          @view.bound 'show'
-      .on 'CameraAccessDenied',           @view.bound 'hide'
-      .on 'CameraAccessQuestionAsked',    @view.bound 'showAccessModal'
-      .on 'CameraAccessQuestionAnswered', @view.bound 'hideAccessModal'
-      .on 'StreamDestroyed',              @bound 'handleStreamDestroyed'
-
-    @publisher = @_service.createPublisher @view.getElement(), options
-
-    @session.publish @publisher, (err) =>
-
-      return warn { message: 'Publishing error.' }  if err
-
-      { @stream } = @publisher
-      me = KD.nick()
-
-      @fixParticipantVideo subscriber  for _, subscriber of @subscribers
-      @switchTo me
+    @_service.connect @channel,
+      success : @bound 'handleSessionConnected'
+      error   : (err) =>
 
 
   ###*
-   * Subscribes to channel video session.
-   *
-   * It ensures that OpenTokService instance is ready.
-   *
-   * @listens OpenTokService~NewSubscriber
-  ###
-  subscribe: -> @_service.whenReady =>
-
-    @_service.on 'NewSubscriber', @bound 'handleNewSubscriber'
-
-    @_service.subscribeToVideoUpdates @channel, @view
-
-
-  ###*
-   * Session creation handler.
+   * Handler for session connected.
+   * Binds the session, session events and updates the state.
    *
    * @param {OT.Session} session
+   * @emits VideoCollaborationModel~SessionConnected
   ###
-  handleSessionCreated: (session) ->
+  handleSessionConnected: (session) ->
 
     @session = session
+    @bindSessionEvents session
+    @setState { connectedToSession: yes }
+    @emit 'SessionConnected', session
 
 
   ###*
-   * New subscriber handler.
-   * It sets a value with the nickname of
-   * user in the `subscribers` object.
+   * Registers callbacks for service events.
    *
+   * @param {OT.Session} session
+   * @listens OT.Session~streamCreated
+   * @listens OT.Session~streamDestroyed
+   * @listens OT.Session~connectionCreated
+   * @listens OT.Session~sessionDisconnected
+   * @listens OT.Subscriber~destroyed
+   * @emits VideoCollaborationModel~ParticipantLeft
+   * @emits VideoCollaborationModel~ParticipantJoined
+   * @emits VideoCollaborationModel~HostKickedLoggedInUser
+   * @emits VideoCollaborationModel~VideoCollaborationEnded
+   * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
+  ###
+  bindSessionEvents: (session) ->
+
+    session.on 'streamCreated', (event) =>
+      return  if @state.publishing is off
+
+      options.height     or= "100%"
+      options.width      or= "100%"
+      options.insertMode or= 'append'
+
+      { stream } = event
+      nick       = stream.name
+      element    = @getView().getSubscribgetElement()
+      subscriber = session.subscribe stream, element, options
+      subscriber.on 'destroyed', =>
+        @unregisterSubscriber connectionId
+        @emit 'ParticipantLeft', { nick }
+
+      { connectionId } = stream.connection
+      participant = @registerSubscriber nick, connectionId, subscriber
+
+      @emit 'ParticipantJoined', participant
+
+    session.on 'streamDestroyed', (event) =>
+
+      @emit 'ParticipantLeft', { nick: event.stream.name }
+
+    session.on 'connectionCreated', (event) =>
+
+      # TODO: this may not be necessary.
+      data = { nick: getNick() }
+      @_service.sendSignal session, 'initialize', data
+
+    session.on 'sessionDisconnected', (event) =>
+      @setState { connectedToSession: no }
+      eventName = switch event.reason
+        when 'forceDisconnected'   then 'HostKickedLoggedInUser'
+        when 'clientDisconnected'  then 'VideoCollaborationEnded'
+        when 'networkDisconnected' then 'VideoCollaborationEndedByNetwork'
+
+      @emit eventName
+
+
+  ###*
+   * Creates a `ParticipantType.Subscriber` instance and it caches it with `connectionId`
+   * into `subscribers` map.
+   *
+   * @param {string} nick
+   * @param {string} connectionId
    * @param {OT.Subscriber} subscriber
+   * @param {ParticipantType.Subscriber} _subscriber
   ###
-  handleNewSubscriber: (subscriber) ->
+  registerSubscriber: (nick, connectionId, subscriber) ->
 
-    { nick, video } = subscriber
+    _subscriber = new ParticipantType.Subscriber nick, subscriber
+
+    @subscribers[connectionId] = _subscriber
+
+    return _subscriber
 
 
   ###*
-   * Stream destroy handler. Sets back some defaults.
-   * TODO: Destroy maybe?
-  ###
-  handleStreamDestroyed: (event) ->
-
-    @publisher = null
-
-
-  ###*
-   * Returns all the participants including the publisher(Logged in user).
+   * Unregisters the subscriber from `subscribers` map.
    *
-   * @return {Object} participants
+   * @param {strong} connectionId
   ###
-  getParticipants: ->
+  unregisterSubscriber: (connectionId) ->
 
-    participants = _.assign {}, @subscribers
-    participants[KD.nick()] = { video: @publisher }
-
-    return participants
+    @subscribers[connectionId] = null
 
 
   ###*
-   * Switch to given users video feed.
+   * Transforms given publisher instance from OpenTok into our own
+   * `ParticipantType.Publishe` class instance and it registers it into model's
+   * participant property.. It sets the model's stream instance to publisher's
+   * stream for easy access.
    *
-   * @param {String} nick
+   * @param {OT.Publisher} publisher
+   * @return {ParticipantType.Publishe} _publisher
   ###
-  switchTo: (nick) ->
+  registerPublisher: (publisher) ->
 
-    return  unless participant = @getParticipants()[nick]
+    @publisher = _publisher = new ParticipantType.Publisher getNick(), publisher
+    @stream    = _publisher.stream
 
-    @hideAll()
-    @showParticipant participant
+    return _publisher
 
 
   ###*
-   * Hides all video feeds.
-  ###
-  hideAll: ->
-
-    @hideParticipant participant  for own _, participant of @getParticipants()
-
-
-  ###*
-   * Hides given participant's video feed.
+   * Action for joining to VideoCollaboration session. It calls
+   * `startPublishing` method and connects handlers for success and error states.
    *
-   * @param {OT.Subscriber|OT.Publisher} participant
+   * @param {object} options
   ###
-  hideParticipant: (participant) ->
+  join: (options) ->
 
-    { video } = participant
-    video.element.style.display = 'none'
+    @startPublishing options,
+      success : @bound 'handlePublishSuccess'
+      error   : (err) =>
 
 
   ###*
+   * Handler for successful video publishing. It transforms and registers given
+   * `OT.Publisher` instance. Sets active participant to user.
    *
+   * @param {OT.Publisher} publisher
+   * @emits VideoCollaborationModel~VideoCollaborationActive
   ###
+  handlePublishSuccess: (publisher) ->
+
+    @registerPublisher publisher
+    @emit 'VideoCollaborationActive', @publisher
+
+    @changeActiveParticipant getNick()
 
 
+  ###*
+   * Starts publishing. It enables video and audio depending on the state
+   * variables. That extension over state with given options object provides a
+   * convinient way to extend the defaults to be passed into service. It can be
+   * forced to open video or audio with options.
+   *
+   * @param {object} options
+   * @param {boolean} options.publishAudio
+   * @param {boolean} options.publishVideo
+   * @param {function(publisher: OT.Publisher)} callbacks.success
+   * @param {function(error: object)} callbacks.error
+  ###
+  startPublishing: (options, callbacks) ->
+
+    defaults =
+      publishAudio: @state.audio
+      publishVideo: @state.video
+
+    options = _.assign {}, defaults, options
+
+    @_service.createPublisher @view, options, (err, publisher) =>
+      return callbacks.error err  if err
+
+      publisher.on
+        accessAllowed      : => @emit 'CameraAccessAllowed'
+        accessDenied       : => @emit 'CameraAccessDenied'
+        accessDialogOpened : => @emit 'CameraAccessQuestionAsked'
+        accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
+
+      @session.publish publisher, (err) =>
+        if err
+        then callbacks.error err
+        else callbacks.success publisher
+
+
+  ###*
+   * Changes active user defensively.
+   *
+   * @param {string} nick
+   * @emits VideoCollaboration~ActiveParticipantChanged
+  ####
+  changeActiveParticipant: (nick) ->
+
+    return  unless @getParticipant nick
+
+    @setState { activeParticipant: nick }
+    @emit 'ActiveParticipantChanged', nick
+
+
+  ###*
+   * Public access method for all participants. Just because internally the
+   * subscribers are cached with `connectionId` instead of `nickname`s of
+   * subscribers/publisher, we are first transforming the subscribers and merge
+   * it with publisher instance to create a unified subscribers/publisher map.
+   *
+   * @return {object<nickname: string, ParticipantType.Participant>} participants
+  ###
+  getParticipants: -> helper.toNickKeyedMap @subscribers, @publisher
+
+
+  ###*
+   * Return `ParticipantType.Participant` instance of participant with given nickname.
+   *
+   * @param {string} nick
+   * @return {ParticipantType.Participant} participant
+  ###
+  getParticipant: (nick) -> @getParticipants()[nick]
 
 
   ###*
