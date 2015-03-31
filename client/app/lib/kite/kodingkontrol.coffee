@@ -186,6 +186,16 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     return kite
 
 
+  followConnectionStates: (kite, machineUId)->
+
+    # Machine.uid is kite correlation name
+    cc = kd.singletons.computeController
+
+    kite.on 'open',      cc.lazyBound 'emit', "connected-#{machineUId}"
+    kite.on 'close',     cc.lazyBound 'emit', "disconnected-#{machineUId}"
+    kite.on 'reconnect', cc.lazyBound 'emit', "reconnecting-#{machineUId}"
+
+
   getKite: (options = {}) ->
 
     # Get options
@@ -208,6 +218,8 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     # Get Kite Proxy, it will be created at this point
     # since its not cached before
     kite = @getKiteProxy { name, correlationName, transportOptions }
+
+    @followConnectionStates kite, correlationName  if name is 'klient'
 
     if waitingPromises? and waitingPromises.length > 0
 
