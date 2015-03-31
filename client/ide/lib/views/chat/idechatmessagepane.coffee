@@ -8,6 +8,7 @@ ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
 
+IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
@@ -181,6 +182,25 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     appManager = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
+
+
+  addParticipant: (participant) ->
+
+    return  unless participant
+    return  if @participantMap[participant._id]?
+
+    participant.id = participant._id
+
+    @heads.addSubView avatar = new IDEChatMessageParticipantAvatar
+      size      :
+        width   : 25
+        height  : 25
+      origin    : participant
+
+    avatar.on 'ParticipantSelected', (participant) =>
+      @getDelegate().emit 'ParticipantSelected', participant
+
+    @participantMap[participant._id] = avatar
 
 
   refresh: ->
