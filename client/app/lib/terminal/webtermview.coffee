@@ -176,7 +176,13 @@ module.exports = class WebTermView extends KDCustomScrollView
 
         if not kite.isDisconnected and not @_triedToReconnect
           @_triedToReconnect = yes
-          @webtermConnect()
+
+          # KodingKontrol and KodingKite handles reconnect on close
+          # if we don't wait here we are causing a race condition with
+          # some connection states, to prevent that we're waiting here
+          # enough before re-trying to open same session. ~ GG
+          @messagePane.busy()
+          kd.utils.wait 3000, @bound 'webtermConnect'
 
 
   connectToTerminal: ->
