@@ -14,12 +14,14 @@
 kd = require 'kd'
 KDController = kd.Controller
 PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
+PaymentDowngradeWithDeletionModal = require './paymentdowngradewithdeletionmodal'
 PaymentConstants = require './paymentconstants'
 PaymentModal = require './paymentmodal'
 whoami = require '../util/whoami'
 showError = require '../util/showError'
 trackEvent = require 'app/util/trackEvent'
 _ = require 'lodash'
+ComputeHelpers = require '../providers/computehelpers'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -105,8 +107,14 @@ module.exports = class PaymentWorkflow extends KDController
     paymentController.canChangePlan @state.planTitle, (err) =>
 
       if err?
-        @state.error = err
-        @modal = new PaymentDowngradeErrorModal { @state }
+        if @state.planTitle is PaymentConstants.planTitle.FREE
+          @modal = new PaymentDowngradeWithDeletionModal { @state }
+
+          @modal.on 'PaymentDowngradeWithDeletionSubmitted', @bound 'handeDowngradeWithDeletion'
+          @modal.on 'PaymentWorkflowFinished',               @bound 'finish'
+        else
+          @state.error = err
+          @modal = new PaymentDowngradeErrorModal { @state }
         return
 
       @startRegularFlow()
@@ -178,6 +186,20 @@ module.exports = class PaymentWorkflow extends KDController
 
   subscribeToPlan: (planTitle, planInterval, token, options) ->
 
+    @subscribeToPlanWithCallback planTitle, planInterval, token, options, (err, result) =>
+
+        @modal.form.submitButton.hideLoader()
+
+        if err
+          @modal.emit 'PaymentFailed', err
+          @state.failedAttemptCount++
+        else
+          @modal.emit 'PaymentSucceeded'
+          @trackPaymentSucceeded()
+
+
+  subscribeToPlanWithCallback: (planTitle, planInterval, token, options, callback = kd.noop) ->
+
     { paymentController } = kd.singletons
 
     me = whoami()
@@ -188,16 +210,8 @@ module.exports = class PaymentWorkflow extends KDController
       options.email = email
       options.provider = @state.provider
 
-      paymentController.subscribe token, planTitle, planInterval, options, (err, result) =>
+      paymentController.subscribe token, planTitle, planInterval, options, callback
 
-        @modal.form.submitButton.hideLoader()
-
-        if err
-          @modal.emit 'PaymentFailed', err
-          @state.failedAttemptCount++
-        else
-          @modal.emit 'PaymentSucceeded'
-          @trackPaymentSucceeded()
 
   trackPaymentSucceeded: ->
 
@@ -264,3 +278,22 @@ module.exports = class PaymentWorkflow extends KDController
     @emit 'PaymentWorkflowFinishedWithError', state
 
     @destroy()
+
+
+  handeDowngradeWithDeletion: ->
+
+    { planTitle, planInterval } = @state
+
+    ComputeHelpers.destroyExistingMachines (err) =>
+
+      return @modal.emit 'PaymentFailed', err  if err
+
+      @subscribeToPlanWithCallback planTitle, planInterval, 'a', { }, (err, result) =>
+
+        if err
+          @modal.emit 'PaymentFailed', err
+        else
+          options =
+            provider: 'koding'
+            redirectAfterCreation: no
+          ComputeHelpers.handleNewMachineRequest options, => @modal.emit 'PaymentSucceeded'

@@ -34,6 +34,7 @@ module.exports = class ComputeHelpers
   @handleNewMachineRequest = (options = {}, callback = kd.noop)->
 
     cc = kd.singletons.computeController
+    redirectAfterCreation = options.redirectAfterCreation ? yes
 
     return  if cc._inprogress
 
@@ -87,7 +88,7 @@ module.exports = class ComputeHelpers
             unless showError err
               globals.userMachines.push machine
 
-              kd.singletons.router.handleRoute "/IDE/#{machine.slug}"
+              kd.singletons.router.handleRoute "/IDE/#{machine.slug}"  if redirectAfterCreation
 
 
   # Helper method to run a specific app
