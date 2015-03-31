@@ -43,12 +43,14 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @return {KDView} view
   ###
   getView: -> @view
-  getChannel: -> @channel
 
 
   ###*
+   * Returns the channel.
    *
+   * @return {SocialChannel} channel
   ###
+  getChannel: -> @channel
 
 
 
