@@ -305,6 +305,8 @@ func (m *Machine) imageData() (*ImageData, error) {
 
 		// wait until the AMI is ready
 		checkAMI := func(currentPercentage int) (machinestate.State, error) {
+			m.push("Checking ami", currentPercentage, machinestate.Building)
+
 			resp, err := m.Session.AWSClient.Client.Images([]string{registerResp.ImageId}, ec2.NewFilter())
 			if err != nil {
 				return 0, err
@@ -323,7 +325,7 @@ func (m *Machine) imageData() (*ImageData, error) {
 			return machinestate.NotInitialized, nil
 		}
 
-		ws := waitstate.WaitState{StateFunc: checkAMI, Action: "check-ami"}
+		ws := waitstate.WaitState{StateFunc: checkAMI, DesiredState: machinestate.NotInitialized}
 		if err := ws.Wait(); err != nil {
 			return nil, err
 		}

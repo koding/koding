@@ -41,7 +41,10 @@ func (a *Amazon) CreateSnapshot(volumeId, desc string) (*ec2.Snapshot, error) {
 		return machinestate.Stopped, nil
 	}
 
-	ws := waitstate.WaitState{StateFunc: checkSnapshot, Action: "create-snapshot"}
+	ws := waitstate.WaitState{
+		StateFunc:    checkSnapshot,
+		DesiredState: machinestate.Stopped,
+	}
 	if err := ws.Wait(); err != nil {
 		return nil, err
 	}

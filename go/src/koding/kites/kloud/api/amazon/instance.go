@@ -46,10 +46,10 @@ func (a *Amazon) CheckBuild(instanceId string, start, finish int) (ec2.Instance,
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc: stateFunc,
-		Action:    "build",
-		Start:     start,
-		Finish:    finish,
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Start:        start,
+		Finish:       finish,
 	}
 
 	if err := ws.Wait(); err != nil {

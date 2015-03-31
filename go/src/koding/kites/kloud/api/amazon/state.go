@@ -37,6 +37,14 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 
 	var instance ec2.Instance
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Starting machine",
+				Status:     machinestate.Starting,
+				Percentage: currentPercentage,
+			})
+		}
+
 		instance, err = a.Instance()
 		if err != nil {
 			return 0, err
@@ -46,11 +54,10 @@ func (a *Amazon) Start(ctx context.Context) (ec2.Instance, error) {
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc: stateFunc,
-		Eventer:   ev,
-		Action:    "start",
-		Start:     25,
-		Finish:    60,
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Start:        25,
+		Finish:       60,
 	}
 
 	if err := ws.Wait(); err != nil {
@@ -81,6 +88,14 @@ func (a *Amazon) Stop(ctx context.Context) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Stopping machine",
+				Status:     machinestate.Stopping,
+				Percentage: currentPercentage,
+			})
+		}
+
 		instance, err := a.Instance()
 		if err != nil {
 			return 0, err
@@ -90,13 +105,11 @@ func (a *Amazon) Stop(ctx context.Context) error {
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc: stateFunc,
-		Eventer:   ev,
-		Action:    "stop",
-		Start:     25,
-		Finish:    60,
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Stopped,
+		Start:        25,
+		Finish:       60,
 	}
-
 	return ws.Wait()
 }
 
@@ -120,6 +133,13 @@ func (a *Amazon) Restart(ctx context.Context) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Restarting machine",
+				Status:     machinestate.Rebooting,
+				Percentage: currentPercentage,
+			})
+		}
 		instance, err := a.Instance()
 		if err != nil {
 			return 0, err
@@ -129,13 +149,11 @@ func (a *Amazon) Restart(ctx context.Context) error {
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc: stateFunc,
-		Eventer:   ev,
-		Action:    "restart",
-		Start:     25,
-		Finish:    60,
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Running,
+		Start:        25,
+		Finish:       60,
 	}
-
 	return ws.Wait()
 }
 
@@ -159,6 +177,14 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	}
 
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Terminating machine",
+				Status:     machinestate.Terminating,
+				Percentage: currentPercentage,
+			})
+		}
+
 		instance, err := a.Instance()
 		if err != nil {
 			return 0, err
@@ -168,13 +194,11 @@ func (a *Amazon) Destroy(ctx context.Context, start, finish int) error {
 	}
 
 	ws := waitstate.WaitState{
-		StateFunc: stateFunc,
-		Eventer:   ev,
-		Action:    "destroy",
-		Start:     start,
-		Finish:    finish,
+		StateFunc:    stateFunc,
+		DesiredState: machinestate.Terminated,
+		Start:        start,
+		Finish:       finish,
 	}
-
 	return ws.Wait()
 }
 
