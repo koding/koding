@@ -13,6 +13,7 @@ module.exports = class JVerificationToken extends Module
   {secure}    = require 'bongo'
   crypto      = require 'crypto'
   hat         = require 'hat'
+  NewEmail    = require './email'
 
   @share()
 
@@ -156,19 +157,12 @@ module.exports = class JVerificationToken extends Module
 
   sendEmail: ({subject, firstName, action}, callback)->
 
-    JMail = require './email'
-
-    email = new JMail
-      from    : 'hello@koding.com'
-      email   : @email
-      subject : subject
-      content : getTextBody {firstName, @pin, action}
-      force   : yes
-      replyto : 'support@koding.com'
-
-    console.log "Pin (#{@pin}) sent to #{@email} for #{@action} action."
-
-    email.save callback
+    e = new NewEmail
+    e.queue {
+      to         : @email
+      subject    : subject
+      properties : {firstName, @pin, action}
+    }, callback
 
 
   @invalidatePin = (options, callback)->

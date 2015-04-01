@@ -10,6 +10,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   KodingError = require '../error'
   JUser       = require './user'
+  NewEmail    = require './email'
+
 
   UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
 
@@ -153,18 +155,14 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               resetPassword : options.resetPassword
               requestedAt   : certificate.getAt('requestedAt')
 
-            JMail = require './email'
-            email = new JMail
-              from            : @getPasswordRecoveryEmail()
-              email           : email
-              subject         : @getEmailSubject messageOptions
-              content         : @getEmailMessage messageOptions
-              redemptionToken : token
-              force           : yes
+            e = new NewEmail
+            e.queue {
+              to          : email
+              subject    : @getEmailSubject messageOptions
+              content    : @getEmailMessage messageOptions
+              properties : { token }
+            }, callback
 
-            email.save (err)->
-              return callback new KodingError "Email cannot saved" if err
-              callback null
 
   @validate = (token, callback)->
     @one {token}, (err, certificate)->
@@ -255,18 +253,18 @@ module.exports = class JPasswordRecovery extends jraphical.Module
     @update {$set: status: 'redeemed'}, callback
 
   redeemByToken: (callback) ->
-    JMail = require './email'
-    JMail.one redemptionToken: @token, (err, mail) =>
-      return callback err  if err
+    # JMail = require './email'
+    # JMail.one redemptionToken: @token, (err, mail) =>
+    #   return callback err  if err
 
-      dateThen =
-        if mail.dateDelivered
-        then mail.dateDelivered
-        else
-          console.warn "We have no record of this message", @token
-          mail.dateAttempted
+    #   dateThen =
+    #     if mail.dateDelivered
+    #     then mail.dateDelivered
+    #     else
+    #       console.warn "We have no record of this message", @token
+    #       mail.dateAttempted
 
-      if (Date.now() - dateThen > @expiryPeriod)
-        return callback { message: 'This token has expired!' }
+    #   if (Date.now() - dateThen > @expiryPeriod)
+    #     return callback { message: 'This token has expired!' }
 
-      @update {$set: status: 'redeemed'}, callback
+    @update {$set: status: 'redeemed'}, callback
