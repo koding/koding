@@ -33,7 +33,6 @@ module.exports =
     browser.end()
 
 
-  CheckVMDiskUsage: (browser) ->
   checkVMDiskUsage: (browser) ->
 
     diskUsageSelector     = modalSelector + ' .diskusage'
