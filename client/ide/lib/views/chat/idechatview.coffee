@@ -93,6 +93,9 @@ module.exports = class IDEChatView extends KDTabView
     @unsetClass 'loading'
 
 
+  getVideoContainer: -> @chatVideoView.getContainer()
+
+
   createChatVideoView: ->
 
     @chatVideoView = new IDEChatVideoView { cssClass: 'hidden' }
