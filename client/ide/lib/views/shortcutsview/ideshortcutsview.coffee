@@ -34,7 +34,7 @@ class IDEShortcutsView extends KDCustomScrollView
       key = "#{collection.title} Shortcuts"
       sum[key] =
         collection.data.reduce (acc, model) ->
-          if model.binding.length
+          if model.binding.length and model.enabled and (not model.hidden)
             acc[model.description] = model.binding[0].replace /\+/g, '-'
           return acc
         , {}
