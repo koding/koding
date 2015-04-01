@@ -103,7 +103,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
-      return  if @state.publishing is off
+      return  if @state.connectedToSession is no
 
       options.height     or= "100%"
       options.width      or= "100%"
