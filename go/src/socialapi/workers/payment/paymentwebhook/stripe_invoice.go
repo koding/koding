@@ -24,11 +24,6 @@ func stripePaymentSucceeded(raw []byte, c *Controller) error {
 }
 
 func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller) error {
-	user, err := getUserForCustomer(req.CustomerId)
-	if err != nil {
-		return err
-	}
-
 	if req.Lines.Data == nil {
 		return fmt.Errorf(
 			"Invoice: %s for %s has nil line items", req.ID, req.CustomerId,
@@ -47,7 +42,5 @@ func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller
 		"price":    formatStripeAmount(req.Currency, req.AmountDue),
 	}
 
-	Log.Info("Stripe: Sent invoice email to: %s with plan: %s", user.Email, planName)
-
-	return SendEmail(user, PaymentCreated, opts)
+	return SendEmail(req.CustomerId, PaymentCreated, opts)
 }

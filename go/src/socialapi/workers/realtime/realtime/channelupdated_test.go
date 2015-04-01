@@ -2,11 +2,13 @@ package realtime
 
 import (
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	"labix.org/v2/mgo/bson"
 
@@ -19,6 +21,8 @@ func TestChannelUpdatedCalculateUnreadItemCount(t *testing.T) {
 		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
 	defer r.Close()
+
+	config.MustRead(r.Conf.Path)
 
 	rand.Seed(time.Now().UnixNano())
 	groupName := "testgroup" + strconv.FormatInt(rand.Int63(), 10)

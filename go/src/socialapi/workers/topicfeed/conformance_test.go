@@ -6,10 +6,11 @@ import (
 	"os"
 	"path"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"

@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	socialapimodels "socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/notification"
 	"socialapi/workers/notification/models"
 	"testing"
+
+	"github.com/koding/runner"
 
 	"log"
 
@@ -195,7 +197,9 @@ func TestNotificationCreation(t *testing.T) {
 
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+
 	defer modelhelper.Close()
 
 	prepareTestData()

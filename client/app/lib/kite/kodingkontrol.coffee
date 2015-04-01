@@ -168,23 +168,32 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
       kite.on 'close', (event)=>
 
-        if event?.code is 1002 and \
-           event?.reason is "Can't connect to server"
+        return  unless event?.code is 1002
 
-          kite.options.autoReconnect = no
-          KiteCache.unset query
+        kite.options.autoReconnect = no
+        KiteCache.unset query
 
-          kiteInstance = @kites[kiteName]?['singleton'] or {}
-          {waitingPromises} = kiteInstance
+        kiteInstance = @kites[kiteName]?['singleton'] or {}
+        {waitingPromises} = kiteInstance
 
-          delete @kites[kiteName]['singleton']
+        delete @kites[kiteName]['singleton']
 
-          if machine = computeController.findMachineFromQueryString queryString
-            delete @kites[kiteName][machine.uid]
+        if machine = computeController.findMachineFromQueryString queryString
+          delete @kites[kiteName][machine.uid]
 
-          (@getKite { name: kiteName, queryString, waitingPromises })?.connect()
+        @getKite { name: kiteName, queryString, waitingPromises }
 
     return kite
+
+
+  followConnectionStates: (kite, machineUId)->
+
+    # Machine.uid is kite correlation name
+    cc = kd.singletons.computeController
+
+    kite.on 'open',      cc.lazyBound 'emit', "connected-#{machineUId}"
+    kite.on 'close',     cc.lazyBound 'emit', "disconnected-#{machineUId}"
+    kite.on 'reconnect', cc.lazyBound 'emit', "reconnecting-#{machineUId}"
 
 
   getKite: (options = {}) ->
@@ -210,17 +219,11 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
     # since its not cached before
     kite = @getKiteProxy { name, correlationName, transportOptions }
 
-    if kite.options.name is 'klient'
-      kite
-        .on 'close', =>
-          if not kite.isDisconnected and kite.transport?.options.autoReconnect
-            @setTryingToReconnect()
-        .on 'open',  =>
-          @setTryingToReconnect no
+    @followConnectionStates kite, correlationName  if name is 'klient'
 
     if waitingPromises? and waitingPromises.length > 0
 
-      kite.once 'connected', ->
+      kite.once 'open', ->
         for promise in waitingPromises
           [resolve, args] = promise
           resolve (
@@ -253,18 +256,3 @@ module.exports = class KodingKontrol extends KontrolJS = (kitejs.Kontrol)
 
 
     return kite
-
-
-  setTryingToReconnect: (show = yes)->
-
-    @dcNotification?.destroy()
-    @dcNotification = null
-
-    return  unless show
-
-    console.log 'Trying to reconnect...'
-
-    # @dcNotification = new KDNotificationView
-    #   title    : 'Trying to reconnect...'
-    #   type     : 'tray'
-    #   duration : 999999

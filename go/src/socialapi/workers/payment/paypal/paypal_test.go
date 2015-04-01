@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/stripe"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 
 	"github.com/koding/logging"
 	"github.com/koding/paypal"
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -34,10 +34,11 @@ func init() {
 	}
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 
-	Creds = r.Conf.Paypal
-	InitializeClientKey(r.Conf.Paypal)
+	Creds = appConfig.Paypal
+	InitializeClientKey(appConfig.Paypal)
 
 	stripe.CreateDefaultPlans()
 

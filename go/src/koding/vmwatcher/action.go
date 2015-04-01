@@ -13,6 +13,7 @@ var KloudTimeout = time.Second * 2
 type requestArgs struct {
 	MachineId string `json:"machineId"`
 	Reason    string `json:"reason"`
+	Provider  string `json:"provider"`
 }
 
 func stopVm(machineId, username, reason string) error {
@@ -22,7 +23,9 @@ func stopVm(machineId, username, reason string) error {
 	}
 
 	_, err := controller.Klient.TellWithTimeout("stop", KloudTimeout, &requestArgs{
-		MachineId: machineId, Reason: reason,
+		MachineId: machineId,
+		Reason:    reason,
+		Provider:  "koding",
 	})
 
 	if err != nil {

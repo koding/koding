@@ -2,13 +2,15 @@ package koding
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/koding/kite"
+	"golang.org/x/net/context"
 
-	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/plans"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -46,43 +48,73 @@ func (p *Provider) RunChecker(interval time.Duration) {
 // CheckUsage checks a single machine usages patterns and applies certain
 // restrictions (if any available). For example it could stop a machine after a
 // certain inactivity time.
-func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
-	if machineDoc == nil {
+func (p *Provider) CheckUsage(m *Machine) error {
+	if m == nil {
 		return errors.New("checking machine. document is nil")
 	}
 
-	credential := p.GetCredential(machineDoc.Credential)
-
-	// populate a protocol.Machine instance that is needed for the Stop()
-	// method
-	m := &protocol.Machine{
-		Id:          machineDoc.Id.Hex(),
-		Username:    machineDoc.Credential, // contains the username for koding provider
-		Provider:    machineDoc.Provider,
-		Builder:     machineDoc.Meta,
-		Credential:  credential.Meta,
-		State:       machineDoc.State(),
-		IpAddress:   machineDoc.IpAddress,
-		QueryString: machineDoc.QueryString,
+	if m.Meta.Region == "" {
+		return errors.New("region is not set in.")
 	}
-	m.Domain.Name = machineDoc.Domain
 
-	// will be replaced once we connect to klient in checker.Timeout() we are
-	// adding it so it doesn't panic when someone tries to retrieve it
-	m.Builder["username"] = "kloud-checker"
+	ctx := context.Background()
+	if err := p.attachSession(ctx, m); err != nil {
+		return err
+	}
 
-	// add a fake eventer, means we are not reporting anyone and prevent also
-	// panicing when someone try to call the eventer
-	m.Eventer = &eventer.Events{}
-
-	checker, err := p.PlanChecker(m)
+	// Check klient state before rushing to AWS.
+	klientRef, err := klient.Connect(m.Session.Kite, m.QueryString)
 	if err != nil {
 		return err
 	}
 
-	// for now just check for timeout. This will dial the remote klient to get
-	// the usage data
-	return checker.Timeout()
+	// replace with the real and authenticated username
+	m.Username = klientRef.Username
+
+	// get the usage directly from the klient, which is the most predictable source
+	usg, err := klientRef.Usage()
+
+	// close the underlying connection once we get the usage
+	klientRef.Close()
+	klientRef = nil
+	if err != nil {
+		return err
+	}
+
+	// get the timeout from the plan in which the user belongs to
+	plan := plans.Plans[m.Payment.Plan]
+	planTimeout := plan.Timeout
+
+	p.Log.Debug("machine [%s] is inactive for %s (plan limit: %s, plan: %s).",
+		m.IpAddress, usg.InactiveDuration, planTimeout, m.Payment.Plan)
+
+	// It still have plenty of time to work, do not stop it
+	if usg.InactiveDuration <= planTimeout {
+		return nil
+	}
+
+	p.Log.Info("machine [%s] has reached current plan limit of %s (plan: %s). Shutting down...",
+		m.IpAddress, usg.InactiveDuration, m.Payment.Plan)
+
+	// lock so it doesn't interfere with others.
+	p.Lock(m.Id.Hex())
+
+	// mark our state as stopping so others know what we are doing
+	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
+		planTimeout.Minutes())
+
+	m.UpdateState(stoppingReason, machinestate.Stopping)
+
+	defer func() {
+		// call it in defer, so even if "Stop" fails it should reset the state
+		stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes",
+			planTimeout.Minutes())
+		m.UpdateState(stopReason, machinestate.Stopping)
+		p.Unlock(m.Id.Hex())
+	}()
+
+	// Hasta la vista, baby!
+	return m.Stop(ctx)
 }
 
 // FetchOne() fetches a single machine document from mongodb that meets the criterias:
@@ -92,8 +124,8 @@ func (p *Provider) CheckUsage(machineDoc *MachineDocument) error {
 // 3. are not always on machines
 // 4. are not assigned to anyone yet (unlocked)
 // 5. are not picked up by others yet recently
-func (p *Provider) FetchOne() (*MachineDocument, error) {
-	machine := &MachineDocument{}
+func (p *Provider) FetchOne() (*Machine, error) {
+	machine := &Machine{}
 	query := func(c *mgo.Collection) error {
 		// check only machines that:
 		// 1. belongs to koding provider
@@ -133,7 +165,7 @@ func (p *Provider) FetchOne() (*MachineDocument, error) {
 		return nil
 	}
 
-	if err := p.Session.Run("jMachines", query); err != nil {
+	if err := p.DB.Run("jMachines", query); err != nil {
 		return nil, err
 	}
 
