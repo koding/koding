@@ -1,13 +1,10 @@
-kd = require 'kd'
+kd               = require 'kd'
+remote           = require('app/remote').getInstance()
+KDListItemView   = kd.ListItemView
 KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
 
 
 module.exports = class AccountReferralSystemListItem extends KDListItemView
-  constructor: (options, data)->
-    options =
-      tagName: "li"
-    super options, data
 
   viewAppended: ->
     @getData().isEmailVerified (err, status)=>
@@ -16,8 +13,10 @@ module.exports = class AccountReferralSystemListItem extends KDListItemView
            tagName      : "a"
            partial      : "Mail Verification Waiting"
            cssClass     : "action-link"
+  constructor: (options = {}, data)->
+    options.tagName ?= 'li'
+    super options, data
 
-      super
 
   partial: (data)->
     """
