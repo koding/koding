@@ -3,16 +3,16 @@ package algoliaconnector
 import (
 	"errors"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
+	"testing"
+	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
-
-	"testing"
-	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -26,9 +26,11 @@ func TestTopicSaved(t *testing.T) {
 
 	defer r.Close()
 
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+	appConfig := config.MustRead(r.Conf.Path)
+
+	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
 	// create message handler
-	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+	handler := New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
 
 	Convey("given some fake topic channel", t, func() {
 		mockTopic := models.NewChannel()
@@ -276,7 +278,10 @@ func getTestHandler() (*runner.Runner, *Controller) {
 	if err != nil {
 		panic(err)
 	}
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+
+	appConfig := config.MustRead(r.Conf.Path)
+
+	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
 	// create message handler
 	return r, New(r.Log, algolia, ".test")
 

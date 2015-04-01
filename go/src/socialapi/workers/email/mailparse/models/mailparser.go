@@ -5,9 +5,10 @@ import (
 	mongomodels "koding/db/models"
 	"koding/db/mongodb/modelhelper"
 	socialapimodels "socialapi/models"
-	"socialapi/workers/helper"
 	"strconv"
 	"strings"
+
+	"github.com/koding/runner"
 )
 
 // Mail holds the structure for parsed email
@@ -231,7 +232,7 @@ func (m *Mail) Persist() error {
 			return err
 		}
 		if err == errCannotOpen {
-			helper.MustGetLogger().Error("possible abuse mail: %+v", m)
+			runner.MustGetLogger().Error("possible abuse mail: %+v", m)
 		}
 		return nil
 	}

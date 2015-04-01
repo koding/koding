@@ -16,5 +16,12 @@
     "/:name?/Activity/Topic/Following" : 120,
     "/:name?/Activity/Chat/All" : 140,
     "/:name?/Activity" : 150
-  }
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ],
+  "shortcuts": [ "activity" ]
 }

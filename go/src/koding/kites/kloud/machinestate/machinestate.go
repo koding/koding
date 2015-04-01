@@ -136,6 +136,7 @@ func (s State) ValidMethods() []string {
 			"restart",
 			"reinit",
 			"createSnapshot",
+			"deleteSnapshot",
 		}
 	case Stopped:
 		return []string{
@@ -144,6 +145,7 @@ func (s State) ValidMethods() []string {
 			"destroy",
 			"reinit",
 			"createSnapshot",
+			"deleteSnapshot",
 		}
 	case Terminated:
 		return []string{"build"}

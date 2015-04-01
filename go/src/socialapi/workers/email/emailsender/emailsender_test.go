@@ -1,10 +1,10 @@
 package emailsender
 
 import (
-	"socialapi/workers/common/runner"
 	"testing"
 
 	"github.com/koding/eventexporter/eventexportertest"
+	"github.com/koding/runner"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

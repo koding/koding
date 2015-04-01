@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 	"socialapi/config"
-	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var (
@@ -22,7 +22,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 	}
 
 	// make sure errors are outputted
-	helper.MustGetLogger().Error("Bad Request: %s", err)
+	runner.MustGetLogger().Error("Bad Request: %s", err)
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment
@@ -39,7 +39,7 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 // here not to leak info about the resource
 // do send NotFound err
 func NewAccessDenied(err error) (int, http.Header, interface{}, error) {
-	helper.MustGetLogger().Error("Access Denied Err: %s", err.Error())
+	runner.MustGetLogger().Error("Access Denied Err: %s", err.Error())
 	return NewNotFound()
 }
 

@@ -2,7 +2,7 @@ package main
 
 import (
 	"errors"
-	"koding/db/models"
+	"koding/db/mongodb/modelhelper"
 	"socialapi/workers/email/emailsender"
 )
 
@@ -28,11 +28,23 @@ var EmailSubjects = map[Action]string{
 
 var ErrEmailActionNotFound = errors.New("action not found")
 
-func SendEmail(user *models.User, action Action, opts map[string]interface{}) error {
+func SendEmail(customerId string, action Action, opts map[string]interface{}) error {
 	subject, ok := EmailSubjects[action]
 	if !ok {
 		return ErrEmailActionNotFound
 	}
+
+	user, err := getUserForCustomer(customerId)
+	if err != nil {
+		return err
+	}
+
+	account, err := modelhelper.GetAccount(user.Name)
+	if err != nil {
+		return err
+	}
+
+	opts["firstName"] = account.Profile.FirstName
 
 	mail := &emailsender.Mail{
 		To:         user.Email,
