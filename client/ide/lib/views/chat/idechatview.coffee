@@ -8,6 +8,8 @@ IDEChatMessagePane = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
 IDEChatVideoView    = require './idechatvideoview'
 
+socialHelpers = require '../../collaboration/helpers/social'
+
 module.exports = class IDEChatView extends KDTabView
 
   constructor: (options = {}, data)->
@@ -40,6 +42,11 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationStarted',        @bound 'removeLoader'
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
+
+    @on 'ParticipantSelected', @bound 'handleParticipantSelected'
+
+
+  handleParticipantSelected: (participant) ->
 
 
   start: ->
