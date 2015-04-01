@@ -23,7 +23,7 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/crypto/ssh"
+	"github.com/koding/klient/Godeps/_workspace/src/golang.org/x/crypto/ssh"
 )
 
 type ListMode bool
