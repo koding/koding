@@ -160,7 +160,7 @@ fetchAccount = (socialAccount, callback) ->
   else if 'string' is typeof socialAccount
     remote.cacheable socialAccount, callback
   else
-    callback socialAccount
+    callback null, socialAccount
 
 
 module.exports = {
