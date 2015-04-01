@@ -17,6 +17,7 @@ build:
         code: |
           go test -v
           go test -v ./fs
+          go test -v ./sshkeys
 
 
 deploy:
