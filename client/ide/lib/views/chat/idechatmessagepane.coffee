@@ -22,6 +22,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     super options, data
 
     @isInSession = options.isInSession
+    @videoActive = no
 
     @define 'visible', => @getDelegate().visible
 
@@ -48,6 +49,11 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     return  unless @isPageAtBottom()
 
     @glance()
+
+
+  handleVideoActive: (publisher) ->
+
+    @videoActive = yes
 
 
   glance: ->

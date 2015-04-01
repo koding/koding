@@ -104,6 +104,7 @@ module.exports = class IDEChatView extends KDTabView
 
     @setClass 'is-videoActive'
     @chatVideoView.show()
+    @chatPane.handleVideoActive publisher
 
 
   getVideoContainer: -> @chatVideoView.getContainer()
