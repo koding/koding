@@ -11,6 +11,7 @@ import (
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/fs"
+	"github.com/koding/klient/sshkeys"
 	"github.com/koding/klient/terminal"
 	"github.com/koding/klient/usage"
 )
@@ -96,6 +97,9 @@ func NewKlient(conf *KlientConfig) *Klient {
 		"klient.share":        true,
 		"klient.unshare":      true,
 		"klient.shared":       true,
+		"sshkeys.List":        true,
+		"sshkeys.Add":         true,
+		"sshkeys.Delete":      true,
 		// "docker.create":       true,
 		// "docker.connect":      true,
 		// "docker.stop":         true,
@@ -154,6 +158,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.share", k.collab.Share)
 	k.kite.HandleFunc("klient.unshare", k.collab.Unshare)
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
+
+	// SSH keys
+	k.kite.HandleFunc("sshkeys.List", sshkeys.List)
+	k.kite.HandleFunc("sshkeys.Add", sshkeys.Add)
+	k.kite.HandleFunc("sshkeys.Delete", sshkeys.Delete)
 
 	// Filesystem
 	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)

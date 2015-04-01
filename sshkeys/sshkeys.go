@@ -331,25 +331,23 @@ func writeAuthorisedKeys(username string, keys []string) error {
 	return nil
 }
 
-// Any ssh key added to the authorised keys list by Juju will have this prefix.
-// This allows Juju to know which keys have been added externally and any such keys
-// will always be retained by Juju when updating the authorised keys file.
-const JujuCommentPrefix = "Juju:"
-
-func EnsureJujuComment(key string) string {
+// Ensurecomment prepends the given comment to the given key. Any ssh key added
+// to the authorised keys will have this prefix. This allows to know which
+// keys have been added externally.
+func EnsureComment(comment, key string) string {
 	ak, err := ParseAuthorisedKey(key)
 	// Just return an invalid key as is.
 	if err != nil {
-		log.Printf("invalid Juju ssh key %s: %v", key, err)
+		log.Printf("invalid Koding ssh key %s: %v", key, err)
 		return key
 	}
 	if ak.Comment == "" {
-		return key + " " + JujuCommentPrefix + "sshkey"
+		return key + " " + comment + "sshkey"
 	} else {
-		// Add the Juju prefix to the comment if necessary.
-		if !strings.HasPrefix(ak.Comment, JujuCommentPrefix) {
+		// Add the Koding prefix to the comment if necessary.
+		if !strings.HasPrefix(ak.Comment, comment) {
 			commentIndex := strings.LastIndex(key, ak.Comment)
-			return key[:commentIndex] + JujuCommentPrefix + ak.Comment
+			return key[:commentIndex] + comment + ak.Comment
 		}
 	}
 	return key
