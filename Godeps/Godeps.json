@@ -6,11 +6,6 @@
 	],
 	"Deps": [
 		{
-			"ImportPath": "bitbucket.org/kardianos/osext",
-			"Comment": "null-15",
-			"Rev": "44140c5fc69ecf1102c5ef451d73cd98ef59b178"
-		},
-		{
 			"ImportPath": "code.google.com/p/go-charset/charset",
 			"Comment": "null-32",
 			"Rev": "ebbeafdc430eb6c7e44e9a730a38eaff4c56ba3a"
@@ -98,7 +93,11 @@
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/go-update",
-			"Rev": "221d034a558b4c21b0624b2a450c076913854a57"
+			"Rev": "68f5725818189545231c1fd8694793d45f2fc529"
+		},
+		{
+			"ImportPath": "github.com/kardianos/osext",
+			"Rev": "efacde03154693404c65e7aa7d461ac9014acd0c"
 		},
 		{
 			"ImportPath": "github.com/koding/cache",
@@ -136,6 +135,10 @@
 		{
 			"ImportPath": "github.com/nu7hatch/gouuid",
 			"Rev": "179d4d0c4d8d407a32af483c2354df1d2c91e6c3"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh",
+			"Rev": "c57d4a71915a248dbad846d60825145062b4c18e"
 		},
 		{
 			"ImportPath": "gopkg.in/fatih/set.v0",
