@@ -16,6 +16,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     connectedToSession : no
     maxConnectionCount : 999
     activeParticipant  : null
+    connectionCount    : 0
 
   # @param {SocialChannel} options.channel
   # @param {BaseChatVideoView} options.view
@@ -126,10 +127,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit 'ParticipantLeft', { nick: event.stream.name }
 
     session.on 'connectionCreated', (event) =>
+      count = @state.connectionCount
+      @setState { connectionCount: count + 1 }
 
-      # TODO: this may not be necessary.
-      data = { nick: getNick() }
-      @_service.sendSignal session, 'initialize', data
+    session.on 'connectionDestroyed', (event) =>
+      count = @state.connectionCount
+      @setState { connectionCount: count - 1 }
+
 
     session.on 'sessionDisconnected', (event) =>
       @setState { connectedToSession: no }
