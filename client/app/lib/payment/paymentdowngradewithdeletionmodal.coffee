@@ -16,7 +16,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
     @state = kd.utils.extend @getInitialState(), state
 
     options.title    = 'Downgrade your plan'
-    options.cssClass = kd.utils.curry 'downgrade-with-deleting-modal', options.cssClass
+    options.cssClass = kd.utils.curry 'downgrade-with-deletion-modal', options.cssClass
 
     super options, data
 
@@ -26,9 +26,11 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
     { planTitle } = @state
 
     return """
-      You're currently using more resources than <strong>#{planTitle.capitalize()}</strong> plan allows.
-      Downgrading will <strong>delete your existing VM(s) (and all the data inside them)</strong> and give you
-      a new default VM. <strong>This action cannot be UNDONE!</strong>. Are you sure you want to continue?
+      You are currently using more resources than <strong>#{planTitle.capitalize()}</strong> plan allows.
+      Downgrading will <strong>delete your existing VM(s) and all the data inside them</strong> and give you
+      new default VM. <strong>This action cannot be undone!</strong>
+      <br /><br />
+      Are you sure you want to continue?
     """
 
 
@@ -44,9 +46,9 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
     @addSubView @submitButton = new KDButtonView
       style    : 'solid medium green'
-      cssClass : 'submit-btn'
+      cssClass : 'submit-btn warning-btn'
       loader   : yes
-      title  : 'DOWNGRADE'
+      title  : 'YES, DOWNGRADE'
       callback : => @emit 'PaymentDowngradeWithDeletionSubmitted'
 
 
@@ -82,6 +84,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
     @description.destroy()
     @submitButton.hideLoader()
     @submitButton.setTitle 'CONTINUE'
+    @submitButton.unsetClass 'warning-btn'
     @submitButton.setCallback =>
       @submitButton.hideLoader()
       @emit 'PaymentWorkflowFinished', @state
