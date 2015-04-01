@@ -12,8 +12,12 @@ module.exports = class NewEmail extends bongo.Base
     sharedEvents  :
       instance : [ {name : 'messageBusEvent'} ]
 
+
   @types =
-    WELCOME : 'welcome'
+    WELCOME          : 'welcome'
+    USERNAME_CHANGED : 'username_changed'
+    PASSWORD_CHANGED : 'password_changed'
+
 
   queue: (mail, callback)->
     mail.to           = forcedRecipient or mail.to

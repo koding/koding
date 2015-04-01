@@ -15,11 +15,11 @@ module.exports = class JUser extends jraphical.Module
   JName           = require '../name'
   JGroup          = require '../group'
   JLog            = require '../log'
-  JMail           = require '../email'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
   Sendgrid        = require '../sendgrid'
   ComputeProvider = require '../computeproviders/computeprovider'
+  NewEmail         = require '../newemail'
 
   { v4: createId } = require 'node-uuid'
 
@@ -1130,25 +1130,11 @@ module.exports = class JUser extends jraphical.Module
       user.changePassword password, (err)-> callback err
 
 
-  sendChangedEmail = (username, email, type) ->
+  sendChangedEmail = (username, to, type) ->
 
-    email = new JMail {
-      email
-      subject : "Your #{type} has been changed"
-      replyto : 'support@koding.com'
-      content : """
-        Hi #{username},
-
-        Your <b>#{type}</b> has been changed!
-
-        If you didn't request this change, reply to this email and help will be on its way!
-
-        --
-        Koding Team
-      """
-    }
-
-    email.save()
+    email = new NewEmail
+    email.queue { to, username, subject : "#{type}_changed"}, (err)->
+      console.log err  if err
 
 
   @changeEmail = secure (client,options,callback)->
