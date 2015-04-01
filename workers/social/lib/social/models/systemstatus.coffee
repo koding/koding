@@ -3,6 +3,8 @@ KodingError = require '../error'
 
 module.exports = class JSystemStatus extends Model
 
+  NewEmail = require './newemail'
+
   @share()
 
   @set
@@ -129,15 +131,14 @@ module.exports = class JSystemStatus extends Model
     {connection: {delegate}} = client
     {status, feedback, userAgent} = options
 
-    JMail = require './email'
     {recipientEmail} = KONFIG.troubleshoot
+
     delegate.fetchEmail client, (err, email) ->
       return callback err  if err
-      mail = new JMail
-        from    : email
-        replyto : email
-        email   : recipientEmail
-        content : "Failed Services: #{status} \n\n User-Agent: #{userAgent} \n\n Feedback: #{feedback}"
-        subject : "Feedback from user: #{delegate.profile.nickname}"
 
-      mail.save callback
+      e = new NewEmail
+      e.queue {
+        to      : recipientEmail
+        subject : NewEmail.types.FEEDBACK
+        properties : { status, userAgent, feedback, userEmail : email }
+      }, (err)-> console.error err  if err
