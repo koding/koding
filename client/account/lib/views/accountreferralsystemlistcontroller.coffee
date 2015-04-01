@@ -23,11 +23,12 @@ module.exports = class AccountReferralSystemListController extends AccountListVi
 
     @removeAllItems()
     @showLazyLoader yes
-    query = { type : "disk" }
-    options = {limit : 20}
-    remote.api.JReferral.fetchReferredAccounts query, options, (err, referals)=>
+
+    remote.api.JReward.some {type: 'disk'}, {limit: 20}, (err, rewards)=>
+
       return showError err if err
-      @instantiateListItems referals or []
+      @instantiateListItems rewards or []
+
     @hideLazyLoader()
 
 
