@@ -210,8 +210,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   handlePublishSuccess: (publisher) ->
 
     @registerPublisher publisher
-    @emit 'VideoCollaborationActive', @publisher
 
+    @setState { publishing: on }
+
+    @emit 'VideoCollaborationActive', @publisher
     @changeActiveParticipant getNick()
 
 
