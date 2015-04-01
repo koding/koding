@@ -43,6 +43,8 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
 
+    @once 'VideoCollaborationActive', @bound 'handleVideoActive'
+
     @on 'ParticipantSelected', @bound 'handleParticipantSelected'
 
 
@@ -91,6 +93,12 @@ module.exports = class IDEChatView extends KDTabView
 
     @loaderView.destroy()
     @unsetClass 'loading'
+
+
+  handleVideoActive: (publisher) ->
+
+    @setClass 'is-videoActive'
+    @chatVideoView.show()
 
 
   getVideoContainer: -> @chatVideoView.getContainer()
