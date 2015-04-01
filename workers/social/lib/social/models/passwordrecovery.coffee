@@ -189,10 +189,12 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           certificate.update {$set: status: 'redeemed'}, (err) ->
             return callback err if err
 
-            welcomeemail = require "./welcomeemail"
-            welcomeemail.send certificate.email, user.username, (err)->
-              return callback err  if err
-              callback null, yes
+            NewEmail = require "./newemail"
+            NewEmail.queue {
+              to       : certificate.email
+              subject  : NewEmail.types.WELCOME
+              username : user.username
+            }, (err) console.error err  if err
 
   @invalidate =(query, callback)->
     query.status = 'active'

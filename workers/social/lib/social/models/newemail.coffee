@@ -13,7 +13,7 @@ module.exports = class NewEmail extends bongo.Base
       instance : [ {name : 'messageBusEvent'} ]
 
   @types =
-    WELCOME_EMAIL : 'welcomeEmail'
+    WELCOME : 'welcome'
 
   queue: (mail, callback)->
     mail.to           = forcedRecipient or mail.to
