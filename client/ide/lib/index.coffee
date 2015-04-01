@@ -1,43 +1,45 @@
-ndpane = require 'ndpane'
-_ = require 'underscore'
-kd = require 'kd'
-$ = require 'jquery'
-KDBlockingModalView = kd.BlockingModalView
-KDCustomHTMLView = kd.CustomHTMLView
-KDModalView = kd.ModalView
-KDNotificationView = kd.NotificationView
-KDSplitView = kd.SplitView
-KDSplitViewPanel = kd.SplitViewPanel
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-nick = require 'app/util/nick'
-showError = require 'app/util/showError'
-whoami = require 'app/util/whoami'
-Machine = require 'app/providers/machine'
-KodingKontrol = require 'app/kite/kodingkontrol'
-FSHelper = require 'app/util/fs/fshelper'
-AppController = require 'app/appcontroller'
-CollaborationController = require './collaborationcontroller'
-IDEContentSearch = require './views/contentsearch/idecontentsearch'
-IDEEditorPane = require './workspace/panes/ideeditorpane'
-IDEFileFinder = require './views/filefinder/idefilefinder'
-IDEFilesTabView = require './views/tabview/idefilestabview'
-IDEShortcutsView = require './views/shortcutsview/ideshortcutsview'
-IDEStatusBar = require './views/statusbar/idestatusbar'
-IDEStatusBarMenu = require './views/statusbar/idestatusbarmenu'
-IDETerminalPane = require './workspace/panes/ideterminalpane'
-IDEView = require './views/tabview/ideview'
-IDEWorkspace = require './workspace/ideworkspace'
-splashMarkups = require './util/splashmarkups'
-IDEApplicationTabView = require './views/tabview/ideapplicationtabview'
-AceFindAndReplaceView = require 'ace/acefindandreplaceview'
+ndpane                        = require 'ndpane'
+_                             = require 'underscore'
+kd                            = require 'kd'
+$                             = require 'jquery'
+KDBlockingModalView           = kd.BlockingModalView
+KDCustomHTMLView              = kd.CustomHTMLView
+KDModalView                   = kd.ModalView
+KDNotificationView            = kd.NotificationView
+KDSplitView                   = kd.SplitView
+KDSplitViewPanel              = kd.SplitViewPanel
+remote                        = require('app/remote').getInstance()
+globals                       = require 'globals'
+nick                          = require 'app/util/nick'
+showError                     = require 'app/util/showError'
+whoami                        = require 'app/util/whoami'
+Machine                       = require 'app/providers/machine'
+KodingKontrol                 = require 'app/kite/kodingkontrol'
+FSHelper                      = require 'app/util/fs/fshelper'
+AppController                 = require 'app/appcontroller'
+CollaborationController       = require './collaborationcontroller'
+IDEContentSearch              = require './views/contentsearch/idecontentsearch'
+IDEEditorPane                 = require './workspace/panes/ideeditorpane'
+IDEFileFinder                 = require './views/filefinder/idefilefinder'
+IDEFilesTabView               = require './views/tabview/idefilestabview'
+IDEShortcutsView              = require './views/shortcutsview/ideshortcutsview'
+IDEStatusBar                  = require './views/statusbar/idestatusbar'
+IDEStatusBarMenu              = require './views/statusbar/idestatusbarmenu'
+IDETerminalPane               = require './workspace/panes/ideterminalpane'
+IDEView                       = require './views/tabview/ideview'
+IDEWorkspace                  = require './workspace/ideworkspace'
+splashMarkups                 = require './util/splashmarkups'
+IDEApplicationTabView         = require './views/tabview/ideapplicationtabview'
+AceFindAndReplaceView         = require 'ace/acefindandreplaceview'
 EnvironmentsMachineStateModal = require 'app/providers/environmentsmachinestatemodal'
-environmentDataProvider = require 'app/userenvironmentdataprovider'
+environmentDataProvider       = require 'app/userenvironmentdataprovider'
 
 require('./routes')()
 
 
-module.exports = class IDEAppController extends AppController
+module.exports =
+
+class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
 
@@ -558,11 +560,7 @@ module.exports = class IDEAppController extends AppController
       @openFile file, contents
 
 
-  createNewTerminal: (options) ->
-
-    # options can be an Event instance if the initiator is
-    # a shortcut so make the options an empty object.
-    options = {}  if options.keyCode
+  createNewTerminal: (options={}) ->
 
     { machine, path, resurrectSessions } = options
 
@@ -634,15 +632,9 @@ module.exports = class IDEAppController extends AppController
     @activeTabView.showPaneByIndex index + 1
 
 
-  goToTabNumber: (keyEvent) ->
+  goToTabNumber: (index) ->
 
-    keyEvent.preventDefault()
-    keyEvent.stopPropagation()
-
-    keyCodeMap    = [ 49..57 ]
-    requiredIndex = keyCodeMap.indexOf keyEvent.keyCode
-
-    @activeTabView.showPaneByIndex requiredIndex
+    @activeTabView.showPaneByIndex index
 
 
   goToLine: ->
@@ -765,7 +757,6 @@ module.exports = class IDEAppController extends AppController
       paneView = view.parent  if view instanceof IDEShortcutsView
 
     return paneView.parent.showPane paneView if paneView
-
 
     @activeTabView.emit 'ShortcutsViewRequested'
 
@@ -1268,6 +1259,7 @@ module.exports = class IDEAppController extends AppController
     @finderPane.makeEditable()
     @getView().unsetClass 'read-only'
 
+
   deleteWorkspaceRootFolder: (machineUId, rootPath) ->
 
     @finderPane.emit 'DeleteWorkspaceFiles', machineUId, rootPath
@@ -1279,3 +1271,39 @@ module.exports = class IDEAppController extends AppController
     instance = appControllers.IDE.instances[appControllers.IDE.lastActiveIndex]
 
     return {instance, isActive: instance is this}
+
+
+  handleShortcut: (e) ->
+
+    kd.utils.stopDOMEvent e
+
+    key = e.model.name
+
+    switch key
+
+      when 'findfilebyname'    then @showFileFinder()
+      when 'searchallfiles'    then @showContentSearch()
+      when 'splitvertically'   then @splitVertically()
+      when 'splithorizontally' then @splitHorizontally()
+      when 'mergesplitview'    then @mergeSplitView()
+      when 'previewfile'       then @previewFile()
+      when 'saveallfiles'      then @saveAllFiles()
+      when 'createnewfile'     then @createNewFile()
+      when 'createnewterminal' then @createNewTerminal()
+      when 'createnewdrawing'  then @createNewDrawing()
+      when 'togglesidebar'     then @toggleSidebar()
+      when 'closetab'          then @closeTab()
+      when 'gotolefttab'       then @goToLeftTab()
+      when 'gotorighttab'      then @goToRightTab()
+      when 'fullscreen'        then @toggleFullscreenIDEView()
+      when 'movetabup'         then @moveTabUp()
+      when 'movetabdown'       then @moveTabDown()
+      when 'movetableft'       then @moveTabLeft()
+      when 'movetabright'      then @moveTabRight
+      else
+        if match = key.match /^gototabnumber(\d{1})$/
+          # XXX: nope -og
+          e.preventDefault()
+          e.stopPropagation()
+
+          @goToTabNumber parseInt(match[1], 10) - 1
