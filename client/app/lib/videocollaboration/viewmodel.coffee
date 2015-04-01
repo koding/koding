@@ -20,9 +20,9 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
   switchTo: (nick) ->
 
     participants = @model.getParticipants()
-    participant = @model.getParticipant nick
+    participant  = @model.getParticipant nick
 
-    hideAll @model.getParticipants()
+    hideAll participants
     showParticipant participant
 
 
@@ -81,6 +81,6 @@ fixParticipantVideo = (participant) ->
     element = participant.videoData.videoElement()
     element.style.left   = '-14px'
     element.style.height = '265px'
-    element.style.widht  = '355px'
+    element.style.width  = '355px'
 
 
