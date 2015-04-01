@@ -95,13 +95,13 @@ func (c *ChannelMessageList) populateUnreadCount(messageList []*ChannelMessageCo
 	for i, message := range messageList {
 		cml, err := channel.FetchMessageList(message.Message.Id)
 		if err != nil {
-			// helper.MustGetLogger().Error(err.Error())
+			// runner.MustGetLogger().Error(err.Error())
 			continue
 		}
 
 		count, err := NewMessageReply().UnreadCount(cml.MessageId, cml.RevisedAt, cml.MetaBits.Is(Troll))
 		if err != nil {
-			// helper.MustGetLogger().Error(err.Error())
+			// runner.MustGetLogger().Error(err.Error())
 			continue
 		}
 		messageList[i].UnreadRepliesCount = count

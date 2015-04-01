@@ -1,14 +1,10 @@
-package helper
+package runner
 
-import (
-	"socialapi/config"
-
-	"github.com/koding/redis"
-)
+import "github.com/koding/redis"
 
 var redisConn *redis.RedisSession
 
-func MustInitRedisConn(c *config.Config) *redis.RedisSession {
+func MustInitRedisConn(c *Config) *redis.RedisSession {
 	r, err := InitRedisConn(c)
 	if err != nil {
 		panic(err)
@@ -17,7 +13,7 @@ func MustInitRedisConn(c *config.Config) *redis.RedisSession {
 	return r
 }
 
-func InitRedisConn(c *config.Config) (*redis.RedisSession, error) {
+func InitRedisConn(c *Config) (*redis.RedisSession, error) {
 	// if redisconn is already created, return early, return ofthen
 	if redisConn != nil {
 		return redisConn, nil

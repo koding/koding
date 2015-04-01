@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/topicfeed"
+
+	"github.com/koding/runner"
 )
 
 var (

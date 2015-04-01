@@ -37,11 +37,11 @@ Configuration = (options={}) ->
   algolia             = { appId:    'DYVV81J2S1'                                     , indexSuffix:     '.prod'                                }
   algoliaSecret       = { appId:    algolia.appId                                    , apiKey:             '303eb858050b1067bcd704d6cbfb977c'    , indexSuffix:     algolia.indexSuffix    , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46', apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
   mixpanel            = { token:    "3d7775525241b3350e6d89bd40031862"               , enabled:            yes                                 }
-  postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
+  postgres            = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               "5432"                                , username:        "socialapplication"    , password:        "socialapplication"                  , dbname:   "social"             }
   kontrolPostgres     = { host:     "prod0.cfbuweg6pdxe.us-east-1.rds.amazonaws.com" , port:               5432                                  , username:        "kontrolapplication"   , password:        "kontrolapplication"                 , dbname:   "social"             }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"   , subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe", secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                                           , enabled:  yes                         }
-  gatekeeper          = { host:       "localhost"                                    , port:               7200                                  , pubnub: pubnub                                }
+  gatekeeper          = { host:       "localhost"                                    , port:               "7200"                                , pubnub: pubnub                                }
   paymentwebhook      = { port : "6600", debug : true }
   tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
