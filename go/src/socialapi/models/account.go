@@ -12,6 +12,7 @@ type Account struct {
 	// unique id of the account
 	Id int64 `json:"id,string"`
 
+
 	// old id of the account, which is originally
 	// perisisted in mongo
 	// mongo ids has 24 char
@@ -22,7 +23,10 @@ type Account struct {
 
 	// unique account nicknames
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
-
+    
+    // ShareLocation is a setting for users for sharing their location on socialapi    
+    ShareLocation bool `json:"shareLocation"`
+    
 	// unique account tokens used for pubnub authentication
 	Token string `json:"-"`
 }
