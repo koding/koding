@@ -187,6 +187,19 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Action to trigger activation of video collaboration.
+   * If given publisher is `null` it means that the video collaboration started
+   * without the user publishing his/her video. It's not a concern of neither
+   * this method's nor this entire class, because simply it will emit an event
+   * with given publisher and it will change set the state to active.
+  ###
+  setVideoActive: ->
+
+    @emit 'VideoCollaborationActive', @publisher
+    @setState { active: yes }
+
+
+  ###*
    * Action for joining to VideoCollaboration session. It calls
    * `startPublishing` method and connects handlers for success and error states.
    *
