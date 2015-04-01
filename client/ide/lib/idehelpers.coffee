@@ -4,6 +4,7 @@ kd = require 'kd'
 globals = require 'globals'
 FSHelper = require 'app/util/fs/fshelper'
 FilePermissionsModal = require './views/modals/filepermissionsmodal'
+dataProvider = require 'app/userenvironmentdataprovider'
 
 WORKSPACE_WELCOME_TXT = """
   # Awesome, you've just made a new workspace!
@@ -49,28 +50,36 @@ module.exports = helpers =
       err = mesage: "Machine not found."
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
-    remote.api.JWorkspace.create data, (err, workspace) =>
-      return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+    dataProvider.fetchMachineByUId machineUId, (machine, workspaces) =>
+      workspace = w for w in workspaces when w.rootPath is rootPath
 
-      folderOptions  =
-        type         : 'folder'
-        path         : workspace.rootPath
-        recursive    : yes
-        samePathOnly : yes
+      handleRoute = (machine, workspace) ->
+        href = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
+        router.handleRoute href
 
-      machine.fs.create folderOptions, (err, folder) =>
+      return handleRoute(machine, workspace) if workspace
+
+      remote.api.JWorkspace.create data, (err, workspace) =>
         return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
-        filePath   = "#{workspace.rootPath}/README.md"
-        readMeFile = FSHelper.createFileInstance { path: filePath, machine }
+        folderOptions  =
+          type         : 'folder'
+          path         : workspace.rootPath
+          recursive    : yes
+          samePathOnly : yes
 
-        readMeFile.save WORKSPACE_WELCOME_TXT, (err) =>
+        machine.fs.create folderOptions, (err, folder) =>
           return helpers.handleWorkspaceCreateError_ eventObj, err  if err
 
-          eventObj.emit 'WorkspaceCreated', workspace
+          filePath   = "#{workspace.rootPath}/README.md"
+          readMeFile = FSHelper.createFileInstance { path: filePath, machine }
 
-          href = "/IDE/#{machine.slug or machine.label}/#{workspace.slug}"
-          router.handleRoute href
+          readMeFile.save WORKSPACE_WELCOME_TXT, (err) =>
+            return helpers.handleWorkspaceCreateError_ eventObj, err  if err
+
+            eventObj.emit 'WorkspaceCreated', workspace
+
+            handleRoute(machine, workspace)
 
 
   handleWorkspaceCreateError_: (eventObj, error) ->
