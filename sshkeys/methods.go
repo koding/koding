@@ -37,7 +37,7 @@ func List(r *kite.Request) (interface{}, error) {
 // it replaces the current authorized_keys with the given keys.
 func Add(r *kite.Request) (interface{}, error) {
 	var params struct {
-		Key      []string
+		Keys     []string
 		Override bool
 	}
 
@@ -45,16 +45,16 @@ func Add(r *kite.Request) (interface{}, error) {
 		return nil, err
 	}
 
-	if len(params.Key) == 0 {
+	if len(params.Keys) == 0 {
 		return nil, errors.New("keys argument list is empty")
 	}
 
 	if params.Override {
-		if err := ReplaceKeys(r.Username, params.Key...); err != nil {
+		if err := ReplaceKeys(r.Username, params.Keys...); err != nil {
 			return nil, err
 		}
 	} else {
-		if err := AddKeys(r.Username, params.Key...); err != nil {
+		if err := AddKeys(r.Username, params.Keys...); err != nil {
 			return nil, err
 		}
 	}
