@@ -121,13 +121,14 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/koding/klient/Godeps/_workspace/src/bitbucket.org/kardianos/osext"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/inconshreveable/go-update/download"
-	"github.com/koding/klient/Godeps/_workspace/src/github.com/kr/binarydist"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/inconshreveable/go-update/download"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/kardianos/osext"
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/kr/binarydist"
 )
 
 // The type of a binary patch, if any. Only bsdiff is supported
