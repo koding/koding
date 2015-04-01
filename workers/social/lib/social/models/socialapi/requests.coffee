@@ -25,11 +25,12 @@ createAccount = ({id, nickname}, callback)->
   url = "/account"
   post url, {oldId: id, nick: nickname}, callback
 
-updateAccount = ({id, nick}, callback)->
+updateAccount = (data, callback)->
+  {id, nick} = data
   if not id or not nick
     return callback {message:"Request is not valid for updating account"}
   url = "/account/#{id}"
-  post url, {id, nick}, callback
+  post url, data , callback
 
 createChannel = (data, callback)->
   unless data.name or data.creatorId
