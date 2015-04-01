@@ -101,15 +101,17 @@ func newCommand(mode, session, username string) (*Command, error) {
 		name = defaultShell
 		args = []string{}
 	case "attach", "create":
-		// if the user didn't send a session name, create a custom randomized
 		if session == "" {
+			// if the user didn't send a session name, create a custom
+			// randomized
 			session = randomString()
+			args = append(args, sessionPrefix+"."+session)
+		} else {
+			// -a  : includes all capabilities
+			// -A  : adapts the sizes of all windows to the current terminal
+			// -DR : if session is running, re attach. If not create a new one
+			args = append(args, sessionPrefix+"."+session, "-aADR")
 		}
-
-		// -a  : includes all capabilities
-		// -A  : adapts the sizes of all windows to the current terminal
-		// -DR : if session is running, re attach. If not create a new one
-		args = append(args, sessionPrefix+"."+session, "-aADR")
 	default:
 		return nil, fmt.Errorf("mode '%s' is unknown. Valid modes are:  [shared|noscreen|resume|create]", mode)
 	}
