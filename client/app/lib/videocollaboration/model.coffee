@@ -105,13 +105,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
     session.on 'streamCreated', (event) =>
       return  if @state.connectedToSession is no
 
-      options.height     or= "100%"
-      options.width      or= "100%"
-      options.insertMode or= 'append'
+      options = { height: '100%', width: '100%', insertMode: 'append' }
 
       { stream } = event
       nick       = stream.name
-      element    = @getView().getSubscribgetElement()
+      element    = @getView().getElement()
+
       subscriber = session.subscribe stream, element, options
       subscriber.on 'destroyed', =>
         @unregisterSubscriber connectionId
