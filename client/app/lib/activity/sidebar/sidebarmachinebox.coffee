@@ -38,9 +38,9 @@ module.exports = class SidebarMachineBox extends KDView
 
     @machine.on 'MachineLabelUpdated', @bound 'handleMachineLabelUpdated'
 
-    if environmentDataProvider.lastUpdatedMachineUId is @machine.uid
-      kd.utils.defer => # defer showing popup to get the coordinates correctly
-        delete environmentDataProvider.lastUpdatedMachineUId
+    if environmentDataProvider.getLastUpdatedMachineUId() is @machine.uid
+      kd.utils.wait 733, => # wait showing popup to get the coordinates correctly
+        environmentDataProvider.setLastUpdatedMachineUId null
         @machineItem.showSidebarSharePopup()
 
 

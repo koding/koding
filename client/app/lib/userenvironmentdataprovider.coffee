@@ -252,3 +252,9 @@ module.exports = UserEnvironmentDataProvider =
     for item in @getAllMachines() when item.machine.uid is machine.uid
       item.workspaces.splice 0
       return
+
+
+  getLastUpdatedMachineUId: -> return @lastUpdatedMachineUId
+
+
+  setLastUpdatedMachineUId: (uid) -> @lastUpdatedMachineUId = uid
