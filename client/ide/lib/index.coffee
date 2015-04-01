@@ -308,7 +308,8 @@ class IDEAppController extends AppController
     then "/home/#{owner}"
     else '/'
 
-    filesPane.emit 'MachineMountRequested', machineData, path
+    @workspace.ready ->
+      filesPane.emit 'MachineMountRequested', machineData, path
 
 
   unmountMachine: (machineData) ->
