@@ -10,10 +10,11 @@ helper          = require './helper'
 module.exports = class VideoCollaborationModel extends kd.Object
 
   defaultState:
-    video              : on
-    audio              : on
+    publishVideo       : on
+    publishAudio       : on
     publishing         : off
-    connectedToSession : no
+    active             : no
+    connected          : no
     maxConnectionCount : 999
     activeParticipant  : null
     connectionCount    : 0
@@ -82,7 +83,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @session = session
     @bindSessionEvents session
-    @setState { connectedToSession: yes }
+    @setState { connected: yes }
     @emit 'SessionConnected', session
 
 
@@ -104,10 +105,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
-      return  if @state.connectedToSession is no
 
-      options = { height: '100%', width: '100%', insertMode: 'append' }
-
+      options    = { height: '100%', width: '100%', insertMode: 'append' }
       { stream } = event
       nick       = stream.name
       element    = @getView().getElement()
@@ -136,7 +135,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
     session.on 'sessionDisconnected', (event) =>
-      @setState { connectedToSession: no }
+      @setState { connected: no }
       eventName = switch event.reason
         when 'forceDisconnected'   then 'HostKickedLoggedInUser'
         when 'clientDisconnected'  then 'VideoCollaborationEnded'
@@ -248,8 +247,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   startPublishing: (options, callbacks) ->
 
     defaults =
-      publishAudio: @state.audio
-      publishVideo: @state.video
+      publishAudio: @state.publishAudio
+      publishVideo: @state.publishVideo
 
     options = _.assign {}, defaults, options
 
