@@ -565,10 +565,6 @@ Configuration = (options={}) ->
       #!/bin/bash
       export HOME=/home/user-ec2
       export KONFIG_JSON='#{KONFIG.JSON}'
-
-      cd #{projectRoot}/client
-      npm install --unsafe-perm
-      make build
       """
 
   KONFIG.ENV             = (require "../deployment/envvar.coffee").create KONFIG

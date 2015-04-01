@@ -1,0 +1,82 @@
+[
+  {
+    "name": "save",
+    "description": "Save",
+    "binding": [
+      [
+        "ctrl+s"
+      ],
+      [
+        "command+s"
+      ]
+    ],
+    "options": {
+      "custom": true,
+      "overrides_ace": true
+    }
+  },
+  {
+    "name": "saveAs",
+    "description": "Save As...",
+    "binding": [
+      [
+        "ctrl+shift+s"
+      ],
+      [
+        "command+shift+s"
+      ]
+    ],
+    "options": {
+      "custom": true,
+      "overrides_ace": true
+    }
+  },
+  {
+    "name": "gotoLine",
+    "description": "Go to Line",
+    "binding": [
+      [
+        "ctrl+g"
+      ],
+      [
+        "command+g"
+      ]
+    ],
+    "options": {
+      "custom": true,
+      "overrides_ace": true
+    }
+  },
+  {
+    "name": "find",
+    "description": "Find",
+    "binding": [
+      [
+        "ctrl+f"
+      ],
+      [
+        "command+f"
+      ]
+    ],
+    "options": {
+      "custom": true,
+      "overrides_ace": true
+    }
+  },
+  {
+    "name": "replace",
+    "description": "Find and Replace",
+    "binding": [
+      [
+        "ctrl+shift+f"
+      ],
+      [
+        "command+shift+f"
+      ]
+    ],
+    "options": {
+      "custom": true,
+      "overrides_ace": true
+    }
+  }
+]

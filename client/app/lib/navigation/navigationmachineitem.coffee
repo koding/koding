@@ -15,7 +15,7 @@ module.exports = class NavigationMachineItem extends JView
 
   {Running, Stopped} = Machine.State
 
-  stateClasses  = ''
+  stateClasses  = 'reconnecting '
   stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
 
 
@@ -77,9 +77,12 @@ module.exports = class NavigationMachineItem extends JView
     else
       @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
-    kd.singletons.computeController.on "public-#{@machine._id}", (event)=>
-      @handleMachineEvent event
+    kd.singletons.computeController
+      .on "reconnecting-#{@machine.uid}", =>
+        @setState 'reconnecting'
 
+      .on "public-#{@machine._id}", (event)=>
+        @handleMachineEvent event
 
   settingsEnabled: ->
 
