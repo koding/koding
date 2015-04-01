@@ -15,6 +15,7 @@ module.exports = class NewEmail extends bongo.Base
 
   @types =
     WELCOME          : 'welcome'
+    INVITE           : 'invite'
     USERNAME_CHANGED : 'username_changed'
     PASSWORD_CHANGED : 'password_changed'
 
