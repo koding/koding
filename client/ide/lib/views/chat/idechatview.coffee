@@ -6,6 +6,8 @@ KDView = kd.View
 CustomLinkView = require 'app/customlinkview'
 IDEChatMessagePane = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
+IDEChatVideoView    = require './idechatvideoview'
+
 module.exports = class IDEChatView extends KDTabView
 
   constructor: (options = {}, data)->
@@ -82,6 +84,12 @@ module.exports = class IDEChatView extends KDTabView
 
     @loaderView.destroy()
     @unsetClass 'loading'
+
+
+  createChatVideoView: ->
+
+    @chatVideoView = new IDEChatVideoView { cssClass: 'hidden' }
+    @addSubView @chatVideoView
 
 
   createPanes: ->
