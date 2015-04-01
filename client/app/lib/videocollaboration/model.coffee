@@ -259,6 +259,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ####
   changeActiveParticipant: (nick) ->
 
+    return  unless @state.active
     return  unless @getParticipant nick
 
     @setState { activeParticipant: nick }
