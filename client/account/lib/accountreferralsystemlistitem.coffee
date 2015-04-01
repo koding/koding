@@ -6,20 +6,17 @@ KDCustomHTMLView = kd.CustomHTMLView
 
 module.exports = class AccountReferralSystemListItem extends KDListItemView
 
-  viewAppended: ->
-    @getData().isEmailVerified (err, status)=>
-      unless (err or status)
-        @addSubView editLink = new KDCustomHTMLView
-           tagName      : "a"
-           partial      : "Mail Verification Waiting"
-           cssClass     : "action-link"
   constructor: (options = {}, data)->
     options.tagName ?= 'li'
     super options, data
 
 
-  partial: (data)->
-    """
-    <a href="/#{data.profile.nickname}"> #{data.profile.firstName} #{data.profile.lastName} </a>
-    """
+  viewAppended: ->
 
+    {providedBy} = @getData()
+    remote.cacheable "JAccount", providedBy, (err, account)=>
+      {profile} = account  if account
+      @addSubView new KDCustomHTMLView
+        partial: err or """
+          <a href="/#{profile.nickname}"> #{profile.firstName} #{profile.lastName} </a>
+        """
