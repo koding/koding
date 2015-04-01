@@ -48,11 +48,6 @@ module.exports = class NFinderController extends KDViewController
 
     @watchers = {}
 
-    # this is here for when user login/register after opening Ace App
-    # to refresh filetree
-    mainController = kd.getSingleton("mainController")
-    mainController.on "accountChanged.to.loggedIn", @bound 'reset'
-
     if options.useStorage
 
       @appStorage.ready =>
