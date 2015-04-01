@@ -8,13 +8,13 @@ import (
 	"socialapi/workers/email/activityemail/models"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/templates"
-	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
 	"time"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
+	"github.com/koding/runner"
 	"github.com/streadway/amqp"
 )
 
@@ -182,7 +182,7 @@ func (n *Controller) saveDailyMail(accountId, activityId int64) {
 }
 
 func saveRecipient(accountId int64) error {
-	redisConn := helper.MustGetRedisConn()
+	redisConn := runner.MustGetRedisConn()
 	key := prepareRecipientsCacheKey()
 	if _, err := redisConn.AddSetMembers(key, accountId); err != nil {
 		return err
@@ -196,7 +196,7 @@ func saveRecipient(accountId int64) error {
 }
 
 func saveActivity(accountId, activityId int64) error {
-	redisConn := helper.MustGetRedisConn()
+	redisConn := runner.MustGetRedisConn()
 	key := prepareSetterCacheKey(accountId)
 	if _, err := redisConn.AddSetMembers(key, activityId); err != nil {
 		return err

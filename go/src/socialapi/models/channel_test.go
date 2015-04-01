@@ -1,11 +1,13 @@
 package models
 
 import (
+	"socialapi/config"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 	"testing"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -134,6 +136,9 @@ func TestChannelNewPrivateMessageChannel(t *testing.T) {
 		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
 	defer r.Close()
+
+	// read config once
+	config.MustRead(r.Conf.Path)
 
 	var creatorId int64 = 123
 	groupName := "testGroup"

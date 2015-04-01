@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/pinnedpost"
+
+	"github.com/koding/runner"
 )
 
 var (

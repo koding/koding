@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
+	"socialapi/config"
+
+	"github.com/koding/runner"
 
 	"socialapi/workers/sitemap/sitemapgenerator"
 )
@@ -19,10 +20,12 @@ func main() {
 		return
 	}
 
+	appConfig := config.MustRead(r.Conf.Path)
+
 	conf := *r.Conf
 	// different redis db is used for sitemap,
-	conf.Redis.DB = r.Conf.Sitemap.RedisDB
-	redisConn := helper.MustInitRedisConn(&conf)
+	conf.Redis.DB = appConfig.Sitemap.RedisDB
+	redisConn := runner.MustInitRedisConn(&conf)
 	defer redisConn.Close()
 
 	controller, err := generator.New(r.Log, redisConn)
