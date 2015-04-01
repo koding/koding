@@ -7,11 +7,12 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"socialapi/workers/helper"
 	"socialapi/workers/popularpost"
 	"socialapi/workers/populartopic"
 	"strconv"
 	"time"
+
+	"github.com/koding/runner"
 )
 
 func getDateNumberAndYear(statisticName string) (int, int, error) {
@@ -36,7 +37,7 @@ func getDateNumberAndYear(statisticName string) (int, int, error) {
 func getIds(key string, query *request.Query) ([]int64, error) {
 	// limit-1 is important, because redis is using 0 based index
 	popularIds := make([]int64, 0)
-	listIds, err := helper.MustGetRedisConn().
+	listIds, err := runner.MustGetRedisConn().
 		SortedSetReverseRange(
 		key,
 		query.Skip,

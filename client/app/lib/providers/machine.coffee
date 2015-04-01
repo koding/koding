@@ -3,7 +3,6 @@ kd = require 'kd'
 KDObject = kd.Object
 doesQueryStringValid = require '../util/doesQueryStringValid'
 nick = require '../util/nick'
-#FSItem = require '../util/fs/fsitem'
 globals = require 'globals'
 
 
@@ -41,8 +40,7 @@ module.exports = class Machine extends KDObject
     @updateLocalData()
 
     @fs =
-      # TODO: add options check
-      create : (options, callback)=>
+      create: (options = {}, callback) =>
         options.machine = this
         require('../util/fs/fsitem').create options, callback
 

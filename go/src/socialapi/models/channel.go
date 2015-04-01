@@ -40,7 +40,7 @@ type Channel struct {
 	MetaBits MetaBits `json:"metaBits"`
 
 	// Extra data storage
-	Payload gorm.Hstore `json:"payload,omitempty"`
+	Payload gorm.Hstore `json:"payload"`
 
 	// Creation date of the channel
 	CreatedAt time.Time `json:"createdAt"            sql:"NOT NULL"`
@@ -708,27 +708,23 @@ func (c *Channel) CanOpen(accountId int64) (bool, error) {
 		return true, nil
 	}
 
-	// anyone can read group activity
-	if c.TypeConstant == Channel_TYPE_GROUP {
-		return true, nil
-	}
+	// special cases for koding group
+	if c.GroupName == Channel_KODING_NAME {
+		// anyone can read group activity
+		if c.TypeConstant == Channel_TYPE_GROUP {
+			return true, nil
+		}
 
-	// anyone can read announcement activity
-	if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
-		return true, nil
-	}
+		// anyone can read announcement activity
+		if c.TypeConstant == Channel_TYPE_ANNOUNCEMENT {
+			return true, nil
+		}
 
-	// anyone can read topic feed
-	// this is here for non-participated topic channels
-	if c.TypeConstant == Channel_TYPE_TOPIC {
-		return true, nil
-	}
-
-	// see only your private messages
-	// user should be added as a participant to private message
-	if c.TypeConstant == Channel_TYPE_PRIVATE_MESSAGE ||
-		c.TypeConstant == Channel_TYPE_COLLABORATION {
-		return false, nil
+		// anyone can read topic feed
+		// this is here for non-participated topic channels
+		if c.TypeConstant == Channel_TYPE_TOPIC {
+			return true, nil
+		}
 	}
 
 	return false, nil

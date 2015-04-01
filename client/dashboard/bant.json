@@ -4,5 +4,11 @@
   "routes": {
     "/:name?/Dashboard": "home",
     "/:name?/Dashboard/:section": "section"
-  }
+  },
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
+  ]
 }

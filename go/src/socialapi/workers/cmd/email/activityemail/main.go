@@ -3,10 +3,11 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
-	"socialapi/workers/common/runner"
+	"socialapi/config"
 	"socialapi/workers/email/activityemail"
-	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
+
+	"github.com/koding/runner"
 )
 
 var (
@@ -21,11 +22,12 @@ func main() {
 	}
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	// init redis connection
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	handler := activityemail.New(

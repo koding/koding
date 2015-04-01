@@ -1,8 +1,10 @@
 {
   "name": "ace",
   "main": "./lib/index.coffee",
-  "scripts": [
-    "../thirdparty/ace/ace.js",
-    "../thirdparty/ace/ext-language_tools.js"
+  "sprites": [
+    "./lib/sprites"
+  ],
+  "styles": [
+    "./lib/styl"
   ]
 }

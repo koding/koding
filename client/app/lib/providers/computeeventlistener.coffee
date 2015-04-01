@@ -75,8 +75,6 @@ module.exports = class ComputeEventListener extends KDObject
     unless event.status is Running
       computeController.invalidateCache machine._id
 
-      kontrol.setTryingToReconnect no
-
 
   revertToPreviousState:(machine)->
 

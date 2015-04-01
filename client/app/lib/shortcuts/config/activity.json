@@ -1,0 +1,36 @@
+[
+  {
+    "name": "nextwindow",
+    "binding": [
+      [
+        "alt+]",
+        "alt+down"
+      ],
+      [
+        "alt+]",
+        "alt+down"
+      ]
+    ],
+    "description": "Next window",
+    "options": {
+      "global": true
+    }
+  },
+  {
+    "name": "prevwindow",
+    "binding": [
+      [
+        "alt+[",
+        "alt+up"
+      ],
+      [
+        "alt+[",
+        "alt+up"
+      ]
+    ],
+    "description": "Previous window",
+    "options": {
+      "global": true
+    }
+  }
+]
