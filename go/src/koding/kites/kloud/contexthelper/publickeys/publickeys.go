@@ -1,4 +1,10 @@
-package keys
+package publickeys
+
+import "golang.org/x/net/context"
+
+type key int
+
+const publicKey key = 0
 
 const (
 	// name of the key saved on remote provider
@@ -36,3 +42,26 @@ bC3K2UUHqakRw36hwLLadePZFUqC9AY8ITeZ43vIKhBKBQj3lhfSuc+vyHwCSuc7
 6+smUFdsRVz6i3SWFOjeBYMNuDR/xgBEh9teQfn4/9aiEi2QAriN
 -----END RSA PRIVATE KEY-----`
 )
+
+type Keys struct {
+	PublicKey  string
+	PrivateKey string
+	KeyName    string
+}
+
+func NewKeys() *Keys {
+	return &Keys{
+		KeyName:    DeployKeyName,
+		PublicKey:  DeployPublicKey,
+		PrivateKey: DeployPrivateKey,
+	}
+}
+
+func FromContext(ctx context.Context) (*Keys, bool) {
+	c, ok := ctx.Value(publicKey).(*Keys)
+	return c, ok
+}
+
+func NewContext(ctx context.Context, keys *Keys) context.Context {
+	return context.WithValue(ctx, publicKey, keys)
+}

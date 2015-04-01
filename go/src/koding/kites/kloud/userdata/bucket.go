@@ -1,4 +1,4 @@
-package koding
+package userdata
 
 import (
 	"errors"

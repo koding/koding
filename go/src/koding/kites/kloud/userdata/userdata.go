@@ -1,10 +1,35 @@
-package koding
+package userdata
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
+	"koding/kites/kloud/keycreator"
+	"log"
 	"strings"
 	"text/template"
+
+	"code.google.com/p/go.crypto/ssh"
+	"gopkg.in/yaml.v2"
 )
+
+type Userdata struct {
+	Keycreator *keycreator.Key
+	Bucket     *Bucket
+}
+
+// CloudInitConfig is used as source for the cloudInit template.
+type CloudInitConfig struct {
+	Username        string
+	UserSSHKeys     []string
+	UserDomain      string
+	Hostname        string
+	KiteKey         string
+	LatestKlientURL string // URL of the latest version of the Klient package
+	ApachePort      int    // Defines the base apache running port, should be 80 or 443
+	KitePort        int    // Defines the running kite port, like 3000
+	KiteId          string
+}
 
 var (
 	// funcMap contains easy to use template functions
@@ -191,13 +216,56 @@ final_message: "All done!"
 `
 )
 
-type CloudInitConfig struct {
-	Username        string
-	UserSSHKeys     []string
-	UserDomain      string
-	Hostname        string
-	KiteKey         string
-	LatestKlientURL string // URL of the latest version of the Klient package
-	ApachePort      int    // Defines the base apache running port, should be 80 or 443
-	KitePort        int    // Defines the running kite port, like 3000
+func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
+	var err error
+	c.KiteKey, err = u.Keycreator.Create(c.Username, c.KiteId)
+	if err != nil {
+		return nil, err
+	}
+
+	latestKlientPath, err := u.Bucket.LatestDeb()
+	if err != nil {
+		return nil, err
+	}
+
+	c.LatestKlientURL = u.Bucket.URL(latestKlientPath)
+
+	// validate the public keys
+	validatedKeys := make([]string, 0)
+	for _, key := range c.UserSSHKeys {
+		_, _, _, _, err := ssh.ParseAuthorizedKey([]byte(key))
+		if err != nil {
+			log.Print(`User (%s) has an invalid public SSH key. Not adding it to the authorized keys. Key: %s. Err: %v`,
+				c.Username, key, err)
+			continue
+		}
+
+		validatedKeys = append(validatedKeys, key)
+	}
+
+	c.UserSSHKeys = validatedKeys
+
+	var udata bytes.Buffer
+	err = cloudInitTemplate.Funcs(funcMap).Execute(&udata, c)
+	if err != nil {
+		return nil, err
+	}
+
+	// validate the udata first before sending
+	if cloudErr := yaml.Unmarshal(udata.Bytes(), struct{}{}); cloudErr != nil {
+		// write to temporary file so we can see the yaml file that is not
+		// formatted in a good way.
+		f, err := ioutil.TempFile("", "kloud-cloudinit")
+		if err == nil {
+			if _, err := f.WriteString(udata.String()); err != nil {
+				log.Printf("Cloudinit temporary field couldn't be written %v", err)
+			}
+		}
+
+		log.Printf("Cloudinit template is not a valid YAML file: %v. YAML file path: %s",
+			cloudErr, f.Name())
+		return nil, fmt.Errorf("Cloudinit template is not a valid YAML file. Debugfile: %s", f.Name())
+	}
+
+	return udata.Bytes(), nil
 }
