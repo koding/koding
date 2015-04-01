@@ -111,6 +111,8 @@ module.exports = class IDEChatView extends KDTabView
     chatOptions     = { name, type, channelId, @isInSession }
     settingsOptions = { @rtm, @isInSession }
 
+    @createChatVideoView()
+
     @addPane @chatPane     = new IDEChatMessagePane  chatOptions, channel
     @addPane @settingsPane = new IDEChatSettingsPane settingsOptions, channel
 
