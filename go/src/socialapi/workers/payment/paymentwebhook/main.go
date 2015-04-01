@@ -7,18 +7,17 @@ import (
 	"net"
 	"net/http"
 	"socialapi/config"
-	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/payment"
 	"socialapi/workers/payment/paymentmodels"
 	"time"
 
 	"github.com/koding/kite"
+	"github.com/koding/runner"
 )
 
 var (
 	WorkerName = "paymentwebhook"
-	Log        = helper.CreateLogger(WorkerName, false)
+	Log        = runner.CreateLogger(WorkerName, false)
 )
 
 type Controller struct {
@@ -35,10 +34,11 @@ func main() {
 		modelhelper.Close()
 	}()
 
-	conf := r.Conf
+	conf := config.MustRead(r.Conf.Path)
+
 	kloud := conf.Kloud
 
-	Log = helper.CreateLogger(WorkerName, conf.PaymentWebhook.Debug)
+	Log = runner.CreateLogger(WorkerName, conf.PaymentWebhook.Debug)
 
 	// initialize client to talk to kloud
 	kiteClient := initializeKiteClient(r.Kite, kloud.SecretKey, kloud.Address)
@@ -82,7 +82,8 @@ func initializeRunner() *runner.Runner {
 		Log.Fatal(err.Error())
 	}
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	payment.Initialize(config.MustGet())
 
 	return r

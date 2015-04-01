@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
-	"socialapi/config"
-	"socialapi/workers/helper"
 	"strconv"
 	"syscall"
 
@@ -40,7 +38,7 @@ var (
 
 type Runner struct {
 	Log             logging.Logger
-	Conf            *config.Config
+	Conf            *Config
 	Bongo           *bongo.Bongo
 	Name            string
 	ShutdownHandler func()
@@ -72,7 +70,7 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 		configFile = *flagConfFile
 	}
 
-	r.Conf = config.MustRead(configFile)
+	r.Conf = MustRead(configFile)
 
 	// override Debug if only it is true
 	if *flagDebug {
@@ -83,15 +81,15 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 	r.Conf.Port = *flagPort
 
 	// create logger for our package
-	r.Log = helper.CreateLogger(
+	r.Log = CreateLogger(
 		WrapWithVersion(r.Name, flagVersion),
 		r.Conf.Debug,
 	)
 
-	metrics := helper.CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
+	metrics := CreateMetrics(r.Name, r.Log, *flagOutputMetrics)
 	r.Metrics = metrics
 	// panics if not successful
-	r.Bongo = helper.MustInitBongo(
+	r.Bongo = MustInitBongo(
 		WrapWithVersion(r.Name, flagVersion),
 		WrapWithVersion(r.Conf.EventExchangeName, flagVersion),
 		r.Conf,
@@ -108,7 +106,11 @@ func (r *Runner) InitWithConfigFile(configFile string) error {
 		if err := r.initKite(); err != nil {
 			return err
 		}
+
 	}
+
+	// set config file path
+	r.Conf.Path = configFile
 
 	return nil
 }

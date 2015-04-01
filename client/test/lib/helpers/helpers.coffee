@@ -439,18 +439,14 @@ module.exports =
 
   changeName: (browser, inputSelector, shouldAssertSidebar) ->
 
-    paragraph           = @getFakeText()
-    newName             = paragraph.split(' ')[0]
-    avatarSelector      = '.avatar-area a.profile'
-    accountPageSelector = '.AppModal--account'
-    saveButtonSelector  = accountPageSelector + ' .button-field'
+    paragraph          = @getFakeText()
+    newName            = paragraph.split(' ')[0]
+    avatarSelector     = '.avatar-area a.profile'
+    saveButtonSelector = '.AppModal--account .button-field'
+
+    @openAccountPage(browser)
 
     browser
-      .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
-      .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
-      .waitForElementVisible   '.avatararea-popup .content', 20000
-      .click                   '.avatararea-popup .content [testpath=AccountSettingsLink]'
-      .waitForElementVisible   accountPageSelector, 20000
       .waitForElementVisible   inputSelector, 20000
       .clearValue              inputSelector
       .setValue                inputSelector, newName + '\n'
@@ -466,6 +462,16 @@ module.exports =
           browser
             .waitForElementVisible   avatarSelector, 20000
             .assert.containsText     avatarSelector, newName
+
+
+  openAccountPage: (browser) ->
+
+    browser
+      .waitForElementVisible   '.avatar-area [testpath=AvatarAreaIconLink]', 20000
+      .click                   '.avatar-area [testpath=AvatarAreaIconLink]'
+      .waitForElementVisible   '.avatararea-popup .content', 20000
+      .click                   '.avatararea-popup .content [testpath=AccountSettingsLink]'
+      .waitForElementVisible   '.AppModal--account', 20000
 
 
   fillPaymentForm: (browser, planType = 'developer') ->

@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
-	"socialapi/workers/helper"
 	"socialapi/workers/popularpost"
 	"time"
 
 	"github.com/jinzhu/now"
+	"github.com/koding/runner"
 )
 
 var (
@@ -26,7 +26,9 @@ func main() {
 		return
 	}
 
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	config.MustRead(r.Conf.Path)
+
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 	// create context
 	context := popularpost.New(r.Log, redisConn)

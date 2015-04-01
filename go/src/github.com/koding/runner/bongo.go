@@ -1,9 +1,6 @@
-package helper
+package runner
 
 import (
-	"socialapi/config"
-	"socialapi/db"
-
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
 
@@ -15,7 +12,7 @@ import (
 func MustInitBongo(
 	appName string,
 	eventExchangeName string,
-	c *config.Config,
+	c *Config,
 	log logging.Logger,
 	metrics *metrics.Metrics,
 	debug bool,
@@ -34,7 +31,7 @@ func MustInitBongo(
 		QOS:          10,
 	}
 
-	db := db.MustInit(c, log, debug)
+	db := MustInitDB(c, log, debug)
 
 	broker := broker.New(appName, bConf, log)
 	// set metrics for broker

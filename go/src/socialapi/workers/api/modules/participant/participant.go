@@ -8,9 +8,9 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var ErrSkipActivity = errors.New("skip activity")
@@ -98,7 +98,7 @@ func notifyParticipants(channel *models.Channel, event string, participants []*m
 	pe.Id = channel.Id
 	pe.Participants = participants
 	pe.ChannelToken = channel.Token
-	logger := helper.MustGetLogger()
+	logger := runner.MustGetLogger()
 
 	for _, participant := range participants {
 		acc, err := models.Cache.Account.ById(participant.AccountId)
@@ -152,7 +152,7 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	// for just a few times
 	go func() {
 		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
-			helper.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
+			runner.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
 		}
 	}()
 
