@@ -141,6 +141,9 @@ module.exports = class IDEChatView extends KDTabView
       kd.utils.wait 500, =>
         @chatPane.showAutoCompleteInput()
 
+    @chatPane.on 'ChatVideoRequested', ->
+      kd.singletons.appManager.tell 'IDE', 'joinVideoCollaboration'
+
     @emit 'ready'
 
 
