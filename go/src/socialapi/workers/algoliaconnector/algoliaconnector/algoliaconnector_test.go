@@ -1,7 +1,7 @@
 package algoliaconnector
 
 import (
-	"errors"
+	"fmt"
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
@@ -128,10 +128,8 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 	})
 }
 
-var errDeadline = errors.New("dead line")
-
 // makeSureErr checks if the given id's get request returns the desired err, it
-// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
+// will re-try every 100ms until deadline of 2 minutes reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
 func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
 	deadLine := time.After(time.Minute * 2)
@@ -148,6 +146,7 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 		}
 	}
 }
+
 func TestMessageListDeleted(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
@@ -269,6 +268,45 @@ func TestMessageUpdated(t *testing.T) {
 			return true
 		})
 		So(err, ShouldBeNil)
+	})
+}
+
+func TestParticipantCreated(t *testing.T) {
+	runner, handler := getTestHandler()
+	defer runner.Close()
+	fmt.Println("sdfa")
+	Convey("while adding participant", t, func() {
+
+		Convey("if the user is not in db, should give error", func() {
+			p := &models.ChannelParticipant{
+				AccountId: 1,
+				ChannelId: 1,
+			}
+			err := handler.ParticipantCreated(p)
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, bongo.RecordNotFound)
+		})
+
+		Convey("if the user is in db, but not saved to algolia yet", func() {
+			fmt.Println("1")
+			Convey("should be successfull", func() {
+				a := models.CreateAccountWithTest()
+				p := &models.ChannelParticipant{
+					AccountId: a.Id,
+					ChannelId: 1,
+				}
+				fmt.Println("2")
+				err := handler.ParticipantCreated(p)
+				fmt.Println("3")
+				So(err, ShouldBeNil)
+				fmt.Println("4")
+				Convey("we should be able to find it", func() {
+					rec, err := handler.get("accounts", strconv.FormatInt(a.Id, 10))
+					So(err, ShouldBeNil)
+					So(rec, ShouldNotBeNil)
+				})
+			})
+		})
 	})
 }
 

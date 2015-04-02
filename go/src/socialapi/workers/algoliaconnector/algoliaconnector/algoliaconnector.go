@@ -2,12 +2,15 @@ package algoliaconnector
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"socialapi/models"
 	"socialapi/request"
 	"strconv"
+	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
+	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
@@ -145,7 +148,7 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 
 	return f.partialUpdate("messages", map[string]interface{}{
 		"objectID": objectId,
-		"_tags":    appendMessageTag(record, channelId),
+		"_tags":    appendTag(record, channelId),
 	})
 }
 
@@ -184,4 +187,90 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 		"objectID": strconv.FormatInt(message.Id, 10),
 		"body":     message.Body,
 	})
+}
+
+func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
+	const accountIndexName = "accounts"
+	if p.ChannelId == 0 {
+		return nil
+	}
+
+	if p.AccountId == 0 {
+		return nil
+	}
+
+	a := models.NewAccount()
+	fmt.Println("a", a)
+	if err := a.ById(p.AccountId); err != nil {
+		return err
+	}
+
+	if a.Id == 0 {
+		return bongo.RecordNotFound
+	}
+
+	objectId := strconv.FormatInt(p.AccountId, 10)
+	channelId := strconv.FormatInt(p.ChannelId, 10)
+
+	record, err := f.get(accountIndexName, a.OldId)
+	if err != nil &&
+		!IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) &&
+		!IsAlgoliaError(err, ErrAlgoliaIndexNotExistMsg) {
+		return err
+	}
+
+	if record == nil {
+		fmt.Println("account savedii:", a)
+		// first create the account
+		if err := f.AccountSaved(a); err != nil {
+			return err
+		}
+
+		// make sure account is there
+		err := makeSureAccount(f, a.OldId, func(record map[string]interface{}, err error) bool {
+			if err != nil {
+				return false
+			}
+
+			if record == nil {
+				return false
+			}
+
+			return true
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	record, err = f.get(accountIndexName, a.OldId)
+	if err != nil {
+		return err
+	}
+
+	return f.partialUpdate(accountIndexName, map[string]interface{}{
+		"objectID": objectId,
+		"_tags":    appendTag(record, channelId),
+	})
+}
+
+var errDeadline = errors.New("deadline reached")
+
+// makeSureAccount checks if the given id's get request returns the desired
+// err, it will re-try every 100ms until deadline of 2 minutes reached. Algolia
+// doesnt index the records right away, so try to go to a desired state
+func makeSureAccount(handler *Controller, id string, f func(map[string]interface{}, error) bool) error {
+	deadLine := time.After(time.Minute * 2)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			record, err := handler.get("account", id)
+			if f(record, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
 }
