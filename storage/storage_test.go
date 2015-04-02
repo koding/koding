@@ -1,0 +1,127 @@
+package storage
+
+import (
+	"log"
+	"os/user"
+	"strings"
+	"testing"
+
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
+)
+
+var exampleData = struct {
+	Key   string
+	Value string
+}{
+	Key:   "gopher",
+	Value: "koding",
+}
+
+var (
+	storageKite *kite.Kite
+
+	// remote defines a remote user calling the storageKite kite
+	remote *kite.Client
+)
+
+func init() {
+	storageKite = kite.New("storageKite", "0.0.1")
+	storageKite.Config.DisableAuthentication = true
+	storageKite.Config.Port = 3637
+
+	s := New(nil)
+
+	storageKite.HandleFunc("get", s.GetValue)
+	storageKite.HandleFunc("set", s.SetValue)
+	storageKite.HandleFunc("delete", s.DeleteValue)
+
+	go storageKite.Run()
+	<-storageKite.ServerReadyNotify()
+
+	u, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	remoteKite := kite.New("remote", "0.0.1")
+	remoteKite.Config.Username = u.Username
+	remote = remoteKite.NewClient("http://127.0.0.1:3637/kite")
+	err = remote.Dial()
+	if err != nil {
+		log.Fatal("err")
+	}
+}
+
+func TestSet(t *testing.T) {
+	resp, err := remote.Tell("set", struct {
+		Key   string
+		Value string
+	}{
+		Key:   exampleData.Key,
+		Value: exampleData.Value,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := resp.Bool()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !b {
+		t.Error("set method should return true, got false")
+	}
+}
+
+func TestGet(t *testing.T) {
+	resp, err := remote.Tell("get", struct {
+		Key string
+	}{
+		Key: exampleData.Key,
+	})
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := resp.String()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if s != exampleData.Value {
+		t.Errorf("set: wrong value fetched.\nWant: '%s'\nGot: '%s'\n", exampleData.Value, s)
+	}
+}
+
+func TestDelete(t *testing.T) {
+	resp, err := remote.Tell("delete", struct {
+		Key string
+	}{
+		Key: exampleData.Key,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := resp.Bool()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !b {
+		t.Error("set method should return true, got false")
+	}
+
+	resp, err = remote.Tell("get", struct {
+		Key string
+	}{
+		Key: exampleData.Key,
+	})
+
+	if !strings.Contains(err.Error(), "key not found") {
+		t.Error(err)
+	}
+}
