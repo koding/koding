@@ -3,6 +3,7 @@ package koding
 import (
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"time"
@@ -78,4 +79,15 @@ func (m *Machine) State() machinestate.State {
 
 func (m *Machine) PublicIpAddress() string {
 	return m.IpAddress
+}
+
+// push pushes the given message to the eventer
+func (m *Machine) push(msg string, percentage int, state machinestate.State) {
+	if m.Session.Eventer != nil {
+		m.Session.Eventer.Push(&eventer.Event{
+			Message:    msg,
+			Percentage: percentage,
+			Status:     state,
+		})
+	}
 }
