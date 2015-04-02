@@ -267,6 +267,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
       error   : (err) =>
 
 
+  ###*
+   * Action for ending VideoCollaborationSession. Only can be called from
+   * admins of this session.
+  ###
   end: ->
 
     @stopSession
@@ -279,7 +283,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * `OT.Publisher` instance. Sets active participant to user.
    *
    * @param {OT.Publisher} publisher
-   * @emits VideoCollaborationModel~VideoCollaborationActive
   ###
   handlePublishSuccess: (publisher) ->
 
@@ -290,6 +293,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @changeActiveParticipant getNick()
 
 
+  ###*
+   * Handler for successful video stopping.
+  ###
   handleStopSuccess: ->
 
     @setState { publishing: off }
