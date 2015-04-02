@@ -64,20 +64,17 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 
-	machine.Log = p.Log.New(id)
-
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("request context is not available")
 	}
 
-	p.Log.Debug("=====> machine: %+v", machine)
-	p.Log.Debug("=====> req    : %+v", req)
-
 	if machine.Meta.Region == "" {
 		machine.Meta.Region = "us-east-1"
 		machine.Log.Critical("region is not set in. Fallback to us-east-1.")
 	}
+
+	p.Log.Debug("Using region: %s", machine.Meta.Region)
 
 	if err := p.attachSession(ctx, machine); err != nil {
 		return nil, err
@@ -127,6 +124,9 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	// we use session a lot of in Machine owned methods, so that's why we
 	// assign it to a field for easy access
 	machine.Session = sess
+
+	// attach user specific log
+	machine.Log = p.Log.New(machine.Id.Hex())
 
 	// we pass it also to the context, so other packages, such as plans checker
 	// can make use of it.

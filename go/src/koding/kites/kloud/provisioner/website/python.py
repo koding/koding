@@ -34,13 +34,14 @@ print """\
 		<li><a href="ruby.rb">ruby</a></li>
 	</ul>    
 </nav>
+
 <footer>
-<h4>This is an example page running Python on your Koding Server.</h4> <p>You can create your own simple Python "Hello World" with this:</p>
-<pre>#!/usr/bin/python
-import os
-print "Content-type: text/html"
-print
-print "Hello, world from python!"</pre>
+	<h4>This is an example page running Python on your Koding Virtual Machine (VM).
+	<p>
+		You can create your own Python based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/python/" target=_blank>simple guide</a> over at Koding University.
+	</p>
+	</h4>
+	<p><a href="https://twitter.com/koding" target=_blank>Koding on Twitter</a> | <a href="https://facebook.com/koding" target=_blank>Koding on Facebook</a></p>
 </footer>
 </div> 
 </body>

@@ -57,9 +57,15 @@
             "destination": "/tmp/userdata/kodingart"
         },
         {
+            "type": "file",
+            "source": "README.md",
+            "destination": "/tmp/userdata/README.md"
+        },
+        {
             "type": "shell",
             "inline": [
                 "sudo cp -r /tmp/userdata/Web/* /opt/koding/userdata/Web/",
+                "sudo cp /tmp/userdata/README.md /opt/koding/userdata/README.md",
                 "sudo cp /tmp/userdata/screen/screenrc /opt/koding/etc/screenrc",
                 "sudo cp /tmp/userdata/bash/bashrc /etc/skel/.bashrc",
                 "sudo cp /tmp/userdata/kodingart/kodingart /etc/koding/.kodingart.txt"
