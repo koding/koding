@@ -38,7 +38,7 @@ func main() {
 
 	// participant related events
 	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*algoliaconnector.Controller).ParticipantCreated)
-	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*algoliaconnector.Controller).ParticipantDeleted)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*algoliaconnector.Controller).ParticipantUpdated)
 
 	r.Listen()
 	r.Wait()
