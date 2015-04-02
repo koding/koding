@@ -370,7 +370,7 @@ module.exports = class JInvitation extends jraphical.Module
       e = new NewEmail
       e.queue delegate.profile.nickname, {
         to         : @email
-        subject    : @constructor.getInviteFriendSubject messageOptions
+        subject    : NewEmail.types.Invite
       },{inviterEmail: inviter.email, inviter, url, message}, (err) =>
         status = if err then 'couldnt send email' else 'sent'
         @update {$set: status: status}, callback
