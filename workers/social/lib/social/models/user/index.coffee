@@ -1118,7 +1118,7 @@ module.exports = class JUser extends jraphical.Module
 
   @changePassword = secure (client, password, callback) ->
 
-    @fetchUser client, (err,user)->
+    @fetchUser client, (err, user)->
 
       if err or not user
         return callback createKodingError \
@@ -1132,8 +1132,13 @@ module.exports = class JUser extends jraphical.Module
 
   sendChangedEmail = (username, firstName, to, type, callback) ->
 
+    subject = if type is 'email'
+      NewEmail.types.EMAIL_CHANGED
+    else
+      NewEmail.types.PASSWORD_CHANGED
+
     email = new NewEmail
-    email.queue username, {to, subject:"#{type}_changed"}, {firstName}, callback
+    email.queue username, {to, subject}, {firstName}, callback
 
 
   @changeEmail = secure (client,options,callback)->
@@ -1192,7 +1197,7 @@ module.exports = class JUser extends jraphical.Module
     @setPassword newPassword, (err)=>
       return callback err  if err
 
-      @fetchAccount 'koding', (err, account)->
+      @fetchAccount 'koding', (err, account)=>
         return callback err  if err
 
         {firstName} = account.profile
