@@ -37,7 +37,7 @@ func init() {
 	const DatabasePath = "/.config/koding/klient.bolt"
 	db, err := openBoltDb(DatabasePath)
 	if err != nil {
-		log.Println(err)
+		log.Println("Can't use BoltDB: ", err)
 	}
 
 	s := New(db)
