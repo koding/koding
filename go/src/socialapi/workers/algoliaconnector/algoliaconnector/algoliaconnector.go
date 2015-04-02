@@ -189,6 +189,10 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 	})
 }
 
+func (f *Controller) ParticipantDeleted(p *models.ChannelParticipant) error {
+	return nil
+}
+
 func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	const accountIndexName = "accounts"
 	if p.ChannelId == 0 {
