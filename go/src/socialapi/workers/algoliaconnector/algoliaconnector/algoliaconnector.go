@@ -193,6 +193,12 @@ const accountIndexName = "accounts"
 // ParticipantDeleted operates with the participant deleted events, removes
 // deleted tag from algolia document
 func (f *Controller) ParticipantDeleted(p *models.ChannelParticipant) error {
+	// if status of the participant is left, then just notify the current user
+	if p.StatusConstant != models.ChannelParticipant_STATUS_LEFT {
+		f.log.Debug("Ignoring participant (%d) update channel event(status not left)", p.AccountId)
+		return nil
+	}
+
 	err := f.handleParticipantOperation(p, removeTag)
 	if err != nil {
 		f.log.Error("err while handling participant deleted event: %s", err.Error())
