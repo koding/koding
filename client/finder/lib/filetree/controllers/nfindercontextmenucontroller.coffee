@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 kd = require 'kd'
 KDContextMenu = kd.ContextMenu
 KDController = kd.Controller
