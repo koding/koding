@@ -135,6 +135,11 @@ module.exports = class OpenTokService extends kd.Object
       session.signal { type }, callback
 
 
+  sendSessionEndSignal: (channel, callback) ->
+
+    @sendSignal channel, 'end', callback
+
+
   ###*
    * It creates the `OT.Publisher` instance for sending video/audio.
    * It listens to publisher events and emits KDEvents to the passed view.
