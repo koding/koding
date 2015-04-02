@@ -81,7 +81,10 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   createButtons: ->
 
-    title = if @isApproved then'LEAVE SHARED VM' else 'REJECT'
+    title = 'REJECT'
+
+    if @isApproved
+      title = if @getOptions().channelId then 'LEAVE SESSION' else 'LEAVE SHARED VM'
 
     @addSubView @denyButton = new KDButtonView
       cssClass : 'solid medium red'
