@@ -55,7 +55,7 @@ toNickKeyedMap = (subscribers, publisher) ->
 
   map = {}
   map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers
-  map[publisher.nick] = publisher
+  map[publisher.nick] = publisher  if publisher
   return map
 
 

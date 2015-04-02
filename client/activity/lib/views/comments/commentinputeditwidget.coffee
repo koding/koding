@@ -28,7 +28,7 @@ module.exports = class CommentInputEditWidget extends CommentInputWidget
   reset: ->
 
     @input.blur()
-    @embedBox.resetEmbedAndHide()
+    @embedBox.close()
 
 
   cancel: -> @emit 'Cancel'
