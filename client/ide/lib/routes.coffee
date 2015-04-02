@@ -73,7 +73,7 @@ loadIDE = (data) ->
       else
         app.amIHost           = yes
 
-      appManager.tell 'IDE', 'mountMachineByMachineUId', machineUId
+      app.mountMachineByMachineUId machineUId
 
   return callback()  unless ideApps?.instances
 
