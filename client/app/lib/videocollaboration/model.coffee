@@ -25,7 +25,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     super options, data
 
-    @state = _.assign {}, options.state, @defaultState
+    @state = _.assign {}, @defaultState, options.state
 
     { @channel, @view } = options
 
@@ -123,7 +123,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
       { connection, name } = event.stream
 
       # Emit necessary events for that participant
-      @setParticipantLeft connectionId
+      @setParticipantLeft connection.connectionId
 
       # end session if there are no other subscribers that are sending a video,
       # or audio to the session.
