@@ -1,7 +1,6 @@
 package algoliaconnector
 
 import (
-	"fmt"
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
@@ -322,6 +321,37 @@ func TestParticipantCreated(t *testing.T) {
 	})
 }
 
+func TestRemoveTag(t *testing.T) {
+	Convey("while removing tag", t, func() {
+
+		Convey("if records is nil, should return an empty slice", func() {
+			So(len(removeTag(nil, "1")), ShouldNotBeNil)
+			So(len(removeTag(nil, "1")), ShouldEqual, 0)
+		})
+
+		Convey("if record's tag is nil, should return empty slice", func() {
+			So(removeTag(make(map[string]interface{}), "1"), ShouldNotBeNil)
+			So(len(removeTag(make(map[string]interface{}), "1")), ShouldNotBeNil)
+		})
+
+		Convey("if record's doesnt have our tag, should return itself", func() {
+			record := map[string]interface{}{
+				"_tags": []interface{}{"1", "2"},
+			}
+
+			So(len(removeTag(record, "3")), ShouldEqual, len(record["_tags"].([]interface{})))
+		})
+
+		Convey("if record's does have our tag, should return clean version", func() {
+			record := map[string]interface{}{
+				"_tags": []interface{}{"1", "2"},
+			}
+
+			So(len(removeTag(record, "1")), ShouldEqual, len(record["_tags"].([]interface{}))-1)
+		})
+
+	})
+}
 func getTestHandler() (*runner.Runner, *Controller) {
 	r := runner.New("AlogoliaConnector-Test")
 	err := r.Init()

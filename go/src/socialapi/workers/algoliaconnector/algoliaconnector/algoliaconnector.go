@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
-	"github.com/koding/bongo"
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
 )
@@ -189,12 +188,31 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 	})
 }
 
+const accountIndexName = "accounts"
+
+// ParticipantDeleted operates with the participant deleted events, removes
+// deleted tag from algolia document
 func (f *Controller) ParticipantDeleted(p *models.ChannelParticipant) error {
-	return nil
+	err := f.handleParticipantOperation(p, removeTag)
+	if err != nil {
+		f.log.Error("err while handling participant deleted event: %s", err.Error())
+	}
+
+	return err
 }
 
+// ParticipantCreated operates with the participant createad event, adds new
+// tag to the algolia document
 func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
-	const accountIndexName = "accounts"
+	err := f.handleParticipantOperation(p, appendTag)
+	if err != nil {
+		f.log.Error("err while handling participant created event: %s", err.Error())
+	}
+
+	return err
+}
+
+func (f *Controller) handleParticipantOperation(p *models.ChannelParticipant, tagOperator func(record map[string]interface{}, channelId string) []interface{}) error {
 	if p.ChannelId == 0 {
 		return nil
 	}
@@ -210,10 +228,9 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	}
 
 	if a.Id == 0 {
-		return bongo.RecordNotFound
+		f.log.Critical("account found but id is 0 %+v", a)
+		return nil
 	}
-
-	channelId := strconv.FormatInt(p.ChannelId, 10)
 
 	record, err := f.get(accountIndexName, a.OldId)
 	if err != nil &&
@@ -228,7 +245,7 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 			return err
 		}
 
-		// make sure account is there
+		// make sure account is there, before start processing it
 		err := makeSureAccount(f, a.OldId, func(record map[string]interface{}, err error) bool {
 			if err != nil {
 				return false
@@ -250,9 +267,11 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 		return err
 	}
 
+	channelId := strconv.FormatInt(p.ChannelId, 10)
+
 	return f.partialUpdate(accountIndexName, map[string]interface{}{
 		"objectID": a.OldId,
-		"_tags":    appendTag(record, channelId),
+		"_tags":    tagOperator(record, channelId),
 	})
 }
 
