@@ -29,11 +29,13 @@
 	</ul>
 	</nav>
 	<footer>
-	<h4>This is an example page running PHP on your Koding Server.</h4>
+	<h4>This is an example page running PHP on your Koding Virtual Machine (VM).
 	<p>
-		You can create your own simple PHP "Hello World" with this:
+		You can create your own PHP based "Hello World" program by following this <a href="http://learn.koding.com/guides/hello-world/php/" target=_blank>simple guide</a> over at Koding University.
 	</p>
-	<pre>&lt;?php echo 'Hello World from PHP'; ?&gt;</pre>
+	</h4>
+	<p><a href="https://twitter.com/koding" target=_blank>Koding on Twitter</a> | <a href="https://facebook.com/koding" target=_blank>Koding on Facebook</a></p>
+	<!-- pre>&lt;?php echo 'Hello World from PHP'; ?&gt;</pre -->
 	</footer>
 </div>
 </body>

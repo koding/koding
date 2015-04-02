@@ -71,13 +71,12 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, errors.New("request context is not available")
 	}
 
-	p.Log.Debug("=====> machine: %+v", machine)
-	p.Log.Debug("=====> req    : %+v", req)
-
 	if machine.Meta.Region == "" {
 		machine.Meta.Region = "us-east-1"
 		machine.Log.Critical("region is not set in. Fallback to us-east-1.")
 	}
+
+	p.Log.Debug("Using region: %s", machine.Meta.Region)
 
 	if err := p.attachSession(ctx, machine); err != nil {
 		return nil, err

@@ -390,7 +390,6 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	cloudInitConfig := &userdata.CloudInitConfig{
 		Username:    m.Username,
 		UserSSHKeys: sshKeys,
-		UserDomain:  m.Domain,
 		Hostname:    m.Username, // no typo here. hostname = username
 		ApachePort:  DefaultApachePort,
 		KitePort:    DefaultKitePort,
