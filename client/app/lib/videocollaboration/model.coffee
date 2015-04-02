@@ -108,7 +108,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
       # When a stream is dispatched to the session it means there is a new
       # video feed. We want every user to see the video if a stream is
       # dispatched (probably from host, but doesn't matter).
-      @setVideoActive()  unless @state.active
+      @setActive()  unless @state.active
 
       options    = { height: '100%', width: '100%', insertMode: 'append' }
       { stream } = event
@@ -200,7 +200,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * this method's nor this entire class, because simply it will emit an event
    * with given publisher and it will change set the state to active.
   ###
-  setVideoActive: ->
+  setActive: ->
 
     @emit 'VideoCollaborationActive', @publisher
     @setState { active: yes }
@@ -231,7 +231,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @registerPublisher publisher
     @setState { publishing: on }
 
-    @setVideoActive()
+    @setActive()
     @changeActiveParticipant getNick()
 
 
