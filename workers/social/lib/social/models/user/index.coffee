@@ -1130,11 +1130,10 @@ module.exports = class JUser extends jraphical.Module
       user.changePassword password, (err)-> callback err
 
 
-  sendChangedEmail = (username, to, type) ->
+  sendChangedEmail = (username, firstName, to, type, callback) ->
 
     email = new NewEmail
-    email.queue username, { to, subject : "#{type}_changed"}, {}, (err)->
-      console.log err  if err
+    email.queue username, {to, subject:"#{type}_changed"}, {firstName}, callback
 
 
   @changeEmail = secure (client,options,callback)->
@@ -1191,11 +1190,13 @@ module.exports = class JUser extends jraphical.Module
   changePassword: (newPassword, callback)->
 
     @setPassword newPassword, (err)=>
+      return callback err  if err
 
-      unless err
-        sendChangedEmail @getAt('username'), @getAt('email'), 'password'
+      @fetchAccount 'koding', (err, account)->
+        return callback err  if err
 
-      callback err
+        {firstName} = account.profile
+        sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password', callback
 
 
   changeEmail:(account, options, callback)->
@@ -1236,16 +1237,14 @@ module.exports = class JUser extends jraphical.Module
         oldEmail = @getAt 'email'
 
         @update $set: {email}, (err, res)=>
-
           return callback err  if err
 
           account.profile.hash = getHash email
           account.save (err)=>
+            return callback err  if err
 
-            unless err
-              sendChangedEmail @getAt('username'), oldEmail, 'email'
-
-            callback err
+            {firstName} = account.profile
+            sendChangedEmail @getAt('username'), firstName, oldEmail, 'email', callback
 
 
   fetchHomepageView:(options, callback)->
