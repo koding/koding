@@ -125,14 +125,14 @@ module.exports = class OpenTokService extends kd.Object
    * Sends a signal with type to given subscriber
    * through given session.
    *
-   * @param {OT.Session} session
+   * @param {SocialChannel} channel
    * @param {String} type
-   * @param {Object=} data
+   * @param {function(err: object)} callback
   ###
-  sendSignal: (session, type, data = {})->
+  sendSignal: (channel, type, callback) ->
 
-    signalData = { type, data: JSON.stringify data }
-    session.signal signalData, helper._errorSignal
+    @fetchChannelSession channel, (session) =>
+      session.signal { type }, callback
 
 
   ###*
