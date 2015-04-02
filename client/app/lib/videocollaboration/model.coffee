@@ -115,12 +115,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
       nick       = stream.name
       element    = @getView().getElement()
 
-      subscriber = session.subscribe stream, element, options
-      subscriber.on 'destroyed', =>
-        @unregisterSubscriber connectionId
-        @emit 'ParticipantLeft', { nick }
-
       { connectionId } = stream.connection
+
+      subscriber = session.subscribe stream, element, options
       participant = @registerSubscriber nick, connectionId, subscriber
 
       @emit 'ParticipantJoined', participant
