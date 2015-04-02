@@ -340,3 +340,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
   setState: (state) -> @state = _.assign {}, @state, state
 
 
+  getSubscribersCount: -> (Object.keys @subscribers).length
+
+
