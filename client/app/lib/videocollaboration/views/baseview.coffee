@@ -13,12 +13,34 @@ module.exports = class ChatVideoView extends kd.View
     @publisherView = null
 
     @createContainer()
+    @createControls()
 
 
   createContainer: ->
 
     @container = new kd.CustomHTMLView { cssClass: 'ChatVideo-container' }
     @addSubView @container
+
+
+  createControls: ->
+
+    @controls = new kd.CustomHTMLView { cssClass: 'ChatVideo-controls' }
+
+    @controlAudio = createVideoControl 'audio', no
+    @controlAudio.on 'ActiveStateChanged', @handleStateChanged 'audio'
+
+    @controlVideo = createVideoControl 'video', no
+    @controlVideo.on 'ActiveStateChanged', @handleStateChanged 'video'
+
+    # TODO: if user is host
+    @controlEnd = createVideoControl 'end', no
+    @controlEnd.on 'ActiveStateChanged', @handleStateChanged 'end'
+
+    @controls.addSubView @controlAudio
+    @controls.addSubView @controlVideo
+    @controls.addSubView @controlEnd
+
+    @addSubView @controls
 
 
   getContainer: -> @container
