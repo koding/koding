@@ -1,11 +1,16 @@
 package storage
 
 import (
+	"errors"
 	"log"
+	"os"
 	"os/user"
+	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
@@ -29,7 +34,13 @@ func init() {
 	storageKite.Config.DisableAuthentication = true
 	storageKite.Config.Port = 3637
 
-	s := New(nil)
+	const DatabasePath = "/.config/koding/klient.bolt"
+	db, err := openBoltDb(DatabasePath)
+	if err != nil {
+		log.Println(err)
+	}
+
+	s := New(db)
 
 	storageKite.HandleFunc("get", s.GetValue)
 	storageKite.HandleFunc("set", s.SetValue)
@@ -112,7 +123,7 @@ func TestDelete(t *testing.T) {
 	}
 
 	if !b {
-		t.Error("set method should return true, got false")
+		t.Error("delete method should return true, got false")
 	}
 
 	resp, err = remote.Tell("get", struct {
@@ -121,7 +132,33 @@ func TestDelete(t *testing.T) {
 		Key: exampleData.Key,
 	})
 
-	if !strings.Contains(err.Error(), "key not found") {
-		t.Error(err)
+	if err == nil {
+		t.Fatal("get: should return an error, got nil")
 	}
+
+	if err != nil {
+		if !strings.Contains(err.Error(), "key not found") {
+			t.Error(err)
+		}
+
+	}
+}
+
+func openBoltDb(dbpath string) (*bolt.DB, error) {
+	if dbpath == "" {
+		return nil, errors.New("DB path is empty")
+	}
+
+	// Ensure data directory exists.
+	u, err := user.Current()
+	if err != nil {
+		return nil, err
+	}
+
+	boltPath := u.HomeDir + dbpath
+	if err := os.MkdirAll(filepath.Dir(boltPath), 0755); err != nil {
+		return nil, err
+	}
+
+	return bolt.Open(boltPath, 0644, &bolt.Options{Timeout: 5 * time.Second})
 }

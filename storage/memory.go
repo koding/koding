@@ -1,9 +1,6 @@
 package storage
 
-import (
-	"errors"
-	"sync"
-)
+import "sync"
 
 func NewMemoryStorage() *memoryStorage {
 	return &memoryStorage{
@@ -23,7 +20,7 @@ func (m *memoryStorage) Get(key string) (string, error) {
 
 	value, ok := m.storage[key]
 	if !ok {
-		return "", errors.New("key not found")
+		return "", ErrKeyNotFound
 	}
 
 	return value, nil

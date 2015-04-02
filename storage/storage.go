@@ -7,6 +7,8 @@ import (
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
+var ErrKeyNotFound = errors.New("key not found")
+
 // Interface should be satisfied by a storage implementation
 type Interface interface {
 	Get(key string) (string, error)

@@ -55,6 +55,10 @@ func (b *boltdb) Get(key string) (string, error) {
 		return "", err
 	}
 
+	if res == "" {
+		return "", ErrKeyNotFound
+	}
+
 	return res, nil
 }
 
