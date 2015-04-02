@@ -214,12 +214,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
-   * Action for joining to VideoCollaboration session. It calls
+   * Action for starting VideoCollaboration session. It calls
    * `startPublishing` method and connects handlers for success and error states.
    *
    * @param {object} options
   ###
-  join: (options) ->
+  start: (options) ->
 
     @startPublishing options,
       success : @bound 'handlePublishSuccess'
