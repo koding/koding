@@ -12,7 +12,6 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
-	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
@@ -621,28 +620,6 @@ func (m *Machine) isKlientReady() bool {
 
 	return true
 }
-
-// push pushes the given message to the eventer
-func (m *Machine) push(msg string, percentage int, state machinestate.State) {
-	if m.Session.Eventer != nil {
-		m.Session.Eventer.Push(&eventer.Event{
-			Message:    msg,
-			Percentage: percentage,
-			Status:     state,
-		})
-	}
-}
-
-// // normalize returns the normalized step according to the initial start and finish
-// // values. i.e for a start,finish pair of (10,90) percentages of
-// // 0,15,20,50,80,100 will be according to the function: 10,18,26,50,74,90
-// func (m *Machine) normalize(percentage int) int {
-// 	base := b.finish - b.start
-// 	step := float64(base) * (float64(percentage) / 100)
-// 	normalized := float64(b.start) + step
-// 	return int(normalized)
-//
-// }
 
 func isCapacityError(err error) bool {
 	ec2Error, ok := err.(*ec2.Error)

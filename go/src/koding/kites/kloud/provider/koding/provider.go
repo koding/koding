@@ -64,8 +64,6 @@ func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) 
 		return nil, kloud.NewError(kloud.ErrMachineNotFound)
 	}
 
-	machine.Log = p.Log.New(id)
-
 	req, ok := request.FromContext(ctx)
 	if !ok {
 		return nil, errors.New("request context is not available")
@@ -111,6 +109,9 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	if err != nil {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
+
+	// attach user specific log
+	machine.Log = p.Log.New(machine.Id.Hex())
 
 	sess := &session.Session{
 		DB:         p.DB,
