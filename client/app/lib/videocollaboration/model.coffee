@@ -137,7 +137,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
       count = @state.connectionCount
       @setState { connectionCount: count - 1 }
 
-
     session.on 'sessionDisconnected', (event) =>
       @setState { connected: no }
       eventName = switch event.reason

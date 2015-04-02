@@ -43,7 +43,6 @@ module.exports = class OpenTokService extends kd.Object
 
   ###*
    * Initializes the client library of OpenTok.
-   * TODO: It may be wise to include this in our bundle?
    *
    * @emits OpenTokService~ClientLoaded
   ###
@@ -142,7 +141,6 @@ module.exports = class OpenTokService extends kd.Object
 
   ###*
    * It creates the `OT.Publisher` instance for sending video/audio.
-   * It listens to publisher events and emits KDEvents to the passed view.
    *
    * @param {KDView} view - view instance for publisher.
    * @param {Object=} publisherOptions - Options to pass to `OT.initPublisher` method
