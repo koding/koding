@@ -1,5 +1,6 @@
 kd = require 'kd'
 getNick = require 'app/util/nick'
+VideoControlView = require './controlview'
 
 module.exports = class ChatVideoView extends kd.View
 
@@ -39,5 +40,11 @@ module.exports = class ChatVideoView extends kd.View
     super
 
     @emit 'ViewDidHide'
+
+
+createVideoControl = (type, active) ->
+
+  cssClass = "ChatVideoControl ChatVideoControl--#{type}"
+  new VideoControlView { cssClass, active }
 
 
