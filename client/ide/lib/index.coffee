@@ -1209,6 +1209,7 @@ class IDEAppController extends AppController
     modalOptions.buttons or=
       Yes        :
         cssClass : 'solid green medium'
+        loader   : yes
         callback : callback
       No         :
         cssClass : 'solid light-gray medium'
