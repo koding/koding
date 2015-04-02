@@ -86,7 +86,7 @@ func (p *Provider) CleanDeletedVMs() error {
 	for _, machine := range machines {
 		go func(m Machine) {
 			if err := deleteMachine(m); err != nil {
-				m.Log.Error("couldn't terminate user deleted machine: %s", err.Error())
+				p.Log.Error("[%s] couldn't terminate user deleted machine: %s", m.Id.Hex(), err.Error())
 			}
 		}(machine)
 	}
