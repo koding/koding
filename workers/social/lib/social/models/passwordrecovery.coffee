@@ -61,9 +61,10 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getEmailSubject = ({resetPassword})-> switch
     when resetPassword
-      "reset_password"
+      NewEmail.types.CONFIRM_PASSWORD
     else
-      "confirm_email"
+      NewEmail.types.CONFIRM_EMAIL
+
 
   @getEmailDateFormat = -> 'fullDate'
 
