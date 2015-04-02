@@ -110,6 +110,9 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
+	// attach user specific log
+	machine.Log = p.Log.New(machine.Id.Hex())
+
 	sess := &session.Session{
 		DB:         p.DB,
 		Kite:       p.Kite,
@@ -124,9 +127,6 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	// we use session a lot of in Machine owned methods, so that's why we
 	// assign it to a field for easy access
 	machine.Session = sess
-
-	// attach user specific log
-	machine.Log = p.Log.New(machine.Id.Hex())
 
 	// we pass it also to the context, so other packages, such as plans checker
 	// can make use of it.
