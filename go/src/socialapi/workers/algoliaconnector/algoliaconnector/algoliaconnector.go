@@ -190,8 +190,9 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 
 const accountIndexName = "accounts"
 
-// ParticipantDeleted operates with the participant deleted events, removes
-// deleted tag from algolia document
+// ParticipantUpdated operates with the participant deleted/created events,
+// removes from algolia if status is left, adds to algolia if the state is
+// active
 func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
 	// if status of the participant is left, then just notify the current user
 	if p.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
