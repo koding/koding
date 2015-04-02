@@ -54,7 +54,7 @@ func getGroup(r *http.Request) (*models.Group, error) {
 	if c != nil && c.Value != "" {
 		groupName = c.Value
 	} else {
-		Log.Error("couldnt find groupname, setting koding as group for now")
+		Log.Debug("couldnt find groupname, setting koding as group for now")
 		groupName = "koding"
 	}
 
