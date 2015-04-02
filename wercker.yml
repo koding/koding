@@ -25,6 +25,11 @@ build:
         code: |
           scripts/notify-cebeci.sh "build" "<$WERCKER_BUILD_URL|build> of $WERCKER_GIT_BRANCH is in progress" "building" 10
     - script:
+        name: check package.json files
+        code: |
+          cd $WERCKER_ROOT
+          scripts/check_package_json_constraints.sh
+    - script:
         name: setup nvm
         code: |
           source $HOME/.nvm/nvm.sh
