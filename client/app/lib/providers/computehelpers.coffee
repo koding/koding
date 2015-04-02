@@ -23,11 +23,14 @@ module.exports = class ComputeHelpers
       destroyPromises = []
 
       machines.forEach (machine) ->
-        destroyPromises.push computeController.destroy machine, yes
+        p = new Promise (resolve) ->
+          computeController.on "destroy-#{machine._id}", (event) ->
+            resolve()  if event.status is Machine.State.Terminated
+        destroyPromises.push p
+        computeController.destroy machine, yes
 
       Promise
         .all destroyPromises
-        .timeout globals.COMPUTECONTROLLER_TIMEOUT
         .then ->
           callback null
 

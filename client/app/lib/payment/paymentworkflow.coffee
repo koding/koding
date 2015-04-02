@@ -284,16 +284,16 @@ module.exports = class PaymentWorkflow extends KDController
 
     { planTitle, planInterval } = @state
 
+    @modal.emit 'DestroyingMachinesStarted'
     ComputeHelpers.destroyExistingMachines (err) =>
-
       return @modal.emit 'PaymentFailed', err  if err
 
+      @modal.emit 'DowngradingStarted'
       @subscribeToPlanWithCallback planTitle, planInterval, 'a', { }, (err, result) =>
+        return @modal.emit 'PaymentFailed', err  if err
 
-        if err
-          @modal.emit 'PaymentFailed', err
-        else
-          options =
-            provider: 'koding'
-            redirectAfterCreation: no
-          ComputeHelpers.handleNewMachineRequest options, => @modal.emit 'PaymentSucceeded'
+        options =
+          provider: 'koding'
+          redirectAfterCreation: no
+        ComputeHelpers.handleNewMachineRequest options, =>
+          @modal.emit 'PaymentSucceeded'

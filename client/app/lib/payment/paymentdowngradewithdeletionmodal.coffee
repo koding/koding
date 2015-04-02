@@ -1,6 +1,7 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
+KDLoaderView = kd.LoaderView
 PaymentBaseModal = require './paymentbasemodal'
 showError = require '../util/showError'
 
@@ -36,26 +37,39 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
   initViews: ->
 
-    @addSubView @subtitle = new KDCustomHTMLView
+    @addSubView @subtitle     = new KDCustomHTMLView
       cssClass : 'summary clearfix'
       partial  : @buildSubtitlePartial()
 
-    @addSubView @description = new KDCustomHTMLView
+    @addSubView @description  = new KDCustomHTMLView
       cssClass : 'description'
       partial  : @buildDescriptionPartial()
+
+    @addSubView @loaderLabel  = new KDCustomHTMLView
+      cssClass : "loader-label"
+      partial  : ''
+    @loaderLabel.hide()
+
+    @addSubView @loader       = new KDLoaderView
+      showLoader : yes
+      size       :
+        width    : 40
+        height   : 40
+    @loader.hide()
 
     @addSubView @submitButton = new KDButtonView
       style    : 'solid medium green'
       cssClass : 'submit-btn warning-btn'
-      loader   : yes
       title  : 'YES, DOWNGRADE'
       callback : => @emit 'PaymentDowngradeWithDeletionSubmitted'
 
 
   initEvents: ->
 
-    @on 'PaymentFailed',    @bound 'handleError'
-    @on 'PaymentSucceeded', @bound 'handleSuccess'
+    @on 'DestroyingMachinesStarted', @bound 'handleDestroyingStep'
+    @on 'DowngradingStarted',        @bound 'handleDowngradingStep'
+    @on 'PaymentSucceeded',          @bound 'handleSuccess'
+    @on 'PaymentFailed',             @bound 'handleError'
 
 
   buildSubtitlePartial: ->
@@ -72,19 +86,30 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
     """
 
 
-  handleError: (err) ->
+  handleDestroyingStep: ->
 
-    msg = err?.description or err?.message or "Something went wrong."
-    showError msg
+    @description.hide()
+    @loader.show()
+    @loaderLabel.updatePartial 'Destroying machines...'
+    @loaderLabel.show()
+    @submitButton.hide()
+
+
+  handleDowngradingStep: -> @loaderLabel.updatePartial 'Downgrading...'
 
 
   handleSuccess: ->
 
-    @setTitle 'Downgrade complete.'
-    @description.destroy()
-    @submitButton.hideLoader()
+    @setTitle 'Downgrade complete'
+    @loader.hide()
+    @loaderLabel.hide()
     @submitButton.setTitle 'CONTINUE'
     @submitButton.unsetClass 'warning-btn'
-    @submitButton.setCallback =>
-      @submitButton.hideLoader()
-      @emit 'PaymentWorkflowFinished', @state
+    @submitButton.setCallback => @emit 'PaymentWorkflowFinished', @state
+    @submitButton.show()
+
+
+  handleError: (err) ->
+
+    msg = err?.description or err?.message or "Something went wrong."
+    showError msg
