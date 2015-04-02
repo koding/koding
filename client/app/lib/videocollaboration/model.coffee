@@ -105,6 +105,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
+      # When a stream is dispatched to the session it means there is a new
+      # video feed. We want every user to see the video if a stream is
+      # dispatched (probably from host, but doesn't matter).
+      @setVideoActive()  unless @state.active
 
       options    = { height: '100%', width: '100%', insertMode: 'append' }
       { stream } = event
