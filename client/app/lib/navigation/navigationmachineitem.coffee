@@ -64,10 +64,7 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    isMine      = @machine.isMine()
-    isPermanent = @machine.isPermanent() and @machine.isApproved()
-
-    if isMine or isPermanent
+    if @machine.isMine() or @machine.isApproved()
       if @settingsEnabled()
         @settingsIcon = new KDCustomHTMLView
           tagName     : 'span'
