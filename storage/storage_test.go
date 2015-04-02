@@ -34,8 +34,12 @@ func init() {
 	storageKite.Config.DisableAuthentication = true
 	storageKite.Config.Port = 3637
 
-	const DatabasePath = "/.config/koding/klient.bolt"
-	db, err := openBoltDb(DatabasePath)
+	u, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+
+	db, err := openBoltDb(filepath.Join(u.HomeDir, "/.config/koding/klient.bolt"))
 	if err != nil {
 		log.Println("Can't use BoltDB: ", err)
 	}
@@ -48,11 +52,6 @@ func init() {
 
 	go storageKite.Run()
 	<-storageKite.ServerReadyNotify()
-
-	u, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
 
 	remoteKite := kite.New("remote", "0.0.1")
 	remoteKite.Config.Username = u.Username
@@ -140,7 +139,6 @@ func TestDelete(t *testing.T) {
 		if !strings.Contains(err.Error(), "key not found") {
 			t.Error(err)
 		}
-
 	}
 }
 
@@ -149,16 +147,9 @@ func openBoltDb(dbpath string) (*bolt.DB, error) {
 		return nil, errors.New("DB path is empty")
 	}
 
-	// Ensure data directory exists.
-	u, err := user.Current()
-	if err != nil {
+	if err := os.MkdirAll(filepath.Dir(dbpath), 0755); err != nil {
 		return nil, err
 	}
 
-	boltPath := u.HomeDir + dbpath
-	if err := os.MkdirAll(filepath.Dir(boltPath), 0755); err != nil {
-		return nil, err
-	}
-
-	return bolt.Open(boltPath, 0644, &bolt.Options{Timeout: 5 * time.Second})
+	return bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
 }

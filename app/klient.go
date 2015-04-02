@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/user"
 	"path/filepath"
 	"sync"
 	"time"
@@ -368,18 +367,12 @@ func openBoltDb(dbpath string) (*bolt.DB, error) {
 		return nil, errors.New("DB path is empty")
 	}
 
-	// Ensure data directory exists.
-	u, err := user.Current()
-	if err != nil {
+	// create if it doesn't exists
+	if err := os.MkdirAll(filepath.Dir(dbpath), 0755); err != nil {
 		return nil, err
 	}
 
-	boltPath := u.HomeDir + dbpath
-	if err := os.MkdirAll(filepath.Dir(boltPath), 0755); err != nil {
-		return nil, err
-	}
-
-	return bolt.Open(boltPath, 0644, &bolt.Options{Timeout: 5 * time.Second})
+	return bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
 }
 
 // userIn checks whether the given user exists in the users list or not. It
