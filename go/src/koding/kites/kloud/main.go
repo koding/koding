@@ -14,21 +14,22 @@ import (
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
-	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/keys"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/plans"
 	"koding/kites/kloud/provider/koding"
+	"koding/kites/kloud/userdata"
 
-	"koding/kites/kloud/klient"
+	"koding/kites/kloud/keycreator"
 	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/kloudctl/command"
-	kloudprotocol "koding/kites/kloud/protocol"
-
-	"github.com/koding/metrics"
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
 )
@@ -149,12 +150,6 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	klientFolder := "development/latest"
-	checkInterval := time.Second * 5
-	if conf.ProdMode {
-		k.Log.Info("Prod mode enabled")
-		klientFolder = "production/latest"
-		checkInterval = time.Millisecond * 500
-	}
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
 
 	modelhelper.Initialize(conf.MongoURL)
@@ -168,54 +163,56 @@ func newKite(conf *Config) *kite.Kite {
 		SecretKey: "iSNZFtHwNFT8OpZ8Gsmj/Bp0tU1vqNw6DfgvIUsn",
 	}
 
-	stats, err := metrics.NewDogStatsD("kloud.aws")
-	if err != nil {
-		panic(err)
-	}
-
-	dnsInstance := dnsclient.New(conf.HostedZone, auth)
-	domainStorage := koding.NewDomainStorage(db)
+	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
+	dnsStorage := dnsstorage.NewMongodbStorage(db)
 
 	kodingProvider := &koding.Provider{
-		Kite:          k,
-		Log:           newLogger("kloud", conf.DebugMode),
-		Session:       db,
-		DomainStorage: domainStorage,
+		DB:         db,
+		Log:        newLogger("kloud", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
 		EC2Clients: multiec2.New(auth, []string{
 			"us-east-1",
 			"ap-southeast-1",
 			"us-west-2",
 			"eu-west-1",
 		}),
-		DNS:               dnsInstance,
-		Bucket:            koding.NewBucket("koding-klient", klientFolder, auth),
-		Test:              conf.TestMode,
-		KontrolURL:        getKontrolURL(conf.KontrolURL),
-		KontrolPrivateKey: kontrolPrivateKey,
-		KontrolPublicKey:  kontrolPublicKey,
-		KeyName:           keys.DeployKeyName,
-		PublicKey:         keys.DeployPublicKey,
-		PrivateKey:        keys.DeployPrivateKey,
-		KlientPool:        klient.NewPool(k),
-		InactiveMachines:  make(map[string]*time.Timer),
-		Stats:             stats,
-		Fetcher: &koding.PaymentFetcher{
-			DB:              db,
-			Log:             newLogger("kloud", conf.DebugMode),
+		Userdata: &userdata.Userdata{
+			Keycreator: &keycreator.Key{
+				KontrolURL:        getKontrolURL(conf.KontrolURL),
+				KontrolPrivateKey: kontrolPrivateKey,
+				KontrolPublicKey:  kontrolPublicKey,
+			},
+			Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
+		},
+		PaymentFetcher: &plans.Payment{
 			PaymentEndpoint: conf.PlanEndpoint,
 		},
-		NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
+		CheckerFetcher: &plans.KodingChecker{
+			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
+		},
 	}
 
-	// be sure it satisfies the provider interface
-	var _ kloudprotocol.Provider = kodingProvider
+	checkInterval := time.Second * 5
+	if conf.ProdMode {
+		k.Log.Info("Prod mode enabled")
+		klientFolder = "production/latest"
+		checkInterval = time.Millisecond * 500
+	}
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
+	stats, err := metrics.NewDogStatsD("kloud")
+	if err != nil {
+		panic(err)
+	}
+
 	kld := kloud.New()
-	kld.Storage = kodingProvider
-	kld.DomainStorage = domainStorage
+	kld.Metrics = stats
+	kld.PublicKeys = publickeys.NewKeys()
+	kld.DomainStorage = dnsStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
 	kld.Log = newLogger(Name, conf.DebugMode)
@@ -227,14 +224,14 @@ func newKite(conf *Config) *kite.Kite {
 
 	// Machine handling methods
 	k.HandleFunc("build", kld.Build)
-	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("stop", kld.Stop)
+	k.HandleFunc("start", kld.Start)
+	k.HandleFunc("reinit", kld.Reinit)
 	k.HandleFunc("restart", kld.Restart)
 	k.HandleFunc("info", kld.Info)
-	k.HandleFunc("destroy", kld.Destroy)
 	k.HandleFunc("event", kld.Event)
 	k.HandleFunc("resize", kld.Resize)
-	k.HandleFunc("reinit", kld.Reinit)
 
 	// Snapshot functionality
 	k.HandleFunc("createSnapshot", kld.CreateSnapshot)

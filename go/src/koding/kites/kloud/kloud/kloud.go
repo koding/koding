@@ -3,11 +3,15 @@ package kloud
 import (
 	"os"
 
+	"koding/kites/kloud/contexthelper/publickeys"
+	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/idlock"
-	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/idlock"
 
 	"github.com/koding/logging"
+	"github.com/koding/metrics"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -18,18 +22,15 @@ const (
 type Kloud struct {
 	Log logging.Logger
 
+	// rename to providers once finished
 	// Providers that can satisfy procotol.Builder, protocol.Controller, etc..
 	providers map[string]interface{}
 
 	// Domainer is responsible of managing dns records
-	Domainer protocol.Domainer
-
-	// Storage is used to store persistent data which is used by the Provider
-	// during certain actions
-	Storage Storage
+	Domainer dnsclient.Client
 
 	// DomainStorage is used to store persistent data about domain data
-	DomainStorage protocol.DomainStorage
+	DomainStorage dnsstorage.Storage
 
 	// Locker is used to lock/unlock distributed locks based on unique ids
 	Locker Locker
@@ -39,6 +40,18 @@ type Kloud struct {
 
 	// idlock provides multiple locks per id
 	idlock *idlock.IdLock
+
+	// ContextCreator is used to pass a manual context to each request. If not
+	// set context.Background()) is passed.
+	ContextCreator func(context.Context) context.Context
+
+	// If available a key pair with the given public key and name should be
+	// deployed to the machine, the corresponding PrivateKey should be returned
+	// in the ProviderArtifact. Some providers such as Amazon creates
+	// publicKey's on the fly and generates the privateKey themself.
+	PublicKeys *publickeys.Keys
+
+	Metrics *metrics.DogStatsD
 
 	// Enable debug mode
 	Debug bool
@@ -50,7 +63,7 @@ func New() *Kloud {
 		idlock:    idlock.New(),
 		Log:       logging.NewLogger(NAME),
 		Eventers:  make(map[string]eventer.Eventer),
-		providers: make(map[string]interface{}),
+		providers: make(map[string]interface{}, 0),
 	}
 
 	return kld

@@ -2,7 +2,7 @@ package lookup
 
 import (
 	"fmt"
-	"koding/kites/kloud/multiec2"
+	"koding/kites/kloud/pkg/multiec2"
 	"sync"
 
 	"github.com/mitchellh/goamz/aws"

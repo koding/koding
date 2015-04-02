@@ -119,6 +119,12 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 		return err
 	}
 
+	// no need to index join/leave messages
+	if message.TypeConstant != models.ChannelMessage_TYPE_POST &&
+		message.TypeConstant != models.ChannelMessage_TYPE_REPLY {
+		return nil
+	}
+
 	objectId := strconv.FormatInt(message.Id, 10)
 	channelId := strconv.FormatInt(listing.ChannelId, 10)
 

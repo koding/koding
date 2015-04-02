@@ -1,13 +1,12 @@
 package koding
 
 import (
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/kloud"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/multierrors"
-	"koding/kites/kloud/protocol"
+	"koding/kites/kloud/pkg/multierrors"
 	"sync"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -35,10 +34,6 @@ func (p *Provider) RunCleaners(interval time.Duration) {
 		if err := p.CleanStates(CleanUpTimeout); err != nil {
 			p.Log.Warning("Cleaning states vms: %s", err)
 		}
-
-		if err := p.CleanNotInitializedVMs(); err != nil {
-			p.Log.Warning("Cleaning states vms: %s", err)
-		}
 	}
 
 	cleaners()
@@ -53,14 +48,14 @@ func (p *Provider) RunCleaners(interval time.Duration) {
 // an ongoing (build, start, stop...) process. There will be a lock due Build
 // which will prevent to delete it.
 func (p *Provider) CleanDeletedVMs() error {
-	machines := make([]MachineDocument, 0)
+	machines := make([]Machine, 0)
 
 	query := func(c *mgo.Collection) error {
 		deletedMachines := bson.M{
 			"userDeleted": true,
 		}
 
-		machine := MachineDocument{}
+		machine := Machine{}
 		iter := c.Find(deletedMachines).Batch(50).Iter()
 		for iter.Next(&machine) {
 			machines = append(machines, machine)
@@ -69,129 +64,29 @@ func (p *Provider) CleanDeletedVMs() error {
 		return iter.Close()
 	}
 
-	if err := p.Session.Run("jMachines", query); err != nil {
+	if err := p.DB.Run("jMachines", query); err != nil {
 		return err
 	}
 
-	deleteMachine := func(machine MachineDocument) error {
-		m := &protocol.Machine{
-			Id:          machine.Id.Hex(),
-			Username:    machine.Credential, // contains the username for koding provider
-			Provider:    machine.Provider,
-			Builder:     machine.Meta,
-			State:       machine.State(),
-			IpAddress:   machine.IpAddress,
-			QueryString: machine.QueryString,
-			Eventer:     &eventer.Events{},
-		}
-		m.Domain.Name = machine.Domain
-
-		// if there is no instance Id just remove the document
-		if _, ok := m.Builder["instanceId"]; !ok {
-			return p.Delete(m.Id)
+	deleteMachine := func(m Machine) error {
+		ctx := context.Background()
+		if err := p.attachSession(ctx, &m); err != nil {
+			return err
 		}
 
-		p.Log.Info("[%s] cleaner: terminating user deleted machine. User %s",
-			m.Id, m.Username)
+		if m.Meta.InstanceId == "" {
+			// if there is no instance Id just remove the document
+			return m.DeleteDocument()
+		}
 
-		p.Destroy(m)
-
-		return p.Delete(m.Id)
+		m.Log.Info("cleaner: terminating user deleted machine. User %s", m.Username)
+		return m.Destroy(context.Background())
 	}
 
 	for _, machine := range machines {
-		go func(machine MachineDocument) {
-			if err := deleteMachine(machine); err != nil {
-				p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
-					machine.Id.Hex(), err.Error())
-			}
-
-		}(machine)
-	}
-
-	return nil
-}
-
-// CleanNotInitializedVMs purges AWS machines that were created but wasn't used
-// to finish the final build.
-func (p *Provider) CleanNotInitializedVMs() error {
-	machines := make([]MachineDocument, 0)
-
-	query := func(c *mgo.Collection) error {
-		// we remove machines which are set to NotInitialized and the state is
-		// older than one hour. This means a build was started, we created a VM
-		// but there was a problem and the build failed, but because the user
-		// didn't continue the build the previously VM was never destroyed.
-		unusedMachines := bson.M{
-			"assignee.inProgress": false,
-			"status.state":        machinestate.NotInitialized.String(),
-			"status.modifiedAt":   bson.M{"$lt": time.Now().UTC().Add(-time.Hour)},
-		}
-
-		machine := MachineDocument{}
-		iter := c.Find(unusedMachines).Batch(50).Iter()
-		for iter.Next(&machine) {
-			machines = append(machines, machine)
-		}
-
-		return iter.Close()
-	}
-
-	if err := p.Session.Run("jMachines", query); err != nil {
-		return err
-	}
-
-	deleteMachine := func(machine MachineDocument) error {
-		// if the machine has an empty instanceId just return
-		if i, ok := machine.Meta["instanceId"]; ok {
-			if instanceId, ok := i.(string); ok {
-				if instanceId == "" {
-					return nil
-				}
-			}
-		} else {
-			// also return if it doesn't exist
-			return nil
-		}
-
-		m := &protocol.Machine{
-			Id:          machine.Id.Hex(),
-			Username:    machine.Credential, // contains the username for koding provider
-			Provider:    machine.Provider,
-			Builder:     machine.Meta,
-			State:       machine.State(),
-			IpAddress:   machine.IpAddress,
-			QueryString: machine.QueryString,
-			Eventer:     &eventer.Events{},
-		}
-		m.Domain.Name = machine.Domain
-
-		p.Log.Info("[%s] cleaner: terminating NotInitialized user machine: %s",
-			m.Id, m.Username)
-
-		err := p.Destroy(m)
-
-		p.Update(m.Id, &kloud.StorageData{
-			// building state is normal, because we can clean up InstanceId
-			// with this mode
-			Type: "building",
-			Data: map[string]interface{}{
-				"instanceId":  "",
-				"queryString": "",
-			},
-		})
-
-		p.Log.Info("[%s] cleaner: cleaning up NotInitialized user machine finished: %s",
-			m.Id, m.Username)
-
-		return err
-	}
-
-	for _, machine := range machines {
-		go func(machine MachineDocument) {
-			if err := deleteMachine(machine); err != nil {
-				p.Log.Error("[%s] couldn't terminate user deleted machine: %s",
-					machine.Id.Hex(), err.Error())
+		go func(m Machine) {
+			if err := deleteMachine(m); err != nil {
+				m.Log.Error("couldn't terminate user deleted machine: %s", err.Error())
 			}
 		}(machine)
 	}
@@ -231,7 +126,7 @@ func (p *Provider) CleanLocks(timeout time.Duration) error {
 		return nil
 	}
 
-	return p.Session.Run("jMachines", query)
+	return p.DB.Run("jMachines", query)
 }
 
 // CleanStates resets documents that has machine states in progress mode
@@ -239,7 +134,7 @@ func (p *Provider) CleanLocks(timeout time.Duration) error {
 // could be caused because of Kloud restarts or panics.
 func (p *Provider) CleanStates(timeout time.Duration) error {
 	cleanstateFunc := func(badstate, goodstate string) error {
-		return p.Session.Run("jMachines", func(c *mgo.Collection) error {
+		return p.DB.Run("jMachines", func(c *mgo.Collection) error {
 			// machines that can't be updated because they seems to be in progress
 			badstateMachines := bson.M{
 				"assignee.inProgress": false, // never update during a onging process :)
