@@ -169,10 +169,28 @@ module.exports = class IDEStatusBar extends KDView
       @collaborationStatus.setClass 'participant'
 
 
+  showSessionEndButton: ->
+
+    @isSessionEndButtonVisible = yes
+    @collaborationEndButtonContainer.unsetClass 'hidden'
+    @collaborationStatus.setClass 'shown'
+
+    kd.singletons.windowController.addLayer @collaborationStatus
+    @collaborationStatus.once 'ReceivedClickElsewhere', =>
+      @hideSessionEndButton()
+
+
+  hideSessionEndButton: ->
+
+    @isSessionEndButtonVisible = no
+    @collaborationEndButtonContainer.setClass 'hidden'
+    @collaborationStatus.unsetClass 'shown'
+
+
   toggleSessionEndButton: ->
 
-    @collaborationEndButtonContainer.toggleClass 'hidden'
-    @collaborationStatus.toggleClass 'shown'
+    if   @isSessionEndButtonVisible then @hideSessionEndButton()
+    else @showSessionEndButton()
 
 
   handleSessionEnd: ->
