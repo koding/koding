@@ -274,36 +274,48 @@ func TestMessageUpdated(t *testing.T) {
 func TestParticipantCreated(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
-	fmt.Println("sdfa")
 	Convey("while adding participant", t, func() {
-
 		Convey("if the user is not in db, should give error", func() {
 			p := &models.ChannelParticipant{
 				AccountId: 1,
 				ChannelId: 1,
 			}
 			err := handler.ParticipantCreated(p)
-			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, bongo.RecordNotFound)
+			So(err, ShouldBeNil)
 		})
 
 		Convey("if the user is in db, but not saved to algolia yet", func() {
-			fmt.Println("1")
 			Convey("should be successfull", func() {
 				a := models.CreateAccountWithTest()
 				p := &models.ChannelParticipant{
 					AccountId: a.Id,
 					ChannelId: 1,
 				}
-				fmt.Println("2")
+
 				err := handler.ParticipantCreated(p)
-				fmt.Println("3")
 				So(err, ShouldBeNil)
-				fmt.Println("4")
 				Convey("we should be able to find it", func() {
-					rec, err := handler.get("accounts", strconv.FormatInt(a.Id, 10))
+					rec, err := handler.get("accounts", a.OldId)
 					So(err, ShouldBeNil)
 					So(rec, ShouldNotBeNil)
+
+					err = makeSureAccount(handler, a.OldId, func(record map[string]interface{}, err error) bool {
+						if err != nil {
+							return false
+						}
+
+						if record == nil {
+							return false
+						}
+						for _, tag := range record["_tags"].([]interface{}) {
+							if tag.(string) == strconv.FormatInt(p.ChannelId, 10) {
+								return true
+							}
+						}
+
+						return false
+					})
+					So(err, ShouldBeNil)
 				})
 			})
 		})

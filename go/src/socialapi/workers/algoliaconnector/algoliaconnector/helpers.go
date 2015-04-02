@@ -1,6 +1,9 @@
 package algoliaconnector
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var ErrDataNotValid = errors.New("Algolia error: invalid data")
 
@@ -33,11 +36,10 @@ func (f *Controller) get(indexName string, objectId string) (map[string]interfac
 }
 
 func (f *Controller) partialUpdate(indexName string, record map[string]interface{}) error {
-	index, err := f.indexes.Get("messages")
+	index, err := f.indexes.Get(indexName)
 	if err != nil {
 		return err
 	}
-
 	if _, err = index.PartialUpdateObject(record); err != nil {
 		return err
 	}
@@ -59,7 +61,6 @@ func appendTag(record map[string]interface{}, channelId string) []interface{} {
 	if !ok {
 		return []interface{}{channelId}
 	}
-
 	for _, ele := range tags {
 		if ele == channelId {
 			return tags

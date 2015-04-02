@@ -204,16 +204,15 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	}
 
 	a := models.NewAccount()
-	fmt.Println("a", a)
 	if err := a.ById(p.AccountId); err != nil {
-		return err
+		f.log.Error("err while fetching account: %s", err.Error())
+		return nil
 	}
 
 	if a.Id == 0 {
 		return bongo.RecordNotFound
 	}
 
-	objectId := strconv.FormatInt(p.AccountId, 10)
 	channelId := strconv.FormatInt(p.ChannelId, 10)
 
 	record, err := f.get(accountIndexName, a.OldId)
@@ -224,7 +223,6 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	}
 
 	if record == nil {
-		fmt.Println("account savedii:", a)
 		// first create the account
 		if err := f.AccountSaved(a); err != nil {
 			return err
@@ -253,7 +251,7 @@ func (f *Controller) ParticipantCreated(p *models.ChannelParticipant) error {
 	}
 
 	return f.partialUpdate(accountIndexName, map[string]interface{}{
-		"objectID": objectId,
+		"objectID": a.OldId,
 		"_tags":    appendTag(record, channelId),
 	})
 }
@@ -269,7 +267,7 @@ func makeSureAccount(handler *Controller, id string, f func(map[string]interface
 	for {
 		select {
 		case <-tick:
-			record, err := handler.get("account", id)
+			record, err := handler.get("accounts", id)
 			if f(record, err) {
 				return nil
 			}
