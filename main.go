@@ -11,6 +11,9 @@ import (
 	"github.com/koding/klient/registration"
 )
 
+// Canonical database path is `$HOME + DatabasePath`
+const DatabasePath = "/.config/koding/klient.bolt"
+
 var (
 	flagIP          = flag.String("ip", "", "Change public ip")
 	flagPort        = flag.Int("port", 56789, "Change running port")
@@ -20,6 +23,7 @@ var (
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
+	flagDBPath      = flag.String("dbpath", DatabasePath, "Bolt DB database path")
 
 	// Registration flags
 	flagKiteHome   = flag.String("kite-home", "~/.kite/", "Change kite home path")
@@ -71,6 +75,7 @@ func realMain() int {
 		UpdateInterval: *flagUpdateInterval,
 		UpdateURL:      *flagUpdateURL,
 		ScreenrcPath:   *flagScreenrc,
+		DBPath:         *flagDBPath,
 	}
 
 	a := app.NewKlient(conf)

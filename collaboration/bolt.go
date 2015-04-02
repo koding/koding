@@ -2,19 +2,12 @@ package collaboration
 
 import (
 	"encoding/json"
-	"os"
-	"os/user"
-	"path/filepath"
-	"time"
+	"errors"
 
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 )
 
-const (
-	UserBucket = "users"
-	// Canonical database path is `$HOME + DatabasePath`
-	DatabasePath = "/.config/koding/klient.bolt"
-)
+const UserBucket = "users"
 
 // boltdb satisfies Storage interface
 type boltdb struct {
@@ -27,40 +20,25 @@ type Tx struct {
 }
 
 // NewBoltStorage returns a new boltdb
-func NewBoltStorage() (*boltdb, error) {
-	d := &boltdb{}
-
-	// Ensure data directory exists.
-	u, err := user.Current()
-	if err != nil {
-		return nil, err
-	}
-	boltPath := u.HomeDir + DatabasePath
-	if err := os.MkdirAll(filepath.Dir(boltPath), 0755); err != nil {
-		return nil, err
+func NewBoltStorage(db *bolt.DB) (*boltdb, error) {
+	if db == nil {
+		return nil, errors.New("boltDB reference is nil")
 	}
 
-	if err := d.open(boltPath); err != nil {
-		return nil, err
-	}
+	b := &boltdb{}
+	b.DB = db
 
-	return d, nil
-}
-
-func (b *boltdb) open(dbpath string) error {
-	var err error
-	b.DB, err = bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
-	if err != nil {
-		return err
-	}
-
-	return b.Update(func(tx *Tx) error {
+	if err := b.Update(func(tx *Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte(UserBucket))
 		if err != nil {
 			return err
 		}
 		return nil
-	})
+	}); err != nil {
+		return nil, err
+	}
+
+	return b, nil
 }
 
 // Get returns the value of a given username
