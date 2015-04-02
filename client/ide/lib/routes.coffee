@@ -110,12 +110,10 @@ routeToFallback = ->
 routeToMachineWorkspace = (machine) ->
 
   latestWorkspace = getLatestWorkspace machine
-  workspaceSlug   = 'my-workspace'
 
   if latestWorkspace
-    { machineLabel } = latestWorkspace
-    if machineLabel is machine.label
-      workspaceSlug = latestWorkspace.workspaceSlug
+  then {workspaceSlug} = latestWorkspace
+  else workspaceSlug   = 'my-workspace'
 
   kd.getSingleton('router').handleRoute "/IDE/#{machine.slug}/#{workspaceSlug}"
 
