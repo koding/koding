@@ -12,13 +12,14 @@ module.exports = class NewEmail extends bongo.Base
     sharedEvents  :
       instance : [ {name : 'messageBusEvent'} ]
 
+  VERSION_1 = ' v1'
 
   @types =
-    WELCOME          : 'Welcome to Koding!'
-    INVITE           : 'invite'
-    FEEDBACK         : 'feedback'
-    USERNAME_CHANGED : 'username_changed'
-    PASSWORD_CHANGED : 'password_changed'
+    WELCOME          : 'welcome'          + VERSION_1
+    INVITE           : 'invite'           + VERSION_1
+    FEEDBACK         : 'feedback'         + VERSION_1
+    USERNAME_CHANGED : 'username changed' + VERSION_1
+    PASSWORD_CHANGED : 'password changed' + VERSION_1
 
 
   queue: (username, mail, options, callback)->
