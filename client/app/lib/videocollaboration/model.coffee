@@ -292,12 +292,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
   stopSession: (callbacks) ->
 
-    @_service.destroyPublisher @channel, @publisher, (err) =>
+    @_service.sendSessionEndSignal @channel, (err) =>
       return callbacks.error err  if err
-      @_service.sendSessionEndSignal @channel, (err) =>
+      @_service.destroyPublisher @channel, @publisher, (err) =>
         return callbacks.error err  if err
         callbacks.success()
-
 
 
   ###*
