@@ -45,7 +45,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
-    subject   or= "pin"
+    subject   or= NewEmail.types.CONFIRM_EMAIL
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
