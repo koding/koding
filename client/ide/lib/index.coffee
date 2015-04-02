@@ -1,5 +1,5 @@
 ndpane                        = require 'ndpane'
-_                             = require 'underscore'
+_                             = require 'lodash'
 kd                            = require 'kd'
 $                             = require 'jquery'
 KDBlockingModalView           = kd.BlockingModalView
