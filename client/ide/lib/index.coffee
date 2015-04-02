@@ -109,7 +109,7 @@ class IDEAppController extends AppController
     @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
 
 
-  prepareIDE: ->
+  prepareIDE: (withFakeViews = no) ->
 
     panel     = @workspace.getView()
     appView   = @getView()
@@ -124,7 +124,7 @@ class IDEAppController extends AppController
 
     appView.emit 'KeyViewIsSet'
 
-    @createInitialView()
+    @createInitialView withFakeViews
     @bindCollapseEvents()
 
     {@finderPane, @settingsPane} = @workspace.panel.getPaneByName 'filesPane'
@@ -325,7 +325,7 @@ class IDEAppController extends AppController
     return @mountedMachine.status.state is Running
 
 
-  createInitialView: ->
+  createInitialView: (withFakeViews) ->
 
     kd.utils.defer =>
       @splitTabView 'horizontal', createNewEditor: no
@@ -338,8 +338,8 @@ class IDEAppController extends AppController
         for ideView in @ideViews
           ideView.mountedMachine = @mountedMachine
 
-        unless @isMachineRunning()
-          nickname     = nick()
+        if not @isMachineRunning() or withFakeViews
+          nickname     = machine.getOwner()
           machineLabel = machine.slug or machine.label
           splashes     = splashMarkups
 
@@ -396,6 +396,7 @@ class IDEAppController extends AppController
 
     computeController = kd.getSingleton 'computeController'
     container         = @getView()
+    withFakeViews     = no
 
     environmentDataProvider.fetchMachineByUId machineUId, (machineItem) =>
 
@@ -405,9 +406,17 @@ class IDEAppController extends AppController
       unless machineItem instanceof Machine
         machineItem = new Machine machine: machineItem
 
+      if not machineItem.isMine() and not machineItem.isApproved()
+        { activitySidebar } = kd.singletons.mainView
+        box = activitySidebar.getMachineBoxByMachineUId machineItem.uid
+        box.machineItem.showSidebarSharePopup sticky: yes
+        withFakeViews = yes
+
       @setMountedMachine machineItem
 
-      @prepareIDE()
+      @prepareIDE withFakeViews
+
+      return no  if withFakeViews
 
       if machineItem
         {state}         = machineItem.status
@@ -1200,6 +1209,7 @@ class IDEAppController extends AppController
     modalOptions.buttons or=
       Yes        :
         cssClass : 'solid green medium'
+        loader   : yes
         callback : callback
       No         :
         cssClass : 'solid light-gray medium'

@@ -111,11 +111,15 @@ routeToMachineWorkspace = (machine) ->
 
   latestWorkspace = getLatestWorkspace machine
 
+  unless machine instanceof Machine
+    machine = new Machine { machine }
+
   if latestWorkspace
   then {workspaceSlug} = latestWorkspace
   else workspaceSlug   = 'my-workspace'
 
-  kd.getSingleton('router').handleRoute "/IDE/#{machine.slug}/#{workspaceSlug}"
+  identifier = if machine.isPermanent() then machine.uid else machine.slug
+  kd.getSingleton('router').handleRoute "/IDE/#{identifier}/#{workspaceSlug}"
 
 
 routeToLatestWorkspace = ->

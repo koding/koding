@@ -1,10 +1,13 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDView = kd.View
-nick = require 'app/util/nick'
-HelpSupportModal = require 'app/commonviews/helpsupportmodal'
-CustomLinkView = require 'app/customlinkview'
+kd                     = require 'kd'
+nick                   = require 'app/util/nick'
+KDView                 = kd.View
+KDButtonView           = kd.ButtonView
+CustomLinkView         = require 'app/customlinkview'
+KDCustomHTMLView       = kd.CustomHTMLView
+HelpSupportModal       = require 'app/commonviews/helpsupportmodal'
 IDEStatusBarAvatarView = require './idestatusbaravatarview'
+
+
 module.exports = class IDEStatusBar extends KDView
 
   constructor: (options = {}, data) ->
@@ -30,6 +33,19 @@ module.exports = class IDEStatusBar extends KDView
     collabDisabled     = mainController.isFeatureDisabled 'collaboration'
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
+
+    @addSubView @collaborationStatus = new KDCustomHTMLView
+      cssClass: 'hidden collab-status'
+      partial : 'Collaboration session is <span>active</span><i></i>'
+      click   : (e) => @toggleSessionEndButton()  if e.target.tagName is 'SPAN'
+
+    @collaborationStatus.addSubView @collaborationEndButtonContainer = new KDCustomHTMLView
+      cssClass : 'button-container hidden'
+
+    @collaborationEndButtonContainer.addSubView @collaborationEndButton = new KDButtonView
+      title    : 'END SESSION'
+      cssClass : 'compact solid red'
+      callback : @bound 'handleSessionEnd'
 
     @addSubView new KDCustomHTMLView
       partial  : '<cite></cite>'
@@ -134,10 +150,61 @@ module.exports = class IDEStatusBar extends KDView
     @share.updatePartial 'Share'
     @avatars.destroySubViews()
 
+    @status.show()
+    @collaborationStatus.hide()
+    @collaborationEndButtonContainer.setClass 'hidden'
+    @collaborationStatus.unsetClass 'participant'
+
 
   handleCollaborationStarted: ->
 
     @share.unsetClass 'loading'
     @share.updatePartial 'Chat'
 
+    @status.hide()
+    @collaborationStatus.show()
 
+    unless @amIHost_()
+      @collaborationEndButton.setTitle 'LEAVE SESSION'
+      @collaborationStatus.setClass 'participant'
+
+
+  showSessionEndButton: ->
+
+    @isSessionEndButtonVisible = yes
+    @collaborationEndButtonContainer.unsetClass 'hidden'
+    @collaborationStatus.setClass 'shown'
+
+    kd.singletons.windowController.addLayer @collaborationStatus
+    @collaborationStatus.once 'ReceivedClickElsewhere', =>
+      @hideSessionEndButton()
+
+
+  hideSessionEndButton: ->
+
+    @isSessionEndButtonVisible = no
+    @collaborationEndButtonContainer.setClass 'hidden'
+    @collaborationStatus.unsetClass 'shown'
+
+
+  toggleSessionEndButton: ->
+
+    if   @isSessionEndButtonVisible then @hideSessionEndButton()
+    else @showSessionEndButton()
+
+
+  handleSessionEnd: ->
+
+    ide = kd.singletons.appManager.getFrontApp()
+
+    if   @amIHost_() then ide.showEndCollaborationModal()
+    else ide.handleParticipantLeaveAction nick()
+
+
+  # Obviously hacky way to know the current user is host or not.
+  # I know, I said many times not rely frontApp on IDE codebase
+  # I think in this case assuming the front app as IDE is safe because
+  # it's a user click action. I need to find a better way tho.
+  amIHost_ : ->
+
+    return kd.singletons.appManager.getFrontApp().amIHost
