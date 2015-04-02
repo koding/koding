@@ -1290,7 +1290,7 @@ class IDEAppController extends AppController
       when 'movetabup'         then @moveTabUp()
       when 'movetabdown'       then @moveTabDown()
       when 'movetableft'       then @moveTabLeft()
-      when 'movetabright'      then @moveTabRight
+      when 'movetabright'      then @moveTabRight()
       else
         if match = key.match /^gototabnumber(\d{1})$/
           # XXX: nope -og
