@@ -29,13 +29,5 @@ func paypalPaymentHelper(req *webhookmodels.PaypalGenericWebhook, action Action,
 		"price":    formatPaypalAmount(req.Currency, req.Amount),
 	}
 
-	user, err := getUserForCustomer(req.PayerId)
-	if err != nil {
-		return err
-	}
-
-	Log.Info("Paypal: Sent paypal email to: %s with plan: %s", user.Email,
-		req.Plan)
-
-	return SendEmail(user, action, opts)
+	return SendEmail(req.PayerId, action, opts)
 }
