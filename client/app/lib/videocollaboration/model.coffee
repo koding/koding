@@ -201,6 +201,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * with given publisher and it will change set the state to active.
   ###
   setActive: ->
+    return  if @state.active
 
     @emit 'VideoCollaborationActive', @publisher
     @setState { active: yes }
