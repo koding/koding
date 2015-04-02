@@ -164,3 +164,18 @@ module.exports = class OpenTokService extends kd.Object
       then callback err
       else callback null, publisher
 
+
+  ###*
+   * It destroys the publisher for given social channel.
+   *
+   * @param {SocialChannel} channel
+   * @param {ParticipantType.Publisher} publisher
+   * @param {function(err: object)} callback
+  ###
+  destroyPublisher: (channel, publisher, callback) ->
+
+    @fetchChannelSession channel, (session) =>
+      session.unpublish publisher.videoData
+      callback null
+
+
