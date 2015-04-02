@@ -50,7 +50,7 @@ module.exports = helpers =
       err = mesage: "Machine not found."
       return helpers.handleWorkspaceCreateError_ eventObj, err
 
-    dataProvider.fetchMachineByUId machineUId, (machine, workspaces) =>
+    dataProvider.fetchMachineByUId machineUId, (m, workspaces) =>
       workspace = w for w in workspaces when w.rootPath is rootPath
 
       handleRoute = (machine, workspace) ->
