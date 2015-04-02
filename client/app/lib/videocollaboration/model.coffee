@@ -206,6 +206,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @setState { active: yes }
 
 
+  setEnded: (type) ->
+    return  unless @state.active
+
+    @emit 'VideoCollaborationEnded'
+    @setState { active: no }
+
+
   ###*
    * Action for joining to VideoCollaboration session. It calls
    * `startPublishing` method and connects handlers for success and error states.
@@ -216,6 +223,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @startPublishing options,
       success : @bound 'handlePublishSuccess'
+      error   : (err) =>
+
+
+  end: ->
+
+    @stopSession
+      success : @bound 'handleStopSuccess'
       error   : (err) =>
 
 
@@ -233,6 +247,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @setActive()
     @changeActiveParticipant getNick()
+
+
+  handleStopSuccess: ->
+
+    @setState { publishing: off }
+    @setEnded()
 
 
   ###*
@@ -268,6 +288,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
         if err
         then callbacks.error err
         else callbacks.success publisher
+
+
+  stopSession: (callbacks) ->
+
+    @_service.destroyPublisher @channel, @publisher, (err) =>
+      return callbacks.error err  if err
+      @_service.sendSessionEndSignal @channel, (err) =>
+        return callbacks.error err  if err
+        callbacks.success()
+
 
 
   ###*
