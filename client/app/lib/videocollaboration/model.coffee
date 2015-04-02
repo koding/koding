@@ -219,6 +219,42 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Registers given OT.Subscriber to subscribers object. It gets the necessary
+   * connectionId information from subscriber object.
+   *
+   * @param {string} nick
+   * @param {OT.Subscriber} subscriber
+   * @return {ParticipantType.Subscriber} _participant
+   * @emits VideoCollaborationModel~ParticipantJoined
+  ###
+  setParticipantJoined: (nick, subscriber) ->
+
+    { connectionId } = subscriber.stream.connection
+    _participant = @registerSubscriber nick, connectionId, subscriber
+    @emit 'ParticipantJoined', _participant
+
+    return _participant
+
+
+  ###*
+   * Unregisters participant from subscribers object.
+   * It uses given connectionId to do this.
+   *
+   * @param {string} connectionId - participant's stream's connection id.
+   * @return {ParticipantType.Subscriber} _participant
+   * @emits VideoCollaborationModel~ParticipantLeft
+  ###
+  setParticipantLeft: (connectionId) ->
+
+    _participant = @subscribers[connectionId]
+    @unregisterSubscriber connectionId
+
+    @emit 'ParticipantLeft', { nick: _participant.nick }
+
+    return _participant
+
+
+  ###*
    * Action for starting VideoCollaboration session. It calls
    * `startPublishing` method and connects handlers for success and error states.
    *
