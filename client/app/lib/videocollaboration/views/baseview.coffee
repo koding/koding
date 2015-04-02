@@ -45,6 +45,13 @@ module.exports = class ChatVideoView extends kd.View
 
   getContainer: -> @container
 
+  ###*
+   * This method needs to be overriden by subclasses.
+   *
+   * @abstract
+  ###
+  handleStateChanged: (type) -> (active) -> throw new Error 'needs to be implemented'
+
 
   show: ->
 
