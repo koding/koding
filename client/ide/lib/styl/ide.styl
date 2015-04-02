@@ -442,6 +442,44 @@ body.ide.dark
     font-size           13px
     abs()
 
+    .collab-status
+      float                 left
+      margin-left           10px
+
+      .button-container
+        display             inline-block
+        position            relative
+        top                 -32px
+        margin-top          -16px
+        height              40px
+        padding             8px 8px 0 8px
+        bg                  color #131313
+        rounded             4px 4px 0 0
+        left                -90px
+        z-index             21
+        borderBox()
+
+      &.participant
+        .button-container
+          left              -96px
+
+      > span
+        color               #55A645
+        text-decoration     underline
+        vendor              user-select, none
+        pointer()
+
+      i
+        r-sprite            'finder', 'expanded'
+        display             inline-block
+        vendor              transform, rotate(180deg)
+        position            relative
+        top                 5px
+
+      &.shown i
+        top                 3px
+        vendor              transform, rotate(0deg)
+
     .status
       margin-left       12px
       fl()
