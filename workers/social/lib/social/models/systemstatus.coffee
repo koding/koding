@@ -137,8 +137,8 @@ module.exports = class JSystemStatus extends Model
       return callback err  if err
 
       e = new NewEmail
-      e.queue {
+      e.queue delegate.profile.nickname, {
         to      : recipientEmail
         subject : NewEmail.types.FEEDBACK
-        properties : { status, userAgent, feedback, userEmail : email }
-      }, (err)-> console.error err  if err
+      }, {status, userAgent, feedback, userEmail:email}, (err)->
+        console.error err  if err

@@ -179,7 +179,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           return callback err  if err
           return callback { message: 'The token has expired.', short: 'expired_token' }
 
-      JUser = require './user'
+      JUser    = require './user'
+      NewEmail = require "./newemail"
+
       JUser.one {email:certificate.email}, (err, user)->
         return callback UNKNOWN_ERROR  if err or not user
         user.confirmEmail (err)->
@@ -187,12 +189,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           certificate.update {$set: status: 'redeemed'}, (err) ->
             return callback err if err
 
-            NewEmail = require "./newemail"
-            NewEmail.queue {
+            e = new NewEmail
+            e.queue user.username, {
               to       : certificate.email
               subject  : NewEmail.types.WELCOME
-              username : user.username
-            }, (err) console.error err  if err
+            }, {}, (err) console.error err  if err
 
   @invalidate =(query, callback)->
     query.status = 'active'

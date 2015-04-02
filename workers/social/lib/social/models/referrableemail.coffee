@@ -1,6 +1,8 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
-  JAccount           = require "./account"
+  JAccount = require "./account"
+  NewEmail = require "./newemail"
+
   {ObjectId, secure, signature} = require "bongo"
   {ObjectId, secure} = require "bongo"
 
@@ -64,17 +66,15 @@ module.exports = class JReferrableEmail extends jraphical.Module
     JReferrableEmail.remove {username}, callback
 
   invite: secure (client, callback)->
-    {delegate: profile: {firstName, lastName}} = client.connection
+    {delegate: profile: {firstName, lastName, nickname}} = client.connection
 
     shareUrl  = "https://koding.com/R/#{@username}"
 
-    NewEmail  = require "./newemail"
     email     = new NewEmail
-    email.queue {
+    email.queue nickname, {
       to         : @email
       subject    : NewEmail.types.INVITE
-      properties : { firstName, lastName, shareUrl }
-    }, (err) =>
+    }, { firstName, lastName, shareUrl }, (err) =>
       return callback err  if err
       @update $set: invited: true, callback
 

@@ -13,7 +13,7 @@ module.exports = class JVerificationToken extends Module
   {secure}    = require 'bongo'
   crypto      = require 'crypto'
   hat         = require 'hat'
-  NewEmail    = require './email'
+  NewEmail    = require './newemail'
 
   @share()
 
@@ -45,7 +45,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
-    subject   or= "Here is your code"
+    subject   or= "pin"
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
@@ -61,6 +61,7 @@ module.exports = class JVerificationToken extends Module
         if confirmation and isAlive confirmation
           if resendIfExists
             confirmation.sendEmail {subject, firstName, action}, callback
+            confirmation.sendEmail {username, subject, firstName, action}, callback
           else
             callback if err then err else new PINExistsError \
               "PIN exists and not expired,
@@ -85,7 +86,7 @@ module.exports = class JVerificationToken extends Module
             if err
               callback err
             else
-              confirmation.sendEmail {subject, firstName, action}, callback
+              confirmation.sendEmail {username, subject, firstName, action}, callback
 
 
   @confirmByPin = (options, callback)->
@@ -107,62 +108,10 @@ module.exports = class JVerificationToken extends Module
         callback null, false
 
 
-  getTextBody = ({firstName, pin, action})->
-
-    templates =
-
-      'verify-account': """
-        Thanks for signing up and welcome to Koding!
-
-        Here's the confirmation code that you can use to verify your email address:
-
-          <b>#{pin}</b>
-
-        If you run into any issues, just reply to this email and help will be on its way!
-
-        Have a nice day!
-
-        --
-        Koding Team
-      """
-
-      'update-email'  : """
-        Hi #{firstName},
-
-        To verify your new e-mail address you can use the following code:
-
-          <b>#{pin}</b>
-
-        Have a nice day!
-
-        --
-        Koding Team
-      """
-
-      default         : """
-        Hi #{firstName},
-
-        Here’s your koding.com verification code:
-
-          <b>#{pin}</b>
-
-        Have a nice day!
-
-        --
-        Koding Team
-      """
-
-    return templates[action] or templates.default
-
-
-  sendEmail: ({subject, firstName, action}, callback)->
+  sendEmail: ({subject, firstName, username, action}, callback)->
 
     e = new NewEmail
-    e.queue {
-      to         : @email
-      subject    : subject
-      properties : {firstName, @pin, action}
-    }, callback
+    e.queue username, {to:@email, subject}, {firstName, @pin, action}, callback
 
 
   @invalidatePin = (options, callback)->

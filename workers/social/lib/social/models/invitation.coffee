@@ -191,12 +191,11 @@ module.exports = class JInvitation extends jraphical.Module
 
       JUser.fetchUser client, (err, inviter)=>
         e = new NewEmail
-        e.queue {
+        e.queue delegate.profile.nickname, {
           to         : @email
           subject    : @constructor.getSubject details
           content    : getTextBody {firstName, @pin, action}
-          properties : {inviterEmail : inviter.email}
-        }, callback
+        }, {inviterEmail : inviter.email}, callback
 
 
   @getSubject = ({inviter, group, isPublic})->
@@ -369,11 +368,10 @@ module.exports = class JInvitation extends jraphical.Module
       {inviter, url, message} = messageOptions
 
       e = new NewEmail
-      e.queue {
+      e.queue delegate.profile.nickname, {
         to         : @email
         subject    : @constructor.getInviteFriendSubject messageOptions
-        properties : {inviterEmail: inviter.email, inviter, url, message}
-      }, (err) =>
+      },{inviterEmail: inviter.email, inviter, url, message}, (err) =>
         status = if err then 'couldnt send email' else 'sent'
         @update {$set: status: status}, callback
 

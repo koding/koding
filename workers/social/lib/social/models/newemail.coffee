@@ -14,21 +14,17 @@ module.exports = class NewEmail extends bongo.Base
 
 
   @types =
-    WELCOME          : 'welcome'
+    WELCOME          : 'Welcome to Koding!'
     INVITE           : 'invite'
     FEEDBACK         : 'feedback'
     USERNAME_CHANGED : 'username_changed'
     PASSWORD_CHANGED : 'password_changed'
 
 
-  queue: (mail, callback)->
+  queue: (username, mail, options, callback)->
     mail.to           = forcedRecipient or mail.to
     mail.from       or= defaultFromMail
-    mail.properties or= {}
-
-    keys = [ 'to', 'subject', 'username' ]
-    for param in keys when not mail[param]
-      return callback {message: "#{param} is required"}
+    mail.properties   = { options, username}
 
     @emit 'messageBusEvent', {type : 'api.mail_send', message: mail}
 

@@ -1133,7 +1133,7 @@ module.exports = class JUser extends jraphical.Module
   sendChangedEmail = (username, to, type) ->
 
     email = new NewEmail
-    email.queue { to, username, subject : "#{type}_changed"}, (err)->
+    email.queue username, { to, subject : "#{type}_changed"}, {}, (err)->
       console.log err  if err
 
 
@@ -1259,9 +1259,10 @@ module.exports = class JUser extends jraphical.Module
       return callback err if err
       JUser.emit "EmailConfirmed", @
 
-      welcomeemail = require "../welcomeemail"
-      welcomeemail.send @email, @username, (err)->
-        callback err
+      subject = NewEmail.types.WELCOME
+
+      email = new NewEmail
+      email.queue @username, { to : @email, subject }, {}, callback
 
 
   block:(blockedUntil, callback)->
