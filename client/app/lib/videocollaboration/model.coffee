@@ -95,9 +95,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @listens OT.Session~streamDestroyed
    * @listens OT.Session~connectionCreated
    * @listens OT.Session~sessionDisconnected
-   * @listens OT.Subscriber~destroyed
-   * @emits VideoCollaborationModel~ParticipantLeft
-   * @emits VideoCollaborationModel~ParticipantJoined
    * @emits VideoCollaborationModel~HostKickedLoggedInUser
    * @emits VideoCollaborationModel~VideoCollaborationEnded
    * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
@@ -151,12 +148,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {string} nick
    * @param {string} connectionId
    * @param {OT.Subscriber} subscriber
-   * @param {ParticipantType.Subscriber} _subscriber
+   * @return {ParticipantType.Subscriber} _subscriber
   ###
   registerSubscriber: (nick, connectionId, subscriber) ->
 
     _subscriber = new ParticipantType.Subscriber nick, subscriber
-
     @subscribers[connectionId] = _subscriber
 
     return _subscriber
@@ -179,7 +175,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * stream for easy access.
    *
    * @param {OT.Publisher} publisher
-   * @return {ParticipantType.Publishe} _publisher
+   * @return {ParticipantType.Publisher} _publisher
   ###
   registerPublisher: (publisher) ->
 
@@ -195,6 +191,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * without the user publishing his/her video. It's not a concern of neither
    * this method's nor this entire class, because simply it will emit an event
    * with given publisher and it will change set the state to active.
+   * This method doesn't try to activate session, instead this is the final
+   * step of activation of video collaboration session.
+   *
+   * @emits VideoCollaborationModel~VideoCollaborationActive
   ###
   setActive: ->
     return  if @state.active
@@ -203,7 +203,15 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @setState { active: yes }
 
 
-  setEnded: (type) ->
+  ###*
+   * Action to trigger ending process of video collaboration.
+   * !!! It doesn't stop the session itself, this and other methods starting
+   * with `set` prefix are meant to be called to trigger events for views and
+   * state transitions. This is the final step of ending a session.
+   *
+   * @emits VideoCollaborationModel~VideoCollaborationEnded
+  ###
+  setEnded: ->
     return  unless @state.active
 
     @emit 'VideoCollaborationEnded'
@@ -287,6 +295,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
         else callbacks.success publisher
 
 
+  ###*
+   * It delegates to necessary methods from service to stop session, and then
+   * calls given callbacks in certain situations.
+   *
+   * @param {function(err: object)} callbacks.error
+   * @param {function} callbacks.success
+  ###
   stopSession: (callbacks) ->
 
     @_service.sendSessionEndSignal @channel, (err) =>
