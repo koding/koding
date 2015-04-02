@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 $ = require 'jquery'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView

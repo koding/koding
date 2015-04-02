@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 htmlencode = require 'htmlencode'
 globals = require 'globals'
 getGroup = require './util/getGroup'
