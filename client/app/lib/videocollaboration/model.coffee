@@ -115,13 +115,19 @@ module.exports = class VideoCollaborationModel extends kd.Object
       { connectionId } = stream.connection
 
       subscriber = session.subscribe stream, element, options
-      participant = @registerSubscriber nick, connectionId, subscriber
 
-      @emit 'ParticipantJoined', participant
+      @setParticipantJoined nick, subscriber
 
     session.on 'streamDestroyed', (event) =>
 
-      @emit 'ParticipantLeft', { nick: event.stream.name }
+      { connection, name } = event.stream
+
+      # Emit necessary events for that participant
+      @setParticipantLeft connectionId
+
+      # end session if there are no other subscribers that are sending a video,
+      # or audio to the session.
+      @setEnded()  if @getSubscribersCount() is 0
 
     session.on 'connectionCreated', (event) =>
       count = @state.connectionCount
