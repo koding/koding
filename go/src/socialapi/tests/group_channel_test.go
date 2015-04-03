@@ -99,7 +99,8 @@ func TestGroupChannel(t *testing.T) {
 
 			anotherAccount := models.NewAccount()
 			anotherAccount.OldId = AccountOldId.Hex()
-			anotherAccount, err := rest.CreateAccount(anotherAccount)
+			anotherAccount, err = rest.CreateAccount(anotherAccount)
+
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
