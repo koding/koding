@@ -383,14 +383,14 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {function(error: object)} callbacks.error
   ###
   startPublishing: (options, callbacks) ->
+    return  if @state.publishing
 
     defaults =
-      publishAudio: @state.publishAudio
-      publishVideo: @state.publishVideo
+      publishAudio: no
+      publishVideo: no
 
-    options = _.assign {}, defaults, options
-
-    @_service.createPublisher @view, options, (err, publisher) =>
+    # first create publisher with defaults.
+    @_service.createPublisher @view.getContainer(), defaults, (err, publisher) =>
       return callbacks.error err  if err
 
       publisher.on
@@ -400,9 +400,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
         accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
 
       @session.publish publisher, (err) =>
-        if err
-        then callbacks.error err
-        else callbacks.success publisher
+        return callbacks.error err  if err
+        callbacks.success publisher
+        @setAudioState options.publishAudio
+        @setVideoState options.publishVideo
 
 
   ###*
@@ -412,13 +413,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {function(err: object)} callbacks.error
    * @param {function} callbacks.success
   ###
-  stopSession: (callbacks) ->
+  stopPublishing: (callbacks) ->
 
-    @_service.sendSessionEndSignal @channel, (err) =>
+    @_service.destroyPublisher @channel, @publisher, (err) =>
       return callbacks.error err  if err
-      @_service.destroyPublisher @channel, @publisher, (err) =>
-        return callbacks.error err  if err
-        callbacks.success()
+      callbacks.success()
 
 
   ###*
