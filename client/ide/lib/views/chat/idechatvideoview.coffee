@@ -11,3 +11,15 @@ module.exports = class IDEChatVideoView extends BaseChatVideoView
     super options, data
 
 
+  ###*
+   * Take a type and return a handler.
+   *
+   * TODO: probably need to improve this api.
+   *
+   * @see {@link BaseChatVideoView::handleStateChanged} for more info.
+  ###
+  handleStateChangeRequest: (type) -> (active) ->
+
+    kd.singletons.appManager.tell 'IDE', 'toggleVideoControl', type, active
+
+
