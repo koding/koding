@@ -1,11 +1,13 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDInputView = kd.InputView
+kd                   = require 'kd'
+KDCustomHTMLView     = kd.CustomHTMLView
+KDInputView          = kd.InputView
 KDListViewController = kd.ListViewController
-nick = require 'app/util/nick'
-FSHelper = require 'app/util/fs/fshelper'
-IDEFileFinderItem = require './idefilefinderitem'
-Encoder = require 'htmlencode'
+nick                 = require 'app/util/nick'
+FSHelper             = require 'app/util/fs/fshelper'
+IDEFileFinderItem    = require './idefilefinderitem'
+Encoder              = require 'htmlencode'
+keycode              = require 'keycode'
+_                    = require 'lodash'
 
 
 module.exports = class IDEFileFinder extends KDCustomHTMLView
@@ -19,11 +21,7 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
     @addSubView @input = input = new KDInputView
       type         : 'text'
       placeholder  : 'Type a file name to search'
-      keyup        :
-        'esc'      : @bound 'destroy'
-        'enter'    : @bound 'handleEnterKey'
-        'down'     : => @handleNavigation 'down'
-        'up'       : => @handleNavigation 'up'
+      keydown      : _.bind @handleKeyDown, this
 
     input.on 'keyup', kd.utils.debounce 300, @bound 'handleKeyUp'
     input.on 'keyup', =>
@@ -37,6 +35,18 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
 
     kd.getSingleton('windowController').addLayer this
     @on 'ReceivedClickElsewhere', @bound 'destroy'
+
+
+  handleKeyDown: (e) ->
+
+    code = e.which or e.keyCode
+    key  = keycode code
+
+    switch key
+      when 'esc'   then @destroy()
+      when 'enter' then @handleEnterKey()
+      when 'up'    then @handleNavigation 'up'
+      when 'down'  then @handleNavigation 'down'
 
 
   search: (text) ->
