@@ -134,6 +134,11 @@ module.exports = class OpenTokService extends kd.Object
       session.signal { type }, callback
 
 
+  sendSessionStartSignal: (channel, callback) ->
+
+    @sendSignal channel, 'start', callback
+
+
   sendSessionEndSignal: (channel, callback) ->
 
     @sendSignal channel, 'end', callback
