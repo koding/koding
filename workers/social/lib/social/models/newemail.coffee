@@ -39,7 +39,7 @@ module.exports = class Email
     sendMessage =->
       mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>
         unless exchange
-          return callback new KodingError "Exchange not found!: #{exchangeName}"
+          return console.error "Exchange not found to queue Email!: #{exchangeName} @sent-hil"
 
         exchange.publish "", mail, type:EVENT_TYPE
         exchange.close()
