@@ -278,6 +278,25 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Ensures that user is publishing before executing the callback.
+   *
+   * @param {object} options
+   * @param {function} callback
+  ###
+  ensurePublishing: (options, callback) ->
+    return callback()  if @state.publishing
+
+    successCb = =>
+      @handlePublishSuccess publisher
+      callback()
+
+    @setState options
+    @startPublishing options,
+      success : successCb
+      error   : (err) ->
+
+
+  ###*
    * Handler for successful video publishing. It transforms and registers given
    * `OT.Publisher` instance. Sets active participant to user.
    *
