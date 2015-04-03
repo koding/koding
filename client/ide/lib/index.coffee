@@ -1311,3 +1311,21 @@ class IDEAppController extends AppController
           e.stopPropagation()
 
           @goToTabNumber parseInt(match[1], 10) - 1
+
+
+  showUserRemovedModal: ->
+
+    options        =
+      title        : 'Machine access revoked'
+      content      : 'Your access to this machine has been removed by its owner.'
+      blocking     : yes
+      buttons      :
+        quit       :
+          style    : 'solid light-gray medium'
+          title    : 'OK'
+          callback : =>
+
+            @modal.destroy()
+            @quit()
+
+    @showModal options
