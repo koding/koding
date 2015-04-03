@@ -683,4 +683,8 @@ module.exports = class SocialApiController extends KDController
     glance               : notificationRequesterFn
       fnName             : 'glance'
 
+  account                :
+    impersonate          : (username, callback) ->
 
+      endPoint = "/Impersonate/#{username}"
+      doXhrRequest {type: 'POST', endPoint, async: yes}, callback
