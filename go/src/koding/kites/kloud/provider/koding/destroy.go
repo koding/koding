@@ -36,8 +36,6 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 			// if it's something else return it
 			return err
 		}
-
-		m.Meta.InstanceId = ""
 	}
 
 	m.push("Deleting base domain", 85, machinestate.Terminating)
