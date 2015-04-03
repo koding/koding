@@ -11,7 +11,7 @@ module.exports = class SshKey extends KDObject
     { @key } = options
 
 
-  deploy: (machines, callback) ->
+  deployTo: (machines, callback) ->
 
     return  unless machines
 

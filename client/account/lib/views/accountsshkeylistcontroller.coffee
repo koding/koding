@@ -36,7 +36,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
       { key, title, machines } = item.getData()
 
       sk = new SshKey { key }
-      sk.deploy machines, (err) =>
+      sk.deployTo machines, (err) =>
         if err
           item.emit "KeyFailed", err
         else
