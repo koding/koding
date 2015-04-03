@@ -307,6 +307,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Set video state to given state.
+   *
+   * @param {boolean} state
+  ###
+  setVideoState: (state) ->
+    @ensurePublishing { publishVideo: state }, =>
+      @publisher.videoData.publishVideo state
+
+
+  ###*
    * Handler for successful video publishing. It transforms and registers given
    * `OT.Publisher` instance. Sets active participant to user.
    *
