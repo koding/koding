@@ -1,16 +1,18 @@
 bongo  = require 'bongo'
 {argv} = require 'optimist'
-KONFIG = require('koding-config-manager').load("main.#{argv.c}")
 
-KodingError = require '../error'
+KONFIG       = require('koding-config-manager').load("main.#{argv.c}")
+{socialapi}  = KONFIG
+exchangeName = "#{socialapi.eventExchangeName}:0"
+exchangeOpts = {autoDelete: no, durable:yes, type :'fanout'}
 
-module.exports = class NewEmail extends bongo.Base
+mqClient = null
+
+module.exports = class NewEmail
+
+  KodingError = require '../error'
 
   {forcedRecipient, defaultFromMail} = KONFIG.email
-
-  @set
-    sharedEvents  :
-      instance : [ {name : 'messageBusEvent'} ]
 
   VERSION_1 = ' v1'
 
@@ -23,12 +25,22 @@ module.exports = class NewEmail extends bongo.Base
     CONFIRM_EMAIL    : 'confirm email'    + VERSION_1
     PASSWORD_RECOVER : 'password recover' + VERSION_1
 
+  @setMqClient = (m)-> mqClient = m
 
-  queue: (username, mail, options, callback)->
+  @queue = (username, mail, options, callback)->
     mail.to           = forcedRecipient or mail.to
     mail.from       or= defaultFromMail
     mail.properties   = { options, username}
 
-    @emit 'messageBusEvent', {type : 'api.mail_send', message: mail}
+    unless mqClient
+      return callback new KodingError 'RabbitMQ client not found in NewEmail'
 
-    callback null
+    mqClient.once "ready", =>
+      mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>
+        unless exchange
+          return callback new KodingError "Exchange not found!: #{exchangeName}"
+
+        exchange.publish "", type : 'api.mail_send', message: mail
+        exchange.close()
+
+        callback null

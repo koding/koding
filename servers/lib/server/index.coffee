@@ -831,6 +831,11 @@ console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pi
 # start user tracking
 usertracker.start()
 
+# init rabbitmq client for Email to use to queue emails
+mqClient = require './amqp'
+NewEmail = require '../../../workers/social/lib/social/models/newemail.coffee'
+NewEmail.setMqClient mqClient
+
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.
