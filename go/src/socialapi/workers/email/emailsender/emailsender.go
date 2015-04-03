@@ -75,7 +75,7 @@ func (c *Controller) Process(m *Mail) error {
 // DefaultErrHandler controls the errors, return false if an error occurred
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	c.log.Error("an error occurred while sending email error as %+v ", err.Error())
-	delivery.Nack(false, true)
+	delivery.Nack(false, false)
 
 	return false
 }
