@@ -157,9 +157,9 @@ module.exports = class OpenTokService extends kd.Object
   ###
   createPublisher: (view, publisherOptions = {}, callback) ->
 
-    publisherOptions.name       or= getNick()
-    publisherOptions.style      or= { nameDisplayMode: on }
-    publisherOptions.insertMode or= 'append'
+    publisherOptions.name        or= getNick()
+    publisherOptions.insertMode  or= 'append'
+    publisherOptions.showControls ?= off
 
     publisherOptions.height = 265
     publisherOptions.width  = 325
