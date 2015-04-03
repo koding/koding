@@ -1,5 +1,5 @@
 $                    = require 'jquery'
-_                    = require 'underscore'
+_                    = require 'lodash'
 globals              = require 'globals'
 getAppOptions        = require './util/getAppOptions'
 getAppClass          = require './util/getAppClass'
