@@ -63,6 +63,8 @@ showParticipant = (participant) ->
 
   participant.videoData.element.style.display = 'block'
 
+  fixParticipantVideo participant
+
 
 ###*
   * This is a workaround.
