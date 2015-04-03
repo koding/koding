@@ -67,11 +67,9 @@ module.exports = class NavigationMachineItem extends JView
     isMine     = @machine.isMine()
     isApproved = @machine.isApproved()
 
-    if isMine or isApproved
-      if @settingsEnabled()
-        @createSettingsIcon()
-    else
-        @createSettingsIconPlaceholder()
+    if (isMine or isApproved) and @settingsEnabled()
+    then @createSettingsIcon()
+    else @createSettingsIconPlaceholder()
 
     kd.singletons.computeController
       .on "reconnecting-#{@machine.uid}", =>
