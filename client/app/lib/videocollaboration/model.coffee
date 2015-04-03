@@ -150,6 +150,18 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       @emit eventName
 
+    session.on 'signal:end', =>
+      @stopPublishing
+        success : @bound 'handleStopSuccess'
+        error   : (err) =>
+
+    session.on 'signal:start', =>
+      options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+      @startPublishing options,
+        success : @bound 'handlePublishSuccess'
+        error   : (err) =>
+
+
   subscribeToStream: (session, stream) ->
 
     helper.subscribeToStream session, stream, @getView().getContainer(),
@@ -278,9 +290,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   start: (options) ->
 
-    @startPublishing options,
-      success : @bound 'handlePublishSuccess'
-      error   : (err) =>
+    @_service.sendSessionStartSignal @channel, (err) =>
+      return console.error err  if err
 
 
   ###*
@@ -289,9 +300,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   end: ->
 
-    @stopSession
-      success : @bound 'handleStopSuccess'
-      error   : (err) =>
+    @_service.sendSessionEndSignal @channel, (err) =>
+      return console.error err  if err
 
 
   ###*
