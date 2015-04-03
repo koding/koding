@@ -328,8 +328,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {boolean} state
   ###
   setAudioState: (state) ->
-    @ensurePublishing { publishAudio: state }, =>
-      @publisher.videoData.publishAudio state
+
+    @publisher.videoData.publishAudio state
+    @setState { audio: state }
+    @emit 'AudioPublishStateChanged', state
 
 
   ###*
@@ -338,8 +340,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {boolean} state
   ###
   setVideoState: (state) ->
-    @ensurePublishing { publishVideo: state }, =>
-      @publisher.videoData.publishVideo state
+
+    @publisher.videoData.publishVideo state
+    @setState { video: state }
+    @emit 'VideoPublishStateChanged', state
 
 
   ###*
