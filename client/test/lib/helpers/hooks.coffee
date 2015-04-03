@@ -1,6 +1,6 @@
 AWS      = require 'aws-sdk'
 browser_ = null
-_        = require 'underscore'
+_        = require 'lodash'
 
 
 AWS.config.update accessKeyId: 'AKIAJSUVKX6PD254UGAA', secretAccessKey: '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'

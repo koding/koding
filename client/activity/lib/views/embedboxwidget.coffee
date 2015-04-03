@@ -1,4 +1,4 @@
-_                  = require 'underscore'
+_                  = require 'lodash'
 Encoder            = require 'htmlencode'
 kd                 = require 'kd'
 KDButtonView       = kd.ButtonView

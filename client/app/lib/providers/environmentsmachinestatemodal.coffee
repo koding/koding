@@ -59,12 +59,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
       if not verified
         @buildVerifyView()
-      else if not @machine.isApproved()
-        if @machine.isPermanent()
-          @buildApproveView()
-        else
-          @prepareIDE()
-          @destroy()
       else
         kd.singletons.paymentController.subscriptions (err, subscription)=>
           kd.warn err  if err?
@@ -277,49 +271,6 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
     @container.addSubView @codeEntryView
     @container.addSubView @button
-
-
-  buildApproveView: ->
-
-    @container.destroySubViews()
-
-    @approveButton = new KDButtonView
-      title    : 'Approve'
-      cssClass : 'solid medium green plan-change-button'
-      callback : =>
-        @showBusy "Working..."
-        @machine.jMachine.approve (err)=>
-          unless showError err
-            @_busy = no
-            @buildInitial()
-
-    @denyButton = new KDButtonView
-      title    : 'Deny'
-      cssClass : 'solid medium green plan-change-button downgrade'
-      callback : =>
-
-        @showBusy "Working..."
-
-        @machine.jMachine.deny (err)->
-          {computeController, router} = kd.singletons
-
-          @_busy = no
-
-          unless showError err
-            computeController.once 'RenderMachines', ->
-              router.handleRoute '/IDE'
-            computeController.reset yes
-
-    @container.addSubView new KDCustomHTMLView
-      cssClass : 'expired-message'
-      partial  : """
-        <h1>A Shared VM</h1>
-        <p>This machine is shared with you by <b>#{@machine.getOwner()}</b>.
-        You need to approve this action before start using this machine.</p>
-      """
-
-    @container.addSubView @approveButton
-    @container.addSubView @denyButton
 
 
   buildExpiredView: (subscription, nextState)->

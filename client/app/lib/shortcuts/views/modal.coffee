@@ -1,5 +1,5 @@
 kd            = require 'kd'
-_             = require 'underscore'
+_             = require 'lodash'
 ShortcutsPane = require './pane'
 defaults      = require '../config'
 

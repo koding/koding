@@ -1,5 +1,5 @@
 $                    = require 'jquery'
-_                    = require 'underscore'
+_                    = require 'lodash'
 getscript            = require 'getscript'
 kd                   = require 'kd'
 KDButtonView         = kd.ButtonView
