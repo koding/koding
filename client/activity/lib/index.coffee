@@ -1,12 +1,12 @@
-kd = require 'kd'
+kd              = require 'kd'
 ActivityAppView = require './activityappview'
-ContentDisplayStatusUpdate = require './contentdisplays/contentdisplaystatusupdate'
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-getGroup = require 'app/util/getGroup'
-checkFlag = require 'app/util/checkFlag'
-AppStorage = require 'app/appstorage'
-AppController = require 'app/appcontroller'
+remote          = require('app/remote').getInstance()
+globals         = require 'globals'
+getGroup        = require 'app/util/getGroup'
+checkFlag       = require 'app/util/checkFlag'
+AppStorage      = require 'app/appstorage'
+AppController   = require 'app/appcontroller'
+
 require('./routehandler')()
 
 module.exports = class ActivityAppController extends AppController
