@@ -34,6 +34,9 @@ type Notification struct {
 	// notification type as subscribed/unsubscribed
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
 
+	// context group channel id
+	ContextChannelId int64 `json:"contextChannelId" sql:"NOT NULL"`
+
 	SubscribeOnly bool `json:"-" sql:"-"`
 }
 
