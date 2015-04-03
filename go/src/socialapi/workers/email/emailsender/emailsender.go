@@ -7,7 +7,6 @@ import (
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
-	"github.com/kr/pretty"
 	"github.com/streadway/amqp"
 )
 
@@ -22,8 +21,6 @@ type Controller struct {
 
 // New Creates a new controller for mail worker
 func New(exporter eventexporter.Exporter, log logging.Logger) *Controller {
-	pretty.Println(">>>>>>>>>>>>")
-
 	return &Controller{
 		emailer: exporter,
 		log:     log,
@@ -46,8 +43,6 @@ func (c *Controller) Process(m *Mail) error {
 	if isForceRecipient(c.forcedRecipient) {
 		to = c.forcedRecipient
 	}
-
-	pretty.Println(m, to)
 
 	user := &eventexporter.User{Email: to}
 	if m.Properties == nil {
