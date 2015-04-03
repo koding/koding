@@ -274,7 +274,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   setParticipantLeft: (connectionId) ->
 
-    _participant = @subscribers[connectionId]
+    return  unless _participant = @subscribers[connectionId]
     @unregisterSubscriber connectionId
 
     @emit 'ParticipantLeft', { nick: _participant.nick }
