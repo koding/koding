@@ -57,26 +57,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @expiryPeriod = 1000 * 60 * 90 # 90 min
 
-  @getPasswordRecoveryEmail =-> 'hello@koding.com'
-
   @getEmailSubject = ({resetPassword})->
     if resetPassword then Email.types.PASSWORD_RECOVER
     else Email.types.CONFIRM_EMAIL
-
-
-  @getEmailDateFormat = -> 'fullDate'
-
-  @getEmailMessage = ({requestedAt, url, resetPassword})->
-    # TODO DRY this
-    verb = if resetPassword then "reset" else "confirm"
-    obj = if resetPassword then "password" else "email"
-    """
-    Please click the link below to #{verb} your #{obj}. This token is valid for only 30 minutes.
-
-    #{url}
-
-    If you can't click the link, please copy it and paste it on your browser. If you didn't request this, please ignore this email.
-    """
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
@@ -160,7 +143,6 @@ module.exports = class JPasswordRecovery extends jraphical.Module
             Email.queue username, {
               to          : email
               subject    : @getEmailSubject messageOptions
-              content    : @getEmailMessage messageOptions
             }, {tokenUrl, firstName:username}, callback
 
 
