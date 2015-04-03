@@ -451,6 +451,81 @@ app.settings.styl
     -moz-transform          translateX(-200px)
     transform               translateX(-200px)
 
+.AppModal--account .referral-system
+
+  font-size             14px
+
+  .top
+    height              150px
+
+  .total-space
+
+    size                150px, 150px
+
+    border              1px solid #ccc
+    padding             40px 10px
+    text-align          center
+    border-radius       4px
+
+    borderBox()
+    fl()
+
+    div
+      width             auto
+      height            auto
+
+    .total
+      font-size         33px
+      color             #449940
+
+    .text
+      line-height       20px
+      font-size         15px
+      color             #aaa
+      padding           15px 5px
+
+  .share-box
+    width               320px
+    margin              0 20px
+    fl()
+
+    > div
+      height            auto
+
+    a
+      color             #888
+      noTextDeco()
+
+    .title
+      font-weight       bold
+
+    .subtitle
+      color             #888
+
+    .custom-link-view
+
+      span.icon
+        display         inline-block
+        margin          7px 3px 3px
+        size            26px, 26px
+
+      .google
+        r-sprite        'account' 'ext-gplus'
+
+      .linkedin
+        r-sprite        'account' 'ext-linkedin'
+
+      .twitter
+        r-sprite        'account' 'ext-twitter'
+
+      .facebook
+        r-sprite        'account' 'ext-facebook'
+
+      // We don't have mail icon for this, FIXME @burak
+      .mail
+        r-sprite        'account' 'ext-github'
+
+
 
 .kdmodal.payments-modal
   .kdmodal-content
