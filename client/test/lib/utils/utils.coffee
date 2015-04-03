@@ -21,7 +21,7 @@ module.exports =
 
       email = "kodingtestuser+#{username}@gmail.com"
 
-      users.push { name, email, username, password, posts, comments }
+      users.push { name, email, username, password }
 
 
     fs.writeFileSync 'users.json', JSON.stringify(users), 'utf-8'
