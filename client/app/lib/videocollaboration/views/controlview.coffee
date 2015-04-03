@@ -5,7 +5,8 @@ module.exports = class VideoControlView extends kd.ButtonView
   constructor: (options = {}, data) ->
 
     options.cssClass = kd.utils.curry 'solid', options.cssClass
-    options.icon = yes
+    options.icon     = yes
+
     super options, data
 
     @setActiveState options.active
@@ -25,8 +26,5 @@ module.exports = class VideoControlView extends kd.ButtonView
     else @unsetClass 'is-active'
 
     @active = active
-
-
-
 
 

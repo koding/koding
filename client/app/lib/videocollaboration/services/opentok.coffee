@@ -164,7 +164,7 @@ module.exports = class OpenTokService extends kd.Object
     publisherOptions.height = 265
     publisherOptions.width  = 325
 
-    publisher = OT.initPublisher view.getElement(), publisherOptions, (err) =>
+    publisher = OT.initPublisher view.getElement(), publisherOptions, (err) ->
       if err
       then callback err
       else callback null, publisher
@@ -179,7 +179,7 @@ module.exports = class OpenTokService extends kd.Object
   ###
   destroyPublisher: (channel, publisher, callback) ->
 
-    @fetchChannelSession channel, (session) =>
+    @fetchChannelSession channel, (session) ->
       session.unpublish publisher.videoData
       callback null
 

@@ -83,10 +83,9 @@ subscribeToStream = (session, stream, view, callbacks) ->
 
   remote.cacheable nick, (err, [account]) ->
     return callbacks.error err  if err
-    subscriber = session.subscribe stream, view.getElement(), options, (err) =>
+    subscriber = session.subscribe stream, view.getElement(), options, (err) ->
       return callbacks.error err  if err
       subscriber.setStyle 'backgroundImageURI', uri = _getGravatarUri account
-      console.log {uri}
       callbacks.success subscriber
 
 

@@ -73,7 +73,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @_service.connect @channel,
       success : @bound 'handleSessionConnected'
-      error   : (err) =>
+      error   : (err) -> console.error err
 
 
   ###*
@@ -120,7 +120,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
         success: (publisher) =>
           @handlePublishSuccess publisher
           @subscribeToStream session, event.stream
-        error: (err) =>
+        error: (err) -> console.error err
 
     session.on 'streamDestroyed', (event) =>
 
@@ -153,13 +153,13 @@ module.exports = class VideoCollaborationModel extends kd.Object
     session.on 'signal:end', =>
       @stopPublishing
         success : @bound 'handleStopSuccess'
-        error   : (err) =>
+        error   : (err) -> console.error err
 
     session.on 'signal:start', =>
       options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
       @startPublishing options,
         success : @bound 'handlePublishSuccess'
-        error   : (err) =>
+        error   : (err) -> console.error err
 
 
   subscribeToStream: (session, stream) ->
@@ -290,7 +290,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   start: (options) ->
 
-    @_service.sendSessionStartSignal @channel, (err) =>
+    @_service.sendSessionStartSignal @channel, (err) ->
       return console.error err  if err
 
 
@@ -300,7 +300,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   end: ->
 
-    @_service.sendSessionEndSignal @channel, (err) =>
+    @_service.sendSessionEndSignal @channel, (err) ->
       return console.error err  if err
 
 
@@ -319,7 +319,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @startPublishing options,
       success : successCb
-      error   : (err) ->
+      error   : (err) -> console.error err
 
 
   ###*
@@ -415,7 +415,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   stopPublishing: (callbacks) ->
 
-    @_service.destroyPublisher @channel, @publisher, (err) =>
+    @_service.destroyPublisher @channel, @publisher, (err) ->
       return callbacks.error err  if err
       callbacks.success()
 
