@@ -1,8 +1,8 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
 	"labix.org/v2/mgo"
@@ -14,10 +14,6 @@ import (
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
 func (m *Machine) Destroy(ctx context.Context) (err error) {
-	if m.State() == machinestate.NotInitialized {
-		return errors.New("can't destroy notinitialized machine.")
-	}
-
 	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
 		return err
 	}
@@ -32,8 +28,14 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 		}
 	}()
 
-	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
-		return err
+	// try to destroy the instance, however if the instance is not available
+	// anymore just continue.
+	if m.Meta.InstanceId != "" {
+		err := m.Session.AWSClient.Destroy(ctx, 10, 50)
+		if err != amazon.ErrNoInstances {
+			// if it's something else return it
+			return err
+		}
 	}
 
 	m.push("Deleting base domain", 85, machinestate.Terminating)
