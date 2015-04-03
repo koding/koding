@@ -13,8 +13,7 @@ AccountKodingKeyList = require './accountkodingkeylist'
 AccountKodingKeyListController = require './views/accountkodingkeylistcontroller'
 AccountLinkedAccountsList = require './accountlinkedaccountslist'
 AccountLinkedAccountsListController = require './views/accountlinkedaccountslistcontroller'
-AccountReferralSystemList = require './accountreferralsystemlist'
-AccountReferralSystemListController = require './views/accountreferralsystemlistcontroller'
+AccountReferralSystem = require './views/referral/accountreferralsystem'
 AccountSshKeyList = require './accountsshkeylist'
 AccountSshKeyListController = require './views/accountsshkeylistcontroller'
 DeleteAccountView = require './views/deleteaccountview'
@@ -31,8 +30,7 @@ module.exports = class AccountListWrapper extends KDView
     billing                    : AccountBilling
     linkedAccountsController   : AccountLinkedAccountsListController
     linkedAccounts             : AccountLinkedAccountsList
-    referralSystemController   : AccountReferralSystemListController
-    referralSystem             : AccountReferralSystemList
+    referralSystem             : AccountReferralSystem
     editorsController          : AccountEditorListController
     editors                    : AccountEditorList
     keysController             : AccountSshKeyListController
@@ -59,4 +57,3 @@ module.exports = class AccountListWrapper extends KDView
         view       : view
         wrapper    : no
         scrollView : no
-
