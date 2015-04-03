@@ -44,6 +44,14 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	instance, err := m.Session.AWSClient.Instance()
+	if err == amazon.ErrNoInstances {
+		latestState = machinestate.NotInitialized
+		// This means the instanceId stored in MongoDB doesn't exist anymore in
+		// AWS. Probably it was deleted and the state was not updated.
+		return m.markAsNotInitialized()
+	}
+
+	// if it's something else return it back
 	if err != nil {
 		return err
 	}
@@ -59,15 +67,30 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			instance.InstanceType, m.Meta.InstanceType)
 
 		opts := &ec2.ModifyInstance{InstanceType: plans.Instances[m.Meta.InstanceType].String()}
-
 		if _, err := m.Session.AWSClient.Client.ModifyInstance(m.Meta.InstanceId, opts); err != nil {
 			m.Log.Warning("couldn't change instance to '%s' again. err: %s",
 				m.Meta.InstanceType, err)
 		}
 
-		// Because of AWS's eventually consistency state, we wait to get the
-		// final and correct answer.
-		time.Sleep(time.Second * 2)
+		// Because of AWS's eventually consistency state, we wait for maximum
+		// three minutes to get the final and correct answer. We don't check
+		// for the error and just continue (even if it means the user has still
+		// the wrong instance type) to have a seamles experience on the client
+		// side, rather than aborting it.
+		retry(3*time.Minute, func() error {
+			instance, err := m.Session.AWSClient.Instance()
+			if err != nil {
+				return err
+			}
+
+			if instance.InstanceType != m.Meta.InstanceType {
+				return fmt.Errorf("Instance is still '%s', waiting until it changed to '%s'",
+					instance.InstanceType, m.Meta.InstanceType)
+			}
+
+			m.Log.Debug("Instance type successfully changed to %s", m.Meta.InstanceType)
+			return nil
+		})
 	}
 
 	infoState := amazon.StatusToState(instance.State.Name)

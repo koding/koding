@@ -21,10 +21,11 @@ module.exports =
 
       email = "kodingtestuser+#{username}@gmail.com"
 
-      users.push { name, email, username, password, posts, comments }
+      users.push { name, email, username, password }
 
 
     fs.writeFileSync 'users.json', JSON.stringify(users), 'utf-8'
+
     return users
 
 
@@ -52,7 +53,7 @@ module.exports =
       return users[0]
 
     catch
-      console.log 'users.json not exists, creating new users data'
+      console.log 'users.json does not exist, creating new user data'
 
       users = @generateUsers()
       return users[0]

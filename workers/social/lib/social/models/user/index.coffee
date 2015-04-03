@@ -1020,6 +1020,10 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        account.createSocialApiId (err) ->
+          return callback err  if err
+          queue.next()
+      ->
         return queue.next()  unless referrer
 
         if username is referrer

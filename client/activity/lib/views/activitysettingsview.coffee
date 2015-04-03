@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 kd = require 'kd'
 KDButtonViewWithMenu = kd.ButtonViewWithMenu
 KDCustomHTMLView = kd.CustomHTMLView
