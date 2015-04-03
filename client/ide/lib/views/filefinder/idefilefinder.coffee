@@ -9,8 +9,16 @@ Encoder              = require 'htmlencode'
 keycode              = require 'keycode'
 _                    = require 'lodash'
 
+DEBOUNCE_WAIT      = 300
+HAS_TEXT_CLASSNAME = 'has-text'
+KEYDOWN_KEYS       = [ 'enter', 'esc', 'up', 'down' ]
 
-module.exports = class IDEFileFinder extends KDCustomHTMLView
+isKeyDownKey = _.memoize (key) -> _.indexOf KEYDOWN_KEYS, key
+
+
+module.exports =
+
+class IDEFileFinder extends KDCustomHTMLView
 
   constructor: (options = {}, data) ->
 
@@ -22,11 +30,7 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
       type         : 'text'
       placeholder  : 'Type a file name to search'
       keydown      : _.bind @handleKeyDown, this
-
-    input.on 'keyup', kd.utils.debounce 300, @bound 'handleKeyUp'
-    input.on 'keyup', =>
-      if   input.getValue() is '' then input.unsetClass 'has-text'
-      else input.setClass 'has-text'
+      keyup        : _.bind @handleKeyUp, this
 
     @addSubView new KDCustomHTMLView cssClass: 'icon'
     @addSubView @content = new KDCustomHTMLView
@@ -37,19 +41,7 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
     @on 'ReceivedClickElsewhere', @bound 'destroy'
 
 
-  handleKeyDown: (e) ->
-
-    code = e.which or e.keyCode
-    key  = keycode code
-
-    switch key
-      when 'esc'   then @destroy()
-      when 'enter' then @handleEnterKey()
-      when 'up'    then @handleNavigation 'up'
-      when 'down'  then @handleNavigation 'down'
-
-
-  search: (text) ->
+  search: _.debounce (text) ->
 
     return @clearSearch()  if text is ''
 
@@ -65,6 +57,8 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
       .catch (err) =>
         @showWarning 'An error occurred, please try again.'
         kd.warn err
+
+  , DEBOUNCE_WAIT
 
 
   parseResponse: (machine, res) =>
@@ -108,16 +102,32 @@ module.exports = class IDEFileFinder extends KDCustomHTMLView
     item?.getElement().scrollIntoViewIfNeeded()
 
 
-  handleKeyUp: (event) ->
+  handleKeyUp: (e) ->
 
-    listenedKeys  = [13, 27, 38, 40]
-    isListenedKey = listenedKeys.indexOf(event.which) > -1
-    inputValue    = @input.getValue()
-    isSameText    = inputValue is @lastTerm
+    code = e.which or e.keyCode
+    key  = keycode code
+    term = @input.getValue()
 
-    return  if isListenedKey or isSameText
+    if   term is '' then @input.unsetClass HAS_TEXT_CLASSNAME
+    else @input.setClass HAS_TEXT_CLASSNAME
 
-    @search inputValue
+    @search term  if term isnt @lastTerm or not isKeyDownKey key
+
+    return
+
+
+  handleKeyDown: (e) ->
+
+    code = e.which or e.keyCode
+    key  = keycode code
+
+    switch key
+      when 'enter' then @handleEnterKey()
+      when 'esc'   then @destroy()
+      when 'up'    then @handleNavigation 'up'
+      when 'down'  then @handleNavigation 'down'
+
+    return
 
 
   handleEnterKey: ->
