@@ -15,6 +15,7 @@ import (
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/sshkeys"
+	"github.com/koding/klient/storage"
 	"github.com/koding/klient/terminal"
 	"github.com/koding/klient/usage"
 )
@@ -34,6 +35,8 @@ type Klient struct {
 	// use the available methods. It provides methods to add or remove users
 	// from the storage
 	collab *collaboration.Collaboration
+
+	storage *storage.Storage
 
 	// terminal provides wmethods
 	terminal *terminal.Terminal
@@ -106,6 +109,9 @@ func NewKlient(conf *KlientConfig) *Klient {
 		"sshkeys.List":         true,
 		"sshkeys.Add":          true,
 		"sshkeys.Delete":       true,
+		"storage.Get":          true,
+		"storage.Set":          true,
+		"storage.Delete":       true,
 		// "docker.create":       true,
 		// "docker.connect":      true,
 		// "docker.stop":         true,
@@ -124,8 +130,9 @@ func NewKlient(conf *KlientConfig) *Klient {
 	}
 
 	kl := &Klient{
-		kite:   k,
-		collab: collaboration.New(db), // nil is ok, fallbacks to in memory storage
+		kite:    k,
+		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
+		storage: storage.New(db),       // nil is ok, fallbacks to in memory storage
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
@@ -174,6 +181,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("sshkeys.List", sshkeys.List)
 	k.kite.HandleFunc("sshkeys.Add", sshkeys.Add)
 	k.kite.HandleFunc("sshkeys.Delete", sshkeys.Delete)
+
+	// Storage
+	k.kite.HandleFunc("storage.Set", k.storage.SetValue)
+	k.kite.HandleFunc("storage.Get", k.storage.GetValue)
+	k.kite.HandleFunc("storage.Delete", k.storage.DeleteValue)
 
 	// Filesystem
 	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)
