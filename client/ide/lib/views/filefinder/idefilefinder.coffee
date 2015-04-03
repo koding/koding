@@ -43,6 +43,8 @@ class IDEFileFinder extends KDCustomHTMLView
 
   search: _.debounce (text) ->
 
+    text = _.trim text
+
     return @clearSearch()  if text is ''
 
     appManager      = kd.getSingleton 'appManager'
