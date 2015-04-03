@@ -20,8 +20,7 @@ createInstance = ->
       cache = {}
       (nameStr, callback)->
         if cache[nameStr]?
-          {model, name} = cache[nameStr]
-          return callback null, model, name
+          return callback null, cache[nameStr], name
         @api.JName.one {name: nameStr}, (err, name) =>
           if err then return callback err
           else unless name?
@@ -53,6 +52,7 @@ createInstance = ->
 
           sinkrow.dash queue, =>
             @emit "modelsReady"
+            cache[nameStr] = models
             callback err, models, name
 
     mq: do ->
