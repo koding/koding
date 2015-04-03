@@ -1,7 +1,6 @@
 package koding
 
 import (
-	"errors"
 	"fmt"
 	"koding/kites/kloud/machinestate"
 
@@ -14,10 +13,6 @@ import (
 // Destroy implements the Destroyer interface. It uses destroyMachine(ctx)
 // function but updates/deletes the MongoDB document once finished.
 func (m *Machine) Destroy(ctx context.Context) (err error) {
-	if m.State() == machinestate.NotInitialized {
-		return errors.New("can't destroy notinitialized machine.")
-	}
-
 	if err := m.UpdateState("Machine is termating", machinestate.Terminating); err != nil {
 		return err
 	}
