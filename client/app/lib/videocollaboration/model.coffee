@@ -1,6 +1,7 @@
 kd              = require 'kd'
 _               = require 'lodash'
 getNick         = require 'app/util/nick'
+isMyChannel     = require 'app/util/isMyChannel'
 
 OpenTokService  = require './services/opentok'
 ParticipantType = require './types/participant'
@@ -58,6 +59,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @return {SocialChannel} channel
   ###
   getChannel: -> @channel
+
+
+  isMySession: -> isMyChannel @channel
 
 
   ###*
