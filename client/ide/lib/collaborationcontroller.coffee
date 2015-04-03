@@ -663,7 +663,7 @@ module.exports = CollaborationController =
     # this method comes from VideoCollaborationController.
     # It's mixed into IDEAppController after CollaborationController.
     # This is probably an anti pattern, we need to look into this again. ~Umut
-    @prepareVideoCollaboration @socialChannel, @chat.getVideoContainer()
+    @prepareVideoCollaboration @socialChannel, @chat.getVideoView()
 
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
