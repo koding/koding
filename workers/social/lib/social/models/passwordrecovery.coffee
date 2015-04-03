@@ -59,9 +59,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
-  @getEmailSubject = ({resetPassword})-> switch
-    when resetPassword
-      NewEmail.types.CONFIRM_PASSWORD
+  @getEmailSubject = ({resetPassword})->
+    if resetPassword
+      NewEmail.types.PASSWORD_RECOVER
     else
       NewEmail.types.CONFIRM_EMAIL
 
@@ -219,11 +219,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           return callback err  if err
           user.changePassword newPassword, (err)->
             return callback err  if err
-            JPasswordRecovery.invalidate {username}, (err)->
-              return callback UNKNOWN_ERROR if err
-              user.confirmEmail (err)->
-                return callback UNKNOWN_ERROR if err
-                callback err, unless err then username
+            JPasswordRecovery.invalidate {username}, callback
+
 
   @resetPassword$ = secure (client, token, newPassword, callback)->
     JUser = require './user'
