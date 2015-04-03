@@ -80,6 +80,7 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 					instance.InstanceType, m.Meta.InstanceType)
 			}
 
+			m.Log.Debug("Instance type successfully changed to %s", m.Meta.InstanceType)
 			return nil
 		})
 	}
