@@ -98,11 +98,11 @@ func (p *Provider) CheckUsage(m *Machine) error {
 	// lock so it doesn't interfere with others.
 	p.Lock(m.Id.Hex())
 	defer func() {
-		p.Log.Info("[%s] ======> STOP finished <======", m.Id.Hex())
+		p.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
 		p.Unlock(m.Id.Hex())
 	}()
 
-	p.Log.Info("[%s] ======> STOP started <======", m.Id.Hex())
+	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
 	// Hasta la vista, baby!
 	return m.Stop(ctx)
 }
