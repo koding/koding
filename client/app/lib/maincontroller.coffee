@@ -245,6 +245,8 @@ class MainController extends KDController
 
       kookies.expire 'koding082014'
       kookies.expire 'useOldKoding'
+      kookies.expire 'clientId'
+      kookies.expire 'realtimeToken'
 
       wc = kd.singleton 'windowController'
       wc.clearUnloadListeners()

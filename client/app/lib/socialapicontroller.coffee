@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 htmlencode = require 'htmlencode'
 globals = require 'globals'
 getGroup = require './util/getGroup'
@@ -683,4 +683,8 @@ module.exports = class SocialApiController extends KDController
     glance               : notificationRequesterFn
       fnName             : 'glance'
 
+  account                :
+    impersonate          : (username, callback) ->
 
+      endPoint = "/Impersonate/#{username}"
+      doXhrRequest {type: 'POST', endPoint, async: yes}, callback

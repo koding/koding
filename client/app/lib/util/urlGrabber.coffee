@@ -1,4 +1,4 @@
-_         = require 'underscore'
+_         = require 'lodash'
 validator = require 'validator'
 
 module.exports = (str) ->

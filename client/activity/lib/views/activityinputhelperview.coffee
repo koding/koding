@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 kd = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
 CustomLinkView = require 'app/customlinkview'
