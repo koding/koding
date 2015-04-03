@@ -14,7 +14,8 @@ module.exports = class Email
 
   {forcedRecipient, defaultFromMail} = KONFIG.email
 
-  VERSION_1 = ' v1'
+  VERSION_1  = ' v1'
+  EVENT_TYPE = 'api.mail_send'
 
   @types =
     WELCOME          : 'welcome'          + VERSION_1
@@ -35,12 +36,15 @@ module.exports = class Email
     unless mqClient
       return callback new KodingError 'RabbitMQ client not found in Email'
 
-    mqClient.once "ready", =>
+    sendMessage =->
       mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>
         unless exchange
           return callback new KodingError "Exchange not found!: #{exchangeName}"
 
-        exchange.publish "", type : 'api.mail_send', message: mail
+        exchange.publish "", mail, type:EVENT_TYPE
         exchange.close()
 
-        callback null
+    if mqClient.readyEmitted then sendMessage()
+    else mqClient.on "ready", -> sendMessage()
+
+    callback null
