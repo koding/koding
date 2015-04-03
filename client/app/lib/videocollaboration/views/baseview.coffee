@@ -1,6 +1,7 @@
 kd = require 'kd'
 getNick = require 'app/util/nick'
 VideoControlView = require './controlview'
+isMyChannel = require 'app/util/isMyChannel'
 
 module.exports = class ChatVideoView extends kd.View
 
@@ -27,30 +28,30 @@ module.exports = class ChatVideoView extends kd.View
     @controls = new kd.CustomHTMLView { cssClass: 'ChatVideo-controls' }
 
     @controlAudio = createVideoControl 'audio', no
-    @controlAudio.on 'ActiveStateChanged', @handleStateChanged 'audio'
+    @controlAudio.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'audio'
+    @controls.addSubView @controlAudio
 
     @controlVideo = createVideoControl 'video', no
-    @controlVideo.on 'ActiveStateChanged', @handleStateChanged 'video'
-
-    # TODO: if user is host
-    @controlEnd = createVideoControl 'end', no
-    @controlEnd.on 'ActiveStateChanged', @handleStateChanged 'end'
-
-    @controls.addSubView @controlAudio
+    @controlVideo.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'video'
     @controls.addSubView @controlVideo
-    @controls.addSubView @controlEnd
+
+    if isMyChannel @getData()
+      @controlEnd = createVideoControl 'end', no
+      @controlEnd.on 'ActiveStateChangeRequested', @handleStateChangeRequest 'end'
+      @controls.addSubView @controlEnd
 
     @addSubView @controls
 
 
   getContainer: -> @container
 
+
   ###*
    * This method needs to be overriden by subclasses.
    *
    * @abstract
   ###
-  handleStateChanged: (type) -> (active) -> throw new Error 'needs to be implemented'
+  handleStateChangeRequest: (type) -> (active) -> throw new Error 'needs to be implemented'
 
 
   show: ->

@@ -14,7 +14,8 @@ module.exports = class VideoControlView extends kd.ButtonView
   click: (event) ->
 
     kd.utils.stopDOMEvent event
-    @setActiveState not @active
+    @setActiveState state = not @active
+    @emit 'ActiveStateChangeRequested', state
 
 
   setActiveState: (active) ->
@@ -25,7 +26,6 @@ module.exports = class VideoControlView extends kd.ButtonView
 
     @active = active
 
-    @emit 'ActiveStateChanged', active
 
 
 
