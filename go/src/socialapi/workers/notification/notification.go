@@ -110,32 +110,32 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 // 	return subscription(data, NOTIFICATION_TYPE_UNSUBSCRIBE)
 // }
 
-func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) error {
-	c := socialapimodels.NewChannel()
-	if err := c.ById(cml.ChannelId); err != nil {
-		return err
-	}
+//func subscription(cml *socialapimodels.ChannelMessageList, typeConstant string) error {
+//    c := socialapimodels.NewChannel()
+//    if err := c.ById(cml.ChannelId); err != nil {
+//        return err
+//    }
 
-	if c.TypeConstant != socialapimodels.Channel_TYPE_PINNED_ACTIVITY {
-		return nil
-	}
+//    if c.TypeConstant != socialapimodels.Channel_TYPE_PINNED_ACTIVITY {
+//        return nil
+//    }
 
-	// user pinned (followed) a message
-	nc := models.NewNotificationContent()
-	nc.TargetId = cml.MessageId
+//     user pinned (followed) a message
+//    nc := models.NewNotificationContent()
+//    nc.TargetId = cml.MessageId
 
-	n := models.NewNotification()
-	n.AccountId = c.CreatorId
+//    n := models.NewNotification()
+//    n.AccountId = c.CreatorId
 
-	switch typeConstant {
-	case NOTIFICATION_TYPE_SUBSCRIBE:
-		return n.Subscribe(nc)
-	case NOTIFICATION_TYPE_UNSUBSCRIBE:
-		return n.Unsubscribe(nc)
-	}
+//    switch typeConstant {
+//    case NOTIFICATION_TYPE_SUBSCRIBE:
+//        return n.Subscribe(nc)
+//    case NOTIFICATION_TYPE_UNSUBSCRIBE:
+//        return n.Unsubscribe(nc)
+//    }
 
-	return nil
-}
+//    return nil
+//}
 
 func (n *Controller) HandleMessage(cm *socialapimodels.ChannelMessage) error {
 	switch cm.TypeConstant {
