@@ -5,7 +5,7 @@ KDModalView = kd.ModalView
 KodingSwitch = require 'app/commonviews/kodingswitch'
 showError = require 'app/util/showError'
 machineList = require './machinelist'
-_ = require 'underscore'
+_ = require 'lodash'
 
 module.exports = class MachineListModal extends KDModalView
 
