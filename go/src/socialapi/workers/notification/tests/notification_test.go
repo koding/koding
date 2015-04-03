@@ -19,17 +19,18 @@ import (
 )
 
 var (
-	ownerAccount     *socialapimodels.Account
-	firstUser        *socialapimodels.Account
-	secondUser       *socialapimodels.Account
-	thirdUser        *socialapimodels.Account
-	forthUser        *socialapimodels.Account
-	testGroupChannel *socialapimodels.Channel
-	firstMessage     *socialapimodels.ChannelMessage
-	secondMessage    *socialapimodels.ChannelMessage
-	thirdMessage     *socialapimodels.ChannelMessage
-	forthMessage     *socialapimodels.ChannelMessage
-	fifthMessage     *socialapimodels.ChannelMessage
+	ownerAccount      *socialapimodels.Account
+	firstUser         *socialapimodels.Account
+	secondUser        *socialapimodels.Account
+	thirdUser         *socialapimodels.Account
+	forthUser         *socialapimodels.Account
+	testGroupChannel  *socialapimodels.Channel
+	testGroupChannel2 *socialapimodels.Channel
+	firstMessage      *socialapimodels.ChannelMessage
+	secondMessage     *socialapimodels.ChannelMessage
+	thirdMessage      *socialapimodels.ChannelMessage
+	forthMessage      *socialapimodels.ChannelMessage
+	fifthMessage      *socialapimodels.ChannelMessage
 )
 
 func prepareTestData() {
@@ -65,6 +66,17 @@ func prepareTestData() {
 		testGroupChannel.CreatorId = ownerAccount.Id
 		testGroupChannel.Name = name
 		err := testGroupChannel.Create()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if testGroupChannel2 == nil {
+		testGroupChannel2 = socialapimodels.NewChannel()
+		name := "notification_test_" + socialapimodels.RandomName()
+		testGroupChannel2.CreatorId = ownerAccount.Id
+		testGroupChannel2.Name = name
+		err := testGroupChannel2.Create()
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -177,12 +189,13 @@ func glance(actor *socialapimodels.Account) error {
 	return n.Glance()
 }
 
-func fetchNotification(accountId int64) (*models.NotificationResponse, error) {
+func fetchNotification(accountId int64, contextChannel *socialapimodels.Channel) (*models.NotificationResponse, error) {
 
 	n := models.NewNotification()
 	q := &request.Query{}
 	q.AccountId = accountId
 	q.Limit = 8
+	q.GroupChannelId = contextChannel.Id
 
 	return n.List(q)
 }
@@ -206,13 +219,17 @@ func TestNotificationCreation(t *testing.T) {
 
 	controller := notification.New(r.Bongo.Broker.MQ, r.Log)
 
-	createReplyHelper := func(owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, reply string) {
-		replyMessage, err := createReply(testGroupChannel, owner, parentMessage, reply)
+	createReplyWithGroupHelper := func(owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, reply string, group *socialapimodels.Channel) {
+		replyMessage, err := createReply(group, owner, parentMessage, reply)
 		So(err, ShouldBeNil)
 		So(replyMessage, ShouldNotBeNil)
 
 		err = controller.CreateReplyNotification(replyMessage)
 		So(err, ShouldBeNil)
+	}
+
+	createReplyHelper := func(owner *socialapimodels.Account, parentMessage *socialapimodels.ChannelMessage, reply string) {
+		createReplyWithGroupHelper(owner, parentMessage, reply, testGroupChannel)
 	}
 
 	likeMessage := func(actor *socialapimodels.Account, message *socialapimodels.ChannelMessage) {
@@ -248,14 +265,14 @@ func TestNotificationCreation(t *testing.T) {
 
 				createReplyHelper(secondUser, pm, messageBody)
 
-				nl, err := fetchNotification(ownerAccount.Id)
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 				So(err, ShouldBeNil)
 				So(len(nl.Notifications), ShouldEqual, 0)
 			})
 
 			Convey("(Basic Reply Notification Test) When first user replies my post I should be able to receive notification", func() {
 				createReplyHelper(firstUser, firstMessage, "reply1")
-				nl, err := fetchNotification(ownerAccount.Id)
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 				So(len(nl.Notifications), ShouldEqual, 1)
@@ -267,19 +284,19 @@ func TestNotificationCreation(t *testing.T) {
 				So(notification.LatestActors[0], ShouldEqual, firstUser.Id)
 
 				Convey("First user should not receive any notification for her own activity when she replies twice", func() {
-					nl, err := fetchNotification(firstUser.Id)
+					nl, err := fetchNotification(firstUser.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 					So(len(nl.Notifications), ShouldEqual, 0)
 
 					createReplyHelper(firstUser, firstMessage, "reply2")
-					nl, err = fetchNotification(firstUser.Id)
+					nl, err = fetchNotification(firstUser.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 					So(len(nl.Notifications), ShouldEqual, 0)
 
 					Convey("Unread notification count should still be 1 for my account", func() {
-						nl, err := fetchNotification(ownerAccount.Id)
+						nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 						So(err, ShouldBeNil)
 						So(nl, ShouldNotBeNil)
 						So(len(nl.Notifications), ShouldEqual, 1)
@@ -290,7 +307,7 @@ func TestNotificationCreation(t *testing.T) {
 
 				Convey("When second user replies my post actor count must be two for the latest notification", func() {
 					createReplyHelper(secondUser, firstMessage, "reply2")
-					nl, err := fetchNotification(ownerAccount.Id)
+					nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 					So(len(nl.Notifications), ShouldEqual, 1)
@@ -307,9 +324,10 @@ func TestNotificationCreation(t *testing.T) {
 				Convey("When third user replies the message, owner, first and second users receive notification", func() {
 					createReplyHelper(thirdUser, firstMessage, "reply3")
 
-					nl, err := fetchNotification(ownerAccount.Id)
+					nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
+					So(nl.Notifications, ShouldNotBeEmpty)
 					So(nl.Notifications[0].ActorCount, ShouldEqual, 3)
 
 					So(nl.Notifications[0].LatestActors[0], ShouldEqual, thirdUser.Id)
@@ -317,7 +335,7 @@ func TestNotificationCreation(t *testing.T) {
 					So(nl.Notifications[0].LatestActors[2], ShouldEqual, firstUser.Id)
 
 					// first user notification fetch
-					nl, err = fetchNotification(firstUser.Id)
+					nl, err = fetchNotification(firstUser.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 
@@ -329,7 +347,7 @@ func TestNotificationCreation(t *testing.T) {
 					So(nl.Notifications[0].LatestActors[1], ShouldEqual, secondUser.Id)
 
 					// second user notification fetch
-					nl, err = fetchNotification(secondUser.Id)
+					nl, err = fetchNotification(secondUser.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 
@@ -346,7 +364,7 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("As a message owner I should not be notified for my own replies", func() {
 				createReplyHelper(ownerAccount, secondMessage, "reply1")
 
-				nl, err := fetchNotification(ownerAccount.Id)
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
@@ -359,7 +377,7 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("I should be able to receive notification when a user likes my post", func() {
 				likeMessage(firstUser, firstMessage)
 
-				nl, err := fetchNotification(ownerAccount.Id)
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
@@ -375,7 +393,7 @@ func TestNotificationCreation(t *testing.T) {
 				likeMessage(thirdUser, firstMessage)
 				likeMessage(forthUser, firstMessage)
 
-				nl, err = fetchNotification(ownerAccount.Id)
+				nl, err = fetchNotification(ownerAccount.Id, testGroupChannel)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 
@@ -390,7 +408,7 @@ func TestNotificationCreation(t *testing.T) {
 					unlikeMessage(firstUser, firstMessage)
 					likeMessage(firstUser, firstMessage)
 
-					nl, err := fetchNotification(ownerAccount.Id)
+					nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 					So(err, ShouldBeNil)
 					So(nl, ShouldNotBeNil)
 
@@ -409,7 +427,7 @@ func TestNotificationCreation(t *testing.T) {
 			err := glance(ownerAccount)
 			So(err, ShouldBeNil)
 
-			nl, err := fetchNotification(ownerAccount.Id)
+			nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
 			So(nl.UnreadCount, ShouldEqual, 0)
@@ -421,10 +439,11 @@ func TestNotificationCreation(t *testing.T) {
 			Convey("As a message owner I should be able to receive new notifications as unread after glance", func() {
 				createReplyHelper(thirdUser, firstMessage, "anotherreply")
 
-				nl, err := fetchNotification(ownerAccount.Id)
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 				So(err, ShouldBeNil)
 				So(nl, ShouldNotBeNil)
 				So(nl.UnreadCount, ShouldEqual, 1)
+				So(len(nl.Notifications), ShouldEqual, 2)
 				So(nl.Notifications[0].Glanced, ShouldEqual, false)
 
 				So(nl.Notifications[1].Glanced, ShouldEqual, true)
@@ -441,10 +460,11 @@ func TestNotificationCreation(t *testing.T) {
 			err = controller.HandleMessage(cm)
 			So(err, ShouldBeNil)
 
-			nl, err := fetchNotification(ownerAccount.Id)
+			nl, err := fetchNotification(ownerAccount.Id, testGroupChannel)
 			So(err, ShouldBeNil)
 			So(nl, ShouldNotBeNil)
 
+			So(nl.Notifications, ShouldNotBeEmpty)
 			So(nl.Notifications[0].TypeConstant, ShouldEqual, models.NotificationContent_TYPE_MENTION)
 			So(nl.Notifications[0].ActorCount, ShouldEqual, 1)
 			So(len(nl.Notifications[0].LatestActors), ShouldEqual, 1)
@@ -455,6 +475,21 @@ func TestNotificationCreation(t *testing.T) {
 		// TODO complete this test
 		SkipConvey("I should be able to receive to receive notification when a user mentions me in their comment", func() {
 
+		})
+
+		Convey("I should be able to fetch notifications from different group channels", func() {
+			cm, err := createPost(testGroupChannel2, ownerAccount, "hello")
+			So(err, ShouldBeNil)
+			So(cm, ShouldNotBeNil)
+
+			createReplyWithGroupHelper(firstUser, cm, "anotherreply", testGroupChannel2)
+
+			nl, err := fetchNotification(ownerAccount.Id, testGroupChannel2)
+			So(err, ShouldBeNil)
+			So(nl, ShouldNotBeNil)
+			So(nl.UnreadCount, ShouldEqual, 1)
+			So(len(nl.Notifications), ShouldEqual, 1)
+			So(nl.Notifications[0].Glanced, ShouldEqual, false)
 		})
 
 		//Convey("I should not be able to receive notifications of a deleted message", func() {

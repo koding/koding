@@ -66,10 +66,15 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		return err
 	}
 
+	groupChannel, err := reply.FetchParentChannel()
+	if err != nil {
+		return err
+	}
+
 	// if it is not notifier's own message then add replier to subscribers
 	// for further reply notifications
 	if cm.AccountId != rn.NotifierId {
-		n.subscribe(nc.Id, cm.AccountId, subscribedAt)
+		n.subscribe(nc.Id, cm.AccountId, subscribedAt, groupChannel)
 	}
 
 	notifiedUsers, err := rn.GetNotifiedUsers(nc.Id)
@@ -91,11 +96,11 @@ func (n *Controller) CreateReplyNotification(mr *socialapimodels.MessageReply) e
 		if recipient == rn.NotifierId {
 			notifierSubscribed = true
 		}
-		n.notify(nc.Id, recipient)
+		n.notify(nc.Id, recipient, groupChannel)
 	}
 
 	if !notifierSubscribed {
-		n.subscribe(nc.Id, rn.NotifierId, subscribedAt)
+		n.subscribe(nc.Id, rn.NotifierId, subscribedAt, groupChannel)
 	}
 
 	return nil
@@ -171,6 +176,11 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 		return nil, err
 	}
 
+	groupChannel, err := reply.FetchParentChannel()
+	if err != nil {
+		return nil, err
+	}
+
 	for _, mentionedUser := range mentionedUsers {
 		// if user mentions herself ignore it
 		if mentionedUser.Id == reply.AccountId {
@@ -185,7 +195,7 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 			return nil, err
 		}
 
-		n.instantNotify(nc.Id, mentionedUser.Id)
+		n.instantNotify(nc.Id, mentionedUser.Id, groupChannel)
 
 		mentionedUserIds = append(mentionedUserIds, mentionedUser.Id)
 	}
@@ -193,15 +203,17 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 	return mentionedUserIds, nil
 }
 
-func (n *Controller) notify(contentId, notifierId int64) {
+func (n *Controller) notify(contentId, notifierId int64, contextChannel *socialapimodels.Channel) {
 	notification := buildNotification(contentId, notifierId, time.Now())
+	notification.ContextChannelId = contextChannel.Id
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
 }
 
-func (n *Controller) instantNotify(contentId, notifierId int64) {
+func (n *Controller) instantNotify(contentId, notifierId int64, contextChannel *socialapimodels.Channel) {
 	notification := prepareActiveNotification(contentId, notifierId)
+	notification.ContextChannelId = contextChannel.Id
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
@@ -221,9 +233,10 @@ func prepareActiveNotification(contentId, notifierId int64) *models.Notification
 	return notification
 }
 
-func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time) {
+func (n *Controller) subscribe(contentId, notifierId int64, subscribedAt time.Time, c *socialapimodels.Channel) {
 	notification := buildNotification(contentId, notifierId, subscribedAt)
 	notification.SubscribeOnly = true
+	notification.ContextChannelId = c.Id
 	if err := notification.Create(); err != nil {
 		n.log.Error("An error occurred while subscribing user %d: %s", notification.AccountId, err.Error())
 	}
@@ -271,10 +284,16 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 		return err
 	}
 
+	groupChannel, err := cm.FetchParentChannel()
+	if err != nil {
+		return err
+	}
+
 	notification := models.NewNotification()
 	notification.NotificationContentId = nc.Id
 	notification.AccountId = cm.AccountId // notify message owner
 	notification.ActivatedAt = time.Now() // enables notification immediately
+	notification.ContextChannelId = groupChannel.Id
 	if err = notification.Upsert(); err != nil {
 		return fmt.Errorf("An error occurred while notifying user %d: %s", cm.AccountId, err.Error())
 	}
