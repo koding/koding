@@ -124,8 +124,12 @@ class IDEFileFinder extends KDCustomHTMLView
     switch key
       when 'enter' then @handleEnterKey()
       when 'esc'   then @destroy()
-      when 'up'    then @handleNavigation 'up'
-      when 'down'  then @handleNavigation 'down'
+      when 'up'
+        e.preventDefault()
+        @handleNavigation 'up'
+      when 'down'
+        e.preventDefault()
+        @handleNavigation 'down'
 
     return
 
