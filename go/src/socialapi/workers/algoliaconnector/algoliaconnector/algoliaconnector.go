@@ -203,7 +203,7 @@ func (f *Controller) ParticipantUpdated(p *models.ChannelParticipant) error {
 		return f.handleParticipantOperation(p, appendTag)
 	}
 
-	f.log.Debug("ignoring the error status: %s", p.StatusConstant)
+	f.log.Debug("ignoring event: status: %s", p.StatusConstant)
 
 	return nil
 }
