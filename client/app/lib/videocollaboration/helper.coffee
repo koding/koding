@@ -1,5 +1,7 @@
 $ = require 'jquery'
 remote = require('app/remote').getInstance()
+whoami = require 'app/util/whoami'
+getNick = require 'app/util/nick'
 
 ###*
  * It makes a request to the backend and gets session id
@@ -89,6 +91,32 @@ subscribeToStream = (session, stream, view, callbacks) ->
       callbacks.success subscriber
 
 
+###*
+ * It creates the `OT.Publisher` instance for sending video/audio.
+ *
+ * @param {KDView} view - view instance for publisher.
+ * @param {objcet=} options - Options to pass to `OT.initPublisher` method
+ * @param {string=} options.insertMode
+ * @param {string=} options.name
+ * @param {objcet=} options.style
+ * @return {OT.Publisher} publisher
+ * @see {@link https://tokbox.com/opentok/libraries/client/js/reference/OT.html#initPublisher}
+###
+createPublisher = (view, options = {}, callback) ->
+
+  options.name        or= getNick()
+  options.insertMode  or= 'append'
+  options.showControls ?= off
+
+  options.height = 265
+  options.width  = 325
+
+  publisher = OT.initPublisher view.getElement(), options, (err) ->
+    return calback err  if err
+    publisher.setStyle 'backgroundImageURI', uri = _getGravatarUri whoami()
+    callback null, publisher
+
+
 _getGravatarUri = (account, size = 355) ->
 
   {hash} = account.profile
@@ -112,5 +140,6 @@ module.exports = {
   generateToken
   toNickKeyedMap
   subscribeToStream
+  createPublisher
   _errorSignal
 }

@@ -145,32 +145,6 @@ module.exports = class OpenTokService extends kd.Object
 
 
   ###*
-   * It creates the `OT.Publisher` instance for sending video/audio.
-   *
-   * @param {KDView} view - view instance for publisher.
-   * @param {Object=} publisherOptions - Options to pass to `OT.initPublisher` method
-   * @param {string=} publisherOptions.insertMode
-   * @param {string=} publisherOptions.name
-   * @param {Object=} publisherOptions.style
-   * @return {OT.Publisher} publisher
-   * @see {@link https://tokbox.com/opentok/libraries/client/js/reference/OT.html#initPublisher}
-  ###
-  createPublisher: (view, publisherOptions = {}, callback) ->
-
-    publisherOptions.name        or= getNick()
-    publisherOptions.insertMode  or= 'append'
-    publisherOptions.showControls ?= off
-
-    publisherOptions.height = 265
-    publisherOptions.width  = 325
-
-    publisher = OT.initPublisher view.getElement(), publisherOptions, (err) ->
-      if err
-      then callback err
-      else callback null, publisher
-
-
-  ###*
    * It destroys the publisher for given social channel.
    *
    * @param {SocialChannel} channel

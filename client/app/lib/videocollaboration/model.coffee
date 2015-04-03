@@ -390,7 +390,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
       publishVideo: no
 
     # first create publisher with defaults.
-    @_service.createPublisher @view.getContainer(), defaults, (err, publisher) =>
+    helper.createPublisher @view.getContainer(), defaults, (err, publisher) =>
       return callbacks.error err  if err
 
       publisher.on
