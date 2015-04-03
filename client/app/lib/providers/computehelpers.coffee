@@ -12,7 +12,7 @@ AddManagedVMModal = require './managed/addmanagedvmmodal'
 module.exports = class ComputeHelpers
 
 
-  @destroyExistingMachines = (callback)->
+  @destroyExistingMachines = (callback = kd.noop(), waitForCompleteDeletion = no)->
 
     { computeController } = kd.singletons
 
@@ -23,16 +23,21 @@ module.exports = class ComputeHelpers
       destroyPromises = []
 
       machines.forEach (machine) ->
-        p = new Promise (resolve) ->
-          computeController.on "destroy-#{machine._id}", (event) ->
-            resolve()  if event.status is Machine.State.Terminated
-        destroyPromises.push p
-        computeController.destroy machine, yes
+        if waitForCompleteDeletion
+          destroyPromise = new Promise (resolve) ->
+            computeController.on "destroy-#{machine._id}", (event) ->
+              resolve()  if event.status is Machine.State.Terminated
+        actionPromise = computeController.destroy machine, yes
+        destroyPromise ?= actionPromise
+        destroyPromises.push destroyPromise
 
-      Promise
+      result = Promise
         .all destroyPromises
         .then ->
           callback null
+      result.timeout globals.COMPUTECONTROLLER_TIMEOUT  unless waitForCompleteDeletion
+      return result
+
 
   @handleNewMachineRequest = (options = {}, callback = kd.noop)->
 

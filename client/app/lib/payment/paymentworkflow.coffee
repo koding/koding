@@ -17,11 +17,11 @@ PaymentDowngradeErrorModal = require './paymentdowngradeerrormodal'
 PaymentDowngradeWithDeletionModal = require './paymentdowngradewithdeletionmodal'
 PaymentConstants = require './paymentconstants'
 PaymentModal = require './paymentmodal'
-whoami = require '../util/whoami'
-showError = require '../util/showError'
+whoami = require 'app/util/whoami'
+showError = require 'app/util/showError'
 trackEvent = require 'app/util/trackEvent'
 _ = require 'lodash'
-ComputeHelpers = require '../providers/computehelpers'
+ComputeHelpers = require 'app/providers/computehelpers'
 
 
 module.exports = class PaymentWorkflow extends KDController
@@ -284,8 +284,7 @@ module.exports = class PaymentWorkflow extends KDController
 
     { planTitle, planInterval } = @state
 
-    @modal.emit 'DestroyingMachinesStarted'
-    ComputeHelpers.destroyExistingMachines (err) =>
+    callback = (err) =>
       return @modal.emit 'PaymentFailed', err  if err
 
       @modal.emit 'DowngradingStarted'
@@ -297,3 +296,6 @@ module.exports = class PaymentWorkflow extends KDController
           redirectAfterCreation: no
         ComputeHelpers.handleNewMachineRequest options, =>
           @modal.emit 'PaymentSucceeded'
+
+    @modal.emit 'DestroyingMachinesStarted'
+    ComputeHelpers.destroyExistingMachines callback, yes

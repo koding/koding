@@ -3,28 +3,24 @@ KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDLoaderView = kd.LoaderView
 PaymentBaseModal = require './paymentbasemodal'
-showError = require '../util/showError'
+showError = require 'app/util/showError'
 
 
 module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModal
 
-  getInitialState: -> kd.utils.dict()
-
   constructor: (options = {}, data) ->
-
-    { state } = options
-
-    @state = kd.utils.extend @getInitialState(), state
 
     options.title    = 'Downgrade your plan'
     options.cssClass = kd.utils.curry 'downgrade-with-deletion-modal', options.cssClass
 
     super options, data
 
+    @state = options.state
+
 
   buildDescriptionPartial: ->
     
-    { planTitle } = @state
+    { state: { planTitle } } = @getOptions()
 
     return """
       You are currently using more resources than <strong>#{planTitle.capitalize()}</strong> plan allows.
@@ -61,7 +57,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
       style    : 'solid medium green'
       cssClass : 'submit-btn warning-btn'
       title  : 'YES, DOWNGRADE'
-      callback : => @emit 'PaymentDowngradeWithDeletionSubmitted'
+      callback : @lazyBound 'emit', 'PaymentDowngradeWithDeletionSubmitted'
 
 
   initEvents: ->
@@ -74,7 +70,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
   buildSubtitlePartial: ->
 
-    { planTitle, planInterval, reducedMonth, monthPrice } = @state
+    { state: { planTitle, planInterval, reducedMonth, monthPrice } } = @getOptions()
 
     priceMap =
       month : "#{monthPrice}<span>/month</span>"
@@ -111,5 +107,4 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
   handleError: (err) ->
 
-    msg = err?.description or err?.message or "Something went wrong."
-    showError msg
+    showError err?.description or err?.message or "Something went wrong."
