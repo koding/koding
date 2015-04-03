@@ -45,27 +45,10 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 	instance, err := m.Session.AWSClient.Instance()
 	if err == amazon.ErrNoInstances {
-		// This means the instanceId stored in MongoDB doesn't exist anymore in
-		// AWS. Probably it was deleted and the state was not updated. Let us
-		// recover from that state by cleaning up all necessary fields and
-		// marking the VM as notinitialized so the User can build it again.
-		m.Log.Warning("Instance is not available. Marking it as NotInitialized")
 		latestState = machinestate.NotInitialized
-		return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
-			return c.UpdateId(
-				m.Id,
-				bson.M{"$set": bson.M{
-					"ipAddress":         "",
-					"queryString":       "",
-					"meta.instanceType": "",
-					"meta.instanceName": "",
-					"meta.instanceId":   "",
-					"status.state":      machinestate.NotInitialized.String(),
-					"status.modifiedAt": time.Now().UTC(),
-					"status.reason":     "Machine is marked as NotInitialized",
-				}},
-			)
-		})
+		// This means the instanceId stored in MongoDB doesn't exist anymore in
+		// AWS. Probably it was deleted and the state was not updated.
+		return m.markAsNotInitialized()
 	}
 
 	// if it's something else return it back
