@@ -74,8 +74,15 @@ func (c *Controller) Process(m *Mail) error {
 
 // DefaultErrHandler controls the errors, return false if an error occurred
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		c.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+
+		return true
+	}
+
 	c.log.Error("an error occurred while sending email error as %+v ", err.Error())
-	delivery.Nack(false, false)
+	delivery.Nack(false, true)
 
 	return false
 }
