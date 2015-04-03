@@ -97,11 +97,16 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			ses, err := models.FetchOrCreateSession(account.Nick)
+			anotherAccount := models.NewAccount()
+			anotherAccount.OldId = AccountOldId.Hex()
+			anotherAccount, err := rest.CreateAccount(anotherAccount)
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+
+			ses, err := models.FetchOrCreateSession(anotherAccount.Nick)
 			So(err, ShouldBeNil)
 			So(ses, ShouldNotBeNil)
 
-			channel1.CreatorId = rand.Int63()
 			_, err = rest.UpdateChannel(channel1, ses.ClientId)
 			So(err, ShouldNotBeNil)
 		})
