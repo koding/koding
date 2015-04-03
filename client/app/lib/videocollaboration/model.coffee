@@ -107,16 +107,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
       # dispatched (probably from host, but doesn't matter).
       @setActive()  unless @state.active
 
-      options    = { height: '100%', width: '100%', insertMode: 'append' }
       { stream } = event
-      nick       = stream.name
-      element    = @getView().getElement()
-
-      { connectionId } = stream.connection
-
-      subscriber = session.subscribe stream, element, options
-
-      @setParticipantJoined nick, subscriber
+      helper.subscribeToStream stream, @getView().getElement()
+      @setParticipantJoined stream.name, subscriber
 
     session.on 'streamDestroyed', (event) =>
 
