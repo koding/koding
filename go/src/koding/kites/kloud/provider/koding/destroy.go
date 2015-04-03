@@ -2,6 +2,7 @@ package koding
 
 import (
 	"fmt"
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/machinestate"
 
 	"labix.org/v2/mgo"
@@ -27,8 +28,16 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 		}
 	}()
 
-	if err := m.Session.AWSClient.Destroy(ctx, 10, 50); err != nil {
-		return err
+	// try to destroy the instance, however if the instance is not available
+	// anymore just continue.
+	if m.Meta.InstanceId != "" {
+		err := m.Session.AWSClient.Destroy(ctx, 10, 50)
+		if err != amazon.ErrNoInstances {
+			// if it's something else return it
+			return err
+		}
+
+		m.Meta.InstanceId = ""
 	}
 
 	m.push("Deleting base domain", 85, machinestate.Terminating)
