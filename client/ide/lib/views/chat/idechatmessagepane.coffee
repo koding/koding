@@ -30,7 +30,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
 
-
     @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
 
 
@@ -51,9 +50,8 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @glance()
 
 
-  handleVideoActive: (publisher) ->
-
-    @videoActive = yes
+  handleVideoActive: -> @videoActive = yes
+  handleVideoEnded: -> @videoActive = no
 
 
   glance: ->
@@ -140,6 +138,10 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
 
   requestJoinVideo: -> @emit 'ChatVideoRequested'
+  requestLeaveVideo: -> @emit 'ChatVideoLeaveRequested'
+
+  requestStartVideo: -> @emit 'ChatVideoStartRequested'
+  requestEndVideo: -> @emit 'ChatVideoEndRequested'
 
 
   createMenu: ->
@@ -159,11 +161,17 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
   settingsMenu: ->
 
     menu =
-      'Search'          : { cssClass : 'disabled', callback: kd.noop }
-      'Minimize'        : { callback : @getDelegate().bound 'end' }
-      'Join Video Chat' : { callback : @bound 'requestJoinVideo' }
-      'Learn More'      : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
-      # 'Settings'      : { callback : @getDelegate().bound 'showSettingsPane' }
+      'Search'     : { cssClass : 'disabled', callback: kd.noop }
+      'Minimize'   : { callback : @getDelegate().bound 'end' }
+      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
+      # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
+
+    # wtf? this somehow means that we are host. ~Umut
+    unless @isInSession
+      seperator = yes
+      if @videoActive
+      then menu['End Video Chat'] = { seperator, callback: @bound 'requestEndVideo' }
+      else menu['Start Video Chat']  = { seperator, callback: @bound 'requestStartVideo' }
 
     if @isInSession
     then menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
