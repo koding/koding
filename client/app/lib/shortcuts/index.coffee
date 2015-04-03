@@ -1,6 +1,6 @@
 Shortcuts      = require 'shortcuts'
 defaults       = require './config'
-_              = require 'underscore'
+_              = require 'lodash'
 kd             = require 'kd'
 globals        = require 'globals'
 ShortcutsModal = require './views/modal'

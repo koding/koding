@@ -1,6 +1,6 @@
 kd                = require 'kd'
 ShortcutsListItem = require './listitem'
-_                 = require 'underscore'
+_                 = require 'lodash'
 
 module.exports =
 

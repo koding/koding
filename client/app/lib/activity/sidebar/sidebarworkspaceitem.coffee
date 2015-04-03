@@ -37,7 +37,7 @@ module.exports = class SidebarWorkspaceItem extends KDListItemView
 
     iconOptions = {}
 
-    unless workspace.isDefault
+    if not workspace.isDefault and machine.isMine()
       iconOptions =
         tagName   : 'span'
         cssClass  : 'ws-settings-icon'

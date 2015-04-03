@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 remote = require('../../remote').getInstance()
 kd = require 'kd'
 KDFormViewWithFields = kd.FormViewWithFields
