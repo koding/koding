@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/user"
+	"path/filepath"
 	"time"
 
 	"github.com/koding/klient/app"
@@ -20,6 +22,7 @@ var (
 	flagRegisterURL = flag.String("register-url", "", "Change register URL to kontrol")
 	flagDebug       = flag.Bool("debug", false, "Debug mode")
 	flagScreenrc    = flag.String("screenrc", "/opt/koding/etc/screenrc", "Default screenrc path")
+	flagDBPath      = flag.String("dbpath", "", "Bolt DB database path. Must be absolute)")
 
 	// Registration flags
 	flagKiteHome   = flag.String("kite-home", "~/.kite/", "Change kite home path")
@@ -58,6 +61,16 @@ func realMain() int {
 		return 0
 	}
 
+	dbPath := ""
+	u, err := user.Current()
+	if err == nil {
+		dbPath = filepath.Join(u.HomeDir, "/.config/koding/klient.bolt")
+	}
+
+	if *flagDBPath != "" {
+		dbPath = *flagDBPath
+	}
+
 	conf := &app.KlientConfig{
 		Name:           protocol.Name,
 		Version:        protocol.Version,
@@ -71,6 +84,7 @@ func realMain() int {
 		UpdateInterval: *flagUpdateInterval,
 		UpdateURL:      *flagUpdateURL,
 		ScreenrcPath:   *flagScreenrc,
+		DBPath:         dbPath,
 	}
 
 	a := app.NewKlient(conf)

@@ -18,6 +18,7 @@ build:
           go test -v
           go test -v ./fs
           go test -v ./sshkeys
+          go test -v ./storage
 
 
 deploy:

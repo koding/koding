@@ -3,15 +3,19 @@ package app
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite/config"
 	"github.com/koding/klient/collaboration"
 	"github.com/koding/klient/command"
 	"github.com/koding/klient/fs"
 	"github.com/koding/klient/sshkeys"
+	"github.com/koding/klient/storage"
 	"github.com/koding/klient/terminal"
 	"github.com/koding/klient/usage"
 )
@@ -31,6 +35,8 @@ type Klient struct {
 	// use the available methods. It provides methods to add or remove users
 	// from the storage
 	collab *collaboration.Collaboration
+
+	storage *storage.Storage
 
 	// terminal provides wmethods
 	terminal *terminal.Terminal
@@ -67,6 +73,7 @@ type KlientConfig struct {
 	Debug       bool
 
 	ScreenrcPath string
+	DBPath       string
 
 	UpdateInterval time.Duration
 	UpdateURL      string
@@ -78,28 +85,33 @@ func NewKlient(conf *KlientConfig) *Klient {
 	// we count only those methods, please add/remove methods here that will
 	// reset the timer of a klient.
 	usg := usage.NewUsage(map[string]bool{
-		"fs.readDirectory":    true,
-		"fs.glob":             true,
-		"fs.readFile":         true,
-		"fs.writeFile":        true,
-		"fs.uniquePath":       true,
-		"fs.getInfo":          true,
-		"fs.setPermissions":   true,
-		"fs.remove":           true,
-		"fs.rename":           true,
-		"fs.createDirectory":  true,
-		"fs.move":             true,
-		"fs.copy":             true,
-		"webterm.getSessions": true,
-		"webterm.connect":     true,
-		"webterm.killSession": true,
-		"exec":                true,
-		"klient.share":        true,
-		"klient.unshare":      true,
-		"klient.shared":       true,
-		"sshkeys.List":        true,
-		"sshkeys.Add":         true,
-		"sshkeys.Delete":      true,
+		"fs.readDirectory":     true,
+		"fs.glob":              true,
+		"fs.readFile":          true,
+		"fs.writeFile":         true,
+		"fs.uniquePath":        true,
+		"fs.getInfo":           true,
+		"fs.setPermissions":    true,
+		"fs.remove":            true,
+		"fs.rename":            true,
+		"fs.createDirectory":   true,
+		"fs.move":              true,
+		"fs.copy":              true,
+		"webterm.getSessions":  true,
+		"webterm.connect":      true,
+		"webterm.killSession":  true,
+		"webterm.killSessions": true,
+		"webterm.rename":       true,
+		"exec":                 true,
+		"klient.share":         true,
+		"klient.unshare":       true,
+		"klient.shared":        true,
+		"sshkeys.List":         true,
+		"sshkeys.Add":          true,
+		"sshkeys.Delete":       true,
+		"storage.Get":          true,
+		"storage.Set":          true,
+		"storage.Delete":       true,
 		// "docker.create":       true,
 		// "docker.connect":      true,
 		// "docker.stop":         true,
@@ -112,9 +124,15 @@ func NewKlient(conf *KlientConfig) *Klient {
 	term := terminal.New(k.Log, conf.ScreenrcPath)
 	term.InputHook = usg.Reset
 
+	db, err := openBoltDb(conf.DBPath)
+	if err != nil {
+		k.Log.Warning("Couldn't open BoltDB: %s", err)
+	}
+
 	kl := &Klient{
-		kite:   k,
-		collab: collaboration.New(),
+		kite:    k,
+		collab:  collaboration.New(db), // nil is ok, fallbacks to in memory storage
+		storage: storage.New(db),       // nil is ok, fallbacks to in memory storage
 		// docker:   docker.New("unix://var/run/docker.sock", k.Log),
 		terminal: term,
 		usage:    usg,
@@ -163,6 +181,11 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("sshkeys.List", sshkeys.List)
 	k.kite.HandleFunc("sshkeys.Add", sshkeys.Add)
 	k.kite.HandleFunc("sshkeys.Delete", sshkeys.Delete)
+
+	// Storage
+	k.kite.HandleFunc("storage.Set", k.storage.SetValue)
+	k.kite.HandleFunc("storage.Get", k.storage.GetValue)
+	k.kite.HandleFunc("storage.Delete", k.storage.DeleteValue)
 
 	// Filesystem
 	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)
@@ -349,6 +372,19 @@ func (k *Klient) checkAuth(r *kite.Request) (interface{}, error) {
 	}
 
 	return true, nil
+}
+
+func openBoltDb(dbpath string) (*bolt.DB, error) {
+	if dbpath == "" {
+		return nil, errors.New("DB path is empty")
+	}
+
+	// create if it doesn't exists
+	if err := os.MkdirAll(filepath.Dir(dbpath), 0755); err != nil {
+		return nil, err
+	}
+
+	return bolt.Open(dbpath, 0644, &bolt.Options{Timeout: 5 * time.Second})
 }
 
 // userIn checks whether the given user exists in the users list or not. It

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/koding/klient/Godeps/_workspace/src/github.com/boltdb/bolt"
 	"github.com/koding/klient/Godeps/_workspace/src/github.com/koding/kite"
 )
 
@@ -11,12 +12,12 @@ type Collaboration struct {
 	Storage
 }
 
-func New() *Collaboration {
+func New(boltDB *bolt.DB) *Collaboration {
 	var db Storage
 	var err error
 
 	// Try the persistent storage first. If it fails, try the in-memory one.
-	db, err = NewBoltStorage()
+	db, err = NewBoltStorage(boltDB)
 	if err != nil {
 		db = NewMemoryStorage()
 	}
