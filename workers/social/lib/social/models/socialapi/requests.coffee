@@ -379,6 +379,10 @@ getSiteMap = (data, callback)->
   url = data.name
   getXml url, {}, callback
 
+updateChannel = (data, callback) ->
+  url = "/channel/#{data.channelId}/update"
+  post url, data, callback
+
 deleteChannel = (data, callback) ->
   url = "/channel/#{data.channelId}/delete"
   post url, data, callback

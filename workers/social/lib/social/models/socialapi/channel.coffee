@@ -64,6 +64,8 @@ module.exports = class SocialChannel extends Base
           (signature Object, Function)
         delete:
           (signature Object, Function)
+        update:
+          (signature Object, Function)
 
     schema             :
       id               : Number
@@ -139,6 +141,11 @@ module.exports = class SocialChannel extends Base
   @byName = secureRequest
     fnName  : 'channelByName'
     validate: ["name"]
+
+  # update - fetch channel by name
+  @update = secureRequest
+    fnName  : 'updateChannel'
+    validate: ["id"]
 
   # searchTopics - search topics for autocompletion
   @searchTopics          = secureRequest fnName: 'searchTopics'
