@@ -1,4 +1,5 @@
 $ = require 'jquery'
+remote = require('app/remote').getInstance()
 
 ###*
  * It makes a request to the backend and gets session id
@@ -67,10 +68,34 @@ toNickKeyedMap = (subscribers, publisher) ->
  * @param {OT.Stream} stream
  * @param {KDView} view
 ###
-subscribeToStream = (session, stream, view) ->
+subscribeToStream = (session, stream, view, callbacks) ->
 
-  options = { height: '100%', width: '100%', insertMode: 'append' }
-  subscriber = session.subscribe stream, view.getElement(), options
+  nick = stream.name
+  options =
+    height       : '100%'
+    width        : '100%'
+    insertMode   : 'append'
+    style        :
+      audioLevelDisplayMode    : 'off'
+      buttonDisplayMode        : 'off'
+      nameDisplayMode          : 'off'
+      videoDisabledDisplayMode : 'on'
+
+  remote.cacheable nick, (err, [account]) ->
+    return callbacks.error err  if err
+    subscriber = session.subscribe stream, view.getElement(), options, (err) =>
+      return callbacks.error err  if err
+      subscriber.setStyle 'backgroundImageURI', uri = _getGravatarUri account
+      console.log {uri}
+      callbacks.success subscriber
+
+
+_getGravatarUri = (account, size = 355) ->
+
+  {hash} = account.profile
+  {protocol} = global.location
+  defaultUri = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+  return "#{protocol}//gravatar.com/avatar/#{hash}?size=#{size}&d=#{defaultUri}&r=g"
 
 
 ###*
