@@ -1,12 +1,14 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDModalViewWithForms = kd.ModalViewWithForms
-KDView = kd.View
-nick = require 'app/util/nick'
-KodingSwitch = require 'app/commonviews/kodingswitch'
+kd                         = require 'kd'
+KDCustomHTMLView           = kd.CustomHTMLView
+KDModalViewWithForms       = kd.ModalViewWithForms
+KDView                     = kd.View
+nick                       = require 'app/util/nick'
+KodingSwitch               = require 'app/commonviews/kodingswitch'
 IDEContentSearchResultView = require './idecontentsearchresultview'
-Encoder = require 'htmlencode'
-editorSettings = require '../../workspace/panes/settings/editorsettings'
+Encoder                    = require 'htmlencode'
+editorSettings             = require '../../workspace/panes/settings/editorsettings'
+_                          = require 'lodash'
+keycode                    = require 'keycode'
 
 
 module.exports = class IDEContentSearch extends KDModalViewWithForms
@@ -36,15 +38,13 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
               type          : 'text'
               label         : 'Find'
               placeholder   : 'Find'
-              keyup         :
-                esc         : @bound 'destroy'
+              keyup         : _.bind @handleKeyUp, this
             whereInput      :
               type          : 'text'
               label         : 'Where'
               placeholder   : "/home/#{nick()}"
               defaultValue  : "/home/#{nick()}"
-              keyup         :
-                esc         : @bound 'destroy'
+              keyup         : _.bind @handleKeyUp, this
             caseToggle      :
               label         : 'Case Sensitive'
               itemClass     : KodingSwitch
@@ -65,6 +65,15 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
               cssClass      : 'hidden notification'
 
     super options, data
+
+
+  handleKeyUp: (e) ->
+
+    code = e.which or e.keyCode
+    key  = keycode code
+
+    @destroy()  if key is 'esc'
+
 
   search: ->
     @warningView.hide()
