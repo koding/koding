@@ -8,6 +8,7 @@ remote = require('app/remote').getInstance()
 KDHeaderView = kd.HeaderView
 showError = require 'app/util/showError'
 Machine = require 'app/providers/machine'
+SshKey = require 'app/util/sshkey'
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
@@ -32,10 +33,16 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
     @getListView().on "NewKeySubmitted", (item)=>
       @newItem = no
-      { key, title } = item.getData()
-      @removeItem item
-      @addItem { key, title }
-      @getListView().emit "UpdatedItems"
+      { key, title, machines } = item.getData()
+
+      sk = new SshKey { key }
+      sk.deploy machines, (err) =>
+        if err
+          item.emit "KeyFailed", err
+        else
+          @removeItem item
+          @addItem { key, title }
+          @getListView().emit "UpdatedItems"
 
     @newItem = no
 
@@ -84,7 +91,7 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
             delegate : @getListView()
             type
           },
-          machines
+          { machines }
 
         @getListView().addItemView newSshKey, 0
 

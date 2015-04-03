@@ -47,7 +47,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
           cancel          :
             style         : 'thin small gray'
             title         : 'Cancel'
-            callback      : => @emit 'FormCancelled'
+            callback      : @lazyBound 'emit', 'FormCancelled'
       formWrapper.addSubView formButtons
 
     else
@@ -71,7 +71,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
 
         @machineList = list = new AccountSshMachineList()
         listController = new KDListViewController view : list
-        listController.instantiateListItems @getData()
+        listController.instantiateListItems @getData().machines
         formWrapper.addSubView list
 
       @buttonsBar = formButtons = new KDButtonBar
@@ -80,11 +80,11 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
             style         : 'solid small green'
             loader        : yes
             title         : 'Save'
-            callback      : => @emit 'FormSaved'
+            callback      : @lazyBound 'emit', 'FormSaved'
           cancel          :
             style         : 'thin small gray'
             title         : 'Cancel'
-            callback      : => @emit 'FormCancelled'
+            callback      : @lazyBound 'emit', 'FormCancelled'
 
       formWrapper.addSubView formButtons
 
@@ -92,6 +92,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
 
     @on "FormCancelled", @bound "cancel"
     @on "FormSaved", @bound "save"
+    @on "KeyFailed", @bound "errorHandled"
 
 
   cancel: ->
@@ -115,7 +116,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
       showError "Title required for SSH key."
     else
       machines = switch type
-        when ViewType.SingleMachine then @getData()
+        when ViewType.SingleMachine then @getData().machines
         when ViewType.ManyMachines  then @machineList.getSelectedMachines()
         else []
 
@@ -132,3 +133,11 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     """
       <div class='swappableish swappable-wrapper posstatic'></div>
     """
+
+
+  errorHandled: (err) ->
+
+    isInvalidKey = err.message?.indexOf('invalid authorized_key') > -1
+    return showError 'Sorry, the SSH key is not in a valid format.'  if isInvalidKey
+
+    showError err.message
