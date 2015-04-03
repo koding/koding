@@ -60,6 +60,20 @@ toNickKeyedMap = (subscribers, publisher) ->
 
 
 ###*
+ * Subscribes to given stream, appends the DOM element into given view
+ * instance's DOM element.
+ *
+ * @param {OT.Session} session
+ * @param {OT.Stream} stream
+ * @param {KDView} view
+###
+subscribeToStream = (session, stream, view) ->
+
+  options = { height: '100%', width: '100%', insertMode: 'append' }
+  subscriber = session.subscribe stream, view.getElement(), options
+
+
+###*
  * Default error signal.
  *
  * @param {object} error
@@ -73,5 +87,6 @@ module.exports = {
   generateSession
   generateToken
   toNickKeyedMap
+  subscribeToStream
   _errorSignal
 }
