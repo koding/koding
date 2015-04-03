@@ -17,7 +17,6 @@ module.exports = class JUser extends jraphical.Module
   JLog            = require '../log'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
-  Sendgrid        = require '../sendgrid'
   ComputeProvider = require '../computeproviders/computeprovider'
   Email           = require '../newemail'
 
@@ -285,9 +284,7 @@ module.exports = class JUser extends jraphical.Module
 
                 Payment.deleteAccount deletedClient, (err)=>
 
-                  @logout deletedClient, (err) =>
-                    callback err
-                    Sendgrid.deleteUser oldEmail, ->
+                  @logout deletedClient, callback
 
 
   @isRegistrationEnabled = (callback)->
@@ -1065,11 +1062,6 @@ module.exports = class JUser extends jraphical.Module
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
-        queue.next()
-
-      ->
-
-        Sendgrid.addNewUser user.email, user.username, ->
         queue.next()
 
     ]
