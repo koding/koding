@@ -621,39 +621,6 @@ func (m *Machine) isKlientReady() bool {
 	return true
 }
 
-func isCapacityError(err error) bool {
-	ec2Error, ok := err.(*ec2.Error)
-	if !ok {
-		return false // return back if it's not an ec2.Error type
-	}
-
-	fallbackErrors := []string{
-		"InsufficientInstanceCapacity",
-		"InstanceLimitExceeded",
-	}
-
-	// check wether the incoming error code is one of the fallback
-	// errors
-	for _, fbErr := range fallbackErrors {
-		if ec2Error.Code == fbErr {
-			return true
-		}
-	}
-
-	// return for non fallback errors, because we can't do much
-	// here and probably it's need a more tailored solution
-	return false
-}
-
-func isAddressNotFoundError(err error) bool {
-	ec2Error, ok := err.(*ec2.Error)
-	if !ok {
-		return false
-	}
-
-	return ec2Error.Code == "InvalidAddress.NotFound"
-}
-
 // switchAWSRegion switches to the given AWS region. This should be only used when
 // you know what to do, otherwiese never, never change the region of a machine.
 func (m *Machine) switchAWSRegion(region string) error {
