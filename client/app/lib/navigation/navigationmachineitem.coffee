@@ -69,13 +69,9 @@ module.exports = class NavigationMachineItem extends JView
 
     if isMine or isApproved
       if @settingsEnabled()
-        @settingsIcon = new KDCustomHTMLView
-          tagName     : 'span'
-          click       : (e) =>
-            if isMine then @handleMachineSettingsClick e
-            else if isApproved then @showSidebarSharePopup()
+        @createSettingsIcon()
     else
-      @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
+        @createSettingsIconPlaceholder()
 
     kd.singletons.computeController
       .on "reconnecting-#{@machine.uid}", =>
@@ -83,6 +79,21 @@ module.exports = class NavigationMachineItem extends JView
 
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
+
+
+  createSettingsIcon: ->
+
+    @settingsIcon = new KDCustomHTMLView
+      tagName     : 'span'
+      click       : (e) =>
+        if @machine.isMine() then @handleMachineSettingsClick e
+        else if @machine.isApproved() then @showSidebarSharePopup()
+
+
+  createSettingsIconPlaceholder: ->
+
+    @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
+
 
   settingsEnabled: ->
 
