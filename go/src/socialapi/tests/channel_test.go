@@ -5,6 +5,7 @@ import (
 	"socialapi/rest"
 	"testing"
 
+	"github.com/jinzhu/gorm"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -37,7 +38,24 @@ func TestChannelCreation(t *testing.T) {
 					So(channel2, ShouldNotBeNil)
 
 					So(channel1.Purpose, ShouldEqual, channel1.Purpose)
+
+					Convey("owner should be able to update payload", func() {
+						if channel1.Payload == nil {
+							channel1.Payload = gorm.Hstore{}
+						}
+
+						value := "value"
+						channel1.Payload = gorm.Hstore{
+							"key": &value,
+						}
+						channel2, err := rest.UpdateChannel(channel1)
+						So(err, ShouldBeNil)
+						So(channel2, ShouldNotBeNil)
+						So(channel1.Payload, ShouldNotBeNil)
+						So(*channel1.Payload["key"], ShouldEqual, value)
+					})
 				})
+
 				Convey("non-owner should not be able to update it", func() {
 					updatedPurpose := "another purpose from the paradise"
 					channel1.Purpose = updatedPurpose

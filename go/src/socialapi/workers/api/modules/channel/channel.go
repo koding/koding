@@ -244,7 +244,7 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(errors.New("creatorId doesnt match"))
 	}
 
-	// only allow purpose and name to be updated
+	// only allow purpose, name and payload to be updated
 	if req.Purpose != "" {
 		existingOne.Purpose = req.Purpose
 	}
@@ -252,6 +252,9 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	if req.Name != "" {
 		existingOne.Name = req.Name
 	}
+
+	// some of the channels stores sparse data
+	existingOne.Payload = req.Payload
 
 	if err := req.Update(); err != nil {
 		return response.NewBadRequest(err)
