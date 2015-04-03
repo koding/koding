@@ -23,42 +23,30 @@ module.exports = VideoCollaborationController =
     @videoModel.join()
 
 
+  startVideoCollaboration: ->
+
+    @videoModel.start()
+
+
+  endVideoCollaboration: ->
+
+    @videoModel.end()
+
+
+  toggleVideoControl: (type, activeState) ->
+
+    switch type
+      when 'audio' then @videoModel.setAudioState activeState
+      when 'video' then @videoModel.setVideoState activeState
+      when 'end'   then @endVideoCollaboration()
+
+
   leaveVideoCollaboration: ->
 
 
   switchToUserVideo: (nickname) ->
 
     @videoModel.changeActiveParticipant nickname
-
-
-  muteParticipant: (participant) ->
-
-    # @videoModel.muteParticipant participant
-
-
-  unmuteParticipant: (participant) ->
-
-    # @videoModel.unmuteParticipant participant
-
-
-  turnOffParticipantCamera: (participant) ->
-
-    # @videoModel.disableParticipantCamera participant
-
-
-  turnOnParticipantCamera: (participant) ->
-
-    # @videoModel.enableParticipantCamera participant
-
-
-  turnOffCamera: ->
-
-    # @videoModel.disableParticipantCamera nick()
-
-
-  turnOnCamera: ->
-
-    # @videoModel.enableParticipantCamera nick()
 
 
   handleVideoAccessQuestionAsked: ->
@@ -68,40 +56,35 @@ module.exports = VideoCollaborationController =
 
 
   handleVideoEnded: ->
+    @emitToViews 'VideoCollaborationEnded'
 
 
   handleVideoActive: (publisher) ->
-
-    @chat.emit 'VideoCollaborationActive', publisher
+    @emitToViews 'VideoCollaborationActive'
 
 
   handleVideoParticipantJoined: (participant) ->
-
-    @statusBar.emit 'VideoParticipantDidJoin', participant
-    @chat.emit 'VideoParticipantDidJoin', participant
+    @emitToViews 'VideoParticipantDidJoin', participant
 
 
   handleVideoParticipantLeft: (participant) ->
-
-    @statusBar.emit 'VideoParticipantDidLeave', participant
-    @chat.emit 'VideoParticipantDidLeave', participant
+    @emitToViews 'VideoParticipantDidLeave', participant
 
 
   handleVideoActiveParticipantChanged: (participant) ->
-
-    @statusBar.emit 'VideoActiveParticipantDidChange', participant
-    @chat.emit 'VideoActiveParticipantDidChange', participant
+    @emitToViews 'VideoActiveParticipantDidChange', participant
 
 
   handleVideoParticipantAudioStateChanged: (participant, state) ->
-
-    @statusBar.emit 'VideoParticipantAudioStateDidChange', participant, state
-    @chat.emit 'VideoParticipantAudioStateDidChange', participant, state
+    @emitToViews 'VideoParticipantAudioStateDidChange', participant
 
 
   handleVideoParticipantCameraStateChanged: (participant, state) ->
+    @emitToViews 'VideoParticipantCameraStateDidChange', participant
 
-    @statusBar.emit 'VideoParticipantCameraStateDidChange', participant, state
-    @chat.emit 'VideoParticipantCameraStateDidChange', participant, state
+
+  emitToViews: (args...) ->
+    @statusBar.emit args...
+    @chat.emit args...
 
 
