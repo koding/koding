@@ -77,6 +77,12 @@ module.exports = class NotificationController extends KDObject
 
     @on 'MachineListUpdated', ({machineUId, action}) ->
       envDataProvider.setLastUpdatedMachineUId machineUId
+
+      switch action
+        when 'removed'
+          if ideInstance = envDataProvider.getIDEFromUId machineUId
+            ideInstance.showUserRemovedModal()
+
       kd.singletons.computeController.reset yes
 
     @on 'UsernameChanged', ({username, oldUsername}) ->
