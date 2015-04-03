@@ -11,6 +11,11 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
     @model.on 'ActiveParticipantChanged', @bound 'switchTo'
     @model.on 'VideoCollaborationActive', @bound 'fixParticipantVideoElements'
 
+    viewControlBinder = (control) => (state) => @view[control].setActiveState state
+
+    @model.on 'VideoPublishStateChanged', viewControlBinder 'controlVideo'
+    @model.on 'AudioPublishStateChanged', viewControlBinder 'controlAudio'
+
 
   ###*
    * First hide all participants, then show participant with given nickname.
