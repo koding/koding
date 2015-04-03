@@ -72,11 +72,15 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 			// fetching channel returns creator id
-			_, err = rest.UpdateChannel(channel1)
+			_, err = rest.UpdateChannel(channel1, ses.ClientId)
 			So(err, ShouldBeNil)
 		})
 
@@ -93,8 +97,12 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			channel1.CreatorId = rand.Int63()
-			_, err = rest.UpdateChannel(channel1)
+			_, err = rest.UpdateChannel(channel1, ses.ClientId)
 			So(err, ShouldNotBeNil)
 		})
 

@@ -1,15 +1,29 @@
 package main
 
 import (
+	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/rest"
 	"testing"
 
 	"github.com/jinzhu/gorm"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
 func TestChannelCreation(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
 	Convey("while  testing channel", t, func() {
 		Convey("First Create Users", func() {
 			account1 := models.NewAccount()
@@ -17,6 +31,10 @@ func TestChannelCreation(t *testing.T) {
 			account, err := rest.CreateAccount(account1)
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
+
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
 
 			nonOwnerAccount := models.NewAccount()
 			nonOwnerAccount.OldId = AccountOldId2.Hex()
@@ -33,7 +51,7 @@ func TestChannelCreation(t *testing.T) {
 					updatedPurpose := "another purpose from the paradise"
 					channel1.Purpose = updatedPurpose
 
-					channel2, err := rest.UpdateChannel(channel1)
+					channel2, err := rest.UpdateChannel(channel1, ses.ClientId)
 					So(err, ShouldBeNil)
 					So(channel2, ShouldNotBeNil)
 
@@ -48,7 +66,7 @@ func TestChannelCreation(t *testing.T) {
 						channel1.Payload = gorm.Hstore{
 							"key": &value,
 						}
-						channel2, err := rest.UpdateChannel(channel1)
+						channel2, err := rest.UpdateChannel(channel1, ses.ClientId)
 						So(err, ShouldBeNil)
 						So(channel2, ShouldNotBeNil)
 						So(channel1.Payload, ShouldNotBeNil)
@@ -60,8 +78,11 @@ func TestChannelCreation(t *testing.T) {
 					updatedPurpose := "another purpose from the paradise"
 					channel1.Purpose = updatedPurpose
 					channel1.CreatorId = nonOwnerAccount.Id
+					es, err := models.FetchOrCreateSession(nonOwnerAccount.Nick)
+					So(err, ShouldBeNil)
+					So(ses, ShouldNotBeNil)
 
-					channel2, err := rest.UpdateChannel(channel1)
+					channel2, err := rest.UpdateChannel(channel1, es.ClientId)
 					So(err, ShouldNotBeNil)
 					So(channel2, ShouldBeNil)
 				})

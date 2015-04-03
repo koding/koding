@@ -380,7 +380,7 @@ getSiteMap = (data, callback)->
   getXml url, {}, callback
 
 updateChannel = (data, callback) ->
-  url = "/channel/#{data.channelId}/update"
+  url = "/channel/#{data.id}/update"
   post url, data, callback
 
 deleteChannel = (data, callback) ->
@@ -512,6 +512,7 @@ module.exports = {
   createGroupNotification
   getSiteMap
   deleteChannel
+  updateChannel
   checkOwnership
   expireSubscription
   post
