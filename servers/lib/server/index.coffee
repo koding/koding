@@ -833,8 +833,8 @@ usertracker.start()
 
 # init rabbitmq client for Email to use to queue emails
 mqClient = require './amqp'
-NewEmail = require '../../../workers/social/lib/social/models/newemail.coffee'
-NewEmail.setMqClient mqClient
+Email = require '../../../workers/social/lib/social/models/newemail.coffee'
+Email.setMqClient mqClient
 
 
 # NOTE: in the event of errors, send 500 to the client rather

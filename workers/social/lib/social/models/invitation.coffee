@@ -23,7 +23,7 @@ module.exports = class JInvitation extends jraphical.Module
   KodingError  = require '../error'
   JGroup       = require './group'
   JPaymentPack = require './payment/pack'
-  NewEmail     = require './email'
+  Email        = require './newemail'
 
   @share()
 
@@ -190,8 +190,7 @@ module.exports = class JInvitation extends jraphical.Module
       }
 
       JUser.fetchUser client, (err, inviter)=>
-        e = new NewEmail
-        e.queue delegate.profile.nickname, {
+        Email.queue delegate.profile.nickname, {
           to         : @email
           subject    : @constructor.getSubject details
           content    : getTextBody {firstName, @pin, action}
@@ -367,10 +366,9 @@ module.exports = class JInvitation extends jraphical.Module
     JUser.fetchUser client, (err,inviter)=>
       {inviter, url, message} = messageOptions
 
-      e = new NewEmail
-      e.queue delegate.profile.nickname, {
+      Email.queue delegate.profile.nickname, {
         to         : @email
-        subject    : NewEmail.types.Invite
+        subject    : Email.types.Invite
       },{inviterEmail: inviter.email, inviter, url, message}, (err) =>
         status = if err then 'couldnt send email' else 'sent'
         @update {$set: status: status}, callback

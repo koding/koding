@@ -10,10 +10,10 @@ class PINExistsError extends Error
 
 module.exports = class JVerificationToken extends Module
 
-  {secure}    = require 'bongo'
-  crypto      = require 'crypto'
-  hat         = require 'hat'
-  NewEmail    = require './newemail'
+  {secure} = require 'bongo'
+  crypto   = require 'crypto'
+  hat      = require 'hat'
+  Email    = require './newemail'
 
   @share()
 
@@ -45,7 +45,7 @@ module.exports = class JVerificationToken extends Module
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
-    subject   or= NewEmail.types.CONFIRM_EMAIL
+    subject   or= Email.types.CONFIRM_EMAIL
     username    = user.getAt 'username'
     email     or= user.getAt 'email'
     firstName or= username
@@ -110,8 +110,7 @@ module.exports = class JVerificationToken extends Module
 
   sendEmail: ({subject, firstName, username, action}, callback)->
 
-    e = new NewEmail
-    e.queue username, {to:@email, subject}, {firstName, @pin, action}, callback
+    Email.queue username, {to:@email, subject}, {firstName, @pin, action}, callback
 
 
   @invalidatePin = (options, callback)->

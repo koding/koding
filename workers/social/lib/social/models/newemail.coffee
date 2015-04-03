@@ -8,7 +8,7 @@ exchangeOpts = {autoDelete: no, durable:yes, type :'fanout'}
 
 mqClient = null
 
-module.exports = class NewEmail
+module.exports = class Email
 
   KodingError = require '../error'
 
@@ -33,7 +33,7 @@ module.exports = class NewEmail
     mail.properties   = { options, username}
 
     unless mqClient
-      return callback new KodingError 'RabbitMQ client not found in NewEmail'
+      return callback new KodingError 'RabbitMQ client not found in Email'
 
     mqClient.once "ready", =>
       mqClient.exchange "#{exchangeName}", exchangeOpts, (exchange) =>

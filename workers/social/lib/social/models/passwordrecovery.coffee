@@ -10,7 +10,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   KodingError = require '../error'
   JUser       = require './user'
-  NewEmail    = require './newemail'
+  Email       = require './newemail'
 
 
   UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
@@ -60,10 +60,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
   @getPasswordRecoveryEmail =-> 'hello@koding.com'
 
   @getEmailSubject = ({resetPassword})->
-    if resetPassword
-      NewEmail.types.PASSWORD_RECOVER
-    else
-      NewEmail.types.CONFIRM_EMAIL
+    if resetPassword then Email.types.PASSWORD_RECOVER
+    else Email.types.CONFIRM_EMAIL
 
 
   @getEmailDateFormat = -> 'fullDate'
@@ -159,8 +157,7 @@ module.exports = class JPasswordRecovery extends jraphical.Module
               resetPassword : options.resetPassword
               requestedAt   : certificate.getAt('requestedAt')
 
-            e = new NewEmail
-            e.queue username, {
+            Email.queue username, {
               to          : email
               subject    : @getEmailSubject messageOptions
               content    : @getEmailMessage messageOptions
@@ -190,10 +187,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           certificate.update {$set: status: 'redeemed'}, (err) ->
             return callback err if err
 
-            e = new NewEmail
-            e.queue user.username, {
+            Email.queue user.username, {
               to       : certificate.email
-              subject  : NewEmail.types.WELCOME
+              subject  : Email.types.WELCOME
             }, {firstName: user.username}, (err)->
               console.error err  if err
 

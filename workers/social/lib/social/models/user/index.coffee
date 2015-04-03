@@ -19,7 +19,7 @@ module.exports = class JUser extends jraphical.Module
   JPaymentSubscription = require '../payment/subscription'
   Sendgrid        = require '../sendgrid'
   ComputeProvider = require '../computeproviders/computeprovider'
-  NewEmail         = require '../newemail'
+  Email           = require '../newemail'
 
   { v4: createId } = require 'node-uuid'
 
@@ -1132,13 +1132,10 @@ module.exports = class JUser extends jraphical.Module
 
   sendChangedEmail = (username, firstName, to, type, callback) ->
 
-    subject = if type is 'email'
-      NewEmail.types.EMAIL_CHANGED
-    else
-      NewEmail.types.PASSWORD_CHANGED
+    subject = if type is 'email' then Email.types.EMAIL_CHANGED
+    else Email.types.PASSWORD_CHANGED
 
-    email = new NewEmail
-    email.queue username, {to, subject}, {firstName}, callback
+    Email.queue username, {to, subject}, {firstName}, callback
 
 
   @changeEmail = secure (client,options,callback)->
@@ -1263,10 +1260,8 @@ module.exports = class JUser extends jraphical.Module
       return callback err if err
       JUser.emit "EmailConfirmed", @
 
-      subject = NewEmail.types.WELCOME
-
-      email = new NewEmail
-      email.queue @username, { to : @email, subject }, {}, callback
+      subject = Email.types.WELCOME
+      Email.queue @username, { to : @email, subject }, {}, callback
 
 
   block:(blockedUntil, callback)->
