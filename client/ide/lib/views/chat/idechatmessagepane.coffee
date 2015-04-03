@@ -7,6 +7,7 @@ ActivityItemMenuItem = require 'activity/views/activityitemmenuitem'
 ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
+isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
 
 IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
 
@@ -163,16 +164,17 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
       'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
       # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
 
-    # wtf? this somehow means that we are host. ~Umut
-    unless @isInSession
+    isHost = not @isInSession
+
+    if isVideoFeatureEnabled() and isHost
       seperator = yes
       if @videoActive
       then menu['End Video Chat'] = { seperator, callback: @bound 'requestEndVideo' }
       else menu['Start Video Chat']  = { seperator, callback: @bound 'requestStartVideo' }
 
-    if @isInSession
-    then menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
-    else menu['End Session']   = { callback : => @parent.settingsPane.stopSession() }
+    if isHost
+    then menu['End Session']   = { callback : => @parent.settingsPane.stopSession() }
+    else menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
 
     return menu
 
