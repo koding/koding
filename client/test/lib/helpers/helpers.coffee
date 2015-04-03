@@ -84,15 +84,16 @@ module.exports =
 
 
   doLogin: (browser, user) ->
+
     @attemptLogin(browser, user)
 
     browser.element 'css selector', '[testpath=main-sidebar]', (result) =>
       if result.status is 0
-        console.log 'log in success'
+        console.log "Successfully logged in with username: #{user.username} and password: #{user.password}"
 
         browser.waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
       else
-        console.log 'user is not registered yet. registering the user.'
+        console.log 'User is not registered yet. Registering...'
 
         @doRegister browser, user
 
