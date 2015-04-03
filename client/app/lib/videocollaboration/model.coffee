@@ -10,8 +10,8 @@ helper          = require './helper'
 module.exports = class VideoCollaborationModel extends kd.Object
 
   defaultState:
-    publishVideo       : on
-    publishAudio       : on
+    audio              : off
+    video              : off
     publishing         : off
     active             : no
     connected          : no
@@ -107,9 +107,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
       # dispatched (probably from host, but doesn't matter).
       @setActive()  unless @state.active
 
-      { stream } = event
-      helper.subscribeToStream stream, @getView().getElement()
-      @setParticipantJoined stream.name, subscriber
+      @subscribeToStream session, event.stream
+
+      return  if @state.publishing
+
+      options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+      @startPublishing options,
+        success: (publisher) =>
+          @handlePublishSuccess publisher
+          @subscribeToStream session, event.stream
+        error: (err) =>
 
     session.on 'streamDestroyed', (event) =>
 
@@ -138,6 +145,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
         when 'networkDisconnected' then 'VideoCollaborationEndedByNetwork'
 
       @emit eventName
+
+  subscribeToStream: (session, stream) ->
+
+    helper.subscribeToStream session, stream, @getView().getContainer(),
+      success : (subscriber) => @setParticipantJoined stream.name, subscriber
+      error   : (err) -> console.error err
 
 
   ###*
