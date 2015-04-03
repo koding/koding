@@ -251,20 +251,3 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   redeem: (callback) ->
     @update {$set: status: 'redeemed'}, callback
-
-  redeemByToken: (callback) ->
-    # JMail = require './email'
-    # JMail.one redemptionToken: @token, (err, mail) =>
-    #   return callback err  if err
-
-    #   dateThen =
-    #     if mail.dateDelivered
-    #     then mail.dateDelivered
-    #     else
-    #       console.warn "We have no record of this message", @token
-    #       mail.dateAttempted
-
-    #   if (Date.now() - dateThen > @expiryPeriod)
-    #     return callback { message: 'This token has expired!' }
-
-    @update {$set: status: 'redeemed'}, callback
