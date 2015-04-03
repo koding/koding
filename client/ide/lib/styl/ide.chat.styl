@@ -28,7 +28,7 @@ pmLinkColor   = #B6B6B6
   overflow                  hidden
 
   .custom-link-view.close
-    abs                     15px 12px 0 0
+    abs                     15px 19px 0 0
     size                    20px 20px
     z-index                 1
     .icon
@@ -165,14 +165,57 @@ pmLinkColor   = #B6B6B6
     min-height              302px
 
 
-.chat-view
+.ChatVideo--IDEChatVideo
 
-  .ChatVideo
-    size                    325px 265px
-    overflow                hidden
+  size                    325px 265px
+  overflow                hidden
 
-  .ChatVideo .ChatVideo-container
+  .ChatVideo-container
     size                    100% 100%
+
+  .ChatVideo-controls
+    size                    30px auto
+    position                absolute
+    padding                 0
+    margin                  0
+    top                     50px
+    right                   15px
+    z-index                 10
+
+  .ChatVideoControl
+    size                    30px 30px
+    margin-bottom           5px
+    border-radius           3px
+    padding                 0
+    background              rgba(255, 255, 255, .55)
+
+    &:hover
+      background            rgba(255, 255, 255, 1)
+
+    .icon
+      display               block
+      margin                0 auto !important
+      padding               0
+      float                 none
+      z-index               10
+
+  .ChatVideoControl.ChatVideoControl--audio
+    .icon
+      r-sprite              'ide', 'mic'
+    &.is-active .icon
+      r-sprite              'ide', 'mic-disabled'
+
+  .ChatVideoControl.ChatVideoControl--video
+    .icon
+      r-sprite              'ide', 'cam'
+    &.is-active .icon
+      r-sprite              'ide', 'cam-disabled'
+
+  .ChatVideoControl.ChatVideoControl--end
+    .icon
+      r-sprite              'ide', 'standby'
+
+.chat-view
 
   .kdtabpaneview.privatemessage
     padding                 0
