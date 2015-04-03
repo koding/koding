@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/koding/runner"
+	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -98,7 +99,7 @@ func TestGroupChannel(t *testing.T) {
 			So(channel1, ShouldNotBeNil)
 
 			anotherAccount := models.NewAccount()
-			anotherAccount.OldId = AccountOldId.Hex()
+			anotherAccount.OldId = bson.NewObjectId().Hex()
 			anotherAccount, err = rest.CreateAccount(anotherAccount)
 
 			So(err, ShouldBeNil)
