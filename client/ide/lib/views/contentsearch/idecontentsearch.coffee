@@ -38,13 +38,13 @@ module.exports = class IDEContentSearch extends KDModalViewWithForms
               type          : 'text'
               label         : 'Find'
               placeholder   : 'Find'
-              keyup         : _.bind @handleKeyUp, this
+              keydown       : _.bind @handleKeyUp, this
             whereInput      :
               type          : 'text'
               label         : 'Where'
               placeholder   : "/home/#{nick()}"
               defaultValue  : "/home/#{nick()}"
-              keyup         : _.bind @handleKeyUp, this
+              keydown       : _.bind @handleKeyUp, this
             caseToggle      :
               label         : 'Case Sensitive'
               itemClass     : KodingSwitch
