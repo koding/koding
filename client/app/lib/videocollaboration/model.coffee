@@ -313,11 +313,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ensurePublishing: (options, callback) ->
     return callback()  if @state.publishing
 
-    successCb = =>
+    successCb = (publisher) =>
       @handlePublishSuccess publisher
       callback()
 
-    @setState options
     @startPublishing options,
       success : successCb
       error   : (err) ->
