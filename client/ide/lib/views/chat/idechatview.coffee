@@ -43,7 +43,8 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
 
-    @once 'VideoCollaborationActive', @bound 'handleVideoActive'
+    @on 'VideoCollaborationActive', @bound 'handleVideoActive'
+    @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
 
     @on 'ParticipantSelected', @bound 'handleParticipantSelected'
 
@@ -100,19 +101,26 @@ module.exports = class IDEChatView extends KDTabView
     @unsetClass 'loading'
 
 
-  handleVideoActive: (publisher) ->
+  handleVideoActive: ->
 
     @setClass 'is-videoActive'
     @chatVideoView.show()
-    @chatPane.handleVideoActive publisher
+    @chatPane.handleVideoActive()
 
 
-  getVideoContainer: -> @chatVideoView.getContainer()
+  handleVideoEnded: ->
+
+    @chatPane.handleVideoEnded()
+    @chatVideoView.hide()
+    @unsetClass 'is-videoActive'
+
+
+  getVideoView: -> @chatVideoView
 
 
   createChatVideoView: ->
 
-    @chatVideoView = new IDEChatVideoView { cssClass: 'hidden' }
+    @chatVideoView = new IDEChatVideoView { cssClass: 'hidden' }, @getData()
     @addSubView @chatVideoView
 
 
@@ -142,10 +150,18 @@ module.exports = class IDEChatView extends KDTabView
       kd.utils.wait 500, =>
         @chatPane.showAutoCompleteInput()
 
-    @chatPane.on 'ChatVideoRequested', ->
-      kd.singletons.appManager.tell 'IDE', 'joinVideoCollaboration'
+    @bindVideoCollaborationEvents()
 
     @emit 'ready'
+
+
+  bindVideoCollaborationEvents: ->
+
+    {appManager} = kd.singletons
+
+    @chatPane
+      .on 'ChatVideoStartRequested', -> appManager.tell 'IDE', 'startVideoCollaboration'
+      .on 'ChatVideoEndRequested', -> appManager.tell 'IDE', 'endVideoCollaboration'
 
 
   showChatPane: ->
