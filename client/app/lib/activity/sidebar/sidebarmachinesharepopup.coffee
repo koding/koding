@@ -137,15 +137,15 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
       { router, mainView } = kd.singletons
 
       doNavigation = =>
-        route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
-
-        unless machine.isPermanent() # collaboration route
+        if machine.isPermanent()
+          route = "/IDE/#{machine.uid}/my-workspace" # permanent shared route
+        else # collaboration route
           route = "/IDE/#{@getOptions().channelId}"
 
         # route to permanent shared url to open the ide
         router.handleRoute route
 
-        # defer sidebar redraw sidebar to properly select workspace
+        # defer sidebar redrawing to properly select workspace
         kd.utils.defer =>
           mainView.activitySidebar.redrawMachineList()
           @destroy()
