@@ -40,7 +40,7 @@ module.exports =
     INTERVAL_CHANGE : 0
     DOWNGRADE       : -1
 
-  FAILED_ATTEMPT_LIMIT: 2
+  FAILED_ATTEMPT_LIMIT: 3
   TOO_MANY_ATTEMPT_BLOCK_KEY: 'BlockForTooManyAttempts'
   TOO_MANY_ATTEMPT_BLOCK_DURATION: globals.config.paymentBlockDuration
 
