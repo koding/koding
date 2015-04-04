@@ -4,7 +4,7 @@ module.exports = class TermsOfServiceView extends KDCustomHTMLView
   constructor : (options = {}, data) ->
     options.tagName     = 'iframe'
     options.attributes  =
-      src               : "/tos.html"
+      src               : "/Legal/Terms"
 
     super options, data
 
