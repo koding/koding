@@ -351,7 +351,7 @@ module.exports = class RealtimeController extends KDController
     # they receive RemovedFromChannel event for their own. Therefore we must unsubscribe
     # user from all connected devices.
     if eventName is 'RemovedFromChannel' and body.accountId is whoami().socialApiId
-      return @unsubscribePubnub message.channel
+      return @unsubscribeChannel message.channel
 
     # no need to emit any events when not subscribed
     return  unless @channels[channel]

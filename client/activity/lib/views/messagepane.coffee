@@ -220,10 +220,11 @@ module.exports = class MessagePane extends KDTabPaneView
 
     return  if @getOption("type") is 'post'
 
-    channel = @getData()
+    channel     = @getData()
     {socialapi} = kd.singletons
+    attributes  = testpath: 'ActivityInputWidget'
 
-    @input = new ActivityInputWidget { channel, placeholder }
+    @input = new ActivityInputWidget { attributes, channel, placeholder }
 
 
   createFilterLinks: ->
@@ -293,7 +294,7 @@ module.exports = class MessagePane extends KDTabPaneView
     [item] = listItems.filter (item) -> item.getData().getId() is message.getId()
 
     if item?
-      item.once 'HideAnimationFinished', =>
+      item.whenRemovingFinished =>
         @listController.removeItem item
         @listController.showNoItemWidget()  if @listController.getListItems().length is 0
 

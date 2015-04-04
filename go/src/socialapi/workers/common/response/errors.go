@@ -27,6 +27,10 @@ func (err NotFoundError) StatusCode() int { return http.StatusNotFound }
 
 type LimitRateExceededError struct{ error }
 
+func (err LimitRateExceededError) String() string {
+	return err.Name()
+}
+
 func (err LimitRateExceededError) Name() string {
 	return "koding.LimitRateExceededError"
 }

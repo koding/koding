@@ -141,15 +141,15 @@ app.post '/-/video-chat/session', (req, res) ->
 
   { channelId } = req.body
 
-  return res.status(400).send { err: 'Channel ID is required.'      }  unless channelId
 
+  return res.status(400).send { err: 'Channel ID is required.'      }  unless channelId
   return res.status(200).send { sessionId: videoSessions[channelId] }  if videoSessions[channelId]
 
-  { API_KEY, API_SECRET } = KONFIG.tokbox
+  { apiKey, apiSecret } = KONFIG.tokbox
 
   OpenTok = require 'opentok'
 
-  opentok = new OpenTok API_KEY, API_SECRET
+  opentok = new OpenTok apiKey, apiSecret
 
   opentok.createSession (err, session) ->
 
@@ -165,11 +165,11 @@ app.post '/-/video-chat/token', (req, res) ->
   return res.status(400).send { err: "Session ID is required." } unless sessionId
   return res.status(400).send { err: "Role is required"        } unless role
 
-  { API_KEY, API_SECRET } = KONFIG.tokbox
+  { apiKey, apiSecret } = KONFIG.tokbox
 
   OpenTok = require 'opentok'
 
-  opentok = new OpenTok API_KEY, API_SECRET
+  opentok = new OpenTok apiKey, apiSecret
 
   token = opentok.generateToken sessionId, { role }
 
@@ -419,6 +419,34 @@ app.post "/:name?/Login", (req, res) ->
 
     res.cookie 'clientId', info.replacementToken, path : '/'
     res.status(200).end()
+
+
+app.post "/Impersonate/:nickname", (req, res) ->
+  { JAccount, JSession } = koding.models
+  {nickname} = req.params
+
+  {clientId} = req.cookies
+
+  JSession.fetchSession clientId, (err, result)->
+    return res.status(400).end()  if err or not result
+
+    { username } = result.session
+    JAccount.one { "profile.nickname" : username }, (err, account) ->
+      return res.status(400).end()  if err or not account
+
+      unless account.can 'administer accounts'
+        return res.status(403).end()
+
+      JSession.createNewSession nickname, (err, session) ->
+        return res.status(400).send err.message  if err
+
+        JSession.remove {clientId}, (err) ->
+          console.error 'Could not remove session:', err  if err
+
+          res.cookie 'clientId', session.clientId, path : '/'  if session.clientId
+          res.clearCookie 'realtimeToken'
+          res.status(200).end()
+
 
 app.post "/:name?/Recover", (req, res) ->
   { JPasswordRecovery } = koding.models

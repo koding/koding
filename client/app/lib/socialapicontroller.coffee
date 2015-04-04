@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 htmlencode = require 'htmlencode'
 globals = require 'globals'
 getGroup = require './util/getGroup'
@@ -76,7 +76,7 @@ module.exports = class SocialApiController extends KDController
 
     {socialapi} = kd.singletons
 
-    channel = socialapi._cache["privatemessage"][channelId]
+    channel = socialapi.retrieveCachedItemById channelId
 
     return  unless channel
 
@@ -86,7 +86,7 @@ module.exports = class SocialApiController extends KDController
     delete socialapi.openedChannels[channelName] if socialapi.openedChannels[channelName]?
 
     {typeConstant, id} = channel
-    delete socialapi._cache[typeConstant][id]
+    socialapi.deleteCachedItem typeConstant, id
 
     {realtime} = kd.singletons
 
@@ -306,7 +306,7 @@ module.exports = class SocialApiController extends KDController
   # existing message. This is for preventing the case. - ctf
   filterMessage = (data) ->
     {message} = data  unless data.typeConstant?
-    if cachedMessage = kd.singletons.socialapi._cache?[message.typeConstant]?[message.id]
+    if cachedMessage = kd.singletons.socialapi.retrieveCachedItem message.typeConstant, message.id
       return yes  if cachedMessage.isShown
 
     message.isShown = yes
@@ -426,13 +426,25 @@ module.exports = class SocialApiController extends KDController
 
     if type is 'topic'
       for own id_, topic of @_cache.topic when topic.name is id
-        item = topic
+        return topic
 
-    if not item and type is 'activity'
+    if type is 'activity'
       for own id_, post of @_cache.post when post.slug is id
-        item = post
+        return post
 
-    return item
+    return null
+
+
+  retrieveCachedItemById: (id) ->
+
+    for own typeConstant, items of @_cache
+      return item  if item = @_cache[typeConstant][id]
+
+    return null
+
+
+  deleteCachedItem: (type, id) ->
+    delete @_cache[type]?[id]
 
 
   cacheable: (type, id, force, callback) ->
@@ -700,4 +712,8 @@ module.exports = class SocialApiController extends KDController
     glance               : notificationRequesterFn
       fnName             : 'glance'
 
+  account                :
+    impersonate          : (username, callback) ->
 
+      endPoint = "/Impersonate/#{username}"
+      doXhrRequest {type: 'POST', endPoint, async: yes}, callback

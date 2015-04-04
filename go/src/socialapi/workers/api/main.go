@@ -12,9 +12,7 @@ import (
 	"socialapi/workers/api/handlers"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/common/runner"
 	mailapi "socialapi/workers/email/mailparse/api"
-	"socialapi/workers/helper"
 	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
@@ -22,7 +20,8 @@ import (
 	permissionapi "socialapi/workers/permission/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
-	"strconv"
+
+	"github.com/koding/runner"
 )
 
 var (
@@ -36,9 +35,9 @@ func main() {
 		return
 	}
 
-	port, _ := strconv.Atoi(r.Conf.Port)
+	config.MustRead(r.Conf.Path)
 
-	mc := mux.NewConfig(Name, r.Conf.Host, port)
+	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log)
 
@@ -60,11 +59,12 @@ func main() {
 	algoliaapi.AddHandlers(m, r.Metrics, r.Log)
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	// set default values for dev env

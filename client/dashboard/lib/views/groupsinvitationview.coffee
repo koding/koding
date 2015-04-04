@@ -280,11 +280,7 @@ module.exports = class GroupsInvitationView extends KDView
     modal.destroy()
 
   saveInviteMessage:(messageType, message, callback=kd.noop)->
-    @getData().saveInviteMessage messageType, message, (err)=>
-      return callback err  if err
-      @policy.communications ?= {}
-      @policy.communications[messageType] = message
-      callback null
+    callback {message:"not implemented"}
 
   showErrorMessage:(err, errCallback)->
     kd.warn err

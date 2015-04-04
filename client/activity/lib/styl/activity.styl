@@ -923,41 +923,6 @@ body.group.members
 dropdownShadow = 0 1px 1px rgba(0,0,0,.1)
 dropdownBorder = 1px solid #E0E0E0
 
-.kdautocomplete.listview-wrapper.private-message
-  border            dropdownBorder
-  border-top-color  transparent
-  rounded           0
-  shadow            dropdownShadow
-  margin-top        0
-  min-width         268px
-  fix()
-
-  .kdautocompletelistitem
-    font-size       14px
-    padding         5px 10px 5px 5px
-    border          none
-    cursor          pointer
-    line-height     27px
-    bg              color transparent
-    color           #6D6D6D
-    borderBox()
-
-    .avatarview
-      display       inline-block
-      margin        1px 10px 1px 5px
-      size          25px, 25px
-
-    &.fetching
-    &.no-result
-      width         207px
-      color         #888
-      text-align    center
-
-
-    &.active
-      color           white
-      bg              color #7a7a7a
-
 .kdcontextmenu.tags-autocomplete
   margin-top          -1px
   .kdlistview-contextmenu

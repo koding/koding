@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"socialapi/models"
+	"socialapi/request"
 	"strconv"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
@@ -26,9 +27,10 @@ var (
 type IndexSet map[string]*algoliasearch.Index
 
 type Controller struct {
-	log     logging.Logger
-	client  *algoliasearch.Client
-	indexes *IndexSet
+	log             logging.Logger
+	client          *algoliasearch.Client
+	indexes         *IndexSet
+	kodingChannelId string
 }
 
 // IsAlgoliaError checks if the given algolia error string and given messages
@@ -70,6 +72,22 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 }
 
 func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *Controller {
+	// TODO later on listen channel_participant_added event and remove this koding channel fetch
+	c := models.NewChannel()
+	q := request.NewQuery()
+	q.GroupName = "koding"
+	q.Name = "public"
+	q.Type = models.Channel_TYPE_GROUP
+
+	channel, err := c.ByName(q)
+	if err != nil {
+		log.Error("Could not fetch koding channel: %s:", err)
+	}
+	var channelId string
+	if channel.Id != 0 {
+		channelId = strconv.FormatInt(channel.Id, 10)
+	}
+
 	return &Controller{
 		log:    log,
 		client: client,
@@ -78,6 +96,7 @@ func New(log logging.Logger, client *algoliasearch.Client, indexSuffix string) *
 			IndexAccounts: client.InitIndex(IndexAccounts + indexSuffix),
 			IndexMessages: client.InitIndex(IndexMessages + indexSuffix),
 		},
+		kodingChannelId: channelId,
 	}
 }
 
@@ -108,6 +127,7 @@ func (f *Controller) AccountSaved(data *models.Account) error {
 	return f.insert(IndexAccounts, map[string]interface{}{
 		"objectID": data.OldId,
 		"nick":     data.Nick,
+		"_tags":    []string{f.kodingChannelId},
 	})
 }
 
@@ -116,6 +136,12 @@ func (f *Controller) MessageListSaved(listing *models.ChannelMessageList) error 
 
 	if err := message.ById(listing.MessageId); err != nil {
 		return err
+	}
+
+	// no need to index join/leave messages
+	if message.TypeConstant != models.ChannelMessage_TYPE_POST &&
+		message.TypeConstant != models.ChannelMessage_TYPE_REPLY {
+		return nil
 	}
 
 	objectId := strconv.FormatInt(message.Id, 10)

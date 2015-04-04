@@ -8,7 +8,8 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/algoliaconnector/algoliaconnector"
-	"socialapi/workers/common/runner"
+
+	"github.com/koding/runner"
 )
 
 var Name = "AlgoliaTopicMigrator"

@@ -48,7 +48,11 @@ createUsers = (users)->
 
             return next()
 
-          account.update $set: type: 'registered', (err)->
+          account.update {
+            $set          :
+              type        : 'registered'
+              globalFlags : ['super-admin']
+          }, (err)->
 
             if err?
               console.log "  Failed to activate #{u.username}:", err

@@ -1,12 +1,15 @@
 package models
 
 import (
+<<<<<<< HEAD
 	"socialapi/models"
+	"socialapi/config"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 	"testing"
 
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
+
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -198,6 +201,9 @@ func TestChannelNewPrivateMessageChannel(t *testing.T) {
 	}
 	defer r.Close()
 
+	// read config once
+	config.MustRead(r.Conf.Path)
+
 	var creatorId int64 = 123
 	groupName := "testGroup"
 	c := NewPrivateMessageChannel(creatorId, groupName)
@@ -373,6 +379,7 @@ func TestChannelCanOpen(t *testing.T) {
 			c.Id = 123
 			c.CreatorId = 312
 			c.TypeConstant = Channel_TYPE_GROUP
+			c.GroupName = Channel_KODING_NAME
 			canOpen, err := c.CanOpen(0)
 			So(err, ShouldBeNil)
 			So(canOpen, ShouldBeTrue)
@@ -475,7 +482,7 @@ func TestChannelCanOpen(t *testing.T) {
 		Convey("everyone can open topic channel", func() {
 			c := createNewChannelWithTest()
 			c.TypeConstant = Channel_TYPE_TOPIC
-
+			c.GroupName = Channel_KODING_NAME
 			So(c.Create(), ShouldBeNil)
 
 			account := CreateAccountWithTest()

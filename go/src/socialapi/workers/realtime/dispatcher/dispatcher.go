@@ -2,9 +2,10 @@ package dispatcher
 
 import (
 	"fmt"
-	"socialapi/workers/helper"
 	"socialapi/workers/realtime/models"
 	"time"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/logging"
 	"github.com/koding/rabbitmq"
@@ -23,7 +24,7 @@ func NewController(rmqConn *rabbitmq.RabbitMQ, pubnub *models.PubNub, broker *mo
 	return &Controller{
 		Pubnub:  pubnub,
 		Broker:  broker,
-		logger:  helper.MustGetLogger(),
+		logger:  runner.MustGetLogger(),
 		rmqConn: rmqConn.Conn(),
 	}
 }

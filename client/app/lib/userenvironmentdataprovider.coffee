@@ -190,7 +190,7 @@ module.exports = UserEnvironmentDataProvider =
 
     return null  unless IDE
 
-    for i in IDE.instances when i.mountedMachineUId
+    for i in IDE.instances when i.mountedMachineUId is uid
       instance = i
       break
 
@@ -252,3 +252,9 @@ module.exports = UserEnvironmentDataProvider =
     for item in @getAllMachines() when item.machine.uid is machine.uid
       item.workspaces.splice 0
       return
+
+
+  getLastUpdatedMachineUId: -> return @lastUpdatedMachineUId
+
+
+  setLastUpdatedMachineUId: (uid) -> @lastUpdatedMachineUId = uid

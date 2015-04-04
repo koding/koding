@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net/http"
 	"net/http/httptest"
+	"socialapi/config"
 	"testing"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -13,10 +14,10 @@ var controller *Controller
 
 func init() {
 	r := initializeRunner()
-	conf := r.Conf
+	appConfig := config.MustRead(r.Conf.Path)
 
 	// initialize client to talk to kloud
-	kiteClient := initializeKiteClient(r.Kite, conf.Kloud.SecretKey, conf.Kloud.Address)
+	kiteClient := initializeKiteClient(r.Kite, appConfig.Kloud.SecretKey, appConfig.Kloud.Address)
 
 	// initialize controller to inject dependencies
 	cont := &Controller{Kite: kiteClient}
