@@ -98,6 +98,8 @@ func handleCancel(customer *paymentmodels.Customer) error {
 		}
 	}
 
+	removeCreditCardHelper(customer)
+
 	return nil
 }
 
