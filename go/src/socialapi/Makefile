@@ -294,7 +294,7 @@ testnotification:
 
 
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker testpermission testmoderation testalgolia testtopicfeeed testnotification
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
