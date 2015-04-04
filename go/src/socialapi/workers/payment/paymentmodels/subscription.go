@@ -154,7 +154,7 @@ func (s *Subscription) ByExpiredAtAndNotExpired(t time.Time) ([]Subscription, er
 	err := bongo.B.DB.
 		Table(s.BongoName()).
 		Where(
-		"expired_at < ? AND expired_at != ? AND state == ?",
+		"expired_at < ? AND expired_at != ? AND state = ?",
 		t, time.Time{}, SubscriptionStateActive,
 	).Find(&subscriptions).Error
 
