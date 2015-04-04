@@ -12,8 +12,6 @@ import (
 
 	"github.com/koding/runner"
 
-	"log"
-
 	. "github.com/smartystreets/goconvey/convey"
 	"labix.org/v2/mgo/bson"
 )
@@ -33,31 +31,35 @@ var (
 	fifthMessage      *socialapimodels.ChannelMessage
 )
 
-func prepareTestData() {
+type testHelper struct {
+	t *testing.T
+}
+
+func (th *testHelper) prepareTestData() {
 
 	if ownerAccount == nil {
 		ownerAccount = socialapimodels.NewAccount()
-		createUser(ownerAccount)
+		th.createUser(ownerAccount)
 	}
 
 	if firstUser == nil {
 		firstUser = socialapimodels.NewAccount()
-		createUser(firstUser)
+		th.createUser(firstUser)
 	}
 
 	if secondUser == nil {
 		secondUser = socialapimodels.NewAccount()
-		createUser(secondUser)
+		th.createUser(secondUser)
 	}
 
 	if thirdUser == nil {
 		thirdUser = socialapimodels.NewAccount()
-		createUser(thirdUser)
+		th.createUser(thirdUser)
 	}
 
 	if forthUser == nil {
 		forthUser = socialapimodels.NewAccount()
-		createUser(forthUser)
+		th.createUser(forthUser)
 	}
 
 	if testGroupChannel == nil {
@@ -67,7 +69,7 @@ func prepareTestData() {
 		testGroupChannel.Name = name
 		err := testGroupChannel.Create()
 		if err != nil {
-			log.Fatal(err)
+			th.t.Fatal(err)
 		}
 	}
 
@@ -78,45 +80,58 @@ func prepareTestData() {
 		testGroupChannel2.Name = name
 		err := testGroupChannel2.Create()
 		if err != nil {
-			log.Fatal(err)
+			th.t.Fatal(err)
 		}
 	}
 
 	if firstMessage == nil {
-		firstMessage = createOwnerMessage("first message it is")
+		firstMessage = th.createOwnerMessage("first message it is")
 	}
 
 	if secondMessage == nil {
-		secondMessage = createOwnerMessage("notification second message")
+		secondMessage = th.createOwnerMessage("notification second message")
 	}
 
 	if thirdMessage == nil {
-		thirdMessage = createOwnerMessage("notification subscriber message")
+		thirdMessage = th.createOwnerMessage("notification subscriber message")
 	}
 
 	if forthMessage == nil {
-		forthMessage = createOwnerMessage("notification subscriber message 2")
+		forthMessage = th.createOwnerMessage("notification subscriber message 2")
 	}
 
 	if fifthMessage == nil {
-		fifthMessage = createOwnerMessage("notification subscriber message 2")
+		fifthMessage = th.createOwnerMessage("notification subscriber message 2")
+	}
+
+	th.addParticipant(ownerAccount, testGroupChannel)
+	th.addParticipant(firstUser, testGroupChannel)
+	th.addParticipant(secondUser, testGroupChannel)
+	th.addParticipant(thirdUser, testGroupChannel)
+	th.addParticipant(forthUser, testGroupChannel)
+}
+
+func (th *testHelper) addParticipant(account *socialapimodels.Account, channel *socialapimodels.Channel) {
+	_, err := channel.AddParticipant(account.Id)
+	if err != nil {
+		th.t.Error(err)
 	}
 }
 
-func createUser(user *socialapimodels.Account) {
+func (th *testHelper) createUser(user *socialapimodels.Account) {
 	user.Id = 0
 	user.OldId = bson.NewObjectId().Hex()
 	user.Nick = user.OldId
 	err := user.Create()
 	if err != nil {
-		log.Fatal(err)
+		th.t.Fatal(err)
 	}
 }
 
-func createOwnerMessage(body string) *socialapimodels.ChannelMessage {
+func (th *testHelper) createOwnerMessage(body string) *socialapimodels.ChannelMessage {
 	message, err := createPost(testGroupChannel, ownerAccount, body)
 	if err != nil {
-		log.Fatal(err)
+		th.t.Fatal(err)
 	}
 
 	return message
@@ -215,7 +230,8 @@ func TestNotificationCreation(t *testing.T) {
 
 	defer modelhelper.Close()
 
-	prepareTestData()
+	th := &testHelper{t: t}
+	th.prepareTestData()
 
 	controller := notification.New(r.Bongo.Broker.MQ, r.Log)
 
