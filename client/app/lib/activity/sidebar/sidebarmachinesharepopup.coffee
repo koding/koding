@@ -57,7 +57,7 @@ module.exports = class SidebarMachineSharePopup extends KDModalView
 
   createElements: ->
 
-    text       = 'wants to share this VM with you'
+    text       = 'wants to share their VM with you.'
     titleFirst = no
 
     if @isApproved
