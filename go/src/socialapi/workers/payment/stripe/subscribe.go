@@ -4,6 +4,8 @@ import (
 	"socialapi/workers/payment/paymenterrors"
 	"socialapi/workers/payment/paymentmodels"
 	"socialapi/workers/payment/paymentstatus"
+
+	stripeCustomer "github.com/stripe/stripe-go/customer"
 )
 
 func Subscribe(token, accId, email, planTitle, planInterval string) error {
@@ -96,13 +98,18 @@ func handleCancel(customer *paymentmodels.Customer) error {
 		}
 	}
 
-	return RemoveCreditCard(customer)
+	return nil
 }
 
 func deleteCustomer(customer *paymentmodels.Customer) {
 	removeCreditCardHelper(customer)
 
-	err := customer.Delete()
+	err := stripeCustomer.Del(customer.ProviderCustomerId)
+	if err != nil {
+		Log.Error("Error deleting customer from Stripe: %v", err)
+	}
+
+	err = customer.Delete()
 	if err != nil {
 		Log.Error("Removing cc failed for customer: %v. %v", customer.Id, err)
 	}
