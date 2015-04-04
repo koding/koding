@@ -40,7 +40,8 @@ func (c *ChannelLink) List(q *request.Query) ([]Channel, error) {
 		Selector: map[string]interface{}{
 			"root_id": c.RootId,
 		},
-		Pluck: "leaf_id",
+		Pluck:      "leaf_id",
+		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
 
 	err := c.Some(&leafIds, bq)
@@ -49,6 +50,37 @@ func (c *ChannelLink) List(q *request.Query) ([]Channel, error) {
 	}
 
 	return NewChannel().FetchByIds(leafIds)
+}
+
+// FetchRoot fetches the root of a channel if linked
+func (c *ChannelLink) FetchRoot() (*Channel, error) {
+	if c.LeafId == 0 {
+		return nil, ErrLeafIsNotSet
+	}
+
+	var rootIds []int64
+
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"leaf_id": c.LeafId,
+		},
+		Pluck: "root_id",
+	}
+
+	if err := c.Some(&rootIds, bq); err != nil {
+		return nil, err
+	}
+
+	if len(rootIds) == 0 {
+		return nil, bongo.RecordNotFound
+	}
+
+	channel := NewChannel()
+	if err := channel.ById(rootIds[0]); err != nil {
+		return nil, err
+	}
+
+	return channel, nil
 }
 
 // Create creates a link between two channels

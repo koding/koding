@@ -948,61 +948,14 @@ func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
 
 // FetchRoot fetches the root of a channel if linked
 func (c *Channel) FetchRoot() (*Channel, error) {
-	if c.Id == 0 {
-		return nil, ErrIdIsNotSet
-	}
-
 	cl := NewChannelLink()
-
-	var rootIds []int64
-
-	bq := &bongo.Query{
-		Selector: map[string]interface{}{
-			"leaf_id": c.Id,
-		},
-		Pluck: "root_id",
-	}
-
-	if err := cl.Some(&rootIds, bq); err != nil {
-		return nil, err
-	}
-
-	if len(rootIds) == 0 {
-		return nil, bongo.RecordNotFound
-	}
-
-	channel := NewChannel()
-	if err := channel.ById(rootIds[0]); err != nil {
-		return nil, err
-	}
-
-	return channel, nil
+	cl.LeafId = c.Id
+	return cl.FetchRoot()
 }
 
 // FetchLeaves fetches the leaves of a channel if linked
 func (c *Channel) FetchLeaves() ([]Channel, error) {
-	if c.Id == 0 {
-		return nil, ErrIdIsNotSet
-	}
-
 	cl := NewChannelLink()
-
-	var leafIds []int64
-
-	bq := &bongo.Query{
-		Selector: map[string]interface{}{
-			"root_id": c.Id,
-		},
-		Pluck: "leaf_id",
-	}
-
-	if err := cl.Some(&leafIds, bq); err != nil {
-		return nil, err
-	}
-
-	if len(leafIds) == 0 {
-		return nil, nil
-	}
-
-	return c.FetchByIds(leafIds)
+	cl.RootId = c.Id
+	return cl.List(request.NewQuery())
 }
