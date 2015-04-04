@@ -3,12 +3,12 @@
     "name": "nextwindow",
     "binding": [
       [
-        "alt+]",
-        "alt+down"
+        "alt+down",
+        "alt+]"
       ],
       [
-        "alt+]",
-        "alt+down"
+        "alt+down",
+        "alt+]"
       ]
     ],
     "description": "Next window",
