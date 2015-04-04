@@ -498,14 +498,52 @@ func TestNotificationCreation(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(cm, ShouldNotBeNil)
 
-			createReplyWithGroupHelper(firstUser, cm, "anotherreply", testGroupChannel2)
+			Convey("I should not receive any notifications when I am not a participant of the group channel", func() {
+				// checking reply notification
+				createReplyWithGroupHelper(firstUser, cm, "anotherreply", testGroupChannel2)
 
-			nl, err := fetchNotification(ownerAccount.Id, testGroupChannel2)
-			So(err, ShouldBeNil)
-			So(nl, ShouldNotBeNil)
-			So(nl.UnreadCount, ShouldEqual, 1)
-			So(len(nl.Notifications), ShouldEqual, 1)
-			So(nl.Notifications[0].Glanced, ShouldEqual, false)
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel2)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+				So(nl.UnreadCount, ShouldEqual, 0)
+				So(len(nl.Notifications), ShouldEqual, 0)
+
+				// checking like notification
+				likeMessage(firstUser, cm)
+				nl, err = fetchNotification(ownerAccount.Id, testGroupChannel2)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+				So(nl.UnreadCount, ShouldEqual, 0)
+				So(len(nl.Notifications), ShouldEqual, 0)
+
+				// checking mention notification
+				body := fmt.Sprintf("@%s hello", ownerAccount.OldId)
+				cm, err := createPost(testGroupChannel2, firstUser, body)
+				So(err, ShouldBeNil)
+				So(cm, ShouldNotBeNil)
+
+				err = controller.HandleMessage(cm)
+				So(err, ShouldBeNil)
+
+				nl, err = fetchNotification(ownerAccount.Id, testGroupChannel2)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+				So(nl.UnreadCount, ShouldEqual, 0)
+				So(len(nl.Notifications), ShouldEqual, 0)
+			})
+
+			Convey("I should receive reply notification of my post only when I am a participant of the channel", func() {
+
+				th.addParticipant(ownerAccount, testGroupChannel2)
+
+				createReplyWithGroupHelper(firstUser, cm, "anotherreply2", testGroupChannel2)
+
+				nl, err := fetchNotification(ownerAccount.Id, testGroupChannel2)
+				So(err, ShouldBeNil)
+				So(nl, ShouldNotBeNil)
+				So(nl.UnreadCount, ShouldEqual, 1)
+				So(len(nl.Notifications), ShouldEqual, 1)
+			})
 		})
 
 		//Convey("I should not be able to receive notifications of a deleted message", func() {
