@@ -12,6 +12,8 @@ import (
 	"github.com/streadway/amqp"
 )
 
+const processCount = 100
+
 // Controller holds the required parameters for moderation async operations
 type Controller struct {
 	log logging.Logger
@@ -105,7 +107,6 @@ func (c *Controller) validateRequest(cl *models.ChannelLink) error {
 // participation with the new root node's channel id, it is always safe to
 // return error whever we encounter one
 func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
-	var processCount = 100
 	var erroredChannelParticipants []models.ChannelParticipant
 
 	for {
@@ -196,7 +197,6 @@ func (c *Controller) moveParticipants(cl *models.ChannelLink) error {
 // channel, it has InitialChannelId, we should replace it with the parent's
 // channel id
 func (c *Controller) moveMessages(cl *models.ChannelLink) error {
-	var processCount = 100
 
 	var erroredMessageLists []models.ChannelMessageList
 
@@ -272,7 +272,8 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 				continue
 			}
 
-			isInRootChannel, _ := models.NewChannelMessageList().IsInChannel(cm.Id, rootChannel.Id)
+			isInRootChannel, _ := models.NewChannelMessageList().
+				IsInChannel(cm.Id, rootChannel.Id)
 			if isInRootChannel {
 
 				// we are deleting the leaf with an unscoped because we dont need the
@@ -342,7 +343,6 @@ func (c *Controller) moveMessages(cl *models.ChannelLink) error {
 // iterating over the messages but there can be some messages that are created
 // in that channel initially, but then can be moved to other channels
 func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
-	var processCount = 100
 
 	var erroredMessages []models.ChannelMessage
 

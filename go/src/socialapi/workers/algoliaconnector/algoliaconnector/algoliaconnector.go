@@ -113,7 +113,9 @@ func (f *Controller) TopicSaved(data *models.Channel) error {
 
 // TopicUpdated handles the channel update events, for now only handles the
 // channels that are topic channels, we can link channels together in any point
-// of time, after linking, leaf channel should be removed from search engine
+// of time, after linking, leaf channel is removed from search engine. But it is
+// still searchable via its root channel, because we are adding it as synonym to
+// the root of it
 func (f *Controller) TopicUpdated(data *models.Channel) error {
 	if data.TypeConstant != models.Channel_TYPE_LINKED_TOPIC {
 		f.log.Debug("unsuported channel for topic update type: %s id: %d", data.TypeConstant, data.Id)
