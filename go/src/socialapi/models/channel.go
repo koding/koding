@@ -555,7 +555,7 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 
 	// try to fetch it's root
 	if err == bongo.RecordNotFound {
-		query.Selector["type_constant"] = Channel_TYPE_LINKED_TOPIC
+		query.Selector["type_constant"] = ChannelLinkedPrefix + q.Type
 		if err := c.One(query); err != nil {
 			return channel, err
 		}
