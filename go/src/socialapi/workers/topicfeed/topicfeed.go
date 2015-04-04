@@ -3,7 +3,6 @@ package topicfeed
 import (
 	"fmt"
 	"socialapi/models"
-	"socialapi/workers/helper"
 
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
@@ -49,18 +48,18 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return err
 	}
 
-	return ensureChannelMessages(c, data, topics)
+	return f.ensureChannelMessages(c, data, topics)
 }
 
-func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
+func (f *Controller) ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
 	for _, topic := range topics {
-		tc, err := fetchTopicChannel(parentChannel.GroupName, topic)
+		tc, err := f.fetchTopicChannel(parentChannel.GroupName, topic)
 		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
 		if err == bongo.RecordNotFound {
-			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
+			tc, err = f.createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
 			}
@@ -174,7 +173,7 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 			return err
 		}
 
-		if err := ensureChannelMessages(initialChannel, data, res["added"]); err != nil {
+		if err := f.ensureChannelMessages(initialChannel, data, res["added"]); err != nil {
 			return err
 		}
 	}
@@ -281,7 +280,7 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 }
 
 // todo add caching here
-func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
+func (f *Controller) fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	c := models.NewChannel()
 
 	topics := make([]models.Channel, 0)
@@ -309,7 +308,7 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 		for _, ch := range topics {
 			if ch.TypeConstant == models.Channel_TYPE_LINKED_TOPIC {
 				channel = &ch
-				helper.MustGetLogger().Critical(
+				f.log.Critical(
 					"duplicate channel content %s, %s",
 					groupName,
 					channelName,
@@ -326,7 +325,7 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	}
 
 	if channel == nil {
-		helper.MustGetLogger().Critical(
+		f.log.Critical(
 			"should not happen while fetching channel %s, %s",
 			groupName,
 			channelName,
@@ -342,7 +341,7 @@ func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	return channel.FetchRoot()
 }
 
-func createTopicChannel(creatorId int64, groupName, channelName, privacy string) (*models.Channel, error) {
+func (f *Controller) createTopicChannel(creatorId int64, groupName, channelName, privacy string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.Name = channelName
 	c.CreatorId = creatorId

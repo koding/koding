@@ -4,9 +4,10 @@ import (
 	"math/rand"
 	"socialapi/models"
 	"socialapi/request"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/topicfeed"
 	"testing"
+
+	"github.com/koding/runner"
 
 	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"

@@ -167,24 +167,24 @@ CREATE INDEX  "message_reply_message_id_meta_bit_created_at" ON "api"."message_r
 
 
 
--- ----------------------------
---  Structure for table Permission
--- ----------------------------
---
--- ----------------------------
---  Primary key structure for table permission
--- ----------------------------
-ALTER TABLE "api"."permission" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- -- ----------------------------
+-- --  Structure for table Permission
+-- -- ----------------------------
+-- --
+-- -- ----------------------------
+-- --  Primary key structure for table permission
+-- -- ----------------------------
+-- ALTER TABLE "api"."permission" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
--- ----------------------------
---  Uniques structure for table permission
--- ----------------------------
-ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_name_channel_id_role_constant_key" UNIQUE ("name","channel_id","role_constant") NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- -- ----------------------------
+-- --  Uniques structure for table permission
+-- -- ----------------------------
+-- ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_name_channel_id_role_constant_key" UNIQUE ("name","channel_id","role_constant") NOT DEFERRABLE INITIALLY IMMEDIATE;
 
--- ----------------------------
---  Foreign keys structure for table permission
--- ----------------------------
-ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+-- -- ----------------------------
+-- --  Foreign keys structure for table permission
+-- -- ----------------------------
+-- ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 
 
 

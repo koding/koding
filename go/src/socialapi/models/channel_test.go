@@ -1,9 +1,8 @@
 package models
 
 import (
-<<<<<<< HEAD
-	"socialapi/models"
 	"socialapi/config"
+	"socialapi/models"
 	"socialapi/request"
 	"testing"
 
