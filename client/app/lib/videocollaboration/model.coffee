@@ -183,6 +183,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
     _subscriber = new ParticipantType.Subscriber nick, subscriber
     @subscribers[connectionId] = _subscriber
 
+    _subscriber.on 'TalkingDidStart', => @changeActiveParticipant nick
+
     return _subscriber
 
 
