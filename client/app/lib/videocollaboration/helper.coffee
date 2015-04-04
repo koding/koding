@@ -118,6 +118,45 @@ createPublisher = (view, options = {}, callback) ->
 
 
 ###*
+ * Subscribes to audio changes of given subscriber. It will call given
+ * `callbacks.started` when talking started, and will call `callbacks.stopped`
+ * when talking stopped.
+ *
+ * @param {OT.Subscriber} subscriber
+ * @param {object<string, function>} callbacks
+###
+subscribeToAudioChanges = (subscriber, callbacks) ->
+
+  # this object will be used to keep track of talking activity.
+  activity = null
+
+  subscriber.on 'audioLevelUpdated', (event) ->
+    now = Date.now()
+    # we detected a sound from subscriber
+    if event.audioLevel > 0.2
+      # create initial activity with talking flag is off when there is no
+      # talking activity.
+      if not activity
+        activity = {timestamp: now, talking: off}
+
+      # if it's already talking just updated the timestamp.
+      else if activity.talking
+        activity.timestamp = now
+
+      # detected that user is talking more than 1 second.
+      # call `started` function of given `callbacks`.
+      else if now - activity.timestamp > 1000
+        activity.talking = on
+        callbacks.started()
+
+    # we have an talking activity record, it's not updated for the past 3 secs.
+    # call `stopped` function of given `callbacks`
+    else if activity and now - activity.timestamp > 3000
+      callbacks.stopped()  if activity.talking
+      activity = null
+
+
+###*
  * get user's gravatar, return the default avatar if user doesn't have an avatar.
  *
  * @param {JAccount} account
