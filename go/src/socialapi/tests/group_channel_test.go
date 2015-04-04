@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/koding/runner"
+	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -72,11 +73,15 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(account, ShouldNotBeNil)
 
+			ses, err := models.FetchOrCreateSession(account.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
 			channel1, err := rest.CreateChannelByGroupNameAndType(account.Id, groupName, models.Channel_TYPE_GROUP)
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 			// fetching channel returns creator id
-			_, err = rest.UpdateChannel(channel1)
+			_, err = rest.UpdateChannel(channel1, ses.ClientId)
 			So(err, ShouldBeNil)
 		})
 
@@ -93,8 +98,18 @@ func TestGroupChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(channel1, ShouldNotBeNil)
 
-			channel1.CreatorId = rand.Int63()
-			_, err = rest.UpdateChannel(channel1)
+			anotherAccount := models.NewAccount()
+			anotherAccount.OldId = bson.NewObjectId().Hex()
+			anotherAccount, err = rest.CreateAccount(anotherAccount)
+
+			So(err, ShouldBeNil)
+			So(account, ShouldNotBeNil)
+
+			ses, err := models.FetchOrCreateSession(anotherAccount.Nick)
+			So(err, ShouldBeNil)
+			So(ses, ShouldNotBeNil)
+
+			_, err = rest.UpdateChannel(channel1, ses.ClientId)
 			So(err, ShouldNotBeNil)
 		})
 

@@ -69,7 +69,7 @@ class Haydar extends events.EventEmitter
       opts.config = require @_resolve(opts.config)
 
     opts.rev    = defined opts.config.rev, '2.0'
-    opts.schema = defined opts.config.schema, null
+    opts.schema = null
 
     if opts.revId
       opts.outdir  = path.join opts.outdir, opts.rev

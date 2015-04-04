@@ -139,14 +139,21 @@ func CreateChannelByGroupNameAndType(creatorId int64, groupName, typeConstant st
 	return cm.(*models.Channel), nil
 }
 
-func UpdateChannel(cm *models.Channel) (*models.Channel, error) {
-	url := fmt.Sprintf("/channel/%d", cm.Id)
-	cmI, err := sendModel("POST", url, cm)
+func UpdateChannel(cm *models.Channel, token string) (*models.Channel, error) {
+	url := fmt.Sprintf("/channel/%d/update", cm.Id)
+
+	res, err := marshallAndSendRequestWithAuth("POST", url, cm, token)
 	if err != nil {
 		return nil, err
 	}
 
-	return cmI.(*models.Channel), nil
+	cc := models.NewChannelContainer()
+	err = json.Unmarshal(res, cc)
+	if err != nil {
+		return nil, err
+	}
+
+	return cc.Channel, nil
 }
 
 func GetChannel(id int64) (*models.Channel, error) {
