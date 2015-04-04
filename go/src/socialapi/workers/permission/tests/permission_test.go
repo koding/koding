@@ -1,11 +1,7 @@
 package permission
 
 import (
-	"koding/db/mongodb/modelhelper"
-
 	"testing"
-
-	"github.com/koding/runner"
 
 	"labix.org/v2/mgo/bson"
 
@@ -18,14 +14,14 @@ var (
 )
 
 func TestPermissionCreate(t *testing.T) {
-	r := runner.New("permissiontest")
-	if err := r.Init(); err != nil {
-		t.Fatalf("couldnt start bongo %s", err.Error())
-	}
-	defer r.Close()
+	// r := runner.New("permissiontest")
+	// if err := r.Init(); err != nil {
+	// 	t.Fatalf("couldnt start bongo %s", err.Error())
+	// }
+	// defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
-	defer modelhelper.Close()
+	// modelhelper.Initialize(r.Conf.Mongo)
+	// defer modelhelper.Close()
 
 	Convey("while creating channel permissions", t, func() {
 		// Convey("First Create Users", func() {
