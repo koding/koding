@@ -1119,7 +1119,8 @@
         ]
       ],
       "options": {
-        "custom": true
+        "custom": true,
+        "hidden": true
       }
     },
     {
@@ -1138,7 +1139,8 @@
         ]
       ],
       "options": {
-        "custom": true
+        "custom": true,
+        "hidden": true
       }
     },
     {
