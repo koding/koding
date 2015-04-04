@@ -303,7 +303,7 @@ isUserOnline = (manager, participants, username) ->
   [user] = participants.asArray().filter (p) -> p.nickname is username
   return no  unless user?.sessionId
 
-  [user] = manager.getCollaborators().filter (c) -> c.sessionId is host.sessionId
+  [user] = manager.getCollaborators().filter (c) -> c.sessionId is user.sessionId
   return user?
 
 
