@@ -1,10 +1,11 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
+kd                  = require 'kd'
+KDButtonView        = kd.ButtonView
+KDCustomHTMLView    = kd.CustomHTMLView
 KDHitEnterInputView = kd.HitEnterInputView
-KDMultipleChoice = kd.MultipleChoice
-JView = require 'app/jview'
-
+KDMultipleChoice    = kd.MultipleChoice
+JView               = require 'app/jview'
+_                   = require 'lodash'
+keycode             = require 'keycode'
 
 module.exports = class AceFindAndReplaceView extends JView
 
@@ -23,7 +24,7 @@ module.exports = class AceFindAndReplaceView extends JView
       validate     :
         rules      :
           required : yes
-      keyup        : @bindSpecialKeys 'find'
+      keydown      : _.bind @handleKeyDown, this, yes
       callback     : => @findNext()
 
     @findNextButton = new KDButtonView
@@ -43,7 +44,7 @@ module.exports = class AceFindAndReplaceView extends JView
       validate     :
         rules      :
           required : yes
-      keyup        : @bindSpecialKeys 'replace'
+      keydown      : _.bind @handleKeyDown, this
       callback     : => @replace()
 
     @replaceButton = new KDButtonView
@@ -67,16 +68,22 @@ module.exports = class AceFindAndReplaceView extends JView
       multiple     : yes
       defaultValue : 'fakeValueToDeselectFirstOne'
 
-  bindSpecialKeys: (input) ->
-    'esc'          : (e) => @close()
-    'meta+f'       : (e) =>
-      e.preventDefault()
-      @setViewHeight no
-    'meta+shift+f' : (e) =>
-      e.preventDefault()
-      @setViewHeight yes
-    'shift+enter'  : (e) =>
-      @findPrev() if input is 'find'
+
+  handleKeyDown: (isFind, e) ->
+
+    code = e.which or e.keyCode
+    key  = keycode code
+
+    switch key
+      when 'esc' then @close()
+      when 'enter'
+        @findPrev()  if isFind and e.shiftKey is yes
+      when 'f'
+        if e.metaKey
+          e.preventDefault()
+          @setViewHeight e.shiftKey is yes
+    return
+
 
   close: (fireEvent = yes) ->
     @hide()

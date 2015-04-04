@@ -1,13 +1,14 @@
-kd = require 'kd'
-KDButtonView = kd.ButtonView
-KDContextMenu = kd.ContextMenu
-KDFormViewWithFields = kd.FormViewWithFields
-KDNotificationView = kd.NotificationView
+kd                        = require 'kd'
+KDButtonView              = kd.ButtonView
+KDContextMenu             = kd.ContextMenu
+KDFormViewWithFields      = kd.FormViewWithFields
+KDNotificationView        = kd.NotificationView
 AccountListViewController = require '../controllers/accountlistviewcontroller'
-remote = require('app/remote').getInstance()
-showError = require 'app/util/showError'
-KodingSwitch = require 'app/commonviews/kodingswitch'
-ComputeController = require 'app/providers/computecontroller'
+remote                    = require('app/remote').getInstance()
+showError                 = require 'app/util/showError'
+KodingSwitch              = require 'app/commonviews/kodingswitch'
+ComputeController         = require 'app/providers/computecontroller'
+ComputeController_UI      = require 'app/providers/computecontroller.ui'
 
 
 module.exports = class AccountCredentialListController extends AccountListViewController
@@ -166,7 +167,7 @@ module.exports = class AccountCredentialListController extends AccountListViewCo
 
     view.setClass "form-open"
 
-    view.form = UI.generateAddCredentialFormFor provider
+    view.form = ComputeController_UI.generateAddCredentialFormFor provider
     view.form.on "Cancel", ->
       view.unsetClass "form-open"
       view.form.destroy()

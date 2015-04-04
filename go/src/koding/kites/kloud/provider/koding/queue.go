@@ -2,7 +2,6 @@ package koding
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/koding/kite"
@@ -98,21 +97,12 @@ func (p *Provider) CheckUsage(m *Machine) error {
 
 	// lock so it doesn't interfere with others.
 	p.Lock(m.Id.Hex())
-
-	// mark our state as stopping so others know what we are doing
-	stoppingReason := fmt.Sprintf("Stopping process started due inactivity of %.f minutes",
-		planTimeout.Minutes())
-
-	m.UpdateState(stoppingReason, machinestate.Stopping)
-
 	defer func() {
-		// call it in defer, so even if "Stop" fails it should reset the state
-		stopReason := fmt.Sprintf("Stopped due inactivity of %.f minutes",
-			planTimeout.Minutes())
-		m.UpdateState(stopReason, machinestate.Stopping)
+		p.Log.Info("[%s] ======> STOP finished (closing inactive machine)<======", m.Id.Hex())
 		p.Unlock(m.Id.Hex())
 	}()
 
+	p.Log.Info("[%s] ======> STOP started (closing inactive machine)<======", m.Id.Hex())
 	// Hasta la vista, baby!
 	return m.Stop(ctx)
 }
