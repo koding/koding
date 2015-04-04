@@ -113,6 +113,22 @@ class Ace extends KDView
         'findprevious'     # we have our own find and replace dialogs
         'findnext'         # ace default for findnext is cmd+g (mapped to gotoline)
         'findAll'          # not used and collides with toggle filetree
+        'restartSearch'
+        'iSearch'
+        'iSearchAndGo'
+        'iSearchBackwardsAndGo'
+        'recenterTopBottom'
+        'selectAllMatches'
+        'searchAsRegExp'
+        'yankNextChar'
+        'yankNextWord'
+        'occurisearch'
+        'cancelSearch'
+        'confirmSearch'
+        'shrinkSearchTerm'
+        'extendSearchTermSpace'
+        'searchBackward'
+        'searchForward'
       ]
 
       @focus()

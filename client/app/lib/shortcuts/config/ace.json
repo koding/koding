@@ -1523,7 +1523,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     }
   ],
@@ -1560,7 +1561,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1578,7 +1580,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1596,7 +1599,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1612,7 +1616,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1628,7 +1633,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1644,7 +1650,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1656,7 +1663,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1689,7 +1697,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1705,7 +1714,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1738,7 +1748,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
@@ -1754,7 +1765,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     }
   ],
