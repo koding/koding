@@ -117,6 +117,12 @@ createPublisher = (view, options = {}, callback) ->
     callback null, publisher
 
 
+###*
+ * get user's gravatar, return the default avatar if user doesn't have an avatar.
+ *
+ * @param {JAccount} account
+ * @param {number} size
+###
 _getGravatarUri = (account, size = 355) ->
 
   {hash} = account.profile
