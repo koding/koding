@@ -1,3 +1,4 @@
+kd = require 'kd'
 ###*
  * Base class for representing a video participant.
  * OpenTok has 2 different idea of users. `Publisher` and `Subscriber`.
@@ -10,9 +11,14 @@
  *
  * @class ParticipantType.BaseVideoParticipant
 ###
-class BaseVideoParticipant
+class BaseVideoParticipant extends kd.EventEmitter
 
   constructor: (nick, videoData) ->
+
+    # call KDEventEmitter constructor with an empty object to make it start
+    # working.
+    super {}
+
     @nick = nick
     @videoData = videoData
     @type = null
