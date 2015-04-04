@@ -1315,7 +1315,7 @@ func TestChannelFetchRoot(t *testing.T) {
 			c := NewChannel()
 			_, err := c.FetchRoot()
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrIdIsNotSet)
+			So(err, ShouldEqual, ErrLeafIsNotSet)
 		})
 
 		Convey("when root doesnt exist", func() {
@@ -1378,7 +1378,7 @@ func TestChannelFetchLeaves(t *testing.T) {
 			c := NewChannel()
 			_, err := c.FetchRoot()
 			So(err, ShouldNotBeNil)
-			So(err, ShouldEqual, ErrIdIsNotSet)
+			So(err, ShouldEqual, ErrLeafIsNotSet)
 		})
 
 		Convey("when leaf doesnt exist", func() {
