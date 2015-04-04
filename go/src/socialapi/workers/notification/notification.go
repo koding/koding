@@ -204,6 +204,18 @@ func (n *Controller) CreateMentionNotification(reply *socialapimodels.ChannelMes
 }
 
 func (n *Controller) notify(contentId, notifierId int64, contextChannel *socialapimodels.Channel) {
+	isParticipant, err := isParticipant(notifierId, contextChannel)
+	if err != nil {
+		n.log.Error("Could not check participation info for user %d: %s", notifierId, err)
+		return
+	}
+
+	// this can be a message of an old participant, and we do not want to send
+	// further notifications
+	if !isParticipant {
+		return
+	}
+
 	notification := buildNotification(contentId, notifierId, time.Now())
 	notification.ContextChannelId = contextChannel.Id
 	if err := notification.Upsert(); err != nil {
@@ -212,11 +224,29 @@ func (n *Controller) notify(contentId, notifierId int64, contextChannel *sociala
 }
 
 func (n *Controller) instantNotify(contentId, notifierId int64, contextChannel *socialapimodels.Channel) {
+	isParticipant, err := isParticipant(notifierId, contextChannel)
+	if err != nil {
+		n.log.Error("Could not check participation info for user %d: %s", notifierId, err)
+		return
+	}
+
+	// when mentioned user does not exist within the group, do not send notification
+	if !isParticipant {
+		return
+	}
+
 	notification := prepareActiveNotification(contentId, notifierId)
 	notification.ContextChannelId = contextChannel.Id
 	if err := notification.Upsert(); err != nil {
 		n.log.Error("An error occurred while notifying user %d: %s", notification.AccountId, err.Error())
 	}
+}
+
+func isParticipant(accountId int64, c *socialapimodels.Channel) (bool, error) {
+	cp := socialapimodels.NewChannelParticipant()
+	cp.ChannelId = c.Id
+
+	return cp.IsParticipant(accountId)
 }
 
 func (n *Controller) notifyOnce(contentId, notifierId int64) {
@@ -262,6 +292,20 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 		return nil
 	}
 
+	groupChannel, err := cm.FetchParentChannel()
+	if err != nil {
+		return err
+	}
+
+	isParticipant, err := isParticipant(cm.AccountId, groupChannel)
+	if err != nil {
+		return err
+	}
+
+	if !isParticipant {
+		return nil
+	}
+
 	in := models.NewInteractionNotification(i.TypeConstant)
 	if cm.TypeConstant == socialapimodels.ChannelMessage_TYPE_POST {
 		in.TargetId = i.MessageId
@@ -280,11 +324,6 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 	in.MessageId = i.MessageId
 	in.NotifierId = i.AccountId
 	nc, err := models.CreateNotificationContent(in)
-	if err != nil {
-		return err
-	}
-
-	groupChannel, err := cm.FetchParentChannel()
 	if err != nil {
 		return err
 	}
