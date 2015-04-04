@@ -242,7 +242,8 @@
       ],
       "options": {
         "custom": true,
-        "ace_ro": true
+        "ace_ro": true,
+        "hidden": true
       }
     },
     {
