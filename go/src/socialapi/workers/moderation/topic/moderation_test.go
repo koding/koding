@@ -5,6 +5,7 @@ import (
 	"koding/db/mongodb/modelhelper"
 	"math"
 
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -18,23 +19,18 @@ import (
 
 func TestProcess(t *testing.T) {
 	r := runner.New("test-moderation-blacklist")
-	err := r.Init()
-	if err != nil {
-		panic(err)
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
 	}
-
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("given a controller", t, func() {
 
 		controller := NewController(r.Log)
-
-		Convey("err should be nil", func() {
-			So(err, ShouldBeNil)
-		})
 
 		Convey("controller should be set", func() {
 			So(controller, ShouldNotBeNil)

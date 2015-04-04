@@ -21,9 +21,11 @@ func TestModeration(t *testing.T) {
 	}
 	defer r.Close()
 
-	rand.Seed(time.Now().UTC().UnixNano())
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
+
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	Convey("While creating a link to a channel", t, func() {
 		// create admin
