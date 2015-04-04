@@ -46,8 +46,6 @@ module.exports = class IDEChatView extends KDTabView
     @on 'VideoCollaborationActive', @bound 'handleVideoActive'
     @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
 
-    @on 'ParticipantSelected', @bound 'handleParticipantSelected'
-
 
   handleParticipantSelected: (participant) ->
 
@@ -137,6 +135,8 @@ module.exports = class IDEChatView extends KDTabView
 
     @addPane @chatPane     = new IDEChatMessagePane  chatOptions, channel
     @addPane @settingsPane = new IDEChatSettingsPane settingsOptions, channel
+
+    @chatPane.on 'ParticipantSelected', @bound 'handleParticipantSelected'
 
     @settingsPane.forwardEvents this, [
       'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'

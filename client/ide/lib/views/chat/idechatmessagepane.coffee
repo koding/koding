@@ -214,8 +214,7 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
         height  : 25
       origin    : participant
 
-    avatar.on 'ParticipantSelected', (participant) =>
-      @getDelegate().emit 'ParticipantSelected', participant
+    @forwardEvent avatar, 'ParticipantSelected'
 
     @participantMap[participant._id] = avatar
 
