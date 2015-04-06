@@ -295,7 +295,10 @@ module.exports = class ActivityListItemView extends KDListItemView
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location">#{location}</span>
+        <div>    
+            {{> @timeAgoView}} 
+            <span class="location">#{location}</span>
+        </div>
       </div>
       {{> @editWidgetWrapper}}
       {article.has-markdown{formatContent #(body)}}
