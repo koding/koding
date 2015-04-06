@@ -69,7 +69,7 @@ func TestChannelHistory(t *testing.T) {
 							So(history, ShouldNotBeNil)
 							So(len(history.MessageList), ShouldEqual, 10)
 
-							Convey("After linking to another channel", func() {
+							SkipConvey("After linking to another channel", func() {
 								c2, err := rest.CreateChannelByGroupNameAndType(account.Id, channel.GroupName, models.Channel_TYPE_TOPIC)
 								So(err, ShouldBeNil)
 								So(c2, ShouldNotBeNil)
