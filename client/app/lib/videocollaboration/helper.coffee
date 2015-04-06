@@ -208,6 +208,15 @@ disableVideo = (channel, callback) -> setVideoState channel, no, callback
 
 
 ###*
+ * Check channel's payload to see if video is enabled.
+ *
+ * @param {SocialChannel} channel
+ * @return {boolean} isActive
+###
+isVideoActive = (channel) -> channel?.payload?.videoEnabled is 'true'
+
+
+###*
  * Default error signal.
  *
  * @param {object} error
@@ -226,5 +235,6 @@ module.exports = {
   subscribeToAudioChanges
   enableVideo
   disableVideo
+  isVideoActive
   _errorSignal
 }
