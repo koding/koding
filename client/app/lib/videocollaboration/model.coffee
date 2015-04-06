@@ -108,21 +108,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
-      # When a stream is dispatched to the session it means there is a new
-      # video feed. We want every user to see the video if a stream is
-      # dispatched (probably from host, but doesn't matter).
-      @setActive()  unless @state.active
 
       @subscribeToStream session, event.stream
-
-      return  if @state.publishing
-
-      options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
-      @startPublishing options,
-        success: (publisher) =>
-          @handlePublishSuccess publisher
-          @subscribeToStream session, event.stream
-        error: (err) -> console.error err
 
     session.on 'streamDestroyed', (event) =>
 
@@ -130,10 +117,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       # Emit necessary events for that participant
       @setParticipantLeft connection.connectionId
-
-      # end session if there are no other subscribers that are sending a video,
-      # or audio to the session.
-      @setEnded()  if @getSubscribersCount() is 0
 
     session.on 'connectionCreated', (event) =>
       count = @state.connectionCount
