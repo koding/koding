@@ -16,9 +16,19 @@ func Location(u *url.URL, h http.Header, c *models.Context) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
+    var location string
+    city := record.City.Names["en"]
+    country := record.Country.Names["en"]
+    
+    if city != "" {
+		location = fmt.Sprintf("%s, %s", city, country)
+	} else {
+		location = fmt.Sprintf("%s", country)
+	}
+    
 	return response.NewOK(
 		map[string]interface{}{
-			"location": fmt.Sprintf("%v , %v", record.City.Names["en"], record.Country.Names["en"]), 
+			"location": location, 
 		},
 	)
 }

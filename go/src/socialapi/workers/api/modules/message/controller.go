@@ -43,14 +43,19 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
 		if err != nil {
 			runner.MustGetLogger().Error("errr while parsing ip, err :%s", err.Error())
-		}
 
-		if record.City.Names["en"] != "" {
-			ll := fmt.Sprintf("%v , %v", record.City.Names["en"], record.Country.Names["en"])
-			req.Payload["location"] = &ll
 		} else {
-			ll := fmt.Sprintf("%v", record.Country.Names["en"])
-			req.Payload["location"] = &ll
+			var location *string
+			city := record.City.Names["en"]
+			country := record.Country.Names["en"]
+
+			if city != "" {
+				*location = fmt.Sprintf("%s, %s", city, country)
+				req.Payload["location"] = location
+			} else {
+				*location = fmt.Sprintf("%s", country)
+				req.Payload["location"] = location
+			}
 		}
 
 	}

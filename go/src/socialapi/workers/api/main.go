@@ -4,6 +4,7 @@ import (
 	// _ "expvar"
 
 	"fmt"
+	"socialapi/workers/helper"
 	"koding/db/mongodb/modelhelper"
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 
@@ -62,7 +63,7 @@ func main() {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	mmdb, err := helper.ReadGeoIPDB(r.Conf)
+	mmdb, err := helper.ReadGeoIPDB(appConfig)
 	if err != nil {
 		r.Log.Critical("ip persisting wont work err: %s", err.Error())
 	} else {
