@@ -138,7 +138,6 @@ module.exports =
       return res.redirect 301, "/#{name}/Public"
 
     handleError = (err, content) ->
-      console.log 1, arguments
       if err
         console.error err
 
