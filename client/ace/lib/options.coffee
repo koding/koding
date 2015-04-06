@@ -1,3 +1,8 @@
+globals               = require 'globals'
+kd                    = require 'kd'
+isLoggedIn            = require 'app/util/isLoggedIn'
+showEnforceLoginModal = require 'app/util/showEnforceLoginModal'
+
 module.exports =
   name          : "Ace"
   multiple      : yes

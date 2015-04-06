@@ -192,6 +192,10 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 		return nil, err
 	}
 
+	if cmc.Message == nil {
+		return cmc, nil
+	}
+
 	var err error
 	cmc.Message, err = cmc.Message.PopulatePayload()
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/koding/logging"
+	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
 
@@ -90,4 +91,51 @@ func (m *Machine) push(msg string, percentage int, state machinestate.State) {
 			Status:     state,
 		})
 	}
+}
+
+// switchAWSRegion switches to the given AWS region. This should be only used when
+// you know what to do, otherwiese never, never change the region of a machine.
+func (m *Machine) switchAWSRegion(region string) error {
+	m.Meta.InstanceId = "" // we neglect any previous instanceId
+	m.QueryString = ""     //
+	m.Meta.Region = "us-east-1"
+
+	client, err := m.Session.AWSClients.Region("us-east-1")
+	if err != nil {
+		return err
+	}
+	m.Session.AWSClient.Client = client
+
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"meta.instanceId": "",
+				"queryString":     "",
+				"meta.region":     "us-east-1",
+			}},
+		)
+	})
+}
+
+// markAsNotInitialized marks the machine as NotInitialized by cleaning up all
+// necessary fields and marking the VM as notinitialized so the User can build
+// it again.
+func (m *Machine) markAsNotInitialized() error {
+	m.Log.Warning("Instance is not available. Marking it as NotInitialized")
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"ipAddress":         "",
+				"queryString":       "",
+				"meta.instanceType": "",
+				"meta.instanceName": "",
+				"meta.instanceId":   "",
+				"status.state":      machinestate.NotInitialized.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Machine is marked as NotInitialized",
+			}},
+		)
+	})
 }
