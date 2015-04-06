@@ -14,6 +14,7 @@ import (
 
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 )
 
 var publicChannel *models.Channel
@@ -41,7 +42,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		// and adds it to the payload of the ChannelMessage
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
 		if err != nil {
-			helper.MustGetLogger().Error("errr while parsing ip, err :%s", err.Error())
+			runner.MustGetLogger().Error("errr while parsing ip, err :%s", err.Error())
 		} 
 		
 		if record.City.Names["en"] != "" {
