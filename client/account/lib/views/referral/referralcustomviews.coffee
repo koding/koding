@@ -56,6 +56,34 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       return container
 
+    loader: (cssClass)->
+      new kd.LoaderView {
+        cssClass, showLoader: yes,
+        size: width: 40, height: 40
+      }
+
+    list: ({data, itemClass}) ->
+
+      itemClass ?= require './accountreferralsystemlistitem'
+      controller = new kd.ListViewController {
+        itemClass, scrollView: yes
+      }
+      controller.replaceAllItems data
+
+      list = controller.getListView()
+
+      list.addItemView (new itemClass
+        cssClass     : 'header'
+      ,
+        friend       : "Friend"
+        status       : "Status"
+        lastActivity : "Last Activity"
+        spaceEarned  : "Space Earned"
+      ), 0
+
+      __view = controller.getView()
+      return { __view, controller }
+
     progressBar: (options) ->
       new kd.ProgressBarView options
 
@@ -74,7 +102,7 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       # We are defering here because we don't have ::bar element yet
       # since the implementation of KDProgressBarView creates that
-      # element in the ::viewAppended step which is wrong. ~ GG
+      # element in the ::viewAppended step ~ GG
       kd.utils.defer ->
         progressBar.bar.setCss "background", color
 

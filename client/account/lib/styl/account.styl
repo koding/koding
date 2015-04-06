@@ -455,6 +455,10 @@ app.settings.styl
 
   font-size             14px
 
+  .initial-loader
+    text-align          center
+    margin-top          130px
+
   .top
     height              150px
 
@@ -498,6 +502,7 @@ app.settings.styl
 
     .title
       font-weight       bold
+      line-height       17px
 
     .subtitle
       color             #888
@@ -549,11 +554,43 @@ app.settings.styl
     .progressbar-container
       background        none
       border            none
-      size              290px, 34px
+      size              270px, 34px
       fl()
 
       .bar
         box-shadow      none
+
+  .kdlistview-default
+    border-top       1px solid #ddd
+    margin-top       25px
+    padding-top      15px
+
+  .referral-item
+    display         flex
+    display         -webkit-flex
+
+    border-bottom   1px solid #ccc
+    cursor          default
+
+    &.header
+      font-size     13px
+      opacity       .6
+      &:hover
+        background  inherit !important
+
+    &:hover
+      background    #eee
+
+    > div
+      margin        auto
+      width         120px
+      padding       8px 0
+      white-space   nowrap
+      text-overflow ellipsis
+      overflow      hidden
+
+      &:nth-child(1)
+        width       240px
 
 
 .kdmodal.payments-modal
