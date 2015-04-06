@@ -186,5 +186,6 @@ module.exports = {
   toNickKeyedMap
   subscribeToStream
   createPublisher
+  subscribeToAudioChanges
   _errorSignal
 }
