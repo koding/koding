@@ -194,6 +194,8 @@ func Update(u *url.URL, h http.Header, req *models.Account) (int, http.Header, i
 			return response.NewBadRequest(err)
 		}
 	}
+	
+	acc.ShareLocation = req.ShareLocation
 
 	if err := acc.Update(); err != nil {
 		return response.NewBadRequest(err)
