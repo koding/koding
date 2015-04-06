@@ -209,7 +209,7 @@ module.exports = class LoginView extends JView
       </div>
     </div>
     <footer>
-      <a href="/acceptable.html" target="_blank">Acceptable user policy</a><a href="/copyright.html" target="_blank">Copyright/DMCA guidelines</a><a href="/tos.html" target="_blank">Terms of service</a><a href="/privacy.html" target="_blank">Privacy policy</a><a href="#{backgroundImages[backgroundImageNr][1]}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr][0]}</a>
+      <a href="/Legal" target="_blank">Acceptable user policy</a><a href="/Legal/Copyright" target="_blank">Copyright/DMCA guidelines</a><a href="/Legal/Terms" target="_blank">Terms of service</a><a href="/Legal/Privacy" target="_blank">Privacy policy</a><a href="#{backgroundImages[backgroundImageNr][1]}" target="_blank"><span>photo by </span>#{backgroundImages[backgroundImageNr][0]}</a>
     </footer>
     """
 
