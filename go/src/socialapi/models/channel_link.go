@@ -142,6 +142,20 @@ func (c *ChannelLink) create() error {
 		return err
 	}
 
+	// then delete the link between two channels
+	bq := &bongo.Query{
+		Selector: map[string]interface{}{
+			"root_id": c.RootId,
+			"leaf_id": c.LeafId,
+		},
+	}
+
+	// if there is no error, it means we already have it
+	if err := c.One(bq); err == nil {
+		c.AfterCreate() // just mimic as if created
+		return nil
+	}
+
 	// first update the leaf
 	leaf := NewChannel()
 	if err := leaf.ById(c.LeafId); err != nil {
