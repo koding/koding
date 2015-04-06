@@ -680,7 +680,7 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    return  unless @isMachineRunning()
+    return  if @isDestroyed or not @isMachineRunning()
 
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
