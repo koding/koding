@@ -19,19 +19,8 @@ import (
 )
 
 func TestTopicSaved(t *testing.T) {
-	r := runner.New("AlogoliaConnector-Test")
-	err := r.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	defer r.Close()
-
-	appConfig := config.MustRead(r.Conf.Path)
-
-	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
-	// create message handler
-	handler := New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
+	runner, handler := getTestHandler()
+	defer runner.Close()
 
 	Convey("given some fake topic channel", t, func() {
 		mockTopic := models.NewChannel()
@@ -52,19 +41,14 @@ func TestTopicSaved(t *testing.T) {
 }
 
 func TestTopicUpdated(t *testing.T) {
-	r := runner.New("AlogoliaConnector-Test")
-	err := r.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	defer r.Close()
+	runner, handler := getTestHandler()
+	defer runner.Close()
 
 	rand.Seed(time.Now().UnixNano())
 
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
-	// create message handler
-	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
 
 	Convey("given some fake topic channel", t, func() {
 		mockTopic := models.NewChannel()
@@ -381,7 +365,9 @@ func TestMessageUpdated(t *testing.T) {
 func TestIndexSettings(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
-	modelhelper.Initialize(runner.Conf.Mongo)
+
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("given some handler", t, func() {
