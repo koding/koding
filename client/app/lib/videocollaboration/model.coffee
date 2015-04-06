@@ -90,6 +90,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @setState { connected: yes }
     @emit 'SessionConnected', session
 
+    @enableVideo { error: (err) => console.error err }  if helper.isVideoActive @channel
+
 
   ###*
    * Registers callbacks for service events.
@@ -155,11 +157,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
         success : @bound 'handleStopSuccess'
         error   : (err) -> console.error err
 
-    session.on 'signal:start', =>
-      options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
-      @startPublishing options,
-        success : @bound 'handlePublishSuccess'
-        error   : (err) -> console.error err
+    session.on 'signal:start', => @enableVideo { error: (err) => console.error err }
 
 
   subscribeToStream: (session, stream) ->
