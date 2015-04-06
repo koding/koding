@@ -461,7 +461,15 @@ class IDEAppController extends AppController
         if event.status in actionRequiredStates
           @showStateMachineModal machineItem, event
 
+        switch event.status
+          when Terminated then @handleMachineTerminated()
+
       .on "reinit-#{machineItem._id}", @bound 'handleMachineReinit'
+
+
+  handleMachineTerminated: ->
+
+    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
 
 
   handleMachineReinit: ({status}) ->
@@ -470,6 +478,7 @@ class IDEAppController extends AppController
       when 'Building'
         environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
+        @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
         @quit()
 
 
