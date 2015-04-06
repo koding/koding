@@ -1,6 +1,7 @@
 package client
 
 import (
+    "fmt"
 	"net/http"
 	"net/url"
 	"socialapi/models"
@@ -17,7 +18,7 @@ func Location(u *url.URL, h http.Header, c *models.Context) (int, http.Header, i
 
 	return response.NewOK(
 		map[string]interface{}{
-			"location": record.City.Names["en"],
+			"location": fmt.Sprintf("%v , %v", record.City.Names["en"], record.Country.Names["en"]), 
 		},
 	)
 }
