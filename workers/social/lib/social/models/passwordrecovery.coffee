@@ -197,7 +197,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           return callback err  if err
           user.changePassword newPassword, (err)->
             return callback err  if err
-            JPasswordRecovery.invalidate {username}, callback
+            JPasswordRecovery.invalidate {username}, (err)->
+              callback err, username
 
 
   @resetPassword$ = secure (client, token, newPassword, callback)->
