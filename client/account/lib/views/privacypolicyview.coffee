@@ -4,7 +4,7 @@ module.exports = class PrivacyPolicyView extends KDCustomHTMLView
   constructor : (options = {}, data) ->
     options.tagName     = 'iframe'
     options.attributes  =
-      src               : "/privacy.html"
+      src               : "/Legal/Privacy"
 
     super options, data
 

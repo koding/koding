@@ -361,7 +361,7 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     remote.cacheable 'JAccount', participant._id, (err, account) =>
 
-      return warn err  if err
+      return kd.warn err  if err
 
       @participantMap[participant._id].destroy()
       delete @participantMap[participant._id]
