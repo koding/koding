@@ -37,23 +37,23 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		req.Payload = gorm.Hstore{}
 	}
 
-    if c.Client.Account.ShareLocation {
-        // gets the IP of the Client
+	if c.Client.Account.ShareLocation {
+		// gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
 		if err != nil {
 			runner.MustGetLogger().Error("errr while parsing ip, err :%s", err.Error())
-		} 
-		
+		}
+
 		if record.City.Names["en"] != "" {
-            ll := fmt.Sprintf("%v , %v",record.City.Names["en"], record.Country.Names["en"])
+			ll := fmt.Sprintf("%v , %v", record.City.Names["en"], record.Country.Names["en"])
 			req.Payload["location"] = &ll
-		}else {
-            ll := fmt.Sprintf("%v", record.Country.Names["en"])
+		} else {
+			ll := fmt.Sprintf("%v", record.Country.Names["en"])
 			req.Payload["location"] = &ll
 		}
-		
-    }
+
+	}
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
 		return response.NewBadRequest(err)

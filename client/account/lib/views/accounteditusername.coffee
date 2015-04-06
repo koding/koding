@@ -57,9 +57,6 @@ module.exports = class AccountEditUsername extends JView
       title          : 'Use Gravatar'
       callback       : =>
         @account.modify "profile.avatar": ""
-    
-    #@switch = new KodingSwitch
-        
 
     @emailForm = new KDFormViewWithFields
       cssClass             : 'AppModal-form'
@@ -164,7 +161,6 @@ module.exports = class AccountEditUsername extends JView
 
     {JUser} = remote.api
     {email, password, confirmPassword, firstName, lastName, username, shareLocation} = formData
-    
     profileUpdated = yes
     skipPasswordConfirmation = no
     queue = [
@@ -286,7 +282,7 @@ module.exports = class AccountEditUsername extends JView
 
     {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
-   
+
     @emailForm.inputs.email.setDefaultValue Encoder.htmlDecode email
     @emailForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
     @emailForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName

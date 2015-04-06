@@ -251,7 +251,7 @@ testnotification:
 	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./main.test
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker testnotification
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testnotification testintegration
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
