@@ -12,7 +12,6 @@ import (
 	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
-	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
@@ -186,9 +185,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		return err
 	}
 
-	// now it's safe to say it's running
-	latestState = machinestate.Running
-
 	m.Meta.InstanceType = instance.InstanceType
 	m.Meta.SourceAmi = instance.ImageId
 	m.IpAddress = instance.PublicIpAddress
@@ -210,7 +206,9 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.addDomainAndTags()
 
 	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 90, machinestate.Building)
-	m.checkKite()
+	if !m.isKlientReady() {
+		return errors.New("klient is not ready")
+	}
 
 	resultInfo := fmt.Sprintf("username: [%s], instanceId: [%s], ipAdress: [%s], kiteQuery: [%s]",
 		m.Username, m.Meta.InstanceId, m.IpAddress, m.QueryString)
@@ -593,30 +591,4 @@ func (m *Machine) addDomainAndTags() {
 	if err := m.Session.AWSClient.AddTags(m.Meta.InstanceId, tags); err != nil {
 		m.Log.Error("Adding tags failed: %v", err)
 	}
-}
-
-func (m *Machine) checkKite() {
-	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
-	if m.isKlientReady() {
-		m.Log.Debug("klient is ready.")
-	} else {
-		m.Log.Warning("klient is not ready. I couldn't connect to it.")
-	}
-}
-
-func (m *Machine) isKlientReady() bool {
-	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*3)
-	if err != nil {
-		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
-		return false
-	}
-
-	defer klientRef.Close()
-	m.Log.Debug("Sending a ping message")
-	if err := klientRef.Ping(); err != nil {
-		m.Log.Debug("Sending a ping message err: %s", err)
-		return false
-	}
-
-	return true
 }
