@@ -29,8 +29,8 @@ module.exports = class IDEStatusBar extends KDView
     @on 'ParticipantWatched',   @bound 'decorateWatchedAvatars'
     @on 'ParticipantUnwatched', @bound 'decorateUnwatchedAvatars'
 
-    { mainController } = kd.singletons
-    collabDisabled     = mainController.isFeatureDisabled 'collaboration'
+    { mainController, shortcuts } = kd.singletons
+    collabDisabled = mainController.isFeatureDisabled 'collaboration'
 
     @addSubView @status = new KDCustomHTMLView cssClass : 'status'
 
@@ -55,7 +55,7 @@ module.exports = class IDEStatusBar extends KDView
     @addSubView new KDCustomHTMLView
       partial  : '<cite></cite>'
       cssClass : 'icon shortcuts'
-      click    : -> kd.getSingleton('appManager').tell 'IDE', 'showShortcutsView'
+      click    : -> shortcuts.showModal()
 
     @addSubView @share = new CustomLinkView
       href     : "#{kd.singletons.router.getCurrentPath()}/share"
