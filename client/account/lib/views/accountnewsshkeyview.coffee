@@ -1,6 +1,8 @@
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
+KDLabelView = kd.LabelView
+KDInputView = kd.InputView
 KDFormViewWithFields = kd.FormViewWithFields
 KDButtonBar = kd.ButtonBar
 KDListItemView = kd.ListItemView
@@ -57,28 +59,45 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
           callback      : @lazyBound 'emit', 'FormCancelled'
 
 
+  addInputView: (options, formWrapper) ->
+
+    wrapper = new KDCustomHTMLView
+      cssClass : "formline #{options.cssClass}"
+
+    wrapper.addSubView label = new KDLabelView
+      title : options.label
+    options.label = label
+    wrapper.addSubView input = new KDInputView options
+
+    formWrapper.addSubView wrapper
+
+    return input
+
+
   decorateHasMachineState: (formWrapper, manyMachines) ->
 
-    @form = form = new KDFormViewWithFields
-      fields            :
-        title           :
-          cssClass      : 'Formline--half'
-          placeholder   : 'Your SSH key title'
-          name          : 'sshtitle'
-          label         : 'Title'
-        key             :
-          placeholder   : 'Your SSH key'
-          type          : 'textarea'
-          name          : 'sshkey'
-          label         : 'Key'
-
-    formWrapper.addSubView form
+    @titleInput = @addInputView {
+      cssClass      : 'Formline--half'
+      placeholder   : 'Your SSH key title'
+      name          : 'sshtitle'
+      label         : 'Title'
+    }
+    , formWrapper
 
     if manyMachines
       @machineList = list = new AccountSshMachineList()
       listController = new KDListViewController view : list
       listController.instantiateListItems @getData().machines
+      list.addFooter()
       formWrapper.addSubView list
+
+    @keyInput = @addInputView {
+      placeholder   : 'Your SSH key'
+      type          : 'textarea'
+      name          : 'sshkey'
+      label         : 'Key'
+    }
+    , formWrapper
 
     @buttonsBar = formButtons = new KDButtonBar
       buttons           :
@@ -105,8 +124,8 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     { type } = @getOptions()
     { ViewType } = AccountNewSshKeyView
 
-    key = @form.inputs["key"].getValue()
-    title = @form.inputs["title"].getValue()
+    key = @keyInput.getValue()
+    title = @titleInput.getValue()
 
     @buttonsBar.buttons.save.showLoader()
 

@@ -428,6 +428,55 @@ app.settings.styl
     &:hover .buttons
       opacity               1
 
+  .ssh-key-help
+    padding-top                15px
+    font-size                  14px
+    text-align                 center
+
+    a
+      color                    #52a840
+
+  .add-ssh-key-view
+
+    .no-machines-text
+      margin-bottom            30px
+
+    .ssh-machine-list
+
+      .ssh-machine-list-header
+        padding-bottom         15px
+        position               relative
+
+        .ssh-machine-list-tooltip-icon
+          display              inline-block
+          width                15px
+          height               25px
+          r-sprite             app help
+          margin-left          7px
+          position             absolute
+          top                  -7px
+
+      .ssh-machine-item
+        width                  30%
+        float                  left
+
+        .checkbox
+          display              inline
+          width                auto
+          position             relative
+          top                  2px
+          margin               0px
+
+      .ssh-machine-list-footer
+        clear                  left
+
+    textarea.kdinput
+      height                   180px
+
+.ssh-machine-list-tooltip
+  line-height                  18px
+  text-align                   left!important
+
 .AppModal--account-tabSpinner
   display                   block !important
   width                     40px
@@ -605,28 +654,3 @@ app.settings.styl
 
     .button-field
       width              100%
-
-.add-ssh-key-view
-
-  .no-machines-text
-    margin-bottom            30px
-
-  .ssh-machine-list
-
-    .ssh-machine-list-header
-      padding-bottom         15px
-
-    .ssh-machine-item
-      padding                5px 0px
-      width                  50%
-
-      .koding-on-off
-        float                right
-
-.ssh-key-help
-  padding-top                15px
-  font-size                  14px
-  text-align                 center
-
-  a
-    color                    #52a840

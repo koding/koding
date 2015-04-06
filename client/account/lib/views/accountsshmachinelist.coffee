@@ -17,10 +17,20 @@ module.exports = class AccountSshMachineList extends KDListView
 
     header = new KDCustomHTMLView
       cssClass : 'ssh-machine-list-header'
-      partial  : """
-        Please select the VM(s) where this new key should be automatically installed.<br /> 
-        (Note: keys can only be added to an active VM)
-      """
+      partial  : 'Select your VMs'
+
+    tooltipIcon = new KDCustomHTMLView
+      cssClass : 'ssh-machine-list-tooltip-icon'
+    tooltipIcon.setTooltip
+      title      : '''
+        <div class="ssh-machine-list-tooltip">
+          Please select the VM(s) where this new key should be automatically installed.<br />
+          (Note: keys can only be added to an active VM)
+        </div>
+      '''
+      placement : 'above'
+
+    header.addSubView tooltipIcon
     @addSubView header, '', yes
 
     super
@@ -29,3 +39,9 @@ module.exports = class AccountSshMachineList extends KDListView
   getSelectedMachines: ->
 
     machines = item.getData() for item in @items when item.switcher.getValue()
+
+
+  addFooter: ->
+
+    @addSubView new KDCustomHTMLView
+      cssClass : 'ssh-machine-list-footer'

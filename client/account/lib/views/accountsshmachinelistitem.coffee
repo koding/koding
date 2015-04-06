@@ -3,7 +3,7 @@ JView = require 'app/jview'
 KDCustomHTMLView = kd.CustomHTMLView
 KDListItemView = kd.ListItemView
 Machine = require 'app/providers/machine'
-KodingSwitch = require 'app/commonviews/kodingswitch'
+KDCheckBox = kd.CheckBox
 
 module.exports = class AccountSshMachineListItem extends KDListItemView
 
@@ -11,20 +11,19 @@ module.exports = class AccountSshMachineListItem extends KDListItemView
 
   constructor:(options = {}, data)->
 
+    options.cssClass = 'ssh-machine-item'
     super options, data
 
     { status: { state } } = @data
 
     active = state is Machine.State.Running
-    @switcher = new KodingSwitch
+    @switcher = new KDCheckBox
       defaultValue : active
       disabled     : not active
 
 
   pistachio: ->
     """
-      <div class="ssh-machine-item">
-        {{ #(label) }}
-        {{> @switcher }}
-      </div>
+      {{> @switcher }}
+      {{ #(label) }}
     """
