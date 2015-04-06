@@ -147,12 +147,7 @@ func (a *AccountRequest) CreditCard() (*stripe.CreditCardResponse, error) {
 }
 
 func (a *AccountRequest) Delete() (interface{}, error) {
-	err := stripe.DeleteCustomer(a.AccountId)
-	if err != nil {
-		Log.Error("Deleting account: %s failed. %s", a.AccountId, err)
-	}
-
-	return nil, err
+	return nil, stripe.DeleteCustomer(a.AccountId)
 }
 
 func (a *AccountRequest) ActiveUsernames() ([]string, error) {
