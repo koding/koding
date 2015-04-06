@@ -175,7 +175,7 @@ func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request)
 			timeToWait := bucket.Take(1)
 			if timeToWait > time.Duration(0) {
 				h.Add("Retry-After", strconv.FormatInt(int64(timeToWait.Seconds()), 10))
-				return h, &response.LimitRateExceededError{}
+				return h, response.LimitRateExceededError{}
 			}
 
 			return h, nil
