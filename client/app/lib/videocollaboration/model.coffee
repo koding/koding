@@ -189,9 +189,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
    *
    * @param {strong} connectionId
   ###
-  unregisterSubscriber: (connectionId) ->
-
-    delete @subscribers[connectionId]
+  unregisterSubscriber: (connectionId) -> @subscribers[connectionId] = null
 
 
   ###*

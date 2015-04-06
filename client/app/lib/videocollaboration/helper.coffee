@@ -58,7 +58,7 @@ generateToken = (options, callback) ->
 toNickKeyedMap = (subscribers, publisher) ->
 
   map = {}
-  map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers
+  map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers when subscriber
   map[publisher.nick] = publisher  if publisher
   return map
 
