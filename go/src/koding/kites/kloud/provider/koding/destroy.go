@@ -31,13 +31,15 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 	// try to destroy the instance, however if the instance is not available
 	// anymore just continue.
 	if m.Meta.InstanceId != "" {
+		m.Log.Debug("Destroying machine")
 		err := m.Session.AWSClient.Destroy(ctx, 10, 50)
-		if err != amazon.ErrNoInstances {
+		if err != nil && err != amazon.ErrNoInstances {
 			// if it's something else return it
 			return err
 		}
 	}
 
+	m.Log.Debug("Removing attached domains")
 	m.push("Deleting base domain", 85, machinestate.Terminating)
 	if err := m.Session.DNSClient.Delete(m.Domain); err != nil {
 		// if it's already deleted, for example because of a STOP, than we just
@@ -64,6 +66,7 @@ func (m *Machine) Destroy(ctx context.Context) (err error) {
 
 	// try to release/delete a public elastic IP, if there is an error we don't
 	// care (the instance might not have an elastic IP, aka a free user.
+	m.Log.Debug("Releasing attached public IP's")
 	if resp, err := m.Session.AWSClient.Client.Addresses(
 		[]string{m.IpAddress},
 		nil,

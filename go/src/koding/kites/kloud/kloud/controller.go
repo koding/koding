@@ -124,7 +124,6 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 	if !ok {
 		return nil, NewError(ErrStaterNotImplemented)
 	}
-	currentState := stater.State()
 
 	// Check if the given method is in valid methods of that current state. For
 	// example if the method is "build", and the state is "stopped" than this
@@ -161,7 +160,7 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 		if err != nil {
 			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
-			finalEvent.Status = currentState // fallback to to old state
+			finalEvent.Status = stater.State() // fallback to to old state
 		}
 
 		k.Log.Info("[%s] ======> %s finished (time: %s) <======",
