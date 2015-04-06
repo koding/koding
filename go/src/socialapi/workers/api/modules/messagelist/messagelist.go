@@ -8,8 +8,6 @@ import (
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/common/response"
-
-	"github.com/koding/bongo"
 )
 
 func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (int, http.Header, interface{}, error) {
@@ -26,16 +24,6 @@ func List(u *url.URL, h http.Header, _ interface{}, context *models.Context) (in
 	c, err := models.ChannelById(channelId)
 	if err != nil {
 		return response.NewBadRequest(err)
-	}
-
-	root, err := c.FetchRoot()
-	if err != nil && err != bongo.RecordNotFound {
-		return response.NewBadRequest(err)
-	}
-
-	if root != nil {
-		h.Add("Location", fmt.Sprintf("/Activity/Topic/%s", root.Name))
-		return http.StatusMovedPermanently, h, nil, nil
 	}
 
 	if !query.ShowExempt {
