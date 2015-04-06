@@ -108,14 +108,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
-
       @subscribeToStream session, event.stream
 
     session.on 'streamDestroyed', (event) =>
-
-      { connection, name } = event.stream
-
-      # Emit necessary events for that participant
+      { connection } = event.stream
       @setParticipantLeft connection.connectionId
 
     session.on 'connectionCreated', (event) =>
@@ -200,7 +196,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
   ###*
    * Transforms given publisher instance from OpenTok into our own
-   * `ParticipantType.Publishe` class instance and it registers it into model's
+   * `ParticipantType.Publisher` class instance and it registers it into model's
    * participant property.. It sets the model's stream instance to publisher's
    * stream for easy access.
    *
@@ -352,8 +348,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @registerPublisher publisher
     @setState { publishing: on }
-
     @setActive()
+
     @changeActiveParticipant getNick()
 
 
@@ -459,8 +455,5 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @return {object} state
   ###
   setState: (state) -> @state = _.assign {}, @state, state
-
-
-  getSubscribersCount: -> (Object.keys @subscribers).length
 
 
