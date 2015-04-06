@@ -109,6 +109,8 @@ func TestFetchTopicChannel(t *testing.T) {
 	}
 	defer r.Close()
 
+	controller := New(r.Log)
+
 	Convey("while testing fetchTopicChannel", t, func() {
 		account := models.CreateAccountWithTest()
 		groupChannel := models.CreateTypedPublicChannelWithTest(
@@ -124,7 +126,7 @@ func TestFetchTopicChannel(t *testing.T) {
 		So(normalChannel.Create(), ShouldBeNil)
 
 		Convey("unlinked channels should be fetched normally", func() {
-			c1, err := fetchTopicChannel(normalChannel.GroupName, normalChannel.Name)
+			c1, err := controller.fetchTopicChannel(normalChannel.GroupName, normalChannel.Name)
 			So(err, ShouldBeNil)
 			So(c1, ShouldNotBeNil)
 			So(c1.Id, ShouldEqual, normalChannel.Id)
@@ -149,7 +151,7 @@ func TestFetchTopicChannel(t *testing.T) {
 			So(normalChannel.Update(), ShouldBeNil)
 
 			Convey("it should fetch the root channel", func() {
-				c2, err := fetchTopicChannel(normalChannel.GroupName, normalChannel.Name)
+				c2, err := controller.fetchTopicChannel(normalChannel.GroupName, normalChannel.Name)
 				So(err, ShouldBeNil)
 				So(c2, ShouldNotBeNil)
 				So(c2.Id, ShouldEqual, rootChannel.Id)
