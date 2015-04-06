@@ -3,6 +3,7 @@ package permission
 import (
 	"testing"
 
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -14,14 +15,11 @@ var (
 )
 
 func TestPermissionCreate(t *testing.T) {
-	// r := runner.New("permissiontest")
-	// if err := r.Init(); err != nil {
-	// 	t.Fatalf("couldnt start bongo %s", err.Error())
-	// }
-	// defer r.Close()
-
-	// modelhelper.Initialize(r.Conf.Mongo)
-	// defer modelhelper.Close()
+	r := runner.New("permissiontest")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
 
 	Convey("while creating channel permissions", t, func() {
 		// Convey("First Create Users", func() {
