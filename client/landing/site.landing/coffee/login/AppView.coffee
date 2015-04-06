@@ -504,7 +504,8 @@ module.exports = class LoginView extends JView
       type        : 'POST'
       xhrFields   : withCredentials : yes
       success     : ->
-        document.cookie = 'newRegister=true'
+        expiration = new Date Date.now() + (60 * 60 * 1000) # an hour
+        document.cookie = "newRegister=true;expires=#{expiration.toUTCString()}"
 
         KD.utils.defer ->
           KD.utils.trackEvent 'Signup, success',

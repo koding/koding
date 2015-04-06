@@ -39,14 +39,11 @@
     "gulp-tinypng": "^1.0.2",
     "gulp-uglify": "^1.0.1",
     "gulp-util": "^3.0.1",
-    "gulp.spritesmith": "^1.2.0",
+    "gulp.spritesmith": "^2.5.1",
     "imagemin-pngquant": "^4.0.0",
     "kdf": "^0.1.15",
     "minimist": "^1.1.0",
     "request": "^2.45.0",
     "vinyl-source-stream": "^1.0.0"
-  },
-  "scripts": {
-    "postinstall": "rm -fr ./node_modules/gulp.spritesmith/node_modules/spritesmith/node_modules/canvassmith"
   }
 }
