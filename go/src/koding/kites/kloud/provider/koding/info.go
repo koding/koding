@@ -95,6 +95,17 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 		}
 	}
 
+	// This happens when a machine was destroyed recently in one hour span.
+	// The machine is still available in AWS but it's been marked as
+	// Terminated. Because we still have the machine document, mark it as
+	// NotInitialized so the user can build again.
+	if resultState == machinestate.Terminated {
+		resultState = machinestate.NotInitialized
+		if err := m.markAsNotInitialized(); err != nil {
+			return nil, err
+		}
+	}
+
 	m.Log.Debug("Info result: '%s'. Username: %s", resultState, m.Username)
 	return map[string]string{
 		"State": resultState.String(),
