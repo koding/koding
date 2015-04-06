@@ -22,9 +22,12 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	instance, err := m.Session.AWSClient.Instance()
-	if err == amazon.ErrNoInstances {
+	if (err == nil && amazon.StatusToState(instance.State.Name) == machinestate.Terminated) ||
+		err == amazon.ErrNoInstances {
 		// This means the instanceId stored in MongoDB doesn't exist anymore in
-		// AWS. Probably it was deleted and the state was not updated.
+		// AWS. Probably it was deleted and the state was not updated (possible
+		// due a human interaction or a non kloud interaction done somewhere
+		// else.)
 		if err := m.markAsNotInitialized(); err != nil {
 			return err
 		}
