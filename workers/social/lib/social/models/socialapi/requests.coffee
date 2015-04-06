@@ -401,7 +401,8 @@ post = (url, data, callback)->
       method : 'POST'
 
     {reqOptions, data} = setCookieIfRequired reqOptions, data
-
+    {reqOptions, data} = setHeaderIfRequired reqOptions, data
+    
     reqOptions.body = data
 
     request reqOptions, wrapCallback callback
@@ -456,6 +457,17 @@ setCookieIfRequired = (reqOptions, data)->
     reqOptions.jar = j
 
     delete data.sessionToken
+
+  return {reqOptions, data}
+
+setHeaderIfRequired = (reqOptions, data)->
+  # inject clientId cookie if exists
+  if data?.clientIP
+    reqOptions.headers = {
+      'X-Forwarded-For': data.clientIP
+    }
+
+    delete data.clientIP
 
   return {reqOptions, data}
 
