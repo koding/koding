@@ -199,6 +199,15 @@ enableVideo = (channel, callback) -> setVideoState channel, yes, callback
 
 
 ###*
+ * Disable given channel's video.
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err: (object|null), result: SocialChannel) callback
+###
+disableVideo = (channel, callback) -> setVideoState channel, no, callback
+
+
+###*
  * Default error signal.
  *
  * @param {object} error
@@ -216,5 +225,6 @@ module.exports = {
   createPublisher
   subscribeToAudioChanges
   enableVideo
+  disableVideo
   _errorSignal
 }
