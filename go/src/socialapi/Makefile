@@ -316,6 +316,15 @@ testpayment:
 	@./paypal.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./paypal.test
 
+
+	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
+	@`which go` test -c workers/payment/paymentwebhook/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
+	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
+
 testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification testtrollmode testpayment
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
@@ -360,14 +369,6 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker te
 
 	@echo "$(OK_COLOR)--> sitemap model tests... $(NO_COLOR)"
 	@`which go` test workers/sitemap/models/*.go
-
-	@echo "$(OK_COLOR)--> paymentwebhook tests... $(NO_COLOR)"
-	@`which go` test -c workers/payment/paymentwebhook/*.go
-	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm ./main.test
-
-	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
-	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
 	@echo "$(OK_COLOR)--> realtime model tests... $(NO_COLOR)"
 	@`which go` test -c workers/realtime/models/*.go
