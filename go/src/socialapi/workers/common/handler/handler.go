@@ -75,12 +75,11 @@ func getAccount(r *http.Request) *models.Account {
 	if session.Username == "" {
 		return models.NewAccount()
 	}
-
-	acc, err := models.Cache.Account.ByNick(session.Username)
-	if err != nil {
-		return models.NewAccount()
-	}
-
+	
+    acc := models.NewAccount()
+    // err is ignored intentionally
+    acc.ByNick(session.Username)
+    
 	return acc
 }
 
