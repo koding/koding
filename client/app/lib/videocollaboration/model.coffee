@@ -302,15 +302,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
-   * Action for starting VideoCollaboration session. It calls
-   * `startPublishing` method and connects handlers for success and error states.
+   * Action for starting VideoCollaboration session.
    *
    * @param {object} options
   ###
   start: (options) ->
 
-    @_service.sendSessionStartSignal @channel, (err) ->
+    helper.enableVideo @channel, (err) =>
       return console.error err  if err
+      @_service.sendSessionStartSignal @channel, (err) ->
+        return console.error err  if err
 
 
   ###*
@@ -319,8 +320,10 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   end: ->
 
-    @_service.sendSessionEndSignal @channel, (err) ->
+    helper.disableVideo @channel, (err) =>
       return console.error err  if err
+      @_service.sendSessionEndSignal @channel, (err) ->
+        return console.error err  if err
 
 
   ###*
