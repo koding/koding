@@ -209,7 +209,7 @@ func (f *Controller) MessageUpdated(message *models.ChannelMessage) error {
 
 func (f *Controller) CreateSynonym(cl *models.ChannelLink) error {
 	if err := f.validateSynonymRequest(cl); err != nil {
-		f.log.Error("CreateSynonym validateSynonymRequest err:", err.Error())
+		f.log.Error("CreateSynonym validateSynonymRequest err: %s", err.Error())
 		return nil
 	}
 
