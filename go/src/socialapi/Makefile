@@ -293,31 +293,14 @@ testnotification:
 	@rm ./main.test
 
 
-
-testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification
-	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
-
-	@`which go` test config/*.go $(DBG)
-
-	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
-
-	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
-	@`which go` test -c workers/common/metrics/*.go
-	@./metrics.test
-	@rm ./metrics.test
-
-	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
+testtrollmode:
 	@echo "$(OK_COLOR)--> troll mode tests... $(NO_COLOR)"
 	@`which go` test workers/trollmode/tests/*.go
 	@`which go` test -c workers/trollmode/*.go
 	@./trollmode.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./trollmode.test
 
-	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
-	@`which go` test -c workers/permission/tests/*.go
-	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
-	@rm  ./permission.test
-
+testpayment:
 	@echo "$(OK_COLOR)--> payment tests... $(NO_COLOR)"
 	@`which go` test -c workers/payment/*.go
 	@./payment.test $(DBG) $(METRICS) -c $(CONFIG)
@@ -332,6 +315,28 @@ testapi: testcollaboration testmailsender testmail testmodels testemailworker te
 	@`which go` test -c workers/payment/paypal/*.go
 	@./paypal.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./paypal.test
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification testtrollmode testpayment
+	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
+
+	@`which go` test config/*.go $(DBG)
+
+	@echo "$(OK_COLOR)--> all api tests... $(NO_COLOR)"
+
+	@echo "$(OK_COLOR)--> metrics tests... $(NO_COLOR)"
+	@`which go` test -c workers/common/metrics/*.go
+	@./metrics.test
+	@rm ./metrics.test
+
+	@echo "$(OK_COLOR)==> Running Integration tests $(NO_COLOR)"
+
+
+	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
+	@`which go` test -c workers/permission/tests/*.go
+	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./permission.test
+
+
 
 	@echo "$(OK_COLOR)--> handler tests... $(NO_COLOR)"
 	@`which go` test -c workers/common/handler/*.go
