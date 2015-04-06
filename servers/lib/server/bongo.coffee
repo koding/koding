@@ -5,22 +5,12 @@ Broker   = require 'broker'
 {extend} = require 'underscore'
 
 KONFIG = require('koding-config-manager').load("main.#{argv.c}")
-{projectRoot, webserver, mongoReplSet, mq, socialapi} = KONFIG
+{projectRoot, webserver, mongoReplSet} = KONFIG
 
 mongo = "mongodb://#{KONFIG.mongo}"
 
-mqConfig = {host: mq.host, port: mq.port, login: mq.login, password: mq.password, vhost: mq.vhost}
-
-# TODO exchange version must be injected here, when we have that support
-mqConfig.exchangeName = "#{socialapi.eventExchangeName}:0"
-
-mqOptions = extend {}, mq
-broker = new Broker mqOptions
-
 module.exports = koding = new Bongo
 
-  mq          : broker
-  mqConfig    : mqConfig
   mongo       : mongoReplSet or mongo
   root        : projectRoot
   models      : 'workers/social/lib/social/models'
