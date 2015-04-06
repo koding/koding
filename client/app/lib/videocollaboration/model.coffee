@@ -170,6 +170,25 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Initial call to startPublishing method. `startPublishing` is stateless.
+   * This method handles initial automatic publishing with setting some default
+   * options for host, and participant to be different.
+   *
+   * @param {object} callbacks
+  ###
+  enableVideo: (callbacks) ->
+
+    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    success = (publisher) =>
+      @handlePublishSuccess publisher
+      callbacks.success? publisher
+
+    @startPublishing options,
+      success : success
+      error   : callbacks.error
+
+
+  ###*
    * Creates a `ParticipantType.Subscriber` instance and it caches it with `connectionId`
    * into `subscribers` map.
    *
