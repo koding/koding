@@ -688,6 +688,11 @@ class IDEAppController extends AppController
     @localStorageController.setValue name, value
 
 
+  removeWorkspaceSnapshot: ->
+
+    @localStorageController.unsetKey @getWorkspaceSnapshotName()
+
+
   getWorkspaceSnapshotName: ->
 
     return "wss.#{@mountedMachine.uid}.#{@workspaceData.slug}"
