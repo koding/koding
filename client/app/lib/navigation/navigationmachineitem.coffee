@@ -8,13 +8,14 @@ KDProgressBarView = kd.ProgressBarView
 JView = require '../jview'
 Machine = require '../providers/machine'
 MachineSettingsPopup = require '../providers/machinesettingspopup'
+SidebarMachineSharePopup = require 'app/activity/sidebar/sidebarmachinesharepopup'
 
 
 module.exports = class NavigationMachineItem extends JView
 
   {Running, Stopped} = Machine.State
 
-  stateClasses  = ''
+  stateClasses  = 'reconnecting '
   stateClasses += "#{state.toLowerCase()} " for state in Object.keys Machine.State
 
 
@@ -27,7 +28,7 @@ module.exports = class NavigationMachineItem extends JView
     isMyMachine      = machine.isMine()
     machineRoutes    =
       own            : "/IDE/#{@alias}"
-      collaboration  : "/IDE/#{workspaces.first?.channelId}"
+      collaboration  : "/IDE/#{@getChannelId data}"
       permanentShare : "/IDE/#{machine.uid}"
 
     machineType = 'own'
@@ -63,40 +64,41 @@ module.exports = class NavigationMachineItem extends JView
     @progress  = new KDProgressBarView
       cssClass : 'hidden'
 
-    if @machine.isMine() and @settingsEnabled()
-      @settingsIcon = new KDCustomHTMLView
-        tagName     : 'span'
-        click       : @bound 'handleMachineSettingsClick'
-    else
-      @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
+    isMine     = @machine.isMine()
+    isApproved = @machine.isApproved()
+
+    if (isMine or isApproved) and @settingsEnabled()
+    then @createSettingsIcon()
+    else @createSettingsIconPlaceholder()
 
     kd.singletons.computeController
+      .on "reconnecting-#{@machine.uid}", =>
+        @setState 'reconnecting'
 
       .on "public-#{@machine._id}", (event)=>
         @handleMachineEvent event
 
-      # These are updating machine data on this instance indivudally
-      # but since we have more data to update, I'm updating all machines
-      # for now.
-      #
-      # .on "revive-#{@machine._id}", (machine)=>
-      #   @machine = machine
 
-      #   @label.updatePartial @machine.label
-      #   @alias   = @machine.slug or @label
-      #   newPath  = groupifyLink "/IDE/#{@alias}/my-workspace"
+  createSettingsIcon: ->
 
-      #   @setAttributes
-      #     href   : newPath
-      #     title  : "Open IDE for #{@alias}"
+    @settingsIcon = new KDCustomHTMLView
+      tagName     : 'span'
+      click       : (e) =>
+        if @machine.isMine() then @handleMachineSettingsClick e
+        else if @machine.isApproved() then @showSidebarSharePopup()
+
+
+  createSettingsIconPlaceholder: ->
+
+    @settingsIcon = new KDCustomHTMLView cssClass: 'hidden'
 
 
   settingsEnabled: ->
 
-    { status:{ state } } = @machine
+    { status: { state } } = @machine
     { NotInitialized, Running, Stopped, Terminated, Unknown } = Machine.State
 
-    return state in [NotInitialized, Running, Stopped, Terminated, Unknown]
+    return state in [ NotInitialized, Running, Stopped, Terminated, Unknown ]
 
 
   handleMachineSettingsClick: (event) ->
@@ -105,17 +107,17 @@ module.exports = class NavigationMachineItem extends JView
 
     kd.utils.stopDOMEvent event
 
-    @openMachineSettingsPopup()
+    new MachineSettingsPopup { position: @getPopupPosition() }, @machine
 
 
-  openMachineSettingsPopup: ->
+  getPopupPosition: (extraTop = 0) ->
 
     bounds   = @getBounds()
     position =
-      top    : Math.max   bounds.y - 38, 0
+      top    : Math.max(bounds.y - 38, 0) + extraTop
       left   : bounds.x + bounds.w + 16
 
-    new MachineSettingsPopup { position }, @machine
+    return position
 
 
   handleMachineEvent: (event) ->
@@ -149,6 +151,31 @@ module.exports = class NavigationMachineItem extends JView
 
     if percentage is 100
       kd.utils.wait 1000, @progress.bound 'hide'
+
+
+  # passing data is required because this method is called before super call.
+  getChannelId: (data) ->
+
+    return data.workspaces.first?.channelId
+
+
+  showSidebarSharePopup: (options = {}) ->
+
+    options.position  = @getPopupPosition 20
+    options.channelId = @getChannelId @getData()
+
+    new SidebarMachineSharePopup options, @machine
+
+
+  click: (e) ->
+
+    m = @machine
+
+    if not m.isMine() and not m.isApproved()
+      kd.utils.stopDOMEvent e
+      @showSidebarSharePopup()
+
+    super
 
 
   pistachio: ->

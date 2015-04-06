@@ -5,8 +5,14 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"koding/kites/kloud/machinestate"
 )
+
+type key int
+
+const eventKey key = 0
 
 // Eventer is showing and managing a list of events.
 type Eventer interface {
@@ -23,6 +29,17 @@ type Eventer interface {
 	// events can be inserted after close is invoked. After close Show() should
 	// show the latest item.
 	Close()
+}
+
+// FromContext extracts the eventer from ctx, if present.
+func FromContext(ctx context.Context) (Eventer, bool) {
+	c, ok := ctx.Value(eventKey).(Eventer)
+	return c, ok
+}
+
+// NewContext returns a new Context carrying eventer
+func NewContext(ctx context.Context, eventer Eventer) context.Context {
+	return context.WithValue(ctx, eventKey, eventer)
 }
 
 type Event struct {

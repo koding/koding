@@ -4,14 +4,15 @@ import (
 	"errors"
 	"fmt"
 	"koding/db/models"
+	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
 	"time"
+
+	"github.com/mitchellh/goamz/ec2"
+	"golang.org/x/net/context"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-
-	"github.com/mitchellh/goamz/ec2"
 )
 
 const (
@@ -29,96 +30,103 @@ type SnapshotDocument struct {
 	username   string        `bson:"-"`
 }
 
-func (p *Provider) DeleteSnapshot(snapshotId string, m *protocol.Machine) error {
-	a, err := p.NewClient(m)
-	if err != nil {
+func (m *Machine) DeleteSnapshot(ctx context.Context) error {
+	req, ok := request.FromContext(ctx)
+	if !ok {
+		return errors.New("request context is not available")
+	}
+
+	var args struct {
+		SnapshotId string
+	}
+
+	if err := req.Args.One().Unmarshal(&args); err != nil {
 		return err
 	}
 
-	a.Log.Info("deleting snapshot from AWS %s", snapshotId)
-	if _, err := a.Client.DeleteSnapshots([]string{snapshotId}); err != nil {
+	m.Log.Info("deleting snapshot from AWS %s", args.SnapshotId)
+	if _, err := m.Session.AWSClient.Client.DeleteSnapshots([]string{args.SnapshotId}); err != nil {
 		return err
 	}
 
-	a.Log.Debug("deleting snapshot data from MongoDB %s", snapshotId)
-	return p.DeleteSnapshotData(snapshotId)
+	m.Log.Debug("deleting snapshot data from MongoDB %s", args.SnapshotId)
+	return m.deleteSnapshotData(args.SnapshotId)
 }
 
-func (p *Provider) CreateSnapshot(m *protocol.Machine) (*protocol.Artifact, error) {
-	checker, err := p.PlanChecker(m)
-	if err != nil {
-		return nil, err
+func (m *Machine) CreateSnapshot(ctx context.Context) error {
+	if err := m.UpdateState("Machine is creating snapshot", machinestate.Snapshotting); err != nil {
+		return err
 	}
 
-	if err := checker.SnapshotTotal(); err != nil {
-		return nil, err
+	if err := m.Checker.SnapshotTotal(m.Id.Hex(), m.Username); err != nil {
+		return err
 	}
 
-	a, err := p.NewClient(m)
-	if err != nil {
-		return nil, err
-	}
+	a := m.Session.AWSClient
 
-	a.Push("Creating snapshot initialized", 10, machinestate.Snapshotting)
-	instance, err := a.Instance(a.Id())
+	m.push("Creating snapshot initialized", 10, machinestate.Snapshotting)
+	instance, err := a.Instance()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if len(instance.BlockDevices) == 0 {
-		return nil, fmt.Errorf("createSnapshot: no block device available")
+		return fmt.Errorf("createSnapshot: no block device available")
 	}
 
 	volumeId := instance.BlockDevices[0].VolumeId
-	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id)
+	snapshotDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id.Hex())
 
-	a.Log.Debug("Creating snapshot '%s'", snapshotDesc)
-	a.Push("Creating snapshot", 50, machinestate.Snapshotting)
+	m.Log.Debug("Creating snapshot '%s'", snapshotDesc)
+	m.push("Creating snapshot", 50, machinestate.Snapshotting)
 	snapshot, err := a.CreateSnapshot(volumeId, snapshotDesc)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	a.Log.Debug("Snapshot created successfully: %+v", snapshot)
+	m.Log.Debug("Snapshot created successfully: %+v", snapshot)
 
 	snapshotData := &SnapshotDocument{
 		username:   m.Username,
 		Region:     a.Client.Region.Name,
 		SnapshotId: snapshot.Id,
-		MachineId:  bson.ObjectIdHex(m.Id),
+		MachineId:  m.Id,
 	}
 
-	if err := p.AddSnapshotData(snapshotData); err != nil {
-		return nil, err
+	if err := m.addSnapshotData(snapshotData); err != nil {
+		return err
 	}
 
 	tags := []ec2.Tag{
 		{Key: "Name", Value: snapshotDesc},
 		{Key: "koding-user", Value: m.Username},
-		{Key: "koding-machineId", Value: m.Id},
+		{Key: "koding-machineId", Value: m.Id.Hex()},
 	}
 
 	if _, err := a.Client.CreateTags([]string{snapshot.Id}, tags); err != nil {
 		// don't return for a snapshot tag problem
-		a.Log.Warning("Failed to tag the new snapshot: %v", err)
+		m.Log.Warning("Failed to tag the new snapshot: %v", err)
 	}
 
-	a.Push("Snapshot creation finished successfully", 80, machinestate.Snapshotting)
+	m.push("Snapshot creation finished successfully", 80, machinestate.Snapshotting)
 
-	// reason why we return nil is, to provide a way for future changes to
-	// return an updated IP which is changed once we stop/start a machine.
-	// Currently we don't stop the machine (snapshotting works fine without
-	// stopping). But if we decide to stop/start the machine, than we need to
-	// return an artifact instead of nil
-	return nil, nil
-
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"status.state":      machinestate.Running.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Machine is running",
+			}},
+		)
+	})
 }
 
-func (p *Provider) AddSnapshotData(doc *SnapshotDocument) error {
+func (m *Machine) addSnapshotData(doc *SnapshotDocument) error {
 	var account *models.Account
-	if err := p.Session.Run("jAccounts", func(c *mgo.Collection) error {
+	if err := m.Session.DB.Run("jAccounts", func(c *mgo.Collection) error {
 		return c.Find(bson.M{"profile.nickname": doc.username}).One(&account)
 	}); err != nil {
-		p.Log.Error("Could not fetch account %v: err: %v", doc.username, err)
+		m.Log.Error("Could not fetch account %v: err: %v", doc.username, err)
 		return errors.New("could not fetch account from DB")
 	}
 
@@ -127,54 +135,53 @@ func (p *Provider) AddSnapshotData(doc *SnapshotDocument) error {
 	doc.CreatedAt = time.Now().UTC()
 	doc.OriginId = account.Id
 
-	err := p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
+	err := m.Session.DB.Run(snapshotCollection, func(c *mgo.Collection) error {
 		return c.Insert(doc)
 	})
 
 	if err != nil {
-		p.Log.Error("Could not add snapshot %v: err: %v", doc.MachineId.Hex(), doc, err)
+		m.Log.Error("Could not add snapshot %v: err: %v", doc.MachineId.Hex(), doc, err)
 		return errors.New("could not add snapshot to DB")
 	}
 
 	return nil
-
 }
 
-func (p *Provider) DeleteSnapshotData(snapshotId string) error {
-	err := p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
+func (m *Machine) deleteSnapshotData(snapshotId string) error {
+	err := m.Session.DB.Run(snapshotCollection, func(c *mgo.Collection) error {
 		return c.Remove(bson.M{"snapshotId": snapshotId})
 	})
 
 	if err != nil {
-		p.Log.Error("Could not delete %v: err: %v", snapshotId, err)
+		m.Log.Error("Could not delete %v: err: %v", snapshotId, err)
 		return errors.New("could not delete snapshot from DB")
 	}
 
 	return nil
 }
 
-func (p *Provider) CheckSnapshotExistence(username, snapshotId string) error {
+func (m *Machine) checkSnapshotExistence() error {
 	var account *models.Account
-	if err := p.Session.Run("jAccounts", func(c *mgo.Collection) error {
-		return c.Find(bson.M{"profile.nickname": username}).One(&account)
+	if err := m.Session.DB.Run("jAccounts", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"profile.nickname": m.Username}).One(&account)
 	}); err != nil {
-		p.Log.Error("Could not fetch account %v: err: %v", username, err)
+		m.Log.Error("Could not fetch account %v: err: %v", m.Username, err)
 		return errors.New("could not fetch account from DB")
 	}
 
 	var err error
 	var count int
 
-	err = p.Session.Run(snapshotCollection, func(c *mgo.Collection) error {
+	err = m.Session.DB.Run(snapshotCollection, func(c *mgo.Collection) error {
 		count, err = c.Find(bson.M{
 			"originId":   account.Id,
-			"snapshotId": snapshotId,
+			"snapshotId": m.Meta.SnapshotId,
 		}).Count()
 		return err
 	})
 
 	if err != nil {
-		p.Log.Error("Could not fetch %v: err: %v", snapshotId, err)
+		m.Log.Error("Could not fetch %v: err: %v", m.Meta.SnapshotId, err)
 		return errors.New("could not check Snapshot existency")
 	}
 

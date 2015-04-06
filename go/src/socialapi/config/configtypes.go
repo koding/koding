@@ -1,28 +1,15 @@
 package config
 
+import "github.com/koding/runner"
+
 type (
 	// Config holds all the configuration variables of socialapi
 	Config struct {
-		// Postres holds connection credentials for postgresql
-		Postgres Postgres
-
-		// Mq holds connction credentials for rabbitmq
-		Mq Mq
-
-		// Redis holds connection string for redis
-		Redis Redis
+		// extend config with runner's
+		runner.Config
 
 		// Mongo holds full connection string
 		Mongo string `env:"key=KONFIG_SOCIALAPI_MONGO                                 required"`
-
-		// Environment holds the environment of the the running application
-		Environment string `env:"key=KONFIG_SOCIALAPI_ENVIRONMENT                     required"`
-
-		// Region holds the region of the the running application
-		Region string `env:"key=KONFIG_SOCIALAPI_REGION                               required"`
-
-		// Hostname is the web end point the app
-		Hostname string `env:"key=KONFIG_SOCIALAPI_HOSTNAME                           required"`
 
 		// Protocol holds used protocol information
 		Protocol string `env:"key=KONFIG_SOCIALAPI_PROTOCOL                           required"`
@@ -55,14 +42,6 @@ type (
 
 		PaymentWebhook PaymentWebhook
 
-		// random access configs
-		EventExchangeName string `env:"key=KONFIG_SOCIALAPI_EVENTEXCHANGENAME               required  default=BrokerMessageBus"`
-		DisableCaching    bool   `env:"key=KONFIG_SOCIALAPI_DISABLECACHING                  required  default=false"`
-		Debug             bool   `env:"key=KONFIG_SOCIALAPI_DEBUG 					       		      default=false"`
-
-		// just a temp hack
-		Host     string
-		Port     string
 		ProxyURL string
 
 		CustomDomain CustomDomain
@@ -70,30 +49,6 @@ type (
 		GoogleapiServiceAccount GoogleapiServiceAccount
 
 		Geoipdbpath string
-	}
-
-	// Postgres holds Postgresql database related configuration
-	Postgres struct {
-		Host     string `env:"key=KONFIG_SOCIALAPI_POSTGRES_HOST                            required"`
-		Port     int    `env:"key=KONFIG_SOCIALAPI_POSTGRES_PORT                            required  default=5432"`
-		Username string `env:"key=KONFIG_SOCIALAPI_POSTGRES_USERNAME                        required  default=socialapplication"`
-		Password string `env:"key=KONFIG_SOCIALAPI_POSTGRES_PASSWORD                        required  default=socialapplication"`
-		DBName   string `env:"key=KONFIG_SOCIALAPI_POSTGRES_DBNAME                          required  default=social"`
-	}
-
-	// Mq holds Rabbitmq related configuration
-	Mq struct {
-		Host     string `env:"key=KONFIG_SOCIALAPI_MQ_HOST                                  required"`
-		Port     int    `env:"key=KONFIG_SOCIALAPI_MQ_PORT                                  required"`
-		Login    string `env:"key=KONFIG_SOCIALAPI_MQ_LOGIN                                 required"`
-		Password string `env:"key=KONFIG_SOCIALAPI_MQ_PASSWORD                              required"`
-		Vhost    string `env:"key=KONFIG_SOCIALAPI_MQ_VHOST                                 required"`
-	}
-
-	// Redis holds Redis related config
-	Redis struct {
-		URL string `env:"key=KONFIG_SOCIALAPI_REDIS_URL                                    required"`
-		DB  int    `env:"key=KONFIG_SOCIALAPI_REDIS_DB                                                  default=0"`
 	}
 
 	// Email holds Email Workers' config
@@ -120,6 +75,7 @@ type (
 		ApiKey       string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APIKEY                       required"`
 		ApiSecretKey string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APISECRETKEY                 required"`
 		IndexSuffix  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_INDEXSUFFIX                  required"`
+		ApiTokenKey  string `env:"key=KONFIG_SOCIALAPI_ALGOLIA_APITOKENKEY                  required"`
 	}
 
 	// Mixpanel holds mixpanel credentials
@@ -150,7 +106,7 @@ type (
 
 	GateKeeper struct {
 		Host   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_HOST"`
-		Port   int    `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
+		Port   string `env:"key=KONFIG_SOCIALAPI_GATEKEEPER_PORT"`
 		Pubnub Pubnub
 	}
 

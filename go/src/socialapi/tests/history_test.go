@@ -2,11 +2,13 @@ package main
 
 import (
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
-	"socialapi/workers/common/runner"
 	"testing"
+
+	"github.com/koding/runner"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -18,7 +20,8 @@ func TestChannelHistory(t *testing.T) {
 	}
 	defer r.Close()
 
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	Convey("While testing history of a channel", t, func() {

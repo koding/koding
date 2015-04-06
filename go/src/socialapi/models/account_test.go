@@ -1,15 +1,15 @@
 package models
 
 import (
-	"socialapi/workers/common/runner"
 	"strings"
 	"testing"
 
 	"math/rand"
 
+	"github.com/koding/bongo"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
 
-	"github.com/koding/bongo"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

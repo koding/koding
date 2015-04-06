@@ -6,7 +6,6 @@ import (
 	"socialapi/config"
 	"socialapi/workers/email/activityemail/models"
 	"socialapi/workers/email/emailmodels"
-	"socialapi/workers/helper"
 	notificationmodels "socialapi/workers/notification/models"
 	"strconv"
 	"time"
@@ -14,6 +13,7 @@ import (
 	"github.com/garyburd/redigo/redis"
 	"github.com/koding/bongo"
 	"github.com/koding/logging"
+	"github.com/koding/runner"
 	"github.com/robfig/cron"
 )
 
@@ -64,7 +64,7 @@ func (n *Controller) Shutdown() {
 }
 
 func (n *Controller) sendDailyMails() {
-	redisConn := helper.MustGetRedisConn()
+	redisConn := runner.MustGetRedisConn()
 	for {
 		key := prepareRecipientsCacheKey()
 		reply, err := redisConn.PopSetMember(key)
@@ -150,7 +150,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 }
 
 func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
-	redisConn := helper.MustGetRedisConn()
+	redisConn := runner.MustGetRedisConn()
 	members, err := redisConn.GetSetMembers(prepareDailyActivitiesCacheKey(accountId))
 	if err != nil {
 		return nil, err

@@ -8,18 +8,18 @@ import (
 	// _ "net/http/pprof" // Imported for side-effect of handling /debug/pprof.
 
 	"socialapi/config"
+	algoliaapi "socialapi/workers/algoliaconnector/api"
 	"socialapi/workers/api/handlers"
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/common/runner"
 	mailapi "socialapi/workers/email/mailparse/api"
-	"socialapi/workers/helper"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
-	"strconv"
+
+	"github.com/koding/runner"
 )
 
 var (
@@ -33,9 +33,9 @@ func main() {
 		return
 	}
 
-	port, _ := strconv.Atoi(r.Conf.Port)
+	config.MustRead(r.Conf.Path)
 
-	mc := mux.NewConfig(Name, r.Conf.Host, port)
+	mc := mux.NewConfig(Name, r.Conf.Host, r.Conf.Port)
 	mc.Debug = r.Conf.Debug
 	m := mux.New(mc, r.Log)
 
@@ -51,13 +51,15 @@ func main() {
 	trollmodeapi.AddHandlers(m, r.Metrics)
 	sitemapapi.AddHandlers(m, r.Metrics)
 	mailapi.AddHandlers(m, r.Metrics)
+	algoliaapi.AddHandlers(m, r.Metrics, r.Log)
 
 	// init redis
-	redisConn := helper.MustInitRedisConn(r.Conf)
+	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	mmdb, err := helper.ReadGeoIPDB(r.Conf)

@@ -287,13 +287,12 @@ module.exports = class MachineSettingsPopup extends KDModalViewWithForms
         sharedWith     :
           label        : "
             VM Shared With
-            <a href='http://learn.koding.com/faq/vm-hostname/' target='_blank'>
+            <a href='http://learn.koding.com/guides/permanent-shared-vm' target='_blank'>
               <span class='help'></span>
             </a>
             <span class='toggle'></span>
           "
           itemClass    : ManageSharedView
-          cssClass     : 'hidden'
           machine      : @machine
         domains        :
           label        : "

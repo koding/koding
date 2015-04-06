@@ -244,12 +244,19 @@ testemailworker:
 	@./emailmodels.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm ./emailmodels.test
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker
+testnotification:
+
+	@echo "$(OK_COLOR)--> notification tests... $(NO_COLOR)"
+	@`which go` test -c workers/notification/tests/*.go
+	@./main.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./main.test
+
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testnotification
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
 
-	@echo "$(OK_COLOR)--> api tests... $(NO_COLOR)"
+	@echo "$(OK_COLOR)--> algolia tests... $(NO_COLOR)"
 	@`which go` test -c workers/algoliaconnector/algoliaconnector/*.go
 	@./algoliaconnector.test -c $(CONFIG)
 	@rm ./algoliaconnector.test

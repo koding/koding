@@ -92,8 +92,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        impersonate:
-          (signature String, Function)
         verifyEmailByUsername:
           (signature String, Function)
         fetchBlockedUsers:
@@ -547,17 +545,6 @@ module.exports = class JAccount extends jraphical.Module
             cursor.toArray (err, arr)->
               if err then callback err
               else callback null, (doc.as for doc in arr)
-
-  @impersonate = secure (client, nickname, callback)->
-    {connection:{delegate}, sessionToken} = client
-    unless delegate.can 'administer accounts'
-      callback new KodingError 'Access denied'
-    else
-      JSession = require './session'
-      JSession.update {clientId: sessionToken}, $set:{
-        username      : nickname
-        impersonating : true
-      }, (err) -> callback err
 
   @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client

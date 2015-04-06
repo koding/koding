@@ -1,26 +1,27 @@
-htmlencode = require 'htmlencode'
-Promise = require 'bluebird'
-$ = require 'jquery'
-globals = require 'globals'
-getFullnameFromAccount = require './util/getFullnameFromAccount'
-registerAppClass = require './util/registerAppClass'
-remote = require('./remote').getInstance()
-nick = require './util/nick'
-kd = require 'kd'
-KDController = kd.Controller
-KDCustomHTMLView = kd.CustomHTMLView
-KDModalView = kd.ModalView
-KDModalViewWithForms = kd.ModalViewWithForms
-KDNotificationView = kd.NotificationView
-KDView = kd.View
-AppSkeleton = require './appskeleton'
-FSHelper = require './util/fs/fshelper'
-GitHub = require './extras/github/github'
+kd                         = require 'kd'
+KDController               = kd.Controller
+KDCustomHTMLView           = kd.CustomHTMLView
+KDModalView                = kd.ModalView
+KDModalViewWithForms       = kd.ModalViewWithForms
+KDNotificationView         = kd.NotificationView
+KDView                     = kd.View
+htmlencode                 = require 'htmlencode'
+Promise                    = require 'bluebird'
+$                          = require 'jquery'
+globals                    = require 'globals'
+getFullnameFromAccount     = require './util/getFullnameFromAccount'
+registerAppClass           = require './util/registerAppClass'
+remote                     = require('./remote').getInstance()
+nick                       = require './util/nick'
+AppSkeleton                = require './appskeleton'
+FSHelper                   = require './util/fs/fshelper'
+GitHub                     = require './extras/github/github'
 KodingAppSelectorForGitHub = require './commonviews/kodingappselectorforgithub'
-ModalViewWithTerminal = require './commonviews/modalviewwithterminal'
+ModalViewWithTerminal      = require './commonviews/modalviewwithterminal'
 
+module.exports =
 
-module.exports = class KodingAppsController extends KDController
+class KodingAppsController extends KDController
 
   name    = "KodingAppsController"
   version = "0.1"
@@ -72,13 +73,14 @@ module.exports = class KodingAppsController extends KDController
 
     sinkrow.dash queue, callback
 
-  # This is the most important method to put & run additional apps on Koding
-  # Please make sure about your changes on it.
+  ## This is the most important method to put & run additional apps on Koding
+  ## Please make sure about your changes on it.
   @putAppScript = (app, callback = kd.noop)->
 
     if app.style
+      cb = if app.script then kd.noop else callback
       @appendHeadElement 'style',  \
-        { app: app, url:app.style, identifier:app.identifier, force: yes }
+        { app: app, url:app.style, identifier:app.identifier, force: yes }, cb
 
     if app.script
       @appendHeadElement 'script', \
@@ -219,8 +221,6 @@ module.exports = class KodingAppsController extends KDController
         kd.utils.defer -> obj.appendToSelector 'head'
 
     else
-      delim = if /\?/.test url then "&" else "?"
-      url = "#{ url }#{ delim }#{ kd.utils.uniqueId() }"
       bind = ''
       load = kd.noop
 
@@ -229,6 +229,8 @@ module.exports = class KodingAppsController extends KDController
         attributes =
           rel      : 'stylesheet'
           href     : url
+        bind       = "load"
+        load       = -> callback null, {app, type, url}
       else
         attributes =
           type     : "text/javascript"
@@ -241,8 +243,6 @@ module.exports = class KodingAppsController extends KDController
       global.document.head.appendChild (new KDCustomHTMLView {
         domId, tagName, attributes, bind, load
       }).getElement()
-
-      callback null  if type is 'style'
 
   @destroyScriptElement = (type, identifier)->
     (global.document.getElementById "internal-#{type}-#{identifier}")?.remove()

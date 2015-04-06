@@ -195,17 +195,6 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 			Metrics:  metric,
 		})
 
-	// deprecated, here for socialworker
-	m.AddHandler(
-		handler.Request{
-			Handler:        channel.Update,
-			Name:           "channel-update-old",
-			Type:           handler.PostRequest,
-			Endpoint:       "/channel/{id}",
-			CollectMetrics: true,
-			Metrics:        metric,
-		})
-
 	m.AddHandler(
 		handler.Request{
 			Handler:        channel.Update,

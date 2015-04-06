@@ -56,7 +56,7 @@ type ChannelMessage struct {
 	DeletedAt time.Time `json:"deletedAt"`
 
 	// Extra data storage
-	Payload gorm.Hstore `json:"payload,omitempty"`
+	Payload gorm.Hstore `json:"payload"`
 
 	// is required to identify to request in client side
 	ClientRequestId string `json:"clientRequestId,omitempty" sql:"-"`
@@ -190,6 +190,10 @@ func (c *ChannelMessage) BuildMessage(query *request.Query) (*ChannelMessageCont
 	cmc := NewChannelMessageContainer()
 	if err := cmc.Fetch(c.Id, query); err != nil {
 		return nil, err
+	}
+
+	if cmc.Message == nil {
+		return cmc, nil
 	}
 
 	var err error

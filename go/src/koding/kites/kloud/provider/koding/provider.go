@@ -3,616 +3,264 @@ package koding
 import (
 	"errors"
 	"fmt"
-	"sync"
+	"koding/db/models"
+	"koding/db/mongodb"
+	"koding/kites/kloud/api/amazon"
+	"koding/kites/kloud/contexthelper/request"
+	"koding/kites/kloud/contexthelper/session"
+	"koding/kites/kloud/dnsstorage"
+	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/kloud"
+	"koding/kites/kloud/kloudctl/command"
+	"koding/kites/kloud/machinestate"
+	"koding/kites/kloud/pkg/dnsclient"
+	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/plans"
+	"koding/kites/kloud/userdata"
 	"time"
 
-	"koding/db/mongodb"
-
-	amazonClient "koding/kites/kloud/api/amazon"
-	"koding/kites/kloud/dnsclient"
-	"koding/kites/kloud/eventer"
-	"koding/kites/kloud/klient"
-	"koding/kites/kloud/kloud"
-	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/multiec2"
-	"koding/kites/kloud/protocol"
-	"koding/kites/kloud/provider/amazon"
-
+	"github.com/fatih/structs"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
-	"github.com/koding/metrics"
-	"github.com/mitchellh/goamz/ec2"
+	"golang.org/x/net/context"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 )
 
-const (
-	ProviderName = "koding"
-)
-
-type pushValues struct {
-	Start, Finish int
-}
-
-// Provider implements the kloud packages Storage, Builder and Controller
-// interface
 type Provider struct {
-	Kite *kite.Kite
-	Log  logging.Logger
-	Push func(string, int, machinestate.State)
-
-	// DB reference
-	Session       *mongodb.MongoDB
-	DomainStorage protocol.DomainStorage
-
-	// A flag saying if user permissions should be ignored
-	// store negation so default value is aligned with most common use case
-	Test bool
-
-	// AWS related references and settings
+	DB         *mongodb.MongoDB
+	Log        logging.Logger
+	Kite       *kite.Kite
+	DNSClient  *dnsclient.Route53
+	DNSStorage *dnsstorage.MongodbStorage
 	EC2Clients *multiec2.Clients
-	DNS        *dnsclient.DNS
-	Bucket     *Bucket
+	Userdata   *userdata.Userdata
 
-	KontrolURL        string
-	KontrolPrivateKey string
-	KontrolPublicKey  string
-
-	// If available a key pair with the given public key and name should be
-	// deployed to the machine, the corresponding PrivateKey should be returned
-	// in the ProviderArtifact. Some providers such as Amazon creates
-	// publicKey's on the fly and generates the privateKey themself.
-	PublicKey  string `structure:"publicKey"`
-	PrivateKey string `structure:"privateKey"`
-	KeyName    string `structure:"keyName"`
-
-	// A set of connected, ready to use klients
-	KlientPool *klient.KlientPool
-
-	// A set of machines that defines machines who's klient kites are not
-	// running. The timer is used to stop the machines after 30 minutes
-	// inactivity.
-	InactiveMachines   map[string]*time.Timer
-	InactiveMachinesMu sync.Mutex
-
-	Stats *metrics.DogStatsD
-
-	// Fetcher is used to fetch a machines plan
-	Fetcher Fetcher
-
-	// NetworkUsageEndpoint is used to fetch a machines network usage
-	NetworkUsageEndpoint string
+	PaymentFetcher plans.PaymentFetcher
+	CheckerFetcher plans.CheckerFetcher
 }
 
-func (p *Provider) NewClient(m *protocol.Machine) (*amazon.AmazonClient, error) {
-	userLog := p.Log.New(m.Id)
-	a := &amazon.AmazonClient{
-		Log: userLog,
-		Push: func(msg string, percentage int, state machinestate.State) {
-			userLog.Debug("%s (username: %s)", msg, m.Username)
-
-			m.Eventer.Push(&eventer.Event{
-				Message:    msg,
-				Status:     state,
-				Percentage: percentage,
-			})
-		},
-		Metrics: p.Stats,
-	}
-
-	var err error
-
-	// we pass a nil client just to fill the Builder data. The reason for that
-	// is to retrieve the `region` of a user so we can create a client based on
-	// the region below.
-	a.Amazon, err = amazonClient.New(m.Builder, nil)
-	if err != nil {
-		return nil, fmt.Errorf("koding-amazon err: %s", err)
-	}
-
-	if a.Builder.Region == "" {
-		a.Builder.Region = "us-east-1"
-		a.Log.Critical("region is not set in. Fallback to us-east-1.")
-	}
-
-	client, err := p.EC2Clients.Region(a.Builder.Region)
-	if err != nil {
-		return nil, err
-	}
-
-	a.Client = client
-
-	// needed to deploy during build
-	a.Builder.KeyPair = p.KeyName
-
-	// needed to create the keypair if it doesn't exist
-	a.Builder.PublicKey = p.PublicKey
-	a.Builder.PrivateKey = p.PrivateKey
-	return a, nil
+type Credential struct {
+	Id        bson.ObjectId `bson:"_id" json:"-"`
+	PublicKey string        `bson:"publicKey"`
+	Meta      bson.M        `bson:"meta"`
 }
 
-func (p *Provider) PlanChecker(m *protocol.Machine) (*PlanChecker, error) {
-	a, err := p.NewClient(m)
-	if err != nil {
+func (p *Provider) Machine(ctx context.Context, id string) (interface{}, error) {
+	if !bson.IsObjectIdHex(id) {
+		return nil, fmt.Errorf("Invalid machine id: %q", id)
+	}
+
+	// let's first check if the id exists, because we are going to use
+	// findAndModify() and it would be difficult to distinguish if the id
+	// really doesn't exist or if there is an assignee which is a different
+	// thing. (Because findAndModify() also returns "not found" for the case
+	// where the id exist but someone else is the assignee).
+	machine := &Machine{}
+	if err := p.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.FindId(bson.ObjectIdHex(id)).One(&machine)
+	}); err == mgo.ErrNotFound {
+		return nil, kloud.NewError(kloud.ErrMachineNotFound)
+	}
+
+	req, ok := request.FromContext(ctx)
+	if !ok {
+		return nil, errors.New("request context is not available")
+	}
+
+	if machine.Meta.Region == "" {
+		machine.Meta.Region = "us-east-1"
+		machine.Log.Critical("region is not set in. Fallback to us-east-1.")
+	}
+
+	p.Log.Debug("Using region: %s", machine.Meta.Region)
+
+	if err := p.attachSession(ctx, machine); err != nil {
 		return nil, err
 	}
 
-	if p.Fetcher == nil {
-		return nil, errors.New("Fetcher is not initialized")
-	}
-
-	// check current plan
-	fetcherResp, err := p.Fetcher.Fetch(m)
-	if err != nil {
+	// check for validation and permission
+	if err := p.validate(machine, req); err != nil {
 		return nil, err
 	}
 
-	return &PlanChecker{
-		Api:      a,
-		Provider: p,
-		DB:       p.Session,
-		Kite:     p.Kite,
-		Log:      a.Log,
-		Username: m.Username,
-		Machine:  m,
-		Plan:     fetcherResp,
-	}, nil
+	return machine, nil
 }
 
-func (p *Provider) Start(m *protocol.Machine) (*protocol.Artifact, error) {
-	checker, err := p.PlanChecker(m)
-	if err != nil {
-		return nil, err
+func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
+	// get user model which contains user ssh keys or the list of users that
+	// are allowed to use this machine
+	if len(machine.Users) == 0 {
+		return errors.New("permitted users list is empty")
 	}
 
-	if err := checker.AlwaysOn(); err != nil {
-		return nil, err
-	}
-
-	if err := checker.NetworkUsage(); err != nil {
-		return nil, err
-	}
-
-	if err := checker.PlanState(); err != nil {
-		return nil, err
-	}
-
-	a, err := p.NewClient(m)
-	if err != nil {
-		return nil, err
-	}
-
-	infoResp, err := a.Info()
-	if err != nil {
-		return nil, err
-	}
-
-	artifact := &protocol.Artifact{
-		IpAddress:  m.IpAddress,
-		InstanceId: a.Builder.InstanceId,
-	}
-
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
-
-	a.Push("Starting machine", 10, machinestate.Starting)
-
-	// check if the user has something else than their current instance type
-	// and revert back to t2.micro. This is lazy auto healing of instances that
-	// were created because there were no capacity for their specific instance
-	// type.
-	if infoResp.InstanceType != a.Builder.InstanceType {
-		a.Log.Warning("instance is using '%s'. Changing back to '%s'",
-			infoResp.InstanceType, a.Builder.InstanceType)
-
-		opts := &ec2.ModifyInstance{InstanceType: instances[a.Builder.InstanceType].String()}
-
-		if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
-			a.Log.Warning("couldn't change instance to '%s' again. err: %s",
-				a.Builder.InstanceType, err)
-		}
-
-		// Because of AWS's eventually consistency state, we wait to get the
-		// final and correct answer.
-		time.Sleep(time.Second * 2)
-	}
-
-	// only start if the machine is stopped, stopping
-	if infoResp.State.In(machinestate.Stopped, machinestate.Stopping) {
-		// Give time until it's being stopped
-		if infoResp.State == machinestate.Stopping {
-			time.Sleep(time.Second * 20)
-		}
-
-		startFunc := func() error {
-			artifact, err = a.Start(true)
-			if err == nil {
-				return nil
-			}
-
-			// check if the error is a 'InsufficientInstanceCapacity" error or
-			// "InstanceLimitExceeded, if not return back because it's not a
-			// resource or capacity problem.
-			if !isCapacityError(err) {
-				return err
-			}
-
-			a.Log.Error("IMPORTANT: %s", err)
-
-			for _, instanceType := range InstancesList {
-				a.Log.Warning("Fallback: starting again with using instance: %s instead of %s",
-					instanceType, a.Builder.InstanceType)
-
-				// now change the instance type before we start so we can
-				// avoid the instance capacity problem
-				opts := &ec2.ModifyInstance{InstanceType: instanceType}
-				if _, err := a.Client.ModifyInstance(a.Builder.InstanceId, opts); err != nil {
-					return err
-				}
-
-				// just give a little time so it can be catched because EC2 is
-				// eventuall consistent. Otherwise start might fail even if we
-				// do the ModifyInstance call
-				time.Sleep(time.Second * 2)
-
-				artifact, err = a.Start(true)
-				if err == nil {
-					return nil
-				}
-
-				a.Log.Warning("Fallback: couldn't start instance with type: '%s'. err: %s ",
-					instanceType, err)
-			}
-
-			return errors.New("no other instances are available")
-		}
-
-		// go go go!
-		if err := startFunc(); err != nil {
-			return nil, err
-		}
-	}
-
-	// Assign a Elastic IP for a paying customer if it doesn't have any
-	// assigned yet (Elastic IP's are assigned only during the Build). We
-	// lookup the IP from the Elastic IPs, if it's not available (returns an
-	// error) we proceed and create it.
-	if checker.Plan.Plan != Free { // check this first to avoid an additional AWS call
-		_, err = a.Client.Addresses([]string{artifact.IpAddress}, nil, ec2.NewFilter())
-		if isAddressNotFoundError(err) {
-			a.Log.Debug("Paying user detected, Creating an Public Elastic IP")
-
-			elasticIp, err := allocateAndAssociateIP(a.Client, artifact.InstanceId)
-			if err != nil {
-				a.Log.Warning("couldn't not create elastic IP: %s", err)
-			} else {
-				artifact.IpAddress = elasticIp
-			}
-		}
-	}
-
-	// update the intermediate information
-	p.Update(m.Id, &kloud.StorageData{
-		Type: "starting",
-		Data: map[string]interface{}{
-			"ipAddress": artifact.IpAddress,
-		},
-	})
-
-	a.Push("Initializing domain instance", 65, machinestate.Starting)
-	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-		a.Log.Error("updating domains for starting err: %s", err.Error())
-	}
-
-	// also get all domain aliases that belongs to this machine and unset
-	a.Push("Updating domain aliases", 80, machinestate.Starting)
-	domains, err := p.DomainStorage.GetByMachine(m.Id)
-	if err != nil {
-		a.Log.Error("fetching domains for starting err: %s", err.Error())
-	}
-
-	for _, domain := range domains {
-		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
-			a.Log.Error("couldn't update domain: %s", err.Error())
-		}
-	}
-
-	artifact.DomainName = m.Domain.Name
-
-	a.Push("Checking remote machine", 90, machinestate.Starting)
-	if p.IsKlientReady(m.QueryString) {
-		a.Log.Debug("klient is ready.")
-	} else {
-		a.Log.Warning("klient is not ready. I couldn't connect to it.")
-	}
-
-	return artifact, nil
-}
-
-func (p *Provider) Stop(m *protocol.Machine) error {
-	a, err := p.NewClient(m)
+	user, err := p.getOwner(machine.Users)
 	if err != nil {
 		return err
 	}
 
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
-
-	err = a.Stop(true)
+	client, err := p.EC2Clients.Region(machine.Meta.Region)
 	if err != nil {
 		return err
 	}
 
-	a.Push("Initializing domain instance", 65, machinestate.Stopping)
-	if err := p.DNS.Validate(m.Domain.Name, m.Username); err != nil {
-		return err
-	}
-
-	a.Push("Deleting domain", 85, machinestate.Stopping)
-	if err := p.DNS.Delete(m.Domain.Name); err != nil {
-		a.Log.Warning("couldn't delete domain %s", err)
-	}
-
-	// also get all domain aliases that belongs to this machine and unset
-	domains, err := p.DomainStorage.GetByMachine(m.Id)
+	amazonClient, err := amazon.New(structs.Map(machine.Meta), client)
 	if err != nil {
-		a.Log.Error("fetching domains for unseting err: %s", err.Error())
+		return fmt.Errorf("koding-amazon err: %s", err)
 	}
 
-	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.Name); err != nil {
-			a.Log.Error("couldn't delete domain: %s", err.Error())
-		}
+	// attach user specific log
+	machine.Log = p.Log.New(machine.Id.Hex())
+
+	sess := &session.Session{
+		DB:         p.DB,
+		Kite:       p.Kite,
+		DNSClient:  p.DNSClient,
+		DNSStorage: p.DNSStorage,
+		Userdata:   p.Userdata,
+		AWSClient:  amazonClient,
+		AWSClients: p.EC2Clients, // used for fallback if something goes wrong
+		Log:        machine.Log,
 	}
 
-	return nil
-}
+	// we use session a lot of in Machine owned methods, so that's why we
+	// assign it to a field for easy access
+	machine.Session = sess
 
-func (p *Provider) Restart(m *protocol.Machine) error {
-	a, err := p.NewClient(m)
+	// we pass it also to the context, so other packages, such as plans checker
+	// can make use of it.
+	ctx = session.NewContext(ctx, sess)
+
+	payment, err := p.PaymentFetcher.Fetch(ctx, user.Name)
 	if err != nil {
-		return err
+		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
+			user.Name, err)
+		payment = &plans.PaymentResponse{Plan: "Free"}
 	}
 
-	return a.Restart(false)
-}
-
-func (p *Provider) Reinit(m *protocol.Machine) (*protocol.Artifact, error) {
-	a, err := p.NewClient(m)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 40}); err != nil {
-		return nil, err
-	}
-
-	// clean up old data, so if build fails below at least we give the chance to build it again
-	p.Update(m.Id, &kloud.StorageData{
-		Type: "building",
-		Data: map[string]interface{}{
-			"instanceId":   "",
-			"ipAddress":    "",
-			"instanceName": "",
-			"queryString":  "",
-		},
-	})
-	p.UpdateState(m.Id, "Reinit cleanup", machinestate.NotInitialized)
-
-	// cleanup this too so "build" can continue with a clean setup
-	a.Builder.InstanceId = ""
-	m.QueryString = ""
-	m.IpAddress = ""
-
-	if p.Fetcher == nil {
-		return nil, errors.New("Fetcher is not initialized")
-	}
-
-	// check current plan
-	fetcherResp, err := p.Fetcher.Fetch(m)
-	if err != nil {
-		return nil, err
-	}
-
-	checker := &PlanChecker{
-		Api:      a,
-		Provider: p,
-		DB:       p.Session,
-		Kite:     p.Kite,
-		Log:      a.Log,
-		Username: m.Username,
-		Machine:  m,
-		Plan:     fetcherResp,
-	}
-
-	b := &Build{
-		amazon:     a,
-		machine:    m,
-		provider:   p,
-		plan:       fetcherResp.Plan,
-		checker:    checker,
-		start:      40,
-		finish:     90,
-		log:        a.Log,
-		cleanFuncs: make([]func(), 0),
-	}
-
-	// this updates/creates domain
-	return b.run()
-}
-
-func (p *Provider) Destroy(m *protocol.Machine) error {
-	if m.State == machinestate.NotInitialized {
-		return nil
-	}
-
-	a, err := p.NewClient(m)
+	checker, err := p.CheckerFetcher.Fetch(ctx, payment.Plan)
 	if err != nil {
 		return err
 	}
 
-	if err := p.destroy(a, m, &pushValues{Start: 10, Finish: 80}); err != nil {
-		return err
-	}
+	machine.Payment = payment
+	machine.Username = user.Name
+	machine.User = user
+	machine.cleanFuncs = make([]func(), 0)
+	machine.Checker = checker
 
-	domains, err := p.DomainStorage.GetByMachine(m.Id)
-	if err != nil {
-		a.Log.Error("fetching domains for unseting err: %s", err.Error())
-	}
-
-	a.Push("Deleting base domain", 85, machinestate.Terminating)
-	if err := p.DNS.Delete(m.Domain.Name); err != nil {
-		// if it's already deleted, for example because of a STOP, than we just
-		// log it here instead of returning the error
-		a.Log.Error("deleting domain during destroying err: %s", err.Error())
-	}
-
-	a.Push("Deleting custom domain", 90, machinestate.Terminating)
-	for _, domain := range domains {
-		if err := p.DNS.Delete(domain.Name); err != nil {
-			a.Log.Error("couldn't delete domain: %s", err.Error())
-		}
-
-		if err := p.DomainStorage.UpdateMachine(domain.Name, ""); err != nil {
-			a.Log.Error("couldn't unset machine domain: %s", err.Error())
-		}
-	}
-
-	// try to release/delete a public elastic IP, if there is an error we don't
-	// care (the instance might not have an elastic IP, aka a free user.
-	if resp, err := a.Client.Addresses([]string{m.IpAddress}, nil, ec2.NewFilter()); err == nil {
-		if len(resp.Addresses) == 0 {
-			return nil // nothing to do
-		}
-
-		address := resp.Addresses[0]
-		a.Log.Debug("Got an elastic IP %+v. Going to relaease it", address)
-
-		a.Client.ReleaseAddress(address.AllocationId)
-	}
-	return nil
-}
-
-func (p *Provider) destroy(a *amazon.AmazonClient, m *protocol.Machine, v *pushValues) error {
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.stopTimer(m)
-
-	// means if final is 40 our destroy method below will be push at most up to
-	// 32.
-	middleVal := float64(v.Finish) * (8.0 / 10.0)
-	return a.Destroy(v.Start, int(middleVal))
-}
-
-// stopTimer stops the inactive timeout timer for the given queryString
-func (p *Provider) stopTimer(m *protocol.Machine) {
-	// stop the timer and remove it from the list of inactive machines so it
-	// doesn't get called later again.
-	p.InactiveMachinesMu.Lock()
-	if timer, ok := p.InactiveMachines[m.QueryString]; ok {
-		p.Log.Info("stopping inactive machine timer %s", m.QueryString)
-		timer.Stop()
-		p.InactiveMachines[m.QueryString] = nil // garbage collect
-		delete(p.InactiveMachines, m.QueryString)
-	}
-	p.InactiveMachinesMu.Unlock()
-}
-
-// startTimer starts the inactive timeout timer for the given queryString. It
-// stops the machine after 30 minutes.
-func (p *Provider) startTimer(curMachine *protocol.Machine) {
-	if a, ok := curMachine.Builder["alwaysOn"]; ok {
-		if isAlwaysOn, ok := a.(bool); ok && isAlwaysOn {
-			return // don't stop if alwaysOn is enabled
-		}
-	}
-
-	p.InactiveMachinesMu.Lock()
-	_, ok := p.InactiveMachines[curMachine.QueryString]
-	p.InactiveMachinesMu.Unlock()
+	ev, ok := eventer.FromContext(ctx)
 	if ok {
-		// just return, because it's already in the map so it will be expired
-		// with the function below
-		return
+		machine.Session.Eventer = ev
 	}
 
-	p.Log.Info("[%s] klient is not running (username: %s), adding to list of inactive machines.",
-		curMachine.Id, curMachine.Username)
+	return nil
+}
 
-	stopAfter := time.Minute * 30
+// getOwner returns the owner of the machine, if it's not found it returns an
+// error.
+func (p *Provider) getOwner(users []models.Permissions) (*models.User, error) {
+	var ownerId bson.ObjectId
 
-	// wrap it so we can return errors and log them
-	stopFunc := func(id string) error {
-		// fetch it again so we have always the latest data. This is important
-		// because another kloud instance might already stopped or we have
-		// again a connection to klient
-		m, err := p.Get(id)
-		if err != nil {
-			return err
+	for _, user := range users {
+		if user.Sudo && user.Owner {
+			ownerId = user.Id
 		}
-
-		// add fake eventer to avoid panic errors on NewClient at provider
-		m.Eventer = &eventer.Events{}
-
-		a, err := p.NewClient(m)
-		if err != nil {
-			return err
-		}
-
-		a.Log.Info("30 minutes passed. Rechecking again before I stop the machine (username: %s)", m.Username)
-
-		infoResp, err := a.Info()
-		if err != nil {
-			return err
-		}
-
-		if infoResp.State.InProgress() {
-			return fmt.Errorf("machine is in progress of '%s'", infoResp.State)
-		}
-
-		if infoResp.State == machinestate.Stopped {
-			a.Log.Info("stop timer aborting. Machine is already stopped (username: %s)", m.Username)
-			return errors.New("machine is already stopped")
-		}
-
-		if infoResp.State == machinestate.Running {
-			err := klient.Exists(p.Kite, m.QueryString)
-			if err == nil {
-				a.Log.Info("stop timer aborting. Klient is already running (username: %s)", m.Username)
-				return errors.New("we have a klient connection")
-			}
-		}
-
-		p.Lock(m.Id)
-		defer p.Unlock(m.Id)
-
-		// mark our state as stopping so others know what we are doing
-		stoppingReason := "Stopping process started due not active klient after 30 minutes waiting."
-		p.UpdateState(m.Id, stoppingReason, machinestate.Stopping)
-
-		a.Log.Info("Stopping machine (username: %s) after 30 minutes klient disconnection.",
-			m.Id, m.Username)
-
-		// Hasta la vista, baby!
-		if err := p.Stop(m); err != nil {
-			a.Log.Warning("could not stop ghost machine %s", err)
-		}
-
-		// update to final state too
-		stopReason := "Stopping due not active and unreachable klient after 30 minutes waiting."
-		p.UpdateState(m.Id, stopReason, machinestate.Stopped)
-
-		// we don't need it anymore
-		p.InactiveMachinesMu.Lock()
-		delete(p.InactiveMachines, m.QueryString)
-		p.InactiveMachinesMu.Unlock()
-
-		return nil
 	}
 
-	p.InactiveMachines[curMachine.QueryString] = time.AfterFunc(stopAfter, func() {
-		if err := stopFunc(curMachine.Id); err != nil {
-			p.Log.Error("[%s] inactive klient stopper err: %s", curMachine.Id, err)
-		}
+	if !ownerId.Valid() {
+		return nil, errors.New("owner not found")
+	}
+
+	var user *models.User
+	err := p.DB.Run("jUsers", func(c *mgo.Collection) error {
+		return c.FindId(users[0].Id).One(&user)
 	})
+
+	if err == mgo.ErrNotFound {
+		return nil, fmt.Errorf("User with Id not found: %s", ownerId.Hex())
+	}
+	if err != nil {
+		return nil, fmt.Errorf("username lookup error: %v", err)
+	}
+
+	return user, nil
+}
+
+func (p *Provider) validate(m *Machine, r *kite.Request) error {
+	m.Log.Debug("validating for method '%s'", r.Method)
+
+	// give access to kloudctl immediately
+	if r.Auth != nil {
+		if r.Auth.Key == command.KloudSecretKey {
+			return nil
+		}
+	}
+
+	if r.Username != m.User.Name {
+		return errors.New("username is not permitted to make any action")
+	}
+
+	// check for user permissions
+	if err := p.checkUser(m.User.ObjectId, m.Users); err != nil {
+		return err
+	}
+
+	if m.User.Status != "confirmed" {
+		return kloud.NewError(kloud.ErrUserNotConfirmed)
+	}
+
+	return nil
+}
+
+// checkUser checks whether the given username is available in the users list
+// and has permission
+func (p *Provider) checkUser(userId bson.ObjectId, users []models.Permissions) error {
+	// check if the incoming user is in the list of permitted user list
+	for _, u := range users {
+		if userId == u.Id && u.Owner {
+			return nil // ok he/she is good to go!
+		}
+	}
+
+	return fmt.Errorf("permission denied. user not in the list of permitted users")
+}
+
+func (p *Provider) credential(publicKey string) (*Credential, error) {
+	credential := &Credential{}
+	// we neglect errors because credential is optional
+	err := p.DB.Run("jCredentialDatas", func(c *mgo.Collection) error {
+		return c.Find(bson.M{"publicKey": publicKey}).One(credential)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return credential, nil
+}
+
+func (m *Machine) UpdateState(reason string, state machinestate.State) error {
+	m.Log.Debug("Updating state to '%v'", state)
+	err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.Update(
+			bson.M{
+				"_id": m.Id,
+			},
+			bson.M{
+				"$set": bson.M{
+					"status.state":      state.String(),
+					"status.modifiedAt": time.Now().UTC(),
+					"status.reason":     reason,
+				},
+			},
+		)
+	})
+
+	if err != nil {
+		return fmt.Errorf("Couldn't update state to '%s' for document: '%s' err: %s",
+			state, m.Id.Hex(), err)
+	}
+
+	return nil
 }
