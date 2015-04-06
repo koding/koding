@@ -42,10 +42,16 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
 		if err != nil {
 			helper.MustGetLogger().Error("errr while parsing ip, err :%s", err.Error())
-		} else {
-			ll := record.City.Names["en"]
+		} 
+		
+		if record.City.Names["en"] != "" {
+            ll := fmt.Sprintf("%v , %v",record.City.Names["en"], record.Country.Names["en"])
+			req.Payload["location"] = &ll
+		}else {
+            ll := fmt.Sprintf("%v", record.Country.Names["en"])
 			req.Payload["location"] = &ll
 		}
+		
     }
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
