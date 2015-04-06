@@ -233,6 +233,15 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Unregister publisher and stream.
+  ###
+  unregisterPublisher: ->
+
+    @publisher = null
+    @stream = null
+
+
+  ###*
    * Action to trigger activation of video collaboration.
    * If given publisher is `null` it means that the video collaboration started
    * without the user publishing his/her video. It's not a concern of neither
@@ -370,6 +379,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ###
   handleStopSuccess: ->
 
+    @unregisterPublisher()
     @setState { publishing: off }
     @setEnded()
 
