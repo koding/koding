@@ -63,10 +63,10 @@ func TestModeration(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(res, ShouldNotBeNil)
 
-			Convey("We should get error if we try to create the same link again", func() {
+			Convey("We should not get error if we try to create the same link again", func() {
 				res, err := rest.CreateLink(root.Id, leaf.Id, ses.ClientId)
-				So(err, ShouldNotBeNil)
-				So(res, ShouldBeNil)
+				So(err, ShouldBeNil)
+				So(res, ShouldNotBeNil)
 			})
 
 			Convey("We should not be able to list with non set root id", func() {
