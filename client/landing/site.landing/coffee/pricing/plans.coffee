@@ -54,6 +54,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM'        , cssClass: 'ram' }
       { partial: '3GB Total Disk' , cssClass: 'storage' }
       { partial: '0 Always on VM' , cssClass: 'always-on disabled' }
+      { partial: '' } # empty line for 'VM Sharing'
     ]
   ,
     title        : 'Hobbyist'
@@ -69,6 +70,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM'        , cssClass: 'ram' }
       { partial: '10GB Total Disk', cssClass: 'storage' }
       { partial: '1 Always on VM' , cssClass: 'always-on disabled' }
+      { partial: 'VM Sharing'     , cssClass: 'share' }
     ]
   ,
     title        : 'Developer'
@@ -84,6 +86,7 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM each'    , cssClass: 'ram' }
       { partial: '25GB Total Disk' , cssClass: 'storage' }
       { partial: '1 Always on VM'  , cssClass: 'always-on' }
+      { partial: 'VM Sharing'      , cssClass: 'share' }
     ]
   ,
     title        : 'Professional'
@@ -99,5 +102,6 @@ module.exports = class PricingPlansView extends KDView
       { partial: '1GB RAM each'    , cssClass: 'ram' }
       { partial: '50GB Total Disk' , cssClass: 'storage' }
       { partial: '2 Always on VMs' , cssClass: 'always-on' }
+      { partial: 'VM Sharing'      , cssClass: 'share' }
     ]
   ]
