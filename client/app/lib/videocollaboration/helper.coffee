@@ -113,7 +113,7 @@ createPublisher = (view, options = {}, callback) ->
   options.width  = 325
 
   publisher = OT.initPublisher view.getElement(), options, (err) ->
-    return calback err  if err
+    return callback err  if err
     publisher.setStyle 'backgroundImageURI', uri = _getGravatarUri whoami()
     callback null, publisher
 
