@@ -1,4 +1,5 @@
 $ = require 'jquery'
+kd = require 'kd'
 remote = require('app/remote').getInstance()
 whoami = require 'app/util/whoami'
 getNick = require 'app/util/nick'
@@ -168,6 +169,24 @@ _getGravatarUri = (account, size = 355) ->
   {protocol} = global.location
   defaultUri = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
   return "#{protocol}//gravatar.com/avatar/#{hash}?size=#{size}&d=#{defaultUri}&r=g"
+
+
+###*
+ * Sets given channel's `videoEnabled` state to given state, then calls the
+ * callback.
+ *
+ * @param {SocialChannel} channel
+ * @param {boolean} state
+ * @param {function(err: (object|null), result: SocialChannel) callback
+ * @api private
+###
+setVideoState = (channel, state, callback) ->
+
+  options =
+    id      : channel.id
+    payload : { videoEnabled : state }
+
+  kd.singletons.socialapi.channel.update options, callback
 
 
 ###*
