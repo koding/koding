@@ -75,8 +75,14 @@ module.exports = class NotificationController extends KDObject
         @once 'EmailConfirmed', displayEmailConfirmedNotification.bind this, modal
         modal.on "KDObjectWillBeDestroyed", deleteUserCookie.bind this
 
-    @on 'MachineListUpdated', (machineUId) ->
+    @on 'MachineListUpdated', ({machineUId, action}) ->
       envDataProvider.setLastUpdatedMachineUId machineUId
+
+      switch action
+        when 'removed'
+          if ideInstance = envDataProvider.getIDEFromUId machineUId
+            ideInstance.showUserRemovedModal()
+
       kd.singletons.computeController.reset yes
 
     @on 'UsernameChanged', ({username, oldUsername}) ->
