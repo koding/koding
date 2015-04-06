@@ -37,6 +37,10 @@ module.exports = class JVerificationToken extends Module
           ['update-email', 'verify-account', 'test-verify']
         ]
 
+  isAlive = (confirmation)->
+    # 20 Min. default TTL for tokens
+    Math.round((Date.now()-confirmation.createdAt)/60000) < 20
+
   @requestNewPin = (options, callback)->
 
     {action, email, subject, user, firstName, resendIfExists} = options
@@ -53,18 +57,15 @@ module.exports = class JVerificationToken extends Module
 
       @one {username, action}, (err, confirmation)=>
 
-        if confirmation
-          createdAt = Math.round((Date.now()-confirmation.createdAt)/60000)
+        if confirmation and isAlive confirmation
+          if resendIfExists
+            confirmation.sendEmail {subject, firstName, action}, callback
+          else
+            callback if err then err else new PINExistsError \
+              "PIN exists and not expired,
+              try again after 20 min for new PIN."
 
-          if createdAt < 20 # min
-            if resendIfExists
-              confirmation.sendEmail {subject, firstName, action}, callback
-            else
-              callback if err then err else new PINExistsError \
-                "PIN exists and not expired,
-                try again after 20 min for new PIN."
-
-            return
+          return
 
         # Remove all waiting pins for given action and email
         @remove {username, action}, (err, count)->
@@ -95,7 +96,11 @@ module.exports = class JVerificationToken extends Module
       return callback err  if err
 
       if confirmation
-        callback null, Math.round((Date.now()-confirmation.createdAt)/60000) < 20
+
+        # Ignore the default TTL for `verify-account` actions ~ GG
+        confirmed = isAlive confirmation
+        callback null, if action is 'verify-account' then yes else confirmed
+
         confirmation.remove()
       else
         callback null, false
