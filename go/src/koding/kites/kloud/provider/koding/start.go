@@ -155,9 +155,6 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		}
 	}
 
-	// now we can assume that the machine is running
-	latestState = machinestate.Running
-
 	// Assign a Elastic IP for a paying customer if it doesn't have any
 	// assigned yet (Elastic IP's are assigned only during the Build). We
 	// lookup the IP from the Elastic IPs, if it's not available (returns an
@@ -202,7 +199,9 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	m.push("Checking remote machine", 90, machinestate.Starting)
-	m.checkKite()
+	if !m.isKlientReady() {
+		return errors.New("klient is not ready")
+	}
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(

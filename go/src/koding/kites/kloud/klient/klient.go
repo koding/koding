@@ -146,7 +146,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	k.Log.Debug("Querying for Klient: %s", queryString)
 	for {
 		select {
-		case <-time.Tick(time.Second * 2):
+		case <-time.Tick(time.Second * 4):
 			if klient, err := Connect(k, queryString); err == nil {
 				return klient, nil
 			}
