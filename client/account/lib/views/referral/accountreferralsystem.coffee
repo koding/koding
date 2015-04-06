@@ -9,7 +9,7 @@ module.exports      = class AccountReferralSystem extends kd.View
   viewAppended: ->
 
     average = 6
-    total   = 5
+    total   = 1
 
     @addCustomViews
       container_top      :
@@ -21,12 +21,12 @@ module.exports      = class AccountReferralSystem extends kd.View
       container_bottom   :
         progress_average :
           title          : 'Average space earned'
-          limits         : [0, average]
+          max            : average
           current        : average
           color          : if average > total then 'green' else 'yellow'
         progress_you     :
           title          : 'You'
-          limits         : [0, Math.max total, average]
+          max            : Math.max total, average
           current        : total
           color          : if total > average then 'green' else 'yellow'
         text             : "List referrals here"

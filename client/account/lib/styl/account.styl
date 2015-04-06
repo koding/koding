@@ -525,6 +525,35 @@ app.settings.styl
       .mail
         r-sprite        'account' 'ext-github'
 
+  .bottom
+    margin              25px 0
+    border-top          1px solid #ddd
+    padding-top         25px
+
+  .progress
+    padding             1px 0
+    clear               both
+    height              34px
+
+    .text
+      line-height       34px
+      fl()
+
+      &.label
+        width           170px
+
+      &.value
+        width           auto
+        margin          0 20px
+
+    .progressbar-container
+      background        none
+      border            none
+      size              290px, 34px
+      fl()
+
+      .bar
+        box-shadow      none
 
 
 .kdmodal.payments-modal
