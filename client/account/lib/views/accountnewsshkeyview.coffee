@@ -20,12 +20,8 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
   	'ManyMachines'
   }
 
-  setDomElement: (cssClass) ->
 
-    @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
-
-
-  viewAppended:->
+  viewAppended: ->
 
     super
 
@@ -35,58 +31,10 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     formWrapper = new KDCustomHTMLView
       cssClass : 'AppModal-form add-ssh-key-view'
 
-    if (type is ViewType.NoMachines)
-
-      noMachinesText = new KDCustomHTMLView
-        cssClass : 'formline no-machines-text'
-        partial  : 'None of your VM(s) are active. Please turn on a VM before attempting to enter a SSH key.'
-      formWrapper.addSubView noMachinesText
-
-      formButtons = new KDButtonBar
-        buttons           :
-          cancel          :
-            style         : 'thin small gray'
-            title         : 'Cancel'
-            callback      : @lazyBound 'emit', 'FormCancelled'
-      formWrapper.addSubView formButtons
-
+    if type is ViewType.NoMachines
+      @decorateNoMachineState formWrapper
     else
-
-      @form = form = new KDFormViewWithFields
-        fields            :
-          title           :
-            cssClass      : 'Formline--half'
-            placeholder   : 'Your SSH key title'
-            name          : 'sshtitle'
-            label         : 'Title'
-          key             :
-            placeholder   : 'Your SSH key'
-            type          : 'textarea'
-            name          : 'sshkey'
-            label         : 'Key'
-
-      formWrapper.addSubView form
-
-      if type is ViewType.ManyMachines
-
-        @machineList = list = new AccountSshMachineList()
-        listController = new KDListViewController view : list
-        listController.instantiateListItems @getData().machines
-        formWrapper.addSubView list
-
-      @buttonsBar = formButtons = new KDButtonBar
-        buttons           :
-          save            :
-            style         : 'solid small green'
-            loader        : yes
-            title         : 'Save'
-            callback      : @lazyBound 'emit', 'FormSaved'
-          cancel          :
-            style         : 'thin small gray'
-            title         : 'Cancel'
-            callback      : @lazyBound 'emit', 'FormCancelled'
-
-      formWrapper.addSubView formButtons
+      @decorateHasMachineState formWrapper, type is ViewType.ManyMachines
 
     @addSubView formWrapper
 
@@ -95,9 +43,61 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     @on "KeyFailed", @bound "errorHandled"
 
 
+  decorateNoMachineState: (formWrapper) ->
+
+    formWrapper.addSubView new KDCustomHTMLView
+      cssClass : 'formline no-machines-text'
+      partial  : 'None of your VM(s) are active. Please turn on a VM before attempting to enter a SSH key.'
+
+    formWrapper.addSubView new KDButtonBar
+      buttons           :
+        cancel          :
+          style         : 'thin small gray'
+          title         : 'Cancel'
+          callback      : @lazyBound 'emit', 'FormCancelled'
+
+
+  decorateHasMachineState: (formWrapper, manyMachines) ->
+
+    @form = form = new KDFormViewWithFields
+      fields            :
+        title           :
+          cssClass      : 'Formline--half'
+          placeholder   : 'Your SSH key title'
+          name          : 'sshtitle'
+          label         : 'Title'
+        key             :
+          placeholder   : 'Your SSH key'
+          type          : 'textarea'
+          name          : 'sshkey'
+          label         : 'Key'
+
+    formWrapper.addSubView form
+
+    if manyMachines
+      @machineList = list = new AccountSshMachineList()
+      listController = new KDListViewController view : list
+      listController.instantiateListItems @getData().machines
+      formWrapper.addSubView list
+
+    @buttonsBar = formButtons = new KDButtonBar
+      buttons           :
+        save            :
+          style         : 'solid small green'
+          loader        : yes
+          title         : 'Save'
+          callback      : @lazyBound 'emit', 'FormSaved'
+        cancel          :
+          style         : 'thin small gray'
+          title         : 'Cancel'
+          callback      : @lazyBound 'emit', 'FormCancelled'
+
+    formWrapper.addSubView formButtons
+
+
   cancel: ->
 
-    @getDelegate().emit "RemoveItem", @
+    @getDelegate().emit "RemoveItem", this
 
 
   save: ->

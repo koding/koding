@@ -72,40 +72,42 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
   addNewKey: ->
 
-    unless @newItem
-      @newItem = yes
-      { computeController } = kd.singletons
-      computeController.fetchMachines (err, machines) =>
-        return showError err  if err
+    return  if @newItem
 
-        { ViewType } = AccountNewSshKeyView
-        type = ViewType.NoMachines
-        if machines.length is 1 and @isMachineActive machines.first
-          type = ViewType.SingleMachine
-        else if machines.length > 1
-          for machine in machines when @isMachineActive machine
-            type = ViewType.ManyMachines
-            break
+    @newItem = yes
+    { computeController } = kd.singletons
+    computeController.fetchMachines (err, machines) =>
+      return showError err  if err
 
-        newSshKey = new AccountNewSshKeyView {
-            delegate : @getListView()
-            type
-          },
-          { machines }
+      { ViewType } = AccountNewSshKeyView
+      type = ViewType.NoMachines
+      if machines.length is 1 and @isMachineActive machines.first
+        type = ViewType.SingleMachine
+      else if machines.length > 1
+        for machine in machines when @isMachineActive machine
+          type = ViewType.ManyMachines
+          break
 
-        @getListView().addItemView newSshKey, 0
+      newSshKey = new AccountNewSshKeyView {
+        delegate : @getListView()
+        type
+      },
+      { machines }
+
+      @getListView().addItemView newSshKey, 0
 
 
   updateHelpLink: (keys) ->
 
     @sshKeyHelpLink?.destroy()
-    if keys.length > 0
-      @sshKeyHelpLink = new KDCustomHTMLView
-        cssClass : 'ssh-key-help'
-        partial  : """
-          <a href="http://learn.koding.com/guides/ssh-into-your-vm/#deleting-a-key" target="_blank">How to delete ssh key from your VM</a>
-        """
-      @getListView().addSubView @sshKeyHelpLink
+    return  unless keys.length > 0
+
+    @sshKeyHelpLink = new KDCustomHTMLView
+      cssClass : 'ssh-key-help'
+      partial  : """
+        <a href="http://learn.koding.com/guides/ssh-into-your-vm/#deleting-a-key" target="_blank">How to delete ssh key from your VM</a>
+      """
+    @getListView().addSubView @sshKeyHelpLink
 
 
   isMachineActive: (machine) ->
