@@ -326,24 +326,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
-   * Ensures that user is publishing before executing the callback.
-   *
-   * @param {object} options
-   * @param {function} callback
-  ###
-  ensurePublishing: (options, callback) ->
-    return callback()  if @state.publishing
-
-    successCb = (publisher) =>
-      @handlePublishSuccess publisher
-      callback()
-
-    @startPublishing options,
-      success : successCb
-      error   : (err) -> console.error err
-
-
-  ###*
    * Set audio state to given state.
    *
    * @param {boolean} state
