@@ -11,7 +11,6 @@ showErrorNotification = require 'app/util/showErrorNotification'
 IDEDrawingPane = require '../../workspace/panes/idedrawingpane'
 IDEEditorPane = require '../../workspace/panes/ideeditorpane'
 IDEPreviewPane = require '../../workspace/panes/idepreviewpane'
-IDEShortcutsView = require '../shortcutsview/ideshortcutsview'
 IDETerminalPane = require '../../workspace/panes/ideterminalpane'
 IDEWorkspaceTabView = require '../../workspace/ideworkspacetabview'
 IDEApplicationTabView = require './ideapplicationtabview.coffee'
@@ -37,7 +36,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     @tabView.on 'MachineTerminalRequested', @bound 'openMachineTerminal'
     @tabView.on 'MachineWebPageRequested',  @bound 'openMachineWebPage'
-    @tabView.on 'ShortcutsViewRequested',   @bound 'createShortcutsView'
     @tabView.on 'TerminalPaneRequested',    @bound 'createTerminal'
     # obsolete: 'preview file' feature was removed (bug #82710798)
     @tabView.on 'PreviewPaneRequested',     (url) -> global.open "http://#{url}"
@@ -177,10 +175,6 @@ module.exports = class IDEView extends IDEWorkspaceTabView
 
     return editorPane
 
-
-  createShortcutsView: ->
-
-    @createPane_ new IDEShortcutsView, { name: 'Shortcuts' }
 
   createTerminal: (options) ->
 
