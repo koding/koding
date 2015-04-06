@@ -165,15 +165,12 @@ module.exports = class AccountEditUsername extends JView
     {JUser} = remote.api
     {email, password, confirmPassword, firstName, lastName, username, shareLocation} = formData
     
-    console.log shareLocation
-    
     profileUpdated = yes
     skipPasswordConfirmation = no
     queue = [
       =>
         # update firstname and lastname
         me = whoami()
-        console.log me
 
         me.modify {
           "profile.firstName": firstName,
@@ -290,13 +287,12 @@ module.exports = class AccountEditUsername extends JView
     {email} = @userInfo
     {nickname, firstName, lastName} = @account.profile
    
-    console.log @emailForm
     @emailForm.inputs.email.setDefaultValue Encoder.htmlDecode email
     @emailForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
     @emailForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
     @emailForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
     @emailForm.inputs.shareLocation.setDefaultValue whoami().shareLocation
-    console.log whoami()
+
     {focus} = kd.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus
 
