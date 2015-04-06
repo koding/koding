@@ -753,18 +753,6 @@ class IDEAppController extends AppController
   disableAutoSave: -> kd.utils.killRepeat @autoSaveInterval
 
 
-  showShortcutsView: ->
-
-    paneView = null
-
-    @forEachSubViewInIDEViews_ (view) ->
-      paneView = view.parent  if view instanceof IDEShortcutsView
-
-    return paneView.parent.showPane paneView if paneView
-
-    @activeTabView.emit 'ShortcutsViewRequested'
-
-
   getActivePaneView: ->
 
     return @activeTabView?.getActivePane()?.getSubViews().first
