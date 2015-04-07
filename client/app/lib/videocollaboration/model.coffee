@@ -11,14 +11,15 @@ helper          = require './helper'
 module.exports = class VideoCollaborationModel extends kd.Object
 
   defaultState:
-    audio              : off
-    video              : off
-    publishing         : off
-    active             : no
-    connected          : no
-    maxConnectionCount : 999
-    activeParticipant  : null
-    connectionCount    : 0
+    audio               : off
+    video               : off
+    publishing          : off
+    active              : no
+    connected           : no
+    maxConnectionCount  : 999
+    activeParticipant   : null
+    selectedParticipant : null
+    connectionCount     : 0
 
   # @param {SocialChannel} options.channel
   # @param {BaseChatVideoView} options.view
@@ -179,7 +180,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
     _subscriber = new ParticipantType.Subscriber nick, subscriber
     @subscribers[connectionId] = _subscriber
 
-    _subscriber.on 'TalkingDidStart', => @changeActiveParticipant nick
+    _subscriber.on 'TalkingDidStart', =>
+      @changeActiveParticipant nick  unless @state.selectedParticipant
 
     return _subscriber
 
@@ -428,6 +430,33 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit 'OfflineUserSelected', nick
 
     @emit 'ActiveParticipantChanged', nick
+
+
+  ###*
+   * Change both active and selected users. It's being used for locking
+   * selected participant's video so that automatic video switching (e.g Audio
+   * level changed) could be prevented.
+   *
+   * @param {string} nick
+  ###
+  changeSelectedParticipant: (nick) ->
+
+    @setSelectedParticipant nick
+    @changeActiveParticipant nick
+
+
+  ###*
+   * Sets state's selected participant to given nick. If nick is null, that
+   * means that user is clicked twice.
+   *
+   * @param {string} nick
+  ###
+  setSelectedParticipant: (nick) ->
+
+    nick = null  if @state.selectedParticipant is nick
+
+    @setState { selectedParticipant: nick }
+    @emit 'SelectedParticipantChanged', nick
 
 
   ###*
