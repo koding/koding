@@ -143,6 +143,8 @@ module.exports = class NFinderController extends KDViewController
 
     machineItem = @treeController.addNode @machines.last
 
+    @emit 'MachineMounted', machine, path
+
     if options.fetchContent and machineItem
 
       kd.utils.defer =>
