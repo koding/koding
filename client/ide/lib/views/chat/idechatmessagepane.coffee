@@ -55,6 +55,32 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
   handleVideoEnded: -> @videoActive = no
 
 
+  setActiveParticipantAvatar: (account) ->
+
+    for own id, avatar of @participantMap
+      if id is account._id
+      then avatar.setClass 'is-activeParticipant'
+      else avatar.unsetClass 'is-activeParticipant'
+
+
+  setSelectedParticipantAvatar: (account) ->
+
+    for own id, avatar of @participantMap
+      # if account is null all avatars will receive `unsetClass` calls.
+      # `null` account means: "SELECT NO ONE!"
+      if id is account?._id
+      then avatar.setClass 'is-selectedParticipant'
+      else avatar.unsetClass 'is-selectedParticipant'
+
+
+  setAvatarTalkingState: (nickname, state) ->
+
+    for _, avatar of @participantMap when avatar.data.profile.nickname is nickname
+      if state
+      then avatar.setClass 'is-talkingParticipant'
+      else avatar.unsetClass 'is-talkingParticipant'
+
+
   glance: ->
 
     return  unless @visible
