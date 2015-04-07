@@ -245,7 +245,7 @@ module.exports = class JReward extends jraphical.Message
     fetchReferrer = (account, callback)->
 
       unless referrerUsername = account.referrerUsername
-        return callback new KodingError "User doesn't have any referrer"
+        return callback null # User doesn't have any referrer
 
       # get referrer
       JAccount.one 'profile.nickname': referrerUsername, (err, referrer)->
@@ -254,7 +254,7 @@ module.exports = class JReward extends jraphical.Message
 
         unless referrer
           # if referrer not fonud then do nothing and return
-          return callback new KodingError "Referrer couldn't found"
+          return callback null # Referrer couldn't found
 
         callback null, referrer
 
@@ -335,6 +335,7 @@ module.exports = class JReward extends jraphical.Message
 
           fetchReferrer account, (err, _referrer)->
             return logError err  if err
+            return  unless _referrer
             referrer = _referrer
             queue.next()
 
@@ -386,7 +387,7 @@ module.exports = class JReward extends jraphical.Message
 
           fetchReferrer me, (err, _referrer)->
             return logError err  if err
-
+            return  unless _referrer
             referrer = _referrer
             queue.next()
 
