@@ -215,6 +215,25 @@ disableVideo = (channel, callback) -> setVideoState channel, no, callback
 ###
 isVideoActive = (channel) -> channel?.payload?.videoEnabled is 'true'
 
+###*
+ * @param {KDView} container
+ * @param {string} nickname
+ * @param {function(err: object)}
+###
+showOfflineParticipant = (container, nickname, callback) ->
+
+  container.destroySubViews()
+  remote.cacheable nickname, (err, [account]) ->
+    return callback err  if err
+
+    avatar = new kd.CustomHTMLView
+      tagName    : 'img'
+      cssClass   : 'ChatVideo-offlineUserAvatar'
+      attributes : { src: _getGravatarUri account }
+
+    container.addSubView avatar
+    container.show()
+
 
 ###*
  * Default error signal.
@@ -236,5 +255,6 @@ module.exports = {
   enableVideo
   disableVideo
   isVideoActive
+  showOfflineParticipant
   _errorSignal
 }
