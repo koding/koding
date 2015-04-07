@@ -44,19 +44,18 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
-  sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"      , forcedRecipient: "foome@koding.com"                       }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: null                       }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
   algolia             = { appId:    'DYVV81J2S1'                                  , indexSuffix:        ".#{ os.hostname() }"                 }
   algoliaSecret       = { appId:    "#{algolia.appId}"                            , apiKey:             "303eb858050b1067bcd704d6cbfb977c"      , indexSuffix:        algolia.indexSuffix         , apiSecretKey:    '041427512bcdcd0c7bd4899ec8175f46'   , apiTokenKey: "d15cab2a1bcead494e38cc33d32c4621" }
   mixpanel            = { token:    "a57181e216d9f713e19d5ce6d6fb6cb3"            , enabled:            no                                    }
-  postgres            = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
+  postgres            = { host:     "#{boot2dockerbox}"                           , port:               "5432"                                  , username:           "socialapplication"         , password:        "socialapplication"                  , dbname:   "social"                  }
   kontrolPostgres     = { host:     "#{boot2dockerbox}"                           , port:               5432                                    , username:           "kontrolapplication"        , password:        "kontrolapplication"                 , dbname:   "social"                  }
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6", subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe"  , secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                              , enabled:  yes                         }
-  gatekeeper          = { host:     "localhost"                                   , port:               7200                                    , pubnub: pubnub                                }
+  gatekeeper          = { host:     "localhost"                                   , port:               "7200"                                  , pubnub: pubnub                                }
   paymentwebhook      = { port : "6600", debug : true }
   tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
@@ -152,7 +151,6 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
-    sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
@@ -321,13 +319,6 @@ Configuration = (options={}) ->
         incoming        : "#{KONFIG.sourcemaps.port}"
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
-
-    emailsender         :
-      group             : "webserver"
-      supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
 
     appsproxy           :
       group             : "webserver"
@@ -506,9 +497,10 @@ Configuration = (options={}) ->
         npm install --unsafe-perm
 
         echo '#---> BUILDING CLIENT <---#'
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make build
+        sh -c "scripts/install-npm.sh -d client/landing -u"
+        sh -c "scripts/install-npm.sh -d client/builder -u"
+        sh -c "scripts/install-npm.sh -d client -u -p"
+        make -C #{projectRoot}/client dist
 
         echo '#---> BUILDING GO WORKERS (@farslan) <---#'
         #{projectRoot}/go/build.sh
@@ -619,12 +611,18 @@ Configuration = (options={}) ->
         fi
 
         if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/package.json" ]; then
-            echo your run file is older than your client package json. doing npm i.
             sleep 1
-            cd client && npm i && cd -
+            sh -c "scripts/install-npm.sh -d client -s"
+        fi
 
-            echo -e "\n\nPlease do ./configure and  ./run again\n"
-            exit 1;
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/builder/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/builder -s"
+        fi
+
+        if [ "#{projectRoot}/run" -ot "#{projectRoot}/client/landing/package.json" ]; then
+            sleep 1
+            sh -c "scripts/install-npm.sh -d client/landing -s"
         fi
 
         OLD_COOKIE=$(npm list tough-cookie -s | grep 0.9.15 | wc -l | awk \'{printf "%s", $1}\')
@@ -732,12 +730,13 @@ Configuration = (options={}) ->
 
           echo
           echo '---------------------------------------------------------------'
-          echo '>>> CLIENT BUILD DISABLED! DO "cd client/ && make" MANUALLY <<<'
+          echo '>>> CLIENT BUILD DISABLED! DO "make -C client" MANUALLY <<<'
           echo '---------------------------------------------------------------'
           echo
 
         else
-          cd #{projectRoot}/client && make &
+          sh -c "scripts/install-npm.sh -d client -u -p -s"
+          make -C #{projectRoot}/client
         fi
 
         # Show the all logs of workers
@@ -1057,9 +1056,8 @@ Configuration = (options={}) ->
 
       elif [ "$1" == "buildclient" ]; then
 
-        cd #{projectRoot}/client
-        npm install --unsafe-perm
-        make
+        sh -c "scripts/install-npm.sh -d client -u -p -s"
+        make -C #{projectRoot}/client dist
 
       elif [ "$1" == "services" ]; then
         check_service_dependencies
@@ -1171,6 +1169,7 @@ Configuration = (options={}) ->
       elif [ "$1" == "backend" ] || [ "$#" == "0" ] ; then
 
         checkrunfile
+        sh -c scripts/validate-npm.sh
         run $1
 
       else

@@ -15,11 +15,10 @@ module.exports = class JUser extends jraphical.Module
   JName           = require '../name'
   JGroup          = require '../group'
   JLog            = require '../log'
-  JMail           = require '../email'
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
-  Sendgrid        = require '../sendgrid'
   ComputeProvider = require '../computeproviders/computeprovider'
+  Email           = require '../email'
 
   { v4: createId } = require 'node-uuid'
 
@@ -285,9 +284,7 @@ module.exports = class JUser extends jraphical.Module
 
                 Payment.deleteAccount deletedClient, (err)=>
 
-                  @logout deletedClient, (err) =>
-                    callback err
-                    Sendgrid.deleteUser oldEmail, ->
+                  @logout deletedClient, callback
 
 
   @isRegistrationEnabled = (callback)->
@@ -1020,6 +1017,10 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        account.createSocialApiId (err) ->
+          return callback err  if err
+          queue.next()
+      ->
         return queue.next()  unless referrer
 
         if username is referrer
@@ -1061,11 +1062,6 @@ module.exports = class JUser extends jraphical.Module
         SiftScience = require "../siftscience"
         SiftScience.createAccount client, referrer, ->
 
-        queue.next()
-
-      ->
-
-        Sendgrid.addNewUser user.email, user.username, ->
         queue.next()
 
     ]
@@ -1114,7 +1110,7 @@ module.exports = class JUser extends jraphical.Module
 
   @changePassword = secure (client, password, callback) ->
 
-    @fetchUser client, (err,user)->
+    @fetchUser client, (err, user)->
 
       if err or not user
         return callback createKodingError \
@@ -1126,25 +1122,12 @@ module.exports = class JUser extends jraphical.Module
       user.changePassword password, (err)-> callback err
 
 
-  sendChangedEmail = (username, email, type) ->
+  sendChangedEmail = (username, firstName, to, type, callback) ->
 
-    email = new JMail {
-      email
-      subject : "Your #{type} has been changed"
-      replyto : 'support@koding.com'
-      content : """
-        Hi #{username},
+    subject = if type is 'email' then Email.types.EMAIL_CHANGED
+    else Email.types.PASSWORD_CHANGED
 
-        Your <b>#{type}</b> has been changed!
-
-        If you didn't request this change, reply to this email and help will be on its way!
-
-        --
-        Koding Team
-      """
-    }
-
-    email.save()
+    Email.queue username, {to, subject}, {firstName}, callback
 
 
   @changeEmail = secure (client,options,callback)->
@@ -1201,11 +1184,13 @@ module.exports = class JUser extends jraphical.Module
   changePassword: (newPassword, callback)->
 
     @setPassword newPassword, (err)=>
+      return callback err  if err
 
-      unless err
-        sendChangedEmail @getAt('username'), @getAt('email'), 'password'
+      @fetchAccount 'koding', (err, account)=>
+        return callback err  if err
 
-      callback err
+        {firstName} = account.profile
+        sendChangedEmail @getAt('username'), firstName, @getAt('email'), 'password', callback
 
 
   changeEmail:(account, options, callback)->
@@ -1246,16 +1231,14 @@ module.exports = class JUser extends jraphical.Module
         oldEmail = @getAt 'email'
 
         @update $set: {email}, (err, res)=>
-
           return callback err  if err
 
           account.profile.hash = getHash email
           account.save (err)=>
+            return callback err  if err
 
-            unless err
-              sendChangedEmail @getAt('username'), oldEmail, 'email'
-
-            callback err
+            {firstName} = account.profile
+            sendChangedEmail @getAt('username'), firstName, oldEmail, 'email', callback
 
 
   fetchHomepageView:(options, callback)->
@@ -1269,9 +1252,8 @@ module.exports = class JUser extends jraphical.Module
       return callback err if err
       JUser.emit "EmailConfirmed", @
 
-      welcomeemail = require "../welcomeemail"
-      welcomeemail.send @email, @username, (err)->
-        callback err
+      subject = Email.types.WELCOME
+      Email.queue @username, { to : @email, subject }, {}, callback
 
 
   block:(blockedUntil, callback)->

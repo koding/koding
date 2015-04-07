@@ -1,4 +1,4 @@
-_ = require 'underscore'
+_ = require 'lodash'
 htmlencode = require 'htmlencode'
 globals = require 'globals'
 getGroup = require './util/getGroup'
@@ -204,17 +204,36 @@ module.exports = class SocialApiController extends KDController
 
 
   mapChannel = (channel) ->
+    { socialapi } = kd.singletons
+    
+    data  = channel.channel
 
-    data                     = channel.channel
-    data._id                 = data.id
-    data.isParticipant       = channel.isParticipant
-    data.participantCount    = channel.participantCount
-    data.participantsPreview = mapAccounts channel.participantsPreview
-    data.unreadCount         = channel.unreadCount
-    data.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
+    # hold state of cache hit
+    cacheFound = no
 
+    # item is initially our data
+    item = data
+        
+    # if we find the channel in cache, replace item with it
+    if cacheItem = socialapi.retrieveCachedItem item.typeConstant, item.id
+      cacheFound = yes
+      item = cacheItem
 
-    channelInstance = new remote.api.SocialChannel data
+    item._id                 = data.id
+    item.isParticipant       = channel.isParticipant
+    # we only allow name, purpose and payload to be updated  
+    item.payload             = data.payload
+    item.name                = data.name
+    item.purpose             = data.purpose
+    item.participantCount    = channel.participantCount
+    item.participantsPreview = mapAccounts channel.participantsPreview
+    item.unreadCount         = channel.unreadCount
+    item.lastMessage         = mapActivity channel.lastMessage  if channel.lastMessage
+        
+    unless cacheFound 
+      channelInstance = new remote.api.SocialChannel item
+    else 
+      channelInstance = item
 
     kd.singletons.socialapi.cacheItem channelInstance
 
@@ -574,6 +593,11 @@ module.exports = class SocialApiController extends KDController
       validateOptionsWith: ['name']
       mapperFn           : mapChannel
 
+    update               : channelRequesterFn
+      fnName             : 'update'
+      validateOptionsWith: ["id"]
+      mapperFn           : mapChannel
+
     list                 : channelRequesterFn
       fnName             : 'fetchChannels'
       mapperFn           : mapChannels
@@ -683,4 +707,8 @@ module.exports = class SocialApiController extends KDController
     glance               : notificationRequesterFn
       fnName             : 'glance'
 
+  account                :
+    impersonate          : (username, callback) ->
 
+      endPoint = "/Impersonate/#{username}"
+      doXhrRequest {type: 'POST', endPoint, async: yes}, callback

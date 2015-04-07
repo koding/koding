@@ -1,18 +1,22 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
-	"strconv"
-
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/protocol"
+	"strconv"
+	"time"
+
+	"labix.org/v2/mgo"
+	"labix.org/v2/mgo/bson"
 
 	"github.com/mitchellh/goamz/ec2"
+	"golang.org/x/net/context"
 )
 
 // Resize increases the current machines underling volume to a larger volume
 // without affecting or destroying the users data.
-func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, resErr error) {
+func (m *Machine) Resize(ctx context.Context) (resErr error) {
 	// Please read the steps before you dig into the code and try to change or
 	// fix something. Intented lines are cleanup or self healing procedures
 	// which should be called in a defer - arslan:
@@ -37,23 +41,32 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 	// 11 Update Domain aliases with the new IP (stopping/starting changes the IP)
 	// 12. Check if Klient is running
 
-	infoLog := p.GetCustomLogger(m.Id, "info")
-
-	a, err := p.NewClient(m)
-	if err != nil {
-		return nil, err
+	if err := m.UpdateState("Machine is resizing", machinestate.Pending); err != nil {
+		return err
 	}
 
-	a.Push("Resizing initialized", 10, machinestate.Pending)
+	// update the state to intiial state if something goes wrong, we are going
+	// to change latestate to a more safe state if we passed a certain step
+	// below
+	latestState := m.State()
+	defer func() {
+		if resErr != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
 
-	infoLog("checking if size is eligible for instance %s", a.Id())
-	instance, err := a.Instance(a.Id())
+	m.push("Resizing initialized", 10, machinestate.Pending)
+
+	a := m.Session.AWSClient
+
+	m.Log.Info("checking if size is eligible for instance %s", a.Id())
+	instance, err := a.Instance()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if len(instance.BlockDevices) == 0 {
-		return nil, fmt.Errorf("fatal error: no block device available")
+		return fmt.Errorf("fatal error: no block device available")
 	}
 
 	// we need it in a lot of places!
@@ -61,95 +74,93 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 
 	oldVolResp, err := a.Client.Volumes([]string{oldVolumeId}, ec2.NewFilter())
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	volSize := oldVolResp.Volumes[0].Size
 	currentSize, err := strconv.Atoi(volSize)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	desiredSize := a.Builder.StorageSize
 
-	checker, err := p.PlanChecker(m)
-	if err != nil {
-		return nil, err
-	}
-
-	a.Log.Debug("DesiredSize: %d, Currentsize %d", desiredSize, currentSize)
+	m.Log.Debug("DesiredSize: %d, Currentsize %d", desiredSize, currentSize)
 
 	// Storage is counting all current sizes. So we need ask only for the
 	// difference that we want to add. So say if the current size is 3
 	// and our desired size is 10, we need to ask if we have still
 	// limit for a 7 GB space.
-	if err := checker.Storage(desiredSize - currentSize); err != nil {
-		return nil, err
+	if err := m.Checker.Storage(desiredSize-currentSize, m.Username); err != nil {
+		return err
 	}
 
-	a.Push("Checking if size is eligible", 20, machinestate.Pending)
+	m.push("Checking if size is eligible", 20, machinestate.Pending)
 
-	infoLog("user wants size '%dGB'. current storage size: '%dGB'", desiredSize, currentSize)
+	m.Log.Info("user wants size '%dGB'. current storage size: '%dGB'", desiredSize, currentSize)
 	if desiredSize <= currentSize {
-		return nil, fmt.Errorf("resizing is not allowed. Desired size: %dGB should be larger than current size: %dGB",
+		return fmt.Errorf("resizing is not allowed. Desired size: %dGB should be larger than current size: %dGB",
 			desiredSize, currentSize)
 	}
 
 	if desiredSize > 100 {
-		return nil, fmt.Errorf("resizing is not allowed. Desired size: %d can't be larger than 100GB",
+		return fmt.Errorf("resizing is not allowed. Desired size: %d can't be larger than 100GB",
 			desiredSize)
 	}
 
-	a.Push("Stopping old instance", 30, machinestate.Pending)
-	infoLog("stopping instance %s", a.Id())
-	if m.State != machinestate.Stopped {
-		err = a.Stop(false)
+	m.push("Stopping old instance", 30, machinestate.Pending)
+	m.Log.Info("stopping instance %s", a.Id())
+	if m.State() != machinestate.Stopped {
+		err := m.Session.AWSClient.Stop(ctx)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	a.Push("Creating new snapshot", 40, machinestate.Pending)
-	infoLog("creating new snapshot from volume id %s", oldVolumeId)
+	// now we are in a stopped state
+	latestState = machinestate.Stopped
+
+	m.push("Creating new snapshot", 40, machinestate.Pending)
+	m.Log.Info("creating new snapshot from volume id %s", oldVolumeId)
 	snapshotDesc := fmt.Sprintf("Temporary snapshot for instance %s", instance.InstanceId)
 	snapshot, err := a.CreateSnapshot(oldVolumeId, snapshotDesc)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	newSnapshotId := snapshot.Id
 
 	defer func() {
-		infoLog("deleting snapshot %s (not needed anymore)", newSnapshotId)
+		m.Log.Info("deleting snapshot %s (not needed anymore)", newSnapshotId)
 		a.DeleteSnapshot(newSnapshotId)
 	}()
 
-	a.Push("Creating new volume", 50, machinestate.Pending)
-	infoLog("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
+	m.push("Creating new volume", 50, machinestate.Pending)
+	m.Log.Info("creating volume from snapshot id %s with size: %d", newSnapshotId, desiredSize)
 
 	// Go on with the current volume type. SSD(gp2) or Magnetic(standard)
 	volType := oldVolResp.Volumes[0].VolumeType
 
 	volume, err := a.CreateVolume(newSnapshotId, instance.AvailZone, volType, desiredSize)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	newVolumeId := volume.VolumeId
 
 	// delete volume if something goes wrong in following steps
 	defer func() {
 		if resErr != nil {
-			infoLog("(an error occurred) deleting new volume %s ", newVolumeId)
+			m.Log.Info("(an error occurred) deleting new volume %s ", newVolumeId)
 			_, err := a.Client.DeleteVolume(newVolumeId)
 			if err != nil {
-				a.Log.Error(err.Error())
+				m.Log.Error(err.Error())
 			}
 		}
 	}()
 
-	a.Push("Detaching old volume", 60, machinestate.Pending)
-	infoLog("detaching current volume id %s", oldVolumeId)
+	m.push("Detaching old volume", 60, machinestate.Pending)
+	m.Log.Info("detaching current volume id %s", oldVolumeId)
 	if err := a.DetachVolume(oldVolumeId); err != nil {
-		return nil, err
+		return err
 	}
 
 	// reattach old volume if something goes wrong, if not delete it
@@ -157,63 +168,82 @@ func (p *Provider) Resize(m *protocol.Machine) (resArtifact *protocol.Artifact, 
 		// if something goes wrong  detach the newly attached volume and attach
 		// back the old volume  so it can be used again
 		if resErr != nil {
-			infoLog("(an error occurred) detaching newly created volume volume %s ", newVolumeId)
+			m.Log.Info("(an error occurred) detaching newly created volume volume %s ", newVolumeId)
 			if err := a.DetachVolume(newVolumeId); err != nil {
-				a.Log.Error("couldn't detach: %s", err.Error())
+				m.Log.Error("couldn't detach: %s", err.Error())
 			}
 
-			infoLog("(an error occurred) attaching back old volume %s", oldVolumeId)
+			m.Log.Info("(an error occurred) attaching back old volume %s", oldVolumeId)
 			if err = a.AttachVolume(oldVolumeId, a.Id(), "/dev/sda1"); err != nil {
-				a.Log.Error("couldn't attach: %s", err.Error())
+				m.Log.Error("couldn't attach: %s", err.Error())
 			}
 		} else {
 			// if not just delete, it's not used anymore
-			infoLog("deleting old volume %s (not needed anymore)", oldVolumeId)
+			m.Log.Info("deleting old volume %s (not needed anymore)", oldVolumeId)
 			go a.Client.DeleteVolume(oldVolumeId)
 		}
 	}()
 
-	a.Push("Attaching new volume", 70, machinestate.Pending)
+	m.push("Attaching new volume", 70, machinestate.Pending)
 	// attach new volume to current stopped instance
 	if err := a.AttachVolume(newVolumeId, a.Id(), "/dev/sda1"); err != nil {
-		return nil, err
+		return err
 	}
 
-	a.Push("Starting instance", 80, machinestate.Pending)
+	m.push("Starting instance", 80, machinestate.Pending)
 	// start the stopped instance now as we attached the new volume
-	artifact, err := a.Start(false)
+	instance, err = m.Session.AWSClient.Start(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	a.Push("Updating domain", 85, machinestate.Pending)
-	// update Domain record with the new IP
-	if err := p.UpdateDomain(artifact.IpAddress, m.Domain.Name, m.Username); err != nil {
-		return nil, err
+	m.IpAddress = instance.PublicIpAddress
+
+	m.push("Updating domain", 85, machinestate.Pending)
+
+	if err := m.Session.DNSClient.Validate(m.Domain, m.Username); err != nil {
+		m.Log.Error("couldn't update machine domain: %s", err.Error())
+	}
+	if err := m.Session.DNSClient.Upsert(m.Domain, m.IpAddress); err != nil {
+		m.Log.Error("couldn't update machine domain: %s", err.Error())
 	}
 
-	a.Push("Updating domain aliases", 87, machinestate.Pending)
+	m.push("Updating domain aliases", 87, machinestate.Pending)
 	// also get all domain aliases that belongs to this machine and unset
-	domains, err := p.DomainStorage.GetByMachine(m.Id)
+	domains, err := m.Session.DNSStorage.GetByMachine(m.Id.Hex())
 	if err != nil {
-		a.Log.Error("fetching domains for unsetting err: %s", err.Error())
+		m.Log.Error("fetching domains for unsetting err: %s", err.Error())
 	}
 
 	for _, domain := range domains {
-		if err := p.UpdateDomain(artifact.IpAddress, domain.Name, m.Username); err != nil {
-			a.Log.Error("couldn't update domain: %s", err.Error())
+		if err := m.Session.DNSClient.Validate(domain.Name, m.Username); err != nil {
+			m.Log.Error("couldn't update machine domain: %s", err.Error())
+		}
+		if err := m.Session.DNSClient.Upsert(domain.Name, m.IpAddress); err != nil {
+			m.Log.Error("couldn't update machine domain: %s", err.Error())
 		}
 	}
 
-	a.Push("Checking connectivity", 90, machinestate.Pending)
-	artifact.DomainName = m.Domain.Name
-
-	infoLog("connecting to remote Klient instance")
-	if p.IsKlientReady(m.QueryString) {
-		a.Log.Debug("klient is ready.")
-	} else {
-		a.Log.Warning("klient is not ready. I couldn't connect to it.")
+	m.push("Checking remote machine", 90, machinestate.Pending)
+	m.Log.Info("connecting to remote Klient instance")
+	if !m.isKlientReady() {
+		return errors.New("klient is not ready")
 	}
 
-	return artifact, nil
+	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+		return c.UpdateId(
+			m.Id,
+			bson.M{"$set": bson.M{
+				"ipAddress":         m.IpAddress,
+				"meta.instanceName": m.Meta.InstanceName,
+				"meta.instanceId":   m.Meta.InstanceId,
+				"meta.instanceType": m.Meta.InstanceType,
+				"status.state":      machinestate.Running.String(),
+				"status.modifiedAt": time.Now().UTC(),
+				"status.reason":     "Machine is running",
+			}},
+		)
+	})
+
+	return nil
 }

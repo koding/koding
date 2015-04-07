@@ -1,4 +1,0 @@
-{
-  "name": "terminal",
-  "main": "./lib/index.coffee"
-}

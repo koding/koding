@@ -10,6 +10,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   KodingError = require '../error'
   JUser       = require './user'
+  Email       = require './email'
+
 
   UNKNOWN_ERROR = { message: "Error occurred. Please try again." }
 
@@ -55,27 +57,9 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   @expiryPeriod = 1000 * 60 * 90 # 90 min
 
-  @getPasswordRecoveryEmail =-> 'hello@koding.com'
-
-  @getEmailSubject = ({resetPassword})-> switch
-    when resetPassword
-      "Please reset your password"
-    else
-      "Please confirm your email"
-
-  @getEmailDateFormat = -> 'fullDate'
-
-  @getEmailMessage = ({requestedAt, url, resetPassword})->
-    # TODO DRY this
-    verb = if resetPassword then "reset" else "confirm"
-    obj = if resetPassword then "password" else "email"
-    """
-    Please click the link below to #{verb} your #{obj}. This token is valid for only 30 minutes.
-
-    #{url}
-
-    If you can't click the link, please copy it and paste it on your browser. If you didn't request this, please ignore this email.
-    """
+  @getEmailSubject = ({resetPassword})->
+    if resetPassword then Email.types.PASSWORD_RECOVER
+    else Email.types.CONFIRM_EMAIL
 
   @recoverPassword = secure (client, usernameOrEmail, callback)->
     JUser = require './user'
@@ -137,34 +121,30 @@ module.exports = class JPasswordRecovery extends jraphical.Module
       else unless user
         callback { message: 'User not found'}
       else
+        username    = user.getAt('username')
         certificate = new JPasswordRecovery {
           email
           token
           expiryPeriod
-          username  : user.getAt('username')
+          username
           status    : 'active'
         }
         certificate.save (err)=>
           if err
             callback err
           else
+            tokenUrl = "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
+
             messageOptions =
-              url           : "#{protocol}//#{host}/#{verb}/#{encodeURIComponent token}"
+              url           : tokenUrl
               resetPassword : options.resetPassword
               requestedAt   : certificate.getAt('requestedAt')
 
-            JMail = require './email'
-            email = new JMail
-              from            : @getPasswordRecoveryEmail()
-              email           : email
-              subject         : @getEmailSubject messageOptions
-              content         : @getEmailMessage messageOptions
-              redemptionToken : token
-              force           : yes
+            Email.queue username, {
+              to          : email
+              subject    : @getEmailSubject messageOptions
+            }, {tokenUrl, firstName:username}, callback
 
-            email.save (err)->
-              return callback new KodingError "Email cannot saved" if err
-              callback null
 
   @validate = (token, callback)->
     @one {token}, (err, certificate)->
@@ -189,10 +169,11 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           certificate.update {$set: status: 'redeemed'}, (err) ->
             return callback err if err
 
-            welcomeemail = require "./welcomeemail"
-            welcomeemail.send certificate.email, user.username, (err)->
-              return callback err  if err
-              callback null, yes
+            Email.queue user.username, {
+              to       : certificate.email
+              subject  : Email.types.WELCOME
+            }, {firstName: user.username}, (err)->
+              console.error err  if err
 
   @invalidate =(query, callback)->
     query.status = 'active'
@@ -217,10 +198,8 @@ module.exports = class JPasswordRecovery extends jraphical.Module
           user.changePassword newPassword, (err)->
             return callback err  if err
             JPasswordRecovery.invalidate {username}, (err)->
-              return callback UNKNOWN_ERROR if err
-              user.confirmEmail (err)->
-                return callback UNKNOWN_ERROR if err
-                callback err, unless err then username
+              callback err, username
+
 
   @resetPassword$ = secure (client, token, newPassword, callback)->
     JUser = require './user'
@@ -251,20 +230,3 @@ module.exports = class JPasswordRecovery extends jraphical.Module
 
   redeem: (callback) ->
     @update {$set: status: 'redeemed'}, callback
-
-  redeemByToken: (callback) ->
-    JMail = require './email'
-    JMail.one redemptionToken: @token, (err, mail) =>
-      return callback err  if err
-
-      dateThen =
-        if mail.dateDelivered
-        then mail.dateDelivered
-        else
-          console.warn "We have no record of this message", @token
-          mail.dateAttempted
-
-      if (Date.now() - dateThen > @expiryPeriod)
-        return callback { message: 'This token has expired!' }
-
-      @update {$set: status: 'redeemed'}, callback

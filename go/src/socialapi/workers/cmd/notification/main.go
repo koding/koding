@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"koding/db/mongodb/modelhelper"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"socialapi/workers/notification"
+
+	"github.com/koding/runner"
 )
 
 var (
@@ -20,7 +22,8 @@ func main() {
 	}
 
 	// init mongo connection
-	modelhelper.Initialize(r.Conf.Mongo)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
 	r.SetContext(notification.New(r.Bongo.Broker.MQ, r.Log))

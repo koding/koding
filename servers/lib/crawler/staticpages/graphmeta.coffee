@@ -59,11 +59,11 @@ module.exports = (options={})->
 
   <link rel="shortcut icon" href="#{uri.address}/a/images/favicon.ico">
   <link rel="fluid-icon" href="#{uri.address}/a/images/logos/fluid512.png" title="Koding">
-  <link rel="stylesheet" href="/a/p/p/kd.css?#{version}">
-  <link rel="stylesheet" href="/a/p/p/app.css?#{version}">
-  <link rel="stylesheet" href="/a/p/p/activity.css?#{version}">
-  <link rel="stylesheet" href="/a/p/p/feeder.css?#{version}">
-  <link rel="stylesheet" href="/a/p/p/members.css?#{version}">
+  <link rel="stylesheet" href="/a/p/p/#{version}/kd.css">
+  <link rel="stylesheet" href="/a/p/p/#{version}/app.css">
+  <link rel="stylesheet" href="/a/p/p/#{version}/activity.css">
+  <link rel="stylesheet" href="/a/p/p/#{version}/feeder.css">
+  <link rel="stylesheet" href="/a/p/p/#{version}/members.css">
 
   <link href='https://chrome.google.com/webstore/detail/koding/fgbjpbdfegnodokpoejnbhnblcojccal' rel='chrome-webstore-item'>
 

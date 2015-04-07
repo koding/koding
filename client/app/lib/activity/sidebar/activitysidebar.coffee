@@ -264,7 +264,7 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
 
       if isChannelCollaborative channel
         @fetchEnvironmentData (data) =>
-          @sharedMachinesList.updateList data.shared.concat data.collaboration
+          # @sharedMachinesList.updateList data.shared.concat data.collaboration
           @setWorkspaceUnreadCount channel, unreadCount
       else
         item = @addItem channel, index

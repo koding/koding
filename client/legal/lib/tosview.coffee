@@ -683,7 +683,7 @@ module.exports = class TosView extends JView
           <ul class='ul1'>
             <li class='li2'>
               Your privacy is important to Koding. <a href=
-              '/privacy.html' target='_blank'>Koding's Privacy Policy</a> Notice is
+              '/Legal/Privacy' target='_blank'>Koding's Privacy Policy</a> Notice is
               hereby incorporated into these Terms by reference. Please read this
               notice carefully for information relating to Koding's collection,
               use, and disclosure of your personal information.
@@ -693,7 +693,7 @@ module.exports = class TosView extends JView
               By registering for an Koding Service account, you
               consent to receiving certain electronic communications regarding the
               Koding Service from us as further described in <a href=
-              '/privacy.html' target='_blank'>our Privacy Policy.</a> In addition,
+              '/Legal/Privacy' target='_blank'>our Privacy Policy.</a> In addition,
               when you register for an account, you are automatically opted-in to
               receive commercial email from Koding, which may include newsletters,
               announcements, and recommendations. You may opt-out of commercial
@@ -1076,7 +1076,7 @@ module.exports = class TosView extends JView
               references are for convenience purposes only, do not constitute a
               part of these Terms, and will not be deemed to limit or affect any of
               the provisions hereof. These Terms, together with the <a href=
-              '/privacy.html' target='_blank'>Privacy Policy.</a> and any other
+              '/Legal/Privacy' target='_blank'>Privacy Policy.</a> and any other
               agreements incorporated by reference, are the entire agreement
               between you and Koding relating to the subject matter described in
               these Terms and will not be modified except in writing, signed by

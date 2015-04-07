@@ -1,12 +1,12 @@
-kd = require 'kd'
+kd              = require 'kd'
 ActivityAppView = require './activityappview'
-ContentDisplayStatusUpdate = require './contentdisplays/contentdisplaystatusupdate'
-remote = require('app/remote').getInstance()
-globals = require 'globals'
-getGroup = require 'app/util/getGroup'
-checkFlag = require 'app/util/checkFlag'
-AppStorage = require 'app/appstorage'
-AppController = require 'app/appcontroller'
+remote          = require('app/remote').getInstance()
+globals         = require 'globals'
+getGroup        = require 'app/util/getGroup'
+checkFlag       = require 'app/util/checkFlag'
+AppStorage      = require 'app/appstorage'
+AppController   = require 'app/appcontroller'
+
 require('./routehandler')()
 
 module.exports = class ActivityAppController extends AppController
@@ -112,6 +112,7 @@ module.exports = class ActivityAppController extends AppController
     {socialapi} = kd.singletons
     socialapi.channel.fetchPopularPosts options, callback
 
+
   bindModalDestroy: (modal, lastRoute) ->
 
      {router} = kd.singletons
@@ -125,14 +126,10 @@ module.exports = class ActivityAppController extends AppController
   getActiveChannel: -> @getView().sidebar.selectedItem.getData()
 
 
-  goToNextTab: (event) ->
+  handleShortcut: (e) ->
 
-    kd.utils.stopDOMEvent event
-    @getView().openNext()
+    kd.utils.stopDOMEvent e
 
-
-  goToPreviousTab: (event) ->
-
-    kd.utils.stopDOMEvent event
-    @getView().openPrev()
-
+    switch e.model.name
+      when 'prevwindow' then @getView().openPrev()
+      when 'nextwindow' then @getView().openNext()

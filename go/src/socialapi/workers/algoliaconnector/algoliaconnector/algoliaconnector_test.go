@@ -1,18 +1,17 @@
 package algoliaconnector
 
 import (
-	"errors"
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
-	"socialapi/workers/common/runner"
 	"strconv"
+	"testing"
+	"time"
 
 	"github.com/algolia/algoliasearch-client-go/algoliasearch"
 	"github.com/koding/bongo"
+	"github.com/koding/runner"
 	"labix.org/v2/mgo/bson"
-
-	"testing"
-	"time"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -26,9 +25,11 @@ func TestTopicSaved(t *testing.T) {
 
 	defer r.Close()
 
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+	appConfig := config.MustRead(r.Conf.Path)
+
+	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
 	// create message handler
-	handler := New(r.Log, algolia, r.Conf.Algolia.IndexSuffix)
+	handler := New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
 
 	Convey("given some fake topic channel", t, func() {
 		mockTopic := models.NewChannel()
@@ -126,10 +127,8 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 	})
 }
 
-var errDeadline = errors.New("dead line")
-
 // makeSureErr checks if the given id's get request returns the desired err, it
-// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
+// will re-try every 100ms until deadline of 2 minutes reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
 func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
 	deadLine := time.After(time.Minute * 2)
@@ -146,6 +145,7 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 		}
 	}
 }
+
 func TestMessageListDeleted(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
@@ -270,13 +270,98 @@ func TestMessageUpdated(t *testing.T) {
 	})
 }
 
+func TestParticipantCreated(t *testing.T) {
+	runner, handler := getTestHandler()
+	defer runner.Close()
+	Convey("while adding participant", t, func() {
+		Convey("if the user is not in db, should give error", func() {
+			p := &models.ChannelParticipant{
+				AccountId: 1,
+				ChannelId: 1,
+			}
+			err := handler.ParticipantCreated(p)
+			So(err, ShouldBeNil)
+		})
+
+		Convey("if the user is in db, but not saved to algolia yet", func() {
+			Convey("should be successfull", func() {
+				a := models.CreateAccountWithTest()
+				p := &models.ChannelParticipant{
+					AccountId: a.Id,
+					ChannelId: 1,
+				}
+
+				err := handler.ParticipantCreated(p)
+				So(err, ShouldBeNil)
+				Convey("we should be able to find it", func() {
+					rec, err := handler.get("accounts", a.OldId)
+					So(err, ShouldBeNil)
+					So(rec, ShouldNotBeNil)
+
+					err = makeSureAccount(handler, a.OldId, func(record map[string]interface{}, err error) bool {
+						if err != nil {
+							return false
+						}
+
+						if record == nil {
+							return false
+						}
+						for _, tag := range record["_tags"].([]interface{}) {
+							if tag.(string) == strconv.FormatInt(p.ChannelId, 10) {
+								return true
+							}
+						}
+
+						return false
+					})
+					So(err, ShouldBeNil)
+				})
+			})
+		})
+	})
+}
+
+func TestRemoveTag(t *testing.T) {
+	Convey("while removing tag", t, func() {
+
+		Convey("if records is nil, should return an empty slice", func() {
+			So(len(removeTag(nil, "1")), ShouldNotBeNil)
+			So(len(removeTag(nil, "1")), ShouldEqual, 0)
+		})
+
+		Convey("if record's tag is nil, should return empty slice", func() {
+			So(removeTag(make(map[string]interface{}), "1"), ShouldNotBeNil)
+			So(len(removeTag(make(map[string]interface{}), "1")), ShouldNotBeNil)
+		})
+
+		Convey("if record's doesnt have our tag, should return itself", func() {
+			record := map[string]interface{}{
+				"_tags": []interface{}{"1", "2"},
+			}
+
+			So(len(removeTag(record, "3")), ShouldEqual, len(record["_tags"].([]interface{})))
+		})
+
+		Convey("if record's does have our tag, should return clean version", func() {
+			record := map[string]interface{}{
+				"_tags": []interface{}{"1", "2"},
+			}
+
+			So(len(removeTag(record, "1")), ShouldEqual, len(record["_tags"].([]interface{}))-1)
+		})
+
+	})
+}
 func getTestHandler() (*runner.Runner, *Controller) {
 	r := runner.New("AlogoliaConnector-Test")
 	err := r.Init()
 	if err != nil {
 		panic(err)
 	}
-	algolia := algoliasearch.NewClient(r.Conf.Algolia.AppId, r.Conf.Algolia.ApiSecretKey)
+
+	appConfig := config.MustRead(r.Conf.Path)
+
+	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
 	// create message handler
 	return r, New(r.Log, algolia, ".test")
 

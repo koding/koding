@@ -21,6 +21,7 @@ type KloudArgs struct {
 	MachineId  string `json:"machineId"`
 	SnapshotId string `json:"snapshotId"`
 	Username   string `json:"username"`
+	Provider   string `json:"provider"`
 }
 
 type Actioner interface {

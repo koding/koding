@@ -10,12 +10,14 @@ helper          = require './helper'
 module.exports = class VideoCollaborationModel extends kd.Object
 
   defaultState:
-    video              : on
-    audio              : on
+    publishVideo       : on
+    publishAudio       : on
     publishing         : off
-    connectedToSession : no
+    active             : no
+    connected          : no
     maxConnectionCount : 999
     activeParticipant  : null
+    connectionCount    : 0
 
   # @param {SocialChannel} options.channel
   # @param {BaseChatVideoView} options.view
@@ -81,7 +83,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @session = session
     @bindSessionEvents session
-    @setState { connectedToSession: yes }
+    @setState { connected: yes }
     @emit 'SessionConnected', session
 
 
@@ -103,15 +105,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
-      return  if @state.publishing is off
+      # When a stream is dispatched to the session it means there is a new
+      # video feed. We want every user to see the video if a stream is
+      # dispatched (probably from host, but doesn't matter).
+      @setVideoActive()  unless @state.active
 
-      options.height     or= "100%"
-      options.width      or= "100%"
-      options.insertMode or= 'append'
-
+      options    = { height: '100%', width: '100%', insertMode: 'append' }
       { stream } = event
       nick       = stream.name
-      element    = @getView().getSubscribgetElement()
+      element    = @getView().getElement()
+
       subscriber = session.subscribe stream, element, options
       subscriber.on 'destroyed', =>
         @unregisterSubscriber connectionId
@@ -127,13 +130,16 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit 'ParticipantLeft', { nick: event.stream.name }
 
     session.on 'connectionCreated', (event) =>
+      count = @state.connectionCount
+      @setState { connectionCount: count + 1 }
 
-      # TODO: this may not be necessary.
-      data = { nick: getNick() }
-      @_service.sendSignal session, 'initialize', data
+    session.on 'connectionDestroyed', (event) =>
+      count = @state.connectionCount
+      @setState { connectionCount: count - 1 }
+
 
     session.on 'sessionDisconnected', (event) =>
-      @setState { connectedToSession: no }
+      @setState { connected: no }
       eventName = switch event.reason
         when 'forceDisconnected'   then 'HostKickedLoggedInUser'
         when 'clientDisconnected'  then 'VideoCollaborationEnded'
@@ -188,6 +194,19 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
 
   ###*
+   * Action to trigger activation of video collaboration.
+   * If given publisher is `null` it means that the video collaboration started
+   * without the user publishing his/her video. It's not a concern of neither
+   * this method's nor this entire class, because simply it will emit an event
+   * with given publisher and it will change set the state to active.
+  ###
+  setVideoActive: ->
+
+    @emit 'VideoCollaborationActive', @publisher
+    @setState { active: yes }
+
+
+  ###*
    * Action for joining to VideoCollaboration session. It calls
    * `startPublishing` method and connects handlers for success and error states.
    *
@@ -210,8 +229,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
   handlePublishSuccess: (publisher) ->
 
     @registerPublisher publisher
-    @emit 'VideoCollaborationActive', @publisher
+    @setState { publishing: on }
 
+    @setVideoActive()
     @changeActiveParticipant getNick()
 
 
@@ -230,8 +250,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
   startPublishing: (options, callbacks) ->
 
     defaults =
-      publishAudio: @state.audio
-      publishVideo: @state.video
+      publishAudio: @state.publishAudio
+      publishVideo: @state.publishVideo
 
     options = _.assign {}, defaults, options
 
@@ -258,6 +278,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
   ####
   changeActiveParticipant: (nick) ->
 
+    return  unless @state.active
     return  unless @getParticipant nick
 
     @setState { activeParticipant: nick }

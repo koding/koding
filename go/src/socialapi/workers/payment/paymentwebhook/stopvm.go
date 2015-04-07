@@ -12,6 +12,7 @@ import (
 type requestArgs struct {
 	MachineId string `json:"machineId"`
 	Reason    string `json:"reason"`
+	Provider  string `json:"provider"`
 }
 
 func stopMachinesForUser(customerId string, k *kite.Client) error {
@@ -41,7 +42,9 @@ func stopMachinesForUser(customerId string, k *kite.Client) error {
 
 	for _, machine := range machines {
 		_, err := k.Tell("stop", &requestArgs{
-			MachineId: machine.ObjectId.Hex(), Reason: "Plan expired",
+			MachineId: machine.ObjectId.Hex(),
+			Reason:    "Plan expired",
+			Provider:  "koding",
 		})
 
 		if err != nil && !isVmAlreadyStoppedErr(err) {

@@ -75,8 +75,6 @@ module.exports = class ComputeEventListener extends KDObject
     unless event.status is Running
       computeController.invalidateCache machine._id
 
-      kontrol.setTryingToReconnect no
-
 
   revertToPreviousState:(machine)->
 
@@ -120,15 +118,16 @@ module.exports = class ComputeEventListener extends KDObject
 
           return
 
-        [type, eventId] = res.event.eventId.split '-'
+        {event} = res
+        [type, eventId] = event.eventId.split '-'
 
-        if res.event.percentage < 100 and \
-           res.event.status isnt Machine.State.Unknown
+        if event.percentage < 100 and \
+           event.status isnt Machine.State.Unknown
           uniqueAdd activeListeners, type, eventId
 
-        kd.info "#{res.event.eventId}", res.event
+        kd.info "#{event.eventId}", event
 
-        if res.event.percentage is 100 and ev = TypeStateMap[type]
+        if not event.error and event.percentage is 100 and ev = TypeStateMap[type]
           computeController.emit ev.public, machineId: eventId
           computeController.emit "stateChanged-#{eventId}", ev.private
           computeController.stateChecker.watch eventId
@@ -136,9 +135,9 @@ module.exports = class ComputeEventListener extends KDObject
         else
           computeController.stateChecker.ignore eventId
 
-        unless res.event.status is 'Unknown'
-          computeController.emit "public-#{eventId}",    res.event
-          computeController.emit "#{res.event.eventId}", res.event
+        unless event.status is 'Unknown'
+          computeController.emit "public-#{eventId}", event
+          computeController.emit "#{event.eventId}",  event
 
       @listeners = activeListeners
       @tickInProgress = no

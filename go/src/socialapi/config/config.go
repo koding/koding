@@ -1,11 +1,6 @@
 package config
 
-import (
-	"encoding/json"
-	"os"
-
-	"github.com/koding/multiconfig"
-)
+import "github.com/koding/multiconfig"
 
 var (
 	conf *Config
@@ -39,19 +34,4 @@ func MustRead(path string) *Config {
 	}
 
 	return conf
-}
-
-type EnvJSONLoader struct {
-	Name string
-}
-
-func (e *EnvJSONLoader) Load(s interface{}) error {
-	v := os.Getenv(e.Name)
-	if v == "" {
-		// we are ignoring this case when the config is not set
-		// reading a Specific Env key is not mandatory
-		return nil
-	}
-
-	return json.Unmarshal([]byte(v), s)
 }

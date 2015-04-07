@@ -128,6 +128,7 @@ func ConnectTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	remoteKite.ReadBufferSize = 512
 	remoteKite.WriteBufferSize = 512
 	if err := remoteKite.DialTimeout(t); err != nil {
+		k.Log.Debug("Dialing kite failed: %s", err)
 		return nil, ErrDialingFailed
 	}
 
@@ -145,7 +146,7 @@ func NewWithTimeout(k *kite.Kite, queryString string, t time.Duration) (*Klient,
 	k.Log.Debug("Querying for Klient: %s", queryString)
 	for {
 		select {
-		case <-time.Tick(time.Second * 2):
+		case <-time.Tick(time.Second * 4):
 			if klient, err := Connect(k, queryString); err == nil {
 				return klient, nil
 			}
