@@ -23,7 +23,7 @@ module.exports = class JInvitation extends jraphical.Module
   KodingError  = require '../error'
   JGroup       = require './group'
   JPaymentPack = require './payment/pack'
-  Email        = require './newemail'
+  Email        = require './email'
 
   @share()
 

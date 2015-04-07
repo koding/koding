@@ -119,7 +119,7 @@ koding.connect ->
       require './models/app'
     ]
 
-  Email = require "./models/newemail"
+  Email = require "./models/email"
   Email.setMqClient broker.connection
 
 

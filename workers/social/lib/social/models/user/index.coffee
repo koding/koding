@@ -18,7 +18,7 @@ module.exports = class JUser extends jraphical.Module
   JPaymentPlan    = require '../payment/plan'
   JPaymentSubscription = require '../payment/subscription'
   ComputeProvider = require '../computeproviders/computeprovider'
-  Email           = require '../newemail'
+  Email           = require '../email'
 
   { v4: createId } = require 'node-uuid'
 

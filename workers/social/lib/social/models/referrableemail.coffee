@@ -1,7 +1,7 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
   JAccount = require "./account"
-  Email    = require "./newemail"
+  Email    = require "./email"
 
   {ObjectId, secure, signature} = require "bongo"
   {ObjectId, secure} = require "bongo"

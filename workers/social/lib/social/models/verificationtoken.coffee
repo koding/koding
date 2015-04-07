@@ -13,7 +13,7 @@ module.exports = class JVerificationToken extends Module
   {secure} = require 'bongo'
   crypto   = require 'crypto'
   hat      = require 'hat'
-  Email    = require './newemail'
+  Email    = require './email'
 
   @share()
 

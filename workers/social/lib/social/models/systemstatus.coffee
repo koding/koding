@@ -3,7 +3,7 @@ KodingError = require '../error'
 
 module.exports = class JSystemStatus extends Model
 
-  Email = require './newemail'
+  Email = require './email'
 
   @share()
 

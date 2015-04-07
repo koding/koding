@@ -605,17 +605,6 @@ app.get  '/-/payments/paypal/cancel' , require "./paypal_cancel"
 app.post '/-/payments/paypal/webhook', require "./paypal_webhook"
 app.get  '/-/payments/customers'     , require "./customers"
 
-# TODO: we need to add basic auth!
-app.all '/-/email/webhook', (req, res) ->
-  { JMail } = koding.models
-  { body: batch } = req
-
-  for item in batch when item.event is 'delivered'
-    JMail.markDelivered item, (err) ->
-      console.warn err  if err
-
-  res.send 'ok'
-
 isInAppRoute = (name)->
   [firstLetter] = name
   # user nicknames can start with numbers
@@ -820,7 +809,7 @@ usertracker.start()
 
 # init rabbitmq client for Email to use to queue emails
 mqClient = require './amqp'
-Email = require '../../../workers/social/lib/social/models/newemail.coffee'
+Email = require '../../../workers/social/lib/social/models/email.coffee'
 Email.setMqClient mqClient
 
 
