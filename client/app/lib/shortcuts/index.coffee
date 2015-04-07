@@ -201,11 +201,11 @@ class ShortcutsController extends kd.Controller
         @shortcuts.on "key:#{key}", app.bound 'handleShortcut'
 
 
-  # Renders a _kd#Modal_ immediately.
+  # Renders UI to manage shortcuts.
   #
   showModal: ->
 
-    new ShortcutsModal {}, @shortcuts.config
+    modal = new ShortcutsModal {}, @toCollection()
 
 
   # Proxy to _shortcuts#get_.
