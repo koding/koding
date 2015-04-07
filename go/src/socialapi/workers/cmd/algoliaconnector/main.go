@@ -40,6 +40,10 @@ func main() {
 	// moderation related
 	r.Register(models.ChannelLink{}).OnCreate().Handle((*algoliaconnector.Controller).CreateSynonym)
 
+	// participant related events
+	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*algoliaconnector.Controller).ParticipantCreated)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*algoliaconnector.Controller).ParticipantUpdated)
+
 	r.Listen()
 	r.Wait()
 }

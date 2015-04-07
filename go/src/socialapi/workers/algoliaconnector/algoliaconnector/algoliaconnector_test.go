@@ -1,7 +1,6 @@
 package algoliaconnector
 
 import (
-	"errors"
 	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
@@ -174,8 +173,6 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 		return true
 	})
 }
-
-var errDeadline = errors.New("dead line")
 
 // makeSureMessage checks if the given id's get request returns the desired err, it
 // will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
