@@ -72,13 +72,13 @@ showParticipant = (participant) ->
 
 
 ###*
-  * This is a workaround.
-  * This is probably wrong but the way OpenTok sessions are working makes all
-  * subscriber videos invisible. This method's pure existence is to get around
-  * it. This probably requires a FIXME tag.
-  * p.s.: 173 is weird.
-  *
-  * @param {ParticipantType.Participant} participant
+ * This is a workaround.
+ * This is probably wrong but the way OpenTok sessions are working makes all
+ * subscriber videos invisible. This method's pure existence is to get around
+ * it. This probably requires a FIXME tag.
+ * p.s.: 173 is weird.
+ *
+ * @param {ParticipantType.Participant} participant
 ###
 fixParticipantVideo = (participant) ->
 
