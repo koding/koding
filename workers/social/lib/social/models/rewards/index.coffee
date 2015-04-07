@@ -240,10 +240,40 @@ module.exports = class JReward extends jraphical.Message
 
   do ->
 
-    persistRewards = (campaign, source, target, callback)->
+    fetchReferrer = (account, callback)->
 
-      reward = null
+      unless referrerUsername = account.referrerUsername
+        return callback "User doesn't have any referrer"
 
+      # get referrer
+      JAccount.one 'profile.nickname': referrerUsername, (err, referrer)->
+
+        return callback err  if err
+
+        unless referrer
+          # if referrer not fonud then do nothing and return
+          return callback "Referrer couldn't found"
+
+        callback null, referrer
+
+
+    confirmRewards = (source, target, callback)->
+
+      JReward.update
+        providedBy : source.getId()
+        originId   : target.getId()
+      ,
+        $set       : confirmed : yes
+      , (err)->
+        return callback err  if err?
+
+        options = { originId: target.getId() }
+        JReward.calculateAndUpdateEarnedAmount options, callback
+
+
+    createRewards = (campaign, source, target, callback)->
+
+      reward   = null
       type     = campaign.type
       unit     = campaign.unit
       originId = target.getId()
@@ -265,15 +295,6 @@ module.exports = class JReward extends jraphical.Message
 
         ->
 
-          options = { originId, type, unit }
-
-          JReward.calculateAndUpdateEarnedAmount options, (err)->
-
-            return callback err  if err
-            queue.next()
-
-        ->
-
           campaign.increaseGivenAmount (err)->
             console.error "Couldn't increase given amount:", err  if err?
             callback null
@@ -285,6 +306,56 @@ module.exports = class JReward extends jraphical.Message
 
     JRewardCampaign = require "./rewardcampaign"
 
+    # When users registers we need to give them
+    # rewards from existing campaign, if its.
+
+    JUser.on 'UserRegistered', ({user, account})->
+
+      unless user?
+        return console.warn "User is not defined in 'UserRegistered' event"
+
+      referrer = null
+      campaign = null
+
+      queue = [
+        ->
+
+          # TODO Add fetcher for active campaign ~ GG
+          JRewardCampaign.isValid "register", (err, res)->
+
+            return console.error err  if err
+            return  unless res.isValid
+
+            campaign = res.campaign
+            queue.next()
+
+        ->
+
+          fetchReferrer account, (err, _referrer)->
+            return console.error err  if err
+            referrer = _referrer
+            queue.next()
+
+        ->
+
+          createRewards campaign, referrer, account, (err)->
+            return console.error err if err
+            queue.next()
+
+        ->
+
+          createRewards campaign, account, referrer, (err)->
+            return console.error err if err
+            queue.next()
+
+      ]
+
+      daisy queue
+
+
+    # When users confirm their emails we need to confirm
+    # existing rewards for them.
+
     JUser.on 'EmailConfirmed', (user)->
 
       unless user?
@@ -295,15 +366,6 @@ module.exports = class JReward extends jraphical.Message
       campaign = null
 
       queue = [
-        ->
-
-          JRewardCampaign.isValid "register", (err, res)->
-
-            return console.error err  if err
-            return  unless res.isValid
-
-            campaign = res.campaign
-            queue.next()
 
         ->
 
@@ -317,23 +379,11 @@ module.exports = class JReward extends jraphical.Message
 
         ->
 
-          unless referrerUsername = me.referrerUsername
-            return console.info "User doesn't have any referrer"
-
           if me.referralUsed
             return console.info "User already get the referrer"
 
-          # get referrer
-          JAccount.one 'profile.nickname': referrerUsername, (err, _referrer)->
-
-            if err
-              # if error occurred than do nothing and return
-              return console.error "Error while fetching referrer", err
-
-            unless _referrer
-              # if referrer not fonud then do nothing and return
-              return console.error "Referrer couldnt found"
-
+          fetchReferrer me, (err, _referrer)->
+            return console.error err  if err
             referrer = _referrer
             queue.next()
 
@@ -345,13 +395,13 @@ module.exports = class JReward extends jraphical.Message
 
         ->
 
-          persistRewards campaign, referrer, me, (err)->
+          confirmRewards referrer, me, (err)->
             return console.error err if err
             queue.next()
 
         ->
 
-          persistRewards campaign, me, referrer, (err)->
+          confirmRewards me, referrer, (err)->
             return console.error err if err
             queue.next()
 
