@@ -1,6 +1,8 @@
 jraphical = require "jraphical"
 module.exports = class JReferrableEmail extends jraphical.Module
-  JAccount           = require "./account"
+  JAccount = require "./account"
+  Email    = require "./email"
+
   {ObjectId, secure, signature} = require "bongo"
   {ObjectId, secure} = require "bongo"
 
@@ -64,23 +66,14 @@ module.exports = class JReferrableEmail extends jraphical.Module
     JReferrableEmail.remove {username}, callback
 
   invite: secure (client, callback)->
-    {delegate: profile: {firstName, lastName}} = client.connection
-    JMail     = require './email'
+    {delegate: profile: {firstName, lastName, nickname}} = client.connection
+
     shareUrl  = "https://koding.com/R/#{@username}"
-    email     = new JMail
-      from    : 'hello@koding.com'
-      email   : @email
-      replyto : 'hello@koding.com'
-      subject : "#{firstName} #{lastName} has invited you to try Koding!"
-      content : """
-        Koding is a new way for developers to work where developers come together and code in the browser – with a real development server to run their code.
 
-        Click here to try: #{shareUrl}
-
-        See you on Koding!
-        """
-
-    email.save (err)=>
+    Email.queue nickname, {
+      to         : @email
+      subject    : Email.types.INVITE
+    }, { firstName, lastName, shareUrl }, (err) =>
       return callback err  if err
       @update $set: invited: true, callback
 

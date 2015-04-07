@@ -1,6 +1,6 @@
-package eventexporter
+// +build sendgrid
 
-import "github.com/sendgrid/sendgrid-go"
+package eventexporter
 
 const (
 	DefaultFromName    = "Koding"
