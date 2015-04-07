@@ -14,6 +14,7 @@ module.exports = class ChatVideoView extends kd.View
     @publisherView = null
 
     @createContainer()
+    @createOfflineUserContainer()
     @createControls()
 
 
@@ -21,6 +22,12 @@ module.exports = class ChatVideoView extends kd.View
 
     @container = new kd.CustomHTMLView { cssClass: 'ChatVideo-container' }
     @addSubView @container
+
+
+  createOfflineUserContainer: ->
+
+    @offlineUserContainer = new kd.CustomHTMLView { cssClass: 'ChatVideo-offlineUserContainer' }
+    @addSubView @offlineUserContainer
 
 
   createControls: ->
@@ -44,6 +51,9 @@ module.exports = class ChatVideoView extends kd.View
 
 
   getContainer: -> @container
+
+
+  getOfflineUserContainer: -> @offlineUserContainer
 
 
   ###*
