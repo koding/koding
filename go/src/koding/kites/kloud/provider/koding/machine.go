@@ -4,6 +4,7 @@ import (
 	"koding/db/models"
 	"koding/kites/kloud/contexthelper/session"
 	"koding/kites/kloud/eventer"
+	"koding/kites/kloud/klient"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"time"
@@ -123,7 +124,7 @@ func (m *Machine) switchAWSRegion(region string) error {
 // it again.
 func (m *Machine) markAsNotInitialized() error {
 	m.Log.Warning("Instance is not available. Marking it as NotInitialized")
-	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
+	if err := m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(
 			m.Id,
 			bson.M{"$set": bson.M{
@@ -137,5 +138,35 @@ func (m *Machine) markAsNotInitialized() error {
 				"status.reason":     "Machine is marked as NotInitialized",
 			}},
 		)
-	})
+	}); err != nil {
+		return err
+	}
+
+	m.IpAddress = ""
+	m.QueryString = ""
+	m.Meta.InstanceType = ""
+	m.Meta.InstanceName = ""
+	m.Meta.InstanceId = ""
+
+	// so any State() method can return the correct status
+	m.Status.State = machinestate.NotInitialized.String()
+	return nil
+}
+
+func (m *Machine) isKlientReady() bool {
+	m.Log.Debug("All finished, testing for klient connection IP [%s]", m.IpAddress)
+	klientRef, err := klient.NewWithTimeout(m.Session.Kite, m.QueryString, time.Minute*5)
+	if err != nil {
+		m.Log.Warning("Connecting to remote Klient instance err: %s", err)
+		return false
+	}
+	defer klientRef.Close()
+
+	m.Log.Debug("Sending a ping message")
+	if err := klientRef.Ping(); err != nil {
+		m.Log.Debug("Sending a ping message err: %s", err)
+		return false
+	}
+
+	return true
 }

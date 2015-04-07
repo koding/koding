@@ -85,7 +85,7 @@ pinnedpostdev:
 
 algoliaconnectordev:
 	@echo "$(OK_COLOR)==> Running TopicIndex Worker $(NO_COLOR)"
-	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/algoliaconnector -watch socialapi/workers/algoliaconnector -c $(CONFIG) $(DBG) $(METRICS)
 
 notificationdev:
 	@echo "$(OK_COLOR)==> Running Notification Worker $(NO_COLOR)"

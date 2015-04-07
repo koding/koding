@@ -32,12 +32,5 @@ PostThrottleCount    = 100
 [emailnotification]
 TemplateRoot = "../templates/"
 
-[sendgrid]
-Username        = "koding"
-Password        = "DEQl7_Dr"
-FromName        = "Koding"
-FromMail        = "hello@koding.com"
-ForcedRecipient = "canthefason@gmail.com"
-
 [sitemap]
 RedisDB = 2

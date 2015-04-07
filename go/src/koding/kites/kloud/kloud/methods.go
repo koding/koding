@@ -52,7 +52,7 @@ func (k *Kloud) Info(r *kite.Request) (interface{}, error) {
 	}
 
 	var response *InfoResponse
-	if err := mapstructure.Decode(infoData, response); err != nil {
+	if err := mapstructure.Decode(infoData, &response); err != nil {
 		return nil, err
 	}
 
