@@ -172,9 +172,18 @@ pmLinkColor   = #B6B6B6
     max-height              302px
     min-height              302px
 
+    .message-pane-scroller
+      height                calc(100% \- 44px)
+
     .chat-heads
       position              absolute
       top                   -48px
+
+      .heads .avatarview.is-selectedParticipant
+        border              2px solid red
+
+      .heads .avatarview.is-talkingParticipant
+        border              2px solid green
 
       .kdbutton.new-participant
         background          #fff
@@ -190,6 +199,11 @@ pmLinkColor   = #B6B6B6
 
   .ChatVideo-container
     size                    100% 100%
+
+  .ChatVideo-offlineUserContainer
+    position                absolute
+    top                     -20px
+    left                    -20px
 
   .ChatVideo-controls
     size                    30px auto
