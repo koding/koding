@@ -11,16 +11,16 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
     super options, data
 
-    @on 'NodeRenamed',  (node, newName) =>
+    @on 'NodeRenamed',  (node, newName) ->
       return if node.options.type is 'file'
 
       IDEHelpers.updateWorkspace node, node.parentPath + '/' + newName
 
-    @on 'NodesRemoved',  (nodes) =>
+    @on 'NodesRemoved',  (nodes) ->
       IDEHelpers.updateWorkspace node.getData() for node in nodes
 
 
-    @on 'NodesMoved',  (nodes, target) =>
+    @on 'NodesMoved',  (nodes, target) ->
       for node in nodes
         sourceItem = node.getData()
         IDEHelpers.updateWorkspace sourceItem, target.path + '/' + sourceItem.name

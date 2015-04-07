@@ -126,19 +126,16 @@ module.exports = helpers =
 
   updateWorkspace:(node, target) ->
 
-    return if node.options.type isnt 'folder'
+    return unless node.options.type is 'folder' and node.machine
 
-    removeMachineName = (path) -> path.replace "[#{node.machine.uid}]", ""
-    searchPath = removeMachineName node.path
-    targetPath = removeMachineName target if target
+    searchPath = FSHelper.plainPath node.path
+    targetPath = FSHelper.plainPath target if target
 
     dataProvider.fetchMachineByUId node.machine.uid, (machine, workspaces) =>
 
       callback = (err) =>
-        if err
-          showError "Couldn't update workspace."
-          kd.warn err
-          return
+
+        return showError err, KodingError: "Couldn't update workspace." if err
 
         { mainView } = kd.singletons
         mainView.activitySidebar.updateMachines()
@@ -149,6 +146,6 @@ module.exports = helpers =
           newPath = workspace.rootPath.replace searchPath, targetPath
           remote.api.JWorkspace.update workspace._id, { $set : { rootPath: newPath} }, callback
         else
-           remote.api.JWorkspace.deleteById workspace._id, callback
+          remote.api.JWorkspace.deleteById workspace._id, callback
 
       updateWorkspace_ w for w in workspaces when ~w.rootPath.indexOf searchPath
