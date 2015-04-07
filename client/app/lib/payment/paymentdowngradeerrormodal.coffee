@@ -27,6 +27,10 @@ module.exports = class PaymentDowngradeErrorModal extends PaymentBaseModal
         <strong>#{error.planTitle.capitalize()} Plan</strong> allows you to have
         <strong>#{error.allowed}</strong> #{error.name}
         but you are currently using <strong>#{error.usage}</strong> #{error.name}.
+        Therefore, we cannot process your request for an automatic downgrade.
+      </div>
+      <div class='description'>
+        Please contact us at <a href="mailto:support@koding.com">support@koding.com</a> so that we can help you resolve this.
       </div>
     """
 

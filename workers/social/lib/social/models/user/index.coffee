@@ -1041,6 +1041,10 @@ module.exports = class JUser extends jraphical.Module
           queue.next()
 
       ->
+        JUser.emit "UserRegistered", {user, account}
+        queue.next()
+
+      ->
         # Auto confirm accounts for development environment
         # This config should be no for production! ~ GG
         if KONFIG.autoConfirmAccounts
