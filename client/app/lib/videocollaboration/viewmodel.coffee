@@ -82,10 +82,20 @@ showParticipant = (participant) ->
 ###
 fixParticipantVideo = (participant) ->
 
-  kd.utils.wait 173, ->
-    element = participant.videoData.videoElement()
+  fixPoster = (element) ->
+    posters = element.querySelectorAll '.OT_video-poster'
+    poster.style.backgroundSize = 'cover'  for poster in posters
+
+  fixSize = (element) ->
     element.style.left   = '-14px'
     element.style.height = '265px'
     element.style.width  = '355px'
+
+  kd.utils.wait 173, ->
+    element = participant.videoData.videoElement()
+    fixSize element
+
+    container = participant.videoData.element
+    fixPoster container
 
 
