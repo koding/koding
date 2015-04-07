@@ -216,11 +216,11 @@ func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, 
 	}
 }
 
-// makeSureTopic checks if the given id's get request returns the desired err, it
-// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
-// index the records right away, so try to go to a desired state
+// makeSureTopic checks if the given id's get request returns the desired err,
+// it will re-try every 100ms until deadline of 2 minutes. Algolia doesnt index
+// the records right away, so try to go to a desired state
 func makeSureTopic(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
-	deadLine := time.After(time.Second * 15)
+	deadLine := time.After(time.Minute * 2)
 	tick := time.Tick(time.Millisecond * 100)
 	for {
 		select {
