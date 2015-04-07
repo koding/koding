@@ -104,13 +104,16 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		return err
 	}
 
-	notifMsg := &emailmodels.NotificationMessage{
-		CreatedAt:       mc.CreatedAt,
-		Actor:           actor.FirstName,
-		Message:         mc.Message,
-		ActivityMessage: mc.ActivityMessage,
-		ObjectType:      mc.ObjectType,
-		TimezoneOffset:  uc.LastLoginTimezoneOffset,
+	notifmessage := &emailmodels.NotificationMessage{
+		CreatedAt:      mc.CreatedAt,
+		Actor:          actor.FirstName,
+		Message:        mc.Message,
+		Action:         mc.ActivityMessage,
+		ObjectType:     mc.ObjectType,
+		TimezoneOffset: uc.LastLoginTimezoneOffset,
+		Hostname:       n.conf.Protocol + "//" + n.conf.Hostname,
+		ActorHash:      actor.Hash,
+		MessageSlug:    mc.Slug,
 	}
 
 	mailer := &emailmodels.MailerNotification{
@@ -118,7 +121,7 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 		Username:    uc.Username,
 		Email:       uc.Email,
 		MessageType: mc.Content.TypeConstant,
-		Messages:    []*emailmodels.NotificationMessage{notifMsg},
+		Messages:    []emailmodels.Message{notifmessage},
 	}
 
 	return mailer.SendMail()

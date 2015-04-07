@@ -1,11 +1,9 @@
 package sender
 
 import (
-	"fmt"
 	"socialapi/models"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/common"
-	"socialapi/workers/email/templates"
 	"strconv"
 	"sync"
 	"time"
@@ -117,14 +115,13 @@ func (c *Controller) StartWorker(currentPeriod int) {
 			return
 		}
 
-		mailer, err := emailmodels.NewMailer(account)
+		usercontact, err := emailmodels.FetchUserContactWithToken(account.Id)
 		if err != nil {
-			c.log.Error("Could not create mailer for account %d: %s", account.Id, err)
 			continue
 		}
 
 		// Fetch channel summary data
-		channels, err := c.FetchChannelSummaries(account, mailer.UserContact.LastLoginTimezoneOffset)
+		channels, err := c.FetchChannelSummaries(account, usercontact.LastLoginTimezoneOffset)
 		if err != nil {
 			c.log.Error("Could not fetch messages for rendering: %s", err)
 			continue
@@ -135,26 +132,43 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		if len(channels) == 0 {
 			continue
 		}
-		information := "You have a few unread messages"
 
-		// Decorate channel data
-		es := emailmodels.NewEmailSummary(channels...)
-		if len(es.Channels) == 1 && es.Channels[0].UnreadCount == 1 {
-			information = "You have an unread message"
-		}
-
-		information = fmt.Sprintf("%s on %s.", information, templates.KodingLink)
-
-		// Render body
-		body, err := es.Render()
+		recipient, err := emailmodels.FetchUserContact(account.Id)
 		if err != nil {
-			c.log.Error("Could not render body for account %d: %s", account.Id, err)
 			continue
 		}
 
-		// Send
-		mailer.Information = information
-		if err := mailer.SendMail("chat", body, Subject); err != nil {
+		privatemsgchannels := []emailmodels.Message{}
+
+		for _, channel := range channels {
+			messages := []*emailmodels.PrivateMessage{}
+			for _, msg := range channel.MessageSummaries {
+				message := &emailmodels.PrivateMessage{
+					CreatedAt: msg.Time,
+					Actor:     msg.Nickname,
+					Message:   msg.Body,
+				}
+
+				messages = append(messages, message)
+			}
+
+			pmc := &emailmodels.PrivateMessageChannel{
+				NestedMessages: messages,
+				Subtitle:       channel.Link,
+				ActorHash:      channel.Image,
+			}
+			privatemsgchannels = append(privatemsgchannels, pmc)
+		}
+
+		mailer := &emailmodels.MailerNotification{
+			FirstName:   recipient.FirstName,
+			Username:    recipient.Username,
+			Email:       recipient.Email,
+			MessageType: "chat",
+			Messages:    privatemsgchannels,
+		}
+
+		if err := mailer.SendMail(); err != nil {
 			c.log.Error("Could not send email for account: %d: %s", account.Id, err)
 		}
 	}

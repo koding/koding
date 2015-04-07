@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"socialapi/models"
 	"socialapi/workers/email/emailsender"
-	"time"
 )
 
 const VERSION = " v1"
@@ -100,54 +99,4 @@ func (m *MailerNotification) SendMail() error {
 	mail.Properties.Options = m.ToMap()
 
 	return emailsender.Send(mail)
-}
-
-type MailerNotification struct {
-	FirstName   string
-	Username    string
-	Email       string
-	MessageType string
-	Messages    []*NotificationMessage
-}
-
-func (m *MailerNotification) ToMap() map[string]interface{} {
-	messages := []map[string]string{}
-
-	for _, msg := range m.Messages {
-		messages = append(messages, msg.ToMap())
-	}
-
-	return map[string]interface{}{
-		"messages": messages, "firstName": m.FirstName,
-	}
-}
-
-type NotificationMessage struct {
-	CreatedAt       time.Time
-	Actor           string
-	Message         string
-	ActivityMessage string
-	ObjectType      string
-	TimezoneOffset  int
-}
-
-func (n *NotificationMessage) ToMap() map[string]string {
-	return map[string]string{
-		"createdAt":       formatMessageCreatedAt(n.CreatedAt, n.TimezoneOffset),
-		"actor":           n.Actor,
-		"message":         n.Message,
-		"activityMessage": n.ActivityMessage,
-		"objectType":      n.ObjectType,
-	}
-}
-
-func formatMessageCreatedAt(createdAt time.Time, timezoneOffset int) string {
-	loc := time.FixedZone("", timezoneOffset*-60)
-
-	createdDate := createdAt
-	if loc != nil {
-		createdDate = createdDate.In(loc)
-	}
-
-	return createdDate.Format(TimeLayout)
 }

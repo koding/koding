@@ -48,18 +48,7 @@ type ChannelImage struct {
 }
 
 func (ci *ChannelImage) Render() (string, error) {
-	if ci.Hash == "" {
-		return "", nil
-	}
-
-	lt := template.Must(template.New("image").Parse(templates.Gravatar))
-
-	var buf bytes.Buffer
-	if err := lt.ExecuteTemplate(&buf, "image", ci); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
+	return ci.Hash, nil
 }
 
 func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezoneOffset int) (*ChannelSummary, error) {
