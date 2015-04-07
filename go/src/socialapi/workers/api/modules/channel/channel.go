@@ -97,7 +97,10 @@ func Search(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 // ByName finds topics by their name
 func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface{}, error) {
 	q := request.GetQuery(u)
-	q.Type = models.Channel_TYPE_TOPIC
+
+	if q.Type == "" {
+		q.Type = models.Channel_TYPE_TOPIC
+	}
 
 	channel, err := models.NewChannel().ByName(q)
 	if err != nil {
