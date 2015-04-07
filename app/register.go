@@ -47,7 +47,7 @@ func (k *Klient) register() error {
 		k.kite.Config.KontrolURL = k.config.KontrolURL
 	}
 
-	k.log.Info("Register to kontrol '%s' via the URL value: '%s'", k.config.KontrolURL, registerURL)
+	k.log.Info("Register to kontrol '%s' via the URL value: '%s'", k.kite.Config.KontrolURL, registerURL)
 	k.kite.RegisterHTTPForever(registerURL)
 	return nil
 }
