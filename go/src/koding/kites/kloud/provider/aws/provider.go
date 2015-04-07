@@ -104,10 +104,15 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		return err
 	}
 
+	creds, err := p.credential(machine.Credential)
+	if err != nil {
+		return err
+	}
+
 	client := ec2.New(
 		aws.Auth{
-			AccessKey: "",
-			SecretKey: "",
+			AccessKey: creds.Meta.AccessKey,
+			SecretKey: creds.Meta.SecretKey,
 		},
 		aws.Regions[machine.Meta.Region],
 	)
