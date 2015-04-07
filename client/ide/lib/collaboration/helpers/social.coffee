@@ -158,7 +158,7 @@ fetchAccount = (socialAccount, callback) ->
   if socialAccount.constructorName
     remote.cacheable socialAccount.constructorName, socialAccount.id, callback
   else if 'string' is typeof socialAccount
-    remote.cacheable socialAccount, callback
+    remote.cacheable socialAccount, (err, [account]) -> callback err, account
   else
     callback null, socialAccount
 
