@@ -45,6 +45,7 @@ module.exports = class JReward extends jraphical.Message
       originId        : 'sparse'
       sourceCampaign  : 'sparse'
       providedBy      : 'sparse'
+      confirmed       : 'sparse'
 
     schema            :
       # for now we only have disk space
@@ -65,6 +66,9 @@ module.exports = class JReward extends jraphical.Message
       originId        :
         type          : ObjectId
         required      : yes
+      confirmed       :
+        type          : Boolean
+        default       : -> no
 
 
   # Helpers
@@ -91,7 +95,7 @@ module.exports = class JReward extends jraphical.Message
     { originId, unit, type } = useDefault options
 
     JReward.aggregate
-      $match     : { unit, type, originId }
+      $match     : { unit, type, originId, confirmed: yes }
     ,
       $group     :
         _id      : "$originId"
@@ -175,6 +179,7 @@ module.exports = class JReward extends jraphical.Message
       reward = new JReward {
         amount         : options.amount         or 512
         sourceCampaign : options.sourceCampaign or "register"
+        confirmed      : yes
         providedBy, originId, type, unit
       }
 
