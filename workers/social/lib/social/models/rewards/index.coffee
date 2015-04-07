@@ -240,10 +240,12 @@ module.exports = class JReward extends jraphical.Message
 
   do ->
 
+    logError = (rest...)-> console.error '[Rewards]', rest...
+
     fetchReferrer = (account, callback)->
 
       unless referrerUsername = account.referrerUsername
-        return callback "User doesn't have any referrer"
+        return callback new KodingError "User doesn't have any referrer"
 
       # get referrer
       JAccount.one 'profile.nickname': referrerUsername, (err, referrer)->
@@ -252,7 +254,7 @@ module.exports = class JReward extends jraphical.Message
 
         unless referrer
           # if referrer not fonud then do nothing and return
-          return callback "Referrer couldn't found"
+          return callback new KodingError "Referrer couldn't found"
 
         callback null, referrer
 
@@ -296,7 +298,8 @@ module.exports = class JReward extends jraphical.Message
         ->
 
           campaign.increaseGivenAmount (err)->
-            console.error "Couldn't increase given amount:", err  if err?
+            logError "Couldn't increase given amount:", err  if err?
+
             callback null
 
       ]
@@ -312,7 +315,7 @@ module.exports = class JReward extends jraphical.Message
     JUser.on 'UserRegistered', ({user, account})->
 
       unless user?
-        return console.warn "User is not defined in 'UserRegistered' event"
+        return logError "User is not defined in 'UserRegistered' event"
 
       referrer = null
       campaign = null
@@ -322,8 +325,7 @@ module.exports = class JReward extends jraphical.Message
 
           # TODO Add fetcher for active campaign ~ GG
           JRewardCampaign.isValid "register", (err, res)->
-
-            return console.error err  if err
+            return logError err  if err
             return  unless res.isValid
 
             campaign = res.campaign
@@ -332,20 +334,20 @@ module.exports = class JReward extends jraphical.Message
         ->
 
           fetchReferrer account, (err, _referrer)->
-            return console.error err  if err
+            return logError err  if err
             referrer = _referrer
             queue.next()
 
         ->
 
           createRewards campaign, referrer, account, (err)->
-            return console.error err if err
+            return logError err  if err
             queue.next()
 
         ->
 
           createRewards campaign, account, referrer, (err)->
-            return console.error err if err
+            return logError err  if err
             queue.next()
 
       ]
@@ -359,7 +361,7 @@ module.exports = class JReward extends jraphical.Message
     JUser.on 'EmailConfirmed', (user)->
 
       unless user?
-        return console.warn "User is not defined in 'EmailConfirmed' event"
+        return logError "User is not defined in 'EmailConfirmed' event"
 
       me       = null
       referrer = null
@@ -370,9 +372,9 @@ module.exports = class JReward extends jraphical.Message
         ->
 
           user.fetchOwnAccount (err, myAccount)->
-            return console.error err  if err
-            # if account not fonud then do nothing and return
-            return console.error "Account couldn't found" unless myAccount
+            return logError err  if err
+            # if account not found then do nothing and return
+            return logError "Account couldn't found" unless myAccount
 
             me = myAccount
             queue.next()
@@ -380,29 +382,30 @@ module.exports = class JReward extends jraphical.Message
         ->
 
           if me.referralUsed
-            return console.info "User already get the referrer"
+            return logError "User already get the referrer"
 
           fetchReferrer me, (err, _referrer)->
-            return console.error err  if err
+            return logError err  if err
+
             referrer = _referrer
             queue.next()
 
         ->
 
           me.update $set: "referralUsed": yes, (err)->
-            return console.error err if err
+            return logError err if err
             queue.next()
 
         ->
 
           confirmRewards referrer, me, (err)->
-            return console.error err if err
+            return logError err if err
             queue.next()
 
         ->
 
           confirmRewards me, referrer, (err)->
-            return console.error err if err
+            return logError err if err
             queue.next()
 
       ]
