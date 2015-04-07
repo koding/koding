@@ -1,4 +1,5 @@
 kd = require 'kd'
+helper = require './helper'
 
 module.exports = class VideoCollaborationViewModel extends kd.Object
 
@@ -10,6 +11,7 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
 
     @model.on 'ActiveParticipantChanged', @bound 'switchTo'
     @model.on 'VideoCollaborationActive', @bound 'fixParticipantVideoElements'
+    @model.on 'OfflineUserSelected'     , @bound 'switchTo'
 
     viewControlBinder = (control) => (state) => @view[control].setActiveState state
 
@@ -18,17 +20,20 @@ module.exports = class VideoCollaborationViewModel extends kd.Object
 
 
   ###*
-   * First hide all participants, then show participant with given nickname.
+   * First hide all participants, even the offline ones(!), then show
+   * participant with given nickname.
    *
    * @param {string} nick
   ###
   switchTo: (nick) ->
 
     participants = @model.getParticipants()
-    participant  = @model.getParticipant nick
-
     hideAll participants
-    showParticipant participant
+    hideOfflineUserContainer @view
+
+    if participant = @model.getParticipant nick
+    then showParticipant participant
+    else showOfflineParticipant @view, nick
 
 
   ###*
@@ -50,6 +55,17 @@ hideAll = (participants) ->
 
 
 ###*
+ * Hides offline user container.
+ *
+ * @param {ChatVideoView} view
+###
+hideOfflineUserContainer = (view) ->
+
+  offlineContainer = view.getOfflineUserContainer()
+  offlineContainer.hide()
+
+
+###*
  * Hides given participant's video element.
  *
  * @param {ParticipantType.Participant} participant
@@ -68,6 +84,18 @@ showParticipant = (participant) ->
 
   fixParticipantVideo participant
   participant.videoData.element.style.display = 'block'
+
+
+###*
+ * Shows given participant's avatar on view's offline container.
+ *
+ * @param {ChatVideoView} view
+ * @param {string} nickname
+###
+showOfflineParticipant = (view, nickname) ->
+
+  offlineContainer = view.getOfflineUserContainer()
+  helper.showOfflineParticipant offlineContainer, nickname, kd.noop
 
 
 ###*
