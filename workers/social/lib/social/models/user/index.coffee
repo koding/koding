@@ -1151,6 +1151,9 @@ module.exports = class JUser extends jraphical.Module
 
 
   @emailAvailable = (email, callback)->
+    unless typeof email is 'string'
+      return callback createKodingError 'Not a valid email!'
+    email = email.toLowerCase()
     @count {email}, (err, count)->
       callback err, count is 0
 
