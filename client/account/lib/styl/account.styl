@@ -372,6 +372,9 @@ app.settings.styl
     .AppModal-form
       margin-bottom         24px
 
+      textarea.kdinput
+        height                   180px
+
   li ~ li
     .ssh-key-item
       border-top            1px solid #EFEFEF
@@ -464,14 +467,14 @@ app.settings.styl
           display              inline
           width                auto
           position             relative
-          top                  2px
           margin               0px
+          vertical-align       middle
+
+        .kdlabel
+          display              inline
 
       .ssh-machine-list-footer
         clear                  left
-
-    textarea.kdinput
-      height                   180px
 
 .ssh-machine-list-tooltip
   line-height                  18px

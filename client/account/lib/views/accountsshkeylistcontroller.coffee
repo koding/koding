@@ -12,6 +12,7 @@ SshKey = require 'app/util/sshkey'
 
 
 module.exports = class AccountSshKeyListController extends AccountListViewController
+
   constructor:(options,data)->
 
     options.noItemFoundText = "You have no SSH key."
@@ -19,34 +20,15 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
     @loadItems()
 
-    @getListView().on "UpdatedItems", =>
-      @newItem = no
-      newKeys = @getListItems().map (item)-> item.getData()
-      unless newKeys.length is 0 then @customItem?.destroy()
-      @updateHelpLink newKeys
-      remote.api.JUser.setSSHKeys newKeys, -> kd.log "Saved keys."
+    @getListView().on "UpdatedItems",     @bound 'saveItems'
+    @getListView().on "RemoveItem",       @bound 'deleteItem'
+    @getListView().on "NewItemSubmitted", @bound 'submitNewItem'
+    @getListView().on "EditItem",         @bound 'editItem'
+    @getListView().on "CancelItem",       @bound 'cancelItem'
 
-    @getListView().on "RemoveItem", (item)=>
-      @newItem = no
-      @removeItem item
-      @getListView().emit "UpdatedItems"
-
-    @getListView().on "NewKeySubmitted", (item)=>
-      @newItem = no
-      { key, title, machines } = item.getData()
-
-      sk = new SshKey { key }
-      sk.deployTo machines, (err) =>
-        if err
-          item.emit "KeyFailed", err
-        else
-          @removeItem item
-          @addItem { key, title }
-          @getListView().emit "UpdatedItems"
-
-    @newItem = no
 
   loadItems: ()->
+
     @removeAllItems()
     @showLazyLoader no
 
@@ -63,20 +45,64 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
         title     : 'ADD NEW KEY'
         style     : 'solid green small'
         icon      : yes
-        callback  : @bound 'addNewKey'
+        callback  : @bound 'showNewItemForm'
 
       @getListView().addSubView @header, '', yes
 
       @updateHelpLink keys
 
 
-  addNewKey: ->
+  saveItems: ->
 
-    return  if @newItem
+    @currentItem = null
+    newKeys = @getListItems().map (item)-> item.getData()
+    @updateHelpLink newKeys
+    remote.api.JUser.setSSHKeys newKeys, -> kd.log "Saved keys."
 
-    @newItem = yes
+
+  deleteItem: (item) ->
+
+    @cancelItem item
+    @removeItem item
+    @saveItems()
+
+
+  submitNewItem: (item) ->
+
+    { key, title, machines } = item.getData()
+
+    sk = new SshKey { key }
+    sk.deployTo machines, (err) =>
+      if err
+        item.emit "SubmitFailed", err
+      else
+        @addItem { key, title }
+        @deleteItem item
+
+
+  editItem: (item) ->
+
+    @currentItem?.cancelItem yes
+    @currentItem = item
+    listItem.hide() for listItem in @getListItems() when listItem isnt item
+    @sshKeyHelpLink?.hide()
+
+
+  cancelItem: (item) ->
+
+    @currentItem = null
+    listItem.show() for listItem in @getListItems() when listItem isnt item
+    @sshKeyHelpLink?.show()
+
+
+  showNewItemForm: ->
+
+    return  if @isFetchingMachines or @currentItem instanceof AccountNewSshKeyView
+
+    @isFetchingMachines = yes
     { computeController } = kd.singletons
     computeController.fetchMachines (err, machines) =>
+      @isFetchingMachines = no
       return showError err  if err
 
       { ViewType } = AccountNewSshKeyView
