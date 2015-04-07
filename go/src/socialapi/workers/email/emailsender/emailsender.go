@@ -2,8 +2,6 @@
 package emailsender
 
 import (
-	"koding/db/mongodb/modelhelper"
-
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
@@ -50,16 +48,6 @@ func (c *Controller) Process(m *Mail) error {
 	}
 
 	user.Username = m.Properties.Username
-
-	if user.Username == "" {
-		u, err := modelhelper.FetchUserByEmail(to)
-		if err != nil {
-			user.Username = "unknown user"
-		} else {
-			user.Username = u.Name
-		}
-	}
-
 	m.SetOption("subject", m.Subject)
 
 	event := &eventexporter.Event{
@@ -74,6 +62,13 @@ func (c *Controller) Process(m *Mail) error {
 
 // DefaultErrHandler controls the errors, return false if an error occurred
 func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
+	if delivery.Redelivered {
+		c.log.Error("Redelivered message gave error again, putting to maintenance queue", err)
+		delivery.Ack(false)
+
+		return true
+	}
+
 	c.log.Error("an error occurred while sending email error as %+v ", err.Error())
 	delivery.Nack(false, true)
 
