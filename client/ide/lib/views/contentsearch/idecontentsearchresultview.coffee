@@ -1,9 +1,10 @@
-kd = require 'kd'
+kd               = require 'kd'
 KDCustomHTMLView = kd.CustomHTMLView
-KDScrollView = kd.ScrollView
-FSHelper = require 'app/util/fs/fshelper'
-Encoder = require 'htmlencode'
-IDEHelpers = require '../../idehelpers'
+KDScrollView     = kd.ScrollView
+FSHelper         = require 'app/util/fs/fshelper'
+Encoder          = require 'htmlencode'
+IDEHelpers       = require '../../idehelpers'
+showError        = require 'app/util/showError'
 
 module.exports = class IDEContentSearchResultView extends KDScrollView
 

@@ -2,6 +2,8 @@ ndpane                        = require 'ndpane'
 _                             = require 'lodash'
 kd                            = require 'kd'
 $                             = require 'jquery'
+kookies                       = require 'kookies'
+
 KDBlockingModalView           = kd.BlockingModalView
 KDCustomHTMLView              = kd.CustomHTMLView
 KDModalView                   = kd.ModalView
@@ -438,8 +440,7 @@ class IDEAppController extends AppController
             }
 
             if state is NotInitialized
-              @machineStateModal.once 'MachineTurnOnStarted', =>
-                kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
+              @setupFakeActivityNotification()
 
           @once 'IDEReady', => @prepareCollaboration()
 
@@ -1311,3 +1312,30 @@ class IDEAppController extends AppController
           e.stopPropagation()
 
           @goToTabNumber parseInt(match[1], 10) - 1
+
+
+  showUserRemovedModal: ->
+
+    options        =
+      title        : 'Machine access revoked'
+      content      : 'Your access to this machine has been removed by its owner.'
+      blocking     : yes
+      buttons      :
+        quit       :
+          style    : 'solid light-gray medium'
+          title    : 'OK'
+          callback : =>
+
+            @modal.destroy()
+            @quit()
+
+    @showModal options
+
+
+  setupFakeActivityNotification: ->
+
+    return  unless kookies.get('newRegister') is 'true'
+
+    @machineStateModal?.once 'MachineTurnOnStarted', ->
+      kookies.expire 'newRegister', path: '/'
+      kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
