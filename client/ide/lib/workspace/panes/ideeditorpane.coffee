@@ -303,11 +303,14 @@ module.exports = class IDEEditorPane extends IDEPane
     unless string = @rtm.getFromModel path
       return @rtm.create 'string', path, @getContent()
 
-    @setContent string.getText(), no
-
     ace = @getAce()
-    if ace.contentChanged = ace.isCurrentContentChanged()
-      ace.emit 'FileContentChanged'
+
+      .once 'ace.ready', =>
+
+        @setContent string.getText(), no
+
+        if ace.contentChanged = ace.isCurrentContentChanged()
+          ace.emit 'FileContentChanged'
 
 
   listenCollaborativeStringChanges: ->
