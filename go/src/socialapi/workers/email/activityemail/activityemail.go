@@ -36,6 +36,7 @@ const (
 type Controller struct {
 	log     logging.Logger
 	rmqConn *amqp.Connection
+	conf    *config.Config
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -45,10 +46,11 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Controller {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config) *Controller {
 	return &Controller{
 		log:     log,
 		rmqConn: rmq.Conn(),
+		conf:    conf,
 	}
 }
 

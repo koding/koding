@@ -26,7 +26,7 @@ func main() {
 	redisConn := runner.MustInitRedisConn(r.Conf)
 	defer redisConn.Close()
 
-	handler, err := dailyemail.New(r.Log)
+	handler, err := dailyemail.New(r.Log, appConfig)
 	if err != nil {
 		r.Log.Error("an error occurred", err)
 		return
