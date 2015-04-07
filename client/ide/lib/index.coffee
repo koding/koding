@@ -1234,7 +1234,7 @@ class IDEAppController extends AppController
     kd.utils.defer ->
       kd.singletons.router.handleRoute '/IDE'
 
-    @emit 'IDEDidQuit'
+    @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
 
   removeParticipantCursorWidget: (targetUser) ->
