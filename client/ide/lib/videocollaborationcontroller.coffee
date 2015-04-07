@@ -1,4 +1,5 @@
 VideoCollaborationModel = require 'app/videocollaboration/model'
+socialHelpers = require './collaboration/helpers/social'
 
 module.exports = VideoCollaborationController =
 
@@ -14,6 +15,7 @@ module.exports = VideoCollaborationController =
       .on 'ParticipantJoined',             @bound 'handleVideoParticipantJoined'
       .on 'ParticipantLeft',               @bound 'handleVideoParticipantLeft'
       .on 'ActiveParticipantChanged',      @bound 'handleVideoActiveParticipantChanged'
+      .on 'SelectedParticipantChanged',    @bound 'handleVideoSelectedParticipantChanged'
       .on 'ParticipantAudioStateChanged',  @bound 'handleVideoParticipantAudioStateChanged'
       .on 'ParticipantCameraStateChanged', @bound 'handleVideoParticipantCameraStateChanged'
 
@@ -46,7 +48,7 @@ module.exports = VideoCollaborationController =
 
   switchToUserVideo: (nickname) ->
 
-    @videoModel.changeActiveParticipant nickname
+    @videoModel.changeSelectedParticipant nickname
 
 
   handleVideoAccessQuestionAsked: ->
@@ -71,8 +73,21 @@ module.exports = VideoCollaborationController =
     @emitToViews 'VideoParticipantDidLeave', participant
 
 
-  handleVideoActiveParticipantChanged: (participant) ->
-    @emitToViews 'VideoActiveParticipantDidChange', participant
+  handleVideoSelectedParticipantChanged: (nickname) ->
+
+    unless nickname
+      @emitToViews 'VideoSelectedParticipantDidChange', null, null
+      return
+
+    socialHelpers.fetchAccount nickname, (err, account) =>
+      return console.error err  if err
+      @emitToViews 'VideoSelectedParticipantDidChange', nickname, account
+
+
+  handleVideoActiveParticipantChanged: (nickname) ->
+    socialHelpers.fetchAccount nickname, (err, account) =>
+      return console.error err  if err
+      @emitToViews 'VideoActiveParticipantDidChange', nickname, account
 
 
   handleVideoParticipantAudioStateChanged: (participant, state) ->
