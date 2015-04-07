@@ -162,11 +162,6 @@ func (c *Controller) processMessageLists(
 
 		// update message here
 
-		// just a little shortcut here, update the initial channel id
-		if cm.InitialChannelId == leafChannel.Id {
-			cm.InitialChannelId = rootChannel.Id
-		}
-
 		cm.Body = processWithNewTag(cm.Body, toBeReplacedSourceString, toBeReplacedTargetString)
 
 		// update the message itself

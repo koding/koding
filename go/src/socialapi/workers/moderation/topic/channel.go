@@ -11,6 +11,10 @@ import (
 // we are already updating the channel_message's initial channel id while
 // iterating over the messages but there can be some messages that are created
 // in that channel initially, but then can be moved to other channels
+//
+// Under normal circumstances this code should not do anything, because all of
+// the messages has group's channel id as initial_channel_id but this code is a
+// guardian for any kind of posiible leak and future channel based requirements
 func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 
 	var erroredMessages []models.ChannelMessage
@@ -66,7 +70,6 @@ func (c *Controller) updateInitialChannelIds(cl *models.ChannelLink) error {
 				continue
 			}
 			cm.AfterUpdate() // do not forget to send updated event
-
 		}
 	}
 
