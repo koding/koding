@@ -181,7 +181,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @subscribers[connectionId] = _subscriber
 
     _subscriber.on 'TalkingDidStart', =>
+      @emit 'ParticipantStartedTalking', nick
       @changeActiveParticipant nick  unless @state.selectedParticipant
+
+     _subscriber.on 'TalkingDidStop', =>
+      @emit 'ParticipantStoppedTalking', nick
 
     return _subscriber
 
