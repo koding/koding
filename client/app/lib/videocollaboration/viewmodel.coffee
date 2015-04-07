@@ -66,9 +66,8 @@ hideParticipant = (participant) ->
 ###
 showParticipant = (participant) ->
 
-  participant.videoData.element.style.display = 'block'
-
   fixParticipantVideo participant
+  participant.videoData.element.style.display = 'block'
 
 
 ###*
