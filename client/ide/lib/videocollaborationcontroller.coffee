@@ -18,6 +18,10 @@ module.exports = VideoCollaborationController =
       .on 'SelectedParticipantChanged',    @bound 'handleVideoSelectedParticipantChanged'
       .on 'ParticipantAudioStateChanged',  @bound 'handleVideoParticipantAudioStateChanged'
       .on 'ParticipantCameraStateChanged', @bound 'handleVideoParticipantCameraStateChanged'
+      .on 'ParticipantStartedTalking', (participant) =>
+        @handleVideoParticipantTalkingStateChanged participant, on
+      .on 'ParticipantStoppedTalking', (participant) =>
+        @handleVideoParticipantTalkingStateChanged participant, off
 
 
   joinVideoCollaboration: ->
@@ -96,6 +100,10 @@ module.exports = VideoCollaborationController =
 
   handleVideoParticipantCameraStateChanged: (participant, state) ->
     @emitToViews 'VideoParticipantCameraStateDidChange', participant
+
+
+  handleVideoParticipantTalkingStateChanged: (participant, state) ->
+    @emitToViews 'VideoParticipantTalkingStateDidChange', participant, state
 
 
   emitToViews: (args...) ->
