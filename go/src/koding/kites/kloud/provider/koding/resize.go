@@ -1,6 +1,7 @@
 package koding
 
 import (
+	"errors"
 	"fmt"
 	"koding/kites/kloud/machinestate"
 	"strconv"
@@ -196,8 +197,6 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 		return err
 	}
 
-	latestState = machinestate.Running
-
 	m.IpAddress = instance.PublicIpAddress
 
 	m.push("Updating domain", 85, machinestate.Pending)
@@ -227,7 +226,9 @@ func (m *Machine) Resize(ctx context.Context) (resErr error) {
 
 	m.push("Checking remote machine", 90, machinestate.Pending)
 	m.Log.Info("connecting to remote Klient instance")
-	m.checkKite()
+	if !m.isKlientReady() {
+		return errors.New("klient is not ready")
+	}
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(

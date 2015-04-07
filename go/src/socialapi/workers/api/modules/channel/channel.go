@@ -224,7 +224,7 @@ func Delete(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 	return response.NewDeleted()
 }
 
-func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.Channel, c *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -240,11 +240,11 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		return response.NewBadRequest(err)
 	}
 
-	if existingOne.CreatorId != req.CreatorId {
+	if existingOne.CreatorId != c.Client.Account.Id {
 		return response.NewBadRequest(errors.New("creatorId doesnt match"))
 	}
 
-	// only allow purpose and name to be updated
+	// only allow purpose, name and payload to be updated
 	if req.Purpose != "" {
 		existingOne.Purpose = req.Purpose
 	}
@@ -253,9 +253,19 @@ func Update(u *url.URL, h http.Header, req *models.Channel) (int, http.Header, i
 		existingOne.Name = req.Name
 	}
 
-	if err := req.Update(); err != nil {
+	// some of the channels stores sparse data
+	existingOne.Payload = req.Payload
+
+	// update channel
+	if err := existingOne.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
 
-	return response.NewOK(req)
+	// generate container data
+	cc := models.NewChannelContainer()
+	if err := cc.PopulateWith(*existingOne, c.Client.Account.Id); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	return response.NewOK(cc)
 }

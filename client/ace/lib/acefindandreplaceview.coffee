@@ -44,7 +44,7 @@ module.exports = class AceFindAndReplaceView extends JView
       validate     :
         rules      :
           required : yes
-      keydown      : _.bind @handleKeyDown, this
+      keydown      : _.bind @handleKeyDown, this, no
       callback     : => @replace()
 
     @replaceButton = new KDButtonView
