@@ -97,18 +97,29 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 
 	mc.CreatedAt = notification.ActivatedAt
 
-	tp := models.NewTemplateParser()
-	body, err := tp.RenderInstantTemplate(mc)
+	actor, err := emailmodels.FetchUserContactWithToken(mc.Activity.ActorId)
 	if err != nil {
-		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
+		return err
 	}
 
-	mailer := &emailmodels.Mailer{
-		UserContact: uc,
-		Information: prepareInformation(mc),
+	notifMsg := &emailmodels.NotificationMessage{
+		CreatedAt:       mc.CreatedAt,
+		Actor:           actor.FirstName,
+		Message:         mc.Message,
+		ActivityMessage: mc.ActivityMessage,
+		ObjectType:      mc.ObjectType,
+		TimezoneOffset:  uc.LastLoginTimezoneOffset,
 	}
 
-	return mailer.SendMail(nc.TypeConstant, body, prepareSubject(mc))
+	mailer := &emailmodels.MailerNotification{
+		FirstName:   uc.FirstName,
+		Username:    uc.Username,
+		Email:       uc.Email,
+		MessageType: mc.Content.TypeConstant,
+		Messages:    []*emailmodels.NotificationMessage{notifMsg},
+	}
+
+	return mailer.SendMail()
 }
 
 func prepareSubject(mc *models.MailerContainer) string {
