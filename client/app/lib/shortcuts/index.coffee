@@ -283,23 +283,23 @@ class ShortcutsController extends kd.Controller
 
     repr  = _
       .reduce defaults, (acc, value, key) =>
-        data   = @getJSON key
+        models = @getJSON key
         parent = value.extends
 
         if _.isString parent
-          extended[parent] = (extended[parent] or []).concat data
+          extended[parent] = (extended[parent] or []).concat models
         else
           acc.push
             _key        : key
             title       : value.title
             description : value.description
-            data        : @getJSON key
+            models      : @getJSON key
         return acc
       , []
 
     _.each extended, (value, key) ->
       if ~(idx = _.findIndex(repr, _key: key))
-        repr[idx].data = repr[idx].data.concat value
+        repr[idx].models = repr[idx].models.concat value
 
     return repr
 
