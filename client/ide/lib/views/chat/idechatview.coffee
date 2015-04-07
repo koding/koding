@@ -1,10 +1,10 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDLoaderView = kd.LoaderView
-KDTabView = kd.TabView
-KDView = kd.View
-CustomLinkView = require 'app/customlinkview'
-IDEChatMessagePane = require './idechatmessagepane'
+kd                  = require 'kd'
+KDCustomHTMLView    = kd.CustomHTMLView
+KDLoaderView        = kd.LoaderView
+KDTabView           = kd.TabView
+KDView              = kd.View
+CustomLinkView      = require 'app/customlinkview'
+IDEChatMessagePane  = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
 IDEChatVideoView    = require './idechatvideoview'
 
@@ -45,6 +45,9 @@ module.exports = class IDEChatView extends KDTabView
 
     @on 'VideoCollaborationActive', @bound 'handleVideoActive'
     @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
+    @on 'VideoActiveParticipantDidChange', @bound 'handleVideoActiveParticipantChanged'
+    @on 'VideoSelectedParticipantDidChange', @bound 'handleVideoSelectedParticipantChanged'
+    @on 'VideoParticipantTalkingStateDidChange', @bound 'handleVideoParticipantTalkingStateChanged'
 
 
   handleParticipantSelected: (participant) ->
@@ -53,6 +56,21 @@ module.exports = class IDEChatView extends KDTabView
       return console.error err  if err
       { nickname } = account.profile
       kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
+
+
+  handleVideoActiveParticipantChanged: (nickname, account) ->
+
+    @chatPane.setActiveParticipantAvatar account
+
+
+  handleVideoSelectedParticipantChanged: (nickname, account) ->
+
+    @chatPane.setSelectedParticipantAvatar account
+
+
+  handleVideoParticipantTalkingStateChanged: (nickname, state) ->
+
+    @chatPane.setAvatarTalkingState nickname, state
 
 
   start: ->
