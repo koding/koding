@@ -1027,13 +1027,18 @@ module.exports = class JUser extends jraphical.Module
           console.error "User (#{username}) tried to refer themself."
           return queue.next()
 
-        account.update $set: { referrerUsername: referrer }, (err)->
+        JUser.count {username: referrer}, (err, count)->
+          if err? or count < 1
+            console.error "Provided referrer not valid:", err
+            return queue.next()
 
-          if err?
-          then console.error err
-          else console.log "reward saved for #{username} from #{referrer}"
+          account.update $set: { referrerUsername: referrer }, (err)->
 
-          queue.next()
+            if err?
+            then console.error err
+            else console.log "#{referrer} referred #{username}"
+
+            queue.next()
 
       ->
         user.setPassword password, (err) ->
@@ -1151,6 +1156,9 @@ module.exports = class JUser extends jraphical.Module
 
 
   @emailAvailable = (email, callback)->
+    unless typeof email is 'string'
+      return callback createKodingError 'Not a valid email!'
+    email = email.toLowerCase()
     @count {email}, (err, count)->
       callback err, count is 0
 
