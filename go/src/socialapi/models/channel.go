@@ -77,7 +77,7 @@ const (
 // Tests are done
 func NewChannel() *Channel {
 	return &Channel{
-		Name:            "channel_" + RandomName(),
+		Name:            "channel-" + RandomName(),
 		GroupName:       Channel_KODING_NAME,
 		TypeConstant:    Channel_TYPE_DEFAULT,
 		PrivacyConstant: Channel_PRIVACY_PRIVATE,
