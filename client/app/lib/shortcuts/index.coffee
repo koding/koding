@@ -6,6 +6,7 @@ globals        = require 'globals'
 ShortcutsModal = require './views/modal'
 AppController  = require 'app/appcontroller'
 AppStorage     = require 'app/appstorage'
+Collection     = require 'app/util/collection'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '7'
@@ -302,6 +303,12 @@ class ShortcutsController extends kd.Controller
         repr[idx].models = repr[idx].models.concat value
 
     return repr
+
+
+  # Convenience method that returns a json representation as Collection.
+  #
+  toCollection: ->
+    new Collection @toJSON()
 
 
   # Convenience method that returns a _keyconfig#Collection's_ json representation
