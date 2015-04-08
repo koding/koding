@@ -47,6 +47,11 @@ module.exports = VideoCollaborationController =
     @videoModel.changeSelectedParticipant nickname
 
 
+  hasParticipantWithAudio: (nickname, callback) ->
+
+    @videoModel.hasParticipantWithAudio nickname, callback
+
+
   handleVideoAccessQuestionAsked: ->
 
 
