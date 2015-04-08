@@ -55,7 +55,7 @@ func AddChannelParticipant(channelId, requesterId int64, accountIds ...int64) (*
 	)
 }
 
-func DeleteChannelParticipant(channelId int64, requesterId, accountId ...int64) (*models.ChannelParticipant, error) {
+func DeleteChannelParticipant(channelId int64, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/remove?accountId=%d", channelId, requesterId)
 	return channelParticipantOp(
 		url,
@@ -65,7 +65,7 @@ func DeleteChannelParticipant(channelId int64, requesterId, accountId ...int64) 
 	)
 }
 
-func BlockChannelParticipant(channelId int64, requesterId, accountId ...int64) (*models.ChannelParticipant, error) {
+func BlockChannelParticipant(channelId int64, requesterId int64, accountIds ...int64) (*models.ChannelParticipant, error) {
 	url := fmt.Sprintf("/channel/%d/participants/block?accountId=%d", channelId, requesterId)
 	return channelParticipantOp(
 		url,
