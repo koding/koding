@@ -38,6 +38,7 @@ type NotificationMessage struct {
 	Actor          string
 	ActorHash      string
 	ActorLink      string
+	ActorSlug      string
 	Message        string
 	MessageSlug    string
 	Action         string
@@ -53,7 +54,7 @@ func (n *NotificationMessage) ToMap() map[string]interface{} {
 		"action":      n.Action,
 		"objectType":  n.ObjectType,
 		"actorAvatar": buildActorAvatar(n.ActorHash),
-		"actorLink":   buildActorLink(n.Hostname, n.Actor),
+		"actorLink":   buildActorLink(n.Hostname, n.ActorSlug),
 		"messageLink": buildMessageLink(n.Hostname, n.MessageSlug),
 		"createdAt":   formatMessageCreatedAt(n.CreatedAt, n.TimezoneOffset),
 	}

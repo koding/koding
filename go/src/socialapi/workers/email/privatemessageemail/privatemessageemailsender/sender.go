@@ -144,9 +144,14 @@ func (c *Controller) StartWorker(currentPeriod int) {
 			messages := []*emailmodels.PrivateMessage{}
 
 			for _, msg := range channel.MessageSummaries {
+				suffix := ""
+				if msg.IsNicknameShown {
+					suffix = ":"
+				}
+
 				message := &emailmodels.PrivateMessage{
 					CreatedAt: msg.Time,
-					Actor:     msg.Nickname,
+					Actor:     msg.Nickname + suffix,
 					Message:   msg.Body,
 				}
 
