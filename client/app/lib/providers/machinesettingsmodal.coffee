@@ -37,6 +37,11 @@ PANE_CONFIG = [
     viewClass   : KDView
     viewOptions : partial: 'Disk Usage'
   }
+  {
+    title       : 'Shared VM'
+    viewClass   : KDView
+    viewOptions : partial : 'Shared VM'
+  }
 ]
 
 
