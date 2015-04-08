@@ -1,133 +1,82 @@
 .shortcuts-modal
 
-  &.kdmodal .kdmodal-inner .kdmodal-content
-    overflow                hidden
+  &.kdmodal .kdmodal-inner
+    .kdmodal-title
+      margin-top 22px
 
-.shortcuts-pane
+      span.title
+        font-size 22px !important
 
-    .shortcuts-list
-      .row
-        cursor: pointer
-      .row:hover
-        background-color #ffd
-      .row.selected
-        background-color #ddfdd3
+    .kdmodal-content
+      overflow hidden
 
+      div.instructions
+        margin-bottom 15px
+        font-size .97em
+        color #333
 
+      .kdtabpaneview
+        background transparent !important
 
-.shortcuts-head
-  padding                   0px 0px 12px
+        .kdlistview
+          display table
+          width: 100% !important
 
-  p
-    color                   #000 !important
-    font-size               16px !important
+          div.kdlistitemview
+            display table-row
+            width 100% !important
+            clear both
 
+            .col
+              display table-column
+              width 45%
+              float left
+              font-size 14px
+              line-height 22px
+              padding 4px 16px
+              borderBox()
 
-.shortcuts-list
+              > *
+                display table-cell
+                vertical-align middle
 
-  display                   table
-  width                     100% !important
+            .col:first-child
+              width 10%
+              text-align center
 
-  div.row:nth-child(even)
-    bg                      color #f1f1f1
+      .kdtabhandlecontainer
+        background-color transparent !important
+        border none
+        margin 0 0 13px 0
+        max-width 600px
+        padding 0
+        height 36px
+        borderBox()
+        shadow inset 0 -2px 0 #e0e0e0
 
-  div.row
-    display                 table-row
-    width                   100% !important
-    clear                   both
-    bg                      color, #fafafa
+        .kdtabhandle
+          background-color transparent !important
+          border none
+          height 36px
+          noTextDeco()
+          fl()
 
-    &.updated
-      bg                    color paleRed
-      div.col:first-child span:before
-        content             "*"
-        display             inline
+          b
+            display inline !important
+            text-decoration none
+            height 36px
+            line-height 20px
+            color #969696
+            text-align left
+            font-size 16px
+            borderBox()
 
-    div.col
-      display               table-column
-      width                 40%
-      float                 left
-      font-size             14px
-      line-height           22px
-      padding               4px 16px
-      borderBox()
+          &.active
+            shadow inset 0 -2px 0 #01B05A
+            background none
 
-      > *
-        display             table-cell
-        vertical-align      middle
+            b
+              color #01B05A !important
 
-      .keys
-        i
-          padding           2px 4px
-          border-radius     3px
-          border            1px solid #ccc
-          text-transform    uppercase
-          font-size         12px
-          margin-right      4px
-          bg                color #fff
-
-
-    div:nth-child(3)
-      width                 20% !important
-      text-align            center
-
-      .koding-on-off
-        vendor              transform, scale(0.5)
-
-.shortcuts-tab
-
-  .kdtabpaneview
-    background              transparent !important
-    border-top              1px solid #ccc
-
-    .list-head
-
-      .shortcuts-list
-        border-bottom       1px solid #ccc
-
-        div.row
-          div.col
-            background-color #f0f0f0
-            height          auto !important
-            font-weight     bold
-            font-size       12px
-          span
-            display         inline-table
-            height          auto !important
-
-        div:nth-child(3)
-          width             20% !important
-          text-align        left
-
-      .description
-        padding             8px 16px
-        background-color    #ddddda
-        border-bottom       1px solid #ccc
-
-        p
-          margin            7px 0px
-          font-size         12px
-          line-height       18px
-
-        p b
-          font-weight       bold
-
-  .kdtabhandlecontainer
-    background transparent !important
-    border-bottom 0px
-    height 29px !important
-
-    .kdtabhandle
-      color #888 !important
-      border-radius 3px 3px 0px 0px
-      height 30px !important
-
-      &.active
-        background-color #ddddda !important
-        color #333 !important
-        border 1px solid #ccc
-        border-bottom 0px
-
-      b
-        display inline !important
-        font-size 14px
+        .kdtabhandle:first-child
+          padding 0px 15px 0px 0px !important
