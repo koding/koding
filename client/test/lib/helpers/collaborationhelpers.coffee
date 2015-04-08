@@ -1,6 +1,7 @@
 helpers = require './helpers.js'
 assert  = require 'assert'
 
+messagePane = '.message-pane.privatemessage'
 
 module.exports =
 
@@ -25,5 +26,30 @@ module.exports =
             console.log 'session is active'
 
       browser
-        .waitForElementVisible  '.message-pane.privatemessage', 20000 # Assertion
+        .waitForElementVisible  messagePane, 20000 # Assertion
         .waitForElementVisible  '.status-bar a.share.active', 20000 # Assertion
+
+
+  endSessionFromStatusBar: (browser) ->
+
+    statusBarSelector = '.status-bar .collab-status'
+
+    browser
+      .waitForElementVisible  statusBarSelector, 20000
+      .waitForElementVisible  statusBarSelector + ' span', 20000
+      .click                  statusBarSelector + ' span'
+      .waitForElementVisible  '.button-container', 20000
+      .click                  '.button-container button.compact'
+
+    @endSessionModal(browser)
+
+  endSessionModal: (browser) ->
+
+    endSessionButton = '.with-buttons .kdmodal-buttons'
+
+    browser
+      .waitForElementVisible  '.with-buttons', 20000
+      .waitForElementVisible  endSessionButton, 20000
+      .click                  endSessionButton + ' button.green'
+      .waitForElementVisible  '.status-bar a.share.not-started', 20000 # Assertion
+
