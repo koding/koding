@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/koding/runner"
+	"github.com/koding/bongo"
 	"github.com/juju/ratelimit"
 	kmetrics "github.com/koding/metrics"
 
@@ -78,7 +80,10 @@ func getAccount(r *http.Request) *models.Account {
 
 	acc := models.NewAccount()
 	// err is ignored intentionally
-	acc.ByNick(session.Username)
+	err = acc.ByNick(session.Username)
+	if err != nil && err != bongo.RecordNotFound {
+	    runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())    
+	}
 
 	return acc
 }
