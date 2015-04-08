@@ -5,6 +5,24 @@ assert  = require 'assert'
 module.exports =
 
 
+  runCommandOnTerminal: (browser) ->
+
+    helpers.beginTest(browser)
+    helpers.waitForVMRunning(browser)
+
+    time = Date.now()
+
+    browser
+      .waitForElementNotVisible  '.terminal-pane .message-pane', 35000
+      .waitForElementVisible     '.terminal-pane .console span.outlined', 20000
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
+      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
+      .pause                     5000
+      .waitForElementVisible     '.terminal-pane .webterm', 25000
+      .assert.containsText       '.terminal-pane .webterm', time
+      .end()
+
+
   collapse: (browser) ->
 
     user = helpers.beginTest(browser)
@@ -58,24 +76,6 @@ module.exports =
       .waitForElementVisible   selectMenuItem, 20000
       .click                   selectMenuItem
       .pause                   2000 # required
-      .end()
-
-
-  runCommandOnTerminal: (browser) ->
-
-    helpers.beginTest(browser)
-    helpers.waitForVMRunning(browser)
-
-    time = Date.now()
-
-    browser
-      .waitForElementNotVisible  '.terminal-pane .message-pane', 35000
-      .waitForElementVisible     '.terminal-pane .console span.outlined', 20000
-      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.server.input('echo #{time}')"
-      .execute                   "window._kd.singletons.appManager.frontApp.ideViews.last.tabView.activePane.view.webtermView.terminal.keyDown({type: 'keydown', keyCode: 13, stopPropagation: function() {}, preventDefault: function() {}});"
-      .pause                     5000
-      .waitForElementVisible     '.terminal-pane .webterm', 25000
-      .assert.containsText       '.terminal-pane .webterm', time
       .end()
 
 
