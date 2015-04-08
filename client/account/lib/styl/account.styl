@@ -560,10 +560,13 @@ app.settings.styl
       .bar
         box-shadow      none
 
-  .kdlistview-default
-    border-top       1px solid #ddd
+  .kdscrollview
+    max-height       300px
     margin-top       25px
-    padding-top      15px
+    border-top       1px solid #ddd
+    padding          0 10px 10px 0
+
+    borderBox()
 
   .referral-item
     display         flex
@@ -573,13 +576,15 @@ app.settings.styl
     cursor          default
 
     &.header
-      font-size     13px
-      opacity       .6
-      &:hover
-        background  inherit !important
+      padding       10px 0 5px
+      > div
+        opacity     .6
+        color       initial !important
 
-    &:hover
-      background    #eee
+    &.waiting
+      > div
+        &:nth-child(2)
+          color       #F7B91A
 
     > div
       margin        auto
@@ -589,8 +594,20 @@ app.settings.styl
       text-overflow ellipsis
       overflow      hidden
 
+      span
+        opacity     .6
       &:nth-child(1)
         width       240px
+
+      &:nth-child(2)
+      &:nth-child(4)
+        color       #409531
+
+      &:nth-child(3)
+        opacity     .6
+
+      &:nth-child(4)
+        text-align  right
 
 
 .kdmodal.payments-modal
