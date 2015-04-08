@@ -964,7 +964,7 @@ module.exports = class JAccount extends jraphical.Module
         SocialAccount.update {
           id            : @socialApiId
           nick          : @profile.nickname
-          shareLocation : fields.shareLocation
+          settings      : {shareLocation: fields.shareLocation}
         }, callback
 
   setClientId:(@clientId)->
