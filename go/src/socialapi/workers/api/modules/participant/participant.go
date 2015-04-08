@@ -161,6 +161,82 @@ func RemoveMulti(u *url.URL, h http.Header, participants []*models.ChannelPartic
 	return response.NewOK(participants)
 }
 
+func BlockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		participants,
+	); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to block other users"))
+		}
+
+		participants[i].ChannelId = query.Id
+		if err := participants[i].Block(); err != nil {
+			return response.NewBadRequest(err)
+		}
+	}
+
+	// this could be moved into another worker, but i did not want to create a new worker that will be used
+	// for just a few times
+	go func() {
+		if err := DeleteDesertedChannelMessages(query.Id); err != nil {
+			runner.MustGetLogger().Error("Could not delete channel messages: %s", err.Error())
+		}
+	}()
+
+	go notifyParticipants(ch, models.ChannelParticipant_Removed_From_Channel_Event, participants)
+
+	return response.NewOK(participants)
+}
+
+func UnblockMulti(u *url.URL, h http.Header, participants []*models.ChannelParticipant) (int, http.Header, interface{}, error) {
+	query := request.GetQuery(u)
+
+	if err := checkChannelPrerequisites(
+		query.Id,
+		query.AccountId,
+		participants,
+	); err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	ch := models.NewChannel()
+	err := ch.ById(query.Id)
+	if err != nil {
+		return response.NewBadRequest(err)
+	}
+
+	for i := range participants {
+		// if the requester is trying to remove some other user than themselves, and they are not the channel owner
+		// return bad request
+		if participants[i].AccountId != query.AccountId && query.AccountId != ch.CreatorId {
+			return response.NewBadRequest(fmt.Errorf("User is not allowed to unblock other users"))
+		}
+
+		participants[i].ChannelId = query.Id
+		if err := participants[i].Unblock(); err != nil {
+			return response.NewBadRequest(err)
+		}
+	}
+
+	return response.NewOK(participants)
+}
+
 // DeletePrivateChannelMessages deletes all channel messages from a private message channel
 // when there are no more participants
 func DeleteDesertedChannelMessages(channelId int64) error {
@@ -261,7 +337,9 @@ func checkChannelPrerequisites(channelId, requesterId int64, participants []*mod
 
 	// return early for non private message channels
 	// no need to continue from here for other channels
-	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE && c.TypeConstant != models.Channel_TYPE_COLLABORATION {
+	if c.TypeConstant != models.Channel_TYPE_PRIVATE_MESSAGE &&
+		c.TypeConstant != models.Channel_TYPE_COLLABORATION &&
+		c.TypeConstant != models.Channel_TYPE_GROUP {
 		return nil
 	}
 

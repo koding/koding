@@ -257,6 +257,28 @@ func AddHandlers(m *mux.Mux, metric *metrics.Metrics) {
 
 	m.AddHandler(
 		handler.Request{
+			Handler:        participant.BlockMulti,
+			Name:           "participant-multi-block",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/participants/block",
+			CollectMetrics: true,
+			Metrics:        metric,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
+			Handler:        participant.UnblockMulti,
+			Name:           "participant-multi-unblock",
+			Type:           handler.PostRequest,
+			Endpoint:       "/channel/{id}/participants/unblock",
+			CollectMetrics: true,
+			Metrics:        metric,
+		},
+	)
+
+	m.AddHandler(
+		handler.Request{
 			Handler:        participant.UpdatePresence,
 			Name:           "participant-presence-update",
 			Type:           handler.PostRequest,
