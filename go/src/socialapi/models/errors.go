@@ -44,4 +44,5 @@ var (
 	ErrAccountNotFound     = errors.New("account not found")
 	ErrChannelNotFound     = errors.New("channel not found")
 	ErrParticipantNotFound = errors.New("participant not found")
+	ErrParticipantBlocked  = errors.New("participant is blocked")
 )
