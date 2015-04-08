@@ -1,30 +1,27 @@
 kd = require 'kd'
-ShortcutsListController = require './listcontroller'
-ListHead = require './listhead'
+_  = require 'lodash'
+ShortcutsListItem = require './listitem'
 
 module.exports =
 
-class ShortcutsModalPane extends kd.View
+class ShortcutsPane extends kd.View
 
-  constructor: (options={}, data) ->
+  constructor: (options={}) ->
 
-    options.cssClass = 'shortcuts-pane'
+    @collection = options.collection
 
-    @collection  = options.collection
-    @description = options.description
-
-    super options, data
+    super _.omit options, 'collection'
 
 
   viewAppended: ->
 
-    @addSubView @listHead = new ListHead
-      cssClass: 'list-head'
-      description: @description
+    listController = new kd.ListViewController
+      view: new kd.ListView
+        itemClass: ShortcutsListItem
 
-    @listController = new ShortcutsListController
+    #@collection.each (model) ->
+      #listController.addItem model
 
-    @collection.each (model) =>
-      @listController.addItem model
+    listController.addItem @collection.first()
 
-    @addSubView @listController.getView()
+    @addSubView listController.getView()
