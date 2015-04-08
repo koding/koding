@@ -1,6 +1,6 @@
 kd = require 'kd'
 _  = require 'lodash'
-BindingView = require './listitembinding.coffee'
+BindingView = require './binding.coffee'
 
 module.exports =
 
