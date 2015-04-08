@@ -178,14 +178,14 @@ func (k *Klient) RegisterMethods() {
 	k.kite.HandleFunc("klient.shared", k.collab.Shared)
 
 	// SSH keys
-	k.kite.HandleFunc("sshkeys.List", sshkeys.List)
-	k.kite.HandleFunc("sshkeys.Add", sshkeys.Add)
-	k.kite.HandleFunc("sshkeys.Delete", sshkeys.Delete)
+	k.kite.HandleFunc("sshkeys.list", sshkeys.List)
+	k.kite.HandleFunc("sshkeys.add", sshkeys.Add)
+	k.kite.HandleFunc("sshkeys.delete", sshkeys.Delete)
 
 	// Storage
-	k.kite.HandleFunc("storage.Set", k.storage.SetValue)
-	k.kite.HandleFunc("storage.Get", k.storage.GetValue)
-	k.kite.HandleFunc("storage.Delete", k.storage.DeleteValue)
+	k.kite.HandleFunc("storage.set", k.storage.SetValue)
+	k.kite.HandleFunc("storage.get", k.storage.GetValue)
+	k.kite.HandleFunc("storage.delete", k.storage.DeleteValue)
 
 	// Filesystem
 	k.kite.HandleFunc("fs.readDirectory", fs.ReadDirectory)
