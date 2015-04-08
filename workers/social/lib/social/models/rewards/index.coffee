@@ -26,6 +26,8 @@ module.exports = class JReward extends jraphical.Message
           (signature Object, Function)
         some:
           (signature Object, Object, Function)
+        fetchCustomData:
+          (signature Object, Object, Function)
 
     sharedEvents      :
       static          : []
@@ -233,6 +235,39 @@ module.exports = class JReward extends jraphical.Message
 
     @some selector, options, callback
 
+
+  @fetchCustomData = secure (client, selector, options, callback)->
+
+    # To be able to fetch earned amount first
+    # we need to extract type and unit info from selector
+    {type, unit} = selector
+    _options     = useDefault {type, unit}
+
+    @fetchEarnedAmount$ client, _options, (err, total) =>
+      return callback err  if err
+
+      @some$ client, selector, options, (err, rewards) ->
+        return callback err  if err
+
+        queue    = []
+        rewards ?= []
+
+        rewards.forEach (reward)->
+          queue.push ->
+
+            JAccount.one {_id: reward.providedBy}, (err, account)->
+              if not err and account
+                reward.providedBy = account
+              else
+                reward.providedBy = null
+                reward._hasError  = new KodingError "No user found"
+
+              queue.next()
+
+        queue.push ->
+          callback null, {total, rewards}
+
+        daisy queue
 
 
   # Background Processes
