@@ -547,7 +547,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 	Convey("while removing participant from a channel", t, func() {
 		Convey("channel should have id", func() {
 			c := NewChannel()
-			err := c.RemoveParticipant(123)
+			err := c.removeParticipation(ChannelParticipant_STATUS_LEFT, 123)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
@@ -556,7 +556,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
 			account := CreateAccountWithTest()
-			err := c.RemoveParticipant(account.Id)
+			err := c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 		})
 
@@ -567,7 +567,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 
-			err = c.RemoveParticipant(account.Id)
+			err = c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 		})
 
@@ -579,10 +579,10 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 
-			err = c.RemoveParticipant(account.Id)
+			err = c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 			// try to remove it again
-			err = c.RemoveParticipant(account.Id)
+			err = c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 		})
 
