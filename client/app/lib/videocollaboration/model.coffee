@@ -492,3 +492,18 @@ module.exports = class VideoCollaborationModel extends kd.Object
   setState: (state) -> @state = _.assign {}, @state, state
 
 
+  ###*
+   * Check to see if participant with given nickname, and calls the callback
+   * with result.
+   *
+   * @param {string} nickname
+   * @param {function(hasAudio: boolean)} callback
+  ###
+  hasParticipantWithAudio: (nickname, callback) ->
+    return callback no  unless @state.active
+
+    if participant = @getParticipant nickname
+    then callback participant.videoData.stream.hasAudio
+    else callback no
+
+
