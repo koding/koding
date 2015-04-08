@@ -57,7 +57,6 @@ module.exports = class IDEFinderTreeController extends NFinderTreeController
 
     IDEHelpers.createWorkspace options
 
-    @once 'WorkspaceCreated', (workspace) =>
-      { activitySidebar } = kd.singletons.mainView
-      machineBox = activitySidebar.getMachineBoxByMachineUId machineUId
-      machineBox.addWorkspace workspace, yes
+    {activitySidebar} = kd.singletons.mainView
+
+    @once 'WorkspaceCreated', activitySidebar.bound 'addWorkspace'
