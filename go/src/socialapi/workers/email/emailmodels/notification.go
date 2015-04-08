@@ -73,7 +73,7 @@ func (p *PrivateMessageChannel) ToMap() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"data": results, "subtitle": p.Subtitle,
+		"nestedMessages": results, "subtitle": p.Subtitle,
 		"actorAvatar": buildActorAvatar(p.ActorHash),
 	}
 }
@@ -86,7 +86,7 @@ type PrivateMessage struct {
 
 func (p *PrivateMessage) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"createdAt": p.CreatedAt, "actor": p.Actor,
+		"createdAt": p.CreatedAt, "actor": p.Actor, "message": p.Message,
 	}
 }
 
@@ -106,7 +106,7 @@ func formatMessageCreatedAt(createdAt time.Time, timezoneOffset int) string {
 }
 
 func buildActorAvatar(hash string) string {
-	return "https://gravatar.com/avatar/" + hash + "?size=35&d=https%3A%2F%2Fkoding-cdn.s3.amazonaws.com%2Fimages%2Fdefault.avatar.35.png"
+	return "https://gravatar.com/avatar/" + hash + "?size=35&d=https%3A%2F%2Fkoding-cdn.s3.amazonaws.com%2Fsquare-avatars%2Fdefault.avatar.35.png"
 }
 
 func buildActorLink(hostname, actor string) string {

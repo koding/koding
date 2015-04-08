@@ -142,6 +142,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 
 		for _, channel := range channels {
 			messages := []*emailmodels.PrivateMessage{}
+
 			for _, msg := range channel.MessageSummaries {
 				message := &emailmodels.PrivateMessage{
 					CreatedAt: msg.Time,
