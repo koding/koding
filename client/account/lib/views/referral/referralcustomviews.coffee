@@ -65,21 +65,20 @@ module.exports = class ReferralCustomViews extends CustomViews
     list: ({data, itemClass}) ->
 
       itemClass ?= require './accountreferralsystemlistitem'
-      controller = new kd.ListViewController {
-        itemClass, scrollView: yes
-      }
+      controller = new kd.ListViewController { itemClass, scrollView: yes }
       controller.replaceAllItems data
 
-      list = controller.getListView()
+      list   = controller.getListView()
+      header = new kd.ListItemView {cssClass: 'referral-item header'}, {}
 
-      list.addItemView (new itemClass
-        cssClass     : 'header'
-      ,
-        friend       : "Friend"
-        status       : "Status"
-        lastActivity : "Last Activity"
-        spaceEarned  : "Space Earned"
-      ), 0
+      header.partial = -> "
+        <div>Friend</div>
+        <div>Status</div>
+        <div>Last Activity</div>
+        <div>Space Earned</div>
+      "
+
+      list.addItemView header, 0
 
       __view = controller.getView()
       return { __view, controller }
