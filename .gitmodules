@@ -7,6 +7,6 @@
 [submodule "client/landing"]
 	path = client/landing
 	url = git@github.com:koding/landing.git
-[submodule "go/geoipdb"]
-	path = go/geoipdb
+[submodule "go/data/geoipdb"]
+	path = go/data/geoipdb
 	url = https://github.com/koding/geolite2-city.git
