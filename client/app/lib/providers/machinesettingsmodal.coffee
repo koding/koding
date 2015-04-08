@@ -46,8 +46,6 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   constructor: (options = {}, data) ->
 
-    window.ali = this
-
     options.cssClass = 'machine-settings-modal AppModal'
     options.title    = 'VM Settings'
     options.width    = 805
