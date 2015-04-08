@@ -288,7 +288,14 @@ module.exports = class VideoCollaborationModel extends kd.Object
     return  unless _participant = @subscribers[connectionId]
     @unregisterSubscriber connectionId
 
-    @emit 'ParticipantLeft', { nick: _participant.nick }
+    { nick } = _participant
+    @emit 'ParticipantLeft', {nick}
+
+    # if leaving participant is selected or active participant
+    if @state.activeParticipant is nick
+      @changeActiveParticipant getNick()
+      if @state.selectedParticipant is nick
+        @setSelectedParticipant null
 
     return _participant
 
