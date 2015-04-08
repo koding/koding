@@ -77,12 +77,15 @@ module.exports = class SidebarMachineBox extends KDView
 
   addWorkspace: (wsData, storeData = no) ->
 
-    @listController.addItem wsData
+    unless @listController.itemForId wsData.getId()
+      @listController.addItem wsData
 
     return  unless storeData
 
     { workspaces } = @getData()
-    workspaces.push wsData
+
+    if workspaces.indexOf(wsData) is -1
+      workspaces.push wsData
 
 
   removeWorkspace: (wsId) ->
