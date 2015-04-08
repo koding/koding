@@ -484,6 +484,11 @@ module.exports = class LoginView extends JView
 
     formData.agree    = 'on'
 
+    unless formData.referrer
+      {mainController}  = KD.singletons
+      referrer          = KD.utils.getReferrer() or mainController._referrer
+      formData.referrer = referrer  if referrer
+
     form or= @registerForm
     form.notificationsDisabled = yes
     form.notification?.destroy()

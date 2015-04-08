@@ -21,6 +21,10 @@ module.exports = class MainControllerLoggedOut extends KDController
 
     @setupPageAnalyticsEvent()
 
+    KD.utils.defer =>
+      # Keep referrer (if available) in memory
+      @_referrer = KD.utils.getReferrer()
+
   createSingletons:->
 
     KD.registerSingleton 'mainController',            this
@@ -57,4 +61,3 @@ module.exports = class MainControllerLoggedOut extends KDController
 
       return  unless args
       KD.utils.trackPage args
-
