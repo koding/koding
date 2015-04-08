@@ -18,3 +18,9 @@ module.exports =
     collaborationHelpers.endSessionFromStatusBar(browser)
     browser.end()
 
+
+  endSessionFromChat: (browser) ->
+
+    collaborationHelpers.startSession(browser)
+    collaborationHelpers.endSessionFromChat(browser)
+    browser.end()
