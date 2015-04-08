@@ -329,3 +329,6 @@ utils.extend utils,
 
   getFirstPartOfpath: (path)-> return path.split('/')[1] or '/'
 
+  getReferrer: ->
+    match = location.pathname.match /\/R\/(.*)/
+    return referrer  if match and referrer = match[1]
