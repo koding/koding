@@ -1,46 +1,43 @@
-kd               = require 'kd'
-JView            = require 'app/jview'
-KodingSwitch     = require 'app/commonviews/kodingswitch'
-BindingView      = require './listitembinding'
+kd = require 'kd'
+_  = require 'lodash'
+BindingView = require './listitembinding.coffee'
 
 module.exports =
 
 class ShortcutsListItem extends kd.ListItemView
 
-  JView.mixin @prototype
+  constructor: (options={}, @model) ->
 
-  constructor: (options={}, model) ->
-
-    options.tagName or= 'div'
-    options.cssClass or= 'row'
-
-    @enabledView = new KodingSwitch
-    @bindingView = new BindingView {}, model
-
-    super options, model
-
-    @bindingView.input.on 'blur', @bound 'hideInput'
-    @bindingView.on 'KeybindingUpdated', => @setClass 'updated'
+    super options
 
 
-  click: -> @showInput()  unless @active
+  viewAppended: ->
 
+    toggleButton = new kd.ToggleButton
+      cssClass: 'topic-follow-btn'
+      defaultState: 'Enabled'
+      loader:
+        color: '#7d7d7d'
+      icon: yes
 
-  hideInput: ->
+      states: [
+        title: 'Enabled'
+        cssClass: 'enabled'
+        callback: ->
+      ,
+        title: 'Disabled'
+        cssClass: 'disabled'
+        callback: ->
+      ]
 
-    @bindingView.hideEditMode()
-    @active = no
+    toggleView = new kd.View cssClass: 'col'
 
+    toggleView.addSubView toggleButton
 
-  showInput: ->
+    @addSubView toggleView
 
-    @bindingView.showEditMode()
-    @active = yes
+    @addSubView new kd.View
+      cssClass : 'col'
+      partial  : _.escape @model.description
 
-
-  pistachio: ->
-    """
-    <div class=col>{{ #(description)}}</div>
-    <div class=col>{{> @bindingView }}</div>
-    <div class=col>{{> @enabledView }}</div>
-    """
+    @addSubView new BindingView null, @model
