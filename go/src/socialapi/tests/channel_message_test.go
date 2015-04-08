@@ -95,14 +95,13 @@ func TestChannelMessage(t *testing.T) {
 		})
 
 		Convey("Message should have location if user allowed", func() {
-			location := make(map[string]interface{})
-			location["saveLocation"] = "Manisa"
-			post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, location)
+			payload := make(map[string]interface{})
+			payload["saveLocation"] = "Manisa"
+			post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, payload)
 			So(err, ShouldBeNil)
 			So(post, ShouldNotBeNil)
 			So(post.Payload, ShouldNotBeNil)
 			So(*(post.Payload["saveLocation"]), ShouldEqual, "Manisa")
-			fmt.Println(post.Payload)
 		})
 
 		// handled by social worker
