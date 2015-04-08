@@ -390,7 +390,7 @@ module.exports = class LoginView extends JView
     @signupModal.once 'viewAppended', =>
 
       @signupModal.addSubView new KDCustomHTMLView
-        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
+        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/Legal/Terms" target="_blank"> Terms of Service</a> and <a href="/Legal/Privacy" target="_blank">Privacy Policy.</a></div>"""
 
       KD.utils.defer ->
         usernameView.input.setFocus()

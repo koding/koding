@@ -406,7 +406,7 @@ module.exports = class LoginView extends JView
     modal.once 'viewAppended', ->
 
       modal.addSubView new KDCustomHTMLView
-        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/tos.html" target="_blank"> Terms of Service</a> and <a href="/privacy.html" target="_blank">Privacy Policy.</a></div>"""
+        partial : """<div class='hint accept-tos'>By creating an account, you accept Koding's <a href="/Legal/Terms" target="_blank"> Terms of Service</a> and <a href="/Legal/Privacy" target="_blank">Privacy Policy.</a></div>"""
 
       KD.utils.defer ->
         modal.modalTabs.forms.extraInformation.inputs.username.input.setFocus()

@@ -19,7 +19,7 @@ module.exports = class FooterView extends KDView
         <a href="http://koding.com/Activity" target="_blank">Community</a>
         <a href="/About">Careers</a>
         <a href="/About">About</a>
-        <a href="/tos.html" target="_blank">Legal</a>
+        <a href="/Legal/Terms" target="_blank">Legal</a>
       </nav>
 
       <nav class="footer-block">
