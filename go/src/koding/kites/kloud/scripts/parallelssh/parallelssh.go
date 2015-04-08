@@ -6,8 +6,12 @@ import (
 	"io"
 	"koding/db/models"
 	"koding/db/mongodb"
+	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/sshutil"
+	"log"
 	"os"
+	"strings"
 	"text/tabwriter"
 	"time"
 
@@ -87,9 +91,21 @@ func realMain() error {
 	defer w.Flush()
 
 	// search via username, mongodb -> aws
-	ms, err := machinesFromUsername(db)
+	ms, err := badUserMachines(db)
 	if err == nil {
+
+		ips := make([]string, 0)
+		for _, machine := range ms.docs {
+			if machine.IpAddress == "" {
+				continue
+			}
+
+			ips = append(ips, machine.IpAddress)
+		}
+
 		ms.Print(w)
+
+		fmt.Printf("len(ips) = %+v\n", len(ips))
 	} else {
 		fmt.Fprintf(os.Stderr, err.Error())
 	}
@@ -97,7 +113,7 @@ func realMain() error {
 	return nil
 }
 
-func machinesFromUsername(db *mongodb.MongoDB) (*machines, error) {
+func badUserMachines(db *mongodb.MongoDB) (*machines, error) {
 	from, err := time.Parse(time.RFC3339, "2015-04-07T13:15:00Z")
 	if err != nil {
 		return nil, err
@@ -108,21 +124,44 @@ func machinesFromUsername(db *mongodb.MongoDB) (*machines, error) {
 		return nil, err
 	}
 
-	machines := newMachines()
+	users := make([]models.User, 0)
 	err = db.Run("jUsers", func(c *mgo.Collection) error {
-		var m MachineDocument
+		var user models.User
 		iter := c.Find(bson.M{"registeredAt": bson.M{
 			"$gte": from.UTC(),
 			"$lt":  to.UTC(),
 		},
 		}).Iter()
 
-		for iter.Next(&m) {
-			machines.docs = append(machines.docs, m)
+		for iter.Next(&user) {
+			users = append(users, user)
 		}
 
 		return iter.Close()
 	})
+
+	machines := newMachines()
+	for _, user := range users {
+		fmt.Println("searching for ", user.ObjectId)
+		var m MachineDocument
+		err := db.Run("jMachines", func(c *mgo.Collection) error {
+			return c.Find(
+				bson.M{"users": bson.M{
+					"$elemMatch": bson.M{
+						"id":    user.ObjectId,
+						"sudo":  true,
+						"owner": true,
+					},
+				}}).One(&m)
+		})
+
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Printf("m.IpAddress = %+v\n", m.IpAddress)
+		machines.docs = append(machines.docs, m)
+	}
 
 	return machines, err
 }
@@ -139,6 +178,18 @@ type machines struct {
 
 func (m *machines) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= MongoDB ('%d' docs) ==========\n", len(m.docs))
+
+	for _, machine := range m.docs {
+		fmt.Fprintf(w, "Username:\t%s\n", machine.Credential)
+		fmt.Fprintf(w, "MachineId:\t%s\n", machine.Id.Hex())
+		fmt.Fprintf(w, "Instance Id:\t%s\n", machine.Meta.InstanceId)
+		fmt.Fprintf(w, "Instance Type:\t%s\n", machine.Meta.InstanceType)
+		fmt.Fprintf(w, "Region:\t%s\n", machine.Meta.Region)
+		fmt.Fprintf(w, "IP Address:\t%s\n", machine.IpAddress)
+		fmt.Fprintf(w, "Storage Size:\t%d\n", machine.Meta.StorageSize)
+		fmt.Fprintf(w, "Status:\t%s (%s)\n", machine.Status.State, machine.Status.Reason)
+		fmt.Fprintln(w)
+	}
 }
 
 type instance struct {
@@ -192,4 +243,25 @@ func awsData(client *ec2.EC2, instanceId string) (*instance, error) {
 		ec2:    i,
 		volume: volume,
 	}, nil
+}
+
+func executeSSHCommand(ipAddress, command string) (string, error) {
+	sshConfig, err := sshutil.SshConfig("root", publickeys.DeployPrivateKey)
+	if err != nil {
+		return "", err
+	}
+
+	log.Printf("Connecting to machine with ip '%s' via ssh\n", ipAddress)
+	sshClient, err := sshutil.ConnectSSH(ipAddress+":22", sshConfig)
+	if err != nil {
+		return "", err
+	}
+
+	log.Printf("Testing SSH deployment")
+	output, err := sshClient.StartCommand(command)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(output)), nil
 }
