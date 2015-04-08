@@ -205,7 +205,7 @@ class ShortcutsController extends kd.Controller
   #
   showModal: ->
 
-    modal = new ShortcutsModal {}, @toCollection()
+    modal = new ShortcutsModal null, @toCollection()
 
 
   # Proxy to _shortcuts#get_.
