@@ -1,6 +1,5 @@
 kd                  = require 'kd'
 remote              = require('app/remote').getInstance()
-timeago             = require 'timeago'
 showError           = require 'app/util/showError'
 ReferralCustomViews = require './referralcustomviews'
 
@@ -9,7 +8,7 @@ module.exports      = class AccountReferralSystem extends kd.View
 
   ReferralCustomViews.mixin @prototype
 
-  buildViews: ({total, data})->
+  buildViews: ({total, rewards})->
 
     average = 6
     total  /= 1000
@@ -32,35 +31,17 @@ module.exports      = class AccountReferralSystem extends kd.View
           max            : Math.max total, average
           current        : total
           color          : if total > average then 'green' else 'yellow'
-        list             : {data}
+        list             : data: rewards
 
 
   viewAppended: ->
 
     loader = @addTo this, loader: 'initial-loader'
-    @fetchData (err, {total, data})=>
+
+    remote.api.JReward.fetchCustomData
+      type  : 'disk'
+    , limit : 30
+    , (err, data) =>
+
+      @buildViews data  unless showError err
       loader.destroy()
-      unless showError err
-        @buildViews {total, data}
-
-
-  # TODO Move this to backend ~ GG
-  fetchData: (callback)->
-
-    {JReward} = remote.api
-    JReward.fetchEarnedAmount type: 'disk', (err, total) =>
-      return callback err  if err
-
-      JReward.some {type: 'disk'}, {limit: 30}, (err, rewards) =>
-        return callback err  if err
-
-        data = []
-
-        rewards.forEach (reward)->
-          data.push
-            friend       : reward.providedBy
-            status       : 'claimed'
-            lastActivity : timeago reward.createdAt
-            spaceEarned  : reward.amount
-
-        callback null, {total, data}
