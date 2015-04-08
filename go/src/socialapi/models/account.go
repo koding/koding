@@ -4,9 +4,27 @@ import (
 	"fmt"
 	"socialapi/request"
 	"strings"
-
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
+
+type AccountSettings gorm.Hstore 
+
+func (a *AccountSettings) IsShareLocationEnabled() bool {
+    if a == nil {
+    return false
+    }
+    shareLocation, ok := gorm.Hstore(*a)["shareLocation"]
+    if !ok {
+        return false
+        }
+        
+        if shareLocation == nil {
+            return false
+            }
+            
+            return *shareLocation == "true" 
+}
 
 type Account struct {
 	// unique id of the account
@@ -23,8 +41,8 @@ type Account struct {
 	// unique account nicknames
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 
-	// ShareLocation is a setting for users for sharing their location on socialapi
-	ShareLocation bool `json:"shareLocation"`
+	// ShareLocation is a setting for users on socialapi
+	Settings gorm.Hstore `json:"settings"`
 
 	// unique account tokens used for pubnub authentication
 	Token string `json:"-"`
