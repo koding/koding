@@ -12,4 +12,10 @@ run:
 backend: configure
 	@./run backend
 
+services: configure
+	@./run services
+
+buildservices:
+	@./run buildservices
+
 .PHONY: configure run
