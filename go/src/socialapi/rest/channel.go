@@ -77,6 +77,22 @@ func FetchChannelsByGroupName(accountId int64, groupName string) ([]*models.Chan
 	return channels, nil
 }
 
+func FetchChannelByName(accountId int64, name, groupName, typeConstant, token string) (*models.Channel, error) {
+	url := fmt.Sprintf("/channel/name/%s?groupName=%s&type=%s&accountId=%d", name, groupName, typeConstant, accountId)
+	res, err := sendRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ccs := &models.ChannelContainer{}
+	err = json.Unmarshal(res, ccs)
+	if err != nil {
+		return nil, err
+	}
+
+	return ccs.Channel, nil
+}
+
 func DeleteChannel(creatorId, channelId int64) error {
 	c := models.NewChannel()
 	c.CreatorId = creatorId
@@ -167,6 +183,27 @@ func GetChannel(id int64) (*models.Channel, error) {
 	cc = cmI.(*models.ChannelContainer)
 
 	return cc.Channel, nil
+}
+
+func SearchChannels(q *request.Query) ([]*models.Channel, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/channel/search?%s", v.Encode())
+	res, err := sendRequestWithAuth("GET", url, nil, "")
+	if err != nil {
+		return nil, err
+	}
+
+	channels := make([]*models.Channel, 0)
+	err = json.Unmarshal(res, &channels)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
 }
 
 func CreateGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {

@@ -106,7 +106,7 @@ func validate(ping *models.Ping) error {
 func (c *Controller) Ping(ping *models.Ping) error {
 	c.log.Debug("new ping %+v", ping)
 	if err := validate(ping); err != nil {
-		c.log.Error("validation error:", err.Error())
+		c.log.Error("validation error:%s", err.Error())
 		return nil
 	}
 
