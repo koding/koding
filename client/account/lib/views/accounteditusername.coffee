@@ -201,6 +201,11 @@ module.exports = class AccountEditUsername extends JView
           notify "Passwords did not match"
           @emailForm.buttons.Save.hideLoader()
           return
+        #check passworg lenght
+        if password.length < 8
+          notify "Passwords should be at least 8 characters"
+          @emailForm.buttons.Save.hideLoader()
+          return
         # if password is empty than discard operation
         if password is ""
           {token} = kd.utils.parseQuery()
