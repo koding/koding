@@ -1,13 +1,12 @@
 kd = require 'kd'
 Promise = require 'bluebird'
-KDObject = kd.Object
+Machine = require 'app/providers/machine'
 
 
-module.exports = class SshKey extends KDObject
+module.exports = class SshKey
 
   constructor: (options) ->
 
-    super
     { @key } = options
 
 
@@ -19,14 +18,13 @@ module.exports = class SshKey extends KDObject
     request = keys: [ @key ]
 
     machines.forEach (machine) ->
+      return  unless machine.status.state is Machine.State.Running
+
       kite = machine.getBaseKite()
       p = kite.init().then ->
         kite.sshKeysAdd request
       promises.push p
 
     Promise
-      .any promises
-      .then ->
-        callback()
-      .catch (errs) ->
-      	callback errs[0]
+      .all promises
+      .nodeify callback

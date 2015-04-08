@@ -20,11 +20,12 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
 
     @loadItems()
 
-    @getListView().on "UpdatedItems",     @bound 'saveItems'
-    @getListView().on "RemoveItem",       @bound 'deleteItem'
-    @getListView().on "NewItemSubmitted", @bound 'submitNewItem'
-    @getListView().on "EditItem",         @bound 'editItem'
-    @getListView().on "CancelItem",       @bound 'cancelItem'
+    listView = @getListView()
+    listView.on "UpdatedItems",     @bound 'saveItems'
+    listView.on "RemoveItem",       @bound 'deleteItem'
+    listView.on "NewItemSubmitted", @bound 'submitNewItem'
+    listView.on "EditItem",         @bound 'editItem'
+    listView.on "CancelItem",       @bound 'cancelItem'
 
 
   loadItems: ()->

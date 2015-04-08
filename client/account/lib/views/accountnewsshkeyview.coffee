@@ -150,10 +150,7 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     @buttonsBar.buttons.save.hideLoader()
 
 
-  partial:(data)->
-    """
-      <div class='swappableish swappable-wrapper posstatic'></div>
-    """
+  partial: -> '<div class="swappableish swappable-wrapper posstatic"></div>'
 
 
   errorHandled: (err) ->
@@ -161,4 +158,4 @@ module.exports = class AccountNewSshKeyView extends KDListItemView
     isInvalidKey = err.message?.indexOf('invalid authorized_key') > -1
     return showError 'Sorry, the SSH key is not in a valid format.'  if isInvalidKey
 
-    showError err.message
+    showError err
