@@ -281,10 +281,14 @@ func (c *Channel) removeParticipation(typeConstant string, participantIds ...int
 			return err
 		}
 
+		if cp.StatusConstant == typeConstant {
+			continue
+		}
+
 		// if status of the participant is left or blocked (participant is not in
 		// the channel), do nothing
-		if cp.StatusConstant == ChannelParticipant_STATUS_LEFT &&
-			cp.StatusConstant == ChannelParticipant_STATUS_BLOCKED {
+		if cp.StatusConstant == ChannelParticipant_STATUS_BLOCKED &&
+			typeConstant == ChannelParticipant_STATUS_LEFT {
 			continue
 		}
 
