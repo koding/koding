@@ -1696,3 +1696,59 @@ paymentGrayLighter  = #f8f8f8
 .machine-settings-modal.AppModal
   .AppModal-nav
     min-height              315px
+
+.machine-settings-modal.AppModal
+  .AppModal-navItem:before
+    content                 ''
+    display                 inline-block
+    vertical-align          sub
+    margin-right            13px
+
+  .AppModal-navItem.general
+    &:before
+      r-sprite              'app' 'ms-general'
+
+    &.active:before
+      r-sprite              'app' 'ms-general-active'
+
+  .AppModal-navItem.advanced
+    &:before
+      r-sprite              'app', 'ms-advanced'
+
+    &.active:before
+      r-sprite              'app', 'ms-advanced-active'
+
+  .AppModal-navItem.guides
+    &:before
+      r-sprite              'app', 'ms-guides'
+
+    &.active:before
+      r-sprite              'app', 'ms-guides-active'
+
+  .AppModal-navItem.domains
+    &:before
+      r-sprite              'app', 'ms-domains'
+
+    &.active:before
+      r-sprite              'app', 'ms-domains-active'
+
+  .AppModal-navItem.specs
+    &:before
+      r-sprite              'app', 'ms-specs'
+
+    &.active:before
+      r-sprite              'app', 'ms-specs-active'
+
+  .AppModal-navItem.disk-usage
+    &:before
+      r-sprite              'app', 'ms-disk-usage'
+
+    &.active:before
+      r-sprite              'app', 'ms-disk-usage-active'
+
+  .AppModal-navItem.shared-vm
+    &:before
+      r-sprite              'app', 'ms-shared-vms'
+
+    &.active:before
+      r-sprite              'app', 'ms-shared-vm-active'
