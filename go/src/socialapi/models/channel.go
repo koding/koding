@@ -54,10 +54,12 @@ type Channel struct {
 
 // to-do check for allowed channels
 const (
+	ChannelLinkedPrefix = "linked"
 	// TYPES
 	Channel_TYPE_GROUP           = "group"
 	Channel_TYPE_ANNOUNCEMENT    = "announcement"
 	Channel_TYPE_TOPIC           = "topic"
+	Channel_TYPE_LINKED_TOPIC    = ChannelLinkedPrefix + Channel_TYPE_TOPIC
 	Channel_TYPE_FOLLOWINGFEED   = "followingfeed"
 	Channel_TYPE_FOLLOWERS       = "followers"
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
@@ -361,6 +363,10 @@ func (c *Channel) AddMessage(cm *ChannelMessage) (*ChannelMessageList, error) {
 	cml.ClientRequestId = cm.ClientRequestId
 
 	if err := cml.Create(); err != nil {
+		if IsUniqueConstraintError(err) {
+			return nil, ErrMessageAlreadyInTheChannel
+		}
+
 		return nil, err
 	}
 
@@ -493,6 +499,10 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		return nil, ErrGroupNameIsNotSet
 	}
 
+	if q.Type == "" {
+		q.Type = Channel_TYPE_TOPIC
+	}
+
 	var channels []Channel
 
 	bongoQuery := &bongo.Query{
@@ -503,6 +513,9 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 		},
 		Pagination: *bongo.NewPagination(q.Limit, q.Skip),
 	}
+
+	// this will hide moderation needed channels
+	bongoQuery.AddScope(RemoveModerationNeededContent(c, false))
 
 	bongoQuery.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
@@ -524,11 +537,17 @@ func (c *Channel) Search(q *request.Query) ([]Channel, error) {
 	return channels, nil
 }
 
+// ByName fetches the channel by name, type_constant and group_name, it doesnt
+// have the best name, but evolved to this situation :/
 func (c *Channel) ByName(q *request.Query) (Channel, error) {
 	var channel Channel
 
 	if q.GroupName == "" {
 		return channel, ErrGroupNameIsNotSet
+	}
+
+	if q.Type == "" {
+		q.Type = Channel_TYPE_TOPIC
 	}
 
 	query := &bongo.Query{
@@ -542,8 +561,23 @@ func (c *Channel) ByName(q *request.Query) (Channel, error) {
 
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
-	if err := c.One(query); err != nil {
+	err := c.One(query)
+	if err != nil && err != bongo.RecordNotFound {
 		return channel, err
+	}
+
+	// try to fetch it's root
+	if err == bongo.RecordNotFound {
+		query.Selector["type_constant"] = ChannelLinkedPrefix + q.Type
+		if err := c.One(query); err != nil {
+			return channel, err
+		}
+
+		if root, err := c.FetchRoot(); err != nil {
+			return channel, err
+		} else {
+			return channel, ErrChannelIsLeafFunc(root.Name, root.TypeConstant)
+		}
 	}
 
 	return *c, nil
@@ -567,6 +601,8 @@ func (c *Channel) List(q *request.Query) ([]Channel, error) {
 		query.Selector["type_constant"] = q.Type
 	}
 
+	// this will hide moderation needed channels
+	query.AddScope(RemoveModerationNeededContent(c, false))
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 
 	err := c.Some(&channels, query)
@@ -921,4 +957,18 @@ func (c *Channel) deleteChannelLists() (map[int64]struct{}, error) {
 			return messageMap, nil
 		}
 	}
+}
+
+// FetchRoot fetches the root of a channel if linked
+func (c *Channel) FetchRoot() (*Channel, error) {
+	cl := NewChannelLink()
+	cl.LeafId = c.Id
+	return cl.FetchRoot()
+}
+
+// FetchLeaves fetches the leaves of a channel if linked
+func (c *Channel) FetchLeaves() ([]Channel, error) {
+	cl := NewChannelLink()
+	cl.RootId = c.Id
+	return cl.List(request.NewQuery())
 }

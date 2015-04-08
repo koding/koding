@@ -150,6 +150,12 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	klientFolder := "development/latest"
+	checkInterval := time.Second * 5
+	if conf.ProdMode {
+		k.Log.Info("Prod mode enabled")
+		klientFolder = "production/latest"
+		checkInterval = time.Millisecond * 500
+	}
 	k.Log.Info("Klient distribution channel is: %s", klientFolder)
 
 	modelhelper.Initialize(conf.MongoURL)
@@ -192,13 +198,6 @@ func newKite(conf *Config) *kite.Kite {
 		CheckerFetcher: &plans.KodingChecker{
 			NetworkUsageEndpoint: conf.NetworkUsageEndpoint,
 		},
-	}
-
-	checkInterval := time.Second * 5
-	if conf.ProdMode {
-		k.Log.Info("Prod mode enabled")
-		klientFolder = "production/latest"
-		checkInterval = time.Millisecond * 500
 	}
 
 	go kodingProvider.RunChecker(checkInterval)

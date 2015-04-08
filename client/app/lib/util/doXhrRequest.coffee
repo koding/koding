@@ -28,15 +28,8 @@ module.exports = (options = {}, callback) ->
       }
 
 
-    # >=400 - http errors
-    if xhr.status >= 400
-      return callback {
-        message : response.description
-        code    : xhr.status
-      }
-
-
-    if xhr.status not in [200, 304]
+    # >=300 - http errors
+    if xhr.status >= 300
       return callback {
         message : response.description
         code    : xhr.status

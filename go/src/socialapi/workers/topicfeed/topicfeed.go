@@ -1,7 +1,6 @@
 package topicfeed
 
 import (
-	"encoding/json"
 	"fmt"
 	"socialapi/models"
 
@@ -9,23 +8,7 @@ import (
 	"github.com/koding/logging"
 	"github.com/kylemcc/twitter-text-go/extract"
 	"github.com/streadway/amqp"
-
-	verbalexpressions "github.com/VerbalExpressions/GoVerbalExpressions"
 )
-
-// s := "naber #foo hede #bar dede gel # baz #123 #-`3sdf"
-// will find [foo, bar, 123]
-// will not find [' baz', '-`3sdf']
-// here is the regex -> (?m)(?:#)(\w+)
-var topicRegex = verbalexpressions.New().
-	Find("#").
-	BeginCapture().
-	Word().
-	EndCapture().
-	Regex()
-
-// extend this regex with https://github.com/twitter/twitter-text-rb/blob/eacf388136891eb316f1c110da8898efb8b54a38/lib/twitter-text/regex.rb
-// to support all languages
 
 type Controller struct {
 	log logging.Logger
@@ -65,18 +48,18 @@ func (f *Controller) MessageSaved(data *models.ChannelMessage) error {
 		return err
 	}
 
-	return ensureChannelMessages(c, data, topics)
+	return f.ensureChannelMessages(c, data, topics)
 }
 
-func ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
+func (f *Controller) ensureChannelMessages(parentChannel *models.Channel, data *models.ChannelMessage, topics []string) error {
 	for _, topic := range topics {
-		tc, err := fetchTopicChannel(parentChannel.GroupName, topic)
+		tc, err := f.fetchTopicChannel(parentChannel.GroupName, topic)
 		if err != nil && err != bongo.RecordNotFound {
 			return err
 		}
 
 		if err == bongo.RecordNotFound {
-			tc, err = createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
+			tc, err = f.createTopicChannel(data.AccountId, parentChannel.GroupName, topic, parentChannel.PrivacyConstant)
 			if err != nil {
 				return err
 			}
@@ -190,7 +173,7 @@ func (f *Controller) MessageUpdated(data *models.ChannelMessage) error {
 			return err
 		}
 
-		if err := ensureChannelMessages(initialChannel, data, res["added"]); err != nil {
+		if err := f.ensureChannelMessages(initialChannel, data, res["added"]); err != nil {
 			return err
 		}
 	}
@@ -284,15 +267,6 @@ func (f *Controller) MessageDeleted(data *models.ChannelMessage) error {
 	return nil
 }
 
-func mapMessage(data []byte) (*models.ChannelMessage, error) {
-	cm := models.NewChannelMessage()
-	if err := json.Unmarshal(data, cm); err != nil {
-		return nil, err
-	}
-
-	return cm, nil
-}
-
 func isEligible(cm *models.ChannelMessage) (bool, error) {
 	if cm.InitialChannelId == 0 {
 		return false, nil
@@ -306,24 +280,68 @@ func isEligible(cm *models.ChannelMessage) (bool, error) {
 }
 
 // todo add caching here
-func fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
+func (f *Controller) fetchTopicChannel(groupName, channelName string) (*models.Channel, error) {
 	c := models.NewChannel()
 
-	selector := map[string]interface{}{
-		"group_name":    groupName,
-		"name":          channelName,
-		"type_constant": models.Channel_TYPE_TOPIC,
-	}
+	topics := make([]models.Channel, 0)
+	err := bongo.B.DB.Table(c.BongoName()).
+		Where("group_name = ?", groupName).
+		Where("name = ?", channelName).
+		Where("type_constant IN (?)", []string{
+		models.Channel_TYPE_TOPIC,
+		models.Channel_TYPE_LINKED_TOPIC,
+	}).
+		Order("id asc").
+		Find(&topics).Error
 
-	err := c.One(bongo.NewQS(selector))
 	if err != nil {
 		return nil, err
 	}
+	var channel *models.Channel
 
-	return c, nil
+	switch len(topics) {
+	case 0:
+		return nil, bongo.RecordNotFound
+	case 1:
+		channel = &(topics[0])
+	case 2:
+		for _, ch := range topics {
+			if ch.TypeConstant == models.Channel_TYPE_LINKED_TOPIC {
+				channel = &ch
+				f.log.Critical(
+					"duplicate channel content %s, %s",
+					groupName,
+					channelName,
+				)
+				break
+			}
+		}
+	default:
+		return nil, fmt.Errorf(
+			"should not happen while fetching channel, groupName: %s, channelName: %s",
+			groupName,
+			channelName,
+		)
+	}
+
+	if channel == nil {
+		f.log.Critical(
+			"should not happen while fetching channel %s, %s",
+			groupName,
+			channelName,
+		)
+		return nil, bongo.RecordNotFound
+	}
+
+	// if it a normal channel just return it
+	if channel.TypeConstant != models.Channel_TYPE_LINKED_TOPIC {
+		return channel, nil
+	}
+
+	return channel.FetchRoot()
 }
 
-func createTopicChannel(creatorId int64, groupName, channelName, privacy string) (*models.Channel, error) {
+func (f *Controller) createTopicChannel(creatorId int64, groupName, channelName, privacy string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.Name = channelName
 	c.CreatorId = creatorId
@@ -331,9 +349,31 @@ func createTopicChannel(creatorId int64, groupName, channelName, privacy string)
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
 	c.TypeConstant = models.Channel_TYPE_TOPIC
 	c.PrivacyConstant = privacy
-	if err := c.Create(); err != nil {
-		return nil, err
+	// newly created channels need moderation
+	c.MetaBits.Mark(models.NeedsModeration)
+	err := c.Create()
+	if err == nil {
+		return c, nil
 	}
 
-	return c, nil
+	// same topic can be created in parallel
+	if models.IsUniqueConstraintError(err) {
+		// just fetch the topic from db
+		c2 := models.NewChannel()
+		err = c2.One(&bongo.Query{
+			Selector: map[string]interface{}{
+				"name":             channelName,
+				"group_name":       groupName,
+				"type_constant":    models.Channel_TYPE_TOPIC,
+				"privacy_constant": privacy,
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		return c2, nil
+	}
+
+	return nil, err
 }

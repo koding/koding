@@ -185,6 +185,27 @@ func GetChannel(id int64) (*models.Channel, error) {
 	return cc.Channel, nil
 }
 
+func SearchChannels(q *request.Query) ([]*models.Channel, error) {
+	v, err := query.Values(q)
+	if err != nil {
+		return nil, err
+	}
+
+	url := fmt.Sprintf("/channel/search?%s", v.Encode())
+	res, err := sendRequestWithAuth("GET", url, nil, "")
+	if err != nil {
+		return nil, err
+	}
+
+	channels := make([]*models.Channel, 0)
+	err = json.Unmarshal(res, &channels)
+	if err != nil {
+		return nil, err
+	}
+
+	return channels, nil
+}
+
 func CreateGroupActivityChannel(creatorId int64, groupName string) (*models.Channel, error) {
 	c := models.NewChannel()
 	c.GroupName = groupName
