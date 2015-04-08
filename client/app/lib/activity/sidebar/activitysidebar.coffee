@@ -677,3 +677,9 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
   machineBuilt: ->
 
     environmentDataProvider.ensureDefaultWorkspace @bound 'updateMachines'
+
+
+  addWorkspace: (workspace) ->
+
+    machineBox = @getMachineBoxByMachineUId workspace.machineUId
+      .addWorkspace workspace, yes
