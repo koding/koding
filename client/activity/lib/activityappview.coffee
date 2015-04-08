@@ -119,7 +119,20 @@ module.exports = class ActivityAppView extends KDView
         when 'post'    then 'activity'
         else type
       socialapi.cacheable type_, slug, (err, data) =>
-        if err then router.handleNotFound router.getCurrentPath()
+        if err
+          # if channel is redirected to another
+          # handle here
+          if err.error is "moved_permanently"
+            res = try JSON.parse err.description
+            location = "/Activity/Public"
+
+            if res.typeConstant isnt "group"
+              location = "/Activity/Topic/#{res.rootName}"
+
+            global.location.href = location
+            return
+
+          router.handleNotFound router.getCurrentPath()
         else
           { typeConstant } = data
           index = if typeConstant is 'topic' then 2 else 0 # 2 because we put topics after #koding #changelog

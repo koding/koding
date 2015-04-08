@@ -77,13 +77,8 @@ func TestNewMessageCreation(t *testing.T) {
 
 		Convey("when a message is sent to a channel with 3 participants two of them must be notified", func() {
 			cm := models.CreateMessage(channel.Id, accounts[0].Id, models.ChannelMessage_TYPE_PRIVATE_MESSAGE)
-			cml := models.NewChannelMessageList()
-			cml.ChannelId = channel.Id
-			cml.MessageId = cm.Id
-			err := cml.Create()
-			So(err, ShouldBeNil)
 
-			err = controller.AddMessageToQueue(cm)
+			err := controller.AddMessageToQueue(cm)
 			So(err, ShouldBeNil)
 
 			length, err := redisConn.GetHashLength(common.AccountNextPeriodHashSetKey())
