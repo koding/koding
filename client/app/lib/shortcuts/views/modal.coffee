@@ -1,62 +1,57 @@
 kd            = require 'kd'
 _             = require 'lodash'
 ShortcutsPane = require './pane'
-defaults      = require '../config'
 
-module.exports = class ShortcutsModal extends kd.ModalViewWithForms
+module.exports =
 
-  constructor: (options={}, keyconfig) ->
+class ShortcutsModal extends kd.ModalViewWithForms
 
-    options =
-      title                   : 'Shortcuts'
-      cssClass                : 'shortcuts-modal'
-      overlay                 : yes
-      width                   : 640
-      height                  : 'auto'
-      buttons                 :
-        restore               :
-          title               : 'Restore Defaults'
-          style               : 'solid light-gray medium'
-          loader              : color : '#444444'
-          callback            : -> modal.destroy()
-        save                  :
-          title               : 'Save'
-          cssClass            : 'solid green medium'
-          callback            : =>
-            # poc code - SY
-            console.log "this is fake!!!"
-            new kd.NotificationView title : 'Shortcuts saved!'
-            @modalTabs.getActivePane().form.inputs.view.listController.getListItems().forEach (item) ->
-              item.unsetClass 'updated'
-      tabs                    :
-        hideHandleCloseIcons  : yes
-        enableMoveTabHandle   : no
-        cssClass              : 'shortcuts-tab'
-        forms                 : @prepareTabData keyconfig
+  constructor: (options, @config) ->
 
-    super options
+    super _.extend
+
+      title    : 'Shortcuts'
+      content  : """
+        <div class=instructions>
+          To change a shortcut, click the key combination, then type the new keys.
+        </div>
+      """
+      cssClass : 'shortcuts-modal'
+      overlay  : yes
+      width    : 600
+      height   : 'auto'
+
+      buttons:
+        restore:
+          title    : 'Restore Defaults'
+          style    : 'solid light-gray medium'
+          loader   : color: '#444444'
+          #callback : -> modal.destroy()
+
+      tabs:
+        hideHandleCloseIcons : yes
+        enableMoveTabHandle  : no
+        forms                : @presentForms()
+
+    , options
+
+
+  presentForms: ->
+
+    @config.reduce (acc, collection) ->
+      acc[collection.title] =
+        fields:
+          view:
+            itemClass: ShortcutsPane
+            collection: collection
+      return acc
+    , {}
 
 
   viewAppended: ->
 
     @modalTabs.on 'PaneDidShow', => kd.utils.defer @bound '_windowDidResize'
-
     @_windowDidResize()
-
-
-  prepareTabData: (keyconfig) ->
-
-    forms = {}
-    keyconfig.forEach (collection) ->
-      displayData = defaults[collection.name]
-      forms[displayData.title] =
-        fields                :
-          view                :
-            itemClass         : ShortcutsPane
-            description       : displayData.description
-            collection        : collection
-
-    return forms
 
 
   _windowDidResize: ->
