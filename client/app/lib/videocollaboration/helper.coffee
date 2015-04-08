@@ -88,6 +88,7 @@ subscribeToStream = (session, stream, view, callbacks) ->
     return callbacks.error err  if err
     subscriber = session.subscribe stream, view.getElement(), options, (err) ->
       return callbacks.error err  if err
+      fixParticipantBackgroundImage subscriber
       subscriber.setStyle 'backgroundImageURI', uri = _getGravatarUri account
       callbacks.success subscriber
 
@@ -114,8 +115,17 @@ createPublisher = (view, options = {}, callback) ->
 
   publisher = OT.initPublisher view.getElement(), options, (err) ->
     return callback err  if err
-    publisher.setStyle 'backgroundImageURI', uri = _getGravatarUri whoami()
+    fixParticipantBackgroundImage publisher
     callback null, publisher
+
+
+ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
+fixParticipantBackgroundImage = (participant) ->
+  poster = participant.element.querySelector '.OT_video-poster'
+  poster.style.backgroundImage = "url(#{_getGravatarUri whoami()})"
+  kd.utils.defer -> poster.style.opacity = 1
+  nickname = new ProfileTextView {}, whoami()
+  poster.appendChild nickname.getElement()
 
 
 ###*
@@ -167,7 +177,7 @@ _getGravatarUri = (account, size = 355) ->
 
   {hash} = account.profile
   {protocol} = global.location
-  defaultUri = "https://koding-cdn.s3.amazonaws.com/square-avatars/default.avatar.#{size}.png"
+  defaultUri = "https://koding-cdn.s3.amazonaws.com/images/one-pixel-dark-square.png"
   return "#{protocol}//gravatar.com/avatar/#{hash}?size=#{size}&d=#{defaultUri}&r=g"
 
 
@@ -215,6 +225,7 @@ disableVideo = (channel, callback) -> setVideoState channel, no, callback
 ###
 isVideoActive = (channel) -> channel?.payload?.videoEnabled is 'true'
 
+
 ###*
  * @param {KDView} container
  * @param {string} nickname
@@ -225,13 +236,8 @@ showOfflineParticipant = (container, nickname, callback) ->
   container.destroySubViews()
   remote.cacheable nickname, (err, [account]) ->
     return callback err  if err
-
-    avatar = new kd.CustomHTMLView
-      tagName    : 'img'
-      cssClass   : 'ChatVideo-offlineUserAvatar'
-      attributes : { src: _getGravatarUri account }
-
-    container.addSubView avatar
+    container.getElement().style.backgroundImage = "url(#{_getGravatarUri account})"
+    container.addSubView new ProfileTextView {}, account
     container.show()
 
 
