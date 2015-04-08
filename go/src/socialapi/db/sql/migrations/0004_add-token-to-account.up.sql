@@ -1,3 +1,10 @@
+--
+-- uuid in account table used for realtime purposes for now, the client listens
+-- to their event via this id, this data should not be shared with other
+-- clients/accounts
+--
+-- Add the "token" column
+--
 DO $$
   BEGIN
     BEGIN
@@ -8,6 +15,9 @@ DO $$
   END;
 $$;
 
+--
+-- Add the unique constraint for the token column
+--
 DO $$
   BEGIN
     BEGIN

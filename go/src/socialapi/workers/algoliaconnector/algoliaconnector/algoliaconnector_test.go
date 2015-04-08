@@ -1,6 +1,7 @@
 package algoliaconnector
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
@@ -17,19 +18,8 @@ import (
 )
 
 func TestTopicSaved(t *testing.T) {
-	r := runner.New("AlogoliaConnector-Test")
-	err := r.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	defer r.Close()
-
-	appConfig := config.MustRead(r.Conf.Path)
-
-	algolia := algoliasearch.NewClient(appConfig.Algolia.AppId, appConfig.Algolia.ApiSecretKey)
-	// create message handler
-	handler := New(r.Log, algolia, appConfig.Algolia.IndexSuffix)
+	runner, handler := getTestHandler()
+	defer runner.Close()
 
 	Convey("given some fake topic channel", t, func() {
 		mockTopic := models.NewChannel()
@@ -47,7 +37,64 @@ func TestTopicSaved(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 	})
+}
 
+func TestTopicUpdated(t *testing.T) {
+	runner, handler := getTestHandler()
+	defer runner.Close()
+
+	rand.Seed(time.Now().UnixNano())
+
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("given some fake topic channel", t, func() {
+		mockTopic := models.NewChannel()
+		mockTopic.Id = rand.Int63()
+		mockTopic.TypeConstant = models.Channel_TYPE_TOPIC
+		Convey("it should save the document to algolia", func() {
+			err := handler.TopicSaved(mockTopic)
+			So(err, ShouldBeNil)
+			err = makeSureTopic(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
+				if err != nil {
+					return false
+				}
+
+				return true
+			})
+
+			So(err, ShouldBeNil)
+
+			Convey("given some existing topic channel", func() {
+				mockTopic.TypeConstant = models.Channel_TYPE_LINKED_TOPIC
+				Convey("it should be able to remove it", func() {
+					err := handler.TopicUpdated(mockTopic)
+					So(err, ShouldBeNil)
+
+					err = makeSureTopic(handler, mockTopic.Id, func(record map[string]interface{}, err error) bool {
+						if IsAlgoliaError(err, ErrAlgoliaObjectIdNotFoundMsg) {
+							return true
+						}
+
+						return false
+					})
+
+					So(err, ShouldBeNil)
+
+					Convey("removing a deleted channel should return success", func() {
+						err := handler.TopicUpdated(mockTopic)
+						So(err, ShouldBeNil)
+					})
+				})
+			})
+			Convey("removing a non-existing channel should return success", func() {
+				mockTopic.Id++
+				err := handler.TopicUpdated(mockTopic)
+				So(err, ShouldBeNil)
+			})
+		})
+	})
 }
 
 func TestAccountSaved(t *testing.T) {
@@ -127,8 +174,8 @@ func doBasicTestForMessage(handler *Controller, id int64) error {
 	})
 }
 
-// makeSureErr checks if the given id's get request returns the desired err, it
-// will re-try every 100ms until deadline of 2 minutes reached. Algolia doesnt
+// makeSureMessage checks if the given id's get request returns the desired err, it
+// will re-try every 100ms until deadline of 15 seconds reached. Algolia doesnt
 // index the records right away, so try to go to a desired state
 func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
 	deadLine := time.After(time.Minute * 2)
@@ -136,7 +183,49 @@ func makeSureMessage(handler *Controller, id int64, f func(map[string]interface{
 	for {
 		select {
 		case <-tick:
-			record, err := handler.get("messages", strconv.FormatInt(id, 10))
+			record, err := handler.get(IndexMessages, strconv.FormatInt(id, 10))
+			if f(record, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
+}
+
+// makeSureSynonyms checks if the given index's synonyms request returns the
+// desired err, it will re-try every 100ms until deadline of 15 seconds reached.
+// Algolia doesnt index the records right away, so try to go to a desired state
+func makeSureSynonyms(handler *Controller, indexName string, f func([][]string, error) bool) error {
+	deadLine := time.After(time.Second * 15)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			synonyms, err := handler.getSynonyms(indexName)
+			if err != nil {
+				return err
+			}
+
+			if f(synonyms, err) {
+				return nil
+			}
+		case <-deadLine:
+			return errDeadline
+		}
+	}
+}
+
+// makeSureTopic checks if the given id's get request returns the desired err,
+// it will re-try every 100ms until deadline of 2 minutes. Algolia doesnt index
+// the records right away, so try to go to a desired state
+func makeSureTopic(handler *Controller, id int64, f func(map[string]interface{}, error) bool) error {
+	deadLine := time.After(time.Minute * 2)
+	tick := time.Tick(time.Millisecond * 100)
+	for {
+		select {
+		case <-tick:
+			record, err := handler.get(IndexTopics, strconv.FormatInt(id, 10))
 			if f(record, err) {
 				return nil
 			}
@@ -270,88 +359,179 @@ func TestMessageUpdated(t *testing.T) {
 	})
 }
 
-func TestParticipantCreated(t *testing.T) {
+func TestIndexSettings(t *testing.T) {
 	runner, handler := getTestHandler()
 	defer runner.Close()
-	Convey("while adding participant", t, func() {
-		Convey("if the user is not in db, should give error", func() {
-			p := &models.ChannelParticipant{
-				AccountId: 1,
-				ChannelId: 1,
-			}
-			err := handler.ParticipantCreated(p)
-			So(err, ShouldBeNil)
-		})
 
-		Convey("if the user is in db, but not saved to algolia yet", func() {
-			Convey("should be successfull", func() {
-				a := models.CreateAccountWithTest()
-				p := &models.ChannelParticipant{
-					AccountId: a.Id,
-					ChannelId: 1,
+	appConfig := config.MustRead(runner.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	Convey("given some handler", t, func() {
+		groupName := models.RandomName()
+
+		Convey("we should be able to get the synonyms", func() {
+			oldsynonymns, err := handler.getSynonyms(IndexMessages)
+			So(err, ShouldBeNil)
+			So(oldsynonymns, ShouldNotBeNil)
+
+			Convey("when we add new synonyms", func() {
+
+				acc, err := models.CreateAccountInBothDbs()
+				So(acc, ShouldNotBeNil)
+
+				root := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				So(root, ShouldNotBeNil)
+
+				leaf := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+				So(leaf, ShouldNotBeNil)
+
+				cl := &models.ChannelLink{
+					RootId: root.Id,
+					LeafId: leaf.Id,
 				}
 
-				err := handler.ParticipantCreated(p)
-				So(err, ShouldBeNil)
-				Convey("we should be able to find it", func() {
-					rec, err := handler.get("accounts", a.OldId)
-					So(err, ShouldBeNil)
-					So(rec, ShouldNotBeNil)
+				So(cl.Create(), ShouldBeNil)
 
-					err = makeSureAccount(handler, a.OldId, func(record map[string]interface{}, err error) bool {
+				So(handler.CreateSynonym(cl), ShouldBeNil)
+
+				Convey("synonyms should be in settings", func() {
+					err = makeSureSynonyms(handler, IndexMessages, func(synonyms [][]string, err error) bool {
 						if err != nil {
 							return false
 						}
 
-						if record == nil {
-							return false
-						}
-						for _, tag := range record["_tags"].([]interface{}) {
-							if tag.(string) == strconv.FormatInt(p.ChannelId, 10) {
-								return true
+						f1found, f2found := false, false
+
+						for _, synonym := range synonyms {
+							for _, synonymPair := range synonym {
+								if synonymPair == root.Name {
+									f1found = true
+								}
+
+								if synonymPair == leaf.Name {
+									f2found = true
+								}
+
+								if f1found && f2found {
+									return true
+								}
 							}
 						}
 
 						return false
 					})
+
 					So(err, ShouldBeNil)
+
+					Convey("if we override one of the the synonyms with third one", func() {
+						leaf2 := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+						So(err, ShouldBeNil)
+						So(leaf, ShouldNotBeNil)
+
+						cl := &models.ChannelLink{
+							RootId: root.Id,
+							LeafId: leaf2.Id,
+						}
+
+						So(cl.Create(), ShouldBeNil)
+						So(handler.CreateSynonym(cl), ShouldBeNil)
+
+						Convey("synonyms should be in settings", func() {
+							err = makeSureSynonyms(handler, IndexMessages, func(synonyms [][]string, err error) bool {
+								if err != nil {
+									return false
+								}
+
+								f1found, f2found, f3found := false, false, false
+
+								for _, synonym := range synonyms {
+									for _, synonymPair := range synonym {
+										if synonymPair == root.Name {
+											f1found = true
+										}
+
+										if synonymPair == leaf.Name {
+											f2found = true
+										}
+
+										if synonymPair == leaf2.Name {
+											f3found = true
+										}
+
+										if f1found && f2found && f3found {
+											return true
+										}
+									}
+								}
+
+								return false
+							})
+
+							So(err, ShouldBeNil)
+						})
+
+						// adding another synonym should not break anything
+						Convey("adding another synonym should not break anything", func() {
+
+							anotherRoot := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+							So(root, ShouldNotBeNil)
+
+							anotherLeaf := models.CreateTypedGroupedChannelWithTest(acc.Id, models.Channel_TYPE_TOPIC, groupName)
+							So(leaf, ShouldNotBeNil)
+
+							cl := &models.ChannelLink{
+								RootId: anotherRoot.Id,
+								LeafId: anotherLeaf.Id,
+							}
+
+							So(cl.Create(), ShouldBeNil)
+
+							So(handler.CreateSynonym(cl), ShouldBeNil)
+
+							Convey("all synonyms should be in settings", func() {
+								err = makeSureSynonyms(handler, IndexMessages, func(synonyms [][]string, err error) bool {
+									if err != nil {
+										return false
+									}
+
+									f1found, f2found := false, false
+
+									for _, synonym := range synonyms {
+										for _, synonymPair := range synonym {
+											if synonymPair == root.Name {
+												f1found = true
+											}
+
+											if synonymPair == leaf.Name {
+												f2found = true
+											}
+
+											if f1found && f2found {
+												return true
+											}
+										}
+									}
+
+									return false
+								})
+
+								So(err, ShouldBeNil)
+								allsynonymns, err := handler.getSynonyms(IndexMessages)
+								So(err, ShouldBeNil)
+								// why ShouldBeGreaterThan? becase when we run
+								// the same test again, there may be other
+								// synonyms
+								So(len(allsynonymns), ShouldBeGreaterThan, 2)
+							})
+						})
+					})
 				})
 			})
 		})
 	})
 }
 
-func TestRemoveTag(t *testing.T) {
-	Convey("while removing tag", t, func() {
-
-		Convey("if records is nil, should return an empty slice", func() {
-			So(len(removeTag(nil, "1")), ShouldNotBeNil)
-			So(len(removeTag(nil, "1")), ShouldEqual, 0)
-		})
-
-		Convey("if record's tag is nil, should return empty slice", func() {
-			So(removeTag(make(map[string]interface{}), "1"), ShouldNotBeNil)
-			So(len(removeTag(make(map[string]interface{}), "1")), ShouldNotBeNil)
-		})
-
-		Convey("if record's doesnt have our tag, should return itself", func() {
-			record := map[string]interface{}{
-				"_tags": []interface{}{"1", "2"},
-			}
-
-			So(len(removeTag(record, "3")), ShouldEqual, len(record["_tags"].([]interface{})))
-		})
-
-		Convey("if record's does have our tag, should return clean version", func() {
-			record := map[string]interface{}{
-				"_tags": []interface{}{"1", "2"},
-			}
-
-			So(len(removeTag(record, "1")), ShouldEqual, len(record["_tags"].([]interface{}))-1)
-		})
-
-	})
-}
 func getTestHandler() (*runner.Runner, *Controller) {
 	r := runner.New("AlogoliaConnector-Test")
 	err := r.Init()

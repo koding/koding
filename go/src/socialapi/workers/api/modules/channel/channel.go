@@ -10,6 +10,7 @@ import (
 	"socialapi/workers/common/response"
 
 	"github.com/koding/bongo"
+	tigertonic "github.com/rcrowley/go-tigertonic"
 )
 
 func validateChannelRequest(c *models.Channel) error {
@@ -106,6 +107,12 @@ func ByName(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	if err != nil {
 		if err == bongo.RecordNotFound {
 			return response.NewNotFound()
+		}
+
+		if models.IsChannelLeafErr(err) {
+			return http.StatusMovedPermanently,
+				nil, nil,
+				tigertonic.MovedPermanently{err}
 		}
 
 		return response.NewBadRequest(err)
