@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -8,12 +9,14 @@ import (
 	"koding/db/mongodb"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/pkg/multiec2"
-	"koding/kites/kloud/sshutil"
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
+
+	"golang.org/x/crypto/ssh"
 
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
@@ -90,30 +93,79 @@ func realMain() error {
 	w.Init(os.Stdout, 10, 8, 0, '\t', 0)
 	defer w.Flush()
 
+	// We use a counting semaphore to limit
+	// the number of parallel SSH calls per process.
+	var sema = make(chan bool, 50)
+
 	// search via username, mongodb -> aws
-	ms, err := badUserMachines(db)
-	if err == nil {
+	ms, err := machinesFromUsername(db)
+	if err != nil {
+		return err
+	}
 
-		ips := make([]string, 0)
-		for _, machine := range ms.docs {
-			if machine.IpAddress == "" {
-				continue
-			}
+	ms.Print(w)
 
-			ips = append(ips, machine.IpAddress)
+	ips := make([]string, 0)
+	for _, machine := range ms.docs {
+		if machine.IpAddress == "" {
+			continue
 		}
 
-		ms.Print(w)
-
-		fmt.Printf("len(ips) = %+v\n", len(ips))
-	} else {
-		fmt.Fprintf(os.Stderr, err.Error())
+		ips = append(ips, machine.IpAddress)
 	}
+
+	command := "/opt/kite/klient/klient --version"
+	update := "cd /tmp && wget https://s3.amazonaws.com/koding-klient/production/30/klient_0.1.30_production_amd64.deb && dpkg -i klient_0.1.30_production_amd64.deb && rm klient_0.1.30_production_amd64.deb"
+
+	var wg sync.WaitGroup
+	for _, ip := range ips {
+		wg.Add(1)
+
+		go func(ip string) {
+			sema <- true // wait
+			defer func() {
+				wg.Done()
+				<-sema
+			}()
+
+			done := make(chan string, 0)
+			go func() {
+				out, err := executeSSHCommand(ip, command)
+				if err != nil {
+					return
+				}
+
+				done <- out
+			}()
+
+			select {
+			case <-time.After(time.Second * 10):
+				// cancel operation after 10 seconds
+				// fmt.Printf("[%s] canceling operation\n", ip)
+				return
+			case out := <-done:
+				if out != "0.1.30" {
+					fmt.Printf("[%s] version: %s updating\n", ip, out)
+					_, err := executeSSHCommand(ip, update)
+					if err != nil {
+						log.Printf("[%s] updater err: %s\n", ip, err)
+						return
+					}
+
+					// log.Printf("[%s] update result: %s\n", ip, out)
+				}
+			}
+		}(ip)
+	}
+
+	fmt.Printf("executing the command '%s' on %d machines\n\n", command, len(ips))
+
+	wg.Wait()
 
 	return nil
 }
 
-func badUserMachines(db *mongodb.MongoDB) (*machines, error) {
+func machinesFromUsername(db *mongodb.MongoDB) (*machines, error) {
 	from, err := time.Parse(time.RFC3339, "2015-04-07T13:15:00Z")
 	if err != nil {
 		return nil, err
@@ -124,44 +176,21 @@ func badUserMachines(db *mongodb.MongoDB) (*machines, error) {
 		return nil, err
 	}
 
-	users := make([]models.User, 0)
-	err = db.Run("jUsers", func(c *mgo.Collection) error {
-		var user models.User
-		iter := c.Find(bson.M{"registeredAt": bson.M{
+	machines := newMachines()
+	err = db.Run("jMachines", func(c *mgo.Collection) error {
+		var m MachineDocument
+		iter := c.Find(bson.M{"createdAt": bson.M{
 			"$gte": from.UTC(),
 			"$lt":  to.UTC(),
 		},
 		}).Iter()
 
-		for iter.Next(&user) {
-			users = append(users, user)
+		for iter.Next(&m) {
+			machines.docs = append(machines.docs, m)
 		}
 
 		return iter.Close()
 	})
-
-	machines := newMachines()
-	for _, user := range users {
-		fmt.Println("searching for ", user.ObjectId)
-		var m MachineDocument
-		err := db.Run("jMachines", func(c *mgo.Collection) error {
-			return c.Find(
-				bson.M{"users": bson.M{
-					"$elemMatch": bson.M{
-						"id":    user.ObjectId,
-						"sudo":  true,
-						"owner": true,
-					},
-				}}).One(&m)
-		})
-
-		if err != nil {
-			return nil, err
-		}
-
-		fmt.Printf("m.IpAddress = %+v\n", m.IpAddress)
-		machines.docs = append(machines.docs, m)
-	}
 
 	return machines, err
 }
@@ -178,18 +207,6 @@ type machines struct {
 
 func (m *machines) Print(w io.Writer) {
 	fmt.Fprintf(w, "============= MongoDB ('%d' docs) ==========\n", len(m.docs))
-
-	for _, machine := range m.docs {
-		fmt.Fprintf(w, "Username:\t%s\n", machine.Credential)
-		fmt.Fprintf(w, "MachineId:\t%s\n", machine.Id.Hex())
-		fmt.Fprintf(w, "Instance Id:\t%s\n", machine.Meta.InstanceId)
-		fmt.Fprintf(w, "Instance Type:\t%s\n", machine.Meta.InstanceType)
-		fmt.Fprintf(w, "Region:\t%s\n", machine.Meta.Region)
-		fmt.Fprintf(w, "IP Address:\t%s\n", machine.IpAddress)
-		fmt.Fprintf(w, "Storage Size:\t%d\n", machine.Meta.StorageSize)
-		fmt.Fprintf(w, "Status:\t%s (%s)\n", machine.Status.State, machine.Status.Reason)
-		fmt.Fprintln(w)
-	}
 }
 
 type instance struct {
@@ -197,71 +214,80 @@ type instance struct {
 	volume ec2.Volume
 }
 
-func (i *instance) Print(w io.Writer) {
-	fmt.Fprintf(w, "============= AWS ==========\n")
-	fmt.Fprintf(w, "InstanceId:\t%s\n", i.ec2.InstanceId)
-	fmt.Fprintf(w, "IP Address:\t%s\n", i.ec2.PublicIpAddress)
-	fmt.Fprintf(w, "State:\t%s\n", i.ec2.State.Name)
-	fmt.Fprintf(w, "Image Id:\t%s\n", i.ec2.ImageId)
-	fmt.Fprintf(w, "Availibility Zone:\t%s\n", i.ec2.AvailZone)
-	fmt.Fprintf(w, "Launch Time:\t%s\n", i.ec2.LaunchTime)
-	fmt.Fprintf(w, "Storage Size:\t%s\n", i.volume.Size)
-}
-
-func awsData(client *ec2.EC2, instanceId string) (*instance, error) {
-	resp, err := client.Instances([]string{instanceId}, ec2.NewFilter())
-	if err != nil {
-		return nil, err
-	}
-
-	if len(resp.Reservations) == 0 {
-		return nil, errors.New("resp.Reservation shouldn't be null")
-	}
-
-	instances := resp.Reservations[0]
-	if len(instances.Instances) == 0 {
-		return nil, errors.New("instances.Instances shouldn't be null")
-	}
-
-	i := instances.Instances[0]
-
-	var volume ec2.Volume
-	if len(i.BlockDevices) != 0 {
-		volResp, err := client.Volumes([]string{i.BlockDevices[0].VolumeId}, ec2.NewFilter())
-		if err != nil {
-			return nil, err
-		}
-
-		if len(volResp.Volumes) == 0 {
-			return nil, errors.New("volResp.Volumes shouldn't be null")
-		}
-
-		volume = volResp.Volumes[0]
-	}
-
-	return &instance{
-		ec2:    i,
-		volume: volume,
-	}, nil
-}
-
 func executeSSHCommand(ipAddress, command string) (string, error) {
-	sshConfig, err := sshutil.SshConfig("root", publickeys.DeployPrivateKey)
+	client, err := ConnectSSH(ipAddress)
 	if err != nil {
 		return "", err
 	}
 
-	log.Printf("Connecting to machine with ip '%s' via ssh\n", ipAddress)
-	sshClient, err := sshutil.ConnectSSH(ipAddress+":22", sshConfig)
-	if err != nil {
-		return "", err
-	}
-
-	log.Printf("Testing SSH deployment")
-	output, err := sshClient.StartCommand(command)
+	output, err := client.StartCommand(command)
 	if err != nil {
 		return "", err
 	}
 
 	return strings.TrimSpace(string(output)), nil
+}
+
+type SSHClient struct {
+	*ssh.Client
+}
+
+func ConnectSSH(ip string) (*SSHClient, error) {
+	signer, err := ssh.ParsePrivateKey([]byte(publickeys.DeployPrivateKey))
+	if err != nil {
+		return nil, fmt.Errorf("Error setting up SSH config: %s", err)
+	}
+
+	config := &ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+	}
+
+	client, err := ssh.Dial("tcp", ip+":22", config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &SSHClient{Client: client}, nil
+}
+
+func (s *SSHClient) StartCommand(command string) (string, error) {
+	session, err := s.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
+
+	combinedOutput := new(bytes.Buffer)
+	session.Stdout = combinedOutput
+	session.Stderr = combinedOutput
+
+	if err := session.Start(command); err != nil {
+		return "", err
+	}
+
+	// Wait for the SCP connection to close, meaning it has consumed all
+	// our data and has completed. Or has errored.
+	err = session.Wait()
+	if err != nil {
+		if exitErr, ok := err.(*ssh.ExitError); ok {
+			// Otherwise, we have an ExitErorr, meaning we can just read
+			// the exit status
+			log.Printf("non-zero exit status: %d", exitErr.ExitStatus())
+
+			// If we exited with status 127, it means SCP isn't available.
+			// Return a more descriptive error for that.
+			if exitErr.ExitStatus() == 127 {
+				return "", errors.New(
+					"SCP failed to start. This usually means that SCP is not\n" +
+						"properly installed on the remote system.")
+			}
+		}
+
+		return combinedOutput.String(), err
+	}
+
+	return combinedOutput.String(), nil
 }
