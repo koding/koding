@@ -24,11 +24,6 @@ module.exports = VideoCollaborationController =
         @handleVideoParticipantTalkingStateChanged participant, off
 
 
-  joinVideoCollaboration: ->
-
-    @videoModel.join()
-
-
   startVideoCollaboration: ->
 
     @videoModel.start()
@@ -45,9 +40,6 @@ module.exports = VideoCollaborationController =
       when 'audio' then @videoModel.setAudioState activeState
       when 'video' then @videoModel.setVideoState activeState
       when 'end'   then @endVideoCollaboration()
-
-
-  leaveVideoCollaboration: ->
 
 
   switchToUserVideo: (nickname) ->
