@@ -6,8 +6,6 @@ formatBlockquotes = require './formatBlockquotes'
 applyMarkdown = require './applyMarkdown'
 expandUsernames = require './expandUsernames'
 
-validator = require 'validator'
-
 module.exports = (body = '') ->
 
   fns = [
