@@ -148,6 +148,19 @@ module.exports = class JReward extends jraphical.Message
         callback null, amount
 
 
+  @fetchEarnedAmount = (options, callback)->
+
+    options = useDefault options
+
+    fetchEarnedReward options, (err, earnedReward)->
+      return callback err  if err?
+
+      callback null, earnedReward?.amount or 0
+
+      # We can manually call this if we need.
+      # JReward.calculateAndUpdateEarnedAmount options, callback
+
+
 
   # Shared Methods
   # --------------
@@ -193,19 +206,6 @@ module.exports = class JReward extends jraphical.Message
 
           return callback err if err
           callback null, reward
-
-
-  @fetchEarnedAmount = (options, callback)->
-
-    options = useDefault options
-
-    fetchEarnedReward options, (err, earnedReward)->
-      return callback err  if err?
-
-      callback null, earnedReward?.amount or 0
-
-      # We can manually call this if we need.
-      # JReward.calculateAndUpdateEarnedAmount options, callback
 
 
   @fetchEarnedAmount$ = secure (client, options, callback)->
