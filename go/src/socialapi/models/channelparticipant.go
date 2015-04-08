@@ -40,9 +40,11 @@ type ChannelParticipant struct {
 // here is why i did this not-so-good constants
 // https://code.google.com/p/go/issues/detail?id=359
 const (
-	ChannelParticipant_STATUS_ACTIVE              = "active"
-	ChannelParticipant_STATUS_LEFT                = "left"
-	ChannelParticipant_STATUS_REQUEST_PENDING     = "requestpending"
+	ChannelParticipant_STATUS_ACTIVE          = "active"
+	ChannelParticipant_STATUS_LEFT            = "left"
+	ChannelParticipant_STATUS_BLOCKED         = "blocked"
+	ChannelParticipant_STATUS_REQUEST_PENDING = "requestpending"
+
 	ChannelParticipant_Added_To_Channel_Event     = "added_to_channel"
 	ChannelParticipant_Removed_From_Channel_Event = "removed_from_channel"
 )
@@ -70,6 +72,11 @@ func (c *ChannelParticipant) Create() error {
 		// if the participant is already in the channel, and active do nothing
 		if c.StatusConstant == ChannelParticipant_STATUS_ACTIVE {
 			return nil
+		}
+
+		// if the channel participant is blocked dont add it back
+		if c.StatusConstant == ChannelParticipant_STATUS_BLOCKED {
+			return ErrParticipantBlocked
 		}
 
 		c.StatusConstant = ChannelParticipant_STATUS_ACTIVE
@@ -162,6 +169,27 @@ func (c *ChannelParticipant) Delete() error {
 	}
 
 	return nil
+}
+
+// Block changes the status of the participant to blocked
+func (c *ChannelParticipant) Block() error {
+	if err := c.FetchParticipant(); err != nil {
+		return err
+	}
+
+	c.StatusConstant = ChannelParticipant_STATUS_BLOCKED
+	if err := c.Update(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Unblock changes the status of the participant to left
+func (c *ChannelParticipant) Unblock() error {
+	// this is a convenient function for unblocking, normally it should just
+	// mark the user as left, and they can re-join to that channel again
+	return c.Delete()
 }
 
 func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error) {
