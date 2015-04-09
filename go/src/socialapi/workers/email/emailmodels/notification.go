@@ -38,7 +38,6 @@ type NotificationMessage struct {
 	Hostname       string
 	Actor          string
 	ActorHash      string
-	ActorLink      string
 	ActorSlug      string
 	Message        string
 	MessageSlug    string
