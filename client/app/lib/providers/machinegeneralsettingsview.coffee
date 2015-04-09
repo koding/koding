@@ -1,6 +1,7 @@
 kd                   = require 'kd'
 KDView               = kd.View
 Machine              = require './machine'
+showError            = require 'app/util/showError'
 KodingSwitch         = require '../commonviews/kodingswitch'
 KDLoaderView         = kd.LoaderView
 CustomLinkView       = require '../customlinkview'
@@ -22,6 +23,8 @@ module.exports = class MachineGeneralSettingsView extends KDView
     @createForm()
     @fetchMachineState()
 
+    @bindViewEvents()
+
 
   handleMachineStateChanged: (state) ->
 
@@ -30,6 +33,27 @@ module.exports = class MachineGeneralSettingsView extends KDView
     kd.singletons.computeController[method] @machine
 
     @emit 'ModalDestroyRequested'
+
+
+  handleNicknameUpdate: ->
+
+    { nickEdit, nickname } = @form.inputs
+    newLabel = nickEdit.getValue()
+
+    if kd.utils.slugify(newLabel) is ''
+      return showError 'Nickname cannot be empty.'
+
+    @machine.setLabel newLabel, (err, newSlug) =>
+
+      return if showError err
+
+      nickname.updatePartial "<span class='edit'>update</span> #{newLabel}"
+
+      nickEdit.hide()
+      nickname.show()
+
+      @machine.emit 'MachineLabelUpdated', newLabel, newSlug
+      # @emit 'ModalDestroyRequested'
 
 
   fetchMachineState: ->
@@ -61,6 +85,27 @@ module.exports = class MachineGeneralSettingsView extends KDView
         statusToggle.show()
 
 
+  bindViewEvents: ->
+
+    { nickname, nickEdit } = @form.inputs
+
+    nickname.on 'click', (e) =>
+
+      return  unless e.target.tagName is 'SPAN'
+
+      nickname.hide()
+
+      kd.singletons.windowController.addLayer nickEdit
+      nickEdit.once 'ReceivedClickElsewhere', ->
+        nickEdit.hide()
+        nickname.show()
+
+      nickEdit.setValue @machine.label
+      nickEdit.show()
+
+      kd.utils.defer -> nickEdit.setFocus()
+
+
   createForm: ->
 
     running   = @machine.status.state in [ Running, Starting ]
@@ -89,14 +134,14 @@ module.exports = class MachineGeneralSettingsView extends KDView
           label         : 'Nickname'
           cssClass      : 'custom-link-view'
           itemClass     : KDView
-          partial       : @machine.label
+          partial       : "<span class='edit'>update</span> #{@machine.label}"
           nextElement   :
             nickEdit    :
               itemClass : KDHitEnterInputView
               type      : 'text'
               cssClass  : 'hidden'
               attributes: spellcheck: false
-              callback  : => @emit 'UpdateNickname'
+              callback  : => @handleNicknameUpdate() # bound won't work.
         publicIp        :
           label         : 'Public IP'
           cssClass      : if running then 'custom-link-view' else 'hidden'
@@ -109,6 +154,3 @@ module.exports = class MachineGeneralSettingsView extends KDView
           title         : @machine.domain
           href          : accessUri
           target        : '_blank'
-          tooltip       :
-            title       : accessUri
-            placement   : 'top'
