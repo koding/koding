@@ -24,7 +24,7 @@ class ShortcutsModal extends kd.ModalViewWithForms
       buttons:
         restore:
           title    : 'Restore Defaults'
-          style    : 'solid light-gray medium'
+          style    : 'solid light-gray medium restore'
           loader   : color: '#444444'
           #callback : -> modal.destroy()
 
