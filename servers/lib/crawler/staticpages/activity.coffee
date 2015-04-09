@@ -57,6 +57,12 @@ prepareComments = (activityContent)->
 getActivityContent = (activityContent)->
   slugWithDomain = "#{uri.address}/Activity/Post/#{activityContent.slug}"
   {body, nickname, fullName, hash, avatar, createdAt, commentCount, likeCount} = activityContent
+  location = activityContent?.payload?.location
+  if location
+    location = "from #{location}"
+  else 
+    location = ""
+ 
   avatarImage   = createAvatarImage hash, avatar
   createdAt     = createCreationDate createdAt, activityContent.slug
   author        = createAuthor fullName, nickname
@@ -80,6 +86,7 @@ getActivityContent = (activityContent)->
         <div class="meta">
           <a href="#{uri.address}/#{nickname}" class="profile">#{fullName}</a>
           <a href="#{slugWithDomain}">#{createdAt}</a>
+          <span class="location">#{location}</span>
         </div>
         <article class="has-markdown">
           #{body}
