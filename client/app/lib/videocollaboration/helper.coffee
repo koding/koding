@@ -257,6 +257,34 @@ isVideoActive = (channel) -> channel?.payload?.videoEnabled is 'true'
 
 
 ###*
+ * Set videoSessionId to paylod of given channel, then call callback.
+ *
+ * @param {SocialChannel}
+ * @param {string} sessionId
+ * @param {function} callback
+###
+setChannelVideoSession = (channel, sessionId, callback) ->
+
+  { payload } = channel
+
+  options =
+    id      : channel.id
+    payload : _.assign {}, payload, { videoSessionId : sessionId }
+
+  kd.singletons.socialapi.channel.update options, callback
+
+
+###*
+ * Return given channel's video session id. It can be used for boolean checks
+ * as if it's a `hasSessionId` named method.
+ *
+ * @param {SocialChannel} channel
+ * @return {string|undefined} id
+###
+getChannelSessionId = (channel) -> channel?.payload?.videoSessionId
+
+
+###*
  * @param {KDView} container
  * @param {string} nickname
  * @param {function(err: object)}
@@ -291,6 +319,8 @@ module.exports = {
   enableVideo
   disableVideo
   isVideoActive
+  setChannelVideoSession
   showOfflineParticipant
+  getChannelSessionId
   _errorSignal
 }
