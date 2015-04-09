@@ -2,28 +2,28 @@ package models
 
 import (
 	"fmt"
-	"socialapi/request"
-	"strings"
 	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
+	"socialapi/request"
+	"strings"
 )
 
-type AccountSettings gorm.Hstore 
+type AccountSettings gorm.Hstore
 
 func (a *AccountSettings) IsShareLocationEnabled() bool {
-    if a == nil {
-    return false
-    }
-    shareLocation, ok := gorm.Hstore(*a)["shareLocation"]
-    if !ok {
-        return false
-        }
-        
-        if shareLocation == nil {
-            return false
-            }
-            
-            return *shareLocation == "true" 
+	if a == nil {
+		return false
+	}
+	shareLocation, ok := gorm.Hstore(*a)["shareLocation"]
+	if !ok {
+		return false
+	}
+
+	if shareLocation == nil {
+		return false
+	}
+
+	return *shareLocation == "true"
 }
 
 type Account struct {
