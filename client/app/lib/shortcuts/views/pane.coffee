@@ -1,6 +1,7 @@
 kd = require 'kd'
 _  = require 'lodash'
 Item = require './item'
+record = require '../record'
 
 module.exports =
 
@@ -14,6 +15,10 @@ class Pane extends kd.View
 
   viewAppended: ->
 
-    #@collection.each (model) =>
-    @addSubView new Item null, @collection.first()
-    @addSubView new Item null, @collection.models[1]
+    i = 0
+    @collection.each (model) =>
+      if ++i > 5 then return
+      item = @addSubView new Item null, model
+      item.on 'BindingSelected', (id) =>
+        record (seq) ->
+          console.log seq
