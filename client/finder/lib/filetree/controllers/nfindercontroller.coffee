@@ -120,7 +120,11 @@ module.exports = class NFinderController extends KDViewController
 
     { uid } = machine
     mRoots  = (@appStorage.getValue 'machineRoots') or {}
-    path    = options.mountPath or mRoots[uid] or "/home/#{nick()}"
+    path    = options.mountPath or mRoots[uid]
+
+    path ?= if owner = machine.getOwner()
+    then "/home/#{owner}"
+    else '/'
 
     if @getMachineNode uid
       return kd.warn "Machine #{machine.getName()} is already mounted!"
@@ -138,6 +142,8 @@ module.exports = class NFinderController extends KDViewController
     @noMachineFoundWidget.hide()
 
     machineItem = @treeController.addNode @machines.last
+
+    @emit 'MachineMounted', machine, path
 
     if options.fetchContent and machineItem
 

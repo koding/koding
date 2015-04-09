@@ -58,6 +58,11 @@ module.exports = class FinderController extends KDController
         uploaderPlaceholder.show()
         uploader.unsetClass 'hover'
 
+    controller.on 'MachineMounted', (machine, path) ->
+
+      uploader.setOption 'defaultPath', path
+      uploader.reset()
+
     {treeController} = controller
     treeController.on 'dragEnter', onDrag
     treeController.on 'dragOver' , onDrag
