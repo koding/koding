@@ -10,7 +10,7 @@ module.exports =
 
     shareButtonSelector = '.status-bar a.share:not(.loading)'
     chatViewSelector    = '.chat-view.onboarding'
-    startButtonSelector = '.chat-view.onboarding .buttons button.green'
+    startButtonSelector = '.chat-view.onboarding .buttons button.start-session'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
