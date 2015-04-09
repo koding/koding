@@ -349,8 +349,11 @@ func (f *Controller) createTopicChannel(creatorId int64, groupName, channelName,
 	c.Purpose = fmt.Sprintf("Channel for %s topic", channelName)
 	c.TypeConstant = models.Channel_TYPE_TOPIC
 	c.PrivacyConstant = privacy
-	// newly created channels need moderation
-	c.MetaBits.Mark(models.NeedsModeration)
+	// add moderation needed flag only for koding group
+	if c.GroupName == models.Channel_KODING_NAME {
+		// newly created channels need moderation
+		c.MetaBits.Mark(models.NeedsModeration)
+	}
 	err := c.Create()
 	if err == nil {
 		return c, nil

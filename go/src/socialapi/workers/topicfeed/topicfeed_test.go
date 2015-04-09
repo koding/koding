@@ -69,9 +69,9 @@ func TestMessageSaved(t *testing.T) {
 	controller := topicfeed.New(r.Log)
 
 	Convey("while testing MessageSaved", t, func() {
-		Convey("newly created channels", func() {
+		Convey("newly created channels of koding group", func() {
 			account := models.CreateAccountWithTest()
-			groupChannel := models.CreateTypedPublicChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
+			groupChannel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_GROUP, "koding")
 
 			// just a random topic name
 			topicName := models.RandomName()
@@ -97,6 +97,37 @@ func TestMessageSaved(t *testing.T) {
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
 				So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeTrue)
+			})
+		})
+
+		Convey("newly created channels of non koding group", func() {
+			account := models.CreateAccountWithTest()
+			groupChannel := models.CreateTypedPublicChannelWithTest(account.Id, models.Channel_TYPE_GROUP)
+
+			// just a random topic name
+			topicName := models.RandomName()
+			c := models.NewChannelMessage()
+			c.InitialChannelId = groupChannel.Id
+			c.AccountId = account.Id
+			c.Body = "my test topic #" + topicName
+			c.TypeConstant = models.ChannelMessage_TYPE_POST
+
+			// create with unscoped
+			err := bongo.B.Unscoped().Table(c.TableName()).Create(c).Error
+			So(err, ShouldBeNil)
+
+			So(controller.MessageSaved(c), ShouldBeNil)
+
+			Convey("should not have moderation flag", func() {
+				// byname doesnt filter
+				channel, err := models.NewChannel().ByName(&request.Query{
+					Name:      topicName,
+					GroupName: groupChannel.GroupName,
+					AccountId: account.Id,
+				})
+				So(err, ShouldBeNil)
+				So(channel, ShouldNotBeNil)
+				So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeFalse)
 			})
 		})
 	})
