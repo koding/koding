@@ -152,15 +152,15 @@ module.exports = class SidebarMachineBox extends KDView
 
     return  if @isListCollapsed
 
-    @listWrapper.setClass 'hidden'
-    @workspacesLabel.setClass 'hidden'
+    @listWrapper.hide()
+    @workspacesLabel.hide()
     @isListCollapsed = yes
 
 
   expandList: ->
 
-    @listWrapper.unsetClass 'hidden'
-    @workspacesLabel.unsetClass 'hidden'
+    @listWrapper.show()
+    @workspacesLabel.show()
     @isListCollapsed = no
 
 
