@@ -44,7 +44,7 @@ module.exports = class MachineGeneralSettingsView extends KDView
     kd.singletons.computeController.getKloud()
 
       .info { machineId, currentState }
-      .then (response) =>
+      .then (response) ->
 
         if   response.State is Running
         then statusToggle.setOn  no
@@ -53,7 +53,7 @@ module.exports = class MachineGeneralSettingsView extends KDView
         statusToggle.show()
         statusLoader.hide()
 
-      .catch (err) =>
+      .catch (err) ->
 
         kd.warn 'Failed to fetch info for machine settings:', err
         statusLoader.hide()
