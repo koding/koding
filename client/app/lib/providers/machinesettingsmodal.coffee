@@ -19,9 +19,9 @@ PANE_CONFIG = [
     viewOptions : partial: 'Advanced'
   }
   {
-    title       : 'Guides'
     viewClass   : KDView
     viewOptions : partial: 'Guides'
+    title       : 'Common guides'
   }
   {
     title       : 'Domains'
