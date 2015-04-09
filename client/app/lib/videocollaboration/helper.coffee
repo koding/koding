@@ -121,17 +121,25 @@ createPublisher = (view, options = {}, callback) ->
 
 ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 fixParticipantBackgroundImage = (participant, account) ->
+
   poster = participant.element.querySelector '.OT_video-poster'
   poster.style.backgroundImage = "url(#{_getGravatarUri account})"
   kd.utils.defer -> poster.style.opacity = 1
+
   el = document.createElement 'span'
   el.classList.add 'profile-like-view'
-  { profile } = account
-  nicename = if profile.firstName is '' and profile.lastName is ''
-  then "@#{profile.nickname}"
-  else "#{profile.firstName} #{profile.lastName}"
-  el.innerHTML = nicename
+  el.innerHTML = getNicename account
+
   poster.appendChild el
+
+
+getNicename = (account) ->
+
+  { firstName, lastName, nickname } = account.profile
+
+  if firstName is '' and lastName is ''
+  then "@#{nickname}"
+  else "#{firstName} #{lastName}"
 
 
 ###*
