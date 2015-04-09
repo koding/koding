@@ -19,6 +19,7 @@ import (
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
+	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/userdata"
 
@@ -171,10 +172,20 @@ func newKite(conf *Config) *kite.Kite {
 
 	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
+	userdata := &userdata.Userdata{
+		Keycreator: &keycreator.Key{
+			KontrolURL:        getKontrolURL(conf.KontrolURL),
+			KontrolPrivateKey: kontrolPrivateKey,
+			KontrolPublicKey:  kontrolPublicKey,
+		},
+		Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
+	}
+
+	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
 		DB:         db,
-		Log:        newLogger("kloud", conf.DebugMode),
+		Log:        newLogger("kloud-koding", conf.DebugMode),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
@@ -184,14 +195,7 @@ func newKite(conf *Config) *kite.Kite {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		Userdata: &userdata.Userdata{
-			Keycreator: &keycreator.Key{
-				KontrolURL:        getKontrolURL(conf.KontrolURL),
-				KontrolPrivateKey: kontrolPrivateKey,
-				KontrolPublicKey:  kontrolPublicKey,
-			},
-			Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
-		},
+		Userdata: userdata,
 		PaymentFetcher: &plans.Payment{
 			PaymentEndpoint: conf.PlanEndpoint,
 		},
@@ -202,6 +206,19 @@ func newKite(conf *Config) *kite.Kite {
 
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaners(time.Minute * 60)
+
+	/// AWS PROVIDER ///
+
+	awsProvider := &awsprovider.Provider{
+		DB:         db,
+		Log:        newLogger("kloud-aws", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
+		Userdata:   userdata,
+	}
+
+	// KLOUD DISPATCHER ///
 
 	stats, err := metrics.NewDogStatsD("kloud")
 	if err != nil {
@@ -217,6 +234,11 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Log = newLogger(Name, conf.DebugMode)
 
 	err = kld.AddProvider("koding", kodingProvider)
+	if err != nil {
+		panic(err)
+	}
+
+	err = kld.AddProvider("aws", awsProvider)
 	if err != nil {
 		panic(err)
 	}

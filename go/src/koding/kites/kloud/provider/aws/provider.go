@@ -14,8 +14,6 @@ import (
 	"koding/kites/kloud/kloudctl/command"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/pkg/dnsclient"
-	"koding/kites/kloud/pkg/multiec2"
-	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 	"time"
 
@@ -36,11 +34,7 @@ type Provider struct {
 	Kite       *kite.Kite
 	DNSClient  *dnsclient.Route53
 	DNSStorage *dnsstorage.MongodbStorage
-	EC2Clients *multiec2.Clients
 	Userdata   *userdata.Userdata
-
-	PaymentFetcher plans.PaymentFetcher
-	CheckerFetcher plans.CheckerFetcher
 }
 
 type Credential struct {
@@ -132,7 +126,6 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 		DNSStorage: p.DNSStorage,
 		Userdata:   p.Userdata,
 		AWSClient:  amazonClient,
-		AWSClients: p.EC2Clients, // used for fallback if something goes wrong
 		Log:        machine.Log,
 	}
 
@@ -144,23 +137,9 @@ func (p *Provider) attachSession(ctx context.Context, machine *Machine) error {
 	// can make use of it.
 	ctx = session.NewContext(ctx, sess)
 
-	payment, err := p.PaymentFetcher.Fetch(ctx, user.Name)
-	if err != nil {
-		machine.Log.Warning("username: %s could not fetch plan. Fallback to Free plan. err: '%s'",
-			user.Name, err)
-		payment = &plans.PaymentResponse{Plan: "Free"}
-	}
-
-	checker, err := p.CheckerFetcher.Fetch(ctx, payment.Plan)
-	if err != nil {
-		return err
-	}
-
-	machine.Payment = payment
 	machine.Username = user.Name
 	machine.User = user
 	machine.cleanFuncs = make([]func(), 0)
-	machine.Checker = checker
 
 	ev, ok := eventer.FromContext(ctx)
 	if ok {
