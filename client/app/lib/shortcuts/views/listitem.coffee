@@ -1,43 +1,53 @@
 kd = require 'kd'
 _  = require 'lodash'
-BindingView = require './binding.coffee'
+present = require '../presenters/binding'
+
+renderToggle = _.template """
+  <div class="toggle <% if(enabled) { %>enabled<% } %>">
+  <span class=icon>
+"""
 
 module.exports =
 
-class ShortcutsListItem extends kd.ListItemView
+class Item extends kd.View
 
   constructor: (options={}, @model) ->
 
-    super options
+    @_enabled = @model.enabled
+
+    super _.extend
+      cssClass: 'row'
+    , options
 
 
   viewAppended: ->
 
-    toggleButton = new kd.ToggleButton
-      cssClass: 'topic-follow-btn'
-      defaultState: 'Enabled'
-      loader:
-        color: '#7d7d7d'
-      icon: yes
+    self = this
 
-      states: [
-        title: 'Enabled'
-        cssClass: 'enabled'
-        callback: ->
-      ,
-        title: 'Disabled'
-        cssClass: 'disabled'
-        callback: ->
-      ]
+    toggle = new kd.View
+      cssClass : 'col'
+      tagName  : 'div'
+      partial  : renderToggle enabled : @model.enabled
+      click    : (e) ->
+        enabled = if _.isBoolean e then e else not self._enabled
+        @updatePartial renderToggle enabled: (self._enabled = enabled)
+        self.emit 'StateChanged', @id
 
-    toggleView = new kd.View cssClass: 'col'
-
-    toggleView.addSubView toggleButton
-
-    @addSubView toggleView
-
-    @addSubView new kd.View
+    description = new kd.View
       cssClass : 'col'
       partial  : _.escape @model.description
 
-    @addSubView new BindingView null, @model
+    binding = new kd.View
+      cssClass : 'col'
+      partial  : present _.first @model.binding
+      click    : => @emit 'BindingSelected', @id
+
+    @addSubView toggle
+    @addSubView description
+    @addSubView binding
+
+    @on 'Synced', (model) ->
+      toggle.click model.enabled
+      binding.updatePartial present _.first model.binding
+
+    @once 'KDObjectWillBeDestroyed', => @off 'Synced'
