@@ -85,8 +85,10 @@ getActivityContent = (activityContent)->
         </a>
         <div class="meta">
           <a href="#{uri.address}/#{nickname}" class="profile">#{fullName}</a>
+          <div>
           <a href="#{slugWithDomain}">#{createdAt}</a>
           <span class="location">#{location}</span>
+          </div>
         </div>
         <article class="has-markdown">
           #{body}
