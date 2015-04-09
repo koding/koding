@@ -53,7 +53,10 @@ PACKAGES = \
 
 all: testapi
 
-develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev notificationdev trollmodeldev pinnedpostdev algoliaconnectordev emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev
+develop: apidev topicfeeddev realtimedev populartopicdev popularpostdev \
+	notificationdev trollmodeldev pinnedpostdev algoliaconnectordev \
+	emaildev sitemapdev collaborationdev mailsenderdev topicmoderationdev \
+	teamdev
 minimal: apidev topicfeeddev realtimedev pinnedpostdev
 default: configure
 
@@ -343,7 +346,10 @@ testpayment:
 	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
 	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification testtrollmode testpayment testteam
+testapi: testcollaboration testmailsender testmail testmodels testemailworker \
+	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
+	testpayment testteam
+
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)

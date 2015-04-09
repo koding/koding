@@ -56,7 +56,7 @@ Configuration = (options={}) ->
 
   segment                 = 'kb2hfdgf20'
 
-  
+
   disabledFeatures =
     moderation : yes
 
@@ -528,6 +528,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#
