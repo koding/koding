@@ -1,62 +1,56 @@
-kd = require 'kd'
-KDTabPaneView = kd.TabPaneView
-KDTabView = kd.TabView
-KDView = kd.View
-globals = require 'globals'
-JView = require 'app/jview'
-CommonInnerNavigationList = require 'app/commonviews/commoninnernavigationlist'
-CommonInnerNavigationListItem = require 'app/commonviews/commoninnernavigationlistitem'
-NavigationController = require 'app/navigation/navigationcontroller'
+kd                            = require 'kd'
+KDTabPaneView                 = kd.TabPaneView
+KDTabView                     = kd.TabView
+KDView                        = kd.View
+globals                       = require 'globals'
 
 
-module.exports = class DashboardAppView extends JView
+module.exports = class DashboardAppView extends kd.ModalView
 
   constructor:(options={}, data)->
 
-    options.cssClass or= "content-page"
-    data or= kd.getSingleton("groupsController").getCurrentGroup()
+    options.cssClass = 'AppModal AppModal--dashboard'
+    options.width    = 800
+    options.height   = 600
+    options.testPath = 'groups-dashboard'
+    data             or= kd.singletons.groupsController.getCurrentGroup()
+
     super options, data
 
-    @nav    = new KDView
-      tagName     : 'aside'
-      cssClass    : 'app-sidebar'
-    @tabs   = new KDTabView
-      cssClass            : 'dashboard-tabs'
-      hideHandleContainer : yes
+    @addSubView @tabs = new KDTabView
+      cssClass    : 'dashboard-tabs'
+      detachPanes : yes
     , data
 
-    @setListeners()
-    @once 'viewAppended', =>
-      @nav.hide()
-      group = kd.getSingleton("groupsController").getCurrentGroup()
-      group?.canEditGroup (err, success)=>
-        if err or not success
-          {entryPoint} = globals.config
-          kd.getSingleton('router').handleRoute "/Activity", { entryPoint }
-        else
-          @nav.show()
-          @createTabs()
+    @tabs.tabHandleContainer.setClass 'AppModal-nav'
 
-    @on "groupSettingsUpdated", (group)->
-      @setData group
-      @createTabs()
+    @setListeners()
+
 
   setListeners:->
 
-    @nav.once "viewAppended", =>
+    @on 'groupSettingsUpdated', (group)->
+      @setData group
+      @createTabs()
 
-      @navController = new NavigationController
-        scrollView    : no
-        wrapper       : no
-        view          : new CommonInnerNavigationList
-          itemClass   : CommonInnerNavigationListItem
-      ,
-        title     : ""
-        items     : []
+    @tabs.on 'PaneAdded', (pane) ->
+      # pane.unsetClass 'kdtabpaneview'
+      pane.setClass 'AppModal-content'
+      { tabHandle } = pane
+      tabHandle.setClass 'AppModal-navItem'
+      tabHandle.unsetClass 'kdtabhandle'
 
-      @nav.addSubView @navController.getView()
 
-    @tabs.on "PaneDidShow", (pane)=> @navController.selectItemByName pane.name
+  viewAppended: ->
+
+    group = kd.getSingleton("groupsController").getCurrentGroup()
+    group?.canEditGroup (err, success)=>
+      if err or not success
+        {entryPoint} = globals.config
+        kd.getSingleton('router').handleRoute "/Activity", { entryPoint }
+      else
+        @createTabs()
+
 
   createTabs:->
 
@@ -64,25 +58,18 @@ module.exports = class DashboardAppView extends JView
     kd.getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
       navItems = []
       for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
-        viewOptions.data = data
+        viewOptions.data    = data
         viewOptions.options = delegate : this  if name is 'Settings'
-        hiddenHandle = hiddenHandle? and data.privacy is 'public'
+        hiddenHandle        = hiddenHandle? and data.privacy is 'public'
         @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
-        # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
-        if data.slug is 'koding'
-          navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
-        if data.slug isnt 'koding' and not kodingOnly
-          navItems.push {title : name, slug : "/#{data.slug}/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
+        # # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
+        # if data.slug is 'koding'
+        #   navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
+        # if data.slug isnt 'koding' and not kodingOnly
+        #   navItems.push {title : name, slug : "/#{data.slug}/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
 
-      @navController.replaceAllItems navItems
-      @nav.emit "ready"
-      @emit "ready"
+      @emit 'ready'
 
-  pistachio:->
-    """
-      {{> @nav}}
-      {{> @tabs}}
-    """
 
   search: (searchValue)->
     if @tabs.getActivePane().name is 'Invitations'
