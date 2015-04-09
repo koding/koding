@@ -14,7 +14,6 @@ import (
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
-	"koding/kites/kloud/waitstate"
 
 	kiteprotocol "github.com/koding/kite/protocol"
 
@@ -43,17 +42,12 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 	// the user might send us a snapshot id
 	var args struct {
-		SnapshotId string
-		Reason     string
+		Reason string
 	}
 
 	err = req.Args.One().Unmarshal(&args)
 	if err != nil {
 		return err
-	}
-
-	if args.SnapshotId != "" {
-		m.Meta.SnapshotId = args.SnapshotId
 	}
 
 	reason := "Machine is building."
@@ -102,7 +96,8 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 		m.push("Initiating build process", 30, machinestate.Building)
 		m.Log.Debug("Initiating creating process of instance")
-		m.Meta.InstanceId, err = m.create(buildData)
+
+		m.Meta.InstanceName, err = m.Session.AWSClient.Build(buildData.EC2Data)
 		if err != nil {
 			return err
 		}
@@ -187,18 +182,17 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 }
 
 func (m *Machine) imageData() (*ImageData, error) {
-	m.Log.Debug("Fetching image which is tagged with '%s'", DefaultCustomAMITag)
-	image, err := m.Session.AWSClient.ImageByTag(DefaultCustomAMITag)
+	if m.Meta.StorageSize == 0 {
+		return nil, errors.New("storage size is zero")
+	}
+
+	m.Log.Debug("Fetching image which is tagged with '%s'", m.Meta.SourceAmi)
+	image, err := m.Session.AWSClient.ImageByTag(m.Meta.SourceAmi)
 	if err != nil {
 		return nil, err
 	}
 
 	device := image.BlockDevices[0]
-
-	storageSize := 3 // default AMI 3GB size
-	if m.Session.AWSClient.Builder.StorageSize != 0 && m.Session.AWSClient.Builder.StorageSize > 3 {
-		storageSize = m.Session.AWSClient.Builder.StorageSize
-	}
 
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
@@ -206,76 +200,9 @@ func (m *Machine) imageData() (*ImageData, error) {
 		DeviceName:          device.DeviceName,
 		VirtualName:         device.VirtualName,
 		VolumeType:          "standard", // Use magnetic storage because it is cheaper
-		VolumeSize:          int64(storageSize),
+		VolumeSize:          int64(m.Meta.StorageSize),
 		DeleteOnTermination: true,
 		Encrypted:           false,
-	}
-
-	if m.Meta.SnapshotId != "" {
-		m.Log.Debug("checking for snapshot permissions")
-		// check first if the snapshot belongs to the user, it might belong to someone else!
-		if err := m.checkSnapshotExistence(); err != nil {
-			return nil, err
-		}
-
-		m.Log.Debug("creating AMI from the snapshot '%s'", m.Meta.SnapshotId)
-
-		blockDeviceMapping.SnapshotId = m.Meta.SnapshotId
-		amiDesc := fmt.Sprintf("user-%s-%s", m.Username, m.Id.Hex())
-
-		registerOpts := &ec2.RegisterImage{
-			Name:           amiDesc,
-			Description:    amiDesc,
-			Architecture:   image.Architecture,
-			RootDeviceName: image.RootDeviceName,
-			VirtType:       image.VirtualizationType,
-			KernelId:       image.KernelId,
-			RamdiskId:      image.RamdiskId,
-			BlockDevices:   []ec2.BlockDeviceMapping{blockDeviceMapping},
-		}
-
-		registerResp, err := m.Session.AWSClient.Client.RegisterImage(registerOpts)
-		if err != nil {
-			return nil, err
-		}
-
-		// if we build the instance from a snapshot, it'll create a temporary
-		// AMI. Destroy it after we are finished or if something goes wrong.
-		m.cleanFuncs = append(m.cleanFuncs, func() {
-			m.Log.Debug("Deleting temporary AMI '%s'", registerResp.ImageId)
-			if _, err := m.Session.AWSClient.Client.DeregisterImage(registerResp.ImageId); err != nil {
-				m.Log.Warning("Couldn't delete AMI '%s': %s", registerResp.ImageId, err)
-			}
-		})
-
-		// wait until the AMI is ready
-		checkAMI := func(currentPercentage int) (machinestate.State, error) {
-			m.push("Checking ami", currentPercentage, machinestate.Building)
-
-			resp, err := m.Session.AWSClient.Client.Images([]string{registerResp.ImageId}, ec2.NewFilter())
-			if err != nil {
-				return 0, err
-			}
-
-			// shouldn't happen but let's check it anyway
-			if len(resp.Images) == 0 {
-				return machinestate.Pending, nil
-			}
-
-			image := resp.Images[0]
-			if image.State != "available" {
-				return machinestate.Pending, nil
-			}
-
-			return machinestate.NotInitialized, nil
-		}
-
-		ws := waitstate.WaitState{StateFunc: checkAMI, DesiredState: machinestate.NotInitialized}
-		if err := ws.Wait(); err != nil {
-			return nil, err
-		}
-
-		image.Id = registerResp.ImageId
 	}
 
 	m.Log.Debug("Using image Id: %s and block device settings %v", image.Id, blockDeviceMapping)
@@ -288,34 +215,13 @@ func (m *Machine) imageData() (*ImageData, error) {
 
 // buildData returns all necessary data that is needed to build a machine.
 func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
-	// get all subnets belonging to Kloud
-	m.Log.Debug("Searching for subnet that are tagged with 'kloud-subnet-*'")
-	subnets, err := m.Session.AWSClient.SubnetsWithTag(DefaultKloudSubnetValue)
-	if err != nil {
-		return nil, err
-	}
-
-	// sort and get the lowest
-	subnet := subnets.WithMostIps()
-
-	m.Log.Debug("Searching for security group for vpc id '%s'", subnet.VpcId)
-	group, err := m.Session.AWSClient.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-	if err != nil {
-		return nil, err
-	}
-
 	imageData, err := m.imageData()
 	if err != nil {
 		return nil, err
 	}
 
-	m.Log.Debug("Using subnet: '%s', zone: '%s', sg: '%s'. Subnet has %d available IPs",
-		subnet.SubnetId, subnet.AvailabilityZone, group.Id, subnet.AvailableIpAddressCount)
-
 	if m.Session.AWSClient.Builder.InstanceType == "" {
-		m.Log.Critical("Instance type is empty. This shouldn't happen. Fallback to t2.micro",
-			m.Id.Hex())
-		m.Session.AWSClient.Builder.InstanceType = plans.T2Micro.String()
+		return nil, errors.New("instance type is empty")
 	}
 
 	kiteUUID, err := uuid.NewV4()
@@ -336,8 +242,6 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		Username:    m.Username,
 		UserSSHKeys: sshKeys,
 		Hostname:    m.Username, // no typo here. hostname = username
-		ApachePort:  DefaultApachePort,
-		KitePort:    DefaultKitePort,
 		KiteId:      kiteId,
 	}
 
@@ -352,15 +256,12 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}
 
 	ec2Data := &ec2.RunInstances{
-		ImageId:                  imageData.imageId,
+		ImageId:                  m.Meta.SourceAmi,
 		MinCount:                 1,
 		MaxCount:                 1,
 		KeyName:                  keys.KeyName,
 		InstanceType:             m.Session.AWSClient.Builder.InstanceType,
 		AssociatePublicIpAddress: true,
-		SubnetId:                 subnet.SubnetId,
-		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
-		AvailZone:                subnet.AvailabilityZone,
 		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userdata,
 	}
@@ -397,98 +298,6 @@ func (m *Machine) checkLimits(buildData *BuildData) error {
 	}
 
 	return nil
-}
-
-func (m *Machine) create(buildData *BuildData) (string, error) {
-	// build our instance in a normal way, if it's succeed just return
-	instanceId, err := m.Session.AWSClient.Build(buildData.EC2Data)
-	if err == nil {
-		return instanceId, nil
-	}
-
-	// check if the error is a 'InsufficientInstanceCapacity" error or
-	// "InstanceLimitExceeded, if not return back because it's not a
-	// resource or capacity problem.
-	if !isCapacityError(err) {
-		return "", err
-	}
-
-	m.Log.Error("IMPORTANT: %s", err)
-
-	zones, err := m.Session.AWSClients.Zones(m.Session.AWSClient.Client.Region.Name)
-	if err != nil {
-		return "", err
-	}
-
-	subnets, err := m.Session.AWSClient.SubnetsWithTag(DefaultKloudSubnetValue)
-	if err != nil {
-		return "", err
-	}
-
-	currentZone := buildData.EC2Data.AvailZone
-
-	// tryAllZones will try to build the given instance type with in all zones
-	// until it's succeed.
-	tryAllZones := func(instanceType string) (string, error) {
-		m.Log.Debug("Fallback: Searching for a zone that has capacity amongst zones: %v", zones)
-		for _, zone := range zones {
-			if zone == currentZone {
-				// skip it because that's one is causing problems and doesn't have any capacity
-				continue
-			}
-
-			subnet, err := subnets.AvailabilityZone(zone)
-			if err != nil {
-				m.Log.Critical("Fallback zone failed to get subnet zone '%s' ", err, zone)
-				continue // shouldn't be happen, but let be safe
-			}
-
-			group, err := m.Session.AWSClient.SecurityGroupFromVPC(subnet.VpcId, DefaultKloudKeyName)
-			if err != nil {
-				return "", err
-			}
-
-			// add now our security group
-			buildData.EC2Data.SecurityGroups = []ec2.SecurityGroup{{Id: group.Id}}
-			buildData.EC2Data.AvailZone = zone
-			buildData.EC2Data.SubnetId = subnet.SubnetId
-			buildData.EC2Data.InstanceType = instanceType
-
-			m.Log.Warning("Fallback build by using availability zone: %s, subnet %s and instance type: %s",
-				zone, subnet.SubnetId, instanceType)
-
-			instanceId, err := m.Session.AWSClient.Build(buildData.EC2Data)
-			if err != nil {
-				// if there is no capacity we are going to use the next one
-				m.Log.Warning("Build failed on availability zone '%s' due to AWS capacity problems. Trying another region.",
-					zone)
-				continue
-			}
-
-			return instanceId, nil // we got something that works!
-		}
-
-		return "", errors.New("tried all zones without any success.")
-	}
-
-	// Try to build the instance in another zone. We try to build one instance
-	// type for all zones until all zones capacity is drained. In that case we
-	// move on to the next instance type and start to use with all available
-	// zones. This assures us that to fully use all zones with all instance
-	// types and ensure a safe build.
-	// TODO: filter out instances that are lower than the current user's
-	// instance type (so don't pick up t2.small if the user hasa t2.medium)
-	for _, instanceType := range InstancesList {
-		instanceId, err := tryAllZones(instanceType)
-		if err != nil {
-			m.Log.Critical("Fallback didn't work for instances: %s", err)
-			continue // pick up the next instance type
-		}
-
-		return instanceId, nil
-	}
-
-	return "", errors.New("build reached the end. all fallback mechanism steps failed.")
 }
 
 func (m *Machine) addDomainAndTags() {

@@ -31,6 +31,9 @@ type CloudInitConfig struct {
 }
 
 var (
+	DefaultApachePort = 80
+	DefaultKitePort   = 3000
+
 	// funcMap contains easy to use template functions
 	funcMap = template.FuncMap{
 		"user_keys": func(keys []string) string {
@@ -169,6 +172,14 @@ func (u *Userdata) Create(c *CloudInitConfig) ([]byte, error) {
 	}
 
 	c.LatestKlientURL = u.Bucket.URL(latestKlientPath)
+
+	if c.ApachePort == 0 {
+		c.ApachePort = DefaultApachePort
+	}
+
+	if c.KitePort == 0 {
+		c.KitePort = DefaultKitePort
+	}
 
 	// validate the public keys
 	validatedKeys := make([]string, 0)
