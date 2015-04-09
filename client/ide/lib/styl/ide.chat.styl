@@ -183,19 +183,65 @@ pmLinkColor   = #B6B6B6
 
     .chat-heads
       position              absolute
-      top                   -48px
+      top                   -52px
+      margin-top            0px
+      vendor                transition, margin-top .177s ease
 
-      .heads .avatarview.is-selectedParticipant
-        border              2px solid red
 
-      .heads .avatarview.is-talkingParticipant
-        border              2px solid green
+      .heads .avatarview.is-selectedParticipant img
+        border-color        legendary
+
+      .heads .avatarview.is-talkingParticipant:after
+        vendor              animation, radiate 1s ease infinite
+        opacity             1
 
       .kdbutton.new-participant
         background          #fff
+        rounded             2px
+        border              2px solid #fff
+        size                25px 25px
+        contentBox()
+
+      .heads .avatarview
+        rounded             2px
+        overflow            visible
+        margin              6px 6px 0 0
+        rel()
+        img
+          z-index           1
+          rel()
+        &:after
+          background        logoBg
+          z-index           0
+          size              100% 100%
+          abs               0px 0 0 0px
+          shadow            0 0 5px logoBg
+          vendor            transition, opacity .3s ease
+          content           ''
+          opacity           0
+
+      .heads .avatarview img
+        rounded             2px
+        border              2px solid rgba(255,255,255,.5)
 
     .new-message-form.inline.active
       top                   -4px
+
+@-webkit-keyframes radiate
+  0%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+  61.2%
+    shadow                  0 0 6px 2px rgba(26,175,93,1)
+  100%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+
+@-moz-keyframes radiate
+  0%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+  61.2%
+    shadow                  0 0 6px 2px rgba(26,175,93,1)
+  100%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
 
 
 .ChatVideo--IDEChatVideo
