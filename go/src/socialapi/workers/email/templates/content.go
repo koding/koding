@@ -32,7 +32,7 @@ const Channel = `
 `
 
 const ChannelLink = `
-{{define "channellink"}}<a href="{{.Hostname}}/Activity/Message/{{.ChannelId}}">{{.Title}}</a>
+{{define "channellink"}}<a href="{{.Hostname}}/{{.Title}}">{{.Title}}</a>
 {{end}}
 `
 
