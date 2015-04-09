@@ -121,6 +121,13 @@ createPublisher = (view, options = {}, callback) ->
     callback null, publisher
 
 
+###*
+ * Fix given participant's background image.
+ * TODO: investigate if this method is more suitable for VideoViewModel
+ *
+ * @param {ParticipantType.Participant} participant
+ * @param {JAccount} account
+###
 fixParticipantBackgroundImage = (participant, account) ->
 
   poster = participant.element.querySelector '.OT_video-poster'
@@ -134,6 +141,11 @@ fixParticipantBackgroundImage = (participant, account) ->
   poster.appendChild el
 
 
+###*
+ * Return nickname if present, or firstname + lastname, from given account.
+ *
+ * @param {JAccount} account
+###
 getNicename = (account) ->
 
   { firstName, lastName, nickname } = account.profile
