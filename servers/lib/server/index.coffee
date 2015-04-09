@@ -445,7 +445,7 @@ app.post "/Impersonate/:nickname", (req, res) ->
 
           res.cookie 'clientId', session.clientId, path : '/'  if session.clientId
           res.clearCookie 'realtimeToken'
-          res.status(200).end()
+          res.status(200).send({success: yes})
 
 
 app.post "/:name?/Recover", (req, res) ->
