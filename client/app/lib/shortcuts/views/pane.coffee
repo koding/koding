@@ -9,19 +9,11 @@ class ShortcutsPane extends kd.View
   constructor: (options={}) ->
 
     @collection = options.collection
-
     super _.omit options, 'collection'
 
 
   viewAppended: ->
 
-    listController = new kd.ListViewController
-      view: new kd.ListView
-        itemClass: ShortcutsListItem
-
-    #@collection.each (model) ->
-      #listController.addItem model
-
-    listController.addItem @collection.first()
-
-    @addSubView listController.getView()
+    #@collection.each (model) =>
+    @addSubView new ShortcutsListItem null, @collection.first()
+    @addSubView new ShortcutsListItem null, @collection.models[1]
