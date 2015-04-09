@@ -18,6 +18,7 @@ socialHelpers                 = require './collaboration/helpers/social'
 envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
+isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
 
 {warn} = kd
 
@@ -663,7 +664,8 @@ module.exports = CollaborationController =
     # this method comes from VideoCollaborationController.
     # It's mixed into IDEAppController after CollaborationController.
     # This is probably an anti pattern, we need to look into this again. ~Umut
-    @prepareVideoCollaboration @socialChannel, @chat.getVideoView()
+    if isVideoFeatureEnabled()
+      @prepareVideoCollaboration @socialChannel, @chat.getVideoView()
 
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
