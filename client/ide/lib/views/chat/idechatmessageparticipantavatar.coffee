@@ -71,7 +71,7 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
         if data.amIHost
           items['Kick'] =
             title    : 'Kick'
-            callback : ->
+            callback : =>
               MENU?.destroy()
               appManager.tell 'IDE', 'kickParticipant', @getData()
 
