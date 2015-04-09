@@ -150,7 +150,7 @@ subscribeToAudioChanges = (subscriber, callbacks) ->
   subscriber.on 'audioLevelUpdated', (event) ->
     now = Date.now()
     # we detected a sound from subscriber
-    if event.audioLevel > 0.2
+    if event.audioLevel > 0.1
       # create initial activity with talking flag is off when there is no
       # talking activity.
       if not activity
@@ -160,15 +160,15 @@ subscribeToAudioChanges = (subscriber, callbacks) ->
       else if activity.talking
         activity.timestamp = now
 
-      # detected that user is talking more than 1 second.
+      # detected that user is talking more than .5 second.
       # call `started` function of given `callbacks`.
-      else if now - activity.timestamp > 1000
+      else if now - activity.timestamp > 500
         activity.talking = on
         callbacks.started()
 
-    # we have an talking activity record, it's not updated for the past 3 secs.
+    # we have an activity record, it's not updated for the past 1 secs.
     # call `stopped` function of given `callbacks`
-    else if activity and now - activity.timestamp > 3000
+    else if activity and now - activity.timestamp > 1000
       callbacks.stopped()  if activity.talking
       activity = null
 
