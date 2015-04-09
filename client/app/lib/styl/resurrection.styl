@@ -1740,10 +1740,10 @@ paymentGrayLighter  = #f8f8f8
 
   .AppModal-navItem.general
     &:before
-      r-sprite              'app' 'ms-general'
+      r-sprite              'app', 'ms-general'
 
     &.active:before
-      r-sprite              'app' 'ms-general-active'
+      r-sprite              'app', 'ms-general-active'
 
   .AppModal-navItem.advanced
     &:before
@@ -1807,3 +1807,70 @@ paymentGrayLighter  = #f8f8f8
     .input-wrapper
       float                 right
       color                 #8B8B8B
+
+
+// specs view
+.machine-settings-modal
+
+  .icons
+    overflow                hidden
+
+  .spec
+    float                   left
+    margin                  28px 0 0 90px
+
+    &:first-child
+      margin-left           60px
+
+    figure
+      size                  70px, 70px
+      rounded               70px
+
+    .icon
+      display               inline-block
+      position              relative
+
+    .label
+      text-align            center
+
+      p
+        font-size           14px
+        color               #B3B3B3
+        margin              12px 0 5px 0
+
+      span
+        font-size           20px
+
+  .ram
+    figure
+      bg                    color, #B3ECA3
+    .icon
+      r-sprite              'app', 'ms-specs-ram'
+      top                   25px
+      left                  18px
+
+  .cores
+    figure
+      bg                    color, #6CE7E7
+    .icon
+      r-sprite              'app', 'ms-specs-cpu'
+      top                   17px
+      left                  17px
+
+  .disk
+    figure
+      bg                    color, #FFE04F
+    .icon
+      r-sprite              'app', 'ms-specs-disk'
+      top                   17px
+      left                  22px
+
+  .need-more
+    margin-top              38px
+    text-align              center
+    width                   530px
+
+    p
+      margin-bottom         12px
+      font-size             14px
+      color                 #666651
