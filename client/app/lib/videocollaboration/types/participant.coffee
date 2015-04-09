@@ -1,3 +1,6 @@
+kd = require 'kd'
+helper = require '../helper'
+
 ###*
  * Base class for representing a video participant.
  * OpenTok has 2 different idea of users. `Publisher` and `Subscriber`.
@@ -10,12 +13,22 @@
  *
  * @class ParticipantType.BaseVideoParticipant
 ###
-class BaseVideoParticipant
+class BaseVideoParticipant extends kd.EventEmitter
 
   constructor: (nick, videoData) ->
+
+    # call KDEventEmitter constructor with an empty object to make it start
+    # working.
+    super {}
+
     @nick = nick
     @videoData = videoData
     @type = null
+
+    helper.subscribeToAudioChanges @videoData,
+      started : => @emit 'TalkingDidStart'
+      stopped : => @emit 'TalkingDidStop'
+
 
   getType: -> @type
 
@@ -42,6 +55,7 @@ class Subscriber extends BaseVideoParticipant
   constructor: (nick, videoData) ->
     super nick, videoData
     @type = 'subscriber'
+
 
 
 module.exports = participantTypes = { Publisher, Subscriber }
