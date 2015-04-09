@@ -252,33 +252,50 @@ func (c *Channel) AddParticipant(participantId int64) (*ChannelParticipant, erro
 // if user is already removed from the channel, don't need to do anything
 //
 // Tests are done.
-func (c *Channel) RemoveParticipant(participantId int64) error {
+func (c *Channel) RemoveParticipant(participantIds ...int64) error {
+	return c.removeParticipation(ChannelParticipant_STATUS_LEFT, participantIds...)
+}
+
+// BlockParticipant blocks the user(participant) from reaching to a channel
+func (c *Channel) BlockParticipant(participantIds ...int64) error {
+	return c.removeParticipation(ChannelParticipant_STATUS_BLOCKED, participantIds...)
+}
+
+func (c *Channel) removeParticipation(typeConstant string, participantIds ...int64) error {
 	if c.Id == 0 {
 		return ErrChannelIdIsNotSet
 	}
 
-	cp := NewChannelParticipant()
-	cp.ChannelId = c.Id
-	cp.AccountId = participantId
+	for _, participantId := range participantIds {
+		cp := NewChannelParticipant()
+		cp.ChannelId = c.Id
+		cp.AccountId = participantId
 
-	err := cp.FetchParticipant()
-	// if user is not in this channel, do nothing
-	if err == bongo.RecordNotFound {
-		return nil
-	}
+		err := cp.FetchParticipant()
+		// if user is not in this channel, do nothing
+		if err == bongo.RecordNotFound {
+			continue
+		}
 
-	if err != nil {
-		return err
-	}
+		if err != nil {
+			return err
+		}
 
-	// status of the participant is left (participant is not in the channel), do nothing
-	if cp.StatusConstant == ChannelParticipant_STATUS_LEFT {
-		return nil
-	}
+		if cp.StatusConstant == typeConstant {
+			continue
+		}
 
-	cp.StatusConstant = ChannelParticipant_STATUS_LEFT
-	if err := cp.Update(); err != nil {
-		return err
+		// if status of the participant is left or blocked (participant is not in
+		// the channel), do nothing
+		if cp.StatusConstant == ChannelParticipant_STATUS_BLOCKED &&
+			typeConstant == ChannelParticipant_STATUS_LEFT {
+			continue
+		}
+
+		cp.StatusConstant = typeConstant
+		if err := cp.Update(); err != nil {
+			return err
+		}
 	}
 
 	return nil
