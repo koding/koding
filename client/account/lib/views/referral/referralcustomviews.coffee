@@ -71,15 +71,22 @@ module.exports = class ReferralCustomViews extends CustomViews
 
       list   = controller.getListView()
       header = new kd.ListItemView {cssClass: 'referral-item header'}, {}
+      if data?.length > 0
 
-      header.partial = -> "
-        <div>Friend</div>
-        <div>Status</div>
-        <div>Last Activity</div>
-        <div>Space Earned</div>
-      "
+        header = new kd.ListItemView {cssClass: 'referral-item header'}, {}
+        header.partial = -> "
+          <div>Friend</div>
+          <div>Status</div>
+          <div>Last Activity</div>
+          <div>Space Earned</div>
+        "
+        list.addItemView header, 0
 
-      list.addItemView header, 0
+      else
+
+        list.addSubView new kd.View
+          cssClass : 'no-referral'
+          partial  : "You don't have any referrals yet."
 
       __view = controller.getView()
       return { __view, controller }
