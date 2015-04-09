@@ -19,7 +19,7 @@ func TestTeam(t *testing.T) {
 
 	appConfig := config.MustRead(r.Conf.Path)
 	Convey("given a controller", t, func() {
-		controller := NewController(r.Log, appConfig)
+		NewController(r.Log, appConfig)
 		Convey("when we add a new participant into a channel", func() {
 			Convey("participant should be added to default channels", func() {
 			})

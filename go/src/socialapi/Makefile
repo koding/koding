@@ -164,6 +164,10 @@ sitemapinitdev:
 	@echo "$(OK_COLOR)==> Running Sitemap Initializer Worker $(NO_COLOR)"
 	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/sitemap/sitemapinitializer -watch socialapi/workers/sitemap/sitemapfeeder -c $(CONFIG) $(DBG) $(METRICS)
 
+teamdev:
+	@echo "$(OK_COLOR)==> Running Team Worker $(NO_COLOR)"
+	@$(GOBINDIR)/watcher -run socialapi/workers/cmd/team -watch socialapi/workers/team -c $(CONFIG) $(DBG) $(METRICS)
+
 createdb:
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jAccounts.update({},{\$$unset:{socialApiId:0}},{multi:true})'")
 	(vagrant ssh default --command "mongo localhost/koding --eval='db.jGroups.update({},{\$$unset:{socialApiChannelId:0}},{multi:true})'")
@@ -205,6 +209,20 @@ testpermission:
 	@`which go` test -c workers/permission/tests/*.go
 	@./permission.test $(DBG) $(METRICS) -c $(CONFIG)
 	@rm  ./permission.test
+
+testteam: testteamunit testteamintegration
+
+testteamunit:
+	@echo "$(OK_COLOR)--> team unit tests... $(NO_COLOR)"
+	@`which go` test -c workers/team/*.go
+	@./team.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./team.test
+
+testteamintegration:
+	@echo "$(OK_COLOR)--> team integration tests... $(NO_COLOR)"
+	@`which go` test -c workers/team/tests/*.go
+	@./tests.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm ./tests.test
 
 testmoderation: testmoderationunit testmoderationintegration
 
@@ -325,7 +343,7 @@ testpayment:
 	@echo "$(OK_COLOR)--> paymentwebhook#webhookmodels tests... $(NO_COLOR)"
 	@`which go` test workers/payment/paymentwebhook/webhookmodels/*.go
 
-testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification testtrollmode testpayment
+testapi: testcollaboration testmailsender testmail testmodels testemailworker testmoderation testalgolia testtopicfeeed testnotification testtrollmode testpayment testteam
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
 	@`which go` test config/*.go $(DBG)
