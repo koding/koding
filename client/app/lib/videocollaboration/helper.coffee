@@ -88,7 +88,7 @@ subscribeToStream = (session, stream, view, callbacks) ->
     return callbacks.error err  if err
     subscriber = session.subscribe stream, view.getElement(), options, (err) ->
       return callbacks.error err  if err
-      fixParticipantBackgroundImage subscriber
+      fixParticipantBackgroundImage subscriber, account
       subscriber.setStyle 'backgroundImageURI', uri = _getGravatarUri account
       callbacks.success subscriber
 
@@ -115,17 +115,23 @@ createPublisher = (view, options = {}, callback) ->
 
   publisher = OT.initPublisher view.getElement(), options, (err) ->
     return callback err  if err
-    fixParticipantBackgroundImage publisher
+    fixParticipantBackgroundImage publisher, whoami()
     callback null, publisher
 
 
 ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
-fixParticipantBackgroundImage = (participant) ->
+fixParticipantBackgroundImage = (participant, account) ->
   poster = participant.element.querySelector '.OT_video-poster'
-  poster.style.backgroundImage = "url(#{_getGravatarUri whoami()})"
+  poster.style.backgroundImage = "url(#{_getGravatarUri account})"
   kd.utils.defer -> poster.style.opacity = 1
-  nickname = new ProfileTextView {}, whoami()
-  poster.appendChild nickname.getElement()
+  el = document.createElement 'span'
+  el.classList.add 'profile-like-view'
+  { profile } = account
+  nicename = if profile.firstName is '' and profile.lastName is ''
+  then "@#{profile.nickname}"
+  else "#{profile.firstName} #{profile.lastName}"
+  el.innerHTML = nicename
+  poster.appendChild el
 
 
 ###*
