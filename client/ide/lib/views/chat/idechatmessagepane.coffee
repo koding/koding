@@ -245,6 +245,12 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @participantMap[participant._id] = avatar
 
 
+  setHeadsPosition: ->
+
+    floors = Math.floor (Object.keys(@participantMap).length + 1) / 8
+    @heads.$().css marginTop : "#{-(floors * 35)}px"
+
+
   refresh: ->
 
     return  if not @listController.getItemCount()
