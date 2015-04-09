@@ -196,9 +196,11 @@ pmLinkColor   = #B6B6B6
 
   size                    325px 265px
   overflow                hidden
+  bg                        color #131313
 
   .ChatVideo-container
     size                    100% 100%
+    bg                      color #131313
 
   .ChatVideo-offlineUserContainer
     position                absolute
@@ -208,6 +210,21 @@ pmLinkColor   = #B6B6B6
     height                  100%
     background              url(https://koding-cdn.s3.amazonaws.com/images/one-pixel-dark-square.png)
     background-size         cover
+
+  .OT_video-poster .profile-like-view
+  .ChatVideo-offlineUserContainer span.profile
+    top                     50%
+    margin-top              -15px
+    line-height             30px
+    width                   100%
+    text-align              center
+    color                   #ccc
+    font-size               14px
+    bg                      color rgba(0,0,0,0.15)
+    abs()
+
+  .ChatVideo-offlineUserContainer span.profile:after
+    content                'is not on the call.'
 
   .ChatVideo-controls
     size                    30px auto
