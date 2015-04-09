@@ -399,6 +399,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
           {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
@@ -478,6 +482,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
 
     collaboration :
       group             : "socialapi"
