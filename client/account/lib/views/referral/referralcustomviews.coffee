@@ -65,7 +65,9 @@ module.exports = class ReferralCustomViews extends CustomViews
     list: ({data, itemClass}) ->
 
       itemClass ?= require './accountreferralsystemlistitem'
-      controller = new kd.ListViewController { itemClass, scrollView: yes }
+      controller = new kd.ListViewController {
+        itemClass, useCustomScrollView: yes
+      }
       controller.replaceAllItems data
 
       list   = controller.getListView()

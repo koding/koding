@@ -612,12 +612,17 @@ app.settings.styl
       .bar
         box-shadow          none
 
+  .kdcustomscrollview
+    &.has-vertical
+      padding-right         0
+    .kdscrolltrack.vertical
+      right                 -5px
+
   .kdscrollview
-    max-height              200px
+    max-height              205px
     margin-top              25px
     border-top              1px solid #ddd
     border-bottom           1px solid #ddd
-    padding                 0 10px 10px 0
 
     borderBox()
 
