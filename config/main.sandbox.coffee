@@ -56,6 +56,10 @@ Configuration = (options={}) ->
 
   segment                 = 'kb2hfdgf20'
 
+
+  disabledFeatures =
+    moderation : yes
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -85,6 +89,7 @@ Configuration = (options={}) ->
     googleapiServiceAccount : googleapiServiceAccount
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -524,6 +529,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#

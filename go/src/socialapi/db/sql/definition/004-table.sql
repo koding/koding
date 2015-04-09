@@ -129,7 +129,8 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON "api"."channel_message_list" TO "social"
 CREATE TYPE "api"."channel_participant_status_constant_enum" AS ENUM (
     'active',
     'left',
-    'requestpending'
+    'requestpending',
+    'blocked'
 );
 
 ALTER TYPE "api"."channel_participant_status_constant_enum" OWNER TO "social";

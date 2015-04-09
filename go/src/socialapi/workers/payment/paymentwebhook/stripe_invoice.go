@@ -38,8 +38,9 @@ func stripePaymentSucceededEmail(req *webhookmodels.StripeInvoice, c *Controller
 
 	planName := req.Lines.Data[0].Plan.Name
 	opts := map[string]interface{}{
-		"planName": planName,
-		"price":    formatStripeAmount(req.Currency, req.AmountDue),
+		"planName":  planName,
+		"price":     formatStripeAmount(req.Currency, req.AmountDue),
+		"amountDue": req.AmountDue,
 	}
 
 	return SendEmail(req.CustomerId, PaymentCreated, opts)

@@ -110,8 +110,8 @@ func (f *Controller) MessageUpdated(cm *models.ChannelMessage) error {
 // but regarding operation has another event, so we are gonna ignore it
 func (f *Controller) ChannelParticipantUpdatedEvent(cp *models.ChannelParticipant) error {
 	// if status of the participant is left, then just notify the current user
-	if cp.StatusConstant == models.ChannelParticipant_STATUS_LEFT {
-		f.log.Info("Ignoring participant (%d) left channel event", cp.AccountId)
+	if cp.StatusConstant != models.ChannelParticipant_STATUS_ACTIVE {
+		f.log.Info("Ignoring participant (%d) event: %s", cp.AccountId, cp.StatusConstant)
 		return nil
 	}
 

@@ -55,6 +55,9 @@ Configuration = (options={}) ->
 
   segment                 = '4c570qjqo0'
 
+  disabledFeatures =
+   moderation : yes
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -84,6 +87,7 @@ Configuration = (options={}) ->
     googleapiServiceAccount : googleapiServiceAccount
     geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -517,6 +521,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------

@@ -30,7 +30,7 @@ func TestProcess(t *testing.T) {
 
 	Convey("given a controller", t, func() {
 
-		controller := NewController(r.Log)
+		controller := NewController(r.Log, appConfig)
 
 		Convey("controller should be set", func() {
 			So(controller, ShouldNotBeNil)

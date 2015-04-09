@@ -49,6 +49,8 @@ type (
 		GoogleapiServiceAccount GoogleapiServiceAccount
 
 		Geoipdbpath string
+
+		DisabledFeatures DisabledFeatures
 	}
 
 	// Email holds Email Workers' config
@@ -139,5 +141,9 @@ type (
 		ClientSecret          string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_CLIENTSECRET"`
 		ServiceAccountEmail   string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_SERVICEACCOUNTEMAIL"`
 		ServiceAccountKeyFile string `env:"key=KONFIG_SOCIALAPI_GOOGLEAPISERVICEACCOUNT_SERVICEACCOUNTKEYFILE"`
+	}
+
+	DisabledFeatures struct {
+		Moderation bool
 	}
 )
