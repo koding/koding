@@ -39,10 +39,15 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
     @emit 'ParticipantSelected', participant
 
 
-  mouseEnter: -> @intentTimer = kd.utils.wait INTENT_DELAY, @bound 'showMenu'
+  mouseEnter: ->
+    kd.utils.killWait @intentTimer  if @intentTimer
+    @intentTimer = kd.utils.wait INTENT_DELAY, @bound 'showMenu'
 
 
-  mouseLeave: -> kd.utils.killWait @intentTimer  if @intentTimer
+  mouseLeave: ->
+    kd.utils.killWait @intentTimer  if @intentTimer
+    if MENU
+      @intentTimer = kd.utils.wait INTENT_DELAY, MENU.bound 'destroy'
 
 
   showMenu: ->
@@ -80,6 +85,7 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
 
         menuWidth = 172
         MENU = new kd.ContextMenu
+          bind     : 'mouseenter mouseleave'
           nickname : @nickname
           cssClass : 'dark statusbar-files'
           delegate : this
@@ -87,6 +93,11 @@ module.exports = class IDEChatMessageParticipantAvatar extends AvatarView
           y        : @getY()
           offset   : { top: 35, left: -78 }
           arrow    : { placement: 'top', margin: menuWidth / 2 }
+          mouseenter : =>
+            kd.utils.killWait @intentTimer  if @intentTimer
+          mouseleave : =>
+            kd.utils.killWait @intentTimer  if @intentTimer
+            kd.utils.wait INTENT_DELAY, MENU.bound 'destroy'
         , items
 
         MENU.once 'KDObjectWillBeDestroyed', => MENU = null
