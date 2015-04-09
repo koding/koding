@@ -7,16 +7,22 @@ module.exports = class Amazon extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { credential, instanceType } = options
+    { credential, instanceType, storage } = options
 
     # @fetchCredentialData credential, (err, cred)->
     #   return callback err  if err?
+   
+    storage ?= 8
+    if isNaN storage
+      return callback new KodingError \
+      'Requested storage size is not valid.', 'WrongParameter'
 
     meta =
       type          : "amazon"
       region        : "us-east-1"
       source_ami    : "ami-a6926dce"
       instance_type : instanceType
+      storage_size  : storage
 
     callback null, { meta, credential }
 

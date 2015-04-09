@@ -9,6 +9,7 @@ import (
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 
+	"koding/kites/kloud/api/amazon"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
@@ -89,7 +90,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 		m.push("Initiating build process", 30, machinestate.Building)
 		m.Log.Debug("Initiating creating process of instance")
 
-		m.Meta.InstanceName, err = m.Session.AWSClient.Build(buildData.EC2Data)
+		m.Meta.InstanceId, err = m.Session.AWSClient.Build(buildData.EC2Data)
 		if err != nil {
 			return err
 		}
@@ -116,6 +117,14 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
 
 	instance, err := m.Session.AWSClient.CheckBuild(m.Meta.InstanceId, 50, 70)
+	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
+		if err := m.markAsNotInitialized(); err != nil {
+			return err
+		}
+
+		return errors.New("instance is not available anymore")
+	}
+
 	if err != nil {
 		return err
 	}
@@ -123,19 +132,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.Meta.InstanceType = instance.InstanceType
 	m.Meta.SourceAmi = instance.ImageId
 	m.IpAddress = instance.PublicIpAddress
-
-	// allocate and associate a new Public IP for paying users, we can do
-	// this after we create the instance
-	if m.Payment.Plan != "free" {
-		m.Log.Debug("Paying user detected, Creating an Public Elastic IP")
-
-		elasticIp, err := m.Session.AWSClient.AllocateAndAssociateIP(m.Meta.InstanceId)
-		if err != nil {
-			m.Log.Warning("couldn't not create elastic IP: %s", err)
-		} else {
-			m.IpAddress = elasticIp
-		}
-	}
 
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
 	m.addDomainAndTags()
@@ -185,6 +181,13 @@ func (m *Machine) imageData() (*ImageData, error) {
 	}
 
 	device := image.BlockDevices[0]
+
+	// The lowest commong storage size for public Images is 8. To have a
+	// smaller storage size (like we do have for Koding, one must create new
+	// image). We assume that nodody did this :)
+	if m.Meta.StorageSize < 8 {
+		m.Meta.StorageSize = 8
+	}
 
 	// Increase storage if it's passed to us, otherwise the default 3GB is
 	// created already with the default AMI
@@ -247,12 +250,44 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		return nil, errors.New("public keys are not available")
 	}
 
+	subnets, err := m.Session.AWSClient.ListSubnets()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(subnets.Subnets) == 0 {
+		return nil, errors.New("no subnets are available")
+	}
+
+	var subnetId string
+	for _, subnet := range subnets.Subnets {
+		if subnet.AvailableIpAddressCount == 0 {
+			continue
+		}
+
+		subnetId = subnet.SubnetId
+	}
+
+	if subnetId == "" {
+		return nil, errors.New("subnetId is empty")
+	}
+
+	m.Session.AWSClient.Builder.KeyPair = keys.KeyName
+	m.Session.AWSClient.Builder.PrivateKey = keys.PrivateKey
+	m.Session.AWSClient.Builder.PublicKey = keys.PublicKey
+
+	keyName, err := m.Session.AWSClient.DeployKey()
+	if err != nil {
+		return nil, err
+	}
+
 	ec2Data := &ec2.RunInstances{
 		ImageId:                  m.Meta.SourceAmi,
 		MinCount:                 1,
 		MaxCount:                 1,
-		KeyName:                  keys.KeyName,
+		KeyName:                  keyName,
 		InstanceType:             m.Session.AWSClient.Builder.InstanceType,
+		SubnetId:                 subnetId,
 		AssociatePublicIpAddress: true,
 		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userdata,
