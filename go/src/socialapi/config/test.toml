@@ -1,3 +1,16 @@
+proxyUrl           = "http://127.0.0.1:8090/api/social"
+port               = "7000"
+
+Mongo              = "localhost:27017/koding"
+Environment        = "test"
+Region             = "test"
+Hostname           = "http://lvh.me:8090"
+protocol           = "http:"
+eventExchangeName  = "BrokerMessageBus"
+disableCaching     = false
+debug              = false
+segment            = "kb2hfdgf20"
+
 [postgres]
 Host=     "localhost"
 Port=     "5432"
@@ -15,14 +28,6 @@ Vhost    = "/"
 [redis]
 URL = "localhost:6379"
 DB  = 0
-
-Mongo              = "localhost:27017/koding"
-
-Environment        = "test"
-
-Region             = "test"
-
-Hostname           = "http://lvh.me:8090"
 
 [email]
 Host            = "lvh.me:8090"
@@ -50,10 +55,6 @@ Token         = "113c2731b47a5151f4be44ddd5af0e7a"
 MessageBodyMinLen    = 1
 PostThrottleDuration = "10s"
 PostThrottleCount    = 100
-
-EventExchangeName ="BrokerMessageBus"
-DisableCaching    = false
-Debug             = false
 
 [stripe]
 secretToken = "sk_test_2ix1eKPy8WtfWTLecG9mPOvN"

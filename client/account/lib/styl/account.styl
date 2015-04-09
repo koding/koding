@@ -201,6 +201,13 @@ app.settings.styl
     &.selected:before
       r-sprite              'account' 'sshkeys-active'
 
+  .AppModal-navItem.referral
+    &:before
+      r-sprite              'account' 'referrals'
+
+    &.selected:before
+      r-sprite              'account' 'referrals-active'
+
   .AppModal-navItem.delete
     margin-right            15px
     &:before
@@ -495,6 +502,174 @@ app.settings.styl
     -webkit-transform       translateX(-200px)
     -moz-transform          translateX(-200px)
     transform               translateX(-200px)
+
+.AppModal--account .referral-system
+
+  font-size                 14px
+
+  .initial-loader
+    text-align              center
+    margin-top              230px
+
+  .top
+    height                  150px
+
+  .total-space
+
+    size                    150px, 150px
+
+    border                  1px solid #ccc
+    padding                 40px 10px
+    text-align              center
+    border-radius           4px
+
+    borderBox()
+    fl()
+
+    div
+      width                 auto
+      height                auto
+
+    .total
+      font-size             33px
+      color                 #449940
+
+    .text
+      line-height           20px
+      font-size             15px
+      color                 #aaa
+      padding               15px 5px
+
+  .share-box
+    size                    320px, 150px
+    margin                  0 20px
+    fl()
+
+    > div
+      height                auto
+
+    a
+      color                 #888
+      noTextDeco()
+
+    .subtitle
+      color                 #888
+
+    .custom-link-view
+
+      span.icon
+        display             inline-block
+        margin              7px 3px 3px
+        size                26px, 26px
+
+      .google
+        r-sprite            'account' 'ext-gplus'
+
+      .linkedin
+        r-sprite            'account' 'ext-linkedin'
+
+      .twitter
+        r-sprite            'account' 'ext-twitter'
+
+      .facebook
+        r-sprite            'account' 'ext-facebook'
+
+      .mail
+        r-sprite            'account' 'ext-mail'
+
+  .bottom
+    margin                  25px 0
+    border-top              1px solid #ddd
+    padding-top             25px
+
+  .progress
+    padding                 1px 0
+    clear                   both
+    height                  34px
+
+    .text
+      line-height           34px
+      fl()
+
+      &.label
+        width               170px
+
+      &.value
+        width               auto
+        text-align          right
+        padding-right       15px
+        fr()
+
+    .progressbar-container
+      background            none
+      border                none
+      size                  270px, 34px
+      fl()
+
+      .bar
+        box-shadow          none
+
+  .kdcustomscrollview
+    &.has-vertical
+      padding-right         0
+    .kdscrolltrack.vertical
+      right                 -5px
+    .lazy-loader
+      text-align            center
+
+  .kdscrollview
+    max-height              205px
+    margin-top              25px
+    border-top              1px solid #ddd
+    border-bottom           1px solid #ddd
+
+    borderBox()
+
+  .no-referral
+    padding                 20px 0
+    opacity                 .6
+
+  .referral-item
+    display                 flex
+    display                 -webkit-flex
+
+    border-bottom           1px solid #ccc
+    cursor                  default
+
+    &.header
+      padding               10px 0 5px
+      > div
+        opacity             .6
+        color               initial !important
+
+    &.waiting
+      > div
+        &:nth-child(2)
+          color             #F7B91A
+
+    > div
+      margin                auto
+      width                 120px
+      padding               8px 0
+      white-space           nowrap
+      text-overflow         ellipsis
+      overflow              hidden
+
+      span
+        opacity             .6
+      &:nth-child(1)
+        width               240px
+
+      &:nth-child(2)
+      &:nth-child(4)
+        color               #409531
+
+      &:nth-child(3)
+        opacity             .6
+
+      &:nth-child(4)
+        text-align          right
+        padding-right       15px
 
 
 .kdmodal.payments-modal

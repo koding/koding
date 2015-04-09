@@ -164,3 +164,46 @@ ALTER TABLE api.message_reply ADD CONSTRAINT "message_reply_message_id_fkey" FOR
 --  Indexes structure for table message_reply
 -- ----------------------------
 CREATE INDEX  "message_reply_message_id_meta_bit_created_at" ON "api"."message_reply" USING btree(message_id DESC, meta_bits ASC, created_at ASC);
+
+
+
+-- -- ----------------------------
+-- --  Structure for table Permission
+-- -- ----------------------------
+-- --
+-- -- ----------------------------
+-- --  Primary key structure for table permission
+-- -- ----------------------------
+-- ALTER TABLE "api"."permission" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- -- ----------------------------
+-- --  Uniques structure for table permission
+-- -- ----------------------------
+-- ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_name_channel_id_role_constant_key" UNIQUE ("name","channel_id","role_constant") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- -- ----------------------------
+-- --  Foreign keys structure for table permission
+-- -- ----------------------------
+-- ALTER TABLE "api"."permission" ADD CONSTRAINT "permission_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+
+
+-- ----------------------------
+--  Structure for table ChannelLink
+-- ----------------------------
+--
+-- ----------------------------
+--  Primary key structure for table channel_link
+-- ----------------------------
+ALTER TABLE "api"."channel_link" ADD PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Uniques structure for table channel_link
+-- ----------------------------
+ALTER TABLE "api"."channel_link" ADD CONSTRAINT "channel_link_root_id_leaf_id_key" UNIQUE ("root_id","leaf_id") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ----------------------------
+--  Foreign keys structure for table channel_link
+-- ----------------------------
+ALTER TABLE "api"."channel_link" ADD  CONSTRAINT "channel_link_root_id_fkey" FOREIGN KEY ("root_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE "api"."channel_link" ADD  CONSTRAINT "channel_link_leaf_id_fkey" FOREIGN KEY ("leaf_id") REFERENCES "api"."channel" ("id") ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;

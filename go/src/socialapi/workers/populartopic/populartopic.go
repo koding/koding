@@ -54,7 +54,7 @@ func (f *Controller) handleMessageEvents(data *models.ChannelMessageList, increm
 	}
 
 	if !f.isEligible(c) {
-		f.log.Info("Not eligible Channel Id:%d", c.Id)
+		f.log.Debug("Not eligible Channel Id:%d", c.Id)
 		return nil
 	}
 

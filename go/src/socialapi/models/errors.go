@@ -1,6 +1,9 @@
 package models
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 var (
 	ErrMessageAlreadyInTheChannel = errors.New("message is already in the channel")
@@ -41,7 +44,41 @@ var (
 
 	ErrNotLoggedIn = errors.New("not logged in")
 
+	ErrAccessDenied = errors.New("access denied")
+
+	ErrRoleNotSet          = errors.New("role not set")
 	ErrAccountNotFound     = errors.New("account not found")
 	ErrChannelNotFound     = errors.New("channel not found")
 	ErrParticipantNotFound = errors.New("participant not found")
+	ErrParticipantBlocked  = errors.New("participant is blocked")
+
+	// moderation
+	ErrLeafIsNotSet     = errors.New("leaf channel is not set")
+	ErrRootIsNotSet     = errors.New("root channel is not set")
+	ErrChannelHasLeaves = errors.New("channel has leaves")
+	ErrGroupsAreNotSame = errors.New("groups are not same")
+	ErrLeafIsRootToo    = errors.New("leaf channel is root of another channel")
 )
+
+type ChannelIsLeafError error
+
+func ErrChannelIsLeafFunc(rootName, typeConstant string) error {
+	return ChannelIsLeafError(
+		fmt.Errorf(
+			// poor man's json encoding - not to handle error case of
+			// json.MarshalJSON, if we add new properties into this string, we
+			// should use std package
+			"{\"rootName\":\"%s\", \"typeConstant\":\"%s\"}",
+			rootName,
+			typeConstant,
+		))
+}
+
+func IsChannelLeafErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	_, ok := err.(ChannelIsLeafError)
+	return ok
+}
