@@ -5,6 +5,7 @@ KDInputView = kd.InputView
 remote = require('app/remote').getInstance()
 JView = require 'app/jview'
 Encoder = require 'htmlencode'
+AceView = require 'ace/aceview'
 
 
 module.exports = class AddNewCustomViewForm extends JView
@@ -35,7 +36,9 @@ module.exports = class AddNewCustomViewForm extends JView
 
     if @getOption "hasEditor" then @createEditor() else @editor = new KDCustomHTMLView
 
+
   createEditor: ->
+
     editorValues  = @encode @getData()?.partial
 
     files         = [
@@ -54,14 +57,16 @@ module.exports = class AddNewCustomViewForm extends JView
 
     files.splice 0, 1  unless @getOptions().viewType is "HOME"
 
-    @editor       = new EditorPane
+    @editor       = new AceView
       cssClass    : "editor-container"
       size        :
         width     : 876
         height    : 400
       files       : files
 
+
   addNew: ->
+
     jCustomPartial    = @getData()
     {hasEditor}       = @getOptions()
     emptyValues       = { html: "", css: "", js: "" }
@@ -83,7 +88,9 @@ module.exports = class AddNewCustomViewForm extends JView
         return kd.warn err  if err
         @getDelegate().emit "NewViewAdded", customPartial
 
+
   encode: (data) ->
+
     encoded = {}
     return encoded unless data
 
@@ -92,7 +99,9 @@ module.exports = class AddNewCustomViewForm extends JView
 
     return encoded
 
+
   pistachio: ->
+
     """
       <p>Name:</p>
       {{> @input}}

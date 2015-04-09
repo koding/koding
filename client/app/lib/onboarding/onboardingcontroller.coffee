@@ -19,10 +19,12 @@ module.exports = class OnboardingController extends KDController
     else
       mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
 
-    @on "OnboardingShown", (slug) =>
-      @appStorage.setValue slug, yes
+    #@on "OnboardingShown", (slug) =>
+    #  @appStorage.setValue slug, yes
+
 
   fetchItems: ->
+
     @appStorage = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
     @hasCookie  = kookies.get "custom-partials-preview-mode"
     query       = partialType : "ONBOARDING"
@@ -40,25 +42,31 @@ module.exports = class OnboardingController extends KDController
 
       @appStorage.fetchStorage @bound "bindOnboardingEvents"
 
+
   bindOnboardingEvents: ->
+
     appManager = kd.getSingleton "appManager"
-    appManager.on "AppCreated", (app) =>
-      appName = app.getOptions().name
-      return unless @onboardings[appName]
+    appManager.on "AppCreated", @bound 'runItemsForApp'
 
-      kd.utils.wait 3000, =>
-        onboardings = @onboardings[appName]
-
-        for item in onboardings
-          slug    = kd.utils.slugify kd.utils.curry appName, item.name
-          isShown = @appStorage.getValue slug
-
-          if not isShown or @hasCookie
-            onboarding = item
-            break
-
-        return unless onboarding?.partial.items?.length
-
-        new OnboardingViewController { app, slug, delegate: this }, onboarding.partial
+    @runItemsForApp appManager.frontApp  if appManager.frontApp?
 
 
+  runItemsForApp: (app) ->
+
+    appName = app.getOptions().name
+    return  unless @onboardings[appName]
+
+    kd.utils.wait 3000, =>
+      onboardings = @onboardings[appName]
+
+      for item in onboardings
+        slug    = kd.utils.slugify kd.utils.curry appName, item.name
+        isShown = @appStorage.getValue slug
+
+        if not isShown or @hasCookie
+          onboarding = item
+          break
+
+      return unless onboarding?.partial.items?.length
+
+      new OnboardingViewController { app, slug, delegate: this }, onboarding.partial

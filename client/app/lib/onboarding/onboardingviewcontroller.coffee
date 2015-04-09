@@ -14,16 +14,21 @@ module.exports = class OnboardingViewController extends KDViewController
 
     @show @items.first, yes
 
+
   show: (item, setStorage) ->
+
     view = new OnboardingItemView { @slug, @app, @items, setStorage }, item
     @bindViewEvents view
 
   navigate: (direction, itemData) ->
+
     index = @items.indexOf itemData
     item  = if direction is "next" then @items[++index] else @items[--index]
     @show item
 
+
   bindViewEvents: (view) =>
+
     view.on "NavigationRequested", (direction) =>
       @navigate direction, view.getData()
 

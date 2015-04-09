@@ -3,7 +3,7 @@ KDButtonView = kd.ButtonView
 CustomViewsDashboardView = require '../customviews/customviewsdashboardview'
 OnboardingAddNewForm = require './onboardingaddnewform'
 OnboardingSectionForm = require './onboardingsectionform'
-OnboardingItemView = require 'app/onboarding/onboardingitemview'
+OnboardingGroupView = require './onboardinggroupview'
 
 
 module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
@@ -23,15 +23,19 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
         @addSubView new OnboardingSectionForm
           delegate : this
 
-    @on "NewSectionAdded", =>
+    @on "SectionSaved", =>
       @unsetClass "form-visible"
       @container.destroySubViews()
       @reloadViews()
+    @on "SectionCancelled", =>
+      @unsetClass "form-visible"
+
 
   createList: (sections) ->
+
     @noViewLabel.hide()
     for section in sections
-      view = new OnboardingItemView
+      view = new OnboardingGroupView
         delegate    : this
         title       : section.name
         cssClass    : "onboarding-items"

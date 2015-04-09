@@ -28,21 +28,21 @@ module.exports = class OnboardingItemView extends KDView
 
     try
       @parentElement = eval htmlencode.htmlDecode path
+
+      if @parentElement instanceof Node
+        @parentElement = @getKDViewFromElementNode @parentElement
+
       if @parentElement instanceof KDView
         @createContextMenu()
         @listenEvents()
-      else if @parentElement instanceof $
-        @parentElement = @getKDViewFromJQueryElement @parentElement
-        return  unless @parentElement
-
-        @createContextMenu()
-        @listenEvents()
       else
-        console.warn "Target element should be an instance of KDView or jQuery", { appName, itemName }
+        console.warn "Target element should be an instance of KDView or Node", { appName, itemName }
     catch e
       console.warn "Couldn't create onboarding item", { appName, itemName, e }
 
+
   createContextMenu: ->
+
     @contextMenu       = new OnboardingContextMenu
       cssClass         : "onboarding-wrapper"
       sticky           : yes
@@ -64,7 +64,9 @@ module.exports = class OnboardingItemView extends KDView
         @contextMenu.arrow.setCss "left", left
         $("body").addClass "noscroll"
 
+
   createContentView: ->
+
     {title, content} = @getData()
     @overlay       = new KDSpotlightView  { isRemovable : no,   delegate : @parentElement }
     title          = new KDCustomHTMLView { tagName     : "h3", partial  : title          }
@@ -110,8 +112,9 @@ module.exports = class OnboardingItemView extends KDView
 
     return view
 
-  getKDViewFromJQueryElement: ($element) ->
-    element = $element[0] # first is jQuery method
+
+  getKDViewFromElementNode: (element) ->
+
     kdview  = null
 
     for key, kdinstance of kd.instances
@@ -121,7 +124,9 @@ module.exports = class OnboardingItemView extends KDView
 
     return kdview
 
+
   listenEvents: ->
+
     @on "NavigationRequested", (direction) =>
       @destroy()
       trackEvent "Onboarding navigation, click"
@@ -139,7 +144,9 @@ module.exports = class OnboardingItemView extends KDView
       kd.utils.defer =>
         @emit "OnboardingShown", slug
 
+
   destroy: ->
+
     super
     @overlay?.destroy()
     @contextMenu.destroy()

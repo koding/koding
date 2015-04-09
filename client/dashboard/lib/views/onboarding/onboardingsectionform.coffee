@@ -55,14 +55,16 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
     super options, data
 
+
   save: ->
+
     data              =
       partialType     : "ONBOARDING"
       partial         :
         visibility    : @inputs.visibility.getValue()
         overlay       : @inputs.overlay.getValue()
         app           : @inputs.app.getValue()
-        items         : @jCustomPartial?.items           or []
+        items         : @jCustomPartial?.partial.items   or []
       name            : @inputs.name.getValue()          or ""
       viewInstance    : @jCustomPartial?.viewInstance    or ""
       isActive        : @jCustomPartial?.isActive        or no
@@ -73,15 +75,17 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
       @jCustomPartial.update data, (err, section) =>
         return kd.warn err  if err
         @destroy()
-        @getDelegate().emit "NewSectionAdded"
+        @getDelegate().emit "SectionSaved"
     else
       remote.api.JCustomPartials.create data, (err, section) =>
         return kd.warn err  if err
         @destroy()
-        @getDelegate().emit "NewSectionAdded"
+        @getDelegate().emit "SectionSaved"
+
 
   cancel: ->
+
+    @getDelegate().emit "SectionCancelled"
     @destroy()
-    @getDelegate().unsetClass "form-visible"
 
 
