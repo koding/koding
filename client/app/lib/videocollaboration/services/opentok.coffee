@@ -106,6 +106,8 @@ module.exports = class OpenTokService extends kd.Object
       helper.generateSession channel, (result) ->
         { sessionId } = result
         helper.setChannelVideoSession channel, sessionId, (err) ->
+          # TODO: requires proper error handling.
+          return console.error err  if err
           kallback sessionId
 
 
