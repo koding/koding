@@ -43,7 +43,6 @@ module.exports = class OpenTokService extends kd.Object
 
   ###*
    * Initializes the client library of OpenTok.
-   * TODO: It may be wise to include this in our bundle?
    *
    * @emits OpenTokService~ClientLoaded
   ###
@@ -125,39 +124,37 @@ module.exports = class OpenTokService extends kd.Object
    * Sends a signal with type to given subscriber
    * through given session.
    *
-   * @param {OT.Session} session
+   * @param {SocialChannel} channel
    * @param {String} type
-   * @param {Object=} data
+   * @param {function(err: object)} callback
   ###
-  sendSignal: (session, type, data = {})->
+  sendSignal: (channel, type, callback) ->
 
-    signalData = { type, data: JSON.stringify data }
-    session.signal signalData, helper._errorSignal
+    @fetchChannelSession channel, (session) =>
+      session.signal { type }, callback
+
+
+  sendSessionStartSignal: (channel, callback) ->
+
+    @sendSignal channel, 'start', callback
+
+
+  sendSessionEndSignal: (channel, callback) ->
+
+    @sendSignal channel, 'end', callback
 
 
   ###*
-   * It creates the `OT.Publisher` instance for sending video/audio.
-   * It listens to publisher events and emits KDEvents to the passed view.
+   * It destroys the publisher for given social channel.
    *
-   * @param {KDView} view - view instance for publisher.
-   * @param {Object=} publisherOptions - Options to pass to `OT.initPublisher` method
-   * @param {string=} publisherOptions.insertMode
-   * @param {string=} publisherOptions.name
-   * @param {Object=} publisherOptions.style
-   * @return {OT.Publisher} publisher
-   * @see {@link https://tokbox.com/opentok/libraries/client/js/reference/OT.html#initPublisher}
+   * @param {SocialChannel} channel
+   * @param {ParticipantType.Publisher} publisher
+   * @param {function(err: object)} callback
   ###
-  createPublisher: (view, publisherOptions = {}, callback) ->
+  destroyPublisher: (channel, publisher, callback) ->
 
-    publisherOptions.name       or= getNick()
-    publisherOptions.style      or= { nameDisplayMode: on }
-    publisherOptions.insertMode or= 'append'
+    @fetchChannelSession channel, (session) ->
+      session.unpublish publisher.videoData
+      callback null
 
-    publisherOptions.height = 265
-    publisherOptions.width  = 325
-
-    publisher = OT.initPublisher view.getElement(), publisherOptions, (err) =>
-      if err
-      then callback err
-      else callback null, publisher
 
