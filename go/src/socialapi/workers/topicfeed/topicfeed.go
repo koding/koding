@@ -2,6 +2,7 @@ package topicfeed
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
 
 	"github.com/koding/bongo"
@@ -11,12 +12,14 @@ import (
 )
 
 type Controller struct {
-	log logging.Logger
+	log    logging.Logger
+	config *config.Config
 }
 
-func New(log logging.Logger) *Controller {
+func New(log logging.Logger, config *config.Config) *Controller {
 	return &Controller{
-		log: log,
+		log:    log,
+		config: config,
 	}
 }
 
@@ -350,7 +353,8 @@ func (f *Controller) createTopicChannel(creatorId int64, groupName, channelName,
 	c.TypeConstant = models.Channel_TYPE_TOPIC
 	c.PrivacyConstant = privacy
 	// add moderation needed flag only for koding group
-	if c.GroupName == models.Channel_KODING_NAME {
+	// and if feature is not disabled
+	if !f.config.DisabledFeatures.Moderation && c.GroupName == models.Channel_KODING_NAME {
 		// newly created channels need moderation
 		c.MetaBits.Mark(models.NeedsModeration)
 	}

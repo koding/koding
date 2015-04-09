@@ -2,6 +2,7 @@ package topicfeed
 
 import (
 	"math/rand"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/workers/topicfeed"
@@ -66,7 +67,8 @@ func TestMessageSaved(t *testing.T) {
 	}
 	defer r.Close()
 
-	controller := topicfeed.New(r.Log)
+	appConfig := config.MustRead(r.Conf.Path)
+	controller := topicfeed.New(r.Log, appConfig)
 
 	Convey("while testing MessageSaved", t, func() {
 		Convey("newly created channels of koding group", func() {
@@ -96,7 +98,11 @@ func TestMessageSaved(t *testing.T) {
 				})
 				So(err, ShouldBeNil)
 				So(channel, ShouldNotBeNil)
-				So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeTrue)
+				if appConfig.DisabledFeatures.Moderation {
+					So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeFalse)
+				} else {
+					So(channel.MetaBits.Is(models.NeedsModeration), ShouldBeTrue)
+				}
 			})
 		})
 
@@ -140,7 +146,8 @@ func TestFetchTopicChannel(t *testing.T) {
 	}
 	defer r.Close()
 
-	controller := New(r.Log)
+	appConfig := config.MustRead(r.Conf.Path)
+	controller := New(r.Log, appConfig)
 
 	Convey("while testing fetchTopicChannel", t, func() {
 		account := models.CreateAccountWithTest()

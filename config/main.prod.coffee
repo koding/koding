@@ -55,6 +55,9 @@ Configuration = (options={}) ->
 
   segment                 = '4c570qjqo0'
 
+  disabledFeatures =
+   moderation : yes
+  
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -83,6 +86,7 @@ Configuration = (options={}) ->
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "koding.io"
   socialQueueName     = "koding-social-#{configName}"

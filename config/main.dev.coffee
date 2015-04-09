@@ -68,6 +68,13 @@ Configuration = (options={}) ->
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
   segment                 = 'kb2hfdgf20'
+  
+  # if you want to disable a feature add here with "true" value do not forget
+  # to add corresponding go struct properties "true" value is used because of
+  # Go's default value for boolean properties is false, so all the features are
+  # enabled as default
+  disabledFeatures =
+    moderation : yes
 
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
@@ -97,6 +104,7 @@ Configuration = (options={}) ->
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "dev.koding.io"
   socialQueueName     = "koding-social-#{configName}"
