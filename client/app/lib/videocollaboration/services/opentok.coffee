@@ -86,18 +86,27 @@ module.exports = class OpenTokService extends kd.Object
 
     { id } = channel
 
-    return callback @sessions[id]  if @sessions[id]
-
-    helper.generateSession channel, (session) =>
-
-      { sessionId } = session
+    kallback = (sessionId) =>
       { apiKey } = globals.config.tokbox
-
       session = @sessions[channel.id] = OT.initSession apiKey, sessionId
-
       session.sessionId = sessionId
+      return callback session
 
-      callback session
+    # return cached OT.session if that session exists.
+    if session = @sessions[id]
+      return callback session
+
+    # initate a OT.Session with channel's sessionId if it's present.
+    else if sessionId = helper.getChannelSessionId channel
+      kallback sessionId
+
+    # first generate a sessionId, then assign that sessionId to channel, and
+    # then initiate a new OT.Session.
+    else
+      helper.generateSession channel, (result) =>
+        { sessionId } = result
+        helper.setChannelVideoSession channel, sessionId, (err) =>
+          kallback sessionId
 
 
   ###*
