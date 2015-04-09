@@ -76,6 +76,9 @@ module.exports = class MachineSettingsModal extends KDModalView
 
     for item in PANE_CONFIG when item.title and item.viewClass
 
+      subView = new item.viewClass item.viewOptions, @getData()
+      subView.once 'ModalDestroyRequested', @bound 'destroy'
+
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title
         cssClass : 'AppModal-content'
