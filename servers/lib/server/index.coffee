@@ -445,7 +445,7 @@ app.post "/Impersonate/:nickname", (req, res) ->
 
           res.cookie 'clientId', session.clientId, path : '/'  if session.clientId
           res.clearCookie 'realtimeToken'
-          res.status(200).end()
+          res.status(200).send({success: yes})
 
 
 app.post "/:name?/Recover", (req, res) ->
@@ -605,17 +605,6 @@ app.get  '/-/payments/paypal/cancel' , require "./paypal_cancel"
 app.post '/-/payments/paypal/webhook', require "./paypal_webhook"
 app.get  '/-/payments/customers'     , require "./customers"
 
-# TODO: we need to add basic auth!
-app.all '/-/email/webhook', (req, res) ->
-  { JMail } = koding.models
-  { body: batch } = req
-
-  for item in batch when item.event is 'delivered'
-    JMail.markDelivered item, (err) ->
-      console.warn err  if err
-
-  res.send 'ok'
-
 isInAppRoute = (name)->
   [firstLetter] = name
   # user nicknames can start with numbers
@@ -627,20 +616,7 @@ isInAppRoute = (name)->
 
 app.post '/-/emails/subscribe', (req, res)->
 
-  {Sendgrid}          = koding.models
-  {email, type, name} = req.body
-
-  return res.status(400).send 'not ok'  unless /@/.test email
-
-  type or= 'marketing'
-  name or= email.split('@')[0]
-
-  switch type
-    when 'all'       then Sendgrid.addToAllUsers  email, name
-    when 'marketing' then Sendgrid.addToMarketing email, name
-    else res.status(400).send 'not ok'
-
-  res.status(200).send 'ok'
+  res.status(501).send 'ok'
 
 
 app.post '/Hackathon/Apply', (req, res, next)->
@@ -830,6 +806,11 @@ console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pi
 
 # start user tracking
 usertracker.start()
+
+# init rabbitmq client for Email to use to queue emails
+mqClient = require './amqp'
+Email = require '../../../workers/social/lib/social/models/email.coffee'
+Email.setMqClient mqClient
 
 
 # NOTE: in the event of errors, send 500 to the client rather

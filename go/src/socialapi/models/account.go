@@ -44,7 +44,8 @@ type Account struct {
 	// ShareLocation is a setting for users on socialapi
 	Settings gorm.Hstore `json:"settings"`
 
-	// unique account tokens used for pubnub authentication
+	// Token is used for authentication purposes, this data should not be shared
+	// with other clients/accounts
 	Token string `json:"-"`
 }
 

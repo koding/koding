@@ -10,8 +10,10 @@ Encoder = require 'htmlencode'
 
 
 module.exports = class AccountSshKeyListItem extends KDListItemView
+
   setDomElement:(cssClass)->
     @domElement = $ "<li class='kdview clearfix #{cssClass}'></li>"
+
 
   viewAppended:->
 
@@ -65,7 +67,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
     buttons.addSubView editLink = new KDButtonView
       iconOnly : yes
       cssClass : "edit"
-      callback : @bound "swapSwappable"
+      callback : @bound "handleEdit"
 
     buttons.addSubView deleteLink = new KDButtonView
       iconOnly : yes
@@ -82,21 +84,31 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
     @on "FormSaved", @bound "saveItem"
     @on "FormDeleted", @bound "deleteItem"
 
-  swapSwappable: (options)->
-    if options.hideDelete
-      @form.buttons.remove.hide()
-    else
-      @form.buttons.remove.show()
-    @swappable.swapViews()
 
-  cancelItem:->
+  handleEdit: ->
+
+    @form.buttons.remove.show()
+    @swappable.swapViews()
+    @getDelegate().emit "EditItem", this
+
+
+  cancelItem: (skipEvent) ->
+
     {key} = @getData()
-    if key then @swappable.swapViews() else @deleteItem()
+    if key
+      @getDelegate().emit "CancelItem", this  unless skipEvent
+      @swappable.swapViews()
+    else
+      @deleteItem()
+
 
   deleteItem:->
-    @getDelegate().emit "RemoveItem", @
+
+    @getDelegate().emit "RemoveItem", this
+
 
   saveItem:->
+
     @form.buttons.save.showLoader()
     @setData
       title : @form.inputs["title"].getValue()
@@ -116,6 +128,7 @@ module.exports = class AccountSshKeyListItem extends KDListItemView
       new KDNotificationView
         title : "Title required for SSH key."
     @form.buttons.save.hideLoader()
+
 
   partial:(data)->
     """

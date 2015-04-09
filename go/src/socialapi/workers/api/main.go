@@ -14,9 +14,11 @@ import (
 	collaboration "socialapi/workers/collaboration/api"
 	"socialapi/workers/common/mux"
 	mailapi "socialapi/workers/email/mailparse/api"
+	topicmoderationapi "socialapi/workers/moderation/topic/api"
 	notificationapi "socialapi/workers/notification/api"
 	"socialapi/workers/payment"
 	paymentapi "socialapi/workers/payment/api"
+	permissionapi "socialapi/workers/permission/api"
 	sitemapapi "socialapi/workers/sitemap/api"
 	trollmodeapi "socialapi/workers/trollmode/api"
 
@@ -45,6 +47,9 @@ func main() {
 	m.Listen()
 	// shutdown server
 	defer m.Close()
+
+	permissionapi.AddHandlers(m, r.Metrics)
+	topicmoderationapi.AddHandlers(m, r.Metrics)
 
 	collaboration.AddHandlers(m, r.Metrics)
 	paymentapi.AddHandlers(m, r.Metrics)

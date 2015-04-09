@@ -29,8 +29,7 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{cloudamqp}"                                   , port:               5672                                  , apiPort:         15672                  , login:           "hcaxnooc"                           , password: "9Pr_d8uxHZMr8w--0FiLDR8Fkwjh7YNF"  , vhost: "hcaxnooc" }
   mq                  = { host:     "#{rabbitmq.host}"                               , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                            , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
-  sendgrid            = { username: "koding"                                         , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
+  email               = { host:     "#{customDomain.public_}"                        , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding' }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite"         , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                         , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                                  , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
@@ -42,7 +41,7 @@ Configuration = (options={}) ->
   kiteHome            = "#{projectRoot}/kite_home/koding"
   pubnub              = { publishkey: "pub-c-ed2a8027-1f8a-4070-b0ec-d4ad535435f6"   , subscribekey: "sub-c-00d2be66-8867-11e4-9b60-02ee2ddab7fe", secretkey: "sec-c-Mzg5ZTMzOTAtYjQxOC00YTc5LWJkNWEtZmI3NTk3ODA5YzAx"                                     , serverAuthKey: "689b3039-439e-4ca6-80c2-3b0b17e3f2f3b3736a37-554c-44a1-86d4-45099a98c11a"       , origin: "pubsub.pubnub.com"                                           , enabled:  yes                         }
   gatekeeper          = { host:       "localhost"                                    , port:               "7200"                                , pubnub: pubnub                                }
-  paymentwebhook      = { port : "6600", debug : true }
+  paymentwebhook      = { port : "6600", debug : false }
   tokbox              = { apiKey: '45082272', apiSecret: 'fb232a623fa9936ace8d8f9826c3e4a942d457b8' }
 
 
@@ -144,7 +143,6 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
-    sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "5891e574253e65ddb7ea"                         , clientSecret  : "9c8e89e9ae5818a2896c01601e430808ad31c84a"}
     odesk                          : {key           : "9ed4e3e791c61a1282c703a42f6e10b7"             , secret        : "1df959f971cb437c"                           , request_url  : "https://www.odesk.com/api/auth/v1/oauth/token/request"                , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "https://koding.com/-/oauth/odesk/callback"}
@@ -313,13 +311,6 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
-    emailsender         :
-      group             : "webserver"
-      supervisord       :
-        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
-
     appsproxy           :
       group             : "webserver"
       ports             :
@@ -409,6 +400,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
           {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
@@ -488,6 +483,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
 
     collaboration :
       group             : "socialapi"

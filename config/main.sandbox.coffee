@@ -29,8 +29,7 @@ Configuration = (options={}) ->
   rabbitmq            = { host:     "#{prod_simulation_server}"              , port:               5672                                  , apiPort:         15672                  , login:           "guest"                              , password: "guest"                , vhost:         "/"                                                 }
   mq                  = { host:     "#{rabbitmq.host}"                       , port:               rabbitmq.port                         , apiAddress:      "#{rabbitmq.host}"     , apiPort:         "#{rabbitmq.apiPort}"                , login:    "#{rabbitmq.login}"    , componentUser: "#{rabbitmq.login}"                                   , password:       "#{rabbitmq.password}"                                , heartbeat:       0           , vhost:        "#{rabbitmq.vhost}" }
   customDomain        = { public:   "https://#{hostname}"                    , public_:            "#{hostname}"                         , local:           "http://127.0.0.1"     , local_:          "127.0.0.1"                          , port:     80                   }
-  sendgrid            = { username: "koding"                                 , password:           "DEQl7_Dr"                          }
-  email               = { host:     "#{customDomain.public_}"                , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding'               , username:        sendgrid.username                    , password: sendgrid.password    }
+  email               = { host:     "#{customDomain.public_}"                , defaultFromMail:    'hello@koding.com'                    , defaultFromName: 'Koding' }
   kontrol             = { url:      "#{options.publicHostname}/kontrol/kite" , port:               3000                                  , useTLS:          no                     , certFile:        ""                                   , keyFile:  ""                     , publicKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "#{projectRoot}/certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                 , serviceGenericName: "broker"                              , ip:              ""                     , webProtocol:     "https:"                             , host:     customDomain.public    , port:          8008                                                  , certFile:       ""                                                    , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: customDomain.public }
   regions             = { kodingme: "#{configName}"                          , vagrant:            "vagrant"                             , sj:              "sj"                   , aws:             "aws"                                , premium:  "vagrant"            }
@@ -145,7 +144,6 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : '4a0b7965feb841238eadf94a46ef72ee'             , loggedRequests: "/^(subscriptions|transactions)/"}
-    sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "d3b586defd01c24bb294"                         , clientSecret  : "8eb80af7589972328022e80c02a53f3e2e39a323"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.public}:#{customDomain.port}/-/oauth/odesk/callback"}
@@ -317,13 +315,6 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
-    emailsender         :
-      group             : "webserver"
-      supervisord       :
-        command         : "node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
-
     appsproxy           :
       group             : "webserver"
       ports             :
@@ -415,6 +406,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
           {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
@@ -495,6 +490,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
+
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
 
     collaboration :
       group             : "socialapi"

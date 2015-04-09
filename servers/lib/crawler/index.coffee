@@ -140,6 +140,15 @@ module.exports =
     handleError = (err, content) ->
       if err
         console.error err
+
+        if err.error is "moved_permanently"
+          desc = try JSON.parse err.description
+          location = "/Activity/Public"
+
+          if desc.typeConstant isnt "group"
+            location = "/Activity/Topic/#{desc.rootName}"
+          return res.redirect 301, location
+
         return res.status(404).send error_404()  if err.error is 'koding.NotFoundError'
         return res.status(500).send error_500()
       unless content

@@ -21,6 +21,20 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		return err
 	}
 
+	instance, err := m.Session.AWSClient.Instance()
+	if (err == nil && amazon.StatusToState(instance.State.Name) == machinestate.Terminated) ||
+		err == amazon.ErrNoInstances {
+		// This means the instanceId stored in MongoDB doesn't exist anymore in
+		// AWS. Probably it was deleted and the state was not updated (possible
+		// due a human interaction or a non kloud interaction done somewhere
+		// else.)
+		if err := m.markAsNotInitialized(); err != nil {
+			return err
+		}
+
+		return errors.New("instance is not available anymore.")
+	}
+
 	// update the state to intiial state if something goes wrong, we are going
 	// to change latestate to a more safe state if we passed a certain step
 	// below
@@ -30,6 +44,12 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
 		}
 	}()
+
+	// if it's something else (the error from Instance() call above) return it
+	// back
+	if err != nil {
+		return err
+	}
 
 	if err := m.Checker.AlwaysOn(m.Username); err != nil {
 		return err
@@ -41,19 +61,6 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 
 	if strings.ToLower(m.Payment.State) == "expired" {
 		return fmt.Errorf("[%s] Plan is expired", m.Id.Hex())
-	}
-
-	instance, err := m.Session.AWSClient.Instance()
-	if err == amazon.ErrNoInstances {
-		latestState = machinestate.NotInitialized
-		// This means the instanceId stored in MongoDB doesn't exist anymore in
-		// AWS. Probably it was deleted and the state was not updated.
-		return m.markAsNotInitialized()
-	}
-
-	// if it's something else return it back
-	if err != nil {
-		return err
 	}
 
 	m.push("Starting machine", 10, machinestate.Starting)
@@ -155,9 +162,6 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 		}
 	}
 
-	// now we can assume that the machine is running
-	latestState = machinestate.Running
-
 	// Assign a Elastic IP for a paying customer if it doesn't have any
 	// assigned yet (Elastic IP's are assigned only during the Build). We
 	// lookup the IP from the Elastic IPs, if it's not available (returns an
@@ -202,7 +206,9 @@ func (m *Machine) Start(ctx context.Context) (err error) {
 	}
 
 	m.push("Checking remote machine", 90, machinestate.Starting)
-	m.checkKite()
+	if !m.isKlientReady() {
+		return errors.New("klient is not ready")
+	}
 
 	return m.Session.DB.Run("jMachines", func(c *mgo.Collection) error {
 		return c.UpdateId(

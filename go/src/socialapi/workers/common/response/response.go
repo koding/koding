@@ -3,6 +3,7 @@ package response
 import (
 	"errors"
 	"net/http"
+	"os"
 	"socialapi/config"
 
 	"github.com/koding/bongo"
@@ -12,6 +13,7 @@ import (
 var (
 	ErrContentNotFound = errors.New("content not found")
 	ErrNotImplemented  = errors.New("not implemented")
+	socialApiEnv       = os.Getenv("SOCIAL_API_ENV")
 )
 
 // NewBadRequest is creating a new http response with predifined
@@ -26,8 +28,9 @@ func NewBadRequest(err error) (int, http.Header, interface{}, error) {
 
 	// do not expose errors to the client
 	env := config.MustGet().Environment
+
 	// do not expose errors to the client.
-	if env != "dev" && env != "test" {
+	if env != "dev" && env != "test" && socialApiEnv != "wercker" {
 		err = genericError
 	}
 

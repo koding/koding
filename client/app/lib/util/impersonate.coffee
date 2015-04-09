@@ -1,9 +1,9 @@
-remote = require('../remote').getInstance()
+kd = require 'kd'
 showErrorNotification = require './showErrorNotification'
 KiteCache = require '../kite/kitecache'
 
 module.exports = (username) ->
-  remote.api.JAccount.impersonate username, (err) =>
+  kd.singletons.socialapi.account.impersonate username, (err) ->
     if err
       options = userMessage: "You are not allowed to impersonate"
       showErrorNotification err, options

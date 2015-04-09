@@ -44,8 +44,7 @@ Configuration = (options={}) ->
 
   customDomain        = { public: "#{scheme}://#{host}", public_: host, local: "http://#{local}", local_: "#{local}", host: "http://lvh.me", port: 8090 }
 
-  sendgrid            = { username: "koding"                                      , password:           "DEQl7_Dr"                            }
-  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , username:        "#{sendgrid.username}"               , password: "#{sendgrid.password}"      , forcedRecipient: "foome@koding.com"                       }
+  email               = { host:     "#{customDomain.public_}"                     , defaultFromMail:    'hello@koding.com'                      , defaultFromName:    'Koding'                    , forcedRecipient: "foome@koding.com"                       }
   kontrol             = { url:      "#{customDomain.public}/kontrol/kite"         , port:               3000                                    , useTLS:             no                          , certFile:        ""                                   , keyFile:  ""                          , publicKeyFile: "./certs/test_kontrol_rsa_public.pem"    , privateKeyFile: "./certs/test_kontrol_rsa_private.pem"}
   broker              = { name:     "broker"                                      , serviceGenericName: "broker"                                , ip:                 ""                          , webProtocol:     "http:"                              , host:     "#{customDomain.public}"    , port:          8008                                     , certFile:       ""                                       , keyFile:         ""          , authExchange: "auth"                , authAllExchange: "authAll" , failoverUri: "#{customDomain.public}" }
   regions             = { kodingme: "#{configName}"                               , vagrant:            "vagrant"                               , sj:                 "sj"                        , aws:             "aws"                                , premium:  "vagrant"                 }
@@ -153,7 +152,6 @@ Configuration = (options={}) ->
 
     # -- MISC SERVICES --#
     recurly                        : {apiKey        : "4a0b7965feb841238eadf94a46ef72ee"             , loggedRequests: "/^(subscriptions|transactions)/"}
-    sendgrid                       : sendgrid
     opsview                        : {push          : no                                             , host          : ''                                           , bin: null                                                                             , conf: null}
     github                         : {clientId      : "f8e440b796d953ea01e5"                         , clientSecret  : "b72e2576926a5d67119d5b440107639c6499ed42"}
     odesk                          : {key           : "639ec9419bc6500a64a2d5c3c29c2cf8"             , secret        : "549b7635e1e4385e"                           , request_url: "https://www.odesk.com/api/auth/v1/oauth/token/request"                  , access_url: "https://www.odesk.com/api/auth/v1/oauth/token/access" , secret_url: "https://www.odesk.com/services/api/auth?oauth_token=" , version: "1.0"                                                    , signature: "HMAC-SHA1" , redirect_uri : "#{customDomain.host}:#{customDomain.port}/-/oauth/odesk/callback"}
@@ -323,13 +321,6 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "./watch-node #{projectRoot}/servers/sourcemaps/index.js -c #{configName} -p #{KONFIG.sourcemaps.port} --disable-newrelic"
 
-    emailsender         :
-      group             : "webserver"
-      supervisord       :
-        command         : "./watch-node #{projectRoot}/workers/emailsender/index.js  -c #{configName} -p #{KONFIG.emailWorker.port} --disable-newrelic"
-      healthCheckURL    : "http://localhost:#{KONFIG.emailWorker.port}/healthCheck"
-      versionURL        : "http://localhost:#{KONFIG.emailWorker.port}/version"
-
     appsproxy           :
       group             : "webserver"
       ports             :
@@ -388,6 +379,10 @@ Configuration = (options={}) ->
           {
             location    : "~ /api/social/search-key"
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
+          }
+          {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
           }
           {
             location    : "~ /api/social/(.*)"
@@ -728,6 +723,7 @@ Configuration = (options={}) ->
 
         # a temporary migration line (do we still need this?)
         env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'collaboration';"
+        env PGPASSWORD=#{postgres.password} psql -tA -h #{postgres.host} #{postgres.dbname} -U #{postgres.username} -c "ALTER TYPE \"api\".\"channel_type_constant_enum\" ADD VALUE IF NOT EXISTS 'linkedtopic';"
 
         # Create default workspaces
         node scripts/create-default-workspace
