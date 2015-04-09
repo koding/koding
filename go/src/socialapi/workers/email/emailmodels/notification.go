@@ -2,6 +2,7 @@ package emailmodels
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -54,10 +55,25 @@ type NotificationMessage struct {
 	TimezoneOffset int
 }
 
+func convertCodeBlocksToPre(input string) string {
+	output := ""
+	splitInput := strings.Split(input, "```")
+
+	for index, str := range splitInput {
+		if index%2 == 0 {
+			output += str
+		} else {
+			output += "<pre>" + str + "</pre>"
+		}
+	}
+
+	return output
+}
+
 func (n *NotificationMessage) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"actor":       n.Actor,
-		"message":     n.Message,
+		"message":     convertCodeBlocksToPre(n.Message),
 		"action":      n.Action,
 		"actionType":  n.ActionType,
 		"actorAvatar": buildActorAvatar(n.ActorHash),
