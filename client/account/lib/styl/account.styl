@@ -541,7 +541,7 @@ app.settings.styl
       padding               15px 5px
 
   .share-box
-    width                   320px
+    size                    320px, 150px
     margin                  0 20px
     fl()
 
@@ -551,10 +551,6 @@ app.settings.styl
     a
       color                 #888
       noTextDeco()
-
-    .title
-      font-weight           bold
-      line-height           17px
 
     .subtitle
       color                 #888
@@ -578,9 +574,8 @@ app.settings.styl
       .facebook
         r-sprite            'account' 'ext-facebook'
 
-      // We don't have mail icon for this, FIXME @burak
       .mail
-        r-sprite            'account' 'ext-github'
+        r-sprite            'account' 'ext-mail'
 
   .bottom
     margin                  25px 0
@@ -601,7 +596,9 @@ app.settings.styl
 
       &.value
         width               auto
-        margin              0 20px
+        text-align          right
+        padding-right       15px
+        fr()
 
     .progressbar-container
       background            none
@@ -666,6 +663,7 @@ app.settings.styl
 
       &:nth-child(4)
         text-align         right
+        padding-right      15px
 
 
 .kdmodal.payments-modal
