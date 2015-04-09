@@ -4,6 +4,8 @@ remote = require('app/remote').getInstance()
 whoami = require 'app/util/whoami'
 getNick = require 'app/util/nick'
 
+ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
+
 ###*
  * It makes a request to the backend and gets session id
  * and creates a session with that session id.
@@ -119,7 +121,6 @@ createPublisher = (view, options = {}, callback) ->
     callback null, publisher
 
 
-ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 fixParticipantBackgroundImage = (participant, account) ->
 
   poster = participant.element.querySelector '.OT_video-poster'
