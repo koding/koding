@@ -3,6 +3,7 @@ package emailmodels
 import (
 	"fmt"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func convertCodeBlocksToPre(input string) string {
 
 	for index, str := range splitInput {
 		if index%2 == 0 {
-			output += str
+			output += template.HTMLEscapeString(str)
 		} else {
 			output += "<pre>" + str + "</pre>"
 		}
