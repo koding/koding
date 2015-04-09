@@ -19,6 +19,7 @@ module.exports = class JAccount extends jraphical.Module
   JName            = require './name'
   JKite            = require './kite'
   JReferrableEmail = require './referrableemail'
+  Sendgrid         = require './sendgrid'
 
   @getFlagRole            = 'content'
   @lastUserCountFetchTime = 0
@@ -547,17 +548,6 @@ module.exports = class JAccount extends jraphical.Module
               if err then callback err
               else callback null, (doc.as for doc in arr)
 
-  @impersonate = secure (client, nickname, callback)->
-    {connection:{delegate}, sessionToken} = client
-    unless delegate.can 'administer accounts'
-      callback new KodingError 'Access denied'
-    else
-      JSession = require './session'
-      JSession.update {clientId: sessionToken}, $set:{
-        username      : nickname
-        impersonating : true
-      }, (err) -> callback err
-
   @verifyEmailByUsername = secure (client, username, callback)->
     {connection:{delegate}, sessionToken} = client
     unless delegate.can 'verify-emails'
@@ -688,6 +678,16 @@ module.exports = class JAccount extends jraphical.Module
     updateUserPref =->
       user.update {$set: emailFrequency: current}, (err)->
         return callback err  if err
+
+    if current["marketing"] is no or current["global"] is no
+      return Sendgrid.deleteFromMarketing user.email, (err)->
+        return callback err  if err
+        updateUserPref()
+
+    if current["marketing"] is yes and current["global"] is yes
+      return Sendgrid.addToMarketing user.email, user.username, (err)->
+        return callback err  if err
+        updateUserPref()
 
     updateUserPref()
 
