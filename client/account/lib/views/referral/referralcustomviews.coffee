@@ -15,7 +15,7 @@ module.exports = class ReferralCustomViews extends CustomViews
         view       :
           partial  : "#{total}GB"
           cssClass : 'total'
-        text       : "Earned Free Space"
+        text       : 'Earned Free Space'
 
       return container
 
@@ -48,9 +48,10 @@ module.exports = class ReferralCustomViews extends CustomViews
         text_subtitle : subtitle
         socialIcons   :
           providers   : ['facebook', 'linkedin', 'twitter', 'google', 'mail']
-        text_invite   : "Personal invite link"
+        text_invite   : 'Personal invite link'
         link          :
-          href        : "https://koding.com/R/gokmen"
+          href        : getReferralUrl nick()
+          target      : '_blank'
 
       return container
 
@@ -103,6 +104,6 @@ module.exports = class ReferralCustomViews extends CustomViews
       # since the implementation of kd.ProgressBarView creates that
       # element in the ::viewAppended step ~ GG
       kd.utils.defer ->
-        progressBar.bar.setCss "background", color
+        progressBar.bar.setCss 'background', color
 
       return container
