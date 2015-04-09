@@ -1,4 +1,5 @@
 $ = require 'jquery'
+_ = require 'lodash'
 kd = require 'kd'
 remote = require('app/remote').getInstance()
 whoami = require 'app/util/whoami'
@@ -219,9 +220,11 @@ _getGravatarUri = (account, size = 355) ->
 ###
 setVideoState = (channel, state, callback) ->
 
+  { payload } = channel
+
   options =
     id      : channel.id
-    payload : { videoEnabled : state }
+    payload : _.assign {}, payload, { videoEnabled : state }
 
   kd.singletons.socialapi.channel.update options, callback
 
