@@ -172,18 +172,17 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     provider  = environmentDataProvider
 
     provider.fetchMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
-      if machine and workspace
-        box    = @getMachineBoxByMachineUId machine.uid
-        wsItem = box?.getWorkspaceItemByChannelId channelId
 
-        if wsItem
-          wsItem.setUnreadCount unreadCount
+      return  unless machine and workspace
+      return  unless box = @getMachineBoxByMachineUId machine.uid
+      return  unless wsItem = box.getWorkspaceItemByChannelId channelId
 
-          return  unless unreadCount is 0
+      wsItem.setUnreadCount unreadCount
 
-          { socialapi } = kd.singletons
+      return  unless unreadCount is 0
 
-          socialapi.channel.updateLastSeenTime channelId : data._id, kd.noop
+      { socialapi } = kd.singletons
+      socialapi.channel.updateLastSeenTime channelId : data._id, kd.noop
 
 
   handleFollowedFeedUpdate: (update) ->
