@@ -20,6 +20,7 @@ KodingKontrol                 = require 'app/kite/kodingkontrol'
 FSHelper                      = require 'app/util/fs/fshelper'
 AppController                 = require 'app/appcontroller'
 CollaborationController       = require './collaborationcontroller'
+VideoCollaborationController  = require './videocollaborationcontroller'
 IDEContentSearch              = require './views/contentsearch/idecontentsearch'
 IDEEditorPane                 = require './workspace/panes/ideeditorpane'
 IDEFileFinder                 = require './views/filefinder/idefilefinder'
@@ -44,6 +45,7 @@ module.exports =
 class IDEAppController extends AppController
 
   _.extend @prototype, CollaborationController
+  _.extend @prototype, VideoCollaborationController
 
   {
     Stopped, Running, NotInitialized, Terminated, Unknown, Pending,
