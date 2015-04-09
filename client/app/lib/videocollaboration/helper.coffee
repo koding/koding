@@ -143,21 +143,21 @@ getNicename = (account) ->
 
 
 ###*
- * Subscribes to audio changes of given subscriber. It will call given
+ * Subscribes to audio changes of given subscriber/publisher. It will call given
  * `callbacks.started` when talking started, and will call `callbacks.stopped`
  * when talking stopped.
  *
- * @param {OT.Subscriber} subscriber
+ * @param {(OT.Subscriber|OT.Publisher)} participant
  * @param {object<string, function>} callbacks
 ###
-subscribeToAudioChanges = (subscriber, callbacks) ->
+subscribeToAudioChanges = (participant, callbacks) ->
 
   # this object will be used to keep track of talking activity.
   activity = null
 
-  subscriber.on 'audioLevelUpdated', (event) ->
+  participant.on 'audioLevelUpdated', (event) ->
     now = Date.now()
-    # we detected a sound from subscriber
+    # we detected a sound from participant
     if event.audioLevel > 0.1
       # create initial activity with talking flag is off when there is no
       # talking activity.
