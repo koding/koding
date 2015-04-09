@@ -1,11 +1,15 @@
-kd = require 'kd'
-KDCustomHTMLView = kd.CustomHTMLView
-KDLoaderView = kd.LoaderView
-KDTabView = kd.TabView
-KDView = kd.View
-CustomLinkView = require 'app/customlinkview'
-IDEChatMessagePane = require './idechatmessagepane'
+kd                  = require 'kd'
+KDCustomHTMLView    = kd.CustomHTMLView
+KDLoaderView        = kd.LoaderView
+KDTabView           = kd.TabView
+KDView              = kd.View
+CustomLinkView      = require 'app/customlinkview'
+IDEChatMessagePane  = require './idechatmessagepane'
 IDEChatSettingsPane = require './idechatsettingspane'
+IDEChatVideoView    = require './idechatvideoview'
+
+socialHelpers = require '../../collaboration/helpers/social'
+
 module.exports = class IDEChatView extends KDTabView
 
   constructor: (options = {}, data)->
@@ -38,6 +42,35 @@ module.exports = class IDEChatView extends KDTabView
     @once 'CollaborationStarted',        @bound 'removeLoader'
     @once 'CollaborationNotInitialized', @bound 'removeLoader'
     @once 'CollaborationEnded',          @bound 'destroy'
+
+    @on 'VideoCollaborationActive', @bound 'handleVideoActive'
+    @on 'VideoCollaborationEnded',  @bound 'handleVideoEnded'
+    @on 'VideoActiveParticipantDidChange', @bound 'handleVideoActiveParticipantChanged'
+    @on 'VideoSelectedParticipantDidChange', @bound 'handleVideoSelectedParticipantChanged'
+    @on 'VideoParticipantTalkingStateDidChange', @bound 'handleVideoParticipantTalkingStateChanged'
+
+
+  handleParticipantSelected: (participant) ->
+
+    socialHelpers.fetchAccount participant, (err, account) =>
+      return console.error err  if err
+      { nickname } = account.profile
+      kd.singletons.appManager.tell 'IDE', 'switchToUserVideo', nickname
+
+
+  handleVideoActiveParticipantChanged: (nickname, account) ->
+
+    @chatPane.setActiveParticipantAvatar account
+
+
+  handleVideoSelectedParticipantChanged: (nickname, account) ->
+
+    @chatPane.setSelectedParticipantAvatar account
+
+
+  handleVideoParticipantTalkingStateChanged: (nickname, state) ->
+
+    @chatPane.setAvatarTalkingState nickname, state
 
 
   start: ->
@@ -84,6 +117,29 @@ module.exports = class IDEChatView extends KDTabView
     @unsetClass 'loading'
 
 
+  handleVideoActive: ->
+
+    @setClass 'is-videoActive'
+    @chatVideoView.show()
+    @chatPane.handleVideoActive()
+
+
+  handleVideoEnded: ->
+
+    @chatPane.handleVideoEnded()
+    @chatVideoView.hide()
+    @unsetClass 'is-videoActive'
+
+
+  getVideoView: -> @chatVideoView
+
+
+  createChatVideoView: ->
+
+    @chatVideoView = new IDEChatVideoView { cssClass: 'hidden' }, @getData()
+    @addSubView @chatVideoView
+
+
   createPanes: ->
 
     channel         = @getData()
@@ -93,8 +149,12 @@ module.exports = class IDEChatView extends KDTabView
     chatOptions     = { name, type, channelId, @isInSession }
     settingsOptions = { @rtm, @isInSession }
 
+    @createChatVideoView()
+
     @addPane @chatPane     = new IDEChatMessagePane  chatOptions, channel
     @addPane @settingsPane = new IDEChatSettingsPane settingsOptions, channel
+
+    @chatPane.on 'ParticipantSelected', @bound 'handleParticipantSelected'
 
     @settingsPane.forwardEvents this, [
       'CollaborationStarted', 'CollaborationEnded', 'CollaborationNotInitialized'
@@ -108,7 +168,18 @@ module.exports = class IDEChatView extends KDTabView
       kd.utils.wait 500, =>
         @chatPane.showAutoCompleteInput()
 
+    @bindVideoCollaborationEvents()
+
     @emit 'ready'
+
+
+  bindVideoCollaborationEvents: ->
+
+    {appManager} = kd.singletons
+
+    @chatPane
+      .on 'ChatVideoStartRequested', -> appManager.tell 'IDE', 'startVideoCollaboration'
+      .on 'ChatVideoEndRequested', -> appManager.tell 'IDE', 'endVideoCollaboration'
 
 
   showChatPane: ->
