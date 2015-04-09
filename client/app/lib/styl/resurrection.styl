@@ -1694,10 +1694,27 @@ paymentGrayLighter  = #f8f8f8
 // machine settings modal styling
 
 .machine-settings-modal.AppModal
+
   .AppModal-nav
     min-height              315px
 
+  .AppModal-form
+    padding-top             0
+
+  .statustoggle .koding-on-off
+    margin-top              11px
+
+  a.assigned-url
+    color                   #8B8B8B
+    max-width               420px
+    display                 inline-block
+    ellipsis()
+    noTextDeco()
+
+
+// icons
 .machine-settings-modal.AppModal
+
   .AppModal-navItem:before
     content                 ''
     display                 inline-block
@@ -1752,3 +1769,24 @@ paymentGrayLighter  = #f8f8f8
 
     &.active:before
       r-sprite              'app', 'ms-shared-vm-active'
+
+
+// common formline styling
+.machine-settings-modal.AppModal
+
+  .formline
+    line-height             45px
+    size                    545px, 45px
+    border-bottom           1px solid #efefef
+    margin-bottom           0
+
+    .kdlabel
+      float                 left
+      display               inline
+      line-height           45px
+      height                45px
+      margin                0
+
+    .input-wrapper
+      float                 right
+      color                 #8B8B8B
