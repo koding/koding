@@ -35,14 +35,15 @@ module.exports =
 
   endSessionFromStatusBar: (browser) ->
 
-    statusBarSelector = '.status-bar .collab-status'
+    statusBarSelector       = '.status-bar .collab-status'
+    buttonContainerSelector = statusBarSelector + ' .button-container'
 
     browser
       .waitForElementVisible  statusBarSelector, 20000
       .waitForElementVisible  statusBarSelector + ' span', 20000
       .click                  statusBarSelector + ' span'
-      .waitForElementVisible  '.button-container', 20000
-      .click                  '.button-container button.compact'
+      .waitForElementVisible  buttonContainerSelector, 20000
+      .click                  buttonContainerSelector + ' button.end-session'
 
     @endSessionModal(browser)
 
@@ -60,12 +61,12 @@ module.exports =
 
   endSessionModal: (browser) ->
 
-    endSessionButton = '.with-buttons .kdmodal-buttons'
+    buttonsSelector = '.kdmodal .kdmodal-buttons'
 
     browser
       .waitForElementVisible  '.with-buttons', 20000
-      .waitForElementVisible  endSessionButton, 20000
-      .click                  endSessionButton + ' button.green'
+      .waitForElementVisible  buttonsSelector, 20000
+      .click                  buttonsSelector + ' button.green'
       .waitForElementVisible  notStartedButtonSelector, 20000 # Assertion
 
 
