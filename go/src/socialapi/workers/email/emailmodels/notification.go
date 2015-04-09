@@ -25,7 +25,8 @@ func (m *MailerNotification) ToMap() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"messages": messages, "firstName": m.FirstName,
+		"messages":  messages,
+		"firstName": m.FirstName,
 	}
 }
 
@@ -42,7 +43,7 @@ type NotificationMessage struct {
 	Message        string
 	MessageSlug    string
 	Action         string
-	ObjectType     string
+	ActionType     string
 	CreatedAt      time.Time
 	TimezoneOffset int
 }
@@ -52,7 +53,7 @@ func (n *NotificationMessage) ToMap() map[string]interface{} {
 		"actor":       n.Actor,
 		"message":     n.Message,
 		"action":      n.Action,
-		"objectType":  n.ObjectType,
+		"actionType":  n.ActionType,
 		"actorAvatar": buildActorAvatar(n.ActorHash),
 		"actorLink":   buildActorLink(n.Hostname, n.ActorSlug),
 		"messageLink": buildMessageLink(n.Hostname, n.MessageSlug),
@@ -74,8 +75,9 @@ func (p *PrivateMessageChannel) ToMap() map[string]interface{} {
 	}
 
 	return map[string]interface{}{
-		"nestedMessages": results, "subtitle": p.Subtitle,
-		"actorAvatar": buildActorAvatar(p.ActorHash),
+		"nestedMessages": results,
+		"subtitle":       p.Subtitle,
+		"actorAvatar":    buildActorAvatar(p.ActorHash),
 	}
 }
 
@@ -87,7 +89,9 @@ type PrivateMessage struct {
 
 func (p *PrivateMessage) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"createdAt": p.CreatedAt, "actor": p.Actor, "message": p.Message,
+		"actor":     p.Actor,
+		"message":   p.Message,
+		"createdAt": p.CreatedAt,
 	}
 }
 

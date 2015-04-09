@@ -105,16 +105,16 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 	}
 
 	notifmessage := &emailmodels.NotificationMessage{
-		ObjectType:     mc.ObjectType,
-		TimezoneOffset: uc.LastLoginTimezoneOffset,
-		Hostname:       n.conf.Protocol + "//" + n.conf.Hostname,
-		CreatedAt:      mc.CreatedAt,
 		Actor:          actor.FirstName,
 		ActorSlug:      actor.Username,
 		ActorHash:      actor.Hash,
 		Action:         mc.ActivityMessage,
+		ActionType:     mc.ObjectType,
 		Message:        mc.Message,
 		MessageSlug:    mc.Slug,
+		TimezoneOffset: uc.LastLoginTimezoneOffset,
+		Hostname:       n.conf.Protocol + "//" + n.conf.Hostname,
+		CreatedAt:      mc.CreatedAt,
 	}
 
 	mailer := &emailmodels.MailerNotification{

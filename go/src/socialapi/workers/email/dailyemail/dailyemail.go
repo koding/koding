@@ -143,7 +143,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 			CreatedAt:      container.CreatedAt,
 			Message:        container.Message,
 			Action:         container.ActivityMessage,
-			ObjectType:     container.ObjectType,
+			ActionType:     container.ObjectType,
 			TimezoneOffset: uc.LastLoginTimezoneOffset,
 			Hostname:       n.config.Protocol + "//" + n.config.Hostname,
 			MessageSlug:    container.Slug,

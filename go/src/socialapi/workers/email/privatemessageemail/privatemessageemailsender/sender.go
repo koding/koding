@@ -121,7 +121,7 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		}
 
 		// Fetch channel summary data
-		channels, err := c.FetchChannelSummaries(account, usercontact.LastLoginTimezoneOffset)
+		channels, err := c.FetchChannelData(account, usercontact.LastLoginTimezoneOffset)
 		if err != nil {
 			c.log.Error("Could not fetch messages for rendering: %s", err)
 			continue
@@ -208,7 +208,7 @@ func (c *Controller) NextAccount(period string) (*models.Account, error) {
 	return a, nil
 }
 
-func (c *Controller) FetchChannelSummaries(a *models.Account, timezone int) ([]*emailmodels.ChannelSummary, error) {
+func (c *Controller) FetchChannelData(a *models.Account, timezone int) ([]*emailmodels.ChannelSummary, error) {
 	// fetch value from redis
 	key := common.AccountChannelHashSetKey(a.Id)
 	defer func() {
