@@ -1,5 +1,5 @@
 VideoCollaborationModel = require 'app/videocollaboration/model'
-socialHelpers = require './collaboration/helpers/social'
+socialHelpers           = require './collaboration/helpers/social'
 
 module.exports = VideoCollaborationController =
 
