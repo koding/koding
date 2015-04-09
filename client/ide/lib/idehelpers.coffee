@@ -148,4 +148,4 @@ module.exports = helpers =
         else
           remote.api.JWorkspace.deleteById workspace._id, callback
 
-      updateWorkspace_ w for w in workspaces when ~w.rootPath.indexOf searchPath
+      updateWorkspace_ w for w in workspaces when w.rootPath.indexOf(searchPath) > -1
