@@ -1,9 +1,40 @@
 kd             = require 'kd'
+nick           = require 'app/util/nick'
+getReferralUrl = require 'app/util/getReferralUrl'
 CustomViews    = require './customviews'
 getSocialLinks = require './getSocialLinks'
 
 
 module.exports = class ReferralCustomViews extends CustomViews
+
+  createListController = (itemClass) ->
+    new kd.ListViewController
+      itemClass           : itemClass ? require './accountreferralsystemlistitem'
+      useCustomScrollView : yes
+      lazyLoadThreshold   : 10
+      lazyLoaderOptions   :
+        spinnerOptions    :
+          loaderOptions   : shape: 'spiral', color: '#a4a4a4'
+          size            : width: 20, height: 20
+        partial           : ''
+
+  followLazyLoad = (controller, fetcher, limit) ->
+
+    skip = 0
+    busy = no
+
+    controller.on 'LazyLoadThresholdReached', kd.utils.debounce 300, ->
+
+      return  controller.hideLazyLoader()  if busy
+      busy  = yes
+      skip += limit
+
+      fetcher { limit, skip }, (err, data)->
+        controller.hideLazyLoader()
+        return  if err or data?.rewards?.length is 0
+        controller.instantiateListItems data.rewards
+        busy = no
+
 
   @views extends
 
@@ -61,16 +92,13 @@ module.exports = class ReferralCustomViews extends CustomViews
         size: width: 40, height: 40
       }
 
-    list: ({data, itemClass}) ->
+    list: ({data, itemClass, fetcher, limit}) ->
 
-      itemClass ?= require './accountreferralsystemlistitem'
-      controller = new kd.ListViewController {
-        itemClass, useCustomScrollView: yes
-      }
+      controller = createListController itemClass
+      list       = controller.getListView()
+
       controller.replaceAllItems data
 
-      list   = controller.getListView()
-      header = new kd.ListItemView {cssClass: 'referral-item header'}, {}
       if data?.length > 0
 
         header = new kd.ListItemView {cssClass: 'referral-item header'}, {}
@@ -81,6 +109,7 @@ module.exports = class ReferralCustomViews extends CustomViews
           <div>Space Earned</div>
         "
         list.addItemView header, 0
+        followLazyLoad controller, fetcher, limit
 
       else
 
