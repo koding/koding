@@ -1,19 +1,19 @@
-kd = require 'kd'
-AdministrationView = require './views/administrationview'
-CustomViewsManager = require './views/customviews/customviewsmanager'
-DashboardAppView = require './dashboardappview'
-GroupGeneralSettingsView = require './views/groupgeneralsettingsview'
-GroupPaymentController = require './controllers/grouppaymentcontroller'
-GroupPermissionsView = require './views/grouppermissionsview'
-GroupProductSettingsView = require './views/groupproductsettingsview'
-GroupProductsController = require './controllers/groupproductscontroller'
-GroupsBlockedUserView = require './views/groupsblockeduserview'
-GroupsInvitationView = require './views/groupsinvitationview'
-GroupsMemberPermissionsView = require './views/groupsmemberpermissionsview'
+kd                               = require 'kd'
+AdministrationView               = require './views/administrationview'
+CustomViewsManager               = require './views/customviews/customviewsmanager'
+DashboardAppView                 = require './dashboardappview'
+GroupGeneralSettingsView         = require './views/groupgeneralsettingsview'
+GroupPaymentController           = require './controllers/grouppaymentcontroller'
+GroupPermissionsView             = require './views/grouppermissionsview'
+GroupProductSettingsView         = require './views/groupproductsettingsview'
+GroupProductsController          = require './controllers/groupproductscontroller'
+GroupsBlockedUserView            = require './views/groupsblockeduserview'
+GroupsInvitationView             = require './views/groupsinvitationview'
+GroupsMemberPermissionsView      = require './views/groupsmemberpermissionsview'
 GroupsMembershipPolicyDetailView = require './views/groupsmembershippolicydetailview'
-OnboardingDashboardView = require './views/onboarding/onboardingdashboardview'
-AppController = require 'app/appcontroller'
-Encoder = require 'htmlencode'
+OnboardingDashboardView          = require './views/onboarding/onboardingdashboardview'
+AppController                    = require 'app/appcontroller'
+Encoder                          = require 'htmlencode'
 require('./routehandler')()
 
 
@@ -24,9 +24,7 @@ module.exports = class DashboardAppController extends AppController
   constructor: (options = {}, data) ->
 
     options.view = new DashboardAppView
-      testPath   : "groups-dashboard"
-
-    data or= kd.getSingleton('groupsController').getCurrentGroup()
+    data       or= kd.singletons.groupsController.getCurrentGroup()
 
     super options, data
 
@@ -127,8 +125,8 @@ module.exports = class DashboardAppController extends AppController
       # tabHandle.markDirty()
 
   loadSection: ({title}) ->
-    @getView().nav.ready =>
-      @getView().tabs.showPaneByName title
+    view = @getView()
+    view.ready -> view.tabs.showPaneByName title
 
   policyViewAdded: (pane, view) ->
 
