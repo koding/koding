@@ -2,13 +2,15 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"koding/db/models"
+	"io/ioutil"
 	"koding/db/mongodb"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/pkg/multiec2"
+	"koding/kites/kloud/provider/koding"
 	"log"
 	"os"
 	"strings"
@@ -27,40 +29,10 @@ import (
 )
 
 type Config struct {
-	MongoURL  string `required:"true"`
-	AccessKey string `required:"true"`
-	SecretKey string `required:"true"`
-}
-
-type MachineDocument struct {
-	Id          bson.ObjectId `bson:"_id" json:"-"`
-	Label       string        `bson:"label"`
-	Domain      string        `bson:"domain"`
-	QueryString string        `bson:"queryString"`
-	IpAddress   string        `bson:"ipAddress"`
-	Assignee    struct {
-		InProgress bool      `bson:"inProgress"`
-		AssignedAt time.Time `bson:"assignedAt"`
-	} `bson:"assignee"`
-	Status struct {
-		State      string    `bson:"state"`
-		Reason     string    `bson:"reason"`
-		ModifiedAt time.Time `bson:"modifiedAt"`
-	} `bson:"status"`
-	Provider   string    `bson:"provider"`
-	Credential string    `bson:"credential"`
-	CreatedAt  time.Time `bson:"createdAt"`
-	Meta       struct {
-		AlwaysOn     bool   `bson:"alwaysOn"`
-		InstanceId   string `bson:"instanceId"`
-		InstanceType string `bson:"instance_type"`
-		InstanceName string `bson:"instanceName"`
-		Region       string `bson:"region"`
-		StorageSize  int    `bson:"storage_size"`
-		SourceAmi    string `bson:"source_ami"`
-	} `bson:"meta"`
-	Users  []models.Permissions `bson:"users"`
-	Groups []models.Permissions `bson:"groups"`
+	MongoURL   string `required:"true"`
+	AccessKey  string `required:"true"`
+	SecretKey  string `required:"true"`
+	HostedZone string `required:"true"`
 }
 
 func main() {
@@ -68,6 +40,12 @@ func main() {
 		fmt.Fprint(os.Stderr, err.Error())
 		os.Exit(1)
 	}
+	// for range time.Tick(time.Minute * 2) {
+	// 	if err := realMain(); err != nil {
+	// 		fmt.Fprint(os.Stderr, err.Error())
+	// 		os.Exit(1)
+	// 	}
+	// }
 
 	os.Exit(0)
 }
@@ -93,12 +71,14 @@ func realMain() error {
 	w.Init(os.Stdout, 10, 8, 0, '\t', 0)
 	defer w.Flush()
 
-	// We use a counting semaphore to limit
-	// the number of parallel SSH calls per process.
-	var sema = make(chan bool, 50)
+	// We use a counting semaphore to limit the number of parallel SSH calls
+	// per process and to start machines
+	var semaSSH = make(chan bool, 50)
+
+	var semaStart = make(chan bool, 10)
 
 	// search via username, mongodb -> aws
-	ms, err := machinesFromUsername(db)
+	ms, err := machineFromMongodb(db)
 	if err != nil {
 		return err
 	}
@@ -106,26 +86,82 @@ func realMain() error {
 	ms.Print(w)
 
 	ips := make([]string, 0)
-	for _, machine := range ms.docs {
-		if machine.IpAddress == "" {
-			continue
-		}
+	var attachWg sync.WaitGroup
 
-		ips = append(ips, machine.IpAddress)
+	username := make([]string, len(ms.docs))
+	for i, machine := range ms.docs {
+		username[i] = machine.Credential
 	}
 
+	out, err := json.MarshalIndent(username, "", " ")
+	if err != nil {
+		return err
+	}
+
+	if err := ioutil.WriteFile("users.json", out, 0755); err != nil {
+		return err
+	}
+
+	fmt.Printf("len(username) = %+v\n", len(username))
+	for _, machine := range ms.docs {
+		attachWg.Add(1)
+
+		go func(machine koding.Machine) {
+			semaStart <- true
+			defer func() {
+				attachWg.Done()
+				<-semaStart
+			}()
+
+			if machine.Meta.Region == "" {
+				return
+			}
+
+			// if machine.Status.State == "Running" ||
+			// 	machine.Status.State == "NotInitialized" {
+			// 	return
+			// }
+
+			if machine.IpAddress == "" {
+				return
+			}
+
+			// log.Printf("Starting %+v\n", machine.Id.Hex())
+			// _, err := exec.Command("kloudctl", "start", "-ids", machine.Id.Hex(), "--kloud-addr", "https://koding.com/kloud/kite").CombinedOutput()
+			// if err != nil {
+			// 	return
+			// }
+			//
+			// time.Sleep(time.Minute * 1)
+
+			// if machine.IpAddress == "" {
+			// 	return
+			// }
+
+			ips = append(ips, machine.IpAddress)
+		}(machine)
+	}
+
+	// return nil
+
+	log.Println("starting all machines ...")
+	attachWg.Wait()
+	log.Println("starting is finished")
+
 	command := "/opt/kite/klient/klient --version"
-	update := "cd /tmp && wget https://s3.amazonaws.com/koding-klient/production/30/klient_0.1.30_production_amd64.deb && dpkg -i klient_0.1.30_production_amd64.deb && rm klient_0.1.30_production_amd64.deb"
+	update := "cd /tmp && wget https://s3.amazonaws.com/koding-klient/production/31/klient_0.1.31_production_amd64.deb && dpkg -i klient_0.1.31_production_amd64.deb && rm klient_0.1.31_production_amd64.deb"
+
+	log.Printf("executing the command '%s' on %d machines\n\n", command, len(ips))
 
 	var wg sync.WaitGroup
 	for _, ip := range ips {
 		wg.Add(1)
 
 		go func(ip string) {
-			sema <- true // wait
+			semaSSH <- true // wait
 			defer func() {
 				wg.Done()
-				<-sema
+				<-semaSSH
 			}()
 
 			done := make(chan string, 0)
@@ -144,46 +180,55 @@ func realMain() error {
 				// fmt.Printf("[%s] canceling operation\n", ip)
 				return
 			case out := <-done:
-				if out != "0.1.30" {
-					fmt.Printf("[%s] version: %s updating\n", ip, out)
-					_, err := executeSSHCommand(ip, update)
-					if err != nil {
-						log.Printf("[%s] updater err: %s\n", ip, err)
-						return
-					}
+				if out == "0.1.30" {
+					return
+				}
 
-					// log.Printf("[%s] update result: %s\n", ip, out)
+				if out == "0.1.31" {
+					return
+				}
+
+				fmt.Printf("[%s] version: %s updating\n", ip, out)
+				_, err := executeSSHCommand(ip, update)
+				if err != nil {
+					log.Printf("[%s] updater err: %s\n", ip, err)
+					return
 				}
 			}
 		}(ip)
 	}
 
-	fmt.Printf("executing the command '%s' on %d machines\n\n", command, len(ips))
-
 	wg.Wait()
+
+	// fmt.Printf("%d machines with version 0.1.30\n", v30)
+	// fmt.Printf("%d machines with version 0.1.99\n", vOther)
 
 	return nil
 }
 
-func machinesFromUsername(db *mongodb.MongoDB) (*machines, error) {
-	from, err := time.Parse(time.RFC3339, "2015-04-07T13:15:00Z")
+func machineFromMongodb(db *mongodb.MongoDB) (*machines, error) {
+	from, err := time.Parse(time.RFC3339, "2015-03-07T13:15:00Z")
 	if err != nil {
 		return nil, err
 	}
 
-	to, err := time.Parse(time.RFC3339, "2015-04-08T09:30:00Z")
+	to, err := time.Parse(time.RFC3339, "2015-04-10T07:30:00Z")
 	if err != nil {
 		return nil, err
 	}
 
 	machines := newMachines()
 	err = db.Run("jMachines", func(c *mgo.Collection) error {
-		var m MachineDocument
-		iter := c.Find(bson.M{"createdAt": bson.M{
-			"$gte": from.UTC(),
-			"$lt":  to.UTC(),
-		},
-		}).Iter()
+		var m koding.Machine
+		iter := c.Find(
+			bson.M{
+				"createdAt": bson.M{
+					"$gte": from.UTC(),
+					"$lt":  to.UTC(),
+				},
+				// "status.state": machinestate.Stopped.String(),
+			},
+		).Iter()
 
 		for iter.Next(&m) {
 			machines.docs = append(machines.docs, m)
@@ -197,12 +242,12 @@ func machinesFromUsername(db *mongodb.MongoDB) (*machines, error) {
 
 func newMachines() *machines {
 	return &machines{
-		docs: make([]MachineDocument, 0),
+		docs: make([]koding.Machine, 0),
 	}
 }
 
 type machines struct {
-	docs []MachineDocument
+	docs []koding.Machine
 }
 
 func (m *machines) Print(w io.Writer) {
@@ -224,6 +269,7 @@ func executeSSHCommand(ipAddress, command string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer client.Close()
 
 	return strings.TrimSpace(string(output)), nil
 }
