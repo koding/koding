@@ -1,10 +1,10 @@
-kd            = require 'kd'
-_             = require 'lodash'
-ShortcutsPane = require './pane'
+kd   = require 'kd'
+_    = require 'lodash'
+Pane = require './pane'
 
 module.exports =
 
-class ShortcutsModal extends kd.ModalViewWithForms
+class Modal extends kd.ModalViewWithForms
 
   constructor: (options, @config) ->
 
@@ -42,8 +42,8 @@ class ShortcutsModal extends kd.ModalViewWithForms
       acc[collection.title] =
         fields:
           view:
-            itemClass: ShortcutsPane
-            collection: collection
+            itemClass  : Pane
+            collection : collection
       return acc
     , {}
 

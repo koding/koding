@@ -1,10 +1,10 @@
 kd = require 'kd'
 _  = require 'lodash'
-ShortcutsListItem = require './listitem'
+Item = require './item'
 
 module.exports =
 
-class ShortcutsPane extends kd.View
+class Pane extends kd.View
 
   constructor: (options={}) ->
 
@@ -15,5 +15,5 @@ class ShortcutsPane extends kd.View
   viewAppended: ->
 
     #@collection.each (model) =>
-    @addSubView new ShortcutsListItem null, @collection.first()
-    @addSubView new ShortcutsListItem null, @collection.models[1]
+    @addSubView new Item null, @collection.first()
+    @addSubView new Item null, @collection.models[1]
