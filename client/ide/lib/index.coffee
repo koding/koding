@@ -463,7 +463,15 @@ class IDEAppController extends AppController
         if event.status in actionRequiredStates
           @showStateMachineModal machineItem, event
 
+        switch event.status
+          when Terminated then @handleMachineTerminated()
+
       .on "reinit-#{machineItem._id}", @bound 'handleMachineReinit'
+
+
+  handleMachineTerminated: ->
+
+    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
 
 
   handleMachineReinit: ({status}) ->
@@ -472,6 +480,7 @@ class IDEAppController extends AppController
       when 'Building'
         environmentDataProvider.ensureDefaultWorkspace kd.noop
       when 'Running'
+        @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
         @quit()
 
 
@@ -682,12 +691,17 @@ class IDEAppController extends AppController
 
   writeSnapshot: ->
 
-    return  unless @isMachineRunning()
+    return  if @isDestroyed or not @isMachineRunning()
 
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
 
     @localStorageController.setValue name, value
+
+
+  removeWorkspaceSnapshot: ->
+
+    @localStorageController.unsetKey @getWorkspaceSnapshotName()
 
 
   getWorkspaceSnapshotName: ->
@@ -1236,7 +1250,7 @@ class IDEAppController extends AppController
     kd.utils.defer ->
       kd.singletons.router.handleRoute '/IDE'
 
-    @emit 'IDEDidQuit'
+    @once 'KDObjectWillBeDestroyed', @lazyBound 'emit', 'IDEDidQuit'
 
 
   removeParticipantCursorWidget: (targetUser) ->
