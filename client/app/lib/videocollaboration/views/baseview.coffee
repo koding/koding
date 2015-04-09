@@ -85,6 +85,18 @@ module.exports = class ChatVideoView extends kd.View
 createVideoControl = (type, active) ->
 
   cssClass = "ChatVideoControl ChatVideoControl--#{type}"
-  new VideoControlView { cssClass, active }
+
+  title = switch type
+    when 'video'
+      activeTooltipText = 'Turn-off Camera'
+      deactiveTooltipText = 'Turn-on Camera'
+    when 'audio'
+      activeTooltipText = 'Mute'
+      deactiveTooltipText = 'Unmute'
+    when 'end'
+      activeTooltipText = 'End session'
+      deactiveTooltipText = 'End session'
+
+  new VideoControlView { cssClass, active, activeTooltipText, deactiveTooltipText }
 
 
