@@ -5,8 +5,10 @@ KDModalView      = kd.ModalView
 KDTabPaneView    = kd.TabPaneView
 KDCustomHTMLView = kd.CustomHTMLView
 
-MachineGeneralSettingsView = require './machinegeneralsettingsview'
+MachineSettingsSpecsView   = require './machinesettingsspecsview'
 MachineSettingsGuidesView  = require './machinesettingsguidesview'
+MachineGeneralSettingsView = require './machinegeneralsettingsview'
+
 
 PANE_CONFIG = [
   {
@@ -29,8 +31,7 @@ PANE_CONFIG = [
   }
   {
     title       : 'Specs'
-    viewClass   : KDView
-    viewOptions : partial: 'Specs'
+    viewClass   : MachineSettingsSpecsView
   }
   {
     title       : 'Disk Usage'
