@@ -6,7 +6,7 @@ KDTabPaneView    = kd.TabPaneView
 KDCustomHTMLView = kd.CustomHTMLView
 
 MachineGeneralSettingsView = require './machinegeneralsettingsview'
-
+MachineSettingsGuidesView  = require './machinesettingsguidesview'
 
 PANE_CONFIG = [
   {
@@ -19,9 +19,8 @@ PANE_CONFIG = [
     viewOptions : partial: 'Advanced'
   }
   {
-    viewClass   : KDView
-    viewOptions : partial: 'Guides'
     title       : 'Common guides'
+    viewClass   : MachineSettingsGuidesView
   }
   {
     title       : 'Domains'
