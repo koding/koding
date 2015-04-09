@@ -71,7 +71,6 @@ module.exports = class MachineGeneralSettingsView extends KDView
       fields            :
         statusToggle    :
           label         : 'On/Off'
-          cssClass      : 'tiny'
           defaultValue  : running
           itemClass     : KodingSwitch
           disabled      : @machine.isPermanent()
@@ -81,8 +80,8 @@ module.exports = class MachineGeneralSettingsView extends KDView
               itemClass : KDLoaderView
               cssClass  : 'in-progress'
               size      :
-                width   : 14
-                height  : 14
+                width   : 16
+                height  : 16
               loaderOptions :
                 color   : '#333333'
               showLoader: yes
