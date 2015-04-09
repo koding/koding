@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/moderation/topic"
 
@@ -21,7 +22,8 @@ func main() {
 		return
 	}
 
-	r.SetContext(topic.NewController(r.Log))
+	appConfig := config.MustRead(r.Conf.Path)
+	r.SetContext(topic.NewController(r.Log, appConfig))
 	r.Register(models.ChannelLink{}).OnCreate().Handle((*topic.Controller).Create)
 	r.Register(models.ChannelLink{}).OnDelete().Handle((*topic.Controller).Delete)
 	r.Register(models.ChannelLink{}).On(models.ModerationChannelBlacklist).Handle((*topic.Controller).Blacklist)
