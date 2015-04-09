@@ -25,6 +25,11 @@ class BaseVideoParticipant extends kd.EventEmitter
     @videoData = videoData
     @type = null
 
+    helper.subscribeToAudioChanges @videoData,
+      started : => @emit 'TalkingDidStart'
+      stopped : => @emit 'TalkingDidStop'
+
+
   getType: -> @type
 
 
@@ -51,9 +56,6 @@ class Subscriber extends BaseVideoParticipant
     super nick, videoData
     @type = 'subscriber'
 
-    helper.subscribeToAudioChanges @videoData,
-      started : => @emit 'TalkingDidStart'
-      stopped : => @emit 'TalkingDidStop'
 
 
 module.exports = participantTypes = { Publisher, Subscriber }
