@@ -212,6 +212,12 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @publisher = _publisher = new ParticipantType.Publisher getNick(), publisher
     @stream    = _publisher.stream
 
+    _publisher.on 'TalkingDidStart', =>
+      @emit 'ParticipantStartedTalking', getNick()
+
+    _publisher.on 'TalkingDidStop', =>
+      @emit 'ParticipantStoppedTalking', getNick()
+
     return _publisher
 
 
