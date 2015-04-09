@@ -44,7 +44,7 @@ module.exports = class IDEStatusBar extends KDView
 
     @collaborationEndButtonContainer.addSubView @collaborationEndButton = new KDButtonView
       title    : 'END SESSION'
-      cssClass : 'compact solid red'
+      cssClass : 'compact solid red end-session'
       callback : @bound 'handleSessionEnd'
 
     @addSubView new KDCustomHTMLView

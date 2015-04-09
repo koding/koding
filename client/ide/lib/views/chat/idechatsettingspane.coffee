@@ -64,7 +64,7 @@ module.exports = class IDEChatSettingsPane extends KDTabPaneView
 
     @startSession = new KDButtonView
       title    : 'START SESSION'
-      cssClass : 'solid green'
+      cssClass : 'solid green start-session'
       loader   : yes
       callback : @bound 'initiateSession'
 
