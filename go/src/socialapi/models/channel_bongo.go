@@ -79,7 +79,7 @@ func (c *Channel) Delete() error {
 
 	var errRemove error
 	for _, participantId := range participants {
-		if err := c.RemoveParticipant(participants); err != nil && errRemove == nil {
+		if err := c.RemoveParticipant(participantId); err != nil && errRemove == nil {
 			errRemove = err
 		}
 	}
