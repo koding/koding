@@ -12,7 +12,6 @@ import (
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
-	"koding/kites/kloud/plans"
 	"koding/kites/kloud/userdata"
 
 	kiteprotocol "github.com/koding/kite/protocol"
@@ -86,13 +85,6 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 
 		m.Meta.SourceAmi = buildData.ImageData.imageId
 		m.QueryString = kiteprotocol.Kite{ID: buildData.KiteId}.String()
-
-		m.push("Checking limits and quota", 20, machinestate.Building)
-		m.Log.Debug("Checking user limitation and machine quotas")
-		// TODO: move out checking facility outwards machine and put it into kloud
-		if err := m.checkLimits(buildData); err != nil {
-			return err
-		}
 
 		m.push("Initiating build process", 30, machinestate.Building)
 		m.Log.Debug("Initiating creating process of instance")
@@ -187,7 +179,7 @@ func (m *Machine) imageData() (*ImageData, error) {
 	}
 
 	m.Log.Debug("Fetching image which is tagged with '%s'", m.Meta.SourceAmi)
-	image, err := m.Session.AWSClient.ImageByTag(m.Meta.SourceAmi)
+	image, err := m.Session.AWSClient.Image(m.Meta.SourceAmi)
 	if err != nil {
 		return nil, err
 	}
@@ -271,33 +263,6 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		ImageData: imageData,
 		KiteId:    kiteId,
 	}, nil
-}
-
-// checkLimits checks whether the given buildData is valid to be used to create a new instance
-func (m *Machine) checkLimits(buildData *BuildData) error {
-	if err := m.Checker.Total(m.Username); err != nil {
-		return err
-	}
-
-	if err := m.Checker.AlwaysOn(m.Username); err != nil {
-		return err
-	}
-
-	m.Log.Debug("Check if user is allowed to create instance type %s", buildData.EC2Data.InstanceType)
-
-	// check if the user is egligible to create a vm with this instance type
-	if err := m.Checker.AllowedInstances(plans.Instances[buildData.EC2Data.InstanceType]); err != nil {
-		m.Log.Critical("Instance type (%s) is not allowed. Fallback to t2.micro",
-			buildData.EC2Data.InstanceType)
-		buildData.EC2Data.InstanceType = plans.T2Micro.String()
-	}
-
-	// check if the user is egligible to create a vm with this size
-	if err := m.Checker.Storage(int(buildData.EC2Data.BlockDevices[0].VolumeSize), m.Username); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 func (m *Machine) addDomainAndTags() {

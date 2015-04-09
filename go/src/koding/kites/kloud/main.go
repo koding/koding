@@ -238,7 +238,7 @@ func newKite(conf *Config) *kite.Kite {
 		panic(err)
 	}
 
-	err = kld.AddProvider("aws", awsProvider)
+	err = kld.AddProvider("amazon", awsProvider)
 	if err != nil {
 		panic(err)
 	}
