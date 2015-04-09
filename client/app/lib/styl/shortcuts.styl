@@ -18,36 +18,54 @@
       .kdtabpaneview
         background transparent !important
 
-        .kdlistview
-          display table
-          width: 100% !important
+        div.row
+          width 100% !important
+          clear both
+          border-bottom 1px solid #e0e0e0
+          height 30px
+          padding 8px 0px
 
-          div.kdlistitemview
-            display table-row
-            width 100% !important
-            clear both
+          &:hover
+            background-color #fff
 
-            .col
-              display table-column
-              width 45%
-              float left
-              font-size 14px
-              line-height 22px
-              padding 4px 16px
-              borderBox()
+          .col
+            display table-column
+            width 45%
+            float left
+            font-size .94em
+            line-height 22px
+            padding 4px 16px 4px 0px
+            borderBox()
 
-              > *
-                display table-cell
-                vertical-align middle
+            > *
+              display table-cell
+              vertical-align middle
 
-            .col:first-child
-              width 10%
-              text-align center
+          .col:first-child
+            width 10%
+            text-align center
+
+          .col:nth-child(3)
+            text-align right !important
+            cursor pointer
+            float right
+            width auto
+
+            &:hover
+              color #01B05A
+
+            span
+              font-size 1em !important
+              font-weight bold
+              padding-left 8px
+
+            span:first-child
+              padding-left 0
 
       .kdtabhandlecontainer
         background-color transparent !important
         border none
-        margin 0 0 13px 0
+        margin 0
         max-width 600px
         padding 0
         height 36px
