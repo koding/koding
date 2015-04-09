@@ -57,7 +57,7 @@ Configuration = (options={}) ->
 
   disabledFeatures =
    moderation : yes
-  
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -520,6 +520,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
     # these are unnecessary on production machines.
     # ------------------------------------------------------------------------------------------
