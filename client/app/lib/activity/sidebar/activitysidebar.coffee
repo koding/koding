@@ -166,24 +166,16 @@ module.exports = class ActivitySidebar extends KDCustomHTMLView
     item.setUnreadCount? unreadCount
 
 
-  setWorkspaceUnreadCount: (data, unreadCount) ->
+  setWorkspaceUnreadCount: (data, count) ->
 
     channelId = data._id
     provider  = environmentDataProvider
 
     provider.fetchMachineAndWorkspaceByChannelId channelId, (machine, workspace) =>
-      if machine and workspace
-        box    = @getMachineBoxByMachineUId machine.uid
-        wsItem = box?.getWorkspaceItemByChannelId channelId
 
-        if wsItem
-          wsItem.setUnreadCount unreadCount
-
-          return  unless unreadCount is 0
-
-          { socialapi } = kd.singletons
-
-          socialapi.channel.updateLastSeenTime channelId : data._id, kd.noop
+      return  unless machine and workspace
+      return  unless box = @getMachineBoxByMachineUId machine.uid
+      box.setUnreadCount channelId, count
 
 
   handleFollowedFeedUpdate: (update) ->

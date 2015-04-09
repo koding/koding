@@ -32,6 +32,10 @@ module.exports = class SidebarMachineBox extends KDView
 
     @addSubView @machineItem = new NavigationMachineItem {}, machineData
 
+    @addSubView @unreadIndicator = new KDCustomHTMLView
+      tagName  : 'cite'
+      cssClass : 'count hidden'
+
     @createWorkspacesLabel()
     @createWorkspacesList()
     @watchMachineState()
@@ -155,15 +159,17 @@ module.exports = class SidebarMachineBox extends KDView
 
     return  if @isListCollapsed
 
-    @listWrapper.setClass 'hidden'
-    @workspacesLabel.setClass 'hidden'
+    @listWrapper.hide()
+    @workspacesLabel.hide()
+    @unreadIndicator.show()  if @unreadCount > 0
     @isListCollapsed = yes
 
 
   expandList: ->
 
-    @listWrapper.unsetClass 'hidden'
-    @workspacesLabel.unsetClass 'hidden'
+    @listWrapper.show()
+    @workspacesLabel.show()
+    @unreadIndicator.hide()
     @isListCollapsed = no
 
 
@@ -229,3 +235,28 @@ module.exports = class SidebarMachineBox extends KDView
       switch state
         when Stopping, Terminating then @deselect()
         when Terminated then @destroy()
+
+
+  setUnreadCount: (channelId, count) ->
+
+    return  unless workspaceItem = @getWorkspaceItemByChannelId channelId
+
+    workspaceItem.setUnreadCount count
+
+    @updateUnreadCount()
+
+    return  unless count is 0
+
+    kd.singletons.socialapi.channel.updateLastSeenTime {channelId}, kd.noop
+
+
+  updateUnreadCount: ->
+
+    @unreadCount = 0
+
+    for own _, workspaceItem of @workspaceListItemsById
+      @unreadCount += workspaceItem.unreadCount or 0
+
+    @unreadIndicator.updatePartial @unreadCount
+    if @isListCollapsed and @unreadCount > 0
+      @unreadIndicator.show()
