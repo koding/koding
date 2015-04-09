@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/email/emailmodels"
 	"socialapi/workers/email/privatemessageemail/common"
@@ -28,6 +29,7 @@ type Controller struct {
 	log       logging.Logger
 	redisConn *redis.RedisSession
 	metrics   *metrics.Metrics
+	conf      *config.Config
 
 	ready chan struct{}
 }
@@ -39,12 +41,13 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(redisConn *redis.RedisSession, log logging.Logger, metrics *metrics.Metrics) (*Controller, error) {
+func New(redisConn *redis.RedisSession, log logging.Logger, metrics *metrics.Metrics, conf *config.Config) (*Controller, error) {
 	c := &Controller{
 		log:       log,
 		redisConn: redisConn,
 		ready:     make(chan struct{}, 1),
 		metrics:   metrics,
+		conf:      conf,
 	}
 
 	return c, c.initCron()
@@ -167,11 +170,13 @@ func (c *Controller) StartWorker(currentPeriod int) {
 		}
 
 		mailer := &emailmodels.MailerNotification{
-			FirstName:   recipient.FirstName,
-			Username:    recipient.Username,
-			Email:       recipient.Email,
-			MessageType: "chat",
-			Messages:    privatemsgchannels,
+			Hostname:         c.conf.Protocol + "//" + c.conf.Hostname,
+			FirstName:        recipient.FirstName,
+			Username:         recipient.Username,
+			Email:            recipient.Email,
+			MessageType:      "chat",
+			Messages:         privatemsgchannels,
+			UnsubscribeToken: recipient.Token,
 		}
 
 		if err := mailer.SendMail(); err != nil {

@@ -12,16 +12,20 @@ func TestMailerNotification(t *testing.T) {
 		messages := []Message{}
 
 		m := MailerNotification{
-			FirstName:   "Indiana",
-			Username:    "indiana",
-			Email:       "indiana@koding.com",
-			MessageType: "message in a bottle",
-			Messages:    messages,
+			Hostname:         "http://lvh.me:8090",
+			FirstName:        "Indiana",
+			Username:         "indiana",
+			Email:            "indiana@koding.com",
+			MessageType:      "message in a bottle",
+			UnsubscribeToken: "token",
+			Messages:         messages,
 		}
 
 		results := m.ToMap()
 
 		So(results["firstName"], ShouldEqual, "Indiana")
+		So(results["unsubscribeLink"], ShouldEqual, "http://lvh.me:8090/Unsubscribe/token/indiana@koding.com")
+		So(results["unsubscribeAllLink"], ShouldEqual, "http://lvh.me:8090/Unsubscribe/token/indiana@koding.com/all")
 		So(len(results["messages"].([]map[string]interface{})), ShouldEqual, 0)
 	})
 

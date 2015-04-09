@@ -129,6 +129,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		return nil
 	}
 
+	hostname := n.config.Protocol + "//" + n.config.Hostname
 	messages := []emailmodels.Message{}
 
 	for _, container := range containers {
@@ -145,7 +146,7 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 			Action:         container.ActivityMessage,
 			ActionType:     container.ObjectType,
 			TimezoneOffset: uc.LastLoginTimezoneOffset,
-			Hostname:       n.config.Protocol + "//" + n.config.Hostname,
+			Hostname:       hostname,
 			MessageSlug:    container.Slug,
 		}
 
@@ -153,11 +154,13 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 	}
 
 	mailer := &emailmodels.MailerNotification{
-		FirstName:   uc.FirstName,
-		Username:    uc.Username,
-		Email:       uc.Email,
-		MessageType: "dailydigest",
-		Messages:    messages,
+		Hostname:         hostname,
+		FirstName:        uc.FirstName,
+		Username:         uc.Username,
+		Email:            uc.Email,
+		MessageType:      "dailydigest",
+		Messages:         messages,
+		UnsubscribeToken: uc.Token,
 	}
 
 	return mailer.SendMail()

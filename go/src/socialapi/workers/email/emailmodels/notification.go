@@ -10,11 +10,13 @@ type Message interface {
 }
 
 type MailerNotification struct {
-	FirstName   string
-	Username    string
-	Email       string
-	MessageType string
-	Messages    []Message
+	Hostname         string
+	FirstName        string
+	Username         string
+	Email            string
+	MessageType      string
+	UnsubscribeToken string
+	Messages         []Message
 }
 
 func (m *MailerNotification) ToMap() map[string]interface{} {
@@ -24,9 +26,14 @@ func (m *MailerNotification) ToMap() map[string]interface{} {
 		messages = append(messages, msg.ToMap())
 	}
 
+	unsubscribeLink := buildUnsubscribeLink(m.Hostname, m.UnsubscribeToken, m.Email)
+	unsubscribeAllLink := buildUnsubscribeAllLink(m.Hostname, m.UnsubscribeToken, m.Email)
+
 	return map[string]interface{}{
-		"messages":  messages,
-		"firstName": m.FirstName,
+		"messages":           messages,
+		"firstName":          m.FirstName,
+		"unsubscribeLink":    unsubscribeLink,
+		"unsubscribeAllLink": unsubscribeAllLink,
 	}
 }
 
@@ -119,4 +126,13 @@ func buildActorLink(hostname, actor string) string {
 
 func buildMessageLink(hostname, slug string) string {
 	return fmt.Sprintf("%s/Activity/Post/%s", hostname, slug)
+}
+
+func buildUnsubscribeLink(hostname, token, email string) string {
+	return fmt.Sprintf("%s/Unsubscribe/%s/%s", hostname, token, email)
+}
+
+func buildUnsubscribeAllLink(hostname, token, email string) string {
+	link := buildUnsubscribeLink(hostname, token, email)
+	return fmt.Sprintf("%s/all", link)
 }
