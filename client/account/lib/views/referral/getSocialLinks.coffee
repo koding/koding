@@ -1,3 +1,4 @@
+kd             = require 'kd'
 nick           = require 'app/util/nick'
 getReferralUrl = require 'app/util/getReferralUrl'
 
@@ -31,6 +32,7 @@ module.exports = getSocialLinks = (provider)->
   link = shareLinks[provider] encodeURIComponent getReferralUrl nick()
 
   callback = (event)->
+    kd.utils.stopDOMEvent event
     global.open(
       link, "#{provider}-share-dialog",
       "width=626,height=436,left=#{Math.floor (global.screen.width/2) - (500/2)},top=#{Math.floor (global.screen.height/2) - (350/2)}"

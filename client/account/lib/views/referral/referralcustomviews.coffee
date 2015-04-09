@@ -1,8 +1,6 @@
-kd                = require 'kd'
-KDProgressBarView = kd.ProgressBarView
-
-CustomViews       = require './customviews'
-getSocialLinks    = require './getSocialLinks'
+kd             = require 'kd'
+CustomViews    = require './customviews'
+getSocialLinks = require './getSocialLinks'
 
 
 module.exports = class ReferralCustomViews extends CustomViews
@@ -102,7 +100,7 @@ module.exports = class ReferralCustomViews extends CustomViews
         text_value  : "#{current}GB"
 
       # We are defering here because we don't have ::bar element yet
-      # since the implementation of KDProgressBarView creates that
+      # since the implementation of kd.ProgressBarView creates that
       # element in the ::viewAppended step ~ GG
       kd.utils.defer ->
         progressBar.bar.setCss "background", color
