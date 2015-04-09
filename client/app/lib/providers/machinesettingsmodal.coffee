@@ -5,12 +5,13 @@ KDModalView      = kd.ModalView
 KDTabPaneView    = kd.TabPaneView
 KDCustomHTMLView = kd.CustomHTMLView
 
+MachineGeneralSettingsView = require './machinegeneralsettingsview'
+
 
 PANE_CONFIG = [
   {
     title       : 'General'
-    viewClass   : KDView
-    viewOptions : partial: 'General'
+    viewClass   : MachineGeneralSettingsView
   }
   {
     title       : 'Advanced'
@@ -43,8 +44,6 @@ PANE_CONFIG = [
     viewOptions : partial : 'Shared VM'
   }
 ]
-
-
 
 
 module.exports = class MachineSettingsModal extends KDModalView
@@ -80,7 +79,7 @@ module.exports = class MachineSettingsModal extends KDModalView
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title
         cssClass : 'AppModal-content'
-        view     : new item.viewClass item.viewOptions, item.viewData
+        view     : subView
 
       @panesByTitle[item.title] = pane
 
