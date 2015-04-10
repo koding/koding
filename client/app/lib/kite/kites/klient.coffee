@@ -166,36 +166,32 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
     @tell 'storage.delete', {key}
 
 
-  getLocalStorage = ->
-
-    return kd.singletons.localStorageController.storage 'Klient', '1.0'
-
-  setActiveSessions = (sessions)->
-
-    getLocalStorage().setValue 'activeSessions', sessions
+  setActiveSessions: (sessions)->
+    @storageSet 'activeSessions', sessions
 
 
   getActiveSessions: ->
 
-    return (getLocalStorage().getValue 'activeSessions') ? []
+    @storageGet 'activeSessions'
+    .then (sessions)-> sessions or []
+    .catch          -> []
 
 
   syncSessionsWithLocalStorage: ->
 
-    setActiveSessions @getActiveSessions().filter (session)=>
-      session in @terminalSessions
+    @getActiveSessions().then (sessions) =>
+      @setActiveSessions sessions.filter (session) =>
+        session in @terminalSessions
 
 
   addToActiveSessions: (session)->
 
-    activeSessions = @getActiveSessions()
-    activeSessions.push session  unless session in activeSessions
-
-    setActiveSessions activeSessions
+    @getActiveSessions().then (activeSessions) =>
+      activeSessions.push session  unless session in activeSessions
+      @setActiveSessions activeSessions
 
 
   removeFromActiveSessions: (session)->
 
-    activeSessions = @getActiveSessions().filter (old)-> session isnt old
-
-    setActiveSessions activeSessions
+    @getActiveSessions().then (sessions) =>
+      @setActiveSessions sessions.filter (old)-> session isnt old
