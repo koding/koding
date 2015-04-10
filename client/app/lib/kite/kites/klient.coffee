@@ -137,6 +137,34 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       @syncSessionsWithLocalStorage()
 
 
+  storageSet: (key, value) ->
+
+    if not key or not value
+      return  Promise.reject 'key and value required'
+
+    value = (JSON.stringify value) or ''
+    @tell 'storage.set', {key, value}
+
+
+  storageGet: (key) ->
+
+    return  Promise.reject 'key required'  unless key
+
+    @tell 'storage.get', {key}
+
+    .then (value)->
+      try value = JSON.parse value
+      return value
+    .catch (err)->
+      return null
+
+
+  storageDelete: (key)->
+
+    return  Promise.reject 'key required'  unless key
+
+    @tell 'storage.delete', {key}
+
 
   getLocalStorage = ->
 
