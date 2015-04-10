@@ -1,16 +1,15 @@
-kd                               = require 'kd'
-AdministrationView               = require './views/administrationview'
-CustomViewsManager               = require './views/customviews/customviewsmanager'
-DashboardAppView                 = require './dashboardappview'
-GroupGeneralSettingsView         = require './views/groupgeneralsettingsview'
-GroupPermissionsView             = require './views/grouppermissionsview'
-GroupsBlockedUserView            = require './views/groupsblockeduserview'
-GroupsInvitationView             = require './views/groupsinvitationview'
-GroupsMemberPermissionsView      = require './views/groupsmemberpermissionsview'
-GroupsMembershipPolicyDetailView = require './views/groupsmembershippolicydetailview'
-OnboardingDashboardView          = require './views/onboarding/onboardingdashboardview'
-AppController                    = require 'app/appcontroller'
-Encoder                          = require 'htmlencode'
+kd                          = require 'kd'
+AdministrationView          = require './views/administrationview'
+CustomViewsManager          = require './views/customviews/customviewsmanager'
+DashboardAppView            = require './dashboardappview'
+GroupGeneralSettingsView    = require './views/groupgeneralsettingsview'
+GroupPermissionsView        = require './views/grouppermissionsview'
+GroupsBlockedUserView       = require './views/groupsblockeduserview'
+GroupsInvitationView        = require './views/groupsinvitationview'
+GroupsMemberPermissionsView = require './views/groupsmemberpermissionsview'
+OnboardingDashboardView     = require './views/onboarding/onboardingdashboardview'
+AppController               = require 'app/appcontroller'
+Encoder                     = require 'htmlencode'
 require('./routehandler')()
 
 
@@ -51,9 +50,9 @@ module.exports = class DashboardAppController extends AppController
       ,
         name         : 'Membership policy'
         viewOptions  :
-          viewClass  : GroupsMembershipPolicyDetailView
+          viewClass  : kd.View
           lazy       : yes
-          callback   : @bound 'policyViewAdded'
+          callback   : ->
     ]
 
     if data.slug is "koding"
@@ -98,8 +97,6 @@ module.exports = class DashboardAppController extends AppController
   loadSection: ({title}) ->
     view = @getView()
     view.ready -> view.tabs.showPaneByName title
-
-  policyViewAdded: (pane, view) ->
 
   loadView: (mainView, firstRun = yes, loadFeed = no)->
     return unless firstRun
