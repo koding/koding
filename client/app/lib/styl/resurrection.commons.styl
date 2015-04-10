@@ -2095,3 +2095,165 @@ footer.main-footer
     &.active
       color           white
       bg              color #7a7a7a
+
+
+// Generic AppModal Styles
+
+.AppModal
+
+  .kdmodal-content
+    overflow                hidden
+    overflow                _visible
+    zoom                    1
+    font-size               14px
+    color                   #434343
+
+  button.kdbutton.small
+    border-radius           3px
+    height                  29px
+    line-height             29px
+    text-align              center
+    padding                 0 8px
+
+    .button-title
+      font-size             12px
+      text-rendering        auto
+      line-height           inherit !important
+
+    &.solid
+      &.green
+        background          #00B057
+
+      .button-title
+        color               #fff
+
+    &.thin
+      border-width          1px
+
+      &.gray
+        border-color        #BDC3C7
+
+        .button-title
+          color             #BDC3C7
+
+  .koding-on-off.small
+    size                    42px 22px
+    border-radius           19px
+    background              #D8D8D8
+    padding                 4px 6px
+
+    a.knob
+      background            #fff
+      size                  14px 14px
+
+    &.on
+      background            #52A840
+
+    &.on a.knob
+      vendor                transform, translateX(16px)
+
+  .formline.button-field .kdbutton
+    height                  29px
+    line-height             29px
+
+    .button-title
+      line-height           inherit !important
+
+  // tweaks for tabbed app modals
+  .kdtabview
+
+    .AppModal-content
+      float                 left
+
+    .AppModal-nav
+      bg                    color, transparent !important // to override ide black tab handles
+      border-bottom         none
+      padding-top           0
+
+.AppModal-nav
+  width                     190px
+  float                     left
+  margin                    0 30px 0 0
+  border-right              1px solid #E7E7E7
+
+.AppModal-navItem
+  display                   block
+  height                    45px
+  line-height               45px
+  padding                   0 0 0 13px
+  border                    1px solid transparent
+  border-right              none
+  border-radius             3px 0 0 3px
+  color                     #A1A1A1
+  font-size                 14px
+  font-weight               500
+  borderBox()
+  noTextDeco()
+  pointer()
+
+  &.selected
+  &.active
+    border-color            #E7E7E7
+    color                   #52A840
+
+.AppModal-content
+  overflow                  hidden
+  overflow                  _visible
+  zoom                      1
+  width                     auto
+
+.AppModal-form
+  margin                    0 -12px
+  padding-top               30px
+
+  .formline
+    display                 block
+    margin-bottom           25px
+    padding                 0 12px
+    width                   auto
+    font-size               14px
+    clear                   both
+    borderBox()
+
+  div.input-wrapper
+    margin-bottom           0 !important
+
+  .formline.button-field
+    padding                 28px 12px 0 !important
+    width                   auto
+    border-top              1px solid #E7E7E7 !important
+
+  .Formline--half
+    width                   50%
+    float                   left
+    clear                   none
+
+  label.kdlabel
+    display                 block
+    margin                  0 0 7px
+    padding                 0
+    line-height             20px
+    color                   #434343
+    float                   none
+
+  input.kdinput
+  textarea.kdinput
+    display                 block
+    width                   100%
+    padding                 8px 14px
+    line-height             20px
+    outline                 none
+    resize                  none
+    border-radius           4px
+    border                  1px solid #D2D2D2
+    background              #fff
+    font-size               14px
+    color                   #A2A2A2
+
+.AppModal-form-sectionHeader.formline
+  border-top                1px solid #E7E7E7
+  border-bottom             none
+  padding-top               24px
+  font-size                 14px
+  line-height               19px
+  color                     #A1A1A1

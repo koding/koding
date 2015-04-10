@@ -3,6 +3,7 @@ package topic
 
 import (
 	"errors"
+	"socialapi/config"
 	"socialapi/models"
 
 	"github.com/koding/logging"
@@ -13,13 +14,15 @@ const processCount = 100
 
 // Controller holds the required parameters for moderation async operations
 type Controller struct {
-	log logging.Logger
+	log    logging.Logger
+	config *config.Config
 }
 
 // NewController creates a handler for consuming async operations of moderation
-func NewController(log logging.Logger) *Controller {
+func NewController(log logging.Logger, config *config.Config) *Controller {
 	return &Controller{
-		log: log,
+		log:    log,
+		config: config,
 	}
 }
 
