@@ -1,6 +1,5 @@
 kd                    = require 'kd'
 KDView                = kd.View
-KDButtonView          = kd.ButtonView
 KDCustomHTMLView      = kd.CustomHTMLView
 FindManagedNodesModal = require './managed/findnodesmodal'
 
