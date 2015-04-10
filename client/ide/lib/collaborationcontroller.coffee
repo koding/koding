@@ -818,6 +818,7 @@ module.exports = CollaborationController =
       delete @stateMachine
 
     @rtm.dispose()
+    @emit 'CollaborationDidCleanup'
 
 
   # environment related
