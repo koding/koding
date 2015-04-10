@@ -79,7 +79,7 @@ module.exports = class ReferralCustomViews extends CustomViews
         text_subtitle : subtitle
         socialIcons   :
           providers   : ['facebook', 'linkedin', 'twitter', 'google', 'mail']
-        text_invite   : 'Personal invite link'
+        text_invite   : 'Your personal invite link:'
         link          :
           href        : getReferralUrl nick()
           target      : '_blank'
