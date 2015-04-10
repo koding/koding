@@ -150,6 +150,13 @@ module.exports = class MachineGeneralSettingsView extends KDView
               loaderOptions :
                 color   : '#333333'
               showLoader: yes
+        alwaysOn        :
+          label         : 'Keep VM always on'
+          defaultValue  : @machine.alwaysOn
+          itemClass     : KodingSwitch
+          cssClass      : 'statustoggle'
+          disabled      : @machine.isPermanent()
+          callback      : @bound 'handleAlwaysOnStateChanged'
         nickname        :
           label         : 'Nickname'
           cssClass      : 'custom-link-view'
@@ -167,12 +174,6 @@ module.exports = class MachineGeneralSettingsView extends KDView
           cssClass      : if running then 'custom-link-view' else 'hidden'
           itemClass     : KDView
           partial       : @machine.ipAddress or 'N/A'
-        alwaysOn        :
-          label         : 'Keep VM always on'
-          defaultValue  : @machine.alwaysOn
-          itemClass     : KodingSwitch
-          disabled      : @machine.isPermanent()
-          callback      : @bound 'handleAlwaysOnStateChanged'
         accessUri       :
           label         : 'Assigned URL'
           cssClass      : 'assigned-url'
