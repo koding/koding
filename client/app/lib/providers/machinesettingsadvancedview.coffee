@@ -12,18 +12,20 @@ module.exports = class MachineSettingsAdvancedView extends KDView
 
     @machine = data
 
-    reinitButton   = @createButton 'Reinitialize your VM', 'reinit', 'Reset your VM back to its original state'
+    reinitButton   = @createButton 'Reinitialize your VM', 'reinit', 'This will take your VM back to its original state. (Note: you will loose all your data)'
     reassignButton = @createButton 'Reassign your VM', 'reassign', 'Reassign your VM to another node'
     terminateTitle = 'Terminate your VM'
+    terminateText  = 'This will delete your VM completely. (Note: you will loose all your data)'
 
     if @machine.isManaged()
       reinitButton.hide()
       reassignButton.show()
-      terminateTitle = 'Delete your VM'
+      terminateTitle = 'Disconnect your VM'
+      terminateText  = 'Remove the connection between your VM and Koding.'
     else
       reassignButton.hide()
 
-    terminateButton = @createButton terminateTitle, 'terminate', 'Completely remove your VM'
+    terminateButton = @createButton terminateTitle, 'terminate', terminateText
 
 
   createButton: (title, className, desc) ->
