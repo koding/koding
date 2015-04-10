@@ -3,10 +3,7 @@ AdministrationView               = require './views/administrationview'
 CustomViewsManager               = require './views/customviews/customviewsmanager'
 DashboardAppView                 = require './dashboardappview'
 GroupGeneralSettingsView         = require './views/groupgeneralsettingsview'
-GroupPaymentController           = require './controllers/grouppaymentcontroller'
 GroupPermissionsView             = require './views/grouppermissionsview'
-GroupProductSettingsView         = require './views/groupproductsettingsview'
-GroupProductsController          = require './controllers/groupproductscontroller'
 GroupsBlockedUserView            = require './views/groupsblockeduserview'
 GroupsInvitationView             = require './views/groupsinvitationview'
 GroupsMemberPermissionsView      = require './views/groupsmemberpermissionsview'
@@ -19,7 +16,9 @@ require('./routehandler')()
 
 module.exports = class DashboardAppController extends AppController
 
-  @options = name : 'Dashboard'
+  @options =
+    name       : 'Dashboard'
+    background : yes
 
   constructor: (options = {}, data) ->
 
@@ -59,13 +58,6 @@ module.exports = class DashboardAppController extends AppController
 
     if data.slug is "koding"
       @tabData.push
-          name         : 'Products'
-          kodingOnly   : yes
-          viewOptions  :
-            viewClass  : GroupProductSettingsView
-            lazy       : yes
-            callback   : @bound 'productViewAdded'
-        ,
           name         : 'Blocked users'
           kodingOnly   : yes # this is only intended for koding group, we assume koding group is super-group
           viewOptions  :
@@ -90,21 +82,6 @@ module.exports = class DashboardAppController extends AppController
             viewClass  : AdministrationView
             lazy       : yes
 
-      # CURRENTLY DISABLED
-
-      # ,
-      #   name        : 'Vocabulary'
-      #   viewOptions :
-      #     viewClass : GroupsVocabulariesView
-      #     lazy      : yes
-      #     callback  : @vocabularyViewAdded
-      # ,
-      #   name        : 'Bundle'
-      #   viewOptions :
-      #     viewClass : GroupsBundleView
-      #     lazy      : yes
-      #     callback  : @bundleViewAdded
-
 
   fetchTabData: (callback) -> kd.utils.defer => callback @tabData
 
@@ -123,12 +100,6 @@ module.exports = class DashboardAppController extends AppController
     view.ready -> view.tabs.showPaneByName title
 
   policyViewAdded: (pane, view) ->
-
-  paymentViewAdded: (pane, view) ->
-    new GroupPaymentController { view }
-
-  productViewAdded: (pane, view) ->
-    new GroupProductsController { view }
 
   loadView: (mainView, firstRun = yes, loadFeed = no)->
     return unless firstRun
