@@ -1841,10 +1841,10 @@ paymentGrayLighter  = #f8f8f8
           font-size         12px
           color             #9E9E9E
 
-      &:first-child
+      &.reinit, &.reassign
         margin-left         50px
 
-      &:last-child
+      &.terminate
         margin-left         56px
 
 
@@ -1894,7 +1894,7 @@ paymentGrayLighter  = #f8f8f8
       top                   17px
       left                  22px
 
-  .reinit
+  .reinit, .reassign
     figure
       bg                    color, #F8BE1C
     .icon
@@ -1919,3 +1919,6 @@ paymentGrayLighter  = #f8f8f8
       margin-bottom         12px
       font-size             14px
       color                 #666651
+
+  .reassign figure
+    bg                      color, #B3ECA3

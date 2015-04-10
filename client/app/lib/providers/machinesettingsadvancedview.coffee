@@ -1,7 +1,8 @@
-kd               = require 'kd'
-KDView           = kd.View
-KDButtonView     = kd.ButtonView
-KDCustomHTMLView = kd.CustomHTMLView
+kd                    = require 'kd'
+KDView                = kd.View
+KDButtonView          = kd.ButtonView
+KDCustomHTMLView      = kd.CustomHTMLView
+FindManagedNodesModal = require './managed/findnodesmodal'
 
 
 module.exports = class MachineSettingsAdvancedView extends KDView
@@ -12,15 +13,25 @@ module.exports = class MachineSettingsAdvancedView extends KDView
 
     @machine = data
 
-    @createButton 'Reinitialize your VM', 'reinit', 'Reset your VM back to its original state'
-    @createButton 'Terminate your VM', 'terminate', 'Completely remove your VM'
+    reinitButton   = @createButton 'Reinitialize your VM', 'reinit', 'Reset your VM back to its original state'
+    reassignButton = @createButton 'Reassign your VM', 'reassign', 'Reassign your VM to another node'
+    terminateTitle = 'Terminate your VM'
+
+    if @machine.isManaged()
+      reinitButton.hide()
+      reassignButton.show()
+      terminateTitle = 'Delete your VM'
+    else
+      reassignButton.hide()
+
+    terminateButton = @createButton terminateTitle, 'terminate', 'Completely remove your VM'
 
 
   createButton: (title, className, desc) ->
 
     @addSubView new KDCustomHTMLView
       cssClass : "big-icon advanced #{className}"
-      click    : (e) => @handleClick e, className
+      click    : (e) => @handleButtonClick e, className
       partial  : """
         <figure>
           <span class="icon"></span>
@@ -31,7 +42,7 @@ module.exports = class MachineSettingsAdvancedView extends KDView
         </div>
       """
 
-  handleClick: (e, buttonType) ->
+  handleButtonClick: (e, buttonType) ->
 
     { tagName }           = e.target
     parentTagName         = e.target.parentNode.tagName
@@ -42,5 +53,6 @@ module.exports = class MachineSettingsAdvancedView extends KDView
       switch buttonType
         when 'reinit'    then computeController.reinit  @machine
         when 'terminate' then computeController.destroy @machine
+        when 'reassign'  then new FindManagedNodesModal reassign: yes, @machine
 
       @emit 'ModalDestroyRequested'
