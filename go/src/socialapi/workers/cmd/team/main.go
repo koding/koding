@@ -24,8 +24,9 @@ func main() {
 
 	appConfig := config.MustRead(r.Conf.Path)
 	r.SetContext(team.NewController(r.Log, appConfig))
-	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*team.Controller).ParticipantCreated)
-	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*team.Controller).ParticipantUpdated)
+	r.Register(models.ChannelParticipant{}).OnCreate().Handle((*team.Controller).HandleParticipant)
+	r.Register(models.ChannelParticipant{}).OnUpdate().Handle((*team.Controller).HandleParticipant)
+	r.Register(models.ChannelParticipant{}).OnDelete().Handle((*team.Controller).HandleParticipant)
 	r.Listen()
 	r.Wait()
 }
