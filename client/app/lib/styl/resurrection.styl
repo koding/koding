@@ -1693,14 +1693,16 @@ paymentGrayLighter  = #f8f8f8
 
 
 // machine settings modal styling
-
-.machine-settings-modal.AppModal
+.machine-settings-modal
 
   .AppModal-nav
     min-height              315px
 
   .AppModal-form
     padding-top             0
+
+// machine settings modal general view styling
+.machine-settings-modal
 
   .statustoggle .koding-on-off
     margin-top              11px
@@ -1723,15 +1725,15 @@ paymentGrayLighter  = #f8f8f8
       text-decoration       underline
       margin-right          3px
       pointer()
-    input
+    .hitenterview
         height              34px
         background          #FFF
         margin-top          5px
         text-align          right
 
 
-// icons
-.machine-settings-modal.AppModal
+// machine settings modal sidebar icons
+.machine-settings-modal
 
   .AppModal-navItem:before
     content                 ''
@@ -1789,8 +1791,8 @@ paymentGrayLighter  = #f8f8f8
       r-sprite              'app', 'ms-shared-vm-active'
 
 
-// common formline styling
-.machine-settings-modal.AppModal
+// machine settings modal common formline styling
+.machine-settings-modal
 
   .formline
     line-height             45px
@@ -1810,7 +1812,7 @@ paymentGrayLighter  = #f8f8f8
       color                 #8B8B8B
 
 
-// specs view
+// machine settings modal specs and advanced view
 .machine-settings-modal
 
   .icons
