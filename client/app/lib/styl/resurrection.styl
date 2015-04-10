@@ -1820,6 +1820,32 @@ paymentGrayLighter  = #f8f8f8
     float                   left
     margin                  28px 0 0 90px
 
+    &.advanced
+      width                 170px
+      margin-top            50px
+
+      figure
+        size                82px, 82px
+        margin-left         40px
+        pointer()
+
+      .label
+        p
+          font-size         16px
+          color             #393939
+          margin            21px 0 13px 0
+          pointer()
+        span
+          font-size         12px
+          color             #9E9E9E
+
+      &:first-child
+        margin-left         50px
+
+      &:last-child
+        margin-left         56px
+
+
     &:first-child
       margin-left           60px
 
@@ -1865,6 +1891,22 @@ paymentGrayLighter  = #f8f8f8
       r-sprite              'app', 'ms-specs-disk'
       top                   17px
       left                  22px
+
+  .reinit
+    figure
+      bg                    color, #F8BE1C
+    .icon
+      r-sprite              'app', 'ms-advanced-reinit'
+      top                   20px
+      left                  13px
+
+  .terminate
+    figure
+      bg                    color, #FF6B5D
+    .icon
+      r-sprite              'app', 'ms-advanced-destroy'
+      top                   21px
+      left                  21px
 
   .need-more
     margin-top              38px
