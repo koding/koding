@@ -61,6 +61,7 @@ services=(
   socialapi/workers/cmd/email/privatemessageemailfeeder
   socialapi/workers/cmd/email/privatemessageemailsender
   socialapi/workers/cmd/email/emailsender
+  socialapi/workers/cmd/team
 )
 
 
