@@ -22,28 +22,28 @@ module.exports =
       .end()
 
 
-  postMessageWithImage: (browser) ->
+  # postMessageWithImage: (browser) ->
 
-    helpers.beginTest(browser)
+  #   helpers.beginTest(browser)
 
-    # added 'hello world' bc it first thinks that you type http://placehold.it/
-    # and renders it as a link, but if we continue typing it understands that
-    # it is an image
-    image    = 'http://placehold.it/200x100 hello world!'
-    selector = activitySelector + ' .activity-content-wrapper .link-embed-box img'
+  #   # added 'hello world' bc it first thinks that you type http://placehold.it/
+  #   # and renders it as a link, but if we continue typing it understands that
+  #   # it is an image
+  #   image    = 'http://placehold.it/200x100 hello world!'
+  #   selector = activitySelector + ' .activity-content-wrapper .link-embed-box img'
 
-    browser
-      .waitForElementVisible  '.activity-sidebar .followed.topics', 50000
-      .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
-      .waitForElementVisible  '[testpath=ActivityInputView]', 25000
-      .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
-      .click                  '[testpath=ActivityInputView]'
-      .setValue               '[testpath=ActivityInputView]', image
-      .pause                  5000 # wait for image loading
-      .click                  '[testpath=post-activity-button]'
-      .pause                  5000 # wait for image loading
-      .waitForElementVisible   selector, 20000 # Assertion
-      .end()
+  #   browser
+  #     .waitForElementVisible  '.activity-sidebar .followed.topics', 50000
+  #     .click                  '[testpath="public-feed-link/Activity/Topic/public"]'
+  #     .waitForElementVisible  '[testpath=ActivityInputView]', 25000
+  #     .click                  '[testpath="ActivityTabHandle-/Activity/Public/Recent"]'
+  #     .click                  '[testpath=ActivityInputView]'
+  #     .setValue               '[testpath=ActivityInputView]', image
+  #     .pause                  5000 # wait for image loading
+  #     .click                  '[testpath=post-activity-button]'
+  #     .pause                  5000 # wait for image loading
+  #     .waitForElementVisible   selector, 20000 # Assertion
+  #     .end()
 
 
   postMessageWithLink: (browser) ->
@@ -85,23 +85,23 @@ module.exports =
       .end()
 
 
-  postCommentWithImage: (browser) ->
+  # postCommentWithImage: (browser) ->
 
-    helpers.beginTest(browser)
+  #   helpers.beginTest(browser)
 
-    image    = 'http://placehold.it/200x100'
-    comment  = image + ' hello world!'
-    post     = helpers.getFakeText()
-    selector = activitySelector + ' .comment-contents .link-embed-box a.embed-image-view'
+  #   image    = 'http://placehold.it/200x100'
+  #   comment  = image + ' hello world!'
+  #   post     = helpers.getFakeText()
+  #   selector = activitySelector + ' .comment-contents .link-embed-box a.embed-image-view'
 
-    helpers.doPostActivity(browser, post)
-    helpers.doPostComment(browser, comment) # images do not show a preview so we don't pass embeddable flag
+  #   helpers.doPostActivity(browser, post)
+  #   helpers.doPostComment(browser, comment) # images do not show a preview so we don't pass embeddable flag
 
-    browser.getAttribute selector, 'href', (result) ->
-      href = result.value
-      assert.equal(image, href)
+  #   browser.getAttribute selector, 'href', (result) ->
+  #     href = result.value
+  #     assert.equal(image, href)
 
-      browser.end()
+  #     browser.end()
 
 
   postCommentWithLink: (browser) ->
