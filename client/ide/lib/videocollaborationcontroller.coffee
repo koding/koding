@@ -23,6 +23,9 @@ module.exports = VideoCollaborationController =
       .on 'ParticipantStoppedTalking', (participant) =>
         @handleVideoParticipantTalkingStateChanged participant, off
 
+    @on 'CollaborationDidCleanup', =>
+      @videoModel.session.disconnect()
+
 
   startVideoCollaboration: ->
 
@@ -104,7 +107,7 @@ module.exports = VideoCollaborationController =
 
 
   emitToViews: (args...) ->
-    @statusBar.emit args...
-    @chat.emit args...
+    @statusBar?.emit args...
+    @chat?.emit args...
 
 
