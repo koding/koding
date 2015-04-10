@@ -56,21 +56,6 @@ type NotificationMessage struct {
 	TimezoneOffset int
 }
 
-func convertCodeBlocksToPre(input string) string {
-	output := ""
-	splitInput := strings.Split(input, "```")
-
-	for index, str := range splitInput {
-		if index%2 == 0 {
-			output += template.HTMLEscapeString(str)
-		} else {
-			output += "<pre>" + str + "</pre>"
-		}
-	}
-
-	return output
-}
-
 func (n *NotificationMessage) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"actor":       n.Actor,
@@ -113,7 +98,7 @@ type PrivateMessage struct {
 func (p *PrivateMessage) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"actor":     p.Actor,
-		"message":   p.Message,
+		"message":   convertCodeBlocksToPre(p.Message),
 		"createdAt": p.CreatedAt,
 	}
 }
@@ -152,4 +137,27 @@ func buildUnsubscribeLink(hostname, token, email string) string {
 func buildUnsubscribeAllLink(hostname, token, email string) string {
 	link := buildUnsubscribeLink(hostname, token, email)
 	return fmt.Sprintf("%s/all", link)
+}
+
+// Convert ```.``` blocks into <pre>.</pre> so email clients can render
+// it. This is a lighter weight option than using a full featured
+// markdown library here. Simple trick to understanding how it works is
+// realizing odd elements are inside code blocks, even elements are outside.
+//
+// Examples:
+//		convertCodeBlocksToPre("```inside``` output")
+//    #=> "<pre>inside</pre> output"
+func convertCodeBlocksToPre(input string) string {
+	output := ""
+	splitInput := strings.Split(input, "```")
+
+	for index, str := range splitInput {
+		if index%2 == 0 {
+			output += template.HTMLEscapeString(str)
+		} else {
+			output += "<pre>" + str + "</pre>"
+		}
+	}
+
+	return output
 }

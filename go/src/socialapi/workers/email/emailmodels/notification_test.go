@@ -70,3 +70,19 @@ func TestMailerNotification(t *testing.T) {
 		So(len(result["nestedMessages"].([]map[string]interface{})), ShouldEqual, 1)
 	})
 }
+
+func TestCodeblocks(t *testing.T) {
+	Convey("It should output following codeblocks properly", t, func() {
+		results := [][]string{
+			[]string{"", ""},
+			[]string{"empty", "empty"},
+			[]string{"```inside``` outside", "<pre>inside</pre> outside"},
+			[]string{"```inside``` outside ```another```", "<pre>inside</pre> outside <pre>another</pre>"},
+			[]string{"```inside\n``` outside", "<pre>inside\n</pre> outside"},
+		}
+
+		for _, result := range results {
+			So(convertCodeBlocksToPre(result[0]), ShouldEqual, result[1])
+		}
+	})
+}
