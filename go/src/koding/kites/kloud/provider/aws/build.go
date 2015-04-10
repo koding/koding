@@ -252,6 +252,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 
 	subnets, err := m.Session.AWSClient.ListSubnets()
 	if err != nil {
+
 		return nil, err
 	}
 
@@ -260,16 +261,68 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}
 
 	var subnetId string
+	var vpcId string
 	for _, subnet := range subnets.Subnets {
 		if subnet.AvailableIpAddressCount == 0 {
 			continue
 		}
 
 		subnetId = subnet.SubnetId
+		vpcId = subnet.VpcId
 	}
 
 	if subnetId == "" {
 		return nil, errors.New("subnetId is empty")
+	}
+
+	var groupName = "Koding-Kloud-SG"
+	var group ec2.SecurityGroup
+
+	group, err = m.Session.AWSClient.SecurityGroup(groupName)
+	if err != nil {
+		// TODO: parse the error code and only create if it's a `NotFound` error
+		// assume it doesn't exists, go and create it
+		opts := ec2.SecurityGroup{
+			Name:        groupName,
+			Description: "Koding VMs group",
+			VpcId:       vpcId,
+		}
+
+		resp, err := m.Session.AWSClient.Client.CreateSecurityGroup(opts)
+		if err != nil {
+			return nil, err
+		}
+
+		// Authorize the SSH and Klient access
+		perms := []ec2.IPPerm{
+			ec2.IPPerm{
+				Protocol:  "tcp",
+				FromPort:  0,
+				ToPort:    65535,
+				SourceIPs: []string{"0.0.0.0/0"},
+			},
+		}
+
+		group = resp.SecurityGroup
+
+		// TODO: use retry mechanism
+		// We loop and retry this a few times because sometimes the security
+		// group isn't available immediately because AWS resources are eventaully
+		// consistent.
+		for i := 0; i < 5; i++ {
+			_, err = m.Session.AWSClient.Client.AuthorizeSecurityGroup(group, perms)
+			if err == nil {
+				break
+			}
+
+			m.Log.Error("Error authorizing. Will sleep and retry. %s", err)
+			time.Sleep((time.Duration(i) * time.Second) + 1)
+		}
+
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	m.Session.AWSClient.Builder.KeyPair = keys.KeyName
@@ -288,6 +341,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		KeyName:                  keyName,
 		InstanceType:             m.Session.AWSClient.Builder.InstanceType,
 		SubnetId:                 subnetId,
+		SecurityGroups:           []ec2.SecurityGroup{{Id: group.Id}},
 		AssociatePublicIpAddress: true,
 		BlockDevices:             []ec2.BlockDeviceMapping{imageData.blockDeviceMapping},
 		UserData:                 userdata,
