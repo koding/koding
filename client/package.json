@@ -34,6 +34,7 @@
     "ndpane": "0.1.2",
     "node-uuid": "1.4.2",
     "raf": "2.0.4",
+    "record-shortcuts": "0.1.0",
     "shortcuts": "0.4.0",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
     "timeago": "0.2.0",
