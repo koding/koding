@@ -1,8 +1,11 @@
 $ = require 'jquery'
+_ = require 'lodash'
 kd = require 'kd'
 remote = require('app/remote').getInstance()
 whoami = require 'app/util/whoami'
 getNick = require 'app/util/nick'
+
+ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 
 ###*
  * It makes a request to the backend and gets session id
@@ -119,7 +122,13 @@ createPublisher = (view, options = {}, callback) ->
     callback null, publisher
 
 
-ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
+###*
+ * Fix given participant's background image.
+ * TODO: investigate if this method is more suitable for VideoViewModel
+ *
+ * @param {ParticipantType.Participant} participant
+ * @param {JAccount} account
+###
 fixParticipantBackgroundImage = (participant, account) ->
 
   poster = participant.element.querySelector '.OT_video-poster'
@@ -133,6 +142,11 @@ fixParticipantBackgroundImage = (participant, account) ->
   poster.appendChild el
 
 
+###*
+ * Return nickname if present, or firstname + lastname, from given account.
+ *
+ * @param {JAccount} account
+###
 getNicename = (account) ->
 
   { firstName, lastName, nickname } = account.profile
@@ -206,9 +220,11 @@ _getGravatarUri = (account, size = 355) ->
 ###
 setVideoState = (channel, state, callback) ->
 
+  { payload } = channel
+
   options =
     id      : channel.id
-    payload : { videoEnabled : state }
+    payload : _.assign {}, payload, { videoEnabled : state }
 
   kd.singletons.socialapi.channel.update options, callback
 
@@ -238,6 +254,34 @@ disableVideo = (channel, callback) -> setVideoState channel, no, callback
  * @return {boolean} isActive
 ###
 isVideoActive = (channel) -> channel?.payload?.videoEnabled is 'true'
+
+
+###*
+ * Set videoSessionId to paylod of given channel, then call callback.
+ *
+ * @param {SocialChannel}
+ * @param {string} sessionId
+ * @param {function} callback
+###
+setChannelVideoSession = (channel, sessionId, callback) ->
+
+  { payload } = channel
+
+  options =
+    id      : channel.id
+    payload : _.assign {}, payload, { videoSessionId : sessionId }
+
+  kd.singletons.socialapi.channel.update options, callback
+
+
+###*
+ * Return given channel's video session id. It can be used for boolean checks
+ * as if it's a `hasSessionId` named method.
+ *
+ * @param {SocialChannel} channel
+ * @return {string|undefined} id
+###
+getChannelSessionId = (channel) -> channel?.payload?.videoSessionId
 
 
 ###*
@@ -275,6 +319,8 @@ module.exports = {
   enableVideo
   disableVideo
   isVideoActive
+  setChannelVideoSession
   showOfflineParticipant
+  getChannelSessionId
   _errorSignal
 }
