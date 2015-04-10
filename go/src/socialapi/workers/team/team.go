@@ -4,6 +4,7 @@ package team
 import (
 	"socialapi/config"
 	"socialapi/models"
+	"strconv"
 
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
@@ -31,12 +32,52 @@ func (c *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-// ParticipantCreated handles participant creation operations
-func (c *Controller) ParticipantCreated(cp *models.ChannelParticipant) error {
-	return nil
-}
+// HandleParticipant handles participant operations, if a user joins to
+func (c *Controller) HandleParticipant(cp *models.ChannelParticipant) error {
+	channel := models.NewChannel()
+	if err := channel.ById(cp.ChannelId); err != nil {
+		return err
+	}
 
-// ParticipantUpdate handles participant update operations
-func (c *Controller) ParticipantUpdated(cp *models.ChannelParticipant) error {
+	if channel.TypeConstant != models.Channel_TYPE_GROUP {
+		return nil
+	}
+
+	group, err := modelhelper.GetGroup(channel.GroupName)
+	if err != nil && mgo.ErrNotFound {
+		return err
+	}
+
+	if err == mgo.ErrNotFound {
+		c.log.Error("Group: %s is not found in mongo", channel.GroupName)
+		return nil
+	}
+
+	for _, channelId := range group.DefaultChannels {
+		ci, err := strconv.ParseInt(channelId, 10, 64)
+		if err != nil {
+			return err
+		}
+		cp := models.NewChannelParticipant()
+		cp.ChannelId = ci
+		cp.AccountId = cp.AccountId
+
+		// i wrote all of them to have a referance for future, because we
+		// are gonna need this logic while implementing invitations ~ CS
+		switch p.StatusConstant {
+		case models.ChannelParticipant_STATUS_ACTIVE:
+			err = cp.Create()
+		case models.ChannelParticipant_STATUS_BLOCKED:
+			err = cp.Block()
+		case p.StatusConstant == models.ChannelParticipant_STATUS_LEFT:
+			err = cp.Delete()
+		}
+
+		// participant can be blocked before
+		if err != nil && err != models.ErrParticipantBlocked {
+			return err
+		}
+	}
+
 	return nil
 }
