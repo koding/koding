@@ -1,8 +1,8 @@
-kd                            = require 'kd'
-KDTabPaneView                 = kd.TabPaneView
-KDTabView                     = kd.TabView
-KDView                        = kd.View
-globals                       = require 'globals'
+kd            = require 'kd'
+KDTabPaneView = kd.TabPaneView
+KDTabView     = kd.TabView
+KDView        = kd.View
+globals       = require 'globals'
 
 
 module.exports = class DashboardAppView extends kd.ModalView
@@ -10,19 +10,23 @@ module.exports = class DashboardAppView extends kd.ModalView
   constructor:(options={}, data)->
 
     options.cssClass = 'AppModal AppModal--dashboard'
-    options.width    = 800
+    options.width    = 1000
     options.height   = 600
     options.testPath = 'groups-dashboard'
     data             or= kd.singletons.groupsController.getCurrentGroup()
 
     super options, data
 
+    @addSubView @nav  = new kd.TabHandleContainer cssClass : 'AppModal-nav'
     @addSubView @tabs = new KDTabView
-      cssClass    : 'dashboard-tabs'
-      detachPanes : yes
+      cssClass             : 'AppModal--dashboard-tabs AppModal-content'
+      detachPanes          : yes
+      maxHandleWidth       : Infinity
+      minHandleWidth       : 0
+      hideHandleCloseIcons : yes
+      tabHandleContainer   : @nav
     , data
-
-    @tabs.tabHandleContainer.setClass 'AppModal-nav'
+    @nav.unsetClass 'kdtabhandlecontainer'
 
     @setListeners()
 
@@ -34,8 +38,6 @@ module.exports = class DashboardAppView extends kd.ModalView
       @createTabs()
 
     @tabs.on 'PaneAdded', (pane) ->
-      # pane.unsetClass 'kdtabpaneview'
-      pane.setClass 'AppModal-content'
       { tabHandle } = pane
       tabHandle.setClass 'AppModal-navItem'
       tabHandle.unsetClass 'kdtabhandle'
@@ -44,29 +46,28 @@ module.exports = class DashboardAppView extends kd.ModalView
   viewAppended: ->
 
     group = kd.getSingleton("groupsController").getCurrentGroup()
-    group?.canEditGroup (err, success)=>
+    group?.canEditGroup (err, success) =>
       if err or not success
         {entryPoint} = globals.config
-        kd.getSingleton('router').handleRoute "/Activity", { entryPoint }
+        kd.singletons.router.handleRoute "/Activity", { entryPoint }
       else
         @createTabs()
 
 
-  createTabs:->
+  createTabs: ->
 
     data = @getData()
-    kd.getSingleton('appManager').tell 'Dashboard', 'fetchTabData', (tabData)=>
-      navItems = []
+
+    kd.singletons.appManager.tell 'Dashboard', 'fetchTabData', (tabData) =>
+
       for {name, hiddenHandle, viewOptions, kodingOnly}, i in tabData
+
         viewOptions.data    = data
         viewOptions.options = delegate : this  if name is 'Settings'
         hiddenHandle        = hiddenHandle? and data.privacy is 'public'
-        @tabs.addPane (pane = new KDTabPaneView {name, viewOptions}), i is 0
-        # # Push all items, however if it has 'kodingOnly' push only when the group is really 'koding'
-        # if data.slug is 'koding'
-        #   navItems.push {title : name, slug : "/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
-        # if data.slug isnt 'koding' and not kodingOnly
-        #   navItems.push {title : name, slug : "/#{data.slug}/Dashboard/#{name}", type : if hiddenHandle then 'hidden' else null}
+        pane                = new KDTabPaneView {name, viewOptions}
+
+        @tabs.addPane pane, i is 0
 
       @emit 'ready'
 
