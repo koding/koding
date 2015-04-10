@@ -9,36 +9,34 @@ Dashboard main styles
 }
 
 #content-page-dashboard > .kdtabview
-  padding                       34px 34px 0 0
-  overflow                      visible
+  padding                   34px 34px 0 0
+  overflow                  visible
 
-body.dashboard
-
-  // Between line 15-98 is duplicated from account styles.
-  // To merge these, i need a way to give same classes to document body. [BC]
+.AppModal--dashboard
 
   #main-tab-view
-    overflow                      visible
+    overflow                visible
+    overflow                hidden!important
 
-  .app-sidebar
-    background                    #EFEFEF
-    padding                       21px 16px 16px 34px
+  .kdmodal-content
+    size                    100% 100%
 
-    nav
-      a
-        display                   block
-        line-height               24px
-        font-size                 14px
-        color                     #4C4C4C
-        font-weight               600
-        opacity                   .99
-        noTextDeco()
+  .AppModal-content
+    height                  570px
+    overflow                hidden!important
 
-        &.selected
-          text-decoration         underline
 
-      .divider
-        height                    24px
+
+
+
+
+
+
+
+
+
+
+
 
   .group-logo
     figure
