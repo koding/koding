@@ -1,6 +1,7 @@
 kd              = require 'kd'
 _               = require 'lodash'
 getNick         = require 'app/util/nick'
+isMyChannel     = require 'app/util/isMyChannel'
 
 OpenTokService  = require './services/opentok'
 ParticipantType = require './types/participant'
@@ -10,14 +11,15 @@ helper          = require './helper'
 module.exports = class VideoCollaborationModel extends kd.Object
 
   defaultState:
-    publishVideo       : on
-    publishAudio       : on
-    publishing         : off
-    active             : no
-    connected          : no
-    maxConnectionCount : 999
-    activeParticipant  : null
-    connectionCount    : 0
+    audio               : off
+    video               : off
+    publishing          : off
+    active              : no
+    connected           : no
+    maxConnectionCount  : 999
+    activeParticipant   : null
+    selectedParticipant : null
+    connectionCount     : 0
 
   # @param {SocialChannel} options.channel
   # @param {BaseChatVideoView} options.view
@@ -25,7 +27,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     super options, data
 
-    @state = _.assign {}, options.state, @defaultState
+    @state = _.assign {}, @defaultState, options.state
 
     { @channel, @view } = options
 
@@ -60,6 +62,9 @@ module.exports = class VideoCollaborationModel extends kd.Object
   getChannel: -> @channel
 
 
+  isMySession: -> isMyChannel @channel
+
+
   ###*
    * Connects to service, then delegates to necessary method.
    *
@@ -69,7 +74,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
     @_service.connect @channel,
       success : @bound 'handleSessionConnected'
-      error   : (err) =>
+      error   : (err) -> console.error err
 
 
   ###*
@@ -86,6 +91,8 @@ module.exports = class VideoCollaborationModel extends kd.Object
     @setState { connected: yes }
     @emit 'SessionConnected', session
 
+    @enableVideo { error: (err) => console.error err }  if helper.isVideoActive @channel
+
 
   ###*
    * Registers callbacks for service events.
@@ -95,9 +102,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @listens OT.Session~streamDestroyed
    * @listens OT.Session~connectionCreated
    * @listens OT.Session~sessionDisconnected
-   * @listens OT.Subscriber~destroyed
-   * @emits VideoCollaborationModel~ParticipantLeft
-   * @emits VideoCollaborationModel~ParticipantJoined
    * @emits VideoCollaborationModel~HostKickedLoggedInUser
    * @emits VideoCollaborationModel~VideoCollaborationEnded
    * @emits VideoCollaborationModel~VideoCollaborationEndedByNetwork
@@ -105,29 +109,11 @@ module.exports = class VideoCollaborationModel extends kd.Object
   bindSessionEvents: (session) ->
 
     session.on 'streamCreated', (event) =>
-      # When a stream is dispatched to the session it means there is a new
-      # video feed. We want every user to see the video if a stream is
-      # dispatched (probably from host, but doesn't matter).
-      @setVideoActive()  unless @state.active
-
-      options    = { height: '100%', width: '100%', insertMode: 'append' }
-      { stream } = event
-      nick       = stream.name
-      element    = @getView().getElement()
-
-      subscriber = session.subscribe stream, element, options
-      subscriber.on 'destroyed', =>
-        @unregisterSubscriber connectionId
-        @emit 'ParticipantLeft', { nick }
-
-      { connectionId } = stream.connection
-      participant = @registerSubscriber nick, connectionId, subscriber
-
-      @emit 'ParticipantJoined', participant
+      @subscribeToStream session, event.stream
 
     session.on 'streamDestroyed', (event) =>
-
-      @emit 'ParticipantLeft', { nick: event.stream.name }
+      { connection } = event.stream
+      @setParticipantLeft connection.connectionId
 
     session.on 'connectionCreated', (event) =>
       count = @state.connectionCount
@@ -136,7 +122,6 @@ module.exports = class VideoCollaborationModel extends kd.Object
     session.on 'connectionDestroyed', (event) =>
       count = @state.connectionCount
       @setState { connectionCount: count - 1 }
-
 
     session.on 'sessionDisconnected', (event) =>
       @setState { connected: no }
@@ -147,6 +132,39 @@ module.exports = class VideoCollaborationModel extends kd.Object
 
       @emit eventName
 
+    session.on 'signal:end', =>
+      @stopPublishing
+        success : @bound 'handleStopSuccess'
+        error   : (err) -> console.error err
+
+    session.on 'signal:start', => @enableVideo { error: (err) => console.error err }
+
+
+  subscribeToStream: (session, stream) ->
+
+    helper.subscribeToStream session, stream, @getView().getContainer(),
+      success : (subscriber) => @setParticipantJoined stream.name, subscriber
+      error   : (err) -> console.error err
+
+
+  ###*
+   * Initial call to startPublishing method. `startPublishing` is stateless.
+   * This method handles initial automatic publishing with setting some default
+   * options for host, and participant to be different.
+   *
+   * @param {object} callbacks
+  ###
+  enableVideo: (callbacks) ->
+
+    options = { publishAudio: @isMySession(), publishVideo: @isMySession() }
+    success = (publisher) =>
+      @handlePublishSuccess publisher
+      callbacks.success? publisher
+
+    @startPublishing options,
+      success : success
+      error   : callbacks.error
+
 
   ###*
    * Creates a `ParticipantType.Subscriber` instance and it caches it with `connectionId`
@@ -155,13 +173,19 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {string} nick
    * @param {string} connectionId
    * @param {OT.Subscriber} subscriber
-   * @param {ParticipantType.Subscriber} _subscriber
+   * @return {ParticipantType.Subscriber} _subscriber
   ###
   registerSubscriber: (nick, connectionId, subscriber) ->
 
     _subscriber = new ParticipantType.Subscriber nick, subscriber
-
     @subscribers[connectionId] = _subscriber
+
+    _subscriber.on 'TalkingDidStart', =>
+      @emit 'ParticipantStartedTalking', nick
+      @changeActiveParticipant nick  unless @state.selectedParticipant
+
+    _subscriber.on 'TalkingDidStop', =>
+      @emit 'ParticipantStoppedTalking', nick
 
     return _subscriber
 
@@ -171,26 +195,41 @@ module.exports = class VideoCollaborationModel extends kd.Object
    *
    * @param {strong} connectionId
   ###
-  unregisterSubscriber: (connectionId) ->
-
-    @subscribers[connectionId] = null
+  unregisterSubscriber: (connectionId) -> @subscribers[connectionId] = null
 
 
   ###*
    * Transforms given publisher instance from OpenTok into our own
-   * `ParticipantType.Publishe` class instance and it registers it into model's
+   * `ParticipantType.Publisher` class instance and it registers it into model's
    * participant property.. It sets the model's stream instance to publisher's
    * stream for easy access.
    *
    * @param {OT.Publisher} publisher
-   * @return {ParticipantType.Publishe} _publisher
+   * @return {ParticipantType.Publisher} _publisher
   ###
   registerPublisher: (publisher) ->
 
     @publisher = _publisher = new ParticipantType.Publisher getNick(), publisher
     @stream    = _publisher.stream
 
+    _publisher.on 'TalkingDidStart', =>
+      return  unless @state.audio
+      @emit 'ParticipantStartedTalking', getNick()
+
+    _publisher.on 'TalkingDidStop', =>
+      return  unless @state.active
+      @emit 'ParticipantStoppedTalking', getNick()
+
     return _publisher
+
+
+  ###*
+   * Unregister publisher and stream.
+  ###
+  unregisterPublisher: ->
+
+    @publisher = null
+    @stream = null
 
 
   ###*
@@ -199,24 +238,123 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * without the user publishing his/her video. It's not a concern of neither
    * this method's nor this entire class, because simply it will emit an event
    * with given publisher and it will change set the state to active.
+   * This method doesn't try to activate session, instead this is the final
+   * step of activation of video collaboration session.
+   *
+   * @emits VideoCollaborationModel~VideoCollaborationActive
   ###
-  setVideoActive: ->
+  setActive: ->
+    return  if @state.active
 
     @emit 'VideoCollaborationActive', @publisher
     @setState { active: yes }
 
 
   ###*
-   * Action for joining to VideoCollaboration session. It calls
-   * `startPublishing` method and connects handlers for success and error states.
+   * Action to trigger ending process of video collaboration.
+   * !!! It doesn't stop the session itself, this and other methods starting
+   * with `set` prefix are meant to be called to trigger events for views and
+   * state transitions. This is the final step of ending a session.
+   *
+   * @emits VideoCollaborationModel~VideoCollaborationEnded
+  ###
+  setEnded: ->
+    return  unless @state.active
+
+    @emit 'VideoCollaborationEnded'
+    @setState { active: no }
+
+
+  ###*
+   * Registers given OT.Subscriber to subscribers object. It gets the necessary
+   * connectionId information from subscriber object.
+   *
+   * @param {string} nick
+   * @param {OT.Subscriber} subscriber
+   * @return {ParticipantType.Subscriber} _participant
+   * @emits VideoCollaborationModel~ParticipantJoined
+  ###
+  setParticipantJoined: (nick, subscriber) ->
+
+    { connectionId } = subscriber.stream.connection
+    _participant = @registerSubscriber nick, connectionId, subscriber
+    @emit 'ParticipantJoined', _participant
+
+    return _participant
+
+
+  ###*
+   * Unregisters participant from subscribers object.
+   * It uses given connectionId to do this.
+   *
+   * @param {string} connectionId - participant's stream's connection id.
+   * @return {ParticipantType.Subscriber} _participant
+   * @emits VideoCollaborationModel~ParticipantLeft
+  ###
+  setParticipantLeft: (connectionId) ->
+
+    return  unless _participant = @subscribers[connectionId]
+    @unregisterSubscriber connectionId
+
+    { nick } = _participant
+    @emit 'ParticipantLeft', {nick}
+
+    # if leaving participant is selected or active participant
+    if @state.activeParticipant is nick
+      @changeActiveParticipant getNick()
+      if @state.selectedParticipant is nick
+        @setSelectedParticipant null
+
+    return _participant
+
+
+  ###*
+   * Action for starting VideoCollaboration session.
    *
    * @param {object} options
   ###
-  join: (options) ->
+  start: (options) ->
 
-    @startPublishing options,
-      success : @bound 'handlePublishSuccess'
-      error   : (err) =>
+    helper.enableVideo @channel, (err) =>
+      return console.error err  if err
+      @_service.sendSessionStartSignal @channel, (err) ->
+        return console.error err  if err
+
+
+  ###*
+   * Action for ending VideoCollaborationSession. Only can be called from
+   * admins of this session.
+  ###
+  end: ->
+
+    helper.disableVideo @channel, (err) =>
+      return console.error err  if err
+      @_service.sendSessionEndSignal @channel, (err) ->
+        return console.error err  if err
+
+
+  ###*
+   * Set audio state to given state.
+   *
+   * @param {boolean} state
+  ###
+  setAudioState: (state) ->
+
+    @publisher.videoData.publishAudio state
+    @setState { audio: state }
+    @emit 'AudioPublishStateChanged', state
+
+
+  ###*
+   * Set video state to given state.
+   *
+   * @param {boolean} state
+  ###
+  setVideoState: (state) ->
+
+    @publisher.videoData.publishVideo state
+    @setState { video: state }
+    @emit 'VideoPublishStateChanged', state
 
 
   ###*
@@ -224,15 +362,24 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * `OT.Publisher` instance. Sets active participant to user.
    *
    * @param {OT.Publisher} publisher
-   * @emits VideoCollaborationModel~VideoCollaborationActive
   ###
   handlePublishSuccess: (publisher) ->
 
     @registerPublisher publisher
     @setState { publishing: on }
+    @setActive()
 
-    @setVideoActive()
     @changeActiveParticipant getNick()
+
+
+  ###*
+   * Handler for successful video stopping.
+  ###
+  handleStopSuccess: ->
+
+    @unregisterPublisher()
+    @setState { publishing: off }
+    @setEnded()
 
 
   ###*
@@ -248,14 +395,14 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @param {function(error: object)} callbacks.error
   ###
   startPublishing: (options, callbacks) ->
+    return  if @state.publishing
 
     defaults =
-      publishAudio: @state.publishAudio
-      publishVideo: @state.publishVideo
+      publishAudio: no
+      publishVideo: no
 
-    options = _.assign {}, defaults, options
-
-    @_service.createPublisher @view, options, (err, publisher) =>
+    # first create publisher with defaults.
+    helper.createPublisher @view.getContainer(), defaults, (err, publisher) =>
       return callbacks.error err  if err
 
       publisher.on
@@ -265,9 +412,24 @@ module.exports = class VideoCollaborationModel extends kd.Object
         accessDialogClosed : => @emit 'CameraAccessQuestionAnswered'
 
       @session.publish publisher, (err) =>
-        if err
-        then callbacks.error err
-        else callbacks.success publisher
+        return callbacks.error err  if err
+        callbacks.success publisher
+        @setAudioState options.publishAudio
+        @setVideoState options.publishVideo
+
+
+  ###*
+   * It delegates to necessary methods from service to stop session, and then
+   * calls given callbacks in certain situations.
+   *
+   * @param {function(err: object)} callbacks.error
+   * @param {function} callbacks.success
+  ###
+  stopPublishing: (callbacks) ->
+
+    @_service.destroyPublisher @channel, @publisher, (err) ->
+      return callbacks.error err  if err
+      callbacks.success()
 
 
   ###*
@@ -279,10 +441,41 @@ module.exports = class VideoCollaborationModel extends kd.Object
   changeActiveParticipant: (nick) ->
 
     return  unless @state.active
-    return  unless @getParticipant nick
 
     @setState { activeParticipant: nick }
+
+    # see if the user is in the session, if not emit special event.
+    unless @getParticipant nick
+      @emit 'OfflineUserSelected', nick
+
     @emit 'ActiveParticipantChanged', nick
+
+
+  ###*
+   * Change both active and selected users. It's being used for locking
+   * selected participant's video so that automatic video switching (e.g Audio
+   * level changed) could be prevented.
+   *
+   * @param {string} nick
+  ###
+  changeSelectedParticipant: (nick) ->
+
+    @setSelectedParticipant nick
+    @changeActiveParticipant nick
+
+
+  ###*
+   * Sets state's selected participant to given nick. If nick is null, that
+   * means that user is clicked twice.
+   *
+   * @param {string} nick
+  ###
+  setSelectedParticipant: (nick) ->
+
+    nick = null  if @state.selectedParticipant is nick
+
+    @setState { selectedParticipant: nick }
+    @emit 'SelectedParticipantChanged', nick
 
 
   ###*
@@ -312,5 +505,20 @@ module.exports = class VideoCollaborationModel extends kd.Object
    * @return {object} state
   ###
   setState: (state) -> @state = _.assign {}, @state, state
+
+
+  ###*
+   * Check to see if participant with given nickname, and calls the callback
+   * with result.
+   *
+   * @param {string} nickname
+   * @param {function(hasAudio: boolean)} callback
+  ###
+  hasParticipantWithAudio: (nickname, callback) ->
+    return callback no  unless @state.active
+
+    if participant = @getParticipant nickname
+    then callback participant.videoData.stream.hasAudio
+    else callback no
 
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/topicfeed"
 
@@ -19,7 +20,8 @@ func main() {
 		return
 	}
 
-	r.SetContext(topicfeed.New(r.Log))
+	appConfig := config.MustRead(r.Conf.Path)
+	r.SetContext(topicfeed.New(r.Log, appConfig))
 	r.Register(models.ChannelMessage{}).OnUpdate().Handle((*topicfeed.Controller).MessageUpdated)
 	r.Register(models.ChannelMessage{}).OnDelete().Handle((*topicfeed.Controller).MessageDeleted)
 	r.Register(models.ChannelMessage{}).OnCreate().Handle((*topicfeed.Controller).MessageSaved)

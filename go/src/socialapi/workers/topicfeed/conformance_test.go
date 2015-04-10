@@ -1,7 +1,6 @@
 package topicfeed
 
 import (
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -46,12 +45,9 @@ func TestExtractedTopicCanBeWrittenToDatabase(t *testing.T) {
 		So(err, ShouldBeNil)
 
 		Convey("duplicates should be returned as unique", func() {
-			contents, err := ioutil.ReadFile(extractYmlPath)
-			So(err, ShouldBeNil)
-
 			var conformance = &Conformance{}
 
-			err = goyaml.Unmarshal(contents, &conformance)
+			err = goyaml.Unmarshal([]byte(conformanceTestsCases), &conformance)
 			So(err, ShouldBeNil)
 
 			hashtagTests, ok := conformance.Tests["hashtags"]

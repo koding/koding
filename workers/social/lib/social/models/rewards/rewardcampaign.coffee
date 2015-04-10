@@ -6,6 +6,9 @@ module.exports = class JRewardCampaign extends jraphical.Module
 
   # Examples for working with campaigns
   #
+  # Warning: if campaign initial amount is 0
+  #          then this is an infinite campaign
+  #
   # # Create
   #
   # KD.remote.api.JRewardCampaign.create(
@@ -248,4 +251,3 @@ module.exports = class JRewardCampaign extends jraphical.Module
   remove$: permit 'manage campaign',
     success: (client, data, callback)->
       @remove callback
-

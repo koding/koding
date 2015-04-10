@@ -155,9 +155,6 @@ func TestGetSocialIdFromEmail(t *testing.T) {
 			acc, err := socialapimodels.CreateAccountInBothDbs()
 			So(err, ShouldBeNil)
 
-			//c := socialapimodels.CreateChannelWithTest(acc.Id)
-
-			//cm := socialapimodels.CreateMessage(c.Id, acc.Id)
 			mongoUser, err := modelhelper.GetUser(acc.Nick)
 			So(err, ShouldBeNil)
 
@@ -216,7 +213,6 @@ func TestPersist(t *testing.T) {
 			c := socialapimodels.CreateChannelWithTest(acc.Id)
 			socialapimodels.AddParticipants(c.Id, acc.Id)
 
-			//cm := socialapimodels.CreateMessage(c.Id, acc.Id)
 			mongoUser, err := modelhelper.GetUser(acc.Nick)
 			So(err, ShouldBeNil)
 
@@ -256,28 +252,28 @@ func TestPersist(t *testing.T) {
 			So(err, ShouldBeNil)
 		})
 
-		// Convey("testing reply message, record not found if user is not a participant", func() {
-		// 	acc, err := socialapimodels.CreateAccountInBothDbs()
-		// 	So(err, ShouldBeNil)
+		Convey("testing reply message, record not found if user is not a participant", func() {
+			acc, err := socialapimodels.CreateAccountInBothDbs()
+			So(err, ShouldBeNil)
 
-		// 	c := socialapimodels.CreateChannelWithTest(acc.Id)
+			c := socialapimodels.CreateChannelWithTest(acc.Id)
 
-		// 	cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
-		// 	So(cm, ShouldNotBeNil)
+			cm := socialapimodels.CreateMessage(c.Id, acc.Id, socialapimodels.ChannelMessage_TYPE_POST)
+			So(cm, ShouldNotBeNil)
 
-		// 	mongoUser, err := modelhelper.GetUser(acc.Nick)
-		// 	So(err, ShouldBeNil)
+			mongoUser, err := modelhelper.GetUser(acc.Nick)
+			So(err, ShouldBeNil)
 
-		// 	m := &Mail{
-		// 		From:              mongoUser.Email,
-		// 		OriginalRecipient: fmt.Sprintf("reply+messageid.%d@inbound.koding.com", c.Id),
-		// 		MailboxHash:       fmt.Sprintf("messageid.%d", cm.Id),
-		// 		TextBody:          "Its an example of text message",
-		// 		StrippedTextReply: "This one is reply message",
-		// 	}
+			m := &Mail{
+				From:              mongoUser.Email,
+				OriginalRecipient: fmt.Sprintf("reply+messageid.%d@inbound.koding.com", c.Id),
+				MailboxHash:       fmt.Sprintf("messageid.%d", cm.Id),
+				TextBody:          "Its an example of text message",
+				StrippedTextReply: "This one is reply message",
+			}
 
-		// 	err = m.persistPost(acc.Id)
-		// 	So(err, ShouldNotBeNil)
-		// })
+			err = m.persistPost(acc.Id)
+			So(err, ShouldNotBeNil)
+		})
 	})
 }

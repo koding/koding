@@ -6,7 +6,6 @@ nick = require 'app/util/nick'
 getReferralUrl = require 'app/util/getReferralUrl'
 FacebookShareLink = require 'app/commonviews/facebooksharelink'
 TwitterShareLink = require 'app/commonviews/twittersharelink'
-FacebookShareLink = require 'app/commonviews/facebooksharelink'
 LinkedInShareLink = require 'app/commonviews/linkedinsharelink'
 
 module.exports = class ReferrerModal extends KDModalView
@@ -66,5 +65,3 @@ module.exports = class ReferrerModal extends KDModalView
       partial    : "Invite via email..."
       attributes :
         href     : "mailto:?subject=#{subject}&body=#{body}"
-
-

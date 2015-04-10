@@ -54,12 +54,14 @@ services=(
   socialapi/workers/cmd/sitemap/sitemapinitializer
   socialapi/workers/cmd/algoliaconnector
   socialapi/workers/payment/paymentwebhook
+  socialapi/workers/cmd/topicmoderation
   socialapi/workers/cmd/collaboration
   socialapi/workers/cmd/email/activityemail
   socialapi/workers/cmd/email/dailyemail
   socialapi/workers/cmd/email/privatemessageemailfeeder
   socialapi/workers/cmd/email/privatemessageemailsender
   socialapi/workers/cmd/email/emailsender
+  socialapi/workers/cmd/team
 )
 
 
