@@ -60,7 +60,6 @@ module.exports = class JVerificationToken extends Module
 
         if confirmation and isAlive confirmation
           if resendIfExists
-            confirmation.sendEmail {subject, firstName, action}, callback
             confirmation.sendEmail {username, subject, firstName, action}, callback
           else
             callback if err then err else new PINExistsError \
