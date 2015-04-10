@@ -298,12 +298,8 @@ func (n *Controller) CreateInteractionNotification(i *socialapimodels.Interactio
 	}
 
 	isParticipant, err := isParticipant(cm.AccountId, groupChannel)
-	if err != nil {
+	if err != nil || !isParticipant {
 		return err
-	}
-
-	if !isParticipant {
-		return nil
 	}
 
 	in := models.NewInteractionNotification(i.TypeConstant)
