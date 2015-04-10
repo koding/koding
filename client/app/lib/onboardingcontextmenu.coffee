@@ -4,7 +4,7 @@ module.exports = class OnboardingContextMenu extends KDContextMenu
 
   viewAppended: ->
 
-    kd.utils.wait 100, =>
+    kd.utils.wait 50, =>
       shiftX     = 20
       shiftY     = 40
       arrowWidth = 10

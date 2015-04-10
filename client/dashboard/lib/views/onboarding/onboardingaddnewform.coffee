@@ -31,7 +31,9 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
 
     @oldData = data
 
+
   addNew: ->
+
     {data}    = @getDelegate()
     {items}   = data.partial
     newItem   =
@@ -52,12 +54,14 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
       return kd.warn err  if err
       @getDelegate().emit "NewViewAdded"
 
+
   pistachio: ->
+
     """
       <div class="inputs">
         <p>Name</p>
         {{> @input}}
-        <p>Parent Path or jQuery selector</p>
+        <p>Target path selector</p>
         {{> @path}}
         <p>Title</p>
         {{> @title}}

@@ -26,7 +26,7 @@ module.exports = class OnboardingController extends KDController
   fetchItems: ->
 
     @appStorage = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
-    @hasCookie  = kookies.get "custom-partials-preview-mode"
+    @hasCookie  = kookies.get "custom-partials-preview-mode" is "true"
     query       = partialType : "ONBOARDING"
 
     if @hasCookie

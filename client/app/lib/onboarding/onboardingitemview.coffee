@@ -27,7 +27,8 @@ module.exports = class OnboardingItemView extends KDView
     @hasPrev       = index isnt 0 and @hasNext
 
     try
-      @parentElement = eval htmlencode.htmlDecode path
+      path = htmlencode.htmlDecode path
+      @parentElement = document.querySelector path
 
       if @parentElement instanceof Node
         @parentElement = @getKDViewFromElementNode @parentElement
@@ -36,14 +37,14 @@ module.exports = class OnboardingItemView extends KDView
         @createContextMenu()
         @listenEvents()
       else
-        console.warn "Target element should be an instance of KDView or Node and should be visible", { appName, itemName }
+        console.warn "Target can't be found or invisible", { appName, itemName }
     catch e
       console.warn "Couldn't create onboarding item", { appName, itemName, e }
 
 
   createContextMenu: ->
 
-    @overlay           = new KDSpotlightView
+    @overlay      = new KDSpotlightView
       cssClass    : "onboarding-spotlight"
       isRemovable : no
       delegate    : @parentElement
