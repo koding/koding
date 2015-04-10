@@ -184,7 +184,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit 'ParticipantStartedTalking', nick
       @changeActiveParticipant nick  unless @state.selectedParticipant
 
-     _subscriber.on 'TalkingDidStop', =>
+    _subscriber.on 'TalkingDidStop', =>
       @emit 'ParticipantStoppedTalking', nick
 
     return _subscriber
@@ -217,6 +217,7 @@ module.exports = class VideoCollaborationModel extends kd.Object
       @emit 'ParticipantStartedTalking', getNick()
 
     _publisher.on 'TalkingDidStop', =>
+      return  unless @state.active
       @emit 'ParticipantStoppedTalking', getNick()
 
     return _publisher
