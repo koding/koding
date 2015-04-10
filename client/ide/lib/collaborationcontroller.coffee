@@ -691,11 +691,6 @@ module.exports = CollaborationController =
 
     @chat.settingsPane.endSession.disable()
 
-    sharedSuccessFn = =>
-      @chat.emit 'CollaborationEnded'
-      @chat = null
-      @modal?.destroy()
-
     if @amIHost
       @endCollaborationForHost
         success: =>
