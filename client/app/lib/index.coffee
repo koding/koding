@@ -12,8 +12,11 @@ ConnectionChecker      = require './connectionchecker'
 lazyrouter             = require './lazyrouter'
 setupAnalytics         = require './setupanalytics'
 os                     = require 'os'
+_                      = require 'lodash'
 
 isStarted = false
+
+kd.Object::bound = (method, rest...) -> _.bind @[method], this, rest...
 
 
 module.exports = (defaults) ->
