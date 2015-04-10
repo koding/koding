@@ -383,10 +383,11 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}
 
 	cloudInitConfig := &userdata.CloudInitConfig{
-		Username:    m.Username,
-		UserSSHKeys: sshKeys,
-		Hostname:    m.Username, // no typo here. hostname = username
-		KiteId:      kiteId,
+		Username:           m.Username,
+		UserSSHKeys:        sshKeys,
+		Hostname:           m.Username, // no typo here. hostname = username
+		KiteId:             kiteId,
+		DisableEC2MetaData: true,
 	}
 
 	userdata, err := m.Session.Userdata.Create(cloudInitConfig)

@@ -20,14 +20,15 @@ type Userdata struct {
 
 // CloudInitConfig is used as source for the cloudInit template.
 type CloudInitConfig struct {
-	Username        string
-	UserSSHKeys     []string
-	Hostname        string
-	KiteKey         string
-	LatestKlientURL string // URL of the latest version of the Klient package
-	ApachePort      int    // Defines the base apache running port, should be 80 or 443
-	KitePort        int    // Defines the running kite port, like 3000
-	KiteId          string
+	Username           string
+	UserSSHKeys        []string
+	Hostname           string
+	KiteKey            string
+	LatestKlientURL    string // URL of the latest version of the Klient package
+	ApachePort         int    // Defines the base apache running port, should be 80 or 443
+	KitePort           int    // Defines the running kite port, like 3000
+	KiteId             string
+	DisableEC2MetaData bool
 }
 
 var (
@@ -55,7 +56,7 @@ var (
 #cloud-config
 output : { all : '| tee -a /var/log/cloud-init-output.log' }
 disable_root: false
-disable_ec2_metadata: true
+disable_ec2_metadata: {{.DisableEC2MetaData}}
 hostname: '{{.Hostname}}'
 
 bootcmd:
