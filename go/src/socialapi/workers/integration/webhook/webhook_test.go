@@ -67,6 +67,14 @@ func TestWebhookListen(t *testing.T) {
 			)
 			So(err.Error(), ShouldEqual, ErrBodyNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
+
+			s, _, _, err = h.Push(
+				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.Header(nil),
+				newRequest("hey", ""),
+			)
+			So(err.Error(), ShouldEqual, ErrChannelNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
 		})
 
 		Convey("users should be able to send message when token is valid", nil)
