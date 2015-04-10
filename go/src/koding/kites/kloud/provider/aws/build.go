@@ -22,6 +22,8 @@ import (
 	"golang.org/x/net/context"
 )
 
+var DefaultUbuntuImage = "ami-d05e75b8"
+
 type BuildData struct {
 	// This is passed directly to goamz to create the final instance
 	EC2Data   *ec2.RunInstances
@@ -175,7 +177,14 @@ func (m *Machine) imageData() (*ImageData, error) {
 	}
 
 	m.Log.Debug("Fetching image which is tagged with '%s'", m.Meta.SourceAmi)
-	image, err := m.Session.AWSClient.Image(m.Meta.SourceAmi)
+
+	imageId := DefaultUbuntuImage
+	if m.Meta.SourceAmi != "" {
+		m.Log.Critical("Source AMI is not set, using default Ubuntu AMI: %s", DefaultUbuntuImage)
+		imageId = m.Meta.SourceAmi
+	}
+
+	image, err := m.Session.AWSClient.Image(imageId)
 	if err != nil {
 		return nil, err
 	}
