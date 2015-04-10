@@ -1701,7 +1701,7 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-form
     padding-top             0
 
-// machine settings modal general view styling
+// machine settings modal general view
 .machine-settings-modal
 
   .statustoggle .koding-on-off
@@ -1732,7 +1732,7 @@ paymentGrayLighter  = #f8f8f8
         text-align          right
 
 
-// machine settings modal sidebar icons
+// machine settings modal sidebar icon
 .machine-settings-modal
 
   .AppModal-navItem:before
@@ -1791,7 +1791,7 @@ paymentGrayLighter  = #f8f8f8
       r-sprite              'app', 'ms-shared-vm-active'
 
 
-// machine settings modal common formline styling
+// machine settings modal common formline
 .machine-settings-modal
 
   .formline
@@ -1824,7 +1824,7 @@ paymentGrayLighter  = #f8f8f8
 
     &.advanced
       width                 170px
-      margin-top            50px
+      margin-top            40px
 
       figure
         size                82px, 82px
@@ -1922,3 +1922,49 @@ paymentGrayLighter  = #f8f8f8
 
   .reassign figure
     bg                      color, #B3ECA3
+
+
+// machine settings modal disk usage
+.machine-settings-modal
+
+  .disk-usage.AppModal-content
+    width                   530px
+
+  .circular-progress-bar
+    margin                  15px 0 20px 185px
+
+  .disk-usage-info
+    overflow                hidden
+
+  .percentage
+    position                relative
+    left                    -114px
+    top                     -64px
+    color                   #6C6C6C
+    font-size               42px
+
+  .usage-info
+    width                   260px
+    border                  1px solid #F0F0F0
+    padding                 15px
+    text-align              right
+    margin                  0 0 20px 130px
+    borderBox()
+
+    p
+      display               inline
+      font-size             16px
+      font-weight           400
+      position              relative
+      left                  -50px
+
+    span
+      display               inline
+
+  .share
+    font-size               14px
+    color                   #878787
+    text-align              center
+
+    a
+      color                 #52A840
