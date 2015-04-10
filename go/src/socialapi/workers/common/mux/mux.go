@@ -121,6 +121,10 @@ func (m *Mux) Listen() {
 	go m.listener()
 }
 
+func (m *Mux) Handler(r *http.Request) (http.Handler, string) {
+	return m.mux.Handler(r)
+}
+
 func (m *Mux) Close() {
 	m.server.Close()
 }
