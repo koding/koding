@@ -4,7 +4,7 @@ getReferralUrl = require 'app/util/getReferralUrl'
 
 shareLinks =
   twitter  : (url)->
-    url = "Register to Koding with my link to get 500MB of extra free space! #{url}"
+    url = "Collaborate and code in the cloud! Register for @koding using my link and get an extra 500MB! #{url}"
     return "https://twitter.com/intent/tweet?text=#{url}&via=koding&source=koding"
 
   google   : (url)->
@@ -14,15 +14,15 @@ shareLinks =
     return "https://www.facebook.com/sharer/sharer.php?u=#{url}"
 
   linkedin : (url)->
-    text   = "Register to Koding with my link to get 500MB of extra free space!"
+    text   = "Collaborate and code in the cloud! Register for Koding using my link and get an extra 500MB!"
     title  = "Join me @koding!"
     return "http://www.linkedin.com/shareArticle?mini=true&url=#{url}&title=#{title}&summary=#{text}&source=#{location.origin}"
 
   mail     : (url)->
-    title  = "Sign up for Koding, get 500MB more"
+    title  = "Sign up for Koding, get 500MB more!"
     text   = "#{nick()} has invited you to Koding. As a special offer, if you
               sign up to Koding today, we'll give you an additional 500MB of
-              cloud storage. Use this (#{url}) link to register and claim
+              cloud storage! Use this (#{url}) link to register and claim
               your reward."
 
     return "mailto:?subject=#{title}&body=#{text}"
