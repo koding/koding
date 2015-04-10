@@ -11,9 +11,9 @@ MAC_UNICODE =
 convertCase = _.capitalize
 render = _.template '<% _.forEach(keys, function (key) { %><span><%= key %></span><% }) %>'
 
-module.exports = (str) ->
+module.exports = (keys) ->
 
-  keys = str.split SEPARATOR
+  if _.isString keys then keys = keys.split SEPARATOR
 
   render keys:
     if globals.os isnt 'mac'
