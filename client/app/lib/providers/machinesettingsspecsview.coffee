@@ -27,7 +27,7 @@ module.exports = class MachineSettingsSpecsView extends KDView
   createIcon: (title, spec) ->
 
     @iconWrapper.addSubView new KDCustomHTMLView
-      cssClass : "spec #{kd.utils.slugify(title).toLowerCase()}"
+      cssClass : "big-icon #{kd.utils.slugify(title).toLowerCase()}"
       partial  : """
         <figure>
           <span class="icon"></span>
