@@ -23,7 +23,8 @@ type Account struct {
 	// unique account nicknames
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 
-	// unique account tokens used for pubnub authentication
+	// Token is used for authentication purposes, this data should not be shared
+	// with other clients/accounts
 	Token string `json:"-"`
 }
 

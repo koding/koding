@@ -2,6 +2,7 @@ package models
 
 import (
 	"socialapi/config"
+	"socialapi/models"
 	"socialapi/request"
 	"testing"
 
@@ -49,6 +50,68 @@ func TestChannelNewChannel(t *testing.T) {
 
 		Convey("it should have PrivacyConstant as set", func() {
 			So(c.PrivacyConstant, ShouldEqual, Channel_PRIVACY_PRIVATE)
+		})
+	})
+}
+
+func TestChannelSearch(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	c := NewChannel()
+
+	Convey("moderation needed channels", t, func() {
+		account := CreateAccountWithTest()
+		groupChannel := CreateTypedPublicChannelWithTest(
+			account.Id,
+			models.Channel_TYPE_GROUP,
+		)
+
+		c.CreatorId = account.Id
+		c.GroupName = groupChannel.GroupName
+		c.TypeConstant = Channel_TYPE_TOPIC
+		c.PrivacyConstant = Channel_PRIVACY_PUBLIC
+		c.MetaBits.Mark(NeedsModeration)
+
+		So(c.Create(), ShouldBeNil)
+		Convey("should not be in search results", func() {
+			channels, err := NewChannel().Search(&request.Query{
+				Name:      c.Name,
+				GroupName: groupChannel.GroupName,
+				AccountId: account.Id,
+			})
+			So(err, ShouldBeNil)
+			So(len(channels), ShouldEqual, 0)
+		})
+
+		Convey("after removing needs moderation flag", func() {
+			// byname doesnt filter
+			channel, err := NewChannel().ByName(&request.Query{
+				Name:      c.Name,
+				GroupName: groupChannel.GroupName,
+				AccountId: account.Id,
+			})
+			So(err, ShouldBeNil)
+			So(channel, ShouldNotBeNil)
+
+			channel.MetaBits.UnMark(NeedsModeration)
+
+			So(channel.Update(), ShouldBeNil)
+
+			Convey("we should be able to search them", func() {
+				channels, err := NewChannel().Search(&request.Query{
+					Name:      c.Name,
+					GroupName: groupChannel.GroupName,
+					AccountId: account.Id,
+					Privacy:   channel.PrivacyConstant,
+				})
+				So(err, ShouldBeNil)
+				So(len(channels), ShouldEqual, 1)
+				So(channels[0].Id, ShouldEqual, channel.Id)
+			})
 		})
 	})
 }
@@ -276,9 +339,7 @@ func TestChannelCreate(t *testing.T) {
 			So(c.Create(), ShouldBeNil)
 			So(firstChannel, ShouldEqual, c.Id)
 		})
-
 	})
-
 }
 
 func TestChannelBongoName(t *testing.T) {
@@ -547,7 +608,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 	Convey("while removing participant from a channel", t, func() {
 		Convey("channel should have id", func() {
 			c := NewChannel()
-			err := c.RemoveParticipant(123)
+			err := c.removeParticipation(ChannelParticipant_STATUS_LEFT, 123)
 			So(err, ShouldNotBeNil)
 			So(err, ShouldEqual, ErrChannelIdIsNotSet)
 		})
@@ -556,7 +617,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			c := createNewChannelWithTest()
 			So(c.Create(), ShouldBeNil)
 			account := CreateAccountWithTest()
-			err := c.RemoveParticipant(account.Id)
+			err := c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 		})
 
@@ -567,7 +628,7 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 
-			err = c.RemoveParticipant(account.Id)
+			err = c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 		})
 
@@ -579,10 +640,10 @@ func TestChannelRemoveParticipant(t *testing.T) {
 			_, err := c.AddParticipant(account.Id)
 			So(err, ShouldBeNil)
 
-			err = c.RemoveParticipant(account.Id)
+			err = c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 			// try to remove it again
-			err = c.RemoveParticipant(account.Id)
+			err = c.removeParticipation(ChannelParticipant_STATUS_LEFT, account.Id)
 			So(err, ShouldBeNil)
 		})
 
@@ -1235,6 +1296,145 @@ func TestFetchPublicChannel(t *testing.T) {
 			So(err, ShouldBeNil)
 			So(pc.GroupName, ShouldEqual, c.GroupName)
 			So(pc.TypeConstant, ShouldEqual, Channel_TYPE_GROUP)
+		})
+	})
+}
+
+func TestChannelFetchRoot(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching the root", t, func() {
+		acc := models.CreateAccountWithTest()
+		So(acc, ShouldNotBeNil)
+
+		Convey("if channel id is not set", func() {
+			c := NewChannel()
+			_, err := c.FetchRoot()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrLeafIsNotSet)
+		})
+
+		Convey("when root doesnt exist", func() {
+			leaf := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				RandomName(),
+			)
+
+			Convey("should return bongo error", func() {
+				_, err := leaf.FetchRoot()
+				So(err, ShouldNotBeNil)
+				So(err, ShouldEqual, bongo.RecordNotFound)
+			})
+		})
+
+		Convey("when root does exist", func() {
+			groupName := RandomName()
+			root := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			leaf := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			cl := &ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
+			Convey("should return root", func() {
+				r, err := leaf.FetchRoot()
+				So(err, ShouldBeNil)
+				So(r, ShouldNotBeNil)
+				So(r.Id, ShouldEqual, root.Id)
+			})
+		})
+	})
+}
+
+func TestChannelFetchLeaves(t *testing.T) {
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("couldnt start bongo %s", err.Error())
+	}
+	defer r.Close()
+
+	Convey("while fetching the root", t, func() {
+		acc := models.CreateAccountWithTest()
+		So(acc, ShouldNotBeNil)
+
+		Convey("if channel id is not set", func() {
+			c := NewChannel()
+			_, err := c.FetchRoot()
+			So(err, ShouldNotBeNil)
+			So(err, ShouldEqual, ErrLeafIsNotSet)
+		})
+
+		Convey("when leaf doesnt exist", func() {
+			root := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				RandomName(),
+			)
+
+			Convey("should return bongo error", func() {
+				leaves, err := root.FetchLeaves()
+				So(err, ShouldBeNil)
+				So(leaves, ShouldBeNil)
+			})
+		})
+
+		Convey("when leaves does exist", func() {
+			groupName := RandomName()
+			root := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			leaf1 := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			cl := &ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf1.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
+			leaf2 := models.CreateTypedGroupedChannelWithTest(
+				acc.Id,
+				models.Channel_TYPE_TOPIC,
+				groupName,
+			)
+
+			cl = &ChannelLink{
+				RootId: root.Id,
+				LeafId: leaf2.Id,
+			}
+
+			So(cl.Create(), ShouldBeNil)
+
+			Convey("should return its leaves", func() {
+				leaves, err := root.FetchLeaves()
+				So(err, ShouldBeNil)
+				So(leaves, ShouldNotBeNil)
+				So(len(leaves), ShouldEqual, 2)
+			})
 		})
 	})
 }

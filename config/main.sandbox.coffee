@@ -56,6 +56,10 @@ Configuration = (options={}) ->
 
   segment                 = 'kb2hfdgf20'
 
+
+  disabledFeatures =
+    moderation : yes
+
   socialapi =
     proxyUrl                : "#{customDomain.local}/api/social"
     port                    : "7000"
@@ -84,6 +88,7 @@ Configuration = (options={}) ->
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
     segment                 : segment
+    disabledFeatures        : disabledFeatures
 
   userSitesDomain     = "sandbox.koding.io"
   socialQueueName     = "koding-social-#{configName}"
@@ -405,6 +410,10 @@ Configuration = (options={}) ->
             proxyPass   : "http://socialapi/search-key$1$is_args$args"
           }
           {
+            location    : "~ /api/social/moderation/(.*)"
+            proxyPass   : "http://socialapi/moderation/$1$is_args$args"
+          }
+          {
             location    : "~ /api/social/(.*)"
             proxyPass   : "http://socialapi/$1$is_args$args"
             internalOnly: yes
@@ -486,6 +495,11 @@ Configuration = (options={}) ->
       supervisord       :
         command         : "#{GOBIN}/privatemessageemailsender -c #{socialapi.configFilePath}"
 
+    topicmoderation     :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/topicmoderation -c #{socialapi.configFilePath}"
+
     collaboration :
       group             : "socialapi"
       supervisord       :
@@ -514,6 +528,11 @@ Configuration = (options={}) ->
       group             : "socialapi"
       supervisord       :
         command         : "#{GOBIN}/emailsender -c #{socialapi.configFilePath}"
+
+    team                :
+      group             : "socialapi"
+      supervisord       :
+        command         : "#{GOBIN}/team -c #{socialapi.configFilePath}"
 
   #-------------------------------------------------------------------------#
   #---- SECTION: AUTO GENERATED CONFIGURATION FILES ------------------------#

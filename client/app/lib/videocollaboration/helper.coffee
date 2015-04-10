@@ -1,4 +1,11 @@
 $ = require 'jquery'
+_ = require 'lodash'
+kd = require 'kd'
+remote = require('app/remote').getInstance()
+whoami = require 'app/util/whoami'
+getNick = require 'app/util/nick'
+
+ProfileTextView = require 'app/commonviews/linkviews/profiletextview'
 
 ###*
  * It makes a request to the backend and gets session id
@@ -54,9 +61,242 @@ generateToken = (options, callback) ->
 toNickKeyedMap = (subscribers, publisher) ->
 
   map = {}
-  map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers
+  map[subscriber.nick] = subscriber  for own cId, subscriber of subscribers when subscriber
   map[publisher.nick] = publisher  if publisher
   return map
+
+
+###*
+ * Subscribes to given stream, appends the DOM element into given view
+ * instance's DOM element.
+ *
+ * @param {OT.Session} session
+ * @param {OT.Stream} stream
+ * @param {KDView} view
+###
+subscribeToStream = (session, stream, view, callbacks) ->
+
+  nick = stream.name
+  options =
+    height       : '100%'
+    width        : '100%'
+    insertMode   : 'append'
+    style        :
+      audioLevelDisplayMode    : 'off'
+      buttonDisplayMode        : 'off'
+      nameDisplayMode          : 'off'
+      videoDisabledDisplayMode : 'on'
+
+  remote.cacheable nick, (err, [account]) ->
+    return callbacks.error err  if err
+    subscriber = session.subscribe stream, view.getElement(), options, (err) ->
+      return callbacks.error err  if err
+      fixParticipantBackgroundImage subscriber, account
+      subscriber.setStyle 'backgroundImageURI', uri = _getGravatarUri account
+      callbacks.success subscriber
+
+
+###*
+ * It creates the `OT.Publisher` instance for sending video/audio.
+ *
+ * @param {KDView} view - view instance for publisher.
+ * @param {objcet=} options - Options to pass to `OT.initPublisher` method
+ * @param {string=} options.insertMode
+ * @param {string=} options.name
+ * @param {objcet=} options.style
+ * @return {OT.Publisher} publisher
+ * @see {@link https://tokbox.com/opentok/libraries/client/js/reference/OT.html#initPublisher}
+###
+createPublisher = (view, options = {}, callback) ->
+
+  options.name        or= getNick()
+  options.insertMode  or= 'append'
+  options.showControls ?= off
+
+  options.height = 265
+  options.width  = 325
+
+  publisher = OT.initPublisher view.getElement(), options, (err) ->
+    return callback err  if err
+    fixParticipantBackgroundImage publisher, whoami()
+    callback null, publisher
+
+
+###*
+ * Fix given participant's background image.
+ * TODO: investigate if this method is more suitable for VideoViewModel
+ *
+ * @param {ParticipantType.Participant} participant
+ * @param {JAccount} account
+###
+fixParticipantBackgroundImage = (participant, account) ->
+
+  poster = participant.element.querySelector '.OT_video-poster'
+  poster.style.backgroundImage = "url(#{_getGravatarUri account})"
+  kd.utils.defer -> poster.style.opacity = 1
+
+  el = document.createElement 'span'
+  el.classList.add 'profile-like-view'
+  el.innerHTML = getNicename account
+
+  poster.appendChild el
+
+
+###*
+ * Return nickname if present, or firstname + lastname, from given account.
+ *
+ * @param {JAccount} account
+###
+getNicename = (account) ->
+
+  { firstName, lastName, nickname } = account.profile
+
+  if firstName is '' and lastName is ''
+  then "@#{nickname}"
+  else "#{firstName} #{lastName}"
+
+
+###*
+ * Subscribes to audio changes of given subscriber/publisher. It will call given
+ * `callbacks.started` when talking started, and will call `callbacks.stopped`
+ * when talking stopped.
+ *
+ * @param {(OT.Subscriber|OT.Publisher)} participant
+ * @param {object<string, function>} callbacks
+###
+subscribeToAudioChanges = (participant, callbacks) ->
+
+  # this object will be used to keep track of talking activity.
+  activity = null
+
+  participant.on 'audioLevelUpdated', (event) ->
+    now = Date.now()
+    # we detected a sound from participant
+    if event.audioLevel > 0.1
+      # create initial activity with talking flag is off when there is no
+      # talking activity.
+      if not activity
+        activity = {timestamp: now, talking: off}
+
+      # if it's already talking just updated the timestamp.
+      else if activity.talking
+        activity.timestamp = now
+
+      # detected that user is talking more than .5 second.
+      # call `started` function of given `callbacks`.
+      else if now - activity.timestamp > 500
+        activity.talking = on
+        callbacks.started()
+
+    # we have an activity record, it's not updated for the past 1 secs.
+    # call `stopped` function of given `callbacks`
+    else if activity and now - activity.timestamp > 1000
+      callbacks.stopped()  if activity.talking
+      activity = null
+
+
+###*
+ * get user's gravatar, return the default avatar if user doesn't have an avatar.
+ *
+ * @param {JAccount} account
+ * @param {number} size
+###
+_getGravatarUri = (account, size = 355) ->
+
+  {hash} = account.profile
+  {protocol} = global.location
+  defaultUri = "https://koding-cdn.s3.amazonaws.com/images/one-pixel-dark-square.png"
+  return "#{protocol}//gravatar.com/avatar/#{hash}?size=#{size}&d=#{defaultUri}&r=g"
+
+
+###*
+ * Sets given channel's `videoEnabled` state to given state, then calls the
+ * callback.
+ *
+ * @param {SocialChannel} channel
+ * @param {boolean} state
+ * @param {function(err: (object|null), result: SocialChannel) callback
+ * @api private
+###
+setVideoState = (channel, state, callback) ->
+
+  { payload } = channel
+
+  options =
+    id      : channel.id
+    payload : _.assign {}, payload, { videoEnabled : state }
+
+  kd.singletons.socialapi.channel.update options, callback
+
+
+###*
+ * Enable given channel's video.
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err: (object|null), result: SocialChannel) callback
+###
+enableVideo = (channel, callback) -> setVideoState channel, yes, callback
+
+
+###*
+ * Disable given channel's video.
+ *
+ * @param {SocialChannel} channel
+ * @param {function(err: (object|null), result: SocialChannel) callback
+###
+disableVideo = (channel, callback) -> setVideoState channel, no, callback
+
+
+###*
+ * Check channel's payload to see if video is enabled.
+ *
+ * @param {SocialChannel} channel
+ * @return {boolean} isActive
+###
+isVideoActive = (channel) -> channel?.payload?.videoEnabled is 'true'
+
+
+###*
+ * Set videoSessionId to paylod of given channel, then call callback.
+ *
+ * @param {SocialChannel}
+ * @param {string} sessionId
+ * @param {function} callback
+###
+setChannelVideoSession = (channel, sessionId, callback) ->
+
+  { payload } = channel
+
+  options =
+    id      : channel.id
+    payload : _.assign {}, payload, { videoSessionId : sessionId }
+
+  kd.singletons.socialapi.channel.update options, callback
+
+
+###*
+ * Return given channel's video session id. It can be used for boolean checks
+ * as if it's a `hasSessionId` named method.
+ *
+ * @param {SocialChannel} channel
+ * @return {string|undefined} id
+###
+getChannelSessionId = (channel) -> channel?.payload?.videoSessionId
+
+
+###*
+ * @param {KDView} container
+ * @param {string} nickname
+ * @param {function(err: object)}
+###
+showOfflineParticipant = (container, nickname, callback) ->
+
+  container.destroySubViews()
+  remote.cacheable nickname, (err, [account]) ->
+    return callback err  if err
+    container.getElement().style.backgroundImage = "url(#{_getGravatarUri account})"
+    container.addSubView new ProfileTextView {}, account
+    container.show()
 
 
 ###*
@@ -73,5 +313,14 @@ module.exports = {
   generateSession
   generateToken
   toNickKeyedMap
+  subscribeToStream
+  createPublisher
+  subscribeToAudioChanges
+  enableVideo
+  disableVideo
+  isVideoActive
+  setChannelVideoSession
+  showOfflineParticipant
+  getChannelSessionId
   _errorSignal
 }

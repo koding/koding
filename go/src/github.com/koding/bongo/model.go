@@ -44,6 +44,7 @@ func (b *Bongo) Unscoped() *gorm.DB {
 func (b *Bongo) UnscopedById(i Modellable, id int64) error {
 	if err := b.DB.
 		Unscoped().
+		Model(i).
 		Table(i.BongoName()).
 		Where("id = ?", id).
 		Find(i).

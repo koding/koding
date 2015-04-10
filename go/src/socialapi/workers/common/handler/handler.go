@@ -43,6 +43,10 @@ type Request struct {
 	Name           string
 	CollectMetrics bool
 	Metrics        *kmetrics.Metrics
+
+	// Securer holds the secure functions for handlers
+	Securer interface{}
+
 	// used for external requests
 	Params    map[string]string
 	Cookie    string
@@ -90,8 +94,13 @@ func Wrapper(r Request) http.Handler {
 
 	var hHandler http.Handler
 
-	// count the statuses of the requests
-	hHandler = buildHandlerWithStatusCount(handler, r)
+	if r.Securer != nil {
+		hHandler = Secure(handler, r.Securer, r.Name)
+	} else {
+		hHandler = tigertonic.Marshaled(handler)
+	}
+
+	hHandler = buildHandlerWithStatusCount(hHandler, r)
 
 	hHandler = buildHandlerWithTimeTracking(hHandler, r)
 
@@ -108,10 +117,8 @@ func Wrapper(r Request) http.Handler {
 }
 
 // count the statuses of the requests
-func buildHandlerWithStatusCount(handler interface{}, r Request) http.Handler {
-	return CountedByStatus(
-		tigertonic.Marshaled(handler), r.Name, r.CollectMetrics,
-	)
+func buildHandlerWithStatusCount(handler http.Handler, r Request) http.Handler {
+	return CountedByStatus(handler, r.Name, r.CollectMetrics)
 }
 
 // add request time tracking
@@ -168,7 +175,7 @@ func BuildHandlerWithRateLimit(handler http.Handler, limiter func(*http.Request)
 			timeToWait := bucket.Take(1)
 			if timeToWait > time.Duration(0) {
 				h.Add("Retry-After", strconv.FormatInt(int64(timeToWait.Seconds()), 10))
-				return h, &response.LimitRateExceededError{}
+				return h, response.LimitRateExceededError{}
 			}
 
 			return h, nil
