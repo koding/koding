@@ -34,14 +34,6 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
             cssClass      : "apps"
             defaultValue  : formData?.app
             selectOptions : apps
-      visibility          :
-        label             : "Show items together"
-        itemClass         : KodingSwitch
-        defaultValue      : formData?.visibility ? no
-      overlay             :
-        label             : "Add Overlay"
-        itemClass         : KodingSwitch
-        defaultValue      : formData?.overlay ? yes
 
     options.buttons       =
       Save                :
@@ -61,8 +53,8 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     data              =
       partialType     : "ONBOARDING"
       partial         :
-        visibility    : @inputs.visibility.getValue()
-        overlay       : @inputs.overlay.getValue()
+        visibility    : no
+        overlay       : yes
         app           : @inputs.app.getValue()
         items         : @jCustomPartial?.partial.items   or []
       name            : @inputs.name.getValue()          or ""

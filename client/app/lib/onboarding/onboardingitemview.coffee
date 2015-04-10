@@ -32,27 +32,28 @@ module.exports = class OnboardingItemView extends KDView
       if @parentElement instanceof Node
         @parentElement = @getKDViewFromElementNode @parentElement
 
-      if @parentElement instanceof KDView
+      if @parentElement instanceof KDView and not @parentElement.hasClass 'hidden'
         @createContextMenu()
         @listenEvents()
       else
-        console.warn "Target element should be an instance of KDView or Node", { appName, itemName }
+        console.warn "Target element should be an instance of KDView or Node and should be visible", { appName, itemName }
     catch e
       console.warn "Couldn't create onboarding item", { appName, itemName, e }
 
 
   createContextMenu: ->
 
+    @overlay           = new KDSpotlightView
+      cssClass    : "onboarding-spotlight"
+      isRemovable : no
+      delegate    : @parentElement
+
     @contextMenu       = new OnboardingContextMenu
       cssClass         : "onboarding-wrapper"
       sticky           : yes
-      arrow            :
-        placement      : "top"
       menuMaxWidth     : 500
       menuWidth        : 500
       delegate         : @parentElement
-      x                : @parentElement.getX() - 20
-      y                : @parentElement.getY() + 40
     , customView       : @createContentView()
 
     @contextMenu.on "viewAppended", =>
@@ -60,15 +61,12 @@ module.exports = class OnboardingItemView extends KDView
         @destroy()
 
       kd.utils.defer =>
-        left = @parentElement.getX() - @contextMenu.getX() + 10
-        @contextMenu.arrow.setCss "left", left
         $("body").addClass "noscroll"
 
 
   createContentView: ->
 
     {title, content} = @getData()
-    @overlay       = new KDSpotlightView  { isRemovable : no,   delegate : @parentElement }
     title          = new KDCustomHTMLView { tagName     : "h3", partial  : title          }
     content        = new KDCustomHTMLView { tagName     : "p" , partial  : content        }
     buttonsWrapper = new KDCustomHTMLView { cssClass    : "buttons"                       }
