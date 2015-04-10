@@ -4,7 +4,11 @@ package team
 import (
 	"socialapi/config"
 	"socialapi/models"
+
+	"koding/db/mongodb/modelhelper"
 	"strconv"
+
+	"labix.org/v2/mgo"
 
 	"github.com/koding/logging"
 	"github.com/streadway/amqp"
@@ -44,7 +48,7 @@ func (c *Controller) HandleParticipant(cp *models.ChannelParticipant) error {
 	}
 
 	group, err := modelhelper.GetGroup(channel.GroupName)
-	if err != nil && mgo.ErrNotFound {
+	if err != nil && err != mgo.ErrNotFound {
 		return err
 	}
 
@@ -64,12 +68,12 @@ func (c *Controller) HandleParticipant(cp *models.ChannelParticipant) error {
 
 		// i wrote all of them to have a referance for future, because we
 		// are gonna need this logic while implementing invitations ~ CS
-		switch p.StatusConstant {
+		switch cp.StatusConstant {
 		case models.ChannelParticipant_STATUS_ACTIVE:
 			err = cp.Create()
 		case models.ChannelParticipant_STATUS_BLOCKED:
 			err = cp.Block()
-		case p.StatusConstant == models.ChannelParticipant_STATUS_LEFT:
+		case models.ChannelParticipant_STATUS_LEFT:
 			err = cp.Delete()
 		}
 

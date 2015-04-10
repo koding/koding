@@ -22,6 +22,7 @@ func TestTeam(t *testing.T) {
 		NewController(r.Log, appConfig)
 		Convey("when we add a new participant into a channel", func() {
 			Convey("participant should be added to default channels", func() {
+
 			})
 		})
 	})
