@@ -235,6 +235,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 
 	cloudInitConfig := &userdata.CloudInitConfig{
 		Username:    m.Username,
+		Groups:      []string{"sudo"},
 		UserSSHKeys: sshKeys,
 		Hostname:    m.Username, // no typo here. hostname = username
 		KiteId:      kiteId,

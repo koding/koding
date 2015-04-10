@@ -21,6 +21,7 @@ type Userdata struct {
 // CloudInitConfig is used as source for the cloudInit template.
 type CloudInitConfig struct {
 	Username           string
+	Groups             []string
 	UserSSHKeys        []string
 	Hostname           string
 	KiteKey            string
@@ -48,6 +49,7 @@ var (
 			}
 			return c
 		},
+		"join": strings.Join,
 	}
 
 	cloudInitTemplate = template.Must(template.New("cloudinit").Funcs(funcMap).Parse(cloudInit))
@@ -67,7 +69,7 @@ users:
   - name: '{{.Username}}'
     lock_passwd: True
     gecos: Koding
-    groups: docker,sudo
+    groups: {{join .Groups ","}} 
     sudo: ["ALL=(ALL) NOPASSWD:ALL"]
     shell: /bin/bash
 
