@@ -170,7 +170,7 @@ class ShortcutsController extends kd.Controller
         unless matchesEnabled and matchesBinding
           @emit 'change', collection,
             @shortcuts.update collection.name, model.name, {
-              binding: klass._replacePlatformBinding model, override.binding,
+              binding: klass._replacePlatformBinding model, override.binding
               options: enabled: override.enabled
             },
               klass._isCustomShortcut model
