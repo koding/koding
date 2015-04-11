@@ -154,6 +154,10 @@ module.exports = class SearchController extends KDObject
   getIndex: (indexName) ->
     unless @indexes[indexName]?
       index = @algolia.initIndex indexName
+      # this is for clearing the query cache every 10 seconds
+      setInterval =>
+        index.clearCache()
+      , 10000
       # index.setSettings attributesForFaceting: 'channel'
       @indexes[indexName] = index
     @indexes[indexName]
