@@ -6,7 +6,7 @@
     "accounting": "0.4.1",
     "backoff": "2.4.1",
     "bluebird": "2.8.2",
-    "bongo-client": "git+ssh://git@github.com:koding/bongo-client#v0.2.2",
+    "bongo-client": "git+ssh://git@github.com:koding/bongo-client#v0.1.7",
     "broker-client": "git+ssh://git@github.com:koding/broker-client#v0.3.1",
     "component-os": "0.0.1",
     "dateformat": "1.0.11",
@@ -15,7 +15,6 @@
     "glob": "5.0.3",
     "highlight.js": "8.4.0",
     "htmlencode": "0.0.4",
-    "immutable": "3.7.2",
     "inherits-underscore": "0.2.0",
     "is-my-json-valid": "2.10.0",
     "jquery": "2.1.3",
@@ -24,7 +23,7 @@
     "kd-shim-jquery-sketchpad": "0.1.1",
     "kd-shim-jspath": "0.2.0",
     "kd-shim-sockjs-client": "0.3.4",
-    "kd.js": "1.1.2",
+    "kd.js": "git://github.com/tetsuo/kd#build/c4dd56e202",
     "keycode": "2.0.0",
     "kite.js": "git://github.com/tetsuo/kite.js#v0.5.0",
     "kookies": "0.1.1",
@@ -33,7 +32,6 @@
     "marked": "0.3.2",
     "ndpane": "0.1.2",
     "node-uuid": "1.4.2",
-    "raf": "2.0.4",
     "record-shortcuts": "0.1.2",
     "shortcuts": "0.4.0",
     "sinkrow": "git+ssh://git@github.com:koding/sinkrow#v0.1.2",
@@ -42,8 +40,7 @@
     "validator": "3.33.0"
   },
   "scripts": {
-    "preinstall": "./npm-preinstall.sh",
-    "postinstall": "./npm-postinstall.sh",
+    "preinstall": "../scripts/install-npm.sh -d client/builder && ../scripts/install-npm.sh -d client/landing",
     "test": "make test"
   },
   "browser": {
