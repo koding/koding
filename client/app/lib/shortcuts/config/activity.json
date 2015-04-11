@@ -3,12 +3,10 @@
     "name": "nextwindow",
     "binding": [
       [
-        "alt+down",
-        "alt+]"
+        "alt+down"
       ],
       [
-        "alt+down",
-        "alt+]"
+        "alt+down"
       ]
     ],
     "description": "Next window",
@@ -20,12 +18,10 @@
     "name": "prevwindow",
     "binding": [
       [
-        "alt+up",
-        "alt+["
+        "alt+up"
       ],
       [
-        "alt+up",
-        "alt+["
+        "alt+up"
       ]
     ],
     "description": "Previous window",
