@@ -323,9 +323,10 @@ class ShortcutsController extends kd.Controller
 
       set.map (model) ->
         _.extend model.toJSON(),
-          binding : klass._getPlatformBinding model
-          enabled : if model.options?.enabled is no  then no  else yes
-          hidden  : if model.options?.hidden  is yes then yes else no
+          binding    : klass._getPlatformBinding model
+          enabled    : if model.options?.enabled is no  then no  else yes
+          hidden     : if model.options?.hidden  is yes then yes else no
+          collection : name
       .value()
 
 
