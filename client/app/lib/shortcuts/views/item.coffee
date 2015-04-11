@@ -2,11 +2,6 @@ kd = require 'kd'
 _  = require 'lodash'
 present = require '../presenters/binding'
 
-renderToggle = _.template """
-  <div class="toggle <% if(enabled) { %>enabled<% } %>">
-  <span class=icon>
-"""
-
 module.exports =
 
 class Item extends kd.View
@@ -25,7 +20,9 @@ class Item extends kd.View
     toggle = new kd.View
       cssClass : 'col'
       tagName  : 'div'
-      partial  : renderToggle enabled : @model.enabled
+      partial: '<div class=toggle><span class=icon>'
+
+    if @model.enabled then toggle.setClass 'enabled'
 
     description = new kd.View
       cssClass : 'col'
@@ -36,8 +33,8 @@ class Item extends kd.View
       partial  : present _.first @model.binding
 
     toggleClickHandler = (e) =>
-      enabled = if _.isBoolean e then e else not @_enabled
-      toggle.updatePartial renderToggle enabled: (@_enabled = enabled)
+      @_enabled = if _.isBoolean e then e else not @_enabled
+      if @_enabled then toggle.setClass 'enabled' else toggle.unsetClass 'enabled'
       @emit 'Toggled', @_enabled
 
     bindingClickHandler = =>
