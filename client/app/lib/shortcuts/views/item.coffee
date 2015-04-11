@@ -22,16 +22,10 @@ class Item extends kd.View
 
   viewAppended: ->
 
-    self = this
-
     toggle = new kd.View
       cssClass : 'col'
       tagName  : 'div'
       partial  : renderToggle enabled : @model.enabled
-      click    : (e) ->
-        enabled = if _.isBoolean e then e else not self._enabled
-        @updatePartial renderToggle enabled: (self._enabled = enabled)
-        self.emit 'StateChanged', @id
 
     description = new kd.View
       cssClass : 'col'
@@ -40,14 +34,35 @@ class Item extends kd.View
     binding = new kd.View
       cssClass : 'col'
       partial  : present _.first @model.binding
-      click    : => @emit 'BindingSelected', @id
+
+    toggleClickHandler = (e) =>
+      enabled = if _.isBoolean e then e else not @_enabled
+      toggle.updatePartial renderToggle enabled: (@_enabled = enabled)
+      @emit 'Toggled', @_enabled
+
+    bindingClickHandler = =>
+      @setClass 'active'
+      binding.updatePartial ''
+      @emit 'Selected',
+        (res) =>
+          partial = if res then present res else present _.first @model.binding
+          binding.updatePartial partial
+          @unsetClass 'active'
+
+    syncHandler = (model) ->
+      toggle.click model.enabled
+      #binding.updatePartial present _.first model.binding
+
+    destroyHandler = =>
+      @off        'Synced' , syncHandler
+      toggle.off  'click'  , toggleClickHandler
+      binding.off 'click'  , bindingClickHandler
+
+    toggle.on  'click'                   , toggleClickHandler
+    binding.on 'click'                   , bindingClickHandler
+    @on        'Synced'                  , syncHandler
+    @once      'KDObjectWillBeDestroyed' , destroyHandler
 
     @addSubView toggle
     @addSubView description
     @addSubView binding
-
-    @on 'Synced', (model) ->
-      toggle.click model.enabled
-      binding.updatePartial present _.first model.binding
-
-    @once 'KDObjectWillBeDestroyed', => @off 'Synced'
