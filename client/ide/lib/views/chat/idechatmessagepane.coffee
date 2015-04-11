@@ -7,7 +7,9 @@ ActivityItemMenuItem = require 'activity/views/activityitemmenuitem'
 ReplyInputWidget     = require 'activity/views/privatemessage/replyinputwidget'
 PrivateMessagePane   = require 'activity/views/privatemessage/privatemessagepane'
 isMyChannel          = require 'app/util/isMyChannel'
+isVideoFeatureEnabled = require 'app/util/isVideoFeatureEnabled'
 
+IDEChatMessageParticipantAvatar = require './idechatmessageparticipantavatar'
 
 module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
@@ -21,13 +23,13 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     super options, data
 
     @isInSession = options.isInSession
+    @videoActive = no
 
     @define 'visible', => @getDelegate().visible
 
     @on 'AddedParticipant', @bound 'participantAdded'
 
     @input.input.on 'focus', @lazyBound 'handleFocus', yes
-
 
     @once 'NewParticipantButtonClicked', => @onboarding?.destroy()
 
@@ -47,6 +49,36 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     return  unless @isPageAtBottom()
 
     @glance()
+
+
+  handleVideoActive: -> @videoActive = yes
+  handleVideoEnded: -> @videoActive = no
+
+
+  setActiveParticipantAvatar: (account) ->
+
+    for own id, avatar of @participantMap
+      if id is account._id
+      then avatar.setClass 'is-activeParticipant'
+      else avatar.unsetClass 'is-activeParticipant'
+
+
+  setSelectedParticipantAvatar: (account) ->
+
+    for own id, avatar of @participantMap
+      # if account is null all avatars will receive `unsetClass` calls.
+      # `null` account means: "SELECT NO ONE!"
+      if id is account?._id
+      then avatar.setClass 'is-selectedParticipant'
+      else avatar.unsetClass 'is-selectedParticipant'
+
+
+  setAvatarTalkingState: (nickname, state) ->
+
+    for _, avatar of @participantMap when avatar.data.profile.nickname is nickname
+      if state
+      then avatar.setClass 'is-talkingParticipant'
+      else avatar.unsetClass 'is-talkingParticipant'
 
 
   glance: ->
@@ -132,6 +164,10 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
     @addSubView header
 
 
+  requestStartVideo: -> @emit 'ChatVideoStartRequested'
+  requestEndVideo: -> @emit 'ChatVideoEndRequested'
+
+
   createMenu: ->
 
     channel = @getData()
@@ -149,14 +185,22 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
   settingsMenu: ->
 
     menu =
-      'Search'     : cssClass : 'disabled', callback: kd.noop
-      # 'Settings'   : callback : @getDelegate().bound 'showSettingsPane'
-      'Minimize'   : callback : @getDelegate().bound 'end'
-      'Learn More' : separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration'
+      'Search'     : { cssClass : 'disabled', callback: kd.noop }
+      'Minimize'   : { callback : @getDelegate().bound 'end' }
+      'Learn More' : { separator: yes, callback : -> kd.utils.createExternalLink 'http://learn.koding.com/collaboration' }
+      # 'Settings' : { callback : @getDelegate().bound 'showSettingsPane' }
 
-    if @isInSession
-    then menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
-    else menu['End Session']   = { callback : => @parent.settingsPane.stopSession() }
+    isHost = not @isInSession
+
+    if isVideoFeatureEnabled() and isHost
+      seperator = yes
+      if @videoActive
+      then menu['End Video Chat'] = { seperator, callback: @bound 'requestEndVideo' }
+      else menu['Start Video Chat']  = { seperator, callback: @bound 'requestStartVideo' }
+
+    if isHost
+    then menu['End Session']   = { callback : => @parent.settingsPane.stopSession() }
+    else menu['Leave Session'] = { callback : => @parent.settingsPane.leaveSession() }
 
     return menu
 
@@ -181,6 +225,30 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
     appManager = kd.getSingleton 'appManager'
     appManager.tell 'IDE', 'setMachineUser', [participant.profile.nickname]
+
+
+  addParticipant: (participant) ->
+
+    return  unless participant
+    return  if @participantMap[participant._id]?
+
+    participant.id = participant._id
+
+    @heads.addSubView avatar = new IDEChatMessageParticipantAvatar
+      size      :
+        width   : 25
+        height  : 25
+      origin    : participant
+
+    @forwardEvent avatar, 'ParticipantSelected'
+
+    @participantMap[participant._id] = avatar
+
+
+  setHeadsPosition: ->
+
+    floors = Math.floor (Object.keys(@participantMap).length + 1) / 8
+    @heads.$().css marginTop : "#{-(floors * 35)}px"
 
 
   refresh: ->

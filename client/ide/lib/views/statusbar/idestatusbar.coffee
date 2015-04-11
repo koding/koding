@@ -44,7 +44,7 @@ module.exports = class IDEStatusBar extends KDView
 
     @collaborationEndButtonContainer.addSubView @collaborationEndButton = new KDButtonView
       title    : 'END SESSION'
-      cssClass : 'compact solid red'
+      cssClass : 'compact solid red end-session'
       callback : @bound 'handleSessionEnd'
 
     @addSubView new KDCustomHTMLView
@@ -140,13 +140,17 @@ module.exports = class IDEStatusBar extends KDView
 
   handleCollaborationLoading: ->
 
-    @share.setClass 'loading'
+    @share.setClass      'loading'
+    @share.unsetClass    'active'
+    @share.unsetClass    'not-started'
     @share.updatePartial 'Loading'
 
 
   handleCollaborationEnded: ->
 
-    @share.unsetClass 'loading'
+    @share.setClass      'not-started'
+    @share.unsetClass    'loading'
+    @share.unsetClass    'active'
     @share.updatePartial 'Share'
     @avatars.destroySubViews()
 
@@ -158,7 +162,9 @@ module.exports = class IDEStatusBar extends KDView
 
   handleCollaborationStarted: ->
 
-    @share.unsetClass 'loading'
+    @share.setClass      'active'
+    @share.unsetClass    'loading'
+    @share.unsetClass    'not-started'
     @share.updatePartial 'Chat'
 
     @status.hide()

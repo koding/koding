@@ -28,7 +28,7 @@ pmLinkColor   = #B6B6B6
   overflow                  hidden
 
   .custom-link-view.close
-    abs                     15px 12px 0 0
+    abs                     15px 19px 0 0
     size                    20px 20px
     z-index                 1
     .icon
@@ -155,6 +155,173 @@ pmLinkColor   = #B6B6B6
         fl()
       .kdselectbox
         fr()
+
+
+.chat-view.is-videoActive
+
+  .message-pane .onboarding
+    top                     10px
+
+  .general-header
+    position                absolute
+    top                     -265px
+    color                   #fff
+    gradient                rgba(0,0,0,.7), rgba(0,0,0,0)
+    display                 block
+    padding                 12px 16px
+    width                   100%
+    z-index                 1
+    borderBox()
+
+  a.workspace-name
+    color                   #ccc
+
+  .kdtabpaneview.privatemessage
+    height                  302px
+    max-height              302px
+    min-height              302px
+
+    .message-pane-scroller
+      height                calc(100% \- 44px)
+
+    .chat-heads
+      position              absolute
+      top                   -52px
+      margin-top            0px
+      vendor                transition, margin-top .177s ease
+
+      .heads .avatarview.is-selectedParticipant img
+        border-color        legendary
+
+      .heads .avatarview.is-talkingParticipant:after
+        vendor              animation, radiate 1s ease infinite
+        opacity             1
+
+      .kdbutton.new-participant
+        background          #fff
+        rounded             2px
+        border              2px solid #fff
+        size                25px 25px
+        margin-top          14px
+        contentBox()
+
+      .heads .avatarview
+        rounded             2px
+        overflow            visible
+        margin              6px 6px 0 0
+        rel()
+        img
+          z-index           1
+          rel()
+        &:after
+          background        logoBg
+          z-index           0
+          size              100% 100%
+          abs               0px 0 0 0px
+          shadow            0 0 5px logoBg
+          vendor            transition, opacity .3s ease
+          content           ''
+          opacity           0
+
+      .heads .avatarview img
+        rounded             2px
+        border              2px solid rgba(255,255,255,.5)
+
+    .new-message-form.inline.active
+      top                   -4px
+
+@-webkit-keyframes radiate
+  0%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+  61.2%
+    shadow                  0 0 6px 2px rgba(26,175,93,1)
+  100%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+
+@-moz-keyframes radiate
+  0%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+  61.2%
+    shadow                  0 0 6px 2px rgba(26,175,93,1)
+  100%
+    shadow                  0 0 6px 2px rgba(26,175,93,.3)
+
+
+.ChatVideo--IDEChatVideo
+
+  size                    325px 265px
+  overflow                hidden
+  bg                        color #131313
+
+  .ChatVideo-container
+    size                    100% 100%
+    bg                      color #131313
+
+  .ChatVideo-offlineUserContainer
+    position                absolute
+    top                     0
+    left                    0
+    width                   100%
+    height                  100%
+    background              url(https://koding-cdn.s3.amazonaws.com/images/one-pixel-dark-square.png)
+    background-size         cover
+
+  .OT_video-poster .profile-like-view
+  .ChatVideo-offlineUserContainer span.profile
+    top                     50%
+    margin-top              -15px
+    line-height             30px
+    width                   100%
+    text-align              center
+    color                   #ccc
+    font-size               14px
+    bg                      color rgba(0,0,0,0.15)
+    abs()
+
+  .ChatVideo-offlineUserContainer span.profile:after
+    content                'is not on the call.'
+
+  .ChatVideo-controls
+    size                    30px auto
+    position                absolute
+    padding                 0
+    margin                  0
+    top                     50px
+    right                   15px
+    z-index                 10
+
+  .ChatVideoControl
+    size                    30px 30px
+    margin-bottom           5px
+    border-radius           3px
+    padding                 0
+    background              rgba(255, 255, 255, .55)
+
+    &:hover
+      background            rgba(255, 255, 255, 1)
+
+    .icon
+      display               block
+      margin                0 auto !important
+      padding               0
+      float                 none
+      z-index               10
+
+  .ChatVideoControl.ChatVideoControl--audio
+    .icon
+      r-sprite              'ide', 'mic-disabled'
+    &.is-active .icon
+      r-sprite              'ide', 'mic'
+
+  .ChatVideoControl.ChatVideoControl--video
+    .icon
+      r-sprite              'ide', 'cam-disabled'
+    &.is-active .icon
+      r-sprite              'ide', 'cam'
+
+  .ChatVideoControl.ChatVideoControl--end
+    .icon
+      r-sprite              'ide', 'standby'
 
 .chat-view
 

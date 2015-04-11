@@ -18,6 +18,7 @@ socialHelpers                 = require './collaboration/helpers/social'
 envHelpers                    = require './collaboration/helpers/environment'
 CollaborationStateMachine     = require './collaboration/collaborationstatemachine'
 environmentDataProvider       = require 'app/userenvironmentdataprovider'
+isVideoFeatureEnabled         = require 'app/util/isVideoFeatureEnabled'
 
 {warn} = kd
 
@@ -660,6 +661,11 @@ module.exports = CollaborationController =
     @bindRealtimeEvents()
     @bindSocialChannelEvents()
 
+    # this method comes from VideoCollaborationController.
+    # It's mixed into IDEAppController after CollaborationController.
+    # This is probably an anti pattern, we need to look into this again. ~Umut
+    @prepareVideoCollaboration @socialChannel, @chat.getVideoView()
+
     # attach RTM instance to already in-screen panes.
     @forEachSubViewInIDEViews_ @bound 'setRealtimeManager'
 
@@ -683,11 +689,6 @@ module.exports = CollaborationController =
   onCollaborationEnding: ->
 
     @chat.settingsPane.endSession.disable()
-
-    sharedSuccessFn = =>
-      @chat.emit 'CollaborationEnded'
-      @chat = null
-      @modal?.destroy()
 
     if @amIHost
       @endCollaborationForHost
@@ -763,6 +764,8 @@ module.exports = CollaborationController =
 
     @cleanupCollaboration()
 
+    @once 'IDEDidQuit', @bound 'removeWorkspaceSnapshot'
+
 
   showChat: ->
 
@@ -816,6 +819,7 @@ module.exports = CollaborationController =
       delete @stateMachine
 
     @rtm.dispose()
+    @emit 'CollaborationDidCleanup'
 
 
   # environment related

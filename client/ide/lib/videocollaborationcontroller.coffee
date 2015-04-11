@@ -1,4 +1,5 @@
 VideoCollaborationModel = require 'app/videocollaboration/model'
+socialHelpers           = require './collaboration/helpers/social'
 
 module.exports = VideoCollaborationController =
 
@@ -14,51 +15,44 @@ module.exports = VideoCollaborationController =
       .on 'ParticipantJoined',             @bound 'handleVideoParticipantJoined'
       .on 'ParticipantLeft',               @bound 'handleVideoParticipantLeft'
       .on 'ActiveParticipantChanged',      @bound 'handleVideoActiveParticipantChanged'
+      .on 'SelectedParticipantChanged',    @bound 'handleVideoSelectedParticipantChanged'
       .on 'ParticipantAudioStateChanged',  @bound 'handleVideoParticipantAudioStateChanged'
       .on 'ParticipantCameraStateChanged', @bound 'handleVideoParticipantCameraStateChanged'
+      .on 'ParticipantStartedTalking', (participant) =>
+        @handleVideoParticipantTalkingStateChanged participant, on
+      .on 'ParticipantStoppedTalking', (participant) =>
+        @handleVideoParticipantTalkingStateChanged participant, off
+
+    @on 'CollaborationDidCleanup', =>
+      @videoModel.session.disconnect()
 
 
-  joinVideoCollaboration: ->
+  startVideoCollaboration: ->
 
-    @videoModel.join()
+    @videoModel.start()
 
 
-  leaveVideoCollaboration: ->
+  endVideoCollaboration: ->
+
+    @videoModel.end()
+
+
+  toggleVideoControl: (type, activeState) ->
+
+    switch type
+      when 'audio' then @videoModel.setAudioState activeState
+      when 'video' then @videoModel.setVideoState activeState
+      when 'end'   then @endVideoCollaboration()
 
 
   switchToUserVideo: (nickname) ->
 
-    @videoModel.changeActiveParticipant nickname
+    @videoModel.changeSelectedParticipant nickname
 
 
-  muteParticipant: (participant) ->
+  hasParticipantWithAudio: (nickname, callback) ->
 
-    # @videoModel.muteParticipant participant
-
-
-  unmuteParticipant: (participant) ->
-
-    # @videoModel.unmuteParticipant participant
-
-
-  turnOffParticipantCamera: (participant) ->
-
-    # @videoModel.disableParticipantCamera participant
-
-
-  turnOnParticipantCamera: (participant) ->
-
-    # @videoModel.enableParticipantCamera participant
-
-
-  turnOffCamera: ->
-
-    # @videoModel.disableParticipantCamera nick()
-
-
-  turnOnCamera: ->
-
-    # @videoModel.enableParticipantCamera nick()
+    @videoModel.hasParticipantWithAudio nickname, callback
 
 
   handleVideoAccessQuestionAsked: ->
@@ -68,40 +62,52 @@ module.exports = VideoCollaborationController =
 
 
   handleVideoEnded: ->
+    @emitToViews 'VideoCollaborationEnded'
 
 
   handleVideoActive: (publisher) ->
-
-    @chat.emit 'VideoCollaborationActive', publisher
+    @emitToViews 'VideoCollaborationActive'
 
 
   handleVideoParticipantJoined: (participant) ->
-
-    @statusBar.emit 'VideoParticipantDidJoin', participant
-    @chat.emit 'VideoParticipantDidJoin', participant
+    @emitToViews 'VideoParticipantDidJoin', participant
 
 
   handleVideoParticipantLeft: (participant) ->
-
-    @statusBar.emit 'VideoParticipantDidLeave', participant
-    @chat.emit 'VideoParticipantDidLeave', participant
+    @emitToViews 'VideoParticipantDidLeave', participant
 
 
-  handleVideoActiveParticipantChanged: (participant) ->
+  handleVideoSelectedParticipantChanged: (nickname) ->
 
-    @statusBar.emit 'VideoActiveParticipantDidChange', participant
-    @chat.emit 'VideoActiveParticipantDidChange', participant
+    unless nickname
+      @emitToViews 'VideoSelectedParticipantDidChange', null, null
+      return
+
+    socialHelpers.fetchAccount nickname, (err, account) =>
+      return console.error err  if err
+      @emitToViews 'VideoSelectedParticipantDidChange', nickname, account
+
+
+  handleVideoActiveParticipantChanged: (nickname) ->
+    socialHelpers.fetchAccount nickname, (err, account) =>
+      return console.error err  if err
+      @emitToViews 'VideoActiveParticipantDidChange', nickname, account
 
 
   handleVideoParticipantAudioStateChanged: (participant, state) ->
-
-    @statusBar.emit 'VideoParticipantAudioStateDidChange', participant, state
-    @chat.emit 'VideoParticipantAudioStateDidChange', participant, state
+    @emitToViews 'VideoParticipantAudioStateDidChange', participant
 
 
   handleVideoParticipantCameraStateChanged: (participant, state) ->
+    @emitToViews 'VideoParticipantCameraStateDidChange', participant
 
-    @statusBar.emit 'VideoParticipantCameraStateDidChange', participant, state
-    @chat.emit 'VideoParticipantCameraStateDidChange', participant, state
+
+  handleVideoParticipantTalkingStateChanged: (participant, state) ->
+    @emitToViews 'VideoParticipantTalkingStateDidChange', participant, state
+
+
+  emitToViews: (args...) ->
+    @statusBar?.emit args...
+    @chat?.emit args...
 
 
