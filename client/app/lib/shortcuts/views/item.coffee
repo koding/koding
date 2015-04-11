@@ -32,10 +32,11 @@ class Item extends kd.View
       cssClass : 'col'
       partial  : present _.first @model.binding
 
-    toggleClickHandler = (e) =>
+    toggleClickHandler = (e, silent=no) =>
       @_enabled = if _.isBoolean e then e else not @_enabled
       if @_enabled then toggle.setClass 'enabled' else toggle.unsetClass 'enabled'
-      @emit 'Toggled', @_enabled
+      unless silent
+        @emit 'Toggled', @_enabled
 
     bindingClickHandler = =>
       @setClass 'active'
@@ -47,7 +48,7 @@ class Item extends kd.View
           @unsetClass 'active'
 
     syncHandler = (model) ->
-      toggle.click model.enabled
+      toggle.click model.enabled, yes
       #binding.updatePartial present _.first model.binding
 
     destroyHandler = =>
