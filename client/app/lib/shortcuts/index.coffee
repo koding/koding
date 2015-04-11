@@ -109,7 +109,7 @@ class ShortcutsController extends kd.Controller
     @_store._storage.update $set: pack, =>
 
       # and make sure everybody is aware of the changes we've just made
-      _.each (buffer, objs, collectionName) =>
+      _.each buffer, (objs, collectionName) =>
         collection = @get collectionName
         _.each objs, (value) =>
           @emit 'change', collection, collection.find name: value.name
