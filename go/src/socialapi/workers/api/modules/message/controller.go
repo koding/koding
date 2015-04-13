@@ -19,6 +19,25 @@ import (
 
 var publicChannel *models.Channel
 
+func parseLocation(c *models.Context) *string {
+    record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
+    if err != nil {
+			runner.MustGetLogger().Error("Err while parsing ip, err :%s", err.Error())
+
+		} else {
+			city := record.City.Names["en"]
+			country := record.Country.Names["en"]
+			if city != "" {
+				location := fmt.Sprintf("%s, %s", city, country)
+				return &location
+			} else {
+				location := fmt.Sprintf("%s", country)
+				return &location
+			}
+		}
+		return nil
+}
+
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 
 	channelId, err := fetchInitialChannelId(u, c)
@@ -42,22 +61,8 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	if (&as).IsShareLocationEnabled() {
 		// gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
-		record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
-		if err != nil {
-			runner.MustGetLogger().Error("Err while parsing ip, err :%s", err.Error())
-
-		} else {
-			city := record.City.Names["en"]
-			country := record.Country.Names["en"]
-			if city != "" {
-				location := fmt.Sprintf("%s, %s", city, country)
-				req.Payload["location"] = &location
-			} else {
-				location := fmt.Sprintf("%s", country)
-				req.Payload["location"] = &location
-			}
-		}
-
+        location := parseLocation(c)
+        req.Payload["location"] = location
 	}
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {
