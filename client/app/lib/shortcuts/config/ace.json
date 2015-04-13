@@ -1,23 +1,6 @@
 {
   "default": [
     {
-      "name": "showSettingsMenu",
-      "description": "Show Settings Menu",
-      "binding": [
-        [
-          "ctrl+,"
-        ],
-        [
-          "command+,"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
-      }
-    },
-    {
       "name": "goToNextError",
       "description": "Go to Next Error",
       "binding": [
@@ -80,23 +63,6 @@
       }
     },
     {
-      "name": "gotoline",
-      "description": "Go to Line",
-      "binding": [
-        [
-          "ctrl+l"
-        ],
-        [
-          "command+l"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
-      }
-    },
-    {
       "name": "fold",
       "description": "Fold",
       "binding": [
@@ -125,38 +91,6 @@
         [
           "command+alt+shift+l",
           "command+shift+f1"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "toggleFoldWidget",
-      "description": "Toggle Fold Widget",
-      "binding": [
-        [
-          "f2"
-        ],
-        [
-          "f2"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "toggleParentFoldWidget",
-      "description": "Toggle Parent Fold Widget",
-      "binding": [
-        [
-          "alt+f2"
-        ],
-        [
-          "alt+f2"
         ]
       ],
       "options": {
@@ -213,40 +147,6 @@
       }
     },
     {
-      "name": "findnext",
-      "description": "Find Next",
-      "binding": [
-        [
-          "ctrl+k"
-        ],
-        [
-          "command+g"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
-      }
-    },
-    {
-      "name": "findprevious",
-      "description": "Find Previous",
-      "binding": [
-        [
-          "ctrl+shift+k"
-        ],
-        [
-          "command+shift+g"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
-      }
-    },
-    {
       "name": "selectOrFindNext",
       "description": "Select or Find Next",
       "binding": [
@@ -276,23 +176,6 @@
       "options": {
         "custom": true,
         "ace_ro": true
-      }
-    },
-    {
-      "name": "find",
-      "description": "Find",
-      "binding": [
-        [
-          "ctrl+f"
-        ],
-        [
-          "command+f"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
       }
     },
     {
@@ -924,21 +807,6 @@
       }
     },
     {
-      "name": "sortlines",
-      "description": "Sort Lines",
-      "binding": [
-        [
-          "ctrl+alt+s"
-        ],
-        [
-          "command+alt+s"
-        ]
-      ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
       "name": "togglecomment",
       "description": "Toggle Comment",
       "binding": [
@@ -1510,23 +1378,6 @@
       ],
       "options": {
         "custom": true
-      }
-    },
-    {
-      "name": "findAll",
-      "description": "Find All",
-      "binding": [
-        [
-          "ctrl+alt+g"
-        ],
-        [
-          "ctrl+alt+k"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
       }
     }
   ]
