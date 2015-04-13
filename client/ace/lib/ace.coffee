@@ -116,13 +116,22 @@ class Ace extends KDView
         'gotoline'         # overriding this
         'sortlines'        # using same mapping for 'save all' action. XXX: re-map sortlines
         'showSettingsMenu' # f ace default settings menu
+
         'find'
         'findprevious'     # we have our own find and replace dialogs
         'findnext'         # ace default for findnext is cmd+g (mapped to gotoline)
         'findAll'          # not used and collides with toggle filetree
+
+        'replace'
+
         'toggleFoldWidget'
         'toggleParentFoldWidget'
-        
+
+        'passKeysToBrowser'
+        'jumptomatching'
+        'selecttomatching'
+        'expandToMatching'
+
         # iSearchStart
         'iSearch'
         'iSearchAndGo'
@@ -142,6 +151,7 @@ class Ace extends KDView
         'searchForward'
         'shrinkSearchTerm'
         'extendSearchTermSpace'
+
       ]
 
       @focus()

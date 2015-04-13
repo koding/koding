@@ -48,18 +48,3 @@ exports.acedefaultmultiselect =
   data    : aceBindings.defaultMultiSelect
   ns      : 'defaultMultiSelect'
   extends : 'editor'
-
-exports.acemultiselect =
-  data    : aceBindings.multiSelect
-  ns      : 'multiSelect'
-  extends : 'editor'
-
-exports.aceisearch =
-  data    : aceBindings.iSearch
-  ns      : 'iSearch'
-  extends : 'editor'
-
-exports.aceisearchstart =
-  data    : aceBindings.iSearchStart
-  ns      : 'iSearchStart'
-  extends : 'editor'

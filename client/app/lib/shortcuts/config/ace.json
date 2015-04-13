@@ -1,152 +1,6 @@
 {
   "default": [
     {
-      "name": "goToNextError",
-      "description": "Go to Next Error",
-      "binding": [
-        [
-          "alt+e"
-        ],
-        [
-          "ctrl+e"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "goToPreviousError",
-      "description": "Go to Previous Error",
-      "binding": [
-        [
-          "alt+shift+e"
-        ],
-        [
-          "ctrl+shift+e"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectall",
-      "description": "Select All",
-      "binding": [
-        [
-          "ctrl+a"
-        ],
-        [
-          "command+a"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "centerselection",
-      "description": "Center Selection",
-      "binding": [
-        null,
-        [
-          "ctrl+l"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "fold",
-      "description": "Fold",
-      "binding": [
-        [
-          "alt+l",
-          "ctrl+f1"
-        ],
-        [
-          "command+alt+l",
-          "command+f1"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "unfold",
-      "description": "Unfold",
-      "binding": [
-        [
-          "alt+shift+l",
-          "ctrl+shift+f1"
-        ],
-        [
-          "command+alt+shift+l",
-          "command+shift+f1"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "foldall",
-      "description": "Fold All",
-      "binding": [
-        [
-          "ctrl+alt+0"
-        ],
-        [
-          "ctrl+command+option+0"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "foldOther",
-      "description": "Fold Other",
-      "binding": [
-        [
-          "alt+0"
-        ],
-        [
-          "command+option+0"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "unfoldall",
-      "description": "Unfold All",
-      "binding": [
-        [
-          "alt+shift+0"
-        ],
-        [
-          "command+option+shift+0"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
       "name": "selectOrFindNext",
       "description": "Select or Find Next",
       "binding": [
@@ -179,14 +33,142 @@
       }
     },
     {
-      "name": "overwrite",
-      "description": "Overwrite",
+      "name": "selectall",
+      "description": "Select All",
       "binding": [
         [
-          "insert"
+          "ctrl+a"
         ],
         [
-          "insert"
+          "command+a"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "centerselection",
+      "description": "Center Selection",
+      "binding": [
+        [
+          "ctrl+l"
+        ],
+        [
+          "ctrl+l"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "goToNextError",
+      "description": "Go to Next Error",
+      "binding": [
+        [
+          "alt+e"
+        ],
+        [
+          "ctrl+e"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "goToPreviousError",
+      "description": "Go to Previous Error",
+      "binding": [
+        [
+          "alt+shift+e"
+        ],
+        [
+          "ctrl+shift+e"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "fold",
+      "description": "Fold",
+      "binding": [
+        [
+          "alt+l"
+        ],
+        [
+          "alt+command+l"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "unfold",
+      "description": "Unfold",
+      "binding": [
+        [
+          "alt+shift+l"
+        ],
+        [
+          "alt+shift+command+l"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "foldall",
+      "description": "Fold All",
+      "binding": [
+        [
+          "ctrl+alt+0"
+        ],
+        [
+          "ctrl+option+command+0"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "foldOther",
+      "description": "Fold Other",
+      "binding": [
+        [
+          "alt+0"
+        ],
+        [
+          "option+command+0"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "unfoldall",
+      "description": "Unfold All",
+      "binding": [
+        [
+          "alt+shift+0"
+        ],
+        [
+          "option+shift+command+0"
         ]
       ],
       "options": {
@@ -202,57 +184,7 @@
           "ctrl+shift+home"
         ],
         [
-          "command+shift+up"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotostart",
-      "description": "Move to the Beginning of File",
-      "binding": [
-        [
-          "ctrl+home"
-        ],
-        [
-          "command+home",
-          "command+up"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectup",
-      "description": "Select the Line Above",
-      "binding": [
-        [
-          "shift+up"
-        ],
-        [
-          "shift+up"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "golineup",
-      "description": "Move Up",
-      "binding": [
-        [
-          "up"
-        ],
-        [
-          "up",
-          "ctrl+p"
+          "shift+command+up"
         ]
       ],
       "options": {
@@ -268,7 +200,23 @@
           "ctrl+shift+end"
         ],
         [
-          "command+shift+down"
+          "shift+command+down"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "gotostart",
+      "description": "Move to the Beginning of File",
+      "binding": [
+        [
+          "ctrl+home"
+        ],
+        [
+          "command+up"
         ]
       ],
       "options": {
@@ -284,41 +232,7 @@
           "ctrl+end"
         ],
         [
-          "command+end",
           "command+down"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectdown",
-      "description": "Select the Line Below",
-      "binding": [
-        [
-          "shift+down"
-        ],
-        [
-          "shift+down"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "golinedown",
-      "description": "Move Down",
-      "binding": [
-        [
-          "down"
-        ],
-        [
-          "down",
-          "ctrl+n"
         ]
       ],
       "options": {
@@ -343,90 +257,6 @@
       }
     },
     {
-      "name": "gotowordleft",
-      "description": "Move Backward a Word",
-      "binding": [
-        [
-          "ctrl+left"
-        ],
-        [
-          "option+left"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selecttolinestart",
-      "description": "Select Text Before Cursor",
-      "binding": [
-        [
-          "alt+shift+left"
-        ],
-        [
-          "command+shift+left"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotolinestart",
-      "description": "Move to The Beginning of the Line",
-      "binding": [
-        [
-          "alt+left",
-          "home"
-        ],
-        [
-          "command+left",
-          "home",
-          "ctrl+a"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectleft",
-      "description": "Select to the Left",
-      "binding": [
-        [
-          "shift+left"
-        ],
-        [
-          "shift+left"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotoleft",
-      "description": "Move Left",
-      "binding": [
-        [
-          "left"
-        ],
-        [
-          "left",
-          "ctrl+b"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
       "name": "selectwordright",
       "description": "Select the Word After Cursor",
       "binding": [
@@ -435,6 +265,22 @@
         ],
         [
           "option+shift+right"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
+      "name": "gotowordleft",
+      "description": "Move Backward a Word",
+      "binding": [
+        [
+          "ctrl+left"
+        ],
+        [
+          "option+left"
         ]
       ],
       "options": {
@@ -459,6 +305,22 @@
       }
     },
     {
+      "name": "selecttolinestart",
+      "description": "Select Text Before Cursor",
+      "binding": [
+        [
+          "alt+shift+left"
+        ],
+        [
+          "command+shift+left"
+        ]
+      ],
+      "options": {
+        "custom": true,
+        "ace_ro": true
+      }
+    },
+    {
       "name": "selecttolineend",
       "description": "Select Text After Cursor",
       "binding": [
@@ -467,211 +329,6 @@
         ],
         [
           "command+shift+right"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotolineend",
-      "description": "Move to The End of The Line",
-      "binding": [
-        [
-          "alt+right",
-          "end"
-        ],
-        [
-          "command+right",
-          "end",
-          "ctrl+e"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectright",
-      "description": "Select to the Right",
-      "binding": [
-        [
-          "shift+right"
-        ],
-        [
-          "shift+right"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotoright",
-      "description": "Move Right",
-      "binding": [
-        [
-          "right"
-        ],
-        [
-          "right",
-          "ctrl+f"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectpagedown",
-      "description": "Select Page Down",
-      "binding": [
-        [
-          "shift+pagedown"
-        ],
-        [
-          "shift+pagedown"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "pagedown",
-      "description": "Pagedown",
-      "binding": [
-        null,
-        [
-          "option+pagedown"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotopagedown",
-      "description": "Go to Page Down",
-      "binding": [
-        [
-          "pagedown"
-        ],
-        [
-          "pagedown",
-          "ctrl+v"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectpageup",
-      "description": "Select Page Up",
-      "binding": [
-        [
-          "shift+pageup"
-        ],
-        [
-          "shift+pageup"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "pageup",
-      "description": "Pageup",
-      "binding": [
-        null,
-        [
-          "option+pageup"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "gotopageup",
-      "description": "Go to Page Up",
-      "binding": [
-        [
-          "pageup"
-        ],
-        [
-          "pageup"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "scrollup",
-      "description": "Scroll Up",
-      "binding": [
-        [
-          "ctrl+up"
-        ],
-        null
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "scrolldown",
-      "description": "Scroll Down",
-      "binding": [
-        [
-          "ctrl+down"
-        ],
-        null
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectlinestart",
-      "description": "Select Line Start",
-      "binding": [
-        [
-          "shift+home"
-        ],
-        [
-          "shift+home"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selectlineend",
-      "description": "Select Line End",
-      "binding": [
-        [
-          "shift+end"
-        ],
-        [
-          "shift+end"
         ]
       ],
       "options": {
@@ -709,71 +366,6 @@
       "options": {
         "custom": true,
         "ace_ro": true
-      }
-    },
-    {
-      "name": "jumptomatching",
-      "description": "Jump to Matching",
-      "binding": [
-        [
-          "ctrl+p"
-        ],
-        [
-          "ctrl+p"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "selecttomatching",
-      "description": "Select to Matching",
-      "binding": [
-        [
-          "ctrl+shift+p"
-        ],
-        [
-          "ctrl+shift+p"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "expandToMatching",
-      "description": "Expand To Matching",
-      "binding": [
-        [
-          "ctrl+shift+m"
-        ],
-        [
-          "ctrl+shift+m"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true
-      }
-    },
-    {
-      "name": "passKeysToBrowser",
-      "description": "Pass Keys to Browser",
-      "binding": [
-        [
-          null
-        ],
-        [
-          null
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
       }
     },
     {
@@ -867,21 +459,6 @@
       }
     },
     {
-      "name": "replace",
-      "description": "Replace",
-      "binding": [
-        [
-          "ctrl+h"
-        ],
-        [
-          "command+option+f"
-        ]
-      ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
       "name": "undo",
       "description": "Undo",
       "binding": [
@@ -901,11 +478,9 @@
       "description": "Redo",
       "binding": [
         [
-          "ctrl+shift+z",
           "ctrl+y"
         ],
         [
-          "command+shift+z",
           "command+y"
         ]
       ],
@@ -921,7 +496,22 @@
           "alt+shift+up"
         ],
         [
-          "command+option+up"
+          "option+command+up"
+        ]
+      ],
+      "options": {
+        "custom": true
+      }
+    },
+    {
+      "name": "copylinesdown",
+      "description": "Duplicate Lines Downwards",
+      "binding": [
+        [
+          "alt+shift+down"
+        ],
+        [
+          "option+command+down"
         ]
       ],
       "options": {
@@ -944,21 +534,6 @@
       }
     },
     {
-      "name": "copylinesdown",
-      "description": "Duplicate Lines Downwards",
-      "binding": [
-        [
-          "alt+shift+down"
-        ],
-        [
-          "command+option+down"
-        ]
-      ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
       "name": "movelinesdown",
       "description": "Move Lines Down",
       "binding": [
@@ -968,57 +543,6 @@
         [
           "option+down"
         ]
-      ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "del",
-      "description": "Delete",
-      "binding": [
-        [
-          "delete"
-        ],
-        [
-          "delete",
-          "ctrl+d",
-          "shift+delete"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "hidden": true
-      }
-    },
-    {
-      "name": "backspace",
-      "description": "Backspace",
-      "binding": [
-        [
-          "shift+backspace",
-          "backspace"
-        ],
-        [
-          "ctrl+backspace",
-          "shift+backspace",
-          "backspace",
-          "ctrl+h"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "hidden": true
-      }
-    },
-    {
-      "name": "cut_or_delete",
-      "description": "Cut or Delete",
-      "binding": [
-        [
-          "shift+delete"
-        ],
-        null
       ],
       "options": {
         "custom": true
@@ -1062,8 +586,7 @@
           "ctrl+backspace"
         ],
         [
-          "alt+backspace",
-          "ctrl+alt+backspace"
+          "alt+backspace"
         ]
       ],
       "options": {
@@ -1079,36 +602,6 @@
         ],
         [
           "alt+delete"
-        ]
-      ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "outdent",
-      "description": "Outdent",
-      "binding": [
-        [
-          "shift+tab"
-        ],
-        [
-          "shift+tab"
-        ]
-      ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "indent",
-      "description": "Indent",
-      "binding": [
-        [
-          "tab"
-        ],
-        [
-          "tab"
         ]
       ],
       "options": {
@@ -1149,7 +642,9 @@
       "name": "splitline",
       "description": "Split a Line into Multiple Lines",
       "binding": [
-        null,
+        [
+          "ctrl+o"
+        ],
         [
           "ctrl+o"
         ]
@@ -1211,7 +706,7 @@
           "ctrl+shift+l"
         ],
         [
-          "command+shift+l"
+          "shift+command+l"
         ]
       ],
       "options": {
