@@ -52,7 +52,7 @@ module.exports = class SidebarMessageItemText extends JView
 
   createSingle: (origin) ->
 
-    origin = { constructorName : 'JAccount', id : origin._id }
+    origin.id = origin._id  if origin
     @text  = new ProfileTextView {origin}
 
 
