@@ -20,22 +20,22 @@ import (
 var publicChannel *models.Channel
 
 func parseLocation(c *models.Context) *string {
-    record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
-    if err != nil {
-			runner.MustGetLogger().Error("Err while parsing ip, err :%s", err.Error())
+	record, err := helper.MustGetGeoIPDB().City(c.Client.IP)
+	if err != nil {
+		runner.MustGetLogger().Error("Err while parsing ip, err :%s", err.Error())
 
+	} else {
+		city := record.City.Names["en"]
+		country := record.Country.Names["en"]
+		if city != "" {
+			location := fmt.Sprintf("%s, %s", city, country)
+			return &location
 		} else {
-			city := record.City.Names["en"]
-			country := record.Country.Names["en"]
-			if city != "" {
-				location := fmt.Sprintf("%s, %s", city, country)
-				return &location
-			} else {
-				location := fmt.Sprintf("%s", country)
-				return &location
-			}
+			location := fmt.Sprintf("%s", country)
+			return &location
 		}
-		return nil
+	}
+	return nil
 }
 
 func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
@@ -56,13 +56,11 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		req.Payload = gorm.Hstore{}
 	}
 
-	as := models.AccountSettings(c.Client.Account.Settings)
-
-	if (&as).IsShareLocationEnabled() {
+    if c.Client.Account.IsShareLocationEnabled(){
 		// gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
-        location := parseLocation(c)
-        req.Payload["location"] = location
+		location := parseLocation(c)
+		req.Payload["location"] = location
 	}
 
 	if err := checkThrottle(channelId, req.AccountId); err != nil {

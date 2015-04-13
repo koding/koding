@@ -8,20 +8,6 @@ import (
 	"strings"
 )
 
-type AccountSettings gorm.Hstore
-
-func (a *AccountSettings) IsShareLocationEnabled() bool {
-	if a == nil {
-		return false
-	}
-	shareLocation, ok := gorm.Hstore(*a)["shareLocation"]
-	if !ok || shareLocation == nil {
-		return false
-	}
-
-	return *shareLocation == "true"
-}
-
 type Account struct {
 	// unique id of the account
 	Id int64 `json:"id,string"`
@@ -38,7 +24,7 @@ type Account struct {
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 
 	// ShareLocation is a setting for users on socialapi
-	Settings AccountSettings `json:"settings"`
+	Settings gorm.Hstore `json:"settings"`
 
 	// Token is used for authentication purposes, this data should not be shared
 	// with other clients/accounts
@@ -54,6 +40,18 @@ func ValidateAccount(a *Account) error {
 		return ErrGuestsAreNotAllowed
 	}
 	return nil
+}
+
+func (a *Account) IsShareLocationEnabled() bool {
+    if a.Settings == nil {
+        return false
+    }
+    shareLocation, ok := a.Settings["shareLocation"]
+	if !ok || shareLocation == nil {
+		return false
+	}
+
+	return *shareLocation == "true"
 }
 
 // Tests are done.
