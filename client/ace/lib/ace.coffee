@@ -100,7 +100,6 @@ class Ace extends KDView
 
       element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
 
-      @prepareEditor()
 
       if contents
         @setContents contents
@@ -153,6 +152,8 @@ class Ace extends KDView
         'extendSearchTermSpace'
 
       ]
+
+      @prepareEditor()
 
       @focus()
       @show()
@@ -259,8 +260,8 @@ class Ace extends KDView
           switch key
 
             when 'save'     then @requestSave.bind this
-            when 'saveAs'   then @requestSaveAs.bind this
-            when 'gotoLine' then @showGotoLine.bind this
+            when 'saveas'   then @requestSaveAs.bind this
+            when 'gotoline' then @showGotoLine.bind this
             else
               if match = /^find$|^replace$/.exec key
                 replace = match.input is 'replace'

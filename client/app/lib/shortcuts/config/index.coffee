@@ -19,6 +19,12 @@ exports.activity =
   data: require './activity'
 
 
+# ace bindings extracted from ace 114.
+#
+# See:
+# https://github.com/ajaxorg/ace/tree/v1.1.4/lib/ace/commands
+#
+
 exports.editor =
 
   title: 'Editor'
@@ -27,24 +33,3 @@ exports.editor =
       <p>Following list provides key-bindings that are available in <b>Editor.</b>
     """
   data: require './editor'
-
-
-# ace bindings extracted from ace 114.
-#
-# 'ns' denotes ace namespace that this command belongs to.
-#
-# See:
-# https://github.com/ajaxorg/ace/tree/v1.1.4/lib/ace/commands
-#
-
-aceBindings = require './ace'
-
-exports.acedefault =
-  data    : aceBindings.default
-  ns      : 'default'
-  extends : 'editor'
-
-exports.acedefaultmultiselect =
-  data    : aceBindings.defaultMultiSelect
-  ns      : 'defaultMultiSelect'
-  extends : 'editor'
