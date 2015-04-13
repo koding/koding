@@ -389,6 +389,7 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 		Hostname:           m.Username, // no typo here. hostname = username
 		KiteId:             kiteId,
 		DisableEC2MetaData: true,
+		KodingSetup:        true,
 	}
 
 	userdata, err := m.Session.Userdata.Create(cloudInitConfig)

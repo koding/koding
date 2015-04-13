@@ -20,16 +20,37 @@ type Userdata struct {
 
 // CloudInitConfig is used as source for the cloudInit template.
 type CloudInitConfig struct {
-	Username           string
-	Groups             []string
-	UserSSHKeys        []string
-	Hostname           string
-	KiteKey            string
-	LatestKlientURL    string // URL of the latest version of the Klient package
-	ApachePort         int    // Defines the base apache running port, should be 80 or 443
-	KitePort           int    // Defines the running kite port, like 3000
-	KiteId             string
+	// Username defines the user to be created
+	Username string
+
+	// Groups defines the groups the user will be added to
+	Groups []string
+
+	// UserSSHKeys defines the user SSH keys that will be added to
+	// authorized_keys file
+	UserSSHKeys []string
+
+	// Hostname defines the machines hostname
+	Hostname string
+
+	// KiteKey is the key that will be placed under /etc/kite.key and is
+	// responsible of authenticating the user to the installed klient
+	// application. This is placed and created by the keycreator.
+	KiteKey string
+
+	LatestKlientURL string // URL of the latest version of the Klient package
+	ApachePort      int    // Defines the base apache running port, should be 80 or 443
+	KitePort        int    // Defines the running kite port, like 3000
+	KiteId          string
+
+	// DisableEC2Metadata adds a nul route to AWS's metadata service so it
+	// can't be accessed from the instance
 	DisableEC2MetaData bool
+
+	// KodingSetup setups koding specific changes, such as Apache config,
+	// custom bashrc, custom directories... These files are only available in
+	// the KodingAMI
+	KodingSetup bool
 }
 
 var (
@@ -81,6 +102,7 @@ write_files:
       {{.KiteKey}}
     path: /etc/kite/kite.key
 
+{{if .KodingSetup}}
   # Apache configuration (/etc/apache2/sites-available/000-default.conf)
   - content: |
       <VirtualHost *:{{.ApachePort}}>
@@ -127,13 +149,9 @@ write_files:
         CustomLog ${APACHE_LOG_DIR}/access.log combined
       </VirtualHost>
     path: /etc/apache2/sites-available/000-default.conf
+{{end}}
 
 runcmd:
-  # Configure the bash prompt. XXX: Sometimes /etc/skel/.bashrc is not honored when creating a new user.
-  - [sh, -c, 'cp /etc/skel/.bashrc /root/.bashrc']
-  - [sh, -c, 'cp /etc/skel/.bashrc /home/ubuntu/.bashrc']
-  - [sh, -c, 'cp /etc/skel/.bashrc /home/{{.Username}}/.bashrc']
-
   # Install & Configure klient
   - [wget, "{{.LatestKlientURL}}", --retry-connrefused, --tries, 5, -O, /tmp/latest-klient.deb]
   - [dpkg, -i, /tmp/latest-klient.deb]
@@ -142,6 +160,12 @@ runcmd:
   - [sed, -i, 's/\.\/klient/sudo -E -u {{.Username}} \.\/klient/g', /etc/init/klient.conf]
   - service klient start
   - [rm, -f, /tmp/latest-klient.deb]
+
+{{if .KodingSetup}}
+  # Configure the bash prompt. XXX: Sometimes /etc/skel/.bashrc is not honored when creating a new user.
+  - [sh, -c, 'cp /etc/skel/.bashrc /root/.bashrc']
+  - [sh, -c, 'cp /etc/skel/.bashrc /home/ubuntu/.bashrc']
+  - [sh, -c, 'cp /etc/skel/.bashrc /home/{{.Username}}/.bashrc']
 
   # Configure user's home directory
   - [sh, -c, 'cp -r /opt/koding/userdata/* /home/{{.Username}}/']
@@ -156,6 +180,7 @@ runcmd:
   - [ln, -s, /home/{{.Username}}/Web, /var/www]
   - a2enmod cgi
   - service apache2 restart
+{{end}}
 
 
 final_message: "All done!"
