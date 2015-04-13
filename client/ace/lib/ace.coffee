@@ -46,7 +46,7 @@ class Ace extends KDView
       .join '-'
 
 
-  toCommand = (obj, exec) ->
+  toCommand = (model, exec) ->
 
     # given a keyconfig model json and a callback, converts it to
     # conform to the ace command spec.
@@ -56,9 +56,9 @@ class Ace extends KDView
     #
     # see: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
 
-    name    : obj.name
+    name    : model.name
     exec    : exec
-    bindKey : toBindKey obj.binding[0] # binds only first shortcut
+    bindKey : toBindKey model.binding[0] # binds only first shortcut
 
 
   constructor: (options, file) ->
@@ -110,36 +110,6 @@ class Ace extends KDView
         @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
       @editor.gotoLine 0
-
-      @editor.commands.removeCommands [
-        'sortlines' # XXX
-        'showSettingsMenu'
-        'findprevious'
-        'findnext'
-        'findAll'
-        'toggleFoldWidget'
-        'toggleParentFoldWidget'
-        'passKeysToBrowser'
-        'jumptomatching'
-        'selecttomatching'
-        'expandToMatching'
-        'iSearch'
-        'iSearchAndGo'
-        'iSearchBackwardsAndGo'
-        'recenterTopBottom'
-        'selectAllMatches'
-        'searchAsRegExp'
-        'yankNextChar'
-        'yankNextWord'
-        'occurisearch'
-        'cancelSearch'
-        'confirmSearch'
-        'restartSearch'
-        'searchBackward'
-        'searchForward'
-        'shrinkSearchTerm'
-        'extendSearchTermSpace'
-      ]
 
       @prepareEditor()
 
@@ -227,12 +197,46 @@ class Ace extends KDView
     { shortcuts } = kd.singletons
     { createFindAndReplaceView } = @getOptions()
 
-    shortcuts
-      .getJSON 'editor', (model) -> model.options?.overrides_ace
-      .forEach (model) =>
-        key = model.name
+    obsolete = [
+      'sortlines' # XXX
+      'showSettingsMenu'
+      'findprevious'
+      'findnext'
+      'findAll'
+      'toggleFoldWidget'
+      'toggleParentFoldWidget'
+      'passKeysToBrowser'
+      'jumptomatching'
+      'selecttomatching'
+      'expandToMatching'
+      'iSearch'
+      'iSearchAndGo'
+      'iSearchBackwardsAndGo'
+      'recenterTopBottom'
+      'selectAllMatches'
+      'searchAsRegExp'
+      'yankNextChar'
+      'yankNextWord'
+      'occurisearch'
+      'cancelSearch'
+      'confirmSearch'
+      'restartSearch'
+      'searchBackward'
+      'searchForward'
+      'shrinkSearchTerm'
+      'extendSearchTermSpace'
+    ]
 
-        cb =
+    collection = shortcuts.toCollection().find _key: 'editor'
+    names = collection.map (model) -> model.name
+
+    @editor.commands.removeCommands _.filter obsolete, (key) ->
+      !~_.indexOf names, key
+
+    collection
+      .each (model) =>
+        key = model.name
+        exec =
         switch key
 
           when 'save'     then @requestSave.bind this
@@ -246,9 +250,8 @@ class Ace extends KDView
               else
                 @emit.bind this, 'FindAndReplaceViewRequested', replace
 
-        return  unless cb
-
-        @editor.commands.addCommand toCommand(model, cb)
+        exec or= @editor.commands.commands[model.name].exec
+        @editor.commands.addCommand toCommand(model, exec)
 
 
   setEditorListeners: ->
