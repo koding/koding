@@ -1529,24 +1529,5 @@
         "hidden": true
       }
     }
-  ],
-  "multiSelect": [
-    {
-      "name": "singleSelection",
-      "description": "Single Selection",
-      "binding": [
-        [
-          "esc"
-        ],
-        [
-          "esc"
-        ]
-      ],
-      "options": {
-        "custom": true,
-        "ace_ro": true,
-        "hidden": true
-      }
-    }
   ]
 }
