@@ -287,7 +287,7 @@ module.exports = class ActivityListItemView extends KDListItemView
     @hasShowMoreMark = yes
     location = "" 
     if @getData().payload?.location?
-      location =  "<span class='location'>, from #{@getData().payload.location}</span>"
+      location =  "<span class='location'> from #{@getData().payload.location}</span>"
       
     """
     <div class="activity-content-wrapper">
@@ -296,7 +296,7 @@ module.exports = class ActivityListItemView extends KDListItemView
       <div class='meta'>
         {{> @author}}
         <div>    
-            {{> @timeAgoView}}#{location}
+          {{> @timeAgoView}}#{location}
         </div>
       </div>
       {{> @editWidgetWrapper}}
