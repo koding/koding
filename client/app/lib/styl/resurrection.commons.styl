@@ -1554,11 +1554,15 @@ a.action-link.verify-email
       background-color  rgba(0,0,0,.6)
 
 .onboarding-wrapper
-  visibility            hidden
   z-index               10001
 
   .kdlistview-contextmenu
     rounded             5px !important
+
+    &.default
+      padding           0px
+      background-color  #fff
+
   .arrow
     bg                  image, none !important
     border-left         10px solid
@@ -1568,12 +1572,10 @@ a.action-link.verify-email
 
     &.top
       border-bottom         10px solid
-      border-bottom-color   #ececec !important
       top                   -15px !important
 
     &.bottom
-      border-top            10px solid #ececec
-      border-top-color      #ececec !important
+      border-top            10px solid
       bottom                -15px !important
 
   .close-icon

@@ -19,14 +19,14 @@ module.exports = class OnboardingController extends KDController
     else
       mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
 
-    #@on "OnboardingShown", (slug) =>
-    #  @appStorage.setValue slug, yes
+    @on "OnboardingShown", (slug) =>
+      @appStorage.setValue slug, yes
 
 
   fetchItems: ->
 
     @appStorage = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
-    @hasCookie  = kookies.get "custom-partials-preview-mode" is "true"
+    @hasCookie  = kookies.get("custom-partials-preview-mode") is "true"
     query       = partialType : "ONBOARDING"
 
     if @hasCookie

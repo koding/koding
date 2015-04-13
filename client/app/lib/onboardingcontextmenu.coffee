@@ -1,16 +1,20 @@
 kd = require 'kd'
 KDContextMenu = kd.ContextMenu
+JContextMenuItem = kd.JContextMenuItem
+
 module.exports = class OnboardingContextMenu extends KDContextMenu
 
-  viewAppended: ->
+  childAppended: (child) ->
 
-    kd.utils.wait 50, =>
+    if child instanceof JContextMenuItem
       shiftX     = 20
       shiftY     = 40
       arrowWidth = 10
 
-      menuWidth  = @getWidth()
-      menuHeight = @getHeight()
+      { menuWidth, menuHeight } = @getOptions()
+
+      menuWidth  ?= @getWidth()
+      menuHeight ?= @getHeight()
 
       mainView   = kd.getSingleton 'mainView'
 
@@ -42,9 +46,6 @@ module.exports = class OnboardingContextMenu extends KDContextMenu
       @setOption 'y',     menuY
       @setOption 'arrow', arrow
 
-      @positionContextMenu()
       @addArrow()
 
-      kd.utils.wait 20, =>
-        @getDomElement().css 'visibility', 'visible'
-
+    super child
