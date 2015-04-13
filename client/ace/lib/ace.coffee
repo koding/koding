@@ -122,10 +122,13 @@ class Ace extends KDView
         'findAll'          # not used and collides with toggle filetree
         'toggleFoldWidget'
         'toggleParentFoldWidget'
-        'restartSearch'
+        
+        # iSearchStart
         'iSearch'
         'iSearchAndGo'
         'iSearchBackwardsAndGo'
+
+        # iSearch
         'recenterTopBottom'
         'selectAllMatches'
         'searchAsRegExp'
@@ -134,10 +137,11 @@ class Ace extends KDView
         'occurisearch'
         'cancelSearch'
         'confirmSearch'
-        'shrinkSearchTerm'
-        'extendSearchTermSpace'
+        'restartSearch'
         'searchBackward'
         'searchForward'
+        'shrinkSearchTerm'
+        'extendSearchTermSpace'
       ]
 
       @focus()
