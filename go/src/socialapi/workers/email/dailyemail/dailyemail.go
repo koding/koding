@@ -30,7 +30,8 @@ const (
 )
 
 type Controller struct {
-	log logging.Logger
+	log    logging.Logger
+	config *config.Config
 }
 
 var ObsoleteActivity = errors.New("obsolete activity")
@@ -39,10 +40,11 @@ var (
 	cronJob *cron.Cron
 )
 
-func New(log logging.Logger) (*Controller, error) {
+func New(log logging.Logger, conf *config.Config) (*Controller, error) {
 
 	c := &Controller{
-		log: log,
+		log:    log,
+		config: conf,
 	}
 
 	return c, c.initDailyEmailCron()
@@ -127,26 +129,41 @@ func (n *Controller) prepareDailyEmail(accountId int64) error {
 		return nil
 	}
 
-	tp := models.NewTemplateParser()
-	tp.UserContact = uc
-	body, err := tp.RenderDailyTemplate(containers)
-	if err != nil {
-		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
+	hostname := n.config.Protocol + "//" + n.config.Hostname
+	messages := []emailmodels.Message{}
+
+	for _, container := range containers {
+		actor, err := emailmodels.FetchUserContactWithToken(container.Activity.ActorId)
+		if err != nil {
+			return err
+		}
+
+		message := &emailmodels.NotificationMessage{
+			Actor:          actor.FirstName,
+			ActorHash:      actor.Hash,
+			CreatedAt:      container.CreatedAt,
+			Message:        container.Message,
+			Action:         container.ActivityMessage,
+			ActionType:     container.ObjectType,
+			TimezoneOffset: uc.LastLoginTimezoneOffset,
+			Hostname:       hostname,
+			MessageSlug:    container.Slug,
+		}
+
+		messages = append(messages, message)
 	}
 
-	mailer := emailmodels.Mailer{
-		UserContact: uc,
-		Information: Information,
+	mailer := &emailmodels.MailerNotification{
+		Hostname:         hostname,
+		FirstName:        uc.FirstName,
+		Username:         uc.Username,
+		Email:            uc.Email,
+		MessageType:      "dailydigest",
+		Messages:         messages,
+		UnsubscribeToken: uc.Token,
 	}
 
-	loc := time.FixedZone("", uc.LastLoginTimezoneOffset*-60)
-
-	today := time.Now()
-	if loc != nil {
-		today = today.In(loc)
-	}
-
-	return mailer.SendMail("daily", body, Subject)
+	return mailer.SendMail()
 }
 
 func (n *Controller) getDailyActivityIds(accountId int64) ([]int64, error) {
