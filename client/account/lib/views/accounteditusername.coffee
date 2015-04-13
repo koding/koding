@@ -101,12 +101,22 @@ module.exports = class AccountEditUsername extends JView
           name             : "confirmPassword"
           type             : "password"
           label            : 'Password (again)'
-        shareLocation      :
-          label            : 'Share my location while posting'
-          defaultValue     : whoami().shareLocation
-          itemClass        : KodingSwitch
-          cssClass         : 'tiny'
-          name             : 'shareLocation'
+        locationHeader     :
+          itemClass        : KDCustomHTMLView
+          partial          : 'LOCATION SERVICES'
+          cssClass         : 'AppModal-form-sectionHeader'
+        shareLocationLabel :
+          itemClass        : KDCustomHTMLView
+          partial          : 'Share my location while posting'
+          tagName          : 'ul'
+          cssClass         : 'AppModal--account-switchList'
+          name             : 'shareLocationLabel'
+          nextElement      :
+            shareLocation      :
+              defaultValue     : whoami().shareLocation
+              itemClass        : KodingSwitch
+              cssClass         : 'AppModal--account-switchList'
+              name             : 'shareLocation'
       buttons              :
         Save               :
           title            : 'Save Changes'
