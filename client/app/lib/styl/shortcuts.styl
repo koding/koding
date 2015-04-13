@@ -8,14 +8,14 @@
         font-size 22px !important
 
     .toggle
-      size                    24px 22px
-      background              transparent
-      shadow                  none
-      outline                 none
-      rounded                 3px
+      size 24px 22px
+      background transparent
+      shadow none
+      outline none
+      rounded 3px
       border none
-      margin                  0
-      padding                 0
+      margin 0
+      padding 0
       padding-left 16px
       cursor pointer
       borderBox()
@@ -114,6 +114,15 @@
 
             span:first-child
               padding-left 0
+
+        div.row.collides
+          .col:nth-child(2)
+            &:before
+              content ""
+              r-sprite app '25-warning'
+              size 25px 25px
+              margin-right 10px
+              float left
 
       .kdtabhandlecontainer
         background-color transparent !important
