@@ -38,7 +38,7 @@ type Account struct {
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 
 	// ShareLocation is a setting for users on socialapi
-	Settings gorm.Hstore `json:"settings"`
+	Settings AccountSettings `json:"settings"`
 
 	// Token is used for authentication purposes, this data should not be shared
 	// with other clients/accounts
