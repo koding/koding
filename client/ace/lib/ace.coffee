@@ -36,6 +36,16 @@ class Ace extends KDView
     Ace.emit 'ScriptLoaded'
 
 
+  toBindKey = (binding) ->
+
+    bindKey = {}
+    bindKey[globals.keymapType] = binding
+      .split '+'
+      .map (frag) ->
+        return "#{frag.charAt(0).toUpperCase()}#{frag.slice(1)}"
+      .join '-'
+
+
   toCommand = (obj, exec) ->
 
     # given a keyconfig model json and a callback, converts it to
@@ -46,18 +56,9 @@ class Ace extends KDView
     #
     # see: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
 
-    { shortcuts } = kd.singletons
-
-    bindKey = {}
-    bindKey[globals.keymapType] = obj.binding[0]
-      .split '+'
-      .map (frag) ->
-        return "#{frag.charAt(0).toUpperCase()}#{frag.slice(1)}"
-      .join '-'
-
     name    : obj.name
     exec    : exec
-    bindKey : bindKey
+    bindKey : toBindKey obj.binding[0] # binds only first shortcut
 
 
   constructor: (options, file) ->
@@ -100,43 +101,31 @@ class Ace extends KDView
 
       element.classList.remove 'ace-tm' # remove default white theme to avoid flashing
 
-
       if contents
         @setContents contents
         @lastSavedContents = contents
 
       @editor.on 'change', =>
-        @emit 'FileContentChanged'  unless @suppressListeners
+        @emit 'FileContentChanged'   unless @suppressListeners
         @emit 'FileContentRestored'  unless @isCurrentContentChanged()
 
       @editor.gotoLine 0
 
       @editor.commands.removeCommands [
-        'gotoline'         # overriding this
-        'sortlines'        # using same mapping for 'save all' action. XXX: re-map sortlines
-        'showSettingsMenu' # f ace default settings menu
-
-        'find'
-        'findprevious'     # we have our own find and replace dialogs
-        'findnext'         # ace default for findnext is cmd+g (mapped to gotoline)
-        'findAll'          # not used and collides with toggle filetree
-
-        'replace'
-
+        'sortlines' # XXX
+        'showSettingsMenu'
+        'findprevious'
+        'findnext'
+        'findAll'
         'toggleFoldWidget'
         'toggleParentFoldWidget'
-
         'passKeysToBrowser'
         'jumptomatching'
         'selecttomatching'
         'expandToMatching'
-
-        # iSearchStart
         'iSearch'
         'iSearchAndGo'
         'iSearchBackwardsAndGo'
-
-        # iSearch
         'recenterTopBottom'
         'selectAllMatches'
         'searchAsRegExp'
@@ -150,7 +139,6 @@ class Ace extends KDView
         'searchForward'
         'shrinkSearchTerm'
         'extendSearchTermSpace'
-
       ]
 
       @prepareEditor()
@@ -192,6 +180,7 @@ class Ace extends KDView
     @setTheme null, no
     @setSyntax()
     @setEditorListeners()
+    @setShortcuts()
 
     @appStorage.fetchStorage (storage) =>
 
@@ -233,6 +222,35 @@ class Ace extends KDView
     @emit 'FileHasBeenSavedAs', @getData()
 
 
+  setShortcuts: ->
+
+    { shortcuts } = kd.singletons
+    { createFindAndReplaceView } = @getOptions()
+
+    shortcuts
+      .getJSON 'editor', (model) -> model.options?.overrides_ace
+      .forEach (model) =>
+        key = model.name
+
+        cb =
+        switch key
+
+          when 'save'     then @requestSave.bind this
+          when 'saveas'   then @requestSaveAs.bind this
+          when 'gotoline' then @showGotoLine.bind this
+          else
+            if match = /^find$|^replace$/.exec key
+              replace = match.input is 'replace'
+              if createFindAndReplaceView
+                @showFindReplaceView.bind this, replace
+              else
+                @emit.bind this, 'FindAndReplaceViewRequested', replace
+
+        return  unless cb
+
+        @editor.commands.addCommand toCommand(model, cb)
+
+
   setEditorListeners: ->
 
     @editor.getSession().selection.on 'changeCursor', (cursor) =>
@@ -243,36 +261,6 @@ class Ace extends KDView
       if e.command.name is 'insertstring' and /^[\w.]$/.test e.args
         @editor.completer and @editor.completer.autoInsert = off
         @editor.execCommand 'startAutocomplete'
-
-    {enableShortcuts} = @getOptions()
-
-    if enableShortcuts
-
-      { shortcuts }                = kd.singletons
-      { createFindAndReplaceView } = @getOptions()
-
-      shortcuts
-        .getJSON 'editor', (model) -> model.options?.overrides_ace
-        .forEach (model) =>
-          key = model.name
-
-          cb  =
-          switch key
-
-            when 'save'     then @requestSave.bind this
-            when 'saveas'   then @requestSaveAs.bind this
-            when 'gotoline' then @showGotoLine.bind this
-            else
-              if match = /^find$|^replace$/.exec key
-                replace = match.input is 'replace'
-                if createFindAndReplaceView
-                  @showFindReplaceView.bind this, replace
-                else
-                  @emit.bind this, 'FindAndReplaceViewRequested', replace
-
-          return  unless cb
-          
-          @editor.commands.addCommand toCommand(model, cb)
 
 
   showFindReplaceView: (openReplaceView) ->
