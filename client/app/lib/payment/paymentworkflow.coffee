@@ -268,6 +268,7 @@ module.exports = class PaymentWorkflow extends KDController
 
   finish: (state) ->
 
+    state.provider = @state.provider
     @emit 'PaymentWorkflowFinishedSuccessfully', state
 
     @modal.destroy()
