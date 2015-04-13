@@ -4,8 +4,8 @@ getReferralUrl = require 'app/util/getReferralUrl'
 
 shareLinks =
   twitter  : (url)->
-    url = "#developer friends... write all your code in the cloud! sign up today for @koding & get an extra 500MB! #{url}"
-    return "https://twitter.com/intent/tweet?text=#{url}&via=koding&source=koding"
+    url = encodeURIComponent "#developer friends... write all your code in the cloud! sign up today for @koding & get an extra 500MB! #{url}"
+    return "https://twitter.com/intent/tweet?text=#{url}&source=koding"
 
   google   : (url)->
     return "https://plus.google.com/share?url=#{url}"
@@ -28,7 +28,7 @@ shareLinks =
 
 module.exports = getSocialLinks = (provider)->
 
-  link = shareLinks[provider] encodeURIComponent getReferralUrl nick()
+  link = shareLinks[provider] getReferralUrl nick()
 
   callback = (event)->
     kd.utils.stopDOMEvent event
