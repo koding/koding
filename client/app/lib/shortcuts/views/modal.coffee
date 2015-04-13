@@ -48,7 +48,18 @@ class Modal extends kd.ModalViewWithForms
     , {}
 
 
+  destroy: ->
+
+    { shortcuts } = kd.singletons
+    shortcuts.unpause()
+
+    super
+
+
   viewAppended: ->
+
+    { shortcuts } = kd.singletons
+    shortcuts.pause()
 
     @modalTabs.on 'PaneDidShow', => kd.utils.defer @bound '_windowDidResize'
     @_windowDidResize()
