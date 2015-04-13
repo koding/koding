@@ -91,8 +91,6 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
           (signature Object, Function)
         ]
-        impersonate:
-          (signature String, Function)
         verifyEmailByUsername:
           (signature String, Function)
         fetchBlockedUsers:
