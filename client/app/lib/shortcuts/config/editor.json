@@ -9,11 +9,7 @@
       [
         "command+s"
       ]
-    ],
-    "options": {
-      "custom": true,
-      "overrides_ace": true
-    }
+    ]
   },
   {
     "name": "saveas",
@@ -25,11 +21,7 @@
       [
         "command+shift+s"
       ]
-    ],
-    "options": {
-      "custom": true,
-      "overrides_ace": true
-    }
+    ]
   },
   {
     "name": "gotoline",
@@ -41,11 +33,7 @@
       [
         "command+g"
       ]
-    ],
-    "options": {
-      "custom": true,
-      "overrides_ace": true
-    }
+    ]
   },
   {
     "name": "find",
@@ -57,11 +45,7 @@
       [
         "command+f"
       ]
-    ],
-    "options": {
-      "custom": true,
-      "overrides_ace": true
-    }
+    ]
   },
   {
     "name": "replace",
@@ -73,11 +57,7 @@
       [
         "command+shift+f"
       ]
-    ],
-    "options": {
-      "custom": true,
-      "overrides_ace": true
-    }
+    ]
   },
   {
     "name": "addCursorAbove",
@@ -89,10 +69,7 @@
       [
         "ctrl+alt+up"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "addCursorBelow",
@@ -104,10 +81,7 @@
       [
         "ctrl+alt+down"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "addCursorAboveSkipCurrent",
@@ -119,10 +93,7 @@
       [
         "ctrl+alt+shift+up"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "addCursorBelowSkipCurrent",
@@ -134,10 +105,7 @@
       [
         "ctrl+alt+shift+down"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "selectMoreBefore",
@@ -149,10 +117,7 @@
       [
         "ctrl+alt+left"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "selectMoreAfter",
@@ -164,10 +129,7 @@
       [
         "ctrl+alt+right"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "selectNextBefore",
@@ -179,10 +141,7 @@
       [
         "ctrl+alt+shift+left"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "selectNextAfter",
@@ -194,10 +153,7 @@
       [
         "ctrl+alt+shift+right"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "splitIntoLines",
@@ -209,10 +165,7 @@
       [
         "ctrl+alt+l"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
   {
     "name": "alignCursors",
@@ -224,699 +177,546 @@
       [
         "ctrl+alt+a"
       ]
-    ],
-    "options": {
-      "custom": true
-    }
+    ]
   },
-    {
-      "name": "selectOrFindNext",
-      "description": "Select or Find Next",
-      "binding": [
-        [
-          "alt+k"
-        ],
-        [
-          "ctrl+g"
-        ]
+  {
+    "name": "selectOrFindNext",
+    "description": "Select or Find Next",
+    "binding": [
+      [
+        "alt+k"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selectOrFindPrevious",
-      "description": "Select or Find Previous",
-      "binding": [
-        [
-          "alt+shift+k"
-        ],
-        [
-          "ctrl+shift+g"
-        ]
+      [
+        "ctrl+g"
+      ]
+    ]
+  },
+  {
+    "name": "selectOrFindPrevious",
+    "description": "Select or Find Previous",
+    "binding": [
+      [
+        "alt+shift+k"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selectall",
-      "description": "Select All",
-      "binding": [
-        [
-          "ctrl+a"
-        ],
-        [
-          "command+a"
-        ]
+      [
+        "ctrl+shift+g"
+      ]
+    ]
+  },
+  {
+    "name": "selectall",
+    "description": "Select All",
+    "binding": [
+      [
+        "ctrl+a"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "centerselection",
-      "description": "Center Selection",
-      "binding": [
-        [
-          "ctrl+l"
-        ],
-        [
-          "ctrl+l"
-        ]
+      [
+        "command+a"
+      ]
+    ]
+  },
+  {
+    "name": "centerselection",
+    "description": "Center Selection",
+    "binding": [
+      [
+        "ctrl+l"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "goToNextError",
-      "description": "Go to Next Error",
-      "binding": [
-        [
-          "alt+e"
-        ],
-        [
-          "ctrl+e"
-        ]
+      [
+        "ctrl+l"
+      ]
+    ]
+  },
+  {
+    "name": "goToNextError",
+    "description": "Go to Next Error",
+    "binding": [
+      [
+        "alt+e"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "goToPreviousError",
-      "description": "Go to Previous Error",
-      "binding": [
-        [
-          "alt+shift+e"
-        ],
-        [
-          "ctrl+shift+e"
-        ]
+      [
+        "ctrl+e"
+      ]
+    ]
+  },
+  {
+    "name": "goToPreviousError",
+    "description": "Go to Previous Error",
+    "binding": [
+      [
+        "alt+shift+e"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "fold",
-      "description": "Fold",
-      "binding": [
-        [
-          "alt+l"
-        ],
-        [
-          "alt+command+l"
-        ]
+      [
+        "ctrl+shift+e"
+      ]
+    ]
+  },
+  {
+    "name": "fold",
+    "description": "Fold",
+    "binding": [
+      [
+        "alt+l"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "unfold",
-      "description": "Unfold",
-      "binding": [
-        [
-          "alt+shift+l"
-        ],
-        [
-          "alt+shift+command+l"
-        ]
+      [
+        "alt+command+l"
+      ]
+    ]
+  },
+  {
+    "name": "unfold",
+    "description": "Unfold",
+    "binding": [
+      [
+        "alt+shift+l"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "foldall",
-      "description": "Fold All",
-      "binding": [
-        [
-          "ctrl+alt+0"
-        ],
-        [
-          "ctrl+option+command+0"
-        ]
+      [
+        "alt+shift+command+l"
+      ]
+    ]
+  },
+  {
+    "name": "foldall",
+    "description": "Fold All",
+    "binding": [
+      [
+        "ctrl+alt+0"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "foldOther",
-      "description": "Fold Other",
-      "binding": [
-        [
-          "alt+0"
-        ],
-        [
-          "option+command+0"
-        ]
+      [
+        "ctrl+option+command+0"
+      ]
+    ]
+  },
+  {
+    "name": "foldOther",
+    "description": "Fold Other",
+    "binding": [
+      [
+        "alt+0"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "unfoldall",
-      "description": "Unfold All",
-      "binding": [
-        [
-          "alt+shift+0"
-        ],
-        [
-          "option+shift+command+0"
-        ]
+      [
+        "option+command+0"
+      ]
+    ]
+  },
+  {
+    "name": "unfoldall",
+    "description": "Unfold All",
+    "binding": [
+      [
+        "alt+shift+0"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selecttostart",
-      "description": "Select Lines Above the Current Line",
-      "binding": [
-        [
-          "ctrl+shift+home"
-        ],
-        [
-          "shift+command+up"
-        ]
+      [
+        "option+shift+command+0"
+      ]
+    ]
+  },
+  {
+    "name": "selecttostart",
+    "description": "Select Lines Above the Current Line",
+    "binding": [
+      [
+        "ctrl+shift+home"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selecttoend",
-      "description": "Select Lines Below the Current Line",
-      "binding": [
-        [
-          "ctrl+shift+end"
-        ],
-        [
-          "shift+command+down"
-        ]
+      [
+        "shift+command+up"
+      ]
+    ]
+  },
+  {
+    "name": "selecttoend",
+    "description": "Select Lines Below the Current Line",
+    "binding": [
+      [
+        "ctrl+shift+end"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "gotostart",
-      "description": "Move to the Beginning of File",
-      "binding": [
-        [
-          "ctrl+home"
-        ],
-        [
-          "command+up"
-        ]
+      [
+        "shift+command+down"
+      ]
+    ]
+  },
+  {
+    "name": "gotostart",
+    "description": "Move to the Beginning of File",
+    "binding": [
+      [
+        "ctrl+home"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "gotoend",
-      "description": "Move to the End of File",
-      "binding": [
-        [
-          "ctrl+end"
-        ],
-        [
-          "command+down"
-        ]
+      [
+        "command+up"
+      ]
+    ]
+  },
+  {
+    "name": "gotoend",
+    "description": "Move to the End of File",
+    "binding": [
+      [
+        "ctrl+end"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selectwordleft",
-      "description": "Select the Word Before Cursor",
-      "binding": [
-        [
-          "ctrl+shift+left"
-        ],
-        [
-          "option+shift+left"
-        ]
+      [
+        "command+down"
+      ]
+    ]
+  },
+  {
+    "name": "selectwordleft",
+    "description": "Select the Word Before Cursor",
+    "binding": [
+      [
+        "ctrl+shift+left"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selectwordright",
-      "description": "Select the Word After Cursor",
-      "binding": [
-        [
-          "ctrl+shift+right"
-        ],
-        [
-          "option+shift+right"
-        ]
+      [
+        "option+shift+left"
+      ]
+    ]
+  },
+  {
+    "name": "selectwordright",
+    "description": "Select the Word After Cursor",
+    "binding": [
+      [
+        "ctrl+shift+right"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "gotowordleft",
-      "description": "Move Backward a Word",
-      "binding": [
-        [
-          "ctrl+left"
-        ],
-        [
-          "option+left"
-        ]
+      [
+        "option+shift+right"
+      ]
+    ]
+  },
+  {
+    "name": "gotowordleft",
+    "description": "Move Backward a Word",
+    "binding": [
+      [
+        "ctrl+left"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "gotowordright",
-      "description": "Move Forward a Word",
-      "binding": [
-        [
-          "ctrl+right"
-        ],
-        [
-          "option+right"
-        ]
+      [
+        "option+left"
+      ]
+    ]
+  },
+  {
+    "name": "gotowordright",
+    "description": "Move Forward a Word",
+    "binding": [
+      [
+        "ctrl+right"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selecttolinestart",
-      "description": "Select Text Before Cursor",
-      "binding": [
-        [
-          "alt+shift+left"
-        ],
-        [
-          "command+shift+left"
-        ]
+      [
+        "option+right"
+      ]
+    ]
+  },
+  {
+    "name": "selecttolinestart",
+    "description": "Select Text Before Cursor",
+    "binding": [
+      [
+        "alt+shift+left"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "selecttolineend",
-      "description": "Select Text After Cursor",
-      "binding": [
-        [
-          "alt+shift+right"
-        ],
-        [
-          "command+shift+right"
-        ]
+      [
+        "command+shift+left"
+      ]
+    ]
+  },
+  {
+    "name": "selecttolineend",
+    "description": "Select Text After Cursor",
+    "binding": [
+      [
+        "alt+shift+right"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "togglerecording",
-      "description": "Toggle Recording",
-      "binding": [
-        [
-          "ctrl+alt+e"
-        ],
-        [
-          "command+option+e"
-        ]
+      [
+        "command+shift+right"
+      ]
+    ]
+  },
+  {
+    "name": "togglerecording",
+    "description": "Toggle Recording",
+    "binding": [
+      [
+        "ctrl+alt+e"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "replaymacro",
-      "description": "Replay Macro",
-      "binding": [
-        [
-          "ctrl+shift+e"
-        ],
-        [
-          "command+shift+e"
-        ]
+      [
+        "command+option+e"
+      ]
+    ]
+  },
+  {
+    "name": "replaymacro",
+    "description": "Replay Macro",
+    "binding": [
+      [
+        "ctrl+shift+e"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "removeline",
-      "description": "Delete the Current Line",
-      "binding": [
-        [
-          "ctrl+d"
-        ],
-        [
-          "command+d"
-        ]
+      [
+        "command+shift+e"
+      ]
+    ]
+  },
+  {
+    "name": "removeline",
+    "description": "Delete the Current Line",
+    "binding": [
+      [
+        "ctrl+d"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "duplicateSelection",
-      "description": "Duplicate Selection",
-      "binding": [
-        [
-          "ctrl+shift+d"
-        ],
-        [
-          "command+shift+d"
-        ]
+      [
+        "command+d"
+      ]
+    ]
+  },
+  {
+    "name": "duplicateSelection",
+    "description": "Duplicate Selection",
+    "binding": [
+      [
+        "ctrl+shift+d"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "togglecomment",
-      "description": "Toggle Comment",
-      "binding": [
-        [
-          "ctrl+/"
-        ],
-        [
-          "command+/"
-        ]
+      [
+        "command+shift+d"
+      ]
+    ]
+  },
+  {
+    "name": "togglecomment",
+    "description": "Toggle Comment",
+    "binding": [
+      [
+        "ctrl+/"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "toggleBlockComment",
-      "description": "Toggle Block Comment",
-      "binding": [
-        [
-          "ctrl+shift+/"
-        ],
-        [
-          "command+shift+/"
-        ]
+      [
+        "command+/"
+      ]
+    ]
+  },
+  {
+    "name": "toggleBlockComment",
+    "description": "Toggle Block Comment",
+    "binding": [
+      [
+        "ctrl+shift+/"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "modifyNumberUp",
-      "description": "Increment Number",
-      "binding": [
-        [
-          "ctrl+shift+up"
-        ],
-        [
-          "alt+shift+up"
-        ]
+      [
+        "command+shift+/"
+      ]
+    ]
+  },
+  {
+    "name": "modifyNumberUp",
+    "description": "Increment Number",
+    "binding": [
+      [
+        "ctrl+shift+up"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "modifyNumberDown",
-      "description": "Decrement Number",
-      "binding": [
-        [
-          "ctrl+shift+down"
-        ],
-        [
-          "alt+shift+down"
-        ]
+      [
+        "alt+shift+up"
+      ]
+    ]
+  },
+  {
+    "name": "modifyNumberDown",
+    "description": "Decrement Number",
+    "binding": [
+      [
+        "ctrl+shift+down"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "undo",
-      "description": "Undo",
-      "binding": [
-        [
-          "ctrl+z"
-        ],
-        [
-          "command+z"
-        ]
+      [
+        "alt+shift+down"
+      ]
+    ]
+  },
+  {
+    "name": "undo",
+    "description": "Undo",
+    "binding": [
+      [
+        "ctrl+z"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "redo",
-      "description": "Redo",
-      "binding": [
-        [
-          "ctrl+y"
-        ],
-        [
-          "command+y"
-        ]
+      [
+        "command+z"
+      ]
+    ]
+  },
+  {
+    "name": "redo",
+    "description": "Redo",
+    "binding": [
+      [
+        "ctrl+y"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "copylinesup",
-      "description": "Duplicate Lines Upwards",
-      "binding": [
-        [
-          "alt+shift+up"
-        ],
-        [
-          "option+command+up"
-        ]
+      [
+        "command+y"
+      ]
+    ]
+  },
+  {
+    "name": "copylinesup",
+    "description": "Duplicate Lines Upwards",
+    "binding": [
+      [
+        "alt+shift+up"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "copylinesdown",
-      "description": "Duplicate Lines Downwards",
-      "binding": [
-        [
-          "alt+shift+down"
-        ],
-        [
-          "option+command+down"
-        ]
+      [
+        "option+command+up"
+      ]
+    ]
+  },
+  {
+    "name": "copylinesdown",
+    "description": "Duplicate Lines Downwards",
+    "binding": [
+      [
+        "alt+shift+down"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "movelinesup",
-      "description": "Move Lines Up",
-      "binding": [
-        [
-          "alt+up"
-        ],
-        [
-          "option+up"
-        ]
+      [
+        "option+command+down"
+      ]
+    ]
+  },
+  {
+    "name": "movelinesup",
+    "description": "Move Lines Up",
+    "binding": [
+      [
+        "alt+up"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "movelinesdown",
-      "description": "Move Lines Down",
-      "binding": [
-        [
-          "alt+down"
-        ],
-        [
-          "option+down"
-        ]
+      [
+        "option+up"
+      ]
+    ]
+  },
+  {
+    "name": "movelinesdown",
+    "description": "Move Lines Down",
+    "binding": [
+      [
+        "alt+down"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "removetolinestart",
-      "description": "Delete to the Beginning of the Line",
-      "binding": [
-        [
-          "alt+backspace"
-        ],
-        [
-          "command+backspace"
-        ]
+      [
+        "option+down"
+      ]
+    ]
+  },
+  {
+    "name": "removetolinestart",
+    "description": "Delete to the Beginning of the Line",
+    "binding": [
+      [
+        "alt+backspace"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "removetolineend",
-      "description": "Delete to the End of the Line",
-      "binding": [
-        [
-          "alt+delete"
-        ],
-        [
-          "ctrl+k"
-        ]
+      [
+        "command+backspace"
+      ]
+    ]
+  },
+  {
+    "name": "removetolineend",
+    "description": "Delete to the End of the Line",
+    "binding": [
+      [
+        "alt+delete"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "removewordleft",
-      "description": "Delete Word Before Cursor",
-      "binding": [
-        [
-          "ctrl+backspace"
-        ],
-        [
-          "alt+backspace"
-        ]
+      [
+        "ctrl+k"
+      ]
+    ]
+  },
+  {
+    "name": "removewordleft",
+    "description": "Delete Word Before Cursor",
+    "binding": [
+      [
+        "ctrl+backspace"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "removewordright",
-      "description": "Delete Word After Cursor",
-      "binding": [
-        [
-          "ctrl+delete"
-        ],
-        [
-          "alt+delete"
-        ]
+      [
+        "alt+backspace"
+      ]
+    ]
+  },
+  {
+    "name": "removewordright",
+    "description": "Delete Word After Cursor",
+    "binding": [
+      [
+        "ctrl+delete"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "blockoutdent",
-      "description": "Outdent a Block",
-      "binding": [
-        [
-          "ctrl+["
-        ],
-        [
-          "ctrl+["
-        ]
+      [
+        "alt+delete"
+      ]
+    ]
+  },
+  {
+    "name": "blockoutdent",
+    "description": "Outdent a Block",
+    "binding": [
+      [
+        "ctrl+["
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "blockindent",
-      "description": "Indent a Block",
-      "binding": [
-        [
-          "ctrl+]"
-        ],
-        [
-          "ctrl+]"
-        ]
+      [
+        "ctrl+["
+      ]
+    ]
+  },
+  {
+    "name": "blockindent",
+    "description": "Indent a Block",
+    "binding": [
+      [
+        "ctrl+]"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "splitline",
-      "description": "Split a Line into Multiple Lines",
-      "binding": [
-        [
-          "ctrl+o"
-        ],
-        [
-          "ctrl+o"
-        ]
+      [
+        "ctrl+]"
+      ]
+    ]
+  },
+  {
+    "name": "splitline",
+    "description": "Split a Line into Multiple Lines",
+    "binding": [
+      [
+        "ctrl+o"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "transposeletters",
-      "description": "Swap Characters",
-      "binding": [
-        [
-          "ctrl+t"
-        ],
-        [
-          "ctrl+t"
-        ]
+      [
+        "ctrl+o"
+      ]
+    ]
+  },
+  {
+    "name": "transposeletters",
+    "description": "Swap Characters",
+    "binding": [
+      [
+        "ctrl+t"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "touppercase",
-      "description": "Convert to Uppercase",
-      "binding": [
-        [
-          "ctrl+u"
-        ],
-        [
-          "ctrl+u"
-        ]
+      [
+        "ctrl+t"
+      ]
+    ]
+  },
+  {
+    "name": "touppercase",
+    "description": "Convert to Uppercase",
+    "binding": [
+      [
+        "ctrl+u"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "tolowercase",
-      "description": "Convert to Lowercase",
-      "binding": [
-        [
-          "ctrl+shift+u"
-        ],
-        [
-          "ctrl+shift+u"
-        ]
+      [
+        "ctrl+u"
+      ]
+    ]
+  },
+  {
+    "name": "tolowercase",
+    "description": "Convert to Lowercase",
+    "binding": [
+      [
+        "ctrl+shift+u"
       ],
-      "options": {
-        "custom": true
-      }
-    },
-    {
-      "name": "expandtoline",
-      "description": "Select All From Multi-selection",
-      "binding": [
-        [
-          "ctrl+shift+l"
-        ],
-        [
-          "shift+command+l"
-        ]
-      ],
-      "options": {
-        "custom": true
-      }
-    }
+      [
+        "ctrl+shift+u"
+      ]
+    ]
+  }
 ]
