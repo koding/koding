@@ -2,27 +2,28 @@ helpers = require '../helpers/helpers.js'
 assert  = require 'assert'
 environmentHelpers = require '../helpers/environmenthelpers.js'
 
-modalSelector = '.activity-modal.vm-settings'
+modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
 
 
   turnOffVm: (browser) ->
 
-    linkSelector  = modalSelector + ' .statustoggle .input-wrapper'
+    linkSelector  = modalSelector + ' .AppModal-form'
+    vmStateModal  = '.env-machine-state .kdmodal-content'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    environmentHelpers.openVmSettingsModal(browser)
+    environmentHelpers.openGeneralSettings(browser)
 
     browser
       .waitForElementVisible   linkSelector, 20000
-      .waitForElementVisible   linkSelector + ' .koding-on-off a.knob', 20000
-      .click                   linkSelector + ' .koding-on-off a.knob'
-      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopping', 20000
-      .waitForElementVisible   '.env-machine-state .kdmodal-content .state-label.stopped', 300000
-      .waitForElementVisible   '.env-machine-state .kdmodal-content .turn-on.state-button', 20000 # Assertion
+      .waitForElementVisible   linkSelector + ' .statustoggle', 20000
+      .click                   linkSelector + ' .statustoggle .koding-on-off.on'
+      .waitForElementVisible   vmStateModal + ' .state-label.stopping', 20000
+      .waitForElementVisible   vmStateModal + ' .state-label.stopped', 300000
+      .waitForElementVisible   vmStateModal + ' .turn-on.state-button', 20000 # Assertion
       .end()
 
 
