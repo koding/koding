@@ -301,9 +301,11 @@ module.exports = CollaborationController =
   bindRealtimeEvents: ->
 
     @rtm.on 'CollaboratorJoined', (doc, participant) =>
+      return  unless @stateMachine.state is 'Active'
       @handleParticipantAction 'join', participant
 
     @rtm.on 'CollaboratorLeft', (doc, participant) =>
+      return  unless @stateMachine.state is 'Active'
       @handleParticipantAction 'left', participant
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
