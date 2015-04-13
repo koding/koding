@@ -9,7 +9,7 @@ AppStorage     = require 'app/appstorage'
 Collection     = require 'app/util/collection'
 
 STORAGE_NAME    = 'shortcuts'
-STORAGE_VERSION = '7'
+STORAGE_VERSION = '175.2'
 DEBOUNCE_WAIT   = 300
 
 module.exports =
@@ -328,6 +328,16 @@ class ShortcutsController extends kd.Controller
           hidden     : if model.options?.hidden  is yes then yes else no
           collection : name
       .value()
+
+
+  # Pauses shortcuts.
+  #
+  pause: -> @shortcuts.pause()
+
+
+  # Unpauses shortcuts.
+  #
+  unpause: -> @shortcuts.unpause()
 
 
   # Returns the app storage key for the current platform.
