@@ -7,6 +7,8 @@ import (
 	"socialapi/workers/email/emailsender"
 )
 
+const VERSION = " v1"
+
 type Mailer struct {
 	UserContact *UserContact
 	Mail        *emailsender.Mail
@@ -84,4 +86,17 @@ func (m *Mailer) validateMailer() error {
 	}
 
 	return nil
+}
+
+func (m *MailerNotification) SendMail() error {
+	mail := emailsender.NewEmptyMail()
+	mail.Subject = m.MessageType + VERSION
+	mail.To = m.Email
+
+	mail.Properties = emailsender.NewProperties()
+	mail.Properties.Username = m.Username
+
+	mail.Properties.Options = m.ToMap()
+
+	return emailsender.Send(mail)
 }

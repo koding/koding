@@ -36,6 +36,7 @@ const (
 type Controller struct {
 	log     logging.Logger
 	rmqConn *amqp.Connection
+	conf    *config.Config
 }
 
 func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
@@ -45,10 +46,11 @@ func (n *Controller) DefaultErrHandler(delivery amqp.Delivery, err error) bool {
 	return false
 }
 
-func New(rmq *rabbitmq.RabbitMQ, log logging.Logger) *Controller {
+func New(rmq *rabbitmq.RabbitMQ, log logging.Logger, conf *config.Config) *Controller {
 	return &Controller{
 		log:     log,
 		rmqConn: rmq.Conn(),
+		conf:    conf,
 	}
 }
 
@@ -97,18 +99,37 @@ func (n *Controller) SendInstantEmail(notification *notificationmodels.Notificat
 
 	mc.CreatedAt = notification.ActivatedAt
 
-	tp := models.NewTemplateParser()
-	body, err := tp.RenderInstantTemplate(mc)
+	actor, err := emailmodels.FetchUserContactWithToken(mc.Activity.ActorId)
 	if err != nil {
-		return fmt.Errorf("an error occurred while preparing notification email: %s", err)
+		return err
 	}
 
-	mailer := &emailmodels.Mailer{
-		UserContact: uc,
-		Information: prepareInformation(mc),
+	hostname := n.conf.Protocol + "//" + n.conf.Hostname
+
+	notifmessage := &emailmodels.NotificationMessage{
+		Actor:          actor.FirstName,
+		ActorSlug:      actor.Username,
+		ActorHash:      actor.Hash,
+		Action:         mc.ActivityMessage,
+		ActionType:     mc.ObjectType,
+		Message:        mc.Message,
+		MessageSlug:    mc.Slug,
+		TimezoneOffset: uc.LastLoginTimezoneOffset,
+		Hostname:       hostname,
+		CreatedAt:      mc.CreatedAt,
 	}
 
-	return mailer.SendMail(nc.TypeConstant, body, prepareSubject(mc))
+	mailer := &emailmodels.MailerNotification{
+		Hostname:         hostname,
+		FirstName:        uc.FirstName,
+		Username:         uc.Username,
+		Email:            uc.Email,
+		MessageType:      mc.Content.TypeConstant,
+		Messages:         []emailmodels.Message{notifmessage},
+		UnsubscribeToken: actor.Token,
+	}
+
+	return mailer.SendMail()
 }
 
 func prepareSubject(mc *models.MailerContainer) string {
