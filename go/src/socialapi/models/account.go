@@ -15,11 +15,7 @@ func (a *AccountSettings) IsShareLocationEnabled() bool {
 		return false
 	}
 	shareLocation, ok := gorm.Hstore(*a)["shareLocation"]
-	if !ok {
-		return false
-	}
-
-	if shareLocation == nil {
+	if !ok || shareLocation == nil {
 		return false
 	}
 
