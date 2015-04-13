@@ -143,7 +143,42 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       return  Promise.reject 'key and value required'
 
     value = (JSON.stringify value) or ''
+
     @tell 'storage.set', {key, value}
+
+
+  storageSetSynced: do (queue = []) ->
+
+    locked = no
+
+    (key, value) ->
+
+      if not key or not value
+        return  Promise.reject 'key and value required'
+
+      value = (JSON.stringify value) or ''
+
+      consume = =>
+
+        return  if queue.length is 0 or locked
+        locked = yes
+
+        {key, value, resolve, reject} = queue.shift()
+
+        @tell 'storage.set', {key, value}
+
+        .then (res) ->
+          locked = no
+          consume()
+          resolve res
+
+        .catch (err) ->
+          locked = no
+          consume()
+          reject err
+
+      new Promise (resolve, reject) ->
+        consume()  if (queue.push {key, value, resolve, reject}) is 1
 
 
   storageGet: (key) ->
