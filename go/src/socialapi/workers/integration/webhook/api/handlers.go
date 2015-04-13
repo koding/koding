@@ -1,4 +1,4 @@
-package webhook
+package api
 
 import (
 	"socialapi/workers/common/handler"
