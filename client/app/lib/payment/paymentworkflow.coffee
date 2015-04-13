@@ -244,7 +244,8 @@ module.exports = class PaymentWorkflow extends KDController
         category : provider
         quantity : 1
         total    : amount
-        currency : 'USD',
+        revenue  : amount
+        currency : 'USD'
     }]
 
 
