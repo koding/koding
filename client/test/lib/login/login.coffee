@@ -45,3 +45,38 @@ module.exports =
 
     helpers.assertNotLoggedIn(browser, user)
     browser.end()
+
+
+  loginFromHomepageSignupForm: (browser) ->
+
+    user = utils.getUser()
+    url  = helpers.getUrl()
+    browser
+      .url(url)
+      .maximizeWindow()
+
+    helpers.attemptEnterEmailAndPasswordOnRegister(browser, user)
+
+    browser
+      .waitForElementVisible '[testpath=main-sidebar]', 10000 # Assertion
+      .end()
+
+
+  loginFromSignupModal: (browser) ->
+
+    user = utils.getUser()
+    url  = helpers.getUrl()
+    browser
+      .url(url)
+      .maximizeWindow()
+
+    browser
+      .waitForElementVisible  '[testpath=main-header]', 50000
+      .click                  '#main-header [testpath=login-link]'
+      .waitForElementVisible  '[testpath=login-container]', 50000
+      .click                  '[testpath=login-container] a.register'
+      .setValue               '.main-part [testpath=register-form-email]', user.email
+      .setValue               '.main-part input[name=password]', user.password
+      .click                  '.main-part [testpath=signup-button]'
+      .waitForElementVisible  '[testpath=main-sidebar]', 10000 # Assertion
+      .end()

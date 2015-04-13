@@ -180,6 +180,7 @@ module.exports = class EmbedBoxWidget extends KDView
     # fetch embed.ly data from the server api
     @isFetching = yes
     fetchDataFromEmbedly url, embedlyOptions, (err, oembed) =>
+      return console.warn 'Embedly error:', err   if err
       @isFetching = no
       @cache[url] = oembed[0]
       @emit 'EmbedFetched', @cache[url]

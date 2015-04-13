@@ -4,8 +4,8 @@ getReferralUrl = require 'app/util/getReferralUrl'
 
 shareLinks =
   twitter  : (url)->
-    url = "Register to Koding with my link to get 500MB of extra free space! #{url}"
-    return "https://twitter.com/intent/tweet?text=#{url}&via=koding&source=koding"
+    url = encodeURIComponent "#developer friends... write all your code in the cloud! sign up today for @koding & get an extra 500MB! #{url}"
+    return "https://twitter.com/intent/tweet?text=#{url}&source=koding"
 
   google   : (url)->
     return "https://plus.google.com/share?url=#{url}"
@@ -14,22 +14,21 @@ shareLinks =
     return "https://www.facebook.com/sharer/sharer.php?u=#{url}"
 
   linkedin : (url)->
-    text   = "Register to Koding with my link to get 500MB of extra free space!"
+    text   = "Collaborate and code in the cloud! Register for Koding using my link and get an extra 500MB!"
     title  = "Join me @koding!"
     return "http://www.linkedin.com/shareArticle?mini=true&url=#{url}&title=#{title}&summary=#{text}&source=#{location.origin}"
 
   mail     : (url)->
-    title  = "Sign up for Koding, get 500MB more"
-    text   = "#{nick()} has invited you to Koding. As a special offer, if you
-              sign up to Koding today, we'll give you an additional 500MB of
-              cloud storage. Use this (#{url}) link to register and claim
-              your reward."
+    title  = "Sign up for Koding and get 500MB more!"
+    text   = "#{nick()} has invited you to try out Koding! As a special offer, if you
+              sign up today, we'll give you an additional 500MB of storage!
+              Use this (#{url}) link to register and claim your reward."
 
     return "mailto:?subject=#{title}&body=#{text}"
 
 module.exports = getSocialLinks = (provider)->
 
-  link = shareLinks[provider] encodeURIComponent getReferralUrl nick()
+  link = shareLinks[provider] getReferralUrl nick()
 
   callback = (event)->
     kd.utils.stopDOMEvent event

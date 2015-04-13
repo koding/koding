@@ -5,43 +5,20 @@ KDModalView      = kd.ModalView
 KDTabPaneView    = kd.TabPaneView
 KDCustomHTMLView = kd.CustomHTMLView
 
-MachineGeneralSettingsView = require './machinegeneralsettingsview'
-MachineSettingsGuidesView  = require './machinesettingsguidesview'
+MachineSettingsSpecsView     = require './machinesettingsspecsview'
+MachineSettingsGuidesView    = require './machinesettingsguidesview'
+MachineGeneralSettingsView   = require './machinegeneralsettingsview'
+MachineSettingsAdvancedView  = require './machinesettingsadvancedview'
+MachineSettingsDiskUsageView = require './machinesettingsdiskusageview'
 
 PANE_CONFIG = [
-  {
-    title       : 'General'
-    viewClass   : MachineGeneralSettingsView
-  }
-  {
-    title       : 'Advanced'
-    viewClass   : KDView
-    viewOptions : partial: 'Advanced'
-  }
-  {
-    title       : 'Common guides'
-    viewClass   : MachineSettingsGuidesView
-  }
-  {
-    title       : 'Domains'
-    viewClass   : KDView
-    viewOptions : partial: 'Domains'
-  }
-  {
-    title       : 'Specs'
-    viewClass   : KDView
-    viewOptions : partial: 'Specs'
-  }
-  {
-    title       : 'Disk Usage'
-    viewClass   : KDView
-    viewOptions : partial: 'Disk Usage'
-  }
-  {
-    title       : 'Shared VM'
-    viewClass   : KDView
-    viewOptions : partial : 'Shared VM'
-  }
+  { title: 'General',       viewClass: MachineGeneralSettingsView   }
+  { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
+  { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
+  { title: 'Domains',       viewClass: KDView                       }
+  { title: 'VM Sharing',    viewClass: KDView                       }
+  { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
+  { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
 ]
 
 

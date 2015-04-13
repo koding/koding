@@ -1693,14 +1693,16 @@ paymentGrayLighter  = #f8f8f8
 
 
 // machine settings modal styling
-
-.machine-settings-modal.AppModal
+.machine-settings-modal
 
   .AppModal-nav
     min-height              315px
 
   .AppModal-form
     padding-top             0
+
+// machine settings modal general view
+.machine-settings-modal
 
   .statustoggle .koding-on-off
     margin-top              11px
@@ -1723,15 +1725,15 @@ paymentGrayLighter  = #f8f8f8
       text-decoration       underline
       margin-right          3px
       pointer()
-    input
+    .hitenterview
         height              34px
         background          #FFF
         margin-top          5px
         text-align          right
 
 
-// icons
-.machine-settings-modal.AppModal
+// machine settings modal sidebar icon
+.machine-settings-modal
 
   .AppModal-navItem:before
     content                 ''
@@ -1741,10 +1743,10 @@ paymentGrayLighter  = #f8f8f8
 
   .AppModal-navItem.general
     &:before
-      r-sprite              'app' 'ms-general'
+      r-sprite              'app', 'ms-general'
 
     &.active:before
-      r-sprite              'app' 'ms-general-active'
+      r-sprite              'app', 'ms-general-active'
 
   .AppModal-navItem.advanced
     &:before
@@ -1781,7 +1783,7 @@ paymentGrayLighter  = #f8f8f8
     &.active:before
       r-sprite              'app', 'ms-disk-usage-active'
 
-  .AppModal-navItem.shared-vm
+  .AppModal-navItem.vm-sharing
     &:before
       r-sprite              'app', 'ms-shared-vms'
 
@@ -1789,8 +1791,8 @@ paymentGrayLighter  = #f8f8f8
       r-sprite              'app', 'ms-shared-vm-active'
 
 
-// common formline styling
-.machine-settings-modal.AppModal
+// machine settings modal common formline
+.machine-settings-modal
 
   .formline
     line-height             45px
@@ -1808,3 +1810,161 @@ paymentGrayLighter  = #f8f8f8
     .input-wrapper
       float                 right
       color                 #8B8B8B
+
+
+// machine settings modal specs and advanced view
+.machine-settings-modal
+
+  .icons
+    overflow                hidden
+
+  .big-icon
+    float                   left
+    margin                  28px 0 0 90px
+
+    &.advanced
+      width                 170px
+      margin-top            40px
+
+      figure
+        size                82px, 82px
+        margin-left         40px
+        pointer()
+
+      .label
+        p
+          font-size         16px
+          color             #393939
+          margin            21px 0 13px 0
+          pointer()
+        span
+          font-size         12px
+          color             #9E9E9E
+
+      &.reinit, &.reassign
+        margin-left         50px
+
+      &.terminate
+        margin-left         56px
+
+
+    &:first-child
+      margin-left           60px
+
+    figure
+      size                  70px, 70px
+      rounded               70px
+
+    .icon
+      display               inline-block
+      position              relative
+
+    .label
+      text-align            center
+
+      p
+        font-size           14px
+        color               #B3B3B3
+        margin              12px 0 5px 0
+
+      span
+        font-size           20px
+
+  .ram
+    figure
+      bg                    color, #B3ECA3
+    .icon
+      r-sprite              'app', 'ms-specs-ram'
+      top                   25px
+      left                  18px
+
+  .cores
+    figure
+      bg                    color, #6CE7E7
+    .icon
+      r-sprite              'app', 'ms-specs-cpu'
+      top                   17px
+      left                  17px
+
+  .disk
+    figure
+      bg                    color, #FFE04F
+    .icon
+      r-sprite              'app', 'ms-specs-disk'
+      top                   17px
+      left                  22px
+
+  .reinit, .reassign
+    figure
+      bg                    color, #F8BE1C
+    .icon
+      r-sprite              'app', 'ms-advanced-reinit'
+      top                   20px
+      left                  13px
+
+  .terminate
+    figure
+      bg                    color, #FF6B5D
+    .icon
+      r-sprite              'app', 'ms-advanced-destroy'
+      top                   21px
+      left                  21px
+
+  .need-more
+    margin-top              38px
+    text-align              center
+    width                   530px
+
+    p
+      margin-bottom         12px
+      font-size             14px
+      color                 #666651
+
+  .reassign figure
+    bg                      color, #B3ECA3
+
+
+// machine settings modal disk usage
+.machine-settings-modal
+
+  .disk-usage.AppModal-content
+    width                   530px
+
+  .circular-progress-bar
+    margin                  15px 0 20px 185px
+
+  .disk-usage-info
+    overflow                hidden
+
+  .percentage
+    position                relative
+    left                    -114px
+    top                     -64px
+    color                   #6C6C6C
+    font-size               42px
+
+  .usage-info
+    width                   260px
+    border                  1px solid #F0F0F0
+    padding                 15px
+    text-align              right
+    margin                  0 0 20px 130px
+    borderBox()
+
+    p
+      display               inline
+      font-size             16px
+      font-weight           400
+      position              relative
+      left                  -50px
+
+    span
+      display               inline
+
+  .footline
+    font-size               14px
+    color                   #878787
+    text-align              center
+
+    a
+      color                 #52A840

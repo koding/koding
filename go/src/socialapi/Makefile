@@ -207,6 +207,12 @@ build:
 	@echo "building with ../../build.sh"
 	../../build.sh
 
+testwebhook:
+	@echo "$(OK_COLOR)--> webhook tests... $(NO_COLOR)"
+	@`which go` test -c workers/integration/webhook/*.go
+	@./webhook.test $(DBG) $(METRICS) -c $(CONFIG)
+	@rm  ./webhook.test
+
 testpermission:
 	@echo "$(OK_COLOR)--> permission tests... $(NO_COLOR)"
 	@`which go` test -c workers/permission/tests/*.go
@@ -348,7 +354,7 @@ testpayment:
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
-	testpayment testteam
+	testpayment testteam testwebhook
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 

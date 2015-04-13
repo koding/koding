@@ -137,37 +137,61 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       @syncSessionsWithLocalStorage()
 
 
+  storageSet: (key, value) ->
 
-  getLocalStorage = ->
+    if not key or not value
+      return  Promise.reject 'key and value required'
 
-    return kd.singletons.localStorageController.storage 'Klient', '1.0'
+    value = (JSON.stringify value) or ''
+    @tell 'storage.set', {key, value}
 
-  setActiveSessions = (sessions)->
 
-    getLocalStorage().setValue 'activeSessions', sessions
+  storageGet: (key) ->
+
+    return  Promise.reject 'key required'  unless key
+
+    @tell 'storage.get', {key}
+
+    .then (value)->
+      try value = JSON.parse value
+      return value
+    .catch (err)->
+      return null
+
+
+  storageDelete: (key)->
+
+    return  Promise.reject 'key required'  unless key
+
+    @tell 'storage.delete', {key}
+
+
+  setActiveSessions: (sessions)->
+    @storageSet 'activeSessions', sessions
 
 
   getActiveSessions: ->
 
-    return (getLocalStorage().getValue 'activeSessions') ? []
+    @storageGet 'activeSessions'
+    .then (sessions)-> sessions or []
+    .catch          -> []
 
 
   syncSessionsWithLocalStorage: ->
 
-    setActiveSessions @getActiveSessions().filter (session)=>
-      session in @terminalSessions
+    @getActiveSessions().then (sessions) =>
+      @setActiveSessions sessions.filter (session) =>
+        session in @terminalSessions
 
 
   addToActiveSessions: (session)->
 
-    activeSessions = @getActiveSessions()
-    activeSessions.push session  unless session in activeSessions
-
-    setActiveSessions activeSessions
+    @getActiveSessions().then (activeSessions) =>
+      activeSessions.push session  unless session in activeSessions
+      @setActiveSessions activeSessions
 
 
   removeFromActiveSessions: (session)->
 
-    activeSessions = @getActiveSessions().filter (old)-> session isnt old
-
-    setActiveSessions activeSessions
+    @getActiveSessions().then (sessions) =>
+      @setActiveSessions sessions.filter (old)-> session isnt old

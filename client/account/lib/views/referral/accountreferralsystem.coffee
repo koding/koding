@@ -29,7 +29,7 @@ module.exports      = class AccountReferralSystem extends kd.View
         container_top      :
           totalSpace       : total
           shareBox         :
-            title          : "You can earn up to 20gb of free disk space
+            title          : "You can earn up to 7GB of free disk space
                               by sharing your referral link with your friends."
             subtitle       : "Share on social media and get more referrals."
         container_bottom   :
