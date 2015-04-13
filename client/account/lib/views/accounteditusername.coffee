@@ -15,6 +15,7 @@ Encoder = require 'htmlencode'
 VerifyPINModal = require 'app/commonviews/verifypinmodal'
 VerifyPasswordModal = require 'app/commonviews/verifypasswordmodal'
 sinkrow = require 'sinkrow'
+KodingSwitch = require 'app/commonviews/kodingswitch'
 
 
 module.exports = class AccountEditUsername extends JView
@@ -100,6 +101,22 @@ module.exports = class AccountEditUsername extends JView
           name             : "confirmPassword"
           type             : "password"
           label            : 'Password (again)'
+        locationHeader     :
+          itemClass        : KDCustomHTMLView
+          partial          : 'LOCATION SERVICES'
+          cssClass         : 'AppModal-form-sectionHeader'
+        shareLocationLabel :
+          itemClass        : KDCustomHTMLView
+          partial          : 'Share my location while posting'
+          tagName          : 'ul'
+          cssClass         : 'AppModal--account-switchList left-aligned'
+          name             : 'shareLocationLabel'
+          nextElement      :
+            shareLocation      :
+              defaultValue     : whoami().shareLocation
+              itemClass        : KodingSwitch
+              #cssClass         : 'AppModal--account-switchList'
+              name             : 'shareLocation'
       buttons              :
         Save               :
           title            : 'Save Changes'
@@ -153,21 +170,18 @@ module.exports = class AccountEditUsername extends JView
   update: (formData) ->
 
     {JUser} = remote.api
-    {email, password, confirmPassword, firstName, lastName, username} = formData
-
+    {email, password, confirmPassword, firstName, lastName, username, shareLocation} = formData
     profileUpdated = yes
     skipPasswordConfirmation = no
     queue = [
       =>
         # update firstname and lastname
         me = whoami()
-        {profile:{firstName:oldFirstName, lastName:oldLastName}} = me
-        # do not do anything if current firstname and lastname is same
-        return queue.next() if oldFirstName is firstName and oldLastName is lastName
 
         me.modify {
           "profile.firstName": firstName,
           "profile.lastName" : lastName
+          "shareLocation"    : formData.shareLocation
         }, (err)->
           return notify err.message  if err
           queue.next()
@@ -288,6 +302,7 @@ module.exports = class AccountEditUsername extends JView
     @emailForm.inputs.username.setDefaultValue Encoder.htmlDecode nickname
     @emailForm.inputs.firstName.setDefaultValue Encoder.htmlDecode firstName
     @emailForm.inputs.lastName.setDefaultValue Encoder.htmlDecode lastName
+    @emailForm.inputs.shareLocation.setDefaultValue whoami().shareLocation
 
     {focus} = kd.utils.parseQuery()
     @emailForm.inputs[focus]?.setFocus()  if focus

@@ -1,7 +1,10 @@
 package models
 
+import "net"
+
 type Client struct {
 	Account *Account
+	IP      net.IP
 }
 
 type Context struct {

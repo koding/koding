@@ -2,6 +2,7 @@ package main
 
 import (
 	"math/rand"
+	"net/http"
 	"socialapi/models"
 	"socialapi/request"
 	"socialapi/rest"
@@ -81,6 +82,25 @@ func TestChannelMessage(t *testing.T) {
 			post2, err := rest.GetPost(post.Id, account.Id, groupChannel.GroupName)
 			So(err, ShouldNotBeNil)
 			So(post2, ShouldBeNil)
+		})
+
+		Convey("message should not have payload, if user does not allow", func() {
+			h := http.Header{}
+			h.Add("X-Forwarded-For", "208.72.139.54")
+			post, err := rest.CreatePostWithHeader(groupChannel.Id, account.Id, h)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+			So(post.Payload, ShouldBeNil)
+		})
+
+		Convey("Message should have location if user allowed", func() {
+			payload := make(map[string]interface{})
+			payload["saveLocation"] = "Manisa"
+			post, err := rest.CreatePostWithPayload(groupChannel.Id, account.Id, payload)
+			So(err, ShouldBeNil)
+			So(post, ShouldNotBeNil)
+			So(post.Payload, ShouldNotBeNil)
+			So(*(post.Payload["saveLocation"]), ShouldEqual, "Manisa")
 		})
 
 		// handled by social worker
