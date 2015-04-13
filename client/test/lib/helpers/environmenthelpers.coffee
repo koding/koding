@@ -5,14 +5,18 @@ modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
 
-  openVmSettingsModal: (browser, vmName) ->
 
-    modalSelector = '.activity-modal.vm-settings'
+  openVmSettingsModal: (browser, vmName, cssSelector) ->
 
     if not vmName
       vmName = 'koding-vm-0'
 
-    vmSelector = '.activity-sidebar a[href="/IDE/' + vmName + '"].running'
+    if not cssSelector
+      cssSelector = '.general'
+
+    modalSelector = '.machine-settings-modal.AppModal'
+    itemSelector  = modalSelector + ' .AppModal-navItem' + cssSelector
+    vmSelector    = '.activity-sidebar a[href="/IDE/' + vmName + '"].running'
 
     browser
       .waitForElementVisible   vmSelector, 20000
@@ -21,14 +25,24 @@ module.exports =
       .click                   vmSelector + ' span'
       .waitForElementVisible   modalSelector, 20000 # Assertion
       .pause                   2500
+      .waitForElementVisible   itemSelector, 20000
+      .click                   itemSelector
 
 
-  clickMoreButtonInVMSettingsModal: (browser) ->
+  openDiskUsageSettings: (browser, vmName) ->
 
-    browser
-      .waitForElementVisible  '.settings form.with-fields .moreview', 20000
-      .click                  '.settings form.with-fields .moreview'
-      .pause                  2000
+    @openVmSettingsModal browser, vmName, '.disk-usage'
+
+
+  openSpecsSettings: (browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.specs'
+
+
+  openGeneralSettings: (browser,vmName) ->
+
+    @openVmSettingsModal browser, vmName
+
 
   openDomainSettings: (browser, vmName) ->
 
@@ -47,12 +61,14 @@ module.exports =
 
     @clickAddKodingVMButton browser
 
+
   clickAddKodingVMButton: (browser) ->
 
     sidebarTitle = '[testpath=main-sidebar] .activity-sidebar .vms .sidebar-title'
     browser
       .waitForElementVisible   '.more-modal.more-vms', 20000 # Assertion
       .click                   '.kdbutton.create-koding-vm'
+
 
   seeUpgradeModal: (browser) ->
 
