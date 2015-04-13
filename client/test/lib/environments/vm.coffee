@@ -35,21 +35,18 @@ module.exports =
 
   checkVMDiskUsage: (browser) ->
 
-    diskUsageSelector     = modalSelector + ' .diskusage'
-    diskUsageBarSelector  = diskUsageSelector + ' .input-wrapper .progressbar-container.disk-usage'
+    diskUsageSelector  = modalSelector + ' .disk-usage'
+    circularBar        = '.disk-usage-info .circular-progress-bar'
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    environmentHelpers.openVmSettingsModal(browser)
+    environmentHelpers.openDiskUsageSettings(browser)
 
     browser
       .waitForElementVisible   diskUsageSelector, 20000
-      .waitForElementVisible   diskUsageSelector + ' label.disk-usage', 20000
-      .waitForElementVisible   diskUsageBarSelector, 20000
-      .waitForElementVisible   diskUsageBarSelector + ' .bar', 20000 # Assertion
-      .moveToElement           diskUsageBarSelector + ' .bar span.light-label', 70, 7 # Assertion
-      .pause  3000
-      .waitForElementVisible   '.kdtooltip', 20000 # Assertion
+      .click                   diskUsageSelector
+      .waitForElementVisible   circularBar, 20000
+      .assert.containsText     circularBar + ' span.percentage', '53%' # Assertion
       .end()
 
