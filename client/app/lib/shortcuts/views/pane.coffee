@@ -4,25 +4,36 @@ recorder = require 'record-shortcuts'
 Item     = require './item'
 
 
-listeners = {}
-
 selectHandler = (cb) ->
 
   recorder.start()
-    .on 'end', (res) ->
+
+    .on 'end', (res) =>
+      if res.length < 2 then return cb()
+
+      fn = (collection, model) =>
+        @emit 'Synced', model
+
       { shortcuts } = kd.singletons
+
+      shortcuts
+        .once 'change', fn
+        .update @model.collection, @model.name,
+          binding: [ res.join '+' ]
+
       cb res
+
     .on 'cancel', cb
+
+  return
 
 
 toggleHandler = (enabled) ->
 
-  { shortcuts } = kd.singletons
-
-  uid = [@model.collection, @model.name].join '|'
-  fn = listeners[uid] = (collection, model) =>
-    console.log arguments
+  fn = (collection, model) =>
     @emit 'Synced', model
+
+  { shortcuts } = kd.singletons
 
   shortcuts
     .once 'change', fn
