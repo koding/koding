@@ -21,7 +21,7 @@ type LongRunning struct {
 
 func (l *LongRunning) Process() {
 	l.runningInstances = l.Instances.
-		OlderThan(12*time.Hour).
+		OlderThan(6*time.Hour).
 		States("running").
 		WithTag("koding-env", "production")
 
@@ -60,7 +60,7 @@ func (l *LongRunning) Process() {
 			domain:     machine.Domain,
 			ipAddress:  machine.IpAddress,
 			username:   username,
-			reason:     "Non free user, VM is running for more than 12 hours",
+			reason:     "Non free user, VM is running for more than 6 hours",
 		}
 
 		stopData[instanceId] = data
@@ -70,7 +70,7 @@ func (l *LongRunning) Process() {
 		// fmt.Printf("[%s] %s %s %s\n", data.username, data.instanceId, data.domain, data.ipAddress)
 	}
 
-	// contains free user VMs running for more than 12 hours
+	// contains free user VMs running for more than 6 hours
 	l.longRunningInstances = l.runningInstances.Only(ids...)
 
 	// filter out data from instances that are not running anymore
@@ -120,6 +120,6 @@ func (l *LongRunning) Result() string {
 func (l *LongRunning) Info() *taskInfo {
 	return &taskInfo{
 		Title: "LongRunningVms",
-		Desc:  "Stop free VMs running for more than 12 hours",
+		Desc:  "Stop free VMs running for more than 6 hours",
 	}
 }
