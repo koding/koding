@@ -3,19 +3,19 @@ activitySelector = '[testpath=activity-list] section:nth-of-type(1) [testpath=Ac
 
 module.exports =
 
-  searchActivity: (browser) ->
+  # searchActivity: (browser) ->
 
-    post     = helpers.postActivity(browser)
-    selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
-    word     = post.split(' ')[0]
+  #   post     = helpers.postActivity(browser)
+  #   selector = '[testpath=activity-list] [testpath=ActivityListItemView]:first-child'
+  #   word     = post.split(' ')[0]
 
-    browser
-      .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
-      .waitForElementVisible    '.kdtabpaneview.search', 25000
-      .waitForElementVisible    selector, 25000
-      .pause                    25000
-      .assert.containsText      selector, word # Assertion
-      .end()
+  #   browser
+  #     .setValue                 '.kdtabhandlecontainer .search-input', word + '\n'
+  #     .waitForElementVisible    '.kdtabpaneview.search', 25000
+  #     .waitForElementVisible    selector, 25000
+  #     .pause                    25000
+  #     .assert.containsText      selector, word # Assertion
+  #     .end()
 
 
   showMoreCommentLink: (browser) ->
