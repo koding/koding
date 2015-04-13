@@ -109,13 +109,13 @@ module.exports = class AccountEditUsername extends JView
           itemClass        : KDCustomHTMLView
           partial          : 'Share my location while posting'
           tagName          : 'ul'
-          cssClass         : 'AppModal--account-switchList'
+          cssClass         : 'AppModal--account-switchList left-aligned'
           name             : 'shareLocationLabel'
           nextElement      :
             shareLocation      :
               defaultValue     : whoami().shareLocation
               itemClass        : KodingSwitch
-              cssClass         : 'AppModal--account-switchList'
+              #cssClass         : 'AppModal--account-switchList'
               name             : 'shareLocation'
       buttons              :
         Save               :
