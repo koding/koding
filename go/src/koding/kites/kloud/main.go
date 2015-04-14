@@ -30,7 +30,6 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
 )
@@ -219,11 +218,7 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	// KLOUD DISPATCHER ///
-
-	stats, err := metrics.NewDogStatsD("kloud")
-	if err != nil {
-		panic(err)
-	}
+	stats := common.MustInitMetrics(Name)
 
 	kld := kloud.New()
 	kld.Metrics = stats
