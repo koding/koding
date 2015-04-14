@@ -19,7 +19,7 @@ var (
 func main() {
 	conf := &terraformer.Config{}
 
-	// Load the config, it's reads environment variables or from flags
+	// Load the config, reads environment variables or from flags
 	multiconfig.New().MustLoad(conf)
 
 	k := newKite(conf)
@@ -55,6 +55,7 @@ func newKite(conf *terraformer.Config) *kite.Kite {
 	t := terraformer.New()
 	t.Metrics = stats
 	t.Log = common.NewLogger(Name, conf.Debug)
+	t.Debug = conf.Debug
 
 	// track every kind of call
 	k.PreHandleFunc(createTracker(stats))
