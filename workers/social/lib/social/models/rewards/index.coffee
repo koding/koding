@@ -120,9 +120,10 @@ module.exports = class JReward extends jraphical.Message
 
     { originId, unit, type, amount } = useDefault options
 
-    # Force maximum possible disk size to 17000MB ~ 17GB
+    # Force maximum possible disk size to 7000MB ~ 7GB
+    # TODO: Move this to a collection or config  ~ GG
     if type is "disk" and unit is "MB"
-      amount = Math.min amount, 17000
+      amount = Math.min amount, 7000
 
     JEarnedReward = require './earnedreward'
     JEarnedReward.update { originId, unit, type }

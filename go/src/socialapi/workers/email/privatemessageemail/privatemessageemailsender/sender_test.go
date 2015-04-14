@@ -24,7 +24,7 @@ func TestChatEmailSender(t *testing.T) {
 	redisConn := runner.MustInitRedisConn(redisConf)
 	defer redisConn.Close()
 
-	controller, _ := New(redisConn, r.Log, r.Metrics)
+	controller, _ := New(redisConn, r.Log, r.Metrics, config.MustGet())
 
 	Convey("while fetching a message from pending notification queue", t, func() {
 		testPeriod := "1"

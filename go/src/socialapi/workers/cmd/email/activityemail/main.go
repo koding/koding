@@ -33,6 +33,7 @@ func main() {
 	handler := activityemail.New(
 		r.Bongo.Broker.MQ,
 		r.Log,
+		appConfig,
 	)
 
 	r.SetContext(handler)

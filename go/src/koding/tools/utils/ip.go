@@ -5,8 +5,6 @@ import (
 	"strings"
 )
 
-type ipAddress string
-
 // IP address helpers taken
 // from https://groups.google.com/forum/#!topic/golang-nuts/lomWKs0kOfE
 
