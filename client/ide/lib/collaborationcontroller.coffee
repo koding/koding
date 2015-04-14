@@ -287,7 +287,9 @@ module.exports = CollaborationController =
 
   bindSocialChannelEvents: ->
 
-    @socialChannel.on 'AddedToChannel', @bound 'participantAdded'
+    @socialChannel
+      .on 'AddedToChannel', @bound 'participantAdded'
+      .on 'ChannelDeleted', @bound 'channelDeleted'
 
 
   participantAdded: (participant) ->
@@ -300,6 +302,11 @@ module.exports = CollaborationController =
       {nickname} = account.profile
       @statusBar.createParticipantAvatar nickname, no
       @watchParticipant nickname
+
+
+  channelDeleted: ->
+
+    @stateMachine.transition 'Ending'
 
 
   bindRealtimeEvents: ->
