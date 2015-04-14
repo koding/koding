@@ -294,6 +294,7 @@ module.exports = CollaborationController =
 
     socialHelpers.fetchAccount socialAccount, (err, account) =>
 
+      return throwError err  if err
       return  unless account
 
       {nickname} = account.profile
