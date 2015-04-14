@@ -46,7 +46,7 @@ func (a *Amazon) CheckBuild(ctx context.Context, instanceId string, start, finis
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
 		if withPush {
 			ev.Push(&eventer.Event{
-				Message:    "Starting machine",
+				Message:    "Building machine",
 				Status:     machinestate.Building,
 				Percentage: currentPercentage,
 			})
