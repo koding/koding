@@ -89,8 +89,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
             action   : 'clicks'
             label    : 'upgradeAccountOverlay'
             origin   : 'paidModal'
-    else
-      @setHeight 278
 
     @updateUsageText 5, usage, limits
     @storageSlider.on "ValueIsChanging", (val)=>
@@ -98,6 +96,9 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
     @updateRegionText()
     @regionSelector.on "change", @bound 'updateRegionText'
+
+    @setPositions()
+
 
   updateRegionText: ->
 
