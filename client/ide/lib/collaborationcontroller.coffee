@@ -290,9 +290,9 @@ module.exports = CollaborationController =
     @socialChannel.on 'AddedToChannel', @bound 'participantAdded'
 
 
-  participantAdded: (socialAccount) =>
+  participantAdded: (participant) ->
 
-    socialHelpers.fetchAccount socialAccount, (err, account) =>
+    socialHelpers.fetchAccount participant, (err, account) =>
 
       return throwError err  if err
       return  unless account
