@@ -292,7 +292,7 @@ module.exports = CollaborationController =
 
   participantAdded: (socialAccount) =>
 
-    socialHelpers.fetchAccount socialAccount, (account) =>
+    socialHelpers.fetchAccount socialAccount, (err, account) =>
 
       return  unless account
 
