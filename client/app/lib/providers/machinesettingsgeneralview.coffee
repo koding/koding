@@ -1,13 +1,14 @@
-kd                   = require 'kd'
-KDView               = kd.View
-Machine              = require './machine'
-showError            = require 'app/util/showError'
-KodingSwitch         = require '../commonviews/kodingswitch'
-KDLoaderView         = kd.LoaderView
-CustomLinkView       = require '../customlinkview'
-KDCustomHTMLView     = kd.CustomHTMLView
-KDHitEnterInputView  = kd.HitEnterInputView
-KDFormViewWithFields = kd.FormViewWithFields
+kd                     = require 'kd'
+KDView                 = kd.View
+Machine                = require './machine'
+showError              = require 'app/util/showError'
+KodingSwitch           = require '../commonviews/kodingswitch'
+KDLoaderView           = kd.LoaderView
+CustomLinkView         = require '../customlinkview'
+KDCustomHTMLView       = kd.CustomHTMLView
+KDHitEnterInputView    = kd.HitEnterInputView
+KDFormViewWithFields   = kd.FormViewWithFields
+ComputeErrorUsageModal = require './computeerrorusagemodal'
 
 
 module.exports = class MachineSettingsGeneralView extends KDView
