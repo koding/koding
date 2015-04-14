@@ -3,8 +3,11 @@ package amazon
 import (
 	"errors"
 	"fmt"
+	"koding/kites/kloud/eventer"
 	"koding/kites/kloud/machinestate"
 	"koding/kites/kloud/waitstate"
+
+	"golang.org/x/net/context"
 
 	"github.com/mitchellh/goamz/ec2"
 )
@@ -28,16 +31,36 @@ func (a *Amazon) Build(buildData *ec2.RunInstances) (string, error) {
 	return instance.InstanceId, nil
 }
 
-func (a *Amazon) CheckBuild(instanceId string, start, finish int) (ec2.Instance, error) {
+func (a *Amazon) CheckBuild(ctx context.Context, instanceId string, start, finish int) (ec2.Instance, error) {
+	ev, withPush := eventer.FromContext(ctx)
+	if withPush {
+		ev.Push(&eventer.Event{
+			Message:    "Building machine",
+			Status:     machinestate.Building,
+			Percentage: start,
+		})
+	}
+
 	var instance ec2.Instance
 	var err error
 	stateFunc := func(currentPercentage int) (machinestate.State, error) {
+		if withPush {
+			ev.Push(&eventer.Event{
+				Message:    "Starting machine",
+				Status:     machinestate.Building,
+				Percentage: currentPercentage,
+			})
+		}
+
 		instance, err = a.InstanceById(instanceId)
 		if err != nil {
 			return 0, err
 		}
 
 		currentStatus := StatusToState(instance.State.Name)
+
+		// happens when there is no volume limit. The instance will be not
+		// build and it returns terminated from AWS
 		if currentStatus.In(machinestate.Terminated, machinestate.Terminating) {
 			return 0, ErrInstanceTerminated
 		}
