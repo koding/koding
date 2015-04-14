@@ -707,19 +707,16 @@ module.exports = CollaborationController =
     @chat.settingsPane.endSession.disable()
 
     if @amIHost
-      @endCollaborationForHost
-        success: =>
-          @modal?.destroy()
-          @handleCollaborationEndedForHost()
-
+      @endCollaborationForHost =>
+        @modal?.destroy()
+        @handleCollaborationEndedForHost()
     else
-      @endCollaborationForParticipant
-        success: =>
-          @modal?.destroy()
-          @handleCollaborationEndedForParticipant()
+      @endCollaborationForParticipant =>
+        @modal?.destroy()
+        @handleCollaborationEndedForParticipant()
 
 
-  endCollaborationForHost: (callbacks) ->
+  endCollaborationForHost: (callback) ->
 
     @broadcastMessage { type: 'SessionEnded' }
 
@@ -737,7 +734,7 @@ module.exports = CollaborationController =
       envHelpers.detachSocialChannel @workspaceData, (err) =>
         throwError err  if err
 
-    callbacks.success()
+    callback()
 
 
   handleCollaborationEndedForHost: ->
@@ -756,7 +753,7 @@ module.exports = CollaborationController =
     @cleanupCollaboration()
 
 
-  endCollaborationForParticipant: (callbacks) ->
+  endCollaborationForParticipant: (callback) ->
 
     @broadcastMessage { type: 'ParticipantWantsToLeave' }
 
@@ -766,7 +763,7 @@ module.exports = CollaborationController =
     @setMachineUser [nick()], no, =>
       throwError err  if err
 
-    callbacks.success()
+    callback()
 
 
   handleCollaborationEndedForParticipant: ->
