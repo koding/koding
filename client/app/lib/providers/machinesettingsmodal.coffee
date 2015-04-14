@@ -7,12 +7,12 @@ KDCustomHTMLView = kd.CustomHTMLView
 
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
-MachineGeneralSettingsView   = require './machinegeneralsettingsview'
+MachineSettingsGeneralView   = require './machinesettingsgeneralview'
 MachineSettingsAdvancedView  = require './machinesettingsadvancedview'
 MachineSettingsDiskUsageView = require './machinesettingsdiskusageview'
 
 PANE_CONFIG = [
-  { title: 'General',       viewClass: MachineGeneralSettingsView   }
+  { title: 'General',       viewClass: MachineSettingsGeneralView   }
   { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
   { title: 'Domains',       viewClass: KDView                       }

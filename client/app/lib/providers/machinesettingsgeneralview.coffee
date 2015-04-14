@@ -10,7 +10,7 @@ KDHitEnterInputView  = kd.HitEnterInputView
 KDFormViewWithFields = kd.FormViewWithFields
 
 
-module.exports = class MachineGeneralSettingsView extends KDView
+module.exports = class MachineSettingsGeneralView extends KDView
 
   { Running, Starting } = Machine.State
 
