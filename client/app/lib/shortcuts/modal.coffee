@@ -1,6 +1,7 @@
 kd   = require 'kd'
 _    = require 'lodash'
 Pane = require './pane'
+facade = require './actions-facade'
 
 module.exports =
 
@@ -52,6 +53,8 @@ class Modal extends kd.ModalViewWithForms
 
     { shortcuts } = kd.singletons
     shortcuts.unpause()
+
+    facade.dispose()
 
     super
 
