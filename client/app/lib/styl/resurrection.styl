@@ -2030,11 +2030,22 @@ paymentGrayLighter  = #f8f8f8
     color                   #A2A2A2
     margin-left             8px
 
-  .kdlistitemview
+  .kdlistitemview-domain
     position                relative
+
     &:hover
       .remove
         visible()
+
+    &.in-progress
+      .remove
+        hidden()
+
+      .kdloader
+        abs()
+        size                16px, 16px
+        top                 15px
+        right               50px
 
     a
       color                 #434343

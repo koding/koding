@@ -19,6 +19,9 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
     super options, data
 
+    @listController.getListView()
+      .on 'DeleteDomainRequested', @bound 'removeDomain'
+
 
   createAddInput: ->
 
@@ -38,7 +41,32 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
    kd.singletons.computeController.fetchDomains (err, domains = []) =>
       kd.warn err  if err
-
       @listController.lazyLoader.hide()
       @listController.replaceAllItems domains
+
+
+  removeDomain: (domainItem) ->
+
+    { computeController } = kd.singletons
+
+    { domain }  = domainItem.getData()
+    machineId   = @machine._id
+
+    # @warning.hide()
+    domainItem.setLoadingMode yes
+
+    computeController.getKloud()
+
+      .removeDomain { domainName: domain, machineId }
+
+      .then =>
+        @listController.removeItem domainItem
+        computeController.domains = []
+
+      .catch (err) =>
+        kd.warn 'Failed to remove domain:', err
+        domainItem.setLoadingMode no
+        # @warning.setTooltip title: err.message
+        # @warning.show()
+
 
