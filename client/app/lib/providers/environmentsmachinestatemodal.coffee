@@ -369,7 +369,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
       @createStateLabel "
         Your VM <strong>#{@machineName or ''}</strong> was
-        successfully deleted.Please select a new VM to operate on from
+        successfully deleted. Please select a new VM to operate on from
         the VMs list or create a new one.
       "
     else if @state is Running

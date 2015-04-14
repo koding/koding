@@ -27,8 +27,6 @@ import (
 const (
 	DefaultKloudSubnetValue = "kloud-subnet-*"
 	DefaultKloudKeyName     = "Kloud"
-	DefaultApachePort       = 80
-	DefaultKitePort         = 3000
 )
 
 var (
@@ -385,12 +383,13 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}
 
 	cloudInitConfig := &userdata.CloudInitConfig{
-		Username:    m.Username,
-		UserSSHKeys: sshKeys,
-		Hostname:    m.Username, // no typo here. hostname = username
-		ApachePort:  DefaultApachePort,
-		KitePort:    DefaultKitePort,
-		KiteId:      kiteId,
+		Username:           m.Username,
+		Groups:             []string{"docker", "sudo"},
+		UserSSHKeys:        sshKeys,
+		Hostname:           m.Username, // no typo here. hostname = username
+		KiteId:             kiteId,
+		DisableEC2MetaData: true,
+		KodingSetup:        true,
 	}
 
 	userdata, err := m.Session.Userdata.Create(cloudInitConfig)

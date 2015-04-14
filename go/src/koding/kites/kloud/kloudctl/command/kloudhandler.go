@@ -53,12 +53,13 @@ func kloudWrapper(args []string, actioner Actioner) error {
 
 func kloudClient() (*kite.Client, error) {
 	k := kite.New("kloudctl", "0.0.1")
-	config, err := config.Get()
+	c, err := config.Get()
 	if err != nil {
 		return nil, err
 	}
 
-	k.Config = config
+	k.Config = c
+	k.Config.Transport = config.XHRPolling
 	k.SetLogLevel(kite.WARNING)
 
 	remoteKite := k.NewClient(flagKloudAddr)

@@ -285,13 +285,19 @@ module.exports = class ActivityListItemView extends KDListItemView
 
   pistachio: ->
     @hasShowMoreMark = yes
+    location = "" 
+    if @getData().payload?.location?
+      location =  "<span class='location'> from #{@getData().payload.location}</span>"
+      
     """
     <div class="activity-content-wrapper">
       {{> @settingsButton}}
       {{> @avatar}}
       <div class='meta'>
         {{> @author}}
-        {{> @timeAgoView}} <span class="location hidden"> from San Francisco</span>
+        <div>    
+          {{> @timeAgoView}}#{location}
+        </div>
       </div>
       {{> @editWidgetWrapper}}
       {article.has-markdown{formatContent #(body)}}

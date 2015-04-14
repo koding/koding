@@ -2,10 +2,10 @@ package models
 
 import (
 	"fmt"
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 	"socialapi/request"
 	"strings"
-
-	"github.com/koding/bongo"
 )
 
 type Account struct {
@@ -23,6 +23,9 @@ type Account struct {
 	// unique account nicknames
 	Nick string `json:"nick"        sql:"NOT NULL;UNIQUE;TYPE:VARCHAR(25);"`
 
+	// ShareLocation is a setting for users on socialapi
+	Settings gorm.Hstore `json:"settings"`
+
 	// Token is used for authentication purposes, this data should not be shared
 	// with other clients/accounts
 	Token string `json:"-"`
@@ -37,6 +40,18 @@ func ValidateAccount(a *Account) error {
 		return ErrGuestsAreNotAllowed
 	}
 	return nil
+}
+
+func (a *Account) IsShareLocationEnabled() bool {
+    if a.Settings == nil {
+        return false
+    }
+    shareLocation, ok := a.Settings["shareLocation"]
+	if !ok || shareLocation == nil {
+		return false
+	}
+
+	return *shareLocation == "true"
 }
 
 // Tests are done.

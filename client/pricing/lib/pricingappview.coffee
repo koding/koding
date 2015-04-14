@@ -261,6 +261,7 @@ module.exports = class PricingAppView extends KDView
 
         @state.currentPlan = state.planTitle
         @state.currentPlanInterval = state.planInterval
+        @state.provider = state.provider
         @plans.setState @state
 
         kd.singletons.router.handleRoute '/'

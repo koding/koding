@@ -212,6 +212,7 @@ module.exports = class JAccount extends jraphical.Module
           (signature Function)
 
     schema                  :
+      shareLocation         : Boolean
       socialApiId           : String
       skillTags             : [String]
       locationTags          : [String]
@@ -921,6 +922,7 @@ module.exports = class JAccount extends jraphical.Module
       "profile.experiencePoints"
       "skillTags"
       "locationTags"
+      "shareLocation"
     ]
 
     objKeys = Object.keys(fields)
@@ -933,8 +935,13 @@ module.exports = class JAccount extends jraphical.Module
       op = $set: fields
       @update op, (err) =>
         JAccount.sendUpdateInstanceEvent this, op  unless err
-
-        return callback err
+        SocialAccount  = require './socialapi/socialaccount'
+        
+        SocialAccount.update {
+          id            : @socialApiId
+          nick          : @profile.nickname
+          settings      : {shareLocation: fields.shareLocation}
+        }, callback
 
   setClientId:(@clientId)->
 
