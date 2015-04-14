@@ -1,30 +1,32 @@
-globals = require 'globals'
-nick = require '../util/nick'
-kd = require 'kd'
+kd               = require 'kd'
+nick             = require '../util/nick'
+globals          = require 'globals'
+KodingSwitch     = require '../commonviews/kodingswitch'
+KDListItemView   = kd.ListItemView
+CustomLinkView   = require '../customlinkview'
 KDCustomHTMLView = kd.CustomHTMLView
-KDListItemView = kd.ListItemView
-CustomLinkView = require '../customlinkview'
-KodingSwitch = require '../commonviews/kodingswitch'
 
 
 module.exports = class DomainItem extends KDListItemView
 
-  constructor:(options = {}, data)->
+  constructor: (options = {}, data) ->
 
     options.type = 'domain'
+
     super options, data
+
 
   viewAppended: ->
 
     { domain, machineId } = @getData()
     currentMachineId      = @getOption 'machineId'
 
-    topDomain  = "#{nick()}.#{globals.config.userSitesDomain}"
+    topDomain = "#{nick()}.#{globals.config.userSitesDomain}"
 
     @addSubView new CustomLinkView
-      title    : domain
-      href     : "http://#{domain}"
-      target   : '_blank'
+      title  : domain
+      href   : "http://#{domain}"
+      target : '_blank'
 
     unless domain is topDomain
       @addSubView new KDCustomHTMLView
