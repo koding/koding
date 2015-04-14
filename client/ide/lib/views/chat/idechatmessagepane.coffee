@@ -215,12 +215,6 @@ module.exports = class IDEChatMessagePane extends PrivateMessagePane
 
   participantAdded: (participant) ->
 
-    # forward this event to channel, so that
-    # it can change in other views as well.
-    # Kind of observable. ~Umut
-    channel = @getData()
-    channel.emit 'AddedToChannel', participant
-
     @onboarding?.destroy()
 
     appManager = kd.getSingleton 'appManager'

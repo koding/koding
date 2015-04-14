@@ -287,23 +287,36 @@ module.exports = CollaborationController =
 
   bindSocialChannelEvents: ->
 
-    @socialChannel.on 'AddedToChannel', (socialAccount) =>
+    @socialChannel
+      .on 'AddedToChannel', @bound 'participantAdded'
+      .on 'ChannelDeleted', @bound 'channelDeleted'
 
-      socialHelpers.fetchAccount socialAccount, (account) =>
 
-        return  unless account
+  participantAdded: (participant) ->
 
-        {nickname} = account.profile
-        @statusBar.createParticipantAvatar nickname, no
-        @watchParticipant nickname
+    socialHelpers.fetchAccount participant, (err, account) =>
+
+      return throwError err  if err
+      return  unless account
+
+      {nickname} = account.profile
+      @statusBar.createParticipantAvatar nickname, no
+      @watchParticipant nickname
+
+
+  channelDeleted: ->
+
+    @stateMachine.transition 'Ending'
 
 
   bindRealtimeEvents: ->
 
     @rtm.on 'CollaboratorJoined', (doc, participant) =>
+      return  unless @stateMachine.state is 'Active'
       @handleParticipantAction 'join', participant
 
     @rtm.on 'CollaboratorLeft', (doc, participant) =>
+      return  unless @stateMachine.state is 'Active'
       @handleParticipantAction 'left', participant
 
     @rtm.on 'ValuesAddedToList', (list, event) =>
@@ -551,7 +564,10 @@ module.exports = CollaborationController =
       return callMethod 'notStarted'
 
     @fetchSocialChannel (err, channel) =>
-      return callMethod 'error'  if err
+      if err
+        console.warn "CollaborationController: #{err}"
+        return callMethod 'notStarted'
+
       @isRealtimeSessionActive channel.id, (isActive, file) =>
         if isActive
         then callMethod 'active', channel, file
@@ -691,32 +707,34 @@ module.exports = CollaborationController =
     @chat.settingsPane.endSession.disable()
 
     if @amIHost
-      @endCollaborationForHost
-        success: =>
-          @modal?.destroy()
-          @handleCollaborationEndedForHost()
-
+      @endCollaborationForHost =>
+        @modal?.destroy()
+        @handleCollaborationEndedForHost()
     else
-      @endCollaborationForParticipant
-        success: =>
-          @modal?.destroy()
-          @handleCollaborationEndedForParticipant()
+      @endCollaborationForParticipant =>
+        @modal?.destroy()
+        @handleCollaborationEndedForParticipant()
 
 
-  endCollaborationForHost: (callbacks) ->
+  endCollaborationForHost: (callback) ->
 
     @broadcastMessage { type: 'SessionEnded' }
 
     fileName = @getRealtimeFileName()
+
     realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
-      return callbacks.error err  if err
-      @setMachineSharingStatus off, (err) =>
-        return callbacks.error err  if err
-        socialHelpers.destroyChannel @socialChannel, (err) =>
-          return callbacks.error err  if err
-          envHelpers.detachSocialChannel @workspaceData, (err) =>
-            return callbacks.error err  if err
-            callbacks.success()
+      throwError err  if err
+
+    @setMachineSharingStatus off, (err) =>
+      throwError err  if err
+
+    socialHelpers.destroyChannel @socialChannel, (err) =>
+      throwError err  if err
+
+      envHelpers.detachSocialChannel @workspaceData, (err) =>
+        throwError err  if err
+
+    callback()
 
 
   handleCollaborationEndedForHost: ->
@@ -735,14 +753,17 @@ module.exports = CollaborationController =
     @cleanupCollaboration()
 
 
-  endCollaborationForParticipant: (callbacks) ->
+  endCollaborationForParticipant: (callback) ->
 
     @broadcastMessage { type: 'ParticipantWantsToLeave' }
 
     socialHelpers.leaveChannel @socialChannel, (err) =>
-      return callbacks.error err  if err
-      @setMachineUser [nick()], no, =>
-        callbacks.success()
+      throwError err  if err
+
+    @setMachineUser [nick()], no, =>
+      throwError err  if err
+
+    callback()
 
 
   handleCollaborationEndedForParticipant: ->
@@ -940,7 +961,7 @@ module.exports = CollaborationController =
     format = \
       switch typeof err
         when 'string' then err
-        when 'object' then err.message
+        when 'object' then err.message or err.description
         else args.join ' '
 
     argIndex = 0
