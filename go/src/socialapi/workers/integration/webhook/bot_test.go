@@ -1,6 +1,7 @@
 package webhook
 
 import (
+	"koding/db/mongodb/modelhelper"
 	"math/rand"
 	"socialapi/config"
 	"socialapi/models"
@@ -18,10 +19,18 @@ func TestSendMessage(t *testing.T) {
 	if err := r.Init(); err != nil {
 		t.Fatalf("something went wrong: %s", err)
 	}
-	config.MustRead(r.Conf.Path)
+	appConfig := config.MustRead(r.Conf.Path)
 	r.Log.SetLevel(logging.CRITICAL)
 
 	defer r.Close()
+
+	modelhelper.Initialize(appConfig.Mongo)
+	defer modelhelper.Close()
+
+	admin, err := models.CreateAccountInBothDbsWithNick("bot")
+	if err != nil || admin == nil {
+		t.Fatalf("could not create bot account: %s", err)
+	}
 
 	Convey("while testing bot", t, func() {
 
