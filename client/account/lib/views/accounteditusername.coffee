@@ -177,7 +177,10 @@ module.exports = class AccountEditUsername extends JView
       =>
         # update firstname and lastname
         me = whoami()
-
+        {profile:{firstName:oldFirstName, lastName:oldLastName}} = me
+        # do not do anything if current firstname and lastname is same
+        return queue.next() if oldFirstName is firstName and oldLastName is lastName
+        
         me.modify {
           "profile.firstName": firstName,
           "profile.lastName" : lastName
@@ -216,7 +219,7 @@ module.exports = class AccountEditUsername extends JView
           @emailForm.buttons.Save.hideLoader()
           return
         #check passworg lenght
-        if password.length < 8
+        if password is not "" and password.length < 8
           notify "Passwords should be at least 8 characters"
           @emailForm.buttons.Save.hideLoader()
           return
