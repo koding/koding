@@ -726,16 +726,16 @@ module.exports = CollaborationController =
     fileName = @getRealtimeFileName()
 
     realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
-      return callbacks.error err  if err
+      throwError err  if err
 
     @setMachineSharingStatus off, (err) =>
-      return callbacks.error err  if err
+      throwError err  if err
 
     socialHelpers.destroyChannel @socialChannel, (err) =>
-      return callbacks.error err  if err
+      throwError err  if err
 
       envHelpers.detachSocialChannel @workspaceData, (err) =>
-        return callbacks.error err  if err
+        throwError err  if err
 
     callbacks.success()
 
@@ -761,10 +761,10 @@ module.exports = CollaborationController =
     @broadcastMessage { type: 'ParticipantWantsToLeave' }
 
     socialHelpers.leaveChannel @socialChannel, (err) =>
-      return callbacks.error err  if err
+      throwError err  if err
 
     @setMachineUser [nick()], no, =>
-      return callbacks.error err  if err
+      throwError err  if err
 
     callbacks.success()
 
