@@ -961,7 +961,7 @@ module.exports = CollaborationController =
     format = \
       switch typeof err
         when 'string' then err
-        when 'object' then err.message
+        when 'object' then err.message or err.description
         else args.join ' '
 
     argIndex = 0
