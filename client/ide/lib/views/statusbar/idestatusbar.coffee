@@ -78,7 +78,11 @@ module.exports = class IDEStatusBar extends KDView
 
   createParticipantAvatar: (nickname, isOnline) ->
 
-    return  if @participantAvatars[nickname] or nickname is nick()
+    return  if nickname is nick()
+
+    if view = @participantAvatars[nickname]
+      @updateParticipantAvatar view, isOnline
+      return @avatars.addSubView view
 
     view       = new IDEStatusBarAvatarView
       origin   : nickname
@@ -87,6 +91,16 @@ module.exports = class IDEStatusBar extends KDView
 
     @participantAvatars[nickname] = view
     @avatars.addSubView view
+
+
+  updateParticipantAvatar: (view, isOnline) ->
+
+    if isOnline
+      view.setClass 'online'
+      view.unsetClass 'offline'
+    else
+      view.setClass 'offline'
+      view.unsetClass 'online'
 
 
   showAvatars: (accounts, currentlyOnline) ->
