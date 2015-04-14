@@ -2,6 +2,7 @@ kd                        = require 'kd'
 nick                      = require 'app/util/nick'
 KDView                    = kd.View
 globals                   = require 'globals'
+htmlencode                = require 'htmlencode'
 DomainItem                = require 'app/domains/domainitem'
 KDModalView               = kd.ModalView
 KDCustomHTMLView          = kd.CustomHTMLView
@@ -46,6 +47,62 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
       @listController.lazyLoader.hide()
       @listController.replaceAllItems domains
+
+
+  hideAddView: ->
+
+    return no  if @isInProgress
+
+    super
+
+
+  handleAddNew: ->
+
+    return  if @isInProgress
+
+    { computeController } = kd.singletons
+
+    value     = @addInputView.getValue().trim()
+    domain    = "#{htmlencode.XSSEncode value}#{@domainSuffix}"
+    machineId = @machine._id
+
+    if @listController.getItemCount() >= 5
+      # @warning.setTooltip
+      #   title: "It's not allowed to create more than 5 domains."
+      # @warning.show()
+      kd.warn "It's not allowed to create more than 5 domains."
+      return
+
+    @isInProgress = yes
+    @addInputView.makeDisabled()
+    @addNewButton.showLoader()
+
+    # @warning.hide()
+
+    computeController.getKloud()
+
+      .addDomain { domainName: domain, machineId }
+
+      .then =>
+        @listController.addItem { domain, machineId }
+        computeController.domains = []
+
+        @isInProgress = no
+        @addInputView.setValue ''
+        @hideAddView()
+
+      .catch (err)=>
+        kd.warn 'Failed to create domain:', err
+        # @warning.setTooltip title: err.message
+        # @warning.show()
+        @addInputView.makeEnabled()
+        @addInputView.setFocus()
+        @addNewButton.hideLoader()
+
+      .finally =>
+        @isInProgress = no
+        @addInputView.makeEnabled()
+        @addNewButton.hideLoader()
 
 
   removeDomain: (domainItem) ->
