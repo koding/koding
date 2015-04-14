@@ -287,15 +287,18 @@ module.exports = CollaborationController =
 
   bindSocialChannelEvents: ->
 
-    @socialChannel.on 'AddedToChannel', (socialAccount) =>
+    @socialChannel.on 'AddedToChannel', @bound 'participantAdded'
 
-      socialHelpers.fetchAccount socialAccount, (account) =>
 
-        return  unless account
+  participantAdded: (socialAccount) =>
 
-        {nickname} = account.profile
-        @statusBar.createParticipantAvatar nickname, no
-        @watchParticipant nickname
+    socialHelpers.fetchAccount socialAccount, (account) =>
+
+      return  unless account
+
+      {nickname} = account.profile
+      @statusBar.createParticipantAvatar nickname, no
+      @watchParticipant nickname
 
 
   bindRealtimeEvents: ->
