@@ -50,7 +50,7 @@ func newKite(conf *terraformer.Config) *kite.Kite {
 		k.Config.Environment = conf.Environment
 	}
 
-	stats, err := metrics.NewDogStatsD("terraformer")
+	stats, err := metrics.NewDogStatsD(Name)
 	if err != nil {
 		panic(err)
 	}
