@@ -1,34 +1,43 @@
-kd                  = require 'kd'
-KDView              = kd.View
-KDHeaderView        = kd.HeaderView
-KDButtonView        = kd.ButtonView
-KDCustomHTMLView    = kd.CustomHTMLView
-KDHitEnterInputView = kd.HitEnterInputView
-
+kd                   = require 'kd'
+KDView               = kd.View
+KDHeaderView         = kd.HeaderView
+KDButtonView         = kd.ButtonView
+KDListItemView       = kd.ListItemView
+KDCustomHTMLView     = kd.CustomHTMLView
+KDHitEnterInputView  = kd.HitEnterInputView
+KDListViewController = kd.ListViewController
 
 module.exports = class MachineSettingsCommonView extends KDView
 
 
   constructor: (options = {}, data) ->
 
-    options.header                or= ''
+    options.headerTitle           or= ''
     options.addButtonTitle        or= 'ADD'
     options.addButtonCssClass     or= ''
+    options.listViewItemClass     or= KDListItemView
     options.headerAddButtonTitle  or= 'ADD NEW'
 
     super options, data
 
+    @machine = @getData()
 
-    @addSubView header = new KDHeaderView
-      title : options.header
+    @createHeader()
+    @createAddView()
+    @createListView()
+    @initList()
+
+
+  createHeader: ->
+
+    { headerTitle, headerAddButtonTitle, addButtonCssClass } = @getOptions()
+
+    @addSubView header = new KDHeaderView title: headerTitle
 
     header.addSubView @headerAddNewButton = new KDButtonView
-      title    : options.headerAddButtonTitle
-      cssClass : "solid green compact add-button #{options.addButtonCssClass}"
+      title    : headerAddButtonTitle
+      cssClass : "solid green compact add-button #{addButtonCssClass}"
       callback : @bound 'showAddView'
-
-
-    @createAddView()
 
 
   createAddView: ->
@@ -80,5 +89,27 @@ module.exports = class MachineSettingsCommonView extends KDView
 
 
   handleAddNew: ->
+
+    kd.warn 'unhandled method'
+
+
+  createListView: ->
+
+    @listController  = new KDListViewController
+      startWithLazyLoader: yes
+      lazyLoaderOptions  :
+        spinnerOptions   :
+          size           : width: 28
+      viewOptions        :
+        type             : 'domain'
+        wrapper          : yes
+        itemClass        : @getOptions().listViewItemClass
+        itemOptions      :
+          machineId      : @machine._id
+
+    @addSubView @listController.getView()
+
+
+  initList: ->
 
     kd.warn 'unhandled method'
