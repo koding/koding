@@ -15,7 +15,7 @@ THROTTLE_WAIT   = 2000
 
 module.exports =
 
-class ShortcutsController extends kd.Controller
+class ShortcutsController extends events.EventEmitter
 
   klass = this
 
@@ -43,7 +43,7 @@ class ShortcutsController extends kd.Controller
 
     @_flushBuffer()
 
-    super options, data
+    super()
 
 
   # Prepares buffer for the next batch of changes.
