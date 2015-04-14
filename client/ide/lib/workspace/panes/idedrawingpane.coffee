@@ -22,7 +22,7 @@ module.exports = class IDEDrawingPane extends IDEPane
 
     super options, data
 
-    @once 'RealtimeManagerSet', =>
+    @on 'RealtimeManagerSet', =>
       myPermission = @rtm.getFromModel('permissions').get nick()
       @makeReadOnly()  if myPermission is 'read'
 
