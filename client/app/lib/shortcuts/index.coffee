@@ -7,10 +7,11 @@ ShortcutsModal = require './views/modal'
 AppController  = require 'app/appcontroller'
 AppStorage     = require 'app/appstorage'
 Collection     = require 'app/util/collection'
+events         = require 'events'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '175.2'
-DEBOUNCE_WAIT   = 300
+THROTTLE_WAIT   = 2000
 
 module.exports =
 
@@ -83,7 +84,7 @@ class ShortcutsController extends kd.Controller
 
   # Persists changes to app storage.
   #
-  _save: _.debounce ->
+  _save: _.throttle ->
 
     unless @_store.isReady
       console.warn 'could not persist shortcut changes'
@@ -116,7 +117,9 @@ class ShortcutsController extends kd.Controller
 
     return
 
-  , DEBOUNCE_WAIT
+  , THROTTLE_WAIT,
+    leading: false
+    trailing: true
 
 
   # Buffers up changed models.
