@@ -24,6 +24,7 @@ services=(
   github.com/coreos/etcd
   koding/kites/kloud
   koding/kites/kloud/kloudctl
+  koding/kites/cmd/terraformer
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview
