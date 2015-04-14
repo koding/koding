@@ -114,7 +114,7 @@ func (m *Machine) checkAndUpdateState(state machinestate.State) error {
 	})
 
 	if err == mgo.ErrNotFound {
-		m.Log.Warning("info can't update db state because lock is acquired by someone else")
+		m.Log.Info("info can't update db state because lock is acquired by someone else")
 	}
 
 	return err
