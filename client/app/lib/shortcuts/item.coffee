@@ -1,6 +1,6 @@
 kd = require 'kd'
 _  = require 'lodash'
-present = require '../presenters/binding'
+present = require './present-binding'
 
 module.exports =
 
