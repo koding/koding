@@ -724,15 +724,20 @@ module.exports = CollaborationController =
     @broadcastMessage { type: 'SessionEnded' }
 
     fileName = @getRealtimeFileName()
+
     realtimeHelpers.deleteCollaborationFile @rtm, fileName, (err) =>
       return callbacks.error err  if err
-      @setMachineSharingStatus off, (err) =>
+
+    @setMachineSharingStatus off, (err) =>
+      return callbacks.error err  if err
+
+    socialHelpers.destroyChannel @socialChannel, (err) =>
+      return callbacks.error err  if err
+
+      envHelpers.detachSocialChannel @workspaceData, (err) =>
         return callbacks.error err  if err
-        socialHelpers.destroyChannel @socialChannel, (err) =>
-          return callbacks.error err  if err
-          envHelpers.detachSocialChannel @workspaceData, (err) =>
-            return callbacks.error err  if err
-            callbacks.success()
+
+    callbacks.success()
 
 
   handleCollaborationEndedForHost: ->
@@ -757,8 +762,11 @@ module.exports = CollaborationController =
 
     socialHelpers.leaveChannel @socialChannel, (err) =>
       return callbacks.error err  if err
-      @setMachineUser [nick()], no, =>
-        callbacks.success()
+
+    @setMachineUser [nick()], no, =>
+      return callbacks.error err  if err
+
+    callbacks.success()
 
 
   handleCollaborationEndedForParticipant: ->
