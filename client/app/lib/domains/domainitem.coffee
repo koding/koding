@@ -2,6 +2,7 @@ kd               = require 'kd'
 nick             = require '../util/nick'
 globals          = require 'globals'
 KodingSwitch     = require '../commonviews/kodingswitch'
+KDLoaderView     = kd.LoaderView
 KDListItemView   = kd.ListItemView
 CustomLinkView   = require '../customlinkview'
 KDCustomHTMLView = kd.CustomHTMLView
@@ -40,3 +41,7 @@ module.exports = class DomainItem extends KDListItemView
       defaultValue : machineId is currentMachineId
       callback     : (state) =>
         @getDelegate().emit 'DomainStateChanged', this, state
+
+    @addSubView @loader = new KDLoaderView
+      size     : width : 16
+      cssClass : 'hidden'
