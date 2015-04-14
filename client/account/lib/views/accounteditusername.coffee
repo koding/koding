@@ -177,9 +177,6 @@ module.exports = class AccountEditUsername extends JView
       =>
         # update firstname and lastname
         me = whoami()
-        {profile:{firstName:oldFirstName, lastName:oldLastName}} = me
-        # do not do anything if current firstname and lastname is same
-        return queue.next() if oldFirstName is firstName and oldLastName is lastName
         
         me.modify {
           "profile.firstName": firstName,
