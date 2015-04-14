@@ -14,6 +14,7 @@ import (
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
@@ -29,7 +30,6 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/logging"
 	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
@@ -185,7 +185,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	kodingProvider := &koding.Provider{
 		DB:         db,
-		Log:        newLogger("kloud-koding", conf.DebugMode),
+		Log:        common.NewLogger("kloud-koding", conf.DebugMode),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
@@ -211,7 +211,7 @@ func newKite(conf *Config) *kite.Kite {
 
 	awsProvider := &awsprovider.Provider{
 		DB:         db,
-		Log:        newLogger("kloud-aws", conf.DebugMode),
+		Log:        common.NewLogger("kloud-aws", conf.DebugMode),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
@@ -231,7 +231,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.DomainStorage = dnsStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
-	kld.Log = newLogger(Name, conf.DebugMode)
+	kld.Log = common.NewLogger(Name, conf.DebugMode)
 
 	err = kld.AddProvider("koding", kodingProvider)
 	if err != nil {
@@ -276,20 +276,6 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	return k
-}
-
-func newLogger(name string, debug bool) logging.Logger {
-	log := logging.NewLogger(name)
-	logHandler := logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-
-	if debug {
-		log.SetLevel(logging.DEBUG)
-		logHandler.SetLevel(logging.DEBUG)
-	}
-
-	return log
 }
 
 func kontrolKeys(conf *Config) (string, string) {
