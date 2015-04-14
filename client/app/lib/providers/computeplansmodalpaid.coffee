@@ -15,7 +15,6 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
   constructor:(options = {}, data)->
 
     options.cssClass = 'paid-plan'
-    options.height   = 450
 
     super options, data
 
