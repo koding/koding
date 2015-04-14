@@ -11,7 +11,7 @@ events         = require 'events'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '175.2'
-THROTTLE_WAIT   = 2000
+THROTTLE_WAIT   = 500
 
 module.exports =
 
