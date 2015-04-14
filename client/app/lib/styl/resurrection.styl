@@ -2009,6 +2009,18 @@ paymentGrayLighter  = #f8f8f8
       margin-left           8px
       pointer()
 
+  .lazy-loader
+    text-align              center
+    margin-top              30px
+
+  .kdlistitemview
+    line-height             45px
+    height                  45px
+    border-top              1px solid #EFEFEF
+
+    &:first-child
+      border-top            none
+
 
 // machine settings modal domain settings
 .machine-settings-modal
@@ -2017,3 +2029,28 @@ paymentGrayLighter  = #f8f8f8
     font-size               14px
     color                   #A2A2A2
     margin-left             8px
+
+  .kdlistitemview
+    position                relative
+    &:hover
+      .remove
+        visible()
+
+    a
+      color                 #434343
+      font-size             14px
+      noTextDeco()
+
+    .koding-on-off
+      abs()
+      top                   11px
+      right                 0
+
+    .remove
+      r-sprite              'app', 'red-close'
+      display               inline-block
+      top                   14px
+      right                 50px
+      abs()
+      pointer()
+      hidden()

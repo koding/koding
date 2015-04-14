@@ -1,9 +1,9 @@
-kd               = require 'kd'
-nick             = require 'app/util/nick'
-KDView           = kd.View
-globals          = require 'globals'
-KDCustomHTMLView = kd.CustomHTMLView
-
+kd                        = require 'kd'
+nick                      = require 'app/util/nick'
+KDView                    = kd.View
+globals                   = require 'globals'
+DomainItem                = require 'app/domains/domainitem'
+KDCustomHTMLView          = kd.CustomHTMLView
 MachineSettingsCommonView = require './machinesettingscommonview'
 
 
@@ -12,9 +12,10 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
   constructor: (options = {}, data) ->
 
-    options.header               = 'Domains'
+    options.headerTitle          = 'Domains'
     options.addButtonTitle       = 'ADD DOMAIN'
     options.headerAddButtonTitle = 'ADD NEW DOMAIN'
+    options.listViewItemClass    = DomainItem
 
     super options, data
 
@@ -31,3 +32,13 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       partial  : @domainSuffix
 
     kd.utils.defer => @addInputView.setFocus()
+
+
+  initList: ->
+
+   kd.singletons.computeController.fetchDomains (err, domains = []) =>
+      kd.warn err  if err
+
+      @listController.lazyLoader.hide()
+      @listController.replaceAllItems domains
+
