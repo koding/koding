@@ -134,7 +134,5 @@ module.exports = class ComputePlansModalPaid extends ComputePlansModal
 
       return  if showError err
 
-      globals.userMachines.push machine
-
       @createVMButton.hideLoader()
       @destroy()
