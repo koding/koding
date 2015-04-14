@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"time"
 
+	"koding/tools/utils"
 	"socialapi/config"
 	"socialapi/models"
 	"socialapi/workers/common/metrics"
@@ -15,6 +17,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/koding/runner"
+	"github.com/koding/bongo"
 	"github.com/juju/ratelimit"
 	kmetrics "github.com/koding/metrics"
 
@@ -78,9 +82,11 @@ func getAccount(r *http.Request) *models.Account {
 		return models.NewAccount()
 	}
 
-	acc, err := models.Cache.Account.ByNick(session.Username)
-	if err != nil {
-		return models.NewAccount()
+	acc := models.NewAccount()
+	// err is ignored intentionally
+	err = acc.ByNick(session.Username)
+	if err != nil && err != bongo.RecordNotFound {
+	    runner.MustGetLogger().Error("Err while getting account: %s, err :%s", session.Username, err.Error())    
 	}
 
 	return acc
@@ -143,10 +149,12 @@ func BuildHandlerWithContext(handler http.Handler) http.Handler {
 			// this is an example
 			// set group name to context
 			//
+
 			context := &models.Context{
 				GroupName: "koding",
 				Client: &models.Client{
 					Account: getAccount(r),
+					IP:      net.ParseIP(utils.GetIpAddress(r)),
 				},
 			}
 

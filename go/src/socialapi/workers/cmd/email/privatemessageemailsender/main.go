@@ -25,7 +25,7 @@ func main() {
 	defer redisConn.Close()
 
 	handler, err := sender.New(
-		redisConn, r.Log, r.Metrics,
+		redisConn, r.Log, r.Metrics, appConfig,
 	)
 	if err != nil {
 		r.Log.Error("Could not create chat email sender: %s", err)

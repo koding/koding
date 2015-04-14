@@ -29,14 +29,14 @@ func CreateChannelParticipant(channelId, requesterId int64) (*models.ChannelPart
 	return AddChannelParticipant(channelId, requesterId, account.Id)
 }
 
-func ListChannelParticipants(channelId, accountId int64) ([]*models.ChannelParticipant, error) {
+func ListChannelParticipants(channelId, accountId int64) ([]models.ChannelParticipantContainer, error) {
 
 	url := fmt.Sprintf("/channel/%d/participants?accountId=%d", channelId, accountId)
 	res, err := sendRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	var participants []*models.ChannelParticipant
+	var participants []models.ChannelParticipantContainer
 	err = json.Unmarshal(res, &participants)
 	if err != nil {
 		return nil, err

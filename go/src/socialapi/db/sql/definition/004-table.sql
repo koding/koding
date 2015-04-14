@@ -63,7 +63,8 @@ CREATE TABLE "api"."account" (
     "id" BIGINT NOT NULL DEFAULT nextval('api.account_id_seq' :: regclass),
     "old_id" VARCHAR (24) NOT NULL COLLATE "default",
     "is_troll" BOOLEAN NOT NULL DEFAULT FALSE,
-    "nick" VARCHAR (25) NOT NULL CHECK ("nick" <> '')
+    "nick" VARCHAR (25) NOT NULL CHECK ("nick" <> ''),
+    "settings" HSTORE
 ) WITH (OIDS = FALSE);
 
 -- ALTER TABLE "api"."account" OWNER TO "social";

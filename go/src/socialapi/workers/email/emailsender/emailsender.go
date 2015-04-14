@@ -2,6 +2,8 @@
 package emailsender
 
 import (
+	"text/template"
+
 	"github.com/koding/bongo"
 	"github.com/koding/eventexporter"
 	"github.com/koding/logging"
@@ -50,10 +52,11 @@ func (c *Controller) Process(m *Mail) error {
 	user.Username = m.Properties.Username
 	m.SetOption("subject", m.Subject)
 
+	escapedBody := template.HTMLEscapeString(m.HTML)
 	event := &eventexporter.Event{
 		Name:       m.Subject,
 		User:       user,
-		Body:       &eventexporter.Body{Content: m.HTML},
+		Body:       &eventexporter.Body{Content: escapedBody},
 		Properties: m.Properties.Options,
 	}
 
