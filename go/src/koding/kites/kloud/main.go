@@ -228,7 +228,7 @@ func newKite(conf *Config) *kite.Kite {
 	kld.Locker = kodingProvider
 	kld.Log = common.NewLogger(Name, conf.DebugMode)
 
-	err = kld.AddProvider("koding", kodingProvider)
+	err := kld.AddProvider("koding", kodingProvider)
 	if err != nil {
 		panic(err)
 	}
