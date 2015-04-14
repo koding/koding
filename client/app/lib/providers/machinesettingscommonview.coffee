@@ -81,6 +81,7 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     @headerAddNewButton.hide()
     @addViewContainer.show()
+    kd.utils.defer => @addInputView.setFocus()
 
 
   hideAddView: ->
