@@ -45,3 +45,15 @@ module.exports = class DomainItem extends KDListItemView
     @addSubView @loader = new KDLoaderView
       size     : width : 16
       cssClass : 'hidden'
+
+
+  setLoadingMode: (disable) ->
+
+    if disable
+      @setClass 'in-progress'
+      @loader.show()
+      @stateToggle.setOption 'disabled', yes
+    else
+      @unsetClass 'in-progress'
+      @loader.hide()
+      @stateToggle.setOption 'disabled', no
