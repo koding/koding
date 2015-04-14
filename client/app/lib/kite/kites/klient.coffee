@@ -174,15 +174,15 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
         @tell 'storage.set', {key, value}
 
-        .then (res) ->
-          locked = no
-          consume()
-          resolve res
+          .then (res) ->
+            locked = no
+            consume()
+            resolve res
 
-        .catch (err) ->
-          locked = no
-          consume()
-          reject err
+          .catch (err) ->
+            locked = no
+            consume()
+            reject err
 
       new Promise (resolve, reject) ->
         queue.push {key, value, resolve, reject}
