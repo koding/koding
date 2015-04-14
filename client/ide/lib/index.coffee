@@ -693,7 +693,7 @@ class IDEAppController extends AppController
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
 
-    @mountedMachine.getBaseKite().storageSetSynced name, value
+    @mountedMachine.getBaseKite().storageSetQueued name, value
 
 
   removeWorkspaceSnapshot: ->
