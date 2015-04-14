@@ -557,7 +557,10 @@ module.exports = CollaborationController =
       return callMethod 'notStarted'
 
     @fetchSocialChannel (err, channel) =>
-      return callMethod 'error'  if err
+      if err
+        console.warn "CollaborationController: #{err}"
+        return callMethod 'notStarted'
+
       @isRealtimeSessionActive channel.id, (isActive, file) =>
         if isActive
         then callMethod 'active', channel, file
