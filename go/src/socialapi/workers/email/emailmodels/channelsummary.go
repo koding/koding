@@ -48,18 +48,7 @@ type ChannelImage struct {
 }
 
 func (ci *ChannelImage) Render() (string, error) {
-	if ci.Hash == "" {
-		return "", nil
-	}
-
-	lt := template.Must(template.New("image").Parse(templates.Gravatar))
-
-	var buf bytes.Buffer
-	if err := lt.ExecuteTemplate(&buf, "image", ci); err != nil {
-		return "", err
-	}
-
-	return buf.String(), nil
+	return ci.Hash, nil
 }
 
 func NewChannelSummary(a *models.Account, ch *models.Channel, awaySince time.Time, timezoneOffset int) (*ChannelSummary, error) {
@@ -219,7 +208,9 @@ func (cs *ChannelSummary) prepareDirectMessageLink() error {
 		return err
 	}
 
-	cs.Link = fmt.Sprintf("%s sent you %d message%s:", titleUrl, cs.UnreadCount, getPluralSuffix(cs.UnreadCount))
+	messageUrl := fmt.Sprintf("%s/Activity/Message/%s", cs.Hostname, cs.ChannelId)
+
+	cs.Link = fmt.Sprintf(`%s sent you <a href="%s">%d message%s:</a>`, titleUrl, messageUrl, cs.UnreadCount, getPluralSuffix(cs.UnreadCount))
 
 	return nil
 }
@@ -252,10 +243,7 @@ func (cs *ChannelSummary) prepareGroupChannelLink() error {
 		cs.Title = cs.prepareTitleWithNicknames(nicknames)
 	}
 
-	titleUrl, err := cs.renderTitle()
-	if err != nil {
-		return err
-	}
+	titleUrl := fmt.Sprintf(`<a href="%s/Activity/Message/%s">%s</a>`, cs.Hostname, cs.ChannelId, cs.Title)
 	cs.Link = fmt.Sprintf("%s %s", prefix, titleUrl)
 
 	return nil

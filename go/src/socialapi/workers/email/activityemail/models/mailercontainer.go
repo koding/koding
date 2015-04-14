@@ -129,7 +129,7 @@ func (mc *MailerContainer) prepareSlug(cm *socialmodels.ChannelMessage) {
 func (mc *MailerContainer) prepareObjectType(cm *socialmodels.ChannelMessage) {
 	switch cm.TypeConstant {
 	case socialmodels.ChannelMessage_TYPE_POST:
-		mc.ObjectType = "status update"
+		mc.ObjectType = "post"
 	case socialmodels.ChannelMessage_TYPE_REPLY:
 		mc.ObjectType = "comment"
 	case socialmodels.ChannelMessage_TYPE_PRIVATE_MESSAGE:

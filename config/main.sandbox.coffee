@@ -87,6 +87,7 @@ Configuration = (options={}) ->
     kloud                   : { secretKey: kloud.secretKey, address: kloud.address }
     paymentwebhook          : paymentwebhook
     googleapiServiceAccount : googleapiServiceAccount
+    geoipdbpath             : "#{projectRoot}/go/data/geoipdb"
     segment                 : segment
     disabledFeatures        : disabledFeatures
 

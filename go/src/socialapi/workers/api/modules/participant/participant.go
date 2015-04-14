@@ -36,10 +36,8 @@ func List(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interface
 		return response.NewAccessDenied(fmt.Errorf("user %d tried to open unattended channel %d", query.AccountId, query.Id))
 	}
 
-	req := models.NewChannelParticipant()
-	req.ChannelId = query.Id
 	return response.HandleResultAndError(
-		req.List(request.GetQuery(u)),
+		fetchChannelParticipants(query),
 	)
 }
 
@@ -404,4 +402,26 @@ func fetchChannelWithValidation(channelId int64) (*models.Channel, error) {
 	}
 
 	return c, nil
+}
+
+func fetchChannelParticipants(query *request.Query) ([]models.ChannelParticipantContainer, error) {
+	cp := models.NewChannelParticipant()
+	cp.ChannelId = query.Id
+
+	participants, err := cp.List(query)
+	if err != nil {
+		return nil, err
+	}
+
+	cps := make([]models.ChannelParticipantContainer, len(participants))
+
+	for i, participant := range participants {
+		cpc, err := models.NewChannelParticipantContainer(participant)
+		if err != nil {
+			return cps, err
+		}
+		cps[i] = *cpc
+	}
+
+	return cps, nil
 }
