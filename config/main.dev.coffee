@@ -68,7 +68,7 @@ Configuration = (options={}) ->
   googleapiServiceAccount = {clientId       :  "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v.apps.googleusercontent.com", clientSecret : "1iNPDf8-F9bTKmX8OWXlkYra" , serviceAccountEmail    : "753589381435-irpve47dabrj9sjiqqdo2k9tr8l1jn5v@developer.gserviceaccount.com", serviceAccountKeyFile : "#{projectRoot}/keys/googleapi-privatekey.pem"}
 
   segment                 = 'kb2hfdgf20'
-  
+
   # if you want to disable a feature add here with "true" value do not forget
   # to add corresponding go struct properties "true" value is used because of
   # Go's default value for boolean properties is false, so all the features are
@@ -573,7 +573,7 @@ Configuration = (options={}) ->
 
 
         # both of them are  required
-        ps aux | grep koding | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
+        ps aux | grep koding | grep -v cmd.coffee | grep -E 'node|go/bin' | awk '{ print $2 }' | xargs kill -9
         pkill -9 koding-
       }
 
