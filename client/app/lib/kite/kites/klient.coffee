@@ -146,8 +146,15 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
 
     @tell 'storage.set', {key, value}
 
+  # Queueing is required for client side calls to get requests
+  # in order correctly. So if you need to set different value
+  # for the same key all the time it's better to use this
+  # setter instead of ::storageSet ~ GG
 
-  storageSetSynced: do (queue = []) ->
+  # Detailed explanation can be found at
+  # https://github.com/koding/koding/pull/3372#discussion_r28312666
+
+  storageSetQueued: do (queue = []) ->
 
     locked = no
 
@@ -178,7 +185,8 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
           reject err
 
       new Promise (resolve, reject) ->
-        consume()  if (queue.push {key, value, resolve, reject}) is 1
+        queue.push {key, value, resolve, reject}
+        consume()  if queue.length is 1
 
 
   storageGet: (key) ->
