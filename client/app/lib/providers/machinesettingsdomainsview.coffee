@@ -58,13 +58,14 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
   handleAddNew: ->
 
-    return  if @isInProgress
-
+    domainName = @addInputView.getValue().trim()
+    machineId  = @machine._id
     { computeController } = kd.singletons
 
-    value     = @addInputView.getValue().trim()
-    domain    = "#{htmlencode.XSSEncode value}#{@domainSuffix}"
-    machineId = @machine._id
+    return no  if @isInProgress
+    return @addNewButton.hideLoader()  if domainName is ''
+
+    domain = "#{htmlencode.XSSEncode domainName}#{@domainSuffix}"
 
     if @listController.getItemCount() >= 5
       warning = "It's not allowed to create more than 5 domains."
