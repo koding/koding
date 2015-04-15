@@ -39,6 +39,9 @@ module.exports = class MachineSettingsCommonView extends KDView
       cssClass : "solid green compact add-button #{addButtonCssClass}"
       callback : @bound 'showAddView'
 
+    @addSubView @notificationView = new KDCustomHTMLView
+      cssClass : 'notification hidden'
+
 
   createAddView: ->
 
@@ -116,3 +119,13 @@ module.exports = class MachineSettingsCommonView extends KDView
   initList: ->
 
     kd.warn 'unhandled method'
+
+
+  showNotification: (text, type = 'error') ->
+
+    view = @notificationView
+
+    view.unsetClass name  for name in [ 'success', 'error', 'warning' ]
+    view.setClass type
+    view.updatePartial text
+    view.show()
