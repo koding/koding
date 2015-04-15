@@ -1,7 +1,8 @@
-kd = require 'kd'
-KDListItemView = kd.ListItemView
+kd               = require 'kd'
+AvatarView       = require 'app/commonviews/avatarviews/avatarview'
+KDLoaderView     = kd.LoaderView
+KDListItemView   = kd.ListItemView
 KDCustomHTMLView = kd.CustomHTMLView
-AvatarView = require 'app/commonviews/avatarviews/avatarview'
 
 
 module.exports = class UserItem extends KDListItemView
@@ -38,3 +39,17 @@ module.exports = class UserItem extends KDListItemView
       cssClass : 'remove'
       click    : =>
         @getDelegate().emit 'KickUserRequested', this
+
+    @addSubView @loader = new KDLoaderView
+      size     : width : 16
+      cssClass : 'hidden'
+
+
+  setLoadingMode: (disable) ->
+
+    if disable
+      @setClass 'in-progress'
+      @loader.show()
+    else
+      @unsetClass 'in-progress'
+      @loader.hide()
