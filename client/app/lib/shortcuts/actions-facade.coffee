@@ -34,6 +34,13 @@ changeHandler = (collection, model) ->
   entity = entities[key]
   entity.emit EventType.Facade.CHANGED, model
 
+  dups = getShortcuts().getCollisionsFlat collection.name
+
+  collection.each (model) ->
+    key = "#{collection.name}$#{model.name}"
+    entity = entities[key]
+    entity.emit EventType.Facade.DUP, _.includes dups, model.name
+
 
 exports.dispose = ->
 
