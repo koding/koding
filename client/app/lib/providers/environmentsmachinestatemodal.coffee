@@ -309,7 +309,7 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
 
         if destroyVMs
 
-          @showBusy "Destroying machines..."
+          @showBusy "Deleting your VM..."
           ComputeHelpers.destroyExistingMachines (err)=>
             kd.utils.wait 5000, =>
               @buildExpiredView subscription, "downgrade"

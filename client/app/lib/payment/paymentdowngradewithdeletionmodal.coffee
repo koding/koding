@@ -19,7 +19,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
 
   buildDescriptionPartial: ->
-    
+
     { state: { planTitle } } = @getOptions()
 
     return """
@@ -86,7 +86,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
     @description.hide()
     @loader.show()
-    @loaderLabel.updatePartial 'Destroying machines...'
+    @loaderLabel.updatePartial 'Deleting your VM...'
     @loaderLabel.show()
     @submitButton.hide()
 
