@@ -14,9 +14,7 @@ openNewTerminalMenu = (browser) ->
     .moveToElement           '.context-list-wrapper li.new-terminal', 25, 20
 
 
-createTerminalSession = (browser, user) ->
-
-  userName = user.username
+openTerminal = (browser) ->
 
   openNewTerminalMenu(browser)
 
@@ -25,8 +23,18 @@ createTerminalSession = (browser, user) ->
     .moveToElement           'li.new-session', 25, 20
     .click                   'li.new-session'
     .pause 6000 # required
-    .waitForElementVisible   paneSelector + ' .terminal:not(.active)',20000 # Assertion
-    .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
+
+
+createTerminalSession = (browser, user) ->
+
+  userName = user.username
+
+  openTerminal(browser)
+  openTerminal(browser) # it's required
+
+  browser
+    .waitForElementVisible   paneSelector + ' .terminal:not(.active)', 20000 # Assertion
+    .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
     .pause 6000 # required
     .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
 
