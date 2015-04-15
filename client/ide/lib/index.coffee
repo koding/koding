@@ -109,8 +109,6 @@ class IDEAppController extends AppController
 
       @resizeActiveTerminalPane()
 
-    @localStorageController = kd.getSingleton('localStorageController').storage 'IDE'
-
 
   prepareIDE: (withFakeViews = no) ->
 
@@ -356,11 +354,10 @@ class IDEAppController extends AppController
           @fakeEditor.once 'EditorIsReady', => kd.utils.defer => @fakeEditor.setFocus no
 
         else
-          snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
 
-          if snapshot
-            @resurrectLocalSnapshot snapshot
-          else
+          @fetchSnapshot (snapshot)=>
+            return @resurrectLocalSnapshot snapshot  if snapshot
+
             @ideViews.first.createEditor()
             @ideViews.last.createTerminal { machine }
             @setActiveTabView @ideViews.first.tabView
@@ -695,17 +692,17 @@ class IDEAppController extends AppController
     name  = @getWorkspaceSnapshotName()
     value = @getWorkspaceSnapshot()
 
-    @localStorageController.setValue name, value
+    @mountedMachine.getBaseKite().storageSetQueued name, value
 
 
   removeWorkspaceSnapshot: ->
 
-    @localStorageController.unsetKey @getWorkspaceSnapshotName()
+    @mountedMachine.getBaseKite().storageDelete @getWorkspaceSnapshotName()
 
 
   getWorkspaceSnapshotName: ->
 
-    return "wss.#{@mountedMachine.uid}.#{@workspaceData.slug}"
+    return "wss.#{@workspaceData.slug}"
 
 
   registerPane: (pane) ->
@@ -920,22 +917,22 @@ class IDEAppController extends AppController
     else
       finderController.reset()
 
-    snapshot = @localStorageController.getValue @getWorkspaceSnapshotName()
-
     machine.getBaseKite().fetchTerminalSessions()
 
-    unless @fakeViewsDestroyed
-      @removeFakeViews()
-      @fakeViewsDestroyed = yes
+    @fetchSnapshot (snapshot) =>
 
-    if snapshot
-      @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
-    else
-      @addInitialViews()
+      unless @fakeViewsDestroyed
+        @removeFakeViews()
+        @fakeViewsDestroyed = yes
 
-    data = { machine, workspace: @workspaceData }
-    kd.singletons.mainView.activitySidebar.selectWorkspace data
-    @emit 'IDEReady'
+      if snapshot
+        @resurrectLocalSnapshot snapshot  unless @isLocalSnapshotRestored
+      else
+        @addInitialViews()
+
+      data = { machine, workspace: @workspaceData }
+      kd.singletons.mainView.activitySidebar.selectWorkspace data
+      @emit 'IDEReady'
 
 
   removeFakeViews: ->
@@ -956,12 +953,16 @@ class IDEAppController extends AppController
 
   resurrectLocalSnapshot: (snapshot) ->
 
-    snapshot or= @localStorageController.getValue @getWorkspaceSnapshotName()
+    resurrect = (snapshot)=>
+      for key, value of snapshot when value
+        @createPaneFromChange value, yes
 
-    for key, value of snapshot when value
-      @createPaneFromChange value, yes
+      @isLocalSnapshotRestored = yes
 
-    @isLocalSnapshotRestored = yes
+    return  if snapshot then resurrect snapshot
+
+    @fetchSnapshot (snapshot)->
+      resurrect snapshot  if snapshot
 
 
   toggleFullscreenIDEView: ->
@@ -1342,3 +1343,17 @@ class IDEAppController extends AppController
     @machineStateModal?.once 'MachineTurnOnStarted', ->
       kookies.expire 'newRegister', path: '/'
       kd.getSingleton('mainView').activitySidebar.initiateFakeCounter()
+
+
+  fetchSnapshot: (callback)->
+
+    if not @mountedMachine or not @mountedMachine.isRunning()
+      callback null
+      return
+
+    @mountedMachine.getBaseKite().storageGet @getWorkspaceSnapshotName()
+    .then (snapshot)->
+      callback snapshot
+    .catch (err)->
+      console.warn 'Failed to fetch snapshot', err
+      callback null

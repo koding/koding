@@ -122,3 +122,30 @@ module.exports = helpers =
     if (err?.message?.indexOf 'permission denied') > -1
       helpers.showFileOperationUnsuccessfulError()
       return yes
+
+
+  updateWorkspace:(node, target) ->
+
+    return unless node.options.type is 'folder' and node.machine
+
+    searchPath = FSHelper.plainPath node.path
+    targetPath = FSHelper.plainPath target if target
+
+    dataProvider.fetchMachineByUId node.machine.uid, (machine, workspaces) =>
+
+      callback = (err) =>
+
+        return showError err, KodingError: "Couldn't update workspace." if err
+
+        { mainView } = kd.singletons
+        mainView.activitySidebar.updateMachines()
+
+
+      updateWorkspace_ = (workspace) ->
+        if target
+          newPath = workspace.rootPath.replace searchPath, targetPath
+          remote.api.JWorkspace.update workspace._id, { $set : { rootPath: newPath} }, callback
+        else
+          remote.api.JWorkspace.deleteById workspace._id, callback
+
+      updateWorkspace_ w for w in workspaces when w.rootPath.indexOf(searchPath) > -1

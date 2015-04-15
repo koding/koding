@@ -33,8 +33,8 @@ module.exports = class IDEEditorPane extends IDEPane
     @errorOnSave = no
     file.on [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
 
-    @once 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
-    @once 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
+    @on 'RealtimeManagerSet', @bound 'setContentFromCollaborativeString'
+    @on 'RealtimeManagerSet', @bound 'listenCollaborativeStringChanges'
 
 
     @getAce().on 'ace.requests.save', =>
@@ -69,7 +69,7 @@ module.exports = class IDEEditorPane extends IDEPane
       @bindChangeListeners()
       @emit 'EditorIsReady'
 
-      @once 'RealtimeManagerSet', =>
+      @on 'RealtimeManagerSet', =>
         myPermission = @rtm.getFromModel('permissions').get nick()
         @makeReadOnly()  if myPermission is 'read'
 

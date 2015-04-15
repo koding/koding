@@ -64,7 +64,7 @@ module.exports = class IDETerminalPane extends IDEPane
 
       @machine.getBaseKite().fetchTerminalSessions()
 
-    @once 'RealtimeManagerSet', =>
+    @on 'RealtimeManagerSet', =>
       return  if @rtm.isDisposed
       myPermission = @rtm.getFromModel('permissions').get nick()
       @makeReadOnly()  if myPermission is 'read'
