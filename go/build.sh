@@ -25,6 +25,7 @@ services=(
   koding/kites/kloud
   koding/kites/cmd/terraformer
   koding/kites/kloud/kloudctl
+  koding/kites/cmd/terraformer
   koding/virt/vmproxy
   koding/virt/vmtool
   koding/overview

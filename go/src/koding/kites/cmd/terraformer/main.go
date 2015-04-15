@@ -1,17 +1,85 @@
 package main
 
 import (
-	"fmt"
+	"koding/artifact"
+	"koding/kites/common"
+	"koding/kites/terraformer"
 
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/koding/kite"
+	kiteconfig "github.com/koding/kite/config"
+	"github.com/koding/metrics"
+	"github.com/koding/multiconfig"
+)
+
+var (
+	Name    = "terraformer"
+	Version = "0.0.1"
 )
 
 func main() {
-	var cts terraform.ContextOpts
-	fmt.Println("cts-->", cts)
-	// config := terraform.BuiltinConfig
-	// if err := config.Discover(); err != nil {
-	// 	Ui.Error(fmt.Sprintf("Error discovering plugins: %s", err))
-	// 	return 1
-	// }
+	conf := &terraformer.Config{}
+
+	// Load the config, reads environment variables or from flags
+	multiconfig.New().MustLoad(conf)
+
+	k := newKite(conf)
+
+	registerURL := k.RegisterURL(true)
+
+	if err := k.RegisterForever(registerURL); err != nil {
+		k.Log.Fatal(err.Error())
+	}
+
+	k.Run()
+}
+
+func newKite(conf *terraformer.Config) *kite.Kite {
+	k := kite.New(Name, Version)
+	k.Config = kiteconfig.MustGet()
+	k.Config.Port = conf.Port
+
+	if conf.Region != "" {
+		k.Config.Region = conf.Region
+	}
+
+	if conf.Environment != "" {
+		k.Config.Environment = conf.Environment
+	}
+
+	if conf.Debug {
+		k.SetLogLevel(kite.DEBUG)
+	}
+
+	stats := common.MustInitMetrics(Name)
+
+	t := terraformer.New()
+	t.Metrics = stats
+	t.Log = common.NewLogger(Name, conf.Debug)
+	t.Debug = conf.Debug
+
+	// track every kind of call
+	k.PreHandleFunc(createTracker(stats))
+
+	// Terraformer handling methods
+	k.HandleFunc("apply", t.Apply)
+	k.HandleFunc("destroy", t.Destroy)
+	k.HandleFunc("plan", t.Plan)
+
+	k.HandleHTTPFunc("/healthCheck", artifact.HealthCheckHandler(Name))
+	k.HandleHTTPFunc("/version", artifact.VersionHandler())
+
+	return k
+}
+
+func createTracker(metrics *metrics.DogStatsD) kite.HandlerFunc {
+	return func(r *kite.Request) (interface{}, error) {
+		metrics.Count(
+			"functionCallCount", // metric name
+			1,                   // count
+			[]string{"funcName:" + r.Method}, // tags for metric call
+			1.0, // rate
+		)
+
+		return true, nil
+	}
 }
