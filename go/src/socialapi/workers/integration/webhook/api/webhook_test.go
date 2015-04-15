@@ -1,11 +1,15 @@
-package webhook
+package api
 
 import (
+	"koding/db/mongodb/modelhelper"
+	"math/rand"
 	"net/http"
 	"socialapi/config"
+	"socialapi/models"
 	"socialapi/workers/common/mux"
 	"socialapi/workers/integration/webhook"
 	"testing"
+	"time"
 
 	"github.com/koding/logging"
 	"github.com/koding/runner"
@@ -13,10 +17,13 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func newRequest(body, channelName string) *webhook.WebhookRequest {
-	return &webhook.WebhookRequest{
-		Body:        body,
-		ChannelName: channelName,
+func newRequest(body string, channelId int64, groupName string) *WebhookRequest {
+	return &WebhookRequest{
+		Message: &webhook.Message{
+			Body:      body,
+			ChannelId: channelId,
+		},
+		GroupName: groupName,
 	}
 }
 
@@ -28,21 +35,37 @@ func TestWebhookListen(t *testing.T) {
 	r.Log.SetLevel(logging.CRITICAL)
 
 	defer r.Close()
-	config.MustRead(r.Conf.Path)
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+
 	mc := mux.NewConfig("testing", "", "")
 	m := mux.New(mc, r.Log)
 
-	h := webhook.NewHandler(r.Log)
+	h, err := NewHandler(r.Log)
+	if err != nil {
+		t.Fatalf("Could not initialize handler: %s", err)
+	}
+
 	h.AddHandlers(m)
 
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	account, err := models.CreateAccountInBothDbsWithNick("sinan")
+	if err != nil {
+		t.Fatalf("could not create test account: %s", err)
+	}
+
 	Convey("while testing incoming webhook", t, func() {
+
+		groupName := models.RandomName()
+		channel := models.CreateTypedGroupedChannelWithTest(account.Id, models.Channel_TYPE_TOPIC, groupName)
 
 		Convey("users should not be able to send any message when they don't have valid token", func() {
 			token := "123123"
 			s, _, _, err := h.Push(
 				mocking.URL(m, "POST", "/webhook/push/"+token),
 				mocking.Header(nil),
-				newRequest("hey", "testingchannel"),
+				newRequest("hey", channel.Id, "koding"),
 			)
 			So(err, ShouldNotBeNil)
 			So(s, ShouldEqual, http.StatusNotFound)
@@ -51,7 +74,7 @@ func TestWebhookListen(t *testing.T) {
 			s, _, _, err = h.Push(
 				mocking.URL(m, "POST", "/webhook/push/"+token),
 				mocking.Header(nil),
-				newRequest("hey", "testingchannel"),
+				newRequest("hey", channel.Id, "koding"),
 			)
 			So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -63,7 +86,7 @@ func TestWebhookListen(t *testing.T) {
 			s, _, _, err := h.Push(
 				mocking.URL(m, "POST", "/webhook/push/"+token),
 				mocking.Header(nil),
-				newRequest("", "testingchannel"),
+				newRequest("", channel.Id, "koding"),
 			)
 			So(err.Error(), ShouldEqual, ErrBodyNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
@@ -71,13 +94,35 @@ func TestWebhookListen(t *testing.T) {
 			s, _, _, err = h.Push(
 				mocking.URL(m, "POST", "/webhook/push/"+token),
 				mocking.Header(nil),
-				newRequest("hey", ""),
+				newRequest("hey", 0, "koding"),
 			)
 			So(err.Error(), ShouldEqual, ErrChannelNotSet.Error())
 			So(s, ShouldEqual, http.StatusBadRequest)
+
+			s, _, _, err = h.Push(
+				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.Header(nil),
+				newRequest("hey", channel.Id, ""),
+			)
+			So(err.Error(), ShouldEqual, ErrGroupNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
 		})
 
-		Convey("users should be able to send message when token is valid", nil)
+		Convey("users should be able to send message when token is valid", func() {
+			verifyRequest = func(r *WebhookRequest) (bool, error) {
+				return r.Token == "1234", nil
+			}
+
+			token := "1234"
+			s, _, _, err := h.Push(
+				mocking.URL(m, "POST", "/webhook/push/"+token),
+				mocking.Header(nil),
+				newRequest("hey", channel.Id, "koding"),
+			)
+
+			So(err, ShouldBeNil)
+			So(s, ShouldEqual, http.StatusOK)
+		})
 
 	})
 }
