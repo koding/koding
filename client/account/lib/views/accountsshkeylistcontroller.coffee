@@ -127,7 +127,6 @@ module.exports = class AccountSshKeyListController extends AccountListViewContro
   updateHelpLink: (keys) ->
 
     @sshKeyHelpLink?.destroy()
-    return  unless keys.length > 0
 
     @sshKeyHelpLink = new KDCustomHTMLView
       cssClass : 'ssh-key-help'
