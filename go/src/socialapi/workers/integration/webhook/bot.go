@@ -37,7 +37,7 @@ func (b *Bot) createMessage(m *Message) (*models.ChannelMessage, error) {
 	cm.InitialChannelId = m.ChannelId
 	cm.Body = m.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
-	cm.MetaBits = models.Bot
+	cm.MetaBits.Mark(models.Bot)
 
 	return cm, cm.Create()
 }
