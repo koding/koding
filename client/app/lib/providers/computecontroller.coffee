@@ -587,6 +587,65 @@ module.exports = class ComputeController extends KDController
       @triggerReviveFor machine._id  unless err?
       callback err
 
+  # Snapshots
+  #
+
+  createSnapshot: (machine)->
+
+    return if methodNotSupportedBy machine
+
+    ComputeController_UI.askFor 'createSnapshot', {machine, force: @_force}, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Snapshotting
+        percentage  : 0
+
+      # Do we plan to stop machine before snapshot starts? ~ GG
+      # machine.getBaseKite( createIfNotExists = no ).disconnect()
+
+      call = @getKloud().createSnapshot { machineId: machine._id }
+
+      .then (res)=>
+
+        @_force = no
+        kd.log "createSnapshot res:", res
+
+        # @_clearTrialCounts machine
+        # @eventListener.addListener 'start', machine._id
+
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
+
+      .catch (err)=>
+
+        (@errorHandler call, 'createSnapshot', machine) err
+
+
+  deleteSnapshot: (machine)->
+
+    return if methodNotSupportedBy machine
+
+    ComputeController_UI.askFor 'deleteSnapshot', {machine, force: @_force}, =>
+
+      @eventListener.triggerState machine,
+        status      : Machine.State.Snapshotting
+        percentage  : 0
+
+      call = @getKloud().deleteSnapshot { machineId: machine._id }
+
+      .then (res)=>
+
+        @_force = no
+        kd.log "deleteSnapshot res:", res
+
+        # @_clearTrialCounts machine
+        # @eventListener.addListener 'start', machine._id
+
+      .timeout globals.COMPUTECONTROLLER_TIMEOUT
+
+      .catch (err)=>
+
+        (@errorHandler call, 'deleteSnapshot', machine) err
+
 
   # Domain management
   #
