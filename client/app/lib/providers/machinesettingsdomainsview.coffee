@@ -70,8 +70,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     if @listController.getItemCount() >= 5
       warning = "It's not allowed to create more than 5 domains."
       @showNotification warning, 'warning'
-      @addNewButton.hideLoader()
-      return kd.warn warning
+      return @addNewButton.hideLoader()
 
     @isInProgress = yes
     @addInputView.makeDisabled()
@@ -85,15 +84,15 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
       .then =>
         @listController.addItem { domain, machineId }
+        # we are doing this to reset domain list in memory of computecontroller
         computeController.domains = []
 
         @isInProgress = no
         @addInputView.setValue ''
         @hideAddView()
 
-      .catch (err)=>
-        kd.warn 'Failed to create domain:', err
-        @showNotification err.message
+      .catch (err) =>
+        @showNotification err
         @addInputView.makeEnabled()
         @addInputView.setFocus()
         @addNewButton.hideLoader()
@@ -123,9 +122,8 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         computeController.domains = []
 
       .catch (err) =>
-        kd.warn 'Failed to remove domain:', err
         domainItem.setLoadingMode no
-        @showNotification err.message
+        @showNotification err
 
 
   handleStateChange: (domainItem, state) ->
@@ -156,8 +154,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
         domainItem.data.machineId = null  unless state
 
       .catch (err) =>
-        kd.warn "Failed to change domain state:", err
-        @showNotification err.message
+        @showNotification err
 
         @revertToggle domainItem, state
         domainItem.setLoadingMode no

@@ -1,3 +1,4 @@
+_                    = require 'lodash'
 kd                   = require 'kd'
 KDView               = kd.View
 KDHeaderView         = kd.HeaderView
@@ -85,7 +86,7 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     @headerAddNewButton.hide()
     @addViewContainer.show()
-    kd.utils.defer => @addInputView.setFocus()
+    kd.utils.defer @addInputView.bound 'setFocus'
 
 
   hideAddView: ->
@@ -97,7 +98,7 @@ module.exports = class MachineSettingsCommonView extends KDView
 
   handleAddNew: ->
 
-    kd.warn 'unhandled method'
+    kd.warn 'handleAddNew method needs to be implemented in subclass'
 
 
   createListView: ->
@@ -120,14 +121,18 @@ module.exports = class MachineSettingsCommonView extends KDView
 
   initList: ->
 
-    kd.warn 'unhandled method'
+    kd.warn 'initList method needs to be implemented in subclass'
 
 
-  showNotification: (text, type = 'error') ->
+  showNotification: (err, type = 'error') ->
 
-    view = @notificationView
+    view    = @notificationView
+    message = if _.isObject err then err.message else err
 
-    view.unsetClass name  for name in [ 'success', 'error', 'warning' ]
+    view.unsetClass 'success error warning'
     view.setClass type
-    view.updatePartial text
+    view.updatePartial message
     view.show()
+
+    if type is 'error' or type is 'warning'
+      kd.warn err
