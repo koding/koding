@@ -23,17 +23,6 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
         cssClass          : "thin"
         label             : "Name"
         defaultValue      : data?.name or ""
-      app                 :
-        name              : "app"
-        label             : "App"
-        cssClass          : "app"
-        type              : "hidden"
-        nextElement       :
-          app             :
-            itemClass     : KDSelectBox
-            cssClass      : "apps"
-            defaultValue  : formData?.app
-            selectOptions : apps
 
     options.buttons       =
       Save                :
@@ -55,7 +44,6 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
       partial         :
         visibility    : no
         overlay       : yes
-        app           : @inputs.app.getValue()
         items         : @jCustomPartial?.partial.items   or []
       name            : @inputs.name.getValue()          or ""
       viewInstance    : @jCustomPartial?.viewInstance    or ""

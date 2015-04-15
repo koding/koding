@@ -22,7 +22,7 @@ module.exports = class CustomViewsManager extends JView
       cssClass     : "solid green preview"
       callback     : @bound "togglePreview"
 
-    if kookies.get cookieName
+    if kookies.get(cookieName) is "true"
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
@@ -39,7 +39,7 @@ module.exports = class CustomViewsManager extends JView
       itemClass : WidgetCustomViewItem
 
   togglePreview: ->
-    isPreview = kookies.get cookieName
+    isPreview = kookies.get(cookieName) is "true"
 
     if isPreview
       kookies.set cookieName, no

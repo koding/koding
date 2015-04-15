@@ -15,16 +15,15 @@ module.exports = class OnboardingItemView extends KDView
 
     super options, data
 
-    data           = @getData()
-    {@items, @app} = @getOptions()
-    path           = data.path
-    appName        = @app.getOptions().name
-    itemName       = data.name
-    index          = @items.indexOf data
-    length         = @items.length - 1
-    @isLast        = index is length
-    @hasNext       = not @isLast
-    @hasPrev       = index isnt 0 and @hasNext
+    data                 = @getData()
+    {@items, groupName}  = @getOptions()
+    path                 = data.path
+    itemName             = data.name
+    index                = @items.indexOf data
+    length               = @items.length - 1
+    @isLast              = index is length
+    @hasNext             = not @isLast
+    @hasPrev             = index isnt 0 and @hasNext
 
     try
       path = htmlencode.htmlDecode path
@@ -37,9 +36,9 @@ module.exports = class OnboardingItemView extends KDView
         @createContextMenu()
         @listenEvents()
       else
-        console.warn "Target can't be found or invisible", { appName, itemName }
+        console.warn "Target element should be an instance of KDView and should be visible", { groupName, itemName }
     catch e
-      console.warn "Couldn't create onboarding item", { appName, itemName, e }
+      console.warn "Couldn't create onboarding item", { groupName, itemName, e }
 
 
   createContextMenu: ->
@@ -132,16 +131,19 @@ module.exports = class OnboardingItemView extends KDView
 
     @on "OnboardingCompleted", =>
       @destroy()
+      @emitShownEvent()
       trackEvent "Onboarding navigation, success"
 
     @on "OnboardingCancelled", =>
       @destroy()
+      @emitShownEvent()
       trackEvent "Onboarding navigation, failure"
 
-    {setStorage, slug} = @getOptions()
-    if setStorage
-      kd.utils.defer =>
-        @emit "OnboardingShown", slug
+
+  emitShownEvent: ->
+
+    { slug } = @getOptions()
+    @emit "OnboardingShown", slug
 
 
   destroy: ->

@@ -9,15 +9,15 @@ module.exports = class OnboardingViewController extends KDViewController
 
     super options, data
 
-    {@app, @slug} = @getOptions()
-    {@items}      = @getData()
+    {@groupName, @slug} = @getOptions()
+    {@items}            = @getData()
 
-    @show @items.first, yes
+    @show @items.first
 
 
-  show: (item, setStorage) ->
+  show: (item) ->
 
-    view = new OnboardingItemView { @slug, @app, @items, setStorage }, item
+    view = new OnboardingItemView { @slug, @groupName, @items }, item
     @bindViewEvents view
 
   navigate: (direction, itemData) ->

@@ -2,6 +2,7 @@ kookies = require 'kookies'
 remote = require('../remote').getInstance()
 isLoggedIn = require '../util/isLoggedIn'
 kd = require 'kd'
+whoami = require 'app/util/whoami'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
 
@@ -19,54 +20,49 @@ module.exports = class OnboardingController extends KDController
     else
       mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
 
-    @on "OnboardingShown", (slug) =>
-      @appStorage.setValue slug, yes
-
 
   fetchItems: ->
 
-    @appStorage = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
-    @hasCookie  = kookies.get("custom-partials-preview-mode") is "true"
-    query       = partialType : "ONBOARDING"
+    account           = whoami()
+    @registrationDate = new Date(account.meta.createdAt)
+    @appStorage       = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
+    @isPreviewMode    = kookies.get("custom-partials-preview-mode") is "true"
+    query             = partialType : "ONBOARDING"
 
-    if @hasCookie
+    if @isPreviewMode
       query["isPreview"] = yes
     else
       query["isActive"]  = yes
 
     remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
+      return  if err
+
       for data in onboardings when data.partial
-        appName = data.partial.app
-        @onboardings[appName] ?= []
-        @onboardings[appName].push data
+        @onboardings[data.name] = data
 
       @appStorage.fetchStorage @bound "bindOnboardingEvents"
 
 
   bindOnboardingEvents: ->
 
-    appManager = kd.getSingleton "appManager"
-    appManager.on "AppCreated", @bound 'runItemsForApp'
+    @on "OnboardingShown", (slug) =>
+      @appStorage.setValue slug, yes
 
-    @runItemsForApp appManager.frontApp  if appManager.frontApp?
+    @on "OnboardingRequested", (name) =>
+      @runItems name
 
 
-  runItemsForApp: (app) ->
+  runItems: (groupName) ->
 
-    appName = app.getOptions().name
-    return  unless @onboardings[appName]
+    onboarding = @onboardings[groupName]
+    return  unless onboarding
+    return  unless onboarding.partial.items?.length
 
-    kd.utils.wait 3000, =>
-      onboardings = @onboardings[appName]
+    slug      = kd.utils.slugify kd.utils.curry 'onboarding', groupName
+    isShown   = @appStorage.getValue slug
+    isOldUser = new Date(onboarding.createdAt) > @registrationDate
 
-      for item in onboardings
-        slug    = kd.utils.slugify kd.utils.curry appName, item.name
-        isShown = @appStorage.getValue slug
+    return  if (isShown or isOldUser) and not @isPreviewMode
 
-        if not isShown or @hasCookie
-          onboarding = item
-          break
-
-      return unless onboarding?.partial.items?.length
-
-      new OnboardingViewController { app, slug, delegate: this }, onboarding.partial
+    kd.utils.wait 2000, =>
+      new OnboardingViewController { groupName, slug, delegate: this }, onboarding.partial
