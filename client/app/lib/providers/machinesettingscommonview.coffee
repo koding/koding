@@ -16,6 +16,7 @@ module.exports = class MachineSettingsCommonView extends KDView
     options.addButtonTitle        or= 'ADD'
     options.addButtonCssClass     or= ''
     options.listViewItemClass     or= KDListItemView
+    options.listViewItemOptions   or= {}
     options.headerAddButtonTitle  or= 'ADD NEW'
 
     super options, data
@@ -101,17 +102,18 @@ module.exports = class MachineSettingsCommonView extends KDView
 
   createListView: ->
 
+    itemOptions = @getOptions().listViewItemOptions
+    itemOptions.machineId = @machine._id
+
     @listController  = new KDListViewController
       startWithLazyLoader: yes
       lazyLoaderOptions  :
         spinnerOptions   :
           size           : width: 28
       viewOptions        :
-        type             : 'domain'
         wrapper          : yes
         itemClass        : @getOptions().listViewItemClass
-        itemOptions      :
-          machineId      : @machine._id
+        itemOptions      : itemOptions
 
     @addSubView @listController.getView()
 
