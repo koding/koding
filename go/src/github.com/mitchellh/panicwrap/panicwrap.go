@@ -57,6 +57,10 @@ type WrapConfig struct {
 	// The writer to send the stderr to. If this is nil, then it defaults
 	// to os.Stderr.
 	Writer io.Writer
+
+	// The writer to send stdout to. If this is nil, then it defaults to
+	// os.Stdout.
+	Stdout io.Writer
 }
 
 // BasicWrap calls Wrap with the given handler function, using defaults
@@ -86,14 +90,6 @@ func Wrap(c *WrapConfig) (int, error) {
 		return -1, errors.New("Handler must be set")
 	}
 
-	if c.CookieKey == "" {
-		c.CookieKey = DEFAULT_COOKIE_KEY
-	}
-
-	if c.CookieValue == "" {
-		c.CookieValue = DEFAULT_COOKIE_VAL
-	}
-
 	if c.DetectDuration == 0 {
 		c.DetectDuration = 300 * time.Millisecond
 	}
@@ -102,9 +98,8 @@ func Wrap(c *WrapConfig) (int, error) {
 		c.Writer = os.Stderr
 	}
 
-	// If the cookie key/value match our environment, then we are the
-	// child, so just exit now and tell the caller that we're the child
-	if os.Getenv(c.CookieKey) == c.CookieValue {
+	// If we're already wrapped, exit out.
+	if Wrapped(c) {
 		return -1, nil
 	}
 
@@ -135,6 +130,12 @@ func Wrap(c *WrapConfig) (int, error) {
 	// Start the goroutine that will watch stderr for any panics
 	go trackPanic(stderr_r, c.Writer, c.DetectDuration, panicCh)
 
+	// Create the writer for stdout that we're going to use
+	var stdout_w io.Writer = os.Stdout
+	if c.Stdout != nil {
+		stdout_w = c.Stdout
+	}
+
 	// Build a subcommand to re-execute ourselves. We make sure to
 	// set the environmental variable to include our cookie. We also
 	// set stdin/stdout to match the config. Finally, we pipe stderr
@@ -142,7 +143,7 @@ func Wrap(c *WrapConfig) (int, error) {
 	cmd := exec.Command(exePath, os.Args[1:]...)
 	cmd.Env = append(os.Environ(), c.CookieKey+"="+c.CookieValue)
 	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
+	cmd.Stdout = stdout_w
 	cmd.Stderr = stderr_w
 	if err := cmd.Start(); err != nil {
 		return 1, err
@@ -192,6 +193,25 @@ func Wrap(c *WrapConfig) (int, error) {
 	}
 
 	return 0, nil
+}
+
+// Wrapped checks if we're already wrapped according to the configuration
+// given.
+//
+// Wrapped is very cheap and can be used early to short-circuit some pre-wrap
+// logic your application may have.
+func Wrapped(c *WrapConfig) bool {
+	if c.CookieKey == "" {
+		c.CookieKey = DEFAULT_COOKIE_KEY
+	}
+
+	if c.CookieValue == "" {
+		c.CookieValue = DEFAULT_COOKIE_VAL
+	}
+
+	// If the cookie key/value match our environment, then we are the
+	// child, so just exit now and tell the caller that we're the child
+	return os.Getenv(c.CookieKey) == c.CookieValue
 }
 
 // trackPanic monitors the given reader for a panic. If a panic is detected,

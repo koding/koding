@@ -6,22 +6,23 @@ package digitalocean
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
+	"time"
+
 	"github.com/mitchellh/multistep"
 	"github.com/mitchellh/packer/common"
 	"github.com/mitchellh/packer/common/uuid"
 	"github.com/mitchellh/packer/packer"
-	"log"
-	"os"
-	"time"
 )
 
 // see https://api.digitalocean.com/images/?client_id=[client_id]&api_key=[api_key]
-// name="Ubuntu 12.04.4 x64", id=3101045,
+// name="Ubuntu 12.04.4 x64", id=6374128,
 const DefaultImage = "ubuntu-12-04-x64"
 
 // see https://api.digitalocean.com/regions/?client_id=[client_id]&api_key=[api_key]
-// name="New York", id=1
-const DefaultRegion = "nyc1"
+// name="New York 3", id=8
+const DefaultRegion = "nyc3"
 
 // see https://api.digitalocean.com/sizes/?client_id=[client_id]&api_key=[api_key]
 // name="512MB", id=66 (the smallest droplet size)
@@ -38,6 +39,8 @@ type config struct {
 
 	ClientID string `mapstructure:"client_id"`
 	APIKey   string `mapstructure:"api_key"`
+	APIURL   string `mapstructure:"api_url"`
+	APIToken string `mapstructure:"api_token"`
 	RegionID uint   `mapstructure:"region_id"`
 	SizeID   uint   `mapstructure:"size_id"`
 	ImageID  uint   `mapstructure:"image_id"`
@@ -92,6 +95,16 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	if b.config.ClientID == "" {
 		// Default to environment variable for client_id, if it exists
 		b.config.ClientID = os.Getenv("DIGITALOCEAN_CLIENT_ID")
+	}
+
+	if b.config.APIURL == "" {
+		// Default to environment variable for api_url, if it exists
+		b.config.APIURL = os.Getenv("DIGITALOCEAN_API_URL")
+	}
+
+	if b.config.APIToken == "" {
+		// Default to environment variable for api_token, if it exists
+		b.config.APIToken = os.Getenv("DIGITALOCEAN_API_TOKEN")
 	}
 
 	if b.config.Region == "" {
@@ -151,8 +164,13 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 	}
 
 	templates := map[string]*string{
+		"region":        &b.config.Region,
+		"size":          &b.config.Size,
+		"image":         &b.config.Image,
 		"client_id":     &b.config.ClientID,
 		"api_key":       &b.config.APIKey,
+		"api_url":       &b.config.APIURL,
+		"api_token":     &b.config.APIToken,
 		"snapshot_name": &b.config.SnapshotName,
 		"droplet_name":  &b.config.DropletName,
 		"ssh_username":  &b.config.SSHUsername,
@@ -169,15 +187,21 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 		}
 	}
 
-	// Required configurations that will display errors if not set
-	if b.config.ClientID == "" {
-		errs = packer.MultiErrorAppend(
-			errs, errors.New("a client_id must be specified"))
+	if b.config.APIToken == "" {
+		// Required configurations that will display errors if not set
+		if b.config.ClientID == "" {
+			errs = packer.MultiErrorAppend(
+				errs, errors.New("a client_id for v1 auth or api_token for v2 auth must be specified"))
+		}
+
+		if b.config.APIKey == "" {
+			errs = packer.MultiErrorAppend(
+				errs, errors.New("a api_key for v1 auth or api_token for v2 auth must be specified"))
+		}
 	}
 
-	if b.config.APIKey == "" {
-		errs = packer.MultiErrorAppend(
-			errs, errors.New("an api_key must be specified"))
+	if b.config.APIURL == "" {
+		b.config.APIURL = "https://api.digitalocean.com"
 	}
 
 	sshTimeout, err := time.ParseDuration(b.config.RawSSHTimeout)
@@ -203,8 +227,13 @@ func (b *Builder) Prepare(raws ...interface{}) ([]string, error) {
 }
 
 func (b *Builder) Run(ui packer.Ui, hook packer.Hook, cache packer.Cache) (packer.Artifact, error) {
+	var client DigitalOceanClient
 	// Initialize the DO API client
-	client := DigitalOceanClient{}.New(b.config.ClientID, b.config.APIKey)
+	if b.config.APIToken == "" {
+		client = DigitalOceanClientNewV1(b.config.ClientID, b.config.APIKey, b.config.APIURL)
+	} else {
+		client = DigitalOceanClientNewV2(b.config.APIToken, b.config.APIURL)
+	}
 
 	// Set up the state
 	state := new(multistep.BasicStateBag)
