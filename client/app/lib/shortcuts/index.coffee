@@ -391,6 +391,8 @@ class ShortcutsController extends events.EventEmitter
 
     return model[klass._bindingGetterMethodName()]()
 
+  getPlatformBinding: klass._getPlatformBinding
+
 
   # Returns _binding_ array index of a _keyconfig#Model_ for the current platform.
   #
