@@ -11,8 +11,10 @@ class Pane extends kd.View
     @collection = options.collection
     super _.omit options, 'collection'
 
+  # XXX: add sub-views on PaneDidShow instead
   viewAppended: ->
-    # XXX: add sub-views on PaneDidShow instead
+
+    dups = kd.getSingleton('shortcuts').getCollisionsFlat @collection._key
 
     @collection.each (model) =>
-      item = @addSubView new Item null, model
+      item = @addSubView new Item null, model, _.includes dups, model.name

@@ -1,6 +1,7 @@
 module.exports =
   Item:
-    SELECTED: 'ShortcutItemChanged'
-    TOGGLED: 'ShortcutItemToggled'
+    SELECTED : 'ShortcutItemChanged'
+    TOGGLED  : 'ShortcutItemToggled'
   Facade:
-    CHANGED: 'ShortcutModelChanged'
+    CHANGED : 'ShortcutModelChanged'
+    DUP     : 'ShortcutModelHasDup'

@@ -4,21 +4,24 @@ present = require './present-binding'
 facade = require('./actions-facade')
 EventType = require './event-type'
 
+DUP_CLASS_NAME = 'collides'
+
 module.exports =
 
 class Item extends kd.View
 
-  constructor: (options={}, @model) ->
+  constructor: (options, @model, @_dup) ->
 
     @_enabled = @model.enabled
     @_handlers = null
 
-    super _.extend
-      cssClass: 'row'
-    , options
+    super _.extend cssClass: 'row', options
 
 
   viewAppended: ->
+
+    if @_dup then @setClass DUP_CLASS_NAME
+    delete @_dup
 
     toggle = new kd.View
       cssClass : 'col'
@@ -50,13 +53,20 @@ class Item extends kd.View
           binding.updatePartial partial
           @unsetClass 'active'
 
-    changeHandler = (model) ->
+    changeHandler = (model, dup) ->
       toggle.click model.enabled, yes
-      # XXX: do not update binding if recording
-      #binding.updatePartial present _.first model.binding
+      # XXX: do not update binding while recording
+      { shortcuts } = kd.singletons
+      binding.updatePartial present _.first shortcuts.getPlatformBinding model
+
+    dupHandler = (dup) =>
+      if dup
+      then @setClass   DUP_CLASS_NAME
+      else @unsetClass DUP_CLASS_NAME
 
     destroyHandler = =>
       @off EventType.Facade.CHANGED, changeHandler
+      @off EventType.Facade.DUP, dupHandler
       toggle.off  'click', toggleClickHandler
       binding.off 'click', bindingClickHandler
       _.each EventType.Item, (type) =>
@@ -68,6 +78,7 @@ class Item extends kd.View
     binding.on 'click', bindingClickHandler
 
     @on EventType.Facade.CHANGED, changeHandler
+    @on EventType.Facade.DUP, dupHandler
     @once 'KDObjectWillBeDestroyed', destroyHandler
 
     @_handlers = {}
