@@ -27,16 +27,21 @@ openTerminal = (browser) ->
 
 createTerminalSession = (browser, user) ->
 
-  userName = user.username
+  userName                   = user.username
+  notActiveTerminalSelector  = paneSelector + ' .terminal:not(.active)'
+  terminalTextAssertSelector = '.application-tabview .terminal.active .terminal-pane'
 
   openTerminal(browser)
-  openTerminal(browser) # it's required
 
-  browser
-    .waitForElementVisible   paneSelector + ' .terminal:not(.active)', 20000 # Assertion
-    .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
-    .pause 6000 # required
-    .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
+  browser.element 'css selector', notActiveTerminalSelector, (result) =>
+    if result.status isnt 0
+      openTerminal(browser)
+
+    browser
+      .waitForElementVisible   notActiveTerminalSelector, 20000 # Assertion
+      .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
+      .pause 6000 # required
+      .assert.containsText     terminalTextAssertSelector, userName # Assertion
 
 
 terminateAll = (browser) ->
