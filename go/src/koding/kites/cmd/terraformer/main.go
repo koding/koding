@@ -24,10 +24,6 @@ func main() {
 
 	k := newKite(conf)
 
-	if conf.Debug {
-		k.Log.Info("Debug mode enabled")
-	}
-
 	registerURL := k.RegisterURL(true)
 
 	if err := k.RegisterForever(registerURL); err != nil {
@@ -48,6 +44,10 @@ func newKite(conf *terraformer.Config) *kite.Kite {
 
 	if conf.Environment != "" {
 		k.Config.Environment = conf.Environment
+	}
+
+	if conf.Debug {
+		k.SetLogLevel(kite.DEBUG)
 	}
 
 	stats := common.MustInitMetrics(Name)
