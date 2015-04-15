@@ -14,7 +14,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     options.addButtonTitle       = 'INVITE'
     options.headerAddButtonTitle = 'ADD PEOPLE'
     options.listViewItemClass    = UserItem
-    options.listViewItemOptions  = { size: width: 32, height: 32 }
+    options.listViewItemOptions  = { justFirstName: no, size: width: 32, height: 32 }
 
     @machine = data
 
