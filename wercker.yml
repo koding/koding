@@ -34,7 +34,6 @@ build:
         code: |
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
-
     - script:
         name: upgrade go version (this is temp)
         code: |
