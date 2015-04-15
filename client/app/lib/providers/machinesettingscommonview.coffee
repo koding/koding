@@ -88,6 +88,7 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     @headerAddNewButton.show()
     @addViewContainer.hide()
+    @addInputView.setValue ''
 
 
   handleAddNew: ->
