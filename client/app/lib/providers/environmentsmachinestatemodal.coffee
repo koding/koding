@@ -95,9 +95,9 @@ module.exports = class EnvironmentsMachineStateModal extends EnvironmentsModalVi
     else
       @state = status
 
-      if error?.length > 0
+      if error
 
-        if /NetworkOut overlimit/i.test event.message
+        if /NetworkOut/i.test error
           @customErrorMessage = "
             <p>You've reached your outbound network usage
             limit for this week.</p><span>

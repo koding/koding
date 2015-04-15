@@ -158,8 +158,17 @@ func (k *Kloud) coreMethods(r *kite.Request, fn machineFunc) (result interface{}
 
 		err := fn(ctx, machine)
 		if err != nil {
+			// don't pass the error directly to the eventer, mask it to avoid
+			// error leaking to the client. We just log it here.
 			k.Log.Error("[%s][%s] %s error: %s", args.Provider, args.MachineId, r.Method, err)
 			finalEvent.Error = strings.ToTitle(r.Method) + " failed. Please contact support."
+
+			// however, eventerErr is an error we want to pass explicitly to
+			// the client side
+			if eventerErr, ok := err.(*EventerError); ok {
+				finalEvent.Error = eventerErr.Error()
+			}
+
 			finalEvent.Status = stater.State() // fallback to to old state
 		}
 
