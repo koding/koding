@@ -53,10 +53,17 @@ func (m *Machine) DeleteSnapshot(ctx context.Context) error {
 	return m.deleteSnapshotData(args.SnapshotId)
 }
 
-func (m *Machine) CreateSnapshot(ctx context.Context) error {
+func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 	if err := m.UpdateState("Machine is creating snapshot", machinestate.Snapshotting); err != nil {
 		return err
 	}
+
+	latestState := m.State()
+	defer func() {
+		if err != nil {
+			m.UpdateState("Machine is marked as "+latestState.String(), latestState)
+		}
+	}()
 
 	if err := m.Checker.SnapshotTotal(m.Id.Hex(), m.Username); err != nil {
 		return err
