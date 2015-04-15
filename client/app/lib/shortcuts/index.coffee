@@ -343,6 +343,24 @@ class ShortcutsController extends events.EventEmitter
   unpause: -> @shortcuts.unpause()
 
 
+  # Given a collection name, returns colliding shortcut models grouped by
+  # colliding bindings for the current platform only.
+  #
+  getCollisions: (name) ->
+    @shortcuts.getCollisions name
+
+
+  # Given a collection name, returns colliding shortcut model names non-grouped
+  # for the current platform.
+  #
+  getCollisionsFlat: (name) ->
+    _
+      .chain @getCollisions name
+      .flatten()
+      .pluck 'name'
+      .value()
+
+
   # Returns the app storage key for the current platform.
   #
   # This will either be *shortcuts-mac* or *shortcuts-win*.
