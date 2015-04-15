@@ -21,13 +21,14 @@ const (
 
 // DomainDocument defines a single MongoDB document in the jSnapshots collection
 type SnapshotDocument struct {
-	Id         bson.ObjectId `bson:"_id" json:"-"`
-	OriginId   bson.ObjectId `bson:"originId"`
-	MachineId  bson.ObjectId `bson:"machineId"`
-	SnapshotId string        `bson:"snapshotId"`
-	Region     string        `bson:"region"`
-	CreatedAt  time.Time     `bson:"createdAt"`
-	username   string        `bson:"-"`
+	Id          bson.ObjectId `bson:"_id" json:"-"`
+	OriginId    bson.ObjectId `bson:"originId"`
+	MachineId   bson.ObjectId `bson:"machineId"`
+	SnapshotId  string        `bson:"snapshotId"`
+	StorageSize string        `bson:"storage_size"`
+	Region      string        `bson:"region"`
+	CreatedAt   time.Time     `bson:"createdAt"`
+	username    string        `bson:"-"`
 }
 
 func (m *Machine) DeleteSnapshot(ctx context.Context) error {
@@ -86,10 +87,11 @@ func (m *Machine) CreateSnapshot(ctx context.Context) error {
 	m.Log.Debug("Snapshot created successfully: %+v", snapshot)
 
 	snapshotData := &SnapshotDocument{
-		username:   m.Username,
-		Region:     a.Client.Region.Name,
-		SnapshotId: snapshot.Id,
-		MachineId:  m.Id,
+		username:    m.Username,
+		Region:      a.Client.Region.Name,
+		SnapshotId:  snapshot.Id,
+		MachineId:   m.Id,
+		StorageSize: snapshot.VolumeSize,
 	}
 
 	if err := m.addSnapshotData(snapshotData); err != nil {
