@@ -2090,3 +2090,28 @@ paymentGrayLighter  = #f8f8f8
     margin-left             8px
     font-size               14px
     color                   #434343
+
+  .remove
+    r-sprite                'app', 'red-close'
+    display                 inline-block
+    top                     14px
+    right                   0
+    display                 none
+    abs()
+    pointer()
+
+  .kdlistitemview
+
+    &.in-progress
+      .remove
+        display             none !important
+
+      .kdloader
+        abs()
+        right               0
+        size                16px, 16px
+        top                 15px
+
+    &:hover
+      .remove
+        display             block
