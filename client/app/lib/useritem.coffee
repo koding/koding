@@ -17,7 +17,7 @@ module.exports = class UserItem extends KDListItemView
 
     @avatar    = new AvatarView
       origin   : nickname
-      size     : width: 22, height: 22
+      size     : @getOptions().size or width: 22, height: 22
 
     @name = new KDCustomHTMLView
       cssClass : 'name'
