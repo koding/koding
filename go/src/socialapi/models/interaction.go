@@ -72,7 +72,7 @@ func (i *Interaction) ListLikedMessages(q *request.Query) ([]LikedMessages, erro
 
 	err := bongo.B.Some(i, &likedMessages, query)
 	if if err != nil {
-		return nil, err
+		return likedMessages, err
 	}
 	
 	return likedMessages, nil
