@@ -1,6 +1,7 @@
 kd = require 'kd'
 KDViewController = kd.ViewController
 OnboardingItemView = require './onboardingitemview'
+OnboardingMetrics = require './onboardingmetrics'
 
 
 module.exports = class OnboardingViewController extends KDViewController
@@ -11,14 +12,16 @@ module.exports = class OnboardingViewController extends KDViewController
 
     {@groupName, @slug} = @getOptions()
     {@items}            = @getData()
+    @startTrackDate     = new Date()
 
     @show @items.first
 
 
   show: (item) ->
 
-    view = new OnboardingItemView { @slug, @groupName, @items }, item
+    view = new OnboardingItemView { @groupName, @items }, item
     @bindViewEvents view
+
 
   navigate: (direction, itemData) ->
 
@@ -32,7 +35,8 @@ module.exports = class OnboardingViewController extends KDViewController
     view.on "NavigationRequested", (direction) =>
       @navigate direction, view.getData()
 
-    view.on "OnboardingShown", (slug) =>
-      @getDelegate().emit "OnboardingShown", slug
-
+    view.on ["OnboardingCompleted", "OnboardingCancelled"], =>
+      trackedTime = new Date() - @startTrackDate
+      OnboardingMetrics.trackCompleted @groupName, "Total", trackedTime
+      @getDelegate().emit "OnboardingShown", @slug
 

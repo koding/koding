@@ -1,12 +1,12 @@
 htmlencode = require 'htmlencode'
 $ = require 'jquery'
-trackEvent = require '../util/trackEvent'
 kd = require 'kd'
 KDButtonView = kd.ButtonView
 KDCustomHTMLView = kd.CustomHTMLView
 KDSpotlightView = kd.SpotlightView
 KDView = kd.View
 OnboardingContextMenu = require '../onboardingcontextmenu'
+OnboardingMetrics = require './onboardingmetrics'
 
 
 module.exports = class OnboardingItemView extends KDView
@@ -16,9 +16,9 @@ module.exports = class OnboardingItemView extends KDView
     super options, data
 
     data                 = @getData()
-    {@items, groupName}  = @getOptions()
+    {@items, @groupName} = @getOptions()
     path                 = data.path
-    itemName             = data.name
+    @itemName            = data.name
     index                = @items.indexOf data
     length               = @items.length - 1
     @isLast              = index is length
@@ -31,14 +31,14 @@ module.exports = class OnboardingItemView extends KDView
 
       if @parentElement instanceof Node
         @parentElement = @getKDViewFromElementNode @parentElement
-
       if @parentElement instanceof KDView and not @parentElement.hasClass 'hidden'
         @createContextMenu()
         @listenEvents()
+        @startTrackDate = new Date()
       else
-        console.warn "Target element should be an instance of KDView and should be visible", { groupName, itemName }
+        console.warn "Target element should be an instance of KDView and should be visible", { @groupName, @itemName }
     catch e
-      console.warn "Couldn't create onboarding item", { groupName, itemName, e }
+      console.warn "Couldn't create onboarding item", { @groupName, @itemName, e }
 
 
   createContextMenu: ->
@@ -113,7 +113,7 @@ module.exports = class OnboardingItemView extends KDView
 
   getKDViewFromElementNode: (element) ->
 
-    kdview  = null
+    kdview = null
 
     for key, kdinstance of kd.instances
       if kdinstance.getElement?() is element
@@ -127,23 +127,18 @@ module.exports = class OnboardingItemView extends KDView
 
     @on "NavigationRequested", (direction) =>
       @destroy()
-      trackEvent "Onboarding navigation, click"
+      OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
 
     @on "OnboardingCompleted", =>
       @destroy()
-      @emitShownEvent()
-      trackEvent "Onboarding navigation, success"
+      OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
 
     @on "OnboardingCancelled", =>
       @destroy()
-      @emitShownEvent()
-      trackEvent "Onboarding navigation, failure"
+      OnboardingMetrics.trackCancelled @groupName, @itemName
 
 
-  emitShownEvent: ->
-
-    { slug } = @getOptions()
-    @emit "OnboardingShown", slug
+  getTrackedTime: -> new Date() - @startTrackDate
 
 
   destroy: ->
