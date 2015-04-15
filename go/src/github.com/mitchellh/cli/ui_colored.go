@@ -6,13 +6,14 @@ import (
 
 // UiColor is a posix shell color code to use.
 type UiColor struct {
-	Code uint
+	Code int
 	Bold bool
 }
 
 // A list of colors that are useful. These are all non-bolded by default.
 var (
-	UiColorRed     UiColor = UiColor{31, false}
+	UiColorNone    UiColor = UiColor{-1, false}
+	UiColorRed             = UiColor{31, false}
 	UiColorGreen           = UiColor{32, false}
 	UiColorYellow          = UiColor{33, false}
 	UiColorBlue            = UiColor{34, false}
@@ -26,6 +27,7 @@ type ColoredUi struct {
 	OutputColor UiColor
 	InfoColor   UiColor
 	ErrorColor  UiColor
+	WarnColor   UiColor
 	Ui          Ui
 }
 
@@ -45,7 +47,15 @@ func (u *ColoredUi) Error(message string) {
 	u.Ui.Error(u.colorize(message, u.ErrorColor))
 }
 
+func (u *ColoredUi) Warn(message string) {
+	u.Ui.Warn(u.colorize(message, u.WarnColor))
+}
+
 func (u *ColoredUi) colorize(message string, color UiColor) string {
+	if color.Code == -1 {
+		return message
+	}
+
 	attr := 0
 	if color.Bold {
 		attr = 1
