@@ -37,11 +37,8 @@ build:
     - script:
         name: setup go version manager (this is temp)
         code: |
-          sudo apt-get update
-          sudo apt-get install curl git mercurial make binutils bison gcc build-essential -y
-          bash < <(curl -s -S -L https://raw.githubusercontent.com/moovweb/gvm/master/binscripts/gvm-installer)
-          source ~/.gvm/scripts/gvm
-          gvm install go1.4.2
+          curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | tar -v -C /usr/local -xz
+          sudo ln -sf /usr/local/go/bin/* /usr/local/bin
           export GOPATH=$WERCKER_SOURCE_DIR/go
     - script:
         name: koding node modules
