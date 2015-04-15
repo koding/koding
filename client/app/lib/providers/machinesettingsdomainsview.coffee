@@ -37,7 +37,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       cssClass : 'domain-suffix'
       partial  : @domainSuffix
 
-    kd.utils.defer => @addInputView.setFocus()
+    kd.utils.defer @addInputView.bound 'setFocus'
 
 
   initList: ->
