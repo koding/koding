@@ -14,8 +14,5 @@ class Pane extends kd.View
   viewAppended: ->
     # XXX: add sub-views on PaneDidShow instead
 
-    i = 0
-
     @collection.each (model) =>
-      if ++i > 5 then return
       item = @addSubView new Item null, model
