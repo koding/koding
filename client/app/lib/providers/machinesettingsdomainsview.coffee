@@ -67,17 +67,16 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     machineId = @machine._id
 
     if @listController.getItemCount() >= 5
-      # @warning.setTooltip
-      #   title: "It's not allowed to create more than 5 domains."
-      # @warning.show()
-      kd.warn "It's not allowed to create more than 5 domains."
-      return
+      warning = "It's not allowed to create more than 5 domains."
+      @showNotification warning, 'warning'
+      @addNewButton.hideLoader()
+      return kd.warn warning
 
     @isInProgress = yes
     @addInputView.makeDisabled()
     @addNewButton.showLoader()
 
-    # @warning.hide()
+    @notificationView.hide()
 
     computeController.getKloud()
 
@@ -93,8 +92,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
       .catch (err)=>
         kd.warn 'Failed to create domain:', err
-        # @warning.setTooltip title: err.message
-        # @warning.show()
+        @showNotification err.message
         @addInputView.makeEnabled()
         @addInputView.setFocus()
         @addNewButton.hideLoader()
@@ -112,7 +110,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     { domain }  = domainItem.getData()
     machineId   = @machine._id
 
-    # @warning.hide()
+    @notificationView.hide()
     domainItem.setLoadingMode yes
 
     computeController.getKloud()
@@ -126,15 +124,14 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       .catch (err) =>
         kd.warn 'Failed to remove domain:', err
         domainItem.setLoadingMode no
-        # @warning.setTooltip title: err.message
-        # @warning.show()
+        @showNotification err.message
 
 
   handleStateChange: (domainItem, state) ->
 
     domainItem.setLoadingMode yes
 
-    # @warning.hide()
+    @notificationView.hide()
 
     @askForPermission domainItem, state, (approved) =>
       if approved
@@ -159,8 +156,7 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
       .catch (err) =>
         kd.warn "Failed to change domain state:", err
-        # @warning.setTooltip title: err.message
-        # @warning.show()
+        @showNotification err.message
 
         @revertToggle domainItem, state
         domainItem.setLoadingMode no
