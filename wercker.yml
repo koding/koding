@@ -37,7 +37,7 @@ build:
     - script:
         name: upgrade go version (this is temp)
         code: |
-          curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | tar -v -C /usr/local -xz
+          sudo curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | sudo tar -v -C /usr/local -xz
           sudo ln -sf /usr/local/go/bin/* /usr/local/bin
           export GOPATH=$WERCKER_SOURCE_DIR/go
     - script:
