@@ -35,12 +35,6 @@ build:
           source $HOME/.nvm/nvm.sh
           nvm use 0.10.33
     - script:
-        name: upgrade go version (this is temp)
-        code: |
-          sudo curl -s https://storage.googleapis.com/golang/go1.4.2.linux-amd64.tar.gz | sudo tar -v -C /usr/local -xz
-          sudo ln -sf /usr/local/go/bin/* /usr/local/bin
-          export GOPATH=$WERCKER_SOURCE_DIR/go
-    - script:
         name: koding node modules
         code: |
           $WERCKER_ROOT/scripts/wercker/install-node-modules koding
