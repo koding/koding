@@ -2,6 +2,7 @@ kd                        = require 'kd'
 nick                      = require 'app/util/nick'
 KDView                    = kd.View
 UserItem                  = require 'app/useritem'
+KDCustomHTMLView          = kd.CustomHTMLView
 MachineSettingsCommonView = require './machinesettingscommonview'
 
 
@@ -12,9 +13,12 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
     options.headerTitle          = 'Shared With'
     options.addButtonTitle       = 'INVITE'
-    options.headerAddButtonTitle = 'ADD PEOPLE'
+    options.headerAddButtonTitle = 'ADD SOMEONE'
     options.listViewItemClass    = UserItem
     options.listViewItemOptions  = { justFirstName: no, size: width: 32, height: 32 }
+    options.noItemFoundWidget    = new KDCustomHTMLView
+      cssClass : 'no-item'
+      partial  : 'This VM has not yet been shared with anyone.'
 
     @machine = data
 
