@@ -41,6 +41,43 @@ const (
 	Interaction_TYPE_DONWVOTE = "downvote"
 )
 
+func (i *Interaction) ListLikedMessages(q *request.Query) ([]LikedMessages, error) {
+	var likedMessages []LikedMessages
+
+	if i.AccountId == 0 {
+		return likedMessages, ErrAccountIdIsNotSet
+	}
+
+	if i.MessageId == 0 {
+		return likedMessages, ErrMessageIdIsNotSet	
+	}
+
+	query := &bongo.Query{
+		Selector : map[string]interface{}{
+		"message_id": i.MessageId,
+		"account_id": i.AccountId,
+		"type_constant": q.Type,
+		}
+	}
+
+	q.AddScope(RemoveTrollContent(i, query.ShowExempt))
+
+	if q.Limit > 0 {
+		query.Pagination.Limit = q.Limit
+	}
+
+	if len(q.Sort) > 0 {
+		query.Sort = q.Sort
+	}
+
+	err := bongo.B.Some(i, &likedMessages, query)
+	if if err != nil {
+		return nil, err
+	}
+	
+	return likedMessages, nil
+}
+
 // Tests are done.
 func (i *Interaction) MarkIfExempt() error {
 	isExempt, err := i.isExempt()

@@ -2,10 +2,11 @@ package models
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
-	"github.com/koding/bongo"
 	"socialapi/request"
 	"strings"
+
+	"github.com/jinzhu/gorm"
+	"github.com/koding/bongo"
 )
 
 type Account struct {
@@ -31,36 +32,6 @@ type Account struct {
 	Token string `json:"-"`
 }
 
-func (a *Account) ListLikedMessages(q *request.Query) ([]LikedMessages, error) {
-	var likedMessages []LikedMessages
-
-	if a.Id == 0 {
-		return likedMessages, ErrAccountIdIsNotSet
-	}
-
-	query := &bongo.Query{
-		Selector : map[string]interface{}{
-			//TO-DO
-			//TO-DO
-		}
-	}
-
-	if q.Limit > 0 {
-		query.Pagination.Limit = q.Limit
-	}
-
-	if len(q.Sort) > 0 {
-		query.Sort = q.Sort
-	}
-
-	err := bongo.B.Some(a, &likedMessages, query)
-	if if err != nil {
-		return nil, err
-	}
-	
-	return likedMessages, nil
-}
-
 func ValidateAccount(a *Account) error {
 	if a.OldId == "" {
 		return ErrOldIdIsNotSet
@@ -73,10 +44,10 @@ func ValidateAccount(a *Account) error {
 }
 
 func (a *Account) IsShareLocationEnabled() bool {
-    if a.Settings == nil {
-        return false
-    }
-    shareLocation, ok := a.Settings["shareLocation"]
+	if a.Settings == nil {
+		return false
+	}
+	shareLocation, ok := a.Settings["shareLocation"]
 	if !ok || shareLocation == nil {
 		return false
 	}
