@@ -39,7 +39,7 @@ class Item extends kd.View
       @_enabled = if _.isBoolean e then e else not @_enabled
       if @_enabled then toggle.setClass 'enabled' else toggle.unsetClass 'enabled'
       unless silent
-        @emit 'ShortcutItemToggled', @_enabled
+        @emit EventType.Item.TOGGLED, @_enabled
 
     bindingClickHandler = =>
       @setClass 'active'
