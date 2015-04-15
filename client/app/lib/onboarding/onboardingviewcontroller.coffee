@@ -11,7 +11,7 @@ module.exports = class OnboardingViewController extends KDViewController
     super options, data
 
     {@groupName, @slug} = @getOptions()
-    {@items}            = @getData()
+    @items              = @getData().items.slice()
     @startTrackDate     = new Date()
 
     @show @items.first
@@ -21,6 +21,7 @@ module.exports = class OnboardingViewController extends KDViewController
 
     view = new OnboardingItemView { @groupName, @items }, item
     @bindViewEvents view
+    view.render()
 
 
   navigate: (direction, itemData) ->
@@ -39,4 +40,14 @@ module.exports = class OnboardingViewController extends KDViewController
       trackedTime = new Date() - @startTrackDate
       OnboardingMetrics.trackCompleted @groupName, "Total", trackedTime
       @getDelegate().emit "OnboardingShown", @slug
+
+    view.on "OnboardingFailed", =>
+      # if onboarding item can't be shown, skip it and move to the next
+      itemData = view.getData()
+      index = @items.indexOf itemData
+      @items.splice index, 1
+      if view.isLast
+        view.emit "OnboardingCompleted"
+      else
+        @show @items[index]
 

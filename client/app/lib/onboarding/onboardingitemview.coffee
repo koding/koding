@@ -17,13 +17,17 @@ module.exports = class OnboardingItemView extends KDView
 
     data                 = @getData()
     {@items, @groupName} = @getOptions()
-    path                 = data.path
     @itemName            = data.name
     index                = @items.indexOf data
     length               = @items.length - 1
     @isLast              = index is length
     @hasNext             = not @isLast
     @hasPrev             = index isnt 0 and @hasNext
+
+
+  render: ->
+
+    { path } = @getData()
 
     try
       path = htmlencode.htmlDecode path
@@ -33,12 +37,13 @@ module.exports = class OnboardingItemView extends KDView
         @parentElement = @getKDViewFromElementNode @parentElement
       if @parentElement instanceof KDView and not @parentElement.hasClass 'hidden'
         @createContextMenu()
-        @listenEvents()
         @startTrackDate = new Date()
       else
         console.warn "Target element should be an instance of KDView and should be visible", { @groupName, @itemName }
+        @emit "OnboardingFailed"
     catch e
       console.warn "Couldn't create onboarding item", { @groupName, @itemName, e }
+      @emit "OnboardingFailed"
 
 
   createContextMenu: ->
@@ -73,25 +78,25 @@ module.exports = class OnboardingItemView extends KDView
     view           = new KDCustomHTMLView { cssClass    : "onboarding-item"               }
     closeButton    = new KDCustomHTMLView
       cssClass     : "close-icon"
-      click        : => @emit "OnboardingCancelled"
+      click        : @bound 'cancel'
 
     if @hasPrev
       prevButton   = new KDButtonView
         cssClass   : "solid compact light-gray"
         title      : "PREV"
-        callback   : => @emit "NavigationRequested", "prev"
+        callback   : @lazyBound "requestNavigation", "prev"
 
     if @hasNext
       nextButton   = new KDButtonView
         cssClass   : "solid green compact"
         title      : "NEXT"
-        callback   : => @emit "NavigationRequested", "next"
+        callback   : @lazyBound "requestNavigation", "next"
 
     if @isLast
       doneButton   = new KDButtonView
         cssClass   : "solid green compact"
         title      : "DONE"
-        callback   : => @emit "OnboardingCompleted"
+        callback   : @bound "complete"
 
     if @items.length > 1
       stepsWrapper = new KDCustomHTMLView
@@ -123,19 +128,25 @@ module.exports = class OnboardingItemView extends KDView
     return kdview
 
 
-  listenEvents: ->
+  requestNavigation: (direction) ->
 
-    @on "NavigationRequested", (direction) =>
-      @destroy()
-      OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
+    @destroy()
+    OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
+    @emit "NavigationRequested", direction
 
-    @on "OnboardingCompleted", =>
-      @destroy()
-      OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
 
-    @on "OnboardingCancelled", =>
-      @destroy()
-      OnboardingMetrics.trackCancelled @groupName, @itemName
+  complete: ->
+
+    @destroy()
+    OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
+    @emit "OnboardingCompleted"
+
+
+  cancel: ->
+
+    @destroy()
+    OnboardingMetrics.trackCancelled @groupName, @itemName
+    @emit "OnboardingCancelled"
 
 
   getTrackedTime: -> new Date() - @startTrackDate

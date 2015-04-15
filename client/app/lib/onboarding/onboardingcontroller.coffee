@@ -1,13 +1,17 @@
 kookies = require 'kookies'
 remote = require('../remote').getInstance()
 isLoggedIn = require '../util/isLoggedIn'
+$ = require 'jquery'
 kd = require 'kd'
 whoami = require 'app/util/whoami'
 KDController = kd.Controller
 OnboardingViewController = require './onboardingviewcontroller'
+Machine = require 'app/providers/machine'
 
 
 module.exports = class OnboardingController extends KDController
+
+  F1Key = 112
 
   constructor: (options = {}, data) ->
 
@@ -19,6 +23,8 @@ module.exports = class OnboardingController extends KDController
     if isLoggedIn() then @fetchItems()
     else
       mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
+
+    $(document).on "keydown", @bound 'handleF1'
 
 
   fetchItems: ->
@@ -52,17 +58,44 @@ module.exports = class OnboardingController extends KDController
       @runItems name
 
 
-  runItems: (groupName) ->
+  runItems: (groupName, delay = 2000) ->
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
     return  unless onboarding.partial.items?.length
 
-    slug      = kd.utils.slugify kd.utils.curry 'onboarding', groupName
+    slug      = @createSlug groupName
     isShown   = @appStorage.getValue slug
     isOldUser = new Date(onboarding.createdAt) > @registrationDate
 
     return  if (isShown or isOldUser) and not @isPreviewMode
 
-    kd.utils.wait 2000, =>
+    kd.utils.wait delay, =>
       new OnboardingViewController { groupName, slug, delegate: this }, onboarding.partial
+
+
+  handleF1: (event) ->
+
+    return  unless event.which is F1Key
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    appManager   = kd.getSingleton "appManager"
+    appName      = appManager.frontApp?.options.name
+
+    if appName is "IDE"
+      mountedMachine = appManager.frontApp?.mountedMachine
+      if mountedMachine?.status.state is Machine.State.Running
+        groupName = "IDE"
+
+    return  unless groupName
+
+    slug = @createSlug groupName
+    @appStorage.setValue slug, no
+    @runItems groupName, 0
+
+
+  createSlug: (groupName) ->
+
+    return kd.utils.slugify kd.utils.curry 'onboarding', groupName

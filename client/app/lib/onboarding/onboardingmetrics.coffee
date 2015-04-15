@@ -10,10 +10,9 @@ module.exports = class OnboardingMetrics extends DatadogMetrics
     state = "#{groupName}:#{itemName}"
 
     super name, state, count
-    kd.log "OnboardingMetrics:   #{name}:#{state}", count ? ""
 
 
-  @trackCompleted = (groupName, itemName, count = 1) ->
+  @trackCompleted = (groupName, itemName, count) ->
 
     @collect groupName, "#{itemName}:completed_in", count
 
