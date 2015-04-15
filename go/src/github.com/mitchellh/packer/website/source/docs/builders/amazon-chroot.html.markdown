@@ -1,13 +1,15 @@
 ---
 layout: "docs"
 page_title: "Amazon AMI Builder (chroot)"
+description: |-
+  The `amazon-chroot` Packer builder is able to create Amazon AMIs backed by an EBS volume as the root device. For more information on the difference between instance storage and EBS-backed instances, storage for the root device section in the EC2 documentation.
 ---
 
 # AMI Builder (chroot)
 
 Type: `amazon-chroot`
 
-The `amazon-chroot` builder is able to create Amazon AMIs backed by
+The `amazon-chroot` Packer builder is able to create Amazon AMIs backed by
 an EBS volume as the root device. For more information on the difference
 between instance storage and EBS-backed instances, see the
 ["storage for the root device" section in the EC2 documentation](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ComponentsAMIs.html#storage-for-the-root-device).
@@ -17,12 +19,10 @@ this builder is able to build an EBS-backed AMI without launching a new
 EC2 instance. This can dramatically speed up AMI builds for organizations
 who need the extra fast build.
 
-<div class="alert alert-block alert-warn">
-<p><strong>This is an advanced builder.</strong> If you're just getting
+~> **This is an advanced builder** If you're just getting
 started with Packer, we recommend starting with the
-<a href="/docs/builders/amazon-ebs.html">amazon-ebs builder</a>, which is
-much easier to use.</p>
-</div>
+[amazon-ebs builder](/docs/builders/amazon-ebs.html), which is
+much easier to use.
 
 The builder does _not_ manage AMIs. Once it creates an AMI and stores it
 in your account, it is up to you to use, delete, etc. the AMI.
@@ -30,7 +30,7 @@ in your account, it is up to you to use, delete, etc. the AMI.
 ## How Does it Work?
 
 This builder works by creating a new EBS volume from an existing source AMI
-and attaching it into an already-running EC2 instance. One attached, a
+and attaching it into an already-running EC2 instance. Once attached, a
 [chroot](http://en.wikipedia.org/wiki/Chroot) is used to provision the
 system within that volume. After provisioning, the volume is detached,
 snapshotted, and an AMI is made.
@@ -54,8 +54,8 @@ each category, the available configuration keys are alphabetized.
 ### Required:
 
 * `access_key` (string) - The access key used to communicate with AWS.
-  If not specified, Packer will use the environment variables
-  `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (in that order), if set.
+  If not specified, Packer will use the key from any [credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files) file
+  or fall back to environment variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (in that order), if set.
   If the environmental variables aren't set and Packer is running on
   an EC2 instance, Packer will check the instance metadata for IAM role
   keys.
@@ -66,8 +66,8 @@ each category, the available configuration keys are alphabetized.
   [configuration templates](/docs/templates/configuration-templates.html) for more info)
 
 * `secret_key` (string) - The secret key used to communicate with AWS.
-  If not specified, Packer will use the environment variables
-  `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (in that order), if set.
+  If not specified, Packer will use the secret from any [credentials](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-config-files) file
+  or fall back to environment variables `AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (in that order), if set.
   If the environmental variables aren't set and Packer is running on
   an EC2 instance, Packer will check the instance metadata for IAM role
   keys.
@@ -121,6 +121,9 @@ each category, the available configuration keys are alphabetized.
   of the source AMI will be attached. This defaults to "" (empty string),
   which forces Packer to find an open device automatically.
 
+* `enhanced_networking` (boolean) - Enable enhanced networking (SriovNetSupport) on
+  HVM-compatible AMIs. If true, add `ec2:ModifyInstanceAttribute` to your AWS IAM policy.
+
 * `mount_path` (string) - The path where the volume will be mounted. This is
   where the chroot environment will be. This defaults to
   `packer-amazon-chroot-volumes/{{.Device}}`. This is a configuration
@@ -133,7 +136,7 @@ each category, the available configuration keys are alphabetized.
 
 Here is a basic example. It is completely valid except for the access keys:
 
-<pre class="prettyprint">
+```javascript
 {
   "type": "amazon-chroot",
   "access_key": "YOUR KEY HERE",
@@ -141,7 +144,7 @@ Here is a basic example. It is completely valid except for the access keys:
   "source_ami": "ami-e81d5881",
   "ami_name": "packer-amazon-chroot {{timestamp}}"
 }
-</pre>
+```
 
 ## Chroot Mounts
 
@@ -159,14 +162,14 @@ These default mounts are usually good enough for anyone and are sane
 defaults. However, if you want to change or add the mount points, you may
 using the `chroot_mounts` configuration. Here is an example configuration:
 
-<pre class="prettyprint">
+```javascript
 {
   "chroot_mounts": [
     ["proc", "proc", "/proc"],
     ["bind", "/dev", "/dev"]
   ]
 }
-</pre>
+```
 
 `chroot_mounts` is a list of a 3-tuples of strings. The three components
 of the 3-tuple, in order, are:
@@ -197,7 +200,7 @@ the filesystem.
 For debian based distributions you can setup a [policy-rc.d](http://people.debian.org/~hmh/invokerc.d-policyrc.d-specification.txt) file which will
 prevent packages installed by your provisioners from starting services:
 
-<pre class="prettyprint">
+```javascript
 {
   "type": "shell",
   "inline": [
@@ -206,11 +209,13 @@ prevent packages installed by your provisioners from starting services:
     "chmod a+x /usr/sbin/policy-rc.d"
   ]
 },
-# ...
+
+// ...
+
 {
   "type": "shell",
   "inline": [
     "rm -f /usr/sbin/policy-rc.d"
   ]
 }
-</pre>
+```

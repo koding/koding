@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"fmt"
 	"log"
+	"strconv"
 )
 
 type Artifact struct {
@@ -16,7 +17,7 @@ type Artifact struct {
 	regionName string
 
 	// The client for making API calls
-	client *DigitalOceanClient
+	client DigitalOceanClient
 }
 
 func (*Artifact) BuilderId() string {
@@ -29,12 +30,15 @@ func (*Artifact) Files() []string {
 }
 
 func (a *Artifact) Id() string {
-	// mimicing the aws builder
-	return fmt.Sprintf("%s:%s", a.regionName, a.snapshotName)
+	return strconv.FormatUint(uint64(a.snapshotId), 10)
 }
 
 func (a *Artifact) String() string {
 	return fmt.Sprintf("A snapshot was created: '%v' in region '%v'", a.snapshotName, a.regionName)
+}
+
+func (a *Artifact) State(name string) interface{} {
+	return nil
 }
 
 func (a *Artifact) Destroy() error {
