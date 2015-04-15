@@ -86,7 +86,7 @@ module.exports = class PaymentDowngradeWithDeletionModal extends PaymentBaseModa
 
     @description.hide()
     @loader.show()
-    @loaderLabel.updatePartial 'Deleting your VM...'
+    @loaderLabel.updatePartial 'Deleting your VM(s)...'
     @loaderLabel.show()
     @submitButton.hide()
 
