@@ -63,19 +63,3 @@ class Modal extends kd.ModalViewWithForms
 
     { shortcuts } = kd.singletons
     shortcuts.pause()
-
-    @modalTabs.on 'PaneDidShow', => kd.utils.defer @bound '_windowDidResize'
-    @_windowDidResize()
-
-
-  _windowDidResize: ->
-
-    {innerHeight} = window
-    titleHeight   = @$('.kdmodal-title').outerHeight no
-    handleHeight  = @$('.kdtabhandlecontainer').outerHeight no
-    headHeight    = @$('.list-head').outerHeight no
-    # 150px bc it looks good :) padding/margin etc. - SY
-    maxHeight     = Math.min 240, innerHeight - 150 - titleHeight - handleHeight - headHeight
-    @$('.kdmodal-content .shortcuts-pane .kdscrollview').css {maxHeight}
-
-    @setPositions()
