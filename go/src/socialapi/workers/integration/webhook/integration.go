@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/koding/bongo"
 )
 
@@ -30,6 +31,9 @@ type Integration struct {
 
 	// Type of the integration (incoming, outgoing)
 	TypeConstant string `json:"typeConstant" sql:"TYPE:VARCHAR(100)"`
+
+	// Settings used for storing events and other optional data
+	Settings gorm.Hstore
 
 	// Creation date of the integration
 	CreatedAt time.Time `json:"createdAt" sql:"NOT NULL"`

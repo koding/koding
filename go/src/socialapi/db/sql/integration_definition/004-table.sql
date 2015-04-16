@@ -18,6 +18,7 @@ CREATE TABLE "integration"."integration" (
     "description" TEXT COLLATE "default",
     "instructions" TEXT COLLATE "default",
     "type_constant" "integration"."integration_type_constant_enum",
+    "settings" hstore,
     "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
     "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL
