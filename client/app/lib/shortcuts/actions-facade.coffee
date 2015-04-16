@@ -37,6 +37,7 @@ changeHandler = (collection, model) ->
   dups = getShortcuts().getCollisionsFlat collection.name
 
   collection.each (model) ->
+    return  if model.options.hidden is yes
     key = "#{collection.name}$#{model.name}"
     entity = entities[key]
     entity.emit EventType.Facade.DUP, _.includes dups, model.name
