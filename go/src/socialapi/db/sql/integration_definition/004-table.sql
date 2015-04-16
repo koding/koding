@@ -36,7 +36,7 @@ CREATE TABLE "integration"."team_integration" (
   "description" VARCHAR (140) NOT NULL COLLATE "default",
   "token" VARCHAR(20) NOT NULL,
   "integration_id" BIGINT NOT NULL,
-  "channel_id" BIGINT NOT NULL,
+  "group_channel_id" BIGINT NOT NULL,
   "creator_id" BIGINT NOT NULL,
   "is_enabled" BOOLEAN NOT NULL DEFAULT TRUE,
   "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),

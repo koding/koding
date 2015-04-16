@@ -34,7 +34,7 @@ ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_token_
 --  Foreign keys structure for table team_integration
 -- ----------------------------
 ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES api.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
-ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES api.channel (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_channel_id_fkey" FOREIGN KEY ("group_channel_id") REFERENCES api.channel (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES integration.integration (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Indexes structure for table team_integration

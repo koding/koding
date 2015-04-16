@@ -66,7 +66,7 @@ CREATE TABLE "integration"."team_integration" (
   "description" VARCHAR (140) COLLATE "default",
   "token" VARCHAR(20) NOT NULL,
   "integration_id" BIGINT NOT NULL,
-  "channel_id" BIGINT NOT NULL,
+  "group_channel_id" BIGINT NOT NULL,
   "creator_id" BIGINT NOT NULL,
   "is_enabled" BOOLEAN NOT NULL DEFAULT TRUE,
   "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
@@ -77,7 +77,7 @@ CREATE TABLE "integration"."team_integration" (
   PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE,
   CONSTRAINT "team_integration_token_key" UNIQUE ("token") NOT DEFERRABLE INITIALLY IMMEDIATE,
   CONSTRAINT "team_integration_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES api.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
-  CONSTRAINT "team_integration_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES api.channel (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
+  CONSTRAINT "team_integration_channel_id_fkey" FOREIGN KEY ("group_channel_id") REFERENCES api.channel (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
   CONSTRAINT "team_integration_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES integration.integration (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE,
   CONSTRAINT "team_interation_created_at_lte_updated_at_check" CHECK (created_at <= updated_at)
 ) WITH (OIDS = FALSE);
