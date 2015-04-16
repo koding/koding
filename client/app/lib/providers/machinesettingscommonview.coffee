@@ -26,10 +26,15 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     @machine = @getData()
 
+    @createElements()
+    @initList()
+
+
+  createElements: ->
+
     @createHeader()
     @createAddView()
     @createListView()
-    @initList()
 
 
   createHeader: ->
@@ -134,7 +139,13 @@ module.exports = class MachineSettingsCommonView extends KDView
   showNotification: (err, type = 'error') ->
 
     view    = @notificationView
-    message = if _.isObject err then err.message else err
+    message = err
+
+    if _.isObject message
+      if err.code is '107'
+        message = 'The domain could not be added as the VM is locked by another update process. Please try again in a few minutes.'
+      else
+        message = err.message
 
     view.unsetClass 'success error warning'
     view.setClass type

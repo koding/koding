@@ -2,6 +2,7 @@ kd                        = require 'kd'
 nick                      = require 'app/util/nick'
 KDView                    = kd.View
 globals                   = require 'globals'
+Machine                   = require 'app/providers/machine'
 htmlencode                = require 'htmlencode'
 DomainItem                = require 'app/domains/domainitem'
 KDModalView               = kd.ModalView
@@ -26,6 +27,13 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       .on 'DomainStateChanged',    @bound 'handleStateChange'
 
 
+  createElements: ->
+
+    @createHeader()
+    @createListView()
+    @createAddView()
+
+
   createAddInput: ->
 
     super
@@ -42,11 +50,23 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
   initList: ->
 
-   kd.singletons.computeController.fetchDomains (err, domains = []) =>
+    return no  if @getData().status.state isnt Machine.State.Running
+
+    kd.singletons.computeController.fetchDomains (err, domains = []) =>
       kd.warn err  if err
 
       @listController.lazyLoader.hide()
       @listController.replaceAllItems domains
+
+
+  showAddView: ->
+
+    if @listController.getItemCount() >= 5
+      warning = 'The new domain cannot be created as you have already reached the allowed limit of 5 domains.'
+      @showNotification warning, 'warning'
+      return @addNewButton.hideLoader()
+
+    super
 
 
   hideAddView: ->
@@ -66,11 +86,6 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     return @addNewButton.hideLoader()  if domainName is ''
 
     domain = "#{htmlencode.XSSEncode domainName}#{@domainSuffix}"
-
-    if @listController.getItemCount() >= 5
-      warning = "It's not allowed to create more than 5 domains."
-      @showNotification warning, 'warning'
-      return @addNewButton.hideLoader()
 
     @isInProgress = yes
     @addInputView.makeDisabled()
