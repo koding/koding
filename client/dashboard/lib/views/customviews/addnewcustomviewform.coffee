@@ -13,7 +13,6 @@ module.exports = class AddNewCustomViewForm extends JView
   constructor: (options = {}, data) ->
 
     options.cssClass   = "add-new-view"
-    options.hasEditor ?= yes
 
     super options, data
 
@@ -34,45 +33,16 @@ module.exports = class AddNewCustomViewForm extends JView
       cssClass    : "solid green medium"
       callback    : @bound "addNew"
 
-    if @getOption "hasEditor" then @createEditor() else @editor = new KDCustomHTMLView
-
-
-  createEditor: ->
-
-    editorValues  = @encode @getData()?.partial
-
-    files         = [
-        path      : "localfile://index.html"
-        name      : "html"
-        content   : editorValues.html
-      ,
-        path      : "localfile://main.css"
-        name      : "css"
-        content   : editorValues.css
-      ,
-        path      : "localfile://main.js"
-        name      : "js"
-        content   : editorValues.js
-    ]
-
-    files.splice 0, 1  unless @getOptions().viewType is "HOME"
-
-    @editor       = new AceView
-      cssClass    : "editor-container"
-      size        :
-        width     : 876
-        height    : 400
-      files       : files
+    @editor = new KDCustomHTMLView
 
 
   addNew: ->
 
     jCustomPartial    = @getData()
-    {hasEditor}       = @getOptions()
     emptyValues       = { html: "", css: "", js: "" }
     data              =
       name            : @input.getValue()
-      partial         : if hasEditor then @encode @editor.getValues() else emptyValues
+      partial         : emptyValues
       partialType     : @getOption "viewType"
       isActive        : jCustomPartial?.isActive        ? no
       viewInstance    : jCustomPartial?.viewInstance    or ""

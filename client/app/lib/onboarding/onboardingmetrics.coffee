@@ -6,7 +6,7 @@ module.exports = class OnboardingMetrics extends DatadogMetrics
 
   @collect = (groupName, itemName, count) ->
 
-    name  = "Onboarding"
+    name  = 'Onboarding'
     state = "#{groupName}:#{itemName}"
 
     super name, state, count

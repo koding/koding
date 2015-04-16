@@ -27,27 +27,27 @@ module.exports = class OnboardingViewController extends KDViewController
   navigate: (direction, itemData) ->
 
     index = @items.indexOf itemData
-    item  = if direction is "next" then @items[++index] else @items[--index]
+    item  = if direction is 'next' then @items[++index] else @items[--index]
     @show item
 
 
   bindViewEvents: (view) =>
 
-    view.on "NavigationRequested", (direction) =>
+    view.on 'NavigationRequested', (direction) =>
       @navigate direction, view.getData()
 
-    view.on ["OnboardingCompleted", "OnboardingCancelled"], =>
+    view.on ['OnboardingCompleted', 'OnboardingCancelled'], =>
       trackedTime = new Date() - @startTrackDate
-      OnboardingMetrics.trackCompleted @groupName, "Total", trackedTime
-      @getDelegate().emit "OnboardingShown", @slug
+      OnboardingMetrics.trackCompleted @groupName, 'Total', trackedTime
+      @getDelegate().emit 'OnboardingShown', @slug
 
-    view.on "OnboardingFailed", =>
+    view.on 'OnboardingFailed', =>
       # if onboarding item can't be shown, skip it and move to the next
       itemData = view.getData()
       index = @items.indexOf itemData
       @items.splice index, 1
       if view.isLast
-        view.emit "OnboardingCompleted"
+        view.emit 'OnboardingCompleted'
       else
         @show @items[index]
 

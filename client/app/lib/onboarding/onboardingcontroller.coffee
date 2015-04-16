@@ -19,45 +19,44 @@ module.exports = class OnboardingController extends KDController
 
     @onboardings   = {}
     @isRunning     = no
-    mainController = kd.getSingleton "mainController"
+    mainController = kd.getSingleton 'mainController'
 
     if isLoggedIn() then @fetchItems()
     else
-      mainController.on "accountChanged.to.loggedIn", @bound "fetchItems"
+      mainController.on 'accountChanged.to.loggedIn', @bound 'fetchItems'
 
-    $(document).on "keydown", @bound 'handleF1'
+    $(document).on 'keydown', @bound 'handleF1'
 
 
   fetchItems: ->
 
     account           = whoami()
     @registrationDate = new Date(account.meta.createdAt)
-    @appStorage       = kd.getSingleton("appStorageController").storage "OnboardingStatus", "1.0.0"
-    @isPreviewMode    = kookies.get("custom-partials-preview-mode") is "true"
-    query             = partialType : "ONBOARDING"
+    @appStorage       = kd.getSingleton('appStorageController').storage 'OnboardingStatus', '1.0.0'
+    @isPreviewMode    = kookies.get('custom-partials-preview-mode') is 'true'
+    query             = partialType : 'ONBOARDING'
 
     if @isPreviewMode
-      query["isPreview"] = yes
+      query['isPreview'] = yes
     else
-      query["isActive"]  = yes
+      query['isActive']  = yes
 
     remote.api.JCustomPartials.some query, {}, (err, onboardings) =>
-      return  if err
+      return kd.warn err  if err
 
       for data in onboardings when data.partial
         @onboardings[data.name] = data
 
-      @appStorage.fetchStorage @bound "bindOnboardingEvents"
+      @appStorage.fetchStorage @bound 'bindOnboardingEvents'
 
 
   bindOnboardingEvents: ->
 
-    @on "OnboardingShown", (slug) =>
+    @on 'OnboardingShown', (slug) =>
       @appStorage.setValue slug, yes
       @isRunning = no
 
-    @on "OnboardingRequested", (name) =>
-      @runItems name
+    @on 'OnboardingRequested', @bound 'runItems'
 
 
   runItems: (groupName, delay = 2000) ->
@@ -86,13 +85,13 @@ module.exports = class OnboardingController extends KDController
 
     return  if @isRunning
 
-    appManager   = kd.getSingleton "appManager"
+    appManager   = kd.getSingleton 'appManager'
     appName      = appManager.frontApp?.options.name
 
-    if appName is "IDE"
+    if appName is 'IDE'
       mountedMachine = appManager.frontApp?.mountedMachine
       if mountedMachine?.status.state is Machine.State.Running
-        groupName = "IDE"
+        groupName = 'IDE'
 
     return  unless groupName
 

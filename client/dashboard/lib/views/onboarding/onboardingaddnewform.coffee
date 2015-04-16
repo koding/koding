@@ -8,8 +8,6 @@ module.exports = class OnboardingAddNewForm extends AddNewCustomViewForm
 
   constructor: (options = {}, data = {}) ->
 
-    options.hasEditor = no
-
     super options, data
 
     @path          = new KDInputView

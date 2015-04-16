@@ -36,73 +36,73 @@ module.exports = class OnboardingItemView extends KDView
         @createContextMenu()
         @startTrackDate = new Date()
       else
-        console.warn "Target element should be an instance of KDView and should be visible", { @groupName, @itemName }
-        @emit "OnboardingFailed"
+        console.warn 'Target element should be an instance of KDView and should be visible', { @groupName, @itemName }
+        @emit 'OnboardingFailed'
     catch e
       console.warn "Couldn't create onboarding item", { @groupName, @itemName, e }
-      @emit "OnboardingFailed"
+      @emit 'OnboardingFailed'
 
 
   createContextMenu: ->
 
     @overlay      = new KDSpotlightView
-      cssClass    : "onboarding-spotlight"
+      cssClass    : 'onboarding-spotlight'
       isRemovable : no
       delegate    : @targetElement
 
     @contextMenu       = new OnboardingContextMenu
-      cssClass         : "onboarding-wrapper"
+      cssClass         : 'onboarding-wrapper'
       sticky           : yes
       menuMaxWidth     : 500
       menuWidth        : 500
       delegate         : @targetElement
     , customView       : @createContentView()
 
-    @contextMenu.on "viewAppended", =>
-      @contextMenu.once "KDObjectWillBeDestroyed", =>
+    @contextMenu.on 'viewAppended', =>
+      @contextMenu.once 'KDObjectWillBeDestroyed', =>
         @destroy()
 
       kd.utils.defer =>
-        $("body").addClass "noscroll"
+        $('body').addClass 'noscroll'
 
 
   createContentView: ->
 
     {title, content} = @getData()
-    title          = new KDCustomHTMLView { tagName     : "h3", partial  : title          }
-    content        = new KDCustomHTMLView { tagName     : "p" , partial  : content        }
-    buttonsWrapper = new KDCustomHTMLView { cssClass    : "buttons"                       }
-    view           = new KDCustomHTMLView { cssClass    : "onboarding-item"               }
+    title          = new KDCustomHTMLView { tagName     : 'h3', partial  : title          }
+    content        = new KDCustomHTMLView { tagName     : 'p' , partial  : content        }
+    buttonsWrapper = new KDCustomHTMLView { cssClass    : 'buttons'                       }
+    view           = new KDCustomHTMLView { cssClass    : 'onboarding-item'               }
     closeButton    = new KDCustomHTMLView
-      cssClass     : "close-icon"
+      cssClass     : 'close-icon'
       click        : @bound 'cancel'
 
     if @hasPrev
       prevButton   = new KDButtonView
-        cssClass   : "solid compact light-gray"
-        title      : "PREV"
-        callback   : @lazyBound "requestNavigation", "prev"
+        cssClass   : 'solid compact light-gray'
+        title      : 'PREV'
+        callback   : @lazyBound 'requestNavigation', 'prev'
 
     if @hasNext
       nextButton   = new KDButtonView
-        cssClass   : "solid green compact"
-        title      : "NEXT"
-        callback   : @lazyBound "requestNavigation", "next"
+        cssClass   : 'solid green compact'
+        title      : 'NEXT'
+        callback   : @lazyBound 'requestNavigation', 'next'
 
     if @isLast
       doneButton   = new KDButtonView
-        cssClass   : "solid green compact"
-        title      : "DONE"
-        callback   : @bound "complete"
+        cssClass   : 'solid green compact'
+        title      : 'DONE'
+        callback   : @bound 'complete'
 
     if @items.length > 1
       stepsWrapper = new KDCustomHTMLView
-        cssClass   : "steps"
+        cssClass   : 'steps'
 
       for item in @items
         stepsWrapper.addSubView new KDCustomHTMLView
-          tagName  : "span"
-          cssClass : if item is @getData() then "active" else ""
+          tagName  : 'span'
+          cssClass : if item is @getData() then 'active' else ''
 
     for child in [ prevButton, nextButton, doneButton, stepsWrapper ] when child
       buttonsWrapper.addSubView child
@@ -129,21 +129,21 @@ module.exports = class OnboardingItemView extends KDView
 
     @destroy()
     OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
-    @emit "NavigationRequested", direction
+    @emit 'NavigationRequested', direction
 
 
   complete: ->
 
     @destroy()
     OnboardingMetrics.trackCompleted @groupName, @itemName, @getTrackedTime()
-    @emit "OnboardingCompleted"
+    @emit 'OnboardingCompleted'
 
 
   cancel: ->
 
     @destroy()
     OnboardingMetrics.trackCancelled @groupName, @itemName
-    @emit "OnboardingCancelled"
+    @emit 'OnboardingCancelled'
 
 
   getTrackedTime: -> new Date() - @startTrackDate
@@ -154,7 +154,7 @@ module.exports = class OnboardingItemView extends KDView
     super
     @overlay?.destroy()
     @contextMenu.destroy()
-    $("body").removeClass "noscroll"
+    $('body').removeClass 'noscroll'
 
 
 
