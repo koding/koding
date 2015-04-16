@@ -22,7 +22,7 @@ module.exports = class Koding extends ProviderInterface
 
   @create = (client, options, callback)->
 
-    { instanceType, label, storage, region } = options
+    { instanceType, label, storage, region, snapshotId } = options
     { r: { group, user, account }, clientIP } = client
 
     storage ?= 3
@@ -38,13 +38,13 @@ module.exports = class Koding extends ProviderInterface
     { guessNextLabel, checkUsage
       fetchUserPlan, fetchUsage } = require './computeutils'
 
-    guessNextLabel { user, group, label, provider }, (err, label)=>
+    guessNextLabel { user, group, label, provider }, (err, label) ->
       return callback err  if err
 
-      fetchUserPlan client, (err, userPlan)=>
+      fetchUserPlan client, (err, userPlan) ->
         return callback err  if err
 
-        fetchUsage client, {provider}, (err, usage)->
+        fetchUsage client, {provider}, (err, usage) ->
           return callback err  if err
 
           if err = checkUsage usage, userPlan, storage
@@ -64,9 +64,17 @@ module.exports = class Koding extends ProviderInterface
           if 't2.medium' in userPlan.allowedInstances
             meta.instance_type = 't2.medium'
 
-          callback null, {
-            meta, label, credential: client.r.user.username
-          }
+          JSnapshot = require '../snapshot'
+          JSnapshot.verifySnapshot client, {
+            storage, snapshotId
+          }, (err, snapshot) ->
+
+            if err
+              return callback err  if err.name is 'SizeError'
+            else if snapshot
+              meta.snapshotId = snapshotId
+
+            callback null, { meta, label, credential: client.r.user.username }
 
 
   @postCreate = (client, options, callback)->
