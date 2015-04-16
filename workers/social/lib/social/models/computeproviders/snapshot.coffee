@@ -37,7 +37,7 @@ module.exports = class JSnapshot extends Module
 
     permissions         :
       'list snapshots'  : ['member']
-      'save snapshot'   : ['member']
+      'update snapshot' : ['member']
 
     schema              :
       originId          : ObjectId
@@ -46,6 +46,7 @@ module.exports = class JSnapshot extends Module
       region            : String
       createdAt         : Date
       storageSize       : String
+      label             : String
 
 
   # Private Methods
@@ -83,11 +84,17 @@ module.exports = class JSnapshot extends Module
   # Instance Methods
   # ---------------
 
-  rename: permit 'save snapshot',
-    success: (client, newName, callback) ->
-      return callback new Error "JSnapshot.rename: Disabled. No Kloud support for name"
-      if newName == ""
-        return callback new Error "JSnapshot.rename: newName empty"
-      @update name: newName
-      @save callback
+  rename: permit 'update snapshot',
 
+    success: (client, label, callback) ->
+
+      if not label or label is ''
+        return callback new KodingError 'JSnapshot.rename: label is empty'
+
+      {delegate} = client.connection
+
+      unless delegate.getId().equals @originId
+        return callback new KodingError 'Access denied'
+
+      @update $set: {label}, (err) ->
+        callback err
