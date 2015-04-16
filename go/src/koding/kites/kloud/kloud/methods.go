@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"koding/kites/kloud/contexthelper/request"
 	"koding/kites/kloud/machinestate"
+	"strings"
 
 	"github.com/koding/kite"
 	"github.com/mitchellh/mapstructure"
@@ -96,19 +97,22 @@ func (k *Kloud) Start(r *kite.Request) (resp interface{}, reqErr error) {
 			return fmt.Errorf("Provider doesn't implement %s interface", r.Method)
 		}
 
-		// TODO: fix this out
-		// special case `NetworkOut` error since client relies on this
-		// to show a modal
-		// if strings.Contains(err.Error(), "NetworkOut") {
-		// 	msg = err.Error()
-		// }
+		err := starter.Start(ctx)
+		if err != nil {
+			// special case `NetworkOut` error since client relies on this
+			// to show a modal
+			if strings.Contains(err.Error(), "NetworkOut") {
+				err = NewEventerError(err.Error())
+			}
 
-		// special case `plan is expired` error since client relies on this
-		// to show a modal
-		// if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
-		// 	msg = err.Error()
-		// }
-		return starter.Start(ctx)
+			// special case `plan is expired` error since client relies on this to
+			// show a modal
+			if strings.Contains(strings.ToLower(err.Error()), "plan is expired") {
+				err = NewEventerError(err.Error())
+			}
+		}
+
+		return err
 	}
 
 	return k.coreMethods(r, startFunc)

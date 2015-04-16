@@ -7,6 +7,20 @@ import (
 	"github.com/koding/kite"
 )
 
+type EventerError struct {
+	Msg string
+}
+
+func NewEventerError(msg string) *EventerError {
+	return &EventerError{
+		Msg: msg,
+	}
+}
+
+func (e *EventerError) Error() string {
+	return e.Msg
+}
+
 const (
 	ErrMachineInitialized    = 100
 	ErrMachineNotInitialized = 101
