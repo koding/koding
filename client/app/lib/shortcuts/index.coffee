@@ -208,7 +208,10 @@ class ShortcutsController extends events.EventEmitter
   #
   showModal: ->
 
-    modal = new ShortcutsModal null, @toCollection()
+    predicate = (model) -> true unless model.options and model.options.hidden
+    (new ShortcutsModal null, @toCollection predicate)
+
+    return
 
 
   # Proxy to _shortcuts#get_.
