@@ -30,12 +30,9 @@ module.exports = class OnboardingItemView extends KDView
     { path } = @getData()
 
     try
-      path = htmlencode.htmlDecode path
-      @parentElement = document.querySelector path
+      @targetElement = @getViewByPath path
 
-      if @parentElement instanceof Node
-        @parentElement = @getKDViewFromElementNode @parentElement
-      if @parentElement instanceof KDView and not @parentElement.hasClass 'hidden'
+      if @targetElement and not @targetElement.hasClass 'hidden'
         @createContextMenu()
         @startTrackDate = new Date()
       else
@@ -51,14 +48,14 @@ module.exports = class OnboardingItemView extends KDView
     @overlay      = new KDSpotlightView
       cssClass    : "onboarding-spotlight"
       isRemovable : no
-      delegate    : @parentElement
+      delegate    : @targetElement
 
     @contextMenu       = new OnboardingContextMenu
       cssClass         : "onboarding-wrapper"
       sticky           : yes
       menuMaxWidth     : 500
       menuWidth        : 500
-      delegate         : @parentElement
+      delegate         : @targetElement
     , customView       : @createContentView()
 
     @contextMenu.on "viewAppended", =>
@@ -116,16 +113,16 @@ module.exports = class OnboardingItemView extends KDView
     return view
 
 
-  getKDViewFromElementNode: (element) ->
+  getViewByPath: (path) ->
 
-    kdview = null
+    path = htmlencode.htmlDecode path
+    element = document.querySelector path
+
+    return  unless element
 
     for key, kdinstance of kd.instances
       if kdinstance.getElement?() is element
-        kdview = kdinstance
-        break
-
-    return kdview
+        return kdinstance
 
 
   requestNavigation: (direction) ->
