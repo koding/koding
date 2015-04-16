@@ -19,7 +19,7 @@
         "ctrl+shift+s"
       ],
       [
-        "command+shift+s"
+        "shift+command+s"
       ]
     ]
   },
@@ -55,7 +55,7 @@
         "ctrl+shift+f"
       ],
       [
-        "command+shift+f"
+        "shift+command+f"
       ]
     ]
   },
@@ -283,7 +283,7 @@
         "ctrl+alt+0"
       ],
       [
-        "ctrl+option+command+0"
+        "ctrl+alt+command+0"
       ]
     ]
   },
@@ -295,7 +295,7 @@
         "alt+0"
       ],
       [
-        "option+command+0"
+        "alt+command+0"
       ]
     ]
   },
@@ -307,7 +307,7 @@
         "alt+shift+0"
       ],
       [
-        "option+shift+command+0"
+        "alt+shift+command+0"
       ]
     ]
   },
@@ -367,7 +367,7 @@
         "ctrl+shift+left"
       ],
       [
-        "option+shift+left"
+        "alt+shift+left"
       ]
     ]
   },
@@ -379,7 +379,7 @@
         "ctrl+shift+right"
       ],
       [
-        "option+shift+right"
+        "alt+shift+right"
       ]
     ]
   },
@@ -391,7 +391,7 @@
         "ctrl+left"
       ],
       [
-        "option+left"
+        "alt+left"
       ]
     ]
   },
@@ -403,7 +403,7 @@
         "ctrl+right"
       ],
       [
-        "option+right"
+        "alt+right"
       ]
     ]
   },
@@ -415,7 +415,7 @@
         "alt+shift+left"
       ],
       [
-        "command+shift+left"
+        "shift+command+left"
       ]
     ]
   },
@@ -427,7 +427,7 @@
         "alt+shift+right"
       ],
       [
-        "command+shift+right"
+        "shift+command+right"
       ]
     ]
   },
@@ -439,7 +439,7 @@
         "ctrl+alt+e"
       ],
       [
-        "command+option+e"
+        "alt+command+e"
       ]
     ]
   },
@@ -451,7 +451,7 @@
         "ctrl+shift+e"
       ],
       [
-        "command+shift+e"
+        "shift+command+e"
       ]
     ]
   },
@@ -475,7 +475,7 @@
         "ctrl+shift+d"
       ],
       [
-        "command+shift+d"
+        "shift+command+d"
       ]
     ]
   },
@@ -499,7 +499,7 @@
         "ctrl+shift+/"
       ],
       [
-        "command+shift+/"
+        "shift+command+/"
       ]
     ]
   },
@@ -559,7 +559,7 @@
         "alt+shift+up"
       ],
       [
-        "option+command+up"
+        "alt+command+up"
       ]
     ]
   },
@@ -571,7 +571,7 @@
         "alt+shift+down"
       ],
       [
-        "option+command+down"
+        "alt+command+down"
       ]
     ]
   },
@@ -583,7 +583,7 @@
         "alt+up"
       ],
       [
-        "option+up"
+        "alt+up"
       ]
     ]
   },
@@ -595,7 +595,7 @@
         "alt+down"
       ],
       [
-        "option+down"
+        "alt+down"
       ]
     ]
   },
@@ -716,6 +716,54 @@
       ],
       [
         "ctrl+shift+u"
+      ]
+    ]
+  },
+  {
+    "name": "scrollup",
+    "description": "Scroll Up",
+    "binding": [
+      [
+        "ctrl+up"
+      ],
+      [
+        "ctrl+up"
+      ]
+    ]
+  },
+  {
+    "name": "scrolldown",
+    "description": "Scroll Down",
+    "binding": [
+      [
+        "ctrl+down"
+      ],
+      [
+        "ctrl+down"
+      ]
+    ]
+  },
+  {
+    "name": "pageup",
+    "description": "Pageup",
+    "binding": [
+      [
+        "alt+page up"
+      ],
+      [
+        "alt+page up"
+      ]
+    ]
+  },
+  {
+    "name": "pagedown",
+    "description": "Pagedown",
+    "binding": [
+      [
+        "alt+page down"
+      ],
+      [
+        "alt+page down"
       ]
     ]
   }
