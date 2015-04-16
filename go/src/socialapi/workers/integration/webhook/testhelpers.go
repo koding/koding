@@ -47,16 +47,16 @@ func createTestIntegration(t *testing.T) *Integration {
 	return i
 }
 
-func CreateTestTeamIntegration(t *testing.T) *TeamIntegration {
+func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
 	account := createTestAccount(t)
 
 	channel := createTestGroupChannel(t, account)
 
 	integration := createTestIntegration(t)
 
-	i := NewTeamIntegration()
+	i := NewChannelIntegration()
 	i.CreatorId = account.Id
-	i.GroupChannelId = channel.Id
+	i.ChannelId = channel.Id
 	i.IntegrationId = integration.Id
 	err := i.Create()
 	if err != nil {

@@ -12,9 +12,10 @@ type Bot struct {
 }
 
 type Message struct {
-	Body              string // TODO check for XSS
-	ChannelId         int64
-	TeamIntegrationId int64
+	Body                 string // TODO check for XSS
+	ChannelId            int64
+	ChannelIntegrationId int64
+	Username             string
 }
 
 func NewBot() (*Bot, error) {
@@ -42,8 +43,8 @@ func (b *Bot) createMessage(m *Message) (*models.ChannelMessage, error) {
 	cm.Body = m.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.MetaBits.Mark(models.Bot)
-	tid := strconv.FormatInt(m.TeamIntegrationId, 10)
-	cm.SetPayload("teamIntegrationId", tid)
+	tid := strconv.FormatInt(m.ChannelIntegrationId, 10)
+	cm.SetPayload("channelIntegrationId", tid)
 
 	return cm, cm.Create()
 }

@@ -55,7 +55,7 @@ func TestWebhookListen(t *testing.T) {
 		t.Fatalf("could not create test account: %s", err)
 	}
 
-	teamIntegration := webhook.CreateTestTeamIntegration(t)
+	channelIntegration := webhook.CreateTestChannelIntegration(t)
 
 	Convey("while testing incoming webhook", t, func() {
 
@@ -114,7 +114,7 @@ func TestWebhookListen(t *testing.T) {
 
 			Convey("related integrations must be created", func() {
 
-				token := teamIntegration.Token
+				token := channelIntegration.Token
 				s, _, _, err := h.Push(
 					mocking.URL(m, "POST", "/webhook/push/"+token),
 					mocking.Header(nil),

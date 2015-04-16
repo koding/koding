@@ -24,16 +24,16 @@ func TestChannelIntegrationCreate(t *testing.T) {
 	Convey("while creating a team integration", t, func() {
 		i := NewChannelIntegration()
 		i.CreatorId = account.Id
-		i.GroupChannelId = channel.Id
+		i.ChannelId = channel.Id
 		err := i.Create()
 		So(err, ShouldEqual, ErrIntegrationIdIsNotSet)
 
 		i.IntegrationId = integration.Id
-		i.GroupChannelId = 0
+		i.ChannelId = 0
 		err = i.Create()
-		So(err, ShouldEqual, ErrGroupChannelIdIsNotSet)
+		So(err, ShouldEqual, models.ErrChannelIsNotSet)
 
-		i.GroupChannelId = channel.Id
+		i.ChannelId = channel.Id
 		i.CreatorId = 0
 		err = i.Create()
 		So(err, ShouldEqual, models.ErrCreatorIdIsNotSet)

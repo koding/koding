@@ -49,8 +49,8 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 		return response.NewBadRequest(err)
 	}
 
-	teamIntegration, err := r.verify()
-	if err == webhook.ErrTeamIntegrationNotFound {
+	channelIntegration, err := r.verify()
+	if err == webhook.ErrChannelIntegrationNotFound {
 		return response.NewAccessDenied(ErrTokenNotValid)
 	}
 
@@ -58,7 +58,7 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 		return response.NewBadRequest(err)
 	}
 
-	r.Message.TeamIntegrationId = teamIntegration.Id
+	r.Message.ChannelIntegrationId = channelIntegration.Id
 
 	if err := h.bot.SendMessage(r.Message); err != nil {
 		return response.NewBadRequest(err)
@@ -89,8 +89,8 @@ func (r *WebhookRequest) validate() error {
 	return nil
 }
 
-func (r *WebhookRequest) verify() (*webhook.TeamIntegration, error) {
-	ti := webhook.NewTeamIntegration()
+func (r *WebhookRequest) verify() (*webhook.ChannelIntegration, error) {
+	ti := webhook.NewChannelIntegration()
 	err := ti.ByToken(r.Token)
 	if err != nil {
 		return nil, err

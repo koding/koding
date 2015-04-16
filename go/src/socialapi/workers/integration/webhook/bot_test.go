@@ -27,8 +27,8 @@ func TestSendMessage(t *testing.T) {
 	modelhelper.Initialize(appConfig.Mongo)
 	defer modelhelper.Close()
 
-	admin, err := models.CreateAccountInBothDbsWithNick("bot")
-	if err != nil || admin == nil {
+	bot, err := models.CreateAccountInBothDbsWithNick("bot")
+	if err != nil || bot == nil {
 		t.Fatalf("could not create bot account: %s", err)
 	}
 
