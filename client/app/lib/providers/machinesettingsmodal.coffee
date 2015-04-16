@@ -31,6 +31,7 @@ module.exports = class MachineSettingsModal extends KDModalView
     options.cssClass = 'machine-settings-modal AppModal'
     options.title    = 'VM Settings'
     options.width    = 805
+    options.height   = 400
 
     super options, data
 
