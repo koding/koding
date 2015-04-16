@@ -20,27 +20,27 @@ ALTER TABLE integration.integration ADD CONSTRAINT "integration_title" UNIQUE ("
 ALTER TABLE integration.integration ADD CONSTRAINT "interation_created_at_lte_updated_at_check" CHECK (created_at <= updated_at);
 
 -- ------------------------------------------------------------------------------------------
---  Structure for table Team_Integration
+--  Structure for table channel_integration
 -- ------------------------------------------------------------------------------------------
 -- ----------------------------
---  Primary key structure for table team_integration
+--  Primary key structure for table channel_integration
 -- ----------------------------
-ALTER TABLE integration.team_integration ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.channel_integration ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
---  Uniques structure for table team_integration
+--  Uniques structure for table channel_integration
 -- ----------------------------
-ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_token_key" UNIQUE ("token") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.channel_integration ADD CONSTRAINT "channel_integration_token_key" UNIQUE ("token") NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
---  Foreign keys structure for table team_integration
+--  Foreign keys structure for table channel_integration
 -- ----------------------------
-ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES api.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
-ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_channel_id_fkey" FOREIGN KEY ("group_channel_id") REFERENCES api.channel (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
-ALTER TABLE integration.team_integration ADD CONSTRAINT "team_integration_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES integration.integration (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.channel_integration ADD CONSTRAINT "channel_integration_creator_id_fkey" FOREIGN KEY ("creator_id") REFERENCES api.account (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.channel_integration ADD CONSTRAINT "channel_integration_channel_id_fkey" FOREIGN KEY ("channel_id") REFERENCES api.channel (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.channel_integration ADD CONSTRAINT "channel_integration_integration_id_fkey" FOREIGN KEY ("integration_id") REFERENCES integration.integration (id) ON UPDATE NO ACTION ON DELETE NO ACTION NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
---  Indexes structure for table team_integration
+--  Indexes structure for table channel_integration
 -- ----------------------------
 
 -- ----------------------------
---  Check constraints for table team_integration
+--  Check constraints for table channel_integration
 -- ----------------------------
-ALTER TABLE integration.team_integration ADD CONSTRAINT "team_interation_created_at_lte_updated_at_check" CHECK (created_at <= updated_at);
+ALTER TABLE integration.channel_integration ADD CONSTRAINT "channel_interation_created_at_lte_updated_at_check" CHECK (created_at <= updated_at);
