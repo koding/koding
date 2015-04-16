@@ -254,7 +254,7 @@ class MainController extends KDController
       kd.utils.wait 1000, =>
         @swapAccount replacementAccount: null
         storage.setValue 'loggingOut', '1'
-        global.location.reload()
+        global.location.href = '/'
 
 
   attachListeners:->
