@@ -1,6 +1,7 @@
 kd                               = require 'kd'
 nick                             = require 'app/util/nick'
 KDView                           = kd.View
+Machine                          = require 'app/providers/machine'
 UserItem                         = require 'app/useritem'
 KDCustomHTMLView                 = kd.CustomHTMLView
 ComputeErrorUsageModal           = require './computeerrorusagemodal'
@@ -34,6 +35,8 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
 
   initList: ->
+
+    return no  if @getData().status.state isnt Machine.State.Running
 
     @machine.jMachine.reviveUsers permanentOnly: yes, (err, users = []) =>
 
