@@ -682,11 +682,12 @@ app.get '/Hackathon/:section?', (req, res, next)->
 
 
 app.all '/:name/:section?/:slug?', (req, res, next)->
+
+app.all '/:name/:section?/:slug?', (req, res, next)->
   {JName, JGroup} = koding.models
 
   {params} = req
   {name, section, slug} = params
-  isCustomPreview = req.cookies["custom-partials-preview-mode"]
 
   path = name
   path = "#{path}/#{section}"  if section
@@ -734,16 +735,14 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
 
             if err
               options = { account, name, section, client,
-                          bongoModels, isCustomPreview,
-                          params }
+                          bongoModels, params }
 
               JGroup.render[prefix].subPage options, serveSub
             else if not result? then next()
             else
               { models } = result
               options = { account, name, section, models,
-                          client, bongoModels, isCustomPreview,
-                          params }
+                          client, bongoModels, params }
 
               JGroup.render[prefix].subPage options, serveSub
 
@@ -763,7 +762,7 @@ app.all '/:name/:section?/:slug?', (req, res, next)->
 
           generateFakeClient req, res, (err, client)->
             homePageOptions = { section, account, bongoModels,
-                                isCustomPreview, client, params, loggedIn }
+                                client, params, loggedIn }
 
             models.last.fetchHomepageView homePageOptions, (err, view)->
               if err then next err

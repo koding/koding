@@ -83,14 +83,6 @@ module.exports = (options = {}, callback)->
 
     """
 
-  selector =
-    partialType : "HOME"
-
-  if options.isCustomPreview
-    selector.isPreview = yes
-  else
-    selector.isActive  = yes
-
   queue = [
     ->
       socialApiCacheFn = require '../cache/socialapi'
