@@ -20,6 +20,7 @@ module.exports = class MachineSettingsCommonView extends KDView
     options.noItemFoundWidget     or= new KDView
     options.listViewItemOptions   or= {}
     options.headerAddButtonTitle  or= 'ADD NEW'
+    options.loaderOnHeaderButton   ?= no
 
     super options, data
 
@@ -33,13 +34,15 @@ module.exports = class MachineSettingsCommonView extends KDView
 
   createHeader: ->
 
-    { headerTitle, headerAddButtonTitle, addButtonCssClass } = @getOptions()
+    { headerTitle, headerAddButtonTitle
+      addButtonCssClass, loaderOnHeaderButton } = @getOptions()
 
     @addSubView header = new KDHeaderView title: headerTitle
 
     header.addSubView @headerAddNewButton = new KDButtonView
       title    : headerAddButtonTitle
       cssClass : "solid green compact add-button #{addButtonCssClass}"
+      loader   : loaderOnHeaderButton
       callback : @bound 'showAddView'
 
     @addSubView @notificationView = new KDCustomHTMLView
