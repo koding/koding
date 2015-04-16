@@ -616,10 +616,10 @@ func TestChannelMessagePayload(t *testing.T) {
 		Convey("channel message payload update operations should be functional", func() {
 			cm := NewChannelMessage()
 			cm.SetPayload("hey", "hov")
-			So(cm.Payload["hey"], ShouldEqual, "hov")
+			So(*cm.Payload["hey"], ShouldEqual, "hov")
 
 			cm.SetPayload("hey", "hovva")
-			So(cm.Payload["hey"], ShouldEqual, "hovva")
+			So(*cm.Payload["hey"], ShouldEqual, "hovva")
 		})
 
 		Convey("channel message payload fetch operations should be functional", func() {
@@ -629,7 +629,7 @@ func TestChannelMessagePayload(t *testing.T) {
 
 			cm.SetPayload("hey", "hov")
 			val = cm.GetPayload("hey")
-			So(val, ShouldEqual, "hov")
+			So(*val, ShouldEqual, "hov")
 
 			val = cm.GetPayload("heya")
 			So(val, ShouldBeNil)
