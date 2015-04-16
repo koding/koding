@@ -45,10 +45,8 @@ module.exports = class JSnapshot extends Module
       snapshotId        : String
       region            : String
       createdAt         : Date
-      username          : String
+      storageSize       : String
 
-  # Helpers
-  # -------
 
   # Private Methods
   # ---------------
@@ -57,17 +55,30 @@ module.exports = class JSnapshot extends Module
   # ---------------
 
   @one$ = permit 'list snapshots',
+
     success: (client, snapshotId, callback) ->
-      selector =
-        originId:   client.connection.delegate.getId()
-        snapshotId: snapshotId
+
+      {delegate} = client.connection
+
+      selector     =
+        originId   : delegate.getId()
+        snapshotId : snapshotId
+
       @one selector, callback
 
+
   @some$ = permit 'list snapshots',
+
     success: (client, selector, options, callback) ->
+
+      {delegate} = client.connection
+      selector  ?= {}
+
       # Ensure that a user can only list their own snapshots
-      selector.originId = client.connection.delegate.getId()
+      selector.originId = delegate.getId()
+
       @some selector, options, callback
+
 
   # Instance Methods
   # ---------------

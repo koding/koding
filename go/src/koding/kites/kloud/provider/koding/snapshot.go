@@ -25,7 +25,7 @@ type SnapshotDocument struct {
 	OriginId    bson.ObjectId `bson:"originId"`
 	MachineId   bson.ObjectId `bson:"machineId"`
 	SnapshotId  string        `bson:"snapshotId"`
-	StorageSize string        `bson:"storage_size"`
+	StorageSize string        `bson:"storageSize"`
 	Region      string        `bson:"region"`
 	CreatedAt   time.Time     `bson:"createdAt"`
 	username    string        `bson:"-"`
