@@ -10,7 +10,7 @@ Collection     = require 'app/util/collection'
 events         = require 'events'
 
 STORAGE_NAME    = 'shortcuts'
-STORAGE_VERSION = '175.2'
+STORAGE_VERSION = '175.3'
 THROTTLE_WAIT   = 500
 
 module.exports =
@@ -281,13 +281,13 @@ class ShortcutsController extends events.EventEmitter
   # be displayed along; but in fact they are not and should be separated
   # to avoid collisions.
   #
-  toJSON: ->
+  toJSON: (predicate) ->
 
     extended = {}
 
     repr  = _
       .reduce defaults, (acc, value, key) =>
-        models = @getJSON key
+        models = @getJSON key, predicate
         parent = value.extends
 
         if _.isString parent
@@ -297,7 +297,7 @@ class ShortcutsController extends events.EventEmitter
             _key        : key
             title       : value.title
             description : value.description
-            models      : @getJSON key
+            models      : @getJSON key, predicate
         return acc
       , []
 
@@ -310,8 +310,8 @@ class ShortcutsController extends events.EventEmitter
 
   # Convenience method that returns a json representation as Collection.
   #
-  toCollection: ->
-    new Collection @toJSON()
+  toCollection: (predicate) ->
+    new Collection @toJSON predicate
 
 
   # Convenience method that returns a _keyconfig#Collection's_ json representation
