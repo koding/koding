@@ -416,4 +416,5 @@ module.exports = class IDEEditorPane extends IDEPane
   destroy: ->
 
     @file.off [ 'fs.save.failed', 'fs.saveAs.failed' ], @bound 'handleSaveFailed'
+    super
 
