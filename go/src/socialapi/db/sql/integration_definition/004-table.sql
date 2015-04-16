@@ -27,17 +27,17 @@ GRANT SELECT, INSERT, UPDATE ON "integration"."integration" TO "social";
 -- ----------------------------
 --  Table structure for channel_integration
 -- ----------------------------
-  "bot_name" VARCHAR (200) NOT NULL COLLATE "default",
-  "bot_icon_path" VARCHAR (200) NOT NULL COLLATE "default",
 DROP TABLE IF EXISTS "integration"."channel_integration"
 CREATE TABLE "integration"."channel_integration" (
   "id" BIGINT NOT NULL DEFAULT nextval('integration.channel_integration_id_seq'::regclass),
   "description" VARCHAR (140) NOT NULL COLLATE "default",
   "token" VARCHAR(20) NOT NULL,
   "integration_id" BIGINT NOT NULL,
-  "group_channel_id" BIGINT NOT NULL,
+  "group_name" VARCHAR(200) NOT NULL,
+  "channel_id" BIGINT NOT NULL,
   "creator_id" BIGINT NOT NULL,
   "is_disabled" BOOLEAN NOT NULL DEFAULT TRUE,
+  "settings" hstore,
   "created_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
   "updated_at" timestamp(6) WITH TIME ZONE NOT NULL DEFAULT now(),
   "deleted_at" timestamp(6) WITH TIME ZONE NOT NULL
