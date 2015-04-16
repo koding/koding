@@ -23,6 +23,11 @@ func (i *Integration) BeforeCreate() {
 	i.DeletedAt = models.ZeroDate()
 }
 
+func (i *Integration) BeforeUpdate() {
+	i.DeletedAt = models.ZeroDate()
+	i.UpdatedAt = time.Now().UTC()
+}
+
 func (i *Integration) ById(id int64) error {
 	return bongo.B.ById(i, id)
 }
