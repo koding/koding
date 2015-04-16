@@ -17,8 +17,10 @@ class Item extends kd.View
 
     super _.extend cssClass: 'row', options
 
+    @addSubViews()
 
-  viewAppended: ->
+
+  addSubViews: ->
 
     if @_dup then @setClass DUP_CLASS_NAME
     delete @_dup
