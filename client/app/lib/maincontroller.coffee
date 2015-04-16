@@ -275,7 +275,7 @@ class MainController extends KDController
       cookieMatches     = cookie is (kookies.get 'clientId')
 
       if not cookieExists or (cookieExists and not cookieMatches)
-        location.reload '/'
+        global.location.reload '/'
 
       kd.utils.wait 1000, cookieChangeHandler
 
