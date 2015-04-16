@@ -1,20 +1,24 @@
-htmlencode = require 'htmlencode'
-Promise = require 'bluebird'
-globals = require 'globals'
-remote = require('../remote').getInstance()
-showError = require '../util/showError'
-isLoggedIn = require '../util/isLoggedIn'
-nick = require '../util/nick'
-kd = require 'kd'
-KDController = kd.Controller
-KDNotificationView = kd.NotificationView
+htmlencode           = require 'htmlencode'
+Promise              = require 'bluebird'
+globals              = require 'globals'
+
+kd                   = require 'kd'
+KDController         = kd.Controller
+KDNotificationView   = kd.NotificationView
+
+remote               = require('../remote').getInstance()
+showError            = require '../util/showError'
+isLoggedIn           = require '../util/isLoggedIn'
+nick                 = require '../util/nick'
+
+Machine              = require './machine'
+KiteCache            = require '../kite/kitecache'
+ComputeStateChecker  = require './computestatechecker'
 ComputeEventListener = require './computeeventlistener'
-ComputeStateChecker = require './computestatechecker'
-KiteCache = require '../kite/kitecache'
-Machine = require './machine'
-TerminalModal = require '../terminal/terminalmodal'
 ComputeController_UI = require './computecontroller.ui'
+
 require './config'
+
 
 module.exports = class ComputeController extends KDController
 
