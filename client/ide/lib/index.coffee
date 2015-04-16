@@ -948,7 +948,7 @@ class IDEAppController extends AppController
       data = { machine, workspace: @workspaceData }
       mainView.activitySidebar.selectWorkspace data
 
-      onboardingController.emit "OnboardingRequested", "IDE"
+      onboardingController.emit 'OnboardingRequested', 'IDE'
 
       @emit 'IDEReady'
 
