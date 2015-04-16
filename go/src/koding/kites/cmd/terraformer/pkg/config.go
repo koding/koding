@@ -135,7 +135,6 @@ func (c *Config) discover(path string) error {
 
 	if !filepath.IsAbs(path) {
 		path, err = filepath.Abs(path)
-		fmt.Println("path-->", path)
 		if err != nil {
 			return err
 		}
