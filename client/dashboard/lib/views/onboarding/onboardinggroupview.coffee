@@ -38,10 +38,6 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     @loader.on "viewAppended", =>
       @loader.hide()
 
-    @on "DeleteChildItem",  @bound "deleteChildItem"
-    @on "SectionSaved",     => @getDelegate().emit "SectionSaved"
-    @on "SectionCancelled", @bound "cancel"
-
 
   getMenuItems: ->
 
@@ -107,6 +103,7 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
     return  unless items
     for item in items
       itemView = new OnboardingChildItem { delegate: this }, item
+      itemView.on 'ItemDeleted', @bound 'deleteChildItem'
       @customViews.push itemView
       @container.addSubView itemView
 
@@ -128,7 +125,10 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
   edit: ->
 
     @hideViews()
-    @addSubView new OnboardingSectionForm { delegate: this }, @getData()
+    sectionForm = new OnboardingSectionForm {}, @getData()
+    @forwardEvent sectionForm, 'SectionSaved'
+    sectionForm.on 'SectionCancelled', @bound 'cancel'
+    @addSubView sectionForm
 
 
   delete: ->
@@ -162,4 +162,4 @@ module.exports = class OnboardingGroupView extends CustomViewsDashboardView
   cancel: ->
 
     @showViews()
-    @getDelegate().emit "NewSectionCancelled"
+    @emit "SectionCancelled"

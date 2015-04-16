@@ -20,15 +20,9 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
       cssClass     : "add-new solid green medium"
       callback     : =>
         @setClass  "form-visible"
-        @addSubView new OnboardingSectionForm
-          delegate : this
-
-    @on "SectionSaved", =>
-      @unsetClass "form-visible"
-      @container.destroySubViews()
-      @reloadViews()
-    @on "SectionCancelled", =>
-      @unsetClass "form-visible"
+        sectionForm = new OnboardingSectionForm()
+        @bindFormEvents sectionForm
+        @addSubView sectionForm
 
 
   createList: (sections) ->
@@ -41,8 +35,23 @@ module.exports = class OnboardingDashboardView extends CustomViewsDashboardView
         cssClass    : "onboarding-items"
         formClass   : OnboardingAddNewForm
       , section
+      @bindFormEvents view
 
       @customViews.push view
       @container.addSubView view
 
 
+  bindFormEvents: (formView) ->
+
+    formView.on 'SectionSaved',     @bound 'handleSectionSaved'
+    formView.on 'SectionCancelled', @bound 'handleSectionCancelled'
+
+
+  handleSectionSaved: ->
+
+    @unsetClass 'form-visible'
+    @container.destroySubViews()
+    @reloadViews()
+
+
+  handleSectionCancelled: -> @unsetClass 'form-visible'

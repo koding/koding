@@ -39,7 +39,7 @@ module.exports = class OnboardingViewController extends KDViewController
     view.on ['OnboardingCompleted', 'OnboardingCancelled'], =>
       trackedTime = new Date() - @startTrackDate
       OnboardingMetrics.trackCompleted @groupName, 'Total', trackedTime
-      @getDelegate().emit 'OnboardingShown', @slug
+      @emit 'OnboardingEnded', @slug
 
     view.on 'OnboardingFailed', =>
       # if onboarding item can't be shown, skip it and move to the next

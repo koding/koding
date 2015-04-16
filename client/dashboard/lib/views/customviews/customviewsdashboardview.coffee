@@ -132,12 +132,15 @@ module.exports = class CustomViewsDashboardView extends JView
   pistachio: ->
 
     """
-      {{> @title}}
-      {{> @addNewButton}}
-      <div class="clearfix"></div>
-      {{> @loader}}
-      {{> @noViewLabel}}
-      {{> @container}}
+      <div class="clearfix">
+        {{> @title}}
+        {{> @addNewButton}}
+      </div>
+      <div class="clearfix">
+        {{> @loader}}
+        {{> @noViewLabel}}
+        {{> @container}}
+      </div>
     """
 
 

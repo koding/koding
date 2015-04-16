@@ -54,18 +54,16 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
     if @jCustomPartial
       @jCustomPartial.update data, (err, section) =>
         return kd.warn err  if err
+        @emit "SectionSaved"
         @destroy()
-        @getDelegate().emit "SectionSaved"
     else
       remote.api.JCustomPartials.create data, (err, section) =>
         return kd.warn err  if err
+        @emit "SectionSaved"
         @destroy()
-        @getDelegate().emit "SectionSaved"
 
 
   cancel: ->
 
-    @getDelegate().emit "SectionCancelled"
+    @emit "SectionCancelled"
     @destroy()
-
-

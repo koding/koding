@@ -22,7 +22,7 @@ module.exports = class CustomViewsManager extends JView
       cssClass     : "solid green preview"
       callback     : @bound "togglePreview"
 
-    if kookies.get(cookieName) is "true"
+    if @isPreviewMode()
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
@@ -38,8 +38,10 @@ module.exports = class CustomViewsManager extends JView
       cssClass  : "widgets"
       itemClass : WidgetCustomViewItem
 
+
   togglePreview: ->
-    isPreview = kookies.get(cookieName) is "true"
+
+    isPreview = @isPreviewMode()
 
     if isPreview
       kookies.set cookieName, no
@@ -50,7 +52,12 @@ module.exports = class CustomViewsManager extends JView
       @previewButton.setTitle   "CANCEL PREVIEW"
       @previewButton.unsetClass "green"
 
+
+  isPreviewMode: -> kookies.get(cookieName) is "true"
+
+
   pistachio: ->
+
     """
       <div class="button-container">
         {{> @previewButton}}

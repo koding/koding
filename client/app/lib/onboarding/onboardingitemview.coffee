@@ -19,8 +19,7 @@ module.exports = class OnboardingItemView extends KDView
     {@items, @groupName} = @getOptions()
     @itemName            = data.name
     index                = @items.indexOf data
-    length               = @items.length - 1
-    @isLast              = index is length
+    @isLast              = index is @items.length - 1
     @hasNext             = not @isLast
     @hasPrev             = index isnt 0 and @hasNext
 

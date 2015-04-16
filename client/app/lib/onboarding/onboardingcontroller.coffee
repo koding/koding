@@ -11,7 +11,7 @@ Machine = require 'app/providers/machine'
 
 module.exports = class OnboardingController extends KDController
 
-  F1Key = 112
+  F1_Key = 112
 
   constructor: (options = {}, data) ->
 
@@ -47,19 +47,10 @@ module.exports = class OnboardingController extends KDController
       for data in onboardings when data.partial
         @onboardings[data.name] = data
 
-      @appStorage.fetchStorage @bound 'bindOnboardingEvents'
+      @appStorage.fetchStorage()
 
 
-  bindOnboardingEvents: ->
-
-    @on 'OnboardingShown', (slug) =>
-      @appStorage.setValue slug, yes
-      @isRunning = no
-
-    @on 'OnboardingRequested', @bound 'runItems'
-
-
-  runItems: (groupName, delay = 2000) ->
+  runOnboarding: (groupName, delay = 2000) ->
 
     onboarding = @onboardings[groupName]
     return  unless onboarding
@@ -73,12 +64,19 @@ module.exports = class OnboardingController extends KDController
 
     @isRunning = yes
     kd.utils.wait delay, =>
-      new OnboardingViewController { groupName, slug, delegate: this }, onboarding.partial
+      viewController = new OnboardingViewController { groupName, slug }, onboarding.partial
+      viewController.on 'OnboardingEnded', @bound 'handleOnboardingEnded'
+
+
+  handleOnboardingEnded: (slug) ->
+
+    @appStorage.setValue slug, yes
+    @isRunning = no
 
 
   handleF1: (event) ->
 
-    return  unless event.which is F1Key
+    return  unless event.which is F1_Key
 
     event.preventDefault()
     event.stopPropagation()
@@ -97,7 +95,7 @@ module.exports = class OnboardingController extends KDController
 
     slug = @createSlug groupName
     @appStorage.setValue slug, no
-    @runItems groupName, 0
+    @runOnboarding groupName, 0
 
 
   createSlug: (groupName) ->
