@@ -13,6 +13,7 @@ CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
 DROP TABLE IF EXISTS "integration"."integration";
 CREATE TABLE "integration"."integration" (
     "id" BIGINT NOT NULL DEFAULT nextval('integration.integration_id_seq'::regclass),
+    "name" VARCHAR (25) NOT NULL CHECK ("name" <> ''),
     "title" VARCHAR (200) NOT NULL COLLATE "default",
     "icon_path" VARCHAR (200) COLLATE "default",
     "description" TEXT COLLATE "default",

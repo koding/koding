@@ -9,7 +9,7 @@ ALTER TABLE integration.integration ADD PRIMARY KEY (id) NOT DEFERRABLE INITIALL
 -- ----------------------------
 --  Unique structure for table integration
 -- ----------------------------
-ALTER TABLE integration.integration ADD CONSTRAINT "integration_title" UNIQUE ("title") NOT DEFERRABLE INITIALLY IMMEDIATE;
+ALTER TABLE integration.integration ADD CONSTRAINT "integration_name" UNIQUE ("name") NOT DEFERRABLE INITIALLY IMMEDIATE;
 -- ----------------------------
 --  Indexes structure for table integration
 -- ----------------------------

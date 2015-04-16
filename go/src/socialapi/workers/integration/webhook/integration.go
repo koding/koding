@@ -9,13 +9,17 @@ import (
 )
 
 var (
-	ErrTitleNotSet    = errors.New("title is not set")
-	ErrTitleNotUnique = errors.New("title is not unique")
+	ErrTitleNotSet   = errors.New("title is not set")
+	ErrNameNotUnique = errors.New("title is not unique")
+	ErrNameNotSet    = errors.New("name is not set")
 )
 
 type Integration struct {
 	// unique identifier of the integration
 	Id int64 `json:"id,string"`
+
+	// Unique name of the integration
+	Name string `json:"name" sql:"NOT NULL;TYPE:VARCHAR(25)"`
 
 	// Title of the integration
 	Title string `json:"title" sql:"NOT NULL;TYPE:VARCHAR(200)"`
@@ -56,6 +60,10 @@ func NewIntegration() *Integration {
 
 func (i *Integration) Create() error {
 
+	if i.Name == "" {
+		return ErrNameNotSet
+	}
+
 	if i.Title == "" {
 		return ErrTitleNotSet
 	}
@@ -71,7 +79,7 @@ func (i *Integration) Create() error {
 	// no need to make it idempotent
 	err := i.One(bongo.NewQS(selector))
 	if err == nil {
-		return ErrTitleNotUnique
+		return ErrNameNotUnique
 	}
 
 	if err != bongo.RecordNotFound {

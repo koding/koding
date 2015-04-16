@@ -39,6 +39,7 @@ CREATE TYPE "integration"."integration_type_constant_enum" AS ENUM (
 --
 CREATE TABLE "integration"."integration" (
     "id" BIGINT NOT NULL DEFAULT nextval('integration.integration_id_seq'::regclass),
+    "name" VARCHAR (25) NOT NULL CHECK ("name" <> ''),
     "title" VARCHAR (200) NOT NULL COLLATE "default",
     "icon_path" VARCHAR (200) COLLATE "default",
     "description" TEXT COLLATE "default",
@@ -51,7 +52,7 @@ CREATE TABLE "integration"."integration" (
 
     -- create constraints along with table creation
     PRIMARY KEY ("id") NOT DEFERRABLE INITIALLY IMMEDIATE,
-    CONSTRAINT "integration_title" UNIQUE ("title") NOT DEFERRABLE INITIALLY IMMEDIATE,
+    CONSTRAINT "integration_name" UNIQUE ("name") NOT DEFERRABLE INITIALLY IMMEDIATE,
     CONSTRAINT "interation_created_at_lte_updated_at_check" CHECK (created_at <= updated_at)
 ) WITH (OIDS = FALSE);
 GRANT SELECT, INSERT, UPDATE ON "integration"."integration" TO "social";
