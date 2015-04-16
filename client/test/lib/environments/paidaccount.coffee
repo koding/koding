@@ -26,8 +26,9 @@ module.exports =
 
   makeAlwaysOnForNotPaidUser: (browser) ->
 
-    buttonSelector = '.more-form .alwayson'
-    vmSelector     = 'a[href="/IDE/koding-vm-1"]'
+    buttonSelector    = '.machine-settings-modal .alwayson .koding-on-off a'
+    vmSelector        = 'a[href="/IDE/koding-vm-1"]'
+    freeModalSelector = '.computeplan-modal.env-modal.free-plan'
 
     helpers.beginTest(browser)
 
@@ -37,13 +38,13 @@ module.exports =
       else
         helpers.waitForVMRunning(browser)
         environmentHelpers.openVmSettingsModal(browser)
-        environmentHelpers.clickMoreButtonInVMSettingsModal(browser)
 
         browser
           .waitForElementVisible  buttonSelector, 20000
-          .click                  buttonSelector + ' .input-wrapper .koding-on-off a.knob'
+          .click                  buttonSelector
           .pause                  2000
-          .waitForElementVisible  '.kdmodal-content a.custom-link-view', 20000 # Assertion
+          .waitForElementVisible  freeModalSelector, 20000 # Assertion
+          .assert.containsText    freeModalSelector, 'Please upgrade to enable this feature.' # Assertion
           .end()
 
 
