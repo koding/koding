@@ -659,3 +659,24 @@ func (cm *ChannelMessage) FetchParentChannel() (*Channel, error) {
 
 	return ch, nil
 }
+
+func (cm *ChannelMessage) SetPayload(key string, value string) {
+	if cm.Payload == nil {
+		cm.Payload = gorm.Hstore{}
+	}
+
+	cm.Payload[key] = &value
+}
+
+func (cm *ChannelMessage) GetPayload(key string) *string {
+	if cm.Payload == nil {
+		return nil
+	}
+
+	val, ok := cm.Payload[key]
+	if !ok {
+		return nil
+	}
+
+	return val
+}
