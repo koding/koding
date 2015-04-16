@@ -83,3 +83,5 @@ CREATE TABLE "integration"."channel_integration" (
 ) WITH (OIDS = FALSE);
 
 GRANT SELECT, INSERT, UPDATE ON "integration"."channel_integration" TO "social";
+
+CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);

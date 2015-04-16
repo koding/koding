@@ -39,7 +39,8 @@ ALTER TABLE integration.channel_integration ADD CONSTRAINT "channel_integration_
 -- ----------------------------
 --  Indexes structure for table channel_integration
 -- ----------------------------
-
+DROP INDEX IF EXISTS "integration"."channel_integration_token_idx";
+CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);
 -- ----------------------------
 --  Check constraints for table channel_integration
 -- ----------------------------
