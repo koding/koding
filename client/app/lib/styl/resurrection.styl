@@ -1701,6 +1701,7 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-form
     padding-top             0
 
+
 // machine settings modal general view
 .machine-settings-modal
 
@@ -1712,11 +1713,9 @@ paymentGrayLighter  = #f8f8f8
     max-width               420px
     display                 inline-block
     ellipsis()
-    noTextDeco()
 
   .guide a
     color                   #434343
-    noTextDeco()
 
   .nickname
     .edit
@@ -1968,3 +1967,187 @@ paymentGrayLighter  = #f8f8f8
 
     a
       color                 #52A840
+
+
+// machine settings modal common view
+.machine-settings-modal
+
+  .kdheaderview
+    width                   530px
+    height                  38px
+    line-height             38px
+    font-size               14px
+    color                   #787878
+
+  .hitenterview.kdinput
+    rounded                 4px
+    background              #FFF
+
+  .add-button
+    abs()
+    top                     3px
+    right                   0
+
+  .add-view
+    margin-top              12px
+    position                relative
+
+    .hitenterview
+      size                  175px, 38px
+      line-height           38px
+      bg                    image, none
+
+    .buttons
+      abs()
+      top                   4px
+      right                 0
+
+    .cancel
+      font-size             12px
+      color                 #787878
+      position              relative
+      text-decoration       underline
+      top                   2px
+      margin-left           8px
+      pointer()
+
+  .lazy-loader
+    text-align              center
+    margin-top              30px
+
+  .kdlistitemview
+    line-height             45px
+    height                  45px
+    border-top              1px solid #EFEFEF
+
+    &:first-child
+      border-top            none
+
+
+// machine settings modal domain settings
+.machine-settings-modal
+
+  .kdbutton.add
+    .kdloader
+      height                15px
+
+  .add-button
+    .kdloader
+      height                15px
+      margin-left           -8px
+
+  .domain-suffix
+    font-size               14px
+    color                   #A2A2A2
+    margin-left             8px
+
+  .hitenterview
+    rounded                 4px
+    bg                      color, #FFF
+
+  .kdlistitemview-domain
+    position                relative
+
+    &:hover
+      .remove
+        visible()
+
+    &.in-progress
+      .remove
+        hidden()
+
+      .kdloader
+        abs()
+        size                16px, 16px
+        top                 15px
+        right               50px
+
+      .koding-on-off, .knob
+        cursor              not-allowed
+
+    a
+      color                 #434343
+      font-size             14px
+      noTextDeco()
+
+    .koding-on-off
+      abs()
+      top                   11px
+      right                 0
+
+    .remove
+      r-sprite              'app', 'red-close'
+      display               inline-block
+      top                   14px
+      right                 50px
+      abs()
+      pointer()
+      hidden()
+
+
+// machine settings modal vm sharing
+
+.machine-settings-modal .vm-sharing
+
+  .avatarview
+    background              none
+    size                    32px, 32px
+    float                   left
+    position                relative
+    top                     6px
+
+  .name
+    float                   left
+    margin-left             8px
+    font-size               14px
+    color                   #434343
+
+  .no-item
+    margin-top              30px
+    color                   #a1a1a1
+    text-align              center
+    font-size               14px
+
+  .remove
+    r-sprite                'app', 'red-close'
+    display                 inline-block
+    top                     14px
+    right                   0
+    display                 none
+    abs()
+    pointer()
+
+  .add-view
+    margin-bottom           10px
+
+  .kdlistitemview
+
+    &.in-progress
+      .remove
+        display             none !important
+
+      .kdloader
+        abs()
+        right               0
+        size                16px, 16px
+        top                 15px
+
+    &:hover
+      .remove
+        display             block
+
+  .kdautocompletewrapper
+    .kdinput
+      bg                    color, #FFF
+
+      &:focus
+        border              1px solid #aaa !important // FFF
+        vendor              box-shadow, none
+
+
+.kdautocomplete.vm-sharing
+
+  border                    1px solid #aaa
+  border-top                none
+  margin-top                -1px !important
+
