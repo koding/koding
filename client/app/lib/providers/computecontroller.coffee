@@ -594,6 +594,16 @@ module.exports = class ComputeController extends KDController
   # Snapshots
   #
 
+  ###*
+   * Create a snapshot for the given machine. For progress updates,
+   * subscribe to computeController's `"createSnapshot-#{machine._id}"`
+   * event.
+   *
+   * @param {Machine} machine - The Machine to create a snapshot from
+   * @param {String} label - The label (name) of the snapshot
+   * @return {Promise}
+   * @emits ComputeController~createSnapshot-machineId
+  ###
   createSnapshot: (machine, label) ->
 
     return if methodNotSupportedBy machine
@@ -605,7 +615,7 @@ module.exports = class ComputeController extends KDController
     # Do we plan to stop machine before snapshot starts? ~ GG
     # machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @getKloud().createSnapshot { machineId: machine._id, label }
+    call = @getKloud().createSnapshot machineId: machine._id, label
 
     .then (res) =>
 

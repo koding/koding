@@ -52,6 +52,14 @@ module.exports = class JSnapshot extends Module
   # Private Methods
   # ---------------
 
+  ###*
+   * Verify that the given snapshot will fit within the given storage.
+   *
+   * @param {Object} options
+   * @param {String} options.snapshotId - The snapshot to verify
+   * @param {Number} options.storage - The storage size to verify that
+   *   this snapshot will fit into.
+  ###
   @verifySnapshot = (client, options, callback) ->
 
     {delegate} = client.connection
@@ -75,6 +83,13 @@ module.exports = class JSnapshot extends Module
   # Static Methods
   # ---------------
 
+  ###*
+   * Perform a FindOne() query on the jSnapshots selection, for this
+   * user's originId only.
+   *
+   * @param {String} snapshotId The snapshotId to query for.
+   * @param {Function(err:Error)} callback
+  ###
   @one$ = permit 'list snapshots',
 
     success: (client, snapshotId, callback) ->
@@ -88,6 +103,14 @@ module.exports = class JSnapshot extends Module
       @one selector, callback
 
 
+  ###*
+   * Perform a Find() query on the jSnapshots collection, for this user's
+   * originId only.
+   *
+   * @param {Object} selector The mongodb selector to query with
+   * @param {Object} options The mongodb query options. Limit, sort, etc.
+   * @param {Function(err:Error)} callback
+  ###
   @some$ = permit 'list snapshots',
 
     success: (client, selector, options, callback) ->
@@ -104,6 +127,12 @@ module.exports = class JSnapshot extends Module
   # Instance Methods
   # ---------------
 
+  ###*
+   * Rename the snapshot instance with the given label.
+   *
+   * @param {String} label The new label (name).
+   * @param {Function(err: Error)} callback
+  ###
   rename: permit 'update snapshot',
 
     success: (client, label, callback) ->

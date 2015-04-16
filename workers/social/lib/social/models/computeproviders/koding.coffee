@@ -20,6 +20,11 @@ module.exports = class Koding extends ProviderInterface
     callback null, "#{@providerSlug} is the best #{ nickname }!"
 
 
+  ###*
+   * @param {Object} options
+   * @param {String=} options.snapshotId - The unique snapshotId to create
+   *   this machine from, if any.
+  ###
   @create = (client, options, callback)->
 
     { instanceType, label, storage, region, snapshotId } = options
