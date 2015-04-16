@@ -55,6 +55,8 @@ func TestWebhookListen(t *testing.T) {
 		t.Fatalf("could not create test account: %s", err)
 	}
 
+	teamIntegration := webhook.CreateTestTeamIntegration(t)
+
 	Convey("while testing incoming webhook", t, func() {
 
 		groupName := models.RandomName()
@@ -109,19 +111,19 @@ func TestWebhookListen(t *testing.T) {
 		})
 
 		Convey("users should be able to send message when token is valid", func() {
-			verifyRequest = func(r *WebhookRequest) (bool, error) {
-				return r.Token == "1234", nil
-			}
 
-			token := "1234"
-			s, _, _, err := h.Push(
-				mocking.URL(m, "POST", "/webhook/push/"+token),
-				mocking.Header(nil),
-				newRequest("hey", channel.Id, "koding"),
-			)
+			Convey("related integrations must be created", func() {
 
-			So(err, ShouldBeNil)
-			So(s, ShouldEqual, http.StatusOK)
+				token := teamIntegration.Token
+				s, _, _, err := h.Push(
+					mocking.URL(m, "POST", "/webhook/push/"+token),
+					mocking.Header(nil),
+					newRequest("hey", channel.Id, "koding"),
+				)
+
+				So(err, ShouldBeNil)
+				So(s, ShouldEqual, http.StatusOK)
+			})
 		})
 
 	})
