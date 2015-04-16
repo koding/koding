@@ -11,7 +11,7 @@ Machine = require 'app/providers/machine'
 
 module.exports = class OnboardingController extends KDController
 
-  F1_Key = 112
+  F1_KEY = 112
 
   constructor: (options = {}, data) ->
 
@@ -76,7 +76,7 @@ module.exports = class OnboardingController extends KDController
 
   handleF1: (event) ->
 
-    return  unless event.which is F1_Key
+    return  unless event.which is F1_KEY
 
     event.preventDefault()
     event.stopPropagation()
