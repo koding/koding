@@ -27,6 +27,7 @@ type SnapshotDocument struct {
 	SnapshotId  string        `bson:"snapshotId"`
 	StorageSize string        `bson:"storageSize"`
 	Region      string        `bson:"region"`
+	Label       string        `bson:"label"`
 	CreatedAt   time.Time     `bson:"createdAt"`
 	username    string        `bson:"-"`
 }
@@ -55,6 +56,21 @@ func (m *Machine) DeleteSnapshot(ctx context.Context) error {
 }
 
 func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
+	req, ok := request.FromContext(ctx)
+	if !ok {
+		return errors.New("request context is not available")
+	}
+
+	// the user might send us a snapshot label
+	var args struct {
+		Label string
+	}
+
+	err = req.Args.One().Unmarshal(&args)
+	if err != nil {
+		return err
+	}
+
 	if err := m.UpdateState("Machine is creating snapshot", machinestate.Snapshotting); err != nil {
 		return err
 	}
@@ -99,6 +115,7 @@ func (m *Machine) CreateSnapshot(ctx context.Context) (err error) {
 		SnapshotId:  snapshot.Id,
 		MachineId:   m.Id,
 		StorageSize: snapshot.VolumeSize,
+		Label:       args.Label,
 	}
 
 	if err := m.addSnapshotData(snapshotData); err != nil {
