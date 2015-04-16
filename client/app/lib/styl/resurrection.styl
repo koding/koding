@@ -1701,6 +1701,9 @@ paymentGrayLighter  = #f8f8f8
   .AppModal-form
     padding-top             0
 
+  .kdmodal-content
+    max-height              320px !important // override computed element style
+
 
 // machine settings modal general view
 .machine-settings-modal
@@ -1718,12 +1721,17 @@ paymentGrayLighter  = #f8f8f8
     color                   #434343
 
   .nickname
+
+    .input-wrapper
+      height                45px
+
     .edit
       font-size             12px
       color                 #52A840
       text-decoration       underline
       margin-right          3px
       pointer()
+
     .hitenterview
         height              34px
         background          #FFF
@@ -1991,6 +1999,12 @@ paymentGrayLighter  = #f8f8f8
   .add-view
     margin-top              12px
     position                relative
+
+    input
+      font-size             14px
+      color                 #a2a2a2
+      height                38px
+      line-height           38px
 
     .hitenterview
       size                  175px, 38px
