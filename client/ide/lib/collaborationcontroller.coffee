@@ -817,6 +817,8 @@ module.exports = CollaborationController =
 
   prepareCollaboration: ->
 
+    return  unless @mountedMachine.isMine() or @workspaceData.channelId
+
     @rtm = new RealtimeManager
     @showShareButton()
     @rtm.ready => @initCollaborationStateMachine()
