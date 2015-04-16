@@ -365,7 +365,7 @@ testintegration:
 
 testapi: testcollaboration testmailsender testmail testmodels testemailworker \
 	testmoderation testalgolia testtopicfeeed testnotification testtrollmode \
-	testpayment testteam testintegration
+	testpayment testteam testintegration testwebhook
 
 	@echo "$(OK_COLOR)==> Running Unit tests $(NO_COLOR)"
 
