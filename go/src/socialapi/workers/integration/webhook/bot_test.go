@@ -46,6 +46,7 @@ func TestSendMessage(t *testing.T) {
 			message := &Message{}
 			message.Body = "testmessage"
 			message.ChannelId = channel.Id
+			message.TeamIntegrationId = 13
 			err := bot.SendMessage(message)
 			So(err, ShouldBeNil)
 
@@ -56,6 +57,7 @@ func TestSendMessage(t *testing.T) {
 			So(m.InitialChannelId, ShouldEqual, message.ChannelId)
 			So(m.AccountId, ShouldEqual, bot.account.Id)
 			So(m.MetaBits, ShouldEqual, models.Bot)
+			So(*(m.GetPayload("teamIntegrationId")), ShouldEqual, "13")
 
 		})
 	})
