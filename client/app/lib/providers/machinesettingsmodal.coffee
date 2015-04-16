@@ -1,9 +1,10 @@
-kd               = require 'kd'
-KDView           = kd.View
-KDTabView        = kd.TabView
-KDModalView      = kd.ModalView
-KDTabPaneView    = kd.TabPaneView
-KDCustomHTMLView = kd.CustomHTMLView
+kd                   = require 'kd'
+KDView               = kd.View
+KDTabView            = kd.TabView
+KDModalView          = kd.ModalView
+KDTabPaneView        = kd.TabPaneView
+KDCustomHTMLView     = kd.CustomHTMLView
+KDTabHandleContainer = kd.TabHandleContainer
 
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
@@ -46,9 +47,16 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   createTabView: ->
 
+    tabHandleContainer = new KDTabHandleContainer cssClass: 'AppModal-nav'
+
+    @addSubView tabHandleContainer
+
     @addSubView @tabView   = new KDTabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 190
+      tabHandleContainer   : tabHandleContainer
+
+    tabHandleContainer.unsetClass 'kdtabhandlecontainer'
 
 
   createPanes: ->
@@ -70,8 +78,6 @@ module.exports = class MachineSettingsModal extends KDModalView
   # However to reuse ASM styling I needed to add/remove some classes.
   # We can consider this method later.
   tweakStyling_: ->
-
-    @tabView.tabHandleContainer.setClass 'AppModal-nav' # styling
 
     for key, pane of @panesByTitle
       handle = pane.getHandle()
