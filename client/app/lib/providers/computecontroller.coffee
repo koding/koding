@@ -594,61 +594,29 @@ module.exports = class ComputeController extends KDController
   # Snapshots
   #
 
-  createSnapshot: (machine)->
+  createSnapshot: (machine, label) ->
 
     return if methodNotSupportedBy machine
 
-    ComputeController_UI.askFor 'createSnapshot', {machine, force: @_force}, =>
+    @eventListener.triggerState machine,
+      status      : Machine.State.Snapshotting
+      percentage  : 0
 
-      @eventListener.triggerState machine,
-        status      : Machine.State.Snapshotting
-        percentage  : 0
+    # Do we plan to stop machine before snapshot starts? ~ GG
+    # machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-      # Do we plan to stop machine before snapshot starts? ~ GG
-      # machine.getBaseKite( createIfNotExists = no ).disconnect()
+    call = @getKloud().createSnapshot { machineId: machine._id, label }
 
-      call = @getKloud().createSnapshot { machineId: machine._id }
+    .then (res) =>
 
-      .then (res)=>
+      kd.log "createSnapshot res:", res
+      @eventListener.addListener 'createSnapshot', machine._id
 
-        @_force = no
-        kd.log "createSnapshot res:", res
+    .timeout globals.COMPUTECONTROLLER_TIMEOUT
 
-        # @_clearTrialCounts machine
-        # @eventListener.addListener 'start', machine._id
+    .catch (err) =>
 
-      .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-      .catch (err)=>
-
-        (@errorHandler call, 'createSnapshot', machine) err
-
-
-  deleteSnapshot: (machine)->
-
-    return if methodNotSupportedBy machine
-
-    ComputeController_UI.askFor 'deleteSnapshot', {machine, force: @_force}, =>
-
-      @eventListener.triggerState machine,
-        status      : Machine.State.Snapshotting
-        percentage  : 0
-
-      call = @getKloud().deleteSnapshot { machineId: machine._id }
-
-      .then (res)=>
-
-        @_force = no
-        kd.log "deleteSnapshot res:", res
-
-        # @_clearTrialCounts machine
-        # @eventListener.addListener 'start', machine._id
-
-      .timeout globals.COMPUTECONTROLLER_TIMEOUT
-
-      .catch (err)=>
-
-        (@errorHandler call, 'deleteSnapshot', machine) err
+      (@errorHandler call, 'createSnapshot', machine) err
 
 
   # Domain management

@@ -64,7 +64,7 @@ module.exports = class Koding extends ProviderInterface
           if 't2.medium' in userPlan.allowedInstances
             meta.instance_type = 't2.medium'
 
-          JSnapshot = require '../snapshot'
+          JSnapshot = require './snapshot'
           JSnapshot.verifySnapshot client, {
             storage, snapshotId
           }, (err, snapshot) ->
