@@ -64,7 +64,7 @@ CREATE TABLE "integration"."channel_integration" (
   "description" VARCHAR (140) COLLATE "default",
   "token" VARCHAR(20) NOT NULL,
   "integration_id" BIGINT NOT NULL,
-  "group_name" VARCHAR(200) NOT NULL,
+  "group_name" VARCHAR(200) NOT NULL CHECK ("group_name" <> '') COLLATE "default",
   "channel_id" BIGINT NOT NULL,
   "creator_id" BIGINT NOT NULL,
   "is_disabled" BOOLEAN NOT NULL DEFAULT TRUE,

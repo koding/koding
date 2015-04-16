@@ -26,9 +26,10 @@ func TestChannelIntegrationCreate(t *testing.T) {
 		i.CreatorId = account.Id
 		i.ChannelId = channel.Id
 		err := i.Create()
-		So(err, ShouldEqual, ErrIntegrationIdIsNotSet)
+		So(err, ShouldEqual, models.ErrGroupNameIsNotSet)
 
 		i.IntegrationId = integration.Id
+		i.GroupName = models.RandomName()
 		i.ChannelId = 0
 		err = i.Create()
 		So(err, ShouldEqual, models.ErrChannelIsNotSet)

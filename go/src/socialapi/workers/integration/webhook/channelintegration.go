@@ -88,6 +88,10 @@ func (i *ChannelIntegration) ByToken(token string) error {
 }
 
 func (i *ChannelIntegration) validate() error {
+	if i.GroupName == "" {
+		return models.ErrGroupNameIsNotSet
+	}
+
 	if i.ChannelId == 0 {
 		return models.ErrChannelIsNotSet
 	}
