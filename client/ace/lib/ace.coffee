@@ -51,14 +51,22 @@ class Ace extends KDView
     # given a keyconfig model json and a callback, converts it to
     # conform to the ace command spec.
     #
-    # main difference between keyconfig models and ace commands is, keyconfig
-    # accepts multiple bindings while ace doesn't.
-    #
     # see: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
 
-    name    : model.name
-    exec    : exec
-    bindKey : toBindKey model.binding[0] # binds only first shortcut
+    binding = model.binding[0]
+
+    # since shortcuts#change emits a raw keyconfig.Model, binding prop might include
+    # all bindings for all platforms.
+    # in that case we need to get platform bindings explicitly:
+    if _.isArray binding
+      { shortcuts } = kd.singletons
+      binding = shortcuts.getPlatformBinding(model)[0]
+
+    return {
+      name    : model.name
+      exec    : exec
+      bindKey : toBindKey binding
+    }
 
 
   constructor: (options, file) ->
@@ -140,6 +148,8 @@ class Ace extends KDView
 
   destroy: ->
 
+    { shortcuts } = kd.singletons
+    shortcuts.removeListener 'change', @bound 'handleShortcutChange'
     emmetLoadListeners[@id] = null  unless _.isNull emmetLoadListeners
 
     super
@@ -150,7 +160,10 @@ class Ace extends KDView
     @setTheme null, no
     @setSyntax()
     @setEditorListeners()
-    @setShortcuts()
+    @setShortcuts yes
+
+    { shortcuts } = kd.singletons
+    shortcuts.on 'change', @bound 'handleShortcutChange'
 
     @appStorage.fetchStorage (storage) =>
 
@@ -192,66 +205,76 @@ class Ace extends KDView
     @emit 'FileHasBeenSavedAs', @getData()
 
 
-  setShortcuts: ->
+  handleShortcutChange: (collection, model) ->
+
+    return  if collection.name isnt 'editor'
+    @setShortcut model
+
+
+  setShortcuts: (removeObsolete=yes) ->
 
     { shortcuts } = kd.singletons
-    { createFindAndReplaceView } = @getOptions()
-
-    obsolete = [
-      'sortlines' # XXX
-      'showSettingsMenu'
-      'findprevious'
-      'findnext'
-      'findAll'
-      'toggleFoldWidget'
-      'toggleParentFoldWidget'
-      'passKeysToBrowser'
-      'jumptomatching'
-      'selecttomatching'
-      'expandToMatching'
-      'iSearch'
-      'iSearchAndGo'
-      'iSearchBackwardsAndGo'
-      'recenterTopBottom'
-      'selectAllMatches'
-      'searchAsRegExp'
-      'yankNextChar'
-      'yankNextWord'
-      'occurisearch'
-      'cancelSearch'
-      'confirmSearch'
-      'restartSearch'
-      'searchBackward'
-      'searchForward'
-      'shrinkSearchTerm'
-      'extendSearchTermSpace'
-    ]
 
     collection = shortcuts.toCollection().find _key: 'editor'
     names = collection.map (model) -> model.name
 
-    @editor.commands.removeCommands _.filter obsolete, (key) ->
-      !~_.indexOf names, key
+    if removeObsolete
+      obsolete = [
+        'sortlines' # XXX
+        'showSettingsMenu'
+        'findprevious'
+        'findnext'
+        'findAll'
+        'toggleFoldWidget'
+        'toggleParentFoldWidget'
+        'passKeysToBrowser'
+        'jumptomatching'
+        'selecttomatching'
+        'expandToMatching'
+        'iSearch'
+        'iSearchAndGo'
+        'iSearchBackwardsAndGo'
+        'recenterTopBottom'
+        'selectAllMatches'
+        'searchAsRegExp'
+        'yankNextChar'
+        'yankNextWord'
+        'occurisearch'
+        'cancelSearch'
+        'confirmSearch'
+        'restartSearch'
+        'searchBackward'
+        'searchForward'
+        'shrinkSearchTerm'
+        'extendSearchTermSpace'
+      ]
 
-    collection
-      .each (model) =>
-        key = model.name
-        exec =
-        switch key
+      # make sure we are not removing an already overridden shortcut
+      @editor.commands.removeCommands _.filter obsolete, (key) ->
+        !~_.indexOf names, key
 
-          when 'save'     then @requestSave.bind this
-          when 'saveas'   then @requestSaveAs.bind this
-          when 'gotoline' then @showGotoLine.bind this
+    collection.each (model) => @setShortcut model
+
+
+  setShortcut: (model) ->
+
+    key = model.name
+    exec =
+    switch key
+      when 'save'     then @requestSave.bind this
+      when 'saveas'   then @requestSaveAs.bind this
+      when 'gotoline' then @showGotoLine.bind this
+      else
+        { createFindAndReplaceView } = @getOptions()
+        if match = /^find$|^replace$/.exec key
+          replace = match.input is 'replace'
+          if createFindAndReplaceView
+            @showFindReplaceView.bind this, replace
           else
-            if match = /^find$|^replace$/.exec key
-              replace = match.input is 'replace'
-              if createFindAndReplaceView
-                @showFindReplaceView.bind this, replace
-              else
-                @emit.bind this, 'FindAndReplaceViewRequested', replace
+            @emit.bind this, 'FindAndReplaceViewRequested', replace
 
-        exec or= @editor.commands.commands[model.name].exec
-        @editor.commands.addCommand toCommand(model, exec)
+    exec or= @editor.commands.commands[model.name].exec
+    @editor.commands.addCommand toCommand(model, exec)
 
 
   setEditorListeners: ->
