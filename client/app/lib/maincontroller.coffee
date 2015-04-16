@@ -266,7 +266,7 @@ class MainController extends KDController
     kd.utils.wait 15000, ->
       remote.api?.JSystemStatus.on 'forceReload', ->
         global.removeEventListener 'beforeunload', wc.bound 'beforeUnload'
-        global.location.reload()
+        global.location.reload yes
 
     # async clientId change checking procedures causes
     # race conditions between window reloading and post-login callbacks
