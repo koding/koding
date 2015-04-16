@@ -207,7 +207,7 @@ Configuration = (options={}) ->
     embedly              : {apiKey       : "94991069fb354d4e8fdb825e52d4134a"     }
     github               : {clientId     : "5891e574253e65ddb7ea" }
     newkontrol           : {url          : kontrol.url}
-    sessionCookie        : {maxAge       : 1000 * 60 * 60 * 24 * 14  , secure: no   }
+    sessionCookie        : KONFIG.sessionCookie
     troubleshoot         : {idleTime     : 1000 * 60 * 60            , externalUrl  : "https://s3.amazonaws.com/koding-ping/healthcheck.json"}
     recaptcha            : '6LfFAPcSAAAAAHRGr1Tye4tD-yLz0Ll-EN0yyQ6l'
     stripe               : { token: 'pk_live_XLpjQ93roiM0jGFXfvSTal9Y' }
