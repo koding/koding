@@ -18,6 +18,7 @@ module.exports = class OnboardingController extends KDController
     super options, data
 
     @onboardings   = {}
+    @isRunning     = no
     mainController = kd.getSingleton "mainController"
 
     if isLoggedIn() then @fetchItems()
@@ -53,6 +54,7 @@ module.exports = class OnboardingController extends KDController
 
     @on "OnboardingShown", (slug) =>
       @appStorage.setValue slug, yes
+      @isRunning = no
 
     @on "OnboardingRequested", (name) =>
       @runItems name
@@ -70,6 +72,7 @@ module.exports = class OnboardingController extends KDController
 
     return  if (isShown or isOldUser) and not @isPreviewMode
 
+    @isRunning = yes
     kd.utils.wait delay, =>
       new OnboardingViewController { groupName, slug, delegate: this }, onboarding.partial
 
@@ -80,6 +83,8 @@ module.exports = class OnboardingController extends KDController
 
     event.preventDefault()
     event.stopPropagation()
+
+    return  if @isRunning
 
     appManager   = kd.getSingleton "appManager"
     appName      = appManager.frontApp?.options.name
