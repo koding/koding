@@ -2,6 +2,7 @@ kd                        = require 'kd'
 nick                      = require 'app/util/nick'
 KDView                    = kd.View
 globals                   = require 'globals'
+Machine                   = require 'app/providers/machine'
 htmlencode                = require 'htmlencode'
 DomainItem                = require 'app/domains/domainitem'
 KDModalView               = kd.ModalView
@@ -49,7 +50,9 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
 
   initList: ->
 
-   kd.singletons.computeController.fetchDomains (err, domains = []) =>
+    return no  if @getData().status.state isnt Machine.State.Running
+
+    kd.singletons.computeController.fetchDomains (err, domains = []) =>
       kd.warn err  if err
 
       @listController.lazyLoader.hide()
