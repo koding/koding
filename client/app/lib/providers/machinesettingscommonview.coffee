@@ -26,10 +26,15 @@ module.exports = class MachineSettingsCommonView extends KDView
 
     @machine = @getData()
 
+    @createElements()
+    @initList()
+
+
+  createElements: ->
+
     @createHeader()
     @createAddView()
     @createListView()
-    @initList()
 
 
   createHeader: ->
