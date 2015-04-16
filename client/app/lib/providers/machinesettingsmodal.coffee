@@ -1,22 +1,25 @@
-kd               = require 'kd'
-KDView           = kd.View
-KDTabView        = kd.TabView
-KDModalView      = kd.ModalView
-KDTabPaneView    = kd.TabPaneView
-KDCustomHTMLView = kd.CustomHTMLView
+kd                   = require 'kd'
+KDView               = kd.View
+KDTabView            = kd.TabView
+KDModalView          = kd.ModalView
+KDTabPaneView        = kd.TabPaneView
+KDCustomHTMLView     = kd.CustomHTMLView
+KDTabHandleContainer = kd.TabHandleContainer
 
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
-MachineGeneralSettingsView   = require './machinegeneralsettingsview'
+MachineSettingsGeneralView   = require './machinesettingsgeneralview'
+MachineSettingsDomainsView   = require './machinesettingsdomainsview'
 MachineSettingsAdvancedView  = require './machinesettingsadvancedview'
 MachineSettingsDiskUsageView = require './machinesettingsdiskusageview'
+MachineSettingsVMSharingView = require './machinesettingsvmsharingview'
 
 PANE_CONFIG = [
-  { title: 'General',       viewClass: MachineGeneralSettingsView   }
+  { title: 'General',       viewClass: MachineSettingsGeneralView   }
   { title: 'Specs',         viewClass: MachineSettingsSpecsView     }
   { title: 'Disk Usage',    viewClass: MachineSettingsDiskUsageView }
-  { title: 'Domains',       viewClass: KDView                       }
-  { title: 'VM Sharing',    viewClass: KDView                       }
+  { title: 'Domains',       viewClass: MachineSettingsDomainsView   }
+  { title: 'VM Sharing',    viewClass: MachineSettingsVMSharingView }
   { title: 'Advanced',      viewClass: MachineSettingsAdvancedView  }
   { title: 'Common guides', viewClass: MachineSettingsGuidesView    }
 ]
@@ -29,6 +32,7 @@ module.exports = class MachineSettingsModal extends KDModalView
     options.cssClass = 'machine-settings-modal AppModal'
     options.title    = 'VM Settings'
     options.width    = 805
+    options.height   = 400
 
     super options, data
 
@@ -43,9 +47,16 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   createTabView: ->
 
+    tabHandleContainer = new KDTabHandleContainer cssClass: 'AppModal-nav'
+
+    @addSubView tabHandleContainer
+
     @addSubView @tabView   = new KDTabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 190
+      tabHandleContainer   : tabHandleContainer
+
+    tabHandleContainer.unsetClass 'kdtabhandlecontainer'
 
 
   createPanes: ->
@@ -67,8 +78,6 @@ module.exports = class MachineSettingsModal extends KDModalView
   # However to reuse ASM styling I needed to add/remove some classes.
   # We can consider this method later.
   tweakStyling_: ->
-
-    @tabView.tabHandleContainer.setClass 'AppModal-nav' # styling
 
     for key, pane of @panesByTitle
       handle = pane.getHandle()
