@@ -2029,6 +2029,11 @@ paymentGrayLighter  = #f8f8f8
     .kdloader
       height                15px
 
+  .add-button
+    .kdloader
+      height                15px
+      margin-left           -8px
+
   .domain-suffix
     font-size               14px
     color                   #A2A2A2
@@ -2106,6 +2111,9 @@ paymentGrayLighter  = #f8f8f8
     abs()
     pointer()
 
+  .add-view
+    margin-bottom           10px
+
   .kdlistitemview
 
     &.in-progress
@@ -2121,3 +2129,19 @@ paymentGrayLighter  = #f8f8f8
     &:hover
       .remove
         display             block
+
+  .kdautocompletewrapper
+    .kdinput
+      bg                    color, #FFF
+
+      &:focus
+        border              1px solid #aaa !important // FFF
+        vendor              box-shadow, none
+
+
+.kdautocomplete.vm-sharing
+
+  border                    1px solid #aaa
+  border-top                none
+  margin-top                -1px !important
+

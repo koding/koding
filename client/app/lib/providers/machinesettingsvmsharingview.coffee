@@ -1,9 +1,12 @@
-kd                        = require 'kd'
-nick                      = require 'app/util/nick'
-KDView                    = kd.View
-UserItem                  = require 'app/useritem'
-KDCustomHTMLView          = kd.CustomHTMLView
-MachineSettingsCommonView = require './machinesettingscommonview'
+kd                               = require 'kd'
+nick                             = require 'app/util/nick'
+KDView                           = kd.View
+UserItem                         = require 'app/useritem'
+KDCustomHTMLView                 = kd.CustomHTMLView
+ComputeErrorUsageModal           = require './computeerrorusagemodal'
+KDAutoCompleteController         = kd.AutoCompleteController
+MachineSettingsCommonView        = require './machinesettingscommonview'
+ActivityAutoCompleteUserItemView = require 'activity/views/activityautocompleteuseritemview'
 
 
 module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommonView
@@ -15,6 +18,7 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     options.addButtonTitle       = 'INVITE'
     options.headerAddButtonTitle = 'ADD SOMEONE'
     options.listViewItemClass    = UserItem
+    options.loaderOnHeaderButton = yes
     options.listViewItemOptions  = { justFirstName: no, size: width: 32, height: 32 }
     options.noItemFoundWidget    = new KDCustomHTMLView
       cssClass : 'no-item'
@@ -23,6 +27,8 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     @machine = data
 
     super options, data
+
+    @_users  = []
 
     @listController.getListView().on 'KickUserRequested', @bound 'kickUser'
 
@@ -45,6 +51,11 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
     @_users = [nick()].concat (user.profile.nickname for user in users)
 
 
+  addUser: (user) ->
+
+    @modifyUsers user, 'add'
+
+
   kickUser: (userItem) ->
 
     userItem.setLoadingMode yes
@@ -53,13 +64,15 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
 
   updateUserList: (task, user, userItem) ->
 
-    return @initList()  unless @listController.getItemCount() > 1
-
     if task is 'add'
     then @listController.addItem user
     else @listController.removeItem userItem
 
     @updateInMemoryListOfUsers()
+    userItem?.setLoadingMode no
+
+    if @listController.getItemCount() is 0
+      @listController.noItemView.show()
 
 
   modifyUsers: (user, task, userItem) ->
@@ -91,3 +104,67 @@ module.exports = class MachineSettingsVMSharingView extends MachineSettingsCommo
           if err.message in errorMessages
           then @updateUserList task, user, userItem
           else @showNotification err
+
+          userItem.setLoadingMode yes
+
+
+  createAddInput: ->
+
+    @autoComplete = new KDAutoCompleteController
+      name                : 'userController'
+      placeholder         : 'Type a username...'
+      itemDataPath        : 'profile.nickname'
+      listWrapperCssClass : 'private-message vm-sharing hidden'
+      itemClass           : ActivityAutoCompleteUserItemView
+      outputWrapper       : new KDView cssClass: 'hidden'
+      submitValuesAsText  : yes
+      dataSource          : @bound 'fetchAccounts'
+
+    @addViewContainer.addSubView @addInputView = @autoComplete.getView()
+
+    @addInputView.on 'keydown', (e) => @hideAddView()  if e.which is 27
+
+    @autoComplete.on 'ItemListChanged', (count) =>
+      user = @autoComplete.getSelectedItemData()?.last
+
+      return unless user
+
+      @addUser user
+
+      @autoComplete.selectedItemCounter = 0
+      @autoComplete.selectedItemData    = []
+
+
+
+  fetchAccounts: ({inputValue}, callback) ->
+
+    kd.singletons.search.searchAccounts inputValue
+      .filter (it) => it.profile.nickname not in @_users
+      .then callback
+      .timeout 1e4
+      .catch (err) ->
+        console.warn "Error while autoComplete: ", err
+        callback []
+
+
+  showAddView: ->
+
+    @headerAddNewButton.showLoader()
+
+    kd.singletons.computeController.fetchUserPlan (plan) =>
+
+      @headerAddNewButton.hideLoader()
+
+      if plan is 'free'
+
+        new ComputeErrorUsageModal
+          plan    : 'free'
+          message : 'VM share feature is only available for paid accounts.'
+
+        return @emit 'ModalDestroyRequested'
+
+      super
+
+
+  # override parent method
+  createAddNewViewButtons: ->
