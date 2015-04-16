@@ -31,9 +31,6 @@ type Integration struct {
 	// Type of the integration (incoming, outgoing)
 	TypeConstant string `json:"typeConstant" sql:"TYPE:VARCHAR(100)"`
 
-	// Current version of the integration
-	Version string `json:"version" sql:"NOT NULL;TYPE:VARCHAR(6)"`
-
 	// Creation date of the integration
 	CreatedAt time.Time `json:"createdAt" sql:"NOT NULL"`
 
