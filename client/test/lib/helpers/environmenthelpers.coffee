@@ -1,6 +1,7 @@
 helpers = require './helpers.js'
 assert  = require 'assert'
 
+modalSelector = '.machine-settings-modal.AppModal'
 
 module.exports =
 
@@ -28,6 +29,10 @@ module.exports =
       .waitForElementVisible  '.settings form.with-fields .moreview', 20000
       .click                  '.settings form.with-fields .moreview'
       .pause                  2000
+
+  openDomainSettings: (browser, vmName) ->
+
+    @openVmSettingsModal browser, vmName, '.domains'
 
 
   clickAddVMButton: (browser) ->
@@ -60,24 +65,22 @@ module.exports =
     user = helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
 
-    domainSelector    = '.domains .add-domain'
-    paragraph         = helpers.getFakeText()
-    createDomainName  = paragraph.split(' ')[0]
-    domainName        = createDomainName + '.' + user.username + '.dev.koding.io'
+    buttonSelector     = '.domains .kdheaderview button.add-button'
+    buttonLoaderSelector = '.add-view button.loading'
+    paragraph          = helpers.getFakeText()
+    createDomainName   = paragraph.split(' ')[0]
+    domainName         = createDomainName + '.' + user.username + '.dev.koding.io'
 
-    @openVmSettingsModal(browser)
-
-    @clickMoreButtonInVMSettingsModal(browser)
+    @openDomainSettings(browser)
 
     browser
-      .waitForElementVisible    '.more-form .domains', 20000
-      .waitForElementVisible    domainSelector, 20000
-      .click                    domainSelector
-      .waitForElementVisible    '.domains-view input.text', 20000
-      .setValue                 '.domains-view input.text', createDomainName + '\n'
-      .waitForElementVisible    '.domains-view .in-progress.kdloader', 10000
-      .waitForElementNotVisible '.domains-view .in-progress.kdloader', 20000
-      .assert.containsText      '.domains-view .listview-wrapper', domainName
+      .waitForElementVisible    buttonSelector, 20000
+      .click                    buttonSelector
+      .waitForElementVisible    '.add-view input.hitenterview', 20000
+      .setValue                 '.add-view input.hitenterview', createDomainName + '\n'
+      .waitForElementVisible    buttonLoaderSelector, 10000
+      .waitForElementNotVisible buttonLoaderSelector, 20000
+      .assert.containsText      '.kdlistitemview-domain:last-child' , domainName
 
     return domainName
 
