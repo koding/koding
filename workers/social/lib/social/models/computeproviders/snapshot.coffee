@@ -52,6 +52,26 @@ module.exports = class JSnapshot extends Module
   # Private Methods
   # ---------------
 
+  @verifySnapshot = (client, options, callback) ->
+
+    {delegate} = client.connection
+    {storage, snapshotId} = options
+
+    unless snapshotId
+      return callback new KodingError 'snapshotId is not provided'
+
+    @one$ client, snapshotId, (err, snapshot) ->
+
+      return callback err  if err
+      return callback new KodingError 'No such snapshot'  unless snapshot
+
+      if +(snapshot.storageSize) + 1 > storage
+        return callback new KodingError \
+          'Storage size is not enough for this snapshot', 'SizeError'
+
+      callback null, snapshot
+
+
   # Static Methods
   # ---------------
 
