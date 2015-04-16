@@ -26,6 +26,13 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       .on 'DomainStateChanged',    @bound 'handleStateChange'
 
 
+  createElements: ->
+
+    @createHeader()
+    @createListView()
+    @createAddView()
+
+
   createAddInput: ->
 
     super
