@@ -1,6 +1,9 @@
 package webhook
 
-import "socialapi/models"
+import (
+	"socialapi/models"
+	"strconv"
+)
 
 const botNick = "bot"
 
@@ -9,8 +12,9 @@ type Bot struct {
 }
 
 type Message struct {
-	Body      string // TODO check for XSS
-	ChannelId int64
+	Body              string // TODO check for XSS
+	ChannelId         int64
+	TeamIntegrationId int64
 }
 
 func NewBot() (*Bot, error) {
@@ -38,6 +42,8 @@ func (b *Bot) createMessage(m *Message) (*models.ChannelMessage, error) {
 	cm.Body = m.Body
 	cm.TypeConstant = models.ChannelMessage_TYPE_POST
 	cm.MetaBits.Mark(models.Bot)
+	tid := strconv.FormatInt(m.TeamIntegrationId, 10)
+	cm.SetPayload("teamIntegrationId", tid)
 
 	return cm, cm.Create()
 }
