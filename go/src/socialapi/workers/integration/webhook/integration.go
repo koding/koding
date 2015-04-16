@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	ErrInvalidIntegrationData = errors.New("invalid integration data")
-	ErrTitleNotUnique         = errors.New("title is not unique")
+	ErrTitleNotSet    = errors.New("title is not set")
+	ErrTitleNotUnique = errors.New("title is not unique")
 )
 
 type Integration struct {
@@ -55,8 +55,12 @@ func NewIntegration() *Integration {
 
 func (i *Integration) Create() error {
 
-	if i.Title == "" || i.TypeConstant == "" {
-		return ErrInvalidIntegrationData
+	if i.Title == "" {
+		return ErrTitleNotSet
+	}
+
+	if i.TypeConstant == "" {
+		i.TypeConstant = Integration_TYPE_INCOMING
 	}
 
 	selector := map[string]interface{}{

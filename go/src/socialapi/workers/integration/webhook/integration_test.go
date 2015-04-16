@@ -20,17 +20,14 @@ func TestIntegrationCreate(t *testing.T) {
 			i := NewIntegration()
 			i.TypeConstant = Integration_TYPE_INCOMING
 			err := i.Create()
-			So(err, ShouldEqual, ErrInvalidIntegrationData)
+			So(err, ShouldEqual, ErrTitleNotSet)
 
 			i.TypeConstant = ""
 			i.Title = models.RandomName()
 
 			err = i.Create()
-			So(err, ShouldEqual, ErrInvalidIntegrationData)
-
-			i.TypeConstant = Integration_TYPE_INCOMING
-			err = i.Create()
 			So(err, ShouldBeNil)
+			So(i.TypeConstant, ShouldEqual, Integration_TYPE_INCOMING)
 
 			i.Id = 0
 			err = i.Create()
