@@ -56,6 +56,16 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
       @listController.replaceAllItems domains
 
 
+  showAddView: ->
+
+    if @listController.getItemCount() >= 5
+      warning = 'The new domain cannot be created as you have already reached the allowed limit of 5 domains.'
+      @showNotification warning, 'warning'
+      return @addNewButton.hideLoader()
+
+    super
+
+
   hideAddView: ->
 
     return no  if @isInProgress
@@ -73,11 +83,6 @@ module.exports = class MachineSettingsDomainsView extends MachineSettingsCommonV
     return @addNewButton.hideLoader()  if domainName is ''
 
     domain = "#{htmlencode.XSSEncode domainName}#{@domainSuffix}"
-
-    if @listController.getItemCount() >= 5
-      warning = "It's not allowed to create more than 5 domains."
-      @showNotification warning, 'warning'
-      return @addNewButton.hideLoader()
 
     @isInProgress = yes
     @addInputView.makeDisabled()
