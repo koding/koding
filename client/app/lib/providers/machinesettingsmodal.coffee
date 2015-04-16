@@ -1,15 +1,16 @@
 kd                   = require 'kd'
 KDView               = kd.View
-KDTabView            = kd.TabView
 KDModalView          = kd.ModalView
 KDTabPaneView        = kd.TabPaneView
 KDCustomHTMLView     = kd.CustomHTMLView
 KDTabHandleContainer = kd.TabHandleContainer
 
+Machine                      = require 'app/providers/machine'
 MachineSettingsSpecsView     = require './machinesettingsspecsview'
 MachineSettingsGuidesView    = require './machinesettingsguidesview'
 MachineSettingsGeneralView   = require './machinesettingsgeneralview'
 MachineSettingsDomainsView   = require './machinesettingsdomainsview'
+MachineSettingsModalTabView  = require './machinesettingsmodaltabview'
 MachineSettingsAdvancedView  = require './machinesettingsadvancedview'
 MachineSettingsDiskUsageView = require './machinesettingsdiskusageview'
 MachineSettingsVMSharingView = require './machinesettingsvmsharingview'
@@ -51,7 +52,7 @@ module.exports = class MachineSettingsModal extends KDModalView
 
     @addSubView tabHandleContainer
 
-    @addSubView @tabView   = new KDTabView
+    @addSubView @tabView   = new MachineSettingsModalTabView
       hideHandleCloseIcons : yes
       maxHandleWidth       : 190
       tabHandleContainer   : tabHandleContainer
@@ -61,15 +62,22 @@ module.exports = class MachineSettingsModal extends KDModalView
 
   createPanes: ->
 
+    isMachineRunning = @getData().status.state is Machine.State.Running
+    disabledTabs     = [ 'Disk Usage', 'Domains', 'VM Sharing' ]
+
     for item in PANE_CONFIG when item.title and item.viewClass
 
-      subView = new item.viewClass item.viewOptions, @getData()
-      subView.once 'ModalDestroyRequested', @bound 'destroy'
+      subView    = new item.viewClass item.viewOptions, @getData()
+      isDisabled = not isMachineRunning and disabledTabs.indexOf(item.title) > -1
 
       @tabView.addPane pane = new KDTabPaneView
         name     : item.title
         cssClass : 'AppModal-content'
         view     : subView
+        disabled : isDisabled
+
+      pane.tabHandle.setClass 'disabled'  if isDisabled
+      subView.once 'ModalDestroyRequested', @bound 'destroy'
 
       @panesByTitle[item.title] = pane
 
