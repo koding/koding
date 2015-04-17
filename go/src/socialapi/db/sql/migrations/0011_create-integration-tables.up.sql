@@ -86,3 +86,9 @@ CREATE TABLE "integration"."channel_integration" (
 GRANT SELECT, INSERT, UPDATE ON "integration"."channel_integration" TO "social";
 
 CREATE INDEX  "channel_integration_token_idx" ON integration.channel_integration USING btree(token DESC NULLS LAST);
+
+
+--
+-- ALSO ADDED BOT channel type and channel message type
+--
+
