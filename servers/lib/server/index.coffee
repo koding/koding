@@ -94,6 +94,7 @@ app.get '/-/versionCheck'                       , require './handlers/versionche
 app.get '/-/jobs'                               , require './handlers/jobs'
 app.get '/:name?/OAuth/url'                     , require './oauth_url'
 app.get '/Verify/:token'                        , require './handlers/verifytoken'
+app.get '/humans.txt'                           , generateHumanstxt
 app.get '/Hackathon/:section?'                  , require './handlers/hackathon'
 app.get '/'                                     , require './handlers/root.coffee'
 app.get '*'                                     , require './handlers/rest.coffee'
