@@ -13,7 +13,7 @@ module.exports = class DashboardAppView extends kd.ModalView
     options.width    = 1000
     options.height   = 600
     options.testPath = 'groups-dashboard'
-    data             or= kd.singletons.groupsController.getCurrentGroup()
+    data           or= kd.singletons.groupsController.getCurrentGroup()
 
     super options, data
 

@@ -16,7 +16,7 @@ module.exports = class GroupsController extends KDController
 
     super options, data
 
-    @isReady       = no
+    @isReady = no
 
     kd.utils.defer @bound 'init'
 
