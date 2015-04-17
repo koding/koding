@@ -59,51 +59,6 @@ app.get "/humans.txt", (req, res)->
   errs = []
   urls = []
 
-app.get "/-/healthCheck", (req, res) ->
-  {workers, publicPort} = KONFIG
-
-  for own _, worker of workers
-    urls.push worker.healthCheckURL  if worker.healthCheckURL
-
-  urls.push("http://localhost:#{publicPort}/-/versionCheck")
-
-  urlFns = urls.map (url)->->
-    request url, (err, resp, body)->
-      errs.push({ url, err })  if err?
-      urlFns.fin()
-
-  dash urlFns, ->
-    if Object.keys(errs).length > 0
-      console.log "HEALTHCHECK ERROR:", errs
-      res.status(500).end()
-    else
-      res.status(200).end()
-
-app.get "/-/versionCheck", (req, res) ->
-  errs = []
-  urls = []
-  for own key, val of KONFIG.workers
-    urls.push {name: key, url: val.versionURL}  if val?.versionURL?
-
-  urlFns = urls.map ({name, url})->->
-    request url, (err, resp, body)->
-      if err?
-        errs.push({ name, err })
-      else if KONFIG.version isnt body
-        errs.push({ name, message: "versions are not same" })
-
-      urlFns.fin()
-
-  dash urlFns, ->
-    if Object.keys(errs).length > 0
-      console.log "VERSIONCHECK ERROR:", errs
-      res.status(500).end()
-    else
-      res.status(200).end()
-
-app.get "/-/version", (req, res) ->
-  res.jsonp(version:KONFIG.version)
-
 app.get "/-/jobs", (req, res) ->
 
   options =
@@ -125,15 +80,6 @@ app.post "/recaptcha", (req, res)->
       return
 
     res.send "verified"
-
-app.get "/-/presence/:service", (req, res) ->
-  # if services[service] and services[service].count > 0
-  res.status(200).end()
-  # else
-    # res.send 404
-
-# deprecated.
-# app.get '/-/services/:service', require './services-presence'
 
 app.get "/-/api/user/:username/flags/:flag", (req, res)->
   {username, flag} = req.params
@@ -364,6 +310,10 @@ app.get '*', (req,res)->
 app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
 
 
+app.get '/-/presence/:service'                  , (req, res) -> res.status(200).end()
+app.get '/-/version'                            , (req, res) -> res.jsonp version: KONFIG.version
+app.get '/-/healthCheck'                        , require './handlers/healthcheck'
+app.get '/-/versionCheck'                       , require './handlers/versioncheck'
 # redirects
 app.get '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
