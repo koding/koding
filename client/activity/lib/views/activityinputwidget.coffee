@@ -1,3 +1,4 @@
+_                       = require 'lodash'
 kd                      = require 'kd'
 KDButtonView            = kd.ButtonView
 KDCustomHTMLView        = kd.CustomHTMLView
@@ -79,9 +80,11 @@ module.exports = class ActivityInputWidget extends KDView
     return  if @locked
     return @reset yes  unless body = value.trim()
 
-    activity       = @getData()
-    {app, channel} = @getOptions()
-    payload        = @getPayload()
+    activity        = @getData()
+    {app, channel}  = @getOptions()
+    embedBoxPayload = @getEmbedBoxPayload()
+
+    payload = _.assign {}, activity?.payload, embedBoxPayload
 
     timestamp       = Date.now()
     clientRequestId = generateFakeIdentifier timestamp
@@ -169,7 +172,7 @@ module.exports = class ActivityInputWidget extends KDView
     else kd.utils.wait 8000, @bound 'unlockSubmit'
 
 
-  getPayload: -> return @embedBox.getData()
+  getEmbedBoxPayload: -> return @embedBox.getData()
 
 
   showError: (err, options = {}) ->
