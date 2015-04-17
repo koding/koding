@@ -4,7 +4,7 @@ getReferralUrl = require 'app/util/getReferralUrl'
 
 shareLinks =
   twitter  : (url)->
-    url = encodeURIComponent "#developer friends... write all your code in the cloud! sign up today for @koding & get an extra 500MB! #{url}"
+    url = encodeURIComponent "#developer friends... write all your code in the cloud! sign up today for @koding & we both get 500MB more! #{url}"
     return "https://twitter.com/intent/tweet?text=#{url}&source=koding"
 
   google   : (url)->

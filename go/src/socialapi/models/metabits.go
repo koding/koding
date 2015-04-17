@@ -3,6 +3,7 @@ package models
 const (
 	Troll MetaBits = 1 << iota
 	NeedsModeration
+	Bot
 
 	// all other bits will up be here
 

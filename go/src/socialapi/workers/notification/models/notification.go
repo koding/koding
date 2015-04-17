@@ -10,7 +10,11 @@ import (
 	"github.com/koding/bongo"
 )
 
-var ErrContentIdsNotSet = errors.New("content ids are not set")
+var (
+	ErrContentIdsNotSet     = errors.New("content ids are not set")
+	ErrAccountIdNotSet      = errors.New("account id is not set")
+	ErrGroupChannelIdNotSet = errors.New("group channel id is not set")
+)
 
 type Notification struct {
 	// unique identifier of Notification
@@ -33,6 +37,9 @@ type Notification struct {
 
 	// notification type as subscribed/unsubscribed
 	UnsubscribedAt time.Time `json:"unsubscribedAt"`
+
+	// context group channel id
+	ContextChannelId int64 `json:"contextChannelId" sql:"NOT NULL"`
 
 	SubscribeOnly bool `json:"-" sql:"-"`
 }
@@ -99,8 +106,19 @@ func (n *Notification) List(q *request.Query) (*NotificationResponse, error) {
 func (n *Notification) fetchByAccountId(q *request.Query) ([]Notification, error) {
 	var notifications []Notification
 
+	if q.GroupChannelId == 0 {
+		return nil, ErrGroupChannelIdNotSet
+	}
+
+	if q.AccountId == 0 {
+		return nil, ErrAccountIdNotSet
+	}
+
 	err := bongo.B.DB.Table(n.BongoName()).
-		Where("NOT (activated_at IS NULL OR activated_at <= '0001-01-02') AND account_id = ?", q.AccountId).
+		Where(
+		"NOT (activated_at IS NULL OR activated_at <= '0001-01-02')"+
+			"AND account_id = ?"+
+			"AND context_channel_id = ?", q.AccountId, q.GroupChannelId).
 		Order("activated_at desc").
 		Limit(q.Limit).
 		Find(&notifications).Error

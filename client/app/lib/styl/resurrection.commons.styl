@@ -2101,6 +2101,29 @@ footer.main-footer
 
 .AppModal
 
+
+  .notification
+    padding                 10px 20px
+    color                   #393939
+    font-size               14px
+    rounded                 4px
+    margin                  20px 0
+    max-width               530px
+    borderBox()
+
+    &.warning
+      bg                    color, #FDF8C3
+      border                1px solid #FFFFD7
+
+    &.error
+      bg                    color, #FC6C61
+      border                1px solid #FF776B
+      color                 #FFF
+
+    &.success
+      bg                    color, #1AAF5B
+      border                1px solid #1CC164
+
   .kdmodal-content
     overflow                hidden
     overflow                _visible
@@ -2191,6 +2214,10 @@ footer.main-footer
   noTextDeco()
   pointer()
 
+  &.disabled
+    cursor                  not-allowed
+    opacity                 .5
+
   &.selected
   &.active
     border-color            #E7E7E7
@@ -2205,7 +2232,7 @@ footer.main-footer
 .AppModal-form
   margin                    0 -12px
   padding-top               30px
-  
+
   .formline
     display                 block
     margin-bottom           25px
