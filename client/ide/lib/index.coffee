@@ -1164,7 +1164,8 @@ class IDEAppController extends AppController
     paneHash = context.paneHash or context.hash
     currentSnapshot = @getWorkspaceSnapshot()
 
-    return  if currentSnapshot[paneHash]
+    if paneInfo = currentSnapshot[paneHash]
+      return @switchToPane paneInfo
 
     { paneType } = context
 
@@ -1370,3 +1371,21 @@ class IDEAppController extends AppController
     .catch (err)->
       console.warn 'Failed to fetch snapshot', err
       callback null
+
+
+  switchToPane: (options = {}) ->
+
+    {context} = options
+
+    return  unless context
+
+    {hash} = context
+
+    @forEachSubViewInIDEViews_ (view) ->
+
+      return  unless view.hash is hash
+
+      tabPane = view.parent
+      tabView = tabPane.parent
+
+      tabView.showPane tabPane
