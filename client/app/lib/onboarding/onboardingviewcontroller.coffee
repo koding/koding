@@ -2,6 +2,7 @@ kd = require 'kd'
 KDViewController = kd.ViewController
 OnboardingItemView = require './onboardingitemview'
 OnboardingMetrics = require './onboardingmetrics'
+showNotification = require 'app/util/showNotification'
 
 
 module.exports = class OnboardingViewController extends KDViewController
@@ -36,10 +37,13 @@ module.exports = class OnboardingViewController extends KDViewController
     view.on 'NavigationRequested', (direction) =>
       @navigate direction, view.getData()
 
-    view.on ['OnboardingCompleted', 'OnboardingCancelled'], =>
-      trackedTime = new Date() - @startTrackDate
-      OnboardingMetrics.trackCompleted @groupName, 'Total', trackedTime
-      @emit 'OnboardingEnded', @slug
+    view.on 'OnboardingCompleted', @bound 'handleOnboardingEnded'
+
+    view.on 'OnboardingCancelled', =>
+      @handleOnboardingEnded()
+      showNotification 'You can access it anytime by pressing F1',
+        type     : 'main'
+        duration : 1500
 
     view.on 'OnboardingFailed', =>
       # if onboarding item can't be shown, skip it and move to the next
@@ -51,3 +55,9 @@ module.exports = class OnboardingViewController extends KDViewController
       else
         @show @items[index]
 
+
+  handleOnboardingEnded: ->
+
+    trackedTime = new Date() - @startTrackDate
+    OnboardingMetrics.trackCompleted @groupName, 'Total', trackedTime
+    @emit 'OnboardingEnded', @slug

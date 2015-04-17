@@ -11,6 +11,8 @@ OnboardingMetrics = require './onboardingmetrics'
 
 module.exports = class OnboardingItemView extends KDView
 
+  ESC_KEY = 27
+
   constructor: (options = {}, data) ->
 
     super options, data
@@ -44,18 +46,18 @@ module.exports = class OnboardingItemView extends KDView
 
   createContextMenu: ->
 
-    @overlay      = new KDSpotlightView
-      cssClass    : 'onboarding-spotlight'
-      isRemovable : no
-      delegate    : @targetElement
+    @overlay       = new KDSpotlightView
+      cssClass     : 'onboarding-spotlight'
+      isRemovable  : no
+      delegate     : @targetElement
 
-    @contextMenu       = new OnboardingContextMenu
-      cssClass         : 'onboarding-wrapper'
-      sticky           : yes
-      menuMaxWidth     : 500
-      menuWidth        : 500
-      delegate         : @targetElement
-    , customView       : @createContentView()
+    @contextMenu   = new OnboardingContextMenu
+      cssClass     : 'onboarding-wrapper'
+      sticky       : yes
+      menuMaxWidth : 500
+      menuWidth    : 500
+      delegate     : @targetElement
+    , customView   : @createContentView()
 
     @contextMenu.on 'viewAppended', =>
       @contextMenu.once 'KDObjectWillBeDestroyed', =>
@@ -63,6 +65,9 @@ module.exports = class OnboardingItemView extends KDView
 
       kd.utils.defer =>
         $('body').addClass 'noscroll'
+
+    @contextMenu.treeController.on 'keyEventPerformedOnTreeView', (event) =>
+      @cancel()  if event.which is ESC_KEY
 
 
   createContentView: ->

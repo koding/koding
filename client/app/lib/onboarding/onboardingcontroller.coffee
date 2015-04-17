@@ -19,13 +19,13 @@ module.exports = class OnboardingController extends KDController
 
     @onboardings   = {}
     @isRunning     = no
-    mainController = kd.getSingleton 'mainController'
+    { mainController, windowController } = kd.singletons
 
     if isLoggedIn() then @fetchItems()
     else
       mainController.on 'accountChanged.to.loggedIn', @bound 'fetchItems'
 
-    $(document).on 'keydown', @bound 'handleF1'
+    windowController.on 'keydown', @bound 'handleF1'
 
 
   fetchItems: ->
