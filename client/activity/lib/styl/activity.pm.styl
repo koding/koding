@@ -11,6 +11,54 @@ deleteRed  = rgba(217, 58, 55, 0.9)
 timeColor  = #d2d2d2
 timeColor2 = #5F9E5E
 
+headsHeight                = 25px
+headsBasePadding           = 5px
+headsListFontColor         = #6d6d6d
+headsListBgColor           = #fff
+headsListSelectedFontColor = #fff
+headsListSelectedBgColor   = #7a7a7a
+
+.kdcontextmenu.ParticipantHeads-moreList
+
+  padding                   headsBasePadding 0 !important
+  font-size                 14px
+
+  .kdlistview-contextmenu.default
+    background-color        headsListBgColor
+    color                   headsListFontColor
+
+  .kdlistitemview-contextitem
+    padding                 headsBasePadding headsBasePadding * 2
+    cursor                  pointer
+    borderBox()
+    cf()
+
+  .kdlistitemview-contextitem.selected
+    bg                      color headsListSelectedBgColor
+    color                   headsListSelectedFontColor
+
+  .moreList-singleItem
+    bg                      color transparent
+    border                  none
+    line-height             headsHeight
+    borderBox()
+    cf()
+
+    &:last-child
+      padding-bottom        0
+
+  .moreList-singleItemAvatar
+    float                   left
+    margin                  0 headsBasePadding * 2 0 0
+
+    .avatarview
+      display               inline-block
+      size                  headsHeight headsHeight
+
+  .moreList-singleItemText
+    overflow                hidden
+
+
 .kdlistview-collaboration
 .kdlistview-privatemessage
   opacity                   1
@@ -627,7 +675,7 @@ timeColor2 = #5F9E5E
       vertical-align      text-top
       margin              0 8px 0 0
 
-  .heads
+  .ParticipantHeads
     margin                8px 0 0 14px
     fl()
 
@@ -642,17 +690,39 @@ timeColor2 = #5F9E5E
         margin            0
         padding           0
 
-  .kdbutton.new-participant
-    margin-top          8px
-    display             block
-    size                27px, 27px
-    border              1px dashed #b2b2b2
-    rounded             3px
-    background          transparent
-    padding             0
-    text-align          center
-    line-height         26px
+  .ParticipantHeads-previewContainer
+  .ParticipantHeads-extrasContainer
+  .ParticipantHeads-newButtonContainer
+    float                 left
+
+  .ParticipantHeads-button
+    margin-right          6px
+    display               block
+    size                  27px, 27px
+    border                1px solid #b2b2b2
+    background            transparent
+    rounded               3px
+    line-height           26px
+    padding               0
+    text-align            center
     fl()
+
+  .MoreParticipantsButton-wrapper
+    margin-right        6px
+
+  .MoreParticipantsButton
+    color               #7a7a7a
+
+    &:focus
+      outline           none
+      shadow            none
+
+    &.is-moreListActive
+      // is default outline color for focus, this is to imitate it.
+      shadow            rgba(125, 190, 241, 0.701961) 0px 0px 3px 0px
+
+
+  .ParticipantHeads-button--new
 
     &.active .icon
       vendor            transform, rotate(45deg)
