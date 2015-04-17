@@ -43,10 +43,10 @@ func ValidateAccount(a *Account) error {
 }
 
 func (a *Account) IsShareLocationEnabled() bool {
-    if a.Settings == nil {
-        return false
-    }
-    shareLocation, ok := a.Settings["shareLocation"]
+	if a.Settings == nil {
+		return false
+	}
+	shareLocation, ok := a.Settings["shareLocation"]
 	if !ok || shareLocation == nil {
 		return false
 	}

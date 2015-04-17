@@ -56,7 +56,7 @@ func Create(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 		req.Payload = gorm.Hstore{}
 	}
 
-    if c.Client.Account.IsShareLocationEnabled(){
+	if c.Client.Account.IsShareLocationEnabled() {
 		// gets the IP of the Client
 		// and adds it to the payload of the ChannelMessage
 		location := parseLocation(c)
@@ -225,7 +225,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.NewDeleted()
 }
 
-func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
@@ -246,6 +246,7 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.He
 
 	req.Body = body
 	req.Payload = payload
+
 	if err := req.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}
