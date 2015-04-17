@@ -378,14 +378,16 @@ module.exports = class PrivateMessagePane extends MessagePane
 
   createParticipantsView : ->
 
-    {participantsPreview} = @getData()
+    channel = @getData()
+
+    {participantsPreview} = channel
 
     @participantsView = new KDCustomHTMLView
       cssClass    : 'chat-heads'
       partial     : '<span class="description">Chat between</span>'
 
 
-    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, @getData()
+    @participantsView.addSubView @actionsMenu = new PrivateMessageSettingsView {}, channel
 
     @forwardEvent @actionsMenu, 'LeftChannel'
 
