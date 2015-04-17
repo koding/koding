@@ -1,5 +1,5 @@
 Shortcuts      = require 'shortcuts'
-defaults       = require './config'
+defaults       = require './defaultshortcuts.coffee'
 _              = require 'lodash'
 kd             = require 'kd'
 globals        = require 'globals'

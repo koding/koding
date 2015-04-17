@@ -1,8 +1,9 @@
-workspace = require './workspace'
-activity  = require './activity'
-editor    = require './editor'
+workspace = require './defaultshortcuts/workspace'
+activity  = require './defaultshortcuts/activity'
+editor    = require './defaultshortcuts/editor'
+
 # see: https://github.com/koding/koding/pull/3396#issuecomment-93608293
-editorHidden = require './editordefaults'
+editorHidden = require './defaultshortcuts/editorhidden'
 
 workspace = workspace.map (obj) ->
   obj.options = global: true
