@@ -17,4 +17,5 @@ class Pane extends kd.View
     dups = kd.getSingleton('shortcuts').getCollisionsFlat @collection._key
 
     @collection.each (model) =>
-      item = @addSubView new Item null, model, _.includes dups, model.name
+      dup = _.includes dups, model.name
+      item = @addSubView new Item dup: dup, model

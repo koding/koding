@@ -1,13 +1,15 @@
-kd   = require 'kd'
-_    = require 'lodash'
-Pane = require './pane'
-facade = require './actions-facade'
+kd     = require 'kd'
+_      = require 'lodash'
+Pane   = require './pane'
+facade = require './facade'
 
 module.exports =
 
 class Modal extends kd.ModalViewWithForms
 
-  constructor: (options, @config) ->
+  constructor: (options, data) ->
+
+    @config = data
 
     super _.extend
 
