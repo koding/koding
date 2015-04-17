@@ -89,13 +89,6 @@ do ->
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
-process.on 'uncaughtException', (err) ->
-  console.error " ------ FIX ME ------ @gokmen"
-  console.error " there was an uncaught exception", err
-  console.error err.stack
-  console.error " ------ FIX ME ------ @gokmen"
-
-
 # this is for creating session for incoming user if it doesnt have
 app.use (req, res, next) ->
 
