@@ -91,70 +91,6 @@ if basicAuth
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
-app.get '/Verify/:token', (req, res) ->
-  { JPasswordRecovery } = koding.models
-  { token } = req.params
-
-  JPasswordRecovery.validate token, (err, callback) ->
-    return res.redirect 301, "/VerificationFailed"  if err?
-
-    res.redirect 301, "/Verified"
-
-app.post '/:name?/Register', (req, res) ->
-  { JUser } = koding.models
-  context = { group: 'koding' }
-  { redirect } = req.body
-  redirect ?= '/'
-  clientId =  getClientId req, res
-
-  return handleClientIdNotFound res, req unless clientId
-
-  clientIPAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-
-  koding.fetchClient clientId, context, (client) ->
-    # when there is an error in the fetchClient, it returns message in it
-    if client.message
-      console.error JSON.stringify {req, client}
-      return res.status(500).send client.message
-
-    client.clientIP = (clientIPAddress.split ',')[0]
-
-    JUser.convert client, req.body, (err, result) ->
-
-      if err?
-
-        {message} = err
-
-        if err.errors?
-          message = "#{message}: #{Object.keys err.errors}"
-
-        return res.status(400).send message
-
-
-      res.cookie 'clientId', result.newToken, path : '/'
-      # handle the request as an XHR response:
-      return res.status(200).end() if req.xhr
-      # handle the request with an HTTP redirect:
-      res.redirect 301, redirect
-
-app.post "/:name?/Login", (req, res) ->
-  { JUser } = koding.models
-  { username, password, redirect } = req.body
-
-  clientId =  getClientId req, res
-
-  return handleClientIdNotFound res, req unless clientId
-
-  JUser.login clientId, { username, password }, (err, info) ->
-    if err
-      return res.status(403).send err.message
-    else if not info
-      return res.status(500).send 'An error occurred'
-
-    res.cookie 'clientId', info.replacementToken, path : '/'
-    res.status(200).end()
-
-
 app.post "/Impersonate/:nickname", (req, res) ->
   { JAccount, JSession } = koding.models
   {nickname} = req.params
@@ -182,38 +118,8 @@ app.post "/Impersonate/:nickname", (req, res) ->
           res.status(200).send({success: yes})
 
 
-app.post "/:name?/Recover", (req, res) ->
-  { JPasswordRecovery } = koding.models
-  { email } = req.body
-
-  return res.status(400).send 'Invalid email!'  if not email
-
-  JPasswordRecovery.recoverPasswordByEmail { email }, (err) ->
-    return res.status(403).send err.message  if err?
-
-    res.status(200).end()
-
-app.post '/:name?/Reset', (req, res) ->
-  { JPasswordRecovery } = koding.models
-  { recoveryToken: token, password } = req.body
-
-  return res.status(400).send 'Invalid token!'  if not token
-  return res.status(400).send 'Invalid password!'  if not password
-
-  JPasswordRecovery.resetPassword token, password, (err, username) ->
-    return res.status(400).send err.message  if err?
-    res.status(200).send({ username })
-
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
-  res.redirect 301, '/'
-
-app.all "/:name?/Logout", (req, res)->
-  if req.method is 'POST'
-    res.clearCookie 'clientId'
-    res.clearCookie 'useOldKoding'
-    res.clearCookie 'koding082014'
-
   res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
@@ -534,6 +440,14 @@ app.get '*', (req,res)->
 
   res.redirect 301, redirectTo
 
+app.post '/:name?/Validate'                     , require './handlers/validate'
+app.post '/:name?/Validate/Username/:username?' , require './handlers/validateusername'
+app.post '/:name?/Validate/Email/:email?'       , require './handlers/validateemail'
+app.post '/:name?/Register'                     , require './handlers/register'
+app.post '/:name?/Login'                        , require './handlers/login'
+app.post '/:name?/Recover'                      , require './handlers/recover'
+app.post '/:name?/Reset'                        , require './handlers/reset'
+app.all '/:name?/Logout'                        , require './handlers/logout'
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
 
