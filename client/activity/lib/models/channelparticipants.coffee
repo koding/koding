@@ -77,8 +77,6 @@ module.exports = class ChannelParticipantsModel extends kd.Object
 
     return @participants  if @participants.get account._id
 
-    console.log {account}, '>>>>>>>>>>>>>>', account._id
-
     @participants = @participants.set account._id, immutable.fromJS account
 
 
