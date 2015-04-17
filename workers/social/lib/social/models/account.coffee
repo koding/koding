@@ -1399,18 +1399,18 @@ module.exports = class JAccount extends jraphical.Module
   ###
   fetchOtaToken: secure (client, callback) ->
 
-    { sessionToken, context: {user} } = client
+    { sessionToken } = client
 
     errorCallback = ->
       callback new KodingError 'Invalid session'
 
-    if not sessionToken or not user
+    unless sessionToken
       return errorCallback()
 
     JSession         = require './session'
     { v4: createId } = require 'node-uuid'
 
-    JSession.one {clientId: sessionToken, username: user}, (err, session) ->
+    JSession.one {clientId: sessionToken}, (err, session) ->
 
       if err or not session
         return errorCallback()

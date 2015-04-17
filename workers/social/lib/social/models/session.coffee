@@ -7,7 +7,7 @@ module.exports = class JSession extends Model
   @set
     indexes         :
       clientId      : 'unique'
-      otaToken      : 'unique'
+      otaToken      : 'sparse' # unique is also required
       username      : 'descending'
       clientIP      : 'sparse'
     schema          :
@@ -49,7 +49,6 @@ module.exports = class JSession extends Model
 
     JUser    = require './user'
     clientId = createId()
-    otaToken = createId()
 
     JUser.fetchGuestUser (err, resp) =>
 
@@ -61,7 +60,7 @@ module.exports = class JSession extends Model
 
       {account} = resp
       username  = JUser.createGuestUsername()
-      session   = new JSession { clientId, username, otaToken }
+      session   = new JSession { clientId, username }
 
       session.save (err)->
         if err then callback err
@@ -71,9 +70,8 @@ module.exports = class JSession extends Model
   @createNewSession = (username, callback) ->
 
     clientId = createId()
-    otaToken = createId()
 
-    session = new JSession { clientId, username, otaToken }
+    session = new JSession { clientId, username }
     session.save (err) ->
       return callback err  if err
       return callback null, session
