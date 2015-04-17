@@ -71,8 +71,8 @@ const (
 	ChannelMessagePayloadKeyLocation    = "location"
 )
 
-func (c *ChannelMessage) Location() (*string) {
-    return c.GetPayload(ChannelMessagePayloadKeyLocation)
+func (c *ChannelMessage) Location() *string {
+	return c.GetPayload(ChannelMessagePayloadKeyLocation)
 }
 
 func (c *ChannelMessage) MarkIfExempt() error {
