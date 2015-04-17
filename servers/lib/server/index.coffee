@@ -52,18 +52,15 @@ do ->
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
-app.post '/:name?/Optout', (req, res) ->
-  res.cookie 'useOldKoding', 'true'
-  res.redirect 301, '/'
 
 app.get "/humans.txt", (req, res)->
   generateHumanstxt(req, res)
 
-app.get "/-/healthCheck", (req, res) ->
-  {workers, publicPort} = KONFIG
-
   errs = []
   urls = []
+
+app.get "/-/healthCheck", (req, res) ->
+  {workers, publicPort} = KONFIG
 
   for own _, worker of workers
     urls.push worker.healthCheckURL  if worker.healthCheckURL
@@ -378,6 +375,7 @@ app.post '/:name?/Register'                     , require './handlers/register'
 app.post '/:name?/Login'                        , require './handlers/login'
 app.post '/:name?/Recover'                      , require './handlers/recover'
 app.post '/:name?/Reset'                        , require './handlers/reset'
+app.post '/:name?/Optout'                       , require './handlers/optout'
 app.post '/Impersonate/:nickname'               , require './handlers/impersonate'
 app.all '/:name?/Logout'                        , require './handlers/logout'
 # start webserver
