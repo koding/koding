@@ -28,6 +28,12 @@ func newRequest(body string, channelId int64, groupName string) *WebhookRequest 
 }
 
 func TestWebhookListen(t *testing.T) {
+func newPrepareRequest(data APIData) *PrepareRequest {
+	return &PrepareRequest{
+		Data: data,
+	}
+}
+
 	r := runner.New("test")
 	if err := r.Init(); err != nil {
 		t.Fatalf("something went wrong: %s", err)
@@ -126,5 +132,73 @@ func TestWebhookListen(t *testing.T) {
 			})
 		})
 
+	})
+}
+
+func TestWebhookPrepare(t *testing.T) {
+
+	r := runner.New("test")
+	if err := r.Init(); err != nil {
+		t.Fatalf("something went wrong: %s", err)
+	}
+	r.Log.SetLevel(logging.CRITICAL)
+
+	defer r.Close()
+	appConfig := config.MustRead(r.Conf.Path)
+	modelhelper.Initialize(appConfig.Mongo)
+
+	mc := mux.NewConfig("testing", "", "")
+	m := mux.New(mc, r.Log)
+
+	h, err := NewHandler(r.Log)
+	if err != nil {
+		t.Fatalf("Could not initialize handler: %s", err)
+	}
+
+	h.AddHandlers(m)
+
+	rand.Seed(time.Now().UTC().UnixNano())
+
+	i := webhook.CreateTestIntegration(t)
+
+	Convey("while testing incoming webhook", t, func() {
+
+		Convey("users should not be able to send any message when they don't have valid token", func() {
+			token := ""
+			integrationName := "testing"
+			s, _, _, err := h.Prepare(
+				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
+				mocking.Header(nil),
+				newPrepareRequest(APIData{}),
+			)
+			So(err.Error(), ShouldEqual, ErrTokenNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			token = "123123123"
+			integrationName = ""
+			s, _, _, err = h.Prepare(
+				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
+				mocking.Header(nil),
+				newPrepareRequest(APIData{}),
+			)
+			So(err.Error(), ShouldEqual, ErrNameNotSet.Error())
+			So(s, ShouldEqual, http.StatusBadRequest)
+
+			integrationName = "testing"
+			s, _, _, err = h.Prepare(
+				mocking.URL(m, "POST", "/webhook/"+integrationName+"/"+token),
+				mocking.Header(nil),
+				newPrepareRequest(APIData{}),
+			)
+			So(err, ShouldNotBeNil)
+			So(s, ShouldEqual, http.StatusNotFound)
+
+			s, _, _, err = h.Prepare(
+				mocking.URL(m, "POST", "/webhook/"+i.Name+"/"+token),
+				mocking.Header(nil),
+				newPrepareRequest(APIData{}),
+			)
+			So(err, ShouldBeNil)
+		})
 	})
 }

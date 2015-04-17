@@ -15,4 +15,16 @@ func (h *Handler) AddHandlers(m *mux.Mux) {
 			CollectMetrics: true,
 		},
 	)
+
+	// TODO list integrations handler
+
+	m.AddHandler(
+		handler.Request{
+			Handler:        h.Prepare,
+			Name:           "webhook-prepare",
+			Type:           handler.PostRequest,
+			Endpoint:       "/webhook/{name}/{token}",
+			CollectMetrics: true,
+		},
+	)
 }

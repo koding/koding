@@ -16,6 +16,8 @@ var (
 	ErrTokenNotSet   = errors.New("token is not set")
 	ErrGroupNotSet   = errors.New("group name is not set")
 	ErrTokenNotValid = errors.New("token is not valid")
+	ErrNameNotSet    = errors.New("name is not set")
+	ErrNameNotValid  = errors.New("name is not valid")
 )
 
 type Handler struct {
@@ -61,12 +63,24 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 	return response.NewOK(nil)
 }
 
+func (h *Handler) Prepare(u *url.URL, header http.Header, r *PrepareRequest) (int, http.Header, interface{}, error) {
+	token := u.Query().Get("token")
+	r.Token = token
+	name := u.Query().Get("name")
+	r.Name = name
 
+	if err := r.validate(); err != nil {
+		return response.NewBadRequest(err)
 	}
 
+	_, err := r.verify()
+	if err == webhook.ErrIntegrationNotFound {
+		return response.NewNotFound()
 	}
 
 	if err != nil {
+		return response.NewBadRequest(err)
 	}
 
+	return response.NewNotImplemented()
 }
