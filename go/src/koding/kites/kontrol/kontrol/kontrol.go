@@ -1,6 +1,7 @@
 package kontrol
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"koding/db/mongodb/modelhelper"
@@ -43,7 +44,7 @@ func New(c *Config) *kontrol.Kontrol {
 
 	kon := kontrol.New(kiteConf, Version, string(publicKey), string(privateKey))
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
-	kon.MachineAuthenticate = authenticateFromKodingPassword
+	kon.MachineAuthenticate = authenticateFromOneTimeToken
 
 	switch c.Storage {
 	case "etcd":
@@ -102,4 +103,29 @@ func authenticateFromKodingPassword(r *kite.Request) error {
 
 	_, err = modelhelper.CheckAndGetUser(r.Client.Kite.Username, password.MustString())
 	return err
+}
+
+func authenticateFromOneTimeToken(r *kite.Request) error {
+	var args struct {
+		Token string
+	}
+
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return err
+	}
+
+	if args.Token == "" {
+		return errors.New("token is empty")
+	}
+
+	session, err := modelhelper.GetSessionFromToken(args.Token)
+	if err != nil {
+		return nil
+	}
+
+	if session.Username != r.Client.Kite.Username {
+		return errors.New("user is not validated to use this token")
+	}
+
+	return nil
 }

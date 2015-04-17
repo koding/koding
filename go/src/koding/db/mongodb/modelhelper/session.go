@@ -10,22 +10,37 @@ import (
 	"labix.org/v2/mgo/bson"
 )
 
-func GetSession(token string) (*models.Session, error) {
+func GetSession(clientId string) (*models.Session, error) {
 	session := new(models.Session)
 
 	query := func(c *mgo.Collection) error {
-		return c.Find(bson.M{"clientId": token}).One(&session)
+		return c.Find(bson.M{"clientId": clientId}).One(&session)
 	}
 
 	err := Mongo.Run("jSessions", query)
 	if err != nil {
-		return nil, fmt.Errorf("sessionID '%s' is not validated; err: %s", token, err)
+		return nil, fmt.Errorf("sessionID '%s' is not validated; err: %s", clientId, err)
 	}
 
 	return session, nil
 }
 
-func UpdateSessionIP(token string, ip string) (error) {
+func GetSessionFromToken(token string) (*models.Session, error) {
+	session := new(models.Session)
+
+	query := func(c *mgo.Collection) error {
+		return c.Find(bson.M{"otaToken": token}).One(&session)
+	}
+
+	err := Mongo.Run("jSessions", query)
+	if err != nil {
+		return nil, fmt.Errorf("otaToken '%s' is not validated; err: %s", token, err)
+	}
+
+	return session, nil
+}
+
+func UpdateSessionIP(token string, ip string) error {
 	updateData := bson.M{
 		"clientIP": ip,
 	}
