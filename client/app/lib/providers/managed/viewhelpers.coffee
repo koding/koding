@@ -18,10 +18,11 @@ kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
              then "\n$ export KONTROLURL=#{globals.config.newkontrol.url}" else ''
 
 contents  =
-  install : """bash#{kontrolUrl}
+  install : """#{kontrolUrl}
     $ curl -sO https://s3.amazonaws.com/koding-klient/install.sh
-    $ bash ./install.sh %%TOKEN%%
+    $ bash ./install.sh
   """
+  # Add %%TOKEN%% to install instructions to enable tokens
 
 module.exports   = view =
   message        : ({text, cssClass}) -> new kd.View

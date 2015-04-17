@@ -31,7 +31,7 @@ module.exports = class ManagedVMBaseModal extends kd.ModalView
 
   viewAppended: ->
 
-    view.addTo @container, waiting: 'Generating token...'
+    view.addTo @container, waiting: ''
 
     @fetchOtaToken (err, token) =>
 
