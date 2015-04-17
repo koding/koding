@@ -50,10 +50,8 @@ class AccountEditShortcutsRow extends kd.View
 
     if dup then @setClass DUP_CLASS_NAME
 
-    @addSubViews()
 
-
-  addSubViews: ->
+  viewAppended: ->
 
     toggle = new kd.View
       cssClass : 'col'
