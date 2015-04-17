@@ -17,6 +17,8 @@ dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
 fetchAccounts                    = require 'app/util/fetchAccounts'
 
+ParticipantHeads = require './participantheads'
+ChannelParticipantsModel = require 'activity/models/channelparticipants'
 
 
 module.exports = class PrivateMessagePane extends MessagePane
@@ -391,15 +393,12 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     @forwardEvent @actionsMenu, 'LeftChannel'
 
-    @participantsView.addSubView @heads = new KDCustomHTMLView
-      cssClass    : 'heads'
+    @participantsModel = new ChannelParticipantsModel { channel }
+    @participantsView.addSubView @participantHeads = new ParticipantHeads
 
-    @addParticipant participant for participant in participantsPreview
+    @participantHeads.on 'NewParticipantButtonClicked', @bound 'toggleAutoCompleteInput'
 
-    @participantsView.addSubView @newParticipantButton = new KDButtonView
-      cssClass    : 'new-participant'
-      iconOnly    : yes
-      callback    : @bound 'toggleAutoCompleteInput'
+    @participantsModel.addChangeListener @participantHeads.bound 'updateParticipants'
 
 
   toggleAutoCompleteInput: ->
@@ -407,7 +406,6 @@ module.exports = class PrivateMessagePane extends MessagePane
     @emit 'NewParticipantButtonClicked'
 
     @autoCompleteForm.toggleClass 'active'
-    @newParticipantButton.toggleClass 'active'
     @autoComplete.getView().setFocus()  if @autoCompleteForm.hasClass 'active'
 
 
@@ -434,7 +432,9 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     @autoCompleteForm.inputs.recipient.addSubView @autoComplete.getView()
 
-    @autoComplete.on 'ItemSelected', @bound 'toggleAutoCompleteInput'
+    @autoComplete.on 'ItemSelected', =>
+      @participantHeads.resetNewButtonState()
+      @toggleAutoCompleteInput()
 
     @autoComplete.on 'ItemListChanged', (count) =>
       participant  = @autoComplete.getSelectedItemData()[count - 1]
