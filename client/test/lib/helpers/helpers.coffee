@@ -291,6 +291,7 @@ module.exports =
     webSelector   = "span[title='" + webPath + "']"
 
     browser
+      .pause                   5000 # wait for filetree load
       .waitForElementVisible   '.vm-header', 50000
       .click                   '.vm-header .buttons'
       .waitForElementPresent   '.context-list-wrapper', 50000

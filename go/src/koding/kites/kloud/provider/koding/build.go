@@ -27,8 +27,6 @@ import (
 const (
 	DefaultKloudSubnetValue = "kloud-subnet-*"
 	DefaultKloudKeyName     = "Kloud"
-	DefaultApachePort       = 80
-	DefaultKitePort         = 3000
 )
 
 var (
@@ -149,10 +147,10 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 			m.Meta.InstanceId, m.QueryString)
 	}
 
-	m.push("Checking build process", 50, machinestate.Building)
+	m.push("Checking build process", 40, machinestate.Building)
 	m.Log.Debug("Checking build process of instanceId '%s'", m.Meta.InstanceId)
 
-	instance, err := m.Session.AWSClient.CheckBuild(m.Meta.InstanceId, 50, 70)
+	instance, err := m.Session.AWSClient.CheckBuild(ctx, m.Meta.InstanceId, 50, 70)
 	if err == amazon.ErrInstanceTerminated || err == amazon.ErrNoInstances {
 		// reset the stored instance id and query string. They will be updated again the next time.
 		m.Log.Warning("machine with instance id '%s' has a problem '%s'. Building a new machine",
@@ -205,7 +203,7 @@ func (m *Machine) Build(ctx context.Context) (err error) {
 	m.push("Adding and setting up domains and tags", 70, machinestate.Building)
 	m.addDomainAndTags()
 
-	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 90, machinestate.Building)
+	m.push(fmt.Sprintf("Checking klient connection '%s'", m.IpAddress), 80, machinestate.Building)
 	if !m.isKlientReady() {
 		return errors.New("klient is not ready")
 	}
@@ -385,12 +383,13 @@ func (m *Machine) buildData(ctx context.Context) (*BuildData, error) {
 	}
 
 	cloudInitConfig := &userdata.CloudInitConfig{
-		Username:    m.Username,
-		UserSSHKeys: sshKeys,
-		Hostname:    m.Username, // no typo here. hostname = username
-		ApachePort:  DefaultApachePort,
-		KitePort:    DefaultKitePort,
-		KiteId:      kiteId,
+		Username:           m.Username,
+		Groups:             []string{"docker", "sudo"},
+		UserSSHKeys:        sshKeys,
+		Hostname:           m.Username, // no typo here. hostname = username
+		KiteId:             kiteId,
+		DisableEC2MetaData: true,
+		KodingSetup:        true,
 	}
 
 	userdata, err := m.Session.Userdata.Create(cloudInitConfig)

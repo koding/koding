@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"socialapi/config"
 	"socialapi/workers/common/mux"
-	"socialapi/workers/integration/webhook"
+	"socialapi/workers/integration/webhook/api"
 
 	"github.com/koding/runner"
 )
@@ -26,7 +26,7 @@ func main() {
 	m := mux.New(mc, r.Log)
 	m.Metrics = r.Metrics
 
-	h := webhook.NewHandler(r.Log)
+	h := api.NewHandler(r.Log)
 	h.AddHandlers(m)
 
 	go r.Listen()

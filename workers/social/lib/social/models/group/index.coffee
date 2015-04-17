@@ -916,7 +916,13 @@ module.exports = class JGroup extends Module
         if err then callback err
         else policy.update $set: formData, callback
 
-  canEditGroup: permit 'grant permissions'
+
+  canEditGroup: permit 'grant permissions',
+    success: (client, callback)->
+      callback null, yes
+    failure: (client, callback)->
+      callback null, no
+
 
   @canReadGroupActivity = permit 'read group activity'
   canReadGroupActivity  : permit 'read group activity'
