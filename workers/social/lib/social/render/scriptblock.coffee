@@ -1,22 +1,22 @@
-{dash} = require 'bongo'
-
 module.exports = (options = {}, callback)->
+
+  {dash}  = require 'bongo'
   encoder = require 'htmlencode'
+  {argv}  = require 'optimist'
 
   options.client               or= {}
   options.client.context       or= {}
   options.client.context.group or= "koding"
   options.client.connection    or= {}
 
-  {argv} = require 'optimist'
 
-  prefetchedFeeds  = null
-  socialapidata    = null
-  currentGroup     = null
-  userMachines     = null
-  userWorkspaces   = null
+  prefetchedFeeds     = null
+  socialapidata       = null
+  currentGroup        = null
+  userMachines        = null
+  userWorkspaces      = null
   userEnvironmentData = null
-  userId = null
+  userId              = null
 
   {bongoModels, client, slug} = options
 
