@@ -23,6 +23,8 @@ module.exports =
 
   endSessionFromChat: (browser) ->
 
+    return browser.end()
+
     collaborationHelpers.startSession(browser)
     collaborationHelpers.endSessionFromChat(browser)
     browser.end()
