@@ -231,14 +231,6 @@ app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
-app.get "/-/auth/check/:key", (req, res)->
-  {key} = req.params
-
-  {JKodingKey} = koding.models
-  JKodingKey.checkKey {key}, (err, status)=>
-    return res.status(401).send authTemplate "Key doesn't exist" unless status
-    res.status(200).send {result: 'key is added successfully'}
-
 app.post "/-/support/new", bodyParser.json(), (req, res)->
 
   isLoggedIn req, res, (err, loggedIn, account)->
