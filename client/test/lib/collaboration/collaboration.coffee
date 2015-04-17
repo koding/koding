@@ -14,6 +14,8 @@ module.exports =
 
   endSessionFromStatusBar: (browser) ->
 
+    return browser.end()
+
     collaborationHelpers.startSession(browser)
     collaborationHelpers.endSessionFromStatusBar(browser)
     browser.end()
