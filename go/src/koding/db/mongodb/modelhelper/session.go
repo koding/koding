@@ -46,7 +46,7 @@ func RemoveToken(clientId string) error {
 	}
 
 	query := func(c *mgo.Collection) error {
-		return c.Update(bson.M{"clientId": clientId}, bson.M{"$set": updateData})
+		return c.Update(bson.M{"clientId": clientId}, bson.M{"$unset": updateData})
 	}
 
 	err := Mongo.Run("jSessions", query)
