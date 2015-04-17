@@ -40,6 +40,23 @@ func GetSessionFromToken(token string) (*models.Session, error) {
 	return session, nil
 }
 
+func RemoveToken(clientId string) error {
+	updateData := bson.M{
+		"otaToken": "",
+	}
+
+	query := func(c *mgo.Collection) error {
+		return c.Update(bson.M{"clientId": clientId}, bson.M{"$set": updateData})
+	}
+
+	err := Mongo.Run("jSessions", query)
+	if err != nil {
+		return fmt.Errorf("failed to remove the ota token for sessionID '%s'; err: %s", clientId, err)
+	}
+
+	return nil
+}
+
 func UpdateSessionIP(token string, ip string) error {
 	updateData := bson.M{
 		"clientIP": ip,

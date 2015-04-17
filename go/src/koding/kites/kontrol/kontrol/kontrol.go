@@ -128,8 +128,8 @@ func authenticateFromOneTimeToken(r *kite.Request) error {
 	}
 
 	// everything seems to be ok, try to delete the token before we return an
-	// OK
-	panic("implement removing the token")
+	// OK. Don't return the error, because we already validated the user.
+	modelhelper.RemoveToken(session.ClientId)
 
 	return nil
 }
