@@ -7,12 +7,14 @@ module.exports = class JSession extends Model
   @set
     indexes         :
       clientId      : 'unique'
+      otaToken      : 'unique'
       username      : 'descending'
       clientIP      : 'sparse'
     schema          :
       clientId      : String
       clientIP      : String
       username      : String
+      otaToken      : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
@@ -45,8 +47,9 @@ module.exports = class JSession extends Model
   # TODO not sure why we are creating session only for guest user
   @createSession = (callback) ->
 
-    JUser = require './user'
+    JUser    = require './user'
     clientId = createId()
+    otaToken = createId()
 
     JUser.fetchGuestUser (err, resp) =>
 
@@ -58,7 +61,7 @@ module.exports = class JSession extends Model
 
       {account} = resp
       username  = JUser.createGuestUsername()
-      session   = new JSession { clientId, username }
+      session   = new JSession { clientId, username, otaToken }
 
       session.save (err)->
         if err then callback err
@@ -66,9 +69,11 @@ module.exports = class JSession extends Model
 
 
   @createNewSession = (username, callback) ->
-    clientId = createId()
 
-    session = new JSession { clientId, username }
+    clientId = createId()
+    otaToken = createId()
+
+    session = new JSession { clientId, username, otaToken }
     session.save (err) ->
       return callback err  if err
       return callback null, session
