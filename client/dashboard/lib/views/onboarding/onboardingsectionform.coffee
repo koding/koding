@@ -10,19 +10,23 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
 
   constructor: (options = {}, data) ->
 
-    apps = []
-    apps.push { title: app, value: app }  for app of globals.config.apps
+    groups = [
+      title: 'IDE', value: 'IDE'
+    ]
 
     options.cssClass      = "section-form"
     @jCustomPartial       = data
     formData              = data?.partial or {}
     options.fields        =
-      name                :
-        placeholder       : "Name of your set"
-        name              : "name"
-        cssClass          : "thin"
-        label             : "Name"
-        defaultValue      : data?.name or ""
+      type                :
+        name              : "type"
+        label             : "Type"
+        type              : 'hidden'
+        nextElement       :
+          type            :
+            itemClass     : KDSelectBox
+            defaultValue  : data?.name
+            selectOptions : groups
 
     options.buttons       =
       Save                :
@@ -45,7 +49,7 @@ module.exports = class OnboardingSectionForm extends KDFormViewWithFields
         visibility    : no
         overlay       : yes
         items         : @jCustomPartial?.partial.items   or []
-      name            : @inputs.name.getValue()          or ""
+      name            : @inputs.type.getValue()          or ""
       viewInstance    : @jCustomPartial?.viewInstance    or ""
       isActive        : @jCustomPartial?.isActive        or no
       isPreview       : @jCustomPartial?.isPreview       or no
