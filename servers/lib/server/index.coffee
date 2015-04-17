@@ -52,33 +52,6 @@ do ->
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
-app.post "/Impersonate/:nickname", (req, res) ->
-  { JAccount, JSession } = koding.models
-  {nickname} = req.params
-
-  {clientId} = req.cookies
-
-  JSession.fetchSession clientId, (err, result)->
-    return res.status(400).end()  if err or not result
-
-    { username } = result.session
-    JAccount.one { "profile.nickname" : username }, (err, account) ->
-      return res.status(400).end()  if err or not account
-
-      unless account.can 'administer accounts'
-        return res.status(403).end()
-
-      JSession.createNewSession nickname, (err, session) ->
-        return res.status(400).send err.message  if err
-
-        JSession.remove {clientId}, (err) ->
-          console.error 'Could not remove session:', err  if err
-
-          res.cookie 'clientId', session.clientId, path : '/'  if session.clientId
-          res.clearCookie 'realtimeToken'
-          res.status(200).send({success: yes})
-
-
 app.post '/:name?/Optout', (req, res) ->
   res.cookie 'useOldKoding', 'true'
   res.redirect 301, '/'
@@ -412,6 +385,7 @@ app.post '/:name?/Register'                     , require './handlers/register'
 app.post '/:name?/Login'                        , require './handlers/login'
 app.post '/:name?/Recover'                      , require './handlers/recover'
 app.post '/:name?/Reset'                        , require './handlers/reset'
+app.post '/Impersonate/:nickname'               , require './handlers/impersonate'
 app.all '/:name?/Logout'                        , require './handlers/logout'
 # start webserver
 app.listen webPort
