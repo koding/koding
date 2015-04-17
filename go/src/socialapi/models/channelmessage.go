@@ -68,7 +68,9 @@ const (
 	ChannelMessage_TYPE_JOIN            = "join"
 	ChannelMessage_TYPE_LEAVE           = "leave"
 	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
-	ChannelMessagePayloadKeyLocation    = "location"
+	ChannelMessage_TYPE_BOT             = "bot"
+
+	ChannelMessagePayloadKeyLocation = "location"
 )
 
 func (c *ChannelMessage) Location() *string {

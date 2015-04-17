@@ -41,7 +41,7 @@ func (b *Bot) createMessage(m *Message) (*models.ChannelMessage, error) {
 	cm.AccountId = b.account.Id
 	cm.InitialChannelId = m.ChannelId
 	cm.Body = m.Body
-	cm.TypeConstant = models.ChannelMessage_TYPE_POST
+	cm.TypeConstant = models.ChannelMessage_TYPE_BOT
 	tid := strconv.FormatInt(m.ChannelIntegrationId, 10)
 	cm.SetPayload("channelIntegrationId", tid)
 

@@ -56,6 +56,7 @@ func TestSendMessage(t *testing.T) {
 			So(m.Body, ShouldEqual, message.Body)
 			So(m.InitialChannelId, ShouldEqual, message.ChannelId)
 			So(m.AccountId, ShouldEqual, bot.account.Id)
+			So(m.TypeConstant, ShouldEqual, models.ChannelMessage_TYPE_BOT)
 			So(*(m.GetPayload("channelIntegrationId")), ShouldEqual, "13")
 
 		})

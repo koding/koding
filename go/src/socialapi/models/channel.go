@@ -65,6 +65,7 @@ const (
 	Channel_TYPE_PINNED_ACTIVITY = "pinnedactivity"
 	Channel_TYPE_PRIVATE_MESSAGE = "privatemessage"
 	Channel_TYPE_COLLABORATION   = "collaboration"
+	Channel_TYPE_BOT             = "bot"
 	Channel_TYPE_DEFAULT         = "default"
 	// Privacy
 	Channel_PRIVACY_PUBLIC  = "public"
