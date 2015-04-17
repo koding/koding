@@ -14,11 +14,13 @@ import (
 
 	"koding/artifact"
 	"koding/db/mongodb/modelhelper"
+	"koding/kites/common"
 	"koding/kites/kloud/contexthelper/publickeys"
 	"koding/kites/kloud/dnsstorage"
 	"koding/kites/kloud/pkg/dnsclient"
 	"koding/kites/kloud/pkg/multiec2"
 	"koding/kites/kloud/plans"
+	awsprovider "koding/kites/kloud/provider/aws"
 	"koding/kites/kloud/provider/koding"
 	"koding/kites/kloud/userdata"
 
@@ -28,8 +30,6 @@ import (
 
 	"github.com/koding/kite"
 	kiteconfig "github.com/koding/kite/config"
-	"github.com/koding/logging"
-	"github.com/koding/metrics"
 	"github.com/koding/multiconfig"
 	"github.com/mitchellh/goamz/aws"
 )
@@ -171,10 +171,20 @@ func newKite(conf *Config) *kite.Kite {
 
 	dnsInstance := dnsclient.NewRoute53Client(conf.HostedZone, auth)
 	dnsStorage := dnsstorage.NewMongodbStorage(db)
+	userdata := &userdata.Userdata{
+		Keycreator: &keycreator.Key{
+			KontrolURL:        getKontrolURL(conf.KontrolURL),
+			KontrolPrivateKey: kontrolPrivateKey,
+			KontrolPublicKey:  kontrolPublicKey,
+		},
+		Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
+	}
+
+	/// KODING PROVIDER ///
 
 	kodingProvider := &koding.Provider{
 		DB:         db,
-		Log:        newLogger("kloud", conf.DebugMode),
+		Log:        common.NewLogger("kloud-koding", conf.DebugMode),
 		DNSClient:  dnsInstance,
 		DNSStorage: dnsStorage,
 		Kite:       k,
@@ -184,14 +194,7 @@ func newKite(conf *Config) *kite.Kite {
 			"us-west-2",
 			"eu-west-1",
 		}),
-		Userdata: &userdata.Userdata{
-			Keycreator: &keycreator.Key{
-				KontrolURL:        getKontrolURL(conf.KontrolURL),
-				KontrolPrivateKey: kontrolPrivateKey,
-				KontrolPublicKey:  kontrolPublicKey,
-			},
-			Bucket: userdata.NewBucket("koding-klient", klientFolder, auth),
-		},
+		Userdata: userdata,
 		PaymentFetcher: &plans.Payment{
 			PaymentEndpoint: conf.PlanEndpoint,
 		},
@@ -203,10 +206,19 @@ func newKite(conf *Config) *kite.Kite {
 	go kodingProvider.RunChecker(checkInterval)
 	go kodingProvider.RunCleaners(time.Minute * 60)
 
-	stats, err := metrics.NewDogStatsD("kloud")
-	if err != nil {
-		panic(err)
+	/// AWS PROVIDER ///
+
+	awsProvider := &awsprovider.Provider{
+		DB:         db,
+		Log:        common.NewLogger("kloud-aws", conf.DebugMode),
+		DNSClient:  dnsInstance,
+		DNSStorage: dnsStorage,
+		Kite:       k,
+		Userdata:   userdata,
 	}
+
+	// KLOUD DISPATCHER ///
+	stats := common.MustInitMetrics(Name)
 
 	kld := kloud.New()
 	kld.Metrics = stats
@@ -214,9 +226,14 @@ func newKite(conf *Config) *kite.Kite {
 	kld.DomainStorage = dnsStorage
 	kld.Domainer = dnsInstance
 	kld.Locker = kodingProvider
-	kld.Log = newLogger(Name, conf.DebugMode)
+	kld.Log = common.NewLogger(Name, conf.DebugMode)
 
-	err = kld.AddProvider("koding", kodingProvider)
+	err := kld.AddProvider("koding", kodingProvider)
+	if err != nil {
+		panic(err)
+	}
+
+	err = kld.AddProvider("amazon", awsProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -254,20 +271,6 @@ func newKite(conf *Config) *kite.Kite {
 	}
 
 	return k
-}
-
-func newLogger(name string, debug bool) logging.Logger {
-	log := logging.NewLogger(name)
-	logHandler := logging.NewWriterHandler(os.Stderr)
-	logHandler.Colorize = true
-	log.SetHandler(logHandler)
-
-	if debug {
-		log.SetLevel(logging.DEBUG)
-		logHandler.SetLevel(logging.DEBUG)
-	}
-
-	return log
 }
 
 func kontrolKeys(conf *Config) (string, string) {

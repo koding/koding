@@ -1,16 +1,17 @@
-kd                   = require 'kd'
-KDView               = kd.View
-Machine              = require './machine'
-showError            = require 'app/util/showError'
-KodingSwitch         = require '../commonviews/kodingswitch'
-KDLoaderView         = kd.LoaderView
-CustomLinkView       = require '../customlinkview'
-KDCustomHTMLView     = kd.CustomHTMLView
-KDHitEnterInputView  = kd.HitEnterInputView
-KDFormViewWithFields = kd.FormViewWithFields
+kd                     = require 'kd'
+KDView                 = kd.View
+Machine                = require './machine'
+showError              = require 'app/util/showError'
+KodingSwitch           = require '../commonviews/kodingswitch'
+KDLoaderView           = kd.LoaderView
+CustomLinkView         = require '../customlinkview'
+KDCustomHTMLView       = kd.CustomHTMLView
+KDHitEnterInputView    = kd.HitEnterInputView
+KDFormViewWithFields   = kd.FormViewWithFields
+ComputeErrorUsageModal = require './computeerrorusagemodal'
 
 
-module.exports = class MachineGeneralSettingsView extends KDView
+module.exports = class MachineSettingsGeneralView extends KDView
 
   { Running, Starting } = Machine.State
 
@@ -33,6 +34,26 @@ module.exports = class MachineGeneralSettingsView extends KDView
     kd.singletons.computeController[method] @machine
 
     @emit 'ModalDestroyRequested'
+
+
+  handleAlwaysOnStateChanged: (state) ->
+
+    { alwaysOn } = @form.inputs
+    { computeController } = kd.singletons
+
+    computeController.fetchUserPlan (plan) =>
+
+      computeController.setAlwaysOn @machine, state, (err) =>
+
+        return  unless err
+
+        if err.name is 'UsageLimitReached' and plan isnt 'hobbyist'
+          @emit 'ModalDestroyRequested'
+          kd.utils.defer => new ComputeErrorUsageModal { plan }
+        else
+          showError err
+
+        alwaysOn.setOff no
 
 
   handleNicknameUpdate: ->
@@ -130,6 +151,13 @@ module.exports = class MachineGeneralSettingsView extends KDView
               loaderOptions :
                 color   : '#333333'
               showLoader: yes
+        alwaysOn        :
+          label         : 'Keep VM always on'
+          defaultValue  : @machine.alwaysOn
+          itemClass     : KodingSwitch
+          cssClass      : 'statustoggle'
+          disabled      : @machine.isPermanent()
+          callback      : @bound 'handleAlwaysOnStateChanged'
         nickname        :
           label         : 'Nickname'
           cssClass      : 'custom-link-view'

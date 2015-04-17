@@ -14,9 +14,7 @@ openNewTerminalMenu = (browser) ->
     .moveToElement           '.context-list-wrapper li.new-terminal', 25, 20
 
 
-createTerminalSession = (browser, user) ->
-
-  userName = user.username
+openTerminal = (browser) ->
 
   openNewTerminalMenu(browser)
 
@@ -25,10 +23,25 @@ createTerminalSession = (browser, user) ->
     .moveToElement           'li.new-session', 25, 20
     .click                   'li.new-session'
     .pause 6000 # required
-    .waitForElementVisible   paneSelector + ' .terminal:not(.active)',20000 # Assertion
-    .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
-    .pause 6000 # required
-    .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
+
+
+createTerminalSession = (browser, user) ->
+
+  userName                   = user.username
+  notActiveTerminalSelector  = paneSelector + ' .terminal:not(.active)'
+  terminalTextAssertSelector = '.application-tabview .terminal.active .terminal-pane'
+
+  openTerminal(browser)
+
+  browser.element 'css selector', notActiveTerminalSelector, (result) =>
+    if result.status isnt 0
+      openTerminal(browser)
+
+    browser
+      .waitForElementVisible   notActiveTerminalSelector, 20000 # Assertion
+      .waitForElementVisible   paneSelector + ' .terminal.active', 20000 # Assertion
+      .pause 6000 # required
+      .assert.containsText     terminalTextAssertSelector, userName # Assertion
 
 
 terminateAll = (browser) ->
@@ -69,33 +82,9 @@ module.exports =
     browser.end()
 
 
-  openOldTerminalSession: (browser) ->
-
-    openSelector    = '.context-list-wrapper li.new-terminal + ul li + ul li.open:first-child'
-    elementSelector = '.context-list-wrapper li.new-terminal + ul li.has-sub-items:not(.disabled)'
-    user            = helpers.beginTest(browser)
-    userName        = user.username
-
-    helpers.waitForVMRunning(browser)
-
-    createTerminalSession(browser, user)
-
-    openNewTerminalMenu(browser)
-
-    browser
-      .waitForElementVisible   elementSelector, 20000
-      .moveToElement           elementSelector, 25, 20
-      .pause  2000 # required
-      .waitForElementVisible   openSelector, 200000
-      .moveToElement           openSelector, 25, 20
-      .click                   openSelector
-      .pause 6000 # required
-      .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
-      .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
-      .end()
-
-
   terminateSession: (browser) ->
+
+    return browser.end()
 
     helpers.beginTest(browser)
     helpers.waitForVMRunning(browser)
@@ -129,3 +118,30 @@ module.exports =
             assert.equal(result.value.indexOf(sessionId), -1)
 
             browser.end()
+
+
+  # this test is deprecated with persistent storage
+  # openOldTerminalSession: (browser) ->
+
+  #   openSelector    = '.context-list-wrapper li.new-terminal + ul li + ul li.open:first-child'
+  #   elementSelector = '.context-list-wrapper li.new-terminal + ul li.has-sub-items:not(.disabled)'
+  #   user            = helpers.beginTest(browser)
+  #   userName        = user.username
+
+  #   helpers.waitForVMRunning(browser)
+
+  #   createTerminalSession(browser, user)
+
+  #   openNewTerminalMenu(browser)
+
+  #   browser
+  #     .waitForElementVisible   elementSelector, 20000
+  #     .moveToElement           elementSelector, 25, 20
+  #     .pause  2000 # required
+  #     .waitForElementVisible   openSelector, 200000
+  #     .moveToElement           openSelector, 25, 20
+  #     .click                   openSelector
+  #     .pause 6000 # required
+  #     .waitForElementVisible   paneSelector + ' .terminal.active',20000 # Assertion
+  #     .assert.containsText     '.application-tabview .terminal.active .terminal-pane', userName # Assertion
+  #     .end()

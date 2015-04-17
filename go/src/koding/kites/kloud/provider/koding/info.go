@@ -99,7 +99,7 @@ func (m *Machine) Info(ctx context.Context) (map[string]string, error) {
 	// The machine is still available in AWS but it's been marked as
 	// Terminated. Because we still have the machine document, mark it as
 	// NotInitialized so the user can build again.
-	if resultState == machinestate.Terminated {
+	if resultState == machinestate.Terminated || resultState == machinestate.Terminating {
 		resultState = machinestate.NotInitialized
 		if err := m.markAsNotInitialized(); err != nil {
 			return nil, err

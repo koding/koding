@@ -137,37 +137,104 @@ module.exports = class KodingKite_KlientKite extends require('../kodingkite')
       @syncSessionsWithLocalStorage()
 
 
+  storageSet: (key, value) ->
 
-  getLocalStorage = ->
+    if not key or not value
+      return  Promise.reject 'key and value required'
 
-    return kd.singletons.localStorageController.storage 'Klient', '1.0'
+    value = (JSON.stringify value) or ''
 
-  setActiveSessions = (sessions)->
+    @tell 'storage.set', {key, value}
 
-    getLocalStorage().setValue 'activeSessions', sessions
+  # Queueing is required for client side calls to get requests
+  # in order correctly. So if you need to set different value
+  # for the same key all the time it's better to use this
+  # setter instead of ::storageSet ~ GG
+
+  # Detailed explanation can be found at
+  # https://github.com/koding/koding/pull/3372#discussion_r28312666
+
+  storageSetQueued: do (queue = []) ->
+
+    locked = no
+
+    (key, value) ->
+
+      if not key or not value
+        return  Promise.reject 'key and value required'
+
+      value = (JSON.stringify value) or ''
+
+      consume = =>
+
+        return  if queue.length is 0 or locked
+        locked = yes
+
+        {key, value, resolve, reject} = queue.shift()
+
+        @tell 'storage.set', {key, value}
+
+          .then (res) ->
+            locked = no
+            consume()
+            resolve res
+
+          .catch (err) ->
+            locked = no
+            consume()
+            reject err
+
+      new Promise (resolve, reject) ->
+        queue.push {key, value, resolve, reject}
+        consume()  if queue.length is 1
+
+
+  storageGet: (key) ->
+
+    return  Promise.reject 'key required'  unless key
+
+    @tell 'storage.get', {key}
+
+    .then (value)->
+      try value = JSON.parse value
+      return value
+    .catch (err)->
+      return null
+
+
+  storageDelete: (key)->
+
+    return  Promise.reject 'key required'  unless key
+
+    @tell 'storage.delete', {key}
+
+
+  setActiveSessions: (sessions)->
+    @storageSet 'activeSessions', sessions
 
 
   getActiveSessions: ->
 
-    return (getLocalStorage().getValue 'activeSessions') ? []
+    @storageGet 'activeSessions'
+    .then (sessions)-> sessions or []
+    .catch          -> []
 
 
   syncSessionsWithLocalStorage: ->
 
-    setActiveSessions @getActiveSessions().filter (session)=>
-      session in @terminalSessions
+    @getActiveSessions().then (sessions) =>
+      @setActiveSessions sessions.filter (session) =>
+        session in @terminalSessions
 
 
   addToActiveSessions: (session)->
 
-    activeSessions = @getActiveSessions()
-    activeSessions.push session  unless session in activeSessions
-
-    setActiveSessions activeSessions
+    @getActiveSessions().then (activeSessions) =>
+      activeSessions.push session  unless session in activeSessions
+      @setActiveSessions activeSessions
 
 
   removeFromActiveSessions: (session)->
 
-    activeSessions = @getActiveSessions().filter (old)-> session isnt old
-
-    setActiveSessions activeSessions
+    @getActiveSessions().then (sessions) =>
+      @setActiveSessions sessions.filter (old)-> session isnt old

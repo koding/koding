@@ -213,6 +213,10 @@ func (c *ChannelParticipant) List(q *request.Query) ([]ChannelParticipant, error
 		query.Sort = q.Sort
 	}
 
+	if q.Skip > 0 {
+		query.Pagination.Skip = q.Skip
+	}
+
 	// add filter for troll content
 	query.AddScope(RemoveTrollContent(c, q.ShowExempt))
 

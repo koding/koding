@@ -48,6 +48,8 @@ type (
 
 		GoogleapiServiceAccount GoogleapiServiceAccount
 
+		Geoipdbpath string
+
 		DisabledFeatures DisabledFeatures
 	}
 

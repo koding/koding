@@ -3,6 +3,7 @@ package rest
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"socialapi/models"
 )
 
@@ -15,7 +16,15 @@ func CreatePostWithBody(channelId, accountId int64, body string) (*models.Channe
 	cm.Body = body
 	cm.AccountId = accountId
 
-	return createPostRequest(channelId, cm)
+	return createPostRequest(channelId, cm, http.Header{})
+}
+
+func CreatePostWithHeader(channelId, accountId int64, header http.Header) (*models.ChannelMessage, error) {
+	cm := models.NewChannelMessage()
+	cm.Body = "Text1Text2"
+	cm.AccountId = accountId
+
+	return createPostRequest(channelId, cm, header)
 }
 
 func GetPost(id int64, accountId int64, groupName string) (*models.ChannelMessage, error) {
@@ -68,12 +77,12 @@ func CreatePostWithPayload(channelId, accountId int64, payload map[string]interf
 	pr.AccountId = accountId
 	pr.Payload = payload
 
-	return createPostRequest(channelId, pr)
+	return createPostRequest(channelId, pr, http.Header{})
 }
 
-func createPostRequest(channelId int64, model interface{}) (*models.ChannelMessage, error) {
+func createPostRequest(channelId int64, model interface{}, h http.Header) (*models.ChannelMessage, error) {
 	url := fmt.Sprintf("/channel/%d/message", channelId)
-	res, err := marshallAndSendRequest("POST", url, model)
+	res, err := marshallAndSendRequestWithHeader("POST", url, model, h)
 	if err != nil {
 		return nil, err
 	}

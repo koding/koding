@@ -133,3 +133,4 @@ module.exports = class Machine extends KDObject
   isApproved  : -> @isMine() or @_ruleChecker ['approved']
   isPermanent : -> @_ruleChecker ['permanent']
   isManaged   : -> @provider is 'managed'
+  isRunning   : -> @status.state is Machine.State.Running
