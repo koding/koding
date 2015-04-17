@@ -72,11 +72,7 @@ func (c *ChannelMessage) Update() error {
 	}
 
 	cm.Body = c.Body
-	location := cm.Location()
 	cm.Payload = c.Payload
-	if location != nil {
-		cm.SetPayload(ChannelMessagePayloadKeyLocation, *location)
-	}
 
 	return bongo.B.Update(cm)
 

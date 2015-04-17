@@ -225,7 +225,7 @@ func Delete(u *url.URL, h http.Header, _ interface{}) (int, http.Header, interfa
 	return response.NewDeleted()
 }
 
-func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Context) (int, http.Header, interface{}, error) {
+func Update(u *url.URL, h http.Header, req *models.ChannelMessage) (int, http.Header, interface{}, error) {
 	id, err := request.GetURIInt64(u, "id")
 	if err != nil {
 		return response.NewBadRequest(err)
