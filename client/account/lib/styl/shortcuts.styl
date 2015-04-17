@@ -1,164 +1,153 @@
-.shortcuts-modal
+.AppModal--account .shortcuts
 
-  &.kdmodal .kdmodal-inner
-    .kdmodal-title
-      margin-top 22px
+  .toggle
+    size 24px 22px
+    background transparent
+    shadow none
+    outline none
+    rounded 3px
+    border none
+    margin 0
+    padding 0
+    padding-left 16px
+    cursor pointer
+    borderBox()
 
-      span.title
-        font-size 22px !important
+    .icon
+      r-sprite        activity 'check-gray'
+      margin          0 6px 0 0
+      padding         0
+      fr()
 
-    .toggle
-      size 24px 22px
-      background transparent
-      shadow none
-      outline none
-      rounded 3px
-      border none
-      margin 0
-      padding 0
-      padding-left 16px
-      cursor pointer
-      borderBox()
+    .button-title
+      hidden()
 
-      .icon
-        r-sprite        activity 'check-gray'
-        margin          0 6px 0 0
-        padding         0
-        fr()
+  .enabled .toggle .icon
+    r-sprite activity 'check-green'
 
-      .button-title
-        hidden()
+  button.restore
+    margin-top 20px
+    float left
+    height 27px
+    padding-left 8px
+    padding-right 8px
+    margin-left 0
+    background-color transparent
+    border 1px solid #ccc
 
-    .enabled .toggle .icon
-      r-sprite activity 'check-green'
+    span.button-title
+      font-size 1em
+      letter-spacing .02em
+      line-height 0px !important
+      color #aaa
 
-    .kdmodal-buttons
-      margin-top 6px !important
+    &:hover
+      background-color #bbb
+      border 1px solid #bbb
 
-      .restore
+      span.button-title
+        color #fff
+
+  div.instructions
+    margin-bottom 18px
+    margin-top 6px
+    font-size 14px
+    color rgb(120, 120, 120)
+
+  .kdtabpaneview
+    background transparent !important
+    height 400px !important
+    overflow scroll !important
+
+    div.row
+      width 100% !important
+      clear both
+      border-bottom 1px solid #e0e0e0
+      height 30px
+      padding 8px 0px
+
+      &:hover
+        background-color #fff
+
+      &.active
+        background-color #ffd
+
+      .col
+        display table-column
+        width 45%
         float left
-        height 27px
-        padding-left 8px
-        padding-right 8px
-        margin-left 0
-        background-color transparent
-        border 1px solid #ccc
+        font-size .94em
+        line-height 22px
+        padding 4px 16px 4px 0px
+        borderBox()
 
-        span.button-title
-          font-size 1em
-          letter-spacing .02em
-          line-height 0px !important
-          color #aaa
+        > *
+          display table-cell
+          vertical-align middle
+
+      .col:first-child
+        width 10%
+        text-align center
+
+      .col:nth-child(3)
+        text-align right !important
+        cursor pointer
+        float right
+        width auto
 
         &:hover
-          background-color #bbb
-          border 1px solid #bbb
+          color #01B05A
 
-          span.button-title
-            color #fff
+        span
+          font-size 1em !important
+          font-weight bold
+          padding-left 8px
 
-    .kdmodal-content
-      overflow hidden
+        span:first-child
+          padding-left 0
 
-      div.instructions
-        margin-bottom 15px
-        font-size .97em
-        color #333
+    div.row.collides
+      .col:nth-child(2)
+        &:before
+          content ""
+          r-sprite app '25-warning'
+          size 25px 25px
+          margin-right 10px
+          float left
 
-      .kdtabpaneview
-        background transparent !important
-        height 381px !important
-        overflow scroll !important
+  .kdtabhandlecontainer
+    background-color transparent !important
+    border none
+    margin 0
+    max-width 600px
+    padding 0
+    height 36px
+    borderBox()
+    shadow inset 0 -2px 0 #e0e0e0
 
-        div.row
-          width 100% !important
-          clear both
-          border-bottom 1px solid #e0e0e0
-          height 30px
-          padding 8px 0px
+    .kdtabhandle
+      background-color transparent !important
+      border none
+      height 36px
+      noTextDeco()
+      fl()
 
-          &:hover
-            background-color #fff
-
-          &.active
-            background-color #ffd
-
-          .col
-            display table-column
-            width 45%
-            float left
-            font-size .94em
-            line-height 22px
-            padding 4px 16px 4px 0px
-            borderBox()
-
-            > *
-              display table-cell
-              vertical-align middle
-
-          .col:first-child
-            width 10%
-            text-align center
-
-          .col:nth-child(3)
-            text-align right !important
-            cursor pointer
-            float right
-            width auto
-
-            &:hover
-              color #01B05A
-
-            span
-              font-size 1em !important
-              font-weight bold
-              padding-left 8px
-
-            span:first-child
-              padding-left 0
-
-        div.row.collides
-          .col:nth-child(2)
-            &:before
-              content ""
-              r-sprite app '25-warning'
-              size 25px 25px
-              margin-right 10px
-              float left
-
-      .kdtabhandlecontainer
-        background-color transparent !important
-        border none
-        margin 0
-        max-width 600px
-        padding 0
+      b
+        display inline !important
+        text-decoration none
         height 36px
+        line-height 20px
+        color #969696
+        text-align left
+        font-size 16px
         borderBox()
-        shadow inset 0 -2px 0 #e0e0e0
 
-        .kdtabhandle
-          background-color transparent !important
-          border none
-          height 36px
-          noTextDeco()
-          fl()
+      &.active
+        shadow inset 0 -2px 0 #01B05A
+        background none
 
-          b
-            display inline !important
-            text-decoration none
-            height 36px
-            line-height 20px
-            color #969696
-            text-align left
-            font-size 16px
-            borderBox()
+        b
+          color #01B05A !important
 
-          &.active
-            shadow inset 0 -2px 0 #01B05A
-            background none
-
-            b
-              color #01B05A !important
-
-        .kdtabhandle:first-child
-          padding 0px 15px 0px 0px !important
+    .kdtabhandle:first-child
+      padding 0px 15px 0px 0px !important

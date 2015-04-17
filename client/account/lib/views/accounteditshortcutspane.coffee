@@ -4,7 +4,7 @@ Row = require './accounteditshortcutsrow'
 
 module.exports =
 
-class AccountEditShortcutsPane extends kd.View
+class AccountEditShortcutsPane extends kd.TabPaneView
 
   constructor: (options={}) ->
 

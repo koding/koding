@@ -3,65 +3,58 @@ _      = require 'lodash'
 Pane   = require './accounteditshortcutspane'
 facade = require './accounteditshortcutsfacade'
 
-module.exports =
+module.exports = class AccountEditShortcuts extends kd.View
 
-class Modal extends kd.ModalViewWithForms
+  constructor: (options={}, data) ->
 
-  constructor: (options, data) ->
-
-    @config = data
-
-    super _.extend
-
-      title    : 'Shortcuts'
-      content  : """
-        <div class=instructions>
-          To change a shortcut, click the key combination, then type the new keys.
-        </div>
-      """
-      cssClass : 'shortcuts-modal'
-      overlay  : yes
-      width    : 600
-      height   : 'auto'
-
-      buttons:
-        restore:
-          title    : 'Restore Defaults'
-          style    : 'solid light-gray medium restore'
-          loader   : color: '#444444'
-          #callback : -> modal.destroy()
-
-      tabs:
-        hideHandleCloseIcons : yes
-        enableMoveTabHandle  : no
-        forms                : @presentForms()
-
-    , options
-
-
-  presentForms: ->
-
-    @config.reduce (acc, collection) ->
-      acc[collection.title] =
-        fields:
-          view:
-            itemClass  : Pane
-            collection : collection
-      return acc
-    , {}
+    super options, data
 
 
   destroy: ->
 
-    { shortcuts } = kd.singletons
-    shortcuts.unpause()
+    @parent.parent.off 'KDTabPaneInactive', @bound 'destroy'
 
+    kd.getSingleton('shortcuts').unpause()
     facade.dispose()
 
     super
 
 
+  restoreDefaults: ->
+
+    console.log 'not implemented'
+
+
   viewAppended: ->
 
-    { shortcuts } = kd.singletons
+    @parent.parent.on 'KDTabPaneInactive', @bound 'destroy'
+
+    { shortcuts } = kd.singletons
+
     shortcuts.pause()
+
+    # exclude hidden shortcuts
+    predicate = (model) -> true unless model.options and model.options.hidden
+    paneData =
+      shortcuts.toCollection(predicate).map (collection) ->
+        name: collection.title
+        collection: collection
+        cssClass: 'pane'
+
+    @addSubView new kd.View
+      tagName: 'div'
+      cssClass: 'instructions'
+      partial: 'To change a shortcut, click the key combination, then type the new keys.'
+
+    @addSubView tabView = new kd.TabView
+      tabClass: Pane
+      paneData: paneData
+      hideHandleCloseIcons: yes
+      enableMoveTabHandle: no
+
+    @addSubView new kd.ButtonView
+      title: 'Restore Defaults'
+      style: 'solid light-gray medium restore'
+      callback: @bound 'restoreDefaults'
+
+    tabView.showPaneByIndex 0
