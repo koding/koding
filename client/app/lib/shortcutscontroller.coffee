@@ -1,13 +1,12 @@
 Shortcuts      = require 'shortcuts'
-defaults       = require './defaultshortcuts.coffee'
 _              = require 'lodash'
 kd             = require 'kd'
 globals        = require 'globals'
-ShortcutsModal = require './modal'
-AppController  = require 'app/appcontroller'
-AppStorage     = require 'app/appstorage'
-Collection     = require 'app/util/collection'
+AppController  = require './appcontroller'
+AppStorage     = require './appstorage'
+Collection     = require './util/collection'
 events         = require 'events'
+defaults       = require './defaultshortcuts.coffee'
 
 STORAGE_NAME    = 'shortcuts'
 STORAGE_VERSION = '175.3'
@@ -202,16 +201,6 @@ class ShortcutsController extends events.EventEmitter
     if app instanceof AppController and _.isArray(sets = app.getConfig().shortcuts)
       for key in sets
         @shortcuts.on "key:#{key}", app.bound 'handleShortcut'
-
-
-  # Renders UI to manage shortcuts.
-  #
-  showModal: ->
-
-    predicate = (model) -> true unless model.options and model.options.hidden
-    (new ShortcutsModal null, @toCollection predicate)
-
-    return
 
 
   # Proxy to _shortcuts#get_.
