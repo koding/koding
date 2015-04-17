@@ -247,17 +247,6 @@ func Update(u *url.URL, h http.Header, req *models.ChannelMessage, c *models.Con
 	req.Body = body
 	req.Payload = payload
 
-	if req.Payload == nil {
-		req.Payload = gorm.Hstore{}
-	}
-
-	if c.Client.Account.IsShareLocationEnabled() {
-		// gets the IP of the Client
-		// and adds it to the payload of the ChannelMessage
-		location := parseLocation(c)
-		req.Payload["location"] = location
-	}
-
 	if err := req.Update(); err != nil {
 		return response.NewBadRequest(err)
 	}

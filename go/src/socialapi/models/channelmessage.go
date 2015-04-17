@@ -68,7 +68,12 @@ const (
 	ChannelMessage_TYPE_JOIN            = "join"
 	ChannelMessage_TYPE_LEAVE           = "leave"
 	ChannelMessage_TYPE_PRIVATE_MESSAGE = "privatemessage"
+	ChannelMessagePayloadKeyLocation    = "location"
 )
+
+func (c *ChannelMessage) Location() (*string) {
+    return c.GetPayload(ChannelMessagePayloadKeyLocation)
+}
 
 func (c *ChannelMessage) MarkIfExempt() error {
 	isExempt, err := c.isExempt()
