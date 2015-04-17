@@ -1,6 +1,10 @@
 package terraformer
 
 import (
+	"bytes"
+	"koding/kites/terraformer/commands"
+
+	"github.com/hashicorp/terraform/terraform"
 	"github.com/koding/kite"
 	"github.com/koding/logging"
 	"github.com/koding/metrics"
@@ -13,6 +17,13 @@ type Terraformer struct {
 
 	// Enable debug mode
 	Debug bool
+
+	Context *commands.Context
+}
+
+type TerraformRequest struct {
+	Content   string
+	Variables map[string]string
 }
 
 func New() *Terraformer {
@@ -20,13 +31,55 @@ func New() *Terraformer {
 }
 
 func (t *Terraformer) Apply(r *kite.Request) (interface{}, error) {
-	return nil, nil
+	c := t.Context.Clone()
+	defer c.Close()
+
+	plan, err := t.plan(c, r)
+	if err != nil {
+		return nil, err
+	}
+
+	copts := c.TerraformContextOptsWithPlan(plan)
+	ctx := terraform.NewContext(copts)
+	state, err := ctx.Apply()
+	if err != nil {
+		return nil, err
+	}
+
+	return state, nil
 }
 
 func (t *Terraformer) Destroy(r *kite.Request) (interface{}, error) {
+	c := t.Context.Clone()
+	defer c.Close()
+
 	return nil, nil
 }
 
 func (t *Terraformer) Plan(r *kite.Request) (interface{}, error) {
-	return nil, nil
+	c := t.Context.Clone()
+	defer c.Close()
+
+	plan, err := t.plan(c, r)
+	if err != nil {
+		return nil, err
+	}
+
+	return plan, nil
+}
+
+func (t *Terraformer) plan(c *commands.Context, r *kite.Request) (*terraform.Plan, error) {
+	args := TerraformRequest{}
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	c.Variables = args.Variables
+
+	plan, err := c.Plan(bytes.NewBufferString(args.Content))
+	if err != nil {
+		return nil, err
+	}
+
+	return plan, nil
 }
