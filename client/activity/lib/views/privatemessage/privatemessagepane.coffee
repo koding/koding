@@ -103,7 +103,6 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     super channel
 
-    channel.on 'AddedToChannel', @bound 'addParticipant'
     channel.on 'RemovedFromChannel', @bound 'removeParticipant'
 
 
@@ -340,22 +339,6 @@ module.exports = class PrivateMessagePane extends MessagePane
     @input.on 'EditModeRequested', @bound 'editLastMessage'
 
 
-  addParticipant: (participant) ->
-
-    return  unless participant
-    return  if @participantMap[participant._id]?
-
-    participant.id = participant._id
-
-    @heads.addSubView avatar = new AvatarView
-      size      :
-        width   : 25
-        height  : 25
-      origin    : participant
-
-    @participantMap[participant._id] = avatar
-
-
   removeParticipant: (participant) ->
 
     return  unless participant
@@ -363,10 +346,6 @@ module.exports = class PrivateMessagePane extends MessagePane
 
     fetchAccount participant, (err, account) =>
       return kd.warn err  if err
-
-      @participantMap[participant._id].destroy()
-      delete @participantMap[participant._id]
-
       @autoComplete.removeSelectedParticipant account
 
 
