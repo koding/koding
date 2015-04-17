@@ -893,9 +893,10 @@ module.exports = CollaborationController =
     setMachineUser @mountedMachine, usernames, share, (err) =>
       return callback err  if err
 
-      @broadcastMessage
-        type: "#{if share then 'Set' else 'Unset'}MachineUser"
-        participants: usernames
+      if @stateMachine.state is 'Active'
+        @broadcastMessage
+          type: "#{if share then 'Set' else 'Unset'}MachineUser"
+          participants: usernames
 
       callback null
 
