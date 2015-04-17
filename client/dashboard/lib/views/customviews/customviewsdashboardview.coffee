@@ -49,7 +49,9 @@ module.exports = class CustomViewsDashboardView extends JView
 
     @bindEventHandlers()
 
+
   bindEventHandlers: ->
+
     @on "NewViewAdded", =>
       @unsetClass "edit-mode"
       @addNewView.destroy()
@@ -58,8 +60,7 @@ module.exports = class CustomViewsDashboardView extends JView
 
     @on "ViewDeleted", (customView) ->
       @customViews.splice @customViews.indexOf(customView), 1
-      if @customViews.length is 0
-        @noViewLabel.show()
+      @showNoViewLabelIfNeeded()
 
     @on "ViewEditRequested", (viewData) =>
       @addNew viewData
@@ -69,29 +70,47 @@ module.exports = class CustomViewsDashboardView extends JView
       @reloadViews()
       @addNewButton.show()
 
+
   hideViews: ->
+
     customView.hide() for customView in @customViews
     @noViewLabel.hide()
     @addNewButton.hide()
 
+
+  showViews: ->
+
+    customView.show() for customView in @customViews
+    @addNewButton.show()
+    @showNoViewLabelIfNeeded()
+
+
+  showNoViewLabelIfNeeded: ->
+
+    @noViewLabel.show()  if @customViews.length is 0
+
+
   addNew: (data) ->
+
     @hideViews()
     @setClass "edit-mode"
-    appManager = kd.singleton "appManager"
-    appManager.require "Teamwork", (app) =>
-      config     =
-        delegate : this
-        viewType : @getOption "viewType"
+    config     =
+      delegate : this
+      viewType : @getOption "viewType"
 
-      FormClass = @getOption("formClass") or AddNewCustomViewForm
-      @addSubView @addNewView = new FormClass config, data
+    FormClass = @getOption("formClass") or AddNewCustomViewForm
+    @addSubView @addNewView = new FormClass config, data
+
 
   reloadViews: ->
+
     page.destroy() for page in @customViews
     @loader.show()
     @fetchViews()
 
+
   fetchViews: ->
+
     query = { partialType: @getOption "viewType" }
 
     remote.api.JCustomPartials.some query, {}, (err, customViews) =>
@@ -100,20 +119,28 @@ module.exports = class CustomViewsDashboardView extends JView
 
       @createList customViews
 
+
   createList: (customViews) ->
+
     viewClass = @getOption("itemClass") or CustomViewItem
     for customView in customViews
       customViewItem = new viewClass { delegate: this }, customView
       @customViews.push customViewItem
       @container.addSubView customViewItem
 
+
   pistachio: ->
+
     """
-      {{> @title}}
-      {{> @addNewButton}}
-      {{> @loader}}
-      {{> @noViewLabel}}
-      {{> @container}}
+      <div class="clearfix">
+        {{> @title}}
+        {{> @addNewButton}}
+      </div>
+      <div class="clearfix">
+        {{> @loader}}
+        {{> @noViewLabel}}
+        {{> @container}}
+      </div>
     """
 
 
