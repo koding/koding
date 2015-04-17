@@ -35,7 +35,7 @@ func createTestGroupChannel(t *testing.T, a *models.Account) *models.Channel {
 	return testGroupChannel
 }
 
-func createTestIntegration(t *testing.T) *Integration {
+func CreateTestIntegration(t *testing.T) *Integration {
 	i := NewIntegration()
 	i.Title = "test_" + models.RandomName()
 	i.Name = "test_" + models.RandomName()
@@ -53,7 +53,7 @@ func CreateTestChannelIntegration(t *testing.T) *ChannelIntegration {
 
 	channel := createTestGroupChannel(t, account)
 
-	integration := createTestIntegration(t)
+	integration := CreateTestIntegration(t)
 
 	i := NewChannelIntegration()
 	i.CreatorId = account.Id

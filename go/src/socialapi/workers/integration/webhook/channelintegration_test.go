@@ -19,7 +19,7 @@ func TestChannelIntegrationCreate(t *testing.T) {
 
 	channel := createTestGroupChannel(t, account)
 
-	integration := createTestIntegration(t)
+	integration := CreateTestIntegration(t)
 
 	Convey("while creating a team integration", t, func() {
 		i := NewChannelIntegration()
