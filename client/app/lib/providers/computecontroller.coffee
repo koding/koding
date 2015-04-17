@@ -615,7 +615,7 @@ module.exports = class ComputeController extends KDController
     # Do we plan to stop machine before snapshot starts? ~ GG
     # machine.getBaseKite( createIfNotExists = no ).disconnect()
 
-    call = @getKloud().createSnapshot machineId: machine._id, label
+    call = @getKloud().createSnapshot { machineId: machine._id, label }
 
     .then (res) =>
 
