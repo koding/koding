@@ -2121,6 +2121,8 @@ footer.main-footer
 
 .AppModal
 
+  &.kdmodal
+    border                  none
 
   .notification
     padding                 10px 20px
@@ -2295,10 +2297,48 @@ footer.main-footer
     font-size               14px
     color                   #A2A2A2
 
-.AppModal-form-sectionHeader.formline
-  border-top                1px solid #E7E7E7
+.AppModal-section
+  font-size                 14px
+  rel()
+
+  fieldset
+    margin                  25px 0
+
+    > label
+      display               block
+      margin-bottom         7px
+
+    > p
+    > input.kdinput.text
+      fl()
+      width                 calc(50% - 20px)
+      margin-right          20px
+
+    > p
+      font-size             12px
+      color                 footerLinkColor
+
+
+.AppModal-section.is-collapsed
+  .kdformview
+    hidden()
+
+.AppModal-sectionHeader
   border-bottom             none
   padding-top               24px
+  margin-bottom             25px
   font-size                 14px
   line-height               19px
   color                     #A1A1A1
+  &.formline
+    margin-bottom           0
+    border-top              1px solid #E7E7E7
+
+.AppModal-sectionDescription
+  padding-right             100px
+  borderBox()
+  rel()
+
+.AppModal-sectionToggle
+  abs                       -4px 0px 0 0
+
