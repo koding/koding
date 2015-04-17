@@ -15,7 +15,7 @@ showError                        = require 'app/util/showError'
 AvatarView                       = require 'app/commonviews/avatarviews/avatarview'
 dateFormat                       = require 'dateformat'
 isMyPost                         = require 'app/util/isMyPost'
-remote                           = require('app/remote').getInstance()
+fetchAccounts                    = require 'app/util/fetchAccounts'
 
 
 
@@ -359,8 +359,7 @@ module.exports = class PrivateMessagePane extends MessagePane
     return  unless participant
     return  unless @participantMap[participant._id]?
 
-    remote.cacheable 'JAccount', participant._id, (err, account) =>
-
+    fetchAccount participant, (err, account) =>
       return kd.warn err  if err
 
       @participantMap[participant._id].destroy()
