@@ -9,12 +9,12 @@ import (
 	"strings"
 )
 
-// LoadFile loads the Terraform configuration from a given file.
+// Load loads the Terraform configuration from a given file.
 //
 // This file can be any format that Terraform recognizes, and import any
 // other format that Terraform recognizes.
-func LoadFile(path string) (*Config, error) {
-	importTree, err := loadTreeFromFile(path)
+func Load(path string) (*Config, error) {
+	importTree, err := loadTree(path)
 	if err != nil {
 		return nil, err
 	}
@@ -30,19 +30,6 @@ func LoadFile(path string) (*Config, error) {
 	}
 
 	return configTree.Flatten()
-}
-
-// LoadReader loads the Terraform configuration from a io.Reader.
-func LoadReader(r io.Reader) (*Config, error) {
-	// we assume only HCL is supported (as it is for the file loader). In the
-	// future we need to have multiple types of reader implementations for each
-	// new format.
-	c, err := loadReaderHcl(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return c.Config()
 }
 
 // LoadDir loads all the Terraform configuration files in a single
@@ -79,7 +66,7 @@ func LoadDir(root string) (*Config, error) {
 
 	// Load all the regular files, append them to each other.
 	for _, f := range files {
-		c, err := LoadFile(f)
+		c, err := Load(f)
 		if err != nil {
 			return nil, err
 		}
@@ -96,7 +83,7 @@ func LoadDir(root string) (*Config, error) {
 
 	// Load all the overrides, and merge them into the config
 	for _, f := range overrides {
-		c, err := LoadFile(f)
+		c, err := Load(f)
 		if err != nil {
 			return nil, err
 		}
