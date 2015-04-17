@@ -36,6 +36,17 @@ func TestIntegrationCreate(t *testing.T) {
 			i.Id = 0
 			err = i.Create()
 			So(err, ShouldEqual, ErrNameNotUnique)
+
+			Convey("it should be fetched via name", func() {
+				ni := NewIntegration()
+				name := models.RandomName()
+				err := ni.ByName(name)
+				So(err, ShouldEqual, ErrIntegrationNotFound)
+
+				err = ni.ByName(i.Name)
+				So(err, ShouldBeNil)
+				So(ni.Id, ShouldEqual, i.Id)
+			})
 		})
 	})
 }

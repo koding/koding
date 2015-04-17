@@ -9,9 +9,10 @@ import (
 )
 
 var (
-	ErrTitleNotSet   = errors.New("title is not set")
-	ErrNameNotUnique = errors.New("title is not unique")
-	ErrNameNotSet    = errors.New("name is not set")
+	ErrTitleNotSet         = errors.New("title is not set")
+	ErrNameNotUnique       = errors.New("title is not unique")
+	ErrNameNotSet          = errors.New("name is not set")
+	ErrIntegrationNotFound = errors.New("integration is not found")
 )
 
 type Integration struct {
@@ -87,4 +88,23 @@ func (i *Integration) Create() error {
 	}
 
 	return bongo.B.Create(i)
+}
+
+func (i *Integration) ByName(name string) error {
+	query := &bongo.Query{
+		Selector: map[string]interface{}{
+			"name": name,
+		},
+	}
+
+	err := i.One(query)
+	if err == bongo.RecordNotFound {
+		return ErrIntegrationNotFound
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
