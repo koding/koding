@@ -187,6 +187,18 @@ func (k *Kontrol) handleMachine(r *kite.Request) (interface{}, error) {
 		}
 	}
 
-	username := r.Args.One().MustString() // username should be send as an argument
-	return k.registerUser(username)
+	// username should be send as an argument
+	var args struct {
+		Username string
+	}
+
+	if err := r.Args.One().Unmarshal(&args); err != nil {
+		return nil, err
+	}
+
+	if args.Username == "" {
+		return nil, errors.New("usename is empty")
+	}
+
+	return k.registerUser(args.Username)
 }

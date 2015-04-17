@@ -127,5 +127,9 @@ func authenticateFromOneTimeToken(r *kite.Request) error {
 		return errors.New("user is not validated to use this token")
 	}
 
+	// everything seems to be ok, try to delete the token before we return an
+	// OK
+	panic("implement removing the token")
+
 	return nil
 }
