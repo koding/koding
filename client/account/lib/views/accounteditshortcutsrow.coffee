@@ -4,8 +4,14 @@ facade = require('./accounteditshortcutsfacade')
 EventType = require './accounteditshortcutseventtype'
 globals = require 'globals'
 
-# Determines class name to set for duplicate/colliding items.
+# Class name to set for duplicate/colliding items.
 DUP_CLASS_NAME = 'collides'
+
+# The maximum description string length.
+DESCRIPTION_TRUNC_LEN = 30
+
+# The separator pattern to truncate to.
+DESCRIPTION_TRUNC_SEP = ' '
 
 # On Mac we display corresponding unicode chars for the following keys.
 MAC_UNICODE =
@@ -60,9 +66,14 @@ class AccountEditShortcutsRow extends kd.View
 
     if @model.enabled then toggle.setClass 'enabled'
 
+    descriptionText = _.escape @model.description
+
     description = new kd.View
       cssClass : 'col'
-      partial  : _.escape @model.description
+      partial  : _.trunc descriptionText, separator: DESCRIPTION_TRUNC_SEP, length: DESCRIPTION_TRUNC_LEN
+
+    if descriptionText.length > DESCRIPTION_TRUNC_LEN
+      description.domElement.attr 'title', descriptionText
 
     binding = new kd.View
       cssClass : 'col'
