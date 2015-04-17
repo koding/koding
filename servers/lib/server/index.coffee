@@ -51,11 +51,13 @@ do ->
   app.use helmet.hidePoweredBy()
 
 
-
-
-
 # handle basic auth
 app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
+
+
+# capture/log exceptions
+process.on 'uncaughtException', require './handlers/uncaughtexception'
+
 
 # this is for creating session for incoming user if it doesnt have
 app.use require './handlers/setsession'
