@@ -1,4 +1,5 @@
-koding  = require './../bongo'
+{ authTemplate } = require './../helpers'
+koding           = require './../bongo'
 
 module.exports = (req, res)->
   { key }        = req.params
