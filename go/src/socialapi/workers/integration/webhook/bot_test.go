@@ -56,7 +56,6 @@ func TestSendMessage(t *testing.T) {
 			So(m.Body, ShouldEqual, message.Body)
 			So(m.InitialChannelId, ShouldEqual, message.ChannelId)
 			So(m.AccountId, ShouldEqual, bot.account.Id)
-			So(m.MetaBits, ShouldEqual, models.Bot)
 			So(*(m.GetPayload("channelIntegrationId")), ShouldEqual, "13")
 
 		})
