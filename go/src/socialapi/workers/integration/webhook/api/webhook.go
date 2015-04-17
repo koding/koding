@@ -18,12 +18,6 @@ var (
 	ErrTokenNotValid = errors.New("token is not valid")
 )
 
-type WebhookRequest struct {
-	*webhook.Message
-	GroupName string
-	Token     string
-}
-
 type Handler struct {
 	log logging.Logger
 	bot *webhook.Bot
@@ -67,34 +61,12 @@ func (h *Handler) Push(u *url.URL, header http.Header, r *WebhookRequest) (int, 
 	return response.NewOK(nil)
 }
 
-func (r *WebhookRequest) validate() error {
-	if r.Token == "" {
-		return ErrTokenNotSet
+
 	}
 
-	if r.Body == "" {
-		return ErrBodyNotSet
 	}
 
-	// TODO we don't need this ChannelName, it will remain
-	// until we add TeamInteraction tables
-	if r.ChannelId == 0 {
-		return ErrChannelNotSet
-	}
-
-	if r.GroupName == "" {
-		return ErrGroupNotSet
-	}
-
-	return nil
-}
-
-func (r *WebhookRequest) verify() (*webhook.ChannelIntegration, error) {
-	ti := webhook.NewChannelIntegration()
-	err := ti.ByToken(r.Token)
 	if err != nil {
-		return nil, err
 	}
 
-	return ti, nil
 }
