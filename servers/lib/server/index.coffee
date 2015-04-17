@@ -89,46 +89,6 @@ do ->
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
-videoSessions = {}
-app.post '/-/video-chat/session', (req, res) ->
-
-  { channelId } = req.body
-
-
-  return res.status(400).send { err: 'Channel ID is required.'      }  unless channelId
-  return res.status(200).send { sessionId: videoSessions[channelId] }  if videoSessions[channelId]
-
-  { apiKey, apiSecret } = KONFIG.tokbox
-
-  OpenTok = require 'opentok'
-
-  opentok = new OpenTok apiKey, apiSecret
-
-  opentok.createSession (err, session) ->
-
-    videoSessions[channelId] = session.sessionId
-
-    res.status(200).send { sessionId: session.sessionId }
-
-
-app.post '/-/video-chat/token', (req, res) ->
-
-  { role, sessionId } = req.body
-
-  return res.status(400).send { err: "Session ID is required." } unless sessionId
-  return res.status(400).send { err: "Role is required"        } unless role
-
-  { apiKey, apiSecret } = KONFIG.tokbox
-
-  OpenTok = require 'opentok'
-
-  opentok = new OpenTok apiKey, apiSecret
-
-  token = opentok.generateToken sessionId, { role }
-
-  return res.status(200).send { token }
-
-
 app.get "/-/subscription/check/:kiteToken?/:user?/:groupId?", (req, res) ->
   {kiteToken, user, groupId} = req.params
   {JAccount, JKite, JGroup}  = koding.models
