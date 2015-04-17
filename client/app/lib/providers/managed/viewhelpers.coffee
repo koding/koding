@@ -15,13 +15,12 @@ addTo = (parent, views)->
 
 globals = require 'globals'
 kontrolUrl = if globals.config.environment in ['dev', 'sandbox'] \
-             then "KONTROLURL=#{globals.config.newkontrol.url} " else ''
+             then "\n$ export KONTROLURL=#{globals.config.newkontrol.url}" else ''
 
 contents  =
-  install : """bash
+  install : """bash#{kontrolUrl}
     $ curl -sO https://s3.amazonaws.com/koding-klient/install.sh
-    $ #{kontrolUrl}bash ./install.sh
-    # Enter your koding.com credentials when asked for
+    $ bash ./install.sh %%TOKEN%%
   """
 
 module.exports   = view =
@@ -47,6 +46,8 @@ module.exports   = view =
 
   instructions   : (content) ->
     content      = contents[content] ? content
+    if view._otatoken
+      content    = content.replace '%%TOKEN%%', view._otatoken
     container    = new kd.View
     addTo container,
       header     : 'Instructions'
