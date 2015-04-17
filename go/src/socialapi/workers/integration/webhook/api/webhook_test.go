@@ -17,6 +17,12 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+var (
+	r *runner.Runner
+	h *Handler
+	m *mux.Mux
+)
+
 func newRequest(body string, channelId int64, groupName string) *WebhookRequest {
 	return &WebhookRequest{
 		Message: &webhook.Message{
@@ -27,16 +33,17 @@ func newRequest(body string, channelId int64, groupName string) *WebhookRequest 
 	}
 }
 
-func TestWebhookListen(t *testing.T) {
 func newPrepareRequest(data APIData) *PrepareRequest {
 	return &PrepareRequest{
 		Data: data,
 	}
 }
 
-	r := runner.New("test")
+func init() {
+	var err error
+	r = runner.New("test")
 	if err := r.Init(); err != nil {
-		t.Fatalf("something went wrong: %s", err)
+		panic(err)
 	}
 	r.Log.SetLevel(logging.CRITICAL)
 
@@ -45,16 +52,19 @@ func newPrepareRequest(data APIData) *PrepareRequest {
 	modelhelper.Initialize(appConfig.Mongo)
 
 	mc := mux.NewConfig("testing", "", "")
-	m := mux.New(mc, r.Log)
+	m = mux.New(mc, r.Log)
 
-	h, err := NewHandler(r.Log)
+	h, err = NewHandler(r.Log)
 	if err != nil {
-		t.Fatalf("Could not initialize handler: %s", err)
+		panic(err)
 	}
 
 	h.AddHandlers(m)
 
 	rand.Seed(time.Now().UTC().UnixNano())
+}
+
+func TestWebhookListen(t *testing.T) {
 
 	account, err := models.CreateAccountInBothDbsWithNick("sinan")
 	if err != nil {
@@ -136,28 +146,6 @@ func newPrepareRequest(data APIData) *PrepareRequest {
 }
 
 func TestWebhookPrepare(t *testing.T) {
-
-	r := runner.New("test")
-	if err := r.Init(); err != nil {
-		t.Fatalf("something went wrong: %s", err)
-	}
-	r.Log.SetLevel(logging.CRITICAL)
-
-	defer r.Close()
-	appConfig := config.MustRead(r.Conf.Path)
-	modelhelper.Initialize(appConfig.Mongo)
-
-	mc := mux.NewConfig("testing", "", "")
-	m := mux.New(mc, r.Log)
-
-	h, err := NewHandler(r.Log)
-	if err != nil {
-		t.Fatalf("Could not initialize handler: %s", err)
-	}
-
-	h.AddHandlers(m)
-
-	rand.Seed(time.Now().UTC().UnixNano())
 
 	i := webhook.CreateTestIntegration(t)
 
