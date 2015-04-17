@@ -1,69 +1,33 @@
-# TODO: we have to move kd related functions to somewhere else...
-
 process.title = 'koding-webserver'
-{argv} = require 'optimist'
-Object.defineProperty global, 'KONFIG',
-  value: require('koding-config-manager').load("main.#{argv.c}")
+{argv}        = require 'optimist'
+
+Object.defineProperty global, 'KONFIG', value : require('koding-config-manager').load "main.#{argv.c}"
 
 {
   webserver
   projectRoot
-  kites
-  uploads
   basicAuth
-  social
-  broker
-  recaptcha
 } = KONFIG
 
-webPort = argv.p ? webserver.port
-koding  = require './bongo'
-Crawler = require '../crawler'
-{dash}  = require 'bongo'
 
-_          = require 'underscore'
-async      = require 'async'
-{extend}   = require 'underscore'
-express    = require 'express'
-Broker     = require 'broker'
-fs         = require 'fs'
-hat        = require 'hat'
-nodePath   = require 'path'
-http       = require "https"
-helmet     = require 'helmet'
-request    = require 'request'
-bodyParser = require 'body-parser'
-usertracker = require('../../../workers/usertracker')
 
-{JSession} = koding.models
-app        = express()
 
-{
-  error_
-  error_404
-  error_500
-  authTemplate
-  authenticationFailed
-  findUsernameFromKey
-  findUsernameFromSession
-  fetchJAccountByKiteUserNameAndKey
-  serve
-  serveHome
-  isLoggedIn
-  getAlias
-  addReferralCode
-  handleClientIdNotFound
-  getClientId
-} = require './helpers'
 
-{ generateFakeClient, updateCookie } = require "./client"
+koding                = require './bongo'
+express               = require 'express'
+helmet                = require 'helmet'
+bodyParser            = require 'body-parser'
+usertracker           = require '../../../workers/usertracker'
+app                   = express()
+webPort               = argv.p ? webserver.port
+{ error_500 }         = require './helpers'
 { generateHumanstxt } = require "./humanstxt"
 
 
 do ->
   cookieParser = require 'cookie-parser'
-  session = require 'express-session'
-  compression = require 'compression'
+  session      = require 'express-session'
+  compression  = require 'compression'
 
   app.set 'case sensitive routing', on
 
@@ -74,10 +38,10 @@ do ->
   app.use express.static "#{projectRoot}/website/", headers
   app.use cookieParser()
   app.use session
-    secret: "foo"
-    resave: yes
-    saveUninitialized: true
-  app.use bodyParser.urlencoded()
+    secret            : 'foo'
+    resave            : yes
+    saveUninitialized : true
+  app.use bodyParser.urlencoded extended : yes
   app.use compression()
   # helmet:
   app.use helmet.xframe('sameorigin')
@@ -85,9 +49,6 @@ do ->
   app.use helmet.ienoopen()
   app.use helmet.contentTypeOptions()
   app.use helmet.hidePoweredBy()
-
-if basicAuth
-  app.use express.basicAuth basicAuth.username, basicAuth.password
 
 app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
 
@@ -440,6 +401,10 @@ app.get '*', (req,res)->
 
   res.redirect 301, redirectTo
 
+# handle basic auth
+app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
+
+
 app.post '/:name?/Validate'                     , require './handlers/validate'
 app.post '/:name?/Validate/Username/:username?' , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'       , require './handlers/validateemail'
@@ -448,6 +413,7 @@ app.post '/:name?/Login'                        , require './handlers/login'
 app.post '/:name?/Recover'                      , require './handlers/recover'
 app.post '/:name?/Reset'                        , require './handlers/reset'
 app.all '/:name?/Logout'                        , require './handlers/logout'
+# start webserver
 app.listen webPort
 console.log '[WEBSERVER] running', "http://localhost:#{webPort} pid:#{process.pid}"
 
@@ -456,9 +422,8 @@ usertracker.start()
 
 # init rabbitmq client for Email to use to queue emails
 mqClient = require './amqp'
-Email = require '../../../workers/social/lib/social/models/email.coffee'
+Email    = require '../../../workers/social/lib/social/models/email.coffee'
 Email.setMqClient mqClient
-
 
 # NOTE: in the event of errors, send 500 to the client rather
 #       than the stack trace.
