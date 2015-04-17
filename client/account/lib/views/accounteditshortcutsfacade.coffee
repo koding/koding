@@ -1,6 +1,6 @@
 _ = require 'lodash'
 recorder = require 'record-shortcuts'
-EventType = require './eventtype'
+EventType = require './accounteditshortcutseventtype'
 kd = require 'kd'
 
 running = no

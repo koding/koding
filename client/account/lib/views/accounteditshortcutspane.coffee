@@ -1,10 +1,10 @@
 kd = require 'kd'
 _ = require 'lodash'
-Item = require './item'
+Row = require './accounteditshortcutsrow'
 
 module.exports =
 
-class Pane extends kd.View
+class AccountEditShortcutsPane extends kd.View
 
   constructor: (options={}) ->
 
@@ -18,4 +18,4 @@ class Pane extends kd.View
 
     @collection.each (model) =>
       dup = _.includes dups, model.name
-      item = @addSubView new Item dup: dup, model
+      item = @addSubView new Row dup: dup, model

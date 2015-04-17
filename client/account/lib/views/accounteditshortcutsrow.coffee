@@ -1,7 +1,7 @@
 kd = require 'kd'
 _  = require 'lodash'
-facade = require('./facade')
-EventType = require './eventtype'
+facade = require('./accounteditshortcutsfacade')
+EventType = require './accounteditshortcutseventtype'
 globals = require 'globals'
 
 # Determines class name to set for duplicate/colliding items.
@@ -35,7 +35,7 @@ presentBinding = (keys) ->
 
 module.exports =
 
-class Item extends kd.View
+class AccountEditShortcutsRow extends kd.View
 
   constructor: (options, data) ->
 
