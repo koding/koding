@@ -27,6 +27,7 @@ var (
 	// Registration flags
 	flagKiteHome   = flag.String("kite-home", "~/.kite/", "Change kite home path")
 	flagUsername   = flag.String("username", "", "Username to be registered to Kontrol")
+	flagToken      = flag.String("token", "", "Token to be passed to Kontrol to register")
 	flagRegister   = flag.Bool("register", false, "Register to Kontrol with your Koding Password")
 	flagKontrolURL = flag.String("kontrol-url", "",
 		"Change kontrol URL to be used for registration")
@@ -54,7 +55,7 @@ func realMain() int {
 	}
 
 	if *flagRegister {
-		if err := registration.WithPassword(*flagKontrolURL, *flagKiteHome, *flagUsername); err != nil {
+		if err := registration.Register(*flagKontrolURL, *flagKiteHome, *flagUsername, *flagToken); err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			return 1
 		}

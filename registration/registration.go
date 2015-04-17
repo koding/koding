@@ -16,8 +16,9 @@ import (
 	"github.com/koding/klient/protocol"
 )
 
-// WithPassword registers with the username to the given kontrolURL via the users password
-func WithPassword(kontrolURL, kiteHome, username string) error {
+// Register registers with the username to the given kontrolURL via the users
+// password or the given token.
+func Register(kontrolURL, kiteHome, username, token string) error {
 	var err error
 
 	// Open up a prompt if the username is not passed via a flag
@@ -58,17 +59,34 @@ func WithPassword(kontrolURL, kiteHome, username string) error {
 		return err
 	}
 
-	// This causes Kontrol to execute the 'kite.getPass' method (builtin method
-	// in the Kite library) on our own local kite (the one we declared above)
-	// method bidirectional. So once we execute this, we immediately get a
-	// prompt asking for our password, which is then transfered back to
-	// Kontrol.
-	result, err := kontrol.TellWithTimeout("registerMachine", 5*time.Minute, username)
+	authType := "password"
+	if token != "" {
+		authType = "token"
+	}
+
+	var args = struct {
+		Username string
+		Token    string
+		AuthType string
+	}{
+		Username: username,
+		Token:    token,
+		AuthType: authType,
+	}
+
+	// If authtType is password, this causes Kontrol to execute the
+	// 'kite.getPass' method (builtin method in the Kite library) on our own
+	// local kite (the one we declared above) method bidirectional. So once we
+	// execute this, we immediately get a prompt asking for our password, which
+	// is then transfered back to Kontrol. If we have a token, it will not ask
+	// for a password and will create retunr the key immediately if the token
+	// is valid for the given username (which is passed via the args).
+	result, err := kontrol.TellWithTimeout("registerMachine", 5*time.Minute, args)
 	if err != nil {
 		return err
 	}
 
-	// If the password is correct a valid and signed `kite.key` is returned
+	// If the token is correct a valid and signed `kite.key` is returned
 	// back. We go and create/override the ~/.kite/kite.key with this content.
 	if err := writeKey(result.MustString(), kiteKeyPath); err != nil {
 		return err
