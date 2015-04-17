@@ -32,6 +32,7 @@ module.exports = class AccountAppController extends AppController
       items  : [
         { slug : 'Profile',   title : "User profile",        listType: "username" }
         { slug : 'Email',     title : "Email notifications", listType: "emailNotifications" }
+        { slug : 'Shortcuts', title : 'Shortcuts',           listType: 'shortcuts' }
       ]
     billing :
       title : "Billing"
