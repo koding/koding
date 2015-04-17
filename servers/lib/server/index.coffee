@@ -89,38 +89,6 @@ do ->
 if basicAuth
   app.use express.basicAuth basicAuth.username, basicAuth.password
 
-# this is for creating session for incoming user if it doesnt have
-app.use (req, res, next) ->
-
-  {JSession} = koding.models
-  {clientId} = req.cookies
-
-  # fetchClient will validate the clientId.
-  # if it is in our db it will return the session it
-  # it it is not in db, creates a new one and returns it
-  JSession.fetchSession clientId, (err, result)->
-
-    return next()  if err
-    return next()  unless result?.session
-
-    # add referral code into session if there is one
-    addReferralCode req, res
-
-    updateCookie req, res, result.session
-
-    remoteIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-    return next()  unless remoteIp
-
-    res.cookie "clientIPAddress", remoteIp, { maxAge: 900000, httpOnly: no }
-
-    if result?.session?.username
-      usertracker.track result.session.username
-
-    JSession.updateClientIP result.session.clientId, remoteIp, (err)->
-      console.log err  if err?
-      next()
-
-
 app.get '/-/google-api/authorize/drive', (req, res) ->
   options = subject: 'https://www.googleapis.com/auth/drive'
   google_utils = require 'koding-googleapis'
