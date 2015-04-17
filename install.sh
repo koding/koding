@@ -13,11 +13,6 @@ if [ -z "$CHANNEL" ]; then
     CHANNEL="development"
 fi 
 
-if [ -z "$1" ]; then
-    echo "Token is not passed"
-    exit 1
-fi 
-
 LATESTVERSION=$(curl -s https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest-version.txt)
 LATESTURL="https://s3.amazonaws.com/koding-klient/${CHANNEL}/latest/klient_0.1.${LATESTVERSION}_${CHANNEL}_amd64.deb"
 
@@ -26,6 +21,7 @@ curl -s $LATESTURL -o klient.deb
 sudo dpkg -i --force-confnew klient.deb > /dev/null
 
 echo "Authenticating to ${KONTROLURL}"
+# It's ok $1 to be empty, in that case it'll try to register via password input
 sudo -E /opt/kite/klient/klient -register -kite-home "/etc/kite" --kontrol-url "$KONTROLURL" -token $1
 
 if [ ! -f /etc/kite/kite.key ]; then
