@@ -44,7 +44,7 @@ func New(c *Config) *kontrol.Kontrol {
 
 	kon := kontrol.New(kiteConf, Version, string(publicKey), string(privateKey))
 	kon.AddAuthenticator("sessionID", authenticateFromSessionID)
-	kon.MachineAuthenticate = authenticateFromOneTimeToken
+	kon.MachineAuthenticate = authenticateMachine
 
 	switch c.Storage {
 	case "etcd":
@@ -90,46 +90,52 @@ func findUsernameFromSessionID(sessionID string) (string, error) {
 	return session.Username, nil
 }
 
-func authenticateFromKodingPassword(r *kite.Request) error {
-	password, err := r.Client.TellWithTimeout(
-		"kite.getPass",
-		10*time.Minute,
-		"Enter password: ",
-	)
+func authenticateMachine(authType string, r *kite.Request) error {
+	switch authType {
+	case "password":
+		password, err := r.Client.TellWithTimeout(
+			"kite.getPass",
+			10*time.Minute,
+			"Enter password: ",
+		)
 
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
+
+		_, err = modelhelper.CheckAndGetUser(r.Client.Kite.Username, password.MustString())
+		if err != nil {
+			return err
+		}
+	case "token":
+		var args struct {
+			Token string
+		}
+
+		if err := r.Args.One().Unmarshal(&args); err != nil {
+			return err
+		}
+
+		if args.Token == "" {
+			return errors.New("token is empty")
+		}
+
+		session, err := modelhelper.GetSessionFromToken(args.Token)
+		if err != nil {
+			return nil
+		}
+
+		if session.Username != r.Client.Kite.Username {
+			return errors.New("user is not validated to use this token")
+		}
+
+		// everything seems to be ok, try to delete the token before we return an
+		// OK. Don't return the error, because we already validated the user.
+		modelhelper.RemoveToken(session.ClientId)
+	default:
+		return errors.New("authentication type for machine registration is not defined")
 	}
 
-	_, err = modelhelper.CheckAndGetUser(r.Client.Kite.Username, password.MustString())
-	return err
-}
-
-func authenticateFromOneTimeToken(r *kite.Request) error {
-	var args struct {
-		Token string
-	}
-
-	if err := r.Args.One().Unmarshal(&args); err != nil {
-		return err
-	}
-
-	if args.Token == "" {
-		return errors.New("token is empty")
-	}
-
-	session, err := modelhelper.GetSessionFromToken(args.Token)
-	if err != nil {
-		return nil
-	}
-
-	if session.Username != r.Client.Kite.Username {
-		return errors.New("user is not validated to use this token")
-	}
-
-	// everything seems to be ok, try to delete the token before we return an
-	// OK. Don't return the error, because we already validated the user.
-	modelhelper.RemoveToken(session.ClientId)
-
+	// everything is ok, succefully validated
 	return nil
 }

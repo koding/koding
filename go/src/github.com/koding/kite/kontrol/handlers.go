@@ -181,15 +181,9 @@ func (k *Kontrol) handleGetToken(r *kite.Request) (interface{}, error) {
 }
 
 func (k *Kontrol) handleMachine(r *kite.Request) (interface{}, error) {
-	if k.MachineAuthenticate != nil {
-		if err := k.MachineAuthenticate(r); err != nil {
-			return nil, errors.New("cannot authenticate user")
-		}
-	}
-
-	// username should be send as an argument
 	var args struct {
 		Username string
+		AuthType string
 	}
 
 	if err := r.Args.One().Unmarshal(&args); err != nil {
@@ -198,6 +192,14 @@ func (k *Kontrol) handleMachine(r *kite.Request) (interface{}, error) {
 
 	if args.Username == "" {
 		return nil, errors.New("usename is empty")
+	}
+
+	if k.MachineAuthenticate != nil {
+		// an empty authType is ok, the implementer is responsible of it. It
+		// can care of it or it can return an error
+		if err := k.MachineAuthenticate(args.AuthType, r); err != nil {
+			return nil, errors.New("cannot authenticate user")
+		}
 	}
 
 	return k.registerUser(args.Username)
