@@ -50,50 +50,6 @@ do ->
   app.use helmet.contentTypeOptions()
   app.use helmet.hidePoweredBy()
 
-app.get "/-/8a51a0a07e3d456c0b00dc6ec12ad85c", require './__notify-users'
-
-
-app.get "/humans.txt", (req, res)->
-  generateHumanstxt(req, res)
-
-  errs = []
-  urls = []
-
-app.get "/-/jobs", (req, res) ->
-
-  options =
-    url   : 'https://api.lever.co/v0/postings/koding'
-    json  : yes
-
-  request options, (err, r, postings) ->
-    res.status(404).send "Not found" if err
-    res.json postings
-
-simple_recaptcha = require "simple-recaptcha"
-
-app.post "/recaptcha", (req, res)->
-  {challenge, response} = req.body
-
-  simple_recaptcha recaptcha, req.ip, challenge, response, (err)->
-    if err
-      res.send err.message
-      return
-
-    res.send "verified"
-
-app.get "/-/api/user/:username/flags/:flag", (req, res)->
-  {username, flag} = req.params
-  {JAccount}       = koding.models
-  JAccount.one "profile.nickname" : username, (err, account)->
-    if err or not account
-      state = false
-    else
-      state = account.checkFlag('super-admin') or account.checkFlag(flag)
-    res.end "#{state}"
-
-app.get "/-/api/app/:app" , require "./applications"
-app.get '/-/image/cache'  , require "./image_cache"
-
 
 isInAppRoute = (name)->
   [firstLetter] = name
@@ -102,73 +58,6 @@ isInAppRoute = (name)->
   return false if intRegex.test firstLetter
   return true  if firstLetter.toUpperCase() is firstLetter
   return false
-
-
-app.post '/-/emails/subscribe', (req, res)->
-
-  res.status(501).send 'ok'
-
-
-app.post '/Hackathon/Apply', (req, res, next)->
-
-  {JWFGH} = koding.models
-
-  isLoggedIn req, res, (err, loggedIn, account)->
-
-    return res.status(400).send 'not ok' unless loggedIn
-
-    JWFGH.apply account, (err, stats)->
-      return res.status(400).send err.message or 'not ok'  if err
-      res.status(200).send stats
-
-
-app.post '/Gravatar', (req, res) ->
-  crypto  = require 'crypto'
-  {email} = req.body
-
-  console.log "Gravatar info request for: #{email}"
-
-  _hash     = (crypto.createHash('md5').update(email.toLowerCase().trim()).digest('hex')).toString()
-  _url      = "https://www.gravatar.com/#{_hash}.json"
-  _request  =
-    url     : _url
-    headers : 'User-Agent': 'request'
-    timeout : 3000
-
-  request _request, (err, response, body) ->
-
-    return res.status(400).send err.code  if err
-
-    if body isnt 'User not found'
-      try
-        gravatar = JSON.parse body
-      catch
-        return res.status(400).send 'User not found'
-
-      return res.status(200).send gravatar
-
-    res.status(400).send body
-
-
-app.get '/Hackathon/:section?', (req, res, next)->
-
-  {JGroup} = koding.models
-
-  isLoggedIn req, res, (err, loggedIn, account)->
-
-    return next()  if err
-
-    JGroup.render.loggedOut.kodingHome {
-      campaign    : 'hackathon'
-      bongoModels : koding.models
-      loggedIn
-      account
-    }, (err, content) ->
-
-      return next()  if err
-
-      return res.status(200).send content
-
 
 
 app.all '/:name/:section?/:slug?', (req, res, next)->
@@ -294,6 +183,13 @@ app.get '*', (req,res)->
 app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
 
 
+app.get '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handlers/kitesubscription'
+app.get '/-/8a51a0a07e3d456c0b00dc6ec12ad85c'   , require './__notify-users'
+app.get '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
+app.get '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
+app.get '/-/auth/check/:key'                    , require './handlers/authkeycheck'
+app.get '/-/api/user/:username/flags/:flag'     , require './handlers/flaguser'
+app.get '/-/api/app/:app'                       , require './applications'
 app.get '/-/oauth/odesk/callback'               , require './odesk_callback'
 app.get '/-/oauth/github/callback'              , require './github_callback'
 app.get '/-/oauth/facebook/callback'            , require './facebook_callback'
@@ -304,16 +200,27 @@ app.get '/-/payments/paypal/return'             , require './paypal_return'
 app.get '/-/payments/paypal/cancel'             , require './paypal_cancel'
 app.get '/-/payments/customers'                 , require './customers'
 app.get '/-/presence/:service'                  , (req, res) -> res.status(200).end()
+app.get '/-/image/cache'                        , require './image_cache'
 app.get '/-/subscriptions'                      , require './subscriptions'
 app.get '/-/version'                            , (req, res) -> res.jsonp version: KONFIG.version
 app.get '/-/healthCheck'                        , require './handlers/healthcheck'
 app.get '/-/versionCheck'                       , require './handlers/versioncheck'
+app.get '/-/jobs'                               , require './handlers/jobs'
 app.get '/:name?/OAuth/url'                     , require './oauth_url'
+app.get '/Verify/:token'                        , require './handlers/verifytoken'
+app.get '/Hackathon/:section?'                  , require './handlers/hackathon'
 # redirects
 app.get '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
 app.get '/activity/p/?*'                        , (req, res) -> res.redirect 301, '/Activity'
+
+
+# POST Routes
+app.post '/-/video-chat/session'                , require './handlers/videosession'
+app.post '/-/video-chat/token'                  , require './handlers/videotoken'
+app.post '/-/support/new', bodyParser.json()    , require './handlers/supportnew'
 app.post '/-/payments/paypal/webhook'           , require './paypal_webhook'
+app.post '/-/emails/subscribe'                  , (req, res) -> res.status(501).send 'ok'
 app.post '/:name?/Validate'                     , require './handlers/validate'
 app.post '/:name?/Validate/Username/:username?' , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'       , require './handlers/validateemail'
@@ -323,7 +230,11 @@ app.post '/:name?/Recover'                      , require './handlers/recover'
 app.post '/:name?/Reset'                        , require './handlers/reset'
 app.post '/:name?/Optout'                       , require './handlers/optout'
 app.post '/:name?/OAuth'                        , require './oauth'
+app.post '/recaptcha'                           , require './handlers/recaptcha'
 app.post '/Impersonate/:nickname'               , require './handlers/impersonate'
+app.post '/Hackathon/Apply'                     , require './handlers/hackathonapply'
+app.post '/Gravatar'                            , require './handlers/gravatar'
+
 app.all '/:name?/Logout'                        , require './handlers/logout'
 # start webserver
 app.listen webPort
