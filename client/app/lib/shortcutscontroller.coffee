@@ -121,6 +121,43 @@ class ShortcutsController extends events.EventEmitter
     trailing: true
 
 
+  # Restores default shortcuts.
+  #
+  restore: (cb) ->
+
+    unless @_store.isReady
+      throw 'store is not ready'
+
+    pack = {}
+    pack[AppStorage.DEFAULT_GROUP_NAME] = 1
+
+    @_store._storage.update $unset: pack, =>
+
+      # remove change listeners, so we won't try to persist following changes.
+      #
+      # XXX: use component-bind, bound or whatever instead
+      @shortcuts.removeAllListeners 'change'
+
+      @shortcuts.config.each (collection) =>
+
+        collection.each (model) =>
+          raw = _.find defaults[collection.name].data, name: model.name
+          return  if raw.options?.hidden
+
+          binding = raw.binding[klass._bindingPlatformIndex()]
+          enabled = if raw.options?.enabled is no then no else yes
+
+          @shortcuts.update collection.name, model.name, {
+            binding: klass._replacePlatformBinding model, binding
+            options: enabled: enabled
+          },
+            klass._isCustomShortcut raw
+
+          @emit 'change', collection, model
+
+      @shortcuts.on 'change', _.bind @_handleShortcutsChange, this
+
+
   # Buffers up changed models.
   #
   # This is necessary for not to exhaust given resources, since

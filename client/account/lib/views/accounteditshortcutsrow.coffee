@@ -101,7 +101,8 @@ class AccountEditShortcutsRow extends kd.View
     # Beware that returned model is not a json representation, but the keyconfig.Model itself.
     #
     changeHandler = (model) ->
-      toggle.click model.enabled, yes
+      enabled = if model.options?.enabled is yes then yes else no
+      toggleClickHandler enabled, yes
       # XXX: do not update binding while recording
       { shortcuts } = kd.singletons
       binding.updatePartial presentBinding _.first shortcuts.getPlatformBinding model

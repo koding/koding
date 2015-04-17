@@ -22,7 +22,10 @@ module.exports = class AccountEditShortcuts extends kd.View
 
   restoreDefaults: ->
 
-    console.log 'not implemented'
+    confirmed = confirm 'Are you sure you want to restore the default shortcuts?'
+    return  unless confirmed
+
+    kd.getSingleton('shortcuts').restore()
 
 
   viewAppended: ->
