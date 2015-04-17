@@ -46,18 +46,18 @@ class Ace extends KDView
       .join '-'
 
 
+  # Given a keyconfig model json and a callback, converts it to conform to the ace command spec.
+  #
+  # See: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
+  #
   toCommand = (model, exec) ->
-
-    # given a keyconfig model json and a callback, converts it to
-    # conform to the ace command spec.
-    #
-    # see: https://github.com/ajaxorg/ace/blob/v1.1.4/lib/ace/commands/default_commands.js
 
     binding = model.binding[0]
 
-    # since shortcuts#change emits a raw keyconfig.Model, binding prop might include
+    # Since shortcuts#change emits a raw keyconfig.Model, binding prop might include
     # all bindings for all platforms.
-    # in that case we need to get platform bindings explicitly:
+    #
+    # In that case we need to get platform bindings explicitly:
     if _.isArray binding
       { shortcuts } = kd.singletons
       binding = shortcuts.getPlatformBinding(model)[0]
@@ -152,6 +152,8 @@ class Ace extends KDView
     shortcuts.removeListener 'change', @bound 'handleShortcutChange'
     emmetLoadListeners[@id] = null  unless _.isNull emmetLoadListeners
 
+    @_commandFns = null
+
     super
 
 
@@ -161,9 +163,6 @@ class Ace extends KDView
     @setSyntax()
     @setEditorListeners()
     @setShortcuts yes
-
-    { shortcuts } = kd.singletons
-    shortcuts.on 'change', @bound 'handleShortcutChange'
 
     @appStorage.fetchStorage (storage) =>
 
@@ -213,6 +212,13 @@ class Ace extends KDView
 
   setShortcuts: (removeObsolete=yes) ->
 
+    # A stupid workaround to keep commands since ace@1.1.4#removeCommand
+    # deletes a command's exec ref.
+    @_commandFns = _.reduce @editor.commands.commands, (acc, val, key) ->
+      acc[key] = val.exec
+      acc
+    , {}
+
     { shortcuts } = kd.singletons
 
     collection = shortcuts.toCollection().find _key: 'editor'
@@ -258,6 +264,12 @@ class Ace extends KDView
 
   setShortcut: (model) ->
 
+    disabled = model.options and model.options.enabled is false
+
+    if disabled
+      @editor.commands.removeCommand model.name
+      return
+
     key = model.name
     exec =
     switch key
@@ -273,11 +285,14 @@ class Ace extends KDView
           else
             @emit.bind this, 'FindAndReplaceViewRequested', replace
 
-    exec or= @editor.commands.commands[model.name].exec
+    exec or= @_commandFns[model.name]
     @editor.commands.addCommand toCommand(model, exec)
 
 
   setEditorListeners: ->
+
+    { shortcuts } = kd.singletons
+    shortcuts.on 'change', @bound 'handleShortcutChange'
 
     @editor.getSession().selection.on 'changeCursor', (cursor) =>
       return if @suppressListeners
