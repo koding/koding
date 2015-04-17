@@ -1,13 +1,5 @@
 {Model} = require 'bongo'
 
-class JToken extends Model
-
-  @setSchema
-    token       : String
-    expires     : Date
-    authority   : String
-    requester   : String
-
 module.exports = class JSession extends Model
 
   { v4: createId } = require 'node-uuid'
@@ -21,8 +13,6 @@ module.exports = class JSession extends Model
       clientId      : String
       clientIP      : String
       username      : String
-      guestId       : Number
-      terminalId    : String
       sessionBegan  :
         type        : Date
         default     : -> new Date
@@ -83,6 +73,7 @@ module.exports = class JSession extends Model
       return callback err  if err
       return callback null, session
 
+
   @fetchSession = (clientId, callback)->
 
     return @createSession callback  unless clientId
@@ -94,6 +85,7 @@ module.exports = class JSession extends Model
         callback null, { session }
       else
         @createSession callback
+
 
   @updateClientIP = (clientId, ipAddress, callback)->
 
