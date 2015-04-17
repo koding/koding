@@ -1,8 +1,6 @@
 workspace = require './defaultshortcuts/workspace'
 activity  = require './defaultshortcuts/activity'
 editor    = require './defaultshortcuts/editor'
-
-# see: https://github.com/koding/koding/pull/3396#issuecomment-93608293
 editorHidden = require './defaultshortcuts/editorhidden'
 
 workspace = workspace.map (obj) ->
@@ -21,6 +19,7 @@ editorHidden = editorHidden.map (obj) ->
   obj.options = custom: true, hidden: true
   return obj
 
+# see: https://github.com/koding/koding/pull/3396#issuecomment-93608293
 editor = editor.concat editorHidden
 
 exports.workspace = title: 'Workspace', data: workspace

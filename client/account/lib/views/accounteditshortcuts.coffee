@@ -1,7 +1,7 @@
 kd     = require 'kd'
 _      = require 'lodash'
-Pane   = require './pane'
-facade = require './facade'
+Pane   = require './accounteditshortcutspane'
+facade = require './accounteditshortcutsfacade'
 
 module.exports =
 
