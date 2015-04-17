@@ -59,17 +59,6 @@ app.post '/:name?/Optout', (req, res) ->
 app.get "/humans.txt", (req, res)->
   generateHumanstxt(req, res)
 
-app.get "/members/:username?*", (req, res)->
-  username = req.params.username
-  res.redirect 301, '/' + username
-
-app.get "/w/members/:username?*", (req, res)->
-  username = req.params.username
-  res.redirect 301, '/' + username
-
-app.get "/activity/p/?*", (req, res)->
-  res.redirect 301, '/Activity'
-
 app.get "/-/healthCheck", (req, res) ->
   {workers, publicPort} = KONFIG
 
@@ -378,6 +367,10 @@ app.get '*', (req,res)->
 app.use express.basicAuth basicAuth.username, basicAuth.password  if basicAuth
 
 
+# redirects
+app.get '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
+app.get '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
+app.get '/activity/p/?*'                        , (req, res) -> res.redirect 301, '/Activity'
 app.post '/:name?/Validate'                     , require './handlers/validate'
 app.post '/:name?/Validate/Username/:username?' , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'       , require './handlers/validateemail'
