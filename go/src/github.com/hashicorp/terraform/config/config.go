@@ -83,6 +83,7 @@ type Resource struct {
 // to allow customized behavior
 type ResourceLifecycle struct {
 	CreateBeforeDestroy bool `hcl:"create_before_destroy"`
+	PreventDestroy      bool `hcl:"prevent_destroy"`
 }
 
 // Provisioner is a configured provisioner step on a resource.
@@ -290,6 +291,14 @@ func (c *Config) Validate() error {
 			raw[k] = strVal
 		}
 
+		// Check for invalid count variables
+		for _, v := range m.RawConfig.Variables {
+			if _, ok := v.(*CountVariable); ok {
+				errs = append(errs, fmt.Errorf(
+					"%s: count variables are only valid within resources", m.Name))
+			}
+		}
+
 		// Update the raw configuration to only contain the string values
 		m.RawConfig, err = NewRawConfig(raw)
 		if err != nil {
@@ -471,6 +480,13 @@ func (c *Config) Validate() error {
 		if invalid {
 			errs = append(errs, fmt.Errorf(
 				"%s: output should only have 'value' field", o.Name))
+		}
+
+		for _, v := range o.RawConfig.Variables {
+			if _, ok := v.(*CountVariable); ok {
+				errs = append(errs, fmt.Errorf(
+					"%s: count variables are only valid within resources", o.Name))
+			}
 		}
 	}
 
