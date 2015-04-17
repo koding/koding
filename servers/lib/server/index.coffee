@@ -51,13 +51,6 @@ do ->
   app.use helmet.hidePoweredBy()
 
 
-isInAppRoute = (name)->
-  [firstLetter] = name
-  # user nicknames can start with numbers
-  intRegex = /^\d/
-  return false if intRegex.test firstLetter
-  return true  if firstLetter.toUpperCase() is firstLetter
-  return false
 
 
 

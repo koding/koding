@@ -186,6 +186,14 @@ handleClientIdNotFound = (res, req)->
 getClientId = (req, res)->
   return req.cookies.clientId or req.pendingCookies.clientId
 
+isInAppRoute = (name)->
+  [firstLetter] = name
+  # user nicknames can start with numbers
+  intRegex = /^\d/
+  return false if intRegex.test firstLetter
+  return true  if firstLetter.toUpperCase() is firstLetter
+  return false
+
 module.exports = {
   error_
   error_404
@@ -204,4 +212,5 @@ module.exports = {
   renderOauthPopup
   handleClientIdNotFound
   getClientId
+  isInAppRoute
 }
