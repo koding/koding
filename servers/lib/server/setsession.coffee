@@ -1,7 +1,7 @@
-{ addReferralCode } = require './../helpers'
-{ updateCookie }    = require "./../client"
-koding              = require './../bongo'
-usertracker         = require '../../../../workers/usertracker'
+{ addReferralCode } = require './helpers'
+{ updateCookie }    = require './client'
+koding              = require './bongo'
+usertracker         = require './../../../workers/usertracker'
 
 module.exports = (req, res, next) ->
 
