@@ -62,14 +62,30 @@ process.on 'uncaughtException', require './handlers/uncaughtexception'
 # this is for creating session for incoming user if it doesnt have
 app.use require './setsession'
 
+# redirects
+app.get '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
+app.get '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
+app.get '/activity/p/?*'                        , (req, res) -> res.redirect 301, '/Activity'
+app.get '/:name?/Develop/?*'                    , (req, res) -> res.redirect 301, '/'
+
+# GET/POST Routes
+app.get '/:name?/OAuth/url'                     , require './oauth_url'
+app.all '/:name?/Logout'                        , require './handlers/logout'
+app.get '/Verify/:token'                        , require './handlers/verifytoken'
+app.get '/Hackathon/:section?'                  , require './handlers/hackathon'
+app.get '/humans.txt'                           , generateHumanstxt
+app.all '/:name/:section?/:slug?'                , require './handlers/main.coffee'
+app.get '/'                                     , require './handlers/root.coffee'
+app.get '*'                                     , require './handlers/rest.coffee'
+
 
 # GET Routes
 app.get '/-/subscription/check/:kiteToken?/:user?/:groupId?' , require './handlers/kitesubscription'
 app.get '/-/google-api/authorize/drive'         , require './handlers/authorizedrive'
 app.get '/-/auth/register/:hostname/:key'       , require './handlers/authregister'
-app.get '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.get '/-/api/user/:username/flags/:flag'     , require './handlers/flaguser'
 app.get '/-/api/app/:app'                       , require './applications'
+app.get '/-/auth/check/:key'                    , require './handlers/authkeycheck'
 app.get '/-/oauth/odesk/callback'               , require './odesk_callback'
 app.get '/-/oauth/github/callback'              , require './github_callback'
 app.get '/-/oauth/facebook/callback'            , require './facebook_callback'
@@ -86,18 +102,6 @@ app.get '/-/version'                            , (req, res) -> res.jsonp versio
 app.get '/-/healthCheck'                        , require './handlers/healthcheck'
 app.get '/-/versionCheck'                       , require './handlers/versioncheck'
 app.get '/-/jobs'                               , require './handlers/jobs'
-app.get '/:name?/OAuth/url'                     , require './oauth_url'
-app.get '/Verify/:token'                        , require './handlers/verifytoken'
-app.get '/humans.txt'                           , generateHumanstxt
-app.get '/Hackathon/:section?'                  , require './handlers/hackathon'
-app.get '/'                                     , require './handlers/root.coffee'
-app.get '*'                                     , require './handlers/rest.coffee'
-
-
-# redirects
-app.get '/members/:username?*'                  , (req, res) -> res.redirect 301, "/#{req.params.username}"
-app.get '/w/members/:username?*'                , (req, res) -> res.redirect 301, "/#{req.params.username}"
-app.get '/activity/p/?*'                        , (req, res) -> res.redirect 301, '/Activity'
 
 
 # POST Routes
@@ -106,23 +110,19 @@ app.post '/-/video-chat/token'                  , require './handlers/videotoken
 app.post '/-/support/new', bodyParser.json()    , require './handlers/supportnew'
 app.post '/-/payments/paypal/webhook'           , require './paypal_webhook'
 app.post '/-/emails/subscribe'                  , (req, res) -> res.status(501).send 'ok'
-app.post '/:name?/Validate'                     , require './handlers/validate'
 app.post '/:name?/Validate/Username/:username?' , require './handlers/validateusername'
 app.post '/:name?/Validate/Email/:email?'       , require './handlers/validateemail'
+app.post '/:name?/Validate'                     , require './handlers/validate'
 app.post '/:name?/Register'                     , require './handlers/register'
 app.post '/:name?/Login'                        , require './handlers/login'
 app.post '/:name?/Recover'                      , require './handlers/recover'
 app.post '/:name?/Reset'                        , require './handlers/reset'
 app.post '/:name?/Optout'                       , require './handlers/optout'
 app.post '/:name?/OAuth'                        , require './oauth'
-app.post '/recaptcha'                           , require './handlers/recaptcha'
 app.post '/Impersonate/:nickname'               , require './handlers/impersonate'
 app.post '/Hackathon/Apply'                     , require './handlers/hackathonapply'
+app.post '/recaptcha'                           , require './handlers/recaptcha'
 app.post '/Gravatar'                            , require './handlers/gravatar'
-
-# GET/POST Routes
-app.all '/:name?/Logout'                        , require './handlers/logout'
-app.all '/:name/:section?/:slug?'               , require './handlers/main.coffee'
 
 # start webserver
 app.listen webPort
