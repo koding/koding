@@ -60,7 +60,7 @@ process.on 'uncaughtException', require './handlers/uncaughtexception'
 
 
 # this is for creating session for incoming user if it doesnt have
-app.use require './handlers/setsession'
+app.use require './setsession'
 
 
 # GET Routes
